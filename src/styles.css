@@ -10204,3 +10204,82 @@ button {
 }
 .mode-item__title { font-size: 1rem; font-weight: 600; }
 .mode-item__desc  { font-size: 0.85rem; color: #888; margin-top: 2px; }
+
+/* ─── Comparison renderer ────────────────────────────────────────────────── */
+.compare-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex: 1;
+  padding: 16px;
+}
+.compare-instruction { font-size: 1.3rem; font-weight: 700; text-align: center; }
+.compare-sides {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+}
+.compare-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  background: #f8f9fa;
+  border: 3px solid #e0e0e0;
+  border-radius: 16px;
+  cursor: pointer;
+  padding: 12px;
+  transition: border-color 0.15s;
+}
+.compare-side:active { border-color: #4a90e2; }
+.compare-side--number { min-height: 80px; }
+.compare-big-number   { font-size: 3.5rem; font-weight: 800; }
+.compare-number       { font-size: 1.8rem; font-weight: 700; }
+.dot-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  max-width: 120px;
+}
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+.compare-sign-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 380px;
+}
+.compare-croc-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.compare-sign-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #4a90e2;
+}
+.compare-equal-btn {
+  margin-top: 4px;
+  width: 48px;
+  height: 40px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+}
