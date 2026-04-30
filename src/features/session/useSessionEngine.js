@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
-import { generateTasks } from "@/topics/renderers/flashcards/engine";
+import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, computeSessionRecord } from "./sessionEngine";
 
 const FEEDBACK_DELAY_MS = 900;
@@ -14,7 +14,6 @@ export function useSessionEngine() {
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
-  const setScreen         = useAppStore((s) => s.setScreen);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode = topicRecord?.modes?.find((m) => m.id === activeModeId);
@@ -28,9 +27,23 @@ export function useSessionEngine() {
 
   const [sessionState, setSessionState] = useState(() => {
     if (!topicRecord || !mode) return null;
-    const allConcepts = deriveConcepts(topicRecord.cards);
-    const concepts = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
-    const tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
+
+    const renderer = topicRecord.meta.renderer;
+    let tasks;
+
+    if (renderer === "flashcards") {
+      const allConcepts = deriveConcepts(topicRecord.cards);
+      const concepts = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
+      const generateTasks = ENGINE_REGISTRY["flashcards"];
+      tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
+    } else {
+      const generateTasks = ENGINE_REGISTRY[renderer];
+      const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
+      tasks = generateTasks
+        ? generateTasks(mode.type, topicRecord.cards, sessionParams, sessionSize)
+        : [];
+    }
+
     return createSessionState(
       tasks, mode, activeStudentId, activeTopicId,
       topicRecord.meta.version, selectedConceptIds
@@ -42,6 +55,12 @@ export function useSessionEngine() {
   async function finishSession(state) {
     const record = computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version);
     const db = await getDb();
+    // Persist last context for smart-resume
+    await kv.set(db, "lastContext", {
+      studentId: activeStudentId,
+      topicId:   activeTopicId,
+      modeId:    activeModeId,
+    });
     const existing = (await kv.get(db, "sessions")) ?? [];
     const updated = [...existing, record].slice(-200);
     await kv.set(db, "sessions", updated);
