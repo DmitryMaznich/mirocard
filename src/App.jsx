@@ -1,122 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect } from "react";
+import { useAppStore } from "@/core/store";
+import { getDb, kv } from "@/core/db";
+import { setApiToken } from "@/core/api";
 
-function App() {
-  const [count, setCount] = useState(0)
+// Screens (stubs — replaced as features are built)
+function BootScreen()     { return <div className="screen-center">Загрузка…</div>; }
+function LoginScreen()    { return <div className="screen-center">Вход (скоро)</div>; }
+function HomeScreen()     { return <div className="screen-center">Главная (скоро)</div>; }
+function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+const SCREENS = {
+  boot:     BootScreen,
+  login:    LoginScreen,
+  register: LoginScreen,
+  home:     HomeScreen,
+};
 
-      <div className="ticks"></div>
+export default function App() {
+  const screen = useAppStore((s) => s.screen);
+  const setScreen = useAppStore((s) => s.setScreen);
+  const setAccount = useAppStore((s) => s.setAccount);
+  const setToken = useAppStore((s) => s.setToken);
+  const setSettings = useAppStore((s) => s.setSettings);
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+  // Boot: load persisted session from IndexedDB
+  useEffect(() => {
+    (async () => {
+      const db = await getDb();
+      const token = await kv.get(db, "token");
+      const account = await kv.get(db, "account");
+      const settings = await kv.get(db, "settings");
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      if (settings) setSettings(settings);
+
+      if (token && account) {
+        setApiToken(token);
+        setToken(token);
+        setAccount(account);
+        setScreen("home");
+      } else {
+        setScreen("login");
+      }
+    })();
+  }, []);
+
+  // Back button: push dummy history entry so browser never exits the app
+  useEffect(() => {
+    history.replaceState({ mirocard: 1 }, "");
+    const handlePopState = () => {
+      history.pushState({ mirocard: 1 }, "");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const Screen = SCREENS[screen] ?? NotFoundScreen;
+
+  return <Screen />;
 }
-
-export default App

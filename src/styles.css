@@ -9685,3 +9685,21 @@ button {
     font-size: 44px;
   }
 }
+
+.screen-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.sync-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--dot-color, #9e9e9e);
+  flex-shrink: 0;
+}
