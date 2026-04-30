@@ -10355,3 +10355,53 @@ button {
   cursor: pointer;
 }
 .house-option-btn:active { background: #e8f0fd; border-color: #4a90e2; }
+
+/* ─── Mode picker ────────────────────────────────────────────────────────── */
+.mode-item-row { display: flex; align-items: stretch; margin-bottom: 8px; }
+.mode-item--flex { flex: 1; }
+.mode-info-btn {
+  width: 44px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 0 14px 14px 0;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #666;
+}
+.mode-badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  margin-top: 4px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.mode-badge--none   { background: #f5f5f5; color: #888; }
+.mode-badge--browse { background: #f5f5f5; color: #888; }
+.mode-badge--ok     { background: #e8f5e9; color: #388e3c; }
+.mode-badge--warn   { background: #fff8e1; color: #e65100; }
+.methodology-text  { margin: 0 0 12px; line-height: 1.5; }
+.methodology-tips  { margin: 0 0 12px; padding-left: 20px; line-height: 1.6; }
+.methodology-duration { color: #888; font-size: 0.9rem; }
+
+/* ─── Params screen ──────────────────────────────────────────────────────── */
+.params-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.param-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.param-label { font-weight: 600; flex: 1; }
+.param-stepper { display: flex; align-items: center; gap: 12px; }
+.stepper-btn {
+  width: 36px; height: 36px;
+  border: 2px solid #e0e0e0; border-radius: 8px;
+  background: none; font-size: 1.3rem; cursor: pointer;
+}
+.stepper-btn:disabled { opacity: 0.35; cursor: default; }
+.stepper-value { font-size: 1.2rem; font-weight: 700; min-width: 24px; text-align: center; }
+.param-enum-group { display: flex; gap: 6px; }
+.enum-btn {
+  padding: 6px 14px;
+  border: 2px solid #e0e0e0; border-radius: 8px;
+  background: none; cursor: pointer; font-family: inherit;
+}
+.enum-btn--active { border-color: #4a90e2; background: #e8f0fd; color: #4a90e2; font-weight: 600; }
+.param-concept-row { display: flex; align-items: center; gap: 12px; }
+.link-btn { background: none; border: none; color: #4a90e2; font-family: inherit; font-size: 0.9rem; cursor: pointer; text-decoration: underline; }
