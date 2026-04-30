@@ -91,6 +91,11 @@ export const useAppStore = create((set) => ({
     };
   }),
 
+  // ─── Sessions ──────────────────────────────────────────────────────────────
+  sessions: [],
+  setSessions:   (sessions) => set({ sessions }),
+  appendSession: (session)  => set((s) => ({ sessions: [...s.sessions, session] })),
+
   // ─── Build info ───────────────────────────────────────────────────────────
   buildInfo: {
     version:   typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev",
