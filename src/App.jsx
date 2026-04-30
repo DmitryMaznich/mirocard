@@ -2,36 +2,70 @@ import { useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { setApiToken } from "@/core/api";
+import { listTopicRecords } from "@/topics/topicLoader";
 
-// Screens (stubs — replaced as features are built)
-function BootScreen()     { return <div className="screen-center">Загрузка…</div>; }
-function LoginScreen()    { return <div className="screen-center">Вход (скоро)</div>; }
-function HomeScreen()     { return <div className="screen-center">Главная (скоро)</div>; }
+import LoginScreen        from "@/features/account/LoginScreen";
+import RegisterScreen     from "@/features/account/RegisterScreen";
+import StudentsScreen     from "@/features/students/StudentsScreen";
+import TopicLibraryScreen from "@/features/topics/TopicLibraryScreen";
+
+function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
+
+function HomeScreen() {
+  const setScreen = useAppStore((s) => s.setScreen);
+  const account   = useAppStore((s) => s.account);
+  const students  = useAppStore((s) => s.students);
+  const topics    = useAppStore((s) => s.topicRecords);
+  return (
+    <div className="screen">
+      <div className="screen-header">
+        <h1 className="screen-title">Mirocard</h1>
+      </div>
+      <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div>Привет, {account?.displayName || account?.email}!</div>
+        <div>Учеников: {students.length}</div>
+        <div>Тем: {topics.length}</div>
+        <button onClick={() => setScreen("students")}>Ученики</button>
+        <button onClick={() => setScreen("topics")}>Темы</button>
+      </div>
+    </div>
+  );
+}
+
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
 
 const SCREENS = {
   boot:     BootScreen,
   login:    LoginScreen,
-  register: LoginScreen,
+  register: RegisterScreen,
   home:     HomeScreen,
+  students: StudentsScreen,
+  topics:   TopicLibraryScreen,
 };
 
 export default function App() {
-  const screen = useAppStore((s) => s.screen);
-  const setScreen = useAppStore((s) => s.setScreen);
-  const setAccount = useAppStore((s) => s.setAccount);
-  const setToken = useAppStore((s) => s.setToken);
-  const setSettings = useAppStore((s) => s.setSettings);
+  const screen          = useAppStore((s) => s.screen);
+  const setScreen       = useAppStore((s) => s.setScreen);
+  const setAccount      = useAppStore((s) => s.setAccount);
+  const setToken        = useAppStore((s) => s.setToken);
+  const setSettings     = useAppStore((s) => s.setSettings);
+  const setStudents     = useAppStore((s) => s.setStudents);
+  const setTopicRecords = useAppStore((s) => s.setTopicRecords);
 
-  // Boot: load persisted session from IndexedDB
   useEffect(() => {
     (async () => {
       const db = await getDb();
-      const token = await kv.get(db, "token");
-      const account = await kv.get(db, "account");
-      const settings = await kv.get(db, "settings");
+      const [token, account, settings, students, topicRecords] = await Promise.all([
+        kv.get(db, "token"),
+        kv.get(db, "account"),
+        kv.get(db, "settings"),
+        kv.get(db, "students"),
+        listTopicRecords(db),
+      ]);
 
-      if (settings) setSettings(settings);
+      if (settings)             setSettings(settings);
+      if (students?.length)     setStudents(students);
+      if (topicRecords?.length) setTopicRecords(topicRecords);
 
       if (token && account) {
         setApiToken(token);
@@ -44,7 +78,6 @@ export default function App() {
     })();
   }, []);
 
-  // Back button: push dummy history entry so browser never exits the app
   useEffect(() => {
     history.replaceState({ mirocard: 1 }, "");
     const handlePopState = () => {
@@ -55,6 +88,5 @@ export default function App() {
   }, []);
 
   const Screen = SCREENS[screen] ?? NotFoundScreen;
-
   return <Screen />;
 }
