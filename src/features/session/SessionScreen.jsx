@@ -54,6 +54,7 @@ export default function SessionScreen() {
       {Renderer && currentTask ? (
         <Renderer
           task={currentTask}
+          mode={mode}
           topicId={topicRecord.meta.id}
           onCorrect={onCorrect}
           onIncorrect={onIncorrect}
