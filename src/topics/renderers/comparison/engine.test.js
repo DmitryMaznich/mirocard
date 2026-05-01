@@ -1,9 +1,27 @@
 import { describe, it, expect } from "vitest";
 import { generateComparisonTask, generateTasks } from "./engine";
 
-const CARD_EASY   = { id: "compare_easy",   conceptId: "compare_easy",   primary: true, label: "Сравни", renderer: "comparison", params: { min: 1, max: 10, minDiff: 3, allowEqual: false } };
-const CARD_MEDIUM = { id: "compare_medium", conceptId: "compare_medium", primary: true, label: "Сравни", renderer: "comparison", params: { min: 1, max: 10, minDiff: 1, allowEqual: false } };
-const CARD_HARD   = { id: "compare_hard",   conceptId: "compare_hard",   primary: true, label: "Сравни", renderer: "comparison", params: { min: 1, max: 20, minDiff: 1, allowEqual: true  } };
+const CARD_EASY   = { id: "compare_easy",   conceptId: "compare_easy",   primary: true, params: { min: 1, max: 10, minDiff: 3, allowEqual: false } };
+const CARD_MEDIUM = { id: "compare_medium", conceptId: "compare_medium", primary: true, params: { min: 1, max: 10, minDiff: 1, allowEqual: false } };
+const CARD_HARD   = { id: "compare_hard",   conceptId: "compare_hard",   primary: true, params: { min: 1, max: 20, minDiff: 1, allowEqual: true  } };
+
+const ALL_CARDS = [CARD_EASY, CARD_MEDIUM, CARD_HARD];
+
+const MODE_VISUAL = {
+  id: "compare_visual", type: "compare_visual", evaluation: "auto",
+  defaultCardId: "compare_easy",
+  ui: { title: "1. Где больше?", instruction: "Нажми на сторону где больше кружков" },
+};
+const MODE_NUMBERS = {
+  id: "compare_numbers", type: "compare_numbers", evaluation: "auto",
+  defaultCardId: "compare_medium",
+  ui: { title: "3. Какое больше?", instruction: "Нажми на большее число" },
+};
+const MODE_EQUAL = {
+  id: "compare_equal", type: "compare_equal", evaluation: "auto",
+  defaultCardId: "compare_hard",
+  ui: { title: "5. Больше, меньше или равно?", instruction: "Нажми на большее или на =" },
+};
 
 describe("generateComparisonTask", () => {
   it("returns left and right within [min, max]", () => {
@@ -41,30 +59,44 @@ describe("generateComparisonTask", () => {
 });
 
 describe("generateTasks", () => {
-  const MODE = { id: "compare_visual", type: "compare_visual", evaluation: "auto" };
-
-  it("generates sessionSize tasks per card by default", () => {
-    const cards = [CARD_EASY];
-    const tasks = generateTasks(MODE.type, cards, {}, 15);
-    expect(tasks).toHaveLength(15);
+  it("returns requested count of tasks", () => {
+    expect(generateTasks(MODE_VISUAL, ALL_CARDS, 20)).toHaveLength(20);
   });
 
-  it("each task has type, left, right, conceptId", () => {
-    const tasks = generateTasks("compare_numbers", [CARD_MEDIUM], {}, 5);
-    expect(tasks[0]).toMatchObject({
-      type: "compare_numbers",
-      left: expect.any(Number),
-      right: expect.any(Number),
-      conceptId: "compare_medium",
+  it("uses defaultCardId to select card — easy mode enforces minDiff >= 3", () => {
+    for (let i = 0; i < 5; i++) {
+      const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 20);
+      tasks.forEach(({ left, right }) => {
+        expect(Math.abs(left - right)).toBeGreaterThanOrEqual(3);
+      });
+    }
+  });
+
+  it("each task has type from mode.type", () => {
+    const tasks = generateTasks(MODE_NUMBERS, ALL_CARDS, 5);
+    tasks.forEach((task) => {
+      expect(task).toMatchObject({
+        type: "compare_numbers",
+        left: expect.any(Number),
+        right: expect.any(Number),
+        conceptId: "compare_medium",
+      });
     });
   });
 
-  it("mixes cards proportionally when multiple cards provided", () => {
-    const tasks = generateTasks("compare_sign", [CARD_EASY, CARD_MEDIUM], {}, 20);
-    expect(tasks).toHaveLength(20);
-    const easyCount   = tasks.filter((t) => t.conceptId === "compare_easy").length;
-    const mediumCount = tasks.filter((t) => t.conceptId === "compare_medium").length;
-    expect(easyCount).toBeGreaterThan(0);
-    expect(mediumCount).toBeGreaterThan(0);
+  it("hard mode allows equal values", () => {
+    let seenEqual = false;
+    for (let i = 0; i < 10; i++) {
+      const tasks = generateTasks(MODE_EQUAL, ALL_CARDS, 20);
+      if (tasks.some(({ left, right }) => left === right)) { seenEqual = true; break; }
+    }
+    expect(seenEqual).toBe(true);
+  });
+
+  it("falls back to cards[0] when defaultCardId is not found", () => {
+    const orphanMode = { ...MODE_VISUAL, defaultCardId: "nonexistent" };
+    const tasks = generateTasks(orphanMode, [CARD_EASY], 10);
+    expect(tasks).toHaveLength(10);
+    tasks.forEach(({ conceptId }) => expect(conceptId).toBe("compare_easy"));
   });
 });

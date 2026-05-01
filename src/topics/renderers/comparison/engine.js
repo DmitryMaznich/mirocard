@@ -22,14 +22,13 @@ export function generateComparisonTask(params) {
   return { left, right };
 }
 
-export function generateTasks(modeType, cards, params, count = 15) {
+export function generateTasks(mode, cards, count = 20) {
   if (!cards.length) return [];
-
+  const card = cards.find((c) => c.id === mode.defaultCardId) ?? cards[0];
   const tasks = [];
   for (let i = 0; i < count; i++) {
-    const card = cards[i % cards.length];
     const { left, right } = generateComparisonTask(card.params ?? {});
-    tasks.push({ type: modeType, left, right, conceptId: card.conceptId });
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId });
   }
   return shuffle(tasks);
 }
