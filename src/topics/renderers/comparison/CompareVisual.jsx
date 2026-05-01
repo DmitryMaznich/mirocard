@@ -12,12 +12,11 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
             : onIncorrect(task.conceptId, null)}>
           <DotGroup count={task.left} color="#4299e1" />
         </button>
-        <button className="compare-equal-btn" style={{ alignSelf: "center" }}
+        <button className="compare-equal-btn compare-equal-btn--empty" style={{ alignSelf: "center" }}
           onClick={() => task.left === task.right
             ? onCorrect(task.conceptId, null)
-            : onIncorrect(task.conceptId, null)}>
-          =
-        </button>
+            : onIncorrect(task.conceptId, null)}
+          aria-label="Одинаково" />
         <button className="compare-side"
           onClick={() => !leftBigger
             ? onCorrect(task.conceptId, null)
