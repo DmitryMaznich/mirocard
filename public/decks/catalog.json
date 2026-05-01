@@ -1,0 +1,54 @@
+{
+  "decks": [
+    {
+      "id": "emotions_v2",
+      "version": "1.1.0",
+      "title": { "ru": "Эмоции", "en": "Emotions" },
+      "description": {
+        "ru": "10 эмоций × 5 вариаций. Аудио произношение. Для детей до 16 лет.",
+        "en": "10 emotions × 5 variations each. Audio pronunciation included."
+      },
+      "url": "./decks/emotions_v2_v1.1.0.zip"
+    },
+    {
+      "id": "clothes_basic",
+      "version": "1.1.0",
+      "title": { "ru": "Одежда", "en": "Clothing" },
+      "description": {
+        "ru": "15 предметов одежды × 5 вариаций. Аудио произношение. Для детей от 3 лет.",
+        "en": "15 clothing items × 5 variations each. Audio pronunciation included."
+      },
+      "url": "./decks/clothes_basic_v1.1.0.zip"
+    },
+    {
+      "id": "verbs_v2",
+      "version": "1.1.0",
+      "title": { "ru": "Глаголы", "en": "Verbs" },
+      "description": {
+        "ru": "25 глаголов × 5 вариаций. Аудио произношение. Для детей от 5 лет.",
+        "en": "25 verbs × 5 variations each. Audio pronunciation included."
+      },
+      "url": "./decks/verbs_v2_v1.1.0.zip"
+    },
+    {
+      "id": "transport_photo",
+      "version": "1.1.0",
+      "title": { "ru": "Транспорт", "en": "Transport" },
+      "description": {
+        "ru": "28 видов транспорта. Аудио произношение. Для детей от 3 лет.",
+        "en": "28 types of transport. Audio pronunciation included."
+      },
+      "url": "./decks/transport_photo_v1.1.0.zip"
+    },
+    {
+      "id": "comparison",
+      "version": "2.0.0",
+      "title": { "ru": "Сравнение", "en": "Comparison" },
+      "description": {
+        "ru": "7 режимов педагогической лестницы: от зрительного сравнения точек до знаков < = >.",
+        "en": "7 modes: from visual dot comparison to < = > signs. Pedagogical ladder for children aged 4+."
+      },
+      "url": "./decks/comparison_v2.0.0.zip"
+    }
+  ]
+}
