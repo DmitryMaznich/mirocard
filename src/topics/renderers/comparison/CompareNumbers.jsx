@@ -23,6 +23,12 @@ export default function CompareNumbers({ task, mode, onCorrect, onIncorrect }) {
           <div className="compare-big-number">{task.left}</div>
           {showHints && <DotGroup count={task.left} color="#4299e1" />}
         </button>
+        <button className="compare-equal-btn" style={{ alignSelf: "center" }}
+          onClick={() => task.left === task.right
+            ? onCorrect(task.conceptId, null)
+            : onIncorrect(task.conceptId, null)}>
+          =
+        </button>
         <button className="compare-side compare-side--number" onClick={() => handleAnswer(false)}>
           <div className="compare-big-number">{task.right}</div>
           {showHints && <DotGroup count={task.right} color="#fc8181" />}

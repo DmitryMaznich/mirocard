@@ -13,6 +13,12 @@ export default function CompareWithNumber({ task, mode, onCorrect, onIncorrect }
           <DotGroup count={task.left} color="#4299e1" />
           <div className="compare-number">{task.left}</div>
         </button>
+        <button className="compare-equal-btn" style={{ alignSelf: "center" }}
+          onClick={() => task.left === task.right
+            ? onCorrect(task.conceptId, null)
+            : onIncorrect(task.conceptId, null)}>
+          =
+        </button>
         <button className="compare-side"
           onClick={() => !leftBigger
             ? onCorrect(task.conceptId, null)
