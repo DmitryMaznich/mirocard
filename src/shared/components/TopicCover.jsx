@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getDb, topics } from "@/core/db";
-import { getInitials } from "@/shared/utils/format";
+import { getInitials, getTopicTitle } from "@/shared/utils/format";
 
 export default function TopicCover({ topicId, avatarPath, title, size = "medium" }) {
   const [src, setSrc] = useState(null);
@@ -26,7 +26,7 @@ export default function TopicCover({ topicId, avatarPath, title, size = "medium"
   if (!src) {
     return (
       <div className={`${cls} topic-cover--placeholder`}>
-        {getInitials(title)}
+        {getInitials(getTopicTitle(title))}
       </div>
     );
   }

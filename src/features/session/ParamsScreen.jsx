@@ -35,6 +35,58 @@ function EnumParam({ label, options, value, onChange }) {
   );
 }
 
+const QUESTION_OPTIONS = [
+  { value: "more", label: "Где больше?" },
+  { value: "less", label: "Где меньше?" },
+  { value: "mix",  label: "Сравни" },
+];
+
+function ComparisonParams({ cards, params, onChange }) {
+  return (
+    <>
+      <div className="param-row">
+        <div className="param-label">Диапазон</div>
+        <div className="param-enum-group param-enum-group--col">
+          {cards.map((card) => (
+            <button
+              key={card.id}
+              className={`enum-btn ${params.cardId === card.id ? "enum-btn--active" : ""}`}
+              onClick={() => onChange({ ...params, cardId: card.id })}
+            >
+              {card.label ?? card.id}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="param-row">
+        <div className="param-label">Вопрос</div>
+        <div className="param-enum-group param-enum-group--col">
+          {QUESTION_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              className={`enum-btn ${params.question === value ? "enum-btn--active" : ""}`}
+              onClick={() => onChange({ ...params, question: value })}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="param-row">
+        <div className="param-label">Одинаково</div>
+        <button
+          className={`enum-btn ${params.showEqual ? "enum-btn--active" : ""}`}
+          onClick={() => onChange({ ...params, showEqual: !params.showEqual })}
+        >
+          {params.showEqual ? "Включено (~30%)" : "Выключено"}
+        </button>
+      </div>
+    </>
+  );
+}
+
 export default function ParamsScreen() {
   const setScreen          = useAppStore((s) => s.setScreen);
   const activeTopicId      = useAppStore((s) => s.activeTopicId);
@@ -50,9 +102,18 @@ export default function ParamsScreen() {
   const linkKey = `${activeStudentId}_${activeTopicId}`;
   const link    = studentTopicLinks[linkKey] ?? {};
 
+  const isComparison = topicRecord?.meta.renderer === "comparison";
+
   function getInitialParams() {
+    const saved = link.params ?? {};
+    if (isComparison) {
+      return {
+        cardId:    saved.cardId    ?? mode?.defaultCardId,
+        question:  saved.question  ?? "more",
+        showEqual: saved.showEqual ?? false,
+      };
+    }
     const modeParams = mode?.params ?? {};
-    const saved      = link.params ?? {};
     const out = {};
     for (const [key, def] of Object.entries(modeParams)) {
       if (def.type === "concept_selector") continue;
@@ -92,45 +153,55 @@ export default function ParamsScreen() {
       </div>
 
       <div className="params-body">
-        {Object.values(mode.params ?? {}).some((d) => d.type === "concept_selector") && (
-          <div className="param-row">
-            <div className="param-label">Понятия</div>
-            <div className="param-concept-row">
-              <span>{selectedConceptIds.length} из {allConcepts.length}</span>
-              {allConcepts.length > maxSize && (
-                <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
-              )}
-            </div>
-          </div>
-        )}
+        {isComparison ? (
+          <ComparisonParams
+            cards={topicRecord.cards}
+            params={params}
+            onChange={setParams}
+          />
+        ) : (
+          <>
+            {Object.values(mode.params ?? {}).some((d) => d.type === "concept_selector") && (
+              <div className="param-row">
+                <div className="param-label">Понятия</div>
+                <div className="param-concept-row">
+                  <span>{selectedConceptIds.length} из {allConcepts.length}</span>
+                  {allConcepts.length > maxSize && (
+                    <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
+                  )}
+                </div>
+              </div>
+            )}
 
-        {Object.entries(mode.params ?? {}).map(([key, def]) => {
-          if (def.type === "concept_selector") return null;
-          if (def.type === "number") {
-            return (
-              <NumberStepper
-                key={key}
-                label={key}
-                value={params[key] ?? def.default}
-                min={def.min}
-                max={def.max}
-                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-              />
-            );
-          }
-          if (def.type === "enum") {
-            return (
-              <EnumParam
-                key={key}
-                label={key}
-                options={def.values}
-                value={params[key] ?? def.default}
-                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-              />
-            );
-          }
-          return null;
-        })}
+            {Object.entries(mode.params ?? {}).map(([key, def]) => {
+              if (def.type === "concept_selector") return null;
+              if (def.type === "number") {
+                return (
+                  <NumberStepper
+                    key={key}
+                    label={key}
+                    value={params[key] ?? def.default}
+                    min={def.min}
+                    max={def.max}
+                    onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                  />
+                );
+              }
+              if (def.type === "enum") {
+                return (
+                  <EnumParam
+                    key={key}
+                    label={key}
+                    options={def.values}
+                    value={params[key] ?? def.default}
+                    onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                  />
+                );
+              }
+              return null;
+            })}
+          </>
+        )}
       </div>
 
       <div style={{ padding: 20 }}>

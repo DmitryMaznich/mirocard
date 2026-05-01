@@ -1,14 +1,60 @@
+import { useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
-import ProgressBar from "@/shared/components/ProgressBar";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { formatDate } from "@/shared/utils/format";
+import { getTopicTitle } from "@/shared/utils/format";
 
-function getLastSession(sessions, studentId, topicId, modeId) {
-  return sessions
-    .filter((s) => s.studentId === studentId && s.topicId === topicId && (!modeId || s.modeId === modeId))
-    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0] ?? null;
+function SettingsIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="3.2" stroke="currentColor" strokeWidth="1.8"/>
+      <path d="M11 2v2.2M11 17.8V20M2 11h2.2M17.8 11H20M4.64 4.64l1.56 1.56M15.8 15.8l1.56 1.56M4.64 17.36l1.56-1.56M15.8 6.2l1.56-1.56"
+        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function HomeHeader({ onSettings }) {
+  return (
+    <header className="home-header">
+      <div className="home-header__brand">
+        <img className="home-header__logo" src="/favicon.svg" alt="" aria-hidden />
+        <div className="home-header__copy">
+          <span className="home-header__name">Mirocard</span>
+          <span className="home-header__tagline">карточки для специалистов</span>
+        </div>
+      </div>
+      <button className="home-header__settings-btn" onClick={onSettings} aria-label="Настройки">
+        <SettingsIcon />
+      </button>
+    </header>
+  );
+}
+
+function stepState(condition, prevCondition) {
+  if (!prevCondition) return "disabled";
+  if (condition) return "done";
+  return "active";
+}
+
+function JourneyStep({ state, number, label, value, onClick }) {
+  return (
+    <button
+      className={`journey-step journey-step--${state}`}
+      onClick={onClick}
+      disabled={state === "disabled"}
+    >
+      <span className="journey-step__icon">
+        {state === "done" ? "✓" : number}
+      </span>
+      <span className="journey-step__copy">
+        <span className="journey-step__label">{label}</span>
+        <span className="journey-step__value">{value}</span>
+      </span>
+      <span className="journey-step__arrow">→</span>
+    </button>
+  );
 }
 
 function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
@@ -23,7 +69,6 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
 
 export default function HomeScreen() {
   const setScreen          = useAppStore((s) => s.setScreen);
-  const account            = useAppStore((s) => s.account);
   const students           = useAppStore((s) => s.students);
   const topicRecords       = useAppStore((s) => s.topicRecords);
   const sessions           = useAppStore((s) => s.sessions);
@@ -32,85 +77,78 @@ export default function HomeScreen() {
   const activeModeId       = useAppStore((s) => s.activeModeId);
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
   const setActiveTopicId   = useAppStore((s) => s.setActiveTopicId);
+  const setActiveModeId    = useAppStore((s) => s.setActiveModeId);
 
   const student = students.find((s) => s.id === activeStudentId) ?? students[0];
   const topic   = topicRecords.find((r) => r.meta.id === activeTopicId) ?? topicRecords[0];
   const mode    = topic?.modes?.find((m) => m.id === activeModeId) ?? topic?.modes?.[0];
 
-  const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
-  const lastSession = student && topic && mode
-    ? getLastSession(sessions, student.id, topic.meta.id, mode?.id)
-    : null;
+  useEffect(() => {
+    if (student && student.id !== activeStudentId) setActiveStudentId(student.id);
+  }, [student?.id]);
 
+  useEffect(() => {
+    if (topic && topic.meta.id !== activeTopicId) setActiveTopicId(topic.meta.id);
+  }, [topic?.meta.id]);
+
+  useEffect(() => {
+    if (mode && mode.id !== activeModeId) setActiveModeId(mode.id);
+  }, [mode?.id]);
+
+  const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && !!mode;
 
-  const noStudents = students.length === 0;
-  const noTopics   = topicRecords.length === 0;
+  const s1 = stepState(!!student, true);
+  const s2 = stepState(!!topic,   !!student);
+  const s3 = stepState(!!mode,    !!student && !!topic);
 
-  if (noStudents || noTopics) {
-    return (
-      <div className="screen">
-        <div className="screen-header">
-          <h1 className="screen-title">Mirocard</h1>
-          <button className="header-action-btn" onClick={() => setScreen("settings")}>⚙</button>
-        </div>
-        <div className="empty-state" style={{ flex: 1 }}>
-          <div className="empty-state__text">С чего начнём?</div>
-          {noStudents && <Button onClick={() => setScreen("students")}>+ Добавить ученика</Button>}
-          {noTopics   && <Button variant="secondary" onClick={() => setScreen("topics")}>↓ Скачать первую тему</Button>}
-        </div>
-      </div>
-    );
-  }
+  const topicLabel = topic
+    ? `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`
+    : "Не выбрана";
 
   return (
-    <div className="screen">
-      <div className="screen-header">
-        <h1 className="screen-title">Mirocard</h1>
-        <button className="header-action-btn" onClick={() => setScreen("settings")}>⚙</button>
-      </div>
+    <div className="screen home-screen-v2">
+      <HomeHeader onSettings={() => setScreen("settings")} />
 
-      <div className="home-card">
-        <button className="home-row" onClick={() => setScreen("students")}>
-          <span className="home-row__icon">👤</span>
-          <span className="home-row__label">{student?.name ?? "Выберите ученика"}</span>
-          <span className="home-row__chevron">›</span>
-        </button>
+      <section className="home-section">
+        <div className="home-section-header">
+          <span className="home-section-label">Собери занятие</span>
+        </div>
 
-        <button className="home-row" onClick={() => setScreen("topics")}>
-          <span className="home-row__icon">📚</span>
-          <div className="home-row__center">
-            <span className="home-row__label">{topic?.meta.title ?? "Выберите тему"}</span>
-            {topic && (
-              <ProgressBar value={progress.mastered} max={progress.total} className="home-topic-progress" />
-            )}
-          </div>
-          <span className="home-row__meta">{progress.mastered}/{progress.total}</span>
-          <span className="home-row__chevron">›</span>
-        </button>
+        <div className="journey-steps">
+          <JourneyStep
+            state={s1}
+            number="1"
+            label="Ученик"
+            value={student?.name ?? "Не выбран"}
+            onClick={() => setScreen("students")}
+          />
+          <JourneyStep
+            state={s2}
+            number="2"
+            label="Тема"
+            value={topicLabel}
+            onClick={() => setScreen("topics")}
+          />
+          <JourneyStep
+            state={s3}
+            number="3"
+            label="Режим"
+            value={mode?.ui?.title ?? "Не выбран"}
+            onClick={() => setScreen("modes")}
+          />
+        </div>
 
-        <button className="home-row" onClick={() => setScreen("modes")}>
-          <span className="home-row__icon">🎯</span>
-          <span className="home-row__label">{mode?.ui?.title ?? "Выберите режим"}</span>
-          <span className="home-row__chevron">›</span>
-        </button>
+        <div className="home-actions home-actions--footer">
+          <Button fullWidth disabled={!canStart} onClick={() => setScreen("params")}>
+            ▶ Начать занятие
+          </Button>
+        </div>
+      </section>
 
-        {lastSession && (
-          <div className="home-last-session">
-            Последний раз: {lastSession.percentCorrect !== null ? `${lastSession.percentCorrect}%` : "просмотр"} · {formatDate(lastSession.completedAt)}
-          </div>
-        )}
-      </div>
-
-      <div style={{ padding: "0 16px" }}>
-        <Button fullWidth disabled={!canStart} onClick={() => setScreen("params")}>
-          ▶ Начать занятие
-        </Button>
-      </div>
-
-      <div className="home-actions">
-        <button className="home-action-btn" onClick={() => setScreen("students")}>+ Ученик</button>
-        <button className="home-action-btn" onClick={() => setScreen("topics")}>↓ Темы</button>
+      <div className="home-quick-actions">
+        <button className="home-quick-btn" onClick={() => setScreen("students")}>+ Ученик</button>
+        <button className="home-quick-btn" onClick={() => setScreen("topics")}>↓ Темы</button>
       </div>
     </div>
   );

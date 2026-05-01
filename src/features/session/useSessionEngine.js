@@ -40,7 +40,7 @@ export function useSessionEngine() {
       const generateTasks = ENGINE_REGISTRY[renderer];
       const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
       tasks = generateTasks
-        ? generateTasks(mode, topicRecord.cards, sessionSize)
+        ? generateTasks(mode, topicRecord.cards, sessionSize, sessionParams)
         : [];
     }
 

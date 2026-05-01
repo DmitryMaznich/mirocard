@@ -1,3 +1,5 @@
+import { useAppStore } from "@/core/store";
+
 export function computeConceptLevel(sessions, studentId, topicId, conceptId) {
   const relevant = sessions
     .filter((s) => s.studentId === studentId && s.topicId === topicId)
@@ -28,8 +30,6 @@ export function computeProgressAfterSession(allSessions, completedSession) {
   }
   return result;
 }
-
-import { useAppStore } from "@/core/store";
 
 export function useConceptProgress(studentId, topicId) {
   const sessions = useAppStore((s) => s.sessions);

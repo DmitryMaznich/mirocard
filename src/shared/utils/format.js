@@ -7,9 +7,16 @@ export function formatDate(isoString) {
   });
 }
 
+export function getTopicTitle(title, lang = "ru") {
+  if (!title) return "";
+  if (typeof title === "string") return title;
+  return title[lang] ?? title.ru ?? title.en ?? "";
+}
+
 export function getInitials(name) {
-  if (!name) return "?";
-  return name
+  const str = typeof name === "string" ? name : getTopicTitle(name);
+  if (!str) return "?";
+  return str
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)

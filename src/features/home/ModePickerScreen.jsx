@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
-import { formatDate } from "@/shared/utils/format";
+import { formatDate, getTopicTitle } from "@/shared/utils/format";
 
 function LastResultBadge({ session }) {
   if (!session) return <span className="mode-badge mode-badge--none">Не проходили</span>;
@@ -59,7 +59,7 @@ export default function ModePickerScreen() {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}>←</button>
-        <h1 className="screen-title">{topicRecord.meta.title}</h1>
+        <h1 className="screen-title">{getTopicTitle(topicRecord.meta.title)}</h1>
       </div>
 
       <ul className="mode-list">

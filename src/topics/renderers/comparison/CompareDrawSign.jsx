@@ -1,9 +1,12 @@
 import { useState } from "react";
 import DrawingSignPad from "./DrawingSignPad";
+import { getVerdict } from "./engine";
 
 export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) {
-  const [answered, setAnswered]       = useState(false);
+  const [answered,    setAnswered]    = useState(false);
   const [shakeCanvas, setShakeCanvas] = useState(false);
+  const [verdict,     setVerdict2]    = useState(null);
+
   const correctSign = task.left > task.right ? ">" : task.left < task.right ? "<" : "=";
 
   function handleSignRecognized(sign, clearCanvas) {
@@ -16,6 +19,7 @@ export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) 
       return;
     }
     setAnswered(true);
+    setVerdict2(getVerdict(task));
     onCorrect(task.conceptId, null);
   }
 
@@ -32,6 +36,7 @@ export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) 
         />
         <span className="croc-put-sign-num">{task.right}</span>
       </div>
+      {verdict && <div className="compare-verdict">{verdict}</div>}
     </div>
   );
 }

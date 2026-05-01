@@ -1,16 +1,25 @@
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 
-function CardImage({ topicId, card, size = "large" }) {
+function CardImage({ topicId, card }) {
   const url = useTopicFile(topicId, card?.image);
   if (!card?.image) return null;
-  if (!url) return <div className={`card-img card-img--${size} card-img--loading`} />;
-  return <img className={`card-img card-img--${size}`} src={url} alt="" draggable={false} />;
+  if (!url) return <div className="card-img card-img--loading" />;
+  return <img className="card-img" src={url} alt="" draggable={false} />;
+}
+
+// Flex-growing wrapper that lets the square card image expand to fill available height
+function CardArea({ topicId, card }) {
+  return (
+    <div className="card-area">
+      <CardImage topicId={topicId} card={card} />
+    </div>
+  );
 }
 
 function IntroTask({ task, topicId, onAdvance }) {
   return (
     <button className="session-full-tap" onClick={onAdvance}>
-      <CardImage topicId={topicId} card={task.card} />
+      <CardArea topicId={topicId} card={task.card} />
       <div className="session-label">{task.label}</div>
       <div className="session-hint">Нажмите, чтобы продолжить</div>
     </button>
@@ -26,7 +35,7 @@ function YesNoTask({ task, topicId, onCorrect, onIncorrect }) {
 
   return (
     <div className="session-body">
-      <CardImage topicId={topicId} card={task.card} />
+      <CardArea topicId={topicId} card={task.card} />
       <div className="session-label">{task.displayLabel}</div>
       <div className="yes-no-row">
         <button className="yes-no-btn yes-no-btn--no"  onClick={() => handleAnswer(false)}>НЕТ</button>
@@ -55,11 +64,12 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect }) {
   }
 
   const cols = task.options.length <= 4 ? 2 : 3;
+  const rows = Math.ceil(task.options.length / cols);
 
   return (
     <div className="session-body">
       <div className="session-instruction">{task.targetLabel}</div>
-      <div className="find-n-grid" style={{ "--cols": cols }}>
+      <div className="find-n-grid" style={{ "--cols": cols, "--rows": rows }}>
         {task.options.map((option) => (
           <FindNOption key={option.card.id} option={option} topicId={topicId} onClick={handleOption} />
         ))}
@@ -75,8 +85,8 @@ function ChooseWordTask({ task, topicId, onCorrect, onIncorrect }) {
   }
 
   return (
-    <div className="session-body">
-      <CardImage topicId={topicId} card={task.card} />
+    <div className="session-body session-body--choose-word">
+      <CardArea topicId={topicId} card={task.card} />
       <div className="choose-word-options">
         {task.options.map((option) => (
           <button

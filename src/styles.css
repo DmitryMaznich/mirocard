@@ -10308,6 +10308,13 @@ button {
   font-weight: 800;
   color: #4a90e2;
 }
+.compare-verdict {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  color: #2e7d32;
+  margin-top: 8px;
+}
 .compare-equal-btn {
   margin-top: 4px;
   width: 48px;

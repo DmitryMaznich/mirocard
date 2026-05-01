@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { getVerdict } from "./engine";
 
 export default function ComparePutSign({ task, mode, onCorrect, onIncorrect }) {
-  const [answered, setAnswered]   = useState(false);
+  const [answered,  setAnswered]  = useState(false);
   const [shakeSign, setShakeSign] = useState(null);
+  const [verdict,   setVerdict2]  = useState(null);
+
   const correctSign = task.left > task.right ? ">" : task.left < task.right ? "<" : "=";
 
   function handleTap(sign) {
@@ -14,6 +17,7 @@ export default function ComparePutSign({ task, mode, onCorrect, onIncorrect }) {
       return;
     }
     setAnswered(true);
+    setVerdict2(getVerdict(task));
     onCorrect(task.conceptId, null);
   }
 
@@ -41,6 +45,7 @@ export default function ComparePutSign({ task, mode, onCorrect, onIncorrect }) {
           </button>
         ))}
       </div>
+      {verdict && <div className="compare-verdict">{verdict}</div>}
     </div>
   );
 }

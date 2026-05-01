@@ -6,11 +6,11 @@ import TopicCover from "@/shared/components/TopicCover";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import TopicImport from "./TopicImport";
-import { getTopicCatalogStatus } from "@/shared/utils/format";
+import { getTopicCatalogStatus, getTopicTitle } from "@/shared/utils/format";
 
-function InstalledTopicItem({ record, onDelete }) {
+function InstalledTopicItem({ record, isActive, onSelect, onDelete }) {
   return (
-    <li className="topic-item">
+    <li className={`topic-item ${isActive ? "topic-item--active" : ""}`} onClick={() => onSelect(record)}>
       <TopicCover
         topicId={record.meta.id}
         avatarPath={record.meta.avatar}
@@ -18,12 +18,12 @@ function InstalledTopicItem({ record, onDelete }) {
         size="medium"
       />
       <div className="topic-item__info">
-        <div className="topic-item__title">{record.meta.title}</div>
+        <div className="topic-item__title">{getTopicTitle(record.meta.title)}</div>
         <div className="topic-item__meta">
           v{record.meta.version} · {record.meta.conceptCount ?? record.cards.length} понятий
         </div>
       </div>
-      <button className="icon-btn icon-btn--danger" onClick={() => onDelete(record)}>✕</button>
+      <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>
     </li>
   );
 }
@@ -88,10 +88,12 @@ function CatalogTopicItem({ entry, topicRecords, buildInfo }) {
 }
 
 export default function TopicLibraryScreen() {
-  const setScreen       = useAppStore((s) => s.setScreen);
-  const topicRecords    = useAppStore((s) => s.topicRecords);
-  const setTopicRecords = useAppStore((s) => s.setTopicRecords);
-  const buildInfo       = useAppStore((s) => s.buildInfo);
+  const setScreen          = useAppStore((s) => s.setScreen);
+  const topicRecords       = useAppStore((s) => s.topicRecords);
+  const setTopicRecords    = useAppStore((s) => s.setTopicRecords);
+  const buildInfo          = useAppStore((s) => s.buildInfo);
+  const activeTopicId      = useAppStore((s) => s.activeTopicId);
+  const setActiveTopicId   = useAppStore((s) => s.setActiveTopicId);
 
   const [tab,        setTab]        = useState("mine");
   const [catalog,    setCatalog]    = useState(null);
@@ -151,6 +153,8 @@ export default function TopicLibraryScreen() {
                 <InstalledTopicItem
                   key={record.meta.id}
                   record={record}
+                  isActive={record.meta.id === activeTopicId}
+                  onSelect={(r) => { setActiveTopicId(r.meta.id); setScreen("home"); }}
                   onDelete={setDeleting}
                 />
               ))}
@@ -193,7 +197,7 @@ export default function TopicLibraryScreen() {
             </>
           }
         >
-          Удалить <strong>{deleting.meta.title}</strong>? История сессий сохранится.
+          Удалить <strong>{getTopicTitle(deleting.meta.title)}</strong>? История сессий сохранится.
         </Modal>
       )}
     </div>

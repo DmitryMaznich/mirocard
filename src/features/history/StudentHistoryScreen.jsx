@@ -1,5 +1,5 @@
 import { useAppStore } from "@/core/store";
-import { formatDate } from "@/shared/utils/format";
+import { formatDate, getTopicTitle } from "@/shared/utils/format";
 
 export default function StudentHistoryScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
@@ -31,7 +31,7 @@ export default function StudentHistoryScreen() {
             return (
               <li key={s.id} className="history-item">
                 <div className="history-item__main">
-                  <div className="history-item__topic">{topic?.meta.title ?? s.topicId}</div>
+                  <div className="history-item__topic">{getTopicTitle(topic?.meta.title) || s.topicId}</div>
                   <div className="history-item__mode">{s.modeId}</div>
                 </div>
                 <div className="history-item__right">

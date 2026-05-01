@@ -53,6 +53,7 @@ export default function SessionScreen() {
 
       {Renderer && currentTask ? (
         <Renderer
+          key={taskIndex}
           task={currentTask}
           mode={mode}
           topicId={topicRecord.meta.id}

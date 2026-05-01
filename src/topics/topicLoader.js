@@ -60,17 +60,93 @@ function validateManifest(manifest, appVersion) {
 }
 
 function validateImages(manifest, zip) {
+  const isProcedural = manifest.meta.cardType === "procedural" || !!manifest.meta.renderer;
   for (const card of manifest.cards) {
+    if (isProcedural && card.renderer) continue;
     if (card.image && !zip.file(card.image)) {
       throw new TopicImportError(`Файл не найден в ZIP: ${card.image}`);
     }
   }
 }
 
+const RENDERER_MAP = {
+  math_comparison_numbers: "comparison",
+  math_comparison_objects: "comparison",
+  math_houses:             "math_houses",
+};
+
+const DEFAULT_FLASHCARD_MODES = [
+  { id: "intro",                  type: "intro",                  evaluation: "none", ui: { title: "Знакомство",      instruction: "Нажмите чтобы продолжить" } },
+  { id: "yes_no",                 type: "yes_no",                 evaluation: "auto", ui: { title: "Да / Нет",        instruction: "Правильное ли слово?" } },
+  { id: "find_n",                 type: "find_n",                 evaluation: "auto", ui: { title: "Найди картинку",  instruction: "Нажми на нужную картинку" } },
+  { id: "choose_word_by_picture", type: "choose_word_by_picture", evaluation: "auto", ui: { title: "Выбери слово",    instruction: "Нажми на правильное слово" } },
+];
+
+const DEFAULT_MODES = {
+  comparison: [
+    { id: "compare_numbers", type: "compare_numbers", evaluation: "auto", ui: { title: "Какое больше?",       instruction: "Нажми на большее число" } },
+    { id: "compare_sign",    type: "compare_sign",    evaluation: "auto", ui: { title: "Крокодил",            instruction: "Нажми на большее число" } },
+    { id: "compare_equal",   type: "compare_equal",   evaluation: "auto", ui: { title: "Больше или равно",    instruction: "Нажми на большее число или на =" } },
+    { id: "compare_visual",  type: "compare_visual",  evaluation: "auto", ui: { title: "Где больше кружков?", instruction: "Нажми на группу с большим количеством" } },
+  ],
+  math_houses: [
+    { id: "math_houses_read", type: "math_houses_read", evaluation: "none", ui: { title: "Изучаем домик",     instruction: "Рассмотри домик числа" } },
+    { id: "math_houses",      type: "math_houses",      evaluation: "auto", ui: { title: "Дополняю до числа", instruction: "Нажми на пропущенное число" } },
+  ],
+};
+
+function normalizeLabel(card) {
+  const raw = card.label ?? card.labels;
+  if (!raw) return card.answerKey ?? card.id;
+  if (typeof raw === "string") return raw;
+  return raw.ru ?? raw.en ?? card.answerKey ?? card.id;
+}
+
+function normalizeFlashcards(manifest) {
+  if (manifest.meta.renderer) return manifest;
+  if (manifest.meta.cardType === "procedural") return manifest;
+
+  const meta = { ...manifest.meta, renderer: "flashcards" };
+
+  const cards = manifest.cards.map((card) => ({
+    ...card,
+    label:     normalizeLabel(card),
+    conceptId: card.conceptId ?? card.id,
+    primary:   card.primary ?? true,
+  }));
+
+  const modes = manifest.modes?.length ? manifest.modes : DEFAULT_FLASHCARD_MODES;
+
+  return { ...manifest, meta, cards, modes };
+}
+
+function normalizeProcedural(manifest) {
+  if (manifest.meta.cardType !== "procedural" && manifest.meta.renderer) return manifest;
+  if (manifest.meta.cardType !== "procedural") return manifest;
+
+  // Infer meta.renderer from first card's renderer field
+  const firstRenderer = manifest.cards[0]?.renderer;
+  const renderer = RENDERER_MAP[firstRenderer] ?? firstRenderer ?? "comparison";
+
+  const meta = { ...manifest.meta, renderer };
+
+  const cards = manifest.cards.map((card) => ({
+    ...card,
+    conceptId: card.conceptId ?? card.id,
+    primary:   card.primary   ?? true,
+  }));
+
+  const modes = manifest.modes?.length ? manifest.modes : (DEFAULT_MODES[renderer] ?? []);
+
+  return { ...manifest, meta, cards, modes };
+}
+
 export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
   const zip = await JSZip.loadAsync(zipBuffer);
 
-  const manifest = await parseManifest(zip);
+  let manifest = await parseManifest(zip);
+  manifest = normalizeProcedural(manifest);
+  manifest = normalizeFlashcards(manifest);
   validateManifest(manifest, appVersion);
   validateImages(manifest, zip);
 
@@ -105,10 +181,28 @@ export async function getTopicRecord(db, topicId) {
   return kv.get(db, `topic:${topicId}`);
 }
 
+function migrateRecord(record) {
+  if (!record) return record;
+  if (record.meta.renderer) return record;
+  if (record.meta.cardType === "procedural") return record;
+  // Old flashcard record without renderer — add defaults at runtime
+  return {
+    ...record,
+    meta: { ...record.meta, renderer: "flashcards" },
+    modes: record.modes?.length ? record.modes : DEFAULT_FLASHCARD_MODES,
+    cards: record.cards.map((card) => ({
+      ...card,
+      label:     typeof card.label === "string" ? card.label : normalizeLabel(card),
+      conceptId: card.conceptId ?? card.id,
+      primary:   card.primary ?? true,
+    })),
+  };
+}
+
 export async function listTopicRecords(db) {
   const ids = await getInstalledTopicIds(db);
   const records = await Promise.all(ids.map((id) => kv.get(db, `topic:${id}`)));
-  return records.filter(Boolean);
+  return records.filter(Boolean).map(migrateRecord);
 }
 
 export async function deleteTopicRecord(db, topicId) {

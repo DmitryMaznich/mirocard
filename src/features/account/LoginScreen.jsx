@@ -34,6 +34,14 @@ export default function LoginScreen() {
     }
   }
 
+  async function handleLocalMode() {
+    const account = { email: "local", displayName: "Локальный режим" };
+    const db = await getDb();
+    await kv.set(db, "account", account);
+    setAccount(account);
+    setScreen("home");
+  }
+
   return (
     <div className="auth-screen">
       <div className="auth-logo">Mirocard</div>
@@ -64,6 +72,9 @@ export default function LoginScreen() {
       </form>
       <button className="auth-link" onClick={() => setScreen("register")}>
         Нет аккаунта? Зарегистрироваться
+      </button>
+      <button className="auth-link auth-link--local" onClick={handleLocalMode}>
+        Без аккаунта (локальный режим)
       </button>
     </div>
   );

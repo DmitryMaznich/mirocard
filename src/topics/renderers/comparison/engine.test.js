@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateComparisonTask, generateTasks } from "./engine";
+import { generateComparisonTask, generateTasks, getVerdict } from "./engine";
 
 const CARD_EASY   = { id: "compare_easy",   conceptId: "compare_easy",   primary: true, params: { min: 1, max: 10, minDiff: 3, allowEqual: false } };
 const CARD_MEDIUM = { id: "compare_medium", conceptId: "compare_medium", primary: true, params: { min: 1, max: 10, minDiff: 1, allowEqual: false } };
@@ -72,25 +72,72 @@ describe("generateTasks", () => {
     }
   });
 
-  it("each task has type from mode.type", () => {
+  it("each task has type, left, right, conceptId, question fields", () => {
     const tasks = generateTasks(MODE_NUMBERS, ALL_CARDS, 5);
     tasks.forEach((task) => {
       expect(task).toMatchObject({
-        type: "compare_numbers",
-        left: expect.any(Number),
-        right: expect.any(Number),
+        type:      "compare_numbers",
+        left:      expect.any(Number),
+        right:     expect.any(Number),
         conceptId: "compare_medium",
+        question:  expect.stringMatching(/^(more|less|equal)$/),
       });
     });
   });
 
-  it("hard mode allows equal values", () => {
-    let seenEqual = false;
-    for (let i = 0; i < 10; i++) {
-      const tasks = generateTasks(MODE_EQUAL, ALL_CARDS, 20);
-      if (tasks.some(({ left, right }) => left === right)) { seenEqual = true; break; }
+  it("default question is 'more' — all non-equal tasks have question='more'", () => {
+    const tasks = generateTasks(MODE_NUMBERS, ALL_CARDS, 20);
+    tasks.forEach(({ left, right, question }) => {
+      if (left !== right) expect(question).toBe("more");
+    });
+  });
+
+  it("question='less' sets all non-equal tasks to 'less'", () => {
+    const tasks = generateTasks(MODE_NUMBERS, ALL_CARDS, 20, { question: "less" });
+    tasks.forEach(({ left, right, question }) => {
+      if (left !== right) expect(question).toBe("less");
+    });
+  });
+
+  it("question='mix' produces both 'more' and 'less' tasks", () => {
+    const tasks = generateTasks(MODE_NUMBERS, ALL_CARDS, 40, { question: "mix" });
+    const nonEqual = tasks.filter(({ left, right }) => left !== right);
+    const questions = new Set(nonEqual.map((t) => t.question));
+    expect(questions.has("more")).toBe(true);
+    expect(questions.has("less")).toBe(true);
+  });
+
+  it("showEqual generates ~30% equal tasks", () => {
+    const tasks = generateTasks(MODE_NUMBERS, ALL_CARDS, 20, { showEqual: true });
+    const equalCount = tasks.filter(({ left, right }) => left === right).length;
+    expect(equalCount).toBe(6); // Math.round(20 * 0.3) = 6
+  });
+
+  it("equal tasks always get question='equal'", () => {
+    const tasks = generateTasks(MODE_EQUAL, ALL_CARDS, 20, { showEqual: true });
+    tasks.forEach(({ left, right, question }) => {
+      if (left === right) expect(question).toBe("equal");
+    });
+  });
+
+  it("showEqual=false never produces equal tasks even for hard card", () => {
+    for (let i = 0; i < 5; i++) {
+      const tasks = generateTasks(MODE_EQUAL, ALL_CARDS, 20, { showEqual: false });
+      tasks.forEach(({ left, right }) => expect(left).not.toBe(right));
     }
-    expect(seenEqual).toBe(true);
+  });
+
+  it("cardId override selects a different card than defaultCardId", () => {
+    const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 20, { cardId: "compare_hard" });
+    // hard card: max=20, so values can exceed 10
+    const hasAbove10 = tasks.some(({ left, right }) => left > 10 || right > 10);
+    // Run multiple times to ensure — hard range goes up to 20
+    let found = hasAbove10;
+    for (let i = 0; !found && i < 10; i++) {
+      const t = generateTasks(MODE_VISUAL, ALL_CARDS, 20, { cardId: "compare_hard" });
+      found = t.some(({ left, right }) => left > 10 || right > 10);
+    }
+    expect(found).toBe(true);
   });
 
   it("falls back to cards[0] when defaultCardId is not found", () => {
@@ -98,5 +145,23 @@ describe("generateTasks", () => {
     const tasks = generateTasks(orphanMode, [CARD_EASY], 10);
     expect(tasks).toHaveLength(10);
     tasks.forEach(({ conceptId }) => expect(conceptId).toBe("compare_easy"));
+  });
+});
+
+describe("getVerdict", () => {
+  it("returns 'больше' verdict for question='more'", () => {
+    expect(getVerdict({ left: 7, right: 4, question: "more" })).toBe("7 больше 4");
+  });
+
+  it("returns 'меньше' verdict for question='less'", () => {
+    expect(getVerdict({ left: 7, right: 4, question: "less" })).toBe("4 меньше 7");
+  });
+
+  it("returns 'Одинаково' verdict for question='equal'", () => {
+    expect(getVerdict({ left: 5, right: 5, question: "equal" })).toBe("Одинаково! 5 = 5");
+  });
+
+  it("returns 'Одинаково' when left === right regardless of question", () => {
+    expect(getVerdict({ left: 3, right: 3, question: "more" })).toBe("Одинаково! 3 = 3");
   });
 });

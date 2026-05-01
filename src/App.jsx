@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, Component } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { setApiToken } from "@/core/api";
@@ -19,6 +19,23 @@ import SettingsScreen       from "@/features/settings/SettingsScreen";
 
 function BootScreen()     { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
+
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 24, fontFamily: "monospace", whiteSpace: "pre-wrap", color: "red" }}>
+          <strong>Ошибка рендера:</strong>{"\n"}
+          {String(this.state.error)}{"\n\n"}
+          {this.state.error?.stack}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const SCREENS = {
   boot:     BootScreen,
@@ -92,5 +109,9 @@ export default function App() {
   }, []);
 
   const Screen = SCREENS[screen] ?? NotFoundScreen;
-  return <Screen />;
+  return (
+    <ErrorBoundary key={screen}>
+      <Screen />
+    </ErrorBoundary>
+  );
 }

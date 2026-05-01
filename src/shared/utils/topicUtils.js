@@ -1,12 +1,18 @@
 export function deriveConcepts(cards) {
   const map = new Map();
   for (const card of cards) {
-    if (!map.has(card.conceptId)) {
-      map.set(card.conceptId, { conceptId: card.conceptId, cards: [], primary: null });
+    const conceptId = card.conceptId ?? card.id;
+    const label     = typeof card.label === "string"
+      ? card.label
+      : (card.labels?.ru ?? card.labels?.en ?? card.answerKey ?? conceptId);
+    const normalized = { ...card, conceptId, label };
+
+    if (!map.has(conceptId)) {
+      map.set(conceptId, { conceptId, cards: [], primary: null });
     }
-    const concept = map.get(card.conceptId);
-    concept.cards.push(card);
-    if (card.primary) concept.primary = card;
+    const concept = map.get(conceptId);
+    concept.cards.push(normalized);
+    if (card.primary || concept.primary === null) concept.primary = normalized;
   }
   return [...map.values()];
 }

@@ -1,5 +1,5 @@
 import { useAppStore } from "@/core/store";
-import { formatDate } from "@/shared/utils/format";
+import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
@@ -26,7 +26,7 @@ export default function SessionSummary() {
   return (
     <div className="screen summary-screen">
       <div className="summary-header">
-        <div className="summary-topic">{topicRecord?.meta.title ?? session.topicId}</div>
+        <div className="summary-topic">{getTopicTitle(topicRecord?.meta.title) || session.topicId}</div>
         <div className="summary-date">{formatDate(session.completedAt)}</div>
       </div>
 
