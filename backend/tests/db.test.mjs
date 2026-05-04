@@ -1,0 +1,36 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { initDb } from "../lib/db.mjs";
+
+test("initDb creates all required tables", () => {
+  const db = initDb(":memory:");
+
+  const tables = db
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+    .all()
+    .map((r) => r.name);
+
+  const required = [
+    "accounts",
+    "account_settings",
+    "account_topics",
+    "auth_tokens",
+    "concept_progress",
+    "password_reset_tokens",
+    "push_subscriptions",
+    "sessions",
+    "student_topic_links",
+    "students",
+    "sync_revision",
+  ];
+
+  for (const t of required) {
+    assert.ok(tables.includes(t), `Missing table: ${t}`);
+  }
+});
+
+test("initDb enables WAL mode", () => {
+  const db = initDb(":memory:");
+  const row = db.prepare("PRAGMA journal_mode").get();
+  assert.ok(["wal", "memory"].includes(row.journal_mode));
+});
