@@ -3,11 +3,16 @@ import { useAppStore } from "@/core/store";
 import { api, setApiToken } from "@/core/api";
 import { getDb, kv } from "@/core/db";
 import Button from "@/shared/components/Button";
+import { listTopicRecords } from "@/topics/topicLoader";
 
 export default function LoginScreen() {
-  const setScreen  = useAppStore((s) => s.setScreen);
-  const setAccount = useAppStore((s) => s.setAccount);
-  const setToken   = useAppStore((s) => s.setToken);
+  const setScreen       = useAppStore((s) => s.setScreen);
+  const setAccount      = useAppStore((s) => s.setAccount);
+  const setToken        = useAppStore((s) => s.setToken);
+  const setStudents     = useAppStore((s) => s.setStudents);
+  const setSettings     = useAppStore((s) => s.setSettings);
+  const setOwnedTopics  = useAppStore((s) => s.setOwnedTopics);
+  const setSessions     = useAppStore((s) => s.setSessions);
 
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -20,12 +25,29 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const { account, token } = await api.post("/auth/login", { email, password });
-      const db = await getDb();
-      await kv.set(db, "token",   token);
-      await kv.set(db, "account", account);
       setApiToken(token);
+
+      // Подгружаем все данные аккаунта с сервера
+      const [bootstrap, sessionsRaw] = await Promise.all([
+        api.get("/account/bootstrap"),
+        api.get("/sessions?limit=200"),
+      ]);
+
+      const db = await getDb();
+      await Promise.all([
+        kv.set(db, "token",    token),
+        kv.set(db, "account",  account),
+        kv.set(db, "settings", bootstrap.settings),
+        kv.set(db, "students", bootstrap.students),
+        kv.set(db, "sessions", sessionsRaw),
+      ]);
+
       setToken(token);
       setAccount(account);
+      setSettings(bootstrap.settings);
+      setStudents(bootstrap.students);
+      setOwnedTopics(bootstrap.ownedTopics);
+      setSessions(sessionsRaw);
       setScreen("home");
     } catch (err) {
       setError(err.message || "Ошибка входа. Проверьте email и пароль.");
