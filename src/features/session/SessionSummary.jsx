@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
-  computeRewardSeconds, formatRewardTime,
+  extractYoutubeId, computeRewardSeconds, formatRewardTime,
 } from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -29,7 +29,6 @@ export default function SessionSummary() {
 
   const session = sessions[sessions.length - 1];
 
-  // Compute reward data before hooks (must not be after early return)
   const topicRecord        = topicRecords.find((r) => r.meta.id === session?.topicId);
   const sessionText        = topicRecord?.texts?.find((text) => text.id === session?.textId);
   const sessionMode        = topicRecord?.modes?.find((mode) => mode.id === session?.modeId);
@@ -44,17 +43,19 @@ export default function SessionSummary() {
 
   const [videoOpen,      setVideoOpen]      = useState(false);
   const [rewardConsumed, setRewardConsumed] = useState(false);
-  const [remaining,      setRemaining]      = useState(0);
+  const [rewardRemaining, setRewardRemaining] = useState(0);
+  const rewardVideoUrl = useRef(null);
 
   useEffect(() => {
-    if (!videoOpen) return;
-    const id = setInterval(() => {
-      setRemaining((prev) => {
-        if (prev <= 1) { clearInterval(id); setVideoOpen(false); return 0; }
+    if (!videoOpen) return undefined;
+    setRewardRemaining(rewardSeconds);
+    const intervalId = window.setInterval(() => {
+      setRewardRemaining((prev) => {
+        if (prev <= 1) { window.clearInterval(intervalId); setVideoOpen(false); return 0; }
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(id);
+    return () => window.clearInterval(intervalId);
   }, [videoOpen, rewardSeconds]);
 
   if (!session) {
@@ -70,9 +71,10 @@ export default function SessionSummary() {
   const showRewardButton = !rewardConsumed && rewardSeconds > 0 && rewardVideos.length > 0;
 
   function handleOpenVideo() {
-    const url = rewardVideos[Math.floor(Math.random() * rewardVideos.length)];
-    window.open(url, "_blank", "noopener");
-    setRemaining(rewardSeconds);
+    const index = Math.floor(Math.random() * rewardVideos.length);
+    const videoId = extractYoutubeId(rewardVideos[index]);
+    if (!videoId) return;
+    rewardVideoUrl.current = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0&disablekb=1&playsinline=1`;
     setRewardConsumed(true);
     setVideoOpen(true);
   }
@@ -157,7 +159,6 @@ export default function SessionSummary() {
         </button>
       )}
 
-
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
         <Button variant="primary"   onClick={() => setScreen("home")}>Завершить</Button>
@@ -165,31 +166,23 @@ export default function SessionSummary() {
 
       {videoOpen && (
         <div className="video-reward-overlay">
-          <div className="video-reward-countdown-body">
-            <div className="video-reward-countdown-emoji">🎬</div>
-            <div className="video-reward-countdown-label">Смотри мультик!</div>
-            <div className="video-reward-countdown-timer">{formatRewardTime(remaining)}</div>
-            {remaining > 0
-              ? <div className="video-reward-countdown-hint">Вернись когда время выйдет</div>
-              : <div className="video-reward-countdown-done">Время вышло! Возвращайся!</div>
-            }
+          <div className="video-reward-frame">
+            <iframe
+              src={rewardVideoUrl.current}
+              allow="autoplay; encrypted-media"
+              sandbox="allow-scripts allow-same-origin allow-presentation"
+              frameBorder="0"
+              className="video-reward-iframe"
+              title="Reward video"
+            />
+            <div className="video-reward-blocker" aria-hidden="true" />
           </div>
-          <div className="video-reward-footer">
-            <div className="video-reward-progress">
-              <div
-                className="video-reward-progress__bar"
-                style={{ width: `${rewardSeconds > 0 ? (remaining / rewardSeconds) * 100 : 0}%` }}
-              />
-            </div>
-            <div className="video-reward-bottom">
-              <span className="video-reward-progress__label">{formatRewardTime(remaining)}</span>
-              <button
-                className="video-reward-close-btn"
-                onClick={() => setVideoOpen(false)}
-              >
-                ✕ Закрыть
-              </button>
-            </div>
+          <div className="video-reward-progress">
+            <div
+              className="video-reward-progress__bar"
+              style={{ width: `${rewardSeconds > 0 ? (rewardRemaining / rewardSeconds) * 100 : 0}%` }}
+            />
+            <span className="video-reward-progress__label">{formatRewardTime(rewardRemaining)}</span>
           </div>
         </div>
       )}
