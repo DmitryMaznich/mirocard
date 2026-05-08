@@ -82,9 +82,6 @@ export default function SessionSummary() {
 
   return (
     <div className="screen summary-screen">
-      <div style={{ background:"red", color:"#fff", fontSize:14, fontWeight:"bold", padding:"8px 12px", textAlign:"center" }}>
-        DBG v4 · видео:{rewardVideos.length} · %:{session.percentCorrect ?? "?"} · сек:{rewardSeconds}
-      </div>
       <div className="summary-header">
         <div className="summary-topic">
           {getTopicTitle(topicRecord?.meta.title) || session.topicId}
@@ -159,7 +156,7 @@ export default function SessionSummary() {
 
       {showRewardButton && (
         <button className="reward-video-btn" onClick={handleOpenVideo}>
-          🎬 Смотреть мультик ({formatRewardTime(rewardSeconds)})
+          🎬 Смотреть мультик
         </button>
       )}
 
@@ -190,9 +187,6 @@ export default function SessionSummary() {
             <div className="video-reward-blocker" aria-hidden="true" />
           </div>
           <div className="video-reward-footer">
-            <div style={{ fontSize:11, color:"#888", textAlign:"center", padding:"4px 0" }}>
-              src: {embedUrl ?? "null"}
-            </div>
             <div className="video-reward-progress">
               <div
                 className="video-reward-progress__bar"
