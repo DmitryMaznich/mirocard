@@ -66,8 +66,22 @@ export function handleAdvance(state) {
 }
 
 export function computeSessionRecord(state, studentId, topicId, topicVersion) {
-  const total = state.correctCount + state.incorrectCount;
   const isEvaluated = state.mode.evaluation !== "none";
+
+  let correctCount, incorrectCount, percentCorrect;
+  if (isEvaluated && state.totalWords != null) {
+    // Word-level tracking: errors = wrong slot attempts, total = all words in poem
+    const wrong = Math.min(state.incorrectCount, state.totalWords);
+    correctCount   = state.totalWords - wrong;
+    incorrectCount = wrong;
+    percentCorrect = Math.max(0, Math.round(((state.totalWords - wrong) / state.totalWords) * 100));
+  } else {
+    const total = state.correctCount + state.incorrectCount;
+    correctCount   = isEvaluated ? state.correctCount   : null;
+    incorrectCount = isEvaluated ? state.incorrectCount : null;
+    percentCorrect = isEvaluated && total > 0 ? Math.round((state.correctCount / total) * 100) : null;
+  }
+
   const record = {
     id:             generateId(),
     studentId,
@@ -78,9 +92,9 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion) {
     conceptIds:     state.conceptIds,
     startedAt:      state.startedAt,
     completedAt:    new Date().toISOString(),
-    correctCount:   isEvaluated ? state.correctCount   : null,
-    incorrectCount: isEvaluated ? state.incorrectCount : null,
-    percentCorrect: isEvaluated && total > 0 ? Math.round((state.correctCount / total) * 100) : null,
+    correctCount,
+    incorrectCount,
+    percentCorrect,
     mistakes:       state.mistakes,
     assessments:    state.assessments?.length ? state.assessments : undefined,
   };

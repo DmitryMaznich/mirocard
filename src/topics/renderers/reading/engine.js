@@ -43,6 +43,7 @@ function buildAssembleTasks(text) {
     textId: text.id,
     lineIndex: index,
     totalLines: lines.length,
+    tokenCount: tokenizeReadingLine(line).length,
     text,
     line,
   }));

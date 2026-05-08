@@ -263,7 +263,7 @@ const DEFAULT_MODES = {
     {
       id: "assemble_text",
       type: "assemble_text",
-      evaluation: "none",
+      evaluation: "auto",
       ui: {
         title: "Собираю текст",
         instruction: "Соберите строки из слов",

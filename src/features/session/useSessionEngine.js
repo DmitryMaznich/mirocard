@@ -54,10 +54,15 @@ export function useSessionEngine() {
         : [];
     }
 
-    return createSessionState(
+    const baseState = createSessionState(
       tasks, mode, activeStudentId, activeTopicId,
       topicRecord.meta.version, selectedConceptIds, isReading ? activeTextId : null
     );
+    if (mode.type === "assemble_text") {
+      const totalWords = tasks.reduce((sum, t) => sum + (t.tokenCount ?? 0), 0);
+      return { ...baseState, totalWords };
+    }
+    return baseState;
   });
 
   const [completedRecord, setCompletedRecord] = useState(null);
