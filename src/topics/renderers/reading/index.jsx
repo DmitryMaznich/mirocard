@@ -146,30 +146,37 @@ function buildLineState(line) {
   return {
     available: line ? shuffle(makeLineTokens(line)) : [],
     placed: {},
-    selectedUid: null,
     wrongSlot: null,
   };
 }
 
-function AssembleTextTask({ task, onQualityAnswer }) {
+function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
   const lines = task.text?.lines ?? [];
   const [lineIndex, setLineIndex] = useState(0);
   const [lineState, setLineState] = useState(() => buildLineState(lines[0]));
   const [completedLines, setCompletedLines] = useState([]);
   const [assembled, setAssembled] = useState(false);
+  const [hoverSlot, setHoverSlot] = useState(null);
+  const dragRef = useRef(null);
 
   const activeLine = lines[lineIndex];
   const expectedTokens = useMemo(() => tokenizeReadingLine(activeLine), [activeLine]);
-  const { available, placed, selectedUid, wrongSlot } = lineState;
+  const { available, placed, wrongSlot } = lineState;
+
+  function playError() {
+    if (!soundEnabled) return;
+    try { new Audio("/sounds/incorrect.wav").play().catch(() => {}); } catch {}
+  }
 
   function rejectSlot(slotIndex) {
-    setLineState((state) => ({ ...state, wrongSlot: slotIndex }));
-    setTimeout(() => setLineState((state) => ({ ...state, wrongSlot: null })), 420);
+    playError();
+    setLineState((s) => ({ ...s, wrongSlot: slotIndex }));
+    setTimeout(() => setLineState((s) => ({ ...s, wrongSlot: null })), 420);
   }
 
   function placeToken(uid, slotIndex) {
     if (placed[slotIndex]) return;
-    const token = available.find((item) => item.uid === uid);
+    const token = available.find((t) => t.uid === uid);
     const expected = expectedTokens[slotIndex];
     if (!token || !expected) return;
 
@@ -179,17 +186,16 @@ function AssembleTextTask({ task, onQualityAnswer }) {
     }
 
     const nextPlaced = { ...placed, [slotIndex]: token };
-    setLineState((state) => ({
-      ...state,
+    setLineState((s) => ({
+      ...s,
       placed: nextPlaced,
-      available: state.available.filter((item) => item.uid !== uid),
-      selectedUid: null,
+      available: s.available.filter((t) => t.uid !== uid),
       wrongSlot: null,
     }));
 
     if (Object.keys(nextPlaced).length === expectedTokens.length) {
       setTimeout(() => {
-        const finishedLine = { ...activeLine, text: expectedTokens.map((item) => item.text).join(" ") };
+        const finishedLine = { ...activeLine, text: expectedTokens.map((t) => t.text).join(" ") };
         setCompletedLines((prev) => [...prev, finishedLine]);
         if (lineIndex + 1 >= lines.length) {
           setAssembled(true);
@@ -202,15 +208,56 @@ function AssembleTextTask({ task, onQualityAnswer }) {
     }
   }
 
-  function handleDrop(event, slotIndex) {
-    event.preventDefault();
-    const uid = event.dataTransfer.getData("text/plain");
-    placeToken(uid, slotIndex);
+  function handlePointerDown(event, uid) {
+    if (dragRef.current) return;
+    const el = event.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const text = available.find((t) => t.uid === uid)?.text ?? "";
+
+    const ghost = document.createElement("div");
+    ghost.className = "reading-word reading-word--ghost";
+    ghost.textContent = text;
+    ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:9999;margin:0;`;
+    document.body.appendChild(ghost);
+
+    el.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      uid,
+      pointerId: event.pointerId,
+      ghost,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    };
   }
 
-  function handleSlotClick(slotIndex) {
-    if (!selectedUid) return;
-    placeToken(selectedUid, slotIndex);
+  function handlePointerMove(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    drag.ghost.style.left = `${event.clientX - drag.offsetX}px`;
+    drag.ghost.style.top  = `${event.clientY - drag.offsetY}px`;
+    const under = document.elementFromPoint(event.clientX, event.clientY);
+    const slotEl = under?.closest("[data-slot-index]");
+    const next = slotEl ? +slotEl.dataset.slotIndex : null;
+    setHoverSlot((prev) => prev === next ? prev : next);
+  }
+
+  function handlePointerUp(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    drag.ghost.remove();
+    dragRef.current = null;
+    setHoverSlot(null);
+    const under = document.elementFromPoint(event.clientX, event.clientY);
+    const slotEl = under?.closest("[data-slot-index]");
+    if (slotEl) placeToken(drag.uid, +slotEl.dataset.slotIndex);
+  }
+
+  function handlePointerCancel(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    drag.ghost.remove();
+    dragRef.current = null;
+    setHoverSlot(null);
   }
 
   if (assembled) {
@@ -244,16 +291,19 @@ function AssembleTextTask({ task, onQualityAnswer }) {
 
       <div className="reading-slot-row" aria-label="Строка с пропусками">
         {expectedTokens.map((token, index) => (
-          <button
+          <div
             key={`${token.text}_${index}`}
-            className={`reading-slot${placed[index] ? " reading-slot--filled" : ""}${wrongSlot === index ? " reading-slot--wrong" : ""}`}
+            data-slot-index={index}
+            className={[
+              "reading-slot",
+              placed[index]   ? "reading-slot--filled" : "",
+              wrongSlot === index ? "reading-slot--wrong"  : "",
+              hoverSlot === index && !placed[index] ? "reading-slot--hover" : "",
+            ].filter(Boolean).join(" ")}
             style={{ "--chars": Math.max(2, token.text.length) }}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => handleDrop(event, index)}
-            onClick={() => handleSlotClick(index)}
           >
             {placed[index]?.text ?? ""}
-          </button>
+          </div>
         ))}
       </div>
 
@@ -261,13 +311,12 @@ function AssembleTextTask({ task, onQualityAnswer }) {
         {available.map((token) => (
           <button
             key={token.uid}
-            className={`reading-word${selectedUid === token.uid ? " reading-word--selected" : ""}`}
-            draggable
-            onDragStart={(event) => event.dataTransfer.setData("text/plain", token.uid)}
-            onClick={() => setLineState((state) => ({
-              ...state,
-              selectedUid: state.selectedUid === token.uid ? null : token.uid,
-            }))}
+            className="reading-word"
+            style={{ touchAction: "none" }}
+            onPointerDown={(e) => handlePointerDown(e, token.uid)}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
           >
             {token.text}
           </button>
@@ -285,7 +334,7 @@ const TASK_RENDERERS = {
   assemble_text:   AssembleTextTask,
 };
 
-export default function ReadingRenderer({ task, topicId, sessionParams, onAdvance, onQualityAnswer }) {
+export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, onAdvance, onQualityAnswer }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -293,6 +342,7 @@ export default function ReadingRenderer({ task, topicId, sessionParams, onAdvanc
       task={task}
       topicId={topicId}
       sessionParams={sessionParams}
+      soundEnabled={soundEnabled}
       onAdvance={onAdvance}
       onQualityAnswer={onQualityAnswer}
     />
