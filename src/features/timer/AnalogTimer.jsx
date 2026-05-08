@@ -139,7 +139,7 @@ export default function AnalogTimer({ rewardVideos = [], onClose }) {
         rewardIntervalRef.current = null;
       }
     };
-  }, [listenState, successVideoUrl, rewardSecondsLeft]);
+  }, [listenState, successVideoUrl]);
 
   function clearAllIntervals() {
     if (intervalRef.current) {
