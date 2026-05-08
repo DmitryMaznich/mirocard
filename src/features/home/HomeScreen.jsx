@@ -135,7 +135,10 @@ export default function HomeScreen({ onOpenTimer }) {
   }, [videoOpen]);
 
   function handleTestVideo() {
-    rewardVideoUrl.current = `https://www.youtube.com/embed/Y7PzuG_MXQw?autoplay=1&playsinline=1`;
+    if (!rewardVideos.length) return;
+    const videoId = extractYoutubeId(rewardVideos[Math.floor(Math.random() * rewardVideos.length)]);
+    if (!videoId) return;
+    rewardVideoUrl.current = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1`;
     setVideoOpen(true);
   }
 
