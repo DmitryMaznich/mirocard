@@ -79,6 +79,11 @@ export default function SessionSummary() {
     setVideoOpen(true);
   }
 
+  function handleTestVideo() {
+    rewardVideoUrl.current = "https://www.youtube-nocookie.com/embed/jNQXAC9IVRw?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0&disablekb=1&playsinline=1";
+    setVideoOpen(true);
+  }
+
   return (
     <div className="screen summary-screen">
       <div className="summary-header">
@@ -158,6 +163,13 @@ export default function SessionSummary() {
           🎬 Смотреть мультик
         </button>
       )}
+
+      <button
+        onClick={handleTestVideo}
+        style={{ display:"block", width:"100%", padding:"10px", background:"#c00", color:"#fff", border:"none", fontSize:14, fontWeight:"bold", cursor:"pointer" }}
+      >
+        🧪 ТЕСТ ВИДЕО
+      </button>
 
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
