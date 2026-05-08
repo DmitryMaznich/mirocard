@@ -10,8 +10,8 @@
     "preview": "vite preview --host 0.0.0.0 --port 8080 --configLoader native",
     "serve:prod": "node backend/serve-production.mjs",
     "deploy": "npm run deploy:prod",
-    "deploy:prod": "node deploy-prod.mjs",
-    "deploy:verify": "node deploy-prod.mjs --verify-only"
+    "deploy:prod": "node --env-file=.env deploy-prod.mjs",
+    "deploy:verify": "node --env-file=.env deploy-prod.mjs --verify-only"
   },
   "dependencies": {
     "jszip": "^3.10.1",
