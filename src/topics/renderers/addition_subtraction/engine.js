@@ -44,8 +44,8 @@ function makeNumberOptions(answer, maxNumber, optionCount = 4) {
 
 function buildOperationTask(modeType, card, params = {}) {
   const operation = normalizeOperation(card.params?.operation);
-  const maxNumber = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.maxNumber, DEFAULT_MAX_NUMBER)));
-  const railSize = Math.max(maxNumber, toNumber(params.railSize, DEFAULT_RAIL_SIZE));
+  const railSize = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.railSize ?? params.maxNumber, DEFAULT_RAIL_SIZE)));
+  const maxNumber = railSize;
   const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, DEFAULT_CHANGE_MAX)));
   const includeZero = Boolean(params.includeZero);
   const associationDirection = modeType === "operation_action_from_sign"
