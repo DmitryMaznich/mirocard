@@ -67,15 +67,7 @@ export function isValidYoutubeUrl(url) {
 export function makeYoutubeEmbedUrl(videoId) {
   const id = normalizeYoutubeId(videoId);
   if (!id) return null;
-
-  const params = new URLSearchParams({
-    autoplay: "1",
-    rel:      "0",
-    playsinline: "1",
-    iv_load_policy: "3",
-  });
-
-  return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&controls=0&playsinline=1`;
 }
 
 export function computeRewardSeconds(modeId, cardCount) {

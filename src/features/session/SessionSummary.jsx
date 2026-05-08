@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
@@ -37,7 +37,6 @@ export default function SessionSummary() {
   const student            = students.find((s) => s.id === session?.studentId);
   const link               = session ? (studentTopicLinks[`${session.studentId}_${session.topicId}`] ?? {}) : {};
   const rewardVideos       = student?.rewardVideos ?? [];
-  const rewardVideoIds     = rewardVideos.map(extractYoutubeId).filter(Boolean);
   const videoRewardEnabled = link.videoRewardEnabled ?? true;
   const rewardSeconds      = (session?.percentCorrect ?? -1) >= 90 && videoRewardEnabled
     ? computeRewardSeconds(session.modeId, topicRecord?.cards?.length ?? 10)
@@ -46,7 +45,7 @@ export default function SessionSummary() {
   const [videoOpen,      setVideoOpen]      = useState(false);
   const [rewardConsumed, setRewardConsumed] = useState(false);
   const [remaining,      setRemaining]      = useState(0);
-  const [embedUrl,       setEmbedUrl]       = useState(null);
+  const embedUrlRef = useRef(null);
 
   useEffect(() => {
     if (!videoOpen) return;
@@ -69,13 +68,13 @@ export default function SessionSummary() {
 
   const progressAfter    = computeProgressAfterSession(sessions, session);
   const isEvaluated      = session.percentCorrect !== null;
-  const showRewardButton = !rewardConsumed && rewardSeconds > 0 && rewardVideoIds.length > 0;
+  const showRewardButton = !rewardConsumed && rewardSeconds > 0 && rewardVideos.length > 0;
 
   function handleOpenVideo() {
-    const id = rewardVideoIds[Math.floor(Math.random() * rewardVideoIds.length)];
-    const nextEmbedUrl = makeYoutubeEmbedUrl(id);
-    if (!nextEmbedUrl) return;
-    setEmbedUrl(nextEmbedUrl);
+    const url = rewardVideos[Math.floor(Math.random() * rewardVideos.length)];
+    const id  = extractYoutubeId(url);
+    if (!id) return;
+    embedUrlRef.current = makeYoutubeEmbedUrl(id);
     setRemaining(rewardSeconds);
     setRewardConsumed(true);
     setVideoOpen(true);
@@ -170,14 +169,12 @@ export default function SessionSummary() {
         <div className="video-reward-overlay">
           <div className="video-reward-frame">
             <iframe
-              key={embedUrl}
-              src={embedUrl}
+              src={embedUrlRef.current}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               frameBorder="0"
               className="video-reward-iframe"
               title="Reward video"
-              referrerPolicy="strict-origin-when-cross-origin"
             />
             <div className="video-reward-blocker" aria-hidden="true" />
           </div>
