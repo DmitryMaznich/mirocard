@@ -365,8 +365,8 @@ function ManipulationTask({ task, onCorrect, onMistake }) {
   }
 
   const caption = task.operation === "add"
-    ? "Правильно! Плюс — это прибавить!"
-    : "Правильно! Минус — это убрать!";
+    ? "Да! Плюс — это прибавить!"
+    : "Да! Минус — это убрать!";
 
   return (
     <div className="operation-stage">
