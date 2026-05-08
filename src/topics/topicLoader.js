@@ -169,23 +169,17 @@ const QA_PARAMS = {
 };
 
 const OPERATION_PARAMS = {
-  maxNumber: {
+  railSize: {
     type: "enum",
     label: { ru: "Диапазон" },
-    values: [5, 10, 20],
-    default: 5,
+    values: [10, 20],
+    default: 20,
   },
   changeMax: {
     type: "enum",
     label: { ru: "Прибавить/убрать до" },
     values: [1, 2, 3, 5],
     default: 1,
-  },
-  railSize: {
-    type: "enum",
-    label: { ru: "Палка" },
-    values: [10, 20],
-    default: 20,
   },
   includeZero: {
     type: "boolean",
