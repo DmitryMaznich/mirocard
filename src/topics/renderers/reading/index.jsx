@@ -56,9 +56,11 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   if (layout === "line") {
     return (
       <div className="session-body reading-body">
-        <div className="reading-title">{getTopicTitle(task.text.title)}</div>
-        <div className="reading-content">
-          <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} />
+        <div className="reading-poem-wrap">
+          <div className="reading-title">{getTopicTitle(task.text.title)}</div>
+          <div className="reading-content">
+            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} />
+          </div>
         </div>
         <div className="reading-line-nav">
           <button
@@ -87,9 +89,11 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
 
   return (
     <div className="session-body reading-body" onClick={onAdvance}>
-      <div className="reading-title">{getTopicTitle(task.text.title)}</div>
-      <div className="reading-content">
-        <ReadingTextBlock lines={lines} />
+      <div className="reading-poem-wrap">
+        <div className="reading-title">{getTopicTitle(task.text.title)}</div>
+        <div className="reading-content">
+          <ReadingTextBlock lines={lines} />
+        </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} />
     </div>
