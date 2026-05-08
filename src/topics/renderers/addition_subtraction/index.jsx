@@ -144,15 +144,17 @@ function OperationStory({ task, compact = false }) {
   );
 }
 
-function LiveBeadTool({ task, disabled, onAnswer }) {
+function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
   const railSize     = task.railSize ?? 20;
   const half         = Math.floor(railSize / 2);
   const [workingCount, setWorkingCount] = useState(task.start);
   const [drag, setDrag]                 = useState(null);
+  const [error, setError]               = useState(false);
   const confirmRef  = useRef(null);
+  const errorRef    = useRef(null);
   const onAnswerRef = useRef(onAnswer);
   useEffect(() => { onAnswerRef.current = onAnswer; }, [onAnswer]);
-  useEffect(() => () => clearTimeout(confirmRef.current), []);
+  useEffect(() => () => { clearTimeout(confirmRef.current); clearTimeout(errorRef.current); }, []);
 
   useEffect(() => {
     clearTimeout(confirmRef.current);
@@ -168,7 +170,7 @@ function LiveBeadTool({ task, disabled, onAnswer }) {
     e.preventDefault();
     clearTimeout(confirmRef.current);
     e.currentTarget.setPointerCapture(e.pointerId);
-    setDrag({ idx, startX: e.clientX, preview: null });
+    setDrag({ idx, startX: e.clientX, preview: null, originCount: workingCount });
   }
 
   function moveDrag(e) {
@@ -183,8 +185,22 @@ function LiveBeadTool({ task, disabled, onAnswer }) {
   }
 
   function endDrag() {
-    if (drag?.preview != null)
-      setWorkingCount(Math.max(0, Math.min(railSize, drag.preview)));
+    if (!drag) return;
+    if (drag.preview != null && drag.preview !== workingCount) {
+      const newCount = drag.preview;
+      const wrongDir = task.operation === "add" ? newCount < workingCount : newCount > workingCount;
+      const overshoot = task.operation === "add" ? newCount > task.result : newCount < task.result;
+      if (wrongDir || overshoot) {
+        onMistake?.(task.conceptId, task.cardId);
+        setError(true);
+        clearTimeout(errorRef.current);
+        errorRef.current = setTimeout(() => setError(false), 600);
+        setWorkingCount(drag.originCount);
+        setDrag(null);
+        return;
+      }
+      setWorkingCount(newCount);
+    }
     setDrag(null);
   }
 
@@ -199,7 +215,7 @@ function LiveBeadTool({ task, disabled, onAnswer }) {
     <div className="operation-stick">
       <div className="operation-stick__wrap">
         <div className="operation-stick__rod" />
-        <div className="operation-stick__track">
+        <div className={`operation-stick__track${error ? " operation-stick__track--error" : ""}`}>
           {items.map((item) =>
             item.type === "gap"
               ? <div key="gap" className="operation-stick__gap" />
@@ -340,26 +356,30 @@ function NumberChoices({ task, selected, onAnswer }) {
   );
 }
 
-function ManipulationTask({ task, onCorrect }) {
+function ManipulationTask({ task, onCorrect, onMistake }) {
   const [answered, setAnswered] = useState(false);
 
   function handleAnswer() {
     setAnswered(true);
-    setTimeout(() => onCorrect(task.conceptId, task.cardId), 2000);
+    onCorrect(task.conceptId, task.cardId);
   }
+
+  const caption = task.operation === "add"
+    ? "Правильно! Плюс — это прибавить!"
+    : "Правильно! Минус — это убрать!";
 
   return (
     <div className="operation-stage">
       <OperationExpression task={task} missingResult={!answered} answered={answered} />
       <div className={`operation-stick-caption operation-stick-caption--${task.operation}${answered ? " show" : ""}`}>
-        {task.operation === "add" ? "Прибавили!" : "Убрали!"}
+        {caption}
       </div>
-      <LiveBeadTool task={task} disabled={answered} onAnswer={handleAnswer} />
+      <LiveBeadTool task={task} disabled={answered} onAnswer={handleAnswer} onMistake={onMistake} />
     </div>
   );
 }
 
-function OperationTask({ task, onCorrect, onIncorrect }) {
+function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
   const [selected, setSelected] = useState(null);
   const type = task.type;
 
@@ -374,7 +394,7 @@ function OperationTask({ task, onCorrect, onIncorrect }) {
   }
 
   if (type === "operation_do_action") {
-    return <ManipulationTask task={task} onCorrect={onCorrect} />;
+    return <ManipulationTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
   }
 
   if (type === "operation_name_action") {
@@ -497,7 +517,7 @@ function OperationTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
-export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect }) {
+export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake }) {
   if (!task) return null;
-  return <OperationTask key={`${task.cardId}:${task.start}:${task.delta}:${task.type}:${task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  return <OperationTask key={`${task.cardId}:${task.start}:${task.delta}:${task.type}:${task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
 }

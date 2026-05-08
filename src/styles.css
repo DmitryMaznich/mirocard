@@ -13316,6 +13316,15 @@ button.operation-dot {
 .operation-expression__result--pop     { animation: operation-answer-pop .38s ease both; color: #1f7a6f; }
 .operation-expression__result--pop-sub { animation: operation-answer-pop .38s ease both; color: #c04040; }
 
+@keyframes stick-error-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-9px); }
+  40%       { transform: translateX(9px); }
+  60%       { transform: translateX(-6px); }
+  80%       { transform: translateX(6px); }
+}
+.operation-stick__track--error { animation: stick-error-shake .5s ease both; }
+
 /* ─── Settings ───────────────────────────────────────────────────────────── */
 .settings-body { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
 .settings-section { background: #fff; border-radius: 14px; overflow: hidden; }
