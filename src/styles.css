@@ -95,8 +95,8 @@
   padding: 18px;
   border-radius: 18px;
   background: #fff;
-  border: 1px solid #ece4d8;
-  box-shadow: 0 8px 20px rgba(71, 61, 48, 0.06);
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 .reading-text--large {
@@ -125,7 +125,7 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: clamp(120px, 26vw, 200px);
+  width: clamp(240px, 52vw, 400px);
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -275,7 +275,7 @@
   padding: 16px;
   border-radius: 18px;
   background: #fff;
-  border: 1px solid #ece4d8;
+  border: 1px solid #e8e8e8;
   flex-shrink: 0;
 }
 
@@ -284,8 +284,8 @@
   height: 58px;
   padding: 0 12px;
   border-radius: 14px;
-  border: 2px dashed #cabda8;
-  background: #faf7f1;
+  border: 2px dashed #d0d0d0;
+  background: #f6f6f6;
   color: #1a2e2b;
   font-size: 1.15rem;
   font-weight: 900;
@@ -320,7 +320,7 @@
   gap: 10px;
   padding: 14px;
   border-radius: 18px;
-  background: #eef0ef;
+  background: #f0f0f0;
   flex-shrink: 0;
 }
 
@@ -333,7 +333,7 @@
   color: #263131;
   font-size: 1.12rem;
   font-weight: 900;
-  box-shadow: 0 4px 0 #d9d2c8;
+  box-shadow: 0 4px 0 #e0e0e0;
 }
 
 .reading-word--selected {
@@ -388,7 +388,7 @@
 
 @media (min-width: 900px) {
   .reading-illustration {
-    width: clamp(200px, 28vw, 320px);
+    width: clamp(400px, 40vw, 640px);
   }
 }
 
