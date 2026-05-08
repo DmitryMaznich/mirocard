@@ -257,6 +257,9 @@ export default function HomeScreen({ onOpenTimer }) {
             <div className="video-reward-progress__bar" style={{ width: `${(rewardRemaining / TEST_SECONDS) * 100}%` }} />
             <span className="video-reward-progress__label">{formatRewardTime(rewardRemaining)}</span>
           </div>
+          <div style={{ color: "#fff", fontSize: 11, padding: "4px 8px", wordBreak: "break-all", opacity: 0.7 }}>
+            {rewardVideoUrl.current}
+          </div>
         </div>
       )}
     </div>
