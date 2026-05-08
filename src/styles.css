@@ -59,12 +59,13 @@
 }
 
 .reading-body {
-  background: #fbfaf6;
+  background: #ffffff;
   color: #263131;
   padding: 16px;
   gap: 18px;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .reading-body > *:not(.reading-illustration) {
@@ -128,8 +129,6 @@
   pointer-events: none;
   user-select: none;
   z-index: 0;
-  -webkit-mask-image: linear-gradient(to bottom right, transparent 15%, black 55%);
-  mask-image: linear-gradient(to bottom right, transparent 15%, black 55%);
 }
 
 .reading-illustration img {

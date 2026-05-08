@@ -86,12 +86,11 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   }
 
   return (
-    <div className="session-body reading-body">
+    <div className="session-body reading-body" onClick={onAdvance}>
       <div className="reading-title">{getTopicTitle(task.text.title)}</div>
       <div className="reading-content">
         <ReadingTextBlock lines={lines} />
       </div>
-      <button className="reading-primary-btn" onClick={onAdvance}>Завершить чтение</button>
       <ReadingIllustration topicId={topicId} text={task.text} />
     </div>
   );
