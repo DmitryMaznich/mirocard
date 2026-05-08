@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
@@ -45,7 +45,7 @@ export default function SessionSummary() {
   const [videoOpen,      setVideoOpen]      = useState(false);
   const [rewardConsumed, setRewardConsumed] = useState(false);
   const [remaining,      setRemaining]      = useState(0);
-  const embedUrlRef = useRef(null);
+  const [embedUrl,       setEmbedUrl]       = useState(null);
 
   useEffect(() => {
     if (!videoOpen) return;
@@ -73,8 +73,8 @@ export default function SessionSummary() {
   function handleOpenVideo() {
     const url = rewardVideos[Math.floor(Math.random() * rewardVideos.length)];
     const id  = extractYoutubeId(url);
-    if (!id) return;
-    embedUrlRef.current = makeYoutubeEmbedUrl(id);
+    const finalUrl = id ? makeYoutubeEmbedUrl(id) : null;
+    setEmbedUrl(finalUrl);
     setRemaining(rewardSeconds);
     setRewardConsumed(true);
     setVideoOpen(true);
@@ -156,9 +156,13 @@ export default function SessionSummary() {
 
       {showRewardButton && (
         <button className="reward-video-btn" onClick={handleOpenVideo}>
-          🎬 Смотреть мультик
+          🎬 Смотреть мультик ({formatRewardTime(rewardSeconds)})
         </button>
       )}
+
+      <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", padding: "4px 0" }}>
+        🎬 видео: {rewardVideos.length} · % {session.percentCorrect ?? "—"} · сек {rewardSeconds}
+      </div>
 
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
@@ -168,17 +172,27 @@ export default function SessionSummary() {
       {videoOpen && (
         <div className="video-reward-overlay">
           <div className="video-reward-frame">
-            <iframe
-              src={embedUrlRef.current}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              frameBorder="0"
-              className="video-reward-iframe"
-              title="Reward video"
-            />
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                frameBorder="0"
+                className="video-reward-iframe"
+                title="Reward video"
+              />
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:16, color:"#fff" }}>
+                <div>Не удалось загрузить видео</div>
+                <div style={{ fontSize:11, color:"#aaa", wordBreak:"break-all", padding:"0 16px", textAlign:"center" }}>{rewardVideos[0]}</div>
+              </div>
+            )}
             <div className="video-reward-blocker" aria-hidden="true" />
           </div>
           <div className="video-reward-footer">
+            <div style={{ fontSize:11, color:"#888", textAlign:"center", padding:"4px 0" }}>
+              src: {embedUrl ?? "null"}
+            </div>
             <div className="video-reward-progress">
               <div
                 className="video-reward-progress__bar"
