@@ -1,14 +1,48 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { importTopic, deleteTopicRecord, TopicImportError } from "@/topics/topicLoader";
+import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import TopicCover from "@/shared/components/TopicCover";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import TopicImport from "./TopicImport";
+import InfoModal from "@/shared/components/InfoModal";
 import { getTopicCatalogStatus, getTopicTitle } from "@/shared/utils/format";
 
-function InstalledTopicItem({ record, isActive, onSelect, onDelete }) {
+const CATALOG_URL = "./decks/catalog.json";
+
+function buildServerUrl(resourceUrl, force = false) {
+  const url = new URL(resourceUrl, window.location.href);
+  if (force) {
+    url.searchParams.set("_refresh", `${Date.now()}_${Math.random().toString(36).slice(2)}`);
+  }
+  return url.href;
+}
+
+async function fetchCatalog(force = false) {
+  const res = await fetch(buildServerUrl(CATALOG_URL, force), {
+    cache: force ? "reload" : "no-store",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function fetchCatalogTopic(entry, appVersion, force = false) {
+  const res = await fetch(buildServerUrl(entry.url, force), {
+    cache: force ? "reload" : "default",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const buf = await res.arrayBuffer();
+  const db = await getDb();
+  return importTopic(db, buf, appVersion);
+}
+
+function getImportErrorMessage(err) {
+  return err instanceof TopicImportError ? err.message : "Ошибка загрузки";
+}
+
+function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, hasUpdate }) {
   return (
     <li className={`topic-item ${isActive ? "topic-item--active" : ""}`} onClick={() => onSelect(record)}>
       <TopicCover
@@ -21,37 +55,29 @@ function InstalledTopicItem({ record, isActive, onSelect, onDelete }) {
         <div className="topic-item__title">{getTopicTitle(record.meta.title)}</div>
         <div className="topic-item__meta">
           v{record.meta.version} · {record.meta.conceptCount ?? record.cards.length} понятий
+          {hasUpdate && <span className="tab-badge" style={{ marginLeft: 6 }}>обновление</span>}
         </div>
       </div>
+      <button className="icon-btn icon-btn--info" onClick={(e) => { e.stopPropagation(); onInfo(record); }} title="О теме">i</button>
       <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>
     </li>
   );
 }
 
-function CatalogTopicItem({ entry, topicRecords, buildInfo }) {
+function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) {
   const status = getTopicCatalogStatus(entry, topicRecords);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
-  const setTopicRecords = useAppStore((s) => s.setTopicRecords);
+  const installedRecord = topicRecords.find((record) => record.meta.id === entry.id);
+  const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(entry.id);
 
   async function handleDownload() {
     setLoading(true);
     setError("");
     try {
-      const url = new URL(entry.url, window.location.href).href;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = await res.arrayBuffer();
-      const db = await getDb();
-      const record = await importTopic(db, buf, buildInfo.version);
-      setTopicRecords([
-        ...topicRecords.filter((r) => r.meta.id !== record.meta.id),
-        record,
-      ]);
+      await onInstall(entry, { force: status !== "not_installed" });
     } catch (err) {
-      setError(
-        err instanceof TopicImportError ? err.message : "Ошибка загрузки"
-      );
+      setError(getImportErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -60,17 +86,24 @@ function CatalogTopicItem({ entry, topicRecords, buildInfo }) {
   const actionLabel = {
     not_installed:    loading ? "Загружаем…" : "Скачать",
     update_available: loading ? "Обновляем…" : `Обновить до v${entry.version}`,
-    installed:        "Установлена",
+    installed:        loading ? "Обновляем…" : "Обновить с сервера",
   }[status];
 
   return (
     <li className="topic-item">
-      <div className="topic-cover topic-cover--medium topic-cover--placeholder">
-        {entry.title?.ru?.slice(0, 2) ?? "?"}
-      </div>
+      <TopicCover
+        topicId={entry.id}
+        avatarPath={avatarPath}
+        title={entry.title}
+        size="medium"
+      />
       <div className="topic-item__info">
         <div className="topic-item__title">{entry.title?.ru ?? entry.id}</div>
-        <div className="topic-item__meta">v{entry.version}</div>
+        <div className="topic-item__meta">
+          v{entry.version}
+          {status === "installed" && " · установлена"}
+          {status === "update_available" && installedRecord?.meta?.version && ` · сейчас v${installedRecord.meta.version}`}
+        </div>
         {entry.description?.ru && (
           <div className="topic-item__desc">{entry.description.ru}</div>
         )}
@@ -78,7 +111,7 @@ function CatalogTopicItem({ entry, topicRecords, buildInfo }) {
       </div>
       <Button
         variant={status === "installed" ? "secondary" : "primary"}
-        disabled={status === "installed" || loading}
+        disabled={disabled || loading}
         onClick={handleDownload}
       >
         {actionLabel}
@@ -97,16 +130,98 @@ export default function TopicLibraryScreen() {
 
   const [tab,        setTab]        = useState("mine");
   const [catalog,    setCatalog]    = useState(null);
+  const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogErr, setCatalogErr] = useState("");
+  const [catalogMessage, setCatalogMessage] = useState("");
+  const [refreshingDecks, setRefreshingDecks] = useState(false);
   const [deleting,   setDeleting]   = useState(null);
+  const [infoTopic,  setInfoTopic]  = useState(null);
+
+  const loadCatalog = useCallback(async (force = false) => {
+    setCatalogLoading(true);
+    setCatalogErr("");
+    setCatalogMessage("");
+    try {
+      const nextCatalog = await fetchCatalog(force);
+      setCatalog(nextCatalog);
+      if (force) setCatalogMessage("Каталог обновлён");
+      return nextCatalog;
+    } catch {
+      setCatalogErr("Не удалось загрузить каталог");
+      return null;
+    } finally {
+      setCatalogLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (tab !== "catalog" || catalog !== null) return;
-    fetch("./decks/catalog.json")
-      .then((r) => r.json())
-      .then(setCatalog)
-      .catch(() => setCatalogErr("Не удалось загрузить каталог"));
-  }, [tab]);
+    if (catalog !== null) return;
+    let cancelled = false;
+    fetchCatalog(false)
+      .then((nextCatalog) => {
+        if (!cancelled) setCatalog(nextCatalog);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogErr("Не удалось загрузить каталог");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [catalog]);
+
+  const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
+    const record = await fetchCatalogTopic(entry, buildInfo.version, force);
+    setTopicRecords([
+      ...topicRecords.filter((r) => r.meta.id !== record.meta.id),
+      record,
+    ]);
+    return record;
+  }, [buildInfo.version, setTopicRecords, topicRecords]);
+
+  async function handleRefreshInstalledDecks() {
+    setRefreshingDecks(true);
+    setCatalogErr("");
+    setCatalogMessage("");
+    try {
+      const freshCatalog = await fetchCatalog(true);
+      setCatalog(freshCatalog);
+      const installedIds = new Set(topicRecords.map((record) => record.meta.id));
+      const entries = (freshCatalog.decks ?? []).filter((entry) => installedIds.has(entry.id));
+
+      if (entries.length === 0) {
+        setCatalogMessage("Нет установленных тем для обновления");
+        return;
+      }
+
+      const nextRecords = [...topicRecords];
+      const failed = [];
+      let updatedCount = 0;
+
+      for (const entry of entries) {
+        try {
+          const record = await fetchCatalogTopic(entry, buildInfo.version, true);
+          const index = nextRecords.findIndex((item) => item.meta.id === record.meta.id);
+          if (index >= 0) nextRecords[index] = record;
+          else nextRecords.push(record);
+          updatedCount += 1;
+        } catch (err) {
+          failed.push(`${entry.title?.ru ?? entry.id}: ${getImportErrorMessage(err)}`);
+        }
+      }
+
+      if (updatedCount > 0) {
+        setTopicRecords(nextRecords);
+        setCatalogMessage(`Обновлено тем: ${updatedCount}`);
+      }
+      if (failed.length > 0) {
+        setCatalogErr(`Не обновлено: ${failed.join("; ")}`);
+      }
+    } catch {
+      setCatalogErr("Не удалось обновить колоды с сервера");
+    } finally {
+      setRefreshingDecks(false);
+    }
+  }
 
   async function handleDelete() {
     const db = await getDb();
@@ -134,6 +249,13 @@ export default function TopicLibraryScreen() {
           onClick={() => setTab("catalog")}
         >
           Каталог
+          {catalog && (() => {
+            const n = topicRecords.filter((r) => {
+              const e = catalog.decks?.find((d) => d.id === r.meta.id);
+              return e && e.version !== r.meta.version;
+            }).length;
+            return n > 0 ? <span className="tab-badge" style={{ marginLeft: 6 }}>{n}</span> : null;
+          })()}
         </button>
       </div>
 
@@ -149,15 +271,21 @@ export default function TopicLibraryScreen() {
             </div>
           ) : (
             <ul className="topic-list">
-              {topicRecords.map((record) => (
-                <InstalledTopicItem
-                  key={record.meta.id}
-                  record={record}
-                  isActive={record.meta.id === activeTopicId}
-                  onSelect={(r) => { setActiveTopicId(r.meta.id); setScreen("home"); }}
-                  onDelete={setDeleting}
-                />
-              ))}
+              {topicRecords.map((record) => {
+                const catalogEntry = catalog?.decks?.find((e) => e.id === record.meta.id);
+                const hasUpdate = !!catalogEntry && catalogEntry.version !== record.meta.version;
+                return (
+                  <InstalledTopicItem
+                    key={record.meta.id}
+                    record={record}
+                    isActive={record.meta.id === activeTopicId}
+                    onSelect={(r) => { setActiveTopicId(r.meta.id); setScreen("home"); }}
+                    onDelete={setDeleting}
+                    onInfo={setInfoTopic}
+                    hasUpdate={hasUpdate}
+                  />
+                );
+              })}
             </ul>
           )}
         </div>
@@ -165,6 +293,23 @@ export default function TopicLibraryScreen() {
 
       {tab === "catalog" && (
         <div className="tab-content">
+          <div className="catalog-actions">
+            <Button
+              variant="secondary"
+              onClick={() => loadCatalog(true)}
+              disabled={catalogLoading || refreshingDecks}
+            >
+              {catalogLoading ? "Проверяем…" : "Обновить каталог"}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleRefreshInstalledDecks}
+              disabled={catalogLoading || refreshingDecks || topicRecords.length === 0}
+            >
+              {refreshingDecks ? "Обновляем…" : "Обновить колоды с сервера"}
+            </Button>
+          </div>
+          {catalogMessage && <div className="form-success">{catalogMessage}</div>}
           {catalogErr && <div className="form-error" style={{ margin: 16 }}>{catalogErr}</div>}
           {!catalog && !catalogErr && (
             <div className="empty-state">
@@ -178,12 +323,21 @@ export default function TopicLibraryScreen() {
                   key={entry.id}
                   entry={entry}
                   topicRecords={topicRecords}
-                  buildInfo={buildInfo}
+                  onInstall={installCatalogEntry}
+                  disabled={refreshingDecks}
                 />
               ))}
             </ul>
           )}
         </div>
+      )}
+
+      {infoTopic && (
+        <InfoModal
+          title={getTopicTitle(infoTopic.meta.title)}
+          about={infoTopic.meta.about}
+          onClose={() => setInfoTopic(null)}
+        />
       )}
 
       {deleting && (
