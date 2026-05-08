@@ -70,20 +70,12 @@ export function makeYoutubeEmbedUrl(videoId) {
 
   const params = new URLSearchParams({
     autoplay: "1",
-    rel: "0",
-    controls: "0",
+    rel:      "0",
     playsinline: "1",
-    fs: "0",
-    disablekb: "1",
-    modestbranding: "1",
     iv_load_policy: "3",
   });
 
-  if (typeof window !== "undefined" && window.location?.origin && window.location.origin !== "null") {
-    params.set("origin", window.location.origin);
-  }
-
-  return `https://www.youtube.com/embed/${id}?${params.toString()}`;
+  return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
 }
 
 export function computeRewardSeconds(modeId, cardCount) {
