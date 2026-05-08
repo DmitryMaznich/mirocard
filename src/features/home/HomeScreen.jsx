@@ -135,10 +135,7 @@ export default function HomeScreen({ onOpenTimer }) {
   }, [videoOpen]);
 
   function handleTestVideo() {
-    if (!rewardVideos.length) return;
-    const videoId = extractYoutubeId(rewardVideos[Math.floor(Math.random() * rewardVideos.length)]);
-    if (!videoId) return;
-    rewardVideoUrl.current = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&fs=0&disablekb=1&playsinline=1`;
+    rewardVideoUrl.current = `https://www.youtube.com/embed/Y7PzuG_MXQw?autoplay=1&playsinline=1`;
     setVideoOpen(true);
   }
 
@@ -244,8 +241,9 @@ export default function HomeScreen({ onOpenTimer }) {
           <div className="video-reward-frame">
             <iframe
               src={rewardVideoUrl.current}
-              allow="autoplay; encrypted-media"
-              sandbox="allow-scripts allow-same-origin allow-presentation"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
               frameBorder="0"
               className="video-reward-iframe"
               title="Reward video"
