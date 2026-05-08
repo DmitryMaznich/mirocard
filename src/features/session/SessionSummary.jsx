@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
-  extractYoutubeId, makeYoutubeEmbedUrl, computeRewardSeconds, formatRewardTime,
+  computeRewardSeconds, formatRewardTime,
 } from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -45,7 +45,6 @@ export default function SessionSummary() {
   const [videoOpen,      setVideoOpen]      = useState(false);
   const [rewardConsumed, setRewardConsumed] = useState(false);
   const [remaining,      setRemaining]      = useState(0);
-  const [embedUrl,       setEmbedUrl]       = useState(null);
 
   useEffect(() => {
     if (!videoOpen) return;
@@ -72,9 +71,7 @@ export default function SessionSummary() {
 
   function handleOpenVideo() {
     const url = rewardVideos[Math.floor(Math.random() * rewardVideos.length)];
-    const id  = extractYoutubeId(url);
-    const finalUrl = id ? makeYoutubeEmbedUrl(id) : null;
-    setEmbedUrl(finalUrl);
+    window.open(url, "_blank", "noopener");
     setRemaining(rewardSeconds);
     setRewardConsumed(true);
     setVideoOpen(true);
@@ -168,23 +165,14 @@ export default function SessionSummary() {
 
       {videoOpen && (
         <div className="video-reward-overlay">
-          <div className="video-reward-frame">
-            {embedUrl ? (
-              <iframe
-                src={embedUrl}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                frameBorder="0"
-                className="video-reward-iframe"
-                title="Reward video"
-              />
-            ) : (
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:16, color:"#fff" }}>
-                <div>Не удалось загрузить видео</div>
-                <div style={{ fontSize:11, color:"#aaa", wordBreak:"break-all", padding:"0 16px", textAlign:"center" }}>{rewardVideos[0]}</div>
-              </div>
-            )}
-            <div className="video-reward-blocker" aria-hidden="true" />
+          <div className="video-reward-countdown-body">
+            <div className="video-reward-countdown-emoji">🎬</div>
+            <div className="video-reward-countdown-label">Смотри мультик!</div>
+            <div className="video-reward-countdown-timer">{formatRewardTime(remaining)}</div>
+            {remaining > 0
+              ? <div className="video-reward-countdown-hint">Вернись когда время выйдет</div>
+              : <div className="video-reward-countdown-done">Время вышло! Возвращайся!</div>
+            }
           </div>
           <div className="video-reward-footer">
             <div className="video-reward-progress">
