@@ -60,9 +60,11 @@ export const useAppStore = create((set) => ({
   // ─── Session setup ─────────────────────────────────────────────────────────
   activeStudentId: null,
   activeTopicId: null,
+  activeTextId: null,
   activeModeId: null,
   setActiveStudentId: (id) => set({ activeStudentId: id }),
-  setActiveTopicId:   (id) => set({ activeTopicId: id }),
+  setActiveTopicId:   (id) => set({ activeTopicId: id, activeTextId: null, activeModeId: null }),
+  setActiveTextId:    (id) => set({ activeTextId: id, activeModeId: null }),
   setActiveModeId:    (id) => set({ activeModeId: id }),
 
   // ─── Student-topic links ───────────────────────────────────────────────────

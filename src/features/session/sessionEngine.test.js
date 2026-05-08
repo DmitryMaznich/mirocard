@@ -89,6 +89,14 @@ describe("computeSessionRecord", () => {
     expect(rec.id).toBeTruthy();
   });
 
+  it("stores optional textId for reading sessions", () => {
+    let state = createSessionState([TASKS[0]], MODE, "student_1", "reading", "1.0.0", ["dad_best"], "dad_best");
+    state = handleAnswer(state, true);
+    state = handleAdvance(state);
+    const rec = computeSessionRecord(state, "student_1", "reading", "1.0.0");
+    expect(rec.textId).toBe("dad_best");
+  });
+
   it("percentCorrect is null for evaluation: none", () => {
     const INTRO_MODE = { id: "intro", type: "intro", evaluation: "none" };
     let state = createSessionState(

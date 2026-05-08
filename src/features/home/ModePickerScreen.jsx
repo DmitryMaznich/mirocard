@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import Modal from "@/shared/components/Modal";
+import InfoModal from "@/shared/components/InfoModal";
+import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
 
@@ -17,23 +19,42 @@ function LastResultBadge({ session }) {
   );
 }
 
-function getLastModeSession(sessions, studentId, topicId, modeId) {
+function getLastModeSession(sessions, studentId, topicId, modeId, textId = null) {
   return sessions
     .filter((s) => s.studentId === studentId && s.topicId === topicId && s.modeId === modeId)
+    .filter((s) => !textId || s.textId === textId)
     .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0] ?? null;
+}
+
+function getTextTitle(text) {
+  return getTopicTitle(text?.title) || text?.id || "";
+}
+
+function filterReadingModes(modes = [], text) {
+  if (!text) return [];
+  return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem"));
 }
 
 export default function ModePickerScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
+  const activeTextId    = useAppStore((s) => s.activeTextId);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const topicRecords    = useAppStore((s) => s.topicRecords);
   const sessions        = useAppStore((s) => s.sessions);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
-  const [methodology, setMethodology] = useState(null);
+  const [methodology,  setMethodology]  = useState(null);
+  const [topicAbout,   setTopicAbout]   = useState(false);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const isReading = topicRecord?.meta.renderer === "reading";
+  const activeText = isReading
+    ? topicRecord?.texts?.find((text) => text.id === activeTextId)
+    : null;
+  const modes = isReading
+    ? filterReadingModes(topicRecord?.modes, activeText)
+    : topicRecord?.modes ?? [];
 
   if (!topicRecord) {
     return (
@@ -50,6 +71,21 @@ export default function ModePickerScreen() {
     );
   }
 
+  if (isReading && !activeText) {
+    return (
+      <div className="screen">
+        <div className="screen-header">
+          <button className="back-btn" onClick={() => setScreen("texts")}>←</button>
+          <h1 className="screen-title">Режим чтения</h1>
+        </div>
+        <div className="empty-state">
+          <div className="empty-state__text">Сначала выберите текст</div>
+          <Button onClick={() => setScreen("texts")}>Выбрать текст</Button>
+        </div>
+      </div>
+    );
+  }
+
   function pickMode(mode) {
     setActiveModeId(mode.id);
     setScreen("params");
@@ -58,30 +94,47 @@ export default function ModePickerScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("home")}>←</button>
-        <h1 className="screen-title">{getTopicTitle(topicRecord.meta.title)}</h1>
+        <button className="back-btn" onClick={() => setScreen(isReading ? "texts" : "home")}>←</button>
+        <h1 className="screen-title">{isReading ? getTextTitle(activeText) : getTopicTitle(topicRecord.meta.title)}</h1>
+        <button
+          className="header-info-btn"
+          onClick={() => setTopicAbout(true)}
+          title="О теме"
+        >
+          i
+        </button>
       </div>
 
       <ul className="mode-list">
-        {topicRecord.modes.map((mode) => {
-          const lastSession = getLastModeSession(sessions, activeStudentId, activeTopicId, mode.id);
+        {modes.map((mode) => {
+          const lastSession = getLastModeSession(sessions, activeStudentId, activeTopicId, mode.id, isReading ? activeTextId : null);
           return (
             <li key={mode.id} className="mode-item-row">
-              <button className="mode-item mode-item--flex" onClick={() => pickMode(mode)}>
-                <div>
+              <div
+                className="mode-item mode-item--flex"
+                role="button"
+                tabIndex={0}
+                onClick={() => pickMode(mode)}
+                onKeyDown={(e) => e.key === "Enter" && pickMode(mode)}
+              >
+                {mode.ui?.icon && (
+                  <ModeIcon topicId={activeTopicId} iconPath={mode.ui.icon} size="medium" />
+                )}
+                <div className="mode-item__body">
                   <div className="mode-item__title">{mode.ui?.title ?? mode.id}</div>
                   <div className="mode-item__desc">{mode.ui?.instruction ?? ""}</div>
                   <LastResultBadge session={lastSession} />
                 </div>
-              </button>
-              {mode.methodology && (
-                <button
-                  className="mode-info-btn"
-                  onClick={(e) => { e.stopPropagation(); setMethodology(mode); }}
-                >
-                  ?
-                </button>
-              )}
+                {mode.methodology && (
+                  <button
+                    className="mode-info-btn"
+                    onClick={(e) => { e.stopPropagation(); setMethodology(mode); }}
+                    title="О режиме"
+                  >
+                    ?
+                  </button>
+                )}
+              </div>
             </li>
           );
         })}
@@ -89,18 +142,26 @@ export default function ModePickerScreen() {
 
       {methodology && (
         <Modal title={methodology.ui?.title} onClose={() => setMethodology(null)}>
-          <p className="methodology-text">{methodology.methodology?.text}</p>
+          <p className="info-modal-text">{methodology.methodology?.text}</p>
           {methodology.methodology?.tips?.length > 0 && (
-            <ul className="methodology-tips">
+            <ul className="info-modal-tips">
               {methodology.methodology.tips.map((tip, i) => (
                 <li key={i}>{tip}</li>
               ))}
             </ul>
           )}
           {methodology.methodology?.duration && (
-            <div className="methodology-duration">⏱ {methodology.methodology.duration}</div>
+            <div className="info-modal-duration">⏱ {methodology.methodology.duration}</div>
           )}
         </Modal>
+      )}
+
+      {topicAbout && (
+        <InfoModal
+          title={getTopicTitle(topicRecord.meta.title)}
+          about={topicRecord.meta.about}
+          onClose={() => setTopicAbout(false)}
+        />
       )}
     </div>
   );

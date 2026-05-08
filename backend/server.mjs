@@ -1,10 +1,11 @@
 import { createServer } from "node:http";
 import { randomUUID, createHash } from "node:crypto";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
-  PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR,
+  DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT,
 } from "./lib/config.mjs";
 import { getDb } from "./lib/db.mjs";
@@ -74,6 +75,60 @@ function safeJson(value, fallback) {
   try { return JSON.parse(value ?? "null") ?? fallback; } catch { return fallback; }
 }
 
+function normalizeApiPath(pathname) {
+  if (pathname === "/api") return "/";
+  return pathname.startsWith("/api/") ? pathname.slice(4) : pathname;
+}
+
+function getLegacyPasswordHashesPath() {
+  return process.env.MIROCARD_LEGACY_PASSWORD_HASHES_PATH ||
+    path.join(DATA_DIR, "legacy-password-hashes.json");
+}
+
+function readLegacyPasswordHashes() {
+  const legacyPath = getLegacyPasswordHashesPath();
+  if (!existsSync(legacyPath)) return {};
+  try {
+    const parsed = JSON.parse(readFileSync(legacyPath, "utf8"));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getLegacyPasswordHashes(email) {
+  const hashes = readLegacyPasswordHashes()[sanitizeEmail(email)];
+  return Array.isArray(hashes) ? hashes.filter((hash) => typeof hash === "string") : [];
+}
+
+function clearLegacyPasswordHashes(email) {
+  const legacyPath = getLegacyPasswordHashesPath();
+  if (!existsSync(legacyPath)) return;
+  const legacy = readLegacyPasswordHashes();
+  const key = sanitizeEmail(email);
+  if (!(key in legacy)) return;
+  delete legacy[key];
+  try {
+    writeFileSync(legacyPath, `${JSON.stringify(legacy, null, 2)}\n`);
+  } catch (err) {
+    console.error("Failed to clear legacy password hashes:", err);
+  }
+}
+
+function serializeStudent(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    comment: row.comment,
+    primaryLanguage: row.primary_language,
+    rewardVideos: safeJson(row.reward_videos, []),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at ?? null,
+  };
+}
+
 // ─── Auth handlers ─────────────────────────────────────────────────────────────
 
 async function handleRegister(req, res) {
@@ -107,9 +162,24 @@ async function handleLogin(req, res) {
   const password = String(body?.password || "");
 
   const account = findAccountByEmail(db, email);
-  if (!account || !verifyPasswordHash(password, account.password_hash)) {
+  let passwordMatches = account && verifyPasswordHash(password, account.password_hash);
+  let matchedLegacyPassword = false;
+
+  if (account && !passwordMatches) {
+    matchedLegacyPassword = getLegacyPasswordHashes(email).some((hash) =>
+      verifyPasswordHash(password, hash)
+    );
+    if (matchedLegacyPassword) {
+      updateAccountPasswordHash(db, account.id, createPasswordHash(password));
+      passwordMatches = true;
+    }
+  }
+
+  if (!account || !passwordMatches) {
     return writeJson(res, 401, { error: "Invalid email or password" });
   }
+
+  clearLegacyPasswordHashes(email);
 
   const token = makeToken(account.id);
   const settings = getAccountSettings(db, account.id);
@@ -154,6 +224,7 @@ async function handleResetPassword(req, res) {
   updateAccountPasswordHash(db, accountId, createPasswordHash(newPassword));
 
   const account = findAccountById(db, accountId);
+  clearLegacyPasswordHashes(account.email);
   const token = makeToken(account.id);
   const settings = getAccountSettings(db, account.id);
 
@@ -189,6 +260,7 @@ async function handleChangePassword(req, res) {
   }
 
   updateAccountPasswordHash(db, account.id, createPasswordHash(newPassword));
+  clearLegacyPasswordHashes(account.email);
   writeJson(res, 200, { ok: true });
 }
 
@@ -229,7 +301,7 @@ async function handleBootstrap(req, res) {
 
 async function handleGetStudents(req, res) {
   const account = requireAuth(req);
-  writeJson(res, 200, getStudents(db, account.id));
+  writeJson(res, 200, getStudents(db, account.id).map(serializeStudent));
 }
 
 async function handleUpsertStudent(req, res) {
@@ -244,9 +316,12 @@ async function handleUpsertStudent(req, res) {
     name: String(body.name).trim(),
     comment: String(body.comment ?? ""),
     primaryLanguage: body.primaryLanguage ?? null,
+    rewardVideos: Array.isArray(body.rewardVideos)
+      ? body.rewardVideos.map((item) => String(item || "").trim()).filter(Boolean)
+      : [],
   });
 
-  writeJson(res, 200, getStudents(db, account.id).find((s) => s.id === id));
+  writeJson(res, 200, serializeStudent(getStudents(db, account.id).find((s) => s.id === id)));
 }
 
 async function handleDeleteStudent(req, res) {
@@ -437,7 +512,7 @@ async function handleVersion(req, res) {
 async function router(req, res) {
   const url = new URL(req.url, "http://localhost");
   const method = req.method.toUpperCase();
-  const p = url.pathname;
+  const p = normalizeApiPath(url.pathname);
 
   if (method === "OPTIONS") return writeNoContent(res);
 

@@ -58,6 +58,7 @@ export function initDb(dbPath = DB_PATH) {
       name             TEXT NOT NULL,
       comment          TEXT DEFAULT '',
       primary_language TEXT,
+      reward_videos    TEXT DEFAULT '[]',
       created_at       TEXT NOT NULL,
       updated_at       TEXT NOT NULL,
       deleted_at       TEXT
@@ -128,6 +129,11 @@ export function initDb(dbPath = DB_PATH) {
       created_at TEXT NOT NULL
     );
   `);
+
+  const studentColumns = db.prepare("PRAGMA table_info(students)").all();
+  if (!studentColumns.some((column) => column.name === "reward_videos")) {
+    db.exec("ALTER TABLE students ADD COLUMN reward_videos TEXT DEFAULT '[]'");
+  }
 
   return db;
 }

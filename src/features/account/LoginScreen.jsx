@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api, setApiToken } from "@/core/api";
-import { getDb, kv } from "@/core/db";
+import { getDb } from "@/core/db";
+import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
-import { listTopicRecords } from "@/topics/topicLoader";
 
 export default function LoginScreen() {
-  const setScreen       = useAppStore((s) => s.setScreen);
-  const setAccount      = useAppStore((s) => s.setAccount);
-  const setToken        = useAppStore((s) => s.setToken);
-  const setStudents     = useAppStore((s) => s.setStudents);
-  const setSettings     = useAppStore((s) => s.setSettings);
-  const setOwnedTopics  = useAppStore((s) => s.setOwnedTopics);
-  const setSessions     = useAppStore((s) => s.setSessions);
+  const setScreen = useAppStore((s) => s.setScreen);
 
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -33,21 +27,20 @@ export default function LoginScreen() {
         api.get("/sessions?limit=200"),
       ]);
 
-      const db = await getDb();
-      await Promise.all([
-        kv.set(db, "token",    token),
-        kv.set(db, "account",  account),
-        kv.set(db, "settings", bootstrap.settings),
-        kv.set(db, "students", bootstrap.students),
-        kv.set(db, "sessions", sessionsRaw),
-      ]);
+      const payload = {
+        token,
+        account,
+        settings: bootstrap.settings,
+        students: bootstrap.students,
+        ownedTopics: bootstrap.ownedTopics,
+        studentTopicLinks: bootstrap.studentTopicLinks,
+        conceptProgress: bootstrap.conceptProgress,
+        sessions: sessionsRaw,
+      };
 
-      setToken(token);
-      setAccount(account);
-      setSettings(bootstrap.settings);
-      setStudents(bootstrap.students);
-      setOwnedTopics(bootstrap.ownedTopics);
-      setSessions(sessionsRaw);
+      const db = await getDb();
+      await persistBootstrap(db, payload);
+      applyBootstrapToStore(payload);
       setScreen("home");
     } catch (err) {
       setError(err.message || "Ошибка входа. Проверьте email и пароль.");
@@ -59,8 +52,9 @@ export default function LoginScreen() {
   async function handleLocalMode() {
     const account = { email: "local", displayName: "Локальный режим" };
     const db = await getDb();
-    await kv.set(db, "account", account);
-    setAccount(account);
+    const payload = { account, token: null };
+    await persistBootstrap(db, payload);
+    applyBootstrapToStore(payload);
     setScreen("home");
   }
 

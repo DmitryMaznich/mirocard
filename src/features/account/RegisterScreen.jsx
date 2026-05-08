@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api, setApiToken } from "@/core/api";
-import { getDb, kv } from "@/core/db";
+import { getDb } from "@/core/db";
+import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
 
 export default function RegisterScreen() {
-  const setScreen  = useAppStore((s) => s.setScreen);
-  const setAccount = useAppStore((s) => s.setAccount);
-  const setToken   = useAppStore((s) => s.setToken);
+  const setScreen = useAppStore((s) => s.setScreen);
 
   const [email,       setEmail]       = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -27,12 +26,27 @@ export default function RegisterScreen() {
       const body = { email, password };
       if (displayName.trim()) body.displayName = displayName.trim();
       const { account, token } = await api.post("/auth/register", body);
-      const db = await getDb();
-      await kv.set(db, "token",   token);
-      await kv.set(db, "account", account);
       setApiToken(token);
-      setToken(token);
-      setAccount(account);
+
+      const [bootstrap, sessionsRaw] = await Promise.all([
+        api.get("/account/bootstrap"),
+        api.get("/sessions?limit=200"),
+      ]);
+
+      const payload = {
+        token,
+        account,
+        settings: bootstrap.settings,
+        students: bootstrap.students,
+        ownedTopics: bootstrap.ownedTopics,
+        studentTopicLinks: bootstrap.studentTopicLinks,
+        conceptProgress: bootstrap.conceptProgress,
+        sessions: sessionsRaw,
+      };
+
+      const db = await getDb();
+      await persistBootstrap(db, payload);
+      applyBootstrapToStore(payload);
       setScreen("home");
     } catch (err) {
       setError(err.message || "Ошибка регистрации. Попробуйте ещё раз.");

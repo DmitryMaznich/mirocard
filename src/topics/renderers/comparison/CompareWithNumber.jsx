@@ -32,7 +32,7 @@ export default function CompareWithNumber({ task, mode, onCorrect, onIncorrect }
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
       <div className="compare-sides">
         <button className="compare-side" disabled={answered} onClick={() => handleSide(true)}>
           <DotGroup count={task.left} color="#4299e1" />

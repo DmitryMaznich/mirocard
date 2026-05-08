@@ -16,14 +16,17 @@ async function persistStudents(db, students, setStudents) {
 }
 
 export default function StudentsScreen() {
-  const students    = useAppStore((s) => s.students);
-  const setStudents = useAppStore((s) => s.setStudents);
+  const students           = useAppStore((s) => s.students);
+  const setStudents        = useAppStore((s) => s.setStudents);
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
-  const setScreen   = useAppStore((s) => s.setScreen);
+  const setScreen          = useAppStore((s) => s.setScreen);
 
-  const [showAdd,  setShowAdd]  = useState(false);
-  const [editing,  setEditing]  = useState(null);
-  const [deleting, setDeleting] = useState(null);
+  const [showAdd,        setShowAdd]        = useState(false);
+  const [editing,        setEditing]        = useState(null);
+  const [deleting,       setDeleting]       = useState(null);
+  const [panelStudentId, setPanelStudentId] = useState(null);
+
+  const panelStudent = students.find((s) => s.id === panelStudentId) ?? null;
 
   async function handleAdd(data) {
     const student = {
@@ -36,6 +39,7 @@ export default function StudentsScreen() {
     const db = await getDb();
     await persistStudents(db, updated, setStudents);
     setShowAdd(false);
+    setPanelStudentId(student.id);
   }
 
   async function handleEdit(data) {
@@ -53,12 +57,17 @@ export default function StudentsScreen() {
     const updated = students.filter((s) => s.id !== deleting.id);
     const db = await getDb();
     await persistStudents(db, updated, setStudents);
+    if (panelStudentId === deleting.id) setPanelStudentId(null);
     setDeleting(null);
   }
 
-  function selectStudent(student) {
-    setActiveStudentId(student.id);
-    setScreen("home");
+  function handleStudentClick(student) {
+    if (window.innerWidth >= 768) {
+      setPanelStudentId(student.id);
+    } else {
+      setActiveStudentId(student.id);
+      setScreen("home");
+    }
   }
 
   return (
@@ -66,38 +75,91 @@ export default function StudentsScreen() {
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}>←</button>
         <h1 className="screen-title">Ученики</h1>
-        <button className="header-action-btn" onClick={() => setShowAdd(true)}>+</button>
+        <button className="header-action-btn" onClick={() => { setShowAdd(true); }}>+</button>
       </div>
 
-      {students.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state__text">Учеников пока нет</div>
-          <Button onClick={() => setShowAdd(true)}>Добавить ученика</Button>
-        </div>
-      ) : (
-        <ul className="student-list">
-          {students.map((student) => (
-            <li key={student.id} className="student-item">
-              <button className="student-item__main" onClick={() => selectStudent(student)}>
-                <div className="student-avatar">{getInitials(student.name)}</div>
-                <div className="student-info">
-                  <div className="student-name">{student.name}</div>
-                  {student.comment && (
-                    <div className="student-comment">{student.comment}</div>
-                  )}
-                  <div className="student-meta">
-                    Добавлен {formatDate(student.createdAt)}
+      <div className="students-layout">
+        {/* Left: student list */}
+        <div className="students-sidebar">
+          {students.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state__text">Учеников пока нет</div>
+              <Button onClick={() => setShowAdd(true)}>Добавить ученика</Button>
+            </div>
+          ) : (
+            <ul className="student-list">
+              {students.map((student) => (
+                <li
+                  key={student.id}
+                  className={`student-item${panelStudentId === student.id ? " student-item--selected" : ""}`}
+                >
+                  <button
+                    className="student-item__main"
+                    onClick={() => handleStudentClick(student)}
+                  >
+                    <div className="student-avatar">{getInitials(student.name)}</div>
+                    <div className="student-info">
+                      <div className="student-name">{student.name}</div>
+                      {student.comment && (
+                        <div className="student-comment">{student.comment}</div>
+                      )}
+                      <div className="student-meta">
+                        Добавлен {formatDate(student.createdAt)}
+                      </div>
+                    </div>
+                  </button>
+                  <div className="student-item__actions">
+                    <button className="icon-btn" onClick={() => setEditing(student)}>✎</button>
+                    <button className="icon-btn icon-btn--danger" onClick={() => setDeleting(student)}>✕</button>
                   </div>
-                </div>
-              </button>
-              <div className="student-item__actions">
-                <button className="icon-btn" onClick={() => setEditing(student)}>✎</button>
-                <button className="icon-btn icon-btn--danger" onClick={() => setDeleting(student)}>✕</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Right: detail panel (tablet only via CSS) */}
+        {panelStudent ? (
+          <div className="students-detail-panel">
+            <div className="student-detail-avatar">{getInitials(panelStudent.name)}</div>
+            <div className="student-detail-name">{panelStudent.name}</div>
+            {panelStudent.comment && (
+              <div className="student-detail-comment">{panelStudent.comment}</div>
+            )}
+            <div className="student-detail-meta">
+              Добавлен {formatDate(panelStudent.createdAt)}
+            </div>
+            {panelStudent.primaryLanguage && (
+              <div className="student-detail-lang">
+                {panelStudent.primaryLanguage === "ru" ? "Русский" : "English"}
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+            )}
+            {(panelStudent.rewardVideos?.length ?? 0) > 0 && (
+              <div className="student-detail-meta">
+                🎬 {panelStudent.rewardVideos.length} видео-{panelStudent.rewardVideos.length === 1 ? "награда" : "награды"}
+              </div>
+            )}
+            <div className="student-detail-actions">
+              <Button
+                fullWidth
+                onClick={() => { setActiveStudentId(panelStudent.id); setScreen("home"); }}
+              >
+                Выбрать →
+              </Button>
+              <div style={{ display: "flex", gap: 8 }}>
+                <Button variant="secondary" fullWidth onClick={() => setEditing(panelStudent)}>
+                  Редактировать
+                </Button>
+                <Button variant="danger" onClick={() => setDeleting(panelStudent)}>✕</Button>
+              </div>
+            </div>
+          </div>
+        ) : students.length > 0 ? (
+          <div className="students-detail-panel students-detail-panel--empty">
+            <div className="students-detail-empty-text">Выберите ученика<br/>чтобы открыть настройки</div>
+          </div>
+        ) : null}
+      </div>
 
       {showAdd && (
         <Modal title="Новый ученик" onClose={() => setShowAdd(false)}>

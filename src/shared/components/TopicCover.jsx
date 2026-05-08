@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getDb, topics } from "@/core/db";
 import { getInitials, getTopicTitle } from "@/shared/utils/format";
+import { getBuiltinTopicAsset } from "@/topics/builtinAssets";
 
 export default function TopicCover({ topicId, avatarPath, title, size = "medium" }) {
   const [src, setSrc] = useState(null);
@@ -14,6 +15,8 @@ export default function TopicCover({ topicId, avatarPath, title, size = "medium"
         if (blob) {
           objectUrl = URL.createObjectURL(blob);
           setSrc(objectUrl);
+        } else {
+          setSrc(getBuiltinTopicAsset(topicId, avatarPath));
         }
       });
     return () => {

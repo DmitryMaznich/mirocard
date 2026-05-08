@@ -1,8 +1,11 @@
 import { useAppStore } from "@/core/store";
 
-export function computeConceptLevel(sessions, studentId, topicId, conceptId) {
+// scope: optional modeId — when provided, only sessions for that mode are counted.
+// This gives per-mode mastery levels (e.g. find_n level vs question_answer level).
+export function computeConceptLevel(sessions, studentId, topicId, conceptId, scope = null) {
   const relevant = sessions
     .filter((s) => s.studentId === studentId && s.topicId === topicId)
+    .filter((s) => !scope || s.modeId === scope)
     .filter((s) => s.conceptIds?.includes(conceptId))
     .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
     .slice(0, 6);

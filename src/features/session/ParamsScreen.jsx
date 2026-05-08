@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
+import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
+import { getTopicTitle, getInitials } from "@/shared/utils/format";
+import { computeConceptLevel } from "@/features/session/useConceptProgress";
+import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 
 function NumberStepper({ label, value, min, max, onChange }) {
   return (
@@ -16,7 +21,7 @@ function NumberStepper({ label, value, min, max, onChange }) {
   );
 }
 
-function EnumParam({ label, options, value, onChange }) {
+function EnumParam({ label, options, labels, value, onChange }) {
   return (
     <div className="param-row">
       <div className="param-label">{label}</div>
@@ -27,7 +32,7 @@ function EnumParam({ label, options, value, onChange }) {
             className={`enum-btn ${value === opt ? "enum-btn--active" : ""}`}
             onClick={() => onChange(opt)}
           >
-            {opt}
+            {labels?.[opt] ?? opt}
           </button>
         ))}
       </div>
@@ -35,72 +40,136 @@ function EnumParam({ label, options, value, onChange }) {
   );
 }
 
+function BooleanParam({ label, hint, value, onChange }) {
+  return (
+    <label className="param-row param-row--checkbox">
+      <input
+        type="checkbox"
+        className="param-checkbox"
+        checked={Boolean(value)}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span className="param-label">{label}</span>
+      {hint ? <span className="param-hint">{hint}</span> : null}
+    </label>
+  );
+}
+
+const LEVEL_DESCRIPTIONS = {
+  1: "Начальный — числа до 10, разница не менее 5",
+  2: "Базовый — числа до 10, любая разница",
+  3: "Средний — числа до 20, любая разница",
+  4: "Сложный — двузначные числа до 99",
+};
+
 const QUESTION_OPTIONS = [
-  { value: "more", label: "Где больше?" },
-  { value: "less", label: "Где меньше?" },
-  { value: "mix",  label: "Сравни" },
+  { value: "more", baseLabel: "Где больше?",       equalLabel: "Где больше или равно?",          hint: "Ребёнок всегда ищет большее число" },
+  { value: "less", baseLabel: "Где меньше?",       equalLabel: "Где меньше или равно?",          hint: "Ребёнок всегда ищет меньшее число" },
+  { value: "mix",  baseLabel: "Микс",              equalLabel: "Микс",                           hint: "Вопросы «больше» и «меньше» чередуются" },
 ];
 
-function ComparisonParams({ cards, params, onChange }) {
+function ComparisonParams({ params, onChange }) {
+  const activeModeId   = useAppStore((s) => s.activeModeId);
+  const activeLevel    = COMPARISON_LEVELS.find((l) => l.id === params.level);
+  const activeQuestion = QUESTION_OPTIONS.find((q) => q.value === params.question);
+  const isFirstNumberMode = activeModeId === "compare_first_number";
+  const questionLabel  = (opt) => {
+    if (opt.value === "mix") return "Микс";
+    return params.showEqual ? opt.equalLabel : opt.baseLabel;
+  };
+
   return (
     <>
-      <div className="param-row">
-        <div className="param-label">Диапазон</div>
-        <div className="param-enum-group param-enum-group--col">
-          {cards.map((card) => (
+      <div className="param-row param-row--block">
+        <div className="param-label">Уровень</div>
+        <div className="param-enum-row">
+          <div className="param-enum-section">
+            <div className="param-enum-group">
+              {COMPARISON_LEVELS.map((lvl) => (
+                <button
+                  key={lvl.id}
+                  className={`enum-btn enum-btn--compact ${params.level === lvl.id ? "enum-btn--active" : ""}`}
+                  onClick={() => onChange({ ...params, level: lvl.id })}
+                >
+                  {lvl.id}
+                </button>
+              ))}
+            </div>
+            {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
+          </div>
+
+          <div className="param-enum-divider" />
+
+          <div className="param-enum-section">
             <button
-              key={card.id}
-              className={`enum-btn ${params.cardId === card.id ? "enum-btn--active" : ""}`}
-              onClick={() => onChange({ ...params, cardId: card.id })}
+              className={`enum-btn enum-btn--compact ${params.showEqual ? "enum-btn--active" : ""}`}
+              onClick={() => onChange({ ...params, showEqual: !params.showEqual })}
             >
-              {card.label ?? card.id}
+              =
             </button>
-          ))}
+            <div className="param-hint">
+              {params.showEqual ? "С одинаковыми (~30%)" : "Без одинаковых"}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="param-row">
-        <div className="param-label">Вопрос</div>
-        <div className="param-enum-group param-enum-group--col">
-          {QUESTION_OPTIONS.map(({ value, label }) => (
-            <button
-              key={value}
-              className={`enum-btn ${params.question === value ? "enum-btn--active" : ""}`}
-              onClick={() => onChange({ ...params, question: value })}
-            >
-              {label}
-            </button>
-          ))}
+      {!isFirstNumberMode && (
+        <div className="param-row param-row--block">
+          <div className="param-label">Вопрос</div>
+          <div className="param-enum-section">
+            <div className="param-enum-group">
+              {QUESTION_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`enum-btn ${params.question === opt.value ? "enum-btn--active" : ""}`}
+                  onClick={() => onChange({ ...params, question: opt.value })}
+                >
+                  {questionLabel(opt)}
+                </button>
+              ))}
+            </div>
+            {activeQuestion && (
+              <div className="param-hint">{activeQuestion.hint}</div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="param-row">
-        <div className="param-label">Одинаково</div>
-        <button
-          className={`enum-btn ${params.showEqual ? "enum-btn--active" : ""}`}
-          onClick={() => onChange({ ...params, showEqual: !params.showEqual })}
-        >
-          {params.showEqual ? "Включено (~30%)" : "Выключено"}
-        </button>
-      </div>
+      {isFirstNumberMode && (
+        <div className="param-row param-row--block">
+          <div className="param-label">Логика режима</div>
+          <div className="param-hint">
+            Ученик смотрит на первое число в паре и выбирает: меньше, больше или равно.
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
 export default function ParamsScreen() {
-  const setScreen          = useAppStore((s) => s.setScreen);
-  const activeTopicId      = useAppStore((s) => s.activeTopicId);
-  const activeStudentId    = useAppStore((s) => s.activeStudentId);
-  const activeModeId       = useAppStore((s) => s.activeModeId);
-  const topicRecords       = useAppStore((s) => s.topicRecords);
-  const studentTopicLinks  = useAppStore((s) => s.studentTopicLinks);
+  const setScreen              = useAppStore((s) => s.setScreen);
+  const activeTopicId          = useAppStore((s) => s.activeTopicId);
+  const activeStudentId        = useAppStore((s) => s.activeStudentId);
+  const activeTextId           = useAppStore((s) => s.activeTextId);
+  const activeModeId           = useAppStore((s) => s.activeModeId);
+  const topicRecords           = useAppStore((s) => s.topicRecords);
+  const students               = useAppStore((s) => s.students);
+  const studentTopicLinks      = useAppStore((s) => s.studentTopicLinks);
   const upsertStudentTopicLink = useAppStore((s) => s.upsertStudentTopicLink);
+  const sessions               = useAppStore((s) => s.sessions);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode        = topicRecord?.modes.find((m) => m.id === activeModeId);
+  const isReading   = topicRecord?.meta.renderer === "reading";
+  const activeText  = isReading ? topicRecord?.texts?.find((text) => text.id === activeTextId) : null;
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
   const link    = studentTopicLinks[linkKey] ?? {};
+
+  const student   = students.find((s) => s.id === activeStudentId);
+  const hasVideos = (student?.rewardVideos?.length ?? 0) > 0;
 
   const isComparison = topicRecord?.meta.renderer === "comparison";
 
@@ -108,7 +177,7 @@ export default function ParamsScreen() {
     const saved = link.params ?? {};
     if (isComparison) {
       return {
-        cardId:    saved.cardId    ?? mode?.defaultCardId,
+        level:     saved.level     ?? 2,
         question:  saved.question  ?? "more",
         showEqual: saved.showEqual ?? false,
       };
@@ -122,7 +191,9 @@ export default function ParamsScreen() {
     return out;
   }
 
-  const [params, setParams] = useState(getInitialParams);
+  const [params,      setParams]      = useState(getInitialParams);
+  const [videoReward, setVideoReward] = useState(link.videoRewardEnabled ?? true);
+  const [showModeInfo, setShowModeInfo] = useState(false);
 
   if (!topicRecord || !mode) {
     return (
@@ -136,77 +207,194 @@ export default function ParamsScreen() {
     );
   }
 
-  const allConcepts = deriveConcepts(topicRecord.cards);
+  const allConcepts        = deriveConcepts(topicRecord.cards);
   const selectedConceptIds = link.selectedConceptIds ?? allConcepts.map((c) => c.conceptId);
-  const maxSize = topicRecord.meta.sessionConfig?.maxSize ?? 12;
-
   function startSession() {
-    upsertStudentTopicLink(activeStudentId, activeTopicId, { params });
+    if (isReading && !activeText) {
+      setScreen("texts");
+      return;
+    }
+    upsertStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward });
     setScreen("session");
   }
+
+  const paramsContent = isReading ? (
+    <>
+      <div className="param-row param-row--block">
+        <div className="param-label">Текст</div>
+        <div className="param-concept-col">
+          <div className="param-hint">{getTopicTitle(activeText?.title) || "Не выбран"}</div>
+          <button className="link-btn" onClick={() => setScreen("texts")}>Изменить</button>
+        </div>
+      </div>
+      {Object.entries(mode.params ?? {}).map(([key, def]) => {
+        if (def.type === "enum") {
+          return (
+            <EnumParam
+              key={key}
+              label={def.label?.ru ?? key}
+              options={def.values}
+              labels={def.labels?.ru}
+              value={params[key] ?? def.default}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+            />
+          );
+        }
+        if (def.type === "boolean") {
+          return (
+            <BooleanParam
+              key={key}
+              label={def.label?.ru ?? key}
+              hint={def.hint?.ru ?? ""}
+              value={params[key] ?? def.default ?? false}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+            />
+          );
+        }
+        return null;
+      })}
+    </>
+  ) : isComparison ? (
+    <ComparisonParams params={params} onChange={setParams} />
+  ) : (
+    <>
+      <div className="param-row param-row--block">
+        <div className="param-label">Понятия</div>
+        <div className="param-concept-col">
+          <div className="param-concept-dots">
+            {allConcepts.map((c) => (
+              <ConceptDot
+                key={c.conceptId}
+                level={computeConceptLevel(sessions, activeStudentId, activeTopicId, c.conceptId)}
+                size={10}
+              />
+            ))}
+          </div>
+          <div className="param-concept-row">
+            <span className="param-hint">{selectedConceptIds.length} из {allConcepts.length} выбрано</span>
+            <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
+          </div>
+        </div>
+      </div>
+      {Object.entries(mode.params ?? {}).map(([key, def]) => {
+        if (def.type === "concept_selector") return null;
+        if (def.type === "number") {
+          return (
+            <NumberStepper
+              key={key}
+              label={def.label?.ru ?? key}
+              value={params[key] ?? def.default}
+              min={def.min}
+              max={def.max}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+            />
+          );
+        }
+        if (def.type === "enum") {
+          return (
+            <EnumParam
+              key={key}
+              label={def.label?.ru ?? key}
+              options={def.values}
+              labels={def.labels?.ru}
+              value={params[key] ?? def.default}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+            />
+          );
+        }
+        if (def.type === "boolean") {
+          return (
+            <BooleanParam
+              key={key}
+              label={def.label?.ru ?? key}
+              hint={def.hint?.ru ?? ""}
+              value={params[key] ?? def.default ?? false}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+            />
+          );
+        }
+        return null;
+      })}
+    </>
+  );
 
   return (
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("modes")}>←</button>
         <h1 className="screen-title">{mode.ui?.title ?? mode.id}</h1>
-      </div>
-
-      <div className="params-body">
-        {isComparison ? (
-          <ComparisonParams
-            cards={topicRecord.cards}
-            params={params}
-            onChange={setParams}
-          />
-        ) : (
-          <>
-            {Object.values(mode.params ?? {}).some((d) => d.type === "concept_selector") && (
-              <div className="param-row">
-                <div className="param-label">Понятия</div>
-                <div className="param-concept-row">
-                  <span>{selectedConceptIds.length} из {allConcepts.length}</span>
-                  {allConcepts.length > maxSize && (
-                    <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {Object.entries(mode.params ?? {}).map(([key, def]) => {
-              if (def.type === "concept_selector") return null;
-              if (def.type === "number") {
-                return (
-                  <NumberStepper
-                    key={key}
-                    label={key}
-                    value={params[key] ?? def.default}
-                    min={def.min}
-                    max={def.max}
-                    onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                  />
-                );
-              }
-              if (def.type === "enum") {
-                return (
-                  <EnumParam
-                    key={key}
-                    label={key}
-                    options={def.values}
-                    value={params[key] ?? def.default}
-                    onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                  />
-                );
-              }
-              return null;
-            })}
-          </>
+        {mode.methodology && (
+          <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
         )}
       </div>
 
-      <div style={{ padding: 20 }}>
-        <Button fullWidth onClick={startSession}>Начать занятие</Button>
+      <div className="params-layout">
+        {/* Left info column — visible only on tablet via CSS */}
+        <div className="params-info-col">
+          <div className="params-info-topic">
+            {getTopicTitle(topicRecord.meta.title)}
+          </div>
+          <div className="params-info-mode">
+            {mode.ui?.title ?? mode.id}
+            {mode.methodology && (
+              <button className="params-info-mode-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
+            )}
+          </div>
+          {mode.ui?.instruction && (
+            <div className="params-info-desc">{mode.ui.instruction}</div>
+          )}
+          {student && (
+            <div className="params-info-student">
+              <div className="params-info-student__avatar">
+                {getInitials(student.name)}
+              </div>
+              <div className="params-info-student__name">{student.name}</div>
+            </div>
+          )}
+          <div className="params-info-start">
+            <Button fullWidth onClick={startSession}>Начать занятие</Button>
+          </div>
+        </div>
+
+        {/* Right settings column */}
+        <div className="params-settings-col">
+          <div className="params-body">
+            {paramsContent}
+          </div>
+
+          {hasVideos && (
+            <label className="param-row param-row--checkbox">
+              <input
+                type="checkbox"
+                className="param-checkbox"
+                checked={videoReward}
+                onChange={(e) => setVideoReward(e.target.checked)}
+              />
+              <span className="param-label">Видео за ≥90%</span>
+            </label>
+          )}
+
+          {/* Start button — phone only, hidden on tablet via CSS */}
+          <div className="params-start-phone">
+            <Button fullWidth onClick={startSession}>Начать занятие</Button>
+          </div>
+        </div>
       </div>
+
+      {showModeInfo && (
+        <Modal title={mode.ui?.title ?? mode.id} onClose={() => setShowModeInfo(false)}>
+          {mode.ui?.instruction && <p className="info-modal-text">{mode.ui.instruction}</p>}
+          {mode.methodology?.text && <p className="info-modal-text">{mode.methodology.text}</p>}
+          {mode.methodology?.tips?.length > 0 && (
+            <ul className="info-modal-tips">
+              {mode.methodology.tips.map((tip, i) => <li key={i}>{tip}</li>)}
+            </ul>
+          )}
+          {mode.methodology?.duration && (
+            <div className="info-modal-duration">⏱ {mode.methodology.duration}</div>
+          )}
+        </Modal>
+      )}
     </div>
   );
 }

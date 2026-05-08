@@ -38,6 +38,7 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
       name:            s.name,
       comment:         s.comment,
       primaryLanguage: s.primary_language,
+      rewardVideos:    safeJson(s.reward_videos, []),
       createdAt:       s.created_at,
       updatedAt:       s.updated_at,
     })),

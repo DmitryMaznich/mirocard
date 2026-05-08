@@ -6,8 +6,8 @@ export class ApiError extends Error {
 }
 
 const BASE_URL = typeof import.meta !== "undefined" && import.meta.env
-  ? (import.meta.env.VITE_API_URL ?? "http://localhost:3012")
-  : "http://localhost:3012";
+  ? (import.meta.env.VITE_API_URL ?? "/api")
+  : "/api";
 
 export function createApiClient({ baseUrl = BASE_URL, token = null } = {}) {
   async function request(method, path, body) {

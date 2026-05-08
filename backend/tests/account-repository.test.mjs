@@ -112,10 +112,12 @@ test("upsertStudent creates and getStudents returns it", () => {
   const acc = makeAccount(db);
   upsertStudent(db, acc.id, {
     id: "s1", name: "Маша", comment: "заметка", primaryLanguage: "ru",
+    rewardVideos: ["https://youtu.be/example1", "https://youtu.be/example2"],
   });
   const students = getStudents(db, acc.id);
   assert.equal(students.length, 1);
   assert.equal(students[0].name, "Маша");
+  assert.equal(students[0].reward_videos, JSON.stringify(["https://youtu.be/example1", "https://youtu.be/example2"]));
 });
 
 test("softDeleteStudent marks deleted_at", () => {

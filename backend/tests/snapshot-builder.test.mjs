@@ -9,7 +9,7 @@ function makeDb() { return initDb(":memory:"); }
 test("buildBootstrap returns expected shape", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "b@test.com", passwordHash: "hash" });
-  upsertStudent(db, acc.id, { id: "s1", name: "Маша" });
+  upsertStudent(db, acc.id, { id: "s1", name: "Маша", rewardVideos: ["https://youtu.be/example1"] });
   appendSession(db, acc.id, {
     id: "sess1", studentId: "s1", topicId: "clothes", topicVersion: "2.0.0",
     mode: "yes_no", startedAt: "2026-04-28T10:00:00Z", completedAt: "2026-04-28T10:05:00Z",
@@ -24,6 +24,7 @@ test("buildBootstrap returns expected shape", () => {
   assert.ok(Array.isArray(snap.students));
   assert.equal(snap.students.length, 1);
   assert.equal(snap.students[0].id, "s1");
+  assert.deepEqual(snap.students[0].rewardVideos, ["https://youtu.be/example1"]);
 
   assert.ok(Array.isArray(snap.ownedTopics));
   assert.equal(snap.ownedTopics.length, 1);

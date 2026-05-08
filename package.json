@@ -1,13 +1,17 @@
 {
   "name": "mirocard2",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --host 0.0.0.0 --port 8080 --configLoader native",
+    "build": "vite build --configLoader native",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --host 0.0.0.0 --port 8080 --configLoader native",
+    "serve:prod": "node backend/serve-production.mjs",
+    "deploy": "npm run deploy:prod",
+    "deploy:prod": "node deploy-prod.mjs",
+    "deploy:verify": "node deploy-prod.mjs --verify-only"
   },
   "dependencies": {
     "jszip": "^3.10.1",
@@ -27,6 +31,7 @@
     "fake-indexeddb": "^6.2.5",
     "globals": "^17.5.0",
     "jsdom": "^29.1.1",
+    "sharp": "^0.34.5",
     "vite": "^8.0.10",
     "vite-plugin-singlefile": "^2.3.3",
     "vitest": "^4.1.5"

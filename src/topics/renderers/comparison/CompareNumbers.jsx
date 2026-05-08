@@ -35,7 +35,7 @@ export default function CompareNumbers({ task, mode, onCorrect, onIncorrect }) {
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
       <div className="compare-sides">
         <button className="compare-side compare-side--number" disabled={answered} onClick={() => handleSide(true)}>
           <div className="compare-big-number">{task.left}</div>

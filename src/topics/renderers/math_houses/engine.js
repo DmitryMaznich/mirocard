@@ -2,35 +2,108 @@ export function generatePairs(number) {
   return Array.from({ length: number + 1 }, (_, i) => [i, number - i]);
 }
 
-function generateHouseTask(modeType, card) {
-  const { number = 5 } = card.params ?? {};
-  const pairs = generatePairs(number);
-
-  if (modeType === "math_houses_read") {
-    return { type: modeType, conceptId: card.conceptId, number, pairs };
+function shuffleArray(items) {
+  const next = [...items];
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
   }
+  return next;
+}
 
-  const hiddenPairIndex = Math.floor(Math.random() * pairs.length);
-  const hiddenSide      = Math.random() < 0.5 ? "left" : "right";
-  const pair            = pairs[hiddenPairIndex];
-  const answer          = hiddenSide === "left" ? pair[0] : pair[1];
-  const knownValue      = hiddenSide === "left" ? pair[1] : pair[0];
+function getModeType(mode) {
+  return typeof mode === "string" ? mode : mode?.type ?? mode?.id ?? "math_houses";
+}
 
+function getHouseNumber(card) {
+  const raw = card.params?.number ?? card.params?.total ?? 5;
+  return Math.max(0, Number(raw) || 5);
+}
+
+function normalizeArgs(mode, arg3, arg4) {
+  const count = typeof arg3 === "number" ? arg3 : typeof arg4 === "number" ? arg4 : 15;
+  const params = (
+    arg3 && typeof arg3 === "object" && !Array.isArray(arg3)
+      ? arg3
+      : arg4 && typeof arg4 === "object" && !Array.isArray(arg4)
+        ? arg4
+        : {}
+  );
   return {
-    type: "math_houses",
-    conceptId: card.conceptId,
-    number,
-    pairs,
-    hiddenPairIndex,
-    hiddenSide,
-    answer,
-    knownValue,
+    modeType: getModeType(mode),
+    count,
+    params,
   };
 }
 
-export function generateTasks(modeType, cards, params, count = 15) {
+function generateHouseTask(modeType, card, params = {}) {
+  const number = getHouseNumber(card);
+  const shufflePairs = Boolean(params.shufflePairs);
+  const pairs = shufflePairs ? shuffleArray(generatePairs(number)) : generatePairs(number);
+  const baseTask = {
+    type: modeType,
+    cardId: card.id,
+    conceptId: card.conceptId,
+    number,
+    total: number,
+    color: card.params?.color || "#2d6fb5",
+    pairs,
+  };
+
+  if (
+    modeType === "math_houses_read" ||
+    modeType === "math_houses" ||
+    modeType === "math_houses_recall" ||
+    modeType === "math_houses_grow"
+  ) {
+    return baseTask;
+  }
+
+  const availableCells = pairs.map((pair, pairIndex) => {
+    const hideLeft = Math.random() < 0.5;
+    return {
+      key: `${pairIndex}:${hideLeft ? "left" : "right"}`,
+      pairIndex,
+      side: hideLeft ? "left" : "right",
+      answer: hideLeft ? pair[0] : pair[1],
+      knownValue: hideLeft ? pair[1] : pair[0],
+    };
+  });
+  const hiddenWindowCount = Math.max(
+    1,
+    Math.min(
+      availableCells.length,
+      Number(params.hiddenWindows) || 1,
+    ),
+  );
+  const hiddenCells = shuffleArray(availableCells)
+    .slice(0, hiddenWindowCount)
+    .sort((a, b) => a.pairIndex - b.pairIndex || a.side.localeCompare(b.side));
+  const firstHiddenCell = hiddenCells[0];
+
+  return {
+    ...baseTask,
+    type: "math_houses_selective",
+    hiddenCells,
+    hiddenPairIndex: firstHiddenCell.pairIndex,
+    hiddenSide: firstHiddenCell.side,
+    answer: firstHiddenCell.answer,
+    knownValue: firstHiddenCell.knownValue,
+  };
+}
+
+export function generateTasks(mode, cards, arg3, arg4) {
   if (!cards.length) return [];
+  const { modeType, count, params } = normalizeArgs(mode, arg3, arg4);
+  if (
+    modeType === "math_houses_read" ||
+    modeType === "math_houses" ||
+    modeType === "math_houses_recall" ||
+    modeType === "math_houses_grow"
+  ) {
+    return cards.map((card) => generateHouseTask(modeType, card));
+  }
   return Array.from({ length: count }, (_, i) =>
-    generateHouseTask(modeType, cards[i % cards.length])
+    generateHouseTask(modeType, cards[i % cards.length], params)
   );
 }

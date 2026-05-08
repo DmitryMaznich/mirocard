@@ -47,7 +47,7 @@ export default function CompareEqual({ task, mode, onCorrect, onIncorrect }) {
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
       <div className="compare-sign-row">
         <button className="compare-side compare-side--number" disabled={answered} onClick={() => handleNumberTap(true)}>
           <div className="compare-big-number">{task.left}</div>

@@ -14,7 +14,7 @@ function generateIntroTasks(concepts) {
       });
     }
   }
-  return tasks;
+  return shuffle(tasks);
 }
 
 function generateYesNoTasks(concepts, params) {
@@ -105,12 +105,40 @@ function generateChooseWordTasks(concepts, params) {
   return shuffle(tasks);
 }
 
+function generateChooseAllTasks(concepts, params) {
+  const gridSize   = params.optionCount ?? 6;
+  const maxTargets = Math.max(1, Math.floor(gridSize / 2));
+  const tasks = [];
+
+  for (const concept of concepts) {
+    const targetCards    = concept.cards.slice(0, Math.min(concept.cards.length, maxTargets));
+    const distractorCount = gridSize - targetCards.length;
+    const distractorIds  = selectDistractorConceptIds(concept.conceptId, concepts, distractorCount, "medium");
+    const distractorCards = distractorIds.map((cid) => {
+      const dc = concepts.find((c) => c.conceptId === cid);
+      return pickVariation(dc);
+    });
+
+    tasks.push({
+      type:         "choose_all",
+      conceptId:    concept.conceptId,
+      targetLabel:  concept.primary?.label ?? concept.conceptId,
+      targetCardIds: targetCards.map((c) => c.id),
+      allCards:     shuffle([...targetCards, ...distractorCards]),
+    });
+  }
+
+  return shuffle(tasks);
+}
+
 export function generateTasks(modeType, concepts, allCards, params = {}) {
   switch (modeType) {
     case "intro":                  return generateIntroTasks(concepts);
+    case "question_answer":        return generateIntroTasks(concepts).map((t) => ({ ...t, type: "question_answer" }));
     case "yes_no":                 return generateYesNoTasks(concepts, params);
     case "find_n":                 return generateFindNTasks(concepts, params);
     case "choose_word_by_picture": return generateChooseWordTasks(concepts, params);
+    case "choose_all":             return generateChooseAllTasks(concepts, params);
     default:                       return [];
   }
 }

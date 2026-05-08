@@ -149,17 +149,33 @@ export function incrementRevision(db, accountId) {
 
 // ─── Students ─────────────────────────────────────────────────────────────────
 
-export function upsertStudent(db, accountId, { id, name, comment = "", primaryLanguage = null }) {
+export function upsertStudent(db, accountId, {
+  id,
+  name,
+  comment = "",
+  primaryLanguage = null,
+  rewardVideos = [],
+}) {
   const ts = now();
   db.prepare(`
-    INSERT INTO students (id, account_id, name, comment, primary_language, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, account_id, name, comment, primary_language, reward_videos, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       comment = excluded.comment,
       primary_language = excluded.primary_language,
+      reward_videos = excluded.reward_videos,
       updated_at = excluded.updated_at
-  `).run(id, accountId, name, comment, primaryLanguage, ts, ts);
+  `).run(
+    id,
+    accountId,
+    name,
+    comment,
+    primaryLanguage,
+    JSON.stringify(Array.isArray(rewardVideos) ? rewardVideos : []),
+    ts,
+    ts,
+  );
 }
 
 export function getStudents(db, accountId) {

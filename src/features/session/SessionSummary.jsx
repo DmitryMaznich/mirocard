@@ -1,15 +1,63 @@
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
-import { formatDate, getTopicTitle } from "@/shared/utils/format";
+import {
+  formatDate, getTopicTitle,
+  extractYoutubeId, makeYoutubeEmbedUrl, computeRewardSeconds, formatRewardTime,
+} from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
 
+const ASSESSMENT_LABELS = {
+  independent: "Сам",
+  after_text: "После текста",
+  none: "Нет ответа",
+  prompted: "С подсказкой",
+  read: "Прочитал",
+  expressive: "Выразительно",
+  fail: "Не ответил",
+  correct: "Правильно",
+  easy: "Легко",
+};
+
 export default function SessionSummary() {
-  const setScreen    = useAppStore((s) => s.setScreen);
-  const sessions     = useAppStore((s) => s.sessions);
-  const topicRecords = useAppStore((s) => s.topicRecords);
+  const setScreen         = useAppStore((s) => s.setScreen);
+  const sessions          = useAppStore((s) => s.sessions);
+  const topicRecords      = useAppStore((s) => s.topicRecords);
+  const students          = useAppStore((s) => s.students);
+  const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
 
   const session = sessions[sessions.length - 1];
+
+  // Compute reward data before hooks (must not be after early return)
+  const topicRecord        = topicRecords.find((r) => r.meta.id === session?.topicId);
+  const sessionText        = topicRecord?.texts?.find((text) => text.id === session?.textId);
+  const sessionMode        = topicRecord?.modes?.find((mode) => mode.id === session?.modeId);
+  const isReading          = topicRecord?.meta.renderer === "reading";
+  const student            = students.find((s) => s.id === session?.studentId);
+  const link               = session ? (studentTopicLinks[`${session.studentId}_${session.topicId}`] ?? {}) : {};
+  const rewardVideos       = student?.rewardVideos ?? [];
+  const rewardVideoIds     = rewardVideos.map(extractYoutubeId).filter(Boolean);
+  const videoRewardEnabled = link.videoRewardEnabled ?? true;
+  const rewardSeconds      = (session?.percentCorrect ?? -1) >= 90 && videoRewardEnabled
+    ? computeRewardSeconds(session.modeId, topicRecord?.cards?.length ?? 10)
+    : 0;
+
+  const [videoOpen,      setVideoOpen]      = useState(false);
+  const [rewardConsumed, setRewardConsumed] = useState(false);
+  const [remaining,      setRemaining]      = useState(0);
+  const [embedUrl,       setEmbedUrl]       = useState(null);
+
+  useEffect(() => {
+    if (!videoOpen) return;
+    const id = setInterval(() => {
+      setRemaining((prev) => {
+        if (prev <= 1) { clearInterval(id); setVideoOpen(false); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [videoOpen, rewardSeconds]);
 
   if (!session) {
     return (
@@ -19,14 +67,27 @@ export default function SessionSummary() {
     );
   }
 
-  const topicRecord = topicRecords.find((r) => r.meta.id === session.topicId);
-  const progressAfter = computeProgressAfterSession(sessions, session);
-  const isEvaluated = session.percentCorrect !== null;
+  const progressAfter    = computeProgressAfterSession(sessions, session);
+  const isEvaluated      = session.percentCorrect !== null;
+  const showRewardButton = !rewardConsumed && rewardSeconds > 0 && rewardVideoIds.length > 0;
+
+  function handleOpenVideo() {
+    const id = rewardVideoIds[Math.floor(Math.random() * rewardVideoIds.length)];
+    const nextEmbedUrl = makeYoutubeEmbedUrl(id);
+    if (!nextEmbedUrl) return;
+    setEmbedUrl(nextEmbedUrl);
+    setRemaining(rewardSeconds);
+    setRewardConsumed(true);
+    setVideoOpen(true);
+  }
 
   return (
     <div className="screen summary-screen">
       <div className="summary-header">
-        <div className="summary-topic">{getTopicTitle(topicRecord?.meta.title) || session.topicId}</div>
+        <div className="summary-topic">
+          {getTopicTitle(topicRecord?.meta.title) || session.topicId}
+          {sessionText ? ` · ${getTopicTitle(sessionText.title)}` : ""}
+        </div>
         <div className="summary-date">{formatDate(session.completedAt)}</div>
       </div>
 
@@ -39,8 +100,10 @@ export default function SessionSummary() {
         </div>
       ) : (
         <div className="summary-score">
-          <div className="summary-pct">Просмотр</div>
-          <div className="summary-counts">{session.conceptIds?.length ?? 0} карточек</div>
+          <div className="summary-pct">{isReading ? "Чтение" : "Просмотр"}</div>
+          <div className="summary-counts">
+            {isReading ? sessionMode?.ui?.title ?? session.modeId : `${session.conceptIds?.length ?? 0} карточек`}
+          </div>
         </div>
       )}
 
@@ -61,7 +124,21 @@ export default function SessionSummary() {
         </div>
       )}
 
-      {session.conceptIds?.length > 0 && (
+      {session.assessments?.length > 0 && (
+        <div className="summary-section">
+          <div className="summary-section-title">Оценки</div>
+          <ul className="summary-progress-list">
+            {session.assessments.map((assessment, i) => (
+              <li key={i} className="summary-progress-item">
+                <ConceptDot level={assessment.quality === "none" || assessment.quality === "fail" ? 1 : 2} />
+                {ASSESSMENT_LABELS[assessment.quality] ?? assessment.quality}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!isReading && session.conceptIds?.length > 0 && (
         <div className="summary-section">
           <div className="summary-section-title">Прогресс</div>
           <ul className="summary-progress-list">
@@ -78,10 +155,51 @@ export default function SessionSummary() {
         </div>
       )}
 
+      {showRewardButton && (
+        <button className="reward-video-btn" onClick={handleOpenVideo}>
+          🎬 Смотреть мультик
+        </button>
+      )}
+
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
         <Button variant="primary"   onClick={() => setScreen("home")}>Завершить</Button>
       </div>
+
+      {videoOpen && (
+        <div className="video-reward-overlay">
+          <div className="video-reward-frame">
+            <iframe
+              key={embedUrl}
+              src={embedUrl}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              frameBorder="0"
+              className="video-reward-iframe"
+              title="Reward video"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+            <div className="video-reward-blocker" aria-hidden="true" />
+          </div>
+          <div className="video-reward-footer">
+            <div className="video-reward-progress">
+              <div
+                className="video-reward-progress__bar"
+                style={{ width: `${rewardSeconds > 0 ? (remaining / rewardSeconds) * 100 : 0}%` }}
+              />
+            </div>
+            <div className="video-reward-bottom">
+              <span className="video-reward-progress__label">{formatRewardTime(remaining)}</span>
+              <button
+                className="video-reward-close-btn"
+                onClick={() => setVideoOpen(false)}
+              >
+                ✕ Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

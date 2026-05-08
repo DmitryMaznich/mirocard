@@ -22,6 +22,11 @@ const MODE_EQUAL = {
   defaultCardId: "compare_hard",
   ui: { title: "5. Больше, меньше или равно?", instruction: "Нажми на большее или на =" },
 };
+const MODE_FIRST = {
+  id: "compare_first_number", type: "compare_first_number", evaluation: "auto",
+  defaultCardId: "compare_medium",
+  ui: { title: "Первое число", instruction: "Посмотри на первое число" },
+};
 
 describe("generateComparisonTask", () => {
   it("returns left and right within [min, max]", () => {
@@ -146,6 +151,17 @@ describe("generateTasks", () => {
     expect(tasks).toHaveLength(10);
     tasks.forEach(({ conceptId }) => expect(conceptId).toBe("compare_easy"));
   });
+
+  it("compare_first_number derives question from the first number relation", () => {
+    const tasks = generateTasks(MODE_FIRST, ALL_CARDS, 40, { showEqual: true });
+    tasks.forEach(({ left, right, question, instruction, type }) => {
+      expect(type).toBe("compare_first_number");
+      expect(instruction).toMatch(/первое число/i);
+      if (left === right) expect(question).toBe("equal");
+      if (left < right) expect(question).toBe("less");
+      if (left > right) expect(question).toBe("more");
+    });
+  });
 });
 
 describe("getVerdict", () => {
@@ -163,5 +179,10 @@ describe("getVerdict", () => {
 
   it("returns 'Одинаково' when left === right regardless of question", () => {
     expect(getVerdict({ left: 3, right: 3, question: "more" })).toBe("Одинаково! 3 = 3");
+  });
+
+  it("returns first-number verdict for compare_first_number tasks", () => {
+    expect(getVerdict({ type: "compare_first_number", left: 7, right: 9, question: "less" })).toBe("7 меньше 9");
+    expect(getVerdict({ type: "compare_first_number", left: 7, right: 5, question: "more" })).toBe("7 больше 5");
   });
 });

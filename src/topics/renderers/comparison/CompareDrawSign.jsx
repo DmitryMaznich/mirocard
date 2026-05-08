@@ -25,7 +25,7 @@ export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) 
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
       <div className="croc-put-sign-numbers croc-draw-sign-layout">
         <span className="croc-put-sign-num">{task.left}</span>
         <DrawingSignPad

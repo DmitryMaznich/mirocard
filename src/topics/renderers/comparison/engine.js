@@ -2,6 +2,13 @@ import { shuffle } from "@/shared/utils/shuffle";
 
 const MAX_ATTEMPTS = 100;
 
+export const COMPARISON_LEVELS = [
+  { id: 1, label: "До 10, разница > 4", params: { min: 1,  max: 10, minDiff: 5 } },
+  { id: 2, label: "До 10",              params: { min: 1,  max: 10, minDiff: 1 } },
+  { id: 3, label: "До 20",              params: { min: 1,  max: 20, minDiff: 1 } },
+  { id: 4, label: "До 99",              params: { min: 10, max: 99, minDiff: 1 } },
+];
+
 export function generateComparisonTask(params) {
   const { min = 1, max = 10, minDiff = 1, allowEqual = false } = params;
 
@@ -22,7 +29,26 @@ export function generateComparisonTask(params) {
   return { left, right };
 }
 
+function resolveComparisonCard(mode, cards, sessionParams) {
+  if (!cards.length) return null;
+  const requestedId = sessionParams.cardId ?? mode.defaultCardId;
+  return cards.find((card) => card.id === requestedId) ?? cards[0];
+}
+
+function getFirstNumberRelation(left, right) {
+  if (left === right) return "equal";
+  return left < right ? "less" : "more";
+}
+
 export function getVerdict(task) {
+  if (task.type === "compare_first_number") {
+    if (task.left === task.right) {
+      return `Одинаково! ${task.left} = ${task.right}`;
+    }
+    return task.left < task.right
+      ? `${task.left} меньше ${task.right}`
+      : `${task.left} больше ${task.right}`;
+  }
   if (task.question === "equal" || task.left === task.right) {
     return `Одинаково! ${task.left} = ${task.right}`;
   }
@@ -33,37 +59,49 @@ export function getVerdict(task) {
     : `${smaller} меньше ${bigger}`;
 }
 
-// sessionParams: { question?: "more"|"less"|"mix", showEqual?: boolean, cardId?: string }
+// sessionParams: { level?, question?: "more"|"less", showEqual?: boolean }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
-  const { question = "more", showEqual = false, cardId } = sessionParams;
-  const card       = cards.find((c) => c.id === (cardId ?? mode.defaultCardId)) ?? cards[0];
-  const baseParams = card.params ?? {};
-  const tasks      = [];
+  const { question = "more", showEqual = false, level = 2 } = sessionParams;
 
+  const levelDef   = COMPARISON_LEVELS.find((l) => l.id === level) ?? COMPARISON_LEVELS[1];
+  const baseParams = levelDef.params;
+  const card       = resolveComparisonCard(mode, cards, sessionParams);
+
+  if (!card) return [];
+
+  function taskInstruction(q) {
+    if (mode.type === "compare_first_number") {
+      void q;
+      return "Сравни первое число со вторым и выбери правильный ответ.";
+    }
+    if (q === "equal") return showEqual ? "Где больше или равно?" : "Где больше?";
+    if (q === "more")  return showEqual ? "Где больше или равно?" : "Где больше?";
+    return showEqual ? "Где меньше или равно?" : "Где меньше?";
+  }
+
+  const tasks       = [];
   const equalTarget = showEqual ? Math.round(count * 0.3) : 0;
 
   for (let i = 0; i < count; i++) {
     let left, right;
     if (i < equalTarget) {
-      // Equal task: same value on both sides
-      const val = Math.floor(Math.random() * ((baseParams.max ?? 10) - (baseParams.min ?? 1) + 1)) + (baseParams.min ?? 1);
+      const val = Math.floor(Math.random() * (baseParams.max - baseParams.min + 1)) + baseParams.min;
       left = right = val;
     } else {
       ({ left, right } = generateComparisonTask({ ...baseParams, allowEqual: false }));
     }
 
-    const isEqual = left === right;
-    let taskQuestion;
-    if (isEqual) {
-      taskQuestion = "equal";
-    } else if (question === "mix") {
-      taskQuestion = Math.random() < 0.5 ? "more" : "less";
-    } else {
-      taskQuestion = question;
-    }
+    const isEqual      = left === right;
+    const taskQuestion = mode.type === "compare_first_number"
+      ? getFirstNumberRelation(left, right)
+      : isEqual
+        ? "equal"
+        : question === "mix"
+          ? (Math.random() < 0.5 ? "more" : "less")
+          : question;
 
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion });
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, instruction: taskInstruction(taskQuestion) });
   }
   return shuffle(tasks);
 }

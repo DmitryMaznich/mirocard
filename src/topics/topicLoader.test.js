@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import JSZip from "jszip";
-import { openDb } from "@/core/db";
+import { openDb, kv } from "@/core/db";
 import {
   importTopic,
   getTopicRecord,
@@ -63,6 +63,60 @@ async function makeProceduralTopicZip({ id = "math_houses", version = "1.0.0" } 
   return zip.generateAsync({ type: "arraybuffer" });
 }
 
+async function makeOperationTopicZip({ id = "addition_subtraction", version = "1.0.0" } = {}) {
+  const zip = new JSZip();
+  const manifest = {
+    meta: { id, version, language: "ru", renderer: "addition_subtraction", cardType: "procedural", title: "Operations" },
+    modes: [],
+    cards: [
+      {
+        id: "operation_plus",
+        conceptId: "plus",
+        primary: true,
+        label: "Плюс",
+        renderer: "addition_subtraction",
+        params: { operation: "add" },
+      },
+      {
+        id: "operation_minus",
+        conceptId: "minus",
+        primary: true,
+        label: "Минус",
+        renderer: "addition_subtraction",
+        params: { operation: "subtract" },
+      },
+    ],
+  };
+  zip.file("topic.json", JSON.stringify(manifest));
+  return zip.generateAsync({ type: "arraybuffer" });
+}
+
+async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0" } = {}) {
+  const zip = new JSZip();
+  const manifest = {
+    meta: { id, version, language: "ru", renderer: "reading", title: "Reading" },
+    modes: [],
+    cards: [],
+    texts: [
+      {
+        id: "dad_best",
+        kind: "poem",
+        title: "Папа наш",
+        level: 1,
+        lines: [
+          { id: "l1", text: "Кто на свете лучше всех?" },
+          { id: "l2", text: "Папа наш!" },
+        ],
+        questions: [
+          { id: "q1", prompt: "О ком стих?", supportLineIds: ["l2"] },
+        ],
+      },
+    ],
+  };
+  zip.file("topic.json", JSON.stringify(manifest));
+  return zip.generateAsync({ type: "arraybuffer" });
+}
+
 describe("importTopic — valid cases", () => {
   it("imports a valid object topic and returns a record", async () => {
     const db = await freshDb();
@@ -71,8 +125,10 @@ describe("importTopic — valid cases", () => {
 
     expect(record.meta.id).toBe("test_clothes");
     expect(record.meta.version).toBe("1.0.0");
+    expect(record.meta.avatar).toBe("media/avatar_flashcards.svg");
     expect(record.cards).toHaveLength(1);
     expect(record.installedAt).toBeTruthy();
+    expect(record.modes.every((mode) => mode.ui?.icon)).toBe(true);
   });
 
   it("imports a procedural topic (no image files)", async () => {
@@ -81,7 +137,51 @@ describe("importTopic — valid cases", () => {
     const record = await importTopic(db, buf, "2.0.0");
 
     expect(record.meta.id).toBe("math_houses");
+    expect(record.meta.avatar).toBe("media/avatar.svg");
     expect(record.cards[0].renderer).toBe("math_houses");
+    expect(record.modes.map((m) => m.id)).toContain("math_houses_grow");
+    expect(record.modes.every((m) => m.ui?.icon)).toBe(true);
+  });
+
+  it("imports addition/subtraction procedural cards with default modes", async () => {
+    const db = await freshDb();
+    const buf = await makeOperationTopicZip();
+    const record = await importTopic(db, buf, "2.0.0");
+
+    expect(record.meta.renderer).toBe("addition_subtraction");
+    expect(record.meta.avatar).toBe("media/avatar_operations.svg");
+    expect(record.modes.map((m) => m.id)).toEqual([
+      "operation_action_from_sign",
+      "operation_do_action",
+      "operation_name_action",
+      "operation_more_less",
+      "operation_sign_from_action",
+      "operation_build_expression",
+      "operation_result",
+      "operation_missing_sign",
+    ]);
+    expect(record.modes.map((m) => m.ui.title)).toEqual([
+      "Знак ↔ действие",
+      "Сделай действие",
+      "Что сделали?",
+      "Больше / меньше",
+      "Действие → знак",
+      "Собери пример",
+      "Сколько стало?",
+      "Вставь знак",
+    ]);
+    expect(record.modes.every((m) => m.params?.maxNumber)).toBe(true);
+  });
+
+  it("imports a reading topic with texts and no cards", async () => {
+    const db = await freshDb();
+    const record = await importTopic(db, await makeReadingTopicZip(), "2.0.0");
+
+    expect(record.meta.renderer).toBe("reading");
+    expect(record.meta.avatar).toBe("media/avatar_reading.svg");
+    expect(record.cards).toEqual([]);
+    expect(record.texts).toHaveLength(1);
+    expect(record.modes.map((m) => m.id)).toEqual(["read_text", "understand_text", "assemble_text"]);
   });
 
   it("accepts deck.json as fallback for v1 compatibility", async () => {
@@ -203,5 +303,24 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     await deleteTopicRecord(db, "test_clothes");
     expect(await getTopicRecord(db, "test_clothes")).toBeNull();
     expect(await listTopicRecords(db)).toHaveLength(0);
+  });
+
+  it("backfills avatars and mode icons for legacy records", async () => {
+    const db = await freshDb();
+    const legacyRecord = {
+      id: "legacy_flashcards",
+      meta: { id: "legacy_flashcards", version: "1.0.0", title: "Legacy topic" },
+      modes: [{ id: "intro", type: "intro", evaluation: "none", ui: { title: "Знакомство" } }],
+      cards: [{ id: "c1", label: "кошка", image: "media/cat.webp" }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:legacy_flashcards", legacyRecord);
+    await kv.set(db, "installedTopicIds", ["legacy_flashcards"]);
+
+    const record = await getTopicRecord(db, "legacy_flashcards");
+    expect(record.meta.renderer).toBe("flashcards");
+    expect(record.meta.avatar).toBe("media/avatar_flashcards.svg");
+    expect(record.modes.every((mode) => mode.ui?.icon)).toBe(true);
   });
 });

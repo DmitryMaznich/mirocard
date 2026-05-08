@@ -1,0 +1,24 @@
+{
+  auto_https off
+  admin off
+}
+
+:8080 {
+  handle_path /api/* {
+    reverse_proxy 127.0.0.1:3012
+  }
+
+  handle {
+    root * C:\Users\dmazn\Projects\Mirocard2\dist
+    encode zstd gzip
+
+    @shell path / /index.html /manifest.json /sw.js
+    header @shell Cache-Control "no-store, no-cache, must-revalidate"
+
+    @manifest path /manifest.json
+    header @manifest Content-Type "application/manifest+json; charset=utf-8"
+
+    try_files {path} /index.html
+    file_server
+  }
+}

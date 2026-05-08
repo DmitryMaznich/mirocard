@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "@/shared/components/Button";
+import { isValidYoutubeUrl } from "@/shared/utils/format";
 
 const LANGUAGES = [
   { value: "ru", label: "Русский" },
@@ -10,6 +11,9 @@ export default function StudentForm({ initial, onSave, onCancel }) {
   const [name,    setName]    = useState(initial?.name    ?? "");
   const [comment, setComment] = useState(initial?.comment ?? "");
   const [lang,    setLang]    = useState(initial?.primaryLanguage ?? "");
+  const [videos,  setVideos]  = useState(initial?.rewardVideos ?? []);
+  const [videoInput, setVideoInput] = useState("");
+  const [videoError, setVideoError] = useState("");
   const [error,   setError]   = useState("");
 
   function handleSave() {
@@ -21,7 +25,23 @@ export default function StudentForm({ initial, onSave, onCancel }) {
       name:            name.trim(),
       comment:         comment.trim(),
       primaryLanguage: lang || null,
+      rewardVideos:    videos,
     });
+  }
+
+  function addVideo() {
+    const url = videoInput.trim();
+    if (!isValidYoutubeUrl(url)) {
+      setVideoError("Неверная ссылка YouTube");
+      return;
+    }
+    setVideos((prev) => [...prev, url]);
+    setVideoInput("");
+    setVideoError("");
+  }
+
+  function removeVideo(idx) {
+    setVideos((prev) => prev.filter((_, i) => i !== idx));
   }
 
   return (
@@ -61,6 +81,28 @@ export default function StudentForm({ initial, onSave, onCancel }) {
           </button>
         ))}
       </div>
+
+      <div className="student-form__section-label">Видео-награды</div>
+      <div className="student-form__section-hint">Показываются при результате ≥90%</div>
+      {videos.map((url, idx) => (
+        <div key={idx} className="reward-url-row">
+          <span className="reward-url-row__text">{url}</span>
+          <button className="icon-btn icon-btn--danger" onClick={() => removeVideo(idx)}>✕</button>
+        </div>
+      ))}
+      <div className="reward-url-add">
+        <input
+          className="auth-input reward-url-add__input"
+          type="url"
+          placeholder="https://youtu.be/..."
+          value={videoInput}
+          onChange={(e) => { setVideoInput(e.target.value); setVideoError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && addVideo()}
+        />
+        <Button variant="secondary" onClick={addVideo}>Добавить</Button>
+      </div>
+      {videoError && <div className="form-error">{videoError}</div>}
+
       {error && <div className="form-error">{error}</div>}
       <div className="modal-actions">
         <Button variant="secondary" onClick={onCancel}>Отмена</Button>
