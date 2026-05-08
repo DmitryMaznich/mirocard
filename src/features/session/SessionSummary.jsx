@@ -82,6 +82,9 @@ export default function SessionSummary() {
 
   return (
     <div className="screen summary-screen">
+      <div style={{ background:"red", color:"#fff", fontSize:14, fontWeight:"bold", padding:"8px 12px", textAlign:"center" }}>
+        DBG v4 · видео:{rewardVideos.length} · %:{session.percentCorrect ?? "?"} · сек:{rewardSeconds}
+      </div>
       <div className="summary-header">
         <div className="summary-topic">
           {getTopicTitle(topicRecord?.meta.title) || session.topicId}
@@ -160,9 +163,6 @@ export default function SessionSummary() {
         </button>
       )}
 
-      <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", padding: "4px 0" }}>
-        🎬 видео: {rewardVideos.length} · % {session.percentCorrect ?? "—"} · сек {rewardSeconds}
-      </div>
 
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
