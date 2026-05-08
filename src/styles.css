@@ -135,6 +135,7 @@
   width: 100%;
   height: auto;
   display: block;
+  mix-blend-mode: multiply;
 }
 
 .reading-line {
@@ -13582,7 +13583,7 @@ button.operation-dot {
 
 /* Reading overrides kept at the end because session styles are defined above. */
 .session-body.reading-body {
-  background: #fbfaf6;
+  background: #ffffff;
   color: #263131;
   padding: 16px;
   gap: 18px;
