@@ -1,4 +1,3 @@
-import { shuffle } from "@/shared/utils/shuffle";
 
 export function getReadingText(topicRecord, textId) {
   const texts = topicRecord?.texts ?? [];
@@ -37,19 +36,16 @@ function buildUnderstandTasks(text) {
   }));
 }
 
-function buildAssembleTask(text) {
-  return {
-    type: "assemble_text",
+function buildAssembleTasks(text) {
+  const lines = text.lines ?? [];
+  return lines.map((line, index) => ({
+    type: "assemble_line",
     textId: text.id,
-    text: {
-      ...text,
-      lines: (text.lines ?? []).map((line) => ({
-        ...line,
-        tokens: shuffle(tokenizeReadingLine(line)),
-        expectedTokens: tokenizeReadingLine(line),
-      })),
-    },
-  };
+    lineIndex: index,
+    totalLines: lines.length,
+    text,
+    line,
+  }));
 }
 
 export function generateTasks(mode, topicRecord, textId) {
@@ -62,7 +58,7 @@ export function generateTasks(mode, topicRecord, textId) {
     case "understand_text":
       return buildUnderstandTasks(text);
     case "assemble_text":
-      return text.kind === "poem" ? [buildAssembleTask(text)] : [];
+      return text.kind === "poem" ? buildAssembleTasks(text) : [];
     default:
       return [];
   }

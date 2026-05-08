@@ -150,22 +150,29 @@ function buildLineState(line) {
   };
 }
 
-function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
-  const lines = task.text?.lines ?? [];
-  const [lineIndex, setLineIndex] = useState(0);
-  const [lineState, setLineState] = useState(() => buildLineState(lines[0]));
-  const [completedLines, setCompletedLines] = useState([]);
-  const [assembled, setAssembled] = useState(false);
+function AssembleLineTask({ task, soundEnabled, onCorrect, onQualityAnswer }) {
+  const line = task.line;
+  const lineIndex = task.lineIndex ?? 0;
+  const totalLines = task.totalLines ?? 1;
+  const isLastLine = lineIndex === totalLines - 1;
+  const assembledPreview = (task.text?.lines ?? []).slice(0, lineIndex);
+
+  const [lineState, setLineState] = useState(() => buildLineState(line));
+  const [lineAssembled, setLineAssembled] = useState(false);
   const [hoverSlot, setHoverSlot] = useState(null);
   const dragRef = useRef(null);
 
-  const activeLine = lines[lineIndex];
-  const expectedTokens = useMemo(() => tokenizeReadingLine(activeLine), [activeLine]);
+  const expectedTokens = useMemo(() => tokenizeReadingLine(line), [line]);
   const { available, placed, wrongSlot } = lineState;
 
   function playError() {
     if (!soundEnabled) return;
     try { new Audio("/sounds/incorrect.wav").play().catch(() => {}); } catch {}
+  }
+
+  function playCorrectSound() {
+    if (!soundEnabled) return;
+    try { new Audio("/sounds/correct.wav").play().catch(() => {}); } catch {}
   }
 
   function rejectSlot(slotIndex) {
@@ -194,17 +201,16 @@ function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
     }));
 
     if (Object.keys(nextPlaced).length === expectedTokens.length) {
-      setTimeout(() => {
-        const finishedLine = { ...activeLine, text: expectedTokens.map((t) => t.text).join(" ") };
-        setCompletedLines((prev) => [...prev, finishedLine]);
-        if (lineIndex + 1 >= lines.length) {
-          setAssembled(true);
-        } else {
-          const nextIndex = lineIndex + 1;
-          setLineIndex(nextIndex);
-          setLineState(buildLineState(lines[nextIndex]));
-        }
-      }, 420);
+      if (isLastLine) {
+        // Last line: play sound here, show quality buttons
+        setTimeout(() => {
+          playCorrectSound();
+          setLineAssembled(true);
+        }, 280);
+      } else {
+        // Intermediate lines: onCorrect plays sound + banner + advances
+        setTimeout(() => onCorrect(task.textId, line.id), 280);
+      }
     }
   }
 
@@ -260,10 +266,14 @@ function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
     setHoverSlot(null);
   }
 
-  if (assembled) {
+  const finishedLine = lineAssembled
+    ? { ...line, text: expectedTokens.map((t) => t.text).join(" ") }
+    : null;
+
+  if (lineAssembled) {
     return (
       <div className="session-body reading-body reading-assembled-final">
-        <ReadingTextBlock lines={completedLines} large />
+        <ReadingTextBlock lines={[...assembledPreview, finishedLine]} large />
         <div className="qa-row reading-final-row">
           {FINAL_BUTTONS.map((btn) => (
             <button
@@ -282,8 +292,8 @@ function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
   return (
     <div className="session-body reading-body reading-assemble">
       <div className="reading-assembled-preview">
-        {completedLines.length > 0 ? (
-          <ReadingTextBlock lines={completedLines} />
+        {assembledPreview.length > 0 ? (
+          <ReadingTextBlock lines={assembledPreview} />
         ) : (
           <div className="reading-muted">Собранные строки появятся здесь</div>
         )}
@@ -296,8 +306,8 @@ function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
             data-slot-index={index}
             className={[
               "reading-slot",
-              placed[index]   ? "reading-slot--filled" : "",
-              wrongSlot === index ? "reading-slot--wrong"  : "",
+              placed[index] ? "reading-slot--filled" : "",
+              wrongSlot === index ? "reading-slot--wrong" : "",
               hoverSlot === index && !placed[index] ? "reading-slot--hover" : "",
             ].filter(Boolean).join(" ")}
             style={{ "--chars": Math.max(2, token.text.length) }}
@@ -323,7 +333,7 @@ function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
         ))}
       </div>
 
-      <div className="reading-line-count">{lineIndex + 1} / {lines.length}</div>
+      <div className="reading-line-count">{lineIndex + 1} / {totalLines}</div>
     </div>
   );
 }
@@ -331,10 +341,10 @@ function AssembleTextTask({ task, soundEnabled, onQualityAnswer }) {
 const TASK_RENDERERS = {
   read_text:       ReadTextTask,
   understand_text: UnderstandTextTask,
-  assemble_text:   AssembleTextTask,
+  assemble_line:   AssembleLineTask,
 };
 
-export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, onAdvance, onQualityAnswer }) {
+export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, onCorrect, onAdvance, onQualityAnswer }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -343,6 +353,7 @@ export default function ReadingRenderer({ task, topicId, sessionParams, soundEna
       topicId={topicId}
       sessionParams={sessionParams}
       soundEnabled={soundEnabled}
+      onCorrect={onCorrect}
       onAdvance={onAdvance}
       onQualityAnswer={onQualityAnswer}
     />
