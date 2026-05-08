@@ -181,6 +181,12 @@ const OPERATION_PARAMS = {
     values: [1, 2, 3, 5],
     default: 1,
   },
+  railSize: {
+    type: "enum",
+    label: { ru: "Палка" },
+    values: [10, 20],
+    default: 20,
+  },
   includeZero: {
     type: "boolean",
     label: { ru: "Включать 0" },

@@ -144,126 +144,79 @@ function OperationStory({ task, compact = false }) {
   );
 }
 
-function LiveBeadTool({ task, onCorrect }) {
+function LiveBeadTool({ task, disabled, onAnswer }) {
+  const railSize     = task.railSize ?? 20;
+  const half         = Math.floor(railSize / 2);
   const [workingCount, setWorkingCount] = useState(task.start);
-  const [drag, setDrag] = useState(null);
-  const visualCount = drag?.previewCount ?? workingCount;
-  const done = workingCount === task.result;
-  const totalColumns = LIVE_BEAD_COUNT + LIVE_GAP_SLOTS;
-  const rightCount = LIVE_BEAD_COUNT - visualCount;
+  const [drag, setDrag]                 = useState(null);
+  const confirmRef  = useRef(null);
+  const onAnswerRef = useRef(onAnswer);
+  useEffect(() => { onAnswerRef.current = onAnswer; }, [onAnswer]);
+  useEffect(() => () => clearTimeout(confirmRef.current), []);
 
-  function startDrag(event, index) {
-    event.preventDefault();
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    setDrag({
-      index,
-      startX: event.clientX,
-      originCount: workingCount,
-      previewCount: null,
-    });
+  useEffect(() => {
+    clearTimeout(confirmRef.current);
+    if (!disabled && workingCount === task.result) {
+      confirmRef.current = setTimeout(() => onAnswerRef.current(), 600);
+    }
+  }, [workingCount, disabled, task.result]);
+
+  const visualCount = drag?.preview ?? workingCount;
+
+  function startDrag(e, idx) {
+    if (disabled) return;
+    e.preventDefault();
+    clearTimeout(confirmRef.current);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDrag({ idx, startX: e.clientX, preview: null });
   }
 
-  function updateDrag(event) {
+  function moveDrag(e) {
     if (!drag) return;
-    const dx = event.clientX - drag.startX;
-    let previewCount = null;
-
-    if (drag.index >= drag.originCount && dx < -10) {
-      previewCount = drag.index + 1;
-    } else if (drag.index < drag.originCount && dx > 10) {
-      previewCount = drag.index;
-    }
-
-    setDrag((current) => current ? { ...current, previewCount } : current);
+    const dx = e.clientX - drag.startX;
+    let preview = null;
+    if (drag.idx >= workingCount && dx < -10)
+      preview = Math.max(0, Math.min(railSize, drag.idx + 1));
+    if (drag.idx <  workingCount && dx >  10)
+      preview = Math.max(0, Math.min(railSize, drag.idx));
+    setDrag((d) => d ? { ...d, preview } : d);
   }
 
-  function finishDrag() {
-    if (drag?.previewCount != null) {
-      setWorkingCount(Math.max(0, Math.min(LIVE_BEAD_COUNT, drag.previewCount)));
-    }
+  function endDrag() {
+    if (drag?.preview != null)
+      setWorkingCount(Math.max(0, Math.min(railSize, drag.preview)));
     setDrag(null);
   }
 
-  function resetRail() {
-    setWorkingCount(task.start);
-    setDrag(null);
+  const items = [];
+  for (let i = 0; i < railSize; i++) {
+    if (i === visualCount) items.push({ key: "gap", type: "gap" });
+    items.push({ key: String(i), type: "bead", idx: i });
   }
-
-  function getBeadColumn(index) {
-    if (index < visualCount) return index + 1;
-    return index + LIVE_GAP_SLOTS + 1;
-  }
-
-  function isPreviewBead(index) {
-    if (!drag || drag.previewCount == null) return false;
-    const from = Math.min(drag.originCount, drag.previewCount);
-    const to = Math.max(drag.originCount, drag.previewCount);
-    return index >= from && index < to;
-  }
+  if (visualCount >= railSize) items.push({ key: "gap", type: "gap" });
 
   return (
-    <div className="operation-live-tool">
-      <div className="operation-zone-rail__labels operation-live-tool__labels">
-        <span>Рабочая зона: {visualCount}</span>
-        <span>{getRightLabel(task)}: {rightCount}</span>
-      </div>
-
-      <div
-        className={`operation-rail operation-live-rail operation-rail--${task.operation}`}
-        aria-label={`Живая палка: рабочая зона ${visualCount}, правая зона ${rightCount}`}
-        style={{ "--rail-columns": `${totalColumns}` }}
-      >
-        <div className="operation-rail__line" />
-        <div className="operation-rail__track">
-          {Array.from({ length: LIVE_BEAD_COUNT }, (_, index) => {
-            const inWork = index < visualCount;
-            const inPreview = isPreviewBead(index);
-            const className = [
-              "operation-bead",
-              "operation-live-bead",
-              index < LIVE_GREEN_COUNT ? "operation-live-bead--green" : "operation-live-bead--orange",
-              inWork ? "operation-bead--left" : "operation-bead--right operation-bead--source",
-              inPreview ? "operation-bead--moved operation-live-bead--preview" : "",
-              drag?.index === index ? "operation-live-bead--dragging" : "",
-            ].filter(Boolean).join(" ");
-
-            return (
-              <button
-                key={index}
-                className={className}
-                type="button"
-                style={{ gridColumn: getBeadColumn(index) }}
-                onPointerDown={(event) => startDrag(event, index)}
-                onPointerMove={updateDrag}
-                onPointerUp={finishDrag}
-                onPointerCancel={() => setDrag(null)}
-                aria-label={`Фишка ${index + 1}`}
-              />
-            );
-          })}
-          <div
-            className={`operation-rail__gap operation-rail__gap--${task.operation === "add" ? "left" : "right"}`}
-            style={{ gridColumn: `${visualCount + 1} / span ${LIVE_GAP_SLOTS}` }}
-            aria-hidden="true"
-          >
-            {task.operation === "add" ? "←" : "→"}
-          </div>
+    <div className="operation-stick">
+      <div className="operation-stick__wrap">
+        <div className="operation-stick__rod" />
+        <div className="operation-stick__track">
+          {items.map((item) =>
+            item.type === "gap"
+              ? <div key="gap" className="operation-stick__gap" />
+              : (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`operation-stick__bead operation-stick__bead--${item.idx < half ? "green" : "orange"}`}
+                  onPointerDown={(e) => startDrag(e, item.idx)}
+                  onPointerMove={moveDrag}
+                  onPointerUp={endDrag}
+                  onPointerCancel={() => setDrag(null)}
+                  aria-label={`Фишка ${item.idx + 1}`}
+                />
+              )
+          )}
         </div>
-      </div>
-
-      <div className="operation-live-tool__hint">
-        {task.operation === "add"
-          ? "Потяни фишку справа влево: вместе с ней придут все фишки до рабочей зоны."
-          : "Потяни фишку слева вправо: вместе с ней уйдут фишки до правой зоны."}
-      </div>
-
-      <div className="operation-manipulation-actions">
-        <button className="operation-step-btn operation-step-btn--secondary" type="button" disabled={workingCount === task.start} onClick={resetRail}>
-          Вернуть
-        </button>
-        <button className="operation-ready-btn" type="button" disabled={!done} onClick={() => onCorrect(task.conceptId, task.cardId)}>
-          Готово: стало {task.result}
-        </button>
       </div>
     </div>
   );
@@ -388,12 +341,20 @@ function NumberChoices({ task, selected, onAnswer }) {
 }
 
 function ManipulationTask({ task, onCorrect }) {
+  const [answered, setAnswered] = useState(false);
+
+  function handleAnswer() {
+    setAnswered(true);
+    setTimeout(() => onCorrect(task.conceptId, task.cardId), 2000);
+  }
+
   return (
     <div className="operation-stage">
-      <div className="operation-caption operation-caption--large">
-        Было {task.start}. {getActionCommand(task)} {task.delta}.
+      <OperationExpression task={task} missingResult={!answered} answered={answered} />
+      <div className={`operation-stick-caption operation-stick-caption--${task.operation}${answered ? " show" : ""}`}>
+        {task.operation === "add" ? "Прибавили!" : "Убрали!"}
       </div>
-      <LiveBeadTool task={task} onCorrect={onCorrect} />
+      <LiveBeadTool task={task} disabled={answered} onAnswer={handleAnswer} />
     </div>
   );
 }
