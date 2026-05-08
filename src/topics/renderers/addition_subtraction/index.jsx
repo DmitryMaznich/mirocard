@@ -1,8 +1,4 @@
-import { useState } from "react";
-
-const LIVE_BEAD_COUNT = 20;
-const LIVE_GREEN_COUNT = 10;
-const LIVE_GAP_SLOTS = 5;
+import { useState, useRef, useEffect } from "react";
 
 const ACTION_OPTIONS = [
   { value: "add", label: "Прибавили" },
@@ -273,7 +269,10 @@ function LiveBeadTool({ task, onCorrect }) {
   );
 }
 
-function OperationExpression({ task, missingSign = false, missingResult = false }) {
+function OperationExpression({ task, missingSign = false, missingResult = false, answered = false }) {
+  const popCls = answered
+    ? `operation-expression__result--pop${task.operation === "subtract" ? "-sub" : ""}`
+    : "";
   return (
     <div className="operation-expression" aria-label="пример">
       <span className="operation-expression__number">{task.start}</span>
@@ -282,7 +281,10 @@ function OperationExpression({ task, missingSign = false, missingResult = false 
       </span>
       <span className="operation-expression__number">{task.delta}</span>
       <span className="operation-expression__equals">=</span>
-      <span className="operation-expression__number operation-expression__result">
+      <span
+        key={answered ? "ans" : "open"}
+        className={["operation-expression__number", "operation-expression__result", popCls].filter(Boolean).join(" ")}
+      >
         {missingResult ? "?" : task.result}
       </span>
     </div>
