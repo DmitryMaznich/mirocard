@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
 import TopicCover from "@/shared/components/TopicCover";
 import ModeIcon from "@/shared/components/ModeIcon";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { getTopicTitle, getInitials, extractYoutubeId, formatRewardTime } from "@/shared/utils/format";
+import { getTopicTitle, getInitials } from "@/shared/utils/format";
 
 function SettingsIcon() {
   return (
@@ -116,32 +116,6 @@ export default function HomeScreen({ onOpenTimer }) {
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (isReading || !!mode);
 
-  const rewardVideos = student?.rewardVideos ?? [];
-  const [videoOpen, setVideoOpen] = useState(false);
-  const [rewardRemaining, setRewardRemaining] = useState(0);
-  const rewardVideoUrl = useRef(null);
-  const TEST_SECONDS = 60;
-
-  useEffect(() => {
-    if (!videoOpen) return undefined;
-    setRewardRemaining(TEST_SECONDS);
-    const id = window.setInterval(() => {
-      setRewardRemaining((prev) => {
-        if (prev <= 1) { window.clearInterval(id); setVideoOpen(false); return 0; }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [videoOpen]);
-
-  function handleTestVideo() {
-    if (!rewardVideos.length) return;
-    const videoId = extractYoutubeId(rewardVideos[Math.floor(Math.random() * rewardVideos.length)]);
-    if (!videoId) return;
-    rewardVideoUrl.current = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1`;
-    setVideoOpen(true);
-  }
-
   const s1 = stepState(!!student, true);
   const s2 = stepState(!!topic, !!student);
   const s3 = stepState(isReading ? !!activeText : !!mode, !!student && !!topic);
@@ -230,38 +204,9 @@ export default function HomeScreen({ onOpenTimer }) {
       <div className="home-quick-actions">
         <button className="home-quick-btn" onClick={() => setScreen("students")}>+ Ученик</button>
         <button className="home-quick-btn" onClick={() => setScreen("topics")}>↓ Темы</button>
-        {rewardVideos.length > 0 && (
-          <button className="home-quick-btn" onClick={handleTestVideo} style={{ background: "#e8f4fd" }}>
-            🎬 Тест видео
-          </button>
-        )}
       </div>
 
       <div className="home-version">v{__APP_VERSION__}</div>
-
-      {videoOpen && (
-        <div className="video-reward-overlay">
-          <div className="video-reward-frame">
-            <iframe
-              src={rewardVideoUrl.current}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              frameBorder="0"
-              className="video-reward-iframe"
-              title="Reward video"
-            />
-            <div className="video-reward-blocker" aria-hidden="true" />
-          </div>
-          <div className="video-reward-progress">
-            <div className="video-reward-progress__bar" style={{ width: `${(rewardRemaining / TEST_SECONDS) * 100}%` }} />
-            <span className="video-reward-progress__label">{formatRewardTime(rewardRemaining)}</span>
-          </div>
-          <div style={{ color: "#fff", fontSize: 11, padding: "4px 8px", wordBreak: "break-all", opacity: 0.7 }}>
-            {rewardVideoUrl.current}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
