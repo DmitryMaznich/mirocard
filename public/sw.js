@@ -1,4 +1,4 @@
-const CACHE = "mirocard2-v4";
+const CACHE = "mirocard2-v5";
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -41,7 +41,8 @@ self.addEventListener("fetch", (e) => {
       fetch(new Request(e.request, { cache: "no-store" }))
         .then((resp) => {
           if (resp.ok) {
-            caches.open(CACHE).then((cache) => cache.put("/", resp.clone()));
+            const cloned = resp.clone();
+            caches.open(CACHE).then((cache) => cache.put("/", cloned));
           }
           return resp;
         })
@@ -55,7 +56,8 @@ self.addEventListener("fetch", (e) => {
     fetch(new Request(e.request, { cache: "no-store" }))
       .then((resp) => {
         if (resp.ok && e.request.method === "GET") {
-          caches.open(CACHE).then((c) => c.put(e.request, resp.clone()));
+          const cloned = resp.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, cloned));
         }
         return resp;
       })
