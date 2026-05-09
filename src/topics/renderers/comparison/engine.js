@@ -75,9 +75,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       void q;
       return "Сравни первое число со вторым и выбери правильный ответ.";
     }
-    if (q === "equal") return showEqual ? "Где больше или равно?" : "Где больше?";
-    if (q === "more")  return showEqual ? "Где больше или равно?" : "Где больше?";
-    return showEqual ? "Где меньше или равно?" : "Где меньше?";
+    if (q === "equal") return "Одинаково?";
+    if (q === "more")  return showEqual ? "Где больше? Или одинаково?" : "Где больше?";
+    return showEqual ? "Где меньше? Или одинаково?" : "Где меньше?";
   }
 
   const tasks       = [];
@@ -101,7 +101,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
           ? (Math.random() < 0.5 ? "more" : "less")
           : question;
 
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, instruction: taskInstruction(taskQuestion) });
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, instruction: taskInstruction(taskQuestion) });
   }
   return shuffle(tasks);
 }

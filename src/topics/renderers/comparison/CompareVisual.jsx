@@ -37,13 +37,15 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
         <button className="compare-side" disabled={answered} onClick={() => handleSide(true)}>
           <DotGroup count={task.left} color="#4299e1" />
         </button>
-        <button
-          className="compare-equal-btn compare-equal-btn--empty"
-          style={{ alignSelf: "center" }}
-          disabled={answered}
-          onClick={handleEqual}
-          aria-label="Одинаково"
-        />
+        {task.showEqual && (
+          <button
+            className="compare-equal-btn compare-equal-btn--empty"
+            style={{ alignSelf: "center" }}
+            disabled={answered}
+            onClick={handleEqual}
+            aria-label="Одинаково"
+          />
+        )}
         <button className="compare-side" disabled={answered} onClick={() => handleSide(false)}>
           <DotGroup count={task.right} color="#fc8181" />
         </button>
