@@ -37,7 +37,8 @@ export default function SessionSummary() {
   const link               = session ? (studentTopicLinks[`${session.studentId}_${session.topicId}`] ?? {}) : {};
   const rewardVideos       = student?.rewardVideos ?? [];
   const videoRewardEnabled = link.videoRewardEnabled ?? true;
-  const rewardSeconds      = (session?.percentCorrect ?? -1) >= 90 && videoRewardEnabled
+  const rewardThreshold    = link.rewardThreshold ?? 90;
+  const rewardSeconds      = (session?.percentCorrect ?? -1) >= rewardThreshold && videoRewardEnabled
     ? computeRewardSeconds(session.modeId, topicRecord?.cards?.length ?? 10)
     : 0;
 

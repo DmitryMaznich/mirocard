@@ -195,9 +195,11 @@ export default function ParamsScreen() {
     const saved = link.params ?? {};
     if (isComparison) {
       return {
-        level:     saved.level     ?? 2,
-        question:  saved.question  ?? "more",
-        showEqual: saved.showEqual ?? false,
+        level:        saved.level        ?? 2,
+        question:     saved.question     ?? "more",
+        showEqual:    saved.showEqual    ?? false,
+        wordsVerdict: saved.wordsVerdict ?? false,
+        showNumbers:  saved.showNumbers  ?? false,
       };
     }
     const modeParams = mode?.params ?? {};
@@ -209,9 +211,10 @@ export default function ParamsScreen() {
     return out;
   }
 
-  const [params,      setParams]      = useState(getInitialParams);
-  const [videoReward, setVideoReward] = useState(link.videoRewardEnabled ?? true);
-  const [showModeInfo, setShowModeInfo] = useState(false);
+  const [params,          setParams]          = useState(getInitialParams);
+  const [videoReward,    setVideoReward]     = useState(link.videoRewardEnabled ?? true);
+  const [rewardThreshold, setRewardThreshold] = useState(link.rewardThreshold ?? 90);
+  const [showModeInfo,   setShowModeInfo]    = useState(false);
 
   if (!topicRecord || !mode) {
     return (
@@ -232,7 +235,7 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
-    upsertStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward });
+    upsertStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold });
     setScreen("session");
   }
 
@@ -380,16 +383,32 @@ export default function ParamsScreen() {
             {paramsContent}
           </div>
 
-          {hasVideos && (
-            <label className="param-row param-row--checkbox">
-              <input
-                type="checkbox"
-                className="param-checkbox"
-                checked={videoReward}
-                onChange={(e) => setVideoReward(e.target.checked)}
-              />
-              <span className="param-label">Видео за ≥90%</span>
-            </label>
+          {hasVideos && mode.evaluation !== "none" && (
+            <div className="param-row param-row--block">
+              <div className="param-label">Видео-награда</div>
+              <div className="param-enum-section">
+                <div className="param-enum-group">
+                  <button
+                    className={`enum-btn enum-btn--compact ${!videoReward ? "enum-btn--active" : ""}`}
+                    onClick={() => setVideoReward(false)}
+                  >
+                    Нет
+                  </button>
+                  {[70, 80, 90].map((pct) => (
+                    <button
+                      key={pct}
+                      className={`enum-btn enum-btn--compact ${videoReward && rewardThreshold === pct ? "enum-btn--active" : ""}`}
+                      onClick={() => { setVideoReward(true); setRewardThreshold(pct); }}
+                    >
+                      ≥{pct}%
+                    </button>
+                  ))}
+                </div>
+                <div className="param-hint">
+                  {videoReward ? `Мультик при ≥${rewardThreshold}% правильных ответов` : "Видео-награда отключена"}
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Start button — phone only, hidden on tablet via CSS */}
