@@ -78,7 +78,7 @@ export function computeRewardSeconds(modeId, cardCount) {
   };
   const base = Math.max(1, cardCount) * 6;
   const mult = MULT[modeId] ?? 1.0;
-  return Math.round(Math.min(Math.max(base * mult, 60), 300));
+  return Math.round(Math.min(Math.max(base * mult, 60), 180));
 }
 
 export function formatRewardTime(seconds) {
