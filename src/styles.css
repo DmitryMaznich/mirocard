@@ -11499,12 +11499,23 @@ kbd {
   line-height: 1;
 }
 .compare-number       { font-size: 1.8rem; font-weight: 700; }
+.dot-group-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
 .dot-group {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   justify-content: center;
   max-width: 140px;
+}
+.dot-group-number {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
 }
 .dot {
   width: 22px;

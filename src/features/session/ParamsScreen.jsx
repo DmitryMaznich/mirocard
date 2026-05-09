@@ -144,6 +144,24 @@ function ComparisonParams({ params, onChange }) {
           </div>
         </div>
       )}
+
+      {activeModeId === "compare_visual" && (
+        <BooleanParam
+          label="Цифры под кружками"
+          hint="Число отображается под каждой группой кружков"
+          value={params.showNumbers}
+          onChange={(v) => onChange({ ...params, showNumbers: v })}
+        />
+      )}
+
+      {!isFirstNumberMode && (
+        <BooleanParam
+          label="Ответ словами"
+          hint='Вместо «7 больше 4» — «Семь больше четырёх»'
+          value={params.wordsVerdict}
+          onChange={(v) => onChange({ ...params, wordsVerdict: v })}
+        />
+      )}
     </>
   );
 }

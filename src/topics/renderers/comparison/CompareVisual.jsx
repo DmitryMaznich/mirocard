@@ -35,7 +35,7 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
       <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
       <div className="compare-sides">
         <button className="compare-side" disabled={answered} onClick={() => handleSide(true)}>
-          <DotGroup count={task.left} color="#4299e1" />
+          <DotGroup count={task.left} color="#4299e1" number={task.showNumbers ? task.left : undefined} />
         </button>
         {task.showEqual && (
           <button
@@ -47,7 +47,7 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
           />
         )}
         <button className="compare-side" disabled={answered} onClick={() => handleSide(false)}>
-          <DotGroup count={task.right} color="#fc8181" />
+          <DotGroup count={task.right} color="#fc8181" number={task.showNumbers ? task.right : undefined} />
         </button>
       </div>
       {verdict && <div className="compare-verdict">{verdict}</div>}

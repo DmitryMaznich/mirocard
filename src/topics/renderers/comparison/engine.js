@@ -9,6 +9,18 @@ export const COMPARISON_LEVELS = [
   { id: 4, label: "До 99",              params: { min: 10, max: 99, minDiff: 1 } },
 ];
 
+const NUM_NOM = ["", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
+  "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать",
+  "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать", "двадцать"];
+
+const NUM_GEN = ["", "одного", "двух", "трёх", "четырёх", "пяти", "шести", "семи", "восьми", "девяти", "десяти",
+  "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати",
+  "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати", "двадцати"];
+
+function numNom(n) { return NUM_NOM[n] ?? String(n); }
+function numGen(n) { return NUM_GEN[n] ?? String(n); }
+function cap(s)    { return s ? s[0].toUpperCase() + s.slice(1) : s; }
+
 export function generateComparisonTask(params) {
   const { min = 1, max = 10, minDiff = 1, allowEqual = false } = params;
 
@@ -23,7 +35,6 @@ export function generateComparisonTask(params) {
     return { left, right };
   }
 
-  // Fallback: guaranteed valid pair
   const left  = min;
   const right = Math.min(min + (minDiff || 1), max);
   return { left, right };
@@ -41,28 +52,46 @@ function getFirstNumberRelation(left, right) {
 }
 
 export function getVerdict(task) {
+  const words = task.wordsVerdict;
+
   if (task.type === "compare_first_number") {
     if (task.left === task.right) {
-      return `Одинаково! ${task.left} = ${task.right}`;
+      return words
+        ? `Одинаково! ${cap(numNom(task.left))} = ${numNom(task.right)}`
+        : `Одинаково! ${task.left} = ${task.right}`;
     }
-    return task.left < task.right
-      ? `${task.left} меньше ${task.right}`
+    if (task.left < task.right) {
+      return words
+        ? `${cap(numNom(task.left))} меньше ${numGen(task.right)}`
+        : `${task.left} меньше ${task.right}`;
+    }
+    return words
+      ? `${cap(numNom(task.left))} больше ${numGen(task.right)}`
       : `${task.left} больше ${task.right}`;
   }
+
   if (task.question === "equal" || task.left === task.right) {
-    return `Одинаково! ${task.left} = ${task.right}`;
+    return words
+      ? `Одинаково! ${cap(numNom(task.left))} = ${numNom(task.right)}`
+      : `Одинаково! ${task.left} = ${task.right}`;
   }
+
   const bigger  = Math.max(task.left, task.right);
   const smaller = Math.min(task.left, task.right);
-  return task.question === "more"
-    ? `${bigger} больше ${smaller}`
+  if (task.question === "more") {
+    return words
+      ? `${cap(numNom(bigger))} больше ${numGen(smaller)}`
+      : `${bigger} больше ${smaller}`;
+  }
+  return words
+    ? `${cap(numNom(smaller))} меньше ${numGen(bigger)}`
     : `${smaller} меньше ${bigger}`;
 }
 
-// sessionParams: { level?, question?: "more"|"less", showEqual?: boolean }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, showNumbers?: boolean }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
-  const { question = "more", showEqual = false, level = 2 } = sessionParams;
+  const { question = "more", showEqual = false, level = 2, wordsVerdict = false, showNumbers = false } = sessionParams;
 
   const levelDef   = COMPARISON_LEVELS.find((l) => l.id === level) ?? COMPARISON_LEVELS[1];
   const baseParams = levelDef.params;
@@ -75,8 +104,8 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       void q;
       return "Сравни первое число со вторым и выбери правильный ответ.";
     }
-    if (q === "equal") return "Одинаково?";
-    if (q === "more")  return showEqual ? "Где больше? Или одинаково?" : "Где больше?";
+    const baseQ = q === "equal" ? (question === "less" ? "less" : "more") : q;
+    if (baseQ === "more") return showEqual ? "Где больше? Или одинаково?" : "Где больше?";
     return showEqual ? "Где меньше? Или одинаково?" : "Где меньше?";
   }
 
@@ -101,7 +130,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
           ? (Math.random() < 0.5 ? "more" : "less")
           : question;
 
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, instruction: taskInstruction(taskQuestion) });
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, showNumbers, instruction: taskInstruction(taskQuestion) });
   }
   return shuffle(tasks);
 }
