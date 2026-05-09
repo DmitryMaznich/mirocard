@@ -52,13 +52,13 @@
     },
     {
       "id": "comparison",
-      "version": "2.2.1",
+      "version": "2.3.0",
       "title": { "ru": "Сравнение", "en": "Comparison" },
       "description": {
-        "ru": "8 режимов педагогической лестницы: от зрительного сравнения точек до знаков < = >.",
-        "en": "8 modes: from visual dot comparison to < = > signs. Pedagogical ladder for children aged 4+."
+        "ru": "6 режимов педагогической лестницы: от зрительного сравнения точек до знаков < = >.",
+        "en": "6 modes: from visual dot comparison to < = > signs. Pedagogical ladder for children aged 4+."
       },
-      "url": "./decks/comparison_v2.2.1.zip"
+      "url": "./decks/comparison_v2.3.0.zip"
     },
     {
       "id": "math_houses",

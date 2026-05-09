@@ -64,20 +64,22 @@ const LEVEL_DESCRIPTIONS = {
 };
 
 const QUESTION_OPTIONS = [
-  { value: "more", baseLabel: "Где больше?",       equalLabel: "Где больше или равно?",          hint: "Ребёнок всегда ищет большее число" },
-  { value: "less", baseLabel: "Где меньше?",       equalLabel: "Где меньше или равно?",          hint: "Ребёнок всегда ищет меньшее число" },
-  { value: "mix",  baseLabel: "Микс",              equalLabel: "Микс",                           hint: "Вопросы «больше» и «меньше» чередуются" },
+  { value: "more", label: "Больше",  hint: "Ребёнок всегда ищет большее" },
+  { value: "less", label: "Меньше",  hint: "Ребёнок всегда ищет меньшее" },
+  { value: "mix",  label: "Микс",    hint: "Вопросы «больше» и «меньше» чередуются" },
+];
+
+const VISUAL_OPTIONS = [
+  { value: "dots",         label: "Точки" },
+  { value: "dots_numbers", label: "Точки + цифра" },
 ];
 
 function ComparisonParams({ params, onChange }) {
-  const activeModeId   = useAppStore((s) => s.activeModeId);
-  const activeLevel    = COMPARISON_LEVELS.find((l) => l.id === params.level);
-  const activeQuestion = QUESTION_OPTIONS.find((q) => q.value === params.question);
+  const activeModeId      = useAppStore((s) => s.activeModeId);
+  const activeLevel       = COMPARISON_LEVELS.find((l) => l.id === params.level);
+  const activeQuestion    = QUESTION_OPTIONS.find((q) => q.value === params.question);
   const isFirstNumberMode = activeModeId === "compare_first_number";
-  const questionLabel  = (opt) => {
-    if (opt.value === "mix") return "Микс";
-    return params.showEqual ? opt.equalLabel : opt.baseLabel;
-  };
+  const isVisualMode      = activeModeId === "compare_visual";
 
   return (
     <>
@@ -117,7 +119,7 @@ function ComparisonParams({ params, onChange }) {
 
       {!isFirstNumberMode && (
         <div className="param-row param-row--block">
-          <div className="param-label">Вопрос</div>
+          <div className="param-label">Что учим</div>
           <div className="param-enum-section">
             <div className="param-enum-group">
               {QUESTION_OPTIONS.map((opt) => (
@@ -126,7 +128,7 @@ function ComparisonParams({ params, onChange }) {
                   className={`enum-btn ${params.question === opt.value ? "enum-btn--active" : ""}`}
                   onClick={() => onChange({ ...params, question: opt.value })}
                 >
-                  {questionLabel(opt)}
+                  {opt.label}
                 </button>
               ))}
             </div>
@@ -146,13 +148,23 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {activeModeId === "compare_visual" && (
-        <BooleanParam
-          label="Цифры под кружками"
-          hint="Число отображается под каждой группой кружков"
-          value={params.showNumbers}
-          onChange={(v) => onChange({ ...params, showNumbers: v })}
-        />
+      {isVisualMode && (
+        <div className="param-row param-row--block">
+          <div className="param-label">Вид</div>
+          <div className="param-enum-section">
+            <div className="param-enum-group">
+              {VISUAL_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`enum-btn ${(params.visualMode ?? "dots") === opt.value ? "enum-btn--active" : ""}`}
+                  onClick={() => onChange({ ...params, visualMode: opt.value })}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {!isFirstNumberMode && (
@@ -199,7 +211,7 @@ export default function ParamsScreen() {
         question:     saved.question     ?? "more",
         showEqual:    saved.showEqual    ?? false,
         wordsVerdict: saved.wordsVerdict ?? false,
-        showNumbers:  saved.showNumbers  ?? false,
+        visualMode:   saved.visualMode   ?? "dots",
       };
     }
     const modeParams = mode?.params ?? {};

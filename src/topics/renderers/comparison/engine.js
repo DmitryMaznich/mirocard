@@ -88,10 +88,10 @@ export function getVerdict(task) {
     : `${smaller} меньше ${bigger}`;
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, showNumbers?: boolean }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers" }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
-  const { question = "more", showEqual = false, level = 2, wordsVerdict = false, showNumbers = false } = sessionParams;
+  const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
 
   const levelDef   = COMPARISON_LEVELS.find((l) => l.id === level) ?? COMPARISON_LEVELS[1];
   const baseParams = levelDef.params;
@@ -105,8 +105,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       return "Сравни первое число со вторым и выбери правильный ответ.";
     }
     const baseQ = q === "equal" ? (question === "less" ? "less" : "more") : q;
-    if (baseQ === "more") return showEqual ? "Где больше? Или одинаково?" : "Где больше?";
-    return showEqual ? "Где меньше? Или одинаково?" : "Где меньше?";
+    const verb  = baseQ === "more" ? "больше" : "меньше";
+    if (visualMode === "dots") return `Где ${verb} точек?`;
+    return `Где ${verb}?`;
   }
 
   const tasks       = [];
@@ -130,7 +131,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
           ? (Math.random() < 0.5 ? "more" : "less")
           : question;
 
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, showNumbers, instruction: taskInstruction(taskQuestion) });
+    const equalHint = showEqual ? "Если одинаково — нажми посередине" : null;
+
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint });
   }
   return shuffle(tasks);
 }

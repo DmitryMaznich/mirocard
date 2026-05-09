@@ -2,10 +2,16 @@ import { useState } from "react";
 import DotGroup from "./DotGroup";
 import { getVerdict } from "./engine";
 
+function SideContent({ value, color, visualMode }) {
+  const showNumber = visualMode === "dots_numbers";
+  return <DotGroup count={value} color={color} number={showNumber ? value : undefined} />;
+}
+
 export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
   const [answered, setAnswered] = useState(false);
   const [verdict,  setVerdict2] = useState(null);
 
+  const visualMode    = task.visualMode ?? (task.showNumbers ? "dots_numbers" : "dots");
   const isLeftCorrect = task.question === "more" ? task.left > task.right : task.left < task.right;
 
   function handleSide(pickedLeft) {
@@ -33,9 +39,10 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
   return (
     <div className="compare-body">
       <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
+      {task.equalHint && <div className="compare-instruction-hint">{task.equalHint}</div>}
       <div className="compare-sides">
         <button className="compare-side" disabled={answered} onClick={() => handleSide(true)}>
-          <DotGroup count={task.left} color="#4299e1" number={task.showNumbers ? task.left : undefined} />
+          <SideContent value={task.left} color="#4299e1" visualMode={visualMode} />
         </button>
         {task.showEqual && (
           <button
@@ -47,7 +54,7 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
           />
         )}
         <button className="compare-side" disabled={answered} onClick={() => handleSide(false)}>
-          <DotGroup count={task.right} color="#fc8181" number={task.showNumbers ? task.right : undefined} />
+          <SideContent value={task.right} color="#fc8181" visualMode={visualMode} />
         </button>
       </div>
       {verdict && <div className="compare-verdict">{verdict}</div>}

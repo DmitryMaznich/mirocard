@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { writeFileSync } from "node:fs";
 
-const VERSION = "2.2.1";
+const VERSION = "2.3.0";
 
 const manifest = {
   meta: {
@@ -27,31 +27,14 @@ const manifest = {
       defaultCardId: "compare_easy",
       ui: {
         title: "1. Где больше?",
-        instruction: "Нажми на сторону где больше кружков",
+        instruction: "Нажми на сторону, где больше",
       },
       methodology: {
-        text: "Ребёнок сравнивает два набора кружков без чисел. Задача опирается на суbitizing — мгновенное восприятие количества без пересчёта.",
+        text: "Ребёнок сравнивает два набора кружков. Вид можно настроить: только точки или точки с цифрами. Вопрос («больше» или «меньше») тоже выбирается в параметрах. Задача опирается на subitizing — мгновенное восприятие количества без пересчёта.",
         tips: [
-          "Не торопите ребёнка — пусть смотрит и чувствует разницу",
-          "Если ошибается — покажите пальцем: «Посмотри, здесь одна кучка, а здесь много»",
-        ],
-        duration: "3–5 минут",
-      },
-    },
-    {
-      id: "compare_with_number",
-      type: "compare_with_number",
-      evaluation: "auto",
-      defaultCardId: "compare_easy",
-      ui: {
-        title: "2. Кружки и числа",
-        instruction: "Нажми на большее число",
-      },
-      methodology: {
-        text: "Кружки дополнены цифрами. Ребёнок учится соотносить визуальный образ количества с числовым символом.",
-        tips: [
-          "Называйте числа вслух вместе с ребёнком",
-          "Обращайте внимание: «Цифра 7 и 7 кружков — это одно и то же»",
+          "Начните с режима «Точки» — ребёнок опирается на зрительный образ, а не на счёт",
+          "Переключитесь на «Точки + цифра», когда ребёнок уверенно различает количества",
+          "Не торопите — пусть смотрит и чувствует разницу",
         ],
         duration: "3–5 минут",
       },
@@ -62,7 +45,7 @@ const manifest = {
       evaluation: "auto",
       defaultCardId: "compare_medium",
       ui: {
-        title: "3. Какое больше?",
+        title: "2. Какое больше?",
         instruction: "Нажми на большее число",
       },
       methodology: {
@@ -80,7 +63,7 @@ const manifest = {
       evaluation: "auto",
       defaultCardId: "compare_medium",
       ui: {
-        title: "4. Крокодил",
+        title: "3. Крокодил",
         instruction: "Нажми на большее число",
       },
       methodology: {
@@ -93,30 +76,12 @@ const manifest = {
       },
     },
     {
-      id: "compare_equal",
-      type: "compare_equal",
-      evaluation: "auto",
-      defaultCardId: "compare_hard",
-      ui: {
-        title: "5. Больше, меньше или равно?",
-        instruction: "Нажми на большее или на =",
-      },
-      methodology: {
-        text: "Добавляется понятие равенства. Ребёнок выбирает один из трёх вариантов: больше, меньше или равно.",
-        tips: [
-          "Объясните: когда числа одинаковые — крокодил спит, рот закрыт, ставим =",
-          "Равенство — это новое понятие, дайте время на освоение",
-        ],
-        duration: "5–10 минут",
-      },
-    },
-    {
       id: "compare_first_number",
       type: "compare_first_number",
       evaluation: "auto",
       defaultCardId: "compare_medium",
       ui: {
-        title: "6. Первое число",
+        title: "4. Первое число",
         instruction: "Первое число — больше, меньше или равно второму?",
       },
       methodology: {
@@ -135,7 +100,7 @@ const manifest = {
       evaluation: "auto",
       defaultCardId: "compare_hard",
       ui: {
-        title: "7. Поставь знак",
+        title: "5. Поставь знак",
         instruction: "Поставь правильный знак между числами",
       },
       methodology: {
@@ -153,7 +118,7 @@ const manifest = {
       evaluation: "auto",
       defaultCardId: "compare_hard",
       ui: {
-        title: "8. Нарисуй знак",
+        title: "6. Нарисуй знак",
         instruction: "Нарисуй правильный знак пальцем",
       },
       methodology: {
