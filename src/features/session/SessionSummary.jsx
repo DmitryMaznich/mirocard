@@ -167,6 +167,7 @@ export default function SessionSummary() {
 
       {videoOpen && (
         <div className="video-reward-overlay">
+          <button className="video-reward-close" onClick={() => setVideoOpen(false)} aria-label="Закрыть">✕</button>
           <div className="video-reward-frame">
             <iframe
               src={rewardVideoUrl.current}

@@ -10889,6 +10889,24 @@ button {
   z-index: 1;
   background: transparent;
 }
+.video-reward-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .video-reward-footer {
   flex-shrink: 0;
   background: #111;
