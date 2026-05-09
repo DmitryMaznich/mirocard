@@ -135,6 +135,13 @@ export function initDb(dbPath = DB_PATH) {
     db.exec("ALTER TABLE students ADD COLUMN reward_videos TEXT DEFAULT '[]'");
   }
 
+  const linkColumns = db.prepare("PRAGMA table_info(student_topic_links)").all();
+  if (!linkColumns.some((c) => c.name === "params")) {
+    db.exec("ALTER TABLE student_topic_links ADD COLUMN params TEXT DEFAULT '{}'");
+    db.exec("ALTER TABLE student_topic_links ADD COLUMN video_reward_enabled INTEGER DEFAULT 1");
+    db.exec("ALTER TABLE student_topic_links ADD COLUMN reward_threshold INTEGER DEFAULT 90");
+  }
+
   return db;
 }
 

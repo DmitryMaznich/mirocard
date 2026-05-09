@@ -253,20 +253,29 @@ export function softDeleteAccountTopic(db, id) {
 
 // ─── Student topic links ──────────────────────────────────────────────────────
 
-export function upsertStudentTopicLink(db, accountId, { id, studentId, topicId, selectionMode = "auto", selectedConceptIds = [], repsPerConcept = 1 }) {
+export function upsertStudentTopicLink(db, accountId, {
+  id, studentId, topicId,
+  selectionMode = "auto", selectedConceptIds = [], repsPerConcept = 1,
+  params = {}, videoRewardEnabled = true, rewardThreshold = 90,
+}) {
   const ts = now();
   db.prepare(`
     INSERT INTO student_topic_links
-      (id, account_id, student_id, topic_id, selection_mode, selected_concept_ids, reps_per_concept, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, account_id, student_id, topic_id, selection_mode, selected_concept_ids, reps_per_concept,
+       params, video_reward_enabled, reward_threshold, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       selection_mode = excluded.selection_mode,
       selected_concept_ids = excluded.selected_concept_ids,
       reps_per_concept = excluded.reps_per_concept,
+      params = excluded.params,
+      video_reward_enabled = excluded.video_reward_enabled,
+      reward_threshold = excluded.reward_threshold,
       updated_at = excluded.updated_at
   `).run(
     id, accountId, studentId, topicId,
-    selectionMode, JSON.stringify(selectedConceptIds), repsPerConcept, ts, ts
+    selectionMode, JSON.stringify(selectedConceptIds), repsPerConcept,
+    JSON.stringify(params), videoRewardEnabled ? 1 : 0, rewardThreshold, ts, ts
   );
 }
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
+import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -175,7 +176,6 @@ export default function ParamsScreen() {
   const topicRecords           = useAppStore((s) => s.topicRecords);
   const students               = useAppStore((s) => s.students);
   const studentTopicLinks      = useAppStore((s) => s.studentTopicLinks);
-  const upsertStudentTopicLink = useAppStore((s) => s.upsertStudentTopicLink);
   const sessions               = useAppStore((s) => s.sessions);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
@@ -235,7 +235,7 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
-    upsertStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold });
+    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold });
     setScreen("session");
   }
 

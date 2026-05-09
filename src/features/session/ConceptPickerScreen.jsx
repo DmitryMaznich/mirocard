@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
+import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
 import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
@@ -33,8 +34,6 @@ export default function ConceptPickerScreen() {
   const topicRecords       = useAppStore((s) => s.topicRecords);
   const sessions           = useAppStore((s) => s.sessions);
   const studentTopicLinks  = useAppStore((s) => s.studentTopicLinks);
-  const upsertStudentTopicLink = useAppStore((s) => s.upsertStudentTopicLink);
-
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const concepts    = topicRecord ? deriveConcepts(topicRecord.cards) : [];
 
@@ -56,7 +55,7 @@ export default function ConceptPickerScreen() {
   function selectNone() { setSelected(new Set()); }
 
   function confirm() {
-    upsertStudentTopicLink(activeStudentId, activeTopicId, {
+    persistStudentTopicLink(activeStudentId, activeTopicId, {
       selectedConceptIds: [...selected],
       selectionMode: "manual",
     });

@@ -56,6 +56,9 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
       selectionMode:      l.selection_mode,
       selectedConceptIds: safeJson(l.selected_concept_ids, []),
       repsPerConcept:     l.reps_per_concept,
+      params:             safeJson(l.params, {}),
+      videoRewardEnabled: Boolean(l.video_reward_enabled ?? 1),
+      rewardThreshold:    l.reward_threshold ?? 90,
       updatedAt:          l.updated_at,
     })),
     conceptProgress: conceptProgress.map((p) => ({

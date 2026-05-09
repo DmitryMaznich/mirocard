@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
+import { pushOp } from "@/core/syncApi";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import StudentForm from "./StudentForm";
@@ -40,25 +41,26 @@ export default function StudentsScreen() {
     await persistStudents(db, updated, setStudents);
     setShowAdd(false);
     setPanelStudentId(student.id);
+    pushOp("student.upsert", student);
   }
 
   async function handleEdit(data) {
-    const updated = students.map((s) =>
-      s.id === editing.id
-        ? { ...s, ...data, updatedAt: new Date().toISOString() }
-        : s
-    );
+    const updatedStudent = { ...editing, ...data, updatedAt: new Date().toISOString() };
+    const updated = students.map((s) => s.id === editing.id ? updatedStudent : s);
     const db = await getDb();
     await persistStudents(db, updated, setStudents);
     setEditing(null);
+    pushOp("student.upsert", updatedStudent);
   }
 
   async function handleDelete() {
-    const updated = students.filter((s) => s.id !== deleting.id);
+    const deletingId = deleting.id;
+    const updated = students.filter((s) => s.id !== deletingId);
     const db = await getDb();
     await persistStudents(db, updated, setStudents);
-    if (panelStudentId === deleting.id) setPanelStudentId(null);
+    if (panelStudentId === deletingId) setPanelStudentId(null);
     setDeleting(null);
+    pushOp("student.delete", { id: deletingId });
   }
 
   function handleStudentClick(student) {

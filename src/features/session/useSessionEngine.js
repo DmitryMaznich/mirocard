@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
+import { pushOp } from "@/core/syncApi";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, computeSessionRecord } from "./sessionEngine";
@@ -82,6 +83,7 @@ export function useSessionEngine() {
     await kv.set(db, "sessions", updated);
     appendSession(record);
     setCompletedRecord(record);
+    pushOp("session.append", { ...record, mode: record.modeId });
   }
 
   const onCorrect = useCallback((conceptId, cardId) => {
