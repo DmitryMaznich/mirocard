@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api, setApiToken } from "@/core/api";
-import { getDb } from "@/core/db";
-import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
+import { getDb, kv } from "@/core/db";
+import { persistBootstrap, applyBootstrapToStore, indexStudentTopicLinks } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
 
 export default function LoginScreen() {
@@ -21,6 +21,43 @@ export default function LoginScreen() {
       const { account, token } = await api.post("/auth/login", { email, password });
       setApiToken(token);
 
+      // Push local data to server before fetching bootstrap (so it isn't lost)
+      const db = await getDb();
+      const [localStudents, localSessions, localLinks] = await Promise.all([
+        kv.get(db, "students"),
+        kv.get(db, "sessions"),
+        kv.get(db, "studentTopicLinks"),
+      ]);
+      const uploadOps = [];
+      for (const s of (localStudents ?? [])) {
+        uploadOps.push({ type: "student.upsert", data: s });
+      }
+      for (const sess of (localSessions ?? [])) {
+        uploadOps.push({ type: "session.append", data: { ...sess, mode: sess.modeId } });
+      }
+      const linksMap = indexStudentTopicLinks(localLinks);
+      for (const link of Object.values(linksMap)) {
+        if (link.studentId && link.topicId) {
+          uploadOps.push({
+            type: "student_topic_link.upsert",
+            data: {
+              id: link.id ?? `${link.studentId}_${link.topicId}`,
+              studentId: link.studentId,
+              topicId: link.topicId,
+              selectedConceptIds: link.selectedConceptIds ?? [],
+              selectionMode: link.selectionMode ?? "auto",
+              repsPerConcept: link.repsPerConcept ?? 1,
+              params: link.params ?? {},
+              videoRewardEnabled: link.videoRewardEnabled ?? true,
+              rewardThreshold: link.rewardThreshold ?? 90,
+            },
+          });
+        }
+      }
+      if (uploadOps.length > 0) {
+        try { await api.post("/sync", { operations: uploadOps }); } catch {}
+      }
+
       // Подгружаем все данные аккаунта с сервера
       const [bootstrap, sessionsRaw] = await Promise.all([
         api.get("/account/bootstrap"),
@@ -38,7 +75,6 @@ export default function LoginScreen() {
         sessions: sessionsRaw,
       };
 
-      const db = await getDb();
       await persistBootstrap(db, payload);
       applyBootstrapToStore(payload);
       setScreen("home");
