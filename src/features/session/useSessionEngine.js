@@ -108,7 +108,14 @@ export function useSessionEngine() {
     setTimeout(() => {
       setSessionState((s) => {
         if (s.status !== "answer_incorrect") return s;
+        // compare_first_number показывает ответ и ждёт ручного advance
         if (s.mode.type === "compare_first_number") return s;
+        // choose_all: засчитываем ошибку, но переходим к следующей задаче
+        if (s.tasks[s.taskIndex]?.type === "choose_all") {
+          const advanced = handleAdvance(s);
+          if (advanced.status === "completed") finishSession(advanced);
+          return advanced;
+        }
         return { ...s, status: "task_active", taskRetry: (s.taskRetry ?? 0) + 1 };
       });
     }, FEEDBACK_DELAY_MS);

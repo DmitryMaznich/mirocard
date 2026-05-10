@@ -11,6 +11,7 @@ export default function ComparePutSign({ task, mode, onCorrect, onIncorrect }) {
   function handleTap(sign) {
     if (answered) return;
     if (sign !== correctSign) {
+      setAnswered(true);
       setShakeSign(sign);
       setTimeout(() => setShakeSign(null), 400);
       onIncorrect(task.conceptId, null);

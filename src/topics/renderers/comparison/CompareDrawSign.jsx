@@ -12,6 +12,7 @@ export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) 
   function handleSignRecognized(sign, clearCanvas) {
     if (answered) return;
     if (sign !== correctSign) {
+      setAnswered(true);
       setShakeCanvas(true);
       setTimeout(() => setShakeCanvas(false), 400);
       onIncorrect(task.conceptId, null);

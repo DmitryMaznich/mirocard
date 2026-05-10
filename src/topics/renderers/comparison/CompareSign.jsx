@@ -15,12 +15,13 @@ export default function CompareSign({ task, mode, onCorrect, onIncorrect }) {
   function handleNumberTap(pickedLeft) {
     if (answered) return;
     if (isEqualTask) {
-      // tapping a number when equal = wrong
+      setAnswered(true);
       onIncorrect(task.conceptId, null);
       return;
     }
     const isLeftCorrect = task.question === "more" ? leftBigger : !leftBigger;
     if (isLeftCorrect !== pickedLeft) {
+      setAnswered(true);
       onIncorrect(task.conceptId, null);
       return;
     }
