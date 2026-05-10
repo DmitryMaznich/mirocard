@@ -31,6 +31,17 @@ export default function SettingsScreen() {
   const appendSession    = useAppStore((s) => s.appendSession);
   const activeStudentId  = useAppStore((s) => s.activeStudentId);
   const activeTopicId    = useAppStore((s) => s.activeTopicId);
+  const settings         = useAppStore((s) => s.settings);
+  const patchSettings    = useAppStore((s) => s.patchSettings);
+
+  const tapToAdvance     = settings.tapToAdvance ?? true;
+  const autoAdvanceDelay = settings.autoAdvanceDelay ?? 3;
+
+  async function handlePatchSettings(patch) {
+    patchSettings(patch);
+    const db = await getDb();
+    await kv.set(db, "settings", { ...settings, ...patch });
+  }
 
   function testSummary(pct) {
     appendSession(fakeSession(pct, activeStudentId, activeTopicId));
@@ -78,6 +89,38 @@ export default function SettingsScreen() {
               <Button variant="danger" onClick={handleLogout}>Выйти</Button>
             </div>
           )}
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-title">Темп продолжения</div>
+          <label className="settings-row" style={{ cursor: "pointer", gap: 10 }}>
+            <input
+              type="checkbox"
+              checked={tapToAdvance}
+              onChange={(e) => handlePatchSettings({ tapToAdvance: e.target.checked })}
+              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0 }}
+            />
+            <span className="settings-row__label">Следующая карта по тапу</span>
+          </label>
+          <div
+            className="settings-row"
+            style={{ opacity: tapToAdvance ? 0.4 : 1, pointerEvents: tapToAdvance ? "none" : "auto" }}
+          >
+            <div className="settings-row__label">Задержка (сек)</div>
+            <div className="param-stepper">
+              <button
+                className="stepper-btn"
+                disabled={autoAdvanceDelay <= 1}
+                onClick={() => handlePatchSettings({ autoAdvanceDelay: autoAdvanceDelay - 1 })}
+              >−</button>
+              <span className="stepper-value">{autoAdvanceDelay}</span>
+              <button
+                className="stepper-btn"
+                disabled={autoAdvanceDelay >= 10}
+                onClick={() => handlePatchSettings({ autoAdvanceDelay: autoAdvanceDelay + 1 })}
+              >+</button>
+            </div>
+          </div>
         </div>
       </div>
 
