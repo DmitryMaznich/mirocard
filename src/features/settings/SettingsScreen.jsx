@@ -93,15 +93,19 @@ export default function SettingsScreen() {
 
         <div className="settings-section">
           <div className="settings-section-title">Темп продолжения</div>
-          <label className="settings-row" style={{ cursor: "pointer", gap: 10 }}>
+          <div
+            className="settings-row"
+            style={{ cursor: "pointer" }}
+            onClick={() => handlePatchSettings({ tapToAdvance: !tapToAdvance })}
+          >
+            <span className="settings-row__label">Следующая карта по тапу</span>
             <input
               type="checkbox"
               checked={tapToAdvance}
-              onChange={(e) => handlePatchSettings({ tapToAdvance: e.target.checked })}
-              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0 }}
+              readOnly
+              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
             />
-            <span className="settings-row__label">Следующая карта по тапу</span>
-          </label>
+          </div>
           <div
             className="settings-row"
             style={{ opacity: tapToAdvance ? 0.4 : 1, pointerEvents: tapToAdvance ? "none" : "auto" }}
