@@ -1,19 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CrocSign from "./CrocSign";
 import { getVerdict } from "./engine";
 
-export default function CompareSign({ task, mode, onCorrect, onIncorrect }) {
-  const [crocState, setCrocState] = useState("closed");
-  const [answered,  setAnswered]  = useState(false);
-  const [verdict,   setVerdict2]  = useState(null);
+function CrocTip() {
+  return (
+    <div className="compare-croc-tip">
+      <div className="compare-croc-tip__icon">
+        <CrocSign state="closed" size={52} />
+      </div>
+      <p className="compare-croc-tip__text">
+        Крокодил всегда хочет съесть <strong>больше!</strong>
+      </p>
+    </div>
+  );
+}
 
-  const leftBigger = task.left > task.right;
+export default function CompareSign({ task, mode, sessionStatus, onCorrect, onIncorrect }) {
+  const [answered, setAnswered] = useState(false);
+  const [crocState, setCrocState] = useState("closed");
+  const [verdict,   setVerdict]  = useState(null);
+
+  const isAnswered = answered || sessionStatus !== "task_active";
+
+  useEffect(() => {
+    if (sessionStatus === "task_active") {
+      setAnswered(false);
+      setCrocState("closed");
+      setVerdict(null);
+    }
+  }, [sessionStatus]);
+
+  const leftBigger  = task.left > task.right;
   const isEqualTask = task.question === "equal";
 
-  const instruction = task.instruction ?? mode.ui.instruction;
+  // Derive instruction from task data — never rely on engine-cached string
+  const baseQ = isEqualTask ? "more" : (task.question ?? "more");
+  const verb  = baseQ === "less" ? "меньшее" : "большее";
+  const instruction = isEqualTask
+    ? "Одинаковые — нажми посередине"
+    : `Нажми на ${verb} число`;
 
   function handleNumberTap(pickedLeft) {
-    if (answered) return;
+    if (isAnswered) return;
     if (isEqualTask) {
       setAnswered(true);
       onIncorrect(task.conceptId, null);
@@ -27,15 +55,15 @@ export default function CompareSign({ task, mode, onCorrect, onIncorrect }) {
     }
     setAnswered(true);
     setCrocState(leftBigger ? "open-left" : "open-right");
-    setVerdict2(getVerdict(task));
+    setVerdict(getVerdict(task));
     onCorrect(task.conceptId, null);
   }
 
   function handleEqualTap() {
-    if (answered || !isEqualTask) return;
+    if (isAnswered || !isEqualTask) return;
     setAnswered(true);
     setCrocState("equal");
-    setVerdict2(getVerdict(task));
+    setVerdict(getVerdict(task));
     onCorrect(task.conceptId, null);
   }
 
@@ -43,17 +71,18 @@ export default function CompareSign({ task, mode, onCorrect, onIncorrect }) {
 
   return (
     <div className="compare-body">
+      <CrocTip />
       <div className="compare-instruction">{instruction}</div>
       <div className="compare-sign-row">
         <button
           className="compare-side compare-side--number"
-          disabled={answered}
+          disabled={isAnswered}
           onClick={() => handleNumberTap(true)}
         >
           <div className="compare-big-number">{task.left}</div>
         </button>
 
-        {isEqualTask && !answered
+        {isEqualTask && !isAnswered
           ? (
             <button className="compare-croc-area croc-tap-btn" onClick={handleEqualTap}>
               {crocEl}
@@ -67,7 +96,7 @@ export default function CompareSign({ task, mode, onCorrect, onIncorrect }) {
 
         <button
           className="compare-side compare-side--number"
-          disabled={answered}
+          disabled={isAnswered}
           onClick={() => handleNumberTap(false)}
         >
           <div className="compare-big-number">{task.right}</div>

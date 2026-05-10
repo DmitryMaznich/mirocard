@@ -1,4 +1,4 @@
-export default function CrocSign({ state = "closed" }) {
+export default function CrocSign({ state = "closed", size = 100 }) {
   const isOpen  = state === "open-right" || state === "open-left";
   const isEqual = state === "equal";
   const upperTransform = isEqual ? "translateY(-13px)" : isOpen ? "rotate(-28deg)" : "none";
@@ -15,7 +15,7 @@ export default function CrocSign({ state = "closed" }) {
       flexDirection: "column",
       alignItems: "center",
     }}>
-      <svg width="100" height="100" viewBox="0 0 160 160" style={{ overflow: "visible" }} aria-hidden="true">
+      <svg width={size} height={size} viewBox="0 0 160 160" style={{ overflow: "visible" }} aria-hidden="true">
         {/* Upper jaw — bottom edge at y=80 */}
         <g style={{ transformOrigin: pivot, transform: upperTransform, transition: spring }}>
           <rect x="20" y="50" width="120" height="30" rx="8" fill="#66bb6a" />
