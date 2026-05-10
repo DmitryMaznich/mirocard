@@ -9,7 +9,7 @@ function CrocTip() {
         <CrocSign state="closed" size={52} />
       </div>
       <p className="compare-croc-tip__text">
-        Крокодил всегда хочет съесть <strong>больше!</strong>
+        Крокодил любит есть <strong>много!</strong>
       </p>
     </div>
   );
