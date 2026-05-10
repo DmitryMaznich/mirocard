@@ -499,9 +499,9 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
     const existing = existingById[def.id];
     if (!existing) return def;
     return {
-      ...existing,
       ...def,
-      ui:     { ...(existing.ui ?? {}), ...(def.ui ?? {}) },
+      ...existing,
+      ui:     { ...(def.ui ?? {}), ...(existing.ui ?? {}) },
       params: { ...(def.params ?? {}), ...(existing.params ?? {}) },
     };
   });
