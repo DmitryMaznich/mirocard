@@ -272,10 +272,9 @@ const DEFAULT_MODES = {
     },
   ],
   comparison: [
-    { id: "compare_sign",    type: "compare_sign",    evaluation: "auto", ui: { title: "Крокодил",            instruction: "Нажми на большее число",                  icon: "media/icons/comparison_sign.svg" } },
-    { id: "compare_equal",   type: "compare_equal",   evaluation: "auto", ui: { title: "Больше или равно",    instruction: "Нажми на большее число или на =",         icon: "media/icons/comparison_equal.svg" } },
-    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Первое число", instruction: "Сравни первое число со вторым и выбери правильный ответ.", icon: "media/icons/comparison_first_number.svg" } },
-    { id: "compare_visual",  type: "compare_visual",  evaluation: "auto", ui: { title: "Где больше кружков?", instruction: "Нажми на группу с большим количеством", icon: "media/icons/comparison_visual.svg" } },
+    { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "Крокодил",      instruction: "Нажми на большее число",                          icon: "media/icons/comparison_sign.svg" } },
+    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Первое число",  instruction: "Сравни первое число со вторым и выбери ответ.",    icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "Сравни и нажми", instruction: "Нажми на сторону, где больше",                   icon: "media/icons/comparison_visual.svg" } },
   ],
   math_houses: [
     { id: "math_houses_read",      type: "math_houses_read",      evaluation: "auto", ui: { title: "Читаю",              instruction: "Собери пример по активному этажу",          icon: "media/icons/math_houses_read.svg" } },
