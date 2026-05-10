@@ -20,10 +20,10 @@ const ASSESSMENT_LABELS = {
   easy: "Легко",
 };
 
-function getStarCount(percentCorrect) {
+function getStarCount(percentCorrect, rewardThreshold) {
   if (percentCorrect === null || percentCorrect === undefined) return null;
-  if (percentCorrect >= 90) return 3;
-  if (percentCorrect >= 70) return 2;
+  if (percentCorrect >= rewardThreshold)      return 3;
+  if (percentCorrect >= rewardThreshold - 20) return 2;
   return 1;
 }
 
@@ -67,7 +67,7 @@ export default function SessionSummary() {
     : 0;
 
   const isEvaluated  = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
-  const starCount    = isEvaluated ? getStarCount(session.percentCorrect) : null;
+  const starCount    = isEvaluated ? getStarCount(session.percentCorrect, rewardThreshold) : null;
   const praiseText   = getPraiseText(starCount, isReading);
 
   const [videoOpen,       setVideoOpen]       = useState(false);
