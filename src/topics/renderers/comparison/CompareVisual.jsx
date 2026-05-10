@@ -67,7 +67,7 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
         </button>
         {task.showEqual && (
           <button
-            className="compare-equal-btn compare-equal-btn--empty"
+            className="compare-equal-btn compare-equal-btn--empty compare-equal-btn--hint"
             style={{ alignSelf: "center" }}
             disabled={answered}
             onClick={handleEqual}

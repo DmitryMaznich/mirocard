@@ -11717,6 +11717,14 @@ kbd {
   border-color: #94a3b8;
   background: rgba(255,255,255,0.5);
 }
+.compare-equal-btn--hint {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+.compare-equal-btn--hint:hover:not(:disabled) {
+  background: #fde68a;
+  border-color: #d97706;
+}
 .compare-sign-row--first-number {
   max-width: 560px;
 }

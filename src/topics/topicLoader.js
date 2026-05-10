@@ -272,7 +272,6 @@ const DEFAULT_MODES = {
     },
   ],
   comparison: [
-    { id: "compare_numbers", type: "compare_numbers", evaluation: "auto", ui: { title: "Какое больше?",       instruction: "Нажми на большее число",                  icon: "media/icons/comparison_numbers.svg" } },
     { id: "compare_sign",    type: "compare_sign",    evaluation: "auto", ui: { title: "Крокодил",            instruction: "Нажми на большее число",                  icon: "media/icons/comparison_sign.svg" } },
     { id: "compare_equal",   type: "compare_equal",   evaluation: "auto", ui: { title: "Больше или равно",    instruction: "Нажми на большее число или на =",         icon: "media/icons/comparison_equal.svg" } },
     { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Первое число", instruction: "Сравни первое число со вторым и выбери правильный ответ.", icon: "media/icons/comparison_first_number.svg" } },

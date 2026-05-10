@@ -111,7 +111,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     }
     const baseQ = q === "equal" ? (question === "less" ? "less" : "more") : q;
     const verb  = baseQ === "more" ? "больше" : "меньше";
-    if (visualMode === "numbers") return `Нажми на ${baseQ === "more" ? "большее" : "меньшее"} число`;
+    if (visualMode === "numbers") return baseQ === "more" ? "Какое число больше?" : "Какое число меньше?";
     if (visualMode === "dots") return `Где ${verb} точек?`;
     return `Где ${verb}?`;
   }
@@ -137,7 +137,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
           ? (Math.random() < 0.5 ? "more" : "less")
           : question;
 
-    const equalHint = showEqual ? "Если одинаково — нажми посередине" : null;
+    const equalHint = showEqual
+      ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если одинаково — нажми посередине")
+      : null;
 
     tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint });
   }
