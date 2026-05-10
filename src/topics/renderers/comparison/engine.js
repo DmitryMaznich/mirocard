@@ -17,8 +17,13 @@ const NUM_GEN = ["", "одного", "двух", "трёх", "четырёх", "
   "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати",
   "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати", "двадцати"];
 
+const NUM_DAT = ["", "одному", "двум", "трём", "четырём", "пяти", "шести", "семи", "восьми", "девяти", "десяти",
+  "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати",
+  "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати", "двадцати"];
+
 function numNom(n) { return NUM_NOM[n] ?? String(n); }
 function numGen(n) { return NUM_GEN[n] ?? String(n); }
+function numDat(n) { return NUM_DAT[n] ?? String(n); }
 function cap(s)    { return s ? s[0].toUpperCase() + s.slice(1) : s; }
 
 export function generateComparisonTask(params) {
@@ -57,8 +62,8 @@ export function getVerdict(task) {
   if (task.type === "compare_first_number") {
     if (task.left === task.right) {
       return words
-        ? `Одинаково! ${cap(numNom(task.left))} = ${numNom(task.right)}`
-        : `Одинаково! ${task.left} = ${task.right}`;
+        ? `${cap(numNom(task.left))} равно ${numDat(task.right)}`
+        : `${task.left} = ${task.right}`;
     }
     if (task.left < task.right) {
       return words
@@ -72,8 +77,8 @@ export function getVerdict(task) {
 
   if (task.question === "equal" || task.left === task.right) {
     return words
-      ? `Одинаково! ${cap(numNom(task.left))} = ${numNom(task.right)}`
-      : `Одинаково! ${task.left} = ${task.right}`;
+      ? `${cap(numNom(task.left))} равно ${numDat(task.right)}`
+      : `${task.left} = ${task.right}`;
   }
 
   const bigger  = Math.max(task.left, task.right);
