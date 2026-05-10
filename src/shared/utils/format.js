@@ -64,6 +64,23 @@ export function isValidYoutubeUrl(url) {
   return extractYoutubeId(url) != null;
 }
 
+// Accepts either a plain URL string or a { url, title } object
+export function getVideoUrl(v) {
+  return typeof v === "string" ? v : (v?.url ?? "");
+}
+
+export async function fetchYoutubeTitle(url) {
+  try {
+    const endpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    const res = await fetch(endpoint);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.title ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function makeYoutubeEmbedUrl(videoId) {
   const id = normalizeYoutubeId(videoId);
   if (!id) return null;

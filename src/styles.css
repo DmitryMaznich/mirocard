@@ -10833,10 +10833,19 @@ button {
   border: 1px solid rgba(71, 61, 48, 0.09);
   border-radius: 10px;
 }
+.reward-url-row__info { flex: 1; min-width: 0; }
+.reward-url-row__title {
+  font-size: 0.9rem;
+  color: #1a2e2b;
+  font-weight: 600;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .reward-url-row__text {
-  flex: 1;
-  font-size: 0.82rem;
-  color: #566461;
+  font-size: 0.78rem;
+  color: #999;
   word-break: break-all;
 }
 .reward-url-add {

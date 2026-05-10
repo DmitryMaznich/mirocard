@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
-  extractYoutubeId, computeRewardSeconds, formatRewardTime,
+  extractYoutubeId, computeRewardSeconds, formatRewardTime, getVideoUrl,
 } from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -110,7 +110,7 @@ export default function SessionSummary() {
 
   function handleOpenVideo() {
     const index = Math.floor(Math.random() * rewardVideos.length);
-    const videoId = extractYoutubeId(rewardVideos[index]);
+    const videoId = extractYoutubeId(getVideoUrl(rewardVideos[index]));
     if (!videoId) return;
     window.speechSynthesis?.cancel();
     rewardVideoUrl.current = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3&modestbranding=1`;

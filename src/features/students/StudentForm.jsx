@@ -1,26 +1,32 @@
 import { useState } from "react";
 import Button from "@/shared/components/Button";
-import { isValidYoutubeUrl } from "@/shared/utils/format";
+import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl } from "@/shared/utils/format";
 
 const LANGUAGES = [
   { value: "ru", label: "Русский" },
   { value: "en", label: "English" },
 ];
 
+// Normalise stored entries: accept both plain strings and {url,title} objects
+function normaliseVideos(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((v) =>
+    typeof v === "string" ? { url: v, title: null } : { url: v.url ?? "", title: v.title ?? null }
+  );
+}
+
 export default function StudentForm({ initial, onSave, onCancel }) {
-  const [name,    setName]    = useState(initial?.name    ?? "");
-  const [comment, setComment] = useState(initial?.comment ?? "");
-  const [lang,    setLang]    = useState(initial?.primaryLanguage ?? "");
-  const [videos,  setVideos]  = useState(initial?.rewardVideos ?? []);
+  const [name,       setName]       = useState(initial?.name    ?? "");
+  const [comment,    setComment]    = useState(initial?.comment ?? "");
+  const [lang,       setLang]       = useState(initial?.primaryLanguage ?? "");
+  const [videos,     setVideos]     = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput, setVideoInput] = useState("");
   const [videoError, setVideoError] = useState("");
-  const [error,   setError]   = useState("");
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [error,      setError]      = useState("");
 
   function handleSave() {
-    if (!name.trim()) {
-      setError("Введите имя ученика");
-      return;
-    }
+    if (!name.trim()) { setError("Введите имя ученика"); return; }
     onSave({
       name:            name.trim(),
       comment:         comment.trim(),
@@ -29,15 +35,15 @@ export default function StudentForm({ initial, onSave, onCancel }) {
     });
   }
 
-  function addVideo() {
+  async function addVideo() {
     const url = videoInput.trim();
-    if (!isValidYoutubeUrl(url)) {
-      setVideoError("Неверная ссылка YouTube");
-      return;
-    }
-    setVideos((prev) => [...prev, url]);
-    setVideoInput("");
+    if (!isValidYoutubeUrl(url)) { setVideoError("Неверная ссылка YouTube"); return; }
+    setVideoLoading(true);
     setVideoError("");
+    const title = await fetchYoutubeTitle(url);
+    setVideos((prev) => [...prev, { url, title }]);
+    setVideoInput("");
+    setVideoLoading(false);
   }
 
   function removeVideo(idx) {
@@ -83,23 +89,33 @@ export default function StudentForm({ initial, onSave, onCancel }) {
       </div>
 
       <div className="student-form__section-label">Видео-награды</div>
-      <div className="student-form__section-hint">Показываются при результате ≥90%</div>
-      {videos.map((url, idx) => (
+      <div className="student-form__section-hint">Показываются при достижении порога успеха</div>
+
+      {videos.map((v, idx) => (
         <div key={idx} className="reward-url-row">
-          <span className="reward-url-row__text">{url}</span>
+          <div className="reward-url-row__info">
+            {v.title
+              ? <span className="reward-url-row__title">▶ {v.title}</span>
+              : <span className="reward-url-row__text">{getVideoUrl(v)}</span>
+            }
+          </div>
           <button className="icon-btn icon-btn--danger" onClick={() => removeVideo(idx)}>✕</button>
         </div>
       ))}
+
       <div className="reward-url-add">
         <input
           className="auth-input reward-url-add__input"
           type="url"
           placeholder="https://youtu.be/..."
           value={videoInput}
+          disabled={videoLoading}
           onChange={(e) => { setVideoInput(e.target.value); setVideoError(""); }}
           onKeyDown={(e) => e.key === "Enter" && addVideo()}
         />
-        <Button variant="secondary" onClick={addVideo}>Добавить</Button>
+        <Button variant="secondary" onClick={addVideo} disabled={videoLoading}>
+          {videoLoading ? "…" : "Добавить"}
+        </Button>
       </div>
       {videoError && <div className="form-error">{videoError}</div>}
 
