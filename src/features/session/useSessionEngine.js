@@ -6,7 +6,7 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, computeSessionRecord } from "./sessionEngine";
 
-const FEEDBACK_DELAY_MS = 3000;
+const INCORRECT_FEEDBACK_MS = 1500;
 
 export function useSessionEngine() {
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
@@ -16,6 +16,8 @@ export function useSessionEngine() {
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
+  const tapToAdvance      = useAppStore((s) => s.settings.tapToAdvance ?? true);
+  const autoAdvanceDelay  = useAppStore((s) => s.settings.autoAdvanceDelay ?? 3);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode = topicRecord?.modes?.find((m) => m.id === activeModeId);
@@ -71,7 +73,6 @@ export function useSessionEngine() {
   async function finishSession(state) {
     const record = computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version);
     const db = await getDb();
-    // Persist last context for smart-resume
     await kv.set(db, "lastContext", {
       studentId: activeStudentId,
       topicId:   activeTopicId,
@@ -92,25 +93,26 @@ export function useSessionEngine() {
       if (next.status === "completed") finishSession(next);
       return next;
     });
-    setTimeout(() => {
-      setSessionState((s) => {
-        if (s.status !== "answer_correct") return s;
-        if (s.mode.type === "compare_first_number") return s;
-        const advanced = handleAdvance(s);
-        if (advanced.status === "completed") finishSession(advanced);
-        return advanced;
-      });
-    }, FEEDBACK_DELAY_MS);
-  }, []);
+
+    if (!tapToAdvance) {
+      setTimeout(() => {
+        setSessionState((s) => {
+          if (s.status !== "answer_correct") return s;
+          if (s.mode.type === "compare_first_number") return s;
+          const advanced = handleAdvance(s);
+          if (advanced.status === "completed") finishSession(advanced);
+          return advanced;
+        });
+      }, autoAdvanceDelay * 1000);
+    }
+  }, [tapToAdvance, autoAdvanceDelay]);
 
   const onIncorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => handleAnswer(s, false, conceptId, cardId));
     setTimeout(() => {
       setSessionState((s) => {
         if (s.status !== "answer_incorrect") return s;
-        // compare_first_number показывает ответ и ждёт ручного advance
         if (s.mode.type === "compare_first_number") return s;
-        // choose_all: засчитываем ошибку, но переходим к следующей задаче
         if (s.tasks[s.taskIndex]?.type === "choose_all") {
           const advanced = handleAdvance(s);
           if (advanced.status === "completed") finishSession(advanced);
@@ -118,7 +120,7 @@ export function useSessionEngine() {
         }
         return { ...s, status: "task_active", taskRetry: (s.taskRetry ?? 0) + 1 };
       });
-    }, FEEDBACK_DELAY_MS);
+    }, INCORRECT_FEEDBACK_MS);
   }, []);
 
   const onMistake = useCallback((conceptId, cardId) => {
