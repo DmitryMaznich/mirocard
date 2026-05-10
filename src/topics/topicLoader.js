@@ -599,6 +599,17 @@ function normalizeReading(manifest) {
   return { ...manifest, meta, cards, texts, modes };
 }
 
+function inferMimeType(filename) {
+  if (filename.endsWith(".svg"))  return "image/svg+xml";
+  if (filename.endsWith(".png"))  return "image/png";
+  if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) return "image/jpeg";
+  if (filename.endsWith(".webp")) return "image/webp";
+  if (filename.endsWith(".mp3"))  return "audio/mpeg";
+  if (filename.endsWith(".wav"))  return "audio/wav";
+  if (filename.endsWith(".ogg"))  return "audio/ogg";
+  return "application/octet-stream";
+}
+
 export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
   const zip = await JSZip.loadAsync(zipBuffer);
 
@@ -618,7 +629,9 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
   for (const filename of Object.keys(zip.files)) {
     if (zip.files[filename].dir) continue;
     if (filename === "topic.json" || filename === "deck.json") continue;
-    const blob = await zip.files[filename].async("blob");
+    const raw = await zip.files[filename].async("blob");
+    const mime = raw.type || inferMimeType(filename);
+    const blob = mime !== raw.type ? new Blob([raw], { type: mime }) : raw;
     await topics.saveFile(db, topicId, filename, blob);
   }
 
