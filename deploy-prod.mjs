@@ -14,6 +14,7 @@ const args = new Set(process.argv.slice(2));
 const verifyOnly = args.has("--verify-only");
 const allowDirty = args.has("--allow-dirty") || process.env.MIROCARD_DEPLOY_ALLOW_DIRTY === "1";
 const skipBuild = args.has("--skip-build");
+const noBump = args.has("--no-bump");
 
 const deployHosts = (process.env.MIROCARD_DEPLOY_HOSTS || "100.72.91.115,192.168.1.163")
   .split(",")
@@ -39,6 +40,18 @@ function gitSha() {
   } catch {
     return "unknown";
   }
+}
+
+function bumpPatchVersion() {
+  const pkgPath = path.join(root, "package.json");
+  const pkgRaw = JSON.parse(readFileSync(pkgPath, "utf8"));
+  const parts = pkgRaw.version.split(".").map(Number);
+  parts[2] += 1;
+  pkgRaw.version = parts.join(".");
+  writeFileSync(pkgPath, JSON.stringify(pkgRaw, null, 2) + "\n");
+  pkg.version = pkgRaw.version;
+  execSync(`git add package.json && git commit -m "chore: release v${pkg.version}"`, { cwd: root, stdio: "inherit" });
+  console.log(`bumped version to ${pkg.version}`);
 }
 
 function assertCleanWorktree() {
@@ -200,11 +213,11 @@ async function verify(expectedVersion) {
 }
 
 async function main() {
-  assertCleanWorktree();
-
   let version = null;
   if (!verifyOnly) {
     if (!skipBuild) {
+      assertCleanWorktree();
+      if (!noBump) bumpPatchVersion();
       console.log(`building Mirocard2 v${pkg.version}...`);
       execSync("npm run build", { cwd: root, stdio: "inherit" });
     }
