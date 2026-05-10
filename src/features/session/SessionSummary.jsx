@@ -20,6 +20,30 @@ const ASSESSMENT_LABELS = {
   easy: "Легко",
 };
 
+function getStarCount(percentCorrect) {
+  if (percentCorrect === null || percentCorrect === undefined) return null;
+  if (percentCorrect >= 90) return 3;
+  if (percentCorrect >= 70) return 2;
+  return 1;
+}
+
+function getPraiseText(starCount, isReading) {
+  if (starCount === null) return isReading ? "Молодец, ты прочитал!" : "Молодец, ты справился!";
+  if (starCount === 3) return "Молодец! Три звезды!";
+  if (starCount === 2) return "Хорошо! Две звезды!";
+  return "Старался! Одна звезда!";
+}
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ru-RU";
+  utter.rate = 0.85;
+  utter.pitch = 1.1;
+  window.speechSynthesis.speak(utter);
+}
+
 export default function SessionSummary() {
   const setScreen         = useAppStore((s) => s.setScreen);
   const sessions          = useAppStore((s) => s.sessions);
@@ -42,10 +66,24 @@ export default function SessionSummary() {
     ? computeRewardSeconds(session.modeId, topicRecord?.cards?.length ?? 10)
     : 0;
 
-  const [videoOpen,      setVideoOpen]      = useState(false);
-  const [rewardConsumed, setRewardConsumed] = useState(false);
+  const isEvaluated  = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
+  const starCount    = isEvaluated ? getStarCount(session.percentCorrect) : null;
+  const praiseText   = getPraiseText(starCount, isReading);
+
+  const [videoOpen,       setVideoOpen]       = useState(false);
+  const [rewardConsumed,  setRewardConsumed]  = useState(false);
   const [rewardRemaining, setRewardRemaining] = useState(0);
+  const [detailsOpen,     setDetailsOpen]     = useState(false);
   const rewardVideoUrl = useRef(null);
+
+  useEffect(() => {
+    if (!session) return;
+    const timer = setTimeout(() => speak(praiseText), 600);
+    return () => {
+      clearTimeout(timer);
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
 
   useEffect(() => {
     if (!videoOpen) return undefined;
@@ -68,104 +106,136 @@ export default function SessionSummary() {
   }
 
   const progressAfter    = computeProgressAfterSession(sessions, session);
-  const isEvaluated      = session.percentCorrect !== null;
   const showRewardButton = !rewardConsumed && rewardSeconds > 0 && rewardVideos.length > 0;
 
   function handleOpenVideo() {
     const index = Math.floor(Math.random() * rewardVideos.length);
     const videoId = extractYoutubeId(rewardVideos[index]);
     if (!videoId) return;
+    window.speechSynthesis?.cancel();
     rewardVideoUrl.current = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1`;
     setRewardConsumed(true);
     setVideoOpen(true);
   }
 
-
   return (
     <div className="screen summary-screen">
-      <div className="summary-header">
-        <div className="summary-topic">
+
+      {/* Celebration block */}
+      <div className="summary-celebration">
+        <div className="summary-topic-label">
           {getTopicTitle(topicRecord?.meta.title) || session.topicId}
           {sessionText ? ` · ${getTopicTitle(sessionText.title)}` : ""}
         </div>
-        <div className="summary-date">{formatDate(session.completedAt)}</div>
+
+        {starCount !== null ? (
+          <div className="summary-stars">
+            {[1, 2, 3].map((i) => (
+              <span
+                key={i}
+                className={`summary-star summary-star--${i} ${i <= starCount ? "summary-star--lit" : "summary-star--dim"}`}
+              >
+                ⭐
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="summary-check">✓</div>
+        )}
+
+        <div className="summary-praise">{praiseText}</div>
       </div>
 
-      {isEvaluated ? (
-        <div className="summary-score">
-          <div className="summary-pct">{session.percentCorrect}%</div>
-          <div className="summary-counts">
-            ✓ {session.correctCount}  ·  ✗ {session.incorrectCount}
-          </div>
-        </div>
-      ) : (
-        <div className="summary-score">
-          <div className="summary-pct">{isReading ? "Чтение" : "Просмотр"}</div>
-          <div className="summary-counts">
-            {isReading ? sessionMode?.ui?.title ?? session.modeId : `${session.conceptIds?.length ?? 0} карточек`}
-          </div>
-        </div>
-      )}
-
-      {session.mistakes?.length > 0 && (
-        <div className="summary-section">
-          <div className="summary-section-title">Ошибки</div>
-          <ul className="summary-mistakes">
-            {session.mistakes.map((m, i) => {
-              const card = topicRecord?.cards.find((c) => c.id === m.cardId);
-              return (
-                <li key={i} className="summary-mistake-item">
-                  <ConceptDot level={progressAfter[m.conceptId] ?? 0} />
-                  {card?.label ?? m.conceptId}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      {session.assessments?.length > 0 && (
-        <div className="summary-section">
-          <div className="summary-section-title">Оценки</div>
-          <ul className="summary-progress-list">
-            {session.assessments.map((assessment, i) => (
-              <li key={i} className="summary-progress-item">
-                <ConceptDot level={assessment.quality === "none" || assessment.quality === "fail" ? 1 : 2} />
-                {ASSESSMENT_LABELS[assessment.quality] ?? assessment.quality}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {!isReading && session.conceptIds?.length > 0 && (
-        <div className="summary-section">
-          <div className="summary-section-title">Прогресс</div>
-          <ul className="summary-progress-list">
-            {session.conceptIds.map((cid) => {
-              const card = topicRecord?.cards.find((c) => c.conceptId === cid && c.primary);
-              return (
-                <li key={cid} className="summary-progress-item">
-                  <ConceptDot level={progressAfter[cid] ?? 0} />
-                  {card?.label ?? cid}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
+      {/* Video bonus button */}
       {showRewardButton && (
         <button className="reward-video-btn" onClick={handleOpenVideo}>
           🎬 Смотреть мультик
         </button>
       )}
 
+      {/* Actions */}
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
         <Button variant="primary"   onClick={() => setScreen("home")}>Завершить</Button>
       </div>
 
+      {/* Collapsible teacher stats */}
+      <div className="summary-details">
+        <button
+          className="summary-details__toggle"
+          onClick={() => setDetailsOpen((v) => !v)}
+        >
+          {detailsOpen ? "▲" : "▼"} Результаты
+        </button>
+
+        {detailsOpen && (
+          <div className="summary-details__body">
+            <div className="summary-date">{formatDate(session.completedAt)}</div>
+
+            {isEvaluated ? (
+              <div className="summary-score-compact">
+                {session.percentCorrect}% · ✓ {session.correctCount} · ✗ {session.incorrectCount}
+              </div>
+            ) : (
+              <div className="summary-score-compact">
+                {isReading
+                  ? sessionMode?.ui?.title ?? session.modeId
+                  : `${session.conceptIds?.length ?? 0} карточек`}
+              </div>
+            )}
+
+            {session.mistakes?.length > 0 && (
+              <div className="summary-section">
+                <div className="summary-section-title">Ошибки</div>
+                <ul className="summary-mistakes">
+                  {session.mistakes.map((m, i) => {
+                    const card = topicRecord?.cards.find((c) => c.id === m.cardId);
+                    return (
+                      <li key={i} className="summary-mistake-item">
+                        <ConceptDot level={progressAfter[m.conceptId] ?? 0} />
+                        {card?.label ?? m.conceptId}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {session.assessments?.length > 0 && (
+              <div className="summary-section">
+                <div className="summary-section-title">Оценки</div>
+                <ul className="summary-progress-list">
+                  {session.assessments.map((assessment, i) => (
+                    <li key={i} className="summary-progress-item">
+                      <ConceptDot level={assessment.quality === "none" || assessment.quality === "fail" ? 1 : 2} />
+                      {ASSESSMENT_LABELS[assessment.quality] ?? assessment.quality}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {!isReading && session.conceptIds?.length > 0 && (
+              <div className="summary-section">
+                <div className="summary-section-title">Прогресс</div>
+                <ul className="summary-progress-list">
+                  {session.conceptIds.map((cid) => {
+                    const card = topicRecord?.cards.find((c) => c.conceptId === cid && c.primary);
+                    return (
+                      <li key={cid} className="summary-progress-item">
+                        <ConceptDot level={progressAfter[cid] ?? 0} />
+                        {card?.label ?? cid}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Video overlay */}
       {videoOpen && (
         <div className="video-reward-overlay">
           <button className="video-reward-close" onClick={() => setVideoOpen(false)} aria-label="Закрыть">✕</button>

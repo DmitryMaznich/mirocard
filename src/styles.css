@@ -11396,21 +11396,111 @@ kbd {
 }
 
 /* ─── Session summary ────────────────────────────────────────────────────── */
-.summary-screen { padding: 0; }
-.summary-header { padding: 24px 20px 8px; }
-.summary-topic  { font-size: 1.1rem; font-weight: 700; }
-.summary-date   { font-size: 0.85rem; color: #888; margin-top: 2px; }
-.summary-score {
-  text-align: center;
-  padding: 24px;
-  border-bottom: 1px solid #ebebeb;
+.summary-screen {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
-.summary-pct    { font-size: 3rem; font-weight: 800; color: #333; }
-.summary-counts { font-size: 1rem; color: #888; margin-top: 4px; }
-.summary-section { padding: 16px 20px 0; }
+
+/* Celebration block */
+.summary-celebration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 20px 20px;
+  gap: 12px;
+  text-align: center;
+}
+.summary-topic-label {
+  font-size: 0.9rem;
+  color: #888;
+  font-weight: 600;
+}
+.summary-stars {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+@keyframes star-pop {
+  0%   { opacity: 0; transform: scale(0) rotate(-15deg); }
+  60%  { transform: scale(1.35) rotate(8deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+.summary-star {
+  font-size: 3rem;
+  line-height: 1;
+  opacity: 0;
+  animation: star-pop 0.45s cubic-bezier(.36,.07,.19,.97) forwards;
+}
+.summary-star--1 { animation-delay: 0.25s; }
+.summary-star--2 { animation-delay: 0.55s; }
+.summary-star--3 { animation-delay: 0.85s; }
+.summary-star--dim { filter: grayscale(1) opacity(0.3); }
+.summary-check {
+  font-size: 4rem;
+  line-height: 1;
+  color: #4a9b8f;
+  animation: star-pop 0.45s cubic-bezier(.36,.07,.19,.97) 0.25s forwards;
+  opacity: 0;
+}
+.summary-praise {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a2e2b;
+  margin-top: 4px;
+}
+
+/* Reward button */
+.reward-video-btn {
+  display: block;
+  margin: 0 20px;
+  width: calc(100% - 40px);
+  padding: 18px;
+  background: linear-gradient(135deg, #ff9800, #ff6b35);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(255,152,0,0.4);
+  animation: star-pop 0.4s ease 1.1s both;
+}
+
+/* Actions */
+.summary-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  margin-top: auto;
+}
+.summary-actions .btn { flex: 1; }
+
+/* Teacher details */
+.summary-details {
+  border-top: 1px solid #ebebeb;
+  margin: 0 0 16px;
+}
+.summary-details__toggle {
+  width: 100%;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #888;
+  cursor: pointer;
+  font-weight: 600;
+}
+.summary-details__body {
+  padding: 0 20px 8px;
+}
+.summary-date         { font-size: 0.82rem; color: #aaa; margin-bottom: 6px; }
+.summary-score-compact { font-size: 0.95rem; color: #555; margin-bottom: 8px; }
+.summary-section      { padding: 10px 0 0; }
 .summary-section-title {
-  font-size: 0.85rem; color: #888;
-  text-transform: uppercase; font-weight: 600; margin-bottom: 8px;
+  font-size: 0.8rem; color: #aaa;
+  text-transform: uppercase; font-weight: 600; margin-bottom: 6px;
 }
 .summary-mistakes,
 .summary-progress-list {
@@ -11418,14 +11508,7 @@ kbd {
   display: flex; flex-direction: column; gap: 6px;
 }
 .summary-mistake-item,
-.summary-progress-item { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
-.summary-actions {
-  display: flex;
-  gap: 12px;
-  padding: 24px 20px;
-  margin-top: auto;
-}
-.summary-actions .btn { flex: 1; }
+.summary-progress-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
 
 /* ─── Students layout (tablet two-panel) ────────────────────────────────── */
 .students-layout {
