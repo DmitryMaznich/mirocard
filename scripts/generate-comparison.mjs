@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { writeFileSync } from "node:fs";
 
-const VERSION = "2.6.0";
+const VERSION = "2.7.0";
 
 const manifest = {
   meta: {
@@ -49,7 +49,7 @@ const manifest = {
       evaluation: "auto",
       defaultCardId: "compare_medium",
       ui: {
-        title: "2. Крокодил",
+        title: "Вводим знак — Крокодил",
         instruction: "Нажми на большее число",
       },
       methodology: {
