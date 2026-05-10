@@ -6,7 +6,9 @@ import { useAudio } from "@/shared/hooks/useAudio";
 import ProgressBar from "@/shared/components/ProgressBar";
 
 export default function SessionScreen() {
-  const setScreen = useAppStore((s) => s.setScreen);
+  const setScreen    = useAppStore((s) => s.setScreen);
+  const tapToAdvance = useAppStore((s) => s.settings.tapToAdvance ?? true);
+
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
     completedRecord, onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
@@ -47,9 +49,12 @@ export default function SessionScreen() {
   const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState;
   const total = tasks.length;
 
+  const isCorrectFeedback   = status === "answer_correct";
+  const isIncorrectFeedback = status === "answer_incorrect";
+
   const feedbackClass =
-    status === "answer_correct"   ? "session-feedback session-feedback--correct"
-  : status === "answer_incorrect" ? "session-feedback session-feedback--incorrect"
+    isCorrectFeedback   ? "session-feedback session-feedback--correct"
+  : isIncorrectFeedback ? "session-feedback session-feedback--incorrect"
   : "";
 
   return (
@@ -75,8 +80,14 @@ export default function SessionScreen() {
       </div>
 
       {feedbackClass && (
-        <div className={feedbackClass}>
-          {status === "answer_correct" ? "Правильно!" : "Попробуем ещё раз…"}
+        <div
+          className={`${feedbackClass}${isCorrectFeedback && tapToAdvance ? " session-feedback--tappable" : ""}`}
+          onClick={isCorrectFeedback && tapToAdvance ? onAdvance : undefined}
+        >
+          {isCorrectFeedback ? "Правильно!" : "Попробуем ещё раз…"}
+          {isCorrectFeedback && tapToAdvance && (
+            <div className="session-feedback__tap-hint">Нажмите, чтобы продолжить</div>
+          )}
         </div>
       )}
 
