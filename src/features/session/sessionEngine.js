@@ -18,7 +18,6 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     mistakes: [],
     assessments: [],
     startedAt: new Date().toISOString(),
-    _retryInsertedAt: null, // taskIndex of last retry insertion (prevents duplicates)
   };
 }
 
@@ -30,13 +29,6 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
     return { ...state, status: "answer_correct", correctCount: state.correctCount + 1 };
   }
 
-  // Re-insert current task at the end so it comes back for retry.
-  // Guard: if already re-inserted for this taskIndex (e.g. draw_sign multi-fail), skip.
-  const alreadyQueued = state._retryInsertedAt === state.taskIndex;
-  const newTasks = alreadyQueued
-    ? state.tasks
-    : [...state.tasks, state.tasks[state.taskIndex]];
-
   return {
     ...state,
     status: "answer_incorrect",
@@ -44,8 +36,6 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
     mistakes: conceptId
       ? [...state.mistakes, { conceptId, cardId }]
       : state.mistakes,
-    tasks: newTasks,
-    _retryInsertedAt: alreadyQueued ? state._retryInsertedAt : state.taskIndex,
   };
 }
 

@@ -109,7 +109,7 @@ export function useSessionEngine() {
       setSessionState((s) => {
         if (s.status !== "answer_incorrect") return s;
         if (s.mode.type === "compare_first_number") return s;
-        return handleAdvance(s);
+        return { ...s, status: "task_active" };
       });
     }, FEEDBACK_DELAY_MS);
   }, []);
