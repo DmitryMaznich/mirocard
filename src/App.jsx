@@ -1,8 +1,8 @@
 import { useEffect, Component, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
-import { setApiToken } from "@/core/api";
-import { loadLocalBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
+import { api, setApiToken } from "@/core/api";
+import { loadLocalBootstrap, applyBootstrapToStore, persistBootstrap } from "@/core/bootstrap";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
 
 import LoginScreen from "@/features/account/LoginScreen";
@@ -75,6 +75,30 @@ export default function App() {
       if (bootstrap.token && bootstrap.account) {
         setApiToken(bootstrap.token);
         setScreen("home");
+
+        // Фоновый refresh с сервера — подтягивает изменения с других устройств
+        (async () => {
+          try {
+            const [serverBootstrap, sessionsRaw] = await Promise.all([
+              api.get("/account/bootstrap"),
+              api.get("/sessions?limit=200"),
+            ]);
+            const payload = {
+              token: bootstrap.token,
+              account: bootstrap.account,
+              settings: serverBootstrap.settings,
+              students: serverBootstrap.students,
+              ownedTopics: serverBootstrap.ownedTopics,
+              studentTopicLinks: serverBootstrap.studentTopicLinks,
+              conceptProgress: serverBootstrap.conceptProgress,
+              sessions: sessionsRaw,
+            };
+            await persistBootstrap(db, payload);
+            applyBootstrapToStore(payload);
+          } catch (err) {
+            if (err?.status === 401) setScreen("login");
+          }
+        })();
       } else {
         setScreen("login");
       }

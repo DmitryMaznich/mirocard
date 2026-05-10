@@ -317,7 +317,14 @@ async function handleUpsertStudent(req, res) {
     comment: String(body.comment ?? ""),
     primaryLanguage: body.primaryLanguage ?? null,
     rewardVideos: Array.isArray(body.rewardVideos)
-      ? body.rewardVideos.map((item) => String(item || "").trim()).filter(Boolean)
+      ? body.rewardVideos
+          .map((item) => {
+            if (!item) return null;
+            if (typeof item === "object" && item.url) return item;
+            const s = String(item).trim();
+            return s || null;
+          })
+          .filter(Boolean)
       : [],
   });
 
