@@ -11,7 +11,7 @@ const TYPE_MAP = {
   compare_visual:       CompareVisual,
   compare_with_number:  CompareVisual,   // consolidated into compare_visual
   compare_equal:        CompareVisual,   // consolidated into compare_visual
-  compare_numbers:      CompareNumbers,
+  compare_numbers:      CompareVisual,   // consolidated into compare_visual
   compare_sign:         CompareSign,
   compare_first_number: CompareFirstNumber,
   compare_draw_sign:    CompareDrawSign,

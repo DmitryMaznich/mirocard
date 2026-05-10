@@ -111,6 +111,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     }
     const baseQ = q === "equal" ? (question === "less" ? "less" : "more") : q;
     const verb  = baseQ === "more" ? "больше" : "меньше";
+    if (visualMode === "numbers") return `Нажми на ${baseQ === "more" ? "большее" : "меньшее"} число`;
     if (visualMode === "dots") return `Где ${verb} точек?`;
     return `Где ${verb}?`;
   }

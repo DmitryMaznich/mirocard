@@ -72,6 +72,7 @@ const QUESTION_OPTIONS = [
 const VISUAL_OPTIONS = [
   { value: "dots",         label: "Точки" },
   { value: "dots_numbers", label: "Точки + цифра" },
+  { value: "numbers",      label: "Только цифры" },
 ];
 
 function ComparisonParams({ params, onChange }) {
