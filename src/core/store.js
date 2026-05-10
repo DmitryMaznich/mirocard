@@ -20,6 +20,8 @@ export const useAppStore = create((set) => ({
     pushAppUpdates: true,
     pushTopicUpdates: true,
     pushReminders: false,
+    tapToAdvance: true,
+    autoAdvanceDelay: 3,
   },
   setSettings: (settings) => set({ settings }),
   patchSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),

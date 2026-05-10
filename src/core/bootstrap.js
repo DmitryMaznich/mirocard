@@ -51,7 +51,7 @@ export function applyBootstrapToStore(raw) {
     ...state,
     token: bootstrap.token,
     account: bootstrap.account,
-    settings: bootstrap.settings ?? state.settings,
+    settings: { ...state.settings, ...(bootstrap.settings ?? {}) },
     students: bootstrap.students,
     ownedTopics: bootstrap.ownedTopics,
     topicRecords: bootstrap.topicRecords,
