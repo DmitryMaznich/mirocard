@@ -160,6 +160,7 @@ export default function ModePickerScreen() {
         <InfoModal
           title={getTopicTitle(topicRecord.meta.title)}
           about={topicRecord.meta.about}
+          modes={topicRecord.modes}
           onClose={() => setTopicAbout(false)}
         />
       )}

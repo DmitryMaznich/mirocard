@@ -336,6 +336,7 @@ export default function TopicLibraryScreen() {
         <InfoModal
           title={getTopicTitle(infoTopic.meta.title)}
           about={infoTopic.meta.about}
+          modes={infoTopic.modes}
           onClose={() => setInfoTopic(null)}
         />
       )}

@@ -10426,6 +10426,25 @@ button {
   color: #7a9e9a;
   margin-top: 4px;
 }
+.info-modal-modes {
+  margin-top: 20px;
+  border-top: 1px solid #e2eae8;
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.info-modal-modes-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7a9e9a;
+  margin-bottom: -4px;
+}
+.info-modal-mode-item { display: flex; flex-direction: column; gap: 3px; }
+.info-modal-mode-title { font-size: 0.92rem; font-weight: 700; color: #2a3e3b; }
+.info-modal-mode-summary { font-size: 0.88rem; line-height: 1.5; color: #4a6e6a; }
 
 /* ─── Modal ─────────────────────────────────────────────────────────────────── */
 .modal-overlay {
