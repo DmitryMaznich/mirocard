@@ -32,8 +32,24 @@ if ("serviceWorker" in navigator) {
     });
 }
 
+const SPLASH_MIN_MS = 1800;
+const splashStart = performance.now();
+
+function dismissSplash() {
+  const splash = document.getElementById("splash");
+  if (!splash) return;
+  const elapsed = performance.now() - splashStart;
+  const wait = Math.max(0, SPLASH_MIN_MS - elapsed);
+  setTimeout(() => {
+    splash.classList.add("splash--exit");
+    setTimeout(() => splash.remove(), 580);
+  }, wait);
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />
   </StrictMode>
 );
+
+dismissSplash();
