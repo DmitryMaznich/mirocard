@@ -113,7 +113,7 @@ export default function SessionSummary() {
     const videoId = extractYoutubeId(rewardVideos[index]);
     if (!videoId) return;
     window.speechSynthesis?.cancel();
-    rewardVideoUrl.current = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1`;
+    rewardVideoUrl.current = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3&modestbranding=1`;
     setRewardConsumed(true);
     setVideoOpen(true);
   }
@@ -242,9 +242,7 @@ export default function SessionSummary() {
           <div className="video-reward-frame">
             <iframe
               src={rewardVideoUrl.current}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
+              allow="accelerometer; autoplay; encrypted-media"
               frameBorder="0"
               className="video-reward-iframe"
               title="Reward video"
