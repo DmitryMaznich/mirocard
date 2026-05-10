@@ -195,7 +195,7 @@ export default function TopicLibraryScreen() {
 
       const nextRecords = [...topicRecords];
       const failed = [];
-      let updatedCount = 0;
+      const updated = [];
 
       for (const entry of entries) {
         try {
@@ -203,15 +203,15 @@ export default function TopicLibraryScreen() {
           const index = nextRecords.findIndex((item) => item.meta.id === record.meta.id);
           if (index >= 0) nextRecords[index] = record;
           else nextRecords.push(record);
-          updatedCount += 1;
+          updated.push(`${entry.title?.ru ?? entry.id} v${record.meta.version}`);
         } catch (err) {
           failed.push(`${entry.title?.ru ?? entry.id}: ${getImportErrorMessage(err)}`);
         }
       }
 
-      if (updatedCount > 0) {
+      if (updated.length > 0) {
         setTopicRecords(nextRecords);
-        setCatalogMessage(`Обновлено тем: ${updatedCount}`);
+        setCatalogMessage(`Обновлено: ${updated.join(", ")}`);
       }
       if (failed.length > 0) {
         setCatalogErr(`Не обновлено: ${failed.join("; ")}`);

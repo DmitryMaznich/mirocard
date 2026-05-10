@@ -507,6 +507,24 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
   return [...mergedDefaults, ...customModes];
 }
 
+// Preserves manifest mode order; only appends default modes absent from manifest
+function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
+  const defaultById = Object.fromEntries(defaultModes.map((m) => [m.id, m]));
+  const manifestIds = new Set(manifestModes.map((m) => m.id));
+  const merged = manifestModes.map((mode) => {
+    const def = defaultById[mode.id];
+    if (!def) return mode;
+    return {
+      ...def,
+      ...mode,
+      ui:     { ...(def.ui ?? {}), ...(mode.ui ?? {}) },
+      params: { ...(def.params ?? {}), ...(mode.params ?? {}) },
+    };
+  });
+  const missing = defaultModes.filter((m) => !manifestIds.has(m.id));
+  return [...merged, ...missing];
+}
+
 function mergeDefaultMeta(meta, renderer) {
   return {
     ...(DEFAULT_META[renderer] ?? {}),
@@ -557,7 +575,7 @@ function normalizeProcedural(manifest) {
 
   const defaultModes = DEFAULT_MODES[renderer] ?? [];
   const modes = manifest.modes?.length
-    ? ensureModeIcons(mergeDefaultModes(manifest.modes, defaultModes), renderer)
+    ? ensureModeIcons(mergeDefaultModesKeepOrder(manifest.modes, defaultModes), renderer)
     : defaultModes;
 
   return { ...manifest, meta, cards, modes };

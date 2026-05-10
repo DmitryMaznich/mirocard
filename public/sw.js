@@ -26,7 +26,17 @@ self.addEventListener("fetch", (e) => {
   if (url.pathname.startsWith("/decks/") && url.pathname.endsWith(".zip")) {
     e.respondWith(
       caches.open(CACHE).then(async (cache) => {
-        const cached = await cache.match(e.request);
+        // _refresh означает принудительное обновление: всегда с сети, обновляем кеш по чистому URL
+        if (url.searchParams.has("_refresh")) {
+          const resp = await fetch(e.request);
+          if (resp.ok) {
+            const cleanUrl = new URL(e.request.url);
+            cleanUrl.search = "";
+            await cache.put(cleanUrl.href, resp.clone());
+          }
+          return resp;
+        }
+        const cached = await cache.match(e.request, { ignoreSearch: false });
         if (cached) return cached;
         const resp = await fetch(e.request);
         if (resp.ok) cache.put(e.request, resp.clone());
