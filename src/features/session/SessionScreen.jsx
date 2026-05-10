@@ -82,7 +82,7 @@ export default function SessionScreen() {
 
       {Renderer && currentTask ? (
         <Renderer
-          key={taskIndex}
+          key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
           task={currentTask}
           mode={mode}
           topicId={topicRecord.meta.id}
