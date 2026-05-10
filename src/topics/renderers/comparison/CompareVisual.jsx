@@ -4,7 +4,12 @@ import { getVerdict } from "./engine";
 
 function SideContent({ value, color, visualMode }) {
   const showNumber = visualMode === "dots_numbers";
-  return <DotGroup count={value} color={color} number={showNumber ? value : undefined} />;
+  return (
+    <>
+      <DotGroup count={value} color={color} />
+      {showNumber && <div className="compare-number">{value}</div>}
+    </>
+  );
 }
 
 export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
