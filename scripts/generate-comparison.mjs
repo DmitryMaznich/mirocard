@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { writeFileSync } from "node:fs";
 
-const VERSION = "2.5.0";
+const VERSION = "2.5.1";
 
 const manifest = {
   meta: {
@@ -27,7 +27,7 @@ const manifest = {
       evaluation: "auto",
       defaultCardId: "compare_easy",
       ui: {
-        title: "1. Где больше?",
+        title: "1. Сравни и нажми",
         instruction: "Нажми на сторону, где больше",
       },
       methodology: {
