@@ -82,6 +82,14 @@ function ComparisonParams({ params, onChange }) {
   const isFirstNumberMode = activeModeId === "compare_first_number";
   const isVisualMode      = activeModeId === "compare_visual";
 
+  const currentVisualMode = params.visualMode ?? "dots";
+  const dotsOnly = isVisualMode && currentVisualMode !== "numbers";
+
+  function handleVisualModeChange(newMode) {
+    const isNewDots = newMode !== "numbers";
+    onChange({ ...params, visualMode: newMode, level: isNewDots && params.level > 2 ? 2 : params.level });
+  }
+
   return (
     <>
       <div className="param-row param-row--block">
@@ -93,6 +101,7 @@ function ComparisonParams({ params, onChange }) {
                 <button
                   key={lvl.id}
                   className={`enum-btn enum-btn--compact ${params.level === lvl.id ? "enum-btn--active" : ""}`}
+                  disabled={dotsOnly && lvl.id > 2}
                   onClick={() => onChange({ ...params, level: lvl.id })}
                 >
                   {lvl.id}
@@ -100,6 +109,7 @@ function ComparisonParams({ params, onChange }) {
               ))}
             </div>
             {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
+            {dotsOnly && <div className="param-hint">Уровни 3–4 доступны только в режиме «Только цифры»</div>}
           </div>
 
           <div className="param-enum-divider" />
@@ -157,8 +167,8 @@ function ComparisonParams({ params, onChange }) {
               {VISUAL_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  className={`enum-btn ${(params.visualMode ?? "dots") === opt.value ? "enum-btn--active" : ""}`}
-                  onClick={() => onChange({ ...params, visualMode: opt.value })}
+                  className={`enum-btn ${currentVisualMode === opt.value ? "enum-btn--active" : ""}`}
+                  onClick={() => handleVisualModeChange(opt.value)}
                 >
                   {opt.label}
                 </button>

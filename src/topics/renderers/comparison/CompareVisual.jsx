@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DotGroup from "./DotGroup";
 import { getVerdict } from "./engine";
 
@@ -20,20 +20,29 @@ function SideContent({ value, color, visualMode, showHint }) {
   );
 }
 
-export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
+export default function CompareVisual({ task, mode, sessionStatus, onCorrect, onIncorrect }) {
   const [answered,  setAnswered]  = useState(false);
-  const [verdict,   setVerdict2]  = useState(null);
   const [showHints, setShowHints] = useState(false);
 
   const visualMode    = task.visualMode ?? (task.showNumbers ? "dots_numbers" : "dots");
   const isNumbers     = visualMode === "numbers";
   const isLeftCorrect = task.question === "more" ? task.left > task.right : task.left < task.right;
 
+  // Derive locked state from authoritative session status so retries always unblock
+  const isAnswered = answered || sessionStatus !== "task_active";
+  const verdict    = sessionStatus === "answer_correct" ? getVerdict(task) : null;
+
+  useEffect(() => {
+    if (sessionStatus === "task_active") {
+      setAnswered(false);
+      setShowHints(false);
+    }
+  }, [sessionStatus]);
+
   function handleSide(pickedLeft) {
-    if (answered || task.question === "equal") return;
+    if (isAnswered || task.question === "equal") return;
     setAnswered(true);
     if (isLeftCorrect === pickedLeft) {
-      setVerdict2(getVerdict(task));
       onCorrect(task.conceptId, null);
     } else {
       if (isNumbers) {
@@ -45,10 +54,9 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
   }
 
   function handleEqual() {
-    if (answered) return;
+    if (isAnswered) return;
     setAnswered(true);
     if (task.left === task.right) {
-      setVerdict2(getVerdict(task));
       onCorrect(task.conceptId, null);
     } else {
       onIncorrect(task.conceptId, null);
@@ -62,19 +70,19 @@ export default function CompareVisual({ task, mode, onCorrect, onIncorrect }) {
       <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
       {task.equalHint && <div className="compare-instruction-hint">{task.equalHint}</div>}
       <div className="compare-sides">
-        <button className={sideClass} disabled={answered} onClick={() => handleSide(true)}>
+        <button className={sideClass} disabled={isAnswered} onClick={() => handleSide(true)}>
           <SideContent value={task.left} color="#4299e1" visualMode={visualMode} showHint={showHints} />
         </button>
         {task.showEqual && (
           <button
             className="compare-equal-btn compare-equal-btn--empty compare-equal-btn--hint"
             style={{ alignSelf: "center" }}
-            disabled={answered}
+            disabled={isAnswered}
             onClick={handleEqual}
             aria-label="Одинаково"
           />
         )}
-        <button className={sideClass} disabled={answered} onClick={() => handleSide(false)}>
+        <button className={sideClass} disabled={isAnswered} onClick={() => handleSide(false)}>
           <SideContent value={task.right} color="#fc8181" visualMode={visualMode} showHint={showHints} />
         </button>
       </div>

@@ -85,6 +85,7 @@ export default function SessionScreen() {
           key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
           task={currentTask}
           mode={mode}
+          sessionStatus={status}
           topicId={topicRecord.meta.id}
           sessionParams={sessionParams}
           soundEnabled={soundEnabled}
