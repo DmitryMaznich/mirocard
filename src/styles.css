@@ -68,10 +68,6 @@
   cursor: pointer;
 }
 
-.reading-body > *:not(.reading-illustration) {
-  position: relative;
-  z-index: 1;
-}
 
 .reading-title {
   width: 100%;
@@ -111,7 +107,7 @@
   align-items: center;
   gap: 24px;
   width: 100%;
-  margin: auto 0;
+  margin: 0;
 }
 
 .reading-content {
@@ -130,18 +126,20 @@
 }
 
 .reading-illustration {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: clamp(480px, 104vw, 800px);
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  overflow: hidden;
   pointer-events: none;
   user-select: none;
-  z-index: 0;
 }
 
 .reading-illustration img {
-  width: 100%;
-  height: auto;
+  max-height: 100%;
+  width: auto;
+  max-width: clamp(480px, 104vw, 800px);
   display: block;
   mix-blend-mode: multiply;
 }
@@ -405,8 +403,8 @@
 }
 
 @media (min-width: 900px) {
-  .reading-illustration {
-    width: clamp(800px, 80vw, 1280px);
+  .reading-illustration img {
+    max-width: clamp(800px, 80vw, 1280px);
   }
 }
 
@@ -11113,6 +11111,8 @@ button {
 .session-feedback--incorrect { background: #fce4e4; color: #c62828; }
 .session-feedback--tappable  { cursor: pointer; user-select: none; }
 .session-feedback__tap-hint  { font-size: 0.75em; opacity: 0.65; margin-top: 5px; }
+.session-renderer-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.session-renderer-wrap--tappable { cursor: pointer; }
 
 /* ─── Session body (flashcards renderer) ──────────────────────────────────── */
 .session-body {
