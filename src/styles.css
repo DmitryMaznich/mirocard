@@ -11111,6 +11111,8 @@ button {
 }
 .session-feedback--correct   { background: #e8f5e9; color: #388e3c; }
 .session-feedback--incorrect { background: #fce4e4; color: #c62828; }
+.session-feedback--tappable  { cursor: pointer; user-select: none; }
+.session-feedback__tap-hint  { font-size: 0.75em; opacity: 0.65; margin-top: 5px; }
 
 /* ─── Session body (flashcards renderer) ──────────────────────────────────── */
 .session-body {
