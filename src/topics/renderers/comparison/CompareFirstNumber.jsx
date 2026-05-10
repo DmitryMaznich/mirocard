@@ -78,7 +78,7 @@ export default function CompareFirstNumber({ task, mode, onCorrect, onIncorrect,
 
   if (answered) {
     return (
-      <button className="session-full-tap cfn-result-tap" onClick={() => onAdvance()}>
+      <button className="session-full-tap cfn-result-tap" onClick={(e) => { e.stopPropagation(); onAdvance(); }}>
         <div className="compare-instruction">Сравни первое число со вторым:</div>
         {stage}
         <div className="compare-verdict cfn-verdict-reveal">

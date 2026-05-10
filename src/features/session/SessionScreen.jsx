@@ -6,8 +6,7 @@ import { useAudio } from "@/shared/hooks/useAudio";
 import ProgressBar from "@/shared/components/ProgressBar";
 
 export default function SessionScreen() {
-  const setScreen    = useAppStore((s) => s.setScreen);
-  const tapToAdvance = useAppStore((s) => s.settings.tapToAdvance ?? true);
+  const setScreen = useAppStore((s) => s.setScreen);
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
@@ -81,32 +80,37 @@ export default function SessionScreen() {
 
       {feedbackClass && (
         <div
-          className={`${feedbackClass}${isCorrectFeedback && tapToAdvance ? " session-feedback--tappable" : ""}`}
-          onClick={isCorrectFeedback && tapToAdvance ? onAdvance : undefined}
+          className={`${feedbackClass}${isCorrectFeedback ? " session-feedback--tappable" : ""}`}
+          onClick={isCorrectFeedback ? onAdvance : undefined}
         >
           {isCorrectFeedback ? "Правильно!" : "Попробуем ещё раз…"}
-          {isCorrectFeedback && tapToAdvance && (
+          {isCorrectFeedback && (
             <div className="session-feedback__tap-hint">Нажмите, чтобы продолжить</div>
           )}
         </div>
       )}
 
       {Renderer && currentTask ? (
-        <Renderer
-          key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
-          task={currentTask}
-          mode={mode}
-          sessionStatus={status}
-          topicId={topicRecord.meta.id}
-          sessionParams={sessionParams}
-          soundEnabled={soundEnabled}
-          playTopicFile={playTopicFile}
-          onCorrect={handleCorrect}
-          onIncorrect={handleIncorrect}
-          onMistake={handleMistake}
-          onAdvance={onAdvance}
-          onQualityAnswer={onQualityAnswer}
-        />
+        <div
+          className={`session-renderer-wrap${isCorrectFeedback ? " session-renderer-wrap--tappable" : ""}`}
+          onClick={isCorrectFeedback ? onAdvance : undefined}
+        >
+          <Renderer
+            key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
+            task={currentTask}
+            mode={mode}
+            sessionStatus={status}
+            topicId={topicRecord.meta.id}
+            sessionParams={sessionParams}
+            soundEnabled={soundEnabled}
+            playTopicFile={playTopicFile}
+            onCorrect={handleCorrect}
+            onIncorrect={handleIncorrect}
+            onMistake={handleMistake}
+            onAdvance={onAdvance}
+            onQualityAnswer={onQualityAnswer}
+          />
+        </div>
       ) : (
         <div className="screen-center">Неизвестный рендерер: {topicRecord.meta.renderer}</div>
       )}
