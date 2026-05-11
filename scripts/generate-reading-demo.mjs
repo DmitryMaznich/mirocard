@@ -33,7 +33,7 @@ const manifest = {
     {
       id: "dad_best",
       kind: "poem",
-      title: { ru: "Папа наш", en: "Our Dad" },
+      title: { ru: "Наш папа", en: "Our Dad" },
       image: "media/dad_best.webp",
       level: 1,
       lines: [
