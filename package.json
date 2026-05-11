@@ -11,7 +11,8 @@
     "serve:prod": "node backend/serve-production.mjs",
     "deploy": "npm run deploy:prod",
     "deploy:prod": "node --env-file=.env deploy-prod.mjs",
-    "deploy:verify": "node --env-file=.env deploy-prod.mjs --verify-only"
+    "deploy:verify": "node --env-file=.env deploy-prod.mjs --verify-only",
+    "build:renderer": "vite build --config vite.config.renderer.mjs --configLoader native"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
