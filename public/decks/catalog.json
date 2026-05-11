@@ -89,6 +89,16 @@
         "en": "12 hand and power tools × 5 variations each. Audio pronunciation included."
       },
       "url": "./decks/tools_basic_v1.0.0.zip"
+    },
+    {
+      "id": "sentence_puzzle",
+      "version": "1.0.0",
+      "title": { "ru": "Пазл предложений", "en": "Sentence Puzzle" },
+      "description": {
+        "ru": "Собирай предложения из слов методом drag-and-drop. Цветовое кодирование: кто, что делает, какую, что. Логопедические вопросы по каждому предложению.",
+        "en": "Build sentences by dragging word cards into slots. Color-coded by role: subject, verb, adjective, object. Speech therapy questions after each round."
+      },
+      "url": "./decks/sentence_puzzle_v1.0.0.zip"
     }
   ]
 }
