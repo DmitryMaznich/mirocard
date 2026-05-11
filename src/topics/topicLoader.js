@@ -278,34 +278,7 @@ const DEFAULT_MODES = {
     { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "Сравни и нажми", instruction: "Нажми на сторону, где больше",                   icon: "media/icons/comparison_visual.svg" } },
   ],
   math_houses: [
-    { id: "math_houses_read",      type: "math_houses_read",      evaluation: "auto", ui: { title: "Читаю",              instruction: "Собери пример по активному этажу",          icon: "media/icons/math_houses_read.svg" } },
-    { id: "math_houses",           type: "math_houses",           evaluation: "auto", ui: { title: "Дополняю",           instruction: "Заполни состав числа по этажам",            icon: "media/icons/math_houses.svg" } },
-    { id: "math_houses_recall",    type: "math_houses_recall",    evaluation: "auto", ui: { title: "Вспоминаю",          instruction: "Вспомни обе части числа",                   icon: "media/icons/math_houses_recall.svg" } },
-    {
-      id: "math_houses_selective",
-      type: "math_houses_selective",
-      evaluation: "auto",
-      ui: {
-        title: "Дополняю выборочно",
-        instruction: "Найди пропущенные числа слева или справа",
-        icon: "media/icons/math_houses_selective.svg",
-      },
-      params: {
-        hiddenWindows: {
-          type: "number",
-          min: 1,
-          max: 6,
-          default: 1,
-          label: { ru: "Сколько окон прятать" },
-        },
-        shufflePairs: {
-          type: "boolean",
-          default: false,
-          label: { ru: "Перемешивать пары" },
-          hint: { ru: "Не показывать пары подряд по порядку" },
-        },
-      },
-    },
+    { id: "math_houses_practice",  type: "math_houses_practice",  evaluation: "auto", ui: { title: "Домик",              instruction: "Работай с домиком числа",                   icon: "media/icons/math_houses.svg" } },
     { id: "math_houses_grow",      type: "math_houses_grow",      evaluation: "auto", ui: { title: "Растущий домик",     instruction: "Вспомни все пары числа",                    icon: "media/icons/math_houses_grow.svg" } },
   ],
   addition_subtraction: [
@@ -681,7 +654,7 @@ function migrateRecord(record) {
       ...record,
       meta:  mergeDefaultMeta({ ...record.meta, renderer: "math_houses" }, "math_houses"),
       cards: normalizedCards,
-      modes: ensureModeIcons(mergeDefaultModes(record.modes ?? [], DEFAULT_MODES.math_houses), "math_houses"),
+      modes: ensureModeIcons(mergeDefaultModesKeepOrder(record.modes ?? [], DEFAULT_MODES.math_houses), "math_houses"),
     };
   }
 

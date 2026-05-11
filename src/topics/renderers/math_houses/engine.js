@@ -11,8 +11,20 @@ function shuffleArray(items) {
   return next;
 }
 
+const SUBTYPE_MAP = {
+  fill:      "math_houses",
+  read:      "math_houses_read",
+  recall:    "math_houses_recall",
+  selective: "math_houses_selective",
+};
+
 function getModeType(mode) {
   return typeof mode === "string" ? mode : mode?.type ?? mode?.id ?? "math_houses";
+}
+
+function resolveActualType(modeType, params) {
+  if (modeType !== "math_houses_practice") return modeType;
+  return SUBTYPE_MAP[params?.subtype ?? "fill"] ?? "math_houses";
 }
 
 function getHouseNumber(card) {
@@ -95,15 +107,16 @@ function generateHouseTask(modeType, card, params = {}) {
 export function generateTasks(mode, cards, arg3, arg4) {
   if (!cards.length) return [];
   const { modeType, count, params } = normalizeArgs(mode, arg3, arg4);
+  const actualType = resolveActualType(modeType, params);
   if (
-    modeType === "math_houses_read" ||
-    modeType === "math_houses" ||
-    modeType === "math_houses_recall" ||
-    modeType === "math_houses_grow"
+    actualType === "math_houses_read" ||
+    actualType === "math_houses" ||
+    actualType === "math_houses_recall" ||
+    actualType === "math_houses_grow"
   ) {
-    return cards.map((card) => generateHouseTask(modeType, card));
+    return cards.map((card) => generateHouseTask(actualType, card));
   }
   return Array.from({ length: count }, (_, i) =>
-    generateHouseTask(modeType, cards[i % cards.length], params)
+    generateHouseTask(actualType, cards[i % cards.length], params)
   );
 }

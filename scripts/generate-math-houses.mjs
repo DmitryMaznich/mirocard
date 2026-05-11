@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { writeFileSync, readFileSync } from "node:fs";
 
-const VERSION = "1.0.1";
+const VERSION = "1.1.0";
 
 const manifest = {
   meta: {
@@ -23,57 +23,43 @@ const manifest = {
   })),
   modes: [
     {
-      id: "math_houses_read",
-      type: "math_houses_read",
+      id: "math_houses_practice",
+      type: "math_houses_practice",
       evaluation: "auto",
       ui: {
-        title: "Читаю",
-        instruction: "Собери пример по активному этажу",
-        icon: "media/icons/math_houses_read.svg",
-      },
-    },
-    {
-      id: "math_houses",
-      type: "math_houses",
-      evaluation: "auto",
-      ui: {
-        title: "Дополняю",
-        instruction: "Заполни состав числа по этажам",
+        title: "Домик",
+        instruction: "Работай с домиком числа",
         icon: "media/icons/math_houses.svg",
       },
-    },
-    {
-      id: "math_houses_recall",
-      type: "math_houses_recall",
-      evaluation: "auto",
-      ui: {
-        title: "Вспоминаю",
-        instruction: "Вспомни обе части числа",
-        icon: "media/icons/math_houses_recall.svg",
-      },
-    },
-    {
-      id: "math_houses_selective",
-      type: "math_houses_selective",
-      evaluation: "auto",
-      ui: {
-        title: "Дополняю выборочно",
-        instruction: "Найди пропущенные числа слева или справа",
-        icon: "media/icons/math_houses_selective.svg",
-      },
       params: {
+        subtype: {
+          type: "enum",
+          values: ["fill", "read", "recall", "selective"],
+          labels: {
+            ru: {
+              fill:      "Дополняю",
+              read:      "Читаю",
+              recall:    "Вспоминаю",
+              selective: "Выборочно",
+            },
+          },
+          default: "fill",
+          label: { ru: "Задание" },
+        },
         hiddenWindows: {
           type: "number",
           min: 1,
           max: 6,
           default: 1,
-          label: { ru: "Сколько окон прятать" },
+          label: { ru: "Скрытых окон" },
+          showWhen: { subtype: "selective" },
         },
         shufflePairs: {
           type: "boolean",
           default: false,
           label: { ru: "Перемешивать пары" },
           hint: { ru: "Не показывать пары подряд по порядку" },
+          showWhen: { subtype: "selective" },
         },
       },
     },
@@ -91,7 +77,7 @@ const manifest = {
 };
 
 // Copy SVG assets from the old ZIP
-const oldBuf = readFileSync("public/decks/math_houses_v1.0.0.zip");
+const oldBuf = readFileSync("public/decks/math_houses_v1.0.1.zip");
 const oldZip = await JSZip.loadAsync(oldBuf);
 
 const zip = new JSZip();
@@ -99,10 +85,7 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 
 const assetFiles = [
   "media/avatar.svg",
-  "media/icons/math_houses_read.svg",
   "media/icons/math_houses.svg",
-  "media/icons/math_houses_recall.svg",
-  "media/icons/math_houses_selective.svg",
   "media/icons/math_houses_grow.svg",
 ];
 

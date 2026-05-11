@@ -322,6 +322,10 @@ export default function ParamsScreen() {
       </div>
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
         if (def.type === "concept_selector") return null;
+        if (def.showWhen) {
+          const [condKey, condVal] = Object.entries(def.showWhen)[0];
+          if ((params[condKey] ?? mode.params?.[condKey]?.default) !== condVal) return null;
+        }
         if (def.type === "number") {
           return (
             <NumberStepper
