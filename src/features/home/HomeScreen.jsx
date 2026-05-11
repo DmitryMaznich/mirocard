@@ -21,7 +21,7 @@ function HomeHeader({ onSettings }) {
   return (
     <header className="home-header">
       <div className="home-header__brand">
-        <img className="home-header__logo" src="/favicon.svg" alt="" aria-hidden />
+        <img className="home-header__logo" src="/mirocard-mark.svg" alt="" aria-hidden />
         <div className="home-header__copy">
           <span className="home-header__name">Mirocard</span>
           <span className="home-header__tagline">карточки для специалистов</span>
