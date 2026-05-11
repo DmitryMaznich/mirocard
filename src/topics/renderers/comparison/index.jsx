@@ -18,8 +18,8 @@ const TYPE_MAP = {
   compare_put_sign:     ComparePutSign,
 };
 
-export default function ComparisonRenderer({ task, mode, sessionStatus, onCorrect, onIncorrect, onAdvance }) {
+export default function ComparisonRenderer({ task, mode, sessionStatus, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
   const Component = TYPE_MAP[task?.type];
   if (!Component) return null;
-  return <Component task={task} mode={mode} sessionStatus={sessionStatus} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
+  return <Component task={task} mode={mode} sessionStatus={sessionStatus} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} onAdvance={onAdvance} playFeedback={playFeedback} />;
 }

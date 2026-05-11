@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const NOM_ONES  = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
 const NOM_TEENS = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать',
@@ -40,21 +40,19 @@ const OPTIONS = [
   { value: "more",  label: "Больше", sign: ">" },
 ];
 
-function MultiMode({ task, onCorrect, onMistake }) {
+function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
   const items = task.items;
   const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
   const [focusIndex, setFocusIndex] = useState(0);
   const [wrongFlash, setWrongFlash] = useState(-1);
   const allDone = focusIndex >= items.length;
+  const doneRef = useRef(false);
 
-  useEffect(() => {
-    if (!allDone) return undefined;
-    const t = window.setTimeout(() => onCorrect(task.conceptId, null), 650);
-    return () => window.clearTimeout(t);
-  }, [allDone, onCorrect, task.conceptId]);
+  const onCorrectRef = useRef(onCorrect);
+  useEffect(() => { onCorrectRef.current = onCorrect; });
 
   function handleAnswer(value) {
-    if (allDone) return;
+    if (doneRef.current) return;
     const item = items[focusIndex];
     if (value !== item.question) {
       setWrongFlash(focusIndex);
@@ -62,10 +60,16 @@ function MultiMode({ task, onCorrect, onMistake }) {
       window.setTimeout(() => setWrongFlash(-1), 420);
       return;
     }
+    playFeedback?.("correct");
     const next = [...answers];
     next[focusIndex] = value;
     setAnswers(next);
-    setFocusIndex((i) => i + 1);
+    const nextFocus = focusIndex + 1;
+    setFocusIndex(nextFocus);
+    if (nextFocus >= items.length) {
+      doneRef.current = true;
+      window.setTimeout(() => onCorrectRef.current(task.conceptId, null), 650);
+    }
   }
 
   function signClass(i) {
@@ -168,9 +172,9 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
   );
 }
 
-export default function CompareFirstNumber({ task, onCorrect, onIncorrect, onMistake, onAdvance }) {
+export default function CompareFirstNumber({ task, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
   if (task.items) {
-    return <MultiMode task={task} onCorrect={onCorrect} onMistake={onMistake} />;
+    return <MultiMode task={task} onCorrect={onCorrect} onMistake={onMistake} playFeedback={playFeedback} />;
   }
   return <SingleMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
 }
