@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { RENDERER_REGISTRY } from "@/topics/registry";
+import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
 import { useAudio } from "@/shared/hooks/useAudio";
 import ProgressBar from "@/shared/components/ProgressBar";
@@ -39,6 +40,17 @@ export default function SessionScreen() {
     onMistake(conceptId, cardId);
   }
 
+  // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
+  const [Renderer, setRenderer] = useState(() =>
+    topicRecord ? (RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null) : null
+  );
+  useEffect(() => {
+    if (!topicRecord) return;
+    loadRenderer(topicRecord.meta.id).then((DynamicRenderer) => {
+      setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null);
+    });
+  }, [topicRecord?.meta.id]);
+
   if (!sessionState || !topicRecord || !mode) {
     return (
       <div className="session-screen">
@@ -47,7 +59,6 @@ export default function SessionScreen() {
     );
   }
 
-  const Renderer = RENDERER_REGISTRY[topicRecord.meta.renderer];
   const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState;
   const total = tasks.length;
 
@@ -115,6 +126,8 @@ export default function SessionScreen() {
             onQualityAnswer={onQualityAnswer}
           />
         </div>
+      ) : !Renderer ? (
+        <div className="screen-center">Загрузка…</div>
       ) : (
         <div className="screen-center">Неизвестный рендерер: {topicRecord.meta.renderer}</div>
       )}
