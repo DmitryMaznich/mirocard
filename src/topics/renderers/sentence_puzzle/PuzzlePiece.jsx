@@ -68,11 +68,6 @@ export default function PuzzlePieceSvg({
   // Horizontal center of body (tab/notch are visual decoration, not text area)
   const cx = BODY_W / 2;
 
-  // Avatar layout constants for photo cards
-  const avatarR  = 18;   // circle radius
-  const avatarCx = cx;
-  const avatarCy = BODY_H * 0.38;
-
   return (
     <svg
       width={scalable ? "100%" : BODY_W}
@@ -81,10 +76,10 @@ export default function PuzzlePieceSvg({
       preserveAspectRatio="none"
       style={{ overflow: "visible", display: "block", flexShrink: 0 }}
     >
-      {photo && (
+      {photo && !isEmpty && (
         <defs>
           <clipPath id={clipId}>
-            <circle cx={avatarCx} cy={avatarCy} r={avatarR} />
+            <path d={path} />
           </clipPath>
         </defs>
       )}
@@ -101,21 +96,29 @@ export default function PuzzlePieceSvg({
         <>
           <image
             href={photo}
-            x={avatarCx - avatarR}
-            y={avatarCy - avatarR}
-            width={avatarR * 2}
-            height={avatarR * 2}
+            x={0}
+            y={0}
+            width={BODY_W}
+            height={BODY_H}
             clipPath={`url(#${clipId})`}
             preserveAspectRatio="xMidYMid slice"
           />
-          <circle cx={avatarCx} cy={avatarCy} r={avatarR} fill="none" stroke={colors.stroke} strokeWidth="1.5" />
+          <rect
+            x={0}
+            y={BODY_H * 0.60}
+            width={BODY_W}
+            height={BODY_H * 0.40}
+            fill="rgba(0,0,0,0.38)"
+            clipPath={`url(#${clipId})`}
+          />
+          <path d={path} fill="none" stroke={colors.stroke} strokeWidth="2" />
           <text
-            x={cx} y={BODY_H * 0.82}
+            x={cx} y={BODY_H * 0.83}
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize="12"
             fontWeight="700"
-            fill={colors.text}
+            fill="white"
             style={{ userSelect: "none", pointerEvents: "none" }}
           >
             {label}
