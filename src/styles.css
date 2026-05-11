@@ -11508,13 +11508,12 @@ kbd {
   .compare-sides                { max-width: 860px; gap: 24px; }
   .compare-side                 { width: 200px; height: 200px; }
   .compare-side--number         { width: 200px; height: 200px; }
-  .compare-side--dots           { width: 200px; height: auto; min-height: 200px; }
+  .compare-side--dots           { width: 260px; height: auto; min-height: 200px; }
   .compare-equal-btn--empty     { width: 200px; height: 200px; }
   .compare-sign-row             { max-width: 600px; gap: 24px; }
   .compare-big-number           { font-size: 96px; }
-  .compare-side--dots           { width: 240px; }
-  .dot                          { width: 44px; height: 44px; }
-  .dot-group                    { gap: 10px; max-width: min(210px, 100%); }
+  .dot                          { width: 54px; height: 54px; }
+  .dot-group                    { gap: 12px; max-width: min(186px, 100%); }
 }
 
 /* ─── Session summary ────────────────────────────────────────────────────── */
