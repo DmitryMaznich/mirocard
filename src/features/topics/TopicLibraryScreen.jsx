@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { importTopic, deleteTopicRecord, TopicImportError } from "@/topics/topicLoader";
+import { clearRendererCache } from "@/topics/rendererLoader";
 import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import TopicCover from "@/shared/components/TopicCover";
 import Modal from "@/shared/components/Modal";
@@ -39,7 +40,8 @@ async function fetchCatalogTopic(entry, appVersion, force = false) {
 }
 
 function getImportErrorMessage(err) {
-  return err instanceof TopicImportError ? err.message : "Ошибка загрузки";
+  if (err instanceof TopicImportError) return err.message;
+  return `Ошибка загрузки: ${err?.message ?? err}`;
 }
 
 function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, hasUpdate }) {
@@ -171,6 +173,7 @@ export default function TopicLibraryScreen() {
 
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
+    clearRendererCache(record.meta.id);
     setTopicRecords([
       ...topicRecords.filter((r) => r.meta.id !== record.meta.id),
       record,
