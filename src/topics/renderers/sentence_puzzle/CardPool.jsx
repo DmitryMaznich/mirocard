@@ -26,6 +26,7 @@ function DraggableCard({ card, structure }) {
         structure={structure}
         emoji={card.emoji}
         label={card.label}
+        photo={card.photo ?? null}
         isEmpty={false}
       />
     </div>

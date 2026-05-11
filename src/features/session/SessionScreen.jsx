@@ -6,7 +6,10 @@ import { useAudio } from "@/shared/hooks/useAudio";
 import ProgressBar from "@/shared/components/ProgressBar";
 
 export default function SessionScreen() {
-  const setScreen = useAppStore((s) => s.setScreen);
+  const setScreen       = useAppStore((s) => s.setScreen);
+  const students        = useAppStore((s) => s.students);
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const activeStudent   = students.find((s) => s.id === activeStudentId) ?? null;
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
@@ -102,6 +105,7 @@ export default function SessionScreen() {
             sessionStatus={status}
             topicId={topicRecord.meta.id}
             sessionParams={sessionParams}
+            student={activeStudent}
             soundEnabled={soundEnabled}
             playTopicFile={playTopicFile}
             onCorrect={handleCorrect}

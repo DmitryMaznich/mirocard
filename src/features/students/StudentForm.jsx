@@ -1,17 +1,75 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Button from "@/shared/components/Button";
-import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl } from "@/shared/utils/format";
+import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
 
 const LANGUAGES = [
   { value: "ru", label: "Русский" },
   { value: "en", label: "English" },
 ];
 
-// Normalise stored entries: accept both plain strings and {url,title} objects
 function normaliseVideos(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((v) =>
     typeof v === "string" ? { url: v, title: null } : { url: v.url ?? "", title: v.title ?? null }
+  );
+}
+
+function normaliseAdults(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((a) => ({ id: a.id, name: a.name ?? "", photo: a.photo ?? null }));
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+async function resizeToDataUrl(file, size = 200) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      const s = Math.min(img.width, img.height);
+      const sx = (img.width  - s) / 2;
+      const sy = (img.height - s) / 2;
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    img.src = url;
+  });
+}
+
+function AdultAvatar({ adult, size = 40 }) {
+  if (adult.photo) {
+    return (
+      <img
+        src={adult.photo}
+        alt={adult.name}
+        style={{
+          width: size, height: size,
+          borderRadius: "50%",
+          objectFit: "cover",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: size, height: size,
+      borderRadius: "50%",
+      background: "#d1fae5",
+      color: "#1b6b62",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontWeight: 700, fontSize: size * 0.38,
+      flexShrink: 0,
+    }}>
+      {getInitials(adult.name)}
+    </div>
   );
 }
 
@@ -23,7 +81,13 @@ export default function StudentForm({ initial, onSave, onCancel }) {
   const [videoInput, setVideoInput] = useState("");
   const [videoError, setVideoError] = useState("");
   const [videoLoading, setVideoLoading] = useState(false);
-  const [error,      setError]      = useState("");
+  const [adults,     setAdults]     = useState(() => normaliseAdults(initial?.closeAdults));
+  const [addingAdult, setAddingAdult] = useState(false);
+  const [newAdultName, setNewAdultName] = useState("");
+  const [newAdultPhoto, setNewAdultPhoto] = useState(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [error, setError] = useState("");
+  const photoInputRef = useRef(null);
 
   function handleSave() {
     if (!name.trim()) { setError("Введите имя ученика"); return; }
@@ -32,6 +96,7 @@ export default function StudentForm({ initial, onSave, onCancel }) {
       comment:         comment.trim(),
       primaryLanguage: lang || null,
       rewardVideos:    videos,
+      closeAdults:     adults,
     });
   }
 
@@ -48,6 +113,33 @@ export default function StudentForm({ initial, onSave, onCancel }) {
 
   function removeVideo(idx) {
     setVideos((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function handlePhotoFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoLoading(true);
+    const dataUrl = await resizeToDataUrl(file, 200);
+    setNewAdultPhoto(dataUrl);
+    setPhotoLoading(false);
+  }
+
+  function confirmAddAdult() {
+    if (!newAdultName.trim()) return;
+    setAdults((prev) => [...prev, { id: generateId(), name: newAdultName.trim(), photo: newAdultPhoto }]);
+    setNewAdultName("");
+    setNewAdultPhoto(null);
+    setAddingAdult(false);
+  }
+
+  function cancelAddAdult() {
+    setNewAdultName("");
+    setNewAdultPhoto(null);
+    setAddingAdult(false);
+  }
+
+  function removeAdult(id) {
+    setAdults((prev) => prev.filter((a) => a.id !== id));
   }
 
   return (
@@ -88,6 +180,73 @@ export default function StudentForm({ initial, onSave, onCancel }) {
         ))}
       </div>
 
+      {/* ── Близкие взрослые ── */}
+      <div className="student-form__section-label">Близкие взрослые</div>
+      <div className="student-form__section-hint">Используются как подлежащие в Пазле предложений</div>
+
+      {adults.map((adult) => (
+        <div key={adult.id} className="close-adult-row">
+          <AdultAvatar adult={adult} size={40} />
+          <span className="close-adult-row__name">{adult.name}</span>
+          <button className="icon-btn icon-btn--danger" onClick={() => removeAdult(adult.id)}>✕</button>
+        </div>
+      ))}
+
+      {addingAdult ? (
+        <div className="close-adult-add-form">
+          <div className="close-adult-add-form__photo-row">
+            {newAdultPhoto ? (
+              <img
+                src={newAdultPhoto}
+                alt=""
+                className="close-adult-add-form__preview"
+                onClick={() => photoInputRef.current?.click()}
+              />
+            ) : (
+              <button
+                type="button"
+                className="close-adult-add-form__photo-btn"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoLoading}
+              >
+                {photoLoading ? "…" : "📷"}
+              </button>
+            )}
+            <input
+              className="auth-input close-adult-add-form__name-input"
+              type="text"
+              placeholder="Имя (Мама, Папа, …)"
+              value={newAdultName}
+              onChange={(e) => setNewAdultName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && confirmAddAdult()}
+              autoFocus
+            />
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handlePhotoFile}
+            />
+          </div>
+          <div className="close-adult-add-form__actions">
+            <Button variant="secondary" onClick={cancelAddAdult}>Отмена</Button>
+            <Button variant="primary" onClick={confirmAddAdult} disabled={!newAdultName.trim()}>
+              Добавить
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="close-adult-add-btn"
+          onClick={() => setAddingAdult(true)}
+        >
+          + Добавить взрослого
+        </button>
+      )}
+
+      {/* ── Видео-награды ── */}
       <div className="student-form__section-label">Видео-награды</div>
       <div className="student-form__section-hint">Показываются при достижении порога успеха</div>
 

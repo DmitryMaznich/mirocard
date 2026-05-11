@@ -28,6 +28,7 @@ function Slot({ rowIndex, slotType, card, position, structure }) {
         structure={structure}
         emoji={card?.emoji}
         label={card?.label}
+        photo={card?.photo ?? null}
         isEmpty={!card}
         isOver={isOver}
         scalable

@@ -11,12 +11,25 @@ function pickN(arr, n) {
   return shuffle([...arr]).slice(0, Math.min(n, arr.length));
 }
 
-function buildRound(task, sessionParams) {
+function adultsAsSubjects(student) {
+  const adults = student?.closeAdults;
+  if (!Array.isArray(adults) || adults.length === 0) return null;
+  return adults.map((a) => ({
+    id:    `adult_${a.id}`,
+    type:  "subject",
+    label: a.name,
+    emoji: null,
+    photo: a.photo ?? null,
+  }));
+}
+
+function buildRound(task, sessionParams, student) {
   const level     = Number(sessionParams?.level)     || 1;
   const structure = sessionParams?.structure         || "simple";
   const slotTypes = SLOT_TYPES[structure] ?? SLOT_TYPES.simple;
 
-  const subjects   = pickN(task.subjects,   level);
+  const adultSubjects = adultsAsSubjects(student);
+  const subjects   = adultSubjects ? pickN(adultSubjects, level) : pickN(task.subjects, level);
   const verbs      = pickN(task.verbs,      level);
   const adjectives = structure === "full" ? pickN(task.adjectives, level) : [];
   const objects    = structure === "full" ? pickN(task.objects,    level) : [];
@@ -28,8 +41,8 @@ function buildRound(task, sessionParams) {
   return { pool, rows, structure, slotTypes, level };
 }
 
-export default function SentencePuzzleRenderer({ task, sessionParams }) {
-  const [round,      setRound]      = useState(() => buildRound(task, sessionParams));
+export default function SentencePuzzleRenderer({ task, sessionParams, student }) {
+  const [round,      setRound]      = useState(() => buildRound(task, sessionParams, student));
   const [phase,      setPhase]      = useState("building");
   const [activeCard, setActiveCard] = useState(null);
 
@@ -69,7 +82,7 @@ export default function SentencePuzzleRenderer({ task, sessionParams }) {
   }
 
   function startNewRound() {
-    setRound(buildRound(task, sessionParams));
+    setRound(buildRound(task, sessionParams, student));
     setPhase("building");
   }
 
@@ -117,6 +130,7 @@ export default function SentencePuzzleRenderer({ task, sessionParams }) {
               structure={round.structure}
               emoji={activeCard.emoji}
               label={activeCard.label}
+              photo={activeCard.photo ?? null}
               isEmpty={false}
             />
           </div>

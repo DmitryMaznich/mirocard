@@ -1,14 +1,4 @@
-// Puzzle piece geometry and SVG primitive
-//
-// Body:  110 × 70 px
-// Tab:   protrudes 16 px to the RIGHT  (cubic bezier, y 22–48)
-// Notch: concave indentation from LEFT, 16 px inward (y 22–48)
-//
-// Row interlocking:
-//   cells have width=110, gap=0, overflow:visible
-//   tab of piece N extends into piece N+1's space
-//   piece N+1 has higher z-index → covers N's tab everywhere
-//   EXCEPT the notch region (no fill there) → N's tab shows through = locked
+import { useId } from "react";
 
 export const BODY_W = 110;
 export const BODY_H = 70;
@@ -67,10 +57,13 @@ export default function PuzzlePieceSvg({
   structure,
   emoji,
   label,
+  photo = null,
   isEmpty,
   isOver = false,
   scalable = false,
 }) {
+  const clipId = useId();
+
   const { left, right } = getPieceConnectors(slotType, structure);
   const path   = buildPiecePath(left, right);
   const colors = PIECE_COLORS[slotType] ?? PIECE_COLORS.subject;
@@ -82,6 +75,11 @@ export default function PuzzlePieceSvg({
   // Horizontal center of body (tab/notch are visual decoration, not text area)
   const cx = BODY_W / 2;
 
+  // Avatar layout constants for photo cards
+  const avatarR  = 18;   // circle radius
+  const avatarCx = cx;
+  const avatarCy = BODY_H * 0.38;
+
   return (
     <svg
       width={scalable ? "100%" : BODY_W}
@@ -90,6 +88,14 @@ export default function PuzzlePieceSvg({
       preserveAspectRatio="none"
       style={{ overflow: "visible", display: "block", flexShrink: 0 }}
     >
+      {photo && (
+        <defs>
+          <clipPath id={clipId}>
+            <circle cx={avatarCx} cy={avatarCy} r={avatarR} />
+          </clipPath>
+        </defs>
+      )}
+
       <path
         d={path}
         fill={fill}
@@ -111,6 +117,30 @@ export default function PuzzlePieceSvg({
         >
           {SLOT_LABELS[slotType]}
         </text>
+      ) : photo ? (
+        <>
+          <image
+            href={photo}
+            x={avatarCx - avatarR}
+            y={avatarCy - avatarR}
+            width={avatarR * 2}
+            height={avatarR * 2}
+            clipPath={`url(#${clipId})`}
+            preserveAspectRatio="xMidYMid slice"
+          />
+          <circle cx={avatarCx} cy={avatarCy} r={avatarR} fill="none" stroke={colors.stroke} strokeWidth="1.5" />
+          <text
+            x={cx} y={BODY_H * 0.82}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="12"
+            fontWeight="700"
+            fill={colors.text}
+            style={{ userSelect: "none", pointerEvents: "none" }}
+          >
+            {label}
+          </text>
+        </>
       ) : (
         <>
           <text
