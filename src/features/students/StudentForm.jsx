@@ -87,7 +87,8 @@ export default function StudentForm({ initial, onSave, onCancel }) {
   const [newAdultPhoto, setNewAdultPhoto] = useState(null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [error, setError] = useState("");
-  const photoInputRef = useRef(null);
+  const photoInputRef   = useRef(null);
+  const cameraInputRef  = useRef(null);
 
   function handleSave() {
     if (!name.trim()) { setError("Введите имя ученика"); return; }
@@ -195,23 +196,37 @@ export default function StudentForm({ initial, onSave, onCancel }) {
       {addingAdult ? (
         <div className="close-adult-add-form">
           <div className="close-adult-add-form__photo-row">
-            {newAdultPhoto ? (
-              <img
-                src={newAdultPhoto}
-                alt=""
-                className="close-adult-add-form__preview"
-                onClick={() => photoInputRef.current?.click()}
-              />
-            ) : (
-              <button
-                type="button"
-                className="close-adult-add-form__photo-btn"
-                onClick={() => photoInputRef.current?.click()}
-                disabled={photoLoading}
-              >
-                {photoLoading ? "…" : "📷"}
-              </button>
-            )}
+            <div className="close-adult-add-form__photo-btns">
+              {newAdultPhoto ? (
+                <img
+                  src={newAdultPhoto}
+                  alt=""
+                  className="close-adult-add-form__preview"
+                  onClick={() => cameraInputRef.current?.click()}
+                />
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="close-adult-add-form__photo-btn"
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={photoLoading}
+                    title="Камера"
+                  >
+                    {photoLoading ? "…" : "📷"}
+                  </button>
+                  <button
+                    type="button"
+                    className="close-adult-add-form__photo-btn close-adult-add-form__photo-btn--gallery"
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={photoLoading}
+                    title="Галерея"
+                  >
+                    🖼
+                  </button>
+                </>
+              )}
+            </div>
             <input
               className="auth-input close-adult-add-form__name-input"
               type="text"
@@ -220,6 +235,14 @@ export default function StudentForm({ initial, onSave, onCancel }) {
               onChange={(e) => setNewAdultName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && confirmAddAdult()}
               autoFocus
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="user"
+              style={{ display: "none" }}
+              onChange={handlePhotoFile}
             />
             <input
               ref={photoInputRef}
