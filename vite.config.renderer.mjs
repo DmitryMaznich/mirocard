@@ -24,10 +24,11 @@ export default defineConfig({
     emptyOutDir: true,
     cssCodeSplit: false,
     rollupOptions: {
-      external: ["react", "react/jsx-runtime"],
+      external: ["react", "react-dom", "react/jsx-runtime"],
       output: {
         globals: {
           "react":             "__Mirocard.React",
+          "react-dom":         "__Mirocard.ReactDOM",
           "react/jsx-runtime": "__Mirocard.jsxRuntime",
         },
       },

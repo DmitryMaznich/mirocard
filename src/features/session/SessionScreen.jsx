@@ -49,10 +49,14 @@ export default function SessionScreen() {
   );
   useEffect(() => {
     if (!topicRecord) return;
-    loadRenderer(topicRecord.meta.id).then((DynamicRenderer) => {
-      setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null);
-      setRendererReady(true);
-    });
+    loadRenderer(topicRecord.meta.id)
+      .then((DynamicRenderer) => {
+        setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null);
+      })
+      .catch(() => {
+        setRenderer(() => RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null);
+      })
+      .finally(() => setRendererReady(true));
   }, [topicRecord?.meta.id]);
 
   if (!sessionState || !topicRecord || !mode) {
