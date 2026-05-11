@@ -12685,6 +12685,22 @@ kbd {
   color: #c0b8b0;
   padding: 6px 0 10px;
   letter-spacing: 0.05em;
+  position: relative;
+  display: inline-block;
+  align-self: center;
+}
+.home-version--update {
+  cursor: pointer;
+  color: #a09890;
+}
+.home-version__dot {
+  position: absolute;
+  top: 4px;
+  right: -10px;
+  width: 7px;
+  height: 7px;
+  background: #f59e0b;
+  border-radius: 50%;
 }
 
 /* ─── Concept picker ─────────────────────────────────────────────────────── */

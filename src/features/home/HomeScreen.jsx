@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
 import TopicCover from "@/shared/components/TopicCover";
@@ -77,6 +77,41 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
   return { total, mastered };
 }
 
+function useAppUpdate() {
+  const [hasUpdate, setHasUpdate] = useState(false);
+  const [reg, setReg] = useState(null);
+
+  useEffect(() => {
+    if (!navigator.serviceWorker) return;
+    navigator.serviceWorker.ready.then((r) => {
+      setReg(r);
+      if (r.waiting) setHasUpdate(true);
+      r.addEventListener("updatefound", () => {
+        const sw = r.installing;
+        sw?.addEventListener("statechange", () => {
+          if (sw.state === "installed" && navigator.serviceWorker.controller) {
+            setHasUpdate(true);
+          }
+        });
+      });
+      r.update().catch(() => {});
+    });
+    const onController = () => window.location.reload();
+    navigator.serviceWorker.addEventListener("controllerchange", onController);
+    return () => navigator.serviceWorker.removeEventListener("controllerchange", onController);
+  }, []);
+
+  const applyUpdate = useCallback(() => {
+    if (reg?.waiting) {
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    } else {
+      reg?.update().catch(() => {});
+    }
+  }, [reg]);
+
+  return { hasUpdate, applyUpdate };
+}
+
 export default function HomeScreen({ onOpenTimer }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const students = useAppStore((s) => s.students);
@@ -113,6 +148,7 @@ export default function HomeScreen({ onOpenTimer }) {
     if (mode && mode.id !== activeModeId) setActiveModeId(mode.id);
   }, [mode?.id]);
 
+  const { hasUpdate, applyUpdate } = useAppUpdate();
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (isReading || !!mode);
 
@@ -201,7 +237,14 @@ export default function HomeScreen({ onOpenTimer }) {
         </div>
       </section>
 
-      <div className="home-version">v{__APP_VERSION__}</div>
+      <div
+        className={`home-version${hasUpdate ? " home-version--update" : ""}`}
+        onClick={applyUpdate}
+        title={hasUpdate ? "Нажмите для обновления" : undefined}
+      >
+        v{__APP_VERSION__}
+        {hasUpdate && <span className="home-version__dot" />}
+      </div>
     </div>
   );
 }
