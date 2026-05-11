@@ -40,7 +40,7 @@ const OPTIONS = [
   { value: "more",  label: "Больше", sign: ">" },
 ];
 
-function MultiMode({ task, onCorrect, onIncorrect }) {
+function MultiMode({ task, onCorrect, onMistake }) {
   const items = task.items;
   const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
   const [focusIndex, setFocusIndex] = useState(0);
@@ -58,7 +58,7 @@ function MultiMode({ task, onCorrect, onIncorrect }) {
     const item = items[focusIndex];
     if (value !== item.question) {
       setWrongFlash(focusIndex);
-      onIncorrect(task.conceptId, null);
+      onMistake?.(task.conceptId, null);
       window.setTimeout(() => setWrongFlash(-1), 420);
       return;
     }
@@ -168,9 +168,9 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
   );
 }
 
-export default function CompareFirstNumber({ task, onCorrect, onIncorrect, onAdvance }) {
+export default function CompareFirstNumber({ task, onCorrect, onIncorrect, onMistake, onAdvance }) {
   if (task.items) {
-    return <MultiMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+    return <MultiMode task={task} onCorrect={onCorrect} onMistake={onMistake} />;
   }
   return <SingleMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
 }
