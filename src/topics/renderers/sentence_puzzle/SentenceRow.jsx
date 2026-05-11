@@ -24,9 +24,9 @@ function Slot({ rowIndex, slotType, card }) {
       className={[
         "sp-slot",
         `sp-slot--${slotType}`,
-        card    ? "sp-slot--filled" : "",
-        isOver  ? "sp-slot--over"   : "",
-      ].join(" ")}
+        card   && "sp-slot--filled",
+        isOver && "sp-slot--over",
+      ].filter(Boolean).join(" ")}
     >
       {card
         ? <><span className="sp-slot__emoji">{card.emoji}</span><span className="sp-slot__word">{card.label}</span></>
