@@ -63,7 +63,7 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
     }
   }
 
-  const sideClass = `compare-side${isNumbers ? " compare-side--number" : ""}`;
+  const sideClass = `compare-side${isNumbers ? " compare-side--number" : " compare-side--dots"}`;
 
   return (
     <div className="compare-body">

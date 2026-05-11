@@ -11508,6 +11508,7 @@ kbd {
   .compare-sides                { max-width: 860px; gap: 24px; }
   .compare-side                 { width: 200px; height: 200px; }
   .compare-side--number         { width: 200px; height: 200px; }
+  .compare-side--dots           { width: 200px; height: auto; min-height: 200px; }
   .compare-equal-btn--empty     { width: 200px; height: 200px; }
   .compare-sign-row             { max-width: 600px; gap: 24px; }
   .compare-big-number           { font-size: 96px; }
@@ -11713,6 +11714,13 @@ kbd {
   width: clamp(90px, 26vw, 220px);
   height: clamp(90px, 26vw, 220px);
 }
+.compare-side--dots {
+  height: auto;
+  min-height: clamp(90px, 26vw, 220px);
+  justify-content: flex-start;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
 .compare-big-number {
   font-size: clamp(48px, 14vw, 96px);
   font-weight: 900;
@@ -11730,7 +11738,7 @@ kbd {
   flex-wrap: wrap;
   gap: 5px;
   justify-content: center;
-  max-width: 140px;
+  max-width: min(140px, 100%);
 }
 .dot-group-number {
   font-size: 1.6rem;
