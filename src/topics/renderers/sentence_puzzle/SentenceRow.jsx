@@ -1,5 +1,5 @@
 import { useDroppable } from "@dnd-kit/core";
-import PuzzlePieceSvg, { BODY_W } from "./PuzzlePiece";
+import PuzzlePieceSvg, { BODY_W, BODY_H } from "./PuzzlePiece";
 
 export const SLOT_TYPES = {
   simple: ["subject", "verb"],
@@ -16,11 +16,11 @@ function Slot({ rowIndex, slotType, card, position, structure }) {
     <div
       ref={setNodeRef}
       style={{
-        width:    BODY_W,
-        position: "relative",
-        zIndex:   position + 1,
-        overflow: "visible",
-        flexShrink: 0,
+        flex:        1,
+        aspectRatio: `${BODY_W} / ${BODY_H}`,
+        position:    "relative",
+        zIndex:      position + 1,
+        overflow:    "visible",
       }}
     >
       <PuzzlePieceSvg
@@ -30,6 +30,7 @@ function Slot({ rowIndex, slotType, card, position, structure }) {
         label={card?.label}
         isEmpty={!card}
         isOver={isOver}
+        scalable
       />
     </div>
   );

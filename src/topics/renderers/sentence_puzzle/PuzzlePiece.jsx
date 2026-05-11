@@ -61,6 +61,7 @@ export function buildPiecePath(left, right) {
 }
 
 // Shared SVG puzzle piece — used by slots (row) and cards (pool + overlay)
+// scalable=true: width/height "100%" so the container controls size via aspect-ratio
 export default function PuzzlePieceSvg({
   slotType,
   structure,
@@ -68,6 +69,7 @@ export default function PuzzlePieceSvg({
   label,
   isEmpty,
   isOver = false,
+  scalable = false,
 }) {
   const { left, right } = getPieceConnectors(slotType, structure);
   const path   = buildPiecePath(left, right);
@@ -82,9 +84,10 @@ export default function PuzzlePieceSvg({
 
   return (
     <svg
-      width={BODY_W}
-      height={BODY_H}
+      width={scalable ? "100%" : BODY_W}
+      height={scalable ? "100%" : BODY_H}
       viewBox={`0 0 ${BODY_W} ${BODY_H}`}
+      preserveAspectRatio="none"
       style={{ overflow: "visible", display: "block", flexShrink: 0 }}
     >
       <path
