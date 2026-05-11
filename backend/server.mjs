@@ -123,6 +123,7 @@ function serializeStudent(row) {
     comment: row.comment,
     primaryLanguage: row.primary_language,
     rewardVideos: safeJson(row.reward_videos, []),
+    closeAdults:  safeJson(row.close_adults, []),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at ?? null,
@@ -325,6 +326,9 @@ async function handleUpsertStudent(req, res) {
             return s || null;
           })
           .filter(Boolean)
+      : [],
+    closeAdults: Array.isArray(body.closeAdults)
+      ? body.closeAdults.filter((a) => a && typeof a === "object" && a.id && a.name)
       : [],
   });
 

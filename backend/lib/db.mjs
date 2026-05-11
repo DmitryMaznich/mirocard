@@ -134,6 +134,9 @@ export function initDb(dbPath = DB_PATH) {
   if (!studentColumns.some((column) => column.name === "reward_videos")) {
     db.exec("ALTER TABLE students ADD COLUMN reward_videos TEXT DEFAULT '[]'");
   }
+  if (!studentColumns.some((column) => column.name === "close_adults")) {
+    db.exec("ALTER TABLE students ADD COLUMN close_adults TEXT DEFAULT '[]'");
+  }
 
   const linkColumns = db.prepare("PRAGMA table_info(student_topic_links)").all();
   if (!linkColumns.some((c) => c.name === "params")) {
