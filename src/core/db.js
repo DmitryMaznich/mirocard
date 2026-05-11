@@ -1,4 +1,4 @@
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export function openDb(name = "mirocard") {
   return new Promise((resolve, reject) => {
@@ -11,6 +11,9 @@ export function openDb(name = "mirocard") {
       }
       if (!db.objectStoreNames.contains("topics")) {
         db.createObjectStore("topics");
+      }
+      if (!db.objectStoreNames.contains("syncQueue")) {
+        db.createObjectStore("syncQueue", { autoIncrement: true });
       }
     };
 

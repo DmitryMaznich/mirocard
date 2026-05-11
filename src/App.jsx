@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { api, setApiToken } from "@/core/api";
 import { loadLocalBootstrap, applyBootstrapToStore, persistBootstrap } from "@/core/bootstrap";
+import { flushQueue, setupOnlineListener } from "@/core/syncApi";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
 
 import LoginScreen from "@/features/account/LoginScreen";
@@ -74,6 +75,8 @@ export default function App() {
 
       if (bootstrap.token && bootstrap.account) {
         setApiToken(bootstrap.token);
+        setupOnlineListener();
+        flushQueue().catch(() => {});
         setScreen("home");
 
         // Фоновый refresh с сервера — подтягивает изменения с других устройств
