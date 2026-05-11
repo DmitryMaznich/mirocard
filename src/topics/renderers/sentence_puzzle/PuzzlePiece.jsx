@@ -13,13 +13,6 @@ export const PIECE_COLORS = {
   object:    { fill: "#ede9fe", stroke: "#8b5cf6", text: "#4c1d95" },
 };
 
-const SLOT_LABELS = {
-  subject:   "КТО?",
-  verb:      "ЧТО ДЕЛАЕТ?",
-  adjective: "КАКУЮ?",
-  object:    "ЧТО?",
-};
-
 // Returns { left: "flat"|"notch", right: "flat"|"tab" }
 export function getPieceConnectors(slotType, structure) {
   const left  = slotType === "subject" ? "flat" : "notch";
@@ -104,20 +97,7 @@ export default function PuzzlePieceSvg({
         strokeDasharray={strokeDash}
       />
 
-      {isEmpty ? (
-        <text
-          x={cx} y={BODY_H / 2}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fontSize="11"
-          fontWeight="700"
-          fill={stroke}
-          opacity="0.75"
-          style={{ userSelect: "none", pointerEvents: "none" }}
-        >
-          {SLOT_LABELS[slotType]}
-        </text>
-      ) : photo ? (
+      {isEmpty ? null : photo ? (
         <>
           <image
             href={photo}
