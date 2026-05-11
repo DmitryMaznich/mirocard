@@ -1,7 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import * as React from "react";
+import * as jsxRuntime from "react/jsx-runtime";
 import "./styles.css";
 import App from "./App";
+
+window.__Mirocard = { React, jsxRuntime };
 
 if ("serviceWorker" in navigator) {
   let refreshing = false;
