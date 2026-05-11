@@ -4,6 +4,7 @@ import { shuffle }     from "@/shared/utils/shuffle";
 import SentenceRow, { SLOT_TYPES } from "./SentenceRow";
 import CardPool        from "./CardPool";
 import QuestionsView   from "./QuestionsView";
+import PuzzlePieceSvg  from "./PuzzlePiece";
 import "./sentence_puzzle.css";
 
 function pickN(arr, n) {
@@ -97,7 +98,7 @@ export default function SentencePuzzleRenderer({ task, sessionParams }) {
           ))}
         </div>
 
-        <CardPool cards={round.pool} />
+        <CardPool cards={round.pool} structure={round.structure} />
 
         {isComplete && (
           <div className="sp-complete-bar">
@@ -110,9 +111,14 @@ export default function SentencePuzzleRenderer({ task, sessionParams }) {
 
       <DragOverlay dropAnimation={null}>
         {activeCard && (
-          <div className={`sp-card sp-card--${activeCard.type} sp-card--overlay`}>
-            <span className="sp-card__emoji">{activeCard.emoji}</span>
-            <span className="sp-card__label">{activeCard.label}</span>
+          <div className="sp-card-overlay">
+            <PuzzlePieceSvg
+              slotType={activeCard.type}
+              structure={round.structure}
+              emoji={activeCard.emoji}
+              label={activeCard.label}
+              isEmpty={false}
+            />
           </div>
         )}
       </DragOverlay>
