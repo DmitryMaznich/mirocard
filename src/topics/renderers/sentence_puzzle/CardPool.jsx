@@ -1,12 +1,14 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import PuzzlePieceSvg from "./PuzzlePiece";
+import PuzzlePieceSvg, { PHOTO_W, PHOTO_H } from "./PuzzlePiece";
 
 function DraggableCard({ card, structure }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id:   card.id,
     data: { card },
   });
+
+  const photo = card.photo ?? null;
 
   return (
     <div
@@ -17,6 +19,7 @@ function DraggableCard({ card, structure }) {
         touchAction: "none",
         cursor:      "grab",
         overflow:    "visible",
+        ...(photo ? { width: PHOTO_W, height: PHOTO_H } : {}),
       }}
       {...listeners}
       {...attributes}
@@ -26,8 +29,9 @@ function DraggableCard({ card, structure }) {
         structure={structure}
         emoji={card.emoji}
         label={card.label}
-        photo={card.photo ?? null}
+        photo={photo}
         isEmpty={false}
+        scalable={!!photo}
       />
     </div>
   );

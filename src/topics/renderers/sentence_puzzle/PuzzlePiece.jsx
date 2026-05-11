@@ -1,7 +1,9 @@
 import { useId } from "react";
 
-export const BODY_W = 110;
-export const BODY_H = 70;
+export const BODY_W  = 110;
+export const BODY_H  = 70;
+export const PHOTO_W = 165;
+export const PHOTO_H = 105;
 const TAB_R  = 16;
 const TAB_Y1 = 22;
 const TAB_Y2 = 48;
@@ -105,20 +107,23 @@ export default function PuzzlePieceSvg({
           />
           <rect
             x={0}
-            y={BODY_H * 0.60}
+            y={BODY_H * 0.55}
             width={BODY_W}
-            height={BODY_H * 0.40}
-            fill="rgba(0,0,0,0.38)"
+            height={BODY_H * 0.45}
+            fill="rgba(0,0,0,0.45)"
             clipPath={`url(#${clipId})`}
           />
           <path d={path} fill="none" stroke={colors.stroke} strokeWidth="2" />
           <text
-            x={cx} y={BODY_H * 0.83}
+            x={cx} y={BODY_H * 0.82}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontSize="12"
+            fontSize="13"
             fontWeight="700"
             fill="white"
+            stroke="rgba(0,0,0,0.55)"
+            strokeWidth="3"
+            paintOrder="stroke"
             style={{ userSelect: "none", pointerEvents: "none" }}
           >
             {label}
