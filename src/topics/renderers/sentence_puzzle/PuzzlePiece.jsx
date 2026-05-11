@@ -2,8 +2,8 @@ import { useId } from "react";
 
 export const BODY_W  = 110;
 export const BODY_H  = 70;
-export const PHOTO_W = 165;
-export const PHOTO_H = 105;
+export const PHOTO_W = Math.round(BODY_W * 1.1);
+export const PHOTO_H = Math.round(BODY_H * 1.1);
 const TAB_R  = 16;
 const TAB_Y1 = 22;
 const TAB_Y2 = 48;
@@ -81,7 +81,7 @@ export default function PuzzlePieceSvg({
       {photo && !isEmpty && (
         <defs>
           <clipPath id={clipId}>
-            <path d={path} />
+            <circle cx={cx} cy={BODY_H * 0.37} r={BODY_H * 0.30} />
           </clipPath>
         </defs>
       )}
@@ -98,32 +98,26 @@ export default function PuzzlePieceSvg({
         <>
           <image
             href={photo}
-            x={0}
-            y={0}
-            width={BODY_W}
-            height={BODY_H}
+            x={cx - BODY_H * 0.30}
+            y={BODY_H * 0.07}
+            width={BODY_H * 0.60}
+            height={BODY_H * 0.60}
             clipPath={`url(#${clipId})`}
             preserveAspectRatio="xMidYMid slice"
           />
-          <rect
-            x={0}
-            y={BODY_H * 0.55}
-            width={BODY_W}
-            height={BODY_H * 0.45}
-            fill="rgba(0,0,0,0.45)"
-            clipPath={`url(#${clipId})`}
+          <circle
+            cx={cx} cy={BODY_H * 0.37} r={BODY_H * 0.30}
+            fill="none"
+            stroke={colors.stroke}
+            strokeWidth="1.5"
           />
-          <path d={path} fill="none" stroke={colors.stroke} strokeWidth="2" />
           <text
-            x={cx} y={BODY_H * 0.82}
+            x={cx} y={BODY_H * 0.77}
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize="13"
-            fontWeight="700"
-            fill="white"
-            stroke="rgba(0,0,0,0.55)"
-            strokeWidth="3"
-            paintOrder="stroke"
+            fontWeight="600"
+            fill={colors.text}
             style={{ userSelect: "none", pointerEvents: "none" }}
           >
             {label}
