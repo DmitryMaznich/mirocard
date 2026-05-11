@@ -151,12 +151,21 @@ function ComparisonParams({ params, onChange }) {
       )}
 
       {isFirstNumberMode && (
-        <div className="param-row param-row--block">
-          <div className="param-label">Логика режима</div>
-          <div className="param-hint">
-            Ученик смотрит на первое число в паре и выбирает: меньше, больше или равно.
-          </div>
-        </div>
+        <NumberStepper
+          label="Примеров на экране"
+          value={params.examplesCount ?? 1}
+          min={1}
+          max={6}
+          onChange={(v) => onChange({ ...params, examplesCount: v })}
+        />
+      )}
+
+      {isFirstNumberMode && (
+        <BooleanParam
+          label='Подписи «Первое» и «Второе»'
+          value={params.showLabels ?? true}
+          onChange={(v) => onChange({ ...params, showLabels: v })}
+        />
       )}
 
       {isVisualMode && (
@@ -218,11 +227,13 @@ export default function ParamsScreen() {
     const saved = link.params ?? {};
     if (isComparison) {
       return {
-        level:        saved.level        ?? 2,
-        question:     saved.question     ?? "more",
-        showEqual:    saved.showEqual    ?? false,
-        wordsVerdict: saved.wordsVerdict ?? false,
-        visualMode:   saved.visualMode   ?? "dots",
+        level:         saved.level         ?? 2,
+        question:      saved.question      ?? "more",
+        showEqual:     saved.showEqual     ?? false,
+        wordsVerdict:  saved.wordsVerdict  ?? false,
+        visualMode:    saved.visualMode    ?? "dots",
+        examplesCount: saved.examplesCount ?? 1,
+        showLabels:    saved.showLabels    ?? true,
       };
     }
     const modeParams = mode?.params ?? {};
