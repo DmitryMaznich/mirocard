@@ -64,7 +64,7 @@ function SentenceBlock({ placed, structure, blockIndex }) {
       </p>
       <div className="sp-q-list">
         {questions.map((item, i) => (
-          <QuestionItem key={i} item={item} index={i} />
+          <QuestionItem key={item.q} item={item} index={i} />
         ))}
       </div>
     </div>
