@@ -201,11 +201,6 @@ export default function HomeScreen({ onOpenTimer }) {
         </div>
       </section>
 
-      <div className="home-quick-actions">
-        <button className="home-quick-btn" onClick={() => setScreen("students")}>+ Ученик</button>
-        <button className="home-quick-btn" onClick={() => setScreen("topics")}>↓ Темы</button>
-      </div>
-
       <div className="home-version">v{__APP_VERSION__}</div>
     </div>
   );
