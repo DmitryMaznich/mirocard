@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "id": "sentence_puzzle",
+    "version": "1.0.0",
+    "renderer": "sentence_puzzle",
+    "title": "Пазл предложений"
+  },
+  "modes": [
+    {
+      "id": "sentence_puzzle",
+      "type": "sentence_puzzle",
+      "evaluation": "none",
+      "ui": {
+        "title": "Пазл предложений",
+        "instruction": "Собери предложения из слов"
+      },
+      "params": {
+        "level": {
+          "type": "enum",
+          "label": { "ru": "Сложность" },
+          "values": [1, 2, 3],
+          "labels": { "ru": { "1": "1 предложение", "2": "2 предложения", "3": "3 предложения" } },
+          "default": 1
+        },
+        "structure": {
+          "type": "enum",
+          "label": { "ru": "Структура" },
+          "values": ["simple", "full"],
+          "labels": { "ru": { "simple": "Простая (кто + что делает)", "full": "Полная (кто + что делает + какую + что)" } },
+          "default": "simple"
+        }
+      }
+    }
+  ],
+  "cards": [
+    { "id": "mom",     "type": "subject",   "label": "Мама",      "emoji": "👩" },
+    { "id": "dad",     "type": "subject",   "label": "Папа",      "emoji": "👨" },
+    { "id": "grandma", "type": "subject",   "label": "Бабушка",   "emoji": "👵" },
+    { "id": "grandpa", "type": "subject",   "label": "Дедушка",   "emoji": "👴" },
+    { "id": "boy",     "type": "subject",   "label": "Мальчик",   "emoji": "👦" },
+    { "id": "girl",    "type": "subject",   "label": "Девочка",   "emoji": "👧" },
+    { "id": "wash",    "type": "verb",      "label": "моет",      "emoji": "🧼" },
+    { "id": "carry",   "type": "verb",      "label": "несёт",     "emoji": "🤲" },
+    { "id": "search",  "type": "verb",      "label": "ищет",      "emoji": "🔍" },
+    { "id": "take",    "type": "verb",      "label": "берёт",     "emoji": "✋" },
+    { "id": "draw",    "type": "verb",      "label": "рисует",    "emoji": "✏️" },
+    { "id": "read_v",  "type": "verb",      "label": "читает",    "emoji": "📖" },
+    { "id": "red",     "type": "adjective", "label": "красную",   "emoji": "🔴" },
+    { "id": "blue",    "type": "adjective", "label": "синюю",     "emoji": "🔵" },
+    { "id": "big",     "type": "adjective", "label": "большую",   "emoji": "⬆️" },
+    { "id": "small",   "type": "adjective", "label": "маленькую", "emoji": "⬇️" },
+    { "id": "clean",   "type": "adjective", "label": "чистую",    "emoji": "✨" },
+    { "id": "dirty",   "type": "adjective", "label": "грязную",   "emoji": "🟤" },
+    { "id": "cup",     "type": "object", "label": "чашку",    "nominative": "чашка",   "emoji": "☕" },
+    { "id": "car",     "type": "object", "label": "машинку",  "nominative": "машинка", "emoji": "🚗" },
+    { "id": "book",    "type": "object", "label": "книгу",    "nominative": "книга",   "emoji": "📕" },
+    { "id": "spoon",   "type": "object", "label": "ложку",    "nominative": "ложка",   "emoji": "🥄" },
+    { "id": "plate",   "type": "object", "label": "тарелку",  "nominative": "тарелка", "emoji": "🍽️" },
+    { "id": "toy",     "type": "object", "label": "игрушку",  "nominative": "игрушка", "emoji": "🧸" }
+  ]
+}
