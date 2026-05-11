@@ -41,13 +41,17 @@ export default function SessionScreen() {
   }
 
   // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
-  const [Renderer, setRenderer] = useState(() =>
+  const [Renderer, setRenderer]           = useState(() =>
     topicRecord ? (RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null) : null
+  );
+  const [rendererReady, setRendererReady] = useState(
+    () => !!(topicRecord && RENDERER_REGISTRY[topicRecord.meta.renderer])
   );
   useEffect(() => {
     if (!topicRecord) return;
     loadRenderer(topicRecord.meta.id).then((DynamicRenderer) => {
       setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null);
+      setRendererReady(true);
     });
   }, [topicRecord?.meta.id]);
 
@@ -118,6 +122,7 @@ export default function SessionScreen() {
             sessionParams={sessionParams}
             student={activeStudent}
             soundEnabled={soundEnabled}
+            playFeedback={playFeedback}
             playTopicFile={playTopicFile}
             onCorrect={handleCorrect}
             onIncorrect={handleIncorrect}
@@ -126,8 +131,13 @@ export default function SessionScreen() {
             onQualityAnswer={onQualityAnswer}
           />
         </div>
-      ) : !Renderer ? (
+      ) : !rendererReady ? (
         <div className="screen-center">Загрузка…</div>
+      ) : !Renderer ? (
+        <div className="screen-center">
+          Обновите тему «{topicRecord.meta.title ?? topicRecord.meta.id}» до актуальной версии —
+          рендерер недоступен.
+        </div>
       ) : (
         <div className="screen-center">Неизвестный рендерер: {topicRecord.meta.renderer}</div>
       )}
