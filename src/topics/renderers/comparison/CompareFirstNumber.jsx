@@ -1,13 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-// ── Числительные: именительный падеж ──────────────────────────────────────
 const NOM_ONES  = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
 const NOM_TEENS = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать',
                    'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
 const NOM_TENS  = ['', '', 'двадцать', 'тридцать', 'сорок',
                    'пятьдесят', 'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
-
-// ── Числительные: родительный падеж ───────────────────────────────────────
 const GEN_ONES  = ['', 'одного', 'двух', 'трёх', 'четырёх', 'пяти', 'шести', 'семи', 'восьми', 'девяти'];
 const GEN_TEENS = ['десяти', 'одиннадцати', 'двенадцати', 'тринадцати', 'четырнадцати',
                    'пятнадцати', 'шестнадцати', 'семнадцати', 'восемнадцати', 'девятнадцати'];
@@ -21,7 +18,6 @@ function toNom(n) {
   if (o === 0) return NOM_TENS[t];
   return `${NOM_TENS[t]} ${NOM_ONES[o]}`;
 }
-
 function toGen(n) {
   if (n >= 10 && n <= 19) return GEN_TEENS[n - 10];
   const t = Math.floor(n / 10), o = n % 10;
@@ -29,7 +25,6 @@ function toGen(n) {
   if (o === 0) return GEN_TENS[t];
   return `${GEN_TENS[t]} ${GEN_ONES[o]}`;
 }
-
 function wordVerdict(left, right) {
   const nomL = toNom(left);
   const cap  = nomL.charAt(0).toUpperCase() + nomL.slice(1);
@@ -38,20 +33,85 @@ function wordVerdict(left, right) {
   return `${cap} больше ${toGen(right)}`;
 }
 
-// ─────────────────────────────────────────────────────────────────────────
-
+const SIGN    = { less: "<", equal: "=", more: ">" };
 const OPTIONS = [
   { value: "less",  label: "Меньше", sign: "<" },
   { value: "equal", label: "Равно",  sign: "=" },
   { value: "more",  label: "Больше", sign: ">" },
 ];
 
-const SIGN = { less: "<", equal: "=", more: ">" };
+function MultiMode({ task, onCorrect, onIncorrect }) {
+  const items = task.items;
+  const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
+  const [focusIndex, setFocusIndex] = useState(0);
+  const [wrongFlash, setWrongFlash] = useState(-1);
+  const allDone = focusIndex >= items.length;
 
-export default function CompareFirstNumber({ task, mode, onCorrect, onIncorrect, onAdvance }) {
+  useEffect(() => {
+    if (!allDone) return undefined;
+    const t = window.setTimeout(() => onCorrect(task.conceptId, null), 650);
+    return () => window.clearTimeout(t);
+  }, [allDone, onCorrect, task.conceptId]);
+
+  function handleAnswer(value) {
+    if (allDone) return;
+    const item = items[focusIndex];
+    if (value !== item.question) {
+      setWrongFlash(focusIndex);
+      onIncorrect(task.conceptId, null);
+      window.setTimeout(() => setWrongFlash(-1), 420);
+      return;
+    }
+    const next = [...answers];
+    next[focusIndex] = value;
+    setAnswers(next);
+    setFocusIndex((i) => i + 1);
+  }
+
+  function signClass(i) {
+    const b = "cfn-multi-sign";
+    if (wrongFlash === i)   return `${b} ${b}--wrong`;
+    if (answers[i] != null) return `${b} ${b}--done`;
+    if (focusIndex === i)   return `${b} ${b}--active`;
+    return b;
+  }
+
+  return (
+    <div className="compare-body">
+      <div className="compare-instruction">Оцени первое число</div>
+      <div className="cfn-multi">
+        {items.map((item, i) => (
+          <div key={i} className={`cfn-multi-row${focusIndex === i ? " cfn-multi-row--active" : ""}`}>
+            <div className="cfn-multi-num">{item.left}</div>
+            <div className={signClass(i)}>
+              {answers[i] != null ? SIGN[answers[i]] : focusIndex === i ? "?" : ""}
+            </div>
+            <div className="cfn-multi-num">{item.right}</div>
+          </div>
+        ))}
+      </div>
+      <div className="cfn-multi-divider" />
+      <div className="cfn-options">
+        {OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            className="cfn-btn"
+            disabled={allDone}
+            onClick={() => handleAnswer(opt.value)}
+          >
+            <span className="cfn-btn-sign">{opt.sign}</span>
+            <span className="cfn-btn-label">{opt.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
   const [answered, setAnswered] = useState(false);
-
-  const correct = task.question; // "less" | "equal" | "more"
+  const correct     = task.question;
+  const showLabels  = task.showLabels !== false;
 
   function handleAnswer(value) {
     if (answered) return;
@@ -63,14 +123,14 @@ export default function CompareFirstNumber({ task, mode, onCorrect, onIncorrect,
   const stage = (
     <div className="cfn-stage">
       <div className="cfn-card cfn-card--first">
-        <div className="cfn-label">первое</div>
+        {showLabels && <div className="cfn-label">первое</div>}
         <div className="cfn-number">{task.left}</div>
       </div>
       <div className={`cfn-bridge${answered ? " cfn-bridge--shown" : ""}`}>
         {answered ? SIGN[correct] : "?"}
       </div>
       <div className="cfn-card cfn-card--second">
-        <div className="cfn-label">второе</div>
+        {showLabels && <div className="cfn-label">второе</div>}
         <div className="cfn-number">{task.right}</div>
       </div>
     </div>
@@ -106,4 +166,11 @@ export default function CompareFirstNumber({ task, mode, onCorrect, onIncorrect,
       </div>
     </div>
   );
+}
+
+export default function CompareFirstNumber({ task, onCorrect, onIncorrect, onAdvance }) {
+  if (task.items) {
+    return <MultiMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  }
+  return <SingleMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
 }

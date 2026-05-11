@@ -274,7 +274,7 @@ const DEFAULT_MODES = {
   ],
   comparison: [
     { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "Крокодил",      instruction: "Нажми на большее число",                          icon: "media/icons/comparison_sign.svg" } },
-    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Первое число",  instruction: "Сравни первое число со вторым и выбери ответ.",    icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Оцени первое",  instruction: "Первое число — больше, меньше или равно второму?", icon: "media/icons/comparison_first_number.svg" } },
     { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "Сравни и нажми", instruction: "Нажми на сторону, где больше",                   icon: "media/icons/comparison_visual.svg" } },
   ],
   math_houses: [

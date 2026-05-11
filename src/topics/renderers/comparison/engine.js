@@ -93,10 +93,14 @@ export function getVerdict(task) {
     : `${smaller} меньше ${bigger}`;
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers" }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers", examplesCount?: number, showLabels?: boolean }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
+
+  const isFirstNumber = mode.type === "compare_first_number";
+  const examplesCount = isFirstNumber ? Math.max(1, Math.min(6, Number(sessionParams.examplesCount ?? 1))) : 1;
+  const showLabels    = isFirstNumber ? (sessionParams.showLabels !== false) : true;
 
   const levelDef   = COMPARISON_LEVELS.find((l) => l.id === level) ?? COMPARISON_LEVELS[1];
   const baseParams = levelDef.params;
@@ -105,9 +109,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!card) return [];
 
   function taskInstruction(q) {
-    if (mode.type === "compare_first_number") {
+    if (isFirstNumber) {
       void q;
-      return "Сравни первое число со вторым и выбери правильный ответ.";
+      return "Первое число — больше, меньше или равно второму?";
     }
     const baseQ = q === "equal" ? (question === "less" ? "less" : "more") : q;
     const verb  = baseQ === "more" ? "больше" : "меньше";
@@ -119,10 +123,11 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     return `Где ${verb}?`;
   }
 
+  const totalPairs  = examplesCount > 1 ? count * examplesCount : count;
   const tasks       = [];
-  const equalTarget = showEqual ? Math.round(count * 0.3) : 0;
+  const equalTarget = showEqual ? Math.round(totalPairs * 0.3) : 0;
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < totalPairs; i++) {
     let left, right;
     if (i < equalTarget) {
       const val = Math.floor(Math.random() * (baseParams.max - baseParams.min + 1)) + baseParams.min;
@@ -132,7 +137,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     }
 
     const isEqual      = left === right;
-    const taskQuestion = mode.type === "compare_first_number"
+    const taskQuestion = isFirstNumber
       ? getFirstNumberRelation(left, right)
       : isEqual
         ? "equal"
@@ -144,7 +149,22 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если одинаково — нажми посередине")
       : null;
 
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint });
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels });
   }
+
+  if (isFirstNumber && examplesCount > 1) {
+    const shuffled = shuffle(tasks);
+    const batches  = [];
+    for (let i = 0; i + examplesCount <= shuffled.length; i += examplesCount) {
+      batches.push({
+        type: "compare_first_number",
+        items: shuffled.slice(i, i + examplesCount).map(({ left, right, question }) => ({ left, right, question })),
+        conceptId: card.conceptId,
+        showLabels,
+      });
+    }
+    return batches;
+  }
+
   return shuffle(tasks);
 }

@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { writeFileSync } from "node:fs";
 
-const VERSION = "2.7.1";
+const VERSION = "2.7.2";
 
 const manifest = {
   meta: {
@@ -107,8 +107,22 @@ const manifest = {
       evaluation: "auto",
       defaultCardId: "compare_medium",
       ui: {
-        title: "5. Первое число",
+        title: "5. Оцени первое",
         instruction: "Первое число — больше, меньше или равно второму?",
+      },
+      params: {
+        examplesCount: {
+          type: "number",
+          min: 1,
+          max: 6,
+          default: 1,
+          label: { ru: "Примеров на экране" },
+        },
+        showLabels: {
+          type: "boolean",
+          default: true,
+          label: { ru: "Подписи «Первое» и «Второе»" },
+        },
       },
       methodology: {
         summary: "Ребёнок оценивает первое число относительно второго: больше, меньше или равно? Тренирует направленное чтение выражения слева направо.",
