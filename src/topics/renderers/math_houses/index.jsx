@@ -14,7 +14,8 @@ function HouseTask({ task, onCorrect, onMistake }) {
   const [answers, setAnswers] = useState({});
   const [activeCellKey, setActiveCellKey] = useState(hiddenCells[0]?.key ?? null);
   const [wrongCellKey, setWrongCellKey] = useState(null);
-  const options = Array.from({ length: task.number + 1 }, (_, i) => i);
+  const total = task.total ?? task.number;
+  const options = Array.from({ length: total + 1 }, (_, i) => i);
   const hiddenCellByKey = useMemo(
     () => Object.fromEntries(hiddenCells.map((cell) => [cell.key, cell])),
     [hiddenCells]
@@ -27,78 +28,90 @@ function HouseTask({ task, onCorrect, onMistake }) {
 
   function handleOption(value) {
     if (!activeCellKey) return;
-
     const activeCell = hiddenCellByKey[activeCellKey];
     if (!activeCell) return;
-
     if (value !== activeCell.answer) {
       setWrongCellKey(activeCellKey);
       onMistake?.(task.conceptId, null);
       window.setTimeout(() => setWrongCellKey(null), 420);
       return;
     }
-
     const nextAnswers = { ...answers, [activeCellKey]: value };
     setAnswers(nextAnswers);
     setWrongCellKey(null);
-
     if (hiddenCells.every((cell) => nextAnswers[cell.key] != null)) {
       setActiveCellKey(null);
       window.setTimeout(() => onCorrect(task.conceptId, null), 260);
       return;
     }
-
     selectNextCell(nextAnswers);
   }
 
+  function cellClass(hidden, cellKey) {
+    if (!hidden)                       return "math-house-box math-house-box--known";
+    if (answers[cellKey] != null)      return "math-house-box math-house-box--correct";
+    if (wrongCellKey === cellKey)      return "math-house-box math-house-box--wrong";
+    if (activeCellKey === cellKey)     return "math-house-box math-house-box--focus";
+    return "math-house-box math-house-box--empty";
+  }
+
+  const activePairIndex = activeCellKey ? Number(activeCellKey.split(":")[0]) : -1;
+
   return (
-    <div className="house-body">
-      <div className="house-roof">
-        <div className="house-number">{task.number}</div>
-      </div>
-      <div className="house-rooms">
-        {task.pairs.map(([left, right], idx) => (
-          <div key={idx} className="house-row">
-            {(() => {
-              const key = `${idx}:left`;
-              const isHidden = Boolean(hiddenCellByKey[key]);
-              const isActive = activeCellKey === key;
-              const isWrong = wrongCellKey === key;
-              const value = answers[key];
-              if (!isHidden) return <div className="house-cell">{left}</div>;
-              return (
-                <button
-                  className={`house-cell house-cell--hidden${isActive ? " house-cell--active" : ""}${isWrong ? " house-cell--wrong" : ""}${value != null ? " house-cell--correct" : ""}`}
-                  onClick={() => setActiveCellKey(key)}
+    <div
+      className="math-house-stage"
+      style={{
+        "--house-color": task.color || "#2d6fb5",
+        "--num-floors": task.pairs.length,
+        "--numpad-columns": Math.ceil(options.length / 2),
+      }}
+    >
+      <div className="math-house-wrap">
+        <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
+          <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
+          <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
+          <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
+            {total}
+          </text>
+        </svg>
+
+        <div className="math-house-body">
+          {task.pairs.map(([left, right], pairIndex) => {
+            const leftKey  = `${pairIndex}:left`;
+            const rightKey = `${pairIndex}:right`;
+            const leftHidden  = Boolean(hiddenCellByKey[leftKey]);
+            const rightHidden = Boolean(hiddenCellByKey[rightKey]);
+            const floorClass  = [
+              "math-house-floor",
+              activePairIndex === pairIndex ? "math-house-floor--active" : "",
+            ].filter(Boolean).join(" ");
+
+            return (
+              <div key={pairIndex} className={floorClass}>
+                <div
+                  className={cellClass(leftHidden, leftKey)}
+                  onClick={() => leftHidden && answers[leftKey] == null && setActiveCellKey(leftKey)}
                 >
-                  {value ?? "?"}
-                </button>
-              );
-            })()}
-            <div className="house-divider" />
-            {(() => {
-              const key = `${idx}:right`;
-              const isHidden = Boolean(hiddenCellByKey[key]);
-              const isActive = activeCellKey === key;
-              const isWrong = wrongCellKey === key;
-              const value = answers[key];
-              if (!isHidden) return <div className="house-cell">{right}</div>;
-              return (
-                <button
-                  className={`house-cell house-cell--hidden${isActive ? " house-cell--active" : ""}${isWrong ? " house-cell--wrong" : ""}${value != null ? " house-cell--correct" : ""}`}
-                  onClick={() => setActiveCellKey(key)}
+                  {leftHidden ? (answers[leftKey] ?? "?") : left}
+                </div>
+                <div className="math-house-operator">+</div>
+                <div
+                  className={cellClass(rightHidden, rightKey)}
+                  onClick={() => rightHidden && answers[rightKey] == null && setActiveCellKey(rightKey)}
                 >
-                  {value ?? "?"}
-                </button>
-              );
-            })()}
-          </div>
-        ))}
+                  {rightHidden ? (answers[rightKey] ?? "?") : right}
+                </div>
+                <div className="math-house-equals">= {total}</div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
       {activeCellKey && (
-        <div className="house-options">
+        <div className="math-house-numpad">
           {options.map((n) => (
-            <button key={n} className="house-option-btn" onClick={() => handleOption(n)}>
+            <button key={n} className="math-house-num-btn" type="button" onClick={() => handleOption(n)}>
               {n}
             </button>
           ))}
