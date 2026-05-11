@@ -17,7 +17,7 @@ export function useAudio() {
   const playFeedback = useCallback((kind) => {
     if (!soundEnabled) return;
     stop();
-    const src = kind === "correct" ? "/sounds/correct.wav" : "/sounds/incorrect.wav";
+    const src = kind === "correct" ? "/sounds/correct.wav" : "/sounds/incorrect.mp3";
     try {
       const audio = new Audio(src);
       currentRef.current = audio;
