@@ -11512,8 +11512,9 @@ kbd {
   .compare-equal-btn--empty     { width: 200px; height: 200px; }
   .compare-sign-row             { max-width: 600px; gap: 24px; }
   .compare-big-number           { font-size: 96px; }
-  .dot                          { width: 30px; height: 30px; }
-  .dot-group                    { gap: 7px; max-width: min(170px, 100%); }
+  .compare-side--dots           { width: 240px; }
+  .dot                          { width: 44px; height: 44px; }
+  .dot-group                    { gap: 10px; max-width: min(210px, 100%); }
 }
 
 /* ─── Session summary ────────────────────────────────────────────────────── */
