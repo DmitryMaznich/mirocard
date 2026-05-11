@@ -69,40 +69,44 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const db = await getDb();
-      const bootstrap = await loadLocalBootstrap(db);
-      applyBootstrapToStore(bootstrap);
+      try {
+        const db = await getDb();
+        const bootstrap = await loadLocalBootstrap(db);
+        applyBootstrapToStore(bootstrap);
 
-      if (bootstrap.token && bootstrap.account) {
-        setApiToken(bootstrap.token);
-        setupOnlineListener();
-        flushQueue().catch(() => {});
-        setScreen("home");
+        if (bootstrap.token && bootstrap.account) {
+          setApiToken(bootstrap.token);
+          setupOnlineListener();
+          flushQueue().catch(() => {});
+          setScreen("home");
 
-        // Фоновый refresh с сервера — подтягивает изменения с других устройств
-        (async () => {
-          try {
-            const [serverBootstrap, sessionsRaw] = await Promise.all([
-              api.get("/account/bootstrap"),
-              api.get("/sessions?limit=200"),
-            ]);
-            const payload = {
-              token: bootstrap.token,
-              account: bootstrap.account,
-              settings: serverBootstrap.settings,
-              students: serverBootstrap.students,
-              ownedTopics: serverBootstrap.ownedTopics,
-              studentTopicLinks: serverBootstrap.studentTopicLinks,
-              conceptProgress: serverBootstrap.conceptProgress,
-              sessions: sessionsRaw,
-            };
-            await persistBootstrap(db, payload);
-            applyBootstrapToStore(payload);
-          } catch (err) {
-            if (err?.status === 401) setScreen("login");
-          }
-        })();
-      } else {
+          // Фоновый refresh с сервера — подтягивает изменения с других устройств
+          (async () => {
+            try {
+              const [serverBootstrap, sessionsRaw] = await Promise.all([
+                api.get("/account/bootstrap"),
+                api.get("/sessions?limit=200"),
+              ]);
+              const payload = {
+                token: bootstrap.token,
+                account: bootstrap.account,
+                settings: serverBootstrap.settings,
+                students: serverBootstrap.students,
+                ownedTopics: serverBootstrap.ownedTopics,
+                studentTopicLinks: serverBootstrap.studentTopicLinks,
+                conceptProgress: serverBootstrap.conceptProgress,
+                sessions: sessionsRaw,
+              };
+              await persistBootstrap(db, payload);
+              applyBootstrapToStore(payload);
+            } catch (err) {
+              if (err?.status === 401) setScreen("login");
+            }
+          })();
+        } else {
+          setScreen("login");
+        }
+      } catch {
         setScreen("login");
       }
     })();
