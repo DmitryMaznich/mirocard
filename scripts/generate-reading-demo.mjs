@@ -7,10 +7,11 @@ const momLoveImage = readFileSync(new URL("./assets/reading_dad_poems/mom_love.w
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.9",
+    version: "1.0.10",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
+    avatar: "media/dad_best.webp",
     title: { ru: "Чтение: Стихи", en: "Reading: Poems" },
     description: {
       ru: "Совместное чтение, вопросы по смыслу и сборка стихотворения из слов.",
@@ -238,4 +239,4 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/dad_best.webp", dadBestImage);
 zip.file("media/mom_love.webp", momLoveImage);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.9.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.10.zip", buffer);
