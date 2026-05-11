@@ -30,7 +30,8 @@ async function parseManifest(zip) {
   if (!manifestFile) {
     throw new TopicImportError("ZIP не содержит topic.json");
   }
-  const text = await manifestFile.async("string");
+  const bytes = await manifestFile.async("uint8array");
+  const text  = new TextDecoder("utf-8").decode(bytes);
   try {
     return JSON.parse(text);
   } catch {
