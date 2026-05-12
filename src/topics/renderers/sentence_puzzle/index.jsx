@@ -82,11 +82,12 @@ export default function SentencePuzzleRenderer({ task, sessionParams, student, s
 
     setRound((prev) => {
       if (prev.rows[rowIndex]?.[slotType] !== null) return prev; // slot already filled
-      playSound("correct", soundEnabled);
       const newRows = prev.rows.map((row, i) =>
         i === rowIndex ? { ...row, [slotType]: card } : row
       );
       const newPool = prev.pool.filter((c) => c.id !== card.id);
+      const rowComplete = prev.slotTypes.every((t) => newRows[rowIndex][t] !== null);
+      if (rowComplete) playSound("correct", soundEnabled);
       return { ...prev, rows: newRows, pool: newPool };
     });
   }
