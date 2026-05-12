@@ -158,8 +158,12 @@ export function upsertStudent(db, accountId, {
   photo = null,
   rewardVideos = [],
   closeAdults = [],
+  createdAt = null,
+  updatedAt = null,
 }) {
-  const ts = now();
+  const serverNow = now();
+  const created = createdAt || serverNow;
+  const updated = updatedAt || serverNow;
   db.prepare(`
     INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, reward_videos, close_adults, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -182,8 +186,8 @@ export function upsertStudent(db, accountId, {
     photo ?? null,
     JSON.stringify(Array.isArray(rewardVideos) ? rewardVideos : []),
     JSON.stringify(Array.isArray(closeAdults) ? closeAdults : []),
-    ts,
-    ts,
+    created,
+    updated,
   );
 }
 

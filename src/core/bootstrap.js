@@ -2,6 +2,16 @@ import { kv } from "@/core/db";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords } from "@/topics/topicLoader";
 
+// Local wins on tie so unsynchronised local edits survive a server bootstrap overwrite.
+export function mergeStudents(local, server) {
+  const byId = new Map((server ?? []).map((s) => [s.id, s]));
+  for (const s of (local ?? [])) {
+    const srv = byId.get(s.id);
+    if (!srv || (s.updatedAt ?? "") >= (srv.updatedAt ?? "")) byId.set(s.id, s);
+  }
+  return [...byId.values()];
+}
+
 export function indexStudentTopicLinks(links) {
   if (links && typeof links === "object" && !Array.isArray(links)) {
     return links;

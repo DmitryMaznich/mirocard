@@ -2,7 +2,7 @@ import { useEffect, Component, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { api, setApiToken } from "@/core/api";
-import { loadLocalBootstrap, applyBootstrapToStore, persistBootstrap } from "@/core/bootstrap";
+import { loadLocalBootstrap, applyBootstrapToStore, persistBootstrap, mergeStudents } from "@/core/bootstrap";
 import { flushQueue, setupOnlineListener } from "@/core/syncApi";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
 
@@ -22,16 +22,6 @@ import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
 import AnalogTimer from "@/features/timer/AnalogTimer";
 
-// Keep the newer version of each student. Local wins on tie (same updatedAt)
-// so unsynchronised local edits survive a server bootstrap overwrite.
-function mergeStudents(local, server) {
-  const byId = new Map((server ?? []).map((s) => [s.id, s]));
-  for (const s of (local ?? [])) {
-    const srv = byId.get(s.id);
-    if (!srv || (s.updatedAt ?? "") >= (srv.updatedAt ?? "")) byId.set(s.id, s);
-  }
-  return [...byId.values()];
-}
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }

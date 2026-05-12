@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api, setApiToken } from "@/core/api";
 import { getDb, kv } from "@/core/db";
-import { persistBootstrap, applyBootstrapToStore, indexStudentTopicLinks } from "@/core/bootstrap";
+import { persistBootstrap, applyBootstrapToStore, indexStudentTopicLinks, mergeStudents } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
 
 export default function LoginScreen() {
@@ -64,11 +64,13 @@ export default function LoginScreen() {
         api.get("/sessions?limit=200"),
       ]);
 
+      // Merge: local wins if updatedAt >= server's (preserves edits made before login)
+      const mergedStudents = mergeStudents(localStudents ?? [], bootstrap.students ?? []);
       const payload = {
         token,
         account,
         settings: bootstrap.settings,
-        students: bootstrap.students,
+        students: mergedStudents,
         ownedTopics: bootstrap.ownedTopics,
         studentTopicLinks: bootstrap.studentTopicLinks,
         conceptProgress: bootstrap.conceptProgress,
