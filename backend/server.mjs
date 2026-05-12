@@ -22,6 +22,7 @@ import {
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
+  getPhoto, migratePhotoData,
 } from "./lib/account-repository.mjs";
 import {
   createPasswordHash, verifyPasswordHash,
@@ -35,6 +36,8 @@ import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
 const db = getDb();
+
+migratePhotoData(db);
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   configureWebPush(VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT);
@@ -506,6 +509,23 @@ async function handlePushSubscribe(req, res) {
   writeJson(res, 200, { ok: true });
 }
 
+// ─── Photo handler ─────────────────────────────────────────────────────────────
+
+async function handleGetPhoto(req, res) {
+  const url = new URL(req.url, "http://localhost");
+  const hash = url.pathname.split("/").at(-1);
+  const photo = getPhoto(db, hash);
+  if (!photo) { res.writeHead(404); res.end(); return; }
+  const buffer = Buffer.from(photo.data, "base64");
+  res.writeHead(200, {
+    "Content-Type": photo.content_type,
+    "Content-Length": String(buffer.length),
+    "Cache-Control": "public, max-age=31536000, immutable",
+    "Access-Control-Allow-Origin": "*",
+  });
+  res.end(buffer);
+}
+
 // ─── Version handler ───────────────────────────────────────────────────────────
 
 async function handleVersion(req, res) {
@@ -568,6 +588,9 @@ async function router(req, res) {
     if (method === "POST"   && p === "/admin/notify-app-update")    return await handleNotifyAppUpdate(req, res);
     if (method === "POST"   && p === "/admin/notify-topic-updates") return await handleNotifyTopicUpdates(req, res);
     if (method === "POST"   && p === "/push/subscribe")             return await handlePushSubscribe(req, res);
+
+    // Photos (content-addressable, no auth required)
+    if (method === "GET"    && /^\/photos\/[^/]+$/.test(p))       return await handleGetPhoto(req, res);
 
     // Version
     if (method === "GET"    && p === "/version")                  return await handleVersion(req, res);

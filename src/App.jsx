@@ -82,8 +82,6 @@ export default function App() {
           setupOnlineListener();
           setScreen("home");
 
-          // Фоновый refresh: тянем с сервера, мёржим со своими данными
-          // по updatedAt (локальный выигрывает если он новее), потом флашим очередь.
           (async () => {
             try {
               const [serverBootstrap, sessionsRaw] = await Promise.all([
@@ -91,11 +89,12 @@ export default function App() {
                 api.get("/sessions?limit=200"),
               ]);
               const localStudents = useAppStore.getState().students;
+              const merged = mergeStudents(localStudents, serverBootstrap.students);
               const payload = {
                 token: bootstrap.token,
                 account: bootstrap.account,
                 settings: serverBootstrap.settings,
-                students: mergeStudents(localStudents, serverBootstrap.students),
+                students: merged,
                 ownedTopics: serverBootstrap.ownedTopics,
                 studentTopicLinks: serverBootstrap.studentTopicLinks,
                 conceptProgress: serverBootstrap.conceptProgress,

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -7,6 +7,61 @@ function now() { return new Date().toISOString(); }
 function safeJson(value, fallback) {
   try { return JSON.parse(value ?? "null") ?? fallback; }
   catch { return fallback; }
+}
+
+// ─── Photos ───────────────────────────────────────────────────────────────────
+
+export function extractAndStorePhoto(db, dataUrl) {
+  if (!dataUrl || !dataUrl.startsWith("data:")) return dataUrl;
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+  if (!match) return dataUrl;
+  const [, contentType, data] = match;
+  const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
+  db.prepare(
+    "INSERT OR IGNORE INTO photos (hash, content_type, data, created_at) VALUES (?, ?, ?, ?)"
+  ).run(hash, contentType, data, now());
+  return `/api/photos/${hash}`;
+}
+
+function processCloseAdultPhotos(db, adults) {
+  if (!Array.isArray(adults)) return adults;
+  return adults.map((a) => ({
+    ...a,
+    photo: a.photo ? extractAndStorePhoto(db, a.photo) : null,
+  }));
+}
+
+export function getPhoto(db, hash) {
+  return db.prepare("SELECT content_type, data FROM photos WHERE hash = ?").get(hash) ?? null;
+}
+
+export function migratePhotoData(db) {
+  const rows = db.prepare(
+    "SELECT id, photo, close_adults FROM students WHERE photo IS NOT NULL OR close_adults IS NOT NULL"
+  ).all();
+  for (const s of rows) {
+    let changed = false;
+    let newPhoto = s.photo;
+    const adults = safeJson(s.close_adults, []);
+
+    if (newPhoto && newPhoto.startsWith("data:")) {
+      newPhoto = extractAndStorePhoto(db, newPhoto);
+      changed = true;
+    }
+
+    const processedAdults = adults.map((a) => {
+      if (a.photo && a.photo.startsWith("data:")) {
+        changed = true;
+        return { ...a, photo: extractAndStorePhoto(db, a.photo) };
+      }
+      return a;
+    });
+
+    if (changed) {
+      db.prepare("UPDATE students SET photo = ?, close_adults = ? WHERE id = ?")
+        .run(newPhoto, JSON.stringify(processedAdults), s.id);
+    }
+  }
 }
 
 // ─── Accounts ─────────────────────────────────────────────────────────────────
@@ -164,6 +219,8 @@ export function upsertStudent(db, accountId, {
   const serverNow = now();
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
+  const photoRef = photo ? extractAndStorePhoto(db, photo) : null;
+  const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
   db.prepare(`
     INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, reward_videos, close_adults, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -183,9 +240,9 @@ export function upsertStudent(db, accountId, {
     comment,
     primaryLanguage,
     sex ?? null,
-    photo ?? null,
+    photoRef,
     JSON.stringify(Array.isArray(rewardVideos) ? rewardVideos : []),
-    JSON.stringify(Array.isArray(closeAdults) ? closeAdults : []),
+    JSON.stringify(processedAdults),
     created,
     updated,
   );

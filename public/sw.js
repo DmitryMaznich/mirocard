@@ -19,6 +19,20 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
 
+  // Фото учеников — cache-first (контент-адресуемые, immutable)
+  if (url.pathname.startsWith("/api/photos/")) {
+    e.respondWith(
+      caches.open(CACHE).then(async (cache) => {
+        const cached = await cache.match(e.request);
+        if (cached) return cached;
+        const resp = await fetch(e.request);
+        if (resp.ok) cache.put(e.request, resp.clone());
+        return resp;
+      })
+    );
+    return;
+  }
+
   // API — всегда сеть, без кеша
   if (url.pathname.startsWith("/api/")) return;
 

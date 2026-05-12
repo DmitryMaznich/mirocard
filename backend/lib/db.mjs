@@ -128,6 +128,13 @@ export function initDb(dbPath = DB_PATH) {
       keys       TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS photos (
+      hash         TEXT PRIMARY KEY,
+      content_type TEXT NOT NULL,
+      data         TEXT NOT NULL,
+      created_at   TEXT NOT NULL
+    );
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();
