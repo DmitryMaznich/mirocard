@@ -30,7 +30,11 @@ export default function LoginScreen() {
       ]);
       const uploadOps = [];
       for (const s of (localStudents ?? [])) {
-        uploadOps.push({ type: "student.upsert", data: s });
+        // Photos are synced separately via the push-op queue — strip them from the bulk upload
+        // so login doesn't send hundreds of KB of base64 per student.
+        const { photo, closeAdults, ...rest } = s;
+        const adultsNoPhoto = (closeAdults ?? []).map(({ photo: _p, ...a }) => a);
+        uploadOps.push({ type: "student.upsert", data: { ...rest, closeAdults: adultsNoPhoto } });
       }
       for (const sess of (localSessions ?? [])) {
         uploadOps.push({ type: "session.append", data: { ...sess, mode: sess.modeId } });

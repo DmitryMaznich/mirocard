@@ -73,8 +73,13 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
+        const _t0 = performance.now();
         const db = await getDb();
+        console.log(`[boot] db ${(performance.now()-_t0).toFixed(0)}ms`);
+
+        const _t1 = performance.now();
         const bootstrap = await loadLocalBootstrap(db);
+        console.log(`[boot] localBootstrap ${(performance.now()-_t1).toFixed(0)}ms (topics:${bootstrap.topicRecords?.length}, sessions:${bootstrap.sessions?.length})`);
         applyBootstrapToStore(bootstrap);
 
         if (bootstrap.token && bootstrap.account) {
@@ -84,10 +89,12 @@ export default function App() {
 
           (async () => {
             try {
+              const _t2 = performance.now();
               const [serverBootstrap, sessionsRaw] = await Promise.all([
                 api.get("/account/bootstrap"),
                 api.get("/sessions?limit=200"),
               ]);
+              console.log(`[boot] serverBootstrap ${(performance.now()-_t2).toFixed(0)}ms (students:${serverBootstrap.students?.length}, sessions:${sessionsRaw?.length})`);
               const localStudents = useAppStore.getState().students;
               const merged = mergeStudents(localStudents, serverBootstrap.students);
               const payload = {
@@ -100,7 +107,9 @@ export default function App() {
                 conceptProgress: serverBootstrap.conceptProgress,
                 sessions: sessionsRaw,
               };
+              const _t3 = performance.now();
               await persistBootstrap(db, payload);
+              console.log(`[boot] persistBootstrap ${(performance.now()-_t3).toFixed(0)}ms`);
               applyBootstrapToStore(payload);
             } catch (err) {
               if (err?.status === 401) setScreen("login");

@@ -9,16 +9,25 @@ const BASE_URL = typeof import.meta !== "undefined" && import.meta.env
   ? (import.meta.env.VITE_API_URL ?? "/api")
   : "/api";
 
-export function createApiClient({ baseUrl = BASE_URL, token = null } = {}) {
+export function createApiClient({ baseUrl = BASE_URL, token = null, timeoutMs = 30000 } = {}) {
   async function request(method, path, body) {
     const headers = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const res = await fetch(`${baseUrl}${path}`, {
-      method,
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    let res;
+    try {
+      res = await fetch(`${baseUrl}${path}`, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (!res.ok) {
       let message = res.statusText;
