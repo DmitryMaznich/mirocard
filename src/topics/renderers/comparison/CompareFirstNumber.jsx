@@ -156,6 +156,7 @@ function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
     <div className="compare-body">
       <div className="compare-instruction">Сравни первое число со вторым:</div>
       {stage}
+      <div className="cfn-multi-divider" />
       <div className="cfn-options">
         {OPTIONS.map((opt) => (
           <button
