@@ -79,12 +79,14 @@ export default function App() {
         if (bootstrap.token && bootstrap.account) {
           setApiToken(bootstrap.token);
           setupOnlineListener();
-          flushQueue().catch(() => {});
           setScreen("home");
 
-          // Фоновый refresh с сервера — подтягивает изменения с других устройств
+          // Фоновый refresh: сначала сбрасываем локальную очередь, потом тянем
+          // данные с сервера. Иначе bootstrap перезапишет несинхронизированные
+          // локальные изменения (например, фото ученика).
           (async () => {
             try {
+              await flushQueue().catch(() => {});
               const [serverBootstrap, sessionsRaw] = await Promise.all([
                 api.get("/account/bootstrap"),
                 api.get("/sessions?limit=200"),
