@@ -154,17 +154,21 @@ export function upsertStudent(db, accountId, {
   name,
   comment = "",
   primaryLanguage = null,
+  sex = null,
+  photo = null,
   rewardVideos = [],
   closeAdults = [],
 }) {
   const ts = now();
   db.prepare(`
-    INSERT INTO students (id, account_id, name, comment, primary_language, reward_videos, close_adults, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, reward_videos, close_adults, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       comment = excluded.comment,
       primary_language = excluded.primary_language,
+      sex = excluded.sex,
+      photo = excluded.photo,
       reward_videos = excluded.reward_videos,
       close_adults = excluded.close_adults,
       updated_at = excluded.updated_at
@@ -174,6 +178,8 @@ export function upsertStudent(db, accountId, {
     name,
     comment,
     primaryLanguage,
+    sex ?? null,
+    photo ?? null,
     JSON.stringify(Array.isArray(rewardVideos) ? rewardVideos : []),
     JSON.stringify(Array.isArray(closeAdults) ? closeAdults : []),
     ts,

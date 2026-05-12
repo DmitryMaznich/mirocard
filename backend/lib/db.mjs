@@ -137,6 +137,12 @@ export function initDb(dbPath = DB_PATH) {
   if (!studentColumns.some((column) => column.name === "close_adults")) {
     db.exec("ALTER TABLE students ADD COLUMN close_adults TEXT DEFAULT '[]'");
   }
+  if (!studentColumns.some((column) => column.name === "sex")) {
+    db.exec("ALTER TABLE students ADD COLUMN sex TEXT");
+  }
+  if (!studentColumns.some((column) => column.name === "photo")) {
+    db.exec("ALTER TABLE students ADD COLUMN photo TEXT");
+  }
 
   const linkColumns = db.prepare("PRAGMA table_info(student_topic_links)").all();
   if (!linkColumns.some((c) => c.name === "params")) {

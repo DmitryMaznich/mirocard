@@ -38,6 +38,8 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
       name:            s.name,
       comment:         s.comment,
       primaryLanguage: s.primary_language,
+      sex:             s.sex ?? null,
+      photo:           s.photo ?? null,
       rewardVideos:    safeJson(s.reward_videos, []),
       closeAdults:     safeJson(s.close_adults, []),
       createdAt:       s.created_at,
