@@ -100,6 +100,9 @@ export default function SentencePuzzleRenderer({ task, sessionParams, student })
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="sp-screen">
+        <div className="sp-title">
+          {round.level === 1 ? "Собери предложение" : "Собери предложения"}
+        </div>
         <div className="sp-rows-area">
           {round.rows.map((placed, rowIndex) => (
             <SentenceRow
