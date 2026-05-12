@@ -330,30 +330,29 @@ export default function StudentEditScreen() {
           {videoError && <div className="form-error se-video-error">{videoError}</div>}
         </div>
 
-        {/* ── Удаление ── */}
-        {isEdit && (
-          <div className="settings-section">
-            {confirmDel ? (
-              <div className="se-delete-confirm">
-                <div className="se-delete-confirm__text">
-                  Удалить <strong>{initial.name}</strong>?<br />
-                  История сессий будет утеряна.
-                </div>
-                <div className="se-delete-confirm__actions">
-                  <Button variant="secondary" onClick={() => setConfirmDel(false)}>Отмена</Button>
-                  <Button variant="danger" onClick={handleDelete}>Удалить</Button>
-                </div>
-              </div>
-            ) : (
-              <button className="settings-danger-btn" onClick={() => setConfirmDel(true)}>
-                Удалить ученика
-              </button>
-            )}
-          </div>
-        )}
-
        </div>{/* /se-col right */}
       </div>{/* /se-body */}
+
+      {/* ── Удаление — мелко, внизу ── */}
+      {isEdit && (
+        <div className="se-delete-footer">
+          {confirmDel ? (
+            <div className="se-delete-confirm se-delete-confirm--footer">
+              <div className="se-delete-confirm__text">
+                Удалить <strong>{initial.name}</strong>? История сессий будет утеряна.
+              </div>
+              <div className="se-delete-confirm__actions">
+                <Button variant="secondary" onClick={() => setConfirmDel(false)}>Отмена</Button>
+                <Button variant="danger" onClick={handleDelete}>Удалить</Button>
+              </div>
+            </div>
+          ) : (
+            <button className="se-delete-link" onClick={() => setConfirmDel(true)}>
+              Удалить ученика
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
