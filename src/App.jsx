@@ -22,6 +22,17 @@ import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
 import AnalogTimer from "@/features/timer/AnalogTimer";
 
+// Keep the newer version of each student. Local wins on tie (same updatedAt)
+// so unsynchronised local edits survive a server bootstrap overwrite.
+function mergeStudents(local, server) {
+  const byId = new Map((server ?? []).map((s) => [s.id, s]));
+  for (const s of (local ?? [])) {
+    const srv = byId.get(s.id);
+    if (!srv || (s.updatedAt ?? "") >= (srv.updatedAt ?? "")) byId.set(s.id, s);
+  }
+  return [...byId.values()];
+}
+
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
 
@@ -81,21 +92,20 @@ export default function App() {
           setupOnlineListener();
           setScreen("home");
 
-          // Фоновый refresh: сначала сбрасываем локальную очередь, потом тянем
-          // данные с сервера. Иначе bootstrap перезапишет несинхронизированные
-          // локальные изменения (например, фото ученика).
+          // Фоновый refresh: тянем с сервера, мёржим со своими данными
+          // по updatedAt (локальный выигрывает если он новее), потом флашим очередь.
           (async () => {
             try {
-              await flushQueue().catch(() => {});
               const [serverBootstrap, sessionsRaw] = await Promise.all([
                 api.get("/account/bootstrap"),
                 api.get("/sessions?limit=200"),
               ]);
+              const localStudents = useAppStore.getState().students;
               const payload = {
                 token: bootstrap.token,
                 account: bootstrap.account,
                 settings: serverBootstrap.settings,
-                students: serverBootstrap.students,
+                students: mergeStudents(localStudents, serverBootstrap.students),
                 ownedTopics: serverBootstrap.ownedTopics,
                 studentTopicLinks: serverBootstrap.studentTopicLinks,
                 conceptProgress: serverBootstrap.conceptProgress,
@@ -106,6 +116,7 @@ export default function App() {
             } catch (err) {
               if (err?.status === 401) setScreen("login");
             }
+            flushQueue().catch(() => {});
           })();
         } else {
           setScreen("login");
