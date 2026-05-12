@@ -1,3 +1,4 @@
+import "./comparison.css";
 import CompareVisual      from "./CompareVisual";
 import CompareWithNumber  from "./CompareWithNumber";
 import CompareNumbers     from "./CompareNumbers";
