@@ -8,36 +8,29 @@ import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "
 function generateStudentId() {
   return "student_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
 }
-
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
-
 function normaliseVideos(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((v) =>
     typeof v === "string" ? { url: v, title: null } : { url: v.url ?? "", title: v.title ?? null }
   );
 }
-
 function normaliseAdults(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((a) => ({ id: a.id, name: a.name ?? "", photo: a.photo ?? null }));
 }
-
 async function resizeToDataUrl(file, size = 200) {
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
+      canvas.width = size; canvas.height = size;
       const ctx = canvas.getContext("2d");
       const s = Math.min(img.width, img.height);
-      const sx = (img.width - s) / 2;
-      const sy = (img.height - s) / 2;
-      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+      ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
       URL.revokeObjectURL(url);
       resolve(canvas.toDataURL("image/jpeg", 0.82));
     };
@@ -45,100 +38,74 @@ async function resizeToDataUrl(file, size = 200) {
   });
 }
 
-function AdultRow({ adult, onRemove }) {
-  return (
-    <div className="se-adult-row">
-      {adult.photo ? (
-        <img src={adult.photo} alt={adult.name} className="se-adult-row__photo" />
-      ) : (
-        <div className="se-adult-row__initials">{getInitials(adult.name)}</div>
-      )}
-      <span className="se-adult-row__name">{adult.name}</span>
-      <button className="icon-btn icon-btn--danger" onClick={onRemove}>✕</button>
-    </div>
-  );
-}
-
-function AddAdultForm({ onConfirm, onCancel }) {
+function AdultAddForm({ onConfirm, onCancel }) {
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
-  const photoInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
+  const photoRef  = useRef(null);
+  const cameraRef = useRef(null);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLoading(true);
-    const dataUrl = await resizeToDataUrl(file, 200);
-    setPhoto(dataUrl);
+    setPhoto(await resizeToDataUrl(file, 200));
     setLoading(false);
   }
 
+  function confirm() {
+    if (name.trim()) onConfirm({ id: generateId(), name: name.trim(), photo });
+  }
+
   return (
-    <div className="se-add-adult">
-      <div className="se-add-adult__photo-row">
+    <div className="se-adult-add-form">
+      <div className="se-adult-add-form__row">
         {photo ? (
-          <img
-            src={photo}
-            alt=""
-            className="se-add-adult__preview"
-            onClick={() => cameraInputRef.current?.click()}
-          />
+          <img src={photo} className="se-adult-add-form__preview" onClick={() => cameraRef.current?.click()} alt="" />
         ) : (
-          <div className="se-add-adult__photo-btns">
-            <button
-              type="button"
-              className="se-add-adult__photo-btn"
-              onClick={() => cameraInputRef.current?.click()}
-              disabled={loading}
-            >
+          <div className="se-adult-add-form__photo-btns">
+            <button type="button" className="se-adult-add-form__photo-btn" onClick={() => cameraRef.current?.click()} disabled={loading}>
               {loading ? "…" : "📷"}
             </button>
-            <button
-              type="button"
-              className="se-add-adult__photo-btn"
-              onClick={() => photoInputRef.current?.click()}
-              disabled={loading}
-            >
+            <button type="button" className="se-adult-add-form__photo-btn" onClick={() => photoRef.current?.click()} disabled={loading}>
               🖼
             </button>
           </div>
         )}
         <input
-          className="auth-input se-add-adult__name-input"
+          className="se-adult-add-form__input"
           type="text"
           placeholder="Имя (Мама, Папа, …)"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && name.trim() && onConfirm({ id: generateId(), name: name.trim(), photo })}
+          onKeyDown={(e) => e.key === "Enter" && confirm()}
           autoFocus
         />
-        <input ref={cameraInputRef} type="file" accept="image/*" capture="user" style={{ display: "none" }} onChange={handleFile} />
-        <input ref={photoInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
+        <input ref={cameraRef} type="file" accept="image/*" capture="user" style={{ display: "none" }} onChange={handleFile} />
+        <input ref={photoRef}  type="file" accept="image/*"               style={{ display: "none" }} onChange={handleFile} />
       </div>
-      <div className="se-add-adult__actions">
+      <div className="se-adult-add-form__actions">
         <Button variant="secondary" onClick={onCancel}>Отмена</Button>
-        <Button
-          variant="primary"
-          onClick={() => name.trim() && onConfirm({ id: generateId(), name: name.trim(), photo })}
-          disabled={!name.trim()}
-        >
-          Добавить
-        </Button>
+        <Button variant="primary" onClick={confirm} disabled={!name.trim()}>Добавить</Button>
       </div>
     </div>
   );
 }
 
-export default function StudentEditScreen() {
-  const setScreen          = useAppStore((s) => s.setScreen);
-  const students           = useAppStore((s) => s.students);
-  const setStudents        = useAppStore((s) => s.setStudents);
-  const editingStudentId   = useAppStore((s) => s.editingStudentId);
+const LANGS = [
+  { value: "",   label: "Не задан" },
+  { value: "ru", label: "Русский"  },
+  { value: "en", label: "English"  },
+];
 
-  const initial  = editingStudentId ? students.find((s) => s.id === editingStudentId) ?? null : null;
-  const isEdit   = !!initial;
+export default function StudentEditScreen() {
+  const setScreen           = useAppStore((s) => s.setScreen);
+  const students            = useAppStore((s) => s.students);
+  const setStudents         = useAppStore((s) => s.setStudents);
+  const editingStudentId    = useAppStore((s) => s.editingStudentId);
+
+  const initial = editingStudentId ? (students.find((s) => s.id === editingStudentId) ?? null) : null;
+  const isEdit  = !!initial;
 
   const [name,         setName]         = useState(initial?.name ?? "");
   const [comment,      setComment]      = useState(initial?.comment ?? "");
@@ -149,21 +116,18 @@ export default function StudentEditScreen() {
   const [videoLoading, setVideoLoading] = useState(false);
   const [adults,       setAdults]       = useState(() => normaliseAdults(initial?.closeAdults));
   const [addingAdult,  setAddingAdult]  = useState(false);
-  const [error,        setError]        = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [nameError,    setNameError]    = useState("");
+  const [confirmDel,   setConfirmDel]   = useState(false);
   const [saving,       setSaving]       = useState(false);
 
   function goBack() { setScreen("students"); }
 
   async function handleSave() {
-    if (!name.trim()) { setError("Введите имя ученика"); return; }
+    if (!name.trim()) { setNameError("Введите имя ученика"); return; }
     setSaving(true);
     const data = {
-      name:            name.trim(),
-      comment:         comment.trim(),
-      primaryLanguage: lang || null,
-      rewardVideos:    videos,
-      closeAdults:     adults,
+      name: name.trim(), comment: comment.trim(),
+      primaryLanguage: lang || null, rewardVideos: videos, closeAdults: adults,
     };
     const db = await getDb();
     if (isEdit) {
@@ -194,16 +158,17 @@ export default function StudentEditScreen() {
   async function addVideo() {
     const url = videoInput.trim();
     if (!isValidYoutubeUrl(url)) { setVideoError("Неверная ссылка YouTube"); return; }
-    setVideoLoading(true);
-    setVideoError("");
+    setVideoLoading(true); setVideoError("");
     const title = await fetchYoutubeTitle(url);
     setVideos((prev) => [...prev, { url, title }]);
     setVideoInput("");
     setVideoLoading(false);
   }
 
+  const initials = name.trim() ? getInitials(name) : "?";
+
   return (
-    <div className="screen student-edit-screen">
+    <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={goBack}>←</button>
         <h1 className="screen-title">{isEdit ? initial.name : "Новый ученик"}</h1>
@@ -212,109 +177,114 @@ export default function StudentEditScreen() {
         </button>
       </div>
 
-      <div className="se-body">
+      <div className="settings-body">
 
-        {/* ── Имя ── */}
-        <div className="se-section">
-          <div className="se-label">Имя</div>
-          <input
-            className="auth-input"
-            type="text"
-            value={name}
-            onChange={(e) => { setName(e.target.value); setError(""); }}
-            placeholder="Имя ученика"
-            autoFocus={!isEdit}
-          />
-          {error && <div className="form-error">{error}</div>}
-        </div>
-
-        {/* ── Комментарий ── */}
-        <div className="se-section">
-          <div className="se-label">Комментарий</div>
+        {/* ── Профиль ── */}
+        <div className="settings-section">
+          <div className="se-profile-row">
+            <div className="se-profile-avatar">{initials}</div>
+            <input
+              className="se-name-input"
+              type="text"
+              value={name}
+              onChange={(e) => { setName(e.target.value); setNameError(""); }}
+              placeholder="Имя ученика"
+              autoFocus={!isEdit}
+            />
+          </div>
+          {nameError && <div className="se-name-error">{nameError}</div>}
           <textarea
-            className="student-form__comment"
+            className="se-comment-input"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Заметки о ребёнке, особенности, цели (необязательно)"
-            rows={4}
+            placeholder="Заметки, особенности, цели…"
+            rows={3}
           />
         </div>
 
         {/* ── Язык ── */}
-        <div className="se-section">
-          <div className="se-label">Основной язык</div>
-          <div className="student-form__lang-group">
-            <button type="button" className={`lang-btn${lang === "" ? " lang-btn--active" : ""}`} onClick={() => setLang("")}>Не задан</button>
-            <button type="button" className={`lang-btn${lang === "ru" ? " lang-btn--active" : ""}`} onClick={() => setLang("ru")}>Русский</button>
-            <button type="button" className={`lang-btn${lang === "en" ? " lang-btn--active" : ""}`} onClick={() => setLang("en")}>English</button>
-          </div>
+        <div className="settings-section">
+          <div className="settings-section-title">Язык</div>
+          {LANGS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              className={`se-lang-row${lang === value ? " se-lang-row--active" : ""}`}
+              onClick={() => setLang(value)}
+            >
+              {label}
+              {lang === value && <span className="se-lang-check">✓</span>}
+            </button>
+          ))}
         </div>
 
         {/* ── Близкие взрослые ── */}
-        <div className="se-section">
-          <div className="se-label">Близкие взрослые</div>
-          <div className="se-hint">Используются как подлежащие в Пазле предложений</div>
+        <div className="settings-section">
+          <div className="settings-section-title">Близкие взрослые</div>
           {adults.map((adult) => (
-            <AdultRow key={adult.id} adult={adult} onRemove={() => setAdults((prev) => prev.filter((a) => a.id !== adult.id))} />
+            <div key={adult.id} className="se-list-row">
+              {adult.photo
+                ? <img src={adult.photo} className="se-list-avatar" alt={adult.name} />
+                : <div className="se-list-avatar se-list-avatar--initials">{getInitials(adult.name)}</div>
+              }
+              <span className="se-list-name">{adult.name}</span>
+              <button className="se-list-remove" onClick={() => setAdults((p) => p.filter((a) => a.id !== adult.id))}>✕</button>
+            </div>
           ))}
-          {addingAdult ? (
-            <AddAdultForm
-              onConfirm={(adult) => { setAdults((prev) => [...prev, adult]); setAddingAdult(false); }}
-              onCancel={() => setAddingAdult(false)}
-            />
-          ) : (
-            <button type="button" className="se-add-btn" onClick={() => setAddingAdult(true)}>
-              + Добавить взрослого
-            </button>
-          )}
+          {addingAdult
+            ? <AdultAddForm
+                onConfirm={(a) => { setAdults((p) => [...p, a]); setAddingAdult(false); }}
+                onCancel={() => setAddingAdult(false)}
+              />
+            : <button type="button" className="se-add-row" onClick={() => setAddingAdult(true)}>
+                + Добавить взрослого
+              </button>
+          }
         </div>
 
         {/* ── Видео-награды ── */}
-        <div className="se-section">
-          <div className="se-label">Видео-награды</div>
-          <div className="se-hint">Показываются при достижении порога успеха</div>
+        <div className="settings-section">
+          <div className="settings-section-title">Видео-награды</div>
           {videos.map((v, idx) => (
-            <div key={idx} className="reward-url-row">
-              <div className="reward-url-row__info">
-                {v.title
-                  ? <span className="reward-url-row__title">▶ {v.title}</span>
-                  : <span className="reward-url-row__text">{getVideoUrl(v)}</span>}
-              </div>
-              <button className="icon-btn icon-btn--danger" onClick={() => setVideos((prev) => prev.filter((_, i) => i !== idx))}>✕</button>
+            <div key={idx} className="se-list-row">
+              <span className="se-video-icon">▶</span>
+              <span className="se-list-name">{v.title || getVideoUrl(v)}</span>
+              <button className="se-list-remove" onClick={() => setVideos((p) => p.filter((_, i) => i !== idx))}>✕</button>
             </div>
           ))}
-          <div className="reward-url-add">
+          <div className="se-video-add-row">
             <input
-              className="auth-input reward-url-add__input"
+              className="se-video-input"
               type="url"
-              placeholder="https://youtu.be/..."
+              placeholder="https://youtu.be/…"
               value={videoInput}
               disabled={videoLoading}
               onChange={(e) => { setVideoInput(e.target.value); setVideoError(""); }}
               onKeyDown={(e) => e.key === "Enter" && addVideo()}
             />
-            <Button variant="secondary" onClick={addVideo} disabled={videoLoading}>
+            <button className="se-video-add-btn" onClick={addVideo} disabled={videoLoading}>
               {videoLoading ? "…" : "Добавить"}
-            </Button>
+            </button>
           </div>
-          {videoError && <div className="form-error">{videoError}</div>}
+          {videoError && <div className="form-error se-video-error">{videoError}</div>}
         </div>
 
-        {/* ── Удаление (только в режиме редактирования) ── */}
+        {/* ── Удаление ── */}
         {isEdit && (
-          <div className="se-danger">
-            {confirmDelete ? (
-              <div className="se-danger__confirm">
-                <div className="se-danger__confirm-text">
-                  Удалить <strong>{initial.name}</strong>? История сессий будет утеряна.
+          <div className="settings-section">
+            {confirmDel ? (
+              <div className="se-delete-confirm">
+                <div className="se-delete-confirm__text">
+                  Удалить <strong>{initial.name}</strong>?<br />
+                  История сессий будет утеряна.
                 </div>
-                <div className="se-danger__confirm-actions">
-                  <Button variant="secondary" onClick={() => setConfirmDelete(false)}>Отмена</Button>
+                <div className="se-delete-confirm__actions">
+                  <Button variant="secondary" onClick={() => setConfirmDel(false)}>Отмена</Button>
                   <Button variant="danger" onClick={handleDelete}>Удалить</Button>
                 </div>
               </div>
             ) : (
-              <button className="se-danger__btn" onClick={() => setConfirmDelete(true)}>
+              <button className="settings-danger-btn" onClick={() => setConfirmDel(true)}>
                 Удалить ученика
               </button>
             )}
