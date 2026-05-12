@@ -41,7 +41,12 @@ function buildRound(task, sessionParams, student) {
   return { pool, rows, structure, slotTypes, level };
 }
 
-export default function SentencePuzzleRenderer({ task, sessionParams, student }) {
+function playSound(name, enabled) {
+  if (!enabled) return;
+  try { new Audio(`/sounds/${name}.wav`).play(); } catch {}
+}
+
+export default function SentencePuzzleRenderer({ task, sessionParams, student, soundEnabled }) {
   const [round,      setRound]      = useState(() => buildRound(task, sessionParams, student));
   const [phase,      setPhase]      = useState("building");
   const [activeCard, setActiveCard] = useState(null);
@@ -69,10 +74,15 @@ export default function SentencePuzzleRenderer({ task, sessionParams, student })
 
     const { rowIndex, slotType } = over.data.current ?? {};
     if (rowIndex === undefined || !slotType) return;
-    if (card.type !== slotType) return;
+
+    if (card.type !== slotType) {
+      playSound("incorrect", soundEnabled);
+      return;
+    }
 
     setRound((prev) => {
       if (prev.rows[rowIndex]?.[slotType] !== null) return prev; // slot already filled
+      playSound("correct", soundEnabled);
       const newRows = prev.rows.map((row, i) =>
         i === rowIndex ? { ...row, [slotType]: card } : row
       );
