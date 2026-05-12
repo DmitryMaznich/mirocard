@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "renderer": "sentence_puzzle",
-    "title": "Пазл предложений"
+    "title": "Конструктор предложений"
   },
   "modes": [
     {
@@ -11,7 +11,7 @@
       "type": "sentence_puzzle",
       "evaluation": "none",
       "ui": {
-        "title": "Пазл предложений",
+        "title": "Собираем пазл",
         "instruction": "Собери предложения из слов"
       },
       "params": {
