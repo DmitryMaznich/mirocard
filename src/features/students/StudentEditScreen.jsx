@@ -21,22 +21,35 @@ function normaliseAdults(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((a) => ({ id: a.id, name: a.name ?? "", photo: a.photo ?? null }));
 }
-async function resizeToDataUrl(file, size = 200) {
+async function resizeToDataUrl(file, maxSize = 400) {
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
+      const s = Math.min(img.width, img.height);
+      const size = Math.min(s, maxSize);
       const canvas = document.createElement("canvas");
       canvas.width = size; canvas.height = size;
       const ctx = canvas.getContext("2d");
-      const s = Math.min(img.width, img.height);
       ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.82));
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.src = url;
   });
 }
+
+const LANGS = [
+  { value: "",   label: "Не задан" },
+  { value: "ru", label: "Русский"  },
+  { value: "en", label: "English"  },
+];
+
+const SEXES = [
+  { value: "",  label: "Не указан" },
+  { value: "m", label: "Мальчик"   },
+  { value: "f", label: "Девочка"   },
+];
 
 function AdultAddForm({ onConfirm, onCancel }) {
   const [name, setName] = useState("");
@@ -92,12 +105,6 @@ function AdultAddForm({ onConfirm, onCancel }) {
   );
 }
 
-const LANGS = [
-  { value: "",   label: "Не задан" },
-  { value: "ru", label: "Русский"  },
-  { value: "en", label: "English"  },
-];
-
 export default function StudentEditScreen() {
   const setScreen           = useAppStore((s) => s.setScreen);
   const students            = useAppStore((s) => s.students);
@@ -110,6 +117,9 @@ export default function StudentEditScreen() {
   const [name,         setName]         = useState(initial?.name ?? "");
   const [comment,      setComment]      = useState(initial?.comment ?? "");
   const [lang,         setLang]         = useState(initial?.primaryLanguage ?? "");
+  const [sex,          setSex]          = useState(initial?.sex ?? "");
+  const [photo,        setPhoto]        = useState(initial?.photo ?? null);
+  const [photoLoading, setPhotoLoading] = useState(false);
   const [videos,       setVideos]       = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput,   setVideoInput]   = useState("");
   const [videoError,   setVideoError]   = useState("");
@@ -120,14 +130,27 @@ export default function StudentEditScreen() {
   const [confirmDel,   setConfirmDel]   = useState(false);
   const [saving,       setSaving]       = useState(false);
 
+  const studentPhotoRef = useRef(null);
+
   function goBack() { setScreen("students"); }
+
+  async function handleStudentPhoto(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoLoading(true);
+    setPhoto(await resizeToDataUrl(file, 400));
+    setPhotoLoading(false);
+  }
 
   async function handleSave() {
     if (!name.trim()) { setNameError("Введите имя ученика"); return; }
     setSaving(true);
     const data = {
       name: name.trim(), comment: comment.trim(),
-      primaryLanguage: lang || null, rewardVideos: videos, closeAdults: adults,
+      primaryLanguage: lang || null,
+      sex: sex || null,
+      photo: photo ?? null,
+      rewardVideos: videos, closeAdults: adults,
     };
     const db = await getDb();
     if (isEdit) {
@@ -183,7 +206,18 @@ export default function StudentEditScreen() {
         {/* ── Профиль ── */}
         <div className="settings-section">
           <div className="se-profile-row">
-            <div className="se-profile-avatar">{initials}</div>
+            <button
+              type="button"
+              className="se-photo-btn"
+              onClick={() => studentPhotoRef.current?.click()}
+              title="Изменить фото"
+            >
+              {photo
+                ? <img src={photo} className="se-photo-btn__img" alt="" />
+                : <div className="se-photo-btn__initials">{photoLoading ? "…" : initials}</div>
+              }
+              <div className="se-photo-btn__cam">📷</div>
+            </button>
             <input
               className="se-name-input"
               type="text"
@@ -191,6 +225,13 @@ export default function StudentEditScreen() {
               onChange={(e) => { setName(e.target.value); setNameError(""); }}
               placeholder="Имя ученика"
               autoFocus={!isEdit}
+            />
+            <input
+              ref={studentPhotoRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleStudentPhoto}
             />
           </div>
           {nameError && <div className="se-name-error">{nameError}</div>}
@@ -201,6 +242,22 @@ export default function StudentEditScreen() {
             placeholder="Заметки, особенности, цели…"
             rows={3}
           />
+        </div>
+
+        {/* ── Пол ── */}
+        <div className="settings-section">
+          <div className="settings-section-title">Пол</div>
+          {SEXES.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              className={`se-lang-row${sex === value ? " se-lang-row--active" : ""}`}
+              onClick={() => setSex(value)}
+            >
+              {label}
+              {sex === value && <span className="se-lang-check">✓</span>}
+            </button>
+          ))}
         </div>
 
         {/* ── Язык ── */}

@@ -200,7 +200,9 @@ export default function HomeScreen({ onOpenTimer }) {
             value={student?.name ?? "Не выбран"}
             onClick={() => setScreen("students")}
             avatar={student ? (
-              <div className="journey-student-avatar">{getInitials(student.name)}</div>
+              student.photo
+                ? <img src={student.photo} className="journey-student-avatar journey-student-avatar--photo" alt="" />
+                : <div className="journey-student-avatar">{getInitials(student.name)}</div>
             ) : null}
           />
           <JourneyStep

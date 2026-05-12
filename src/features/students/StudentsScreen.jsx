@@ -79,7 +79,10 @@ export default function StudentsScreen() {
                     className="student-item__main"
                     onClick={() => handleStudentClick(student)}
                   >
-                    <div className="student-avatar">{getInitials(student.name)}</div>
+                    {student.photo
+                      ? <img src={student.photo} className="student-avatar student-avatar--photo" alt="" />
+                      : <div className="student-avatar">{getInitials(student.name)}</div>
+                    }
                     <div className="student-info">
                       <div className="student-name">{student.name}</div>
                       {student.comment && (
@@ -103,7 +106,10 @@ export default function StudentsScreen() {
         {/* Right: detail panel (tablet only via CSS) */}
         {panelStudent ? (
           <div className="students-detail-panel">
-            <div className="student-detail-avatar">{getInitials(panelStudent.name)}</div>
+            {panelStudent.photo
+              ? <img src={panelStudent.photo} className="student-detail-avatar student-detail-avatar--photo" alt="" />
+              : <div className="student-detail-avatar">{getInitials(panelStudent.name)}</div>
+            }
             <div className="student-detail-name">{panelStudent.name}</div>
             {panelStudent.comment && (
               <div className="student-detail-comment">{panelStudent.comment}</div>

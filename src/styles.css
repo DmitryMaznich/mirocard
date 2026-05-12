@@ -7667,6 +7667,7 @@ button {
   border-radius: 12px;
 }
 
+.journey-student-avatar--photo { object-fit: cover; background: none; }
 .topic-cover--step { width: 44px; height: 44px; border-radius: 12px; font-size: 14px; }
 .mode-icon--step   { width: 44px; height: 44px; border-radius: 12px; }
 
@@ -8057,6 +8058,7 @@ button {
   color: white;
   flex-shrink: 0;
 }
+.student-avatar--photo { object-fit: cover; background: none; display: block; }
 
 .student-copy {
   flex: 1;
@@ -13833,6 +13835,7 @@ button.operation-dot {
     letter-spacing: 0.02em;
     box-shadow: 0 6px 18px rgba(74,155,143,0.35);
   }
+  .student-detail-avatar--photo { object-fit: cover; background: none; display: block; }
   .student-detail-name {
     font-size: 1.4rem;
     font-weight: 800;
@@ -14287,6 +14290,54 @@ button.operation-dot {
   line-height: 1.45;
 }
 .se-delete-confirm__actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Student photo button */
+.se-photo-btn {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.se-photo-btn__img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.se-photo-btn__initials {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #1b6b62;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+.se-photo-btn__cam {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1c3634;
+  color: white;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #eef0ef;
+  pointer-events: none;
+}
 
 /* Two-column tablet layout */
 .se-body {
