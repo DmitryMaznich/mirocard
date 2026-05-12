@@ -67,9 +67,8 @@ export function setupOnlineListener() {
 }
 
 export async function pushOp(type, data) {
-  try {
-    await api.post("/sync", { operations: [{ type, data }] });
-  } catch {
-    await enqueue(type, data);
-  }
+  // Write to queue first so the op survives a page refresh mid-flight.
+  // Then attempt an immediate flush; failures are retried on next startup.
+  await enqueue(type, data).catch(() => {});
+  flushQueue().catch(() => {});
 }
