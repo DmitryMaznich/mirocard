@@ -10,6 +10,7 @@ import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
 import HomeScreen from "@/features/home/HomeScreen";
 import StudentsScreen from "@/features/students/StudentsScreen";
+import StudentEditScreen from "@/features/students/StudentEditScreen";
 import TopicLibraryScreen from "@/features/topics/TopicLibraryScreen";
 import TextPickerScreen from "@/features/reading/TextPickerScreen";
 import ModePickerScreen from "@/features/home/ModePickerScreen";
@@ -47,6 +48,7 @@ const SCREENS = {
   register: RegisterScreen,
   home: HomeScreen,
   students: StudentsScreen,
+  student_edit: StudentEditScreen,
   topics: TopicLibraryScreen,
   texts: TextPickerScreen,
   modes: ModePickerScreen,

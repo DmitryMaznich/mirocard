@@ -33,6 +33,9 @@ export const useAppStore = create((set) => ({
   setServerRevision: (serverRevision) => set({ serverRevision }),
 
   // ─── Students ──────────────────────────────────────────────────────────────
+  editingStudentId: null,
+  setEditingStudentId: (id) => set({ editingStudentId: id }),
+
   students: [],
   setStudents: (students) => set({ students }),
   upsertStudent: (student) => set((s) => {
