@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap');
 
+/* Hide focus ring after mouse/touch — keep it for keyboard navigation */
+:focus:not(:focus-visible) { outline: none; }
+
 :root {
   color-scheme: light;
   font-family: "Nunito", sans-serif;
