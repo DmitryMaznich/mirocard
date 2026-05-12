@@ -92,13 +92,13 @@
     },
     {
       "id": "sentence_puzzle",
-      "version": "1.7.0",
+      "version": "1.7.1",
       "title": { "ru": "Конструктор предложений", "en": "Sentence Builder" },
       "description": {
         "ru": "Собирай предложения из слов методом drag-and-drop. Цветовое кодирование: кто, что делает, какую, что. Логопедические вопросы по каждому предложению.",
         "en": "Build sentences by dragging word cards into slots. Color-coded by role: subject, verb, adjective, object. Speech therapy questions after each round."
       },
-      "url": "./decks/sentence_puzzle_v1.7.0.zip"
+      "url": "./decks/sentence_puzzle_v1.7.1.zip"
     }
   ]
 }

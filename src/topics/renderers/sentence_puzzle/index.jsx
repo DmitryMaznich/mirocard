@@ -43,7 +43,8 @@ function buildRound(task, sessionParams, student) {
 
 function playSound(name, enabled) {
   if (!enabled) return;
-  try { new Audio(`/sounds/${name}.wav`).play(); } catch {}
+  const ext = name === "incorrect" ? "mp3" : "wav";
+  try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
 }
 
 export default function SentencePuzzleRenderer({ task, sessionParams, student, soundEnabled }) {
