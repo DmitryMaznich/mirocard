@@ -177,7 +177,8 @@ export default function StudentEditScreen() {
         </button>
       </div>
 
-      <div className="settings-body">
+      <div className="se-body">
+       <div className="se-col">
 
         {/* ── Профиль ── */}
         <div className="settings-section">
@@ -217,6 +218,9 @@ export default function StudentEditScreen() {
             </button>
           ))}
         </div>
+
+       </div>{/* /se-col left */}
+       <div className="se-col">
 
         {/* ── Близкие взрослые ── */}
         <div className="settings-section">
@@ -291,7 +295,8 @@ export default function StudentEditScreen() {
           </div>
         )}
 
-      </div>
+       </div>{/* /se-col right */}
+      </div>{/* /se-body */}
     </div>
   );
 }
