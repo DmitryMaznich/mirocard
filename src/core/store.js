@@ -54,6 +54,12 @@ export const useAppStore = create((set) => ({
   topicRecords: [],
   setOwnedTopics: (ownedTopics) => set({ ownedTopics }),
   setTopicRecords: (topicRecords) => set({ topicRecords }),
+  upsertTopicRecord: (record) => set((s) => ({
+    topicRecords: [
+      ...s.topicRecords.filter((r) => r.meta.id !== record.meta.id),
+      record,
+    ],
+  })),
   upsertOwnedTopic: (topic) => set((s) => {
     const idx = s.ownedTopics.findIndex((x) => x.topicId === topic.topicId);
     const next = [...s.ownedTopics];

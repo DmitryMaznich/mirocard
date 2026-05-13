@@ -126,6 +126,7 @@ export default function TopicLibraryScreen() {
   const setScreen          = useAppStore((s) => s.setScreen);
   const topicRecords       = useAppStore((s) => s.topicRecords);
   const setTopicRecords    = useAppStore((s) => s.setTopicRecords);
+  const upsertTopicRecord  = useAppStore((s) => s.upsertTopicRecord);
   const buildInfo          = useAppStore((s) => s.buildInfo);
   const activeTopicId      = useAppStore((s) => s.activeTopicId);
   const setActiveTopicId   = useAppStore((s) => s.setActiveTopicId);
@@ -174,12 +175,9 @@ export default function TopicLibraryScreen() {
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
     clearRendererCache(record.meta.id);
-    setTopicRecords([
-      ...topicRecords.filter((r) => r.meta.id !== record.meta.id),
-      record,
-    ]);
+    upsertTopicRecord(record);
     return record;
-  }, [buildInfo.version, setTopicRecords, topicRecords]);
+  }, [buildInfo.version, upsertTopicRecord]);
 
   async function handleRefreshInstalledDecks() {
     setRefreshingDecks(true);

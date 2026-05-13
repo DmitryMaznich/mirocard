@@ -12935,15 +12935,17 @@ kbd {
 }
 
 .operation-expression {
-  min-height: 112px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(54px, 1fr));
+  min-height: 0;
+  display: inline-grid;
+  grid-template-columns: repeat(5, max-content);
   align-items: center;
-  gap: 8px;
-  width: min(620px, 100%);
-  padding: 16px;
+  justify-content: center;
+  gap: clamp(6px, 0.09em, 14px);
+  width: fit-content;
+  max-width: 100%;
+  padding: clamp(10px, 1.5vw, 18px) clamp(14px, 2.1vw, 24px);
   border: 1px solid #e7dccf;
-  border-radius: 24px;
+  border-radius: 22px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 10px 24px rgba(71, 61, 48, 0.07);
 }
@@ -12953,7 +12955,7 @@ kbd {
 .operation-expression__equals {
   min-width: 0;
   text-align: center;
-  font-size: 3rem;
+  font-size: clamp(8.4rem, 19.2vw, 17.6rem);
   line-height: 1;
   font-weight: 900;
   color: #263131;
@@ -13524,16 +13526,14 @@ button.operation-dot {
   }
 
   .operation-expression {
-    min-height: 88px;
-    grid-template-columns: repeat(5, minmax(38px, 1fr));
-    padding: 12px 10px;
-    gap: 4px;
+    padding: 9px 12px;
+    gap: 5px;
   }
 
   .operation-expression__number,
   .operation-expression__sign,
   .operation-expression__equals {
-    font-size: 2.25rem;
+    font-size: clamp(6.5rem, 30vw, 8.5rem);
   }
 
   .operation-action-card {
