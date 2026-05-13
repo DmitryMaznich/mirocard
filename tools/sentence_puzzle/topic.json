@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.7.1",
+    "version": "1.8.0",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений"
   },
@@ -30,7 +30,62 @@
           "default": "simple"
         }
       }
+    },
+    {
+      "id": "listen_build",
+      "type": "listen_build",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Слушаем и собираем",
+        "instruction": "Послушай предложение и собери его из слов"
+      },
+      "params": {
+        "structure": {
+          "type": "enum",
+          "label": { "ru": "Структура" },
+          "values": ["simple", "full"],
+          "labels": { "ru": { "simple": "Простая (кто + что делает)", "full": "Полная (кто + что делает + какую + что)" } },
+          "default": "simple"
+        },
+        "distractors": {
+          "type": "enum",
+          "label": { "ru": "Лишних слов в наборе" },
+          "values": [1, 2, 3],
+          "labels": { "ru": { "1": "1 лишнее", "2": "2 лишних", "3": "3 лишних" } },
+          "default": 2
+        }
+      }
     }
+  ],
+  "sentences": [
+    { "id": "s01", "subject": "mom",     "verb": "wash"   },
+    { "id": "s02", "subject": "mom",     "verb": "draw"   },
+    { "id": "s03", "subject": "mom",     "verb": "read_v" },
+    { "id": "s04", "subject": "mom",     "verb": "carry"  },
+    { "id": "s05", "subject": "dad",     "verb": "wash"   },
+    { "id": "s06", "subject": "dad",     "verb": "read_v" },
+    { "id": "s07", "subject": "dad",     "verb": "search" },
+    { "id": "s08", "subject": "dad",     "verb": "carry"  },
+    { "id": "s09", "subject": "boy",     "verb": "draw"   },
+    { "id": "s10", "subject": "boy",     "verb": "take"   },
+    { "id": "s11", "subject": "boy",     "verb": "search" },
+    { "id": "s12", "subject": "girl",    "verb": "wash"   },
+    { "id": "s13", "subject": "girl",    "verb": "read_v" },
+    { "id": "s14", "subject": "girl",    "verb": "draw"   },
+    { "id": "s15", "subject": "grandma", "verb": "wash"   },
+    { "id": "s16", "subject": "grandma", "verb": "carry"  },
+    { "id": "s17", "subject": "grandpa", "verb": "search" },
+    { "id": "s18", "subject": "grandpa", "verb": "carry"  },
+    { "id": "f01", "subject": "mom",     "verb": "wash",   "adjective": "red",   "object": "cup"   },
+    { "id": "f02", "subject": "mom",     "verb": "carry",  "adjective": "big",   "object": "book"  },
+    { "id": "f03", "subject": "dad",     "verb": "draw",   "adjective": "blue",  "object": "car"   },
+    { "id": "f04", "subject": "dad",     "verb": "take",   "adjective": "big",   "object": "spoon" },
+    { "id": "f05", "subject": "boy",     "verb": "take",   "adjective": "small", "object": "toy"   },
+    { "id": "f06", "subject": "boy",     "verb": "draw",   "adjective": "big",   "object": "car"   },
+    { "id": "f07", "subject": "girl",    "verb": "wash",   "adjective": "clean", "object": "plate" },
+    { "id": "f08", "subject": "girl",    "verb": "search", "adjective": "small", "object": "cup"   },
+    { "id": "f09", "subject": "grandma", "verb": "carry",  "adjective": "big",   "object": "plate" },
+    { "id": "f10", "subject": "grandpa", "verb": "take",   "adjective": "dirty", "object": "spoon" }
   ],
   "cards": [
     { "id": "mom",     "type": "subject",   "label": "Мама",      "emoji": "👩" },
