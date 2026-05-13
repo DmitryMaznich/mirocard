@@ -11181,10 +11181,23 @@ button {
 }
 .session-topbar {
   display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid #ebebeb;
+}
+.session-topbar-controls {
+  display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ebebeb;
+}
+.session-subtitle {
+  font-size: 0.72rem;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
 }
 .session-progress { flex: 1; }
 .session-counter  { font-size: 0.85rem; color: #666; white-space: nowrap; }

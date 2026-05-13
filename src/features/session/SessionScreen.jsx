@@ -78,26 +78,32 @@ export default function SessionScreen() {
   : isIncorrectFeedback ? "session-feedback session-feedback--incorrect"
   : "";
 
+  const topicTitle = topicRecord.meta.title ?? topicRecord.meta.id;
+  const modeTitle  = mode.ui?.title ?? mode.id;
+
   return (
     <div className="session-screen">
       <div className="session-topbar">
-        <ProgressBar value={taskIndex} max={total} className="session-progress" />
-        <div className="session-counter">
-          {taskIndex + 1} / {total}
-          {mode.evaluation === "auto" && (
-            <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
-          )}
+        <div className="session-topbar-controls">
+          <ProgressBar value={taskIndex} max={total} className="session-progress" />
+          <div className="session-counter">
+            {taskIndex + 1} / {total}
+            {mode.evaluation === "auto" && (
+              <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
+            )}
+          </div>
+          <button
+            className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
+            onClick={toggleSound}
+            aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
+          >
+            <span className="session-audio-speaker-icon">
+              {soundEnabled ? "🔊" : "🔇"}
+            </span>
+          </button>
+          <button className="session-finish-btn" onClick={() => setScreen("home")}>✕</button>
         </div>
-        <button
-          className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
-          onClick={toggleSound}
-          aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
-        >
-          <span className="session-audio-speaker-icon">
-            {soundEnabled ? "🔊" : "🔇"}
-          </span>
-        </button>
-        <button className="session-finish-btn" onClick={() => setScreen("home")}>✕</button>
+        <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
       </div>
 
       {feedbackClass && (
