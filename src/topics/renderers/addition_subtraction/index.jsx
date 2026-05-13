@@ -24,10 +24,6 @@ function getActionWord(task) {
   return task.operation === "add" ? "прибавили" : "убрали";
 }
 
-function getActionCommand(task) {
-  return task.operation === "add" ? "Прибавь" : "Убери";
-}
-
 function getActionInfinitive(task) {
   return task.operation === "add" ? "Прибавить" : "Убрать";
 }
@@ -153,20 +149,21 @@ function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
   const confirmRef  = useRef(null);
   const errorRef    = useRef(null);
   const onAnswerRef = useRef(onAnswer);
+  const answerCommittedRef = useRef(false);
   useEffect(() => { onAnswerRef.current = onAnswer; }, [onAnswer]);
   useEffect(() => () => { clearTimeout(confirmRef.current); clearTimeout(errorRef.current); }, []);
 
-  useEffect(() => {
+  function commitAnswer() {
+    if (answerCommittedRef.current) return;
+    answerCommittedRef.current = true;
     clearTimeout(confirmRef.current);
-    if (!disabled && workingCount === task.result) {
-      confirmRef.current = setTimeout(() => onAnswerRef.current(), 600);
-    }
-  }, [workingCount, disabled, task.result]);
+    confirmRef.current = setTimeout(() => onAnswerRef.current(), 120);
+  }
 
   const visualCount = drag?.preview ?? workingCount;
 
   function startDrag(e, idx) {
-    if (disabled) return;
+    if (disabled || answerCommittedRef.current) return;
     e.preventDefault();
     clearTimeout(confirmRef.current);
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -186,6 +183,10 @@ function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
 
   function endDrag() {
     if (!drag) return;
+    if (answerCommittedRef.current) {
+      setDrag(null);
+      return;
+    }
     if (drag.preview != null && drag.preview !== workingCount) {
       const newCount = drag.preview;
       const wrongDir = task.operation === "add" ? newCount < workingCount : newCount > workingCount;
@@ -200,6 +201,7 @@ function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
         return;
       }
       setWorkingCount(newCount);
+      if (newCount === task.result) commitAnswer();
     }
     setDrag(null);
   }
