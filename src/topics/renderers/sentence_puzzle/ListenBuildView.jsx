@@ -33,7 +33,7 @@ function speakRu(text, { onStart, onEnd } = {}) {
     utt.lang   = "ru-RU";
     utt.rate   = 0.9;
     if (idx === 0) utt.onstart = () => onStart?.();
-    utt.onend  = () => { timer = setTimeout(next, 200); };
+    utt.onend  = () => { timer = setTimeout(next, 100); };
     utt.onerror = () => { if (!stopped) onEnd?.(); };
     idx++;
     synth.speak(utt);
@@ -86,7 +86,6 @@ export default function ListenBuildView({
 
   useEffect(() => {
     if (!isComplete) return;
-    playSound("correct", soundEnabled);
     const t = setTimeout(() => onCorrect(), 600);
     return () => clearTimeout(t);
   }, [isComplete]); // eslint-disable-line react-hooks/exhaustive-deps
