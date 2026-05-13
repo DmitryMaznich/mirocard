@@ -9,20 +9,31 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 
 function ConceptCard({ concept, topicId, level, selected, onToggle }) {
   const imgUrl = useTopicFile(topicId, concept.primary?.image);
+  const label  = concept.primary?.label ?? concept.conceptId;
 
   return (
     <button
       className={`concept-card ${selected ? "concept-card--selected" : ""}`}
       onClick={() => onToggle(concept.conceptId)}
     >
-      {imgUrl
-        ? <img className="concept-card__img" src={imgUrl} alt="" />
-        : <div className="concept-card__img concept-card__img--placeholder" />
-      }
-      <div className="concept-card__footer">
-        <ConceptDot level={level} size={10} />
-        <span className="concept-card__label">{concept.primary?.label ?? concept.conceptId}</span>
-      </div>
+      {imgUrl ? (
+        <>
+          <img className="concept-card__img" src={imgUrl} alt="" />
+          <div className="concept-card__footer">
+            <ConceptDot level={level} size={10} />
+            <span className="concept-card__label">{label}</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="concept-card__text-body">
+            <span className="concept-card__text-label">{label}</span>
+          </div>
+          <div className="concept-card__footer concept-card__footer--dot-only">
+            <ConceptDot level={level} size={10} />
+          </div>
+        </>
+      )}
     </button>
   );
 }

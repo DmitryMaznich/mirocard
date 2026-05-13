@@ -12751,11 +12751,33 @@ kbd {
   border-top: 1px solid #f0f0f0;
   background: #fff;
 }
+.concept-card__footer--dot-only {
+  justify-content: center;
+  padding: 3px;
+}
 .concept-card__label {
   font-size: 0.6rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.concept-card__text-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: #f8f9fa;
+  overflow: hidden;
+}
+.concept-card__text-label {
+  font-size: clamp(0.65rem, 2.4vw, 1.05rem);
+  font-weight: 700;
+  color: #374151;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  hyphens: auto;
 }
 
 /* ─── History ────────────────────────────────────────────────────────────── */
