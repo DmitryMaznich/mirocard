@@ -1,6 +1,18 @@
 import { shuffle } from "@/shared/utils/shuffle";
 
-export function generateTasks(mode, topicRecord, sessionParams) {
+function adultsFromStudent(student) {
+  const adults = student?.closeAdults;
+  if (!Array.isArray(adults) || adults.length === 0) return null;
+  return adults.map((a) => ({
+    id:    `adult_${a.id}`,
+    type:  "subject",
+    label: a.name,
+    emoji: null,
+    photo: a.photo ?? null,
+  }));
+}
+
+export function generateTasks(mode, topicRecord, sessionParams, student = null) {
   const cards = topicRecord.cards ?? [];
 
   if (mode.type === "sentence_puzzle") {
@@ -25,19 +37,25 @@ export function generateTasks(mode, topicRecord, sessionParams) {
       isSimple ? (!s.adjective && !s.object) : (s.adjective && s.object)
     );
 
-    const cardById = Object.fromEntries(cards.map((c) => [c.id, c]));
+    const cardById   = Object.fromEntries(cards.map((c) => [c.id, c]));
+    const adultCards = adultsFromStudent(student);
 
     return shuffle([...sentences]).map((sentence) => {
-      const target = Object.fromEntries(
-        slotTypes.map((t) => [t, cardById[sentence[t]]])
-      );
+      const target = {};
+      const pool   = [];
 
-      const pool = [];
       for (const slotType of slotTypes) {
-        const correct = target[slotType];
-        const others  = cards.filter((c) => c.type === slotType && c.id !== correct.id);
-        const picks   = shuffle([...others]).slice(0, distractors);
-        pool.push(correct, ...picks);
+        if (slotType === "subject" && adultCards) {
+          const correct = shuffle([...adultCards])[0];
+          target[slotType] = correct;
+          const others = adultCards.filter((a) => a.id !== correct.id);
+          pool.push(correct, ...shuffle([...others]).slice(0, distractors));
+        } else {
+          const correct = cardById[sentence[slotType]];
+          target[slotType] = correct;
+          const others = cards.filter((c) => c.type === slotType && c.id !== correct.id);
+          pool.push(correct, ...shuffle([...others]).slice(0, distractors));
+        }
       }
 
       return {

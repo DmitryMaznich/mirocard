@@ -129,3 +129,78 @@ describe("generateTasks — listen_build mode", () => {
     expect(tasks[0].audioPath).toBeNull();
   });
 });
+
+describe("generateTasks — listen_build with close adults", () => {
+  const studentWithAdults = {
+    id: "u1",
+    closeAdults: [
+      { id: "a1", name: "Дима",  photo: "/photos/dima.jpg" },
+      { id: "a2", name: "Катя",  photo: "/photos/katya.jpg" },
+      { id: "a3", name: "Бабуля", photo: null },
+    ],
+  };
+
+  it("target.subject is an adult card when student has closeAdults", () => {
+    const tasks = generateTasks(
+      { type: "listen_build" },
+      topicRecord,
+      { structure: "simple", distractors: 0 },
+      studentWithAdults
+    );
+    for (const task of tasks) {
+      expect(task.target.subject.id).toMatch(/^adult_/);
+      expect(task.target.subject.type).toBe("subject");
+    }
+  });
+
+  it("pool subjects are adult cards only, no topic subject cards", () => {
+    const tasks = generateTasks(
+      { type: "listen_build" },
+      topicRecord,
+      { structure: "simple", distractors: 2 },
+      studentWithAdults
+    );
+    for (const task of tasks) {
+      const poolSubjects = task.pool.filter((c) => c.type === "subject");
+      for (const s of poolSubjects) {
+        expect(s.id).toMatch(/^adult_/);
+      }
+    }
+  });
+
+  it("pool always contains the correct adult", () => {
+    const tasks = generateTasks(
+      { type: "listen_build" },
+      topicRecord,
+      { structure: "simple", distractors: 2 },
+      studentWithAdults
+    );
+    for (const task of tasks) {
+      const correctId = task.target.subject.id;
+      expect(task.pool.some((c) => c.id === correctId)).toBe(true);
+    }
+  });
+
+  it("falls back to topic subjects when student has no closeAdults", () => {
+    const tasks = generateTasks(
+      { type: "listen_build" },
+      topicRecord,
+      { structure: "simple", distractors: 0 },
+      { id: "u2", closeAdults: [] }
+    );
+    for (const task of tasks) {
+      expect(task.target.subject.id).not.toMatch(/^adult_/);
+    }
+  });
+
+  it("adult card carries photo from closeAdults", () => {
+    const oneAdult = { id: "u3", closeAdults: [{ id: "a1", name: "Дима", photo: "/photos/dima.jpg" }] };
+    const tasks = generateTasks(
+      { type: "listen_build" },
+      topicRecord,
+      { structure: "simple", distractors: 0 },
+      oneAdult
+    );
+    expect(tasks[0].target.subject.photo).toBe("/photos/dima.jpg");
+  });
+});

@@ -14,6 +14,7 @@ export function useSessionEngine() {
   const activeTextId      = useAppStore((s) => s.activeTextId);
   const activeModeId      = useAppStore((s) => s.activeModeId);
   const topicRecords      = useAppStore((s) => s.topicRecords);
+  const students          = useAppStore((s) => s.students);
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
   const tapToAdvance      = useAppStore((s) => s.settings.tapToAdvance ?? true);
@@ -50,7 +51,8 @@ export function useSessionEngine() {
       tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
     } else if (renderer === "sentence_puzzle") {
       const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
-      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
+      const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
+      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent) : [];
     } else {
       const generateTasks = ENGINE_REGISTRY[renderer];
       const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
