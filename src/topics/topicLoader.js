@@ -273,9 +273,12 @@ const DEFAULT_MODES = {
     },
   ],
   comparison: [
-    { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "Крокодил",      instruction: "Нажми на большее число",                          icon: "media/icons/comparison_sign.svg" } },
-    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Оцени первое",  instruction: "Первое число — больше, меньше или равно второму?", icon: "media/icons/comparison_first_number.svg" } },
-    { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "Сравни и нажми", instruction: "Нажми на сторону, где больше",                   icon: "media/icons/comparison_visual.svg" } },
+    { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака", instruction: "Нажми на сторону, где больше",                          icon: "media/icons/comparison_visual.svg" } },
+    { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил",   instruction: "Нажми на большее число",                                icon: "media/icons/comparison_sign.svg" } },
+    { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",                       icon: "media/icons/comparison_mode.svg" } },
+    { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Оцени и поставь знак",     instruction: "Поставь или выбери правильный знак",                    icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Оцени первое",               instruction: "Первое число — больше, меньше или равно второму?",       icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_put_sign",     type: "compare_put_sign",     evaluation: "auto", ui: { title: "Поставь знак",               instruction: "Поставь правильный знак между числами",                  icon: "media/icons/comparison_mode.svg" } },
   ],
   math_houses: [
     { id: "math_houses_practice",  type: "math_houses_practice",  evaluation: "auto", ui: { title: "Домик",              instruction: "Работай с домиком числа",                   icon: "media/icons/math_houses.svg" } },
@@ -452,10 +455,43 @@ const MODE_ICON_FALLBACKS = {
   },
 };
 
+function normalizeTextValue(value, fallback = "") {
+  if (value == null) return fallback;
+  if (typeof value === "string") return value;
+  if (typeof value === "object") return value.ru ?? value.en ?? fallback;
+  return String(value);
+}
+
+function normalizeModeText(mode) {
+  const ui = mode.ui ?? {};
+  const methodology = mode.methodology
+    ? {
+        ...mode.methodology,
+        text: normalizeTextValue(mode.methodology.text, ""),
+        summary: normalizeTextValue(mode.methodology.summary, ""),
+        duration: normalizeTextValue(mode.methodology.duration, ""),
+        tips: Array.isArray(mode.methodology.tips)
+          ? mode.methodology.tips.map((tip) => normalizeTextValue(tip, "")).filter(Boolean)
+          : mode.methodology.tips,
+      }
+    : mode.methodology;
+
+  return {
+    ...mode,
+    ui: {
+      ...ui,
+      title: normalizeTextValue(ui.title, mode.id),
+      instruction: normalizeTextValue(ui.instruction, ""),
+    },
+    methodology,
+  };
+}
+
 function ensureModeIcons(modes = [], renderer) {
+  const normalizedModes = modes.map(normalizeModeText);
   const fallback = MODE_ICON_FALLBACKS[renderer]?.default ?? null;
-  if (!fallback) return modes;
-  return modes.map((mode) => {
+  if (!fallback) return normalizedModes;
+  return normalizedModes.map((mode) => {
     if (mode.ui?.icon) return mode;
     return {
       ...mode,
@@ -553,7 +589,7 @@ function normalizeProcedural(manifest) {
   const defaultModes = DEFAULT_MODES[renderer] ?? [];
   const modes = manifest.modes?.length
     ? ensureModeIcons(mergeDefaultModesKeepOrder(manifest.modes, defaultModes), renderer)
-    : defaultModes;
+    : ensureModeIcons(defaultModes, renderer);
 
   return { ...manifest, meta, cards, modes };
 }
@@ -571,7 +607,7 @@ function normalizeReading(manifest) {
   }));
   const modes = manifest.modes?.length
     ? ensureModeIcons(mergeDefaultModes(manifest.modes, DEFAULT_MODES.reading), "reading")
-    : DEFAULT_MODES.reading;
+    : ensureModeIcons(DEFAULT_MODES.reading, "reading");
 
   return { ...manifest, meta, cards, texts, modes };
 }
@@ -707,7 +743,7 @@ function migrateRecord(record) {
     return {
       ...record,
       meta: mergeDefaultMeta({ ...record.meta }, record.meta.renderer),
-      modes: ensureModeIcons(mergeDefaultModes(record.modes ?? [], DEFAULT_MODES[record.meta.renderer] ?? []), record.meta.renderer),
+      modes: ensureModeIcons(mergeDefaultModesKeepOrder(record.modes ?? [], DEFAULT_MODES[record.meta.renderer] ?? []), record.meta.renderer),
     };
   }
   // Old flashcard record without renderer — add defaults at runtime

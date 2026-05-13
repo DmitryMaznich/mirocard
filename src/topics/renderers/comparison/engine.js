@@ -59,7 +59,7 @@ function getFirstNumberRelation(left, right) {
 export function getVerdict(task) {
   const words = task.wordsVerdict;
 
-  if (task.type === "compare_first_number") {
+  if (task.type === "compare_first_number" || (task.type === "compare_evaluate" && task.style === "verbal")) {
     if (task.left === task.right) {
       return words
         ? `${cap(numNom(task.left))} равно ${numDat(task.right)}`
@@ -98,9 +98,14 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
 
-  const isFirstNumber = mode.type === "compare_first_number";
-  const examplesCount = isFirstNumber ? Math.max(1, Math.min(6, Number(sessionParams.examplesCount ?? 1))) : 1;
-  const showLabels    = isFirstNumber ? (sessionParams.showLabels !== false) : true;
+  const isFirstNumber    = mode.type === "compare_first_number";
+  const isEvaluate       = mode.type === "compare_evaluate";
+  const style            = isEvaluate ? (sessionParams.style ?? "sign") : null;
+  const isVerbalEvaluate = isEvaluate && style === "verbal";
+  const isVerbal         = isFirstNumber || isVerbalEvaluate;
+
+  const examplesCount = isVerbal ? Math.max(1, Math.min(6, Number(sessionParams.examplesCount ?? 1))) : 1;
+  const showLabels    = isVerbal ? (sessionParams.showLabels !== false) : true;
 
   const levelDef   = COMPARISON_LEVELS.find((l) => l.id === level) ?? COMPARISON_LEVELS[1];
   const baseParams = levelDef.params;
@@ -109,9 +114,12 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!card) return [];
 
   function taskInstruction(q) {
-    if (isFirstNumber) {
+    if (isVerbal) {
       void q;
       return "Первое число — больше, меньше или равно второму?";
+    }
+    if (isEvaluate) {
+      return "Поставь правильный знак между числами";
     }
     const baseQ = q === "equal" ? (question === "less" ? "less" : "more") : q;
     const verb  = baseQ === "more" ? "больше" : "меньше";
@@ -149,18 +157,19 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если одинаково — нажми посередине")
       : null;
 
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels });
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style });
   }
 
-  if (isFirstNumber && examplesCount > 1) {
+  if (isVerbal && examplesCount > 1) {
     const shuffled = shuffle(tasks);
     const batches  = [];
     for (let i = 0; i + examplesCount <= shuffled.length; i += examplesCount) {
       batches.push({
-        type: "compare_first_number",
+        type: mode.type,
         items: shuffled.slice(i, i + examplesCount).map(({ left, right, question }) => ({ left, right, question })),
         conceptId: card.conceptId,
         showLabels,
+        style,
       });
     }
     return batches;

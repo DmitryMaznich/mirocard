@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "comparison",
-    "version": "2.8.2",
+    "version": "2.9.0",
     "renderer": "comparison",
     "title": "Сравнение"
   },
@@ -28,19 +28,19 @@
       "ui": { "title": "3. Нарисуй знак", "instruction": "Нарисуй правильный знак пальцем" }
     },
     {
-      "id": "compare_put_sign",
-      "type": "compare_put_sign",
+      "id": "compare_evaluate",
+      "type": "compare_evaluate",
       "evaluation": "auto",
       "defaultCardId": "compare_hard",
-      "ui": { "title": "4. Поставь знак", "instruction": "Поставь правильный знак между числами" }
-    },
-    {
-      "id": "compare_first_number",
-      "type": "compare_first_number",
-      "evaluation": "auto",
-      "defaultCardId": "compare_medium",
-      "ui": { "title": "5. Оцени первое", "instruction": "Первое число — больше, меньше или равно второму?" },
+      "ui": { "title": "4. Оцени и поставь знак", "instruction": "Поставь или выбери правильный знак" },
       "params": {
+        "style": {
+          "type": "enum",
+          "values": ["sign", "verbal"],
+          "labels": { "ru": { "sign": "Символы < = >", "verbal": "Слова Больше / Меньше / Равно" } },
+          "default": "sign",
+          "label": { "ru": "Тип ответа" }
+        },
         "examplesCount": { "type": "number", "min": 1, "max": 6, "default": 1, "label": { "ru": "Примеров на экране" } },
         "showLabels":    { "type": "boolean", "default": true, "label": { "ru": "Подписи «Первое» и «Второе»" } }
       }
