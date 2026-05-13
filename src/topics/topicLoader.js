@@ -738,10 +738,18 @@ function migrateRecord(record) {
   }
 
   if (record.meta.renderer) {
+    const defaultModes = DEFAULT_MODES[record.meta.renderer] ?? [];
+    let merged = mergeDefaultModesKeepOrder(record.modes ?? [], defaultModes);
+    if (record.meta.renderer === "comparison") {
+      const hasEvaluate = merged.some((m) => m.id === "compare_evaluate");
+      if (hasEvaluate) {
+        merged = merged.filter((m) => m.id !== "compare_first_number" && m.id !== "compare_put_sign");
+      }
+    }
     return {
       ...record,
       meta: mergeDefaultMeta({ ...record.meta }, record.meta.renderer),
-      modes: ensureModeIcons(mergeDefaultModesKeepOrder(record.modes ?? [], DEFAULT_MODES[record.meta.renderer] ?? []), record.meta.renderer),
+      modes: ensureModeIcons(merged, record.meta.renderer),
     };
   }
   // Old flashcard record without renderer — add defaults at runtime
