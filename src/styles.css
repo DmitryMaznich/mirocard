@@ -10956,6 +10956,7 @@ button {
   margin: 0 12px;
 }
 .param-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: #4a9b8f; flex-shrink: 0; }
+.param-row--disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
 .param-row--checkbox .param-hint {
   margin-left: auto;
   text-align: right;
@@ -13392,6 +13393,12 @@ button.operation-dot {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.operation-number-grid--pad {
+  width: min(860px, 100%);
+  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+  gap: 8px;
+}
+
 .operation-choice,
 .operation-number-choice {
   min-width: 0;
@@ -13433,6 +13440,12 @@ button.operation-dot {
 
 .operation-number-choice {
   font-size: 2rem;
+}
+
+.operation-number-grid--pad .operation-number-choice {
+  min-height: clamp(48px, 7dvh, 66px);
+  border-radius: 14px;
+  font-size: clamp(1.25rem, 4vw, 1.85rem);
 }
 
 .operation-choice:not(:disabled):active,

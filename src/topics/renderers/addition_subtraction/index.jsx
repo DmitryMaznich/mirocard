@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   buildStickSlots,
   evaluateStickMove,
+  getStickBeadCount,
   getStickBeadColor,
   getStickSideCount,
   isStickComplete,
@@ -147,8 +148,8 @@ function OperationStory({ task, compact = false }) {
   );
 }
 
-function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
-  const [workCount, setWorkCount] = useState(task.start);
+function LiveBeadTool({ task, initialWorkCount = task.start, disabled, onAnswer, onMistake, onMove }) {
+  const [workCount, setWorkCount] = useState(initialWorkCount);
   const [drag, setDrag]           = useState(null);
   const [error, setError]         = useState(false);
   const wrapRef     = useRef(null);
@@ -230,6 +231,7 @@ function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
 
     if (result.kind === "move") {
       setWorkCount(result.nextWorkCount);
+      onMove?.(result.nextWorkCount);
       if (result.complete) commitAnswer();
     }
 
@@ -407,25 +409,110 @@ function NumberChoices({ task, selected, onAnswer }) {
   );
 }
 
-function ManipulationTask({ task, onCorrect, onMistake }) {
-  const [answered, setAnswered] = useState(false);
+function NumberPad({ maxNumber, answer, selected, onAnswer }) {
+  const values = Array.from({ length: maxNumber + 1 }, (_, value) => value);
+  return (
+    <div className="operation-number-grid operation-number-grid--pad">
+      {values.map((value) => {
+        const isSelected = selected === value;
+        const isCorrect = selected != null && value === answer;
+        const isWrong = isSelected && value !== answer;
+        return (
+          <button
+            key={value}
+            className={[
+              "operation-number-choice",
+              isCorrect ? "operation-number-choice--correct" : "",
+              isWrong ? "operation-number-choice--wrong" : "",
+            ].filter(Boolean).join(" ")}
+            type="button"
+            disabled={selected != null}
+            onClick={() => onAnswer(value)}
+          >
+            {value}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
-  function handleAnswer() {
-    setAnswered(true);
-    onCorrect(task.conceptId, task.cardId);
+function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
+  const [phase, setPhase] = useState("setup");
+  const [selectedResult, setSelectedResult] = useState(null);
+  const beadCount = getStickBeadCount(task);
+  const setupTask = { ...task, operation: "add", result: task.start };
+  const actionWord = task.operation === "add" ? "Прибавь" : "Убери";
+  const isFinalAnswerCorrect = selectedResult === task.result;
+
+  function handleSetupComplete() {
+    setPhase("action");
   }
 
-  const caption = task.operation === "add"
-    ? "Да! Плюс — это прибавить!"
-    : "Да! Минус — это убрать!";
+  function handleActionComplete() {
+    setPhase("answer");
+  }
+
+  function handleResultAnswer(value) {
+    if (selectedResult != null) return;
+    setSelectedResult(value);
+    if (value === task.result) {
+      onCorrect(task.conceptId, task.cardId);
+    } else {
+      onIncorrect(task.conceptId, task.cardId);
+    }
+  }
+
+  const prompt = phase === "setup"
+    ? `Поставь ${task.start}. Сначала посчитай, сколько было.`
+    : phase === "action"
+      ? `${actionWord} ${task.delta} по знаку ${task.sign}.`
+      : "Сколько стало? Посчитай фишки в рабочей зоне.";
 
   return (
     <div className="operation-stage operation-stage--stick">
-      <OperationExpression task={task} missingResult={!answered} answered={answered} />
-      <div className={`operation-stick-caption operation-stick-caption--${task.operation}${answered ? " show" : ""}`}>
-        {caption}
+      <OperationExpression task={task} missingResult={!isFinalAnswerCorrect} answered={isFinalAnswerCorrect} />
+      <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
+        {prompt}
       </div>
-      <LiveBeadTool task={task} disabled={answered} onAnswer={handleAnswer} onMistake={onMistake} />
+      {phase === "setup" && (
+        <LiveBeadTool
+          key={`setup-${task.cardId}-${task.start}-${task.delta}`}
+          task={setupTask}
+          initialWorkCount={0}
+          disabled={false}
+          onAnswer={handleSetupComplete}
+          onMistake={onMistake}
+        />
+      )}
+      {phase === "action" && (
+        <LiveBeadTool
+          key={`action-${task.cardId}-${task.start}-${task.delta}`}
+          task={task}
+          initialWorkCount={task.start}
+          disabled={false}
+          onAnswer={handleActionComplete}
+          onMistake={onMistake}
+        />
+      )}
+      {phase === "answer" && (
+        <>
+          <LiveBeadTool
+            key={`answer-${task.cardId}-${task.start}-${task.delta}`}
+            task={task}
+            initialWorkCount={task.result}
+            disabled
+            onAnswer={() => {}}
+            onMistake={onMistake}
+          />
+          <NumberPad
+            maxNumber={beadCount}
+            answer={task.result}
+            selected={selectedResult}
+            onAnswer={handleResultAnswer}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -445,7 +532,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
   }
 
   if (type === "operation_do_action") {
-    return <ManipulationTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
+    return <ManipulationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
   }
 
   if (type === "operation_name_action") {

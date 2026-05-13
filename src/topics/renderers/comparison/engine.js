@@ -118,7 +118,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   function taskInstruction(q) {
     if (isVerbal) {
       void q;
-      return "Первое число — больше, меньше или равно второму?";
+      return "Сравни первое число со вторым:";
     }
     if (isEvaluate) {
       return "Поставь правильный знак между числами";
@@ -171,7 +171,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if ((isFirstNumber || isEvaluate) && examplesCount > 1) {
     const shuffled = shuffle(tasks);
     const batches  = [];
-    const batchInstruction = isVerbal ? "Оцени первое число" : "Поставь правильный знак между числами";
+    const batchInstruction = isVerbal ? "Сравни первое число со вторым:" : "Поставь правильный знак между числами";
     for (let i = 0; i + examplesCount <= shuffled.length; i += examplesCount) {
       batches.push({
         type: mode.type,

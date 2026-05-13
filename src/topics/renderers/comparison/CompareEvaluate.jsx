@@ -162,7 +162,6 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
       window.setTimeout(() => setWrongFlash(-1), 420);
       return;
     }
-    playFeedback?.("correct");
     const next = [...answers];
     next[focusIndex] = value;
     setAnswers(next);
@@ -171,6 +170,8 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
     if (nextFocus >= items.length) {
       doneRef.current = true;
       window.setTimeout(() => onCorrectRef.current(task.conceptId, null), 650);
+    } else {
+      playFeedback?.("correct");
     }
   }
 

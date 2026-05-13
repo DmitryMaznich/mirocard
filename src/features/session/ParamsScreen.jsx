@@ -41,13 +41,14 @@ function EnumParam({ label, options, labels, value, onChange }) {
   );
 }
 
-function BooleanParam({ label, hint, value, onChange }) {
+function BooleanParam({ label, hint, value, onChange, disabled }) {
   return (
-    <label className="param-row param-row--checkbox">
+    <label className={`param-row param-row--checkbox${disabled ? " param-row--disabled" : ""}`}>
       <input
         type="checkbox"
         className="param-checkbox"
         checked={Boolean(value)}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
       />
       <span className="param-label">{label}</span>
@@ -99,6 +100,7 @@ function ComparisonParams({ params, onChange }) {
 
   const activeQuestion         = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
   const activeEvaluateQuestion = EVALUATE_QUESTION_OPTIONS.find((q) => q.value === evaluateQuestion);
+  const multiMode              = isEvaluateMode && (params.examplesCount ?? 1) > 1;
 
   const currentVisualMode = params.visualMode ?? "dots";
   const dotsOnly = isVisualMode && currentVisualMode !== "numbers";
@@ -210,6 +212,7 @@ function ComparisonParams({ params, onChange }) {
         <BooleanParam
           label='Подписи «Первое» и «Второе»'
           value={params.showLabels ?? true}
+          disabled={multiMode}
           onChange={(v) => onChange({ ...params, showLabels: v })}
         />
       )}
@@ -237,6 +240,7 @@ function ComparisonParams({ params, onChange }) {
         label="Ответ словами"
         hint='Вместо «7 больше 4» — «Семь больше четырёх»'
         value={params.wordsVerdict}
+        disabled={multiMode}
         onChange={(v) => onChange({ ...params, wordsVerdict: v })}
       />
     </>
