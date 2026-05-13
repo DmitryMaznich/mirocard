@@ -256,3 +256,13 @@
   70%  { transform: scale(0.95) rotate(-2deg); }
   100% { transform: scale(1.05) rotate(0deg); }
 }
+
+/* ── Speaking state for TTS button ── */
+.sp-audio-btn--speaking {
+  animation: sp-audio-pulse 0.75s ease-in-out infinite;
+}
+
+@keyframes sp-audio-pulse {
+  0%, 100% { transform: scale(1);    filter: brightness(1); }
+  50%       { transform: scale(1.18); filter: brightness(1.3); }
+}

@@ -10,24 +10,51 @@ function playSound(name, enabled) {
   try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
 }
 
+function speakRu(text, { onStart, onEnd } = {}) {
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+  synth.cancel();
+  const utt  = new SpeechSynthesisUtterance(text);
+  utt.lang   = "ru-RU";
+  utt.rate   = 0.88;
+  utt.onstart = () => onStart?.();
+  utt.onend   = () => onEnd?.();
+  utt.onerror = () => onEnd?.();
+  synth.speak(utt);
+}
+
 export default function ListenBuildView({
   task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onMistake,
 }) {
-  const slotTypes = SLOT_TYPES[task.structure] ?? SLOT_TYPES.simple;
+  const slotTypes    = SLOT_TYPES[task.structure] ?? SLOT_TYPES.simple;
+  const sentenceText = slotTypes.map((t) => task.target[t]?.label ?? "").join(" ");
 
   const [placed,     setPlaced]     = useState(() => Object.fromEntries(slotTypes.map((t) => [t, null])));
   const [pool,       setPool]       = useState(() => [...task.pool]);
   const [showError,  setShowError]  = useState(false);
+  const [speaking,   setSpeaking]   = useState(false);
   const [activeCard, setActiveCard] = useState(null);
   const errorTimer = useRef(null);
 
+  const hasTts = !!window.speechSynthesis;
+
   useEffect(() => {
-    if (task.audioPath && soundEnabled) {
+    if (!soundEnabled) return;
+    if (task.audioPath) {
       playTopicFile(topicId, task.audioPath);
+    } else if (hasTts) {
+      const t = setTimeout(() =>
+        speakRu(sentenceText, { onStart: () => setSpeaking(true), onEnd: () => setSpeaking(false) }),
+        350
+      );
+      return () => clearTimeout(t);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => () => clearTimeout(errorTimer.current), []);
+  useEffect(() => () => {
+    clearTimeout(errorTimer.current);
+    window.speechSynthesis?.cancel();
+  }, []);
 
   const isComplete = slotTypes.every((t) => placed[t] !== null);
 
@@ -71,7 +98,11 @@ export default function ListenBuildView({
   }
 
   function handleReplay() {
-    if (task.audioPath && soundEnabled) playTopicFile(topicId, task.audioPath);
+    if (task.audioPath) {
+      if (soundEnabled) playTopicFile(topicId, task.audioPath);
+    } else if (hasTts) {
+      speakRu(sentenceText, { onStart: () => setSpeaking(true), onEnd: () => setSpeaking(false) });
+    }
   }
 
   return (
@@ -80,16 +111,18 @@ export default function ListenBuildView({
         <div className="sp-screen">
 
           <div className="sp-audio-section">
-            {task.audioPath ? (
-              <button className="sp-audio-btn" onClick={handleReplay} aria-label="Повторить предложение">
+            {(task.audioPath || hasTts) ? (
+              <button
+                className={`sp-audio-btn${speaking ? " sp-audio-btn--speaking" : ""}`}
+                onClick={handleReplay}
+                aria-label="Прослушать предложение"
+              >
                 🔊
               </button>
             ) : (
               <div className="sp-audio-prompt">
                 <span className="sp-audio-prompt__label">Произнесите вслух:</span>
-                <span className="sp-audio-prompt__sentence">
-                  {slotTypes.map((t) => task.target[t]?.label ?? "").join(" ")}
-                </span>
+                <span className="sp-audio-prompt__sentence">{sentenceText}</span>
               </div>
             )}
           </div>
