@@ -4,16 +4,20 @@ import SentenceRow, { SLOT_TYPES } from "./SentenceRow";
 import CardPool                    from "./CardPool";
 import PuzzlePieceSvg              from "./PuzzlePiece";
 
+function playSound(name, enabled) {
+  if (!enabled) return;
+  const ext = name === "incorrect" ? "mp3" : "wav";
+  try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
+}
+
 export default function ListenBuildView({
   task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect,
 }) {
   const slotTypes = SLOT_TYPES[task.structure] ?? SLOT_TYPES.simple;
-  const emptyRow  = () => Object.fromEntries(slotTypes.map((t) => [t, null]));
 
-  const [placed,      setPlaced]      = useState(emptyRow);
-  const [pool,        setPool]        = useState(() => [...task.pool]);
-  const [slotResults, setSlotResults] = useState(null);
-  const [activeCard,  setActiveCard]  = useState(null);
+  const [placed,     setPlaced]     = useState(() => Object.fromEntries(slotTypes.map((t) => [t, null])));
+  const [pool,       setPool]       = useState(() => [...task.pool]);
+  const [activeCard, setActiveCard] = useState(null);
 
   useEffect(() => {
     if (task.audioPath && soundEnabled) {
@@ -21,12 +25,19 @@ export default function ListenBuildView({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isComplete = slotTypes.every((t) => placed[t] !== null);
+
+  useEffect(() => {
+    if (!isComplete) return;
+    playSound("correct", soundEnabled);
+    const t = setTimeout(() => onCorrect(), 600);
+    return () => clearTimeout(t);
+  }, [isComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor,   { activationConstraint: { delay: 150, tolerance: 5 } }),
   );
-
-  const isComplete = slotTypes.every((t) => placed[t] !== null);
 
   function handleDragStart({ active }) {
     setActiveCard(active.data.current?.card ?? null);
@@ -37,27 +48,18 @@ export default function ListenBuildView({
     if (!over) return;
     const card = active.data.current?.card;
     if (!card) return;
-    const { rowIndex, slotType } = over.data.current ?? {};
-    if (rowIndex === undefined || !slotType) return;
-    if (card.type !== slotType) return;
+    const { slotType } = over.data.current ?? {};
+    if (!slotType) return;
 
-    setPlaced((prev) => {
-      if (prev[slotType] !== null) return prev;
-      return { ...prev, [slotType]: card };
-    });
+    if (placed[slotType] !== null) return;
+
+    if (card.id !== task.target[slotType]?.id) {
+      playSound("incorrect", soundEnabled);
+      return;
+    }
+
+    setPlaced((prev) => ({ ...prev, [slotType]: card }));
     setPool((prev) => prev.filter((c) => c.id !== card.id));
-  }
-
-  function handleCheck() {
-    const results = Object.fromEntries(
-      slotTypes.map((t) => [t, placed[t]?.id === task.target[t]?.id ? "correct" : "incorrect"])
-    );
-    setSlotResults(results);
-    const allCorrect = slotTypes.every((t) => results[t] === "correct");
-    setTimeout(() => {
-      if (allCorrect) onCorrect();
-      else            onIncorrect();
-    }, 600);
   }
 
   function handleReplay() {
@@ -88,19 +90,10 @@ export default function ListenBuildView({
             rowIndex={0}
             structure={task.structure}
             placed={placed}
-            slotResults={slotResults}
           />
         </div>
 
         <CardPool cards={pool} structure={task.structure} />
-
-        {isComplete && !slotResults && (
-          <div className="sp-complete-bar">
-            <button className="sp-btn sp-btn--primary" onClick={handleCheck}>
-              Проверить →
-            </button>
-          </div>
-        )}
 
       </div>
 
