@@ -146,57 +146,80 @@ function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
   const [workingCount, setWorkingCount] = useState(task.start);
   const [drag, setDrag]                 = useState(null);
   const [error, setError]               = useState(false);
-  const confirmRef  = useRef(null);
+  const dragRef     = useRef(null);
   const errorRef    = useRef(null);
   const onAnswerRef = useRef(onAnswer);
   const answerCommittedRef = useRef(false);
   useEffect(() => { onAnswerRef.current = onAnswer; }, [onAnswer]);
-  useEffect(() => () => { clearTimeout(confirmRef.current); clearTimeout(errorRef.current); }, []);
+  useEffect(() => () => { clearTimeout(errorRef.current); }, []);
 
   function commitAnswer() {
     if (answerCommittedRef.current) return;
     answerCommittedRef.current = true;
-    clearTimeout(confirmRef.current);
-    confirmRef.current = setTimeout(() => onAnswerRef.current(), 120);
+    onAnswerRef.current();
   }
 
   const visualCount = drag?.preview ?? workingCount;
 
+  function computePreview(clientX, currentDrag) {
+    const dx = clientX - currentDrag.startX;
+    const stepWidth = Math.max(12, currentDrag.beadWidth * 0.75);
+    const movedSlots = Math.max(1, Math.round(Math.abs(dx) / stepWidth));
+    let preview = null;
+
+    if (currentDrag.idx >= currentDrag.originCount && dx < -10) {
+      const byGrabbedBead = currentDrag.idx + 1;
+      const byDistance = currentDrag.originCount + movedSlots;
+      preview = Math.max(byGrabbedBead, byDistance);
+    }
+
+    if (currentDrag.idx < currentDrag.originCount && dx > 10) {
+      const byGrabbedBead = currentDrag.idx;
+      const byDistance = currentDrag.originCount - movedSlots;
+      preview = Math.min(byGrabbedBead, byDistance);
+    }
+
+    return preview == null ? null : Math.max(0, Math.min(railSize, preview));
+  }
+
   function startDrag(e, idx) {
     if (disabled || answerCommittedRef.current) return;
     e.preventDefault();
-    clearTimeout(confirmRef.current);
     e.currentTarget.setPointerCapture(e.pointerId);
-    setDrag({ idx, startX: e.clientX, preview: null, originCount: workingCount });
+    const beadWidth = e.currentTarget.getBoundingClientRect().width || 24;
+    const nextDrag = { idx, startX: e.clientX, preview: null, originCount: workingCount, beadWidth };
+    dragRef.current = nextDrag;
+    setDrag(nextDrag);
   }
 
   function moveDrag(e) {
-    if (!drag) return;
-    const dx = e.clientX - drag.startX;
-    let preview = null;
-    if (drag.idx >= workingCount && dx < -10)
-      preview = Math.max(0, Math.min(railSize, drag.idx + 1));
-    if (drag.idx <  workingCount && dx >  10)
-      preview = Math.max(0, Math.min(railSize, drag.idx));
-    setDrag((d) => d ? { ...d, preview } : d);
+    const currentDrag = dragRef.current;
+    if (!currentDrag) return;
+    const nextDrag = { ...currentDrag, preview: computePreview(e.clientX, currentDrag) };
+    dragRef.current = nextDrag;
+    setDrag(nextDrag);
   }
 
-  function endDrag() {
-    if (!drag) return;
+  function endDrag(e) {
+    const currentDrag = dragRef.current;
+    if (!currentDrag) return;
+    const finalPreview = currentDrag.preview ?? computePreview(e.clientX, currentDrag);
+    dragRef.current = null;
+
     if (answerCommittedRef.current) {
       setDrag(null);
       return;
     }
-    if (drag.preview != null && drag.preview !== workingCount) {
-      const newCount = drag.preview;
-      const wrongDir = task.operation === "add" ? newCount < workingCount : newCount > workingCount;
+    if (finalPreview != null && finalPreview !== currentDrag.originCount) {
+      const newCount = finalPreview;
+      const wrongDir = task.operation === "add" ? newCount < currentDrag.originCount : newCount > currentDrag.originCount;
       const overshoot = task.operation === "add" ? newCount > task.result : newCount < task.result;
       if (wrongDir || overshoot) {
         onMistake?.(task.conceptId, task.cardId);
         setError(true);
         clearTimeout(errorRef.current);
         errorRef.current = setTimeout(() => setError(false), 600);
-        setWorkingCount(drag.originCount);
+        setWorkingCount(currentDrag.originCount);
         setDrag(null);
         return;
       }
@@ -229,7 +252,7 @@ function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
                   onPointerDown={(e) => startDrag(e, item.idx)}
                   onPointerMove={moveDrag}
                   onPointerUp={endDrag}
-                  onPointerCancel={() => setDrag(null)}
+                  onPointerCancel={() => { dragRef.current = null; setDrag(null); }}
                   aria-label={`Фишка ${item.idx + 1}`}
                 />
               )
