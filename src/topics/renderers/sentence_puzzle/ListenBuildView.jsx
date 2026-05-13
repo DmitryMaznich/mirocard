@@ -12,15 +12,35 @@ function playSound(name, enabled) {
 
 function speakRu(text, { onStart, onEnd } = {}) {
   const synth = window.speechSynthesis;
-  if (!synth) return;
+  if (!synth) return null;
   synth.cancel();
-  const utt  = new SpeechSynthesisUtterance(text);
-  utt.lang   = "ru-RU";
-  utt.rate   = 0.88;
-  utt.onstart = () => onStart?.();
-  utt.onend   = () => onEnd?.();
-  utt.onerror = () => onEnd?.();
-  synth.speak(utt);
+
+  const words   = text.split(/\s+/).filter(Boolean);
+  let   idx     = 0;
+  let   stopped = false;
+  let   timer   = null;
+
+  function cancel() {
+    stopped = true;
+    clearTimeout(timer);
+    synth.cancel();
+  }
+
+  function next() {
+    if (stopped) return;
+    if (idx >= words.length) { onEnd?.(); return; }
+    const utt  = new SpeechSynthesisUtterance(words[idx]);
+    utt.lang   = "ru-RU";
+    utt.rate   = 0.9;
+    if (idx === 0) utt.onstart = () => onStart?.();
+    utt.onend  = () => { timer = setTimeout(next, 380); };
+    utt.onerror = () => { if (!stopped) onEnd?.(); };
+    idx++;
+    synth.speak(utt);
+  }
+
+  next();
+  return cancel;
 }
 
 export default function ListenBuildView({
@@ -34,26 +54,32 @@ export default function ListenBuildView({
   const [showError,  setShowError]  = useState(false);
   const [speaking,   setSpeaking]   = useState(false);
   const [activeCard, setActiveCard] = useState(null);
-  const errorTimer = useRef(null);
+  const errorTimer  = useRef(null);
+  const ttsCancel   = useRef(null);
 
   const hasTts = !!window.speechSynthesis;
+
+  function startTts() {
+    ttsCancel.current?.();
+    ttsCancel.current = speakRu(sentenceText, {
+      onStart: () => setSpeaking(true),
+      onEnd:   () => setSpeaking(false),
+    });
+  }
 
   useEffect(() => {
     if (!soundEnabled) return;
     if (task.audioPath) {
       playTopicFile(topicId, task.audioPath);
     } else if (hasTts) {
-      const t = setTimeout(() =>
-        speakRu(sentenceText, { onStart: () => setSpeaking(true), onEnd: () => setSpeaking(false) }),
-        350
-      );
+      const t = setTimeout(startTts, 350);
       return () => clearTimeout(t);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => {
     clearTimeout(errorTimer.current);
-    window.speechSynthesis?.cancel();
+    ttsCancel.current?.();
   }, []);
 
   const isComplete = slotTypes.every((t) => placed[t] !== null);
@@ -101,7 +127,7 @@ export default function ListenBuildView({
     if (task.audioPath) {
       if (soundEnabled) playTopicFile(topicId, task.audioPath);
     } else if (hasTts) {
-      speakRu(sentenceText, { onStart: () => setSpeaking(true), onEnd: () => setSpeaking(false) });
+      startTts();
     }
   }
 
