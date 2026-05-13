@@ -1,10 +1,13 @@
-import { useEffect, Component, useState } from "react";
+import { useCallback, useEffect, Component, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { api, setApiToken } from "@/core/api";
 import { loadLocalBootstrap, applyBootstrapToStore, persistBootstrap, mergeStudents } from "@/core/bootstrap";
 import { flushQueue, setupOnlineListener } from "@/core/syncApi";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
+import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
+import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
 
 import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
@@ -69,6 +72,24 @@ export default function App() {
   const students = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
+  const [isSessionExitPromptOpen, setIsSessionExitPromptOpen] = useState(false);
+  const closeTimer = useCallback(() => setIsTimerOpen(false), []);
+  const closeSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(false), []);
+  const openSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(true), []);
+  const finishSessionFromPrompt = useCallback(() => {
+    setIsSessionExitPromptOpen(false);
+    setScreen("home");
+  }, [setScreen]);
+
+  const showSessionExitPrompt = screen === "session" && isSessionExitPromptOpen;
+
+  useBackButtonGuard({
+    isTimerOpen,
+    onCloseTimer: closeTimer,
+    isSessionExitPromptOpen: showSessionExitPrompt,
+    onCloseSessionExitPrompt: closeSessionExitPrompt,
+    onRequestSessionExit: openSessionExitPrompt,
+  });
 
   useEffect(() => {
     (async () => {
@@ -123,14 +144,7 @@ export default function App() {
         setScreen("login");
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    history.replaceState({ mirocard: 1 }, "");
-    const handlePopState = () => history.pushState({ mirocard: 1 }, "");
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [setScreen]);
 
   const activeStudent = students?.find(s => s.id === activeStudentId);
   const rewardVideos = activeStudent?.rewardVideos || [];
@@ -141,7 +155,21 @@ export default function App() {
       <ErrorBoundary key={screen}>
         <Screen onOpenTimer={() => setIsTimerOpen(true)} />
       </ErrorBoundary>
-      {isTimerOpen && <AnalogTimer rewardVideos={rewardVideos} onClose={() => setIsTimerOpen(false)} />}
+      {isTimerOpen && <AnalogTimer rewardVideos={rewardVideos} onClose={closeTimer} />}
+      {showSessionExitPrompt && (
+        <Modal
+          title="Завершить занятие?"
+          onClose={closeSessionExitPrompt}
+          actions={
+            <>
+              <Button variant="secondary" onClick={closeSessionExitPrompt}>Остаться</Button>
+              <Button variant="danger" onClick={finishSessionFromPrompt}>Завершить</Button>
+            </>
+          }
+        >
+          Текущий прогресс занятия не будет сохранён.
+        </Modal>
+      )}
     </>
   );
 }

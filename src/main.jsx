@@ -39,17 +39,24 @@ if ("serviceWorker" in navigator) {
 
 const SPLASH_MIN_MS = 1800;
 const splashStart = performance.now();
+let splashDismissQueued = false;
 
-function dismissSplash() {
+function dismissSplash({ immediate = false } = {}) {
   const splash = document.getElementById("splash");
   if (!splash) return;
+  if (splashDismissQueued && !immediate) return;
+  splashDismissQueued = true;
   const elapsed = performance.now() - splashStart;
-  const wait = Math.max(0, SPLASH_MIN_MS - elapsed);
+  const wait = immediate ? 0 : Math.max(0, SPLASH_MIN_MS - elapsed);
   setTimeout(() => {
     splash.classList.add("splash--exit");
-    setTimeout(() => splash.remove(), 580);
+    setTimeout(() => splash.remove(), immediate ? 0 : 580);
   }, wait);
 }
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) dismissSplash({ immediate: true });
+});
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
