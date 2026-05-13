@@ -56,6 +56,14 @@ function BooleanParam({ label, hint, value, onChange }) {
   );
 }
 
+function getModeTitle(mode) {
+  return getTopicTitle(mode?.ui?.title) || mode?.id || "";
+}
+
+function getModeInstruction(mode) {
+  return getTopicTitle(mode?.ui?.instruction);
+}
+
 const LEVEL_DESCRIPTIONS = {
   1: "Начальный — числа до 10, разница не менее 5",
   2: "Базовый — числа до 10, любая разница",
@@ -80,6 +88,9 @@ function ComparisonParams({ params, onChange }) {
   const activeLevel       = COMPARISON_LEVELS.find((l) => l.id === params.level);
   const activeQuestion    = QUESTION_OPTIONS.find((q) => q.value === params.question);
   const isFirstNumberMode = activeModeId === "compare_first_number";
+  const isEvaluateMode    = activeModeId === "compare_evaluate";
+  const isVerbalEvaluate  = isEvaluateMode && (params.style ?? "sign") === "verbal";
+  const showExamplesParams = isFirstNumberMode || isVerbalEvaluate;
   const isVisualMode      = activeModeId === "compare_visual";
 
   const currentVisualMode = params.visualMode ?? "dots";
@@ -128,7 +139,17 @@ function ComparisonParams({ params, onChange }) {
         </div>
       </div>
 
-      {!isFirstNumberMode && (
+      {isEvaluateMode && (
+        <EnumParam
+          label="Тип ответа"
+          options={["sign", "verbal"]}
+          labels={{ sign: "Символы < = >", verbal: "Слова Больше / Меньше / Равно" }}
+          value={params.style ?? "sign"}
+          onChange={(v) => onChange({ ...params, style: v })}
+        />
+      )}
+
+      {!isFirstNumberMode && !isEvaluateMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Что учим</div>
           <div className="param-enum-section">
@@ -150,7 +171,7 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {isFirstNumberMode && (
+      {showExamplesParams && (
         <NumberStepper
           label="Примеров на экране"
           value={params.examplesCount ?? 1}
@@ -160,7 +181,7 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
-      {isFirstNumberMode && (
+      {showExamplesParams && (
         <BooleanParam
           label='Подписи «Первое» и «Второе»'
           value={params.showLabels ?? true}
@@ -234,6 +255,7 @@ export default function ParamsScreen() {
         visualMode:    saved.visualMode    ?? "dots",
         examplesCount: saved.examplesCount ?? 1,
         showLabels:    saved.showLabels    ?? true,
+        style:         saved.style         ?? "sign",
       };
     }
     const modeParams = mode?.params ?? {};
@@ -264,6 +286,9 @@ export default function ParamsScreen() {
 
   const allConcepts        = deriveConcepts(topicRecord.cards);
   const selectedConceptIds = link.selectedConceptIds ?? allConcepts.map((c) => c.conceptId);
+  const modeTitle          = getModeTitle(mode);
+  const modeInstruction    = getModeInstruction(mode);
+
   function startSession() {
     if (isReading && !activeText) {
       setScreen("texts");
@@ -381,7 +406,7 @@ export default function ParamsScreen() {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("modes")}>←</button>
-        <h1 className="screen-title">{mode.ui?.title ?? mode.id}</h1>
+        <h1 className="screen-title">{modeTitle}</h1>
         {mode.methodology && (
           <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
         )}
@@ -394,13 +419,13 @@ export default function ParamsScreen() {
             {getTopicTitle(topicRecord.meta.title)}
           </div>
           <div className="params-info-mode">
-            {mode.ui?.title ?? mode.id}
+            {modeTitle}
             {mode.methodology && (
               <button className="params-info-mode-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
             )}
           </div>
-          {mode.ui?.instruction && (
-            <div className="params-info-desc">{mode.ui.instruction}</div>
+          {modeInstruction && (
+            <div className="params-info-desc">{modeInstruction}</div>
           )}
           {student && (
             <div className="params-info-student">
@@ -457,9 +482,9 @@ export default function ParamsScreen() {
       </div>
 
       {showModeInfo && (
-        <Modal title={mode.ui?.title ?? mode.id} onClose={() => setShowModeInfo(false)}>
-          {mode.ui?.instruction && <p className="info-modal-text">{mode.ui.instruction}</p>}
-          {mode.methodology?.text && <p className="info-modal-text">{mode.methodology.text}</p>}
+        <Modal title={modeTitle} onClose={() => setShowModeInfo(false)}>
+          {modeInstruction && <p className="info-modal-text">{modeInstruction}</p>}
+          {mode.methodology?.text && <p className="info-modal-text">{getTopicTitle(mode.methodology.text)}</p>}
           {mode.methodology?.tips?.length > 0 && (
             <ul className="info-modal-tips">
               {mode.methodology.tips.map((tip, i) => <li key={i}>{tip}</li>)}
