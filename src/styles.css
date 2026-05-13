@@ -11202,6 +11202,18 @@ button {
 .session-progress { flex: 1; }
 .session-counter  { font-size: 0.85rem; color: #666; white-space: nowrap; }
 .session-score    { color: #888; }
+.progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #e8e8e8;
+  overflow: hidden;
+}
+.progress-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4a9b8f, #8abfae);
+  transition: width 0.3s ease;
+}
 .session-finish-btn {
   width: 36px; height: 36px;
   border: none; border-radius: 8px;
