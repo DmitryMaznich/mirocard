@@ -48,6 +48,9 @@ export function useSessionEngine() {
       const concepts = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
       const generateTasks = ENGINE_REGISTRY["flashcards"];
       tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
+    } else if (renderer === "sentence_puzzle") {
+      const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
+      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
     } else {
       const generateTasks = ENGINE_REGISTRY[renderer];
       const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
