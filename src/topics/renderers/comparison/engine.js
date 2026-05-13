@@ -59,7 +59,7 @@ function getFirstNumberRelation(left, right) {
 export function getVerdict(task) {
   const words = task.wordsVerdict;
 
-  if (task.type === "compare_first_number" || (task.type === "compare_evaluate" && task.style === "verbal")) {
+  if (task.type === "compare_first_number" || (task.type === "compare_evaluate" && task.showLabels)) {
     if (task.left === task.right) {
       return words
         ? `${cap(numNom(task.left))} равно ${numDat(task.right)}`
@@ -98,14 +98,16 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
 
-  const isFirstNumber    = mode.type === "compare_first_number";
-  const isEvaluate       = mode.type === "compare_evaluate";
-  const style            = isEvaluate ? (sessionParams.style ?? "sign") : null;
-  const isVerbalEvaluate = isEvaluate && style === "verbal";
-  const isVerbal         = isFirstNumber || isVerbalEvaluate;
+  const isFirstNumber         = mode.type === "compare_first_number";
+  const isEvaluate            = mode.type === "compare_evaluate";
+  const style                 = isEvaluate ? (sessionParams.style ?? "sign") : null;
+  const isFirstNumberEvaluate = isEvaluate && question === "first_number";
+  const isVerbal              = isFirstNumber || isFirstNumberEvaluate;
 
-  const examplesCount = isVerbal ? Math.max(1, Math.min(6, Number(sessionParams.examplesCount ?? 1))) : 1;
-  const showLabels    = isVerbal ? (sessionParams.showLabels !== false) : true;
+  const examplesCount = (isFirstNumber || isEvaluate)
+    ? Math.max(1, Math.min(6, Number(sessionParams.examplesCount ?? 1)))
+    : 1;
+  const showLabels = isVerbal ? (sessionParams.showLabels !== false) : false;
 
   const levelDef   = COMPARISON_LEVELS.find((l) => l.id === level) ?? COMPARISON_LEVELS[1];
   const baseParams = levelDef.params;
@@ -144,9 +146,15 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       ({ left, right } = generateComparisonTask({ ...baseParams, allowEqual: false }));
     }
 
-    const isEqual      = left === right;
-    const taskQuestion = isFirstNumber
-      ? getFirstNumberRelation(left, right)
+    const isEqual = left === right;
+
+    // Enforce direction for evaluate non-first_number modes
+    if (isEvaluate && !isFirstNumberEvaluate && !isEqual) {
+      if (question === "more" && left < right) { const t = left; left = right; right = t; }
+      if (question === "less" && left > right) { const t = left; left = right; right = t; }
+    }
+    const taskQuestion = (isFirstNumber || isEvaluate)
+      ? getFirstNumberRelation(left, right)   // always actual relationship
       : isEqual
         ? "equal"
         : question === "mix"
@@ -160,9 +168,10 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style });
   }
 
-  if (isVerbal && examplesCount > 1) {
+  if ((isFirstNumber || isEvaluate) && examplesCount > 1) {
     const shuffled = shuffle(tasks);
     const batches  = [];
+    const batchInstruction = isVerbal ? "Оцени первое число" : "Поставь правильный знак между числами";
     for (let i = 0; i + examplesCount <= shuffled.length; i += examplesCount) {
       batches.push({
         type: mode.type,
@@ -170,6 +179,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
         conceptId: card.conceptId,
         showLabels,
         style,
+        instruction: batchInstruction,
       });
     }
     return batches;

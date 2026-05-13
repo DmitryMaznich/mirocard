@@ -2,119 +2,146 @@ import { useState, useEffect, useRef } from "react";
 import { getVerdict } from "./engine";
 
 const SIGN_CHAR = { less: "<", equal: "=", more: ">" };
-
-const SIGN_OPTIONS   = [{ value: "less" }, { value: "equal" }, { value: "more" }];
-const VERBAL_OPTIONS = [
+const OPTIONS = [
   { value: "less",  label: "Меньше" },
   { value: "equal", label: "Равно"  },
   { value: "more",  label: "Больше" },
 ];
 
-function SignMode({ task, onCorrect, onIncorrect }) {
-  const [answered,  setAnswered]  = useState(false);
-  const [shakeSign, setShakeSign] = useState(null);
-  const [verdict,   setVerdict]   = useState(null);
+function Buttons({ style, correct, answered, onAnswer }) {
+  const [shake, setShake] = useState(null);
 
-  const correct = task.left > task.right ? "more" : task.left < task.right ? "less" : "equal";
-
-  function handleTap(value) {
+  function handle(value) {
     if (answered) return;
     if (value !== correct) {
-      setShakeSign(value);
-      setTimeout(() => setShakeSign(null), 400);
-      setAnswered(true);
-      onIncorrect(task.conceptId, null);
-      return;
+      setShake(value);
+      setTimeout(() => setShake(null), 400);
     }
-    setAnswered(true);
-    setVerdict(getVerdict(task));
-    onCorrect(task.conceptId, null);
+    onAnswer(value);
   }
 
-  return (
-    <div className="compare-body">
-      <div className="compare-instruction">{task.instruction ?? "Поставь правильный знак между числами"}</div>
-      <div className="croc-put-sign-numbers">
-        <span className="croc-put-sign-num">{task.left}</span>
-        <span className="croc-put-sign-blank">{answered ? SIGN_CHAR[correct] : "?"}</span>
-        <span className="croc-put-sign-num">{task.right}</span>
-      </div>
-      <div className="croc-put-sign-btns">
-        {SIGN_OPTIONS.map(({ value }) => (
-          <button
-            key={value}
-            className={[
-              "croc-put-sign-btn",
-              shakeSign === value            && "croc-put-sign-btn--shake",
-              answered && correct === value  && "croc-put-sign-btn--correct",
-            ].filter(Boolean).join(" ")}
-            disabled={answered}
-            onClick={() => handleTap(value)}
-          >
-            {SIGN_CHAR[value]}
+  if (style === "verbal") {
+    return (
+      <div className="cfn-options">
+        {OPTIONS.map((opt) => (
+          <button key={opt.value} className="cfn-btn" disabled={answered} onClick={() => handle(opt.value)}>
+            <span className="cfn-btn-sign">{SIGN_CHAR[opt.value]}</span>
+            <span className="cfn-btn-label">{opt.label}</span>
           </button>
         ))}
       </div>
-      {verdict && <div className="compare-verdict">{verdict}</div>}
+    );
+  }
+  return (
+    <div className="croc-put-sign-btns">
+      {OPTIONS.map(({ value }) => (
+        <button
+          key={value}
+          className={[
+            "croc-put-sign-btn",
+            shake === value && "croc-put-sign-btn--shake",
+            answered && correct === value && "croc-put-sign-btn--correct",
+          ].filter(Boolean).join(" ")}
+          disabled={answered}
+          onClick={() => handle(value)}
+        >
+          {SIGN_CHAR[value]}
+        </button>
+      ))}
     </div>
   );
 }
 
-function VerbalSingle({ task, onCorrect, onIncorrect, onAdvance }) {
+function MultiButtons({ style, disabled, onAnswer }) {
+  if (style === "verbal") {
+    return (
+      <div className="cfn-options">
+        {OPTIONS.map((opt) => (
+          <button key={opt.value} className="cfn-btn" disabled={disabled} onClick={() => onAnswer(opt.value)}>
+            <span className="cfn-btn-sign">{SIGN_CHAR[opt.value]}</span>
+            <span className="cfn-btn-label">{opt.label}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="croc-put-sign-btns">
+      {OPTIONS.map(({ value }) => (
+        <button key={value} className="croc-put-sign-btn" disabled={disabled} onClick={() => onAnswer(value)}>
+          {SIGN_CHAR[value]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SingleMode({ task, onCorrect, onIncorrect, onAdvance }) {
   const [answered, setAnswered] = useState(false);
-  const showLabels = task.showLabels !== false;
+  const [verdict,  setVerdict]  = useState(null);
+
+  const correct    = task.left > task.right ? "more" : task.left < task.right ? "less" : "equal";
+  const showLabels = task.showLabels;
+  const style      = task.style ?? "sign";
+  const instruction = task.instruction ?? (
+    showLabels ? "Сравни первое число со вторым:" : "Поставь правильный знак между числами"
+  );
 
   function handleAnswer(value) {
     if (answered) return;
     setAnswered(true);
-    if (value === task.question) onCorrect(task.conceptId, null);
-    else                         onIncorrect(task.conceptId, null);
+    if (value === correct) {
+      setVerdict(getVerdict(task));
+      onCorrect(task.conceptId, null);
+    } else {
+      onIncorrect(task.conceptId, null);
+    }
   }
 
-  const stage = (
+  const stage = showLabels ? (
     <div className="cfn-stage">
       <div className="cfn-card cfn-card--first">
-        {showLabels && <div className="cfn-label">первое</div>}
+        <div className="cfn-label">первое</div>
         <div className="cfn-number">{task.left}</div>
       </div>
       <div className={`cfn-bridge${answered ? " cfn-bridge--shown" : ""}`}>
-        {answered ? SIGN_CHAR[task.question] : "?"}
+        {answered ? SIGN_CHAR[correct] : "?"}
       </div>
       <div className="cfn-card cfn-card--second">
-        {showLabels && <div className="cfn-label">второе</div>}
+        <div className="cfn-label">второе</div>
         <div className="cfn-number">{task.right}</div>
       </div>
     </div>
+  ) : (
+    <div className="croc-put-sign-numbers">
+      <span className="croc-put-sign-num">{task.left}</span>
+      <span className="croc-put-sign-blank">{answered ? SIGN_CHAR[correct] : "?"}</span>
+      <span className="croc-put-sign-num">{task.right}</span>
+    </div>
   );
 
-  if (answered) {
+  if (answered && showLabels) {
     return (
       <button className="session-full-tap cfn-result-tap" onClick={(e) => { e.stopPropagation(); onAdvance(); }}>
-        <div className="compare-instruction">Сравни первое число со вторым:</div>
+        <div className="compare-instruction">{instruction}</div>
         {stage}
-        <div className="compare-verdict cfn-verdict-reveal">{getVerdict(task)}</div>
+        <div className="compare-verdict cfn-verdict-reveal">{verdict}</div>
       </button>
     );
   }
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">Сравни первое число со вторым:</div>
+      <div className="compare-instruction">{instruction}</div>
       {stage}
       <div className="cfn-multi-divider" />
-      <div className="cfn-options">
-        {VERBAL_OPTIONS.map((opt) => (
-          <button key={opt.value} className="cfn-btn" onClick={() => handleAnswer(opt.value)}>
-            <span className="cfn-btn-sign">{SIGN_CHAR[opt.value]}</span>
-            <span className="cfn-btn-label">{opt.label}</span>
-          </button>
-        ))}
-      </div>
+      <Buttons style={style} correct={correct} answered={answered} onAnswer={handleAnswer} />
+      {verdict && !showLabels && <div className="compare-verdict">{verdict}</div>}
     </div>
   );
 }
 
-function VerbalMulti({ task, onCorrect, onMistake, playFeedback }) {
+function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
   const items = task.items;
   const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
   const [focusIndex, setFocusIndex] = useState(0);
@@ -123,10 +150,13 @@ function VerbalMulti({ task, onCorrect, onMistake, playFeedback }) {
   const onCorrectRef = useRef(onCorrect);
   useEffect(() => { onCorrectRef.current = onCorrect; });
 
+  const style = task.style ?? "sign";
+
   function handleAnswer(value) {
     if (doneRef.current) return;
     const item = items[focusIndex];
-    if (value !== item.question) {
+    const correct = item.left > item.right ? "more" : item.left < item.right ? "less" : "equal";
+    if (value !== correct) {
       setWrongFlash(focusIndex);
       onMistake?.(task.conceptId, null);
       window.setTimeout(() => setWrongFlash(-1), 420);
@@ -154,7 +184,7 @@ function VerbalMulti({ task, onCorrect, onMistake, playFeedback }) {
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">Оцени первое число</div>
+      <div className="compare-instruction">{task.instruction ?? "Поставь правильный знак между числами"}</div>
       <div className="cfn-multi">
         {items.map((item, i) => (
           <div key={i} className={`cfn-multi-row${focusIndex === i ? " cfn-multi-row--active" : ""}`}>
@@ -167,29 +197,14 @@ function VerbalMulti({ task, onCorrect, onMistake, playFeedback }) {
         ))}
       </div>
       <div className="cfn-multi-divider" />
-      <div className="cfn-options">
-        {VERBAL_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            className="cfn-btn"
-            disabled={focusIndex >= items.length}
-            onClick={() => handleAnswer(opt.value)}
-          >
-            <span className="cfn-btn-sign">{SIGN_CHAR[opt.value]}</span>
-            <span className="cfn-btn-label">{opt.label}</span>
-          </button>
-        ))}
-      </div>
+      <MultiButtons style={style} disabled={focusIndex >= items.length} onAnswer={handleAnswer} />
     </div>
   );
 }
 
 export default function CompareEvaluate({ task, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
-  if (task.style === "verbal") {
-    if (task.items) {
-      return <VerbalMulti task={task} onCorrect={onCorrect} onMistake={onMistake} playFeedback={playFeedback} />;
-    }
-    return <VerbalSingle task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
+  if (task.items) {
+    return <MultiMode task={task} onCorrect={onCorrect} onMistake={onMistake} playFeedback={playFeedback} />;
   }
-  return <SignMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  return <SingleMode task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onAdvance={onAdvance} />;
 }

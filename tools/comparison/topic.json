@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "comparison",
-    "version": "2.9.0",
+    "version": "2.10.0",
     "renderer": "comparison",
     "title": "Сравнение"
   },
@@ -34,6 +34,13 @@
       "defaultCardId": "compare_hard",
       "ui": { "title": "4. Оцени и поставь знак", "instruction": "Поставь или выбери правильный знак" },
       "params": {
+        "question": {
+          "type": "enum",
+          "values": ["more", "less", "mix", "first_number"],
+          "labels": { "ru": { "more": "Где больше", "less": "Где меньше", "mix": "Микс", "first_number": "Первое число" } },
+          "default": "more",
+          "label": { "ru": "Что учим" }
+        },
         "style": {
           "type": "enum",
           "values": ["sign", "verbal"],

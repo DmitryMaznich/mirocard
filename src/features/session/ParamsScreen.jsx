@@ -77,6 +77,13 @@ const QUESTION_OPTIONS = [
   { value: "mix",  label: "Микс",    hint: "Вопросы «больше» и «меньше» чередуются" },
 ];
 
+const EVALUATE_QUESTION_OPTIONS = [
+  { value: "more",         label: "Где больше",   hint: "Пары чисел: слева всегда большее" },
+  { value: "less",         label: "Где меньше",   hint: "Пары чисел: слева всегда меньшее" },
+  { value: "mix",          label: "Микс",          hint: "Направление пар чередуется случайно" },
+  { value: "first_number", label: "Первое число",  hint: "Оцени первое число — больше, меньше или равно второму" },
+];
+
 const VISUAL_OPTIONS = [
   { value: "dots",         label: "Точки" },
   { value: "dots_numbers", label: "Точки + цифра" },
@@ -84,14 +91,14 @@ const VISUAL_OPTIONS = [
 ];
 
 function ComparisonParams({ params, onChange }) {
-  const activeModeId      = useAppStore((s) => s.activeModeId);
-  const activeLevel       = COMPARISON_LEVELS.find((l) => l.id === params.level);
-  const activeQuestion    = QUESTION_OPTIONS.find((q) => q.value === params.question);
-  const isFirstNumberMode = activeModeId === "compare_first_number";
-  const isEvaluateMode    = activeModeId === "compare_evaluate";
-  const isVerbalEvaluate  = isEvaluateMode && (params.style ?? "sign") === "verbal";
-  const showExamplesParams = isFirstNumberMode || isVerbalEvaluate;
-  const isVisualMode      = activeModeId === "compare_visual";
+  const activeModeId     = useAppStore((s) => s.activeModeId);
+  const activeLevel      = COMPARISON_LEVELS.find((l) => l.id === params.level);
+  const isEvaluateMode   = activeModeId === "compare_evaluate";
+  const isVisualMode     = activeModeId === "compare_visual";
+  const evaluateQuestion = params.question ?? "more";
+
+  const activeQuestion         = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
+  const activeEvaluateQuestion = EVALUATE_QUESTION_OPTIONS.find((q) => q.value === evaluateQuestion);
 
   const currentVisualMode = params.visualMode ?? "dots";
   const dotsOnly = isVisualMode && currentVisualMode !== "numbers";
@@ -140,16 +147,26 @@ function ComparisonParams({ params, onChange }) {
       </div>
 
       {isEvaluateMode && (
-        <EnumParam
-          label="Тип ответа"
-          options={["sign", "verbal"]}
-          labels={{ sign: "Символы < = >", verbal: "Слова Больше / Меньше / Равно" }}
-          value={params.style ?? "sign"}
-          onChange={(v) => onChange({ ...params, style: v })}
-        />
+        <div className="param-row param-row--block">
+          <div className="param-label">Что учим</div>
+          <div className="param-enum-section">
+            <div className="param-enum-group">
+              {EVALUATE_QUESTION_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`enum-btn ${evaluateQuestion === opt.value ? "enum-btn--active" : ""}`}
+                  onClick={() => onChange({ ...params, question: opt.value })}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {activeEvaluateQuestion && <div className="param-hint">{activeEvaluateQuestion.hint}</div>}
+          </div>
+        </div>
       )}
 
-      {!isFirstNumberMode && !isEvaluateMode && (
+      {!isEvaluateMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Что учим</div>
           <div className="param-enum-section">
@@ -164,14 +181,22 @@ function ComparisonParams({ params, onChange }) {
                 </button>
               ))}
             </div>
-            {activeQuestion && (
-              <div className="param-hint">{activeQuestion.hint}</div>
-            )}
+            {activeQuestion && <div className="param-hint">{activeQuestion.hint}</div>}
           </div>
         </div>
       )}
 
-      {showExamplesParams && (
+      {isEvaluateMode && (
+        <EnumParam
+          label="Тип ответа"
+          options={["sign", "verbal"]}
+          labels={{ sign: "Символы < = >", verbal: "Слова Больше / Меньше / Равно" }}
+          value={params.style ?? "sign"}
+          onChange={(v) => onChange({ ...params, style: v })}
+        />
+      )}
+
+      {isEvaluateMode && (
         <NumberStepper
           label="Примеров на экране"
           value={params.examplesCount ?? 1}
@@ -181,7 +206,7 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
-      {showExamplesParams && (
+      {isEvaluateMode && evaluateQuestion === "first_number" && (
         <BooleanParam
           label='Подписи «Первое» и «Второе»'
           value={params.showLabels ?? true}
@@ -208,14 +233,12 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {!isFirstNumberMode && (
-        <BooleanParam
-          label="Ответ словами"
-          hint='Вместо «7 больше 4» — «Семь больше четырёх»'
-          value={params.wordsVerdict}
-          onChange={(v) => onChange({ ...params, wordsVerdict: v })}
-        />
-      )}
+      <BooleanParam
+        label="Ответ словами"
+        hint='Вместо «7 больше 4» — «Семь больше четырёх»'
+        value={params.wordsVerdict}
+        onChange={(v) => onChange({ ...params, wordsVerdict: v })}
+      />
     </>
   );
 }
