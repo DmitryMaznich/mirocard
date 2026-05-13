@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import DotGroup from "./DotGroup";
 import { getVerdict } from "./engine";
+import { getTopicTitle } from "@/shared/utils/format";
 
 function SideContent({ value, color, visualMode, showHint }) {
   if (visualMode === "numbers") {
@@ -67,7 +68,7 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? getTopicTitle(mode.ui.instruction)}</div>
       {task.equalHint && <div className="compare-instruction-hint">{task.equalHint}</div>}
       <div className="compare-sides">
         <button className={sideClass} disabled={isAnswered} onClick={() => handleSide(true)}>

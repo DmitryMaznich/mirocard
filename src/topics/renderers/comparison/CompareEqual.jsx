@@ -1,6 +1,7 @@
 import { useState } from "react";
 import CrocSign from "./CrocSign";
 import { getVerdict } from "./engine";
+import { getTopicTitle } from "@/shared/utils/format";
 
 export default function CompareEqual({ task, mode, onCorrect, onIncorrect }) {
   const [crocState, setCrocState] = useState("closed");
@@ -47,7 +48,7 @@ export default function CompareEqual({ task, mode, onCorrect, onIncorrect }) {
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? getTopicTitle(mode.ui.instruction)}</div>
       <div className="compare-sign-row">
         <button className="compare-side compare-side--number" disabled={answered} onClick={() => handleNumberTap(true)}>
           <div className="compare-big-number">{task.left}</div>

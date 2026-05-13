@@ -34,5 +34,5 @@ export default function TopicCover({ topicId, avatarPath, title, size = "medium"
     );
   }
 
-  return <img className={cls} src={src} alt={title} />;
+  return <img className={cls} src={src} alt={getTopicTitle(title)} />;
 }

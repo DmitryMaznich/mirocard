@@ -35,6 +35,14 @@ function filterReadingModes(modes = [], text) {
   return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem"));
 }
 
+function getModeTitle(mode) {
+  return getTopicTitle(mode?.ui?.title) || mode?.id || "";
+}
+
+function getModeInstruction(mode) {
+  return getTopicTitle(mode?.ui?.instruction);
+}
+
 export default function ModePickerScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
@@ -121,8 +129,8 @@ export default function ModePickerScreen() {
                   <ModeIcon topicId={activeTopicId} iconPath={mode.ui.icon} size="medium" />
                 )}
                 <div className="mode-item__body">
-                  <div className="mode-item__title">{mode.ui?.title ?? mode.id}</div>
-                  <div className="mode-item__desc">{mode.ui?.instruction ?? ""}</div>
+                  <div className="mode-item__title">{getModeTitle(mode)}</div>
+                  <div className="mode-item__desc">{getModeInstruction(mode)}</div>
                   <LastResultBadge session={lastSession} />
                 </div>
                 {mode.methodology && (
@@ -141,8 +149,8 @@ export default function ModePickerScreen() {
       </ul>
 
       {methodology && (
-        <Modal title={methodology.ui?.title} onClose={() => setMethodology(null)}>
-          <p className="info-modal-text">{methodology.methodology?.text}</p>
+        <Modal title={getModeTitle(methodology)} onClose={() => setMethodology(null)}>
+          <p className="info-modal-text">{getTopicTitle(methodology.methodology?.text)}</p>
           {methodology.methodology?.tips?.length > 0 && (
             <ul className="info-modal-tips">
               {methodology.methodology.tips.map((tip, i) => (

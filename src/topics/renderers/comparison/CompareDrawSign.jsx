@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DrawingSignPad from "./DrawingSignPad";
 import { getVerdict } from "./engine";
+import { getTopicTitle } from "@/shared/utils/format";
 
 export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) {
   const [answered,    setAnswered]    = useState(false);
@@ -26,7 +27,7 @@ export default function CompareDrawSign({ task, mode, onCorrect, onIncorrect }) 
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? getTopicTitle(mode.ui.instruction)}</div>
       <div className="croc-put-sign-numbers croc-draw-sign-layout">
         <span className="croc-put-sign-num">{task.left}</span>
         <DrawingSignPad

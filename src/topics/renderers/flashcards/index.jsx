@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { getTopicTitle } from "@/shared/utils/format";
 
 function getTaskAudioPath(task) {
   if (task?.card?.audio?.ru) return task.card.audio.ru;
@@ -91,7 +92,7 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
 
   return (
     <div className="session-body qa-body">
-      <div className="session-instruction">{mode.ui.instruction}</div>
+      <div className="session-instruction">{getTopicTitle(mode.ui.instruction)}</div>
       <CardArea topicId={topicId} card={task.card} />
       <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
         {task.label}

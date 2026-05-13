@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getVerdict } from "./engine";
+import { getTopicTitle } from "@/shared/utils/format";
 
 export default function ComparePutSign({ task, mode, onCorrect, onIncorrect }) {
   const [answered,  setAnswered]  = useState(false);
@@ -24,7 +25,7 @@ export default function ComparePutSign({ task, mode, onCorrect, onIncorrect }) {
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? getTopicTitle(mode.ui.instruction)}</div>
       <div className="croc-put-sign-numbers">
         <span className="croc-put-sign-num">{task.left}</span>
         <span className="croc-put-sign-blank">{answered ? correctSign : "?"}</span>

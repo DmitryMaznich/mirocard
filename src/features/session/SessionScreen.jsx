@@ -5,6 +5,7 @@ import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
 import { useAudio } from "@/shared/hooks/useAudio";
 import ProgressBar from "@/shared/components/ProgressBar";
+import { getTopicTitle } from "@/shared/utils/format";
 
 export default function SessionScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
@@ -78,8 +79,8 @@ export default function SessionScreen() {
   : isIncorrectFeedback ? "session-feedback session-feedback--incorrect"
   : "";
 
-  const topicTitle = topicRecord.meta.title ?? topicRecord.meta.id;
-  const modeTitle  = mode.ui?.title ?? mode.id;
+  const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
+  const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
 
   return (
     <div className="session-screen">
@@ -145,7 +146,7 @@ export default function SessionScreen() {
         <div className="screen-center">Загрузка…</div>
       ) : !Renderer ? (
         <div className="screen-center">
-          Обновите тему «{topicRecord.meta.title ?? topicRecord.meta.id}» до актуальной версии —
+          Обновите тему «{getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id}» до актуальной версии —
           рендерер недоступен.
         </div>
       ) : (

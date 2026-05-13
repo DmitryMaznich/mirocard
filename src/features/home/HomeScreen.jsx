@@ -159,9 +159,10 @@ export default function HomeScreen({ onOpenTimer }) {
   const topicLabel = topic
     ? `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`
     : "Не выбрана";
+  const modeTitle = mode ? (getTopicTitle(mode.ui?.title) || mode.id) : "";
 
   const readingStepValue = activeText
-    ? `${getTopicTitle(activeText.title)}${mode ? ` · ${mode.ui?.title ?? mode.id}` : ""}`
+    ? `${getTopicTitle(activeText.title)}${mode ? ` · ${modeTitle}` : ""}`
     : "Не выбран";
 
   function startOrContinue() {
@@ -224,7 +225,7 @@ export default function HomeScreen({ onOpenTimer }) {
             state={s3}
             number="3"
             label={isReading ? "Текст и режим" : "Режим"}
-            value={isReading ? readingStepValue : mode?.ui?.title ?? "Не выбран"}
+            value={isReading ? readingStepValue : modeTitle || "Не выбран"}
             onClick={() => setScreen(isReading && !activeText ? "texts" : "modes")}
             avatar={(mode?.ui?.icon) ? (
               <ModeIcon topicId={topic?.meta.id} iconPath={mode.ui.icon} size="step" />

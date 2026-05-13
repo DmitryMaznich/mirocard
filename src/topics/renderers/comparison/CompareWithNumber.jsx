@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DotGroup from "./DotGroup";
 import { getVerdict } from "./engine";
+import { getTopicTitle } from "@/shared/utils/format";
 
 export default function CompareWithNumber({ task, mode, onCorrect, onIncorrect }) {
   const [answered, setAnswered] = useState(false);
@@ -32,7 +33,7 @@ export default function CompareWithNumber({ task, mode, onCorrect, onIncorrect }
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">{task.instruction ?? mode.ui.instruction}</div>
+      <div className="compare-instruction">{task.instruction ?? getTopicTitle(mode.ui.instruction)}</div>
       <div className="compare-sides">
         <button className="compare-side" disabled={answered} onClick={() => handleSide(true)}>
           <DotGroup count={task.left} color="#4299e1" />

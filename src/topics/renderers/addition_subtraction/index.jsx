@@ -1,4 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import {
+  buildStickSlots,
+  evaluateStickMove,
+  getStickBeadColor,
+  getStickSideCount,
+  isStickComplete,
+} from "./stickModel";
 
 const ACTION_OPTIONS = [
   { value: "add", label: "Прибавили" },
@@ -141,15 +148,15 @@ function OperationStory({ task, compact = false }) {
 }
 
 function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
-  const railSize     = task.railSize ?? 20;
-  const half         = Math.floor(railSize / 2);
-  const [workingCount, setWorkingCount] = useState(task.start);
-  const [drag, setDrag]                 = useState(null);
-  const [error, setError]               = useState(false);
+  const [workCount, setWorkCount] = useState(task.start);
+  const [drag, setDrag]           = useState(null);
+  const [error, setError]         = useState(false);
+  const wrapRef     = useRef(null);
   const dragRef     = useRef(null);
   const errorRef    = useRef(null);
   const onAnswerRef = useRef(onAnswer);
   const answerCommittedRef = useRef(false);
+
   useEffect(() => { onAnswerRef.current = onAnswer; }, [onAnswer]);
   useEffect(() => () => { clearTimeout(errorRef.current); }, []);
 
@@ -159,104 +166,123 @@ function LiveBeadTool({ task, disabled, onAnswer, onMistake }) {
     onAnswerRef.current();
   }
 
-  const visualCount = drag?.preview ?? workingCount;
-
-  function computePreview(clientX, currentDrag) {
-    const dx = clientX - currentDrag.startX;
-    const stepWidth = Math.max(12, currentDrag.beadWidth * 0.75);
-    const movedSlots = Math.max(1, Math.round(Math.abs(dx) / stepWidth));
-    let preview = null;
-
-    if (currentDrag.idx >= currentDrag.originCount && dx < -10) {
-      const byGrabbedBead = currentDrag.idx + 1;
-      const byDistance = currentDrag.originCount + movedSlots;
-      preview = Math.max(byGrabbedBead, byDistance);
-    }
-
-    if (currentDrag.idx < currentDrag.originCount && dx > 10) {
-      const byGrabbedBead = currentDrag.idx;
-      const byDistance = currentDrag.originCount - movedSlots;
-      preview = Math.min(byGrabbedBead, byDistance);
-    }
-
-    return preview == null ? null : Math.max(0, Math.min(railSize, preview));
+  function getMoveFromPointer(clientX, currentDrag) {
+    return evaluateStickMove(
+      task,
+      currentDrag.originWorkCount,
+      currentDrag.sourceSlot,
+      clientX - currentDrag.startX,
+    );
   }
 
-  function startDrag(e, idx) {
+  function startDrag(e, sourceSlot) {
     if (disabled || answerCommittedRef.current) return;
     e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const beadWidth = e.currentTarget.getBoundingClientRect().width || 24;
-    const nextDrag = { idx, startX: e.clientX, preview: null, originCount: workingCount, beadWidth };
+    wrapRef.current?.setPointerCapture?.(e.pointerId);
+
+    const nextDrag = {
+      pointerId: e.pointerId,
+      sourceSlot,
+      startX: e.clientX,
+      originWorkCount: workCount,
+      previewWorkCount: null,
+    };
+
     dragRef.current = nextDrag;
     setDrag(nextDrag);
   }
 
   function moveDrag(e) {
     const currentDrag = dragRef.current;
-    if (!currentDrag) return;
-    const nextDrag = { ...currentDrag, preview: computePreview(e.clientX, currentDrag) };
+    if (!currentDrag || e.pointerId !== currentDrag.pointerId) return;
+
+    const result = getMoveFromPointer(e.clientX, currentDrag);
+    const nextDrag = {
+      ...currentDrag,
+      previewWorkCount: result.kind === "move" ? result.nextWorkCount : null,
+    };
+
     dragRef.current = nextDrag;
     setDrag(nextDrag);
   }
 
   function endDrag(e) {
     const currentDrag = dragRef.current;
-    if (!currentDrag) return;
-    const finalPreview = currentDrag.preview ?? computePreview(e.clientX, currentDrag);
+    if (!currentDrag || e.pointerId !== currentDrag.pointerId) return;
     dragRef.current = null;
+    wrapRef.current?.releasePointerCapture?.(e.pointerId);
 
     if (answerCommittedRef.current) {
       setDrag(null);
       return;
     }
-    if (finalPreview != null && finalPreview !== currentDrag.originCount) {
-      const newCount = finalPreview;
-      const wrongDir = task.operation === "add" ? newCount < currentDrag.originCount : newCount > currentDrag.originCount;
-      const overshoot = task.operation === "add" ? newCount > task.result : newCount < task.result;
-      if (wrongDir || overshoot) {
-        onMistake?.(task.conceptId, task.cardId);
-        setError(true);
-        clearTimeout(errorRef.current);
-        errorRef.current = setTimeout(() => setError(false), 600);
-        setWorkingCount(currentDrag.originCount);
-        setDrag(null);
-        return;
-      }
-      setWorkingCount(newCount);
-      if (newCount === task.result) commitAnswer();
+
+    const result = getMoveFromPointer(e.clientX, currentDrag);
+
+    if (result.kind === "mistake") {
+      onMistake?.(task.conceptId, task.cardId);
+      setError(true);
+      clearTimeout(errorRef.current);
+      errorRef.current = setTimeout(() => setError(false), 600);
+      setDrag(null);
+      return;
     }
+
+    if (result.kind === "move") {
+      setWorkCount(result.nextWorkCount);
+      if (result.complete) commitAnswer();
+    }
+
     setDrag(null);
   }
 
-  const items = [];
-  for (let i = 0; i < railSize; i++) {
-    if (i === visualCount) items.push({ key: "gap", type: "gap" });
-    items.push({ key: String(i), type: "bead", idx: i });
+  function cancelDrag(e) {
+    if (dragRef.current?.pointerId === e.pointerId) {
+      wrapRef.current?.releasePointerCapture?.(e.pointerId);
+    }
+    dragRef.current = null;
+    setDrag(null);
   }
-  if (visualCount >= railSize) items.push({ key: "gap", type: "gap" });
+
+  const displayWorkCount = drag?.previewWorkCount ?? workCount;
+  const slots = buildStickSlots(task, displayWorkCount);
+  const sideCount = getStickSideCount(task, displayWorkCount);
 
   return (
     <div className="operation-stick">
-      <div className="operation-stick__wrap">
+      <div
+        ref={wrapRef}
+        className="operation-stick__wrap"
+        onPointerMove={moveDrag}
+        onPointerUp={endDrag}
+        onPointerCancel={cancelDrag}
+      >
         <div className="operation-stick__rod" />
-        <div className={`operation-stick__track${error ? " operation-stick__track--error" : ""}`}>
-          {items.map((item) =>
-            item.type === "gap"
-              ? <div key="gap" className="operation-stick__gap" />
-              : (
+        <div
+          className={`operation-stick__track${error ? " operation-stick__track--error" : ""}`}
+          style={{ "--stick-columns": slots.length }}
+          aria-label={`Рабочая зона ${displayWorkCount}, ${getRightLabel(task).toLowerCase()} ${sideCount}`}
+        >
+          {slots.map((slot) => (
+            <div
+              key={slot.id}
+              className={[
+                "operation-stick__slot",
+                `operation-stick__slot--${slot.zone}`,
+                slot.occupied ? "operation-stick__slot--occupied" : "",
+              ].filter(Boolean).join(" ")}
+            >
+              {slot.occupied && (
                 <button
-                  key={item.key}
                   type="button"
-                  className={`operation-stick__bead operation-stick__bead--${item.idx < half ? "green" : "orange"}`}
-                  onPointerDown={(e) => startDrag(e, item.idx)}
-                  onPointerMove={moveDrag}
-                  onPointerUp={endDrag}
-                  onPointerCancel={() => { dragRef.current = null; setDrag(null); }}
-                  aria-label={`Фишка ${item.idx + 1}`}
+                  className={`operation-stick__bead operation-stick__bead--${getStickBeadColor(task, slot.beadIndex)}`}
+                  onPointerDown={(e) => startDrag(e, slot)}
+                  disabled={disabled || isStickComplete(task, workCount)}
+                  aria-label={`Фишка ${slot.zone === "work" ? "в рабочей зоне" : "в правой зоне"} ${slot.zoneIndex + 1}`}
                 />
-              )
-          )}
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -394,7 +420,7 @@ function ManipulationTask({ task, onCorrect, onMistake }) {
     : "Да! Минус — это убрать!";
 
   return (
-    <div className="operation-stage">
+    <div className="operation-stage operation-stage--stick">
       <OperationExpression task={task} missingResult={!answered} answered={answered} />
       <div className={`operation-stick-caption operation-stick-caption--${task.operation}${answered ? " show" : ""}`}>
         {caption}

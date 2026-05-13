@@ -12835,6 +12835,11 @@ kbd {
   gap: 20px;
 }
 
+.operation-stage--stick {
+  width: calc(100dvw - 8px);
+  max-width: 1400px;
+}
+
 .operation-taskline {
   display: flex;
   align-items: center;
@@ -13671,10 +13676,8 @@ button.operation-dot {
 /* ─── Operation: counting stick (operation_do_action) ───────────────────── */
 
 .operation-stick {
-  width: calc(100dvw - 12px);
-  max-width: 980px;
-  margin-left: 50%;
-  transform: translateX(-50%);
+  width: 100%;
+  max-width: 100%;
 }
 
 .operation-stick__wrap {
@@ -13710,7 +13713,7 @@ button.operation-dot {
   display: grid;
   grid-template-columns: repeat(var(--stick-columns), minmax(0, 1fr));
   align-items: center;
-  gap: clamp(1px, 0.45vw, 4px);
+  gap: clamp(1px, 0.36vw, 4px);
   position: relative;
   z-index: 2;
 }
@@ -13729,7 +13732,7 @@ button.operation-dot {
 
 .operation-stick__bead {
   width: 100%;
-  max-width: 64px;
+  max-width: clamp(58px, 7dvw, 96px);
   aspect-ratio: 1;
   border-radius: 50%;
   border: none;
@@ -13789,6 +13792,31 @@ button.operation-dot {
   80%       { transform: translateX(6px); }
 }
 .operation-stick__track--error { animation: stick-error-shake .5s ease both; }
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .operation-stage--stick {
+    width: calc(100dvw - 4px);
+    max-width: 1560px;
+  }
+
+  .operation-stick__wrap {
+    padding-inline: 2px;
+  }
+
+  .operation-stick__rod {
+    left: 2px;
+    right: 2px;
+    height: 16px;
+  }
+
+  .operation-stick__track {
+    gap: clamp(1px, 0.24vw, 3px);
+  }
+
+  .operation-stick__bead {
+    max-width: clamp(70px, 7.4dvw, 108px);
+  }
+}
 
 /* ─── Settings ───────────────────────────────────────────────────────────── */
 .settings-body { padding: 16px; display: flex; flex-direction: column; gap: 20px; }

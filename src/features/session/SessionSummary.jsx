@@ -179,7 +179,7 @@ export default function SessionSummary() {
             ) : (
               <div className="summary-score-compact">
                 {isReading
-                  ? sessionMode?.ui?.title ?? session.modeId
+                  ? getTopicTitle(sessionMode?.ui?.title) || session.modeId
                   : `${session.conceptIds?.length ?? 0} карточек`}
               </div>
             )}
