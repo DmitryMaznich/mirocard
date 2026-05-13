@@ -615,6 +615,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
     modes: manifest.modes ?? [],
     cards: manifest.cards ?? [],
     texts: manifest.texts ?? undefined,
+    sentences: manifest.sentences?.length ? manifest.sentences : undefined,
     installedAt: new Date().toISOString(),
   };
 
