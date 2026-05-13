@@ -273,12 +273,10 @@ const DEFAULT_MODES = {
     },
   ],
   comparison: [
-    { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака", instruction: "Нажми на сторону, где больше",                          icon: "media/icons/comparison_visual.svg" } },
-    { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил",   instruction: "Нажми на большее число",                                icon: "media/icons/comparison_sign.svg" } },
-    { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",                       icon: "media/icons/comparison_mode.svg" } },
-    { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Оцени и поставь знак",     instruction: "Поставь или выбери правильный знак",                    icon: "media/icons/comparison_first_number.svg" } },
-    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "Оцени первое",               instruction: "Первое число — больше, меньше или равно второму?",       icon: "media/icons/comparison_first_number.svg" } },
-    { id: "compare_put_sign",     type: "compare_put_sign",     evaluation: "auto", ui: { title: "Поставь знак",               instruction: "Поставь правильный знак между числами",                  icon: "media/icons/comparison_mode.svg" } },
+    { id: "compare_visual",    type: "compare_visual",    evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака", instruction: "Нажми на сторону, где больше",       icon: "media/icons/comparison_visual.svg" } },
+    { id: "compare_sign",      type: "compare_sign",      evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил",   instruction: "Нажми на большее число",              icon: "media/icons/comparison_sign.svg" } },
+    { id: "compare_draw_sign", type: "compare_draw_sign", evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",     icon: "media/icons/comparison_mode.svg" } },
+    { id: "compare_evaluate",  type: "compare_evaluate",  evaluation: "auto", ui: { title: "4. Оцени и поставь знак",     instruction: "Поставь или выбери правильный знак",  icon: "media/icons/comparison_first_number.svg" } },
   ],
   math_houses: [
     { id: "math_houses_practice",  type: "math_houses_practice",  evaluation: "auto", ui: { title: "Домик",              instruction: "Работай с домиком числа",                   icon: "media/icons/math_houses.svg" } },
