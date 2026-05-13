@@ -12771,7 +12771,7 @@ kbd {
   overflow: hidden;
 }
 .concept-card__text-label {
-  font-size: clamp(0.65rem, 2.4vw, 1.05rem);
+  font-size: clamp(1.3rem, 4.8vw, 2.1rem);
   font-weight: 700;
   color: #374151;
   text-align: center;
@@ -13646,18 +13646,21 @@ button.operation-dot {
 /* ─── Operation: counting stick (operation_do_action) ───────────────────── */
 
 .operation-stick {
-  width: 100%;
+  width: calc(100dvw - 12px);
+  max-width: 980px;
+  margin-left: 50%;
+  transform: translateX(-50%);
 }
 
 .operation-stick__wrap {
   position: relative;
-  padding: 22px 0 20px;
+  padding: 22px 4px 20px;
   touch-action: none;
 }
 
 .operation-stick__rod {
   position: absolute;
-  left: 0; right: 0; top: 50%; height: 14px;
+  left: 4px; right: 4px; top: 50%; height: 14px;
   transform: translateY(-50%);
   border-radius: 7px;
   background: linear-gradient(to bottom, #d6cbb8, #b8a888 45%, #c8b898);
@@ -13679,23 +13682,29 @@ button.operation-dot {
 .operation-stick__rod::after  { right: -5px; }
 
 .operation-stick__track {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(var(--stick-columns), minmax(0, 1fr));
   align-items: center;
-  gap: 3px;
+  gap: clamp(1px, 0.45vw, 4px);
   position: relative;
   z-index: 2;
 }
 
-.operation-stick__gap {
-  flex: 4 1 0;
+.operation-stick__slot {
   min-width: 0;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.operation-stick__slot--gap {
   pointer-events: none;
 }
 
 .operation-stick__bead {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: 52px;
+  width: 100%;
+  max-width: 64px;
   aspect-ratio: 1;
   border-radius: 50%;
   border: none;
