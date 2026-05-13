@@ -33,7 +33,7 @@ function speakRu(text, { onStart, onEnd } = {}) {
     utt.lang   = "ru-RU";
     utt.rate   = 0.9;
     if (idx === 0) utt.onstart = () => onStart?.();
-    utt.onend  = () => { timer = setTimeout(next, 380); };
+    utt.onend  = () => { timer = setTimeout(next, 200); };
     utt.onerror = () => { if (!stopped) onEnd?.(); };
     idx++;
     synth.speak(utt);
