@@ -86,6 +86,42 @@ const BUILTIN_ASSETS = {
   <rect x="62" y="44" width="28" height="10" rx="5" fill="#4a9b8f"/>
   <rect x="62" y="62" width="18" height="10" rx="5" fill="#ef6f5e"/>
 </svg>`,
+  "media/avatar_sentence_puzzle.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f0fdf4"/>
+  <rect x="12" y="30" width="46" height="28" rx="8" fill="#7bb0ff"/>
+  <circle cx="58" cy="44" r="7" fill="#7bb0ff"/>
+  <rect x="65" y="30" width="51" height="28" rx="8" fill="#4a9b8f"/>
+  <rect x="12" y="68" width="104" height="28" rx="8" fill="#fbbf24"/>
+  <rect x="20" y="40" width="26" height="7" rx="3" fill="rgba(255,255,255,0.8)"/>
+  <rect x="73" y="40" width="32" height="7" rx="3" fill="rgba(255,255,255,0.8)"/>
+  <rect x="30" y="78" width="68" height="7" rx="3" fill="rgba(255,255,255,0.8)"/>
+</svg>`,
+  "media/icons/sentence_puzzle_mode.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f0fdf4"/>
+  <rect x="14" y="18" width="44" height="24" rx="6" fill="none" stroke="#7bb0ff" stroke-width="3" stroke-dasharray="6,3"/>
+  <rect x="70" y="18" width="44" height="24" rx="6" fill="none" stroke="#4a9b8f" stroke-width="3" stroke-dasharray="6,3"/>
+  <rect x="10" y="66" width="42" height="24" rx="7" fill="#7bb0ff" transform="rotate(-6 31 78)"/>
+  <rect x="58" y="72" width="42" height="24" rx="7" fill="#4a9b8f" transform="rotate(5 79 84)"/>
+  <rect x="84" y="58" width="34" height="22" rx="7" fill="#fbbf24" transform="rotate(-4 101 69)"/>
+  <path d="M36 62 L36 48" stroke="#94a3b8" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M31 52 L36 46 L41 52" fill="none" stroke="#94a3b8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M79 68 L79 48" stroke="#94a3b8" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M74 52 L79 46 L84 52" fill="none" stroke="#94a3b8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+  "media/icons/listen_build_mode.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fef9ee"/>
+  <rect x="16" y="50" width="18" height="28" rx="4" fill="#374151"/>
+  <path d="M34 52 L52 38 L52 90 L34 76z" fill="#374151"/>
+  <path d="M59 50 Q72 64 59 78" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"/>
+  <path d="M67 42 Q86 64 67 86" fill="none" stroke="#fbbf24" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+  <rect x="84" y="46" width="30" height="36" rx="8" fill="#4a9b8f"/>
+  <circle cx="84" cy="64" r="7" fill="#4a9b8f"/>
+  <rect x="90" y="56" width="18" height="6" rx="3" fill="rgba(255,255,255,0.85)"/>
+  <rect x="90" y="68" width="12" height="6" rx="3" fill="rgba(255,255,255,0.65)"/>
+</svg>`,
   "media/icons/flashcards_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f4efe6"/>
@@ -405,6 +441,7 @@ export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId === "math_houses") return "media/avatar.svg";
   if (topicId === "addition_subtraction") return "media/avatar_operations.svg";
   if (topicId?.startsWith("reading_")) return "media/avatar_reading.svg";
+  if (topicId === "sentence_puzzle") return "media/avatar_sentence_puzzle.svg";
   return "media/avatar_flashcards.svg";
 }
 

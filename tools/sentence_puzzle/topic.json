@@ -1,9 +1,10 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.8.5",
+    "version": "1.8.6",
     "renderer": "sentence_puzzle",
-    "title": "Конструктор предложений"
+    "title": "Конструктор предложений",
+    "avatar": "media/avatar_sentence_puzzle.svg"
   },
   "modes": [
     {
@@ -12,7 +13,8 @@
       "evaluation": "none",
       "ui": {
         "title": "Собираем пазл",
-        "instruction": "Собери предложения из слов"
+        "instruction": "Собери предложения из слов",
+        "icon": "media/icons/sentence_puzzle_mode.svg"
       },
       "params": {
         "level": {
@@ -37,7 +39,8 @@
       "evaluation": "auto",
       "ui": {
         "title": "Слушаем и собираем",
-        "instruction": "Послушай предложение и собери его из слов"
+        "instruction": "Послушай предложение и собери его из слов",
+        "icon": "media/icons/listen_build_mode.svg"
       },
       "params": {
         "structure": {

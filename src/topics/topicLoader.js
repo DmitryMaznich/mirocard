@@ -429,6 +429,9 @@ const DEFAULT_META = {
   reading: {
     avatar: "media/avatar_reading.svg",
   },
+  sentence_puzzle: {
+    avatar: "media/avatar_sentence_puzzle.svg",
+  },
 };
 
 const MODE_ICON_FALLBACKS = {
