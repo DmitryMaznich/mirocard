@@ -1,4 +1,4 @@
-import { useState, useEffect }                                                        from "react";
+import { useState, useEffect, useRef }                                                from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import SentenceRow, { SLOT_TYPES } from "./SentenceRow";
 import CardPool                    from "./CardPool";
@@ -11,19 +11,23 @@ function playSound(name, enabled) {
 }
 
 export default function ListenBuildView({
-  task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect,
+  task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onMistake,
 }) {
   const slotTypes = SLOT_TYPES[task.structure] ?? SLOT_TYPES.simple;
 
   const [placed,     setPlaced]     = useState(() => Object.fromEntries(slotTypes.map((t) => [t, null])));
   const [pool,       setPool]       = useState(() => [...task.pool]);
+  const [showError,  setShowError]  = useState(false);
   const [activeCard, setActiveCard] = useState(null);
+  const errorTimer = useRef(null);
 
   useEffect(() => {
     if (task.audioPath && soundEnabled) {
       playTopicFile(topicId, task.audioPath);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => clearTimeout(errorTimer.current), []);
 
   const isComplete = slotTypes.every((t) => placed[t] !== null);
 
@@ -55,6 +59,10 @@ export default function ListenBuildView({
 
     if (card.id !== task.target[slotType]?.id) {
       playSound("incorrect", soundEnabled);
+      onMistake?.(null, null);
+      setShowError(true);
+      clearTimeout(errorTimer.current);
+      errorTimer.current = setTimeout(() => setShowError(false), 550);
       return;
     }
 
@@ -67,50 +75,58 @@ export default function ListenBuildView({
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="sp-screen">
+    <>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="sp-screen">
 
-        <div className="sp-audio-section">
-          {task.audioPath ? (
-            <button className="sp-audio-btn" onClick={handleReplay} aria-label="Повторить предложение">
-              🔊
-            </button>
-          ) : (
-            <div className="sp-audio-prompt">
-              <span className="sp-audio-prompt__label">Произнесите вслух:</span>
-              <span className="sp-audio-prompt__sentence">
-                {slotTypes.map((t) => task.target[t]?.label ?? "").join(" ")}
-              </span>
-            </div>
-          )}
-        </div>
+          <div className="sp-audio-section">
+            {task.audioPath ? (
+              <button className="sp-audio-btn" onClick={handleReplay} aria-label="Повторить предложение">
+                🔊
+              </button>
+            ) : (
+              <div className="sp-audio-prompt">
+                <span className="sp-audio-prompt__label">Произнесите вслух:</span>
+                <span className="sp-audio-prompt__sentence">
+                  {slotTypes.map((t) => task.target[t]?.label ?? "").join(" ")}
+                </span>
+              </div>
+            )}
+          </div>
 
-        <div className="sp-rows-area">
-          <SentenceRow
-            rowIndex={0}
-            structure={task.structure}
-            placed={placed}
-          />
-        </div>
-
-        <CardPool cards={pool} structure={task.structure} />
-
-      </div>
-
-      <DragOverlay dropAnimation={null}>
-        {activeCard && (
-          <div className="sp-card-overlay">
-            <PuzzlePieceSvg
-              slotType={activeCard.type}
+          <div className="sp-rows-area">
+            <SentenceRow
+              rowIndex={0}
               structure={task.structure}
-              emoji={activeCard.emoji}
-              label={activeCard.label}
-              photo={activeCard.photo ?? null}
-              isEmpty={false}
+              placed={placed}
             />
           </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+
+          <CardPool cards={pool} structure={task.structure} />
+
+        </div>
+
+        <DragOverlay dropAnimation={null}>
+          {activeCard && (
+            <div className="sp-card-overlay">
+              <PuzzlePieceSvg
+                slotType={activeCard.type}
+                structure={task.structure}
+                emoji={activeCard.emoji}
+                label={activeCard.label}
+                photo={activeCard.photo ?? null}
+                isEmpty={false}
+              />
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+
+      {showError && (
+        <div className="sp-error-overlay">
+          <span className="sp-error-overlay__x">✕</span>
+        </div>
+      )}
+    </>
   );
 }

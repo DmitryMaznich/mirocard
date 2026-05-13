@@ -12,6 +12,7 @@ export default function SentencePuzzleRenderer(props) {
         playTopicFile={props.playTopicFile}
         onCorrect={props.onCorrect}
         onIncorrect={props.onIncorrect}
+        onMistake={props.onMistake}
       />
     );
   }
