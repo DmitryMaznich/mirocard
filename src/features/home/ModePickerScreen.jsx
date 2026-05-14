@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import Modal from "@/shared/components/Modal";
 import InfoModal from "@/shared/components/InfoModal";
+import ModeMethodology from "@/shared/components/ModeMethodology";
+import { getModeGoal } from "@/shared/utils/methodology";
 import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
@@ -131,17 +133,18 @@ export default function ModePickerScreen() {
                 <div className="mode-item__body">
                   <div className="mode-item__title">{getModeTitle(mode)}</div>
                   <div className="mode-item__desc">{getModeInstruction(mode)}</div>
+                  {getModeGoal(mode) && (
+                    <div className="mode-item__goal">Цель: {getModeGoal(mode)}</div>
+                  )}
                   <LastResultBadge session={lastSession} />
                 </div>
-                {mode.methodology && (
-                  <button
-                    className="mode-info-btn"
-                    onClick={(e) => { e.stopPropagation(); setMethodology(mode); }}
-                    title="О режиме"
-                  >
-                    ?
-                  </button>
-                )}
+                <button
+                  className="mode-info-btn"
+                  onClick={(e) => { e.stopPropagation(); setMethodology(mode); }}
+                  title="О режиме"
+                >
+                  ?
+                </button>
               </div>
             </li>
           );
@@ -150,17 +153,7 @@ export default function ModePickerScreen() {
 
       {methodology && (
         <Modal title={getModeTitle(methodology)} onClose={() => setMethodology(null)}>
-          <p className="info-modal-text">{getTopicTitle(methodology.methodology?.text)}</p>
-          {methodology.methodology?.tips?.length > 0 && (
-            <ul className="info-modal-tips">
-              {methodology.methodology.tips.map((tip, i) => (
-                <li key={i}>{tip}</li>
-              ))}
-            </ul>
-          )}
-          {methodology.methodology?.duration && (
-            <div className="info-modal-duration">⏱ {methodology.methodology.duration}</div>
-          )}
+          <ModeMethodology mode={methodology} />
         </Modal>
       )}
 
@@ -168,7 +161,7 @@ export default function ModePickerScreen() {
         <InfoModal
           title={getTopicTitle(topicRecord.meta.title)}
           about={topicRecord.meta.about}
-          modes={topicRecord.modes}
+          modes={modes}
           onClose={() => setTopicAbout(false)}
         />
       )}

@@ -3,6 +3,8 @@ import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
+import ModeMethodology from "@/shared/components/ModeMethodology";
+import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
@@ -315,6 +317,7 @@ export default function ParamsScreen() {
   const selectedConceptIds = link.selectedConceptIds ?? allConcepts.map((c) => c.conceptId);
   const modeTitle          = getModeTitle(mode);
   const modeInstruction    = getModeInstruction(mode);
+  const modeGoal           = getModeGoal(mode);
 
   function startSession() {
     if (isReading && !activeText) {
@@ -434,9 +437,7 @@ export default function ParamsScreen() {
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("modes")}>←</button>
         <h1 className="screen-title">{modeTitle}</h1>
-        {mode.methodology && (
-          <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
-        )}
+        <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
       </div>
 
       <div className="params-layout">
@@ -447,12 +448,16 @@ export default function ParamsScreen() {
           </div>
           <div className="params-info-mode">
             {modeTitle}
-            {mode.methodology && (
-              <button className="params-info-mode-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
-            )}
+            <button className="params-info-mode-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
           </div>
           {modeInstruction && (
             <div className="params-info-desc">{modeInstruction}</div>
+          )}
+          {modeGoal && (
+            <div className="params-info-goal">
+              <span>Цель</span>
+              {modeGoal}
+            </div>
           )}
           {student && (
             <div className="params-info-student">
@@ -510,16 +515,7 @@ export default function ParamsScreen() {
 
       {showModeInfo && (
         <Modal title={modeTitle} onClose={() => setShowModeInfo(false)}>
-          {modeInstruction && <p className="info-modal-text">{modeInstruction}</p>}
-          {mode.methodology?.text && <p className="info-modal-text">{getTopicTitle(mode.methodology.text)}</p>}
-          {mode.methodology?.tips?.length > 0 && (
-            <ul className="info-modal-tips">
-              {mode.methodology.tips.map((tip, i) => <li key={i}>{tip}</li>)}
-            </ul>
-          )}
-          {mode.methodology?.duration && (
-            <div className="info-modal-duration">⏱ {mode.methodology.duration}</div>
-          )}
+          <ModeMethodology mode={mode} />
         </Modal>
       )}
     </div>

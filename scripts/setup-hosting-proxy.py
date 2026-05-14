@@ -1,13 +1,13 @@
 """
 Sets up mirocard.kaplieva.help on shared hosting as a reverse proxy
-to the Tailscale Funnel (https://mazpc.taile45e98.ts.net).
+to the Tailscale Funnel (https://laptop-353ltno0.taile45e98.ts.net).
 """
 import paramiko, io
 from cryptography.hazmat.primitives.serialization import (
     load_ssh_private_key, Encoding, PrivateFormat, NoEncryption
 )
 
-FUNNEL_URL = "https://mazpc.taile45e98.ts.net"
+FUNNEL_URL = "https://laptop-353ltno0.taile45e98.ts.net"
 
 KEY = b"""-----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABDE6BhJOY

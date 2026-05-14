@@ -3,7 +3,10 @@
     {
       "id": "reading_dad_poems",
       "version": "1.0.10",
-      "title": { "ru": "Чтение: Стихи", "en": "Reading: Poems" },
+      "title": {
+        "ru": "Чтение: Стихи",
+        "en": "Reading: Poems"
+      },
       "description": {
         "ru": "Два стихотворения: совместное чтение, иллюстрация, вопросы по смыслу и сборка стихотворения из слов.",
         "en": "Two poems: shared reading, illustration, comprehension questions, and poem assembly."
@@ -13,7 +16,10 @@
     {
       "id": "emotions_v2",
       "version": "1.2.0",
-      "title": { "ru": "Эмоции", "en": "Emotions" },
+      "title": {
+        "ru": "Эмоции",
+        "en": "Emotions"
+      },
       "description": {
         "ru": "10 эмоций × 5 вариаций. Аудио произношение. Для детей до 16 лет.",
         "en": "10 emotions × 5 variations each. Audio pronunciation included."
@@ -23,7 +29,10 @@
     {
       "id": "clothes_basic",
       "version": "1.1.0",
-      "title": { "ru": "Одежда", "en": "Clothing" },
+      "title": {
+        "ru": "Одежда",
+        "en": "Clothing"
+      },
       "description": {
         "ru": "15 предметов одежды × 5 вариаций. Аудио произношение. Для детей от 3 лет.",
         "en": "15 clothing items × 5 variations each. Audio pronunciation included."
@@ -33,7 +42,10 @@
     {
       "id": "verbs_v2",
       "version": "1.2.0",
-      "title": { "ru": "Глаголы", "en": "Verbs" },
+      "title": {
+        "ru": "Глаголы",
+        "en": "Verbs"
+      },
       "description": {
         "ru": "25 глаголов × 5 вариаций. Аудио произношение. Для детей от 5 лет.",
         "en": "25 verbs × 5 variations each. Audio pronunciation included."
@@ -43,7 +55,10 @@
     {
       "id": "transport_photo",
       "version": "1.1.0",
-      "title": { "ru": "Транспорт", "en": "Transport" },
+      "title": {
+        "ru": "Транспорт",
+        "en": "Transport"
+      },
       "description": {
         "ru": "28 видов транспорта. Аудио произношение. Для детей от 3 лет.",
         "en": "28 types of transport. Audio pronunciation included."
@@ -53,7 +68,10 @@
     {
       "id": "comparison",
       "version": "2.10.2",
-      "title": { "ru": "Сравнение", "en": "Comparison" },
+      "title": {
+        "ru": "Сравнение",
+        "en": "Comparison"
+      },
       "description": {
         "ru": "4 режима педагогической лестницы: от зрительного сравнения до знаков < = >.",
         "en": "4 modes: from visual comparison to < = > signs. Pedagogical ladder for children aged 4+."
@@ -63,7 +81,10 @@
     {
       "id": "math_houses",
       "version": "1.1.0",
-      "title": { "ru": "Домики чисел", "en": "Number Houses" },
+      "title": {
+        "ru": "Домики чисел",
+        "en": "Number Houses"
+      },
       "description": {
         "ru": "Состав чисел от 2 до 10. Изучаем домики и дополняем до числа. Для детей от 5 лет.",
         "en": "Number composition from 2 to 10. Learn and complete number houses. Ages 5+."
@@ -72,18 +93,24 @@
     },
     {
       "id": "addition_subtraction",
-      "version": "1.1.1",
-      "title": { "ru": "Плюс и минус", "en": "Addition and Subtraction" },
+      "version": "1.2.0",
+      "title": {
+        "ru": "Плюс и минус",
+        "en": "Addition and Subtraction"
+      },
       "description": {
-        "ru": "Педагогическая лестница: быстрая связь знак-действие, фишки на палке, было-стало, больше/меньше, пример и результат.",
+        "ru": "Педагогическая лестница: от наблюдения и манипуляций с фишками — к знаку, примеру и цепочкам.",
         "en": "A teaching ladder: object actions, before-after meaning, more/less, action-to-sign mapping, expressions, and result."
       },
-      "url": "./decks/addition_subtraction_v1.1.1.zip"
+      "url": "./decks/addition_subtraction_v1.2.0.zip"
     },
     {
       "id": "tools_basic",
       "version": "1.0.0",
-      "title": { "ru": "Инструменты", "en": "Tools" },
+      "title": {
+        "ru": "Инструменты",
+        "en": "Tools"
+      },
       "description": {
         "ru": "12 ручных и электроинструментов × 5 вариаций. Аудио произношение. Для детей от 4 лет.",
         "en": "12 hand and power tools × 5 variations each. Audio pronunciation included."
@@ -93,7 +120,10 @@
     {
       "id": "sentence_puzzle",
       "version": "1.8.7",
-      "title": { "ru": "Конструктор предложений", "en": "Sentence Builder" },
+      "title": {
+        "ru": "Конструктор предложений",
+        "en": "Sentence Builder"
+      },
       "description": {
         "ru": "Собираем пазл из слов и слушаем предложения. Цветовое кодирование ролей.",
         "en": "Assemble sentences from word cards. Color-coded roles. Listen-and-build mode."

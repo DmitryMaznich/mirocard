@@ -6,7 +6,12 @@ export default function Modal({ title, children, onClose, actions }) {
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content" role="dialog" aria-modal="true">
-        {title && <div className="modal-title">{title}</div>}
+        <div className="modal-header">
+          {title && <div className="modal-title">{title}</div>}
+          <button className="modal-close" type="button" onClick={onClose} aria-label="Закрыть">
+            ×
+          </button>
+        </div>
         <div className="modal-body">{children}</div>
         {actions && <div className="modal-actions">{actions}</div>}
       </div>

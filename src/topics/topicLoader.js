@@ -190,6 +190,236 @@ const OPERATION_PARAMS = {
   },
 };
 
+const DEFAULT_TOPIC_ABOUT = {
+  flashcards: {
+    description: "Лексическая тема для расширения пассивного и активного словаря через карточки, выбор, узнавание и называние.",
+    goals: [
+      "Познакомить ребёнка с понятиями темы и их зрительными вариантами.",
+      "Закрепить понимание слова через выбор правильной картинки.",
+      "Перевести понятия в активную речь через называние и ответы на вопрос.",
+    ],
+    finalGoal: "Ребёнок узнаёт понятия темы в разных вариантах, понимает слово без лишних подсказок и может назвать его в занятии.",
+    flow: [
+      "Начинайте со знакомства, затем переходите к выбору картинки и проверке Да / Нет.",
+      "Для активной речи используйте режим ответа на вопрос после уверенного узнавания.",
+    ],
+  },
+  reading: {
+    description: "Тема чтения помогает пройти текст по ступеням: совместное чтение, понимание смысла и восстановление текста.",
+    goals: [
+      "Снизить нагрузку при чтении за счёт опор и пошагового показа.",
+      "Проверить понимание текста через вопросы и возврат к фрагменту.",
+      "Закрепить последовательность текста через сборку строк или слов.",
+    ],
+    finalGoal: "Ребёнок читает или повторяет текст осмысленно, отвечает на вопросы по содержанию и удерживает порядок фрагментов.",
+    flow: [
+      "Сначала читайте текст вместе с доступными опорами.",
+      "Затем задавайте вопросы по смыслу и только после этого переходите к сборке.",
+    ],
+  },
+  comparison: {
+    description: "Педагогическая лестница сравнения: от зрительного различения больше/меньше к осознанному использованию знаков < = >.",
+    goals: [
+      "Сформировать понимание отношений больше, меньше и равно.",
+      "Связать количество, число и направление знака.",
+      "Научить ребёнка самостоятельно выбирать или рисовать знак сравнения.",
+    ],
+    finalGoal: "Ребёнок спокойно сравнивает пары чисел или количеств и выбирает знак по смыслу, а не по угадыванию.",
+    flow: [
+      "Идите по режимам сверху вниз: без знака, образ знака, рисование, самостоятельная оценка.",
+      "Повышайте уровень только после устойчивых ответов на текущей ступени.",
+    ],
+  },
+  math_houses: {
+    description: "Тема тренирует состав числа через домики: ребёнок видит целое число и подбирает пары частей.",
+    goals: [
+      "Показать число как сумму двух частей.",
+      "Закрепить пары состава числа от простых к более сложным.",
+      "Развить гибкость: находить недостающую часть без механического пересчёта.",
+    ],
+    finalGoal: "Ребёнок уверенно дополняет пары состава числа и переносит этот навык в сложение и вычитание.",
+    flow: [
+      "Начинайте с небольших чисел и проговаривайте целое и части.",
+      "Переходите к растущему домику, когда ребёнок удерживает несколько пар подряд.",
+    ],
+  },
+  addition_subtraction: {
+    description: "Педагогическая лестница для понимания плюса и минуса: действие с фишками, изменение количества, знак, пример и результат.",
+    goals: [
+      "Связать плюс с действием прибавить, а минус с действием убрать.",
+      "Показать изменение было-стало на наглядной модели.",
+      "Подвести ребёнка к записи примера и вычислению результата.",
+    ],
+    finalGoal: "Ребёнок понимает смысл действия, выбирает правильный знак и считает результат с опорой или без неё.",
+    flow: [
+      "Начинайте со связи знак-действие и действий с фишками.",
+      "Переходите к примеру и результату только после уверенного понимания было-сделали-стало.",
+    ],
+  },
+  sentence_puzzle: {
+    description: "Тема развивает фразовую речь: ребёнок собирает предложение из ролей кто, что делает, какой и что.",
+    goals: [
+      "Сформировать структуру простого и распространённого предложения.",
+      "Закрепить порядок слов и грамматические связи.",
+      "Развить слуховое удержание фразы через сборку после прослушивания.",
+    ],
+    finalGoal: "Ребёнок собирает осмысленное предложение и переносит структуру в самостоятельную речь.",
+    flow: [
+      "Сначала собирайте предложение по видимым карточкам и проговаривайте роли.",
+      "Затем переходите к режиму слушания, где нужно удержать фразу и собрать её по памяти.",
+    ],
+  },
+};
+
+const DEFAULT_MODE_METHODOLOGY = {
+  flashcards: {
+    intro: {
+      summary: "Первое знакомство с карточками темы.",
+      text: "Логопед показывает карточку, произносит слово и помогает ребёнку связать изображение со звучанием.",
+      settings: ["Без оценки и дополнительных настроек: темп задаёт специалист."],
+      goal: "Ребёнок узнаёт новые понятия и спокойно реагирует на материал темы.",
+      tips: ["Просите ребёнка показать, повторить или выбрать жестом, если называние пока недоступно."],
+    },
+    find_n: {
+      summary: "Проверка понимания слова через выбор картинки.",
+      text: "Ребёнок слышит или видит задание и выбирает нужную карточку среди вариантов.",
+      goal: "Ребёнок находит понятие по слову без случайного перебора вариантов.",
+    },
+    yes_no: {
+      summary: "Быстрое различение правильного и неправильного называния.",
+      text: "Ребёнок сравнивает картинку и слово, затем отвечает, совпадают ли они.",
+      goal: "Ребёнок замечает несоответствие картинки и слова и удерживает значение понятия.",
+    },
+    choose_word_by_picture: {
+      summary: "Переход от картинки к письменному или устному слову.",
+      text: "Ребёнок смотрит на изображение и выбирает правильное слово из вариантов.",
+      goal: "Ребёнок связывает изображение с названием и начинает работать без опоры на подсказку специалиста.",
+    },
+    choose_all: {
+      summary: "Обобщение понятия на нескольких карточках.",
+      text: "Ребёнок выбирает все карточки, которые относятся к заданному понятию.",
+      goal: "Ребёнок узнаёт понятие в разных вариантах и не привязывается к одной картинке.",
+    },
+    question_answer: {
+      summary: "Активный ответ на вопрос по карточке.",
+      text: "Специалист задаёт вопрос, а ребёнок отвечает устно или с подсказкой.",
+      settings: ["Клавиатура оценок: можно фиксировать качество ответа от «не ответил» до «легко»."],
+      goal: "Ребёнок использует слово темы в активной речи или в функциональном ответе.",
+    },
+  },
+  reading: {
+    read_text: {
+      summary: "Совместное чтение текста с регулируемыми опорами.",
+      text: "Специалист читает вместе с ребёнком, выбирая объём зрительных опор и способ показа текста.",
+      goal: "Ребёнок проходит текст осмысленно и удерживает строку или весь фрагмент без перегрузки.",
+    },
+    understand_text: {
+      summary: "Вопросы по смыслу с возвратом к фрагменту текста.",
+      text: "Специалист задаёт вопросы и при необходимости показывает строку, где есть ответ.",
+      settings: ["Без дополнительных настроек: вопросы берутся из выбранного текста."],
+      goal: "Ребёнок отвечает по содержанию, а не просто повторяет прочитанные слова.",
+    },
+    assemble_text: {
+      summary: "Сборка текста из слов или строк.",
+      text: "Ребёнок восстанавливает порядок слов и строк, опираясь на смысл и память о прочитанном.",
+      settings: ["Режим доступен для стихотворений, где порядок строк и слов важен для запоминания."],
+      goal: "Ребёнок удерживает структуру текста и восстанавливает её без прямого чтения по образцу.",
+    },
+  },
+  comparison: {
+    compare_visual: {
+      settings: [
+        "Уровень задаёт диапазон и разницу чисел.",
+        "Вид определяет опору: точки, точки с цифрой или только цифры.",
+        "Можно включить одинаковые количества, когда больше/меньше уже освоены.",
+      ],
+      goal: "Ребёнок зрительно различает больше, меньше и равно без опоры на знак сравнения.",
+    },
+    compare_sign: {
+      settings: [
+        "Уровень задаёт сложность чисел.",
+        "Что учим выбирает направление: больше, меньше или микс.",
+      ],
+      goal: "Ребёнок связывает знак с большим числом и понимает направление раскрытия знака.",
+    },
+    compare_draw_sign: {
+      settings: [
+        "Уровень задаёт сложность чисел.",
+        "Что учим выбирает, какой тип сравнения закреплять.",
+      ],
+      goal: "Ребёнок не только выбирает, но и моторно воспроизводит правильный знак сравнения.",
+    },
+    compare_evaluate: {
+      settings: [
+        "Что учим задаёт фокус: больше, меньше, микс или оценка первого числа.",
+        "Тип ответа переключает символы < = > и словесные ответы.",
+        "Количество примеров на экране повышает нагрузку на внимание.",
+      ],
+      goal: "Ребёнок самостоятельно оценивает пару чисел и выбирает знак или словесное отношение.",
+    },
+  },
+  math_houses: {
+    math_houses_practice: {
+      summary: "Отработка состава одного числа в домике.",
+      text: "Ребёнок подбирает недостающую часть пары и видит, как две части дают целое число.",
+      settings: ["Понятия выбираются на экране отбора: можно оставить только нужные числа."],
+      goal: "Ребёнок понимает состав выбранного числа и находит недостающую часть пары.",
+    },
+    math_houses_grow: {
+      summary: "Постепенное заполнение всех пар числа.",
+      text: "Ребёнок вспоминает пары состава числа в последовательности и удерживает несколько ответов подряд.",
+      settings: ["Понятия выбираются на экране отбора: используйте только числа, которые сейчас отрабатываются."],
+      goal: "Ребёнок перечисляет пары состава числа без постоянной зрительной подсказки.",
+    },
+  },
+  addition_subtraction: {
+    operation_action_from_sign: {
+      settings: ["Диапазон и величина изменения задают нагрузку; на первой ступени держите изменение маленьким.", "Ноль лучше включать позже, когда знак уже не путается."],
+      goal: "Ребёнок быстро связывает плюс с прибавить, а минус с убрать в обе стороны.",
+    },
+    operation_do_action: {
+      settings: ["Диапазон задаёт длину палки с фишками.", "Прибавить/убрать до задаёт максимальное изменение за ход.", "Ноль включайте только после уверенного действия с фишками."],
+      goal: "Ребёнок выполняет действие с фишками и понимает телесный смысл прибавления и вычитания.",
+    },
+    operation_name_action: {
+      settings: ["Диапазон и изменение задают сложность наблюдаемого действия.", "Знак намеренно не показывается: фокус на самом действии."],
+      goal: "Ребёнок по изменению количества называет, что сделали: прибавили или убрали.",
+    },
+    operation_more_less: {
+      settings: ["Диапазон задаёт количество фишек.", "Изменение лучше держать небольшим, чтобы ребёнок сравнивал было и стало."],
+      goal: "Ребёнок связывает прибавление с «стало больше», а вычитание с «стало меньше».",
+    },
+    operation_sign_from_action: {
+      settings: ["Диапазон и изменение регулируют сложность истории.", "Знак выбирается после действия, а не до него."],
+      goal: "Ребёнок выбирает плюс или минус по смыслу выполненного действия.",
+    },
+    operation_build_expression: {
+      settings: ["Диапазон задаёт числа в истории.", "Изменение задаёт размер прибавленной или убранной части."],
+      goal: "Ребёнок переносит историю было-сделали-стало в запись примера.",
+    },
+    operation_result: {
+      settings: ["Диапазон задаёт максимальный результат.", "Изменение задаёт, насколько далеко нужно прибавить или убрать.", "Ноль можно включать для отдельной отработки случаев с нулём."],
+      goal: "Ребёнок считает, сколько стало после прибавления или убирания.",
+    },
+    operation_missing_sign: {
+      settings: ["Диапазон и изменение задают сложность готового примера.", "Используйте после режимов с наглядным действием."],
+      goal: "Ребёнок выбирает знак операции по числам было, изменение и стало без наглядной подсказки.",
+    },
+  },
+  sentence_puzzle: {
+    sentence_puzzle: {
+      summary: "Сборка предложения по видимым словам.",
+      text: "Ребёнок выбирает карточки ролей и собирает фразу в правильном порядке.",
+      goal: "Ребёнок понимает структуру предложения и строит фразу кто + что делает, при необходимости с дополнениями.",
+    },
+    listen_build: {
+      summary: "Сборка предложения после прослушивания.",
+      text: "Ребёнок слушает фразу, удерживает её в памяти и собирает из карточек с лишними словами.",
+      goal: "Ребёнок удерживает услышанное предложение и восстанавливает его структуру без зрительного образца.",
+    },
+  },
+};
+
 function buildFlashcardModes(meta, existingModes) {
   const base = existingModes?.length
     ? mergeDefaultModes(existingModes, DEFAULT_FLASHCARD_MODES)
@@ -451,42 +681,142 @@ const MODE_ICON_FALLBACKS = {
   reading: {
     default: "media/icons/reading_mode.svg",
   },
+  sentence_puzzle: {
+    default: "media/icons/sentence_puzzle_mode.svg",
+  },
 };
 
 function normalizeTextValue(value, fallback = "") {
   if (value == null) return fallback;
+  if (Array.isArray(value)) {
+    const lines = value.map((item) => normalizeTextValue(item, "")).filter(Boolean);
+    return lines.length ? lines.join("\n") : fallback;
+  }
   if (typeof value === "string") return value;
-  if (typeof value === "object") return value.ru ?? value.en ?? fallback;
+  if (typeof value === "object") return normalizeTextValue(value.ru ?? value.en, fallback);
   return String(value);
 }
 
-function normalizeModeText(mode) {
-  const ui = mode.ui ?? {};
-  const methodology = mode.methodology
-    ? {
-        ...mode.methodology,
-        text: normalizeTextValue(mode.methodology.text, ""),
-        summary: normalizeTextValue(mode.methodology.summary, ""),
-        duration: normalizeTextValue(mode.methodology.duration, ""),
-        tips: Array.isArray(mode.methodology.tips)
-          ? mode.methodology.tips.map((tip) => normalizeTextValue(tip, "")).filter(Boolean)
-          : mode.methodology.tips,
-      }
-    : mode.methodology;
+function normalizeTextList(value, fallback = []) {
+  if (value == null) return fallback;
+  if (Array.isArray(value)) {
+    const out = value.map((item) => normalizeTextValue(item, "")).filter(Boolean);
+    return out.length ? out : fallback;
+  }
+  const single = normalizeTextValue(value, "");
+  return single ? [single] : fallback;
+}
+
+function getParamValueLabel(def, value) {
+  const labels = def?.labels?.ru ?? def?.labels ?? {};
+  return normalizeTextValue(labels?.[value], String(value));
+}
+
+function describeModeParams(params = {}) {
+  const rows = Object.entries(params).map(([key, def]) => {
+    const label = normalizeTextValue(def?.label, key);
+    const hint = normalizeTextValue(def?.hint, "");
+
+    if (def?.type === "concept_selector") {
+      return `${label || "Понятия"}: выберите карточки или понятия, которые нужны именно для этого занятия.`;
+    }
+
+    if (def?.type === "enum") {
+      const values = (def.values ?? []).map((value) => getParamValueLabel(def, value)).join(" / ");
+      const defaultText = def.default != null ? ` По умолчанию: ${getParamValueLabel(def, def.default)}.` : "";
+      return `${label}: ${values || "варианты выбираются на экране настроек"}.${defaultText}${hint ? ` ${hint}` : ""}`;
+    }
+
+    if (def?.type === "number") {
+      const range = [def.min, def.max].filter((value) => value != null).join("-");
+      const defaultText = def.default != null ? ` По умолчанию: ${def.default}.` : "";
+      return `${label}: ${range ? `диапазон ${range}` : "числовая настройка"}.${defaultText}${hint ? ` ${hint}` : ""}`;
+    }
+
+    if (def?.type === "boolean") {
+      const defaultText = def.default != null ? ` По умолчанию: ${def.default ? "включено" : "выключено"}.` : "";
+      return `${label}: включить или выключить.${defaultText}${hint ? ` ${hint}` : ""}`;
+    }
+
+    return `${label}: настройка режима.`;
+  }).filter(Boolean);
+
+  return rows.length
+    ? rows
+    : ["Дополнительных настроек нет: логопед работает в базовом сценарии режима."];
+}
+
+function getFallbackModeGoal(mode) {
+  const title = normalizeTextValue(mode?.ui?.title, "режим");
+  return `Ребёнок выполняет режим «${title}» стабильно и переносит навык в занятие без лишних подсказок.`;
+}
+
+function normalizeModeMethodology(mode, renderer) {
+  const defaults = DEFAULT_MODE_METHODOLOGY[renderer]?.[mode.id] ?? {};
+  const raw = { ...defaults, ...(mode.methodology ?? {}) };
+  const text = normalizeTextValue(raw.text ?? raw.description ?? mode.ui?.instruction, "");
+  const summary = normalizeTextValue(raw.summary, text || normalizeTextValue(mode.ui?.instruction, ""));
+  const settings = normalizeTextList(raw.settings, describeModeParams(mode.params));
+  const goal = normalizeTextValue(raw.goal ?? raw.finalGoal, getFallbackModeGoal(mode));
+  const tips = normalizeTextList(raw.tips, []);
+  const duration = normalizeTextValue(raw.duration, "");
 
   return {
+    ...raw,
+    text,
+    summary,
+    settings,
+    goal,
+    tips,
+    duration,
+  };
+}
+
+function normalizeTopicAbout(about, renderer) {
+  const defaults = DEFAULT_TOPIC_ABOUT[renderer] ?? DEFAULT_TOPIC_ABOUT.flashcards;
+  const aboutObject = about && typeof about === "object" && !Array.isArray(about) ? about : {};
+  const legacyLines = normalizeTextList(
+    Array.isArray(about) ? about : (aboutObject.ru ?? aboutObject.en),
+    []
+  );
+  const raw = { ...defaults, ...aboutObject };
+  const description = normalizeTextValue(raw.description ?? raw.text, legacyLines[0] ?? defaults.description);
+  const goals = normalizeTextList(raw.goals, defaults.goals ?? []);
+  const finalGoal = normalizeTextValue(raw.finalGoal ?? raw.goal, defaults.finalGoal);
+  const flowFallback = legacyLines.length > 1 ? legacyLines.slice(1) : defaults.flow ?? [];
+  const flow = normalizeTextList(raw.flow ?? raw.tips, flowFallback);
+  const duration = normalizeTextValue(raw.duration, "");
+
+  return {
+    ...raw,
+    description,
+    text: normalizeTextValue(raw.text, description),
+    goals,
+    finalGoal,
+    flow,
+    duration,
+  };
+}
+
+function normalizeModeText(mode, renderer) {
+  const ui = mode.ui ?? {};
+  const withUi = {
     ...mode,
     ui: {
       ...ui,
       title: normalizeTextValue(ui.title, mode.id),
       instruction: normalizeTextValue(ui.instruction, ""),
     },
-    methodology,
+  };
+
+  return {
+    ...withUi,
+    methodology: normalizeModeMethodology(withUi, renderer),
   };
 }
 
 function ensureModeIcons(modes = [], renderer) {
-  const normalizedModes = modes.map(normalizeModeText);
+  const normalizedModes = modes.map((mode) => normalizeModeText(mode, renderer));
   const fallback = MODE_ICON_FALLBACKS[renderer]?.default ?? null;
   if (!fallback) return normalizedModes;
   return normalizedModes.map((mode) => {
@@ -512,6 +842,7 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
       ...existing,
       ui:     { ...(def.ui ?? {}), ...(existing.ui ?? {}) },
       params: { ...(def.params ?? {}), ...(existing.params ?? {}) },
+      methodology: { ...(def.methodology ?? {}), ...(existing.methodology ?? {}) },
     };
   });
   const customModes = existingModes.filter((mode) => !defaultIds.has(mode.id));
@@ -530,6 +861,7 @@ function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
       ...mode,
       ui:     { ...(def.ui ?? {}), ...(mode.ui ?? {}) },
       params: { ...(def.params ?? {}), ...(mode.params ?? {}) },
+      methodology: { ...(def.methodology ?? {}), ...(mode.methodology ?? {}) },
     };
   });
   const missing = defaultModes.filter((m) => !manifestIds.has(m.id));
@@ -537,9 +869,13 @@ function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
 }
 
 function mergeDefaultMeta(meta, renderer) {
-  return {
+  const merged = {
     ...(DEFAULT_META[renderer] ?? {}),
     ...meta,
+  };
+  return {
+    ...merged,
+    about: normalizeTopicAbout(merged.about, renderer),
   };
 }
 
@@ -571,14 +907,19 @@ function normalizeFlashcards(manifest) {
 function normalizeProcedural(manifest) {
   if (manifest.meta.renderer === "reading") return manifest;
   // Infer meta.renderer from first card's renderer field
-  const firstRenderer = manifest.cards[0]?.renderer;
+  const firstRenderer = manifest.cards?.[0]?.renderer;
   const renderer = manifest.meta.renderer ?? RENDERER_MAP[firstRenderer] ?? firstRenderer ?? "comparison";
+  const knownRenderer =
+    !!DEFAULT_MODES[renderer]
+    || !!DEFAULT_META[renderer]
+    || !!DEFAULT_MODE_METHODOLOGY[renderer]
+    || !!MODE_ICON_FALLBACKS[renderer];
 
-  if (manifest.meta.cardType !== "procedural" && !DEFAULT_MODES[renderer]) return manifest;
+  if (manifest.meta.cardType !== "procedural" && !knownRenderer) return manifest;
 
   const meta = mergeDefaultMeta({ ...manifest.meta, renderer }, renderer);
 
-  const cards = manifest.cards.map((card) => ({
+  const cards = (manifest.cards ?? []).map((card) => ({
     ...card,
     conceptId: card.conceptId ?? card.id,
     primary:   card.primary   ?? true,

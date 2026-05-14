@@ -9,8 +9,14 @@ export function formatDate(isoString) {
 
 export function getTopicTitle(title, lang = "ru") {
   if (!title) return "";
+  if (Array.isArray(title)) {
+    return title.map((item) => getTopicTitle(item, lang)).filter(Boolean).join("\n");
+  }
   if (typeof title === "string") return title;
-  return title[lang] ?? title.ru ?? title.en ?? "";
+  if (typeof title === "object") {
+    return getTopicTitle(title[lang] ?? title.ru ?? title.en, lang);
+  }
+  return String(title);
 }
 
 export function getInitials(name) {
