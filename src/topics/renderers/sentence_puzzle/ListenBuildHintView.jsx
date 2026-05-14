@@ -58,7 +58,7 @@ export default function ListenBuildHintView({
   const [showError,     setShowError]     = useState(false);
   const [speaking,      setSpeaking]      = useState(false);
   const [activeCard,    setActiveCard]    = useState(null);
-  const [highlightType, setHighlightType] = useState(null);
+  const [highlightCardId, setHighlightCardId] = useState(null);
   const errorTimer     = useRef(null);
   const highlightTimer = useRef(null);
   const ttsCancel      = useRef(null);
@@ -67,7 +67,7 @@ export default function ListenBuildHintView({
 
   function startTts() {
     clearTimeout(highlightTimer.current);
-    setHighlightType(null);
+    setHighlightCardId(null);
     ttsCancel.current?.();
     ttsCancel.current = speakRu(sentenceText, {
       onStart: () => setSpeaking(true),
@@ -75,9 +75,11 @@ export default function ListenBuildHintView({
       onWord:  (wordIdx) => {
         const slotType = slotTypes[wordIdx] ?? null;
         if (!slotType) return;
+        const cardId = task.target[slotType]?.id ?? null;
+        if (!cardId) return;
         clearTimeout(highlightTimer.current);
-        setHighlightType(slotType);
-        highlightTimer.current = setTimeout(() => setHighlightType(null), 600);
+        setHighlightCardId(cardId);
+        highlightTimer.current = setTimeout(() => setHighlightCardId(null), 600);
       },
     });
   }
@@ -93,6 +95,7 @@ export default function ListenBuildHintView({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => {
+    clearTimeout(errorTimer.current);
     clearTimeout(errorTimer.current);
     clearTimeout(highlightTimer.current);
     ttsCancel.current?.();
@@ -180,7 +183,7 @@ export default function ListenBuildHintView({
             cards={pool}
             structure={task.structure}
             colorless={true}
-            highlightType={highlightType}
+            highlightCardId={highlightCardId}
           />
 
         </div>

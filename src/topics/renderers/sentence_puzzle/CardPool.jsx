@@ -48,7 +48,7 @@ function DraggableCard({ card, structure, colorless = false, highlighted = false
   );
 }
 
-export default function CardPool({ cards, structure, colorless = false, highlightType = null }) {
+export default function CardPool({ cards, structure, colorless = false, highlightCardId = null }) {
   return (
     <div className="sp-pool">
       {cards.map((card) => (
@@ -57,7 +57,7 @@ export default function CardPool({ cards, structure, colorless = false, highligh
           card={card}
           structure={structure}
           colorless={colorless}
-          highlighted={card.type === highlightType}
+          highlighted={card.id === highlightCardId}
         />
       ))}
     </div>
