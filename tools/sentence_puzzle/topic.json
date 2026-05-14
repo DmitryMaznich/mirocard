@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.9.8",
+    "version": "1.9.9",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений",
     "avatar": "media/avatar_sentence_puzzle.svg",
@@ -119,7 +119,49 @@
     { "id": "f07", "group": "base", "subject": "girl",    "verb": "wash",   "adjective": "clean", "object": "plate" },
     { "id": "f08", "group": "base", "subject": "girl",    "verb": "search", "adjective": "small", "object": "cup"   },
     { "id": "f09", "group": "base", "subject": "grandma", "verb": "carry",  "adjective": "big",   "object": "plate" },
-    { "id": "f10", "group": "base", "subject": "grandpa", "verb": "take",   "adjective": "dirty", "object": "spoon" }
+    { "id": "f10", "group": "base", "subject": "grandpa", "verb": "take",   "adjective": "dirty", "object": "spoon" },
+
+    { "id": "s_oc01", "group": "open_close", "subject": "mom",     "verb": "open_v"  },
+    { "id": "s_oc02", "group": "open_close", "subject": "mom",     "verb": "close_v" },
+    { "id": "s_oc03", "group": "open_close", "subject": "dad",     "verb": "open_v"  },
+    { "id": "s_oc04", "group": "open_close", "subject": "dad",     "verb": "close_v" },
+    { "id": "s_oc05", "group": "open_close", "subject": "dad",     "verb": "fix_v"   },
+    { "id": "s_oc06", "group": "open_close", "subject": "boy",     "verb": "open_v"  },
+    { "id": "s_oc07", "group": "open_close", "subject": "boy",     "verb": "close_v" },
+    { "id": "s_oc08", "group": "open_close", "subject": "girl",    "verb": "open_v"  },
+    { "id": "s_oc09", "group": "open_close", "subject": "grandma", "verb": "close_v" },
+    { "id": "s_oc10", "group": "open_close", "subject": "grandpa", "verb": "fix_v"   },
+
+    { "id": "f_oc01", "group": "open_close", "subject": "mom",     "verb": "open_v",  "adjective": "heavy",    "object": "door"   },
+    { "id": "f_oc02", "group": "open_close", "subject": "dad",     "verb": "close_v", "adjective": "glass_adj","object": "bottle" },
+    { "id": "f_oc03", "group": "open_close", "subject": "boy",     "verb": "open_v",  "adjective": "full",     "object": "jar"    },
+    { "id": "f_oc04", "group": "open_close", "subject": "girl",    "verb": "fix_v",   "adjective": "heavy",    "object": "bag"    },
+    { "id": "f_oc05", "group": "open_close", "subject": "mom",     "verb": "open_v",  "adjective": "dad_adj",  "object": "door"   },
+    { "id": "f_oc06", "group": "open_close", "subject": "dad",     "verb": "close_v", "adjective": "mom_adj",  "object": "bag"    },
+    { "id": "f_oc07", "group": "open_close", "subject": "grandma", "verb": "open_v",  "adjective": "glass_adj","object": "jar"    },
+    { "id": "f_oc08", "group": "open_close", "subject": "grandpa", "verb": "close_v", "adjective": "heavy",    "object": "bottle" },
+
+    { "id": "s_t01", "group": "tidy", "subject": "mom",     "verb": "put_v"   },
+    { "id": "s_t02", "group": "tidy", "subject": "mom",     "verb": "tidy_v"  },
+    { "id": "s_t03", "group": "tidy", "subject": "dad",     "verb": "place_v" },
+    { "id": "s_t04", "group": "tidy", "subject": "dad",     "verb": "hang_v"  },
+    { "id": "s_t05", "group": "tidy", "subject": "boy",     "verb": "fold_v"  },
+    { "id": "s_t06", "group": "tidy", "subject": "boy",     "verb": "clean_v" },
+    { "id": "s_t07", "group": "tidy", "subject": "girl",    "verb": "put_v"   },
+    { "id": "s_t08", "group": "tidy", "subject": "girl",    "verb": "hang_v"  },
+    { "id": "s_t09", "group": "tidy", "subject": "grandma", "verb": "tidy_v"  },
+    { "id": "s_t10", "group": "tidy", "subject": "grandpa", "verb": "fold_v"  },
+
+    { "id": "f_t01", "group": "tidy", "subject": "mom",     "verb": "put_v",   "adjective": "full",     "object": "bottle" },
+    { "id": "f_t02", "group": "tidy", "subject": "boy",     "verb": "hang_v",  "adjective": "mom_adj",  "object": "bag"    },
+    { "id": "f_t03", "group": "tidy", "subject": "dad",     "verb": "place_v", "adjective": "heavy",    "object": "jar"    },
+    { "id": "f_t04", "group": "tidy", "subject": "girl",    "verb": "tidy_v",  "adjective": "glass_adj","object": "bottle" },
+    { "id": "f_t05", "group": "tidy", "subject": "boy",     "verb": "fold_v",  "adjective": "dad_adj",  "object": "bag"    },
+    { "id": "f_t06", "group": "tidy", "subject": "grandma", "verb": "put_v",   "adjective": "full",     "object": "jar"    },
+    { "id": "f_t07", "group": "tidy", "subject": "grandpa", "verb": "clean_v", "adjective": "heavy",    "object": "bottle" },
+    { "id": "f_t08", "group": "tidy", "subject": "girl",    "verb": "place_v", "adjective": "mom_adj",  "object": "bag"    },
+    { "id": "f_t09", "group": "tidy", "subject": "dad",     "verb": "put_v",   "adjective": "heavy",    "object": "book"   },
+    { "id": "f_t10", "group": "tidy", "subject": "grandpa", "verb": "tidy_v",  "adjective": "dirty",    "object": "plate"  }
   ],
   "cards": [
     { "id": "mom",     "type": "subject",   "label": "Мама",      "emoji": "👩" },
@@ -145,6 +187,28 @@
     { "id": "book",    "group": "base", "type": "object", "label": "книгу",    "nominative": "книга",   "emoji": "📕", "image": "media/cards/book_1.webp"  },
     { "id": "spoon",   "group": "base", "type": "object", "label": "ложку",    "nominative": "ложка",   "emoji": "🥄", "image": "media/cards/spoon_1.webp" },
     { "id": "plate",   "group": "base", "type": "object", "label": "тарелку",  "nominative": "тарелка", "emoji": "🍽️", "image": "media/cards/plate_1.webp" },
-    { "id": "toy",     "group": "base", "type": "object", "label": "игрушку",  "nominative": "игрушка", "emoji": "🧸", "image": "media/cards/toy_1.webp"   }
+    { "id": "toy",     "group": "base", "type": "object", "label": "игрушку",  "nominative": "игрушка", "emoji": "🧸", "image": "media/cards/toy_1.webp"   },
+
+    { "id": "open_v",    "group": "open_close", "type": "verb",      "label": "открывает",  "emoji": "🚪", "image": "media/cards/open_v_1.webp"    },
+    { "id": "close_v",   "group": "open_close", "type": "verb",      "label": "закрывает",  "emoji": "🔒", "image": "media/cards/close_v_1.webp"   },
+    { "id": "fix_v",     "group": "open_close", "type": "verb",      "label": "чинит",      "emoji": "🔧", "image": "media/cards/fix_v_1.webp"     },
+    { "id": "put_v",     "group": "tidy",       "type": "verb",      "label": "кладёт",     "emoji": "📥", "image": "media/cards/put_v_1.webp"     },
+    { "id": "place_v",   "group": "tidy",       "type": "verb",      "label": "ставит",     "emoji": "🧴", "image": "media/cards/place_v_1.webp"   },
+    { "id": "hang_v",    "group": "tidy",       "type": "verb",      "label": "вешает",     "emoji": "🪝", "image": "media/cards/hang_v_1.webp"    },
+    { "id": "fold_v",    "group": "tidy",       "type": "verb",      "label": "складывает", "emoji": "👕", "image": "media/cards/fold_v_1.webp"    },
+    { "id": "tidy_v",    "group": "tidy",       "type": "verb",      "label": "убирает",    "emoji": "🧹", "image": "media/cards/tidy_v_1.webp"    },
+    { "id": "clean_v",   "group": "tidy",       "type": "verb",      "label": "чистит",     "emoji": "🪥", "image": "media/cards/clean_v_1.webp"   },
+
+    { "id": "door",      "group": "open_close", "type": "object",    "label": "дверь",      "nominative": "дверь",   "emoji": "🚪", "image": "media/cards/door_1.webp"    },
+    { "id": "window",    "group": "open_close", "type": "object",    "label": "окно",       "nominative": "окно",    "emoji": "🪟", "image": "media/cards/window_1.webp"  },
+    { "id": "bag",       "group": "tidy",       "type": "object",    "label": "сумку",      "nominative": "сумка",   "emoji": "👜", "image": "media/cards/bag_1.webp"     },
+    { "id": "bottle",    "group": "tidy",       "type": "object",    "label": "бутылку",    "nominative": "бутылка", "emoji": "🧴", "image": "media/cards/bottle_1.webp"  },
+    { "id": "jar",       "group": "tidy",       "type": "object",    "label": "банку",      "nominative": "банка",   "emoji": "🫙", "image": "media/cards/jar_1.webp"     },
+
+    { "id": "heavy",     "group": "open_close", "type": "adjective", "label": "тяжёлую",    "emoji": "🏋️", "image": "media/cards/heavy_1.webp"     },
+    { "id": "glass_adj", "group": "open_close", "type": "adjective", "label": "стеклянную", "emoji": "🪟", "image": "media/cards/glass_adj_1.webp" },
+    { "id": "full",      "group": "tidy",       "type": "adjective", "label": "полную",     "emoji": "🔋", "image": "media/cards/full_1.webp"      },
+    { "id": "mom_adj",   "group": "tidy",       "type": "adjective", "label": "мамину",     "emoji": "👩" },
+    { "id": "dad_adj",   "group": "tidy",       "type": "adjective", "label": "папину",     "emoji": "👨" }
   ]
 }
