@@ -291,21 +291,27 @@ function LiveBeadTool({ task, initialWorkCount = task.start, disabled, onAnswer,
   );
 }
 
-function OperationExpression({ task, missingSign = false, missingResult = false, answered = false }) {
+function OperationExpression({ task, missingSign = false, missingResult = false, answered = false, activeParts = [] }) {
   const popCls = answered
     ? `operation-expression__result--pop${task.operation === "subtract" ? "-sub" : ""}`
     : "";
+  const isActive = (part) => activeParts.includes(part);
+  const partClass = (part, extra = "") => [
+    extra,
+    isActive(part) ? "operation-expression__part--active" : "",
+  ].filter(Boolean).join(" ");
+
   return (
     <div className="operation-expression" aria-label="пример">
-      <span className="operation-expression__number">{task.start}</span>
-      <span className={`operation-expression__sign operation-expression__sign--${task.operation}`}>
+      <span className={partClass("start", "operation-expression__number")}>{task.start}</span>
+      <span className={partClass("sign", `operation-expression__sign operation-expression__sign--${task.operation}`)}>
         {missingSign ? "?" : task.sign}
       </span>
-      <span className="operation-expression__number">{task.delta}</span>
+      <span className={partClass("delta", "operation-expression__number")}>{task.delta}</span>
       <span className="operation-expression__equals">=</span>
       <span
         key={answered ? "ans" : "open"}
-        className={["operation-expression__number", "operation-expression__result", popCls].filter(Boolean).join(" ")}
+        className={partClass("result", ["operation-expression__number", "operation-expression__result", popCls].filter(Boolean).join(" "))}
       >
         {missingResult ? "?" : task.result}
       </span>
@@ -410,10 +416,11 @@ function NumberChoices({ task, selected, onAnswer }) {
 }
 
 function NumberPad({ maxNumber, answer, selected, onAnswer }) {
-  const values = Array.from({ length: maxNumber + 1 }, (_, value) => value);
+  const values = Array.from({ length: maxNumber }, (_, index) => index + 1);
+  const answerValues = answer === 0 ? [0, ...values] : values;
   return (
-    <div className="operation-number-grid operation-number-grid--pad">
-      {values.map((value) => {
+    <div className={`operation-number-grid operation-number-grid--pad operation-number-grid--pad-${maxNumber}${answer === 0 ? " operation-number-grid--pad-has-zero" : ""}`}>
+      {answerValues.map((value) => {
         const isSelected = selected === value;
         const isCorrect = selected != null && value === answer;
         const isWrong = isSelected && value !== answer;
@@ -464,14 +471,26 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
   }
 
   const prompt = phase === "setup"
-    ? `Поставь ${task.start}. Сначала посчитай, сколько было.`
+    ? `Покажи ${task.start} на палке`
     : phase === "action"
-      ? `${actionWord} ${task.delta} по знаку ${task.sign}.`
-      : "Сколько стало? Посчитай фишки в рабочей зоне.";
+      ? `${actionWord} ${task.delta}`
+      : "Нажми сколько стало";
+  const activeExpressionParts = phase === "setup"
+    ? ["start"]
+    : phase === "action"
+      ? ["sign", "delta"]
+      : selectedResult == null
+        ? ["result"]
+        : [];
 
   return (
     <div className="operation-stage operation-stage--stick">
-      <OperationExpression task={task} missingResult={!isFinalAnswerCorrect} answered={isFinalAnswerCorrect} />
+      <OperationExpression
+        task={task}
+        missingResult={!isFinalAnswerCorrect}
+        answered={isFinalAnswerCorrect}
+        activeParts={activeExpressionParts}
+      />
       <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
         {prompt}
       </div>
