@@ -199,6 +199,7 @@ export default function ListenBuildHintView({
                 label={activeCard.label}
                 photo={activeCard.photo ?? null}
                 isEmpty={false}
+                colorless={true}
               />
             </div>
           )}
