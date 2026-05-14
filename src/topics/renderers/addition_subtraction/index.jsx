@@ -9,11 +9,6 @@ import {
   isStickComplete,
 } from "./stickModel";
 
-const ACTION_OPTIONS = [
-  { value: "add", label: "Прибавили" },
-  { value: "remove", label: "Убрали" },
-];
-
 const ACTION_MEANING_OPTIONS = [
   { value: "add", label: "Прибавить" },
   { value: "remove", label: "Убрать" },
@@ -24,129 +19,12 @@ const SIGN_OPTIONS = [
   { value: "-", label: "-" },
 ];
 
-const DIRECTION_OPTIONS = [
-  { value: "more", label: "Больше" },
-  { value: "less", label: "Меньше" },
-];
-
-function getActionWord(task) {
-  return task.operation === "add" ? "прибавили" : "убрали";
-}
-
 function getActionInfinitive(task) {
   return task.operation === "add" ? "Прибавить" : "Убрать";
 }
 
-function getDirectionAnswer(task) {
-  return task.result > task.start ? "more" : "less";
-}
-
 function getRightLabel(task) {
   return task.operation === "add" ? "Берём отсюда" : "Сюда убираем";
-}
-
-function getRailState(task, phase = "result", moved = null) {
-  if (moved != null) {
-    return {
-      leftCount: task.operation === "add" ? task.start + moved : task.start - moved,
-      rightCount: task.operation === "add" ? task.delta - moved : moved,
-      highlightLeftFrom: task.operation === "add" && moved > 0 ? task.start : null,
-      highlightRight: task.operation === "subtract" && moved > 0,
-    };
-  }
-
-  if (phase === "start") {
-    return {
-      leftCount: task.start,
-      rightCount: task.operation === "add" ? task.delta : 0,
-      highlightLeftFrom: null,
-      highlightRight: false,
-    };
-  }
-
-  return {
-    leftCount: task.result,
-    rightCount: task.operation === "add" ? 0 : task.delta,
-    highlightLeftFrom: task.operation === "add" ? task.start : null,
-    highlightRight: task.operation === "subtract",
-  };
-}
-
-function OperationRail({ task, title, phase = "result", moved = null, compact = false }) {
-  const state = getRailState(task, phase, moved);
-  const gapSlots = 5;
-  const rightSlots = Math.max(task.delta, 2);
-  const totalColumns = task.maxNumber + gapSlots + rightSlots;
-  const rightStart = task.maxNumber + gapSlots + 1;
-  const leftBeads = Array.from({ length: state.leftCount }, (_, index) => ({
-    id: `left-${index}`,
-    moved: state.highlightLeftFrom != null && index >= state.highlightLeftFrom,
-  }));
-  const rightBeads = Array.from({ length: state.rightCount }, (_, index) => ({
-    id: `right-${index}`,
-    moved: state.highlightRight,
-    column: rightStart + index,
-  }));
-
-  return (
-    <div className={`operation-zone-rail${compact ? " operation-zone-rail--compact" : ""}`}>
-      {title && <div className="operation-zone-rail__title">{title}</div>}
-      <div className="operation-zone-rail__labels">
-        <span>Рабочая зона: {state.leftCount}</span>
-        <span>{getRightLabel(task)}: {state.rightCount}</span>
-      </div>
-      <div
-        className={`operation-rail operation-rail--${task.operation}`}
-        aria-label={`${title ?? "Фишки"}: рабочая зона ${state.leftCount}, правая зона ${state.rightCount}`}
-        style={{ "--rail-columns": `${totalColumns}` }}
-      >
-        <div className="operation-rail__line" />
-        <div className="operation-rail__track">
-          {leftBeads.map((bead, index) => (
-            <span
-              key={bead.id}
-              className={[
-                "operation-bead",
-                "operation-bead--left",
-                bead.moved ? "operation-bead--moved" : "",
-              ].filter(Boolean).join(" ")}
-              style={{ gridColumn: index + 1 }}
-              aria-hidden="true"
-            />
-          ))}
-          <div
-            className={`operation-rail__gap operation-rail__gap--${task.operation === "add" ? "left" : "right"}`}
-            style={{ gridColumn: `${task.maxNumber + 1} / span ${gapSlots}` }}
-            aria-hidden="true"
-          >
-            {task.operation === "add" ? "←" : "→"}
-          </div>
-          {rightBeads.map((bead) => (
-            <span
-              key={bead.id}
-              className={[
-                "operation-bead",
-                "operation-bead--right",
-                task.operation === "add" ? "operation-bead--source" : "",
-                bead.moved ? "operation-bead--moved" : "",
-              ].filter(Boolean).join(" ")}
-              style={{ gridColumn: bead.column }}
-              aria-hidden="true"
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function OperationStory({ task, compact = false }) {
-  return (
-    <div className={`operation-rail-story${compact ? " operation-rail-story--compact" : ""}`}>
-      <OperationRail task={task} title="Было" phase="start" compact={compact} />
-      <OperationRail task={task} title="Стало" phase="result" compact={compact} />
-    </div>
-  );
 }
 
 function LiveBeadTool({ task, initialWorkCount = task.start, disabled, onAnswer, onMistake, onMove }) {
@@ -347,15 +225,6 @@ function getSignActionLinkPrompt(task) {
       </div>
     ),
   };
-}
-
-function ActionCard({ task }) {
-  return (
-    <div className={`operation-action-card operation-action-card--${task.operation}`}>
-      <div className="operation-action-card__verb">{getActionWord(task)}</div>
-      <div className="operation-action-card__amount">{task.delta}</div>
-    </div>
-  );
 }
 
 function ChoiceGrid({ options, selected, answer, onAnswer, variant }) {
@@ -748,41 +617,6 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
     return <PlaceholderTask />;
   }
 
-  if (type === "operation_more_less") {
-    return (
-      <div className="operation-stage">
-        <OperationStory task={task} />
-        <div className="operation-caption">
-          Было {task.start}, стало {task.result}. Как изменилось количество?
-        </div>
-        <ChoiceGrid
-          options={DIRECTION_OPTIONS}
-          selected={selected}
-          answer={getDirectionAnswer(task)}
-          onAnswer={(value) => finish(value, getDirectionAnswer(task))}
-        />
-      </div>
-    );
-  }
-
-  if (type === "operation_sign_from_action") {
-    return (
-      <div className="operation-stage">
-        <ActionCard task={task} />
-        <OperationStory task={task} compact />
-        <div className="operation-caption">
-          {getActionWord(task)} {task.delta}. Какой знак подходит?
-        </div>
-        <ChoiceGrid
-          options={SIGN_OPTIONS}
-          selected={selected}
-          answer={task.sign}
-          onAnswer={(value) => finish(value, task.sign)}
-        />
-      </div>
-    );
-  }
-
   if (type === "operation_action_from_sign") {
     const prompt = getSignActionLinkPrompt(task);
 
@@ -800,41 +634,6 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
     );
   }
 
-  if (type === "operation_build_expression") {
-    return (
-      <div className="operation-stage">
-        <OperationStory task={task} compact />
-        <OperationExpression task={task} missingSign />
-        <div className="operation-caption">
-          Собери пример: какой знак поставить?
-        </div>
-        <ChoiceGrid
-          options={SIGN_OPTIONS}
-          selected={selected}
-          answer={task.sign}
-          onAnswer={(value) => finish(value, task.sign)}
-        />
-      </div>
-    );
-  }
-
-  if (type === "operation_missing_sign") {
-    return (
-      <div className="operation-stage">
-        <OperationExpression task={task} missingSign />
-        <div className="operation-caption">
-          Без подсказки: какой знак подходит?
-        </div>
-        <ChoiceGrid
-          options={SIGN_OPTIONS}
-          selected={selected}
-          answer={task.sign}
-          onAnswer={(value) => finish(value, task.sign)}
-        />
-      </div>
-    );
-  }
-
   if (type === "operation_find_sign") {
     return <FindSignTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
@@ -847,20 +646,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
     return <ChainTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
 
-  return (
-    <div className="operation-stage">
-      <OperationStory task={task} compact />
-      <OperationExpression task={task} missingResult />
-      <div className="operation-caption">
-        Посчитай, сколько стало.
-      </div>
-      <NumberChoices
-        task={task}
-        selected={selected}
-        onAnswer={(value) => finish(value, task.result)}
-      />
-    </div>
-  );
+  return null;
 }
 
 export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake }) {
