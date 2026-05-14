@@ -176,6 +176,7 @@ export default function ListenBuildHintView({
               rowIndex={0}
               structure={task.structure}
               placed={placed}
+              colorless={true}
             />
           </div>
 

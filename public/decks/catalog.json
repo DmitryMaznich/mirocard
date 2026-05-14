@@ -119,7 +119,7 @@
     },
     {
       "id": "sentence_puzzle",
-      "version": "1.9.2",
+      "version": "1.9.3",
       "title": {
         "ru": "Конструктор предложений",
         "en": "Sentence Builder"
@@ -128,7 +128,7 @@
         "ru": "Собираем пазл из слов и слушаем предложения. Цветовое кодирование ролей.",
         "en": "Assemble sentences from word cards. Color-coded roles. Listen-and-build mode."
       },
-      "url": "./decks/sentence_puzzle_v1.9.2.zip"
+      "url": "./decks/sentence_puzzle_v1.9.3.zip"
     }
   ]
 }

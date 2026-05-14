@@ -6,7 +6,7 @@ export const SLOT_TYPES = {
   full:   ["subject", "verb", "adjective", "object"],
 };
 
-function Slot({ rowIndex, slotType, card, position, structure, result }) {
+function Slot({ rowIndex, slotType, card, position, structure, result, colorless }) {
   const { isOver, setNodeRef } = useDroppable({
     id:   `${rowIndex}_${slotType}`,
     data: { rowIndex, slotType },
@@ -37,12 +37,13 @@ function Slot({ rowIndex, slotType, card, position, structure, result }) {
         isEmpty={!card}
         isOver={isOver}
         scalable
+        colorless={colorless}
       />
     </div>
   );
 }
 
-export default function SentenceRow({ rowIndex, structure, placed, slotResults }) {
+export default function SentenceRow({ rowIndex, structure, placed, slotResults, colorless = false }) {
   const slots = SLOT_TYPES[structure] ?? SLOT_TYPES.simple;
 
   return (
@@ -56,6 +57,7 @@ export default function SentenceRow({ rowIndex, structure, placed, slotResults }
           position={i}
           structure={structure}
           result={slotResults?.[slotType] ?? null}
+          colorless={colorless}
         />
       ))}
     </div>

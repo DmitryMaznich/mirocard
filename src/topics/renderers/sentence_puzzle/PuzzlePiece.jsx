@@ -9,13 +9,13 @@ const TAB_Y1 = 22;
 const TAB_Y2 = 48;
 
 export const PIECE_COLORS = {
-  subject:   { fill: "#ffffff", stroke: "#d1d5db", text: "#374151" },
-  verb:      { fill: "#ffffff", stroke: "#d1d5db", text: "#374151" },
-  adjective: { fill: "#ffffff", stroke: "#d1d5db", text: "#374151" },
-  object:    { fill: "#ffffff", stroke: "#d1d5db", text: "#374151" },
+  subject:   { fill: "#dbeafe", stroke: "#4a90d9", text: "#1a5ca8" },
+  verb:      { fill: "#d1fae5", stroke: "#4a9b8f", text: "#1b6b62" },
+  adjective: { fill: "#fef3c7", stroke: "#f59e0b", text: "#92400e" },
+  object:    { fill: "#ede9fe", stroke: "#8b5cf6", text: "#4c1d95" },
 };
 
-const COLORLESS = { fill: "#f3f4f6", stroke: "#9ca3af", text: "#4b5563" };
+const COLORLESS = { fill: "#ffffff", stroke: "#d1d5db", text: "#374151" };
 
 // Returns { left: "flat"|"notch", right: "flat"|"tab" }
 export function getPieceConnectors(slotType, structure) {
