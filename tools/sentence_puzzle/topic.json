@@ -1,10 +1,15 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.9.7",
+    "version": "1.9.8",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений",
-    "avatar": "media/avatar_sentence_puzzle.svg"
+    "avatar": "media/avatar_sentence_puzzle.svg",
+    "groups": {
+      "base":       { "ru": "Базовый" },
+      "open_close": { "ru": "Открывает–закрывает" },
+      "tidy":       { "ru": "Кладёт–убирает" }
+    }
   },
   "modes": [
     {
@@ -43,13 +48,6 @@
         "icon": "media/icons/listen_build_mode.svg"
       },
       "params": {
-        "set": {
-          "type": "enum",
-          "label": { "ru": "Набор слов" },
-          "values": ["base", "open_close", "tidy"],
-          "labels": { "ru": { "base": "Базовый", "open_close": "Открывает–закрывает", "tidy": "Кладёт–убирает" } },
-          "default": "base"
-        },
         "structure": {
           "type": "enum",
           "label": { "ru": "Структура" },
@@ -76,13 +74,6 @@
         "icon": "media/icons/listen_build_mode.svg"
       },
       "params": {
-        "set": {
-          "type": "enum",
-          "label": { "ru": "Набор слов" },
-          "values": ["base", "open_close", "tidy"],
-          "labels": { "ru": { "base": "Базовый", "open_close": "Открывает–закрывает", "tidy": "Кладёт–убирает" } },
-          "default": "base"
-        },
         "structure": {
           "type": "enum",
           "label": { "ru": "Структура" },

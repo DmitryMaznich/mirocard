@@ -52,7 +52,8 @@ export function useSessionEngine() {
     } else if (renderer === "sentence_puzzle") {
       const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
       const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
-      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent) : [];
+      const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;
+      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent, spSelected) : [];
     } else {
       const generateTasks = ENGINE_REGISTRY[renderer];
       const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;

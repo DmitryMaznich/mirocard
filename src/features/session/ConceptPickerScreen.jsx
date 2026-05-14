@@ -48,10 +48,21 @@ export default function ConceptPickerScreen() {
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const concepts    = topicRecord ? deriveConcepts(topicRecord.cards) : [];
 
+  const groupMeta      = topicRecord?.meta?.groups ?? null;
+  const availableGroups = groupMeta ? Object.keys(groupMeta) : [];
+
   const linkKey = `${activeStudentId}_${activeTopicId}`;
   const saved   = studentTopicLinks[linkKey]?.selectedConceptIds ?? concepts.map((c) => c.conceptId);
 
-  const [selected, setSelected] = useState(new Set(saved));
+  const [selected, setSelected]   = useState(new Set(saved));
+  const [activeGroup, setActiveGroup] = useState(null);
+
+  const filteredConcepts = activeGroup
+    ? concepts.filter((c) => c.primary?.group === activeGroup)
+    : concepts;
+
+  const allFilteredSelected = filteredConcepts.length > 0 &&
+    filteredConcepts.every((c) => selected.has(c.conceptId));
 
   function toggle(cid) {
     setSelected((s) => {
@@ -62,8 +73,13 @@ export default function ConceptPickerScreen() {
     });
   }
 
-  function selectAll()  { setSelected(new Set(concepts.map((c) => c.conceptId))); }
-  function selectNone() { setSelected(new Set()); }
+  function selectAll()  {
+    setSelected((s) => new Set([...s, ...filteredConcepts.map((c) => c.conceptId)]));
+  }
+  function selectNone() {
+    const ids = new Set(filteredConcepts.map((c) => c.conceptId));
+    setSelected((s) => new Set([...s].filter((id) => !ids.has(id))));
+  }
 
   function confirm() {
     persistStudentTopicLink(activeStudentId, activeTopicId, {
@@ -78,12 +94,33 @@ export default function ConceptPickerScreen() {
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("params")}>←</button>
         <h1 className="screen-title">Понятия ({selected.size})</h1>
-        <button className="header-action-btn" onClick={selected.size === concepts.length ? selectNone : selectAll}>
-          {selected.size === concepts.length ? "−" : "✓"}
+        <button className="header-action-btn" onClick={allFilteredSelected ? selectNone : selectAll}>
+          {allFilteredSelected ? "−" : "✓"}
         </button>
       </div>
+
+      {groupMeta && availableGroups.length > 0 && (
+        <div className="concept-group-filter">
+          <button
+            className={`group-filter-btn${activeGroup === null ? " group-filter-btn--active" : ""}`}
+            onClick={() => setActiveGroup(null)}
+          >
+            Все
+          </button>
+          {availableGroups.map((gid) => (
+            <button
+              key={gid}
+              className={`group-filter-btn${activeGroup === gid ? " group-filter-btn--active" : ""}`}
+              onClick={() => setActiveGroup(gid)}
+            >
+              {groupMeta[gid]?.ru ?? gid}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="concept-grid">
-        {concepts.map((concept) => {
+        {filteredConcepts.map((concept) => {
           const level = computeConceptLevel(sessions, activeStudentId, activeTopicId, concept.conceptId);
           return (
             <ConceptCard

@@ -12933,6 +12933,33 @@ kbd {
   hyphens: auto;
 }
 
+/* ─── Concept picker group filter ───────────────────────────────────────── */
+.concept-group-filter {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.group-filter-btn {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.group-filter-btn--active {
+  background: #4a9b8f;
+  border-color: #4a9b8f;
+  color: #fff;
+}
+
 /* ─── History ────────────────────────────────────────────────────────────── */
 .history-list { list-style: none; margin: 0; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .history-item {

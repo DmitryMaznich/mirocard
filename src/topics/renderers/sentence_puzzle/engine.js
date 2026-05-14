@@ -12,16 +12,17 @@ function adultsFromStudent(student) {
   }));
 }
 
-export function generateTasks(mode, topicRecord, sessionParams, student = null) {
+export function generateTasks(mode, topicRecord, sessionParams, student = null, selectedConceptIds = null) {
   const cards = topicRecord.cards ?? [];
+  const selectedIds = selectedConceptIds?.length ? new Set(selectedConceptIds) : null;
 
   if (mode.type === "sentence_puzzle") {
     return [{
       type:       "sentence_puzzle",
       subjects:   cards.filter((c) => c.type === "subject"),
-      verbs:      cards.filter((c) => c.type === "verb"),
-      adjectives: cards.filter((c) => c.type === "adjective"),
-      objects:    cards.filter((c) => c.type === "object"),
+      verbs:      cards.filter((c) => c.type === "verb" && (!selectedIds || selectedIds.has(c.id))),
+      adjectives: cards.filter((c) => c.type === "adjective" && (!selectedIds || selectedIds.has(c.id))),
+      objects:    cards.filter((c) => c.type === "object" && (!selectedIds || selectedIds.has(c.id))),
     }];
   }
 
@@ -33,12 +34,13 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null) 
       ? ["subject", "verb"]
       : ["subject", "verb", "adjective", "object"];
 
-    const group = sessionParams?.set ?? "base";
-
-    const sentences = (topicRecord.sentences ?? []).filter((s) =>
-      (isSimple ? (!s.adjective && !s.object) : (s.adjective && s.object)) &&
-      (s.group ?? "base") === group
-    );
+    const sentences = (topicRecord.sentences ?? []).filter((s) => {
+      if (isSimple ? (s.adjective || s.object) : (!s.adjective || !s.object)) return false;
+      if (!selectedIds) return true;
+      if (!selectedIds.has(s.verb)) return false;
+      if (!isSimple && (!selectedIds.has(s.adjective) || !selectedIds.has(s.object))) return false;
+      return true;
+    });
 
     const cardById   = Object.fromEntries(cards.map((c) => [c.id, c]));
     const adultCards = adultsFromStudent(student);
@@ -59,7 +61,7 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null) 
           const others = cards.filter((c) =>
             c.type === slotType &&
             c.id !== correct.id &&
-            (c.type === "subject" || (c.group ?? "base") === group)
+            (c.type === "subject" || !selectedIds || selectedIds.has(c.id))
           );
           pool.push(correct, ...shuffle([...others]).slice(0, distractors));
         }
