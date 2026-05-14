@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.9.9",
+    "version": "1.9.10",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений",
     "avatar": "media/avatar_sentence_puzzle.svg",
@@ -57,9 +57,9 @@
         },
         "distractors": {
           "type": "enum",
-          "label": { "ru": "Лишних слов в наборе" },
+          "label": { "ru": "Дистракторов" },
           "values": [1, 2, 3],
-          "labels": { "ru": { "1": "1 лишнее", "2": "2 лишних", "3": "3 лишних" } },
+          "labels": { "ru": { "1": "1×4", "2": "2×4", "3": "3×4" } },
           "default": 2
         }
       }
@@ -83,9 +83,9 @@
         },
         "distractors": {
           "type": "enum",
-          "label": { "ru": "Лишних слов в наборе" },
+          "label": { "ru": "Дистракторов" },
           "values": [1, 2, 3],
-          "labels": { "ru": { "1": "1 лишнее", "2": "2 лишних", "3": "3 лишних" } },
+          "labels": { "ru": { "1": "1×4", "2": "2×4", "3": "3×4" } },
           "default": 2
         }
       }

@@ -52,7 +52,12 @@ export default function ConceptPickerScreen() {
   const availableGroups = groupMeta ? Object.keys(groupMeta) : [];
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
-  const saved   = studentTopicLinks[linkKey]?.selectedConceptIds ?? concepts.map((c) => c.conceptId);
+  const allIds  = concepts.map((c) => c.conceptId);
+  const savedIds = studentTopicLinks[linkKey]?.selectedConceptIds;
+  // merge saved with any new concepts not yet in selection (new groups added after last save)
+  const saved = savedIds
+    ? [...new Set([...savedIds.filter((id) => allIds.includes(id)), ...allIds.filter((id) => !savedIds.includes(id))])]
+    : allIds;
 
   const [selected, setSelected]   = useState(new Set(saved));
   const [activeGroup, setActiveGroup] = useState(null);
