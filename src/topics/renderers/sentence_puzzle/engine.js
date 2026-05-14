@@ -25,7 +25,7 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null) 
     }];
   }
 
-  if (mode.type === "listen_build") {
+  if (mode.type === "listen_build" || mode.type === "listen_build_mono") {
     const structure   = sessionParams?.structure ?? "simple";
     const distractors = Math.max(0, Number(sessionParams?.distractors ?? 2));
     const isSimple    = structure === "simple";

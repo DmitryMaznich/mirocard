@@ -15,6 +15,8 @@ export const PIECE_COLORS = {
   object:    { fill: "#ede9fe", stroke: "#8b5cf6", text: "#4c1d95" },
 };
 
+const COLORLESS = { fill: "#f3f4f6", stroke: "#9ca3af", text: "#4b5563" };
+
 // Returns { left: "flat"|"notch", right: "flat"|"tab" }
 export function getPieceConnectors(slotType, structure) {
   const left  = slotType === "subject" ? "flat" : "notch";
@@ -56,12 +58,13 @@ export default function PuzzlePieceSvg({
   isEmpty,
   isOver = false,
   scalable = false,
+  colorless = false,
 }) {
   const clipId = useId();
 
   const { left, right } = getPieceConnectors(slotType, structure);
   const path   = buildPiecePath(left, right);
-  const colors = PIECE_COLORS[slotType] ?? PIECE_COLORS.subject;
+  const colors = colorless ? COLORLESS : (PIECE_COLORS[slotType] ?? PIECE_COLORS.subject);
 
   const fill        = isEmpty ? (isOver ? "#e8f0fe" : "#f9fafb")   : colors.fill;
   const stroke      = isEmpty ? (isOver ? colors.stroke : "#d1d5db") : colors.stroke;

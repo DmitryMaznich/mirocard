@@ -9,7 +9,7 @@ function cardTilt(id) {
   return ((h & 0xff) / 255) * 14 - 7; // −7 … +7 degrees
 }
 
-function DraggableCard({ card, structure }) {
+function DraggableCard({ card, structure, colorless = false, highlighted = false }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id:   card.id,
     data: { card },
@@ -21,6 +21,7 @@ function DraggableCard({ card, structure }) {
   return (
     <div
       ref={setNodeRef}
+      className={highlighted ? "sp-piece--hint" : undefined}
       style={{
         transform:   `${CSS.Translate.toString(transform) ?? ""} rotate(${isDragging ? 2 : tilt}deg)`,
         opacity:     isDragging ? 0.4 : 1,
@@ -41,16 +42,23 @@ function DraggableCard({ card, structure }) {
         photo={photo}
         isEmpty={false}
         scalable={!!photo}
+        colorless={colorless}
       />
     </div>
   );
 }
 
-export default function CardPool({ cards, structure }) {
+export default function CardPool({ cards, structure, colorless = false, highlightType = null }) {
   return (
     <div className="sp-pool">
       {cards.map((card) => (
-        <DraggableCard key={card.id} card={card} structure={structure} />
+        <DraggableCard
+          key={card.id}
+          card={card}
+          structure={structure}
+          colorless={colorless}
+          highlighted={card.type === highlightType}
+        />
       ))}
     </div>
   );

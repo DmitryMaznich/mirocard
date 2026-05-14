@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.8.7",
+    "version": "1.8.8",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений",
     "avatar": "media/avatar_sentence_puzzle.svg"
@@ -40,6 +40,32 @@
       "ui": {
         "title": "Слушаем и собираем",
         "instruction": "Послушай предложение и собери его из слов",
+        "icon": "media/icons/listen_build_mode.svg"
+      },
+      "params": {
+        "structure": {
+          "type": "enum",
+          "label": { "ru": "Структура" },
+          "values": ["simple", "full"],
+          "labels": { "ru": { "simple": "Простая (кто + что делает)", "full": "Полная (кто + что делает + какую + что)" } },
+          "default": "simple"
+        },
+        "distractors": {
+          "type": "enum",
+          "label": { "ru": "Лишних слов в наборе" },
+          "values": [1, 2, 3],
+          "labels": { "ru": { "1": "1 лишнее", "2": "2 лишних", "3": "3 лишних" } },
+          "default": 2
+        }
+      }
+    },
+    {
+      "id": "listen_build_mono",
+      "type": "listen_build_mono",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Слушаем и угадываем",
+        "instruction": "Собери предложение по звуку — без цветовых подсказок",
         "icon": "media/icons/listen_build_mode.svg"
       },
       "params": {
