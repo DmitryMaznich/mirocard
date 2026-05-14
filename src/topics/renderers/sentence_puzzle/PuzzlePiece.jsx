@@ -84,7 +84,7 @@ export default function PuzzlePieceSvg({
       {photo && !isEmpty && (
         <defs>
           <clipPath id={clipId}>
-            <circle cx={cx} cy={BODY_H * 0.37} r={BODY_H * 0.30} />
+            <rect x={4} y={2} width={BODY_W - 8} height={BODY_H * 0.61} rx={3} />
           </clipPath>
         </defs>
       )}
@@ -101,21 +101,15 @@ export default function PuzzlePieceSvg({
         <>
           <image
             href={photo}
-            x={cx - BODY_H * 0.30}
-            y={BODY_H * 0.07}
-            width={BODY_H * 0.60}
-            height={BODY_H * 0.60}
+            x={4}
+            y={2}
+            width={BODY_W - 8}
+            height={BODY_H * 0.61}
             clipPath={`url(#${clipId})`}
-            preserveAspectRatio="xMidYMid slice"
-          />
-          <circle
-            cx={cx} cy={BODY_H * 0.37} r={BODY_H * 0.30}
-            fill="none"
-            stroke={colors.stroke}
-            strokeWidth="1.5"
+            preserveAspectRatio="xMidYMid meet"
           />
           <text
-            x={cx} y={BODY_H * 0.77}
+            x={cx} y={BODY_H * 0.83}
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize="13"
