@@ -14085,6 +14085,296 @@ button.operation-dot {
   }
 }
 
+/* ─── Helper Panel ───────────────────────────────────────────────────────── */
+.helper-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.helper-panel__inner {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 28px;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.helper-panel__counter {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.helper-panel__btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  font-size: 2.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.helper-panel__btn--minus {
+  background: #fee2e2;
+  color: #c04040;
+}
+
+.helper-panel__btn--plus {
+  background: #dcfce7;
+  color: #1f7a6f;
+}
+
+.helper-panel__btn:not(:disabled):active {
+  transform: scale(0.93);
+}
+
+.helper-panel__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.helper-panel__count {
+  font-size: 3.6rem;
+  font-weight: 800;
+  min-width: 80px;
+  text-align: center;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+}
+
+.helper-panel__close {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 28px;
+  font-size: 0.95rem;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.helper-toggle-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: #f3f4f6;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  transition: background 0.12s;
+}
+
+.helper-toggle-btn:active {
+  background: #e5e7eb;
+}
+
+/* ─── Mode 5: Find Sign ─────────────────────────────────────────────────── */
+.operation-stage--find-sign {
+  position: relative;
+  justify-content: center;
+  gap: 32px;
+}
+
+.operation-stage--find-sign .operation-expression {
+  --operation-expression-font-size: min(clamp(3rem, 18vw, 9rem), calc((100dvw - 36px) / 4.5));
+}
+
+.operation-stage--find-sign .operation-choice-grid--large-signs {
+  gap: 20px;
+}
+
+@media (max-width: 520px) {
+  .operation-stage--find-sign {
+    gap: 20px;
+  }
+}
+
+/* ─── Mode 6: Result ────────────────────────────────────────────────────── */
+.operation-stage--result {
+  position: relative;
+  justify-content: center;
+  gap: 28px;
+}
+
+.operation-stage--result .operation-expression {
+  --operation-expression-font-size: min(clamp(2.8rem, 16vw, 8rem), calc((100dvw - 36px) / 5.8));
+}
+
+.operation-timer {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.operation-timer__bar {
+  height: 100%;
+  background: #1f7a6f;
+  border-radius: 4px;
+  transition: width 1s linear;
+}
+
+@media (max-width: 520px) {
+  .operation-stage--result {
+    gap: 18px;
+  }
+}
+
+/* ─── Mode 7: Chain ─────────────────────────────────────────────────────── */
+.operation-stage--chain {
+  position: relative;
+  justify-content: center;
+  gap: 24px;
+}
+
+.chain-expression {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 2vw, 12px);
+  flex-wrap: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.chain-expression__group {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1.5vw, 10px);
+  background: #f0f9f6;
+  border-radius: 16px;
+  padding: 6px 12px;
+  border: 2px solid #1f7a6f33;
+}
+
+.chain-expression__group--active {
+  border-color: #1f7a6f;
+  background: #e8f7f3;
+}
+
+.chain-expression__num {
+  font-size: clamp(2rem, 10vw, 5rem);
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.1;
+}
+
+.chain-expression__num--dim {
+  opacity: 0.38;
+}
+
+.chain-expression__num--unknown {
+  color: #888;
+  font-style: italic;
+}
+
+.chain-expression__sign {
+  font-size: clamp(1.8rem, 8vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.chain-expression__sign--add  { color: #1f7a6f; }
+.chain-expression__sign--sub  { color: #c04040; }
+.chain-expression__sign--dim  { opacity: 0.3; }
+
+.chain-expression__equals {
+  font-size: clamp(1.8rem, 8vw, 4rem);
+  color: #888;
+  font-weight: 700;
+}
+
+.chain-caption {
+  font-size: 0.95rem;
+  color: #666;
+  text-align: center;
+}
+
+.chain-choices {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.chain-choice {
+  min-width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  font-family: inherit;
+}
+
+.chain-choice:not(:disabled):active {
+  background: #f3f4f6;
+}
+
+.chain-choice--correct {
+  border-color: #1f7a6f;
+  background: #e8f7f3;
+  color: #1f5f57;
+}
+
+.chain-choice--wrong {
+  border-color: #ef6f5e;
+  background: #fff4ee;
+  color: #9f3029;
+}
+
+.chain-choice:disabled {
+  cursor: default;
+}
+
+.operation-stage--placeholder {
+  justify-content: center;
+  align-items: center;
+}
+
+.operation-placeholder-text {
+  font-size: 2rem;
+  color: #ccc;
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .chain-expression__group {
+    padding: 4px 8px;
+    border-radius: 12px;
+  }
+
+  .chain-choice {
+    min-width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+}
+
 /* ─── Settings ───────────────────────────────────────────────────────────── */
 .settings-body { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
 .settings-section { background: #fff; border-radius: 14px; overflow: hidden; }
