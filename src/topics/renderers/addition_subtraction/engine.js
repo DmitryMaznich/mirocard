@@ -113,6 +113,75 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
   };
 }
 
+function buildChainTask(card, params = {}) {
+  const railSize = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.railSize ?? params.maxNumber, DEFAULT_RAIL_SIZE)));
+  const maxNumber = railSize;
+  const changeMax = Math.max(1, Math.min(Math.floor(maxNumber / 2), toNumber(params.changeMax, DEFAULT_CHANGE_MAX)));
+  const includeZero = Boolean(params.includeZero);
+  const minVal = includeZero ? 0 : 1;
+  const extraParams = {
+    showHelper: Boolean(params.showHelper),
+    inputMode: params.inputMode ?? "choices",
+    timer: params.timer ?? null,
+  };
+
+  const B = randomInt(1, changeMax);
+  const C = randomInt(1, changeMax);
+  const caseIdx = Math.floor(Math.random() * 4);
+
+  let A, opAB, signAB, opBC, signBC, intermediate, result;
+
+  if (caseIdx === 0) {
+    // A + B + C; need A + B + C <= maxNumber
+    const maxA = maxNumber - B - C;
+    if (maxA < minVal) return null;
+    A = randomInt(minVal, maxA);
+    opAB = "add"; signAB = "+"; opBC = "add"; signBC = "+";
+    intermediate = A + B;
+    result = intermediate + C;
+  } else if (caseIdx === 1) {
+    // A + B - C; need A + B <= maxNumber, A + B - C >= minVal
+    const minA = Math.max(minVal, minVal + C - B);
+    const maxA = maxNumber - B;
+    if (maxA < minA) return null;
+    A = randomInt(minA, maxA);
+    opAB = "add"; signAB = "+"; opBC = "subtract"; signBC = "-";
+    intermediate = A + B;
+    result = intermediate - C;
+  } else if (caseIdx === 2) {
+    // A - B + C; need A - B >= minVal, A - B + C <= maxNumber
+    const minA = B + minVal;
+    const maxA = Math.min(maxNumber, maxNumber + B - C);
+    if (maxA < minA) return null;
+    A = randomInt(minA, maxA);
+    opAB = "subtract"; signAB = "-"; opBC = "add"; signBC = "+";
+    intermediate = A - B;
+    result = intermediate + C;
+  } else {
+    // A - B - C; need A - B - C >= minVal => A >= B + C + minVal
+    const minA = B + C + minVal;
+    if (minA > maxNumber) return null;
+    A = randomInt(minA, maxNumber);
+    opAB = "subtract"; signAB = "-"; opBC = "subtract"; signBC = "-";
+    intermediate = A - B;
+    result = intermediate - C;
+  }
+
+  return {
+    type: "operation_chain",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    A, B, C,
+    opAB, signAB,
+    opBC, signBC,
+    intermediate,
+    result,
+    maxNumber,
+    resultOptions: makeNumberOptions(result, maxNumber),
+    ...extraParams,
+  };
+}
+
 export function generateTasks(mode, cards, arg3, arg4) {
   const count = typeof arg3 === "number" ? arg3 : typeof arg4 === "number" ? arg4 : 15;
   const params = (
@@ -126,6 +195,18 @@ export function generateTasks(mode, cards, arg3, arg4) {
   const operationCards = cards.filter((card) => card.renderer === "addition_subtraction");
 
   if (!operationCards.length) return [];
+
+  if (modeType === "operation_chain") {
+    const result = [];
+    let attempts = 0;
+    while (result.length < count && attempts < count * 20) {
+      attempts++;
+      const card = operationCards[result.length % operationCards.length];
+      const task = buildChainTask(card, params);
+      if (task !== null) result.push(task);
+    }
+    return shuffle(result);
+  }
 
   return shuffle(Array.from({ length: count }, (_, index) =>
     buildOperationTask(modeType, operationCards[index % operationCards.length], params, index)

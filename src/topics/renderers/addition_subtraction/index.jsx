@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import HelperPanel from "./HelperPanel";
 import {
   buildStickSlots,
   evaluateStickMove,
@@ -536,6 +537,191 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
   );
 }
 
+function PlaceholderTask() {
+  return (
+    <div className="operation-stage operation-stage--placeholder">
+      <div className="operation-placeholder-text">Скоро</div>
+    </div>
+  );
+}
+
+function FindSignTask({ task, onCorrect, onIncorrect }) {
+  const [selected, setSelected] = useState(null);
+  const [helperOpen, setHelperOpen] = useState(false);
+
+  function handleAnswer(value) {
+    if (selected != null) return;
+    setSelected(value);
+    if (value === task.sign) {
+      onCorrect(task.conceptId, task.cardId);
+    } else {
+      onIncorrect(task.conceptId, task.cardId);
+    }
+  }
+
+  return (
+    <div className="operation-stage operation-stage--find-sign">
+      <OperationExpression task={task} missingSign answered={selected === task.sign} />
+      <ChoiceGrid
+        options={SIGN_OPTIONS}
+        selected={selected}
+        answer={task.sign}
+        variant="large-signs"
+        onAnswer={handleAnswer}
+      />
+      {task.showHelper && (
+        <button
+          type="button"
+          className="helper-toggle-btn"
+          onClick={() => setHelperOpen(true)}
+          aria-label="Открыть помощник"
+        >
+          🧮
+        </button>
+      )}
+      {helperOpen && (
+        <HelperPanel maxNumber={task.maxNumber} onClose={() => setHelperOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+function TimerBar({ seconds, onExpire }) {
+  const [remaining, setRemaining] = useState(seconds);
+
+  useEffect(() => {
+    if (remaining <= 0) { onExpire(); return; }
+    const id = setTimeout(() => setRemaining((prev) => prev - 1), 1000);
+    return () => clearTimeout(id);
+  }, [remaining, onExpire]);
+
+  const pct = Math.max(0, (remaining / seconds) * 100);
+  return (
+    <div className="operation-timer" role="timer" aria-label={`${remaining} секунд`}>
+      <div className="operation-timer__bar" style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+function ResultTask({ task, onCorrect, onIncorrect }) {
+  const [selected, setSelected] = useState(null);
+  const [helperOpen, setHelperOpen] = useState(false);
+  const answered = selected != null;
+
+  const handleAnswer = useCallback((value) => {
+    if (answered) return;
+    setSelected(value);
+    if (value === task.result) {
+      onCorrect(task.conceptId, task.cardId);
+    } else {
+      onIncorrect(task.conceptId, task.cardId);
+    }
+  }, [answered, task, onCorrect, onIncorrect]);
+
+  return (
+    <div className="operation-stage operation-stage--result">
+      <OperationExpression
+        task={task}
+        missingResult={selected !== task.result}
+        answered={selected === task.result}
+      />
+      {task.inputMode === "pad" ? (
+        <NumberPad
+          maxNumber={task.maxNumber}
+          answer={task.result}
+          selected={selected}
+          onAnswer={handleAnswer}
+        />
+      ) : (
+        <NumberChoices
+          task={task}
+          selected={selected}
+          onAnswer={handleAnswer}
+        />
+      )}
+      {task.timer != null && !answered && (
+        <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
+      )}
+      {task.showHelper && (
+        <button
+          type="button"
+          className="helper-toggle-btn"
+          onClick={() => setHelperOpen(true)}
+          aria-label="Открыть помощник"
+        >
+          🧮
+        </button>
+      )}
+      {helperOpen && (
+        <HelperPanel maxNumber={task.maxNumber} onClose={() => setHelperOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+function ChainTask({ task, onCorrect, onIncorrect }) {
+  const [selected, setSelected] = useState(null);
+  const [helperOpen, setHelperOpen] = useState(false);
+  const answered = selected != null;
+
+  const handleAnswer = useCallback((value) => {
+    if (answered) return;
+    setSelected(value);
+    if (value === task.result) {
+      onCorrect(task.conceptId, task.cardId);
+    } else {
+      onIncorrect(task.conceptId, task.cardId);
+    }
+  }, [answered, task, onCorrect, onIncorrect]);
+
+  return (
+    <div className="operation-stage operation-stage--chain">
+      <div className="chain-expression" aria-label="пример">
+        <span className="chain-expression__num">{task.A}</span>
+        <span className={`chain-expression__sign chain-expression__sign--${task.opAB}`}>{task.signAB}</span>
+        <span className="chain-expression__num">{task.B}</span>
+        <span className={`chain-expression__sign chain-expression__sign--${task.opBC}`}>{task.signBC}</span>
+        <span className="chain-expression__num">{task.C}</span>
+        <span className="chain-expression__equals">=</span>
+        <span className={["chain-expression__num", "chain-expression__result", answered && selected === task.result ? "chain-expression__result--pop" : ""].filter(Boolean).join(" ")}>
+          {selected === task.result ? task.result : "?"}
+        </span>
+      </div>
+      <div className="chain-caption">Посчитай пример</div>
+      {task.inputMode === "pad" ? (
+        <NumberPad
+          maxNumber={task.maxNumber}
+          answer={task.result}
+          selected={selected}
+          onAnswer={handleAnswer}
+        />
+      ) : (
+        <NumberChoices
+          task={task}
+          selected={selected}
+          onAnswer={handleAnswer}
+        />
+      )}
+      {task.timer != null && !answered && (
+        <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
+      )}
+      {task.showHelper && (
+        <button
+          type="button"
+          className="helper-toggle-btn"
+          onClick={() => setHelperOpen(true)}
+          aria-label="Открыть помощник"
+        >
+          🧮
+        </button>
+      )}
+      {helperOpen && (
+        <HelperPanel maxNumber={task.maxNumber} onClose={() => setHelperOpen(false)} />
+      )}
+    </div>
+  );
+}
+
 function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
   const [selected, setSelected] = useState(null);
   const type = task.type;
@@ -550,25 +736,16 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
     }
   }
 
+  if (type === "operation_observe") {
+    return <PlaceholderTask />;
+  }
+
   if (type === "operation_do_action") {
     return <ManipulationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
   }
 
   if (type === "operation_name_action") {
-    return (
-      <div className="operation-stage">
-        <OperationStory task={task} />
-        <div className="operation-caption">
-          Было {task.start}, стало {task.result}. Что сделали?
-        </div>
-        <ChoiceGrid
-          options={ACTION_OPTIONS}
-          selected={selected}
-          answer={task.action}
-          onAnswer={(value) => finish(value, task.action)}
-        />
-      </div>
-    );
+    return <PlaceholderTask />;
   }
 
   if (type === "operation_more_less") {
@@ -656,6 +833,18 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
         />
       </div>
     );
+  }
+
+  if (type === "operation_find_sign") {
+    return <FindSignTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  }
+
+  if (type === "operation_result") {
+    return <ResultTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  }
+
+  if (type === "operation_chain") {
+    return <ChainTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
 
   return (

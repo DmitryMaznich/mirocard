@@ -114,3 +114,54 @@ describe("operation_action_from_sign direction param", () => {
     expect(dirs.filter((d) => d === "action_to_sign").length).toBeGreaterThan(0);
   });
 });
+
+describe("operation_chain", () => {
+  it("generates tasks with operation_chain type", () => {
+    const tasks = generateTasks("operation_chain", CARDS, 5, { maxNumber: 10, changeMax: 3 });
+    expect(tasks.every((t) => t.type === "operation_chain")).toBe(true);
+  });
+
+  it("chain arithmetic is valid: A opAB B opBC C = result", () => {
+    const tasks = generateTasks("operation_chain", CARDS, 20, { maxNumber: 10, changeMax: 3 });
+    tasks.forEach((t) => {
+      const inter = t.opAB === "add" ? t.A + t.B : t.A - t.B;
+      const res = t.opBC === "add" ? inter + t.C : inter - t.C;
+      expect(res).toBe(t.result);
+    });
+  });
+
+  it("result is within [1, maxNumber] by default", () => {
+    const tasks = generateTasks("operation_chain", CARDS, 20, { maxNumber: 10, changeMax: 3 });
+    tasks.forEach((t) => {
+      expect(t.result).toBeGreaterThanOrEqual(1);
+      expect(t.result).toBeLessThanOrEqual(10);
+    });
+  });
+
+  it("result is within [0, maxNumber] when includeZero", () => {
+    const tasks = generateTasks("operation_chain", CARDS, 20, { maxNumber: 10, changeMax: 3, includeZero: true });
+    tasks.forEach((t) => {
+      expect(t.result).toBeGreaterThanOrEqual(0);
+      expect(t.result).toBeLessThanOrEqual(10);
+    });
+  });
+
+  it("resultOptions contain the answer", () => {
+    const tasks = generateTasks("operation_chain", CARDS, 5, { maxNumber: 10 });
+    tasks.forEach((t) => {
+      expect(t.resultOptions).toContain(t.result);
+    });
+  });
+
+  it("task has A, B, C, opAB, signAB, opBC, signBC, intermediate fields", () => {
+    const [t] = generateTasks("operation_chain", CARDS, 1, { maxNumber: 10 });
+    expect(typeof t.A).toBe("number");
+    expect(typeof t.B).toBe("number");
+    expect(typeof t.C).toBe("number");
+    expect(["add", "subtract"]).toContain(t.opAB);
+    expect(["add", "subtract"]).toContain(t.opBC);
+    expect(["+", "-"]).toContain(t.signAB);
+    expect(["+", "-"]).toContain(t.signBC);
+    expect(typeof t.intermediate).toBe("number");
+  });
+});
