@@ -42,15 +42,22 @@ function makeNumberOptions(answer, maxNumber, optionCount = 4) {
   return shuffle([...values]);
 }
 
-function buildOperationTask(modeType, card, params = {}) {
+function resolveAssociationDirection(modeType, params, taskIndex) {
+  if (modeType !== "operation_action_from_sign") return undefined;
+  const direction = params.direction ?? "alternating";
+  if (direction === "sign_to_action") return "sign_to_action";
+  if (direction === "action_to_sign") return "action_to_sign";
+  if (direction === "random") return Math.random() < 0.5 ? "sign_to_action" : "action_to_sign";
+  return taskIndex % 2 === 0 ? "sign_to_action" : "action_to_sign";
+}
+
+function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
   const operation = normalizeOperation(card.params?.operation);
   const railSize = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.railSize ?? params.maxNumber, DEFAULT_RAIL_SIZE)));
   const maxNumber = railSize;
   const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, DEFAULT_CHANGE_MAX)));
   const includeZero = Boolean(params.includeZero);
-  const associationDirection = modeType === "operation_action_from_sign"
-    ? (Math.random() < 0.5 ? "sign_to_action" : "action_to_sign")
-    : undefined;
+  const associationDirection = resolveAssociationDirection(modeType, params, taskIndex);
 
   let delta = randomInt(1, changeMax);
   const minResult = includeZero ? 0 : 1;
@@ -114,6 +121,6 @@ export function generateTasks(mode, cards, arg3, arg4) {
   if (!operationCards.length) return [];
 
   return shuffle(Array.from({ length: count }, (_, index) =>
-    buildOperationTask(modeType, operationCards[index % operationCards.length], params)
+    buildOperationTask(modeType, operationCards[index % operationCards.length], params, index)
   ));
 }

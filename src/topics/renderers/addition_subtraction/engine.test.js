@@ -61,3 +61,30 @@ describe("addition_subtraction engine", () => {
     expect(tasks.every((task) => ["sign_to_action", "action_to_sign"].includes(task.associationDirection))).toBe(true);
   });
 });
+
+describe("operation_action_from_sign direction param", () => {
+  it("alternating: both directions present", () => {
+    const tasks = generateTasks("operation_action_from_sign", CARDS, 10, { direction: "alternating" });
+    const dirs = tasks.map((t) => t.associationDirection);
+    expect(dirs.every((d) => ["sign_to_action", "action_to_sign"].includes(d))).toBe(true);
+    expect(dirs.filter((d) => d === "sign_to_action").length).toBeGreaterThan(0);
+    expect(dirs.filter((d) => d === "action_to_sign").length).toBeGreaterThan(0);
+  });
+
+  it("sign_to_action: all tasks have sign_to_action direction", () => {
+    const tasks = generateTasks("operation_action_from_sign", CARDS, 8, { direction: "sign_to_action" });
+    expect(tasks.every((t) => t.associationDirection === "sign_to_action")).toBe(true);
+  });
+
+  it("action_to_sign: all tasks have action_to_sign direction", () => {
+    const tasks = generateTasks("operation_action_from_sign", CARDS, 8, { direction: "action_to_sign" });
+    expect(tasks.every((t) => t.associationDirection === "action_to_sign")).toBe(true);
+  });
+
+  it("default direction is alternating (both values present)", () => {
+    const tasks = generateTasks("operation_action_from_sign", CARDS, 10, {});
+    const dirs = tasks.map((t) => t.associationDirection);
+    expect(dirs.filter((d) => d === "sign_to_action").length).toBeGreaterThan(0);
+    expect(dirs.filter((d) => d === "action_to_sign").length).toBeGreaterThan(0);
+  });
+});
