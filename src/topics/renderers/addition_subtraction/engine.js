@@ -58,6 +58,11 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
   const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, DEFAULT_CHANGE_MAX)));
   const includeZero = Boolean(params.includeZero);
   const associationDirection = resolveAssociationDirection(modeType, params, taskIndex);
+  const extraParams = {
+    showHelper: Boolean(params.showHelper),
+    inputMode: params.inputMode ?? "choices",
+    timer: params.timer ?? null,
+  };
 
   let delta = randomInt(1, changeMax);
   const minResult = includeZero ? 0 : 1;
@@ -81,6 +86,7 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
       railSize,
       associationDirection,
       resultOptions: makeNumberOptions(result, maxNumber),
+      ...extraParams,
     };
   }
 
@@ -103,6 +109,7 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
     railSize,
     associationDirection,
     resultOptions: makeNumberOptions(result, maxNumber),
+    ...extraParams,
   };
 }
 

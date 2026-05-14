@@ -62,6 +62,32 @@ describe("addition_subtraction engine", () => {
   });
 });
 
+describe("operation_find_sign", () => {
+  it("task has sign as answer field", () => {
+    const tasks = generateTasks("operation_find_sign", CARDS, 5, { maxNumber: 10 });
+    expect(tasks.every((t) => t.type === "operation_find_sign")).toBe(true);
+    expect(tasks.every((t) => ["+", "-"].includes(t.sign))).toBe(true);
+  });
+
+  it("passes showHelper param to task", () => {
+    const [task] = generateTasks("operation_find_sign", CARDS, 1, { showHelper: true });
+    expect(task.showHelper).toBe(true);
+  });
+});
+
+describe("operation_result params", () => {
+  it("passes inputMode and timer to task", () => {
+    const [task] = generateTasks("operation_result", CARDS, 1, { inputMode: "pad", timer: 10 });
+    expect(task.inputMode).toBe("pad");
+    expect(task.timer).toBe(10);
+  });
+
+  it("inputMode defaults to choices", () => {
+    const [task] = generateTasks("operation_result", CARDS, 1, {});
+    expect(task.inputMode).toBe("choices");
+  });
+});
+
 describe("operation_action_from_sign direction param", () => {
   it("alternating: both directions present", () => {
     const tasks = generateTasks("operation_action_from_sign", CARDS, 10, { direction: "alternating" });
