@@ -169,26 +169,6 @@ const QA_PARAMS = {
   },
 };
 
-const OPERATION_PARAMS = {
-  railSize: {
-    type: "enum",
-    label: { ru: "Диапазон" },
-    values: [10, 20],
-    default: 20,
-  },
-  changeMax: {
-    type: "enum",
-    label: { ru: "Прибавить/убрать до" },
-    values: [1, 2, 3, 5],
-    default: 1,
-  },
-  includeZero: {
-    type: "boolean",
-    label: { ru: "Включать 0" },
-    hint: { ru: "Для первого этапа лучше выключить, чтобы не смешивать знак и понятие нуля." },
-    default: false,
-  },
-};
 
 const DEFAULT_TOPIC_ABOUT = {
   flashcards: {
@@ -373,37 +353,33 @@ const DEFAULT_MODE_METHODOLOGY = {
     },
   },
   addition_subtraction: {
-    operation_action_from_sign: {
-      settings: ["Диапазон и величина изменения задают нагрузку; на первой ступени держите изменение маленьким.", "Ноль лучше включать позже, когда знак уже не путается."],
-      goal: "Ребёнок быстро связывает плюс с прибавить, а минус с убрать в обе стороны.",
-    },
-    operation_do_action: {
-      settings: ["Диапазон задаёт длину палки с фишками.", "Прибавить/убрать до задаёт максимальное изменение за ход.", "Ноль включайте только после уверенного действия с фишками."],
-      goal: "Ребёнок выполняет действие с фишками и понимает телесный смысл прибавления и вычитания.",
+    operation_observe: {
+      settings: [],
+      goal: "Ребёнок наблюдает за действием и формирует зрительный образ прибавления и убирания.",
     },
     operation_name_action: {
-      settings: ["Диапазон и изменение задают сложность наблюдаемого действия.", "Знак намеренно не показывается: фокус на самом действии."],
-      goal: "Ребёнок по изменению количества называет, что сделали: прибавили или убрали.",
+      settings: [],
+      goal: "Ребёнок называет действие — прибавили или убрали — опираясь на изменение количества.",
     },
-    operation_more_less: {
-      settings: ["Диапазон задаёт количество фишек.", "Изменение лучше держать небольшим, чтобы ребёнок сравнивал было и стало."],
-      goal: "Ребёнок связывает прибавление с «стало больше», а вычитание с «стало меньше».",
+    operation_do_action: {
+      settings: ["Начинайте с изменения на 1 фишку при диапазоне до 5.", "Ноль включайте только после уверенного действия с фишками."],
+      goal: "Ребёнок выполняет действие с фишками на палке и понимает телесный смысл прибавления и вычитания.",
     },
-    operation_sign_from_action: {
-      settings: ["Диапазон и изменение регулируют сложность истории.", "Знак выбирается после действия, а не до него."],
-      goal: "Ребёнок выбирает плюс или минус по смыслу выполненного действия.",
+    operation_action_from_sign: {
+      settings: ["Направление «Чередование» — основной режим; «Знак → Слово» проще, вводите первым."],
+      goal: "Ребёнок быстро связывает плюс с «прибавить» и минус с «убрать» в обе стороны.",
     },
-    operation_build_expression: {
-      settings: ["Диапазон задаёт числа в истории.", "Изменение задаёт размер прибавленной или убранной части."],
-      goal: "Ребёнок переносит историю было-сделали-стало в запись примера.",
+    operation_find_sign: {
+      settings: ["Счётный помощник (🧮) доступен ребёнку по его желанию, если включён специалистом."],
+      goal: "Ребёнок определяет знак операции по первому и последнему числу в примере.",
     },
     operation_result: {
-      settings: ["Диапазон задаёт максимальный результат.", "Изменение задаёт, насколько далеко нужно прибавить или убрать.", "Ноль можно включать для отдельной отработки случаев с нулём."],
-      goal: "Ребёнок считает, сколько стало после прибавления или убирания.",
+      settings: ["Начинайте с вариантов ответа; клавиатуру вводите после уверенного освоения.", "Таймер используйте только на этапе закрепления."],
+      goal: "Ребёнок вычисляет результат полного примера.",
     },
-    operation_missing_sign: {
-      settings: ["Диапазон и изменение задают сложность готового примера.", "Используйте после режимов с наглядным действием."],
-      goal: "Ребёнок выбирает знак операции по числам было, изменение и стало без наглядной подсказки.",
+    operation_chain: {
+      settings: ["Начинайте с maxNumber=10 и изменения на 1.", "Счётный помощник помогает удержать промежуточный результат."],
+      goal: "Ребёнок считает пример из двух последовательных действий (A ± B ± C).",
     },
   },
   sentence_puzzle: {
@@ -514,131 +490,93 @@ const DEFAULT_MODES = {
   ],
   addition_subtraction: [
     {
-      id: "operation_action_from_sign",
-      type: "operation_action_from_sign",
+      id: "operation_observe",
+      type: "operation_observe",
       evaluation: "auto",
-      ui: {
-        title: "Знак ↔ действие",
-        instruction: "Быстро свяжи знак и действие",
-        icon: "media/icons/operations_action_from_sign.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "Короткая автоматизация связи в обе стороны: плюс — прибавить, минус — убрать; прибавить — плюс, убрать — минус.",
-        tips: ["Без чисел и фишек: только знак и глагол.", "Делайте короткой разминкой перед действиями с фишками."],
-        duration: "2-3 минуты",
-      },
-    },
-    {
-      id: "operation_do_action",
-      type: "operation_do_action",
-      evaluation: "auto",
-      ui: {
-        title: "Сделай действие",
-        instruction: "Выполни: прибавь или убери фишки",
-        icon: "media/icons/operations_action_from_sign.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "После быстрой связки знак-глагол ребенок телесно проживает смысл: прибавить — положить еще, убрать — снять часть.",
-        tips: ["Начинайте с изменения на 1 фишку.", "Проговаривайте одну формулу: было, прибавили/убрали, стало."],
-        duration: "3-5 минут",
-      },
+      ui: { title: "1. Наблюдение (скоро)", instruction: "Смотрим, как меняется количество", icon: "media/icons/operations_mode.svg" },
     },
     {
       id: "operation_name_action",
       type: "operation_name_action",
       evaluation: "auto",
-      ui: {
-        title: "Что сделали?",
-        instruction: "Посмотри, как изменились фишки, и назови действие",
-        icon: "media/icons/operations_sign_from_action.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "Ребенок учится различать само действие до знакомства со знаком: прибавили или убрали.",
-        tips: ["Не показывайте знак на этом этапе.", "Если ребенок считает итог, возвращайте вопрос к действию: что сделали?"],
-        duration: "3-5 минут",
+      ui: { title: "2. Назови действие (скоро)", instruction: "Что сделали с предметами?", icon: "media/icons/operations_mode.svg" },
+    },
+    {
+      id: "operation_do_action",
+      type: "operation_do_action",
+      evaluation: "auto",
+      ui: { title: "3. Сделай действие", instruction: "Покажи на палке и назови результат", icon: "media/icons/operations_action_from_sign.svg" },
+      params: {
+        maxNumber: { type: "number", min: 3, max: 20, default: 5, label: { ru: "Максимальное число" } },
+        changeMax: { type: "number", min: 1, max: 10, default: 1, label: { ru: "Максимальное изменение" } },
+        includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
       },
     },
     {
-      id: "operation_more_less",
-      type: "operation_more_less",
+      id: "operation_action_from_sign",
+      type: "operation_action_from_sign",
       evaluation: "auto",
-      ui: {
-        title: "Больше / меньше",
-        instruction: "Определи, стало больше или меньше",
-        icon: "media/icons/operations_more_less.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "Режим связывает действие с изменением количества: прибавили — стало больше, убрали — стало меньше.",
-        tips: ["На этом этапе лучше не показывать пример со знаком.", "Сравнивайте именно было и стало."],
-        duration: "4-6 минут",
+      ui: { title: "4. Знак ↔ Действие", instruction: "Связываем знак со словом действия", icon: "media/icons/operations_action_from_sign.svg" },
+      params: {
+        direction: {
+          type: "enum",
+          values: ["alternating", "sign_to_action", "action_to_sign", "random"],
+          labels: { ru: { alternating: "Чередование", sign_to_action: "Знак → Слово", action_to_sign: "Слово → Знак", random: "Случайно" } },
+          default: "alternating",
+          label: { ru: "Направление" },
+        },
       },
     },
     {
-      id: "operation_sign_from_action",
-      type: "operation_sign_from_action",
+      id: "operation_find_sign",
+      type: "operation_find_sign",
       evaluation: "auto",
-      ui: {
-        title: "Действие → знак",
-        instruction: "Посмотри, что сделали, и выбери знак",
-        icon: "media/icons/operations_sign_from_action.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "Первый выход к математическому знаку: прибавили — плюс, убрали — минус. В задании знак заранее не показывается.",
-        tips: ["Проговаривайте: прибавили — это плюс, убрали — это минус.", "Не переходите дальше, пока выбор знака не станет спокойным."],
-        duration: "3-5 минут",
-      },
-    },
-    {
-      id: "operation_build_expression",
-      type: "operation_build_expression",
-      evaluation: "auto",
-      ui: {
-        title: "Собери пример",
-        instruction: "По истории было-сделали-стало выбери знак",
-        icon: "media/icons/operations_missing_sign.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "Мост от наглядной истории к записи примера: ребенок видит действие и вставляет знак в выражение.",
-        tips: ["Оставляйте фишки видимыми.", "Читайте вслух: было 3, прибавили 1, стало 4."],
-        duration: "4-6 минут",
+      ui: { title: "5. Найди знак", instruction: "Какой знак пропущен в примере?", icon: "media/icons/operations_sign_from_action.svg" },
+      params: {
+        maxNumber: { type: "number", min: 3, max: 20, default: 5, label: { ru: "Максимальное число" } },
+        changeMax: { type: "number", min: 1, max: 10, default: 2, label: { ru: "Максимальное изменение" } },
+        includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
+        showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
       },
     },
     {
       id: "operation_result",
       type: "operation_result",
       evaluation: "auto",
-      ui: {
-        title: "Сколько стало?",
-        instruction: "Посчитай результат после прибавления или убирания",
-        icon: "media/icons/operations_result.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "Здесь появляется вычисление. Ребенок уже знает смысл действия и считает итог с опорой на фишки.",
-        tips: ["Держите изменение маленьким: 1-2 фишки.", "Если ребенок угадывает знак, вернитесь на один режим назад."],
-        duration: "5-7 минут",
+      ui: { title: "6. Сколько стало?", instruction: "Вычисли результат примера", icon: "media/icons/operations_result.svg" },
+      params: {
+        maxNumber: { type: "number", min: 3, max: 20, default: 5, label: { ru: "Максимальное число" } },
+        changeMax: { type: "number", min: 1, max: 10, default: 2, label: { ru: "Максимальное изменение" } },
+        includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
+        inputMode: {
+          type: "enum",
+          values: ["choices", "pad"],
+          labels: { ru: { choices: "Варианты ответа", pad: "Числовая клавиатура" } },
+          default: "choices",
+          label: { ru: "Тип ввода" },
+        },
+        timer: { type: "number", min: 0, max: 60, default: 0, label: { ru: "Таймер (сек, 0 = выкл)" } },
+        showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
       },
     },
     {
-      id: "operation_missing_sign",
-      type: "operation_missing_sign",
+      id: "operation_chain",
+      type: "operation_chain",
       evaluation: "auto",
-      ui: {
-        title: "Вставь знак",
-        instruction: "Выбери плюс или минус для готового примера",
-        icon: "media/icons/operations_missing_sign.svg",
-      },
-      params: OPERATION_PARAMS,
-      methodology: {
-        text: "Финальный перенос без наглядной подсказки: по числам было — изменение — стало ребенок выбирает знак операции.",
-        tips: ["Используйте после уверенного результата.", "Не смешивайте с большими числами, пока выбор знака не станет спокойным."],
-        duration: "5-7 минут",
+      ui: { title: "7. Цепочка", instruction: "Посчитай пример из двух действий", icon: "media/icons/operations_missing_sign.svg" },
+      params: {
+        maxNumber: { type: "number", min: 5, max: 20, default: 10, label: { ru: "Максимальное число" } },
+        changeMax: { type: "number", min: 1, max: 5, default: 2, label: { ru: "Максимальное изменение" } },
+        includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
+        inputMode: {
+          type: "enum",
+          values: ["choices", "pad"],
+          labels: { ru: { choices: "Варианты ответа", pad: "Числовая клавиатура" } },
+          default: "choices",
+          label: { ru: "Тип ввода" },
+        },
+        timer: { type: "number", min: 0, max: 60, default: 0, label: { ru: "Таймер (сек, 0 = выкл)" } },
+        showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
       },
     },
   ],
