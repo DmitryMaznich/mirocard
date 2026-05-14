@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -35,6 +35,14 @@ zip.file("renderer",         rendererJs);   // loaded by rendererLoader.js
 
 if (existsSync(rendererCssPath)) {
   zip.file("mirocard2.css", readFileSync(rendererCssPath));
+}
+
+// Pack all card images from media/cards/
+const cardsDir = join(__dir, "media", "cards");
+if (existsSync(cardsDir)) {
+  for (const file of readdirSync(cardsDir)) {
+    zip.file(`media/cards/${file}`, readFileSync(join(cardsDir, file)));
+  }
 }
 
 const buffer = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });

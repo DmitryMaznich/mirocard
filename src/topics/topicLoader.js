@@ -912,6 +912,24 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
 
   const topicId = manifest.meta.id;
 
+  // Pre-resolve card image paths to inline base64 data URLs so bundled
+  // renderer IIFEs can access them via topicRecord.cards[n].photo without
+  // making additional async calls back to the host app.
+  const cardImageUrls = {};
+  for (const card of manifest.cards ?? []) {
+    if (!card.image) continue;
+    const imgFile = zip.file(card.image);
+    if (!imgFile) continue;
+    const ab    = await imgFile.async("arraybuffer");
+    const bytes = new Uint8Array(ab);
+    let binary  = "";
+    const chunk = 8192;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    cardImageUrls[card.id] = `data:${inferMimeType(card.image)};base64,${btoa(binary)}`;
+  }
+
   // Delete old assets if re-importing
   await topics.deleteTopic(db, topicId);
 
@@ -929,7 +947,10 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
     id: topicId,
     meta: manifest.meta,
     modes: manifest.modes ?? [],
-    cards: manifest.cards ?? [],
+    cards: (manifest.cards ?? []).map((card) => {
+      const imageUrl = cardImageUrls[card.id];
+      return imageUrl ? { ...card, imageUrl, photo: imageUrl } : card;
+    }),
     texts: manifest.texts ?? undefined,
     sentences: manifest.sentences?.length ? manifest.sentences : undefined,
     installedAt: new Date().toISOString(),
