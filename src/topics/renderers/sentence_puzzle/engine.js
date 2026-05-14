@@ -33,8 +33,11 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null) 
       ? ["subject", "verb"]
       : ["subject", "verb", "adjective", "object"];
 
+    const group = sessionParams?.set ?? "base";
+
     const sentences = (topicRecord.sentences ?? []).filter((s) =>
-      isSimple ? (!s.adjective && !s.object) : (s.adjective && s.object)
+      (isSimple ? (!s.adjective && !s.object) : (s.adjective && s.object)) &&
+      (s.group ?? "base") === group
     );
 
     const cardById   = Object.fromEntries(cards.map((c) => [c.id, c]));
@@ -53,7 +56,11 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null) 
         } else {
           const correct = cardById[sentence[slotType]];
           target[slotType] = correct;
-          const others = cards.filter((c) => c.type === slotType && c.id !== correct.id);
+          const others = cards.filter((c) =>
+            c.type === slotType &&
+            c.id !== correct.id &&
+            (c.type === "subject" || (c.group ?? "base") === group)
+          );
           pool.push(correct, ...shuffle([...others]).slice(0, distractors));
         }
       }
