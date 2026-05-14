@@ -3318,6 +3318,17 @@ button {
   display: none;
 }
 
+.orientation-guard--active {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 20, 20, 0.62);
+  backdrop-filter: blur(6px);
+}
+
 .orientation-guard-card {
   width: min(420px, 100%);
   padding: 28px 24px;
@@ -3970,7 +3981,7 @@ button {
     padding: 20px;
   }
 
-  .orientation-guard {
+  .app-shell .orientation-guard {
     display: flex;
     width: 100%;
     justify-content: center;
@@ -3978,6 +3989,18 @@ button {
 
   .app-shell> :not(.orientation-guard) {
     display: none !important;
+  }
+}
+
+@media (orientation: landscape) {
+  .orientation-guard--portrait {
+    display: flex;
+  }
+}
+
+@media (orientation: portrait) {
+  .orientation-guard--landscape {
+    display: flex;
   }
 }
 
@@ -12583,6 +12606,11 @@ kbd {
   flex-direction: column;
   gap: 14px;
   padding: 0 0 24px;
+  /* Fill the viewport exactly so there's no raw grey body below the content */
+  height: 100dvh;
+  overflow-y: auto;
+  /* Vertically center content — makes the layout feel balanced on tall phones */
+  justify-content: center;
 }
 
 /* ── Header ──────────────────────────────────────────────────────── */
@@ -12634,6 +12662,9 @@ kbd {
   color: #7a8c88;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-header__settings-btn {
@@ -15121,4 +15152,88 @@ button.operation-dot {
     flex: 1;
     min-width: 0;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Phone layout fixes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Seamless background: prevents a visible colour seam below .screen
+      when content is shorter than the viewport (e.g. home in portrait). */
+body { background: #eef0ef; }
+
+/* 2. Safe-area bottom insets (viewport-fit=cover is set in index.html).
+      Keeps interactive elements above the iOS home indicator. */
+.home-screen-v2 {
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}
+.params-start-phone {
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}
+.session-screen {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 3. Phone landscape (≤ 500 px tall, e.g. iPhone in landscape = 390 px).
+      Without this the home screen overflows by ~110 px, hiding the start
+      button.  The tablet breakpoint (≥768 px width) fires for these devices
+      and makes elements bigger — we undo the excess here. */
+@media (max-height: 500px) and (orientation: landscape) {
+
+  /* ── Shared: tighten screen header ── */
+  .screen-header { height: 50px; }
+
+  /* ── Shared: smaller action buttons ── */
+  .btn { height: 44px; font-size: 0.93rem; }
+
+  /* ── Home: compact header card ── */
+  .home-header {
+    margin: 8px 10px 0;
+    padding: 7px 12px;
+  }
+  .home-header__logo  { width: 28px; height: 26px; }
+  .home-header__tagline { display: none; }
+
+  /* ── Home: tighten container gaps ── */
+  .home-screen-v2 { gap: 8px; padding-bottom: 8px; }
+
+  /* ── Home: compact section card ── */
+  .home-section {
+    margin: 0 10px;
+    padding: 10px 14px;
+    gap: 8px;
+  }
+
+  /* ── Home: compact journey steps ── */
+  .journey-steps { gap: 6px; }
+  .journey-step   { padding: 7px 12px; }
+  .journey-step__icon {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+  .journey-step__icon--avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+  .journey-step__icon--avatar > *,
+  .journey-step__icon--avatar img {
+    width: 34px;
+    height: 34px;
+  }
+  .journey-step__value { font-size: 13px; }
+  .journey-step__label { font-size: 9px; }
+
+  /* ── Home: compact footer ── */
+  .home-actions--footer { padding-top: 2px; }
+  .home-version { padding: 2px 0 4px; font-size: 0.65rem; }
+
+  /* ── Other screens: concept picker columns ── */
+  .concept-grid { grid-template-columns: repeat(8, 1fr); }
+
+  /* ── Params: tighten spacing ── */
+  .params-body { padding: 8px; gap: 6px; }
+  .param-row   { padding: 10px 14px; }
+  .params-start-phone { padding: 10px 12px 12px; }
 }
