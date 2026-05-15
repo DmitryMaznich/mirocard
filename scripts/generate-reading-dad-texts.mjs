@@ -55,7 +55,7 @@ const omeletSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_texts",
-    version: "1.5.0",
+    version: "1.6.0",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -79,6 +79,7 @@ const manifest = {
       id: "omelet_instruction",
       kind: "instruction",
       title: { ru: "Как сделать омлет", en: "How to Make an Omelette" },
+      image: "media/omelet.svg",
       steps: [
         { id: "s1",  type: "action",  text: "Вымой руки." },
         { id: "s2",  type: "bullets", text: "Достань нужную посуду:", items: ["сковородку", "лопатку", "миску", "вилку", "тарелку", "доску", "нож"] },
@@ -117,4 +118,4 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/omelet.svg", omeletSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_texts_v1.5.0.zip", buffer);
+writeFileSync("public/decks/reading_dad_texts_v1.6.0.zip", buffer);
