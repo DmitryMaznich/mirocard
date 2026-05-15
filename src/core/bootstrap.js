@@ -152,7 +152,7 @@ export function normalizeBootstrap(raw = {}) {
 
 export function applyBootstrapToStore(raw) {
   const bootstrap = normalizeBootstrap(raw);
-  const lastContext = bootstrap.lastContext ?? {};
+  const lastContext = bootstrap.lastContext;
 
   useAppStore.setState((state) => ({
     ...state,
@@ -166,10 +166,14 @@ export function applyBootstrapToStore(raw) {
     studentTopicLinks: bootstrap.studentTopicLinks,
     conceptProgress: bootstrap.conceptProgress,
     sessions: bootstrap.sessions,
-    activeStudentId: lastContext.studentId ?? null,
-    activeTopicId: lastContext.topicId ?? null,
-    activeTextId: lastContext.textId ?? null,
-    activeModeId: lastContext.modeId ?? null,
+    // Only restore active context when lastContext is explicitly present (local bootstrap).
+    // A server-side apply without lastContext must not clear the user's current navigation.
+    ...(lastContext != null ? {
+      activeStudentId: lastContext.studentId ?? null,
+      activeTopicId:   lastContext.topicId   ?? null,
+      activeTextId:    lastContext.textId     ?? null,
+      activeModeId:    lastContext.modeId     ?? null,
+    } : {}),
   }));
 }
 

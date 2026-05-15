@@ -33,8 +33,11 @@ const HANDLERS = {
 export function processSync(db, accountId, operations) {
   for (const op of operations) {
     const handler = HANDLERS[op.type];
-    if (handler) {
+    if (!handler) continue;
+    try {
       handler(db, accountId, op.data);
+    } catch (err) {
+      console.error(`[sync] ${op.type} skipped — ${err.message}`, JSON.stringify(op.data ?? {}).slice(0, 200));
     }
   }
   incrementRevision(db, accountId);

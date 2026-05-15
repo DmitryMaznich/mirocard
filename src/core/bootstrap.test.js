@@ -175,6 +175,26 @@ describe("bootstrap helpers", () => {
     expect(state.activeModeId).toBe("intro");
   });
 
+  it("applyBootstrapToStore without lastContext preserves current active context", () => {
+    // Simulate: local bootstrap sets active context, then server bootstrap arrives without lastContext.
+    applyBootstrapToStore({
+      lastContext: { studentId: "s1", topicId: "t1", modeId: "intro" },
+    });
+    expect(useAppStore.getState().activeStudentId).toBe("s1");
+
+    // Server bootstrap has no lastContext — active IDs must not be cleared.
+    applyBootstrapToStore({
+      students: [{ id: "s1" }],
+      ownedTopics: [],
+      studentTopicLinks: [],
+      conceptProgress: [],
+      sessions: [],
+    });
+    expect(useAppStore.getState().activeStudentId).toBe("s1");
+    expect(useAppStore.getState().activeTopicId).toBe("t1");
+    expect(useAppStore.getState().activeModeId).toBe("intro");
+  });
+
   it("applyBootstrapToStore hides deleted student tombstones from app state", () => {
     applyBootstrapToStore({
       students: [

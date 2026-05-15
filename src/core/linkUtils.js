@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { pushOp } from "@/core/syncApi";
 
 export async function persistStudentTopicLink(studentId, topicId, patch) {
+  if (!studentId || !topicId) return;
   useAppStore.getState().upsertStudentTopicLink(studentId, topicId, patch);
   const updatedLinks = useAppStore.getState().studentTopicLinks;
   const db = await getDb();
