@@ -13253,6 +13253,10 @@ kbd {
   justify-content: flex-start;
 }
 
+.operation-stage--stick .operation-number-grid--pad {
+  margin-top: 0;
+}
+
 .operation-stage-stick__main {
   flex: 1;
   width: 100%;
