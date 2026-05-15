@@ -15236,4 +15236,32 @@ body { background: #eef0ef; }
   .params-body { padding: 8px; gap: 6px; }
   .param-row   { padding: 10px 14px; }
   .params-start-phone { padding: 10px 12px 12px; }
+
+  /* ── Session: compact topbar (saves ~30px) ── */
+  .session-topbar { padding: 4px 12px 4px; gap: 0; }
+  .session-subtitle { display: none; }
+  .session-topbar-controls { gap: 8px; }
+
+  /* ── Puzzle: compact sp-screen shell ── */
+  .sp-screen { padding: 8px; gap: 8px; }
+  .sp-audio-section { min-height: 40px; padding: 0; }
+  .sp-audio-btn { font-size: 32px; }
+
+  /* ── Puzzle row: cap width so slots stay narrow (and short).
+        In landscape the row fills 844px making each slot 245px tall — unusable.
+        Capping at 380px keeps slot height ~115px and leaves room for the pool. ── */
+  .sp-rows-area { align-items: center; }
+  .sp-row { max-width: 380px; width: 100%; padding: 4px 8px; }
+
+  /* ── Puzzle pool: smaller cards, single-row layout in landscape ── */
+  .sp-pool { gap: 8px; padding: 8px 12px; min-height: 56px; }
+  .sp-pool > div svg { width: 80px; height: 51px; }
+  .sp-card-overlay svg { width: 80px; height: 51px; }
+}
+
+/* 4. Portrait phone (≤ 480 px wide) puzzle pool: scale cards to 80% so 3 fit
+      per row instead of 2, reducing pool height from 274 px to ~142 px. */
+@media (max-width: 480px) {
+  .sp-pool { gap: 10px; padding: 10px 14px; min-height: 72px; }
+  .sp-pool > div svg { width: 88px; height: 56px; }
 }
