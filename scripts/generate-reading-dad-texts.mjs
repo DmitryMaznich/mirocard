@@ -55,7 +55,7 @@ const omeletSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_texts",
-    version: "1.6.0",
+    version: "1.7.0",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -82,8 +82,8 @@ const manifest = {
       image: "media/omelet.svg",
       steps: [
         { id: "s1",  type: "action",  text: "Вымой руки." },
-        { id: "s2",  type: "bullets", text: "Достань нужную посуду:", items: ["сковородку", "лопатку", "миску", "вилку", "тарелку", "доску", "нож"] },
-        { id: "s3",  type: "bullets", text: "Достань продукты:", items: ["2 яйца", "колбасу", "соль", "масло"] },
+        { id: "s2",  type: "checklist", text: "Достань нужную посуду:", items: ["сковородку", "лопатку", "миску", "вилку", "тарелку", "доску", "нож"] },
+        { id: "s3",  type: "checklist", text: "Достань продукты:", items: ["2 яйца", "колбасу", "соль", "масло"] },
         { id: "s4",  type: "action",  text: "Поставь сковородку на плиту." },
         { id: "s5",  type: "action",  text: "Нарежь колбасу кружочками на доске." },
         { id: "s6",  type: "action",  text: "Разбей два яйца в миску." },
@@ -118,4 +118,4 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/omelet.svg", omeletSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_texts_v1.6.0.zip", buffer);
+writeFileSync("public/decks/reading_dad_texts_v1.7.0.zip", buffer);
