@@ -34,7 +34,9 @@ export default function SettingsScreen() {
   const settings         = useAppStore((s) => s.settings);
   const patchSettings    = useAppStore((s) => s.patchSettings);
 
+  const adultConfirmAdvance = settings.adultConfirmAdvance ?? true;
   const tapToAdvance     = settings.tapToAdvance ?? true;
+  const requiresTapToAdvance = adultConfirmAdvance || tapToAdvance;
   const autoAdvanceDelay = settings.autoAdvanceDelay ?? 3;
 
   async function handlePatchSettings(patch) {
@@ -96,19 +98,35 @@ export default function SettingsScreen() {
           <div
             className="settings-row"
             style={{ cursor: "pointer" }}
-            onClick={() => handlePatchSettings({ tapToAdvance: !tapToAdvance })}
+            onClick={() => handlePatchSettings({ adultConfirmAdvance: !adultConfirmAdvance })}
           >
-            <span className="settings-row__label">Следующая карта по тапу</span>
+            <span className="settings-row__label">Переход после подтверждения</span>
             <input
               type="checkbox"
-              checked={tapToAdvance}
+              checked={adultConfirmAdvance}
               readOnly
               style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
             />
           </div>
           <div
             className="settings-row"
-            style={{ opacity: tapToAdvance ? 0.4 : 1, pointerEvents: tapToAdvance ? "none" : "auto" }}
+            style={{ cursor: adultConfirmAdvance ? "default" : "pointer", opacity: adultConfirmAdvance ? 0.55 : 1 }}
+            onClick={() => {
+              if (!adultConfirmAdvance) handlePatchSettings({ tapToAdvance: !tapToAdvance });
+            }}
+          >
+            <span className="settings-row__label">Следующая карта по тапу</span>
+            <input
+              type="checkbox"
+              checked={adultConfirmAdvance ? true : tapToAdvance}
+              readOnly
+              disabled={adultConfirmAdvance}
+              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
+            />
+          </div>
+          <div
+            className="settings-row"
+            style={{ opacity: requiresTapToAdvance ? 0.4 : 1, pointerEvents: requiresTapToAdvance ? "none" : "auto" }}
           >
             <div className="settings-row__label">Задержка (сек)</div>
             <div className="param-stepper">
