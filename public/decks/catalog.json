@@ -14,6 +14,19 @@
       "url": "./decks/reading_dad_poems_v1.0.10.zip"
     },
     {
+      "id": "reading_dad_texts",
+      "version": "1.1.0",
+      "title": {
+        "ru": "Чтение: Тексты",
+        "en": "Reading: Texts"
+      },
+      "description": {
+        "ru": "Совместное чтение, вопросы по смыслу, сборка текста из слов и пошаговые инструкции.",
+        "en": "Shared reading, comprehension questions, text assembly, and step-by-step instructions."
+      },
+      "url": "./decks/reading_dad_texts_v1.1.0.zip"
+    },
+    {
       "id": "emotions_v2",
       "version": "1.2.0",
       "title": {
@@ -119,7 +132,7 @@
     },
     {
       "id": "sentence_puzzle",
-      "version": "1.9.15",
+      "version": "1.9.16",
       "title": {
         "ru": "Конструктор предложений",
         "en": "Sentence Builder"
@@ -128,7 +141,7 @@
         "ru": "Собираем пазл из слов и слушаем предложения. Цветовое кодирование ролей.",
         "en": "Assemble sentences from word cards. Color-coded roles. Listen-and-build mode."
       },
-      "url": "./decks/sentence_puzzle_v1.9.15.zip"
+      "url": "./decks/sentence_puzzle_v1.9.16.zip"
     }
   ]
 }

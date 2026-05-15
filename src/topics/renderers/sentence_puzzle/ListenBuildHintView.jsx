@@ -50,7 +50,8 @@ function speakRu(text, { onStart, onEnd, onWord } = {}) {
           if (!stopped && !boundaryFired) onWord(wi);
         }, cumulative);
         wordTimers.push(t);
-        cumulative += Math.max(250, word.length * 80);
+        // word slot + 150ms gap before next (matches the 150ms pause in onWord handler)
+        cumulative += Math.max(250, word.length * 80) + 150;
       });
     }
   };
@@ -120,8 +121,12 @@ export default function ListenBuildHintView({
         const cardId = task.target[slotType]?.id ?? null;
         if (!cardId) return;
         clearTimeout(highlightTimer.current);
-        setHighlightCardId(cardId);
-        highlightTimer.current = setTimeout(() => setHighlightCardId(null), 600);
+        setHighlightCardId(null);
+        highlightTimer.current = setTimeout(() => {
+          setHighlightCardId(cardId);
+          clearTimeout(highlightTimer.current);
+          highlightTimer.current = setTimeout(() => setHighlightCardId(null), 500);
+        }, 150);
       },
     });
   }
