@@ -60,6 +60,7 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
   const associationDirection = resolveAssociationDirection(modeType, params, taskIndex);
   const extraParams = {
     showHelper: Boolean(params.showHelper),
+    showInstruction: params.showInstruction === false ? false : true,
     inputMode: params.inputMode ?? "choices",
     timer: params.timer ?? null,
   };

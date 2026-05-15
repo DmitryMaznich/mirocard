@@ -45,7 +45,8 @@
       "params": {
         "maxNumber": { "type": "enum", "values": [5, 10, 20], "labels": { "ru": { "5": "до 5", "10": "до 10", "20": "до 20" } }, "default": 5, "label": { "ru": "Максимальное число" } },
         "changeMax": { "type": "enum", "values": [1, 3, 5, 10, 99], "labels": { "ru": { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, "default": 1, "label": { "ru": "Максимальное изменение" } },
-        "includeZero": { "type": "boolean", "default": false, "label": { "ru": "Включить ноль" } }
+        "includeZero": { "type": "boolean", "default": false, "label": { "ru": "Включить ноль" } },
+        "showInstruction": { "type": "boolean", "default": true, "label": { "ru": "Показывать инструкции" } }
       },
       "methodology": {
         "text": "Третья ступень: ребёнок выполняет действие на счётной палке — перемещает фишки и называет результат. Манипуляция с объектом закрепляет связь между физическим действием и арифметической операцией.",

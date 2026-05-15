@@ -362,9 +362,11 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
           answered={isFinalAnswerCorrect}
           activeParts={activeExpressionParts}
         />
-        <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
-          {prompt}
-        </div>
+        {task.showInstruction !== false && (
+          <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
+            {prompt}
+          </div>
+        )}
         {phase === "setup" && (
           <LiveBeadTool
             key={`setup-${task.cardId}-${task.start}-${task.delta}`}
