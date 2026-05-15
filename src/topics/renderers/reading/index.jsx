@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
@@ -303,14 +304,28 @@ function AssembleLineTask({ task, soundEnabled, onMistake, onAdvance }) {
 }
 
 function InstructionTask({ task, onAdvance }) {
+  const setScreen = useAppStore((s) => s.setScreen);
   const steps = task.text?.steps ?? [];
   const [stepIndex, setStepIndex] = useState(0);
   const [checked, setChecked] = useState({});
+  const [listOpen, setListOpen] = useState(false);
+  const listRef = useRef(null);
 
   const step = steps[stepIndex];
   const isLast = stepIndex === steps.length - 1;
   const allChecked = step?.type !== "checklist" ||
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
+
+  useEffect(() => {
+    if (!listOpen || !listRef.current) return;
+    const el = listRef.current.querySelector(".instruction-list-item--active");
+    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [listOpen]);
+
+  function goBack() {
+    if (stepIndex > 0) setStepIndex((n) => n - 1);
+    else setScreen("texts");
+  }
 
   function toggleItem(i) {
     const key = `${stepIndex}_${i}`;
@@ -318,6 +333,7 @@ function InstructionTask({ task, onAdvance }) {
   }
 
   function goNext() {
+    setListOpen(false);
     if (isLast) onAdvance();
     else setStepIndex((n) => n + 1);
   }
@@ -326,7 +342,11 @@ function InstructionTask({ task, onAdvance }) {
 
   return (
     <div className="session-body reading-body instruction-body">
-      <div className="instruction-progress">{stepIndex + 1} / {steps.length}</div>
+      <div className="instruction-header">
+        <button className="instruction-back-btn" onClick={goBack}>←</button>
+        <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
+        <span className="instruction-header-spacer" />
+      </div>
 
       <div className="instruction-step">
         <div className="instruction-step-text">{step.text}</div>
@@ -337,17 +357,47 @@ function InstructionTask({ task, onAdvance }) {
               return (
                 <li
                   key={i}
+                  role="checkbox"
+                  aria-checked={done}
                   className={`instruction-check-item${done ? " instruction-check-item--done" : ""}`}
                   onClick={() => toggleItem(i)}
                 >
                   <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                  <span>{item}</span>
+                  <span className="instruction-check-label">{item}</span>
+                  {!done && <span className="instruction-check-tap-hint">нажми</span>}
                 </li>
               );
             })}
           </ul>
         )}
       </div>
+
+      <button
+        className={`instruction-drawer-toggle${listOpen ? " instruction-drawer-toggle--open" : ""}`}
+        onClick={() => setListOpen((v) => !v)}
+      >
+        <span className="instruction-drawer-pill" />
+        <span className="instruction-drawer-label">все шаги {listOpen ? "▲" : "▼"}</span>
+      </button>
+
+      {listOpen && (
+        <div className="instruction-drawer" ref={listRef}>
+          {steps.map((s, i) => {
+            const isDone = i < stepIndex;
+            const isActive = i === stepIndex;
+            return (
+              <div
+                key={s.id}
+                className={`instruction-list-item${isDone ? " instruction-list-item--done" : ""}${isActive ? " instruction-list-item--active" : ""}`}
+              >
+                <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
+                <span className="instruction-list-num">{i + 1}.</span>
+                <span className="instruction-list-text">{s.text}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="instruction-nav">
         <button
