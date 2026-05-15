@@ -355,37 +355,37 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
 
   return (
     <div className="operation-stage operation-stage--stick">
-      <OperationExpression
-        task={task}
-        missingResult={!isFinalAnswerCorrect}
-        answered={isFinalAnswerCorrect}
-        activeParts={activeExpressionParts}
-      />
-      <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
-        {prompt}
-      </div>
-      {phase === "setup" && (
-        <LiveBeadTool
-          key={`setup-${task.cardId}-${task.start}-${task.delta}`}
-          task={setupTask}
-          initialWorkCount={0}
-          disabled={false}
-          onAnswer={handleSetupComplete}
-          onMistake={onMistake}
-        />
-      )}
-      {phase === "action" && (
-        <LiveBeadTool
-          key={`action-${task.cardId}-${task.start}-${task.delta}`}
+      <div className="operation-stage-stick__main">
+        <OperationExpression
           task={task}
-          initialWorkCount={task.start}
-          disabled={false}
-          onAnswer={handleActionComplete}
-          onMistake={onMistake}
+          missingResult={!isFinalAnswerCorrect}
+          answered={isFinalAnswerCorrect}
+          activeParts={activeExpressionParts}
         />
-      )}
-      {phase === "answer" && (
-        <>
+        <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
+          {prompt}
+        </div>
+        {phase === "setup" && (
+          <LiveBeadTool
+            key={`setup-${task.cardId}-${task.start}-${task.delta}`}
+            task={setupTask}
+            initialWorkCount={0}
+            disabled={false}
+            onAnswer={handleSetupComplete}
+            onMistake={onMistake}
+          />
+        )}
+        {phase === "action" && (
+          <LiveBeadTool
+            key={`action-${task.cardId}-${task.start}-${task.delta}`}
+            task={task}
+            initialWorkCount={task.start}
+            disabled={false}
+            onAnswer={handleActionComplete}
+            onMistake={onMistake}
+          />
+        )}
+        {phase === "answer" && (
           <LiveBeadTool
             key={`answer-${task.cardId}-${task.start}-${task.delta}`}
             task={task}
@@ -394,13 +394,15 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
             onAnswer={() => {}}
             onMistake={onMistake}
           />
-          <NumberPad
-            maxNumber={beadCount}
-            answer={task.result}
-            selected={selectedResult}
-            onAnswer={handleResultAnswer}
-          />
-        </>
+        )}
+      </div>
+      {phase === "answer" && (
+        <NumberPad
+          maxNumber={beadCount}
+          answer={task.result}
+          selected={selectedResult}
+          onAnswer={handleResultAnswer}
+        />
       )}
     </div>
   );

@@ -13232,6 +13232,17 @@ kbd {
 .operation-stage--stick {
   width: calc(100dvw - 8px);
   max-width: 1400px;
+  justify-content: flex-start;
+}
+
+.operation-stage-stick__main {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
 }
 
 .operation-taskline {
@@ -13904,6 +13915,8 @@ button.operation-dot {
 }
 
 @media (max-width: 520px) {
+  .operation-stage-stick__main { gap: 14px; }
+
   .operation-stage {
     min-height: calc(100dvh - 104px);
     gap: 14px;
@@ -14136,6 +14149,8 @@ button.operation-dot {
 }
 
 @media (max-width: 767px) and (orientation: landscape) {
+  .operation-stage-stick__main { gap: 8px; }
+
   .operation-stage {
     min-height: auto;
     padding-block: 6px;
@@ -14146,6 +14161,12 @@ button.operation-dot {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-start;
+    justify-content: center;
+  }
+
+  .operation-stage-stick__main {
+    flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
   }
 
