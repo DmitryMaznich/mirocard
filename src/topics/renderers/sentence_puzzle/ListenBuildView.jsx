@@ -40,7 +40,7 @@ export default function ListenBuildView({
   task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onMistake,
 }) {
   const slotTypes    = SLOT_TYPES[task.structure] ?? SLOT_TYPES.simple;
-  const sentenceText = slotTypes.map((t) => task.target[t]?.label ?? "").join(" ");
+  const sentenceText = slotTypes.map((t) => task.target[t]?.pronounce ?? task.target[t]?.label ?? "").join(" ");
 
   const [placed,     setPlaced]     = useState(() => Object.fromEntries(slotTypes.map((t) => [t, null])));
   const [pool,       setPool]       = useState(() => [...task.pool]);

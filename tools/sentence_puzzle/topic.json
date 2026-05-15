@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.9.12",
+    "version": "1.9.13",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений",
     "avatar": "media/avatar_sentence_puzzle.svg",
@@ -182,7 +182,7 @@
     { "id": "bottle",    "group": "tidy",       "type": "object",    "label": "бутылку",    "nominative": "бутылка", "emoji": "🧴", "image": "media/cards/bottle_1.webp"  },
     { "id": "jar",       "group": "tidy",       "type": "object",    "label": "банку",      "nominative": "банка",   "emoji": "🫙", "image": "media/cards/jar_1.webp"     },
 
-    { "id": "heavy",     "group": "open_close", "type": "adjective", "label": "тяжёлую",    "emoji": "🏋️", "image": "media/cards/heavy_1.webp"     },
+    { "id": "heavy",     "group": "open_close", "type": "adjective", "label": "тяжёлую",    "pronounce": "тяжо́лую", "emoji": "🏋️", "image": "media/cards/heavy_1.webp"     },
     { "id": "glass_adj", "group": "open_close", "type": "adjective", "label": "стеклянную", "emoji": "🪟", "image": "media/cards/glass_adj_1.webp" },
     { "id": "full",      "group": "tidy",       "type": "adjective", "label": "полную",     "emoji": "🔋", "image": "media/cards/full_1.webp"      },
     { "id": "mom_adj",   "group": "tidy",       "type": "adjective", "label": "мамину",     "emoji": "👩" },
