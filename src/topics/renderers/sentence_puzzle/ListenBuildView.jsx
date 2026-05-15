@@ -10,6 +10,13 @@ function playSound(name, enabled) {
   try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
 }
 
+// ё is always stressed in Russian, but many TTS engines strip it to е and then
+// apply wrong stress. Replacing ё with е + combining acute (U+0301) is the
+// standard Unicode way to mark stress; Google TTS and most modern engines honour it.
+function yoToStressedYe(word) {
+  return word.replace(/ё/g, "е́").replace(/Ё/g, "Е́");
+}
+
 function speakRu(text, { onStart, onEnd } = {}) {
   const synth = window.speechSynthesis;
   if (!synth) return null;
@@ -29,7 +36,7 @@ function speakRu(text, { onStart, onEnd } = {}) {
   function next() {
     if (stopped) return;
     if (idx >= words.length) { onEnd?.(); return; }
-    const utt  = new SpeechSynthesisUtterance(words[idx]);
+    const utt  = new SpeechSynthesisUtterance(yoToStressedYe(words[idx]));
     utt.lang   = "ru-RU";
     utt.rate   = 0.9;
     if (idx === 0) utt.onstart = () => onStart?.();
