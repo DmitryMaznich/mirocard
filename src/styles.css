@@ -14278,55 +14278,6 @@ button.operation-dot {
   font-variant-numeric: tabular-nums;
 }
 
-/* ─── Abacus (counting stick) inside helper panel ───────────────────────── */
-.helper-abacus {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-}
-
-.helper-abacus__rod {
-  position: absolute;
-  top: 50%;
-  left: 4px;
-  right: 4px;
-  height: 8px;
-  background: #b87333;
-  border-radius: 4px;
-  transform: translateY(-50%);
-  z-index: 0;
-}
-
-.helper-abacus__track {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  padding: 8px 4px;
-}
-
-.helper-abacus__bead {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid #c0c0c0;
-  background: #e5e7eb;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, transform 0.1s;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.helper-abacus__bead--active {
-  background: #f59e42;
-  border-color: #d97706;
-}
-
-.helper-abacus__bead:active {
-  transform: scale(0.88);
-}
 
 .helper-panel__close {
   background: #f3f4f6;
