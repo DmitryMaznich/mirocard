@@ -508,7 +508,7 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
           onAnswer={handleAnswer}
         />
       )}
-      {task.timer != null && !answered && (
+      {task.timer > 0 && !answered && (
         <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
       )}
       {task.showHelper && (
@@ -571,7 +571,7 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
           onAnswer={handleAnswer}
         />
       )}
-      {task.timer != null && !answered && (
+      {task.timer > 0 && !answered && (
         <TimerBar seconds={task.timer} onExpire={() => handleAnswer(-1)} />
       )}
       {task.showHelper && (
