@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.9.11",
+    "version": "1.9.12",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений",
     "avatar": "media/avatar_sentence_puzzle.svg",
@@ -94,6 +94,9 @@
     { "id": "f08", "group": "base", "subject": "girl",    "verb": "search", "adjective": "small", "object": "cup"   },
     { "id": "f09", "group": "base", "subject": "grandma", "verb": "carry",  "adjective": "big",   "object": "plate" },
     { "id": "f10", "group": "base", "subject": "grandpa", "verb": "take",   "adjective": "dirty", "object": "spoon" },
+    { "id": "f11", "group": "base", "subject": "dad",     "verb": "carry",  "adjective": "heavy", "object": "bag"   },
+    { "id": "f12", "group": "base", "subject": "grandpa", "verb": "carry",  "adjective": "heavy", "object": "bag"   },
+    { "id": "f13", "group": "base", "subject": "boy",     "verb": "carry",  "adjective": "heavy", "object": "bag"   },
 
     { "id": "s_oc01", "group": "open_close", "subject": "mom",     "verb": "open_v"  },
     { "id": "s_oc02", "group": "open_close", "subject": "mom",     "verb": "close_v" },
