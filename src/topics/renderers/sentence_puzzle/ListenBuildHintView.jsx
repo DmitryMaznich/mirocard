@@ -15,75 +15,34 @@ function speakRu(text, { onStart, onEnd, onWord } = {}) {
   if (!synth) return null;
   synth.cancel();
 
+  // Words use their pronounce form (e.g. "тяжо́лую") so stress is correct
+  // even when spoken in isolation without sentence context.
   const words = text.split(/\s+/).filter(Boolean);
-  // Char offset of each word in the original text (for onboundary mapping).
-  const offsets = [];
-  let pos = 0;
-  for (const w of words) { offsets.push(pos); pos += w.length + 1; }
-
-  let stopped       = false;
-  let boundaryFired = false;
-  const wordTimers  = [];
+  let stopped  = false;
+  let gapTimer = null;
 
   function cancel() {
     stopped = true;
-    wordTimers.forEach(clearTimeout);
+    clearTimeout(gapTimer);
     synth.cancel();
   }
 
-  // Speak the full sentence so the TTS language model has enough context to
-  // correctly stress words like тяжёлую (word-by-word strips context and causes
-  // vowel reduction: тяжЁлую → тяжАлую).
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang  = "ru-RU";
-  utt.rate  = 0.9;
-
-  utt.onstart = () => {
+  function speakWord(wi) {
     if (stopped) return;
-    onStart?.();
-    // Timer-based fallback for browsers that don't fire onboundary (e.g. iOS Safari).
-    // Each word gets a slot proportional to its character length; min 250ms per word.
-    if (onWord) {
-      let cumulative = 0;
-      words.forEach((word, wi) => {
-        const t = setTimeout(() => {
-          if (!stopped && !boundaryFired) onWord(wi);
-        }, cumulative);
-        wordTimers.push(t);
-        // word slot + 150ms gap before next (matches the 150ms pause in onWord handler)
-        cumulative += Math.max(250, word.length * 80) + 150;
-      });
-    }
-  };
+    if (wi >= words.length) { onEnd?.(); return; }
+    if (wi === 0) onStart?.();
+    onWord?.(wi);
 
-  utt.onend = () => {
-    if (stopped) return;
-    wordTimers.forEach(clearTimeout);
-    onEnd?.();
-  };
-  utt.onerror = () => {
-    if (stopped) return;
-    wordTimers.forEach(clearTimeout);
-    onEnd?.();
-  };
-
-  if (onWord) {
-    utt.onboundary = (e) => {
-      if (stopped || e.name !== "word") return;
-      // Switch to accurate boundary-based mode and cancel timer fallbacks.
-      if (!boundaryFired) {
-        boundaryFired = true;
-        wordTimers.forEach(clearTimeout);
-      }
-      let wi = offsets.length - 1;
-      for (let i = 0; i < offsets.length; i++) {
-        if (offsets[i] > e.charIndex) { wi = i - 1; break; }
-      }
-      if (wi >= 0) onWord(wi);
-    };
+    const utt    = new SpeechSynthesisUtterance(words[wi]);
+    utt.lang     = "ru-RU";
+    utt.rate     = 0.9;
+    const next   = () => { if (!stopped) gapTimer = setTimeout(() => speakWord(wi + 1), 150); };
+    utt.onend    = next;
+    utt.onerror  = next;
+    synth.speak(utt);
   }
 
-  synth.speak(utt);
+  speakWord(0);
   return cancel;
 }
 
@@ -121,12 +80,8 @@ export default function ListenBuildHintView({
         const cardId = task.target[slotType]?.id ?? null;
         if (!cardId) return;
         clearTimeout(highlightTimer.current);
-        setHighlightCardId(null);
-        highlightTimer.current = setTimeout(() => {
-          setHighlightCardId(cardId);
-          clearTimeout(highlightTimer.current);
-          highlightTimer.current = setTimeout(() => setHighlightCardId(null), 500);
-        }, 150);
+        setHighlightCardId(cardId);
+        highlightTimer.current = setTimeout(() => setHighlightCardId(null), 600);
       },
     });
   }
