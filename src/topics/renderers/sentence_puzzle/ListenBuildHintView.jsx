@@ -10,44 +10,40 @@ function playSound(name, enabled) {
   try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
 }
 
-function yoToStressedO(word) {
-  return word.replace(/ё/g, "о́").replace(/Ё/g, "О́");
-}
-
 function speakRu(text, { onStart, onEnd, onWord } = {}) {
   const synth = window.speechSynthesis;
   if (!synth) return null;
   synth.cancel();
 
-  const words   = text.split(/\s+/).filter(Boolean);
-  let   idx     = 0;
-  let   stopped = false;
-  let   timer   = null;
+  const words = text.split(/\s+/).filter(Boolean);
+  // Char offset of each word in the original text (for onboundary mapping).
+  const offsets = [];
+  let pos = 0;
+  for (const w of words) { offsets.push(pos); pos += w.length + 1; }
 
-  function cancel() {
-    stopped = true;
-    clearTimeout(timer);
-    synth.cancel();
-  }
+  let stopped = false;
+  function cancel() { stopped = true; synth.cancel(); }
 
-  function next() {
-    if (stopped) return;
-    if (idx >= words.length) { onEnd?.(); return; }
-    const wordIdx = idx;
-    const utt     = new SpeechSynthesisUtterance(yoToStressedO(words[wordIdx]));
-    utt.lang  = "ru-RU";
-    utt.rate  = 0.9;
-    utt.onstart = () => {
-      if (wordIdx === 0) onStart?.();
-      onWord?.(wordIdx);
+  // Speak the full sentence so the TTS language model has enough context to
+  // correctly stress words like тяжёлую (word-by-word strips context and causes
+  // vowel reduction: тяжЁлую → тяжАлую).
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang  = "ru-RU";
+  utt.rate  = 0.9;
+  utt.onstart = () => { if (!stopped) onStart?.(); };
+  utt.onend   = () => { if (!stopped) onEnd?.(); };
+  utt.onerror = () => { if (!stopped) onEnd?.(); };
+  if (onWord) {
+    utt.onboundary = (e) => {
+      if (stopped || e.name !== "word") return;
+      let wi = offsets.length - 1;
+      for (let i = 0; i < offsets.length; i++) {
+        if (offsets[i] > e.charIndex) { wi = i - 1; break; }
+      }
+      if (wi >= 0) onWord(wi);
     };
-    utt.onend  = () => { timer = setTimeout(next, 100); };
-    utt.onerror = () => { if (!stopped) onEnd?.(); };
-    idx++;
-    synth.speak(utt);
   }
-
-  next();
+  synth.speak(utt);
   return cancel;
 }
 

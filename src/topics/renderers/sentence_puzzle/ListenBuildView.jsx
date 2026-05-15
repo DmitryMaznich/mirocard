@@ -10,46 +10,29 @@ function playSound(name, enabled) {
   try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
 }
 
-// ё is always stressed in Russian, but many TTS engines strip it to е and then
-// apply wrong stress. Replacing ё with е + combining acute (U+0301) is the
-// standard Unicode way to mark stress; Google TTS and most modern engines honour it.
-// ё = always stressed о-sound after a consonant. TTS engines often strip ё→о
-// but lose the stress, causing unstressed о to reduce to А (Russian vowel reduction).
-// Replacing with о + combining acute (U+0301) preserves both the о-sound and the stress.
-function yoToStressedO(word) {
-  return word.replace(/ё/g, "о́").replace(/Ё/g, "О́");
-}
-
 function speakRu(text, { onStart, onEnd } = {}) {
   const synth = window.speechSynthesis;
   if (!synth) return null;
   synth.cancel();
 
-  const words   = text.split(/\s+/).filter(Boolean);
-  let   idx     = 0;
-  let   stopped = false;
-  let   timer   = null;
+  let stopped = false;
 
   function cancel() {
     stopped = true;
-    clearTimeout(timer);
     synth.cancel();
   }
 
-  function next() {
-    if (stopped) return;
-    if (idx >= words.length) { onEnd?.(); return; }
-    const utt  = new SpeechSynthesisUtterance(yoToStressedO(words[idx]));
-    utt.lang   = "ru-RU";
-    utt.rate   = 0.9;
-    if (idx === 0) utt.onstart = () => onStart?.();
-    utt.onend  = () => { timer = setTimeout(next, 100); };
-    utt.onerror = () => { if (!stopped) onEnd?.(); };
-    idx++;
-    synth.speak(utt);
-  }
+  // Speak the full sentence in one utterance so the TTS language model has
+  // enough context to correctly stress words like тяжёлую (word-by-word mode
+  // strips context and causes vowel reduction errors: тяжЁлую → тяжАлую).
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang  = "ru-RU";
+  utt.rate  = 0.9;
+  utt.onstart = () => { if (!stopped) onStart?.(); };
+  utt.onend   = () => { if (!stopped) onEnd?.(); };
+  utt.onerror = () => { if (!stopped) onEnd?.(); };
+  synth.speak(utt);
 
-  next();
   return cancel;
 }
 
