@@ -10,8 +10,8 @@ function playSound(name, enabled) {
   try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
 }
 
-function yoToStressedYe(word) {
-  return word.replace(/ё/g, "е́").replace(/Ё/g, "Е́");
+function yoToStressedO(word) {
+  return word.replace(/ё/g, "о́").replace(/Ё/g, "О́");
 }
 
 function speakRu(text, { onStart, onEnd, onWord } = {}) {
@@ -34,7 +34,7 @@ function speakRu(text, { onStart, onEnd, onWord } = {}) {
     if (stopped) return;
     if (idx >= words.length) { onEnd?.(); return; }
     const wordIdx = idx;
-    const utt     = new SpeechSynthesisUtterance(yoToStressedYe(words[wordIdx]));
+    const utt     = new SpeechSynthesisUtterance(yoToStressedO(words[wordIdx]));
     utt.lang  = "ru-RU";
     utt.rate  = 0.9;
     utt.onstart = () => {

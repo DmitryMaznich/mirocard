@@ -13,8 +13,11 @@ function playSound(name, enabled) {
 // ё is always stressed in Russian, but many TTS engines strip it to е and then
 // apply wrong stress. Replacing ё with е + combining acute (U+0301) is the
 // standard Unicode way to mark stress; Google TTS and most modern engines honour it.
-function yoToStressedYe(word) {
-  return word.replace(/ё/g, "е́").replace(/Ё/g, "Е́");
+// ё = always stressed о-sound after a consonant. TTS engines often strip ё→о
+// but lose the stress, causing unstressed о to reduce to А (Russian vowel reduction).
+// Replacing with о + combining acute (U+0301) preserves both the о-sound and the stress.
+function yoToStressedO(word) {
+  return word.replace(/ё/g, "о́").replace(/Ё/g, "О́");
 }
 
 function speakRu(text, { onStart, onEnd } = {}) {
@@ -36,7 +39,7 @@ function speakRu(text, { onStart, onEnd } = {}) {
   function next() {
     if (stopped) return;
     if (idx >= words.length) { onEnd?.(); return; }
-    const utt  = new SpeechSynthesisUtterance(yoToStressedYe(words[idx]));
+    const utt  = new SpeechSynthesisUtterance(yoToStressedO(words[idx]));
     utt.lang   = "ru-RU";
     utt.rate   = 0.9;
     if (idx === 0) utt.onstart = () => onStart?.();
