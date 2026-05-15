@@ -15259,9 +15259,16 @@ body { background: #eef0ef; }
   .sp-card-overlay svg { width: 80px; height: 51px; }
 }
 
-/* 4. Portrait phone (≤ 480 px wide) puzzle pool: scale cards to 80% so 3 fit
-      per row instead of 2, reducing pool height from 274 px to ~142 px. */
+/* 4. Portrait phone (≤ 480 px wide) puzzle pool: 3-column grid, smaller row gap. */
 @media (max-width: 480px) {
-  .sp-pool { gap: 10px; padding: 10px 14px; min-height: 72px; }
+  .sp-pool {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    column-gap: 10px;
+    row-gap: 5px;
+    padding: 10px 14px;
+    min-height: 72px;
+  }
   .sp-pool > div svg { width: 88px; height: 56px; }
 }
