@@ -6,6 +6,7 @@ import ModeIcon from "@/shared/components/ModeIcon";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
+import { refreshInstalledCatalogTopics } from "@/features/topics/catalogService";
 
 function SettingsIcon() {
   return (
@@ -101,12 +102,17 @@ function useAppUpdate() {
     return () => navigator.serviceWorker.removeEventListener("controllerchange", onController);
   }, []);
 
-  const applyUpdate = useCallback(() => {
+  const applyUpdate = useCallback(async () => {
     if (reg?.waiting) {
       reg.waiting.postMessage({ type: "SKIP_WAITING" });
-    } else {
-      reg?.update().catch(() => {});
+      return;
     }
+    try {
+      await reg?.update();
+    } catch {
+      // A manual refresh still gives the browser a chance to load the newest app shell.
+    }
+    window.location.reload();
   }, [reg]);
 
   return { hasUpdate, applyUpdate };
@@ -116,7 +122,9 @@ export default function HomeScreen({ onOpenTimer }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const students = useAppStore((s) => s.students);
   const topicRecords = useAppStore((s) => s.topicRecords);
+  const setTopicRecords = useAppStore((s) => s.setTopicRecords);
   const sessions = useAppStore((s) => s.sessions);
+  const buildInfo = useAppStore((s) => s.buildInfo);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const activeTextId = useAppStore((s) => s.activeTextId);
@@ -124,6 +132,8 @@ export default function HomeScreen({ onOpenTimer }) {
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+  const [refreshingAll, setRefreshingAll] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
 
   const student = students.find((s) => s.id === activeStudentId) ?? students[0];
   const topic = topicRecords.find((r) => r.meta.id === activeTopicId) ?? topicRecords[0];
@@ -180,6 +190,39 @@ export default function HomeScreen({ onOpenTimer }) {
     }
     setScreen("params");
   }
+
+  async function refreshAppAndTopics() {
+    if (refreshingAll) return;
+
+    setRefreshingAll(true);
+    setRefreshFailed(false);
+    try {
+      if (topicRecords.length > 0) {
+        const result = await refreshInstalledCatalogTopics({
+          topicRecords,
+          appVersion: buildInfo.version,
+          force: true,
+        });
+        if (result.updated.length > 0) {
+          setTopicRecords(result.nextRecords);
+        }
+        if (result.failed.length > 0) {
+          setRefreshFailed(true);
+        }
+      }
+    } catch {
+      setRefreshFailed(true);
+    } finally {
+      setRefreshingAll(false);
+      applyUpdate();
+    }
+  }
+
+  const versionTitle = refreshingAll
+    ? "Обновляем приложение и темы…"
+    : refreshFailed
+      ? "Часть тем не обновилась. Нажмите, чтобы повторить"
+      : "Обновить приложение и активные темы";
 
   return (
     <div className="screen home-screen-v2">
@@ -240,14 +283,16 @@ export default function HomeScreen({ onOpenTimer }) {
         </div>
       </section>
 
-      <div
-        className={`home-version${hasUpdate ? " home-version--update" : ""}`}
-        onClick={applyUpdate}
-        title={hasUpdate ? "Нажмите для обновления" : undefined}
+      <button
+        type="button"
+        className={`home-version${hasUpdate || refreshingAll || refreshFailed ? " home-version--update" : ""}${refreshingAll ? " home-version--refreshing" : ""}${refreshFailed ? " home-version--error" : ""}`}
+        onClick={refreshAppAndTopics}
+        title={versionTitle}
+        disabled={refreshingAll}
       >
-        v{__APP_VERSION__}
-        {hasUpdate && <span className="home-version__dot" />}
-      </div>
+        v{buildInfo.version}
+        {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-version__dot" />}
+      </button>
     </div>
   );
 }

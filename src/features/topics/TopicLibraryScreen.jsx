@@ -1,8 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
-import { importTopic, deleteTopicRecord, TopicImportError } from "@/topics/topicLoader";
-import { clearRendererCache } from "@/topics/rendererLoader";
+import { deleteTopicRecord } from "@/topics/topicLoader";
 import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import TopicCover from "@/shared/components/TopicCover";
 import Modal from "@/shared/components/Modal";
@@ -10,39 +9,12 @@ import Button from "@/shared/components/Button";
 import TopicImport from "./TopicImport";
 import InfoModal from "@/shared/components/InfoModal";
 import { getTopicCatalogStatus, getTopicTitle } from "@/shared/utils/format";
-
-const CATALOG_URL = "./decks/catalog.json";
-
-function buildServerUrl(resourceUrl, force = false) {
-  const url = new URL(resourceUrl, window.location.href);
-  if (force) {
-    url.searchParams.set("_refresh", `${Date.now()}_${Math.random().toString(36).slice(2)}`);
-  }
-  return url.href;
-}
-
-async function fetchCatalog(force = false) {
-  const res = await fetch(buildServerUrl(CATALOG_URL, force), {
-    cache: force ? "reload" : "no-store",
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fetchCatalogTopic(entry, appVersion, force = false) {
-  const res = await fetch(buildServerUrl(entry.url, force), {
-    cache: force ? "reload" : "default",
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const buf = await res.arrayBuffer();
-  const db = await getDb();
-  return importTopic(db, buf, appVersion);
-}
-
-function getImportErrorMessage(err) {
-  if (err instanceof TopicImportError) return err.message;
-  return `Ошибка загрузки: ${err?.message ?? err}`;
-}
+import {
+  fetchCatalog,
+  fetchCatalogTopic,
+  getImportErrorMessage,
+  refreshInstalledCatalogTopics,
+} from "./catalogService";
 
 function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, hasUpdate }) {
   return (
@@ -174,7 +146,6 @@ export default function TopicLibraryScreen() {
 
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
-    clearRendererCache(record.meta.id);
     upsertTopicRecord(record);
     return record;
   }, [buildInfo.version, upsertTopicRecord]);
@@ -184,37 +155,25 @@ export default function TopicLibraryScreen() {
     setCatalogErr("");
     setCatalogMessage("");
     try {
-      const freshCatalog = await fetchCatalog(true);
-      setCatalog(freshCatalog);
-      const installedIds = new Set(topicRecords.map((record) => record.meta.id));
-      const entries = (freshCatalog.decks ?? []).filter((entry) => installedIds.has(entry.id));
+      const result = await refreshInstalledCatalogTopics({
+        topicRecords,
+        appVersion: buildInfo.version,
+        force: true,
+      });
+      setCatalog(result.catalog);
 
-      if (entries.length === 0) {
+      if (result.updated.length === 0 && result.failed.length === 0) {
         setCatalogMessage("Нет установленных тем для обновления");
         return;
       }
 
-      const nextRecords = [...topicRecords];
-      const failed = [];
-      const updated = [];
-
-      for (const entry of entries) {
-        try {
-          const record = await fetchCatalogTopic(entry, buildInfo.version, true);
-          const index = nextRecords.findIndex((item) => item.meta.id === record.meta.id);
-          if (index >= 0) nextRecords[index] = record;
-          else nextRecords.push(record);
-          updated.push(`${entry.title?.ru ?? entry.id} v${record.meta.version}`);
-        } catch (err) {
-          failed.push(`${entry.title?.ru ?? entry.id}: ${getImportErrorMessage(err)}`);
-        }
-      }
-
-      if (updated.length > 0) {
-        setTopicRecords(nextRecords);
+      if (result.updated.length > 0) {
+        setTopicRecords(result.nextRecords);
+        const updated = result.updated.map(({ entry, record }) => `${entry.title?.ru ?? entry.id} v${record.meta.version}`);
         setCatalogMessage(`Обновлено: ${updated.join(", ")}`);
       }
-      if (failed.length > 0) {
+      if (result.failed.length > 0) {
+        const failed = result.failed.map(({ entry, error }) => `${entry.title?.ru ?? entry.id}: ${error}`);
         setCatalogErr(`Не обновлено: ${failed.join("; ")}`);
       }
     } catch {
