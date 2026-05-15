@@ -16,7 +16,7 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
 
   return (
     <div className="helper-panel" role="dialog" aria-label="Счётный помощник">
-      <div className="helper-panel__inner">
+      <div className="helper-panel__sheet">
         <div className="operation-stick">
           <div className="operation-stick__wrap">
             <div className="operation-stick__rod" />
@@ -49,15 +49,17 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
             </div>
           </div>
         </div>
-        <div className="helper-panel__count" aria-live="polite">{workCount}</div>
-        <button
-          type="button"
-          className="helper-panel__close"
-          onClick={onClose}
-          aria-label="Закрыть помощник"
-        >
-          Закрыть
-        </button>
+        <div className="helper-panel__controls">
+          <div className="helper-panel__count" aria-live="polite">{workCount}</div>
+          <button
+            type="button"
+            className="helper-panel__close"
+            onClick={onClose}
+            aria-label="Закрыть помощник"
+          >
+            Закрыть
+          </button>
+        </div>
       </div>
     </div>
   );

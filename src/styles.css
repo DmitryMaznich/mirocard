@@ -14257,16 +14257,24 @@ button.operation-dot {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-.helper-panel__inner {
+.helper-panel__sheet {
   background: #fff;
   border-radius: 20px 20px 0 0;
-  padding: 24px 20px 28px;
+  padding-top: 20px;
+  padding-bottom: env(safe-area-inset-bottom, 28px);
   width: 100%;
-  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.helper-panel__controls {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  padding: 12px 20px 16px;
 }
 
 .helper-panel__count {
