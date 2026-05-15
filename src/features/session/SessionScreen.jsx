@@ -23,7 +23,8 @@ export default function SessionScreen() {
   useEffect(() => {
     if (!completedRecord) return;
     const skipSummary = topicRecord?.meta.renderer === "reading" && mode?.type === "read_text";
-    setScreen(skipSummary ? "modes" : "summary");
+    const isInstruction = mode?.type === "follow_instruction";
+    setScreen(isInstruction ? "texts" : skipSummary ? "modes" : "summary");
   }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer]);
 
   function handleCorrect(conceptId, cardId) {

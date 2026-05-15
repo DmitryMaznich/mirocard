@@ -3,6 +3,8 @@ import Button from "@/shared/components/Button";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
 
+const KIND_LABELS = { poem: "стих", instruction: "инструкция" };
+
 function getTextTitle(text) {
   return getTopicTitle(text?.title) || text?.id || "";
 }
@@ -32,23 +34,29 @@ function ReadingTextThumb({ topicId, text }) {
     );
   }
 
-  return <div className="reading-text-kind">{text.kind === "poem" ? "стих" : "проза"}</div>;
+  return <div className="reading-text-kind">{KIND_LABELS[text.kind] ?? "проза"}</div>;
 }
 
 export default function TextPickerScreen() {
-  const setScreen       = useAppStore((s) => s.setScreen);
-  const activeTopicId   = useAppStore((s) => s.activeTopicId);
-  const activeStudentId = useAppStore((s) => s.activeStudentId);
-  const topicRecords    = useAppStore((s) => s.topicRecords);
-  const sessions        = useAppStore((s) => s.sessions);
-  const setActiveTextId = useAppStore((s) => s.setActiveTextId);
+  const setScreen        = useAppStore((s) => s.setScreen);
+  const activeTopicId    = useAppStore((s) => s.activeTopicId);
+  const activeStudentId  = useAppStore((s) => s.activeStudentId);
+  const topicRecords     = useAppStore((s) => s.topicRecords);
+  const sessions         = useAppStore((s) => s.sessions);
+  const setActiveTextId  = useAppStore((s) => s.setActiveTextId);
+  const setActiveModeId  = useAppStore((s) => s.setActiveModeId);
 
   const topicRecord = topicRecords.find((record) => record.meta.id === activeTopicId);
   const texts = topicRecord?.texts ?? [];
 
   function pickText(text) {
     setActiveTextId(text.id);
-    setScreen("modes");
+    if (text.kind === "instruction") {
+      setActiveModeId("follow_instruction");
+      setScreen("session");
+    } else {
+      setScreen("modes");
+    }
   }
 
   if (!topicRecord || topicRecord.meta.renderer !== "reading") {
@@ -94,7 +102,9 @@ export default function TextPickerScreen() {
                 <div className="topic-item__info">
                   <div className="topic-item__title">{getTextTitle(text)}</div>
                   <div className="topic-item__meta">
-                    {text.lines?.length ?? 0} строк · уровень {text.level ?? 1}
+                    {text.kind === "instruction"
+                      ? `${text.steps?.length ?? 0} шагов`
+                      : `${text.lines?.length ?? 0} строк · уровень ${text.level ?? 1}`}
                   </div>
                   <TextResultBadge session={lastSession} />
                 </div>

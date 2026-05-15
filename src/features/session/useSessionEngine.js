@@ -22,7 +22,12 @@ export function useSessionEngine() {
   const autoAdvanceDelay  = useAppStore((s) => s.settings.autoAdvanceDelay ?? 3);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
-  const mode = topicRecord?.modes?.find((m) => m.id === activeModeId);
+  const modeFromTopic = topicRecord?.modes?.find((m) => m.id === activeModeId);
+  const mode = modeFromTopic ?? (
+    activeModeId === "follow_instruction"
+      ? { id: "follow_instruction", type: "follow_instruction", evaluation: "none" }
+      : undefined
+  );
   const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;

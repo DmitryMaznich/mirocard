@@ -302,10 +302,71 @@ function AssembleLineTask({ task, soundEnabled, onMistake, onAdvance }) {
   );
 }
 
+function InstructionTask({ task, onAdvance }) {
+  const steps = task.text?.steps ?? [];
+  const [stepIndex, setStepIndex] = useState(0);
+  const [checked, setChecked] = useState({});
+
+  const step = steps[stepIndex];
+  const isLast = stepIndex === steps.length - 1;
+  const allChecked = step?.type !== "checklist" ||
+    (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
+
+  function toggleItem(i) {
+    const key = `${stepIndex}_${i}`;
+    setChecked((c) => ({ ...c, [key]: !c[key] }));
+  }
+
+  function goNext() {
+    if (isLast) onAdvance();
+    else setStepIndex((n) => n + 1);
+  }
+
+  if (!step) return null;
+
+  return (
+    <div className="session-body reading-body instruction-body">
+      <div className="instruction-progress">{stepIndex + 1} / {steps.length}</div>
+
+      <div className="instruction-step">
+        <div className="instruction-step-text">{step.text}</div>
+        {step.type === "checklist" && (
+          <ul className="instruction-checklist">
+            {(step.items ?? []).map((item, i) => {
+              const done = !!checked[`${stepIndex}_${i}`];
+              return (
+                <li
+                  key={i}
+                  className={`instruction-check-item${done ? " instruction-check-item--done" : ""}`}
+                  onClick={() => toggleItem(i)}
+                >
+                  <span className="instruction-checkbox">{done ? "✓" : ""}</span>
+                  <span>{item}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      <div className="instruction-nav">
+        <button
+          className="reading-primary-btn"
+          disabled={!allChecked}
+          onClick={goNext}
+        >
+          {isLast ? "Готово" : "Дальше"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const TASK_RENDERERS = {
-  read_text:       ReadTextTask,
-  understand_text: UnderstandTextTask,
-  assemble_line:   AssembleLineTask,
+  read_text:           ReadTextTask,
+  understand_text:     UnderstandTextTask,
+  assemble_line:       AssembleLineTask,
+  follow_instruction:  InstructionTask,
 };
 
 export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, onMistake, onAdvance, onQualityAnswer }) {

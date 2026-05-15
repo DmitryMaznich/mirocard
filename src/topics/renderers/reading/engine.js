@@ -49,6 +49,14 @@ function buildAssembleTasks(text) {
   }));
 }
 
+function buildFollowInstructionTask(text) {
+  return {
+    type: "follow_instruction",
+    textId: text.id,
+    text,
+  };
+}
+
 export function generateTasks(mode, topicRecord, textId) {
   const text = getReadingText(topicRecord, textId);
   if (!text) return [];
@@ -60,6 +68,8 @@ export function generateTasks(mode, topicRecord, textId) {
       return buildUnderstandTasks(text);
     case "assemble_text":
       return text.kind === "poem" ? buildAssembleTasks(text) : [];
+    case "follow_instruction":
+      return text.kind === "instruction" ? [buildFollowInstructionTask(text)] : [];
     default:
       return [];
   }
