@@ -2,21 +2,85 @@ import { kv } from "@/core/db";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords } from "@/topics/topicLoader";
 
-// Newer timestamp wins overall; photo and sex are merged field-by-field
-// (either side's non-null value wins) so they survive cross-device edits.
-export function mergeStudents(local, server) {
-  const byId = new Map((server ?? []).map((s) => [s.id, s]));
-  for (const s of (local ?? [])) {
-    const srv = byId.get(s.id);
-    if (!srv) { byId.set(s.id, s); continue; }
-    const winner = (s.updatedAt ?? "") >= (srv.updatedAt ?? "") ? s : srv;
-    byId.set(s.id, {
+export function isDeletedStudent(student) {
+  return Boolean(student?.deletedAt);
+}
+
+export function activeStudents(students) {
+  return (students ?? []).filter((student) => !isDeletedStudent(student));
+}
+
+function studentChangeTime(student) {
+  return student?.deletedAt ?? student?.updatedAt ?? student?.createdAt ?? "";
+}
+
+// Active records use last-write-wins. Delete tombstones win over active records
+// so a missing server row cannot be mistaken for a new local student.
+export function mergeStudentRecords(local, server) {
+  const byId = new Map();
+
+  function put(student) {
+    if (!student?.id) return;
+
+    const current = byId.get(student.id);
+    if (!current) {
+      byId.set(student.id, student);
+      return;
+    }
+
+    const currentDeleted = isDeletedStudent(current);
+    const nextDeleted = isDeletedStudent(student);
+
+    if (currentDeleted || nextDeleted) {
+      if (currentDeleted && nextDeleted) {
+        byId.set(
+          student.id,
+          studentChangeTime(student) >= studentChangeTime(current) ? student : current,
+        );
+      } else {
+        byId.set(student.id, nextDeleted ? student : current);
+      }
+      return;
+    }
+
+    const winner = (student.updatedAt ?? "") >= (current.updatedAt ?? "") ? student : current;
+    const loser  = winner === student ? current : student;
+
+    // Photos live only on-device and are never sent to the server, so we must
+    // rescue them from whichever side has them — winner's timestamp doesn't help.
+    const closeAdults = winner.closeAdults == null ? winner.closeAdults :
+      winner.closeAdults.map((adult) => {
+        const photo = adult.photo ?? (loser.closeAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
+        return photo === adult.photo ? adult : { ...adult, photo };
+      });
+
+    byId.set(student.id, {
       ...winner,
-      photo: s.photo ?? srv.photo ?? null,
-      sex:   s.sex   ?? srv.sex   ?? null,
+      photo:       student.photo ?? current.photo ?? null,
+      sex:         student.sex   ?? current.sex   ?? null,
+      closeAdults: closeAdults,
     });
   }
+
+  for (const student of (server ?? [])) put(student);
+  for (const student of (local ?? [])) put(student);
+
   return [...byId.values()];
+}
+
+export function mergeStudents(local, server) {
+  return activeStudents(mergeStudentRecords(local, server));
+}
+
+export function markStudentDeleted(students, id, deletedAt = new Date().toISOString()) {
+  const current = (students ?? []).find((student) => student?.id === id);
+  const tombstone = {
+    ...(current ?? { id }),
+    id,
+    deletedAt,
+    updatedAt: deletedAt,
+  };
+  return mergeStudentRecords(students, [tombstone]);
 }
 
 // Atomic IDB read→merge→write: prevents a concurrent save from being overwritten.
@@ -28,7 +92,7 @@ function atomicMergeStudents(db, serverStudents) {
     const getReq = store.get("students");
     getReq.onsuccess = () => {
       const current = Array.isArray(getReq.result) ? getReq.result : [];
-      const merged = mergeStudents(current, serverStudents);
+      const merged = mergeStudentRecords(current, serverStudents);
       const putReq = store.put(merged, "students");
       putReq.onsuccess = () => resolve(merged);
       putReq.onerror  = () => reject(putReq.error);
