@@ -6,7 +6,7 @@ export const SLOT_TYPES = {
   full:   ["subject", "verb", "adjective", "object"],
 };
 
-function Slot({ rowIndex, slotType, card, position, structure, result, colorless }) {
+function Slot({ rowIndex, slotType, card, position, structure, result, colorless, active }) {
   const { isOver, setNodeRef } = useDroppable({
     id:   `${rowIndex}_${slotType}`,
     data: { rowIndex, slotType },
@@ -15,11 +15,12 @@ function Slot({ rowIndex, slotType, card, position, structure, result, colorless
   const resultClass = result === "correct"   ? " sp-slot--correct"
                     : result === "incorrect" ? " sp-slot--incorrect"
                     : "";
+  const activeClass = active && !card ? " sp-slot--active" : "";
 
   return (
     <div
       ref={setNodeRef}
-      className={`sp-slot${resultClass}`}
+      className={`sp-slot${resultClass}${activeClass}`}
       style={{
         flex:        1,
         aspectRatio: `${BODY_W} / ${BODY_H}`,
@@ -43,7 +44,7 @@ function Slot({ rowIndex, slotType, card, position, structure, result, colorless
   );
 }
 
-export default function SentenceRow({ rowIndex, structure, placed, slotResults, colorless = false }) {
+export default function SentenceRow({ rowIndex, structure, placed, slotResults, colorless = false, activeSlotType = null }) {
   const slots = SLOT_TYPES[structure] ?? SLOT_TYPES.simple;
 
   return (
@@ -58,6 +59,7 @@ export default function SentenceRow({ rowIndex, structure, placed, slotResults, 
           structure={structure}
           result={slotResults?.[slotType] ?? null}
           colorless={colorless}
+          active={slotType === activeSlotType}
         />
       ))}
     </div>

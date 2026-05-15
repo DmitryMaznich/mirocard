@@ -42,13 +42,16 @@ export default function ListenBuildView({
   const slotTypes    = SLOT_TYPES[task.structure] ?? SLOT_TYPES.simple;
   const sentenceText = slotTypes.map((t) => task.target[t]?.pronounce ?? task.target[t]?.label ?? "").join(" ");
 
-  const [placed,     setPlaced]     = useState(() => Object.fromEntries(slotTypes.map((t) => [t, null])));
-  const [pool,       setPool]       = useState(() => [...task.pool]);
-  const [showError,  setShowError]  = useState(false);
-  const [speaking,   setSpeaking]   = useState(false);
-  const [activeCard, setActiveCard] = useState(null);
+  const [placed,          setPlaced]          = useState(() => Object.fromEntries(slotTypes.map((t) => [t, null])));
+  const [pool,            setPool]            = useState(() => [...task.pool]);
+  const [showError,       setShowError]       = useState(false);
+  const [speaking,        setSpeaking]        = useState(false);
+  const [activeCard,      setActiveCard]      = useState(null);
+  const [activeSlotIndex, setActiveSlotIndex] = useState(0);
   const errorTimer  = useRef(null);
   const ttsCancel   = useRef(null);
+
+  const activeSlotType = slotTypes[activeSlotIndex] ?? null;
 
   const hasTts = !!window.speechSynthesis;
 
@@ -102,7 +105,8 @@ export default function ListenBuildView({
 
     if (placed[slotType] !== null) return;
 
-    if (card.id !== task.target[slotType]?.id) {
+    // Slots must be filled in order; dropping on the wrong slot counts as a mistake.
+    if (slotType !== activeSlotType || card.id !== task.target[slotType]?.id) {
       playSound("incorrect", soundEnabled);
       onMistake?.(null, null);
       setShowError(true);
@@ -113,6 +117,7 @@ export default function ListenBuildView({
 
     setPlaced((prev) => ({ ...prev, [slotType]: card }));
     setPool((prev) => prev.filter((c) => c.id !== card.id));
+    setActiveSlotIndex((prev) => prev + 1);
   }
 
   function handleReplay() {
@@ -150,6 +155,7 @@ export default function ListenBuildView({
               rowIndex={0}
               structure={task.structure}
               placed={placed}
+              activeSlotType={activeSlotType}
             />
           </div>
 
