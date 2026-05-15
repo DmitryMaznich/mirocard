@@ -368,7 +368,7 @@
 /* ── Instruction kind ── */
 .instruction-body {
   cursor: default;
-  justify-content: space-between;
+  overflow-y: auto;
 }
 
 .instruction-header {
