@@ -405,6 +405,34 @@
   text-align: center;
 }
 
+.instruction-bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.instruction-bullet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #263131;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #f4f9f8;
+}
+
+.instruction-bullet-dot {
+  font-size: 1.4rem;
+  color: #4caf90;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
 .instruction-checklist {
   list-style: none;
   margin: 0;
@@ -13227,6 +13255,9 @@ kbd {
 }
 
 .home-version {
+  border: 0;
+  background: transparent;
+  appearance: none;
   text-align: center;
   font-size: 0.72rem;
   color: #c0b8b0;
@@ -13235,10 +13266,17 @@ kbd {
   position: relative;
   display: inline-block;
   align-self: center;
+  font: inherit;
+  cursor: pointer;
 }
 .home-version--update {
-  cursor: pointer;
   color: #a09890;
+}
+.home-version--refreshing {
+  opacity: 0.72;
+}
+.home-version--error {
+  color: #b45309;
 }
 .home-version__dot {
   position: absolute;
@@ -13248,6 +13286,23 @@ kbd {
   height: 7px;
   background: #f59e0b;
   border-radius: 50%;
+}
+.home-version--refreshing .home-version__dot {
+  animation: homeVersionPulse 0.8s ease-in-out infinite;
+}
+.home-version--error .home-version__dot {
+  background: #ef4444;
+}
+@keyframes homeVersionPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.84);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
 }
 
 /* ─── Concept picker ─────────────────────────────────────────────────────── */

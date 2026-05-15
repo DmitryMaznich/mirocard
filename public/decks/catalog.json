@@ -15,16 +15,16 @@
     },
     {
       "id": "reading_dad_texts",
-      "version": "1.2.0",
+      "version": "1.4.0",
       "title": {
         "ru": "Чтение: Тексты",
         "en": "Reading: Texts"
       },
       "description": {
-        "ru": "Совместное чтение, вопросы по смыслу, сборка текста из слов и пошаговые инструкции.",
-        "en": "Shared reading, comprehension questions, text assembly, and step-by-step instructions."
+        "ru": "Пошаговые инструкции для самостоятельных действий.",
+        "en": "Step-by-step instructions for independent tasks."
       },
-      "url": "./decks/reading_dad_texts_v1.2.0.zip"
+      "url": "./decks/reading_dad_texts_v1.4.0.zip"
     },
     {
       "id": "emotions_v2",

@@ -368,6 +368,16 @@ function InstructionTask({ task, onAdvance }) {
             })}
           </ul>
         )}
+        {step.type === "bullets" && (
+          <ul className="instruction-bullets">
+            {(step.items ?? []).map((item, i) => (
+              <li key={i} className="instruction-bullet-item">
+                <span className="instruction-bullet-dot">•</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <button
