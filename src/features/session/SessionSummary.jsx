@@ -124,6 +124,14 @@ export default function SessionSummary() {
     setVideoOpen(true);
   }
 
+  function blockVideoRewardInteraction(event) {
+    if (event.target instanceof Element && event.target.closest(".video-reward-close")) {
+      return;
+    }
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+  }
+
   return (
     <div className="screen summary-screen">
 
@@ -243,7 +251,22 @@ export default function SessionSummary() {
 
       {/* Video overlay */}
       {videoOpen && (
-        <div className="video-reward-overlay">
+        <div
+          className="video-reward-overlay"
+          onClickCapture={blockVideoRewardInteraction}
+          onContextMenu={blockVideoRewardInteraction}
+          onDoubleClick={blockVideoRewardInteraction}
+          onPointerDown={blockVideoRewardInteraction}
+          onPointerMove={blockVideoRewardInteraction}
+          onPointerUp={blockVideoRewardInteraction}
+          onTouchStart={blockVideoRewardInteraction}
+          onTouchMove={blockVideoRewardInteraction}
+          onTouchEnd={blockVideoRewardInteraction}
+          onWheel={blockVideoRewardInteraction}
+          onGestureStart={blockVideoRewardInteraction}
+          onGestureChange={blockVideoRewardInteraction}
+          onGestureEnd={blockVideoRewardInteraction}
+        >
           <button className="video-reward-close" onClick={() => setVideoOpen(false)} aria-label="Закрыть">✕</button>
           <div className="video-reward-frame">
             <iframe
