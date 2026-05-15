@@ -21,8 +21,15 @@ function speakRu(text, { onStart, onEnd, onWord } = {}) {
   let pos = 0;
   for (const w of words) { offsets.push(pos); pos += w.length + 1; }
 
-  let stopped = false;
-  function cancel() { stopped = true; synth.cancel(); }
+  let stopped       = false;
+  let boundaryFired = false;
+  const wordTimers  = [];
+
+  function cancel() {
+    stopped = true;
+    wordTimers.forEach(clearTimeout);
+    synth.cancel();
+  }
 
   // Speak the full sentence so the TTS language model has enough context to
   // correctly stress words like тяжёлую (word-by-word strips context and causes
@@ -30,12 +37,43 @@ function speakRu(text, { onStart, onEnd, onWord } = {}) {
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang  = "ru-RU";
   utt.rate  = 0.9;
-  utt.onstart = () => { if (!stopped) onStart?.(); };
-  utt.onend   = () => { if (!stopped) onEnd?.(); };
-  utt.onerror = () => { if (!stopped) onEnd?.(); };
+
+  utt.onstart = () => {
+    if (stopped) return;
+    onStart?.();
+    // Timer-based fallback for browsers that don't fire onboundary (e.g. iOS Safari).
+    // Each word gets a slot proportional to its character length; min 250ms per word.
+    if (onWord) {
+      let cumulative = 0;
+      words.forEach((word, wi) => {
+        const t = setTimeout(() => {
+          if (!stopped && !boundaryFired) onWord(wi);
+        }, cumulative);
+        wordTimers.push(t);
+        cumulative += Math.max(250, word.length * 80);
+      });
+    }
+  };
+
+  utt.onend = () => {
+    if (stopped) return;
+    wordTimers.forEach(clearTimeout);
+    onEnd?.();
+  };
+  utt.onerror = () => {
+    if (stopped) return;
+    wordTimers.forEach(clearTimeout);
+    onEnd?.();
+  };
+
   if (onWord) {
     utt.onboundary = (e) => {
       if (stopped || e.name !== "word") return;
+      // Switch to accurate boundary-based mode and cancel timer fallbacks.
+      if (!boundaryFired) {
+        boundaryFired = true;
+        wordTimers.forEach(clearTimeout);
+      }
       let wi = offsets.length - 1;
       for (let i = 0; i < offsets.length; i++) {
         if (offsets[i] > e.charIndex) { wi = i - 1; break; }
@@ -43,6 +81,7 @@ function speakRu(text, { onStart, onEnd, onWord } = {}) {
       if (wi >= 0) onWord(wi);
     };
   }
+
   synth.speak(utt);
   return cancel;
 }
