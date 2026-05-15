@@ -1,40 +1,35 @@
 import { useState } from "react";
 
 export default function HelperPanel({ maxNumber = 10, onClose }) {
+  const slots = Math.min(maxNumber, 20);
   const [count, setCount] = useState(0);
 
-  function decrement() {
-    setCount((prev) => Math.max(0, prev - 1));
-  }
-
-  function increment() {
-    setCount((prev) => Math.min(maxNumber, prev + 1));
+  function toggle(index) {
+    if (index < count) {
+      setCount(index);
+    } else {
+      setCount(index + 1);
+    }
   }
 
   return (
     <div className="helper-panel" role="dialog" aria-label="Счётный помощник">
       <div className="helper-panel__inner">
-        <div className="helper-panel__counter">
-          <button
-            type="button"
-            className="helper-panel__btn helper-panel__btn--minus"
-            onClick={decrement}
-            disabled={count === 0}
-            aria-label="Убрать один"
-          >
-            −
-          </button>
-          <span className="helper-panel__count" aria-live="polite">{count}</span>
-          <button
-            type="button"
-            className="helper-panel__btn helper-panel__btn--plus"
-            onClick={increment}
-            disabled={count === maxNumber}
-            aria-label="Добавить один"
-          >
-            +
-          </button>
+        <div className="helper-abacus" style={{ "--helper-slots": slots }}>
+          <div className="helper-abacus__rod" />
+          <div className="helper-abacus__track">
+            {Array.from({ length: slots }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`helper-abacus__bead${i < count ? " helper-abacus__bead--active" : ""}`}
+                onClick={() => toggle(i)}
+                aria-label={i < count ? `убрать бусину ${i + 1}` : `добавить бусину ${i + 1}`}
+              />
+            ))}
+          </div>
         </div>
+        <div className="helper-panel__count" aria-live="polite">{count}</div>
         <button
           type="button"
           className="helper-panel__close"
