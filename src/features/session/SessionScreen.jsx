@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
@@ -7,10 +7,22 @@ import { useAudio } from "@/shared/hooks/useAudio";
 import ProgressBar from "@/shared/components/ProgressBar";
 import { getTopicTitle } from "@/shared/utils/format";
 
+const ADVANCE_GATE_IDLE = "idle";
+const ADVANCE_GATE_WAITING = "waiting";
+const ADVANCE_GATE_READY = "ready";
+
+function isEditableTarget(target) {
+  return target instanceof HTMLElement && (
+    target.isContentEditable ||
+    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
+  );
+}
+
 export default function SessionScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
   const students        = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
   const activeStudent   = students.find((s) => s.id === activeStudentId) ?? null;
 
   const {
@@ -19,6 +31,7 @@ export default function SessionScreen() {
   } = useSessionEngine();
 
   const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
+  const [manualAdvanceGate, setManualAdvanceGate] = useState({ key: null, state: null });
 
   useEffect(() => {
     if (!completedRecord) return;
@@ -41,6 +54,44 @@ export default function SessionScreen() {
     playFeedback("incorrect");
     onMistake(conceptId, cardId);
   }
+
+  const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState ?? {};
+  const isCorrectFeedback   = status === "answer_correct";
+  const isIncorrectFeedback = status === "answer_incorrect";
+  const advanceGateKey = `${taskIndex ?? "none"}:${status ?? "none"}`;
+  const defaultAdvanceGate = adultConfirmAdvance && isCorrectFeedback
+    ? ADVANCE_GATE_WAITING
+    : ADVANCE_GATE_IDLE;
+  const advanceGate = adultConfirmAdvance && manualAdvanceGate.key === advanceGateKey
+    ? manualAdvanceGate.state
+    : defaultAdvanceGate;
+
+  useEffect(() => {
+    if (!adultConfirmAdvance || advanceGate !== ADVANCE_GATE_WAITING) return undefined;
+
+    function handleKeyDown(event) {
+      if (event.repeat) return;
+      if (event.key !== " " && event.key !== "Spacebar" && event.key !== "Enter") return;
+      if (isEditableTarget(event.target)) return;
+      event.preventDefault();
+      setManualAdvanceGate({ key: advanceGateKey, state: ADVANCE_GATE_READY });
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [adultConfirmAdvance, advanceGate, advanceGateKey]);
+
+  const requestAdvance = useCallback((event) => {
+    event?.stopPropagation?.();
+
+    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY) {
+      setManualAdvanceGate({ key: null, state: null });
+      onAdvance();
+      return;
+    }
+
+    setManualAdvanceGate({ key: advanceGateKey, state: ADVANCE_GATE_WAITING });
+  }, [adultConfirmAdvance, advanceGate, advanceGateKey, onAdvance]);
 
   // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
   const [Renderer, setRenderer]           = useState(() =>
@@ -69,11 +120,14 @@ export default function SessionScreen() {
     );
   }
 
-  const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState;
   const total = tasks.length;
-
-  const isCorrectFeedback   = status === "answer_correct";
-  const isIncorrectFeedback = status === "answer_incorrect";
+  const isAdvanceGateActive = adultConfirmAdvance && advanceGate !== ADVANCE_GATE_IDLE;
+  const isAdvanceReady = adultConfirmAdvance && advanceGate === ADVANCE_GATE_READY;
+  const advanceFeedbackHint = adultConfirmAdvance
+    ? (isAdvanceReady ? "Можно продолжить" : "Ждем подтверждения")
+    : "Нажмите, чтобы продолжить";
+  const advanceGateLabel = isAdvanceReady ? "Можно продолжить" : "Ждем подтверждения";
+  const showStandaloneGate = isAdvanceGateActive && !isCorrectFeedback;
 
   const feedbackClass =
     isCorrectFeedback   ? "session-feedback session-feedback--correct"
@@ -115,20 +169,35 @@ export default function SessionScreen() {
 
       {feedbackClass && (
         <div
-          className={`${feedbackClass}${isCorrectFeedback ? " session-feedback--tappable" : ""}`}
-          onClick={isCorrectFeedback ? onAdvance : undefined}
+          className={`${feedbackClass}${isCorrectFeedback && (!adultConfirmAdvance || isAdvanceReady) ? " session-feedback--tappable" : ""}${isCorrectFeedback && adultConfirmAdvance ? ` session-feedback--confirm-${advanceGate}` : ""}`}
+          onClick={isCorrectFeedback ? requestAdvance : undefined}
         >
           {isCorrectFeedback ? "Правильно!" : "Попробуем ещё раз…"}
           {isCorrectFeedback && (
-            <div className="session-feedback__tap-hint">Нажмите, чтобы продолжить</div>
+            <div className="session-feedback__tap-hint">
+              {advanceFeedbackHint}
+              {isAdvanceReady && adultConfirmAdvance && (
+                <span className="session-feedback__tap-subhint">Нажмите, чтобы продолжить</span>
+              )}
+            </div>
           )}
+        </div>
+      )}
+
+      {showStandaloneGate && (
+        <div
+          className={`session-advance-gate${isAdvanceReady ? " session-advance-gate--ready" : ""}`}
+          onClick={isAdvanceReady ? requestAdvance : undefined}
+        >
+          {advanceGateLabel}
+          {isAdvanceReady && <span>Нажмите, чтобы продолжить</span>}
         </div>
       )}
 
       {Renderer && currentTask ? (
         <div
-          className={`session-renderer-wrap${isCorrectFeedback ? " session-renderer-wrap--tappable" : ""}`}
-          onClick={isCorrectFeedback ? onAdvance : undefined}
+          className={`session-renderer-wrap${(isCorrectFeedback && (!adultConfirmAdvance || isAdvanceReady)) || isAdvanceReady ? " session-renderer-wrap--tappable" : ""}`}
+          onClick={(isCorrectFeedback || isAdvanceGateActive) ? requestAdvance : undefined}
         >
           <Renderer
             key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
@@ -144,7 +213,7 @@ export default function SessionScreen() {
             onCorrect={handleCorrect}
             onIncorrect={handleIncorrect}
             onMistake={handleMistake}
-            onAdvance={onAdvance}
+            onAdvance={requestAdvance}
             onQualityAnswer={onQualityAnswer}
           />
         </div>

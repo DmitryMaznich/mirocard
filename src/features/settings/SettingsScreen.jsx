@@ -53,7 +53,9 @@ export default function SettingsScreen() {
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   async function handleLogout() {
-    try { await api.post("/auth/logout"); } catch {}
+    try { await api.post("/auth/logout"); } catch {
+      // Local logout should still proceed when the network request fails.
+    }
     const db = await getDb();
     await kv.del(db, "token");
     await kv.del(db, "account");

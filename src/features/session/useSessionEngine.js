@@ -18,6 +18,7 @@ export function useSessionEngine() {
   const students          = useAppStore((s) => s.students);
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
+  const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
   const tapToAdvance      = useAppStore((s) => s.settings.tapToAdvance ?? true);
   const autoAdvanceDelay  = useAppStore((s) => s.settings.autoAdvanceDelay ?? 3);
 
@@ -101,6 +102,7 @@ export function useSessionEngine() {
     const tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent, spSelected) : [];
     if (!tasks.length) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionState(
       createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null)
     );
@@ -148,7 +150,7 @@ export function useSessionEngine() {
       return next;
     });
 
-    if (!tapToAdvance) {
+    if (!tapToAdvance && !adultConfirmAdvance) {
       setTimeout(() => {
         setSessionState((s) => {
           if (s.status !== "answer_correct") return s;
@@ -159,7 +161,7 @@ export function useSessionEngine() {
         });
       }, autoAdvanceDelay * 1000);
     }
-  }, [tapToAdvance, autoAdvanceDelay]);
+  }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay]);
 
   const onIncorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => handleAnswer(s, false, conceptId, cardId));
