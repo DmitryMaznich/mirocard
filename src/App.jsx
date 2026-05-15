@@ -6,6 +6,7 @@ import { loadLocalBootstrap, applyBootstrapToStore, persistBootstrap, mergeStude
 import { flushQueue, setupOnlineListener } from "@/core/syncApi";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
 import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
+import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 
@@ -64,13 +65,33 @@ const SCREENS = {
   settings: SettingsScreen,
 };
 
-export default function App() {
-  useKioskMode();
+function OrientationGuard({ orientationLock }) {
+  if (!orientationLock) return null;
+  const isLandscape = orientationLock.startsWith("landscape");
 
+  return (
+    <div className={`orientation-guard orientation-guard--active orientation-guard--${isLandscape ? "landscape" : "portrait"}`}>
+      <div className="orientation-guard-card">
+        <div className="orientation-guard-icon">↻</div>
+        <div className="orientation-guard-title">
+          {isLandscape ? "Поверните экран горизонтально" : "Поверните экран вертикально"}
+        </div>
+        <div className="orientation-guard-text">
+          Этот режим рассчитан на {isLandscape ? "горизонтальную" : "вертикальную"} ориентацию экрана.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
   const students = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const topicRecords = useAppStore((s) => s.topicRecords);
+  const activeTopicId = useAppStore((s) => s.activeTopicId);
+  const activeModeId = useAppStore((s) => s.activeModeId);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isSessionExitPromptOpen, setIsSessionExitPromptOpen] = useState(false);
   const closeTimer = useCallback(() => setIsTimerOpen(false), []);
@@ -82,6 +103,9 @@ export default function App() {
   }, [setScreen]);
 
   const showSessionExitPrompt = screen === "session" && isSessionExitPromptOpen;
+  const orientationLock = getActiveOrientationLock({ screen, topicRecords, activeTopicId, activeModeId });
+
+  useKioskMode(orientationLock);
 
   useBackButtonGuard({
     isTimerOpen,
@@ -156,6 +180,7 @@ export default function App() {
         <Screen onOpenTimer={() => setIsTimerOpen(true)} />
       </ErrorBoundary>
       {isTimerOpen && <AnalogTimer rewardVideos={rewardVideos} onClose={closeTimer} />}
+      <OrientationGuard orientationLock={orientationLock} />
       {showSessionExitPrompt && (
         <Modal
           title="Завершить занятие?"

@@ -1,14 +1,29 @@
 import { useEffect } from "react";
 
-export function useKioskMode() {
+function normalizeOrientationLock(orientationLock) {
+  if (!orientationLock) return null;
+  const value = String(orientationLock).toLowerCase();
+  if (value.startsWith("portrait")) return value;
+  if (value.startsWith("landscape")) return value;
+  return null;
+}
+
+export function useKioskMode(orientationLock = null) {
   useEffect(() => {
-    // Portrait-only orientation
+    const lock = normalizeOrientationLock(orientationLock);
+
     try {
-      window.screen?.orientation?.lock?.("portrait").catch(() => {});
+      if (lock) {
+        window.screen?.orientation?.lock?.(lock).catch(() => {});
+      } else {
+        window.screen?.orientation?.unlock?.();
+      }
     } catch {
       // Orientation lock is best-effort and can be unavailable outside fullscreen/PWA mode.
     }
+  }, [orientationLock]);
 
+  useEffect(() => {
     let wakeLock = null;
     let wakeLockRequestInFlight = false;
     let disposed = false;
