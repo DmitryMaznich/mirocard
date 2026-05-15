@@ -84,14 +84,14 @@ export default function SessionScreen() {
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
 
-    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY) {
+    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction") {
       setManualAdvanceGate({ key: null, state: null });
       onAdvance();
       return;
     }
 
     setManualAdvanceGate({ key: advanceGateKey, state: ADVANCE_GATE_WAITING });
-  }, [adultConfirmAdvance, advanceGate, advanceGateKey, onAdvance]);
+  }, [adultConfirmAdvance, advanceGate, advanceGateKey, mode?.type, onAdvance]);
 
   // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
   const [Renderer, setRenderer]           = useState(() =>
