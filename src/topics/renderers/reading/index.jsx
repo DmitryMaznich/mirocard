@@ -343,9 +343,7 @@ function InstructionTask({ task, onAdvance }) {
   return (
     <div className="session-body reading-body instruction-body">
       <div className="instruction-header">
-        <button className="instruction-back-btn" onClick={goBack}>←</button>
         <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
-        <span className="instruction-header-spacer" />
       </div>
 
       <div className="instruction-step">
@@ -400,11 +398,10 @@ function InstructionTask({ task, onAdvance }) {
       )}
 
       <div className="instruction-nav">
-        <button
-          className="reading-primary-btn"
-          disabled={!allChecked}
-          onClick={goNext}
-        >
+        <button className="reading-secondary-btn" onClick={goBack}>
+          Назад
+        </button>
+        <button className="reading-primary-btn" disabled={!allChecked} onClick={goNext}>
           {isLast ? "Готово" : "Дальше"}
         </button>
       </div>
