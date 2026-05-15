@@ -154,6 +154,14 @@ export default function SessionScreen() {
           Обновите тему «{getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id}» до актуальной версии —
           рендерер недоступен.
         </div>
+      ) : sessionState?.tasks.length === 0 ? (
+        <div className="screen-center" style={{ gap: 16, padding: 24, textAlign: "center" }}>
+          <div>Для выбранных понятий нет подходящих предложений.</div>
+          <div>Попробуйте выбрать другие понятия.</div>
+          <button className="btn btn--secondary" style={{ marginTop: 8 }} onClick={() => setScreen("concepts")}>
+            ← Назад к понятиям
+          </button>
+        </div>
       ) : (
         <div className="screen-center">Неизвестный рендерер: {topicRecord.meta.renderer}</div>
       )}
