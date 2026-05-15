@@ -15,7 +15,7 @@ export default function SessionScreen() {
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
-    completedRecord, onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
+    completedRecord, rewardProgress, onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
   } = useSessionEngine();
 
   const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
@@ -86,7 +86,12 @@ export default function SessionScreen() {
     <div className="session-screen">
       <div className="session-topbar">
         <div className="session-topbar-controls">
-          <ProgressBar value={taskIndex} max={total} className="session-progress" />
+          <ProgressBar
+            value={rewardProgress?.completed ?? taskIndex}
+            max={total}
+            className="session-progress"
+            reward={rewardProgress}
+          />
           <div className="session-counter">
             {taskIndex + 1} / {total}
             {mode.evaluation === "auto" && (

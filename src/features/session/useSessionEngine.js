@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, computeSessionRecord } from "./sessionEngine";
+import { buildRewardProgress } from "./rewardProgress";
 
 const INCORRECT_FEEDBACK_MS = 1500;
 
@@ -22,9 +23,15 @@ export function useSessionEngine() {
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode = topicRecord?.modes?.find((m) => m.id === activeModeId);
+  const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
   const link = studentTopicLinks[linkKey] ?? {};
+  const rewardConfig = {
+    videoRewardEnabled: link.videoRewardEnabled ?? true,
+    rewardThreshold: link.rewardThreshold ?? 90,
+    hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
+  };
   const isReading = topicRecord?.meta.renderer === "reading";
   const selectedConceptIds = isReading
     ? (activeTextId ? [activeTextId] : [])
@@ -51,7 +58,6 @@ export function useSessionEngine() {
       tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
     } else if (renderer === "sentence_puzzle") {
       const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
-      const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
       const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;
       tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent, spSelected) : [];
     } else {
@@ -74,10 +80,47 @@ export function useSessionEngine() {
     return baseState;
   });
 
+  // Recovery: if the session was built without adult cards (closeAdults not yet
+  // in the store at mount time), rebuild as soon as the store catches up — but
+  // only while the user hasn't made any progress yet.
+  useEffect(() => {
+    if (!sessionState || !mode) return;
+    if (sessionState.taskIndex > 0 || sessionState.correctCount > 0) return;
+    if (topicRecord?.meta?.renderer !== "sentence_puzzle") return;
+    if (!activeStudent?.closeAdults?.length) return;
+    const hasAdultCards = sessionState.tasks.some((t) => t.pool?.some((c) => c.id?.startsWith("adult_")));
+    if (hasAdultCards) return;
+
+    const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
+    const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;
+    const tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent, spSelected) : [];
+    if (!tasks.length) return;
+
+    setSessionState(
+      createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null)
+    );
+  }, [activeStudent]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [completedRecord, setCompletedRecord] = useState(null);
 
   async function finishSession(state) {
-    const record = computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version);
+    const finalRewardProgress = buildRewardProgress({
+      sessionState: state,
+      mode: state.mode,
+      ...rewardConfig,
+    });
+    const record = {
+      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version),
+      reward: {
+        videoEnabled: Boolean(rewardConfig.videoRewardEnabled),
+        videoAvailable: finalRewardProgress.available,
+        threshold: finalRewardProgress.threshold,
+        target: finalRewardProgress.target,
+        earned: finalRewardProgress.earned,
+        completed: finalRewardProgress.completed,
+        total: finalRewardProgress.total,
+      },
+    };
     const db = await getDb();
     await kv.set(db, "lastContext", {
       studentId: activeStudentId,
@@ -159,6 +202,11 @@ export function useSessionEngine() {
   }, []);
 
   const currentTask = sessionState?.tasks[sessionState.taskIndex] ?? null;
+  const rewardProgress = buildRewardProgress({
+    sessionState,
+    mode,
+    ...rewardConfig,
+  });
 
   return {
     sessionState,
@@ -167,6 +215,7 @@ export function useSessionEngine() {
     topicRecord,
     sessionParams,
     completedRecord,
+    rewardProgress,
     onCorrect,
     onIncorrect,
     onMistake,

@@ -500,7 +500,7 @@ export default function ParamsScreen() {
                   ))}
                 </div>
                 <div className="param-hint">
-                  {videoReward ? `Мультик при ≥${rewardThreshold}% правильных ответов` : "Видео-награда отключена"}
+                  {videoReward ? `Показ видео после ${rewardThreshold}% занятия` : "Видео-награда отключена"}
                 </div>
               </div>
             </div>

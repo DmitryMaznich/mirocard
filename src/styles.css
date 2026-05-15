@@ -11302,16 +11302,74 @@ button {
 .session-counter  { font-size: 0.85rem; color: #666; white-space: nowrap; }
 .session-score    { color: #888; }
 .progress-bar {
+  position: relative;
   height: 8px;
   border-radius: 999px;
   background: #e8e8e8;
-  overflow: hidden;
+  overflow: visible;
 }
 .progress-bar__fill {
   height: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, #4a9b8f, #8abfae);
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background 0.25s ease;
+}
+.progress-bar--reward {
+  height: 12px;
+}
+.progress-bar--reward-earned .progress-bar__fill {
+  background: linear-gradient(90deg, #f0a92e, #ffd766);
+}
+.progress-bar__reward-marker {
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border: 2px solid #d69a28;
+  border-radius: 999px;
+  background: #fffaf0;
+  box-shadow: 0 2px 8px rgba(132, 86, 14, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.progress-bar__reward-icon {
+  display: block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid #bf7a00;
+}
+.progress-bar--reward-earned .progress-bar__reward-marker {
+  border-color: #e28e1a;
+  background: #ffd45c;
+  box-shadow: 0 0 0 4px rgba(255, 212, 92, 0.22), 0 3px 10px rgba(132, 86, 14, 0.26);
+  animation: rewardMarkerPulse 0.8s ease 2;
+}
+.progress-bar--reward-earned .progress-bar__reward-icon {
+  width: 10px;
+  height: 6px;
+  margin: -2px 0 0;
+  border: 0;
+  border-left: 3px solid #6f4a00;
+  border-bottom: 3px solid #6f4a00;
+  transform: rotate(-45deg);
+}
+@keyframes rewardMarkerPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1.16);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 .session-finish-btn {
   width: 36px; height: 36px;
@@ -15270,5 +15328,6 @@ body { background: #eef0ef; }
     padding: 10px 14px;
     min-height: 72px;
   }
+  .sp-pool > div { max-width: 88px; max-height: 56px; }
   .sp-pool > div svg { width: 88px; height: 56px; }
 }

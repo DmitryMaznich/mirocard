@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
@@ -60,10 +60,14 @@ export default function SessionSummary() {
   const student            = students.find((s) => s.id === session?.studentId);
   const link               = session ? (studentTopicLinks[`${session.studentId}_${session.topicId}`] ?? {}) : {};
   const rewardVideos       = student?.rewardVideos ?? [];
-  const videoRewardEnabled = link.videoRewardEnabled ?? true;
-  const rewardThreshold    = link.rewardThreshold ?? 90;
-  const rewardSeconds      = (session?.percentCorrect ?? -1) >= rewardThreshold && videoRewardEnabled
-    ? computeRewardSeconds(session.modeId, topicRecord?.cards?.length ?? 10)
+  const sessionReward      = session?.reward ?? null;
+  const videoRewardEnabled = sessionReward?.videoEnabled ?? link.videoRewardEnabled ?? true;
+  const rewardThreshold    = sessionReward?.threshold ?? link.rewardThreshold ?? 90;
+  const rewardEarned       = sessionReward
+    ? Boolean(sessionReward.earned)
+    : (session?.percentCorrect ?? -1) >= rewardThreshold;
+  const rewardSeconds      = rewardEarned && videoRewardEnabled
+    ? computeRewardSeconds(session.modeId, sessionReward?.total ?? topicRecord?.cards?.length ?? 10)
     : 0;
 
   const isEvaluated  = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
@@ -74,7 +78,7 @@ export default function SessionSummary() {
   const [rewardConsumed,  setRewardConsumed]  = useState(false);
   const [rewardRemaining, setRewardRemaining] = useState(0);
   const [detailsOpen,     setDetailsOpen]     = useState(false);
-  const rewardVideoUrl = useRef(null);
+  const [rewardVideoUrl,  setRewardVideoUrl]  = useState(null);
 
   useEffect(() => {
     if (!session) return;
@@ -87,7 +91,6 @@ export default function SessionSummary() {
 
   useEffect(() => {
     if (!videoOpen) return undefined;
-    setRewardRemaining(rewardSeconds);
     const intervalId = window.setInterval(() => {
       setRewardRemaining((prev) => {
         if (prev <= 1) { window.clearInterval(intervalId); setVideoOpen(false); return 0; }
@@ -113,7 +116,8 @@ export default function SessionSummary() {
     const videoId = extractYoutubeId(getVideoUrl(rewardVideos[index]));
     if (!videoId) return;
     window.speechSynthesis?.cancel();
-    rewardVideoUrl.current = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3&modestbranding=1`;
+    setRewardVideoUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3&modestbranding=1`);
+    setRewardRemaining(rewardSeconds);
     setRewardConsumed(true);
     setVideoOpen(true);
   }
@@ -241,7 +245,7 @@ export default function SessionSummary() {
           <button className="video-reward-close" onClick={() => setVideoOpen(false)} aria-label="Закрыть">✕</button>
           <div className="video-reward-frame">
             <iframe
-              src={rewardVideoUrl.current}
+              src={rewardVideoUrl}
               allow="accelerometer; autoplay; encrypted-media"
               frameBorder="0"
               className="video-reward-iframe"

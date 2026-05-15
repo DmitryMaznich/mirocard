@@ -48,11 +48,18 @@ export function mergeStudentRecords(local, server) {
 
     // Photos live only on-device and are never sent to the server, so we must
     // rescue them from whichever side has them — winner's timestamp doesn't help.
-    const closeAdults = winner.closeAdults == null ? winner.closeAdults :
-      winner.closeAdults.map((adult) => {
-        const photo = adult.photo ?? (loser.closeAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
-        return photo === adult.photo ? adult : { ...adult, photo };
-      });
+    // If winner has an empty adults list but loser has adults with photos, keep loser's list
+    // (empty winner means the server simply hasn't received the pushOp yet).
+    const winnerAdults = winner.closeAdults;
+    const loserAdults  = loser.closeAdults;
+    const closeAdults = winnerAdults == null
+      ? winnerAdults
+      : winnerAdults.length === 0 && loserAdults?.length > 0
+        ? loserAdults
+        : winnerAdults.map((adult) => {
+            const photo = adult.photo ?? (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
+            return photo === adult.photo ? adult : { ...adult, photo };
+          });
 
     byId.set(student.id, {
       ...winner,

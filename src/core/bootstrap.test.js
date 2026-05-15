@@ -117,6 +117,17 @@ describe("bootstrap helpers", () => {
     expect(records[0].closeAdults[0].photo).toBe("data:image/png;base64,ABC");
   });
 
+  it("mergeStudentRecords preserves closeAdult photos when server wins with empty closeAdults array", () => {
+    const local = [{ id: "s1", updatedAt: "2026-01-01T00:00:00.000Z",
+      closeAdults: [{ id: "a1", name: "Папа", photo: "data:image/png;base64,ABC" }] }];
+    const server = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
+      closeAdults: [] }];
+
+    const records = mergeStudentRecords(local, server);
+    expect(records[0].closeAdults).toHaveLength(1);
+    expect(records[0].closeAdults[0].photo).toBe("data:image/png;base64,ABC");
+  });
+
   it("mergeStudentRecords preserves closeAdult photos when local wins on updatedAt", () => {
     const local = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
       closeAdults: [{ id: "a1", name: "Папа", photo: "data:image/png;base64,ABC" }] }];
