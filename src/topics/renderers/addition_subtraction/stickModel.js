@@ -144,6 +144,20 @@ export function evaluateStickMove(task, originWorkCount, sourceSlot, deltaX = 0,
   const correctDirection = operation === "add" ? "left" : "right";
 
   if (direction !== correctDirection) {
+    // Allow correction: child can return beads toward task.start if they moved too few.
+    // "add" task → dragging work beads right (back to side) is OK while workCount > start.
+    // "subtract" task → dragging side beads left (back to work) is OK while workCount < start.
+    if (operation === "add" && sourceSlot.zone === "work") {
+      const nextWorkCount = sourceSlot.zoneIndex; // moving back to just before this slot
+      if (nextWorkCount >= task.start) {
+        return move(task, nextWorkCount, originWorkCount - nextWorkCount);
+      }
+    } else if (operation === "subtract" && sourceSlot.zone === "side") {
+      const nextWorkCount = originWorkCount + sourceSlot.zoneIndex + 1;
+      if (nextWorkCount <= task.start) {
+        return move(task, nextWorkCount, sourceSlot.zoneIndex + 1);
+      }
+    }
     return mistake("wrong-direction");
   }
 
