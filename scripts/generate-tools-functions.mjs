@@ -1,0 +1,266 @@
+// scripts/generate-tools-functions.mjs
+// Generates deck.json and ZIP structure for tools_functions deck.
+// Images must be generated separately using Cardgen Studio or the Gemini API.
+// Run this script to rebuild deck.json and catalog entry after editing concept data.
+import JSZip from "jszip";
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..");
+const VERSION = "1.0.0";
+
+const IMAGE_STYLE_PREFIX =
+  "high-quality photorealistic educational flashcard photo, natural soft lighting, " +
+  "sharp focus on subject, shallow depth of field with clean blurred background, " +
+  "true-to-life colors, no filters, no illustration effects, realistic proportions " +
+  "and textures, professional educational photography style, child-friendly, " +
+  "consistent style across the whole deck, ";
+
+const SCENE_STYLE_PREFIX =
+  "high-quality photorealistic educational scene photo, natural soft lighting, " +
+  "sharp focus, true-to-life colors, no filters, no illustration effects, " +
+  "professional educational photography style, child-friendly, clean light background, ";
+
+const CONCEPTS = [
+  {
+    id: "hammer",
+    label: "Молоток",
+    labelInstrumental: "молотком",
+    action: "забивают гвозди",
+    toolPrompt: "a hammer, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a nail lying next to a wooden board on a clean surface, the nail is not driven in yet, 4:3 composition, no text",
+    sceneAfterPrompt: "a nail fully hammered into a wooden board, clean surface background, 4:3 composition, no text",
+  },
+  {
+    id: "screwdriver",
+    label: "Отвёртка",
+    labelInstrumental: "отвёрткой",
+    action: "закручивают шурупы",
+    toolPrompt: "a screwdriver, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a screw lying next to a wooden plank on a clean surface, the screw is not inserted yet, 4:3 composition, no text",
+    sceneAfterPrompt: "a screw fully driven into a wooden plank, clean surface background, 4:3 composition, no text",
+  },
+  {
+    id: "drill",
+    label: "Дрель",
+    labelInstrumental: "дрелью",
+    action: "сверлят отверстия",
+    toolPrompt: "a power drill, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a wooden board without any holes on a clean surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a wooden board with a clean round hole drilled through it, sawdust nearby, clean surface background, 4:3 composition, no text",
+  },
+  {
+    id: "handsaw",
+    label: "Пила",
+    labelInstrumental: "пилой",
+    action: "пилят доску",
+    toolPrompt: "a hand saw, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "one whole wooden plank lying on a clean surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a wooden plank cut into two pieces on a clean surface, sawdust at the cut, 4:3 composition, no text",
+  },
+  {
+    id: "wrench",
+    label: "Гаечный ключ",
+    labelInstrumental: "гаечным ключом",
+    action: "закручивают гайки",
+    toolPrompt: "an open-end wrench, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a bolt with a loose nut sitting beside it on a clean surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a bolt with a nut tightly fastened on it, clean surface background, 4:3 composition, no text",
+  },
+  {
+    id: "pliers",
+    label: "Пассатижи",
+    labelInstrumental: "пассатижами",
+    action: "сгибают проволоку",
+    toolPrompt: "a pair of pliers, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a straight piece of metal wire lying on a clean surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a piece of metal wire bent into a U-shape on a clean surface, 4:3 composition, no text",
+  },
+  {
+    id: "wire_cutters",
+    label: "Кусачки",
+    labelInstrumental: "кусачками",
+    action: "режут проволоку",
+    toolPrompt: "wire cutters (diagonal cutting pliers), isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a long piece of wire lying on a clean surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a piece of wire cut in two, the two ends slightly apart, clean surface background, 4:3 composition, no text",
+  },
+  {
+    id: "tape_measure",
+    label: "Рулетка",
+    labelInstrumental: "рулеткой",
+    action: "измеряют длину",
+    toolPrompt: "a tape measure (retractable measuring tape), isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a wooden board without any markings lying on a clean surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a wooden board with a pencil measurement mark on it, clean surface background, 4:3 composition, no text",
+  },
+  {
+    id: "paintbrush",
+    label: "Кисточка",
+    labelInstrumental: "кисточкой",
+    action: "красят поверхность",
+    toolPrompt: "a paint brush, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "an unpainted grey wall section, clean and bare, 4:3 composition, no text",
+    sceneAfterPrompt: "a wall section painted with a coat of light blue paint, clean and smooth, 4:3 composition, no text",
+  },
+  {
+    id: "spatula",
+    label: "Шпатель",
+    labelInstrumental: "шпателем",
+    action: "наносят шпаклёвку",
+    toolPrompt: "a wall spatula (putty knife), isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a wall section with a visible crack in the plaster, 4:3 composition, no text",
+    sceneAfterPrompt: "the same wall section with the crack smoothly filled and levelled with putty, 4:3 composition, no text",
+  },
+  {
+    id: "drill_bit",
+    label: "Сверло",
+    labelInstrumental: "сверлом",
+    action: "сверлят дерево",
+    toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a small wooden block without any holes on a clean surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a small wooden block with a clean round hole drilled through it, sawdust nearby, clean surface background, 4:3 composition, no text",
+  },
+  {
+    id: "ruler",
+    label: "Линейка",
+    labelInstrumental: "линейкой",
+    action: "чертят ровные линии",
+    toolPrompt: "a wooden ruler, isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a blank white sheet of paper on a clean desk, 4:3 composition, no text",
+    sceneAfterPrompt: "a sheet of paper with one straight pencil line drawn across it, clean desk background, 4:3 composition, no text",
+  },
+];
+
+const TOOL_VARIATIONS = 3;
+
+async function run() {
+  const zip = new JSZip();
+  const cards = [];
+  const imagePrompts = [];
+
+  for (const concept of CONCEPTS) {
+    // ── Tool images (3 variations) ──────────────────────────
+    for (let v = 1; v <= TOOL_VARIATIONS; v++) {
+      const id       = `${concept.id}_tool_${v}`;
+      const filename = `media/${id}.webp`;
+      const prompt   = IMAGE_STYLE_PREFIX + concept.toolPrompt;
+
+      cards.push({
+        id,
+        conceptId: concept.id,
+        primary: v === 1,
+        label: concept.label,
+        ...(v === 1 ? {
+          labelInstrumental: concept.labelInstrumental,
+          action: concept.action,
+          audio: { ru: `audio/${concept.id}_question.mp3` },
+        } : {}),
+        image: filename,
+        type: "tool",
+        tags: ["tools"],
+      });
+
+      imagePrompts.push({ id, filename, prompt, aspectRatio: "1:1" });
+    }
+
+    // ── Scene before ────────────────────────────────────────
+    {
+      const id       = `${concept.id}_scene_before`;
+      const filename = `media/${id}.webp`;
+      const prompt   = SCENE_STYLE_PREFIX + concept.sceneBeforePrompt;
+      cards.push({ id, conceptId: concept.id, primary: false, image: filename, type: "scene_before" });
+      imagePrompts.push({ id, filename, prompt, aspectRatio: "4:3" });
+    }
+
+    // ── Scene after ─────────────────────────────────────────
+    {
+      const id       = `${concept.id}_scene_after`;
+      const filename = `media/${id}.webp`;
+      const prompt   = SCENE_STYLE_PREFIX + concept.sceneAfterPrompt;
+      cards.push({ id, conceptId: concept.id, primary: false, image: filename, type: "scene_after" });
+      imagePrompts.push({ id, filename, prompt, aspectRatio: "4:3" });
+    }
+  }
+
+  // ── deck.json ───────────────────────────────────────────────
+  const deckJson = {
+    meta: {
+      id: "tools_functions",
+      version: VERSION,
+      renderer: "function_cards",
+      title: { ru: "Инструменты — для чего нужны", en: "Tools — what they're for" },
+    },
+    modes: [
+      {
+        id: "choose_action",
+        type: "choose_action",
+        evaluation: "auto",
+        ui: {
+          title: "Что чем делают?",
+          instruction: "Выбери, что делают этим инструментом",
+        },
+      },
+      {
+        id: "scene_function",
+        type: "scene_function",
+        evaluation: "auto",
+        ui: {
+          title: "Какой инструмент нужен?",
+          instruction: "Посмотри на задачу и выбери нужный инструмент",
+        },
+      },
+    ],
+    cards,
+  };
+
+  // ── generation-report.json ──────────────────────────────────
+  const report = {
+    builtAt: new Date().toISOString(),
+    sourceProject: "tools_functions",
+    cardCount: cards.length,
+    imagePrompts,
+    note: "Images must be generated via Cardgen Studio using the prompts in imagePrompts array.",
+  };
+
+  zip.file("deck.json", JSON.stringify(deckJson, null, 2));
+  zip.file("generation-report.json", JSON.stringify(report, null, 2));
+
+  const outDir = join(ROOT, "public", "decks");
+  if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+  const outPath = join(outDir, `tools_functions_v${VERSION}.zip`);
+  const content = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+  writeFileSync(outPath, content);
+
+  // ── Update catalog.json ─────────────────────────────────────
+  const catalogPath = join(ROOT, "public", "decks", "catalog.json");
+  const catalogRaw = JSON.parse(readFileSync(catalogPath, "utf8"));
+  // Support both array and { decks: [...] } formats
+  const catalog = Array.isArray(catalogRaw) ? catalogRaw : catalogRaw.decks;
+  const existingIdx = catalog.findIndex(d => d.id === "tools_functions");
+  const entry = {
+    id: "tools_functions",
+    version: VERSION,
+    title: { ru: "Инструменты — для чего нужны", en: "Tools — what they're for" },
+    description: "12 tools × 2 modes: choose the action, choose the tool by scene",
+    url: `./decks/tools_functions_v${VERSION}.zip`,
+  };
+  if (existingIdx >= 0) {
+    catalog[existingIdx] = entry;
+  } else {
+    catalog.push(entry);
+  }
+  const catalogOut = Array.isArray(catalogRaw) ? catalog : { ...catalogRaw, decks: catalog };
+  writeFileSync(catalogPath, JSON.stringify(catalogOut, null, 2));
+
+  // ── Summary ─────────────────────────────────────────────────
+  console.log(`\n✅ Written: ${outPath}`);
+  console.log(`   Cards: ${cards.length} (${CONCEPTS.length * TOOL_VARIATIONS} tool + ${CONCEPTS.length * 2} scene)`);
+  console.log(`   Catalog updated: tools_functions v${VERSION}`);
+  console.log(`\n📸 Image prompts written to generation-report.json (${imagePrompts.length} images)`);
+  console.log(`   Generate images via Cardgen Studio and add to the ZIP under media/`);
+}
+
+run().catch(err => { console.error(err); process.exit(1); });
