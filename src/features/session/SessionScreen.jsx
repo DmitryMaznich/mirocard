@@ -68,18 +68,22 @@ export default function SessionScreen() {
 
   useEffect(() => {
     if (!adultConfirmAdvance || advanceGate !== ADVANCE_GATE_WAITING) return undefined;
+    let didAdvance = false;
 
     function handleKeyDown(event) {
       if (event.repeat) return;
       if (event.key !== " " && event.key !== "Spacebar" && event.key !== "Enter") return;
       if (isEditableTarget(event.target)) return;
+      if (didAdvance) return;
+      didAdvance = true;
       event.preventDefault();
-      setManualAdvanceGate({ key: advanceGateKey, state: ADVANCE_GATE_READY });
+      setManualAdvanceGate({ key: null, state: null });
+      onAdvance();
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [adultConfirmAdvance, advanceGate, advanceGateKey]);
+  }, [adultConfirmAdvance, advanceGate, onAdvance]);
 
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
@@ -124,7 +128,7 @@ export default function SessionScreen() {
   const isAdvanceGateActive = adultConfirmAdvance && advanceGate !== ADVANCE_GATE_IDLE;
   const isAdvanceReady = adultConfirmAdvance && advanceGate === ADVANCE_GATE_READY;
   const advanceFeedbackHint = adultConfirmAdvance
-    ? (isAdvanceReady ? "Можно продолжить" : "Ждем подтверждения")
+    ? (isAdvanceReady ? "Можно продолжить" : "Пробел: следующая карточка")
     : "Нажмите, чтобы продолжить";
   const advanceGateLabel = isAdvanceReady ? "Можно продолжить" : "Ждем подтверждения";
   const showStandaloneGate = isAdvanceGateActive && !isCorrectFeedback;

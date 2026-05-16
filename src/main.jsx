@@ -8,6 +8,22 @@ import App from "./App";
 
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
 
+function markIosStandalone() {
+  const ua = navigator.userAgent || "";
+  const isTouchMac = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  const isIos = /iPad|iPhone|iPod/.test(ua) || isTouchMac;
+  if (!isIos) return;
+
+  const isStandalone =
+    navigator.standalone === true ||
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.matchMedia?.("(display-mode: fullscreen)")?.matches;
+
+  if (isStandalone) document.documentElement.classList.add("app-ios-standalone");
+}
+
+markIosStandalone();
+
 if ("serviceWorker" in navigator) {
   let refreshing = false;
 

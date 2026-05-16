@@ -4,12 +4,6 @@ import SentenceRow, { SLOT_TYPES } from "./SentenceRow";
 import CardPool                    from "./CardPool";
 import PuzzlePieceSvg              from "./PuzzlePiece";
 
-function playSound(name, enabled) {
-  if (!enabled) return;
-  const ext = name === "incorrect" ? "mp3" : "wav";
-  try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
-}
-
 function speakRu(text, { onStart, onEnd, onWord } = {}) {
   const synth = window.speechSynthesis;
   if (!synth) return null;
@@ -47,7 +41,7 @@ function speakRu(text, { onStart, onEnd, onWord } = {}) {
 }
 
 export default function ListenBuildHintView({
-  task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onMistake,
+  task, topicId, soundEnabled, playTopicFile, playFeedback, onCorrect, onMistake,
 }) {
   const slotTypes    = SLOT_TYPES[task.structure] ?? SLOT_TYPES.simple;
   const sentenceText = slotTypes.map((t) => task.target[t]?.pronounce ?? task.target[t]?.label ?? "").join(" ");
@@ -132,7 +126,7 @@ export default function ListenBuildHintView({
 
     // Slots must be filled in order; dropping on the wrong slot counts as a mistake.
     if (slotType !== activeSlotType || card.id !== task.target[slotType]?.id) {
-      playSound("incorrect", soundEnabled);
+      if (soundEnabled) playFeedback?.("incorrect");
       onMistake?.(null, null);
       setShowError(true);
       clearTimeout(errorTimer.current);

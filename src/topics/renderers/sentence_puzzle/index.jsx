@@ -11,6 +11,7 @@ export default function SentencePuzzleRenderer(props) {
         topicId={props.topicId}
         soundEnabled={props.soundEnabled}
         playTopicFile={props.playTopicFile}
+        playFeedback={props.playFeedback}
         onCorrect={props.onCorrect}
         onIncorrect={props.onIncorrect}
         onMistake={props.onMistake}
@@ -24,6 +25,7 @@ export default function SentencePuzzleRenderer(props) {
         topicId={props.topicId}
         soundEnabled={props.soundEnabled}
         playTopicFile={props.playTopicFile}
+        playFeedback={props.playFeedback}
         onCorrect={props.onCorrect}
         onIncorrect={props.onIncorrect}
         onMistake={props.onMistake}
@@ -36,6 +38,7 @@ export default function SentencePuzzleRenderer(props) {
       sessionParams={props.sessionParams}
       student={props.student}
       soundEnabled={props.soundEnabled}
+      playFeedback={props.playFeedback}
     />
   );
 }

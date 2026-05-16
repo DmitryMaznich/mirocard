@@ -40,13 +40,7 @@ function buildRound(task, sessionParams, student) {
   return { pool, rows, structure, slotTypes, level };
 }
 
-function playSound(name, enabled) {
-  if (!enabled) return;
-  const ext = name === "incorrect" ? "mp3" : "wav";
-  try { new Audio(`/sounds/${name}.${ext}`).play(); } catch {}
-}
-
-export default function SentencePuzzleBuilder({ task, sessionParams, student, soundEnabled }) {
+export default function SentencePuzzleBuilder({ task, sessionParams, student, soundEnabled, playFeedback }) {
   const [round,      setRound]      = useState(() => buildRound(task, sessionParams, student));
   const [phase,      setPhase]      = useState("building");
   const [activeCard, setActiveCard] = useState(null);
@@ -75,7 +69,7 @@ export default function SentencePuzzleBuilder({ task, sessionParams, student, so
     if (rowIndex === undefined || !slotType) return;
 
     if (card.type !== slotType) {
-      playSound("incorrect", soundEnabled);
+      if (soundEnabled) playFeedback?.("incorrect");
       return;
     }
 
@@ -86,7 +80,7 @@ export default function SentencePuzzleBuilder({ task, sessionParams, student, so
       );
       const newPool = prev.pool.filter((c) => c.id !== card.id);
       const rowComplete = prev.slotTypes.every((t) => newRows[rowIndex][t] !== null);
-      if (rowComplete) playSound("correct", soundEnabled);
+      if (rowComplete && soundEnabled) playFeedback?.("correct");
       return { ...prev, rows: newRows, pool: newPool };
     });
   }

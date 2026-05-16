@@ -11,13 +11,6 @@ const UNDERSTAND_BUTTONS = [
   { value: "none",        label: "Нет ответа", mod: "fail" },
 ];
 
-const FINAL_BUTTONS = [
-  { value: "none",       label: "Не рассказал", mod: "fail" },
-  { value: "prompted",   label: "С подсказкой", mod: "prompted" },
-  { value: "read",       label: "Прочитал", mod: "correct" },
-  { value: "expressive", label: "Выразительно", mod: "easy" },
-];
-
 function getLineText(line) {
   return typeof line === "string" ? line : line?.text ?? "";
 }
@@ -151,7 +144,7 @@ function buildLineState(line) {
   };
 }
 
-function AssembleLineTask({ task, soundEnabled, onMistake, onAdvance }) {
+function AssembleLineTask({ task, soundEnabled, playFeedback, onMistake, onAdvance }) {
   const line = task.line;
   const lineIndex = task.lineIndex ?? 0;
   const totalLines = task.totalLines ?? 1;
@@ -166,7 +159,7 @@ function AssembleLineTask({ task, soundEnabled, onMistake, onAdvance }) {
 
   function playCorrectSound() {
     if (!soundEnabled) return;
-    try { new Audio("/sounds/correct.wav").play().catch(() => {}); } catch {}
+    playFeedback?.("correct");
   }
 
   function rejectSlot(slotIndex) {
@@ -426,7 +419,7 @@ const TASK_RENDERERS = {
   follow_instruction:  InstructionTask,
 };
 
-export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, onMistake, onAdvance, onQualityAnswer }) {
+export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onQualityAnswer }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -435,6 +428,7 @@ export default function ReadingRenderer({ task, topicId, sessionParams, soundEna
       topicId={topicId}
       sessionParams={sessionParams}
       soundEnabled={soundEnabled}
+      playFeedback={playFeedback}
       onMistake={onMistake}
       onAdvance={onAdvance}
       onQualityAnswer={onQualityAnswer}
