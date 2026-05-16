@@ -56,7 +56,7 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
             onClick={onClose}
             aria-label="Закрыть помощник"
           >
-            Закрыть
+            ✕
           </button>
         </div>
       </div>
