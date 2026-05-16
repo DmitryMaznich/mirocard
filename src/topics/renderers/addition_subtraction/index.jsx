@@ -456,6 +456,7 @@ function PlaceholderTask() {
 function FindSignTask({ task, onCorrect, onIncorrect }) {
   const [step, setStep] = useState(1);
   const [selected, setSelected] = useState(null);
+  const [step1Label, setStep1Label] = useState(null);
   const [helperOpen, setHelperOpen] = useState(false);
   const timerRef = useRef(null);
 
@@ -465,7 +466,8 @@ function FindSignTask({ task, onCorrect, onIncorrect }) {
     if (selected != null) return;
     setSelected(value);
     if (value === task.action) {
-      timerRef.current = setTimeout(() => { setStep(2); setSelected(null); }, 500);
+      const label = ACTION_OPTIONS_PAST.find((o) => o.value === value)?.label;
+      timerRef.current = setTimeout(() => { setStep1Label(label); setStep(2); setSelected(null); }, 500);
     } else {
       onIncorrect(task.conceptId, task.cardId);
       timerRef.current = setTimeout(() => setSelected(null), 700);
@@ -486,6 +488,11 @@ function FindSignTask({ task, onCorrect, onIncorrect }) {
   return (
     <div className="operation-stage operation-stage--find-sign">
       <OperationExpression task={task} missingSign answered={step === 2 && selected === task.sign} />
+      {step === 2 && step1Label && (
+        <div className="operation-find-sign__step1-badge">
+          {step1Label} <span className="operation-find-sign__step1-check">✓</span>
+        </div>
+      )}
       <div className="operation-link-drill__question">
         {step === 1 ? "Что мы сделали?" : "Какой знак нужно поставить?"}
       </div>

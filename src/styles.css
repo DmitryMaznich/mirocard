@@ -14740,6 +14740,26 @@ button.operation-dot {
   gap: 20px;
 }
 
+.operation-find-sign__step1-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  align-self: center;
+  background: #e6f7f4;
+  border: 2px solid #72d4c4;
+  border-radius: 2em;
+  padding: 0.35em 1em;
+  font-size: clamp(1rem, 4vw, 1.35rem);
+  font-weight: 800;
+  color: #1a8a7a;
+  line-height: 1.2;
+}
+
+.operation-find-sign__step1-check {
+  font-size: 0.8em;
+  opacity: 0.75;
+}
+
 @media (max-width: 520px) {
   .operation-stage--find-sign {
     gap: 20px;
