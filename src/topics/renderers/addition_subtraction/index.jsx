@@ -314,6 +314,37 @@ function NumberPad({ maxNumber, answer, selected, onAnswer }) {
   );
 }
 
+function WorksheetTask({ task }) {
+  const groups = [];
+  for (let g = 0; g < task.groupCount; g++) {
+    groups.push(task.examples.slice(g * task.perGroup, (g + 1) * task.perGroup));
+  }
+  return (
+    <div className="operation-stage operation-stage--worksheet">
+      <div className="operation-worksheet">
+        {groups.map((group, gi) => (
+          <div key={gi} className="operation-worksheet__group">
+            <div className="operation-worksheet__group-label">{gi + 1}</div>
+            <div className="operation-worksheet__list">
+              {group.map((ex, ei) => (
+                <div key={ei} className="operation-worksheet__row">
+                  <span className="operation-worksheet__num">{ex.A}</span>
+                  <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
+                  <span className="operation-worksheet__num">{ex.B}</span>
+                  <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
+                  <span className="operation-worksheet__num">{ex.C}</span>
+                  <span className="operation-worksheet__equals">=</span>
+                  <span className="operation-worksheet__blank" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
   const [phase, setPhase] = useState("setup");
   const [selectedResult, setSelectedResult] = useState(null);
@@ -607,6 +638,10 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
     } else {
       onIncorrect(task.conceptId, task.cardId);
     }
+  }
+
+  if (type === "operation_worksheet") {
+    return <WorksheetTask task={task} />;
   }
 
   if (type === "operation_observe") {

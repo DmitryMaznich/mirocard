@@ -197,6 +197,22 @@ export function generateTasks(mode, cards, arg3, arg4) {
 
   if (!operationCards.length) return [];
 
+  if (modeType === "operation_worksheet") {
+    const groupCount = Math.max(2, Math.min(8, toNumber(params.groupCount, 6)));
+    const perGroup = Math.max(3, Math.min(10, toNumber(params.perGroup, 6)));
+    const total = groupCount * perGroup;
+    const examples = [];
+    let attempts = 0;
+    let idx = 0;
+    while (examples.length < total && attempts < total * 20) {
+      attempts++;
+      const card = operationCards[idx % operationCards.length];
+      const ex = buildChainTask(card, params);
+      if (ex !== null) { examples.push(ex); idx++; }
+    }
+    return [{ type: "operation_worksheet", cardId: operationCards[0].id, conceptId: operationCards[0].conceptId, examples, groupCount, perGroup }];
+  }
+
   if (modeType === "operation_chain") {
     const result = [];
     let attempts = 0;

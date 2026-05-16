@@ -15737,3 +15737,102 @@ body { background: #eef0ef; }
   .sp-pool > div { max-width: 88px; max-height: 56px; }
   .sp-pool > div svg { width: 88px; height: 56px; }
 }
+
+/* ─── Mode 8: Worksheet ─────────────────────────────────────────────────── */
+.operation-stage--worksheet {
+  height: calc(100dvh - 112px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 16px;
+  width: min(1200px, calc(100dvw - 8px));
+  box-sizing: border-box;
+}
+
+.operation-worksheet {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.operation-worksheet__group {
+  background: #f4faf8;
+  border: 1.5px solid #c6e8e0;
+  border-radius: 14px;
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.operation-worksheet__group-label {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, #72d4c4, #1a8a7a 72%);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.operation-worksheet__list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.operation-worksheet__row {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+
+.operation-worksheet__num {
+  min-width: 1.2ch;
+  text-align: right;
+  color: #1a2e2a;
+}
+
+.operation-worksheet__sign--add {
+  color: #1f7a6f;
+}
+
+.operation-worksheet__sign--subtract {
+  color: #c04040;
+}
+
+.operation-worksheet__equals {
+  color: #888;
+  margin: 0 1px;
+}
+
+.operation-worksheet__blank {
+  display: inline-block;
+  width: 2em;
+  border-bottom: 2px solid #1f7a6f;
+  margin-bottom: 2px;
+}
+
+@media (max-width: 520px) {
+  .operation-stage--worksheet {
+    padding: 10px;
+  }
+  .operation-worksheet {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .operation-worksheet__row {
+    font-size: 0.9rem;
+  }
+}
