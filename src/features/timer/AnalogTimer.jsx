@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { extractYoutubeId, makeYoutubeEmbedUrl } from "@/shared/utils/format";
-
-function normalizeRewardVideos(value) {
-  if (!Array.isArray(value)) return [];
-  return value.map((item) => String(item || "").trim()).filter(Boolean);
-}
+import { makeYoutubeEmbedUrl } from "@/shared/utils/format";
+import { normalizeRewardVideoIds, pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 
 function analogTimerMinuteToPoint(min, radius) {
   const clockwiseDeg = ((360 - min * 6) % 360 + 360) % 360;
@@ -94,9 +90,8 @@ export default function AnalogTimer({ rewardVideos = [], onClose }) {
   const noiseStartedAtRef = useRef(0);
   const lastMinuteRef = useRef(0);
   const rewardIntervalRef = useRef(null);
-  const lastRewardVideoRef = useRef(null);
 
-  const normalizedRewardVideos = normalizeRewardVideos(rewardVideos).map(extractYoutubeId).filter(Boolean);
+  const normalizedRewardVideos = normalizeRewardVideoIds(rewardVideos);
 
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
@@ -296,20 +291,6 @@ export default function AnalogTimer({ rewardVideos = [], onClose }) {
     }
   }
 
-  function pickRewardVideo(videos) {
-    if (!videos.length) return null;
-    if (videos.length === 1) {
-      lastRewardVideoRef.current = videos[0];
-      return videos[0];
-    }
-
-    const prev = lastRewardVideoRef.current;
-    const pool = videos.filter((video) => video !== prev);
-    const selected = (pool.length ? pool : videos)[Math.floor(Math.random() * (pool.length ? pool.length : videos.length))] ?? null;
-    lastRewardVideoRef.current = selected;
-    return selected;
-  }
-
   function resetRewardState() {
     setSuccessVideoUrl(null);
     setRewardTotalSeconds(0);
@@ -355,7 +336,7 @@ export default function AnalogTimer({ rewardVideos = [], onClose }) {
             setRewardTotalSeconds(rewardDurationSeconds);
             setRewardSecondsLeft(rewardDurationSeconds);
             if (normalizedRewardVideos.length > 0) {
-              const videoId = pickRewardVideo(normalizedRewardVideos);
+              const videoId = pickStoredRewardVideoId(normalizedRewardVideos, "analog-timer");
               setSuccessVideoUrl(videoId);
               setRewardPlaybackNonce(Date.now());
             }

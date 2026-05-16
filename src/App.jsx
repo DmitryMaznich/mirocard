@@ -170,6 +170,37 @@ export default function App() {
     })();
   }, [setScreen]);
 
+  // Re-sync from server whenever the tab becomes visible (e.g. user switches back
+  // from another app/tab). Throttled to once per 30 s so it's cheap in normal use.
+  // This ensures Device B automatically picks up changes made on Device A.
+  useEffect(() => {
+    let lastSyncAt = 0;
+    async function onVisible() {
+      if (document.hidden) return;
+      if (!useAppStore.getState().token) return;
+      if (Date.now() - lastSyncAt < 30_000) return;
+      lastSyncAt = Date.now();
+      try {
+        const db = await getDb();
+        const serverBootstrap = await api.get("/account/bootstrap");
+        const localStudents = useAppStore.getState().students;
+        const merged = mergeStudents(localStudents, serverBootstrap.students);
+        const payload = {
+          settings: serverBootstrap.settings,
+          students: merged,
+          ownedTopics: serverBootstrap.ownedTopics,
+          studentTopicLinks: serverBootstrap.studentTopicLinks,
+          conceptProgress: serverBootstrap.conceptProgress,
+        };
+        await persistBootstrap(db, payload);
+        applyBootstrapToStore(payload);
+      } catch {}
+      flushQueue().catch(() => {});
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
   const activeStudent = students?.find(s => s.id === activeStudentId);
   const rewardVideos = activeStudent?.rewardVideos || [];
   const Screen = SCREENS[screen] ?? NotFoundScreen;

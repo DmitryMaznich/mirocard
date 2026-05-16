@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
-  extractYoutubeId, computeRewardSeconds, formatRewardTime, getVideoUrl,
+  computeRewardSeconds, formatRewardTime,
 } from "@/shared/utils/format";
+import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
@@ -114,8 +115,7 @@ export default function SessionSummary() {
   const showRewardButton = !rewardConsumed && rewardSeconds > 0 && rewardVideos.length > 0;
 
   function handleOpenVideo() {
-    const index = Math.floor(Math.random() * rewardVideos.length);
-    const videoId = extractYoutubeId(getVideoUrl(rewardVideos[index]));
+    const videoId = pickStoredRewardVideoId(rewardVideos, `student:${student?.id ?? "unknown"}`);
     if (!videoId) return;
     window.speechSynthesis?.cancel();
     setRewardVideoUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3&modestbranding=1`);

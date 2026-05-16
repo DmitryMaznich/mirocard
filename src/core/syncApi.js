@@ -64,6 +64,11 @@ export function setupOnlineListener() {
   if (_onlineListenerSet) return;
   _onlineListenerSet = true;
   window.addEventListener("online", () => flushQueue().catch(() => {}));
+  // Also flush when tab becomes visible again — catches the case where the local
+  // backend restarted (e.g. after power cut) without the browser firing "online".
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) flushQueue().catch(() => {});
+  });
 }
 
 export async function pushOp(type, data) {
