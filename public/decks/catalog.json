@@ -143,5 +143,18 @@
       },
       "url": "./decks/sentence_puzzle_v1.9.19.zip"
     },
+    {
+      "id": "tools_functions",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Инструменты — для чего нужны",
+        "en": "Tools — what they're for"
+      },
+      "description": {
+        "ru": "12 инструментов × 2 режима: выбери действие, выбери инструмент по сцене",
+        "en": "12 tools × 2 modes: choose the action, choose the tool by scene"
+      },
+      "url": "./decks/tools_functions_v1.0.0.zip"
+    }
   ]
 }

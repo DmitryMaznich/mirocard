@@ -1,5 +1,14 @@
 // src/topics/renderers/function_cards/engine.js
 import { shuffle } from "@/shared/utils/shuffle";
+import { generateTasks as flashcardsGenerateTasks } from "../flashcards/engine";
+
+// Concepts filtered to tool-image cards only (no scene_before / scene_after)
+function toolOnlyConcepts(concepts) {
+  return concepts.map((c) => ({
+    ...c,
+    cards: c.cards.filter((card) => card.type === "tool" || !card.type),
+  }));
+}
 
 function pickDistractors(currentConceptId, concepts, count) {
   const others = concepts.filter(c => c.conceptId !== currentConceptId);
@@ -73,13 +82,12 @@ function generateSceneFunctionTasks(concepts) {
   return shuffle(tasks);
 }
 
-// allCards satisfies the shared generateTasks interface but is not needed here —
-// all card data is already grouped inside each concept via deriveConcepts.
-// params is accepted for interface compatibility; option count and reps are fixed (4 options, 1 rep).
+// allCards satisfies the shared generateTasks interface but is not needed here.
+// params is accepted for interface compatibility.
 export function generateTasks(modeType, concepts, allCards, params = {}) {  // eslint-disable-line no-unused-vars
   switch (modeType) {
     case "choose_action":  return generateChooseActionTasks(concepts);
     case "scene_function": return generateSceneFunctionTasks(concepts);
-    default:               return [];
+    default:               return flashcardsGenerateTasks(modeType, toolOnlyConcepts(concepts), allCards, params);
   }
 }
