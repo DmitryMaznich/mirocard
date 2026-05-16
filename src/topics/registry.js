@@ -3,6 +3,7 @@ import ComparisonRenderer          from "./renderers/comparison/index.jsx";
 import MathHousesRenderer          from "./renderers/math_houses/index.jsx";
 import AdditionSubtractionRenderer from "./renderers/addition_subtraction/index.jsx";
 import ReadingRenderer             from "./renderers/reading/index.jsx";
+import FunctionCardsRenderer       from "./renderers/function_cards/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -10,4 +11,5 @@ export const RENDERER_REGISTRY = {
   math_houses:           MathHousesRenderer,
   addition_subtraction:  AdditionSubtractionRenderer,
   reading:               ReadingRenderer,
+  function_cards:        FunctionCardsRenderer,
 };
