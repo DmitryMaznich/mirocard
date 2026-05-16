@@ -15740,40 +15740,48 @@ body { background: #eef0ef; }
 
 /* ─── Mode 8: Worksheet ─────────────────────────────────────────────────── */
 .operation-stage--worksheet {
+  /* Override base operation-stage: full-width, exact height, no scroll */
+  width: calc(100dvw - 8px);
+  max-width: 1400px;
   height: calc(100dvh - 112px);
-  overflow-y: auto;
-  overflow-x: hidden;
-  justify-content: flex-start;
-  align-items: flex-start;
-  padding: 16px;
-  width: min(1200px, calc(100dvw - 8px));
+  min-height: 0;
+  padding: 10px;
   box-sizing: border-box;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: hidden;
+  gap: 0;
 }
 
+/* Grid fills entire stage height; grid-auto-rows: 1fr divides height equally between rows */
 .operation-worksheet {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 14px;
-  width: 100%;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 10px;
 }
 
 .operation-worksheet__group {
   background: #f4faf8;
   border: 1.5px solid #c6e8e0;
   border-radius: 14px;
-  padding: 12px 14px 14px;
+  padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .operation-worksheet__group-label {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: radial-gradient(circle at 36% 30%, #72d4c4, #1a8a7a 72%);
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -15783,9 +15791,12 @@ body { background: #eef0ef; }
 }
 
 .operation-worksheet__list {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  justify-content: space-evenly;
+  overflow-y: auto;
 }
 
 .operation-worksheet__row {
@@ -15795,7 +15806,8 @@ body { background: #eef0ef; }
   font-size: 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  line-height: 1.6;
+  line-height: 1.3;
+  flex-wrap: nowrap;
 }
 
 .operation-worksheet__num {
@@ -15804,13 +15816,8 @@ body { background: #eef0ef; }
   color: #1a2e2a;
 }
 
-.operation-worksheet__sign--add {
-  color: #1f7a6f;
-}
-
-.operation-worksheet__sign--subtract {
-  color: #c04040;
-}
+.operation-worksheet__sign--add    { color: #1f7a6f; }
+.operation-worksheet__sign--subtract { color: #c04040; }
 
 .operation-worksheet__equals {
   color: #888;
@@ -15821,18 +15828,30 @@ body { background: #eef0ef; }
   display: inline-block;
   width: 2em;
   border-bottom: 2px solid #1f7a6f;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
+/* ── Portrait phone (≤ 520 px): 2 cols × 3 rows ── */
 @media (max-width: 520px) {
-  .operation-stage--worksheet {
-    padding: 10px;
-  }
-  .operation-worksheet {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
-  }
-  .operation-worksheet__row {
-    font-size: 0.9rem;
-  }
+  .operation-stage--worksheet { padding: 8px; }
+  .operation-worksheet { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .operation-worksheet__group { padding: 8px 10px 10px; border-radius: 12px; }
+  .operation-worksheet__row { font-size: 0.9rem; }
+}
+
+/* ── Landscape phone (height ≤ 500 px, orientation: landscape): 6 cols × 1 row ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .operation-stage--worksheet { padding: 6px; }
+  .operation-worksheet { grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .operation-worksheet__group { padding: 6px 8px 8px; border-radius: 10px; gap: 4px; }
+  .operation-worksheet__group-label { width: 20px; height: 20px; font-size: 0.68rem; }
+  .operation-worksheet__list { justify-content: flex-start; gap: 1px; }
+  .operation-worksheet__row { font-size: 0.72rem; gap: 2px; }
+  .operation-worksheet__blank { width: 1.5em; }
+}
+
+/* ── Landscape tablet (≥ 768 px wide, landscape, height > 500 px): 3 cols × 2 rows ── */
+@media (min-width: 768px) and (orientation: landscape) and (min-height: 501px) {
+  .operation-worksheet { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .operation-worksheet__row { font-size: min(1.05rem, 1.3vw); }
 }
