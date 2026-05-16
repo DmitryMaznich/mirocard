@@ -177,12 +177,14 @@
   border-radius: 8px;
   animation: sp-shake 0.4s ease;
 }
-.sp-slot--active svg {
+/* Target the <path> so drop-shadow follows the puzzle piece shape (incl. right tab),
+   not the rectangular SVG viewport. Stroke turns amber so the dashed line glows too. */
+.sp-slot--active path {
   animation: sp-slot-pulse 1.2s ease-in-out infinite;
 }
 @keyframes sp-slot-pulse {
-  0%, 100% { filter: drop-shadow(0 0 3px rgba(245,158,11,0.35)); }
-  50%       { filter: drop-shadow(0 0 9px rgba(245,158,11,0.9)); }
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(245,158,11,0.4));  stroke: #f5b942; }
+  50%       { filter: drop-shadow(0 0 9px rgba(245,158,11,0.9));  stroke: #f59e0b; stroke-width: 3; }
 }
 
 @keyframes sp-shake {
