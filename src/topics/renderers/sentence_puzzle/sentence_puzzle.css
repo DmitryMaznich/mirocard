@@ -177,13 +177,12 @@
   border-radius: 8px;
   animation: sp-shake 0.4s ease;
 }
-.sp-slot--active {
-  border-radius: 8px;
+.sp-slot--active svg {
   animation: sp-slot-pulse 1.2s ease-in-out infinite;
 }
 @keyframes sp-slot-pulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(245,158,11,0.35); }
-  50%       { box-shadow: 0 0 0 5px rgba(245,158,11,0.75), 0 0 16px 5px rgba(245,158,11,0.35); }
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(245,158,11,0.35)); }
+  50%       { filter: drop-shadow(0 0 9px rgba(245,158,11,0.9)); }
 }
 
 @keyframes sp-shake {
