@@ -334,7 +334,6 @@ function WorksheetTask({ task }) {
                   <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
                   <span className="operation-worksheet__num">{ex.C}</span>
                   <span className="operation-worksheet__equals">=</span>
-                  <span className="operation-worksheet__blank" />
                 </div>
               ))}
             </div>

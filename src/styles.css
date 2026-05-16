@@ -15794,42 +15794,36 @@ body { background: #eef0ef; }
 .operation-worksheet__list {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  overflow-y: auto;
-}
-
-.operation-worksheet__row {
-  display: flex;
+  display: grid;
+  /* 6 columns: A  ±  B  ±  C  = */
+  grid-template-columns: auto auto auto auto auto auto;
+  align-content: space-evenly;
   align-items: baseline;
-  gap: 3px;
+  justify-content: center;
+  overflow-y: auto;
   font-size: clamp(0.85rem, 8cqi, 1.5rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.3;
-  flex-wrap: nowrap;
+}
+
+/* row div is invisible to layout — children go directly into the parent grid */
+.operation-worksheet__row {
+  display: contents;
 }
 
 .operation-worksheet__num {
-  min-width: 1.2ch;
   text-align: right;
+  padding: 1px 2px;
   color: #1a2e2a;
 }
 
-.operation-worksheet__sign--add    { color: #1f7a6f; }
-.operation-worksheet__sign--subtract { color: #c04040; }
+.operation-worksheet__sign--add    { color: #1f7a6f; padding: 1px 3px; }
+.operation-worksheet__sign--subtract { color: #c04040; padding: 1px 3px; }
 
 .operation-worksheet__equals {
   color: #888;
-  margin: 0 1px;
-}
-
-.operation-worksheet__blank {
-  display: inline-block;
-  width: 2em;
-  border-bottom: 2px solid #1f7a6f;
-  margin-bottom: 1px;
+  padding: 1px 3px;
 }
 
 /* ── Portrait phone (≤ 520 px): 2 cols × 3 rows ── */
@@ -15837,7 +15831,7 @@ body { background: #eef0ef; }
   .operation-stage--worksheet { padding: 8px; }
   .operation-worksheet { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .operation-worksheet__group { padding: 8px 10px 10px; border-radius: 12px; }
-  /* font-size handled by cqi container query */
+  /* font-size on list handled by cqi container query */
 }
 
 /* ── Landscape phone (height ≤ 500 px, orientation: landscape): 6 cols × 1 row ── */
@@ -15846,9 +15840,7 @@ body { background: #eef0ef; }
   .operation-worksheet { grid-template-columns: repeat(6, 1fr); gap: 6px; }
   .operation-worksheet__group { padding: 6px 8px 8px; border-radius: 10px; gap: 4px; }
   .operation-worksheet__group-label { width: 20px; height: 20px; font-size: 0.68rem; }
-  .operation-worksheet__list { justify-content: flex-start; gap: 1px; }
-  .operation-worksheet__row { font-size: 0.82rem; gap: 2px; }
-  .operation-worksheet__blank { width: 1.5em; }
+  .operation-worksheet__list { font-size: 0.82rem; align-content: flex-start; gap: 2px 0; }
 }
 
 /* ── Landscape tablet (≥ 768 px wide, landscape, height > 500 px): 3 cols × 2 rows ── */
