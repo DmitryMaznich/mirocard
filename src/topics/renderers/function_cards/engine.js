@@ -75,6 +75,7 @@ function generateSceneFunctionTasks(concepts) {
       conceptId: concept.conceptId,
       sceneBefore,
       sceneAfter,
+      question: concept.primary.sceneQuestion ?? null,
       feedbackText: `${concept.primary.label} ${concept.primary.action}!`,
       options,
     });

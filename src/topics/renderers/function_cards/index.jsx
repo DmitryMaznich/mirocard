@@ -136,7 +136,7 @@ function SceneFunctionTask({ task, topicId, onQualityAnswer, mode }) {
         </div>
       </div>
 
-      <p className="session-instruction">{mode?.ui?.instruction ?? "Какой инструмент нужен?"}</p>
+      <p className="session-instruction">{task.question ?? mode?.ui?.instruction ?? "Какой инструмент нужен?"}</p>
 
       <div className="fc-tool-grid">
         {task.options.map(opt => (

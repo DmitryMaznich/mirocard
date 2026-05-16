@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -30,6 +30,7 @@ const CONCEPTS = [
     label: "Молоток",
     labelInstrumental: "молотком",
     action: "забивают гвозди",
+    sceneQuestion: "Нужно забить гвоздь. Что взять?",
     toolPrompt: "a hammer, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a nail lying next to a wooden board on a clean surface, the nail is not driven in yet, 4:3 composition, no text",
     sceneAfterPrompt: "a nail fully hammered into a wooden board, clean surface background, 4:3 composition, no text",
@@ -39,6 +40,7 @@ const CONCEPTS = [
     label: "Отвёртка",
     labelInstrumental: "отвёрткой",
     action: "закручивают шурупы",
+    sceneQuestion: "Нужно закрутить шуруп. Что взять?",
     toolPrompt: "a screwdriver, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a screw lying next to a wooden plank on a clean surface, the screw is not inserted yet, 4:3 composition, no text",
     sceneAfterPrompt: "a screw fully driven into a wooden plank, clean surface background, 4:3 composition, no text",
@@ -48,6 +50,7 @@ const CONCEPTS = [
     label: "Дрель",
     labelInstrumental: "дрелью",
     action: "сверлят отверстия",
+    sceneQuestion: "Нужно просверлить отверстие в стене. Что взять?",
     toolPrompt: "a power drill, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a wooden board without any holes on a clean surface, 4:3 composition, no text",
     sceneAfterPrompt: "a wooden board with a clean round hole drilled through it, sawdust nearby, clean surface background, 4:3 composition, no text",
@@ -57,6 +60,7 @@ const CONCEPTS = [
     label: "Пила",
     labelInstrumental: "пилой",
     action: "пилят доску",
+    sceneQuestion: "Нужно распилить доску. Что взять?",
     toolPrompt: "a hand saw, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "one whole wooden plank lying on a clean surface, 4:3 composition, no text",
     sceneAfterPrompt: "a wooden plank cut into two pieces on a clean surface, sawdust at the cut, 4:3 composition, no text",
@@ -66,6 +70,7 @@ const CONCEPTS = [
     label: "Гаечный ключ",
     labelInstrumental: "гаечным ключом",
     action: "закручивают гайки",
+    sceneQuestion: "Нужно затянуть гайку на болте. Что взять?",
     toolPrompt: "an open-end wrench, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a bolt with a loose nut sitting beside it on a clean surface, 4:3 composition, no text",
     sceneAfterPrompt: "a bolt with a nut tightly fastened on it, clean surface background, 4:3 composition, no text",
@@ -75,6 +80,7 @@ const CONCEPTS = [
     label: "Пассатижи",
     labelInstrumental: "пассатижами",
     action: "сгибают проволоку",
+    sceneQuestion: "Нужно согнуть проволоку. Что взять?",
     toolPrompt: "a pair of pliers, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a straight piece of metal wire lying on a clean surface, 4:3 composition, no text",
     sceneAfterPrompt: "a piece of metal wire bent into a U-shape on a clean surface, 4:3 composition, no text",
@@ -84,6 +90,7 @@ const CONCEPTS = [
     label: "Кусачки",
     labelInstrumental: "кусачками",
     action: "режут проволоку",
+    sceneQuestion: "Нужно перекусить проволоку. Что взять?",
     toolPrompt: "wire cutters (diagonal cutting pliers), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a long piece of wire lying on a clean surface, 4:3 composition, no text",
     sceneAfterPrompt: "a piece of wire cut in two, the two ends slightly apart, clean surface background, 4:3 composition, no text",
@@ -93,6 +100,7 @@ const CONCEPTS = [
     label: "Рулетка",
     labelInstrumental: "рулеткой",
     action: "измеряют длину",
+    sceneQuestion: "Нужно измерить длину большого предмета. Что взять?",
     toolPrompt: "a tape measure (retractable measuring tape), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a wooden board without any markings lying on a clean surface, 4:3 composition, no text",
     sceneAfterPrompt: "a wooden board with a pencil measurement mark on it, clean surface background, 4:3 composition, no text",
@@ -102,6 +110,7 @@ const CONCEPTS = [
     label: "Кисточка",
     labelInstrumental: "кисточкой",
     action: "красят поверхность",
+    sceneQuestion: "Нужно покрасить стену. Что взять?",
     toolPrompt: "a paint brush, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "an unpainted grey wall section, clean and bare, 4:3 composition, no text",
     sceneAfterPrompt: "a wall section painted with a coat of light blue paint, clean and smooth, 4:3 composition, no text",
@@ -111,6 +120,7 @@ const CONCEPTS = [
     label: "Шпатель",
     labelInstrumental: "шпателем",
     action: "наносят шпаклёвку",
+    sceneQuestion: "Нужно заделать трещину в стене. Что взять?",
     toolPrompt: "a wall spatula (putty knife), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a wall section with a visible crack in the plaster, 4:3 composition, no text",
     sceneAfterPrompt: "the same wall section with the crack smoothly filled and levelled with putty, 4:3 composition, no text",
@@ -120,6 +130,7 @@ const CONCEPTS = [
     label: "Сверло",
     labelInstrumental: "сверлом",
     action: "сверлят дерево",
+    sceneQuestion: "Нужно просверлить дырку в деревянном бруске. Что взять?",
     toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a small wooden block without any holes on a clean surface, 4:3 composition, no text",
     sceneAfterPrompt: "a small wooden block with a clean round hole drilled through it, sawdust nearby, clean surface background, 4:3 composition, no text",
@@ -129,6 +140,7 @@ const CONCEPTS = [
     label: "Линейка",
     labelInstrumental: "линейкой",
     action: "чертят ровные линии",
+    sceneQuestion: "Нужно провести ровную линию на бумаге. Что взять?",
     toolPrompt: "a wooden ruler, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a blank white sheet of paper on a clean desk, 4:3 composition, no text",
     sceneAfterPrompt: "a sheet of paper with one straight pencil line drawn across it, clean desk background, 4:3 composition, no text",
@@ -167,6 +179,7 @@ async function run() {
         ...(v === 1 ? {
           labelInstrumental: concept.labelInstrumental,
           action: concept.action,
+          sceneQuestion: concept.sceneQuestion,
         } : {}),
         image: filename,
         type: "tool",
