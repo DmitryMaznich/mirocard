@@ -1,24 +1,56 @@
-import { useState } from "react";
-import { buildStickSlots, getStickBeadColor } from "./stickModel";
+import { useRef, useState } from "react";
+import { buildStickSlots, getStickBeadColor, STICK_DRAG_THRESHOLD } from "./stickModel";
 
 export default function HelperPanel({ maxNumber = 10, onClose }) {
   const helperTask = { railSize: maxNumber, maxNumber, operation: "add", start: 0, delta: maxNumber, result: maxNumber };
   const [workCount, setWorkCount] = useState(0);
+  const wrapRef = useRef(null);
+  const dragRef = useRef(null);
   const slots = buildStickSlots(helperTask, workCount);
 
-  function handleBeadTap(slot) {
-    if (slot.zone === "side") {
-      setWorkCount(workCount + slot.zoneIndex + 1);
-    } else if (slot.zone === "work") {
+  function startDrag(e, slot) {
+    e.preventDefault();
+    wrapRef.current?.setPointerCapture?.(e.pointerId);
+    dragRef.current = { pointerId: e.pointerId, startX: e.clientX, slot };
+  }
+
+  function endDrag(e) {
+    const d = dragRef.current;
+    if (!d || e.pointerId !== d.pointerId) return;
+    dragRef.current = null;
+    wrapRef.current?.releasePointerCapture?.(e.pointerId);
+
+    const deltaX = e.clientX - d.startX;
+    if (Math.abs(deltaX) < STICK_DRAG_THRESHOLD) return;
+
+    const { slot } = d;
+    if (deltaX < 0 && slot.zone === "side") {
+      // swipe left — push side beads into work zone
+      setWorkCount(c => c + slot.zoneIndex + 1);
+    } else if (deltaX > 0 && slot.zone === "work") {
+      // swipe right — push work beads back to side
       setWorkCount(slot.zoneIndex);
     }
+  }
+
+  function cancelDrag(e) {
+    if (dragRef.current?.pointerId === e.pointerId) {
+      wrapRef.current?.releasePointerCapture?.(e.pointerId);
+    }
+    dragRef.current = null;
   }
 
   return (
     <div className="helper-panel" role="dialog" aria-label="Счётный помощник">
       <div className="helper-panel__sheet">
         <div className="operation-stick">
-          <div className="operation-stick__wrap">
+          <div
+            ref={wrapRef}
+            className="operation-stick__wrap"
+            onPointerMove={() => {}}
+            onPointerUp={endDrag}
+            onPointerCancel={cancelDrag}
+          >
             <div className="operation-stick__rod" />
             <div
               className="operation-stick__track"
@@ -38,7 +70,7 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
                     <button
                       type="button"
                       className={`operation-stick__bead operation-stick__bead--${getStickBeadColor(helperTask, slot.beadIndex)}`}
-                      onClick={() => handleBeadTap(slot)}
+                      onPointerDown={(e) => startDrag(e, slot)}
                       aria-label={slot.zone === "work"
                         ? `убрать бусины до ${slot.zoneIndex}`
                         : `добавить ${slot.zoneIndex + 1} бусин`}
