@@ -118,19 +118,6 @@
       "url": "./decks/addition_subtraction_v1.2.0.zip"
     },
     {
-      "id": "tools_basic",
-      "version": "1.0.0",
-      "title": {
-        "ru": "Инструменты",
-        "en": "Tools"
-      },
-      "description": {
-        "ru": "12 ручных и электроинструментов × 5 вариаций. Аудио произношение. Для детей от 4 лет.",
-        "en": "12 hand and power tools × 5 variations each. Audio pronunciation included."
-      },
-      "url": "./decks/tools_basic_v1.0.0.zip"
-    },
-    {
       "id": "sentence_puzzle",
       "version": "1.9.19",
       "title": {
@@ -145,16 +132,16 @@
     },
     {
       "id": "tools_functions",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": {
-        "ru": "Инструменты — для чего нужны",
-        "en": "Tools — what they're for"
+        "ru": "Инструменты и их применение",
+        "en": "Tools and their use"
       },
       "description": {
-        "ru": "12 инструментов × 2 режима: выбери действие, выбери инструмент по сцене",
-        "en": "12 tools × 2 modes: choose the action, choose the tool by scene"
+        "ru": "12 инструментов: название, применение, сцены до и после",
+        "en": "12 tools: names, functions, before-and-after scenes"
       },
-      "url": "./decks/tools_functions_v1.0.0.zip"
+      "url": "./decks/tools_functions_v1.1.0.zip"
     }
   ]
 }
