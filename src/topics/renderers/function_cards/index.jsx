@@ -103,7 +103,7 @@ function ToolOption({ option, topicId, selected, onSelect }) {
 }
 
 // ── SceneFunctionTask ─────────────────────────────────────────
-function SceneFunctionTask({ task, topicId, onQualityAnswer }) {
+function SceneFunctionTask({ task, topicId, onQualityAnswer, mode }) {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
@@ -135,7 +135,7 @@ function SceneFunctionTask({ task, topicId, onQualityAnswer }) {
         </div>
       </div>
 
-      <p className="session-instruction">Какой инструмент нужен?</p>
+      <p className="session-instruction">{mode?.ui?.instruction ?? "Какой инструмент нужен?"}</p>
 
       <div className="fc-tool-grid">
         {task.options.map(opt => (
@@ -171,7 +171,7 @@ export default function FunctionCardsRenderer({
 
   switch (task.type) {
     case "choose_action":  return <ChooseActionTask  {...props} />;
-    case "scene_function": return <SceneFunctionTask {...props} />;
+    case "scene_function": return <SceneFunctionTask {...props} mode={mode} />;
     default:               return null;
   }
 }

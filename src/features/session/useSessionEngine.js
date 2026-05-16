@@ -62,6 +62,11 @@ export function useSessionEngine() {
       const concepts = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
       const generateTasks = ENGINE_REGISTRY["flashcards"];
       tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
+    } else if (renderer === "function_cards") {
+      const allConcepts = deriveConcepts(topicRecord.cards);
+      const concepts = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
+      const generateTasks = ENGINE_REGISTRY["function_cards"];
+      tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
     } else if (renderer === "sentence_puzzle") {
       const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
       const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;

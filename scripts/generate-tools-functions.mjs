@@ -235,30 +235,35 @@ async function run() {
   writeFileSync(outPath, content);
 
   // ── Update catalog.json ─────────────────────────────────────
-  const catalogPath = join(ROOT, "public", "decks", "catalog.json");
-  const catalogRaw = JSON.parse(readFileSync(catalogPath, "utf8"));
-  // Support both array and { decks: [...] } formats
-  const catalog = Array.isArray(catalogRaw) ? catalogRaw : catalogRaw.decks;
-  const existingIdx = catalog.findIndex(d => d.id === "tools_functions");
-  const entry = {
-    id: "tools_functions",
-    version: VERSION,
-    title: { ru: "Инструменты — для чего нужны", en: "Tools — what they're for" },
-    description: "12 tools × 2 modes: choose the action, choose the tool by scene",
-    url: `./decks/tools_functions_v${VERSION}.zip`,
-  };
-  if (existingIdx >= 0) {
-    catalog[existingIdx] = entry;
-  } else {
-    catalog.push(entry);
-  }
-  const catalogOut = Array.isArray(catalogRaw) ? catalog : { ...catalogRaw, decks: catalog };
-  writeFileSync(catalogPath, JSON.stringify(catalogOut, null, 2));
+  // NOTE: catalog auto-update is disabled — deck is not ready to publish (no media files yet).
+  // Re-enable this section once images are generated and added to the ZIP.
+  // const catalogPath = join(ROOT, "public", "decks", "catalog.json");
+  // const catalogRaw = JSON.parse(readFileSync(catalogPath, "utf8"));
+  // // Support both array and { decks: [...] } formats
+  // const catalog = Array.isArray(catalogRaw) ? catalogRaw : catalogRaw.decks;
+  // const existingIdx = catalog.findIndex(d => d.id === "tools_functions");
+  // const entry = {
+  //   id: "tools_functions",
+  //   version: VERSION,
+  //   title: { ru: "Инструменты — для чего нужны", en: "Tools — what they're for" },
+  //   description: {
+  //     ru: "12 инструментов × 2 режима: выбери действие, выбери инструмент по сцене",
+  //     en: "12 tools × 2 modes: choose the action, choose the tool by scene",
+  //   },
+  //   url: `./decks/tools_functions_v${VERSION}.zip`,
+  // };
+  // if (existingIdx >= 0) {
+  //   catalog[existingIdx] = entry;
+  // } else {
+  //   catalog.push(entry);
+  // }
+  // const catalogOut = Array.isArray(catalogRaw) ? catalog : { ...catalogRaw, decks: catalog };
+  // writeFileSync(catalogPath, JSON.stringify(catalogOut, null, 2));
 
   // ── Summary ─────────────────────────────────────────────────
   console.log(`\n✅ Written: ${outPath}`);
   console.log(`   Cards: ${cards.length} (${CONCEPTS.length * TOOL_VARIATIONS} tool + ${CONCEPTS.length * 2} scene)`);
-  console.log(`   Catalog updated: tools_functions v${VERSION}`);
+  console.log(`   Catalog NOT updated — deck pending media (re-enable catalog section when images are ready)`);
   console.log(`\n📸 Image prompts written to generation-report.json (${imagePrompts.length} images)`);
   console.log(`   Generate images via Cardgen Studio and add to the ZIP under media/`);
 }
