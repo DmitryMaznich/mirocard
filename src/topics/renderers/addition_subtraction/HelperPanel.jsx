@@ -50,7 +50,6 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
           </div>
         </div>
         <div className="helper-panel__controls">
-          <div className="helper-panel__count" aria-live="polite">{workCount}</div>
           <button
             type="button"
             className="helper-panel__close"
