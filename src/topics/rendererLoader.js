@@ -12,11 +12,13 @@ async function readFile(db, topicId, ...names) {
 
 function injectCss(css, topicId) {
   const id = `mirocard-renderer-css-${topicId}`;
-  if (document.getElementById(id)) return;
-  const el = document.createElement("style");
-  el.id = id;
+  let el = document.getElementById(id);
+  if (!el) {
+    el = document.createElement("style");
+    el.id = id;
+    document.head.appendChild(el);
+  }
   el.textContent = css;
-  document.head.appendChild(el);
 }
 
 export async function loadRenderer(topicId) {
