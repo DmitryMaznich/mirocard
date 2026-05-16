@@ -122,3 +122,54 @@
   font-size: clamp(0.85rem, 3vw, 1rem);
   flex-shrink: 0;
 }
+
+/* ── Landscape: scenes left, question + 4-in-a-row right ── */
+@media (orientation: landscape) {
+  .fc-scene-function.session-body {
+    display: grid;
+    grid-template-columns: 42% 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "scenes question"
+      "scenes grid"
+      "scenes feedback";
+    padding: 6px 12px;
+    gap: 6px 14px;
+    align-items: start;
+    overflow: hidden;
+  }
+  .fc-scene-function .fc-scenes {
+    grid-area: scenes;
+    align-self: center;
+    height: 100%;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .fc-scene-function .fc-scenes .fc-arrow {
+    padding-bottom: 0;
+    font-size: 16px;
+    align-self: center;
+  }
+  .fc-scene-function .session-instruction {
+    grid-area: question;
+    align-self: end;
+  }
+  .fc-scene-function .fc-tool-grid {
+    grid-area: grid;
+    grid-template-columns: repeat(4, 1fr);
+    max-width: none;
+    align-self: start;
+    gap: 6px;
+  }
+  .fc-scene-function .fc-tool-opt {
+    padding: 5px 4px;
+    gap: 3px;
+  }
+  .fc-scene-function .fc-tool-opt-label {
+    font-size: clamp(8px, 1.6vw, 10px);
+  }
+  .fc-scene-function .fc-feedback {
+    grid-area: feedback;
+    margin-top: 0;
+  }
+}
