@@ -14,7 +14,7 @@ function ToolImage({ topicId, card, className = "" }) {
 // ── SceneImage ───────────────────────────────────────────────
 function SceneImage({ topicId, card, blurred, className = "" }) {
   const url = useTopicFile(topicId, card?.image);
-  if (!url) return <div className={`fc-scene-img fc-scene-img--loading ${className}`} />;
+  if (!card?.image || !url) return <div className={`fc-scene-img fc-scene-img--loading ${className}`} />;
   return (
     <img
       className={`fc-scene-img ${blurred ? "fc-scene-img--blurred" : ""} ${className}`}
@@ -103,7 +103,7 @@ function ToolOption({ option, topicId, selected, onSelect }) {
 }
 
 // ── SceneFunctionTask ─────────────────────────────────────────
-function SceneFunctionTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer }) {
+function SceneFunctionTask({ task, topicId, onQualityAnswer }) {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
@@ -128,7 +128,7 @@ function SceneFunctionTask({ task, topicId, soundEnabled, playTopicFile, onQuali
           <SceneImage topicId={topicId} card={task.sceneBefore} blurred={false} />
           <span className="fc-scene-label">до</span>
         </div>
-        <span className="fc-arrow" aria-hidden>→</span>
+        <span className="fc-arrow" aria-hidden="true">→</span>
         <div className="fc-scene">
           <SceneImage topicId={topicId} card={task.sceneAfter} blurred={!revealed} />
           <span className="fc-scene-label">после</span>
