@@ -217,6 +217,51 @@ async function run() {
     },
     modes: [
       {
+        id: "intro",
+        type: "intro",
+        evaluation: "none",
+        ui: {
+          title: "Знакомство",
+          instruction: "Нажми, чтобы продолжить",
+        },
+      },
+      {
+        id: "question_answer",
+        type: "question_answer",
+        evaluation: "quality",
+        ui: {
+          title: "Как называется?",
+          instruction: "Назови инструмент",
+        },
+      },
+      {
+        id: "find_n",
+        type: "find_n",
+        evaluation: "auto",
+        ui: {
+          title: "Найди инструмент",
+          instruction: "Найди на картинке",
+        },
+      },
+      {
+        id: "yes_no",
+        type: "yes_no",
+        evaluation: "auto",
+        ui: {
+          title: "Да или нет?",
+          instruction: "Правильное ли название?",
+        },
+      },
+      {
+        id: "choose_word_by_picture",
+        type: "choose_word_by_picture",
+        evaluation: "auto",
+        ui: {
+          title: "Как называется?",
+          instruction: "Выбери правильное название",
+        },
+      },
+      {
         id: "choose_action",
         type: "choose_action",
         evaluation: "auto",
@@ -256,10 +301,10 @@ async function run() {
   const entry = {
     id: "tools_functions",
     version: VERSION,
-    title: { ru: "Инструменты — для чего нужны", en: "Tools — what they're for" },
+    title: { ru: "Инструменты и их применение", en: "Tools and their use" },
     description: {
-      ru: "12 инструментов × 2 режима: выбери действие, выбери инструмент по сцене",
-      en: "12 tools × 2 modes: choose the action, choose the tool by scene",
+      ru: "12 инструментов: название, применение, сцены до и после",
+      en: "12 tools: names, functions, before-and-after scenes",
     },
     url: `./decks/tools_functions_v${VERSION}.zip`,
   };
@@ -268,6 +313,10 @@ async function run() {
   } else {
     catalog.push(entry);
   }
+  // Remove the old separate tools_basic entry if present
+  const basicIdx = catalog.findIndex(d => d.id === "tools_basic");
+  if (basicIdx >= 0) catalog.splice(basicIdx, 1);
+
   const catalogOut = Array.isArray(catalogRaw) ? catalog : { ...catalogRaw, decks: catalog };
   writeFileSync(catalogPath, JSON.stringify(catalogOut, null, 2));
 

@@ -1,6 +1,7 @@
 // src/topics/renderers/function_cards/index.jsx
 import { useState, useEffect } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import FlashcardsRenderer from "@/topics/renderers/flashcards";
 import "./function_cards.css";
 
 // ── ToolImage ────────────────────────────────────────────────
@@ -52,7 +53,7 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
     <div className="fc-choose-action session-body">
       <p className="session-instruction">{task.question}</p>
 
-      <div className="fc-tool-card card-area">
+      <div className="fc-tool-card">
         <ToolImage topicId={topicId} card={task.toolCard} />
       </div>
 
@@ -164,14 +165,18 @@ export default function FunctionCardsRenderer({
   soundEnabled,
   playTopicFile,
   onQualityAnswer,
+  ...rest
 }) {
   if (!task) return null;
 
-  const props = { task, topicId, soundEnabled, playTopicFile, onQualityAnswer };
+  const sharedProps = { task, mode, topicId, soundEnabled, playTopicFile, onQualityAnswer };
 
   switch (task.type) {
-    case "choose_action":  return <ChooseActionTask  {...props} />;
-    case "scene_function": return <SceneFunctionTask {...props} mode={mode} />;
-    default:               return null;
+    case "choose_action":
+      return <ChooseActionTask {...sharedProps} />;
+    case "scene_function":
+      return <SceneFunctionTask {...sharedProps} mode={mode} />;
+    default:
+      return <FlashcardsRenderer {...sharedProps} {...rest} />;
   }
 }
