@@ -13644,6 +13644,10 @@ kbd {
   color: #c04040;
 }
 
+.operation-expression__sign--hidden {
+  color: #9eaaa8;
+}
+
 .operation-expression__equals {
   color: #7a8c88;
 }

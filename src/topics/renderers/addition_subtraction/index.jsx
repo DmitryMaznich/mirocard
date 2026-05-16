@@ -188,7 +188,7 @@ function OperationExpression({ task, missingSign = false, missingResult = false,
   return (
     <div className="operation-expression" aria-label="пример">
       <span className={partClass("start", "operation-expression__number")}>{task.start}</span>
-      <span className={partClass("sign", `operation-expression__sign operation-expression__sign--${task.operation}`)}>
+      <span className={partClass("sign", `operation-expression__sign${missingSign ? " operation-expression__sign--hidden" : ` operation-expression__sign--${task.operation}`}`)}>
         {missingSign ? "?" : task.sign}
       </span>
       <span className={partClass("delta", "operation-expression__number")}>{task.delta}</span>
