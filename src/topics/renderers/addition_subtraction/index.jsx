@@ -14,6 +14,11 @@ const ACTION_MEANING_OPTIONS = [
   { value: "remove", label: "Убрать" },
 ];
 
+const ACTION_OPTIONS_PAST = [
+  { value: "add",    label: "Прибавили" },
+  { value: "remove", label: "Убрали"    },
+];
+
 const SIGN_OPTIONS = [
   { value: "+", label: "+" },
   { value: "-", label: "-" },
@@ -449,30 +454,50 @@ function PlaceholderTask() {
 }
 
 function FindSignTask({ task, onCorrect, onIncorrect }) {
+  const [step, setStep] = useState(1);
   const [selected, setSelected] = useState(null);
   const [helperOpen, setHelperOpen] = useState(false);
+  const timerRef = useRef(null);
 
-  function handleAnswer(value) {
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  function handleStep1(value) {
+    if (selected != null) return;
+    setSelected(value);
+    if (value === task.action) {
+      timerRef.current = setTimeout(() => { setStep(2); setSelected(null); }, 500);
+    } else {
+      onIncorrect(task.conceptId, task.cardId);
+      timerRef.current = setTimeout(() => setSelected(null), 700);
+    }
+  }
+
+  function handleStep2(value) {
     if (selected != null) return;
     setSelected(value);
     if (value === task.sign) {
       onCorrect(task.conceptId, task.cardId);
     } else {
       onIncorrect(task.conceptId, task.cardId);
+      timerRef.current = setTimeout(() => setSelected(null), 700);
     }
   }
 
   return (
     <div className="operation-stage operation-stage--find-sign">
-      <OperationExpression task={task} missingSign answered={selected === task.sign} />
+      <OperationExpression task={task} missingSign answered={step === 2 && selected === task.sign} />
+      <div className="operation-link-drill__question">
+        {step === 1 ? "Что мы сделали?" : "Какой знак нужно поставить?"}
+      </div>
       <ChoiceGrid
-        options={SIGN_OPTIONS}
+        key={step}
+        options={step === 1 ? ACTION_OPTIONS_PAST : SIGN_OPTIONS}
         selected={selected}
-        answer={task.sign}
-        variant="large-signs"
-        onAnswer={handleAnswer}
+        answer={step === 1 ? task.action : task.sign}
+        variant={step === 1 ? "action-words" : "large-signs"}
+        onAnswer={step === 1 ? handleStep1 : handleStep2}
       />
-      {task.showHelper && (
+      {task.showHelper && !helperOpen && (
         <button
           type="button"
           className="helper-toggle-btn"
