@@ -212,7 +212,7 @@ async function run() {
       id: "tools_functions",
       version: VERSION,
       renderer: "function_cards",
-      title: { ru: "Инструменты — для чего нужны", en: "Tools — what they're for" },
+      title: { ru: "Инструменты и их применение", en: "Tools and their use" },
       ...(metaAvatar ? { avatar: metaAvatar } : {}),
     },
     modes: [
