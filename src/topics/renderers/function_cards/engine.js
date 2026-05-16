@@ -7,10 +7,11 @@ function pickDistractors(currentConceptId, concepts, count) {
 }
 
 function getToolCard(concept) {
-  return (
+  const card =
     concept.cards.find(c => c.type === "tool" && c.primary === true) ??
-    concept.cards.find(c => c.type === "tool")
-  );
+    concept.cards.find(c => c.type === "tool");
+  if (!card) throw new Error(`function_cards: concept "${concept.conceptId}" has no tool card`);
+  return card;
 }
 
 function generateChooseActionTasks(concepts) {
@@ -72,7 +73,10 @@ function generateSceneFunctionTasks(concepts) {
   return shuffle(tasks);
 }
 
-export function generateTasks(modeType, concepts, allCards, params = {}) {
+// allCards satisfies the shared generateTasks interface but is not needed here —
+// all card data is already grouped inside each concept via deriveConcepts.
+// params is accepted for interface compatibility; option count and reps are fixed (4 options, 1 rep).
+export function generateTasks(modeType, concepts, allCards, params = {}) {  // eslint-disable-line no-unused-vars
   switch (modeType) {
     case "choose_action":  return generateChooseActionTasks(concepts);
     case "scene_function": return generateSceneFunctionTasks(concepts);
