@@ -122,3 +122,61 @@
   font-size: clamp(0.85rem, 3vw, 1rem);
   flex-shrink: 0;
 }
+
+/* ── Landscape: scenes stacked left, 2×2 grid right ── */
+@media (orientation: landscape) {
+  .fc-scene-function.session-body {
+    display: grid;
+    grid-template-columns: 44% 1fr;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "scenes question"
+      "scenes grid"
+      "scenes feedback";
+    padding: 6px 12px;
+    gap: 6px 14px;
+    align-items: start;
+    overflow: hidden;
+  }
+  /* Scenes: vertical stack on the left */
+  .fc-scene-function .fc-scenes {
+    grid-area: scenes;
+    flex-direction: column;
+    align-self: center;
+    gap: 4px;
+  }
+  /* Arrow becomes ↓ between stacked scenes */
+  .fc-scene-function .fc-scenes .fc-arrow {
+    padding-bottom: 0;
+    font-size: 16px;
+    align-self: center;
+  }
+  .fc-scene-function .session-instruction {
+    grid-area: question;
+    align-self: end;
+  }
+  /* Options: keep 2×2 grid on the right */
+  .fc-scene-function .fc-tool-grid {
+    grid-area: grid;
+    max-width: none;
+    align-self: start;
+  }
+  .fc-scene-function .fc-tool-opt {
+    padding: 6px;
+  }
+  .fc-scene-function .fc-feedback {
+    grid-area: feedback;
+    margin-top: 0;
+  }
+}
+
+/* Replace → with ↓ when scenes are stacked vertically in landscape */
+@media (orientation: landscape) {
+  .fc-scene-function .fc-arrow {
+    font-size: 0;
+  }
+  .fc-scene-function .fc-arrow::after {
+    content: "↓";
+    font-size: 16px;
+  }
+}
