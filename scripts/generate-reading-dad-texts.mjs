@@ -97,7 +97,7 @@ const mashedPotatoesSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 const manifest = {
   meta: {
     id: "reading_dad_texts",
-    version: "1.9.0",
+    version: "1.10.0",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -162,27 +162,27 @@ const manifest = {
         { id: "s1",  type: "action",    text: "Вымой руки." },
         { id: "s2",  type: "checklist", text: "Достань нужную посуду:", items: ["кастрюлю", "овощечистку", "нож", "доску", "толкушку", "дуршлаг", "ложку", "тарелку"] },
         { id: "s3",  type: "checklist", text: "Достань продукты:", items: ["4 картошки", "масло", "молоко", "соль"] },
-        { id: "s4",  type: "action",    text: "Помой картошку под водой." },
+        { id: "s4",  type: "action",    text: "Помой картошку в раковине." },
         { id: "s5",  type: "action",    text: "Почисти картошку овощечисткой." },
         { id: "s6",  type: "action",    text: "Нарежь каждую картошку на 4 части." },
         { id: "s7",  type: "action",    text: "Положи картошку в кастрюлю." },
         { id: "s8",  type: "action",    text: "Залей картошку водой — вода должна покрывать картошку." },
-        { id: "s9",  type: "action",    text: "Посоли воду." },
+        { id: "s9",  type: "action",    text: "Добавь в воду 2 щепотки соли." },
         { id: "s10", type: "action",    text: "Поставь кастрюлю на плиту." },
-        { id: "s11", type: "action",    text: "Включи плиту на 8." },
+        { id: "s11", type: "action",    text: "Включи плиту на 10." },
         { id: "s12", type: "action",    text: "Подожди, пока вода закипит." },
-        { id: "s13", type: "action",    text: "Убавь нагрев до 5." },
+        { id: "s13", type: "action",    text: "Убавь нагрев до 6." },
         { id: "s14", type: "action",    text: "Вари картошку 20 минут." },
         { id: "s15", type: "action",    text: "Проткни картошку вилкой — если мягкая, готова." },
         { id: "s16", type: "action",    text: "Выключи плиту." },
         { id: "s17", type: "action",    text: "Осторожно слей воду через дуршлаг." },
         { id: "s18", type: "action",    text: "Верни картошку обратно в кастрюлю." },
-        { id: "s19", type: "action",    text: "Добавь кусочек масла." },
+        { id: "s19", type: "action",    text: "Добавь кусочек масла — размером с большой палец." },
         { id: "s20", type: "action",    text: "Разомни картошку толкушкой." },
-        { id: "s21", type: "action",    text: "Влей немного молока." },
-        { id: "s22", type: "action",    text: "Взбей пюре ложкой до гладкости." },
+        { id: "s21", type: "action",    text: "Влей полстакана молока." },
+        { id: "s22", type: "action",    text: "Взбей пюре толкушкой до гладкости." },
         { id: "s23", type: "action",    text: "Попробуй пюре." },
-        { id: "s24", type: "action",    text: "Досоли, если нужно." },
+        { id: "s24", type: "action",    text: "Добавь соли, если нужно." },
         { id: "s25", type: "action",    text: "Положи пюре на тарелку." },
         { id: "s26", type: "action",    text: "Убери молоко и масло в холодильник." },
         { id: "s27", type: "action",    text: "Положи грязную посуду в раковину, а мусор выброси в мусорку." },
@@ -197,4 +197,4 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/omelet.svg", omeletSvg);
 zip.file("media/mashed_potatoes.svg", mashedPotatoesSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_texts_v1.9.0.zip", buffer);
+writeFileSync("public/decks/reading_dad_texts_v1.10.0.zip", buffer);
