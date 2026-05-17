@@ -280,10 +280,10 @@
     margin-bottom: min(44px, 12vw);
   }
 
-  /* Natural 4:3 proportions — height-driven, width auto */
+  /* Full available width, height proportional (4:3) */
   .fc-scene-function .fc-scene-img {
-    width: auto;
-    height: 15svh;
+    width: 100%;
+    height: auto;
     max-height: none;
   }
 
