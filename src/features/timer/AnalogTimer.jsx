@@ -63,7 +63,7 @@ function getSecondLabel(value) {
   return "секунд";
 }
 
-export default function AnalogTimer({ rewardVideos = [], onClose }) {
+export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode = false }) {
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [running, setRunning] = useState(false);
@@ -662,7 +662,7 @@ export default function AnalogTimer({ rewardVideos = [], onClose }) {
                   {timeDisplayString}
                 </div>
 
-                {!running && (
+                {!running && !noListenMode && (
                   <button
                     className={`analog-timer-section-toggle${listenMode ? " is-active" : ""}`}
                     onClick={() => {

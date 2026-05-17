@@ -4,6 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
+import AnalogTimer from "@/features/timer/AnalogTimer";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -302,6 +303,7 @@ function InstructionTask({ task, onAdvance }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [checked, setChecked] = useState({});
   const [listOpen, setListOpen] = useState(false);
+  const [showTimer, setShowTimer] = useState(false);
   const listRef = useRef(null);
 
   const step = steps[stepIndex];
@@ -335,8 +337,10 @@ function InstructionTask({ task, onAdvance }) {
 
   return (
     <div className="session-body reading-body instruction-body">
+      {showTimer && <AnalogTimer noListenMode onClose={() => setShowTimer(false)} />}
       <div className="instruction-header">
         <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
+        <button className="instruction-timer-btn" onClick={() => setShowTimer(true)} title="Таймер">⏱</button>
       </div>
 
       <div className="instruction-step">
