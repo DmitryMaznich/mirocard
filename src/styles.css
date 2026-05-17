@@ -16363,3 +16363,113 @@ body { background: #eef0ef; }
 @media (min-width: 768px) and (orientation: landscape) and (min-height: 501px) {
   .operation-worksheet { grid-template-columns: repeat(3, 1fr); gap: 12px; }
 }
+
+/* ── Global Timer ─────────────────────────────────────────── */
+
+:root {
+  --gt-panel-w: min(90vw, 88vh);
+  --gt-tab-w: 32px;
+}
+
+.global-timer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: calc(var(--gt-panel-w) + var(--gt-tab-w));
+  z-index: 200;
+  display: flex;
+  align-items: stretch;
+  pointer-events: none;
+  transform: translateX(calc(-1 * var(--gt-panel-w)));
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.global-timer--open {
+  /* center the clock (panel) at 50vw; tab sticks out to the right */
+  transform: translateX(calc(50vw - var(--gt-panel-w) / 2));
+}
+
+.global-timer__panel {
+  flex: 0 0 var(--gt-panel-w);
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background:
+    radial-gradient(circle at top, rgba(74, 155, 143, 0.08), transparent 40%),
+    linear-gradient(180deg, #fffdf9 0%, #f8f0e5 100%);
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.18);
+  pointer-events: all;
+}
+
+.global-timer__tab {
+  flex: 0 0 var(--gt-tab-w);
+  height: 72px;
+  align-self: center;
+  background: #fffdf9;
+  border: none;
+  border-radius: 0 14px 14px 0;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.13);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  padding: 0;
+}
+
+.global-timer__tab--idle {
+  background: #fffdf9;
+}
+
+.global-timer__tab--running {
+  background: #f5c842;
+  animation: gt-breathe 2.2s ease-in-out infinite;
+}
+
+.global-timer__tab--running:hover {
+  transform: translateX(4px);
+  background: #f7d060;
+}
+
+.global-timer__tab--paused {
+  background: #e8e0d4;
+}
+
+.global-timer__tab-icon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.global-timer__tab-time {
+  font-size: 11px;
+  font-family: ui-monospace, "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #3a2e22;
+  white-space: nowrap;
+  transform: rotate(-90deg);
+  display: block;
+}
+
+.global-timer__tab--paused .global-timer__tab-time {
+  color: #8a7a68;
+}
+
+@keyframes gt-breathe {
+  0%, 100% { box-shadow: 3px 0 6px rgba(245, 200, 66, 0.3); }
+  50%       { box-shadow: 3px 0 20px rgba(245, 200, 66, 0.75); }
+}
+
+/* ── analog-timer-inner (replaces analog-timer-overlay) ───── */
+
+.analog-timer-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  touch-action: none;
+  overscroll-behavior: contain;
+  user-select: none;
+  -webkit-user-select: none;
+}
