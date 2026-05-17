@@ -398,11 +398,16 @@ html.app-ios-standalone {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: space-between;
+}
+
+.instruction-header-spacer {
+  width: 2.2rem;
+  flex-shrink: 0;
 }
 
 .instruction-progress {
+  flex: 1;
   text-align: center;
   font-size: 1rem;
   font-weight: 700;
@@ -410,18 +415,19 @@ html.app-ios-standalone {
 }
 
 .instruction-timer-btn {
-  position: absolute;
-  right: 0;
+  width: 2.2rem;
+  flex-shrink: 0;
   background: none;
   border: none;
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
   padding: 2px 4px;
-  opacity: 0.6;
+  opacity: 0.55;
   transition: opacity 0.15s;
+  text-align: right;
 }
-.instruction-timer-btn:hover { opacity: 1; }
+.instruction-timer-btn:active { opacity: 1; }
 
 .instruction-step {
   flex: 1 1 0;
