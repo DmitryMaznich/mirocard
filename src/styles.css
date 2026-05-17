@@ -10150,6 +10150,41 @@ button {
     linear-gradient(180deg, #fffdf9 0%, #f8f0e5 100%);
 }
 
+.analog-timer-compact {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  height: 50%;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+  overscroll-behavior: contain;
+  user-select: none;
+  -webkit-user-select: none;
+  background: rgba(255, 253, 249, 0.97);
+  border-top-right-radius: 18px;
+  box-shadow: 4px -4px 20px rgba(0,0,0,0.14);
+}
+
+.analog-timer-compact .analog-timer-topbar {
+  padding: 6px 10px 4px;
+}
+
+.analog-timer-compact .analog-timer-controls {
+  padding: 4px 0 10px;
+  gap: 4px;
+}
+
+.analog-timer-compact .analog-timer-display {
+  font-size: 18px;
+}
+
+.analog-timer-compact .analog-timer-clock-wrap svg {
+  width: 90%;
+}
+
 .analog-timer-topbar {
   display: flex;
   align-items: center;

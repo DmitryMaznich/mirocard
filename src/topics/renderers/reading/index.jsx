@@ -337,7 +337,7 @@ function InstructionTask({ task, onAdvance }) {
 
   return (
     <div className="session-body reading-body instruction-body">
-      {showTimer && <AnalogTimer noListenMode onClose={() => setShowTimer(false)} />}
+      {showTimer && <AnalogTimer noListenMode compact onClose={() => setShowTimer(false)} />}
       <div className="instruction-header">
         <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
         <button className="instruction-timer-btn" onClick={() => setShowTimer(true)} title="Таймер">⏱</button>

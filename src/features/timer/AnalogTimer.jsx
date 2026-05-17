@@ -63,7 +63,7 @@ function getSecondLabel(value) {
   return "секунд";
 }
 
-export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode = false }) {
+export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode = false, compact = false }) {
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [running, setRunning] = useState(false);
@@ -442,20 +442,22 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
 
   return (
     <div
-      className="analog-timer-overlay"
+      className={compact ? "analog-timer-compact" : "analog-timer-overlay"}
       onTouchStart={preventMultiTouchZoom}
       onTouchMove={preventMultiTouchZoom}
     >
       <div className="analog-timer-topbar">
-        <span className="analog-timer-title">Таймер</span>
+        <span className="analog-timer-title">{compact ? "" : "Таймер"}</span>
         <div className="analog-timer-topbar-actions">
-          <button
-            className="analog-timer-icon-btn"
-            onClick={() => setSoundEnabled((value) => !value)}
-            title={soundEnabled ? "Звук вкл" : "Звук выкл"}
-          >
-            {soundEnabled ? "🔊" : "🔇"}
-          </button>
+          {!compact && (
+            <button
+              className="analog-timer-icon-btn"
+              onClick={() => setSoundEnabled((value) => !value)}
+              title={soundEnabled ? "Звук вкл" : "Звук выкл"}
+            >
+              {soundEnabled ? "🔊" : "🔇"}
+            </button>
+          )}
           <button className="analog-timer-icon-btn" onClick={() => hardReset({ close: true })} title="Закрыть">
             ✕
           </button>
