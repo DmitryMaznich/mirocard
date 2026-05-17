@@ -232,7 +232,7 @@
   }
 }
 
-/* ── Portrait: match landscape label style, shift down, bigger tiles ── */
+/* ── Portrait (tablet): overlay labels, shift down, bigger tiles ── */
 @media (orientation: portrait) {
   /* Shift all content down by photo height */
   .fc-scene-function.session-body {
@@ -262,5 +262,38 @@
   /* Answer tiles 2× bigger in area vs original 360px */
   .fc-scene-function .fc-tool-grid {
     max-width: min(508px, 100%);
+  }
+}
+
+/* ── Portrait phone: photos stacked vertically, compact tiles ── */
+@media (orientation: portrait) and (max-width: 600px) {
+  /* Reset tablet top padding */
+  .fc-scene-function.session-body {
+    padding-top: 8px;
+  }
+
+  /* Stack photos one above the other */
+  .fc-scene-function .fc-scenes {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    margin-bottom: min(44px, 12vw);
+  }
+
+  /* Cap photo height for compact stacking */
+  .fc-scene-function .fc-scene-img {
+    max-height: 14svh;
+  }
+
+  /* Rotate arrow → to point ↓ */
+  .fc-scene-function .fc-arrow {
+    padding-bottom: 0;
+    transform: rotate(90deg);
+    align-self: center;
+  }
+
+  /* Tiles 2× smaller: half the container width */
+  .fc-scene-function .fc-tool-grid {
+    max-width: 50%;
   }
 }
