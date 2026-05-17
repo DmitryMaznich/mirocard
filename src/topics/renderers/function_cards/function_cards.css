@@ -280,9 +280,11 @@
     margin-bottom: min(44px, 12vw);
   }
 
-  /* Cap photo height for compact stacking */
+  /* Natural 4:3 proportions — height-driven, width auto */
   .fc-scene-function .fc-scene-img {
-    max-height: 14svh;
+    width: auto;
+    height: 15svh;
+    max-height: none;
   }
 
   /* Rotate arrow → to point ↓ */
