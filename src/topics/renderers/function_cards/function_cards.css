@@ -145,7 +145,7 @@
     flex-direction: column;
     align-self: stretch;
     height: 100%;
-    gap: 6px;
+    gap: 18px;
   }
 
   /* Each scene card fills half the column */
@@ -216,5 +216,29 @@
   .fc-scene-function .fc-feedback {
     grid-area: feedback;
     margin-top: 0;
+  }
+}
+
+/* ── Portrait: balance scene vs question/answers proportions ── */
+@media (orientation: portrait) {
+  /* Cap scene photo height so they don't dominate the screen */
+  .fc-scene-function .fc-scene-img {
+    max-height: 22svh;
+  }
+
+  /* Larger question text */
+  .fc-scene-function .session-instruction {
+    font-size: clamp(1.2rem, 5vw, 1.8rem) !important;
+  }
+
+  /* Tool option image: size by aspect-ratio, not height: 100% */
+  .fc-scene-function .fc-tool-opt .fc-img {
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  /* Larger tool option label */
+  .fc-scene-function .fc-tool-opt-label {
+    font-size: clamp(11px, 3.5vw, 14px);
   }
 }
