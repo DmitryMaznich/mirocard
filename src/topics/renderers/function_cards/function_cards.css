@@ -127,7 +127,7 @@
 @media (orientation: landscape) {
   .fc-scene-function.session-body {
     display: grid;
-    grid-template-columns: 44% 1fr;
+    grid-template-columns: 36% 1fr;
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "scenes question"
@@ -154,15 +154,19 @@
   .fc-scene-function .session-instruction {
     grid-area: question;
     align-self: end;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
   }
   /* Options: keep 2×2 grid on the right */
   .fc-scene-function .fc-tool-grid {
     grid-area: grid;
     max-width: none;
-    align-self: start;
+    align-self: stretch;
+    grid-template-rows: 1fr 1fr;
+    height: 100%;
   }
   .fc-scene-function .fc-tool-opt {
-    padding: 6px;
+    padding: 8px;
+    height: 100%;
   }
   .fc-scene-function .fc-feedback {
     grid-area: feedback;
