@@ -24,7 +24,8 @@ import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
 import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
-import AnalogTimer from "@/features/timer/AnalogTimer";
+import GlobalTimer from "@/features/timer/GlobalTimer";
+import { useTimer } from "@/features/timer/TimerContext";
 
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
@@ -92,9 +93,9 @@ export default function App() {
   const topicRecords = useAppStore((s) => s.topicRecords);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const activeModeId = useAppStore((s) => s.activeModeId);
-  const [isTimerOpen, setIsTimerOpen] = useState(false);
+  const { isOpen: isTimerOpen, setIsOpen } = useTimer();
   const [isSessionExitPromptOpen, setIsSessionExitPromptOpen] = useState(false);
-  const closeTimer = useCallback(() => setIsTimerOpen(false), []);
+  const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
   const closeSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(false), []);
   const openSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(true), []);
   const finishSessionFromPrompt = useCallback(() => {
@@ -207,10 +208,10 @@ export default function App() {
 
   return (
     <>
+      <GlobalTimer rewardVideos={rewardVideos} />
       <ErrorBoundary key={screen}>
-        <Screen onOpenTimer={() => setIsTimerOpen(true)} />
+        <Screen />
       </ErrorBoundary>
-      {isTimerOpen && <AnalogTimer rewardVideos={rewardVideos} onClose={closeTimer} />}
       <OrientationGuard orientationLock={orientationLock} />
       {showSessionExitPrompt && (
         <Modal
