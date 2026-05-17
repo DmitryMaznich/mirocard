@@ -447,7 +447,7 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
       onTouchMove={preventMultiTouchZoom}
     >
       <div className="analog-timer-topbar">
-        <span className="analog-timer-title">{compact ? "" : "Таймер"}</span>
+        <span className="analog-timer-title">{compact ? timeDisplayString : "Таймер"}</span>
         <div className="analog-timer-topbar-actions">
           {!compact && (
             <button
