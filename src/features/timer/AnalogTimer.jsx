@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTimer } from "./TimerContext";
 import { makeYoutubeEmbedUrl } from "@/shared/utils/format";
 import { normalizeRewardVideoIds, pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 
@@ -63,7 +64,8 @@ function getSecondLabel(value) {
   return "секунд";
 }
 
-export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode = false, compact = false }) {
+export default function AnalogTimer({ rewardVideos = [] }) {
+  const { setIsOpen, setTimeLeft, setIsRunning } = useTimer();
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [running, setRunning] = useState(false);
@@ -90,10 +92,10 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
   const noiseStartedAtRef = useRef(0);
   const lastMinuteRef = useRef(0);
   const rewardIntervalRef = useRef(null);
-  const floatElRef = useRef(null);
-  const floatDragRef = useRef(null);
-
   const normalizedRewardVideos = normalizeRewardVideoIds(rewardVideos);
+
+  useEffect(() => { setTimeLeft(secondsLeft); }, [secondsLeft, setTimeLeft]);
+  useEffect(() => { setIsRunning(running); }, [running, setIsRunning]);
 
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
@@ -312,7 +314,11 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
     setListenState("idle");
     setCenterPressed(false);
     resetRewardState();
-    if (close) onClose?.();
+    if (close) {
+      setTimeLeft(0);
+      setIsRunning(false);
+      setIsOpen(false);
+    }
   }
 
   function startTimer() {
@@ -402,33 +408,6 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
     event.stopPropagation();
   }
 
-  function handleFloatGrabDown(e) {
-    e.stopPropagation();
-    const el = floatElRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    floatDragRef.current = {
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-    };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  }
-
-  function handleFloatGrabMove(e) {
-    if (!floatDragRef.current) return;
-    const el = floatElRef.current;
-    if (!el) return;
-    const x = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, e.clientX - floatDragRef.current.offsetX));
-    const y = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, e.clientY - floatDragRef.current.offsetY));
-    el.style.left = `${x}px`;
-    el.style.top = `${y}px`;
-    el.style.bottom = "auto";
-    el.style.right = "auto";
-  }
-
-  function handleFloatGrabUp() {
-    floatDragRef.current = null;
-  }
 
   const exactMinutesLeft = secondsLeft / 60;
   const sectorMin = finished ? 0 : (running ? Math.max(0, exactMinutesLeft) : setMinutes);
@@ -576,38 +555,9 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
     </svg>
   );
 
-  if (compact) {
-    return (
-      <div
-        ref={floatElRef}
-        className="analog-timer-float"
-        onTouchStart={preventMultiTouchZoom}
-        onTouchMove={preventMultiTouchZoom}
-      >
-        <div
-          className="analog-timer-float__handle"
-          onPointerDown={handleFloatGrabDown}
-          onPointerMove={handleFloatGrabMove}
-          onPointerUp={handleFloatGrabUp}
-          onPointerCancel={handleFloatGrabUp}
-        >
-          <span>⠿</span>
-        </div>
-        <button
-          className="analog-timer-float__close"
-          onClick={() => hardReset({ close: true })}
-          title="Закрыть"
-        >
-          ✕
-        </button>
-        {clockSvg}
-      </div>
-    );
-  }
-
   return (
     <div
-      className="analog-timer-overlay"
+      className="analog-timer-inner"
       onTouchStart={preventMultiTouchZoom}
       onTouchMove={preventMultiTouchZoom}
     >
@@ -725,7 +675,7 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
                   {timeDisplayString}
                 </div>
 
-                {!running && !noListenMode && (
+                {!running && (
                   <button
                     className={`analog-timer-section-toggle${listenMode ? " is-active" : ""}`}
                     onClick={() => {
