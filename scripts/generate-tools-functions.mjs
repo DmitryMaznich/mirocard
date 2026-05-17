@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.0";
+const VERSION = "1.3.1";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -243,8 +243,8 @@ async function run() {
         type: "question_answer",
         evaluation: "quality",
         ui: {
-          title: "Как называется?",
-          instruction: "Назови инструмент",
+          title: "Назови инструмент",
+          instruction: "Как называется?",
         },
       },
       {
@@ -270,8 +270,17 @@ async function run() {
         type: "choose_word_by_picture",
         evaluation: "auto",
         ui: {
-          title: "Как называется?",
+          title: "Выбери название",
           instruction: "Выбери правильное название",
+        },
+      },
+      {
+        id: "choose_all",
+        type: "choose_all",
+        evaluation: "auto",
+        ui: {
+          title: "Выбери все",
+          instruction: "Выбери все подходящие картинки",
         },
       },
       {
