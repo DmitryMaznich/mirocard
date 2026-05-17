@@ -97,12 +97,12 @@ const mashedPotatoesSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 const manifest = {
   meta: {
     id: "reading_dad_texts",
-    version: "1.11.0",
+    version: "1.12.0",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
     avatar: "media/omelet.svg",
-    title: { ru: "Чтение: Тексты", en: "Reading: Texts" },
+    title: { ru: "Чтение. Готовим еду", en: "Reading: Cooking" },
     description: {
       ru: "Пошаговые инструкции для самостоятельных действий.",
       en: "Step-by-step instructions for independent tasks.",
@@ -120,7 +120,7 @@ const manifest = {
     {
       id: "omelet_instruction",
       kind: "instruction",
-      title: { ru: "Как сделать омлет", en: "How to Make an Omelette" },
+      title: { ru: "Готовим омлет", en: "Cooking: Omelette" },
       image: "media/omelet.svg",
       steps: [
         { id: "s1",  type: "action",  text: "Вымой руки." },
@@ -156,7 +156,7 @@ const manifest = {
     {
       id: "mashed_potatoes_instruction",
       kind: "instruction",
-      title: { ru: "Как сделать картофельное пюре", en: "How to Make Mashed Potatoes" },
+      title: { ru: "Готовим картофельное пюре", en: "Cooking: Mashed Potatoes" },
       image: "media/mashed_potatoes.svg",
       steps: [
         { id: "s1",  type: "action",    text: "Вымой руки." },
@@ -197,4 +197,4 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/omelet.svg", omeletSvg);
 zip.file("media/mashed_potatoes.svg", mashedPotatoesSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_texts_v1.11.0.zip", buffer);
+writeFileSync("public/decks/reading_dad_texts_v1.12.0.zip", buffer);
