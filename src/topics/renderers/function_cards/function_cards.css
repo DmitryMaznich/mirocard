@@ -145,7 +145,7 @@
       "scenes grid"
       "scenes feedback";
     padding: 8px 14px;
-    gap: 6px 18px;
+    gap: 6px min(88px, 8vw);
     align-items: start;
     overflow: hidden;
   }
