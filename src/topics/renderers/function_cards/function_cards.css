@@ -231,3 +231,36 @@
     margin-top: 0;
   }
 }
+
+/* ── Portrait: match landscape label style, shift down, bigger tiles ── */
+@media (orientation: portrait) {
+  /* Shift all content down by photo height */
+  .fc-scene-function.session-body {
+    padding-top: 24vw;
+  }
+
+  /* Overlay badge labels — same style as landscape */
+  .fc-scene-function .fc-scene {
+    position: relative;
+  }
+  .fc-scene-function .fc-scene-label {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.52);
+    color: #fff;
+    font-size: clamp(0.75rem, 3.5vw, 0.95rem);
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Answer tiles 2× bigger: remove max-width cap */
+  .fc-scene-function .fc-tool-grid {
+    max-width: none;
+  }
+}
