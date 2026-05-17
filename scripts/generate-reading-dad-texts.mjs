@@ -97,7 +97,7 @@ const mashedPotatoesSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 
 const manifest = {
   meta: {
     id: "reading_dad_texts",
-    version: "1.10.0",
+    version: "1.11.0",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -161,7 +161,7 @@ const manifest = {
       steps: [
         { id: "s1",  type: "action",    text: "Вымой руки." },
         { id: "s2",  type: "checklist", text: "Достань нужную посуду:", items: ["кастрюлю", "овощечистку", "нож", "доску", "толкушку", "дуршлаг", "ложку", "тарелку"] },
-        { id: "s3",  type: "checklist", text: "Достань продукты:", items: ["4 картошки", "масло", "молоко", "соль"] },
+        { id: "s3",  type: "checklist", text: "Достань продукты:", items: ["4 большие картошки", "масло", "молоко", "соль"] },
         { id: "s4",  type: "action",    text: "Помой картошку в раковине." },
         { id: "s5",  type: "action",    text: "Почисти картошку овощечисткой." },
         { id: "s6",  type: "action",    text: "Нарежь каждую картошку на 4 части." },
@@ -197,4 +197,4 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/omelet.svg", omeletSvg);
 zip.file("media/mashed_potatoes.svg", mashedPotatoesSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_texts_v1.10.0.zip", buffer);
+writeFileSync("public/decks/reading_dad_texts_v1.11.0.zip", buffer);
