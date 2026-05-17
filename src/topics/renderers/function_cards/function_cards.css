@@ -56,6 +56,10 @@
   flex-shrink: 0;
   width: 100%;
 }
+/* Portrait: gap between scene photos and question+answers ≈ half a tile */
+.fc-scene-function .fc-scenes {
+  margin-bottom: min(88px, 24vw);
+}
 .fc-scene {
   flex: 1;
   display: flex;
@@ -153,6 +157,7 @@
     align-self: stretch;
     height: 100%;
     gap: 18px;
+    margin-bottom: 0;
   }
 
   /* Each scene card fills half the column */
