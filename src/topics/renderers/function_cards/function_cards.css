@@ -123,67 +123,87 @@
   flex-shrink: 0;
 }
 
-/* ── Landscape: scenes stacked left, 2×2 grid right ── */
+/* ── Landscape: scenes fill left column, answers on right ── */
 @media (orientation: landscape) {
   .fc-scene-function.session-body {
     display: grid;
-    grid-template-columns: 61% 1fr;
+    grid-template-columns: 55% 1fr;
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "scenes question"
       "scenes grid"
       "scenes feedback";
-    padding: 6px 12px;
-    gap: 6px 14px;
+    padding: 8px 14px;
+    gap: 6px 18px;
     align-items: start;
     overflow: hidden;
   }
-  /* Scenes: vertical stack on the left, full height */
+
+  /* Scenes column: two photo cards filling the full height */
   .fc-scene-function .fc-scenes {
     grid-area: scenes;
     flex-direction: column;
     align-self: stretch;
     height: 100%;
-    gap: 8px;
+    gap: 6px;
   }
+
+  /* Each scene card fills half the column */
   .fc-scene-function .fc-scenes .fc-scene {
     flex: 1;
     min-height: 0;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
   }
-  .fc-scene-function .fc-scenes .fc-scene-label {
-    order: -1;
-    flex-shrink: 0;
-    font-size: clamp(1rem, 3vw, 1.6rem);
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    width: 52px;
-    text-align: center;
-  }
+
+  /* Photo fills the entire card */
   .fc-scene-function .fc-scenes .fc-scene-img {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: 14px;
   }
-  /* Arrow becomes ↓ between stacked scenes */
+
+  /* Label as overlay badge in top-left corner of the photo */
+  .fc-scene-function .fc-scenes .fc-scene-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.52);
+    color: #fff;
+    font-size: clamp(0.85rem, 2vw, 1.15rem);
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Arrow: small dot separator between two cards */
   .fc-scene-function .fc-scenes .fc-arrow {
-    padding-bottom: 0;
-    font-size: 16px;
-    align-self: center;
     flex-shrink: 0;
+    align-self: center;
+    font-size: 0;
+    line-height: 6px;
   }
+  .fc-scene-function .fc-scenes .fc-arrow::after {
+    content: "↓";
+    font-size: 13px;
+    color: #bbb;
+  }
+
+  /* Right column: question */
   .fc-scene-function .session-instruction {
     grid-area: question;
     align-self: end;
-    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-size: clamp(1.2rem, 3.5vw, 1.9rem);
   }
-  /* Options: keep 2×2 grid on the right */
+
+  /* Right column: answer grid */
   .fc-scene-function .fc-tool-grid {
     grid-area: grid;
     max-width: none;
@@ -192,19 +212,9 @@
   .fc-scene-function .fc-tool-opt {
     padding: 6px;
   }
+
   .fc-scene-function .fc-feedback {
     grid-area: feedback;
     margin-top: 0;
-  }
-}
-
-/* Replace → with ↓ when scenes are stacked vertically in landscape */
-@media (orientation: landscape) {
-  .fc-scene-function .fc-arrow {
-    font-size: 0;
-  }
-  .fc-scene-function .fc-arrow::after {
-    content: "↓";
-    font-size: 16px;
   }
 }
