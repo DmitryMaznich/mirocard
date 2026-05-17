@@ -138,18 +138,33 @@
     align-items: start;
     overflow: hidden;
   }
-  /* Scenes: vertical stack on the left */
+  /* Scenes: vertical stack on the left, full height */
   .fc-scene-function .fc-scenes {
     grid-area: scenes;
     flex-direction: column;
-    align-self: center;
-    gap: 4px;
+    align-self: stretch;
+    height: 100%;
+    gap: 8px;
+  }
+  .fc-scene-function .fc-scenes .fc-scene {
+    flex: 1;
+    min-height: 0;
+  }
+  .fc-scene-function .fc-scenes .fc-scene-img {
+    width: 100%;
+    height: calc(100% - 20px);
+    object-fit: cover;
+  }
+  .fc-scene-function .fc-scenes .fc-scene-label {
+    font-size: clamp(11px, 2vw, 14px);
+    font-weight: 600;
   }
   /* Arrow becomes ↓ between stacked scenes */
   .fc-scene-function .fc-scenes .fc-arrow {
     padding-bottom: 0;
     font-size: 16px;
     align-self: center;
+    flex-shrink: 0;
   }
   .fc-scene-function .session-instruction {
     grid-area: question;
