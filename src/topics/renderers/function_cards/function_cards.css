@@ -127,7 +127,7 @@
 @media (orientation: landscape) {
   .fc-scene-function.session-body {
     display: grid;
-    grid-template-columns: 36% 1fr;
+    grid-template-columns: 61% 1fr;
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "scenes question"
@@ -160,13 +160,10 @@
   .fc-scene-function .fc-tool-grid {
     grid-area: grid;
     max-width: none;
-    align-self: stretch;
-    grid-template-rows: 1fr 1fr;
-    height: 100%;
+    align-self: start;
   }
   .fc-scene-function .fc-tool-opt {
-    padding: 8px;
-    height: 100%;
+    padding: 6px;
   }
   .fc-scene-function .fc-feedback {
     grid-area: feedback;
