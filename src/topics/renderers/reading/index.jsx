@@ -301,6 +301,36 @@ function AssembleLineTask({ task, soundEnabled, playFeedback, onMistake, onAdvan
   );
 }
 
+// Parse "1-15,21,24-28" → Set of step numbers
+function parseStepRanges(rangeStr) {
+  const nums = new Set();
+  for (const part of (rangeStr ?? "").split(",")) {
+    const m = part.trim().match(/^(\d+)-(\d+)$/);
+    if (m) {
+      for (let i = +m[1]; i <= +m[2]; i++) nums.add(i);
+    } else {
+      const n = parseInt(part.trim());
+      if (!isNaN(n) && n > 0) nums.add(n);
+    }
+  }
+  return nums;
+}
+
+// Apply group step-range assignments to parsed steps (headings don't consume a number)
+function applyGroupToSteps(parsedSteps, group) {
+  const memberRanges = group
+    .filter((m) => m.stepRanges?.trim())
+    .map((m) => ({ name: m.name, nums: parseStepRanges(m.stepRanges) }));
+  if (!memberRanges.length) return parsedSteps;
+
+  let actionNum = 0;
+  return parsedSteps.map((step) => {
+    if (step.type !== "heading") actionNum++;
+    const match = memberRanges.find((mr) => mr.nums.has(actionNum));
+    return { ...step, owner: match ? match.name : null };
+  });
+}
+
 function InstructionTask({ task, topicId, onAdvance }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
@@ -312,7 +342,8 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   // ── Shared state ──────────────────────────────────────────────────────────
   const [phase, setPhase] = useState("setup"); // "setup" | "running"
-  const [steps, setSteps] = useState(task.text?.steps ?? []);
+  const [baseSteps, setBaseSteps] = useState(task.text?.steps ?? []); // steps WITHOUT owner overrides
+  const [steps, setSteps] = useState(task.text?.steps ?? []);         // steps used in session
   const [rawRecipe, setRawRecipe] = useState("");
   const [group, setGroup] = useState([]);
 
@@ -349,7 +380,9 @@ function InstructionTask({ task, topicId, onAdvance }) {
       setGroup(grp ?? []);
       if (rawText) {
         setRawRecipe(rawText);
-        setSteps(parseRecipeTxt(rawText));
+        const parsed = parseRecipeTxt(rawText);
+        setBaseSteps(parsed);
+        setSteps(parsed);
       }
     }
     load();
@@ -362,12 +395,13 @@ function InstructionTask({ task, topicId, onAdvance }) {
     const reader = new FileReader();
     reader.onload = (ev) => setNewMemberPhoto(ev.target.result);
     reader.readAsDataURL(file);
+    e.target.value = "";
   }
 
   async function addMember() {
     const name = newMemberName.trim();
     if (!name) return;
-    const newMember = { id: `m_${Date.now()}`, name, photoDataUrl: newMemberPhoto ?? null };
+    const newMember = { id: `m_${Date.now()}`, name, photoDataUrl: newMemberPhoto ?? null, stepRanges: "" };
     const next = [...group, newMember];
     setGroup(next);
     await saveGroup(topicId, next).catch(() => {});
@@ -381,12 +415,29 @@ function InstructionTask({ task, topicId, onAdvance }) {
     await saveGroup(topicId, next).catch(() => {});
   }
 
+  function updateMemberRanges(idx, ranges) {
+    setGroup((prev) => prev.map((m, i) => (i === idx ? { ...m, stepRanges: ranges } : m)));
+  }
+
   async function saveRecipeEdit() {
     const textId = task.text?.id;
     if (textId) await saveRecipeOverride(topicId, textId, recipeEdit).catch(() => {});
     setRawRecipe(recipeEdit);
-    setSteps(parseRecipeTxt(recipeEdit));
+    const parsed = parseRecipeTxt(recipeEdit);
+    setBaseSteps(parsed);
+    setSteps(parsed);
     setEditingRecipe(false);
+  }
+
+  async function startSession() {
+    // Persist group (with updated stepRanges)
+    await saveGroup(topicId, group).catch(() => {});
+    // Apply owner assignments from stepRanges on top of base steps
+    const annotated = applyGroupToSteps(baseSteps, group);
+    setSteps(annotated);
+    setStepIndex(0);
+    setChecked({});
+    setPhase("running");
   }
 
   // ── Running helpers ────────────────────────────────────────────────────────
@@ -479,18 +530,19 @@ function InstructionTask({ task, topicId, onAdvance }) {
                     : <div className="instruction-cover-member-initials">{member.name?.[0] ?? "?"}</div>
                   }
                 </div>
-                <div className="instruction-cover-member-name">{member.name}</div>
+                <div className="instruction-cover-member-info">
+                  <div className="instruction-cover-member-name">{member.name}</div>
+                  <input
+                    className="instruction-cover-ranges-input"
+                    value={member.stepRanges ?? ""}
+                    onChange={(e) => updateMemberRanges(i, e.target.value)}
+                    placeholder="шаги: 1-15"
+                  />
+                </div>
                 <button className="instruction-cover-member-remove" onClick={() => removeMember(i)}>×</button>
               </div>
             ))}
             <div className="instruction-cover-add-member">
-              <input
-                className="instruction-cover-name-input"
-                value={newMemberName}
-                onChange={(e) => setNewMemberName(e.target.value)}
-                placeholder="Имя"
-                onKeyDown={(e) => e.key === "Enter" && addMember()}
-              />
               <button
                 className="instruction-cover-photo-btn"
                 onClick={() => memberPhotoRef.current?.click()}
@@ -501,6 +553,13 @@ function InstructionTask({ task, topicId, onAdvance }) {
                   : "📷"}
               </button>
               <input ref={memberPhotoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleMemberPhotoFile} />
+              <input
+                className="instruction-cover-name-input"
+                value={newMemberName}
+                onChange={(e) => setNewMemberName(e.target.value)}
+                placeholder="Имя участника"
+                onKeyDown={(e) => e.key === "Enter" && addMember()}
+              />
               <button className="instruction-cover-add-btn" onClick={addMember} disabled={!newMemberName.trim()}>+</button>
             </div>
           </div>
@@ -528,10 +587,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
           </Modal>
         )}
 
-        <button
-          className="reading-primary-btn instruction-cover-start"
-          onClick={() => setPhase("running")}
-        >
+        <button className="reading-primary-btn instruction-cover-start" onClick={startSession}>
           Начать
         </button>
       </div>

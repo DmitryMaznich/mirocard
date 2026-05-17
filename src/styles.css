@@ -916,11 +916,38 @@ html.app-ios-standalone {
   color: #2d7a5a;
 }
 
-.instruction-cover-member-name {
+.instruction-cover-member-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.instruction-cover-member-name {
   font-size: 16px;
   font-weight: 600;
   color: #2d4a3e;
+}
+
+.instruction-cover-ranges-input {
+  border: 1.5px solid #c0ddd0;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: #4a6a5a;
+  outline: none;
+  background: #fff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instruction-cover-ranges-input:focus {
+  border-color: #5ab88a;
+}
+
+.instruction-cover-ranges-input::placeholder {
+  color: #a0beb0;
 }
 
 .instruction-cover-member-remove {
