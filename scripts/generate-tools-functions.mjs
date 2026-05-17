@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.1";
+const VERSION = "1.3.2";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -211,13 +211,19 @@ async function run() {
   const metaAvatar = existsSync(avatarSrc) ? "media/avatar.webp" : undefined;
   if (metaAvatar) zip.file("media/avatar.webp", readFileSync(avatarSrc));
 
-  const modeIconIds = ["choose_action", "scene_function"];
-  const modesWithIcons = modeIconIds.map(modeId => {
+  const allModeIconIds = [
+    "intro", "find_n", "yes_no", "choose_word_by_picture",
+    "choose_all", "question_answer", "choose_action", "scene_function",
+  ];
+  const iconMap = {};
+  for (const modeId of allModeIconIds) {
     const iconSrc = join(CARDGEN_GENERATED, "icons", `${modeId}.webp`);
-    const hasIcon = existsSync(iconSrc);
-    if (hasIcon) zip.file(`media/icons/${modeId}.webp`, readFileSync(iconSrc));
-    return hasIcon ? `media/icons/${modeId}.webp` : null;
-  });
+    if (existsSync(iconSrc)) {
+      zip.file(`media/icons/${modeId}.webp`, readFileSync(iconSrc));
+      iconMap[modeId] = `media/icons/${modeId}.webp`;
+    }
+  }
+  const icon = id => iconMap[id] ? { icon: iconMap[id] } : {};
 
   // ── deck.json ───────────────────────────────────────────────
   const deckJson = {
@@ -233,54 +239,132 @@ async function run() {
         id: "intro",
         type: "intro",
         evaluation: "none",
-        ui: {
-          title: "Знакомство",
-          instruction: "Нажми, чтобы продолжить",
+        ui: { title: "Знакомство", instruction: "Нажми, чтобы продолжить", ...icon("intro") },
+        methodology: {
+          text: "Пассивное знакомство с материалом. Ребёнок видит карточку и слышит название — без задания и оценки. Активирует пассивный словарь и снижает тревожность перед новой темой.",
+          tips: [
+            "Называйте понятия вслух вместе с ребёнком",
+            "Не торопите — пусть ребёнок рассматривает каждую карточку столько, сколько хочет",
+            "Используйте в начале работы с новой темой или после перерыва",
+          ],
+          duration: "2–4 минуты",
         },
       },
       {
         id: "question_answer",
         type: "question_answer",
-        evaluation: "quality",
-        ui: {
-          title: "Назови инструмент",
-          instruction: "Как называется?",
+        evaluation: "none",
+        ui: { title: "Назови инструмент", instruction: "Как называется?", ...icon("question_answer") },
+        methodology: {
+          text: "Специалист задаёт вопрос к карточке — ребёнок отвечает устно. Оценка выставляется вручную. Развивает активный словарь и самостоятельное называние.",
+          tips: [
+            "Задавайте вопрос всегда одинаково — это создаёт предсказуемость",
+            "Подсказывайте первый звук если ребёнок молчит более 5 секунд",
+            "Принимайте приближённые ответы — важно движение к слову",
+          ],
+          duration: "5–7 минут",
         },
       },
       {
         id: "find_n",
         type: "find_n",
         evaluation: "auto",
-        ui: {
-          title: "Найди инструмент",
-          instruction: "Найди на картинке",
+        ui: { title: "Найди инструмент", instruction: "Нажми на нужную картинку", ...icon("find_n") },
+        methodology: {
+          text: "Слово показывается вверху — ребёнок находит карточку среди 2, 4 или 6 вариантов. Чистое рецептивное задание: услышал слово — нашёл образ. Первый шаг от пассивного восприятия к активному ответу.",
+          tips: [
+            "Начните с 2 вариантов — переходите к 4 и 6 по мере уверенности",
+            "Убедитесь что дистракторы понятны ребёнку — иначе выбор неосознанный",
+            "При ошибке назовите правильный вариант, не акцентируйте ошибку",
+          ],
+          duration: "4–6 минут",
+        },
+        params: {
+          optionCount: {
+            type: "enum",
+            label: { ru: "Вариантов" },
+            values: [2, 4, 6],
+            default: 4,
+          },
+          repsPerConcept: {
+            type: "number",
+            label: { ru: "Повторений на понятие" },
+            default: 1,
+            min: 1,
+            max: 3,
+          },
         },
       },
       {
         id: "yes_no",
         type: "yes_no",
         evaluation: "auto",
-        ui: {
-          title: "Да или нет?",
-          instruction: "Правильное ли название?",
+        ui: { title: "Да / Нет", instruction: "Правильное ли название?", ...icon("yes_no") },
+        methodology: {
+          text: "Карточка показывается с подписью — иногда верной, иногда ложной. Ребёнок нажимает ДА или НЕТ. Требует уже сформированной связи слово↔образ: ребёнок не просто находит, а оценивает правильность.",
+          tips: [
+            "Хвалите за ДА и за НЕТ одинаково — оба ответа равнозначны",
+            "Если ребёнок часто нажимает ДА вслепую — сделайте паузу перед показом кнопок",
+            "Используйте после «Найди инструмент» — связь слово-образ уже должна быть сформирована",
+          ],
+          duration: "3–5 минут",
+        },
+        params: {
+          repsPerConcept: {
+            type: "number",
+            label: { ru: "Повторений на понятие" },
+            default: 1,
+            min: 1,
+            max: 5,
+          },
         },
       },
       {
         id: "choose_word_by_picture",
         type: "choose_word_by_picture",
         evaluation: "auto",
-        ui: {
-          title: "Выбери название",
-          instruction: "Выбери правильное название",
+        ui: { title: "Выбери название", instruction: "Нажми на правильное слово", ...icon("choose_word_by_picture") },
+        methodology: {
+          text: "Карточка показывается — ребёнок выбирает правильное слово из четырёх. Тренирует связь образа со словом, готовит к чтению.",
+          tips: [
+            "Следите: некоторые дети угадывают по длине слова, не читая",
+            "Для неграмотных детей этот режим может быть преждевременным",
+            "Переходите после уверенного прохождения «Найди инструмент» и «Да / Нет»",
+          ],
+          duration: "4–6 минут",
+        },
+        params: {
+          repsPerConcept: {
+            type: "number",
+            label: { ru: "Повторений на понятие" },
+            default: 1,
+            min: 1,
+            max: 3,
+          },
+          concepts: { type: "concept_selector" },
         },
       },
       {
         id: "choose_all",
         type: "choose_all",
         evaluation: "auto",
-        ui: {
-          title: "Выбери все",
-          instruction: "Выбери все подходящие картинки",
+        ui: { title: "Выбери все", instruction: "Найди все подходящие карточки", ...icon("choose_all") },
+        methodology: {
+          text: "Называется целевая категория — ребёнок нажимает все подходящие карточки в сетке. Тренирует обобщение и категориальное мышление.",
+          tips: [
+            "Перед началом убедитесь что ребёнок понимает задание — покажите пример",
+            "Хвалите за каждое верное нажатие, а не только за итоговый результат",
+            "Используйте только после освоения предыдущих режимов",
+          ],
+          duration: "5–8 минут",
+        },
+        params: {
+          optionCount: {
+            type: "enum",
+            label: { ru: "Карточек в сетке" },
+            values: [2, 4, 6, 9],
+            default: 4,
+          },
         },
       },
       {
@@ -290,7 +374,16 @@ async function run() {
         ui: {
           title: "Что чем делают?",
           instruction: "Выбери, что делают этим инструментом",
-          ...(modesWithIcons[0] ? { icon: modesWithIcons[0] } : {}),
+          ...icon("choose_action"),
+        },
+        methodology: {
+          text: "Показывается инструмент — ребёнок выбирает правильное действие из четырёх вариантов. Тренирует понимание функции: не просто назвать инструмент, а соотнести его с применением.",
+          tips: [
+            "Обсуждайте правильный ответ вслух: «Молотком забивают гвозди!»",
+            "Если ребёнок путает похожие действия — вернитесь к режиму «Знакомство»",
+            "Используйте после освоения названий инструментов",
+          ],
+          duration: "5–7 минут",
         },
       },
       {
@@ -300,7 +393,16 @@ async function run() {
         ui: {
           title: "Какой инструмент нужен?",
           instruction: "Посмотри на задачу и выбери нужный инструмент",
-          ...(modesWithIcons[1] ? { icon: modesWithIcons[1] } : {}),
+          ...icon("scene_function"),
+        },
+        methodology: {
+          text: "Показывается сцена «до» и «после» — ребёнок выбирает инструмент, который помог получить результат. Развивает причинно-следственное мышление и применение знаний в контексте.",
+          tips: [
+            "Обсуждайте сцены: «Что было сначала? Что стало потом? Чем это сделали?»",
+            "Если ребёнок затрудняется — подсказывайте по сцене «после»",
+            "Используйте после режима «Что чем делают?»",
+          ],
+          duration: "6–8 минут",
         },
       },
     ],
@@ -348,7 +450,7 @@ async function run() {
   console.log(`   Images packed: ${imagesFound}`);
   if (imagesMissing.length) console.warn(`   ⚠️  Missing images: ${imagesMissing.join(", ")}`);
   console.log(`   Avatar: ${metaAvatar ? "✓" : "missing"}`);
-  console.log(`   Mode icons: ${modesWithIcons.filter(Boolean).length}/2`);
+  console.log(`   Mode icons: ${Object.keys(iconMap).length}/${allModeIconIds.length}`);
   console.log(`   Catalog updated ✓`);
 }
 
