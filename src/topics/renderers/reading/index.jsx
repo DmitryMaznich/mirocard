@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import AnalogTimer from "@/features/timer/AnalogTimer";
+import Modal from "@/shared/components/Modal";
+import { useSpeech } from "@/shared/hooks/useSpeech";
+import { parseRecipeTxt, resolveStepOwner } from "./parseRecipeTxt";
+import { getGroup, getRecipeOverride, getRawRecipeTxt, saveGroup, saveRecipeOverride } from "@/core/groupStore";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -297,19 +301,107 @@ function AssembleLineTask({ task, soundEnabled, playFeedback, onMistake, onAdvan
   );
 }
 
-function InstructionTask({ task, onAdvance }) {
+function InstructionTask({ task, topicId, onAdvance }) {
   const setScreen = useAppStore((s) => s.setScreen);
-  const steps = task.text?.steps ?? [];
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const students = useAppStore((s) => s.students);
+  const student = students.find((s) => s.id === activeStudentId) ?? null;
+
+  const { speak } = useSpeech();
+  const coverImageUrl = useTopicFile(topicId, task.text?.image);
+
+  // ── Shared state ──────────────────────────────────────────────────────────
+  const [phase, setPhase] = useState("setup"); // "setup" | "running"
+  const [steps, setSteps] = useState(task.text?.steps ?? []);
+  const [rawRecipe, setRawRecipe] = useState("");
+  const [group, setGroup] = useState([]);
+
+  // ── Setup-phase state ─────────────────────────────────────────────────────
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberPhoto, setNewMemberPhoto] = useState(null);
+  const [editingRecipe, setEditingRecipe] = useState(false);
+  const [recipeEdit, setRecipeEdit] = useState("");
+  const memberPhotoRef = useRef(null);
+
+  // ── Running-phase state ───────────────────────────────────────────────────
   const [stepIndex, setStepIndex] = useState(0);
   const [checked, setChecked] = useState({});
   const [listOpen, setListOpen] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
   const listRef = useRef(null);
 
+  // Load recipe .txt and group from IndexedDB
+  useEffect(() => {
+    async function load() {
+      const [grp, rawText] = await Promise.all([
+        getGroup(topicId).catch(() => []),
+        (async () => {
+          const textId = task.text?.id;
+          const filePath = task.text?.file;
+          if (textId) {
+            const override = await getRecipeOverride(topicId, textId).catch(() => null);
+            if (override) return override;
+          }
+          if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
+          return null;
+        })(),
+      ]);
+      setGroup(grp ?? []);
+      if (rawText) {
+        setRawRecipe(rawText);
+        setSteps(parseRecipeTxt(rawText));
+      }
+    }
+    load();
+  }, [topicId, task.text?.id, task.text?.file]);
+
+  // ── Setup helpers ──────────────────────────────────────────────────────────
+  function handleMemberPhotoFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setNewMemberPhoto(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  async function addMember() {
+    const name = newMemberName.trim();
+    if (!name) return;
+    const newMember = { id: `m_${Date.now()}`, name, photoDataUrl: newMemberPhoto ?? null };
+    const next = [...group, newMember];
+    setGroup(next);
+    await saveGroup(topicId, next).catch(() => {});
+    setNewMemberName("");
+    setNewMemberPhoto(null);
+  }
+
+  async function removeMember(idx) {
+    const next = group.filter((_, i) => i !== idx);
+    setGroup(next);
+    await saveGroup(topicId, next).catch(() => {});
+  }
+
+  async function saveRecipeEdit() {
+    const textId = task.text?.id;
+    if (textId) await saveRecipeOverride(topicId, textId, recipeEdit).catch(() => {});
+    setRawRecipe(recipeEdit);
+    setSteps(parseRecipeTxt(recipeEdit));
+    setEditingRecipe(false);
+  }
+
+  // ── Running helpers ────────────────────────────────────────────────────────
   const step = steps[stepIndex];
+  const owner = step ? resolveStepOwner(step.owner, group, student) : null;
   const isLast = stepIndex === steps.length - 1;
-  const allChecked = step?.type !== "checklist" ||
+  const allChecked =
+    step?.type !== "checklist" ||
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
+
+  useEffect(() => {
+    if (phase !== "running" || !step) return;
+    const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+    speak(text);
+  }, [stepIndex, steps, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!listOpen || !listRef.current) return;
@@ -317,35 +409,162 @@ function InstructionTask({ task, onAdvance }) {
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [listOpen]);
 
-  function goBack() {
-    if (stepIndex > 0) setStepIndex((n) => n - 1);
-    else setScreen("texts");
-  }
-
-  function toggleItem(i) {
+  const toggleItem = useCallback((i) => {
     const key = `${stepIndex}_${i}`;
     setChecked((c) => ({ ...c, [key]: !c[key] }));
-  }
+  }, [stepIndex]);
 
-  function goNext() {
+  const handleNext = useCallback(() => {
     setListOpen(false);
     if (isLast) onAdvance();
     else setStepIndex((n) => n + 1);
+  }, [isLast, onAdvance]);
+
+  const handleSpace = useCallback(() => {
+    if (step?.type === "checklist") {
+      const nextUnchecked = (step.items ?? []).findIndex((_, i) => !checked[`${stepIndex}_${i}`]);
+      if (nextUnchecked >= 0) { toggleItem(nextUnchecked); return; }
+    }
+    handleNext();
+  }, [step, checked, stepIndex, toggleItem, handleNext]);
+
+  const goBack = useCallback(() => {
+    if (stepIndex > 0) setStepIndex((n) => n - 1);
+    else setPhase("setup");
+  }, [stepIndex]);
+
+  const reSpeak = useCallback(() => {
+    if (!step) return;
+    const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+    speak(text);
+  }, [step, owner, speak]);
+
+  useEffect(() => {
+    if (phase !== "running") return;
+    function onKey(e) {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      switch (e.key) {
+        case "ArrowRight": case "Enter": e.preventDefault(); handleNext(); break;
+        case " ":          e.preventDefault(); handleSpace(); break;
+        case "ArrowLeft":  case "Backspace": e.preventDefault(); goBack(); break;
+        case "r": case "R": e.preventDefault(); reSpeak(); break;
+        case "Escape": e.preventDefault(); setPhase("setup"); break;
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase, handleNext, handleSpace, goBack, reSpeak]);
+
+  // ── SETUP PHASE ────────────────────────────────────────────────────────────
+  if (phase === "setup") {
+    return (
+      <div className="session-body reading-body instruction-cover">
+        <button className="back-btn instruction-cover-back" onClick={() => setScreen("texts")}>←</button>
+
+        {coverImageUrl && (
+          <div className="instruction-cover-image">
+            <img src={coverImageUrl} alt="" draggable={false} />
+          </div>
+        )}
+        <h1 className="instruction-cover-title">{getTopicTitle(task.text?.title)}</h1>
+
+        <div className="instruction-cover-section">
+          <div className="instruction-cover-section-label">Группа</div>
+          <div className="instruction-cover-members">
+            {group.map((member, i) => (
+              <div key={member.id ?? member.name} className="instruction-cover-member">
+                <div className="instruction-cover-member-avatar">
+                  {member.photoDataUrl
+                    ? <img src={member.photoDataUrl} alt={member.name} />
+                    : <div className="instruction-cover-member-initials">{member.name?.[0] ?? "?"}</div>
+                  }
+                </div>
+                <div className="instruction-cover-member-name">{member.name}</div>
+                <button className="instruction-cover-member-remove" onClick={() => removeMember(i)}>×</button>
+              </div>
+            ))}
+            <div className="instruction-cover-add-member">
+              <input
+                className="instruction-cover-name-input"
+                value={newMemberName}
+                onChange={(e) => setNewMemberName(e.target.value)}
+                placeholder="Имя"
+                onKeyDown={(e) => e.key === "Enter" && addMember()}
+              />
+              <button
+                className="instruction-cover-photo-btn"
+                onClick={() => memberPhotoRef.current?.click()}
+                title="Фото"
+              >
+                {newMemberPhoto
+                  ? <img src={newMemberPhoto} alt="" className="instruction-cover-photo-preview" />
+                  : "📷"}
+              </button>
+              <input ref={memberPhotoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleMemberPhotoFile} />
+              <button className="instruction-cover-add-btn" onClick={addMember} disabled={!newMemberName.trim()}>+</button>
+            </div>
+          </div>
+        </div>
+
+        <button
+          className="instruction-cover-edit-recipe"
+          onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
+        >
+          Изменить текст инструкции
+        </button>
+
+        {editingRecipe && (
+          <Modal title="Редактирование инструкции" onClose={() => setEditingRecipe(false)}>
+            <textarea
+              className="instruction-recipe-textarea"
+              value={recipeEdit}
+              onChange={(e) => setRecipeEdit(e.target.value)}
+              rows={18}
+            />
+            <div className="instruction-recipe-actions">
+              <button className="reading-secondary-btn" onClick={() => setEditingRecipe(false)}>Отмена</button>
+              <button className="reading-primary-btn" onClick={saveRecipeEdit}>Сохранить</button>
+            </div>
+          </Modal>
+        )}
+
+        <button
+          className="reading-primary-btn instruction-cover-start"
+          onClick={() => setPhase("running")}
+        >
+          Начать
+        </button>
+      </div>
+    );
   }
 
+  // ── RUNNING PHASE ──────────────────────────────────────────────────────────
   if (!step) return null;
 
   return (
     <div className="session-body reading-body instruction-body">
       {showTimer && <AnalogTimer noListenMode compact onClose={() => setShowTimer(false)} />}
-      <div className="instruction-header">
-        <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
-      </div>
       {!showTimer && (
         <button className="instruction-timer-fab" onClick={() => setShowTimer(true)} title="Таймер">⏱</button>
       )}
 
-      <div className="instruction-step">
+      <div className="instruction-header">
+        <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
+      </div>
+
+      {owner && (
+        <div className="instruction-owner">
+          <div className="instruction-owner-avatar">
+            {owner.photoDataUrl
+              ? <img src={owner.photoDataUrl} alt={owner.name} />
+              : <div className="instruction-owner-initials">{owner.name?.[0] ?? "?"}</div>
+            }
+          </div>
+          <div className="instruction-owner-name">{owner.name}</div>
+        </div>
+      )}
+
+      <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}`}>
         <div className="instruction-step-text">{step.text}</div>
         {step.type === "checklist" && (
           <ul className="instruction-checklist">
@@ -379,6 +598,28 @@ function InstructionTask({ task, onAdvance }) {
         )}
       </div>
 
+      {group.length > 1 && (
+        <div className="instruction-participants">
+          {group.map((member) => {
+            const isActive = owner && (owner.id === member.id || owner.name === member.name);
+            return (
+              <div
+                key={member.id ?? member.name}
+                className={`instruction-participant${isActive ? " instruction-participant--active" : ""}`}
+              >
+                <div className="instruction-participant-avatar">
+                  {member.photoDataUrl
+                    ? <img src={member.photoDataUrl} alt={member.name} />
+                    : <div className="instruction-participant-initials">{member.name?.[0] ?? "?"}</div>
+                  }
+                </div>
+                <div className="instruction-participant-name">{member.name}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <button
         className={`instruction-drawer-toggle${listOpen ? " instruction-drawer-toggle--open" : ""}`}
         onClick={() => setListOpen((v) => !v)}
@@ -395,10 +636,14 @@ function InstructionTask({ task, onAdvance }) {
             return (
               <div
                 key={s.id}
-                className={`instruction-list-item${isDone ? " instruction-list-item--done" : ""}${isActive ? " instruction-list-item--active" : ""}`}
+                className={[
+                  "instruction-list-item",
+                  isDone ? "instruction-list-item--done" : "",
+                  isActive ? "instruction-list-item--active" : "",
+                ].filter(Boolean).join(" ")}
               >
                 <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
-                <span className="instruction-list-num">{i + 1}.</span>
+                {s.type !== "heading" && <span className="instruction-list-num">{i + 1}.</span>}
                 <span className="instruction-list-text">{s.text}</span>
               </div>
             );
@@ -407,10 +652,8 @@ function InstructionTask({ task, onAdvance }) {
       )}
 
       <div className="instruction-nav">
-        <button className="reading-secondary-btn" onClick={goBack}>
-          Назад
-        </button>
-        <button className="reading-primary-btn" disabled={!allChecked} onClick={goNext}>
+        <button className="reading-secondary-btn" onClick={goBack}>Назад</button>
+        <button className="reading-primary-btn" disabled={!allChecked} onClick={handleNext}>
           {isLast ? "Готово" : "Дальше"}
         </button>
       </div>

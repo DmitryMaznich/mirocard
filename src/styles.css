@@ -700,6 +700,356 @@ html.app-ios-standalone {
   }
 }
 
+/* Instruction: step owner avatar */
+.instruction-owner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 0 4px;
+}
+
+.instruction-owner-avatar {
+  width: clamp(64px, 16vmin, 100px);
+  height: clamp(64px, 16vmin, 100px);
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #5ab88a;
+  box-shadow: 0 2px 12px rgba(90, 184, 138, 0.25);
+}
+
+.instruction-owner-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.instruction-owner-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d4f0e2;
+  font-size: clamp(22px, 5vmin, 38px);
+  font-weight: 700;
+  color: #2d7a5a;
+}
+
+.instruction-owner-name {
+  font-size: clamp(18px, 4vmin, 28px);
+  font-weight: 700;
+  color: #2d6a4f;
+  letter-spacing: 0.01em;
+}
+
+/* Instruction: heading step */
+.instruction-step--heading .instruction-step-text {
+  font-size: clamp(20px, 5vmin, 34px);
+  font-weight: 700;
+  color: #2d4a3e;
+  text-align: center;
+}
+
+/* Instruction: participant strip */
+.instruction-participants {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  overflow-x: auto;
+}
+
+.instruction-participant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.45;
+  transition: opacity 0.2s;
+}
+
+.instruction-participant--active {
+  opacity: 1;
+}
+
+.instruction-participant-avatar {
+  width: clamp(36px, 9vmin, 56px);
+  height: clamp(36px, 9vmin, 56px);
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.instruction-participant--active .instruction-participant-avatar {
+  border-color: #5ab88a;
+}
+
+.instruction-participant-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.instruction-participant-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8f5ee;
+  font-size: clamp(13px, 3vmin, 20px);
+  font-weight: 700;
+  color: #2d7a5a;
+}
+
+.instruction-participant-name {
+  font-size: clamp(10px, 2.4vmin, 14px);
+  font-weight: 600;
+  color: #4a6a5a;
+  text-align: center;
+  max-width: clamp(40px, 10vmin, 64px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Instruction: cover / setup screen */
+.instruction-cover {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 12px 16px 24px;
+}
+
+.instruction-cover-back {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+
+.instruction-cover-image {
+  width: clamp(100px, 28vmin, 180px);
+  height: clamp(100px, 28vmin, 180px);
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.instruction-cover-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.instruction-cover-title {
+  font-size: clamp(20px, 5vmin, 32px);
+  font-weight: 800;
+  color: #1a3a2a;
+  text-align: center;
+  margin: 0;
+}
+
+.instruction-cover-section {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.instruction-cover-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6a9a80;
+}
+
+.instruction-cover-members {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.instruction-cover-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0f8f4;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.instruction-cover-member-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid #b0dcc0;
+}
+
+.instruction-cover-member-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.instruction-cover-member-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d4f0e2;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d7a5a;
+}
+
+.instruction-cover-member-name {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d4a3e;
+}
+
+.instruction-cover-member-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #e8d0d0;
+  color: #a04040;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.instruction-cover-add-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fdf9;
+  border: 1.5px dashed #a0c8b0;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.instruction-cover-name-input {
+  flex: 1;
+  border: 1.5px solid #c0ddd0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 15px;
+  color: #2d4a3e;
+  outline: none;
+  background: #fff;
+}
+
+.instruction-cover-name-input:focus {
+  border-color: #5ab88a;
+}
+
+.instruction-cover-photo-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid #b0dcc0;
+  background: #e8f5ee;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.instruction-cover-photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.instruction-cover-add-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #5ab88a;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.instruction-cover-add-btn:disabled {
+  background: #c0ddd0;
+  cursor: default;
+}
+
+.instruction-cover-edit-recipe {
+  background: none;
+  border: none;
+  color: #5ab88a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 0;
+}
+
+.instruction-recipe-textarea {
+  width: 100%;
+  font-size: 14px;
+  font-family: monospace;
+  border: 1.5px solid #c0ddd0;
+  border-radius: 8px;
+  padding: 10px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+  color: #2d4a3e;
+  box-sizing: border-box;
+}
+
+.instruction-recipe-textarea:focus {
+  border-color: #5ab88a;
+}
+
+.instruction-recipe-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.instruction-cover-start {
+  width: 100%;
+  max-width: 320px;
+  font-size: clamp(16px, 4vmin, 22px);
+  padding: 14px 24px;
+  margin-top: 4px;
+}
+
 .reading-assembled-final .reading-text {
   max-width: 860px;
 }

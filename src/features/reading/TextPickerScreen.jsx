@@ -103,7 +103,7 @@ export default function TextPickerScreen() {
                   <div className="topic-item__title">{getTextTitle(text)}</div>
                   <div className="topic-item__meta">
                     {text.kind === "instruction"
-                      ? `${text.steps?.length ?? 0} шагов`
+                      ? `${text.stepCount ?? text.steps?.length ?? 0} шагов`
                       : `${text.lines?.length ?? 0} строк · уровень ${text.level ?? 1}`}
                   </div>
                   <TextResultBadge session={lastSession} />
