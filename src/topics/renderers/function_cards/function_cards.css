@@ -265,37 +265,3 @@
   }
 }
 
-/* ── Portrait phone: photos stacked vertically, compact tiles ── */
-@media (orientation: portrait) and (max-width: 600px) {
-  /* Reset tablet top padding */
-  .fc-scene-function.session-body {
-    padding-top: 8px;
-  }
-
-  /* Stack photos one above the other */
-  .fc-scene-function .fc-scenes {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    margin-bottom: min(44px, 12vw);
-  }
-
-  /* Full available width, height proportional (4:3) */
-  .fc-scene-function .fc-scene-img {
-    width: 100%;
-    height: auto;
-    max-height: none;
-  }
-
-  /* Rotate arrow → to point ↓ */
-  .fc-scene-function .fc-arrow {
-    padding-bottom: 0;
-    transform: rotate(90deg);
-    align-self: center;
-  }
-
-  /* Tiles 2× smaller: half the container width */
-  .fc-scene-function .fc-tool-grid {
-    max-width: 50%;
-  }
-}
