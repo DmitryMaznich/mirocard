@@ -4,7 +4,6 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import AnalogTimer from "@/features/timer/AnalogTimer";
 import Modal from "@/shared/components/Modal";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { parseRecipeTxt, resolveStepOwner } from "./parseRecipeTxt";
@@ -358,7 +357,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [checked, setChecked] = useState({});
   const [listOpen, setListOpen] = useState(false);
-  const [showTimer, setShowTimer] = useState(false);
   const listRef = useRef(null);
 
   // Load recipe .txt and group from IndexedDB
@@ -599,10 +597,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   return (
     <div className="session-body reading-body instruction-body">
-      {showTimer && <AnalogTimer noListenMode compact onClose={() => setShowTimer(false)} />}
-      {!showTimer && (
-        <button className="instruction-timer-fab" onClick={() => setShowTimer(true)} title="Таймер">⏱</button>
-      )}
 
       <div className="instruction-header">
         <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>

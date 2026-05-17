@@ -118,7 +118,7 @@ function useAppUpdate() {
   return { hasUpdate, applyUpdate };
 }
 
-export default function HomeScreen({ onOpenTimer }) {
+export default function HomeScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const students = useAppStore((s) => s.students);
   const topicRecords = useAppStore((s) => s.topicRecords);
@@ -231,9 +231,6 @@ export default function HomeScreen({ onOpenTimer }) {
       <section className="home-section">
         <div className="home-section-header">
           <span className="home-section-label">Собери занятие</span>
-          <button className="home-section-add" onClick={onOpenTimer} title="Таймер" aria-label="Таймер">
-            ⏱
-          </button>
         </div>
 
         <div className="journey-steps">
