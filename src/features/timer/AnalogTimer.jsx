@@ -90,6 +90,8 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
   const noiseStartedAtRef = useRef(0);
   const lastMinuteRef = useRef(0);
   const rewardIntervalRef = useRef(null);
+  const floatElRef = useRef(null);
+  const floatDragRef = useRef(null);
 
   const normalizedRewardVideos = normalizeRewardVideoIds(rewardVideos);
 
@@ -400,6 +402,34 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
     event.stopPropagation();
   }
 
+  function handleFloatGrabDown(e) {
+    e.stopPropagation();
+    const el = floatElRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    floatDragRef.current = {
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handleFloatGrabMove(e) {
+    if (!floatDragRef.current) return;
+    const el = floatElRef.current;
+    if (!el) return;
+    const x = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, e.clientX - floatDragRef.current.offsetX));
+    const y = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, e.clientY - floatDragRef.current.offsetY));
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.bottom = "auto";
+    el.style.right = "auto";
+  }
+
+  function handleFloatGrabUp() {
+    floatDragRef.current = null;
+  }
+
   const exactMinutesLeft = secondsLeft / 60;
   const sectorMin = finished ? 0 : (running ? Math.max(0, exactMinutesLeft) : setMinutes);
   const displayMin = Math.ceil(sectorMin);
@@ -440,24 +470,157 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
   ].filter(Boolean).join(" ");
   const embedUrl = successVideoUrl ? makeYoutubeEmbedUrl(successVideoUrl) : null;
 
+  const clockSvg = (
+    <svg
+      ref={svgRef}
+      viewBox="0 0 200 200"
+      className={running ? "running" : ""}
+      onMouseDown={handleDragStart}
+      onMouseMove={handleDragMove}
+      onMouseUp={handleDragEnd}
+      onMouseLeave={handleDragEnd}
+      onTouchStart={(event) => { handleDragStart(event); if (event.cancelable) event.preventDefault(); }}
+      onTouchMove={(event) => { handleDragMove(event); if (event.cancelable) event.preventDefault(); }}
+      onTouchEnd={handleDragEnd}
+    >
+      <circle cx="100" cy="100" r="90" fill="#fffdf9" stroke="rgba(38,49,49,0.1)" strokeWidth="1.5" />
+      <path d={analogTimerSectorPath(sectorMin)} fill={listenMode && running ? "rgba(92, 155, 127, 0.76)" : "rgba(216, 119, 91, 0.78)"} />
+      {Array.from({ length: 60 }, (_, index) => {
+        const min = index;
+        const is15 = min % 15 === 0;
+        const is5 = min % 5 === 0;
+        const outer = analogTimerMinuteToPoint(min, 87);
+        const inner = analogTimerMinuteToPoint(min, is15 ? 72 : is5 ? 77 : 83);
+        const label = analogTimerMinuteToPoint(min, is15 ? 60 : 64);
+        return (
+          <g key={min}>
+            <line
+              x1={outer.x.toFixed(1)}
+              y1={outer.y.toFixed(1)}
+              x2={inner.x.toFixed(1)}
+              y2={inner.y.toFixed(1)}
+              stroke={is15 ? "rgba(38,49,49,0.75)" : is5 ? "rgba(38,49,49,0.45)" : "rgba(38,49,49,0.25)"}
+              strokeWidth={is15 ? 2 : is5 ? 1.2 : 0.7}
+            />
+            {is5 && (
+              <text
+                x={label.x.toFixed(1)}
+                y={label.y.toFixed(1)}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill={is15 ? "rgba(38,49,49,0.7)" : "rgba(38,49,49,0.5)"}
+                fontSize={is15 ? "8" : "4.5"}
+                fontFamily="Nunito, sans-serif"
+                fontWeight="700"
+              >
+                {min === 0 ? "0" : min}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      {running && (
+        <g className="analog-timer-second-hand" aria-hidden="true">
+          <line
+            x1={secondHandTailPoint.x.toFixed(1)}
+            y1={secondHandTailPoint.y.toFixed(1)}
+            x2={secondHandPoint.x.toFixed(1)}
+            y2={secondHandPoint.y.toFixed(1)}
+            stroke="rgba(38,49,49,0.82)"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <circle cx="100" cy="100" r="3.8" fill="#fffdf9" stroke="rgba(38,49,49,0.78)" strokeWidth="1.5" />
+        </g>
+      )}
+      {(() => {
+        const knob = analogTimerMinuteToPoint(sectorMin, 90);
+        return <circle cx={knob.x.toFixed(1)} cy={knob.y.toFixed(1)} r="6" fill="#a75943" />;
+      })()}
+      <g
+        className={centerButtonClassName}
+        role="button"
+        aria-label={running ? "Остановить таймер" : "Запустить таймер"}
+        aria-disabled={centerButtonDisabled}
+        onClick={(event) => {
+          event.stopPropagation();
+          if (centerButtonDisabled) return;
+          if (running) stopTimer();
+          else startTimer();
+        }}
+        onMouseDown={(event) => event.stopPropagation()}
+        onTouchStart={(event) => event.stopPropagation()}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          if (!centerButtonDisabled) setCenterPressed(true);
+        }}
+        onPointerUp={(event) => {
+          event.stopPropagation();
+          setCenterPressed(false);
+        }}
+        onPointerLeave={(event) => {
+          event.stopPropagation();
+          setCenterPressed(false);
+        }}
+        onPointerCancel={() => setCenterPressed(false)}
+      >
+        <circle className="analog-timer-center-button__shadow" cx="100" cy="101.3" r="17.2" />
+        <circle className="analog-timer-center-button__outer" cx="100" cy="100" r="16.2" />
+        <circle className="analog-timer-center-button__inner" cx="100" cy="98.7" r="12.8" />
+        {running ? (
+          <rect className="analog-timer-center-button__icon analog-timer-center-button__icon--stop" x="94.7" y="94.7" width="10.6" height="10.6" rx="2.4" />
+        ) : (
+          <path className="analog-timer-center-button__icon analog-timer-center-button__icon--play" d="M96 92.8 L108.6 100 L96 107.2 Z" />
+        )}
+      </g>
+    </svg>
+  );
+
+  if (compact) {
+    return (
+      <div
+        ref={floatElRef}
+        className="analog-timer-float"
+        onTouchStart={preventMultiTouchZoom}
+        onTouchMove={preventMultiTouchZoom}
+      >
+        <div
+          className="analog-timer-float__handle"
+          onPointerDown={handleFloatGrabDown}
+          onPointerMove={handleFloatGrabMove}
+          onPointerUp={handleFloatGrabUp}
+          onPointerCancel={handleFloatGrabUp}
+        >
+          <span>⠿</span>
+        </div>
+        <button
+          className="analog-timer-float__close"
+          onClick={() => hardReset({ close: true })}
+          title="Закрыть"
+        >
+          ✕
+        </button>
+        {clockSvg}
+      </div>
+    );
+  }
+
   return (
     <div
-      className={compact ? "analog-timer-compact" : "analog-timer-overlay"}
+      className="analog-timer-overlay"
       onTouchStart={preventMultiTouchZoom}
       onTouchMove={preventMultiTouchZoom}
     >
       <div className="analog-timer-topbar">
-        <span className="analog-timer-title">{compact ? timeDisplayString : "Таймер"}</span>
+        <span className="analog-timer-title">Таймер</span>
         <div className="analog-timer-topbar-actions">
-          {!compact && (
-            <button
-              className="analog-timer-icon-btn"
-              onClick={() => setSoundEnabled((value) => !value)}
-              title={soundEnabled ? "Звук вкл" : "Звук выкл"}
-            >
-              {soundEnabled ? "🔊" : "🔇"}
-            </button>
-          )}
+          <button
+            className="analog-timer-icon-btn"
+            onClick={() => setSoundEnabled((value) => !value)}
+            title={soundEnabled ? "Звук вкл" : "Звук выкл"}
+          >
+            {soundEnabled ? "🔊" : "🔇"}
+          </button>
           <button className="analog-timer-icon-btn" onClick={() => hardReset({ close: true })} title="Закрыть">
             ✕
           </button>
@@ -553,109 +716,7 @@ export default function AnalogTimer({ rewardVideos = [], onClose, noListenMode =
         ) : (
           <>
             <div className="analog-timer-clock-wrap">
-              <svg
-                ref={svgRef}
-                viewBox="0 0 200 200"
-                className={running ? "running" : ""}
-                onMouseDown={handleDragStart}
-                onMouseMove={handleDragMove}
-                onMouseUp={handleDragEnd}
-                onMouseLeave={handleDragEnd}
-                onTouchStart={(event) => { handleDragStart(event); if (event.cancelable) event.preventDefault(); }}
-                onTouchMove={(event) => { handleDragMove(event); if (event.cancelable) event.preventDefault(); }}
-                onTouchEnd={handleDragEnd}
-              >
-                <circle cx="100" cy="100" r="90" fill="#fffdf9" stroke="rgba(38,49,49,0.1)" strokeWidth="1.5" />
-                <path d={analogTimerSectorPath(sectorMin)} fill={listenMode && running ? "rgba(92, 155, 127, 0.76)" : "rgba(216, 119, 91, 0.78)"} />
-                {Array.from({ length: 60 }, (_, index) => {
-                  const min = index;
-                  const is15 = min % 15 === 0;
-                  const is5 = min % 5 === 0;
-                  const outer = analogTimerMinuteToPoint(min, 87);
-                  const inner = analogTimerMinuteToPoint(min, is15 ? 72 : is5 ? 77 : 83);
-                  const label = analogTimerMinuteToPoint(min, is15 ? 60 : 64);
-                  return (
-                    <g key={min}>
-                      <line
-                        x1={outer.x.toFixed(1)}
-                        y1={outer.y.toFixed(1)}
-                        x2={inner.x.toFixed(1)}
-                        y2={inner.y.toFixed(1)}
-                        stroke={is15 ? "rgba(38,49,49,0.75)" : is5 ? "rgba(38,49,49,0.45)" : "rgba(38,49,49,0.25)"}
-                        strokeWidth={is15 ? 2 : is5 ? 1.2 : 0.7}
-                      />
-                      {is5 && (
-                        <text
-                          x={label.x.toFixed(1)}
-                          y={label.y.toFixed(1)}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          fill={is15 ? "rgba(38,49,49,0.7)" : "rgba(38,49,49,0.5)"}
-                          fontSize={is15 ? "8" : "4.5"}
-                          fontFamily="Nunito, sans-serif"
-                          fontWeight="700"
-                        >
-                          {min === 0 ? "0" : min}
-                        </text>
-                      )}
-                    </g>
-                  );
-                })}
-                {running && (
-                  <g className="analog-timer-second-hand" aria-hidden="true">
-                    <line
-                      x1={secondHandTailPoint.x.toFixed(1)}
-                      y1={secondHandTailPoint.y.toFixed(1)}
-                      x2={secondHandPoint.x.toFixed(1)}
-                      y2={secondHandPoint.y.toFixed(1)}
-                      stroke="rgba(38,49,49,0.82)"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="100" cy="100" r="3.8" fill="#fffdf9" stroke="rgba(38,49,49,0.78)" strokeWidth="1.5" />
-                  </g>
-                )}
-                {(() => {
-                  const knob = analogTimerMinuteToPoint(sectorMin, 90);
-                  return <circle cx={knob.x.toFixed(1)} cy={knob.y.toFixed(1)} r="6" fill="#a75943" />;
-                })()}
-                <g
-                  className={centerButtonClassName}
-                  role="button"
-                  aria-label={running ? "Остановить таймер" : "Запустить таймер"}
-                  aria-disabled={centerButtonDisabled}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (centerButtonDisabled) return;
-                    if (running) stopTimer();
-                    else startTimer();
-                  }}
-                  onMouseDown={(event) => event.stopPropagation()}
-                  onTouchStart={(event) => event.stopPropagation()}
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                    if (!centerButtonDisabled) setCenterPressed(true);
-                  }}
-                  onPointerUp={(event) => {
-                    event.stopPropagation();
-                    setCenterPressed(false);
-                  }}
-                  onPointerLeave={(event) => {
-                    event.stopPropagation();
-                    setCenterPressed(false);
-                  }}
-                  onPointerCancel={() => setCenterPressed(false)}
-                >
-                  <circle className="analog-timer-center-button__shadow" cx="100" cy="101.3" r="17.2" />
-                  <circle className="analog-timer-center-button__outer" cx="100" cy="100" r="16.2" />
-                  <circle className="analog-timer-center-button__inner" cx="100" cy="98.7" r="12.8" />
-                  {running ? (
-                    <rect className="analog-timer-center-button__icon analog-timer-center-button__icon--stop" x="94.7" y="94.7" width="10.6" height="10.6" rx="2.4" />
-                  ) : (
-                    <path className="analog-timer-center-button__icon analog-timer-center-button__icon--play" d="M96 92.8 L108.6 100 L96 107.2 Z" />
-                  )}
-                </g>
-              </svg>
+              {clockSvg}
             </div>
 
             <div className="analog-timer-controls">
