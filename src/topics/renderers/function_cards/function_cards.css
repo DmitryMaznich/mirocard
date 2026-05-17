@@ -149,15 +149,26 @@
   .fc-scene-function .fc-scenes .fc-scene {
     flex: 1;
     min-height: 0;
-  }
-  .fc-scene-function .fc-scenes .fc-scene-img {
-    width: 100%;
-    height: calc(100% - 20px);
-    object-fit: cover;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
   }
   .fc-scene-function .fc-scenes .fc-scene-label {
-    font-size: clamp(11px, 2vw, 14px);
-    font-weight: 600;
+    flex-shrink: 0;
+    font-size: clamp(1rem, 3vw, 1.6rem);
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 52px;
+    text-align: center;
+  }
+  .fc-scene-function .fc-scenes .fc-scene-img {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
   }
   /* Arrow becomes ↓ between stacked scenes */
   .fc-scene-function .fc-scenes .fc-arrow {
