@@ -45,7 +45,7 @@
 /* Override global tablet font scaling inside function_cards layouts */
 .fc-choose-action .session-instruction,
 .fc-scene-function .session-instruction {
-  font-size: clamp(0.95rem, 3.5vw, 1.3rem);
+  font-size: clamp(1.15rem, 5vw, 1.55rem);
 }
 
 /* scene_function */
@@ -70,6 +70,8 @@
   object-fit: cover;
   border-radius: 10px;
   transition: filter 0.4s ease;
+  /* Portrait: cap height so scene photos don't dominate over question + answers */
+  max-height: 24vw;
 }
 .fc-scene-img--loading { background: #f0f0f0; }
 .fc-scene-img--blurred { filter: blur(6px); opacity: 0.6; }
@@ -109,8 +111,13 @@
 .fc-tool-opt:disabled { cursor: default; }
 .fc-tool-opt--correct { background: #e8f5e9; border-color: #4caf50; }
 .fc-tool-opt--wrong   { background: #ffebee; border-color: #f44336; }
+/* Fix: height:100% collapses inside flex without explicit parent height */
+.fc-tool-opt .fc-img {
+  height: auto;
+  aspect-ratio: 1;
+}
 .fc-tool-opt-label {
-  font-size: clamp(9px, 2.8vw, 11px);
+  font-size: clamp(10px, 3vw, 13px);
   color: #555;
 }
 
@@ -158,10 +165,11 @@
     gap: 0;
   }
 
-  /* Photo fills the entire card */
+  /* Photo fills the entire card — reset portrait max-height */
   .fc-scene-function .fc-scenes .fc-scene-img {
     width: 100%;
     height: 100%;
+    max-height: none;
     object-fit: cover;
     border-radius: 14px;
   }
@@ -183,7 +191,7 @@
     backdrop-filter: blur(4px);
   }
 
-  /* Arrow: small dot separator between two cards */
+  /* Arrow: small separator between two cards */
   .fc-scene-function .fc-scenes .fc-arrow {
     flex-shrink: 0;
     align-self: center;
@@ -216,29 +224,5 @@
   .fc-scene-function .fc-feedback {
     grid-area: feedback;
     margin-top: 0;
-  }
-}
-
-/* ── Portrait: balance scene vs question/answers proportions ── */
-@media (orientation: portrait) {
-  /* Cap scene photo height so they don't dominate the screen */
-  .fc-scene-function .fc-scene-img {
-    max-height: 22svh;
-  }
-
-  /* Larger question text */
-  .fc-scene-function .session-instruction {
-    font-size: clamp(1.2rem, 5vw, 1.8rem) !important;
-  }
-
-  /* Tool option image: size by aspect-ratio, not height: 100% */
-  .fc-scene-function .fc-tool-opt .fc-img {
-    height: auto;
-    aspect-ratio: 1;
-  }
-
-  /* Larger tool option label */
-  .fc-scene-function .fc-tool-opt-label {
-    font-size: clamp(11px, 3.5vw, 14px);
   }
 }
