@@ -259,8 +259,8 @@
     backdrop-filter: blur(4px);
   }
 
-  /* Answer tiles 2× bigger: remove max-width cap */
+  /* Answer tiles 2× bigger in area vs original 360px */
   .fc-scene-function .fc-tool-grid {
-    max-width: none;
+    max-width: min(508px, 100%);
   }
 }
