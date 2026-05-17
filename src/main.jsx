@@ -5,6 +5,7 @@ import * as ReactDOM from "react-dom";
 import * as jsxRuntime from "react/jsx-runtime";
 import "./styles.css";
 import App from "./App";
+import { TimerProvider } from "./features/timer/TimerContext";
 
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
 
@@ -76,7 +77,9 @@ window.addEventListener("pageshow", (event) => {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <TimerProvider>
+      <App />
+    </TimerProvider>
   </StrictMode>
 );
 
