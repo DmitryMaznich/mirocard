@@ -339,10 +339,11 @@ function InstructionTask({ task, onAdvance }) {
     <div className="session-body reading-body instruction-body">
       {showTimer && <AnalogTimer noListenMode compact onClose={() => setShowTimer(false)} />}
       <div className="instruction-header">
-        <span className="instruction-header-spacer" />
         <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
-        <button className="instruction-timer-btn" onClick={() => setShowTimer(true)} title="Таймер">⏱</button>
       </div>
+      {!showTimer && (
+        <button className="instruction-timer-fab" onClick={() => setShowTimer(true)} title="Таймер">⏱</button>
+      )}
 
       <div className="instruction-step">
         <div className="instruction-step-text">{step.text}</div>
