@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.2.0";
+const VERSION = "1.3.0";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -52,8 +52,8 @@ const CONCEPTS = [
     action: "сверлят отверстия",
     sceneQuestion: "Нужно просверлить отверстие в стене. Что взять?",
     toolPrompt: "a power drill, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a wooden board without any holes on a clean surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a wooden board with a clean round hole drilled through it, sawdust nearby, clean surface background, 4:3 composition, no text",
+    sceneBeforePrompt: "a smooth concrete wall section without any holes, clean even surface, 4:3 composition, no text",
+    sceneAfterPrompt: "a smooth concrete wall with a clean round hole drilled through it, concrete dust around the hole, 4:3 composition, no text",
   },
   {
     id: "handsaw",
