@@ -154,6 +154,7 @@
     gap: 10px;
   }
   .fc-scene-function .fc-scenes .fc-scene-label {
+    order: -1;
     flex-shrink: 0;
     font-size: clamp(1rem, 3vw, 1.6rem);
     font-weight: 700;
