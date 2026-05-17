@@ -34,7 +34,10 @@ function getTextTitle(text) {
 
 function filterReadingModes(modes = [], text) {
   if (!text) return [];
-  return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem"));
+  if (text.kind === "instruction") {
+    return modes.filter((mode) => mode.id === "follow_instruction");
+  }
+  return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem") && mode.id !== "follow_instruction");
 }
 
 function getModeTitle(mode) {

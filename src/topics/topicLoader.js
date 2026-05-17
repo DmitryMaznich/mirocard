@@ -477,6 +477,16 @@ const DEFAULT_MODES = {
         icon: "media/icons/reading_assemble.svg",
       },
     },
+    {
+      id: "follow_instruction",
+      type: "follow_instruction",
+      evaluation: "none",
+      ui: {
+        title: "Показать инструкцию",
+        instruction: "Читай и выполняй шаги по порядку",
+        icon: "media/icons/reading_read.svg",
+      },
+    },
   ],
   comparison: [
     { id: "compare_visual",    type: "compare_visual",    evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака", instruction: "Нажми на сторону, где больше",       icon: "media/icons/comparison_visual.svg" } },
