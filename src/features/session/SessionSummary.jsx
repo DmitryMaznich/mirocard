@@ -66,9 +66,13 @@ export default function SessionSummary() {
   const sessionReward      = session?.reward ?? null;
   const videoRewardEnabled = sessionReward?.videoEnabled ?? link.videoRewardEnabled ?? true;
   const rewardThreshold    = sessionReward?.threshold ?? link.rewardThreshold ?? 90;
-  const rewardEarned       = sessionReward
-    ? Boolean(sessionReward.earned)
-    : (session?.correctCount ?? 0) / Math.max(1, session?.tasks?.length ?? 1) * 100 >= rewardThreshold;
+  // Recompute from stored correctCount + target to survive old data where
+  // session.reward.earned was incorrectly set to true due to a prior engine bug.
+  const rewardEarned = (
+    sessionReward?.target != null && session?.correctCount != null
+      ? session.correctCount >= sessionReward.target
+      : Boolean(sessionReward?.earned)
+  ) && (sessionReward?.videoAvailable ?? false);
   const rewardSeconds      = rewardEarned && videoRewardEnabled
     ? computeRewardSeconds(session.modeId, sessionReward?.total ?? topicRecord?.cards?.length ?? 10)
     : 0;
