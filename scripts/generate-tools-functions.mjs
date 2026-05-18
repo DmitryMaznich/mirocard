@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.4";
+const VERSION = "1.3.5";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -275,6 +275,14 @@ async function run() {
         type: "question_answer",
         evaluation: "none",
         ui: { title: "Что это?", instruction: "Что это?", ...icon("question_answer") },
+        params: {
+          useKeyboard: {
+            type: "boolean",
+            label: { ru: "Использовать клавиатуру" },
+            hint: { ru: "1 — Не ответил  2 — С подсказкой  3 — Правильно  4 — Легко!" },
+            default: false,
+          },
+        },
         methodology: {
           text: "Специалист задаёт вопрос к карточке — ребёнок отвечает устно. Оценка выставляется вручную. Развивает активный словарь и самостоятельное называние.",
           tips: [
