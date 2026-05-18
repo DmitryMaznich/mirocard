@@ -8,6 +8,8 @@ import Modal from "@/shared/components/Modal";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { parseRecipeTxt, resolveStepOwner } from "./parseRecipeTxt";
 import { getGroup, getRecipeOverride, getRawRecipeTxt, saveGroup, saveRecipeOverride } from "@/core/groupStore";
+import { getAudioOverride, listLocalAudioOverrides, syncAudioOverrides } from "@/core/audioStore";
+import AudioRecordDialog from "./AudioRecordDialog";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -352,6 +354,8 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const [editingRecipe, setEditingRecipe] = useState(false);
   const [recipeEdit, setRecipeEdit] = useState("");
   const memberPhotoRef = useRef(null);
+  const [recordedSteps, setRecordedSteps] = useState(new Set()); // step ids like "s1"
+  const [audioDialogStep, setAudioDialogStep] = useState(null);  // {id, num, text} | null
 
   // ── Running-phase state ───────────────────────────────────────────────────
   const [stepIndex, setStepIndex] = useState(0);
@@ -382,6 +386,14 @@ function InstructionTask({ task, topicId, onAdvance }) {
         setBaseSteps(parsed);
         setSteps(parsed);
       }
+      // Load local audio overrides + sync from server
+      const textId = task.text?.id ?? "";
+      const overrides = await listLocalAudioOverrides(topicId, textId).catch(() => []);
+      setRecordedSteps(new Set(overrides.map((o) => `s${o.stepNum}`)));
+      syncAudioOverrides(topicId, textId)
+        .then(() => listLocalAudioOverrides(topicId, textId))
+        .then((ovrs) => setRecordedSteps(new Set(ovrs.map((o) => `s${o.stepNum}`))))
+        .catch(() => {});
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]);
@@ -448,8 +460,27 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   useEffect(() => {
     if (phase !== "running" || !step) return;
-    const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
-    speak(text);
+    const textId  = task.text?.id ?? "";
+    const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
+    let cancelled = false;
+    if (textId && stepNum != null) {
+      getAudioOverride(topicId, textId, stepNum).then((blob) => {
+        if (cancelled) return;
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = new Audio(url);
+          a.onended = () => URL.revokeObjectURL(url);
+          a.play();
+        } else {
+          const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+          speak(text);
+        }
+      });
+    } else {
+      const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+      speak(text);
+    }
+    return () => { cancelled = true; };
   }, [stepIndex, steps, phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -484,9 +515,25 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   const reSpeak = useCallback(() => {
     if (!step) return;
-    const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
-    speak(text);
-  }, [step, owner, speak]);
+    const textId  = task.text?.id ?? "";
+    const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
+    if (textId && stepNum != null) {
+      getAudioOverride(topicId, textId, stepNum).then((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = new Audio(url);
+          a.onended = () => URL.revokeObjectURL(url);
+          a.play();
+        } else {
+          const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+          speak(text);
+        }
+      });
+    } else {
+      const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+      speak(text);
+    }
+  }, [step, owner, speak, topicId, task.text?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (phase !== "running") return;
@@ -569,6 +616,49 @@ function InstructionTask({ task, topicId, onAdvance }) {
         >
           Изменить текст инструкции
         </button>
+
+        {baseSteps.some((s) => s.type !== "heading") && (
+          <div className="instruction-cover-section">
+            <div className="instruction-cover-section-label">Аудио шагов</div>
+            <div className="instruction-audio-list">
+              {baseSteps.filter((s) => s.type !== "heading").map((s) => {
+                const num = parseInt(s.id.slice(1), 10);
+                const hasAudio = recordedSteps.has(s.id);
+                return (
+                  <button
+                    key={s.id}
+                    className={`instruction-audio-item${hasAudio ? " instruction-audio-item--recorded" : ""}`}
+                    onClick={() => setAudioDialogStep({ id: s.id, num, text: s.text })}
+                  >
+                    <span className="instruction-audio-num">{num}</span>
+                    <span className="instruction-audio-text">
+                      {s.text.length > 55 ? s.text.slice(0, 55) + "…" : s.text}
+                    </span>
+                    {hasAudio && <span className="instruction-audio-dot" aria-label="записано" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {audioDialogStep && (
+          <AudioRecordDialog
+            topicId={topicId}
+            textId={task.text?.id ?? ""}
+            stepNum={audioDialogStep.num}
+            stepText={audioDialogStep.text}
+            onClose={() => setAudioDialogStep(null)}
+            onSaved={(stepId) => {
+              setRecordedSteps((prev) => new Set([...prev, stepId]));
+              setAudioDialogStep(null);
+            }}
+            onDeleted={(stepId) => {
+              setRecordedSteps((prev) => { const n = new Set(prev); n.delete(stepId); return n; });
+              setAudioDialogStep(null);
+            }}
+          />
+        )}
 
         {editingRecipe && (
           <Modal title="Редактирование инструкции" onClose={() => setEditingRecipe(false)}>
