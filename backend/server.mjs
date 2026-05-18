@@ -8,6 +8,7 @@ import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT,
 } from "./lib/config.mjs";
+import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
   createAccount, findAccountByEmail, findAccountById,
@@ -367,6 +368,39 @@ async function handleAppendSession(req, res) {
   writeJson(res, 201, { ok: true });
 }
 
+// ─── Analysis handlers ────────────────────────────────────────────────────────
+
+async function handleGetTopicAnalysis(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://x");
+  const studentId = url.searchParams.get("studentId");
+  const topicId   = url.searchParams.get("topicId");
+  if (!studentId || !topicId) return writeJson(res, 400, { error: "studentId, topicId required" });
+  const cached = getCachedAnalysis(db, studentId, topicId);
+  if (!cached) return writeJson(res, 404, { error: "not found" });
+  writeJson(res, 200, { ...JSON.parse(cached.result_json), generated_at: cached.generated_at });
+}
+
+async function handlePostTopicAnalysis(req, res) {
+  requireAuth(req);
+  const body = await readJsonBody(req);
+  if (!body?.studentId || !body?.topicId) {
+    return writeJson(res, 400, { error: "studentId, topicId required" });
+  }
+  const result = await generateAnalysis(db, body.studentId, body.topicId);
+  if (!result) return writeJson(res, 404, { error: "no sessions found" });
+  writeJson(res, 200, result);
+}
+
+async function handleDeleteTopicAnalysis(req, res) {
+  requireAuth(req);
+  const url = new URL(req.url, "http://x");
+  const studentId = url.searchParams.get("studentId");
+  const topicId   = url.searchParams.get("topicId");
+  deleteCachedAnalysis(db, studentId, topicId);
+  writeJson(res, 200, { ok: true });
+}
+
 // ─── Topic handlers ───────────────────────────────────────────────────────────
 
 async function handleGetTopics(req, res) {
@@ -632,6 +666,11 @@ async function router(req, res) {
     // Sessions
     if (method === "GET"    && p === "/sessions")                 return await handleGetSessions(req, res);
     if (method === "POST"   && p === "/sessions")                 return await handleAppendSession(req, res);
+
+    // Analysis
+    if (method === "GET"    && p === "/analysis/topic")           return await handleGetTopicAnalysis(req, res);
+    if (method === "POST"   && p === "/analysis/topic")           return await handlePostTopicAnalysis(req, res);
+    if (method === "DELETE" && p === "/analysis/topic")           return await handleDeleteTopicAnalysis(req, res);
 
     // Topics
     if (method === "GET"    && p === "/account-topics")           return await handleGetTopics(req, res);
