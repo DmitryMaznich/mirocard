@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.3";
+const VERSION = "1.3.4";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -192,6 +192,7 @@ async function run() {
         conceptId: concept.id,
         primary: v === 1,
         label: concept.label,
+        answerKey: concept.label.toLowerCase(),
         ...(v === 1 ? {
           labelInstrumental: concept.labelInstrumental,
           action: concept.action,
@@ -249,6 +250,8 @@ async function run() {
       version: VERSION,
       renderer: "function_cards",
       title: { ru: "Инструменты и их применение", en: "Tools and their use" },
+      questionKey: "Что это?",
+      answerPrefix: "Это",
       ...(metaAvatar ? { avatar: metaAvatar } : {}),
     },
     modes: [
@@ -271,7 +274,7 @@ async function run() {
         id: "question_answer",
         type: "question_answer",
         evaluation: "none",
-        ui: { title: "Назови инструмент", instruction: "Как называется?", ...icon("question_answer") },
+        ui: { title: "Что это?", instruction: "Что это?", ...icon("question_answer") },
         methodology: {
           text: "Специалист задаёт вопрос к карточке — ребёнок отвечает устно. Оценка выставляется вручную. Развивает активный словарь и самостоятельное называние.",
           tips: [
