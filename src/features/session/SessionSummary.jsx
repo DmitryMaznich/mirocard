@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
@@ -22,6 +22,7 @@ const ASSESSMENT_LABELS = {
 };
 
 const STAR_THRESHOLD = 90;
+const FINISH_HOLD_MS = 1500;
 
 function getStarCount(percentCorrect, rewardThreshold) {
   if (percentCorrect === null || percentCorrect === undefined) return null;
@@ -86,6 +87,9 @@ export default function SessionSummary() {
   const [rewardRemaining, setRewardRemaining] = useState(0);
   const [detailsOpen,     setDetailsOpen]     = useState(false);
   const [rewardVideoUrl,  setRewardVideoUrl]  = useState(null);
+  const [holdProgress,    setHoldProgress]    = useState(0);
+  const holdIntervalRef = useRef(null);
+  const holdStartRef    = useRef(null);
 
   useEffect(() => {
     if (!session) return;
@@ -106,6 +110,34 @@ export default function SessionSummary() {
     }, 1000);
     return () => window.clearInterval(intervalId);
   }, [videoOpen, rewardSeconds]);
+
+  useEffect(() => () => {
+    if (holdIntervalRef.current) window.clearInterval(holdIntervalRef.current);
+  }, []);
+
+  function startHold() {
+    if (holdIntervalRef.current) return;
+    holdStartRef.current = Date.now();
+    holdIntervalRef.current = window.setInterval(() => {
+      const elapsed = Date.now() - holdStartRef.current;
+      const pct = Math.min((elapsed / FINISH_HOLD_MS) * 100, 100);
+      setHoldProgress(pct);
+      if (pct >= 100) {
+        window.clearInterval(holdIntervalRef.current);
+        holdIntervalRef.current = null;
+        setScreen("home");
+      }
+    }, 16);
+  }
+
+  function cancelHold() {
+    if (holdIntervalRef.current) {
+      window.clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
+    }
+    holdStartRef.current = null;
+    setHoldProgress(0);
+  }
 
   if (!session) {
     return (
@@ -174,7 +206,19 @@ export default function SessionSummary() {
       {/* Actions */}
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
-        <Button variant="primary"   onClick={() => setScreen("home")}>Завершить</Button>
+        <button
+          className="summary-finish-btn"
+          onPointerDown={startHold}
+          onPointerUp={cancelHold}
+          onPointerLeave={cancelHold}
+          onPointerCancel={cancelHold}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <div className="summary-finish-btn__fill" style={{ width: `${holdProgress}%` }} />
+          <span className="summary-finish-btn__label">
+            {holdProgress > 0 ? "Держите…" : "Завершить"}
+          </span>
+        </button>
       </div>
 
       {/* Collapsible teacher stats */}
