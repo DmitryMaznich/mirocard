@@ -172,6 +172,23 @@ export function initDb(dbPath = DB_PATH) {
     db.exec("ALTER TABLE student_topic_links ADD COLUMN reward_threshold INTEGER DEFAULT 90");
   }
 
+  const sessionColumns = db.prepare("PRAGMA table_info(sessions)").all();
+  if (!sessionColumns.some((c) => c.name === "card_events")) {
+    db.exec("ALTER TABLE sessions ADD COLUMN card_events TEXT DEFAULT '[]'");
+  }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS analysis_cache (
+      id              INTEGER PRIMARY KEY,
+      student_id      TEXT NOT NULL,
+      topic_id        TEXT NOT NULL,
+      prompt_version  TEXT NOT NULL,
+      generated_at    INTEGER NOT NULL,
+      result_json     TEXT NOT NULL,
+      UNIQUE(student_id, topic_id)
+    )
+  `);
+
   return db;
 }
 
