@@ -153,22 +153,24 @@ export default function SessionScreen() {
             rewardThreshold={rewardProgress?.threshold}
             available={rewardProgress?.available ?? false}
           />
-          <div className="session-counter">
-            {taskIndex + 1} / {total}
-            {mode.evaluation === "auto" && (
-              <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
-            )}
+          <div className="session-topbar-right">
+            <div className="session-counter">
+              {taskIndex + 1} / {total}
+              {mode.evaluation === "auto" && (
+                <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
+              )}
+            </div>
+            <button
+              className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
+              onClick={toggleSound}
+              aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
+            >
+              <span className="session-audio-speaker-icon">
+                {soundEnabled ? "🔊" : "🔇"}
+              </span>
+            </button>
+            <button className="session-finish-btn" onClick={() => setScreen("home")}>✕</button>
           </div>
-          <button
-            className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
-            onClick={toggleSound}
-            aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
-          >
-            <span className="session-audio-speaker-icon">
-              {soundEnabled ? "🔊" : "🔇"}
-            </span>
-          </button>
-          <button className="session-finish-btn" onClick={() => setScreen("home")}>✕</button>
         </div>
         <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
       </div>

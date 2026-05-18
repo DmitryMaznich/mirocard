@@ -12134,6 +12134,12 @@ button {
   padding: 0 2px;
 }
 .session-progress { flex: 1; }
+.session-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .session-counter  { font-size: 0.85rem; color: #666; white-space: nowrap; }
 .session-score    { color: #888; }
 
@@ -16423,6 +16429,7 @@ body { background: #eef0ef; }
   .session-topbar { padding: calc(4px + var(--app-safe-top)) 12px 4px; gap: 0; }
   .session-subtitle { display: none; }
   .session-topbar-controls { gap: 8px; }
+  .session-topbar-right { gap: 8px; }
 
   /* ── Puzzle: compact sp-screen shell ── */
   .sp-screen { padding: 8px; gap: 8px; }
@@ -16570,7 +16577,7 @@ body { background: #eef0ef; }
 
 :root {
   --gt-clock-size: min(90vw, 82vh);
-  --gt-tab-h: 44px;
+  --gt-tab-h: 34px;
 }
 
 /* Clock slides down from top */
@@ -16622,7 +16629,6 @@ body { background: #eef0ef; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
   border: none;
   border-radius: 0 0 14px 14px;
   background: #fffdf9;
@@ -16641,15 +16647,15 @@ body { background: #eef0ef; }
 
 .global-timer-tab__time {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0;
 }
 
 .global-timer-tab__mm,
 .global-timer-tab__ss {
   font-family: ui-monospace, "Courier New", monospace;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1;
   color: #3a2e22;
@@ -16657,9 +16663,21 @@ body { background: #eef0ef; }
 }
 
 .global-timer-tab__sep {
-  font-size: 8px;
+  font-family: ui-monospace, "Courier New", monospace;
+  font-size: 15px;
+  font-weight: 800;
   line-height: 1;
-  color: rgba(58, 46, 34, 0.4);
+  color: #3a2e22;
+  letter-spacing: -0.5px;
+}
+
+.global-timer-tab--running .global-timer-tab__sep {
+  animation: gt-colon-blink 1s step-start infinite;
+}
+
+@keyframes gt-colon-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
 }
 
 .global-timer-tab--idle { background: #fffdf9; }
