@@ -576,16 +576,113 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   );
 
   if (clockOnly) {
-    return (
-      <div className="analog-timer-clock-only-wrap">
-        {setMinutes > 0 && (
-          <div className="analog-timer-drag-label">
-            <span className="analog-timer-drag-label__value">{setMinutes}</span>
-            <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
+    let silenceStrip;
+    if (listenState === "triggered") {
+      silenceStrip = (
+        <div className="cts-noise">
+          <span className="cts-noise__icon">🔇</span>
+          <span className="cts-noise__msg">Слышен звук!</span>
+          <button className="cts-btn" onClick={() => setListenState("idle")}>Попробовать снова</button>
+        </div>
+      );
+    } else if (listenState === "success") {
+      silenceStrip = (
+        <div className="cts-success">
+          <div className="cts-success__stars" aria-hidden="true">
+            {Array.from({ length: rewardStarsTotal }, (_, i) => (
+              <span key={i} className={`cts-star${i < rewardStarsRemaining ? "" : " is-burned"}`}>⭐</span>
+            ))}
           </div>
-        )}
-        {clockSvg}
-      </div>
+          {rewardSecondsLeft > 0 && (
+            <span className="cts-success__time">{formatClockDuration(rewardSecondsLeft)}</span>
+          )}
+          <button className="cts-btn" onClick={() => { setListenState("idle"); resetRewardState(); }}>✕</button>
+        </div>
+      );
+    } else if (listenMode && running) {
+      silenceStrip = (
+        <div className="cts-listening">
+          <span className="cts-listening__emoji">🤫</span>
+          <span className="cts-listening__text">Тссс...</span>
+          {earnedTokens > 0 && (
+            <span className="cts-listening__stars" aria-live="polite">
+              {Array.from({ length: Math.min(earnedTokens, 6) }, (_, i) => <span key={i}>⭐</span>)}
+            </span>
+          )}
+        </div>
+      );
+    } else {
+      silenceStrip = (
+        <div className="cts-idle">
+          {!running && (
+            <button
+              className={`cts-toggle${listenMode ? " is-active" : ""}`}
+              onClick={() => setListenMode((v) => !v)}
+            >
+              🤫&nbsp;Тишина
+            </button>
+          )}
+          {listenMode && !running && (
+            <div className="cts-mic">
+              <span className="cts-mic__label">Точнее</span>
+              <input
+                className="cts-mic__slider"
+                type="range" min="1" max="7" step="1"
+                value={sensitivity}
+                onChange={(e) => setSensitivity(Number.parseInt(e.target.value, 10) || 4)}
+              />
+              <span className="cts-mic__label">Грубее</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="analog-timer-clock-only-wrap">
+          {setMinutes > 0 && (
+            <div className="analog-timer-drag-label">
+              <span className="analog-timer-drag-label__value">{setMinutes}</span>
+              <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
+            </div>
+          )}
+          {clockSvg}
+          {listenState === "success" && (
+            <div className="cts-overlay">
+              {embedUrl ? (
+                <>
+                  <div className="cts-overlay__bar">
+                    <span className="cts-overlay__title">🎬 Мультик</span>
+                    <span className="cts-overlay__time">{formatClockDuration(rewardSecondsLeft)}</span>
+                  </div>
+                  <div className="analog-timer-video-shell" style={{ flex: 1 }}>
+                    <iframe
+                      key={`reward-co-${rewardPlaybackNonce}`}
+                      className="analog-timer-video-frame"
+                      src={embedUrl}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title="Видео-награда"
+                      tabIndex={-1}
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                    <div className="analog-timer-video-shield" />
+                  </div>
+                </>
+              ) : (
+                <div className="cts-overlay__empty">
+                  <span>🎉</span>
+                  <span>Молодец!</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="analog-timer-silence-strip">
+          {silenceStrip}
+        </div>
+      </>
     );
   }
 
