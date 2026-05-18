@@ -604,7 +604,7 @@ After `const memberPhotoRef = useRef(null);`, add:
 
 - [ ] **Step 3: Update the load `useEffect` to also load audio overrides and trigger sync**
 
-Find the existing `load()` function inside the `useEffect`. After `setGroup(grp ?? [])` and the rawText block, add:
+Find the `async function load()` inside the `useEffect` (around line 364). Add the following at the very end of `load()`, after the closing brace of the `if (rawText) { ... }` block and before the closing `}` of `load()`:
 
 ```js
       // Load local audio overrides + sync from server
