@@ -669,20 +669,24 @@ html.app-ios-standalone {
 /* Instruction: step owner avatar */
 .instruction-owner {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 14px;
   flex-shrink: 0;
-  padding: 8px 0 4px;
+  width: 100%;
+  max-width: 560px;
+  padding: 6px 16px;
+  align-self: center;
 }
 
 .instruction-owner-avatar {
-  width: clamp(64px, 16vmin, 100px);
-  height: clamp(64px, 16vmin, 100px);
+  width: clamp(56px, 13vmin, 84px);
+  height: clamp(56px, 13vmin, 84px);
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid #5ab88a;
   box-shadow: 0 2px 12px rgba(90, 184, 138, 0.25);
+  flex-shrink: 0;
 }
 
 .instruction-owner-avatar img {
@@ -698,16 +702,17 @@ html.app-ios-standalone {
   align-items: center;
   justify-content: center;
   background: #d4f0e2;
-  font-size: clamp(22px, 5vmin, 38px);
+  font-size: clamp(20px, 4vmin, 34px);
   font-weight: 700;
   color: #2d7a5a;
 }
 
 .instruction-owner-name {
-  font-size: clamp(18px, 4vmin, 28px);
+  font-size: clamp(20px, 4.5vmin, 30px);
   font-weight: 700;
   color: #2d6a4f;
   letter-spacing: 0.01em;
+  text-align: left;
 }
 
 /* Instruction: heading step */
@@ -1041,6 +1046,131 @@ html.app-ios-standalone {
   font-size: clamp(16px, 4vmin, 22px);
   padding: 14px 24px;
   margin-top: 4px;
+}
+
+/* ── Portrait phone adaptation ─────────────────────────────────────────── */
+@media (orientation: portrait) and (max-width: 600px) {
+  /* Cover / setup screen */
+  .instruction-cover {
+    gap: 10px;
+    padding: 8px 12px 16px;
+  }
+
+  /* Image + title as a compact header row */
+  .instruction-cover-image {
+    width: 72px;
+    height: 72px;
+  }
+
+  .instruction-cover-title {
+    font-size: 20px;
+  }
+
+  .instruction-cover-section-label {
+    font-size: 11px;
+  }
+
+  .instruction-cover-member {
+    padding: 6px 10px;
+  }
+
+  .instruction-cover-member-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .instruction-cover-member-name {
+    font-size: 14px;
+  }
+
+  .instruction-cover-ranges-input {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+
+  .instruction-cover-add-member {
+    padding: 6px 10px;
+  }
+
+  .instruction-cover-name-input {
+    font-size: 14px;
+    padding: 6px 8px;
+  }
+
+  .instruction-cover-photo-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .instruction-cover-start {
+    max-width: none;
+    padding: 14px;
+    font-size: 18px;
+  }
+
+  /* Running screen */
+  .instruction-body {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .instruction-owner {
+    padding: 4px 0;
+    gap: 10px;
+  }
+
+  .instruction-owner-avatar {
+    width: 52px;
+    height: 52px;
+  }
+
+  .instruction-owner-name {
+    font-size: 20px;
+  }
+
+  .instruction-step-text {
+    font-size: 1.35rem;
+  }
+
+  .instruction-check-item {
+    font-size: 1.05rem;
+    padding: 10px 12px;
+  }
+
+  .instruction-participants {
+    gap: 8px;
+    padding: 4px 8px;
+  }
+
+  .instruction-participant-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .instruction-participant-name {
+    font-size: 10px;
+    max-width: 40px;
+  }
+
+  .instruction-nav .reading-secondary-btn,
+  .instruction-nav .reading-primary-btn {
+    padding: 14px 10px;
+    font-size: 1rem;
+  }
+
+  .instruction-drawer {
+    max-height: 220px;
+  }
+
+  /* Participants strip: scroll if many members */
+  .instruction-participants {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 .reading-assembled-final .reading-text {
