@@ -2,11 +2,23 @@ import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
 
-const BACK_GUARD_DEPTH = 64;
+// 2 entries is enough: one fires the popstate, one is the fallback.
+// Keeping it small avoids Chrome's same-URL pushState rate-limit (100/30 s).
+const BACK_GUARD_DEPTH = 2;
+
+// A distinct hash URL so Chrome/Android recognises these as navigatable history
+// entries that differ from the app root. Without a different URL, Android Chrome
+// may silently collapse same-URL pushState entries and bypass the guard entirely.
+const GUARD_HASH = "#_guard";
+
 let guardSequence = 0;
 let guardTopSequence = 0;
 let lastObservedSequence = 0;
 let lastHandledBackAt = 0;
+
+function guardUrl() {
+  return window.location.href.replace(/#.*$/, "") + GUARD_HASH;
+}
 
 function getGuardSequence(state) {
   return state?.mirocardBackGuard && Number.isFinite(state.guardSequence)
@@ -24,20 +36,22 @@ function installBackGuardStack() {
     return;
   }
 
+  const rootUrl = window.location.href.replace(/#.*$/, "");
   if (!currentState?.mirocardBackRoot) {
     window.history.replaceState(
       { ...(currentState ?? {}), mirocardBackRoot: true, guardSequence: 0 },
       "",
-      window.location.href,
+      rootUrl,
     );
   }
 
+  const url = guardUrl();
   for (let i = 0; i < BACK_GUARD_DEPTH; i += 1) {
     guardSequence += 1;
     window.history.pushState(
       { mirocardBackGuard: true, guardSequence },
       "",
-      window.location.href,
+      url,
     );
   }
   guardTopSequence = guardSequence;
@@ -52,7 +66,7 @@ function reboundToGuardTop(sequence) {
   window.history.pushState(
     { mirocardBackGuard: true, guardSequence },
     "",
-    window.location.href,
+    guardUrl(),
   );
 }
 
