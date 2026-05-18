@@ -559,101 +559,116 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   // ── SETUP PHASE ────────────────────────────────────────────────────────────
   if (phase === "setup") {
+    const memberList = (
+      <div className="instruction-cover-members">
+        {group.map((member, i) => (
+          <div key={member.id ?? member.name} className="instruction-cover-member">
+            <div className="instruction-cover-member-avatar">
+              {member.photoDataUrl
+                ? <img src={member.photoDataUrl} alt={member.name} />
+                : <div className="instruction-cover-member-initials">{member.name?.[0] ?? "?"}</div>
+              }
+            </div>
+            <div className="instruction-cover-member-info">
+              <div className="instruction-cover-member-name">{member.name}</div>
+              <input
+                className="instruction-cover-ranges-input"
+                value={member.stepRanges ?? ""}
+                onChange={(e) => updateMemberRanges(i, e.target.value)}
+                placeholder="шаги: 1-15"
+              />
+            </div>
+            <button
+              className={`instruction-cover-chef-btn${member.role === "chef" ? " instruction-cover-chef-btn--active" : ""}`}
+              onClick={() => toggleChef(i)}
+              title={member.role === "chef" ? "Снять роль шефа" : "Назначить шефом"}
+            >
+              👑
+            </button>
+            <button className="instruction-cover-member-remove" onClick={() => removeMember(i)}>×</button>
+          </div>
+        ))}
+        <div className="instruction-cover-add-member">
+          <button
+            className="instruction-cover-photo-btn"
+            onClick={() => memberPhotoRef.current?.click()}
+            title="Фото"
+          >
+            {newMemberPhoto
+              ? <img src={newMemberPhoto} alt="" className="instruction-cover-photo-preview" />
+              : "📷"}
+          </button>
+          <input ref={memberPhotoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleMemberPhotoFile} />
+          <input
+            className="instruction-cover-name-input"
+            value={newMemberName}
+            onChange={(e) => setNewMemberName(e.target.value)}
+            placeholder="Имя участника"
+            onKeyDown={(e) => e.key === "Enter" && addMember()}
+          />
+          <button className="instruction-cover-add-btn" onClick={addMember} disabled={!newMemberName.trim()}>+</button>
+        </div>
+      </div>
+    );
+
+    const audioSection = baseSteps.some((s) => s.type !== "heading") && (
+      <div className="instruction-cover-section">
+        <div className="instruction-cover-section-label">Аудио шагов</div>
+        <div className="instruction-audio-list">
+          {baseSteps.filter((s) => s.type !== "heading").map((s) => {
+            const num = parseInt(s.id.slice(1), 10);
+            const hasAudio = recordedSteps.has(s.id);
+            return (
+              <button
+                key={s.id}
+                className={`instruction-audio-item${hasAudio ? " instruction-audio-item--recorded" : ""}`}
+                onClick={() => setAudioDialogStep({ id: s.id, num, text: s.text })}
+              >
+                <span className="instruction-audio-num">{num}</span>
+                <span className="instruction-audio-text">
+                  {s.text.length > 55 ? s.text.slice(0, 55) + "…" : s.text}
+                </span>
+                {hasAudio && <span className="instruction-audio-dot" aria-label="записано" />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+
     return (
       <div className="session-body reading-body instruction-cover">
         <button className="back-btn instruction-cover-back" onClick={() => setScreen("texts")}>←</button>
 
-        {coverImageUrl && (
-          <div className="instruction-cover-image">
-            <img src={coverImageUrl} alt="" draggable={false} />
-          </div>
-        )}
-        <h1 className="instruction-cover-title">{getTopicTitle(task.text?.title)}</h1>
-
-        <div className="instruction-cover-section">
-          <div className="instruction-cover-section-label">Группа</div>
-          <div className="instruction-cover-members">
-            {group.map((member, i) => (
-              <div key={member.id ?? member.name} className="instruction-cover-member">
-                <div className="instruction-cover-member-avatar">
-                  {member.photoDataUrl
-                    ? <img src={member.photoDataUrl} alt={member.name} />
-                    : <div className="instruction-cover-member-initials">{member.name?.[0] ?? "?"}</div>
-                  }
-                </div>
-                <div className="instruction-cover-member-info">
-                  <div className="instruction-cover-member-name">{member.name}</div>
-                  <input
-                    className="instruction-cover-ranges-input"
-                    value={member.stepRanges ?? ""}
-                    onChange={(e) => updateMemberRanges(i, e.target.value)}
-                    placeholder="шаги: 1-15"
-                  />
-                </div>
-                <button
-                  className={`instruction-cover-chef-btn${member.role === "chef" ? " instruction-cover-chef-btn--active" : ""}`}
-                  onClick={() => toggleChef(i)}
-                  title={member.role === "chef" ? "Снять роль шефа" : "Назначить шефом"}
-                >
-                  👑
-                </button>
-                <button className="instruction-cover-member-remove" onClick={() => removeMember(i)}>×</button>
-              </div>
-            ))}
-            <div className="instruction-cover-add-member">
-              <button
-                className="instruction-cover-photo-btn"
-                onClick={() => memberPhotoRef.current?.click()}
-                title="Фото"
-              >
-                {newMemberPhoto
-                  ? <img src={newMemberPhoto} alt="" className="instruction-cover-photo-preview" />
-                  : "📷"}
-              </button>
-              <input ref={memberPhotoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleMemberPhotoFile} />
-              <input
-                className="instruction-cover-name-input"
-                value={newMemberName}
-                onChange={(e) => setNewMemberName(e.target.value)}
-                placeholder="Имя участника"
-                onKeyDown={(e) => e.key === "Enter" && addMember()}
-              />
-              <button className="instruction-cover-add-btn" onClick={addMember} disabled={!newMemberName.trim()}>+</button>
+        {/* Left column: cover image + title */}
+        <div className="instruction-cover-left">
+          {coverImageUrl && (
+            <div className="instruction-cover-image">
+              <img src={coverImageUrl} alt="" draggable={false} />
             </div>
-          </div>
+          )}
+          <h1 className="instruction-cover-title">{getTopicTitle(task.text?.title)}</h1>
+          <button className="reading-primary-btn instruction-cover-start" onClick={startSession}>
+            Начать
+          </button>
         </div>
 
-        <button
-          className="instruction-cover-edit-recipe"
-          onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
-        >
-          Изменить текст инструкции
-        </button>
-
-        {baseSteps.some((s) => s.type !== "heading") && (
+        {/* Right column: group + audio */}
+        <div className="instruction-cover-right">
           <div className="instruction-cover-section">
-            <div className="instruction-cover-section-label">Аудио шагов</div>
-            <div className="instruction-audio-list">
-              {baseSteps.filter((s) => s.type !== "heading").map((s) => {
-                const num = parseInt(s.id.slice(1), 10);
-                const hasAudio = recordedSteps.has(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    className={`instruction-audio-item${hasAudio ? " instruction-audio-item--recorded" : ""}`}
-                    onClick={() => setAudioDialogStep({ id: s.id, num, text: s.text })}
-                  >
-                    <span className="instruction-audio-num">{num}</span>
-                    <span className="instruction-audio-text">
-                      {s.text.length > 55 ? s.text.slice(0, 55) + "…" : s.text}
-                    </span>
-                    {hasAudio && <span className="instruction-audio-dot" aria-label="записано" />}
-                  </button>
-                );
-              })}
-            </div>
+            <div className="instruction-cover-section-label">Группа</div>
+            {memberList}
           </div>
-        )}
+
+          <button
+            className="instruction-cover-edit-recipe"
+            onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
+          >
+            Изменить текст инструкции
+          </button>
+
+          {audioSection}
+        </div>
 
         {audioDialogStep && (
           <AudioRecordDialog
@@ -688,9 +703,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
           </Modal>
         )}
 
-        <button className="reading-primary-btn instruction-cover-start" onClick={startSession}>
-          Начать
-        </button>
       </div>
     );
   }

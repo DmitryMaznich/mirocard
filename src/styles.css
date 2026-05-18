@@ -17210,3 +17210,124 @@ body { background: #eef0ef; }
     font-size: 14px;
   }
 }
+
+/* ─── Setup cover: column wrappers ──────────────────────────────────────────── */
+
+/* Portrait: left/right are transparent stacking wrappers */
+.instruction-cover-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.instruction-cover-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Portrait: start button inside left — keep full width */
+.instruction-cover-left .instruction-cover-start {
+  width: 100%;
+  max-width: 320px;
+}
+
+/* ─── Landscape: two-column setup layout ─────────────────────────────────────── */
+@media (orientation: landscape) {
+  /* Remove portrait-style centering from the cover itself */
+  .session-body.reading-body.instruction-cover {
+    display: grid;
+    grid-template-columns: clamp(180px, 28vw, 280px) 1fr;
+    grid-template-rows: auto;
+    align-items: start;
+    align-content: start;
+    padding: 10px 16px 16px;
+    gap: 10px 24px;
+    overflow-y: auto;
+  }
+
+  /* Back button: spans both columns */
+  .instruction-cover-back {
+    position: static;
+    grid-column: 1 / -1;
+    width: fit-content;
+    margin-bottom: 2px;
+  }
+
+  /* Left column: image + title + start */
+  .instruction-cover-left {
+    grid-column: 1;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    gap: 10px;
+  }
+
+  .instruction-cover-image {
+    width: clamp(80px, 16vw, 140px);
+    height: clamp(80px, 16vw, 140px);
+  }
+
+  .instruction-cover-title {
+    font-size: clamp(16px, 3.5vw, 24px);
+    text-align: center;
+  }
+
+  .instruction-cover-left .instruction-cover-start {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Right column: group + audio (scrolls within the grid) */
+  .instruction-cover-right {
+    grid-column: 2;
+    overflow-y: auto;
+    max-height: calc(100dvh - 60px);
+    padding-right: 4px;
+  }
+
+  /* Remove max-width constraint from sections in landscape */
+  .instruction-cover-section {
+    max-width: 100%;
+  }
+
+  /* Compact member rows in landscape */
+  .instruction-cover-member {
+    padding: 6px 10px;
+  }
+
+  .instruction-cover-member-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .instruction-cover-member-avatar img,
+  .instruction-cover-member-initials {
+    font-size: 14px;
+  }
+
+  .instruction-cover-member-name {
+    font-size: 14px;
+  }
+
+  .instruction-cover-ranges-input {
+    font-size: 12px;
+    padding: 3px 8px;
+  }
+
+  .instruction-cover-add-member {
+    padding: 6px 10px;
+  }
+
+  .instruction-cover-name-input {
+    font-size: 14px;
+    padding: 5px 8px;
+  }
+
+  .instruction-cover-section-label {
+    font-size: 11px;
+  }
+}
