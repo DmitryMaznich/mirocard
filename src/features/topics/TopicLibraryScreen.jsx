@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
+import { AnalyticsScreen } from "@/features/analytics/AnalyticsScreen";
 import { getDb } from "@/core/db";
 import { deleteTopicRecord } from "@/topics/topicLoader";
 import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
@@ -16,7 +17,7 @@ import {
   refreshInstalledCatalogTopics,
 } from "./catalogService";
 
-function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, hasUpdate }) {
+function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAnalytics, hasUpdate }) {
   return (
     <li className={`topic-item ${isActive ? "topic-item--active" : ""}`} onClick={() => onSelect(record)}>
       <TopicCover
@@ -33,6 +34,7 @@ function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, hasU
         </div>
       </div>
       <button className="icon-btn icon-btn--info" onClick={(e) => { e.stopPropagation(); onInfo(record); }} title="О теме">i</button>
+      <button className="icon-btn" onClick={(e) => { e.stopPropagation(); onAnalytics(record); }} title="Аналитика">📊</button>
       <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>
     </li>
   );
@@ -102,8 +104,10 @@ export default function TopicLibraryScreen() {
   const buildInfo          = useAppStore((s) => s.buildInfo);
   const activeTopicId      = useAppStore((s) => s.activeTopicId);
   const setActiveTopicId   = useAppStore((s) => s.setActiveTopicId);
+  const activeStudentId    = useAppStore((s) => s.activeStudentId);
 
   const [tab,        setTab]        = useState("mine");
+  const [analyticsTarget, setAnalyticsTarget] = useState(null);
   const [catalog,    setCatalog]    = useState(null);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogErr, setCatalogErr] = useState("");
@@ -242,6 +246,11 @@ export default function TopicLibraryScreen() {
                     onSelect={(r) => { setActiveTopicId(r.meta.id); setScreen("home"); }}
                     onDelete={setDeleting}
                     onInfo={setInfoTopic}
+                    onAnalytics={(r) => setAnalyticsTarget({
+                      studentId:  activeStudentId,
+                      topicId:    r.meta.id,
+                      topicTitle: getTopicTitle(r.meta.title),
+                    })}
                     hasUpdate={hasUpdate}
                   />
                 );
@@ -314,6 +323,17 @@ export default function TopicLibraryScreen() {
         >
           Удалить <strong>{getTopicTitle(deleting.meta.title)}</strong>? История сессий сохранится.
         </Modal>
+      )}
+
+      {analyticsTarget && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "#fff" }}>
+          <AnalyticsScreen
+            studentId={analyticsTarget.studentId}
+            topicId={analyticsTarget.topicId}
+            topicTitle={analyticsTarget.topicTitle}
+            onClose={() => setAnalyticsTarget(null)}
+          />
+        </div>
       )}
     </div>
   );
