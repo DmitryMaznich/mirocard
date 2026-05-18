@@ -10716,15 +10716,16 @@ button {
   font-size: 56px;
   font-weight: 900;
   line-height: 1;
-  color: #3a2e22;
+  color: #c84b2a;
   font-family: Nunito, sans-serif;
   letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(200, 75, 42, 0.25);
 }
 
 .analog-timer-drag-label__unit {
   font-size: 20px;
   font-weight: 600;
-  color: rgba(58, 46, 34, 0.6);
+  color: rgba(200, 75, 42, 0.7);
   font-family: Nunito, sans-serif;
   padding-bottom: 8px;
 }
