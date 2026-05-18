@@ -6,6 +6,7 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, computeSessionRecord } from "./sessionEngine";
 import { buildRewardProgress } from "./rewardProgress";
+import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
 
 const INCORRECT_FEEDBACK_MS = 1500;
 
@@ -45,6 +46,7 @@ export function useSessionEngine() {
       ?? topicRecord?.cards.filter((c) => c.primary).map((c) => c.conceptId)
       ?? [];
   const sessionParams = link.params ?? {};
+  const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
     if (!topicRecord || !mode) return null;
@@ -116,13 +118,15 @@ export function useSessionEngine() {
   const [completedRecord, setCompletedRecord] = useState(null);
 
   async function finishSession(state) {
+    const cardEvents = cardLogger.getCardEvents();
+    cardLogger.resetCardEvents();
     const finalRewardProgress = buildRewardProgress({
       sessionState: state,
       mode: state.mode,
       ...rewardConfig,
     });
     const record = {
-      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version),
+      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents),
       reward: {
         videoEnabled: Boolean(rewardConfig.videoRewardEnabled),
         videoAvailable: finalRewardProgress.available,
@@ -233,5 +237,8 @@ export function useSessionEngine() {
     onMistake,
     onAdvance,
     onQualityAnswer,
+    onCardShown: cardLogger.onCardShown,
+    onTap:       cardLogger.onTap,
+    onQuality:   cardLogger.onQuality,
   };
 }

@@ -28,6 +28,7 @@ export default function SessionScreen() {
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
     completedRecord, rewardProgress, onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
+    onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
   const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
@@ -220,6 +221,9 @@ export default function SessionScreen() {
             onMistake={handleMistake}
             onAdvance={requestAdvance}
             onQualityAnswer={onQualityAnswer}
+            onCardShown={onCardShown}
+            onTap={onTap}
+            onQuality={onQuality}
           />
         </div>
       ) : !rendererReady ? (

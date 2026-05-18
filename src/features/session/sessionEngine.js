@@ -55,7 +55,7 @@ export function handleAdvance(state) {
   return { ...state, status: "task_active", taskIndex: nextIndex };
 }
 
-export function computeSessionRecord(state, studentId, topicId, topicVersion) {
+export function computeSessionRecord(state, studentId, topicId, topicVersion, cardEvents = []) {
   const isEvaluated = state.mode.evaluation !== "none";
 
   let correctCount, incorrectCount, percentCorrect;
@@ -87,6 +87,7 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion) {
     percentCorrect,
     mistakes:       state.mistakes,
     assessments:    state.assessments?.length ? state.assessments : undefined,
+    cardEvents:     cardEvents.length ? cardEvents : undefined,
   };
   if (!record.textId) delete record.textId;
   return record;
