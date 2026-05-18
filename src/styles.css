@@ -16683,3 +16683,144 @@ body { background: #eef0ef; }
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* ─── Audio step overrides ──────────────────────────────────────────────────── */
+
+.instruction-audio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.instruction-audio-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #f7f7f7;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.12s;
+}
+
+.instruction-audio-item:active {
+  background: #eef2ff;
+}
+
+.instruction-audio-item--recorded {
+  border-color: #b3c8f5;
+  background: #f0f4ff;
+}
+
+.instruction-audio-num {
+  flex-shrink: 0;
+  min-width: 24px;
+  font-weight: 700;
+  color: #888;
+  font-size: 13px;
+}
+
+.instruction-audio-text {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.instruction-audio-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary, #5b8def);
+}
+
+/* ─── Audio record dialog ────────────────────────────────────────────────────── */
+
+.audio-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 8px;
+  min-width: 260px;
+}
+
+.audio-dialog-step-text {
+  font-size: 15px;
+  color: #222;
+  line-height: 1.45;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.audio-dialog-hint {
+  color: #aaa;
+  font-size: 14px;
+  text-align: center;
+}
+
+.audio-dialog-recording {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.audio-dialog-timer {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e55;
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+}
+
+.audio-dialog-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.audio-dialog-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.audio-dialog-btn--record {
+  background: #fff0f0;
+  border-color: #f5b8b8;
+  color: #c33;
+}
+
+.audio-dialog-btn--stop {
+  background: #fff0f0;
+  border-color: #f5b8b8;
+  color: #c33;
+}
+
+.audio-dialog-btn--save {
+  background: var(--color-primary, #5b8def);
+  border-color: var(--color-primary, #5b8def);
+  color: #fff;
+}
+
+.audio-dialog-btn--save:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.audio-dialog-btn--delete {
+  background: #fff5f5;
+  border-color: #f5c0c0;
+  color: #b33;
+}
