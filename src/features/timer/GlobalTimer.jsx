@@ -64,7 +64,7 @@ export default function GlobalTimer({ rewardVideos = [] }) {
         {tabMM !== null ? (
           <span className="global-timer-tab__time">
             <span className="global-timer-tab__mm">{tabMM}</span>
-            <span className="global-timer-tab__sep">·</span>
+            <span className="global-timer-tab__sep">:</span>
             <span className="global-timer-tab__ss">{tabSS}</span>
           </span>
         ) : (
