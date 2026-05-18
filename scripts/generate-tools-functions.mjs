@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.6";
+const VERSION = "1.3.7";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -279,7 +279,7 @@ async function run() {
         type: "question_answer",
         evaluation: "none",
         ui: { title: "Что это?", instruction: "Что это?", ...icon("question_answer") },
-        ...(ANSWER_PREFIX_AUDIO ? { answerPrefixAudio: ANSWER_PREFIX_AUDIO } : {}),
+        ...(ANSWER_PREFIX_AUDIO ? { answerPrefixAudio: ANSWER_PREFIX_AUDIO, answerPrefix: "Это" } : {}),
         params: {
           useKeyboard: {
             type: "boolean",

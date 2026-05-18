@@ -112,7 +112,7 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
       <div className="session-instruction">{getTopicTitle(mode.ui.instruction)}</div>
       <CardArea topicId={topicId} card={task.card} />
       <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
-        {task.label}
+        {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
       </div>
       <div className="qa-row">
         {QA_BUTTONS.map((btn, i) => (
