@@ -1,14 +1,29 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 
-// Extract TTS engine identifier from a voiceURI.
-// Android Chrome: "com.google.android.tts:ru-RU" → "com.google.android.tts"
-// Desktop/iOS: "Google UK English Female" or "com.apple.voice.compact.en-US.Nicky"
+// Known TTS engine patterns — tested against voiceURI + voice name (case-insensitive)
+const ENGINE_PATTERNS = [
+  { pattern: /google/i,           id: "google",    label: "Google TTS" },
+  { pattern: /samsung|smt/i,      id: "samsung",   label: "Samsung TTS" },
+  { pattern: /apple/i,            id: "apple",     label: "Apple TTS" },
+  { pattern: /microsoft/i,        id: "microsoft", label: "Microsoft TTS" },
+  { pattern: /amazon|polly/i,     id: "amazon",    label: "Amazon TTS" },
+  { pattern: /nuance/i,           id: "nuance",    label: "Nuance TTS" },
+];
+
+// Returns a stable engine ID for a voice by scanning both voiceURI and name.
 export function getVoiceEngineId(voice) {
-  const uri = voice.voiceURI ?? "";
-  if (uri.includes(":")) return uri.split(":")[0];
-  // No colon: use brand prefix from voice name
-  return voice.name.split(" ")[0].toLowerCase();
+  const hay = `${voice.voiceURI ?? ""} ${voice.name ?? ""}`;
+  for (const { pattern, id } of ENGINE_PATTERNS) {
+    if (pattern.test(hay)) return id;
+  }
+  // Fallback: first non-empty token from voiceURI or name
+  return (voice.voiceURI || voice.name || "unknown").split(/[\s:/?#]+/)[0].toLowerCase();
+}
+
+// Human-readable label for a known engine ID.
+export function getEngineLabel(engineId) {
+  return ENGINE_PATTERNS.find((e) => e.id === engineId)?.label ?? engineId;
 }
 
 export function useSpeech() {
@@ -32,15 +47,10 @@ export function useSpeech() {
 
     const voices = synth.getVoices();
     if (ttsEngine) {
-      // Find Russian voice from the selected engine
       const engineVoices = voices.filter((v) => getVoiceEngineId(v) === ttsEngine);
       const ruVoice = engineVoices.find((v) => v.lang.startsWith("ru")) ?? engineVoices[0];
-      if (ruVoice) {
-        utterance.voice = ruVoice;
-        utterance.lang = ruVoice.lang;
-      }
+      if (ruVoice) { utterance.voice = ruVoice; utterance.lang = ruVoice.lang; }
     } else {
-      // No engine selected — pick first Russian voice (device default behaviour)
       const ruVoice = voices.find((v) => v.lang.startsWith("ru"));
       if (ruVoice) utterance.voice = ruVoice;
     }
