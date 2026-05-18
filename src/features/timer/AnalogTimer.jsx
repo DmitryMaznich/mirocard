@@ -462,60 +462,81 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
       onTouchMove={(event) => { handleDragMove(event); if (event.cancelable) event.preventDefault(); }}
       onTouchEnd={handleDragEnd}
     >
-      <circle cx="100" cy="100" r="90" fill="#fffdf9" stroke="rgba(38,49,49,0.1)" strokeWidth="1.5" />
-      <path d={analogTimerSectorPath(sectorMin)} fill={listenMode && running ? "rgba(92, 155, 127, 0.76)" : "rgba(216, 119, 91, 0.78)"} />
+      <defs>
+        <radialGradient id="at-face" cx="50%" cy="42%" r="58%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#f0e5d8" />
+        </radialGradient>
+        <radialGradient id="at-sector" cx="100" cy="100" r="90" gradientUnits="userSpaceOnUse">
+          <stop offset="15%" stopColor="rgba(228,118,76,0.58)" />
+          <stop offset="100%" stopColor="rgba(182,54,20,0.92)" />
+        </radialGradient>
+        <radialGradient id="at-sector-listen" cx="100" cy="100" r="90" gradientUnits="userSpaceOnUse">
+          <stop offset="15%" stopColor="rgba(100,168,138,0.58)" />
+          <stop offset="100%" stopColor="rgba(42,112,86,0.92)" />
+        </radialGradient>
+      </defs>
+
+      <circle cx="100" cy="100" r="90" fill="url(#at-face)" />
+      <path d={analogTimerSectorPath(sectorMin)} fill={`url(#at-sector${listenMode && running ? "-listen" : ""})`} />
+
       {Array.from({ length: 60 }, (_, index) => {
         const min = index;
         const is15 = min % 15 === 0;
         const is5 = min % 5 === 0;
-        const outer = analogTimerMinuteToPoint(min, 87);
-        const inner = analogTimerMinuteToPoint(min, is15 ? 72 : is5 ? 77 : 83);
-        const label = analogTimerMinuteToPoint(min, is15 ? 60 : 64);
+
+        if (!is5) {
+          const dot = analogTimerMinuteToPoint(min, 85);
+          return <circle key={min} cx={dot.x.toFixed(1)} cy={dot.y.toFixed(1)} r="1.3" fill="rgba(58,44,32,0.2)" />;
+        }
+
+        const outer = analogTimerMinuteToPoint(min, 88);
+        const inner = analogTimerMinuteToPoint(min, is15 ? 70 : 79);
+        const labelPos = analogTimerMinuteToPoint(min, is15 ? 58 : 66);
         return (
           <g key={min}>
             <line
-              x1={outer.x.toFixed(1)}
-              y1={outer.y.toFixed(1)}
-              x2={inner.x.toFixed(1)}
-              y2={inner.y.toFixed(1)}
-              stroke={is15 ? "rgba(38,49,49,0.75)" : is5 ? "rgba(38,49,49,0.45)" : "rgba(38,49,49,0.25)"}
-              strokeWidth={is15 ? 2 : is5 ? 1.2 : 0.7}
+              x1={outer.x.toFixed(1)} y1={outer.y.toFixed(1)}
+              x2={inner.x.toFixed(1)} y2={inner.y.toFixed(1)}
+              stroke={is15 ? "rgba(58,44,32,0.82)" : "rgba(58,44,32,0.46)"}
+              strokeWidth={is15 ? 2.5 : 1.6}
+              strokeLinecap="round"
             />
-            {is5 && (
-              <text
-                x={label.x.toFixed(1)}
-                y={label.y.toFixed(1)}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill={is15 ? "rgba(38,49,49,0.7)" : "rgba(38,49,49,0.5)"}
-                fontSize={is15 ? "8" : "4.5"}
-                fontFamily="Nunito, sans-serif"
-                fontWeight="700"
-              >
-                {min === 0 ? "0" : min}
-              </text>
-            )}
+            <text
+              x={labelPos.x.toFixed(1)} y={labelPos.y.toFixed(1)}
+              textAnchor="middle" dominantBaseline="central"
+              fill={is15 ? "rgba(58,44,32,0.8)" : "rgba(58,44,32,0.52)"}
+              fontSize={is15 ? "10" : "6.5"}
+              fontFamily="Nunito, sans-serif"
+              fontWeight={is15 ? "800" : "700"}
+            >
+              {min === 0 ? "0" : min}
+            </text>
           </g>
         );
       })}
+
       {running && (
         <g className="analog-timer-second-hand" aria-hidden="true">
           <line
-            x1={secondHandTailPoint.x.toFixed(1)}
-            y1={secondHandTailPoint.y.toFixed(1)}
-            x2={secondHandPoint.x.toFixed(1)}
-            y2={secondHandPoint.y.toFixed(1)}
-            stroke="rgba(38,49,49,0.82)"
-            strokeWidth="1.8"
-            strokeLinecap="round"
+            x1={secondHandTailPoint.x.toFixed(1)} y1={secondHandTailPoint.y.toFixed(1)}
+            x2={secondHandPoint.x.toFixed(1)} y2={secondHandPoint.y.toFixed(1)}
+            stroke="#c84b2a" strokeWidth="1.5" strokeLinecap="round"
           />
-          <circle cx="100" cy="100" r="3.8" fill="#fffdf9" stroke="rgba(38,49,49,0.78)" strokeWidth="1.5" />
+          <circle cx="100" cy="100" r="3" fill="#c84b2a" />
         </g>
       )}
+
       {(() => {
         const knob = analogTimerMinuteToPoint(sectorMin, 90);
-        return <circle cx={knob.x.toFixed(1)} cy={knob.y.toFixed(1)} r="6" fill="#a75943" />;
+        return (
+          <>
+            <circle cx={knob.x.toFixed(1)} cy={knob.y.toFixed(1)} r="8.5" fill="#c84b2a" />
+            <circle cx={knob.x.toFixed(1)} cy={knob.y.toFixed(1)} r="3.5" fill="rgba(255,255,255,0.62)" />
+          </>
+        );
       })()}
+
       <g
         className={centerButtonClassName}
         role="button"
@@ -543,13 +564,11 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
         }}
         onPointerCancel={() => setCenterPressed(false)}
       >
-        <circle className="analog-timer-center-button__shadow" cx="100" cy="101.3" r="17.2" />
-        <circle className="analog-timer-center-button__outer" cx="100" cy="100" r="16.2" />
-        <circle className="analog-timer-center-button__inner" cx="100" cy="98.7" r="12.8" />
+        <circle className="analog-timer-center-button__bg" cx="100" cy="100" r="21" />
         {running ? (
-          <rect className="analog-timer-center-button__icon analog-timer-center-button__icon--stop" x="94.7" y="94.7" width="10.6" height="10.6" rx="2.4" />
+          <rect className="analog-timer-center-button__icon analog-timer-center-button__icon--stop" x="91.5" y="91.5" width="17" height="17" rx="3.5" />
         ) : (
-          <path className="analog-timer-center-button__icon analog-timer-center-button__icon--play" d="M96 92.8 L108.6 100 L96 107.2 Z" />
+          <path className="analog-timer-center-button__icon analog-timer-center-button__icon--play" d="M96 91.5 L114 100 L96 108.5 Z" />
         )}
       </g>
     </svg>

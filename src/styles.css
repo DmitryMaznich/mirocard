@@ -11111,59 +11111,39 @@ button {
 .analog-timer-center-button {
   cursor: pointer;
   transform-origin: 100px 100px;
-  transition: transform 0.16s ease, opacity 0.16s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
 .analog-timer-center-button.is-disabled {
   cursor: default;
-  opacity: 0.56;
+  opacity: 0.45;
 }
 
 .analog-timer-center-button.is-pressed {
-  transform: scale(0.92);
+  transform: scale(0.91);
 }
 
-.analog-timer-center-button__shadow {
-  fill: rgba(73, 56, 43, 0.14);
-  transition: opacity 0.16s ease, transform 0.16s ease;
+.analog-timer-center-button__bg {
+  fill: #4a9e90;
+  transition: fill 0.18s ease;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.22));
 }
 
-.analog-timer-center-button__outer {
-  fill: #5f9e94;
-  stroke: rgba(255, 255, 255, 0.75);
-  stroke-width: 1.6;
-  transition: fill 0.16s ease, stroke 0.16s ease;
+.analog-timer-center-button.is-running .analog-timer-center-button__bg {
+  fill: #c84b2a;
+  filter: drop-shadow(0 3px 8px rgba(200, 75, 42, 0.32));
 }
 
-.analog-timer-center-button__inner {
-  fill: rgba(255, 255, 255, 0.22);
-  transition: fill 0.16s ease;
+.analog-timer-center-button.is-disabled .analog-timer-center-button__bg {
+  fill: #b8c8c5;
+  filter: none;
 }
 
 .analog-timer-center-button__icon {
-  fill: #fffdf9;
-}
-
-.analog-timer-center-button.is-running .analog-timer-center-button__outer {
-  fill: #b76d57;
-}
-
-.analog-timer-center-button.is-running .analog-timer-center-button__inner {
-  fill: rgba(255, 255, 255, 0.16);
-}
-
-.analog-timer-center-button.is-pressed .analog-timer-center-button__shadow {
-  opacity: 0.08;
-}
-
-.analog-timer-center-button.is-disabled .analog-timer-center-button__outer {
-  fill: #b5c4c1;
-}
-
-.analog-timer-center-button.is-disabled .analog-timer-center-button__inner {
-  fill: rgba(255, 255, 255, 0.12);
+  fill: #ffffff;
+  pointer-events: none;
 }
 
 .analog-timer-reward-bar {
