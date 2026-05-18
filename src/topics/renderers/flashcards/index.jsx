@@ -101,28 +101,21 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
       <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
         {task.label}
       </div>
-      {useKeyboard ? (
-        <div className="qa-keyboard-hint">
-          {QA_BUTTONS.map((btn) => (
-            <span key={btn.value} className={`qa-keyboard-key qa-keyboard-key--${btn.mod}`}>
-              <kbd>{QA_BUTTONS.indexOf(btn) + 1}</kbd> {btn.label}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <div className="qa-row">
-          {QA_BUTTONS.map((btn) => (
-            <button
-              key={btn.value}
-              className={`qa-btn qa-btn--${btn.mod}`}
-              disabled={revealed}
-              onClick={() => handleQuality(btn.value)}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="qa-row">
+        {QA_BUTTONS.map((btn, i) => (
+          <button
+            key={btn.value}
+            className={`qa-btn qa-btn--${btn.mod}`}
+            disabled={revealed}
+            onClick={() => handleQuality(btn.value)}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
+      <p className="qa-legend">
+        {QA_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
+      </p>
     </div>
   );
 }
