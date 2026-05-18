@@ -77,6 +77,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   const [finished, setFinished] = useState(false);
   const [earningsOpen, setEarningsOpen] = useState(false);
   const [centerPressed, setCenterPressed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [rewardTotalSeconds, setRewardTotalSeconds] = useState(0);
   const [rewardSecondsLeft, setRewardSecondsLeft] = useState(0);
   const [rewardPlaybackNonce, setRewardPlaybackNonce] = useState(0);
@@ -366,6 +367,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   function handleDragStart(event) {
     if (running) return;
     draggingRef.current = true;
+    setIsDragging(true);
     lastMinuteRef.current = setMinutes;
     handleDragMove(event);
   }
@@ -390,6 +392,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
 
   function handleDragEnd() {
     draggingRef.current = false;
+    setIsDragging(false);
     setCenterPressed(false);
   }
 
@@ -556,7 +559,17 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   );
 
   if (clockOnly) {
-    return clockSvg;
+    return (
+      <div className="analog-timer-clock-only-wrap">
+        {isDragging && setMinutes > 0 && (
+          <div className="analog-timer-drag-label">
+            <span className="analog-timer-drag-label__value">{setMinutes}</span>
+            <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
+          </div>
+        )}
+        {clockSvg}
+      </div>
+    );
   }
 
   return (
@@ -670,6 +683,12 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
         ) : (
           <>
             <div className="analog-timer-clock-wrap">
+              {isDragging && setMinutes > 0 && (
+                <div className="analog-timer-drag-label">
+                  <span className="analog-timer-drag-label__value">{setMinutes}</span>
+                  <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
+                </div>
+              )}
               {clockSvg}
             </div>
 

@@ -10682,13 +10682,56 @@ button {
   overscroll-behavior: contain;
 }
 
+.analog-timer-clock-only-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .analog-timer-clock-wrap {
+  position: relative;
   flex: 1;
   width: 100%;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.analog-timer-drag-label {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+  animation: drag-label-in 0.12s ease both;
+  z-index: 10;
+}
+
+.analog-timer-drag-label__value {
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 1;
+  color: #3a2e22;
+  font-family: Nunito, sans-serif;
+  letter-spacing: -1px;
+}
+
+.analog-timer-drag-label__unit {
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(58, 46, 34, 0.6);
+  font-family: Nunito, sans-serif;
+  padding-bottom: 8px;
+}
+
+@keyframes drag-label-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .analog-timer-clock-wrap svg {
@@ -16462,6 +16505,11 @@ body { background: #eef0ef; }
   height: var(--gt-clock-size);
   pointer-events: all;
   filter: drop-shadow(0 6px 40px rgba(0, 0, 0, 0.22));
+}
+
+.global-timer__clock .analog-timer-clock-only-wrap {
+  width: 100%;
+  height: 100%;
 }
 
 .global-timer__clock svg {
