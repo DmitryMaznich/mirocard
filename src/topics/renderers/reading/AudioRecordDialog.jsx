@@ -28,12 +28,25 @@ export default function AudioRecordDialog({ topicId, textId, stepNum, stepText, 
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
+    } catch (err) {
+      console.error("getUserMedia failed:", err);
       alert("Нет доступа к микрофону");
       return;
     }
     chunksRef.current = [];
-    const mr = new MediaRecorder(stream, { audioBitsPerSecond: 16000 });
+    let mr;
+    try {
+      mr = new MediaRecorder(stream, { audioBitsPerSecond: 16000 });
+    } catch {
+      try {
+        mr = new MediaRecorder(stream);
+      } catch (err2) {
+        console.error("MediaRecorder init failed:", err2);
+        stream.getTracks().forEach((t) => t.stop());
+        alert("Запись аудио не поддерживается в этом браузере");
+        return;
+      }
+    }
     mr.stream = stream;
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     mr.onstop = () => {
