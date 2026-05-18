@@ -47,7 +47,6 @@ export default function AudioRecordDialog({ topicId, textId, stepNum, stepText, 
         return;
       }
     }
-    mr.stream = stream;
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     mr.onstop = () => {
       stream.getTracks().forEach((t) => t.stop());
