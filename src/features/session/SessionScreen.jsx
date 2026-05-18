@@ -4,7 +4,7 @@ import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
 import { useAudio } from "@/shared/hooks/useAudio";
-import ProgressBar from "@/shared/components/ProgressBar";
+import StarBar from "@/shared/components/StarBar";
 import { getTopicTitle } from "@/shared/utils/format";
 
 const ADVANCE_GATE_IDLE = "idle";
@@ -145,11 +145,12 @@ export default function SessionScreen() {
     <div className="session-screen">
       <div className="session-topbar">
         <div className="session-topbar-controls">
-          <ProgressBar
-            value={rewardProgress?.completed ?? taskIndex}
-            max={total}
+          <StarBar
             className="session-progress"
-            reward={rewardProgress}
+            correctCount={correctCount ?? 0}
+            total={total}
+            rewardThreshold={rewardProgress?.threshold}
+            available={rewardProgress?.available ?? false}
           />
           <div className="session-counter">
             {taskIndex + 1} / {total}
