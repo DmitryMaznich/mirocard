@@ -27,7 +27,7 @@ import {
 import {
   createPasswordHash, verifyPasswordHash,
 } from "./lib/security.mjs";
-import { writeJson, writeNoContent, readJsonBody, getBearerToken } from "./lib/http.mjs";
+import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken } from "./lib/http.mjs";
 import { sendPasswordResetEmail } from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
@@ -538,6 +538,68 @@ async function handleVersion(req, res) {
   }
 }
 
+// ─── Audio Overrides ──────────────────────────────────────────────────────────
+
+async function handleListAudioOverrides(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const topicId = url.searchParams.get("topicId");
+  const textId  = url.searchParams.get("textId");
+  if (!topicId || !textId) throw { status: 400, message: "topicId and textId required" };
+  const rows = db.prepare(
+    "SELECT step_num, byte_size, updated_at FROM audio_overrides WHERE account_id=? AND topic_id=? AND text_id=?"
+  ).all(account.id, topicId, textId);
+  writeJson(res, 200, rows.map((r) => ({ stepNum: r.step_num, byteSize: r.byte_size, updatedAt: r.updated_at })));
+}
+
+async function handlePutAudioOverride(req, res) {
+  const account = requireAuth(req);
+  const parts = normalizeApiPath(new URL(req.url, "http://localhost").pathname).split("/").filter(Boolean);
+  // parts: ["audio-overrides", topicId, textId, stepNum]
+  const [, topicId, textId, stepNumStr] = parts;
+  const stepNum = parseInt(stepNumStr, 10);
+  if (!topicId || !textId || isNaN(stepNum)) throw { status: 400, message: "Invalid path" };
+  const body = await readRawBody(req, 2 * 1024 * 1024);
+  if (body.length === 0) throw { status: 400, message: "Empty body" };
+  const contentType = req.headers["content-type"] || "audio/webm;codecs=opus";
+  const now = Date.now();
+  db.prepare(`
+    INSERT INTO audio_overrides(account_id, topic_id, text_id, step_num, audio_data, content_type, byte_size, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(account_id, topic_id, text_id, step_num)
+    DO UPDATE SET audio_data=excluded.audio_data, content_type=excluded.content_type,
+                  byte_size=excluded.byte_size, updated_at=excluded.updated_at
+  `).run(account.id, topicId, textId, stepNum, body, contentType, body.length, now);
+  writeJson(res, 200, { ok: true, byteSize: body.length, updatedAt: now });
+}
+
+async function handleGetAudioOverrideData(req, res) {
+  const account = requireAuth(req);
+  const parts = normalizeApiPath(new URL(req.url, "http://localhost").pathname).split("/").filter(Boolean);
+  // parts: ["audio-overrides", topicId, textId, stepNum, "data"]
+  const [, topicId, textId, stepNumStr] = parts;
+  const stepNum = parseInt(stepNumStr, 10);
+  if (!topicId || !textId || isNaN(stepNum)) throw { status: 400, message: "Invalid path" };
+  const row = db.prepare(
+    "SELECT audio_data, content_type FROM audio_overrides WHERE account_id=? AND topic_id=? AND text_id=? AND step_num=?"
+  ).get(account.id, topicId, textId, stepNum);
+  if (!row) throw { status: 404, message: "Not found" };
+  writeAudio(res, row.audio_data, row.content_type);
+}
+
+async function handleDeleteAudioOverride(req, res) {
+  const account = requireAuth(req);
+  const parts = normalizeApiPath(new URL(req.url, "http://localhost").pathname).split("/").filter(Boolean);
+  // parts: ["audio-overrides", topicId, textId, stepNum]
+  const [, topicId, textId, stepNumStr] = parts;
+  const stepNum = parseInt(stepNumStr, 10);
+  if (!topicId || !textId || isNaN(stepNum)) throw { status: 400, message: "Invalid path" };
+  db.prepare(
+    "DELETE FROM audio_overrides WHERE account_id=? AND topic_id=? AND text_id=? AND step_num=?"
+  ).run(account.id, topicId, textId, stepNum);
+  writeJson(res, 200, { ok: true });
+}
+
 // ─── Router ────────────────────────────────────────────────────────────────────
 
 async function router(req, res) {
@@ -583,6 +645,12 @@ async function router(req, res) {
 
     // Sync
     if (method === "POST"   && p === "/sync")                     return await handleSync(req, res);
+
+    // Audio overrides
+    if (method === "GET"    && p === "/audio-overrides")                                        return await handleListAudioOverrides(req, res);
+    if (method === "PUT"    && /^\/audio-overrides\/[^/]+\/[^/]+\/\d+$/.test(p))               return await handlePutAudioOverride(req, res);
+    if (method === "GET"    && /^\/audio-overrides\/[^/]+\/[^/]+\/\d+\/data$/.test(p))         return await handleGetAudioOverrideData(req, res);
+    if (method === "DELETE" && /^\/audio-overrides\/[^/]+\/[^/]+\/\d+$/.test(p))               return await handleDeleteAudioOverride(req, res);
 
     // Admin + push
     if (method === "POST"   && p === "/admin/notify-app-update")    return await handleNotifyAppUpdate(req, res);
