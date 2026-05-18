@@ -58,7 +58,11 @@ export default function GlobalTimer({ rewardVideos = [] }) {
         aria-label="Таймер"
       >
         {showCountdown ? (
-          <span className="global-timer__tab-time">{formatTabTime(timeLeft)}</span>
+          <span className="global-timer__tab-time">
+            <span className="global-timer__tab-time-mm">{String(Math.floor(timeLeft / 60)).padStart(2, "0")}</span>
+            <span className="global-timer__tab-time-sep">·</span>
+            <span className="global-timer__tab-time-ss">{String(timeLeft % 60).padStart(2, "0")}</span>
+          </span>
         ) : (
           <span className="global-timer__tab-icon">⏱</span>
         )}

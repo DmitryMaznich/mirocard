@@ -16477,7 +16477,7 @@ body { background: #eef0ef; }
 
 :root {
   --gt-clock-size: min(90vw, 88vh);
-  --gt-tab-w: 32px;
+  --gt-tab-w: 44px;
 }
 
 .global-timer {
@@ -16521,7 +16521,7 @@ body { background: #eef0ef; }
 
 .global-timer__tab {
   flex: 0 0 var(--gt-tab-w);
-  height: 72px;
+  height: 90px;
   align-self: center;
   background: #fffdf9;
   border: none;
@@ -16560,17 +16560,31 @@ body { background: #eef0ef; }
 }
 
 .global-timer__tab-time {
-  font-size: 11px;
-  font-family: ui-monospace, "Courier New", monospace;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #3a2e22;
-  white-space: nowrap;
-  transform: rotate(-90deg);
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
 }
 
-.global-timer__tab--paused .global-timer__tab-time {
+.global-timer__tab-time-mm,
+.global-timer__tab-time-ss {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  font-family: ui-monospace, "Courier New", monospace;
+  color: #3a2e22;
+  letter-spacing: -0.5px;
+}
+
+.global-timer__tab-time-sep {
+  font-size: 9px;
+  line-height: 1;
+  color: rgba(58, 46, 34, 0.45);
+}
+
+.global-timer__tab--paused .global-timer__tab-time-mm,
+.global-timer__tab--paused .global-timer__tab-time-ss,
+.global-timer__tab--paused .global-timer__tab-time-sep {
   color: #8a7a68;
 }
 
