@@ -36,6 +36,9 @@ export const SMTP_PASS    = readEnv("SMTP_PASS");
 export const SMTP_FROM    = readEnv("SMTP_FROM") || "Mirocard <noreply@mirocard.app>";
 export const APP_BASE_URL = readEnv("APP_BASE_URL") || "http://localhost:5174";
 
+// Anthropic
+export const ANTHROPIC_API_KEY = readEnv("ANTHROPIC_API_KEY");
+
 // Push
 export const VAPID_PUBLIC_KEY  = readEnv("VAPID_PUBLIC_KEY");
 export const VAPID_PRIVATE_KEY = readEnv("VAPID_PRIVATE_KEY");
