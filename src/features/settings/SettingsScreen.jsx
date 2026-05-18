@@ -216,6 +216,15 @@ export default function SettingsScreen() {
       </div>
 
       <div className="settings-section" style={{ borderTop: "1px dashed #ddd", marginTop: 8 }}>
+        <div className="settings-section-title" style={{ color: "#bbb" }}>Dev · голоса (raw)</div>
+        <div style={{ padding: "4px 12px 8px", fontSize: 11, color: "#888", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+          {voices.length === 0 ? "пусто" : voices.map((v, i) =>
+            `[${i}] uri="${v.voiceURI}" name="${v.name}" lang="${v.lang}"`
+          ).join("\n")}
+        </div>
+      </div>
+
+      <div className="settings-section" style={{ borderTop: "1px dashed #ddd", marginTop: 8 }}>
         <div className="settings-section-title" style={{ color: "#bbb" }}>Dev · тест экрана завершения</div>
         <div style={{ display: "flex", gap: 8, padding: "8px 12px", flexWrap: "wrap" }}>
           {[100, 90, 75, 50, 30].map((pct) => (
