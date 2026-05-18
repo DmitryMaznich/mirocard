@@ -1,8 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
+import { getVoiceEngineId } from "@/shared/hooks/useSpeech";
+
+// Convert a TTS engine ID to a human-readable label.
+// engineId is typically a package name (Android) or a short brand string (desktop/iOS).
+function engineLabel(engineId, sampleVoiceName = "") {
+  const s = (engineId + " " + sampleVoiceName).toLowerCase();
+  if (s.includes("google")) return "Google TTS";
+  if (s.includes("samsung")) return "Samsung TTS";
+  if (s.includes("apple")) return "Apple TTS";
+  if (s.includes("microsoft")) return "Microsoft TTS";
+  if (s.includes("nuance")) return "Nuance TTS";
+  if (s.includes("ivona")) return "IVONA TTS";
+  // Fallback: pick the most meaningful dot-segment
+  const parts = engineId.split(/[.\-_:]/);
+  const skip = new Set(["com", "org", "net", "android", "voice", "tts", "speech"]);
+  const meaningful = parts.find((p) => p.length > 2 && !skip.has(p));
+  if (meaningful) return meaningful[0].toUpperCase() + meaningful.slice(1) + " TTS";
+  return engineId;
+}
 
 function fakeSession(pct, studentId, topicId) {
   const total = 10;
@@ -52,7 +71,7 @@ export default function SettingsScreen() {
 
   const [confirmLogout, setConfirmLogout] = useState(false);
 
-  // TTS voice list (loaded asynchronously — Chrome fires voiceschanged)
+  // Load all voices (Chrome on Android fires voiceschanged asynchronously)
   const [voices, setVoices] = useState([]);
   useEffect(() => {
     function load() {
@@ -64,21 +83,32 @@ export default function SettingsScreen() {
     return () => window.speechSynthesis?.removeEventListener("voiceschanged", load);
   }, []);
 
-  function testVoice() {
+  // Group voices by engine, keep only unique engines
+  const engines = useMemo(() => {
+    const seen = new Map(); // engineId → label
+    for (const v of voices) {
+      const id = getVoiceEngineId(v);
+      if (!seen.has(id)) seen.set(id, engineLabel(id, v.name));
+    }
+    return Array.from(seen.entries()).map(([id, label]) => ({ id, label }));
+  }, [voices]);
+
+  function testEngine() {
     const synth = window.speechSynthesis;
     if (!synth) return;
     synth.cancel();
     const utt = new SpeechSynthesisUtterance("Привет! Это тестовое сообщение.");
-    const uri = settings.ttsVoiceUri ?? "";
-    if (uri) {
-      const v = voices.find((v) => v.voiceURI === uri);
+    utt.rate = 0.88;
+    const engineId = settings.ttsEngine ?? "";
+    if (engineId) {
+      const v = voices.find((v) => getVoiceEngineId(v) === engineId && v.lang.startsWith("ru"))
+             ?? voices.find((v) => getVoiceEngineId(v) === engineId);
       if (v) { utt.voice = v; utt.lang = v.lang; }
     } else {
       utt.lang = "ru-RU";
       const ru = voices.find((v) => v.lang.startsWith("ru"));
       if (ru) utt.voice = ru;
     }
-    utt.rate = 0.88;
     synth.speak(utt);
   }
 
@@ -180,26 +210,24 @@ export default function SettingsScreen() {
         <div className="settings-section">
           <div className="settings-section-title">Синтез речи (TTS)</div>
           <div className="settings-row settings-row--col">
-            <span className="settings-row__label">Голос</span>
+            <span className="settings-row__label">Движок</span>
             <div className="settings-voice-row">
               <select
                 className="settings-voice-select"
-                value={settings.ttsVoiceUri ?? ""}
-                onChange={(e) => handlePatchSettings({ ttsVoiceUri: e.target.value })}
+                value={settings.ttsEngine ?? ""}
+                onChange={(e) => handlePatchSettings({ ttsEngine: e.target.value })}
               >
                 <option value="">По умолчанию (устройство)</option>
-                {voices.map((v) => (
-                  <option key={v.voiceURI} value={v.voiceURI}>
-                    {v.name}{v.default ? " ✓" : ""} · {v.lang}
-                  </option>
+                {engines.map(({ id, label }) => (
+                  <option key={id} value={id}>{label}</option>
                 ))}
               </select>
-              <button className="settings-voice-test-btn" onClick={testVoice} title="Проверить голос">
+              <button className="settings-voice-test-btn" onClick={testEngine} title="Проверить">
                 ▶
               </button>
             </div>
             {voices.length === 0 && (
-              <span className="settings-voice-hint">Голоса недоступны или загружаются…</span>
+              <span className="settings-voice-hint">Голоса не обнаружены или загружаются…</span>
             )}
           </div>
         </div>

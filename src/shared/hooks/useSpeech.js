@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 
+// Extract TTS engine identifier from a voiceURI.
+// Android Chrome: "com.google.android.tts:ru-RU" → "com.google.android.tts"
+// Desktop/iOS: "Google UK English Female" or "com.apple.voice.compact.en-US.Nicky"
+export function getVoiceEngineId(voice) {
+  const uri = voice.voiceURI ?? "";
+  if (uri.includes(":")) return uri.split(":")[0];
+  // No colon: use brand prefix from voice name
+  return voice.name.split(" ")[0].toLowerCase();
+}
+
 export function useSpeech() {
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null);
-  const ttsVoiceUri = useAppStore((s) => s.settings?.ttsVoiceUri ?? "");
+  const ttsEngine = useAppStore((s) => s.settings?.ttsEngine ?? "");
 
   useEffect(() => {
     return () => {
@@ -18,25 +28,25 @@ export function useSpeech() {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
     utterance.pitch = pitch;
+    utterance.lang = "ru-RU";
 
     const voices = synth.getVoices();
-    if (ttsVoiceUri) {
-      const selected = voices.find((v) => v.voiceURI === ttsVoiceUri);
-      if (selected) {
-        utterance.voice = selected;
-        utterance.lang = selected.lang;
-      } else {
-        utterance.lang = "ru-RU";
+    if (ttsEngine) {
+      // Find Russian voice from the selected engine
+      const engineVoices = voices.filter((v) => getVoiceEngineId(v) === ttsEngine);
+      const ruVoice = engineVoices.find((v) => v.lang.startsWith("ru")) ?? engineVoices[0];
+      if (ruVoice) {
+        utterance.voice = ruVoice;
+        utterance.lang = ruVoice.lang;
       }
     } else {
-      // No explicit selection — let browser use its default for ru-RU
-      utterance.lang = "ru-RU";
+      // No engine selected — pick first Russian voice (device default behaviour)
       const ruVoice = voices.find((v) => v.lang.startsWith("ru"));
       if (ruVoice) utterance.voice = ruVoice;
     }
 
     synth.speak(utterance);
-  }, [ttsVoiceUri]);
+  }, [ttsEngine]);
 
   const cancel = useCallback(() => {
     synthRef.current?.cancel();
