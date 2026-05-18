@@ -1,4 +1,4 @@
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export function openDb(name = "mirocard") {
   return new Promise((resolve, reject) => {
@@ -14,6 +14,9 @@ export function openDb(name = "mirocard") {
       }
       if (!db.objectStoreNames.contains("syncQueue")) {
         db.createObjectStore("syncQueue", { autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains("audioOverrides")) {
+        db.createObjectStore("audioOverrides");
       }
     };
 
@@ -89,6 +92,29 @@ export const topics = {
       const req = store.delete(range);
       req.onsuccess = () => resolve();
       req.onerror   = () => reject(req.error);
+    });
+  },
+};
+
+// ─── audioOverrides helpers ───────────────────────────────────────────────────
+
+export const audio = {
+  get: (db, key) => req2p(tx(db, "audioOverrides", "readonly").get(key)),
+  set: (db, key, value) => req2p(tx(db, "audioOverrides", "readwrite").put(value, key)),
+  del: (db, key) => req2p(tx(db, "audioOverrides", "readwrite").delete(key)),
+
+  getByPrefix(db, prefix) {
+    return new Promise((resolve, reject) => {
+      const store = tx(db, "audioOverrides", "readonly");
+      const range = IDBKeyRange.bound(prefix, prefix + "￿", false, false);
+      const results = [];
+      const req = store.openCursor(range);
+      req.onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) { results.push({ key: String(cursor.key), value: cursor.value }); cursor.continue(); }
+        else resolve(results);
+      };
+      req.onerror = () => reject(req.error);
     });
   },
 };
