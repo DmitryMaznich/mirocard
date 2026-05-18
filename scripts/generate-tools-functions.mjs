@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.2";
+const VERSION = "1.3.3";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -155,6 +155,20 @@ async function run() {
   let imagesFound = 0;
   let imagesMissing = [];
 
+  // ── Copy audio from tools_basic ──────────────────────────────
+  const basicZipPath = join(ROOT, "public", "decks", "tools_basic_v1.0.0.zip");
+  const basicZip = await JSZip.loadAsync(readFileSync(basicZipPath));
+  const audioMap = {};
+  for (const [path, file] of Object.entries(basicZip.files)) {
+    if (path.startsWith("audio/") && !file.dir) {
+      const buf = await file.async("nodebuffer");
+      zip.file(path, buf);
+      // Extract conceptId from "audio/hammer.mp3" → "hammer"
+      const match = path.match(/^audio\/([^/]+)\.mp3$/);
+      if (match) audioMap[match[1]] = path;
+    }
+  }
+
   function addImage(cardId, zipPath) {
     const srcPath = join(CARDGEN_GENERATED, `${cardId}.webp`);
     if (existsSync(srcPath)) {
@@ -166,6 +180,8 @@ async function run() {
   }
 
   for (const concept of CONCEPTS) {
+    const audioRu = audioMap[concept.id] ? { audio: { ru: audioMap[concept.id] } } : {};
+
     // ── Tool images (3 variations) ──────────────────────────
     for (let v = 1; v <= TOOL_VARIATIONS; v++) {
       const id       = `${concept.id}_tool_${v}`;
@@ -181,6 +197,7 @@ async function run() {
           action: concept.action,
           sceneQuestion: concept.sceneQuestion,
         } : {}),
+        ...audioRu,
         image: filename,
         type: "tool",
         tags: ["tools"],
@@ -451,6 +468,7 @@ async function run() {
   if (imagesMissing.length) console.warn(`   ⚠️  Missing images: ${imagesMissing.join(", ")}`);
   console.log(`   Avatar: ${metaAvatar ? "✓" : "missing"}`);
   console.log(`   Mode icons: ${Object.keys(iconMap).length}/${allModeIconIds.length}`);
+  console.log(`   Audio files copied: ${Object.keys(audioMap).length}`);
   console.log(`   Catalog updated ✓`);
 }
 
