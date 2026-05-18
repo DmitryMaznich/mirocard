@@ -64,16 +64,20 @@ const QA_BUTTONS = [
 
 const KEY_MAP = { "1": "fail", "2": "prompted", "3": "correct", "4": "easy" };
 
-function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onQualityAnswer }) {
+function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
   const audioPath   = getTaskAudioPath(task);
   const useKeyboard = Boolean(sessionParams?.useKeyboard);
   const [revealed,  setRevealed] = useState(false);
 
-  useEffect(() => { setRevealed(false); }, [task]);
+  useEffect(() => {
+    setRevealed(false);
+    onCardShown?.(task.card?.id, task.conceptId);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleQuality(value) {
     if (revealed) return;
     setRevealed(true);
+    onQuality?.(value, task.card?.id, task.conceptId);
     if (audioPath && soundEnabled) playTopicFile(topicId, audioPath);
     setTimeout(() => {
       onQualityAnswer(value, task.conceptId, task.card?.id);
@@ -123,9 +127,14 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   );
 }
 
-function YesNoTask({ task, topicId, onCorrect, onIncorrect }) {
+function YesNoTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  useEffect(() => {
+    onCardShown?.(task.card?.id, task.conceptId);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleAnswer(tappedYes) {
     const correct = tappedYes === task.isLabelCorrect;
+    onTap?.(tappedYes ? "yes" : "no", correct);
     if (correct) onCorrect(task.conceptId, task.card.id);
     else         onIncorrect(task.conceptId, task.card.id);
   }
@@ -154,8 +163,13 @@ function FindNOption({ option, topicId, onClick }) {
   );
 }
 
-function FindNTask({ task, topicId, onCorrect, onIncorrect }) {
+function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  useEffect(() => {
+    onCardShown?.(null, task.targetConceptId);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleOption(option) {
+    onTap?.(option.card.id, option.isTarget);
     if (option.isTarget) onCorrect(task.targetConceptId, option.card.id);
     else                 onIncorrect(task.targetConceptId, option.card.id);
   }
@@ -177,8 +191,13 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect }) {
   );
 }
 
-function ChooseWordTask({ task, topicId, onCorrect, onIncorrect }) {
+function ChooseWordTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  useEffect(() => {
+    onCardShown?.(task.card?.id, task.conceptId);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleOption(option) {
+    onTap?.(option.conceptId, option.isTarget);
     if (option.isTarget) onCorrect(task.conceptId, task.card.id);
     else                 onIncorrect(task.conceptId, task.card.id);
   }
@@ -279,7 +298,7 @@ const TASK_RENDERERS = {
   choose_all:             ChooseAllTask,
 };
 
-export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onAdvance, onQualityAnswer }) {
+export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -294,6 +313,9 @@ export default function FlashcardsRenderer({ task, mode, sessionParams, topicId,
       onIncorrect={onIncorrect}
       onAdvance={onAdvance}
       onQualityAnswer={onQualityAnswer}
+      onCardShown={onCardShown}
+      onTap={onTap}
+      onQuality={onQuality}
     />
   );
 }
