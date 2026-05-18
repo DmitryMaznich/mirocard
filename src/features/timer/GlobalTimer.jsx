@@ -14,15 +14,18 @@ export default function GlobalTimer({ rewardVideos = [] }) {
   const pillRef = useRef(null);
   const swipeRef = useRef(null);
 
-  let pillContent, pillState;
+  let pillText, pillState;
   if (isRunning) {
-    pillContent = formatTime(timeLeft);
+    pillText = formatTime(timeLeft);
     pillState = "running";
   } else if (configMinutes > 0) {
-    pillContent = `${configMinutes} мин`;
+    pillText = `${configMinutes} мин`;
     pillState = "set";
+  } else if (sessionSeconds > 0) {
+    pillText = formatTime(sessionSeconds);
+    pillState = "session";
   } else {
-    pillContent = formatTime(sessionSeconds);
+    pillText = null;
     pillState = "idle";
   }
 
@@ -59,7 +62,8 @@ export default function GlobalTimer({ rewardVideos = [] }) {
         onClick={() => setIsOpen((v) => !v)}
         aria-label="Таймер"
       >
-        {pillContent}
+        <span className="global-timer-pill__icon">⏱</span>
+        {pillText && <span className="global-timer-pill__text">{pillText}</span>}
       </button>
 
       <div

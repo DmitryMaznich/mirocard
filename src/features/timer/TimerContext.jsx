@@ -9,14 +9,22 @@ export function TimerProvider({ children }) {
   const [isRunning, setIsRunning] = useState(false);
   const [configMinutes, setConfigMinutes] = useState(0);
   const [sessionSeconds, setSessionSeconds] = useState(0);
-  const sessionStart = useRef(Date.now());
+  const sessionStart = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setSessionSeconds(Math.floor((Date.now() - sessionStart.current) / 1000));
+      if (sessionStart.current !== null) {
+        setSessionSeconds(Math.floor((Date.now() - sessionStart.current) / 1000));
+      }
     }, 1000);
     return () => clearInterval(id);
   }, []);
+
+  function markSessionStart() {
+    if (sessionStart.current === null) {
+      sessionStart.current = Date.now();
+    }
+  }
 
   return (
     <TimerContext.Provider value={{
@@ -25,6 +33,7 @@ export function TimerProvider({ children }) {
       isRunning, setIsRunning,
       configMinutes, setConfigMinutes,
       sessionSeconds,
+      markSessionStart,
     }}>
       {children}
     </TimerContext.Provider>

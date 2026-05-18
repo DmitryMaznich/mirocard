@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTimer } from "@/features/timer/TimerContext";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
@@ -318,12 +319,14 @@ export default function ParamsScreen() {
   const modeTitle          = getModeTitle(mode);
   const modeInstruction    = getModeInstruction(mode);
   const modeGoal           = getModeGoal(mode);
+  const { markSessionStart } = useTimer();
 
   function startSession() {
     if (isReading && !activeText) {
       setScreen("texts");
       return;
     }
+    markSessionStart();
     persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold });
     setScreen("session");
   }
