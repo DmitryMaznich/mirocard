@@ -135,6 +135,20 @@ export function initDb(dbPath = DB_PATH) {
       data         TEXT NOT NULL,
       created_at   TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS audio_overrides (
+      account_id   TEXT    NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      topic_id     TEXT    NOT NULL,
+      text_id      TEXT    NOT NULL,
+      step_num     INTEGER NOT NULL,
+      audio_data   BLOB    NOT NULL,
+      content_type TEXT    NOT NULL DEFAULT 'audio/webm;codecs=opus',
+      byte_size    INTEGER NOT NULL,
+      updated_at   INTEGER NOT NULL,
+      PRIMARY KEY (account_id, topic_id, text_id, step_num)
+    );
+    CREATE INDEX IF NOT EXISTS idx_audio_overrides_lookup
+      ON audio_overrides(account_id, topic_id, text_id);
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();
