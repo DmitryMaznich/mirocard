@@ -10,6 +10,7 @@ import { getTopicTitle } from "@/shared/utils/format";
 const ADVANCE_GATE_IDLE = "idle";
 const ADVANCE_GATE_WAITING = "waiting";
 const ADVANCE_GATE_READY = "ready";
+const noop = () => {};
 
 function isEditableTarget(target) {
   return target instanceof HTMLElement && (
@@ -218,11 +219,11 @@ export default function SessionScreen() {
             soundEnabled={soundEnabled}
             playFeedback={playFeedback}
             playTopicFile={playTopicFile}
-            onCorrect={handleCorrect}
-            onIncorrect={handleIncorrect}
-            onMistake={handleMistake}
+            onCorrect={isAdvanceGateActive ? noop : handleCorrect}
+            onIncorrect={isAdvanceGateActive ? noop : handleIncorrect}
+            onMistake={isAdvanceGateActive ? noop : handleMistake}
             onAdvance={requestAdvance}
-            onQualityAnswer={onQualityAnswer}
+            onQualityAnswer={isAdvanceGateActive ? noop : onQualityAnswer}
             onCardShown={onCardShown}
             onTap={onTap}
             onQuality={onQuality}
