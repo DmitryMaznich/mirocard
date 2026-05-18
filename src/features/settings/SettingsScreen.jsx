@@ -3,25 +3,7 @@ import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
-import { getVoiceEngineId } from "@/shared/hooks/useSpeech";
-
-// Convert a TTS engine ID to a human-readable label.
-// engineId is typically a package name (Android) or a short brand string (desktop/iOS).
-function engineLabel(engineId, sampleVoiceName = "") {
-  const s = (engineId + " " + sampleVoiceName).toLowerCase();
-  if (s.includes("google")) return "Google TTS";
-  if (s.includes("samsung")) return "Samsung TTS";
-  if (s.includes("apple")) return "Apple TTS";
-  if (s.includes("microsoft")) return "Microsoft TTS";
-  if (s.includes("nuance")) return "Nuance TTS";
-  if (s.includes("ivona")) return "IVONA TTS";
-  // Fallback: pick the most meaningful dot-segment
-  const parts = engineId.split(/[.\-_:]/);
-  const skip = new Set(["com", "org", "net", "android", "voice", "tts", "speech"]);
-  const meaningful = parts.find((p) => p.length > 2 && !skip.has(p));
-  if (meaningful) return meaningful[0].toUpperCase() + meaningful.slice(1) + " TTS";
-  return engineId;
-}
+import { getVoiceEngineId, getEngineLabel } from "@/shared/hooks/useSpeech";
 
 function fakeSession(pct, studentId, topicId) {
   const total = 10;
@@ -88,7 +70,7 @@ export default function SettingsScreen() {
     const seen = new Map(); // engineId → label
     for (const v of voices) {
       const id = getVoiceEngineId(v);
-      if (!seen.has(id)) seen.set(id, engineLabel(id, v.name));
+      if (!seen.has(id)) seen.set(id, getEngineLabel(id));
     }
     return Array.from(seen.entries()).map(([id, label]) => ({ id, label }));
   }, [voices]);
