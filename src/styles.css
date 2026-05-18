@@ -15929,6 +15929,11 @@ button.operation-dot {
   gap: 18px;
 }
 
+/* Setup (cover) phase needs to scroll — overrides session-body overflow:hidden */
+.session-body.instruction-cover {
+  overflow-y: auto;
+}
+
 .qa-row.reading-quality-row {
   max-width: 720px;
   grid-template-columns: repeat(3, 1fr);
