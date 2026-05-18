@@ -156,18 +156,22 @@ async function run() {
   let imagesMissing = [];
 
   // ── Copy audio from tools_basic ──────────────────────────────
+  const TOOLS_BASIC_AUDIO = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_basic/audio";
   const basicZipPath = join(ROOT, "public", "decks", "tools_basic_v1.0.0.zip");
   const basicZip = await JSZip.loadAsync(readFileSync(basicZipPath));
   const audioMap = {};
-  for (const [path, file] of Object.entries(basicZip.files)) {
-    if (path.startsWith("audio/") && !file.dir) {
+  for (const [zipEntryPath, file] of Object.entries(basicZip.files)) {
+    if (zipEntryPath.startsWith("audio/") && !file.dir) {
       const buf = await file.async("nodebuffer");
-      zip.file(path, buf);
-      // Extract conceptId from "audio/hammer.mp3" → "hammer"
-      const match = path.match(/^audio\/([^/]+)\.mp3$/);
-      if (match) audioMap[match[1]] = path;
+      zip.file(zipEntryPath, buf);
+      const match = zipEntryPath.match(/^audio\/([^/]+)\.mp3$/);
+      if (match) audioMap[match[1]] = zipEntryPath;
     }
   }
+  // Pack eto.mp3 (answer prefix: played before the tool name on reveal)
+  const etoSrc = join(TOOLS_BASIC_AUDIO, "eto.mp3");
+  const ANSWER_PREFIX_AUDIO = existsSync(etoSrc) ? "audio/eto.mp3" : null;
+  if (ANSWER_PREFIX_AUDIO) zip.file("audio/eto.mp3", readFileSync(etoSrc));
 
   function addImage(cardId, zipPath) {
     const srcPath = join(CARDGEN_GENERATED, `${cardId}.webp`);
@@ -275,6 +279,7 @@ async function run() {
         type: "question_answer",
         evaluation: "none",
         ui: { title: "Что это?", instruction: "Что это?", ...icon("question_answer") },
+        ...(ANSWER_PREFIX_AUDIO ? { answerPrefixAudio: ANSWER_PREFIX_AUDIO } : {}),
         params: {
           useKeyboard: {
             type: "boolean",
