@@ -184,6 +184,10 @@ export default function HomeScreen() {
       setScreen("texts");
       return;
     }
+    if (activeText.kind === "instruction") {
+      setScreen("session");
+      return;
+    }
     if (!mode) {
       setScreen("modes");
       return;
@@ -266,7 +270,7 @@ export default function HomeScreen() {
             number="3"
             label={isReading ? "Текст и режим" : "Режим"}
             value={isReading ? readingStepValue : modeTitle || "Не выбран"}
-            onClick={() => setScreen(isReading && !activeText ? "texts" : "modes")}
+            onClick={() => setScreen(isReading && activeText?.kind !== "instruction" && activeText ? "modes" : isReading ? "texts" : "modes")}
             avatar={(mode?.ui?.icon) ? (
               <ModeIcon topicId={topic?.meta.id} iconPath={mode.ui.icon} size="step" />
             ) : null}
