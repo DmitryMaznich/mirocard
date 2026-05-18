@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useAppStore } from "@/core/store";
 
 export function useSpeech() {
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null);
+  const ttsVoiceUri = useAppStore((s) => s.settings?.ttsVoiceUri ?? "");
 
   useEffect(() => {
     return () => {
@@ -14,15 +16,27 @@ export function useSpeech() {
     if (!synth || !text) return;
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "ru-RU";
     utterance.rate = rate;
     utterance.pitch = pitch;
-    // Prefer a Russian voice if available
+
     const voices = synth.getVoices();
-    const ruVoice = voices.find((v) => v.lang.startsWith("ru"));
-    if (ruVoice) utterance.voice = ruVoice;
+    if (ttsVoiceUri) {
+      const selected = voices.find((v) => v.voiceURI === ttsVoiceUri);
+      if (selected) {
+        utterance.voice = selected;
+        utterance.lang = selected.lang;
+      } else {
+        utterance.lang = "ru-RU";
+      }
+    } else {
+      // No explicit selection — let browser use its default for ru-RU
+      utterance.lang = "ru-RU";
+      const ruVoice = voices.find((v) => v.lang.startsWith("ru"));
+      if (ruVoice) utterance.voice = ruVoice;
+    }
+
     synth.speak(utterance);
-  }, []);
+  }, [ttsVoiceUri]);
 
   const cancel = useCallback(() => {
     synthRef.current?.cancel();

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
@@ -51,6 +51,36 @@ export default function SettingsScreen() {
   }
 
   const [confirmLogout, setConfirmLogout] = useState(false);
+
+  // TTS voice list (loaded asynchronously — Chrome fires voiceschanged)
+  const [voices, setVoices] = useState([]);
+  useEffect(() => {
+    function load() {
+      const list = window.speechSynthesis?.getVoices() ?? [];
+      if (list.length > 0) setVoices(Array.from(list));
+    }
+    load();
+    window.speechSynthesis?.addEventListener("voiceschanged", load);
+    return () => window.speechSynthesis?.removeEventListener("voiceschanged", load);
+  }, []);
+
+  function testVoice() {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    synth.cancel();
+    const utt = new SpeechSynthesisUtterance("Привет! Это тестовое сообщение.");
+    const uri = settings.ttsVoiceUri ?? "";
+    if (uri) {
+      const v = voices.find((v) => v.voiceURI === uri);
+      if (v) { utt.voice = v; utt.lang = v.lang; }
+    } else {
+      utt.lang = "ru-RU";
+      const ru = voices.find((v) => v.lang.startsWith("ru"));
+      if (ru) utt.voice = ru;
+    }
+    utt.rate = 0.88;
+    synth.speak(utt);
+  }
 
   async function handleLogout() {
     try { await api.post("/auth/logout"); } catch {
@@ -144,6 +174,33 @@ export default function SettingsScreen() {
                 onClick={() => handlePatchSettings({ autoAdvanceDelay: autoAdvanceDelay + 1 })}
               >+</button>
             </div>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-title">Синтез речи (TTS)</div>
+          <div className="settings-row settings-row--col">
+            <span className="settings-row__label">Голос</span>
+            <div className="settings-voice-row">
+              <select
+                className="settings-voice-select"
+                value={settings.ttsVoiceUri ?? ""}
+                onChange={(e) => handlePatchSettings({ ttsVoiceUri: e.target.value })}
+              >
+                <option value="">По умолчанию (устройство)</option>
+                {voices.map((v) => (
+                  <option key={v.voiceURI} value={v.voiceURI}>
+                    {v.name}{v.default ? " ✓" : ""} · {v.lang}
+                  </option>
+                ))}
+              </select>
+              <button className="settings-voice-test-btn" onClick={testVoice} title="Проверить голос">
+                ▶
+              </button>
+            </div>
+            {voices.length === 0 && (
+              <span className="settings-voice-hint">Голоса недоступны или загружаются…</span>
+            )}
           </div>
         </div>
       </div>
