@@ -65,7 +65,7 @@ function getSecondLabel(value) {
 }
 
 export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
-  const { setIsOpen, setTimeLeft, setIsRunning } = useTimer();
+  const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes } = useTimer();
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [running, setRunning] = useState(false);
@@ -96,6 +96,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
 
   useEffect(() => { setTimeLeft(secondsLeft); }, [secondsLeft, setTimeLeft]);
   useEffect(() => { setIsRunning(running); }, [running, setIsRunning]);
+  useEffect(() => { setConfigMinutes(setMinutes); }, [setMinutes, setConfigMinutes]);
 
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
