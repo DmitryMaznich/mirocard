@@ -34,3 +34,26 @@ export function getBearerToken(request) {
   if (scheme !== "Bearer" || !token) return null;
   return token;
 }
+
+export async function readRawBody(request, maxBytes = 2 * 1024 * 1024) {
+  const chunks = [];
+  let total = 0;
+  for await (const chunk of request) {
+    total += chunk.length;
+    if (total > maxBytes) throw { status: 413, message: "Payload too large" };
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+export function writeAudio(response, audioBuffer, contentType) {
+  response.writeHead(200, {
+    "Content-Type": contentType,
+    "Content-Length": audioBuffer.length,
+    "Cache-Control": "no-store",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  });
+  response.end(audioBuffer);
+}
