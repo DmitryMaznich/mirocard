@@ -46,7 +46,14 @@ function installBackGuardStack() {
 
 function reboundToGuardTop(sequence) {
   if (sequence >= guardTopSequence) return;
-  window.history.go(guardTopSequence - sequence);
+  guardSequence += 1;
+  guardTopSequence = guardSequence;
+  lastObservedSequence = guardTopSequence;
+  window.history.pushState(
+    { mirocardBackGuard: true, guardSequence },
+    "",
+    window.location.href,
+  );
 }
 
 export function useBackButtonGuard({

@@ -72,7 +72,7 @@ describe("useBackButtonGuard", () => {
 
     expect(useAppStore.getState().screen).toBe("home");
     expect(pushSpy).toHaveBeenCalledWith(
-      { mirocardBackGuard: true },
+      expect.objectContaining({ mirocardBackGuard: true }),
       "",
       window.location.href,
     );
