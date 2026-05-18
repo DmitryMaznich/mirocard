@@ -49,9 +49,15 @@ export function createApiClient({ baseUrl = BASE_URL, token = null, timeoutMs = 
 
 // Singleton instance — updated when token changes
 let _api = createApiClient();
+let _currentToken = null;
 
 export function setApiToken(token) {
+  _currentToken = token;
   _api = createApiClient({ token });
+}
+
+export function getApiToken() {
+  return _currentToken;
 }
 
 export const api = {
