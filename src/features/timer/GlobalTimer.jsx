@@ -10,31 +10,32 @@ function formatTime(seconds) {
 
 export default function GlobalTimer({ rewardVideos = [] }) {
   const { isOpen, setIsOpen, timeLeft, isRunning, configMinutes, sessionSeconds } = useTimer();
-  const containerRef = useRef(null);
-  const pillRef = useRef(null);
+  const clockRef = useRef(null);
+  const tabRef = useRef(null);
   const swipeRef = useRef(null);
 
-  let pillText, pillState;
+  let tabText, tabState;
   if (isRunning) {
-    pillText = formatTime(timeLeft);
-    pillState = "running";
+    tabText = formatTime(timeLeft);
+    tabState = "running";
   } else if (configMinutes > 0) {
-    pillText = `${configMinutes} мин`;
-    pillState = "set";
+    tabText = `${configMinutes} мин`;
+    tabState = "set";
   } else if (sessionSeconds > 0) {
-    pillText = formatTime(sessionSeconds);
-    pillState = "session";
+    tabText = formatTime(sessionSeconds);
+    tabState = "session";
   } else {
-    pillText = null;
-    pillState = "idle";
+    tabText = null;
+    tabState = "idle";
   }
 
+  // Close on tap outside clock (but not on the tab itself)
   useEffect(() => {
     if (!isOpen) return;
     function onPointerDown(e) {
       if (
-        containerRef.current && !containerRef.current.contains(e.target) &&
-        pillRef.current && !pillRef.current.contains(e.target)
+        clockRef.current && !clockRef.current.contains(e.target) &&
+        tabRef.current && !tabRef.current.contains(e.target)
       ) {
         setIsOpen(false);
       }
@@ -43,31 +44,32 @@ export default function GlobalTimer({ rewardVideos = [] }) {
     return () => document.removeEventListener("pointerdown", onPointerDown, { capture: true });
   }, [isOpen, setIsOpen]);
 
+  // Swipe up on clock → close
   function handleClockPointerDown(e) {
-    swipeRef.current = { x: e.clientX };
+    swipeRef.current = { y: e.clientY };
   }
-
   function handleClockPointerUp(e) {
     if (!swipeRef.current) return;
-    const dx = e.clientX - swipeRef.current.x;
+    const dy = e.clientY - swipeRef.current.y;
     swipeRef.current = null;
-    if (dx < -40) setIsOpen(false);
+    if (dy < -40) setIsOpen(false);
   }
 
   return (
     <>
       <button
-        ref={pillRef}
-        className={`global-timer-pill global-timer-pill--${pillState}`}
+        ref={tabRef}
+        className={`global-timer-tab global-timer-tab--${tabState}`}
         onClick={() => setIsOpen((v) => !v)}
         aria-label="Таймер"
       >
-        <span className="global-timer-pill__icon">⏱</span>
-        {pillText && <span className="global-timer-pill__text">{pillText}</span>}
+        <span className="global-timer-tab__icon">⏱</span>
+        {tabText && <span className="global-timer-tab__text">{tabText}</span>}
+        <span className="global-timer-tab__chevron">{isOpen ? "▲" : "▼"}</span>
       </button>
 
       <div
-        ref={containerRef}
+        ref={clockRef}
         className={`global-timer${isOpen ? " global-timer--open" : ""}`}
       >
         <div
