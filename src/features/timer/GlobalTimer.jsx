@@ -2,11 +2,7 @@ import { useEffect, useRef } from "react";
 import { useTimer } from "./TimerContext";
 import AnalogTimer from "./AnalogTimer";
 
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
+function pad(n) { return String(n).padStart(2, "0"); }
 
 export default function GlobalTimer({ rewardVideos = [] }) {
   const { isOpen, setIsOpen, timeLeft, isRunning, configMinutes, sessionSeconds } = useTimer();
@@ -14,22 +10,25 @@ export default function GlobalTimer({ rewardVideos = [] }) {
   const tabRef = useRef(null);
   const swipeRef = useRef(null);
 
-  let tabText, tabState;
+  let tabState, tabMM, tabSS;
   if (isRunning) {
-    tabText = formatTime(timeLeft);
     tabState = "running";
+    tabMM = pad(Math.floor(timeLeft / 60));
+    tabSS = pad(timeLeft % 60);
   } else if (configMinutes > 0) {
-    tabText = `${configMinutes} мин`;
     tabState = "set";
+    tabMM = pad(configMinutes);
+    tabSS = "00";
   } else if (sessionSeconds > 0) {
-    tabText = formatTime(sessionSeconds);
     tabState = "session";
+    tabMM = pad(Math.floor(sessionSeconds / 60));
+    tabSS = pad(sessionSeconds % 60);
   } else {
-    tabText = null;
     tabState = "idle";
+    tabMM = null;
+    tabSS = null;
   }
 
-  // Close on tap outside clock (but not on the tab itself)
   useEffect(() => {
     if (!isOpen) return;
     function onPointerDown(e) {
@@ -44,7 +43,6 @@ export default function GlobalTimer({ rewardVideos = [] }) {
     return () => document.removeEventListener("pointerdown", onPointerDown, { capture: true });
   }, [isOpen, setIsOpen]);
 
-  // Swipe up on clock → close
   function handleClockPointerDown(e) {
     swipeRef.current = { y: e.clientY };
   }
@@ -63,9 +61,15 @@ export default function GlobalTimer({ rewardVideos = [] }) {
         onClick={() => setIsOpen((v) => !v)}
         aria-label="Таймер"
       >
-        <span className="global-timer-tab__icon">⏱</span>
-        {tabText && <span className="global-timer-tab__text">{tabText}</span>}
-        <span className="global-timer-tab__chevron">{isOpen ? "▲" : "▼"}</span>
+        {tabMM !== null ? (
+          <span className="global-timer-tab__time">
+            <span className="global-timer-tab__mm">{tabMM}</span>
+            <span className="global-timer-tab__sep">·</span>
+            <span className="global-timer-tab__ss">{tabSS}</span>
+          </span>
+        ) : (
+          <span className="global-timer-tab__icon">⏱</span>
+        )}
       </button>
 
       <div
