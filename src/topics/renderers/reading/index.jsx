@@ -429,6 +429,12 @@ function InstructionTask({ task, topicId, onAdvance }) {
     setGroup((prev) => prev.map((m, i) => (i === idx ? { ...m, stepRanges: ranges } : m)));
   }
 
+  async function toggleChef(idx) {
+    const next = group.map((m, i) => ({ ...m, role: i === idx && m.role !== "chef" ? "chef" : null }));
+    setGroup(next);
+    await saveGroup(topicId, next).catch(() => {});
+  }
+
   async function saveRecipeEdit() {
     const textId = task.text?.id;
     if (textId) await saveRecipeOverride(topicId, textId, recipeEdit).catch(() => {});
@@ -584,6 +590,13 @@ function InstructionTask({ task, topicId, onAdvance }) {
                     placeholder="шаги: 1-15"
                   />
                 </div>
+                <button
+                  className={`instruction-cover-chef-btn${member.role === "chef" ? " instruction-cover-chef-btn--active" : ""}`}
+                  onClick={() => toggleChef(i)}
+                  title={member.role === "chef" ? "Снять роль шефа" : "Назначить шефом"}
+                >
+                  👑
+                </button>
                 <button className="instruction-cover-member-remove" onClick={() => removeMember(i)}>×</button>
               </div>
             ))}
@@ -685,67 +698,124 @@ function InstructionTask({ task, topicId, onAdvance }) {
   // ── RUNNING PHASE ──────────────────────────────────────────────────────────
   if (!step) return null;
 
+  const chef = group.find((m) => m.role === "chef") ?? null;
+
   return (
     <div className="session-body reading-body instruction-body">
 
-      <div className="instruction-header">
-        <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
-      </div>
+      <div className="instruction-running-layout">
 
-      {owner && (
-        <div className="instruction-owner">
-          <div className="instruction-owner-avatar">
-            {owner.photoDataUrl
-              ? <img src={owner.photoDataUrl} alt={owner.name} />
-              : <div className="instruction-owner-initials">{owner.name?.[0] ?? "?"}</div>
-            }
+        {/* Chef panel — visible only in landscape */}
+        {chef && (
+          <div className="instruction-chef-panel">
+            <div className="instruction-chef-crown">👑</div>
+            <div className="instruction-chef-avatar">
+              {chef.photoDataUrl
+                ? <img src={chef.photoDataUrl} alt={chef.name} />
+                : <div className="instruction-chef-initials">{chef.name?.[0] ?? "?"}</div>
+              }
+            </div>
+            <div className="instruction-chef-name">{chef.name}</div>
+            <div className="instruction-chef-label">шеф</div>
           </div>
-          <div className="instruction-owner-name">{owner.name}</div>
-        </div>
-      )}
+        )}
 
-      <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}`}>
-        <div className="instruction-step-text">{step.text}</div>
-        {step.type === "checklist" && (
-          <ul className="instruction-checklist">
-            {(step.items ?? []).map((item, i) => {
-              const done = !!checked[`${stepIndex}_${i}`];
-              return (
-                <li
-                  key={i}
-                  role="checkbox"
-                  aria-checked={done}
-                  className={`instruction-check-item${done ? " instruction-check-item--done" : ""}`}
-                  onClick={() => toggleItem(i)}
-                >
-                  <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                  <span className="instruction-check-label">{item}</span>
-                  {!done && <span className="instruction-check-tap-hint">нажми</span>}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {step.type === "bullets" && (
-          <ul className="instruction-bullets">
-            {(step.items ?? []).map((item, i) => (
-              <li key={i} className="instruction-bullet-item">
-                <span className="instruction-bullet-dot">•</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="instruction-main">
+          <div className="instruction-header">
+            <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
+          </div>
+
+          <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}`}>
+            {owner && step.type !== "heading" && (
+              <div className="instruction-step-owner">{owner.name},</div>
+            )}
+            <div className="instruction-step-text">{step.text}</div>
+            {step.type === "checklist" && (
+              <ul className="instruction-checklist">
+                {(step.items ?? []).map((item, i) => {
+                  const done = !!checked[`${stepIndex}_${i}`];
+                  return (
+                    <li
+                      key={i}
+                      role="checkbox"
+                      aria-checked={done}
+                      className={`instruction-check-item${done ? " instruction-check-item--done" : ""}`}
+                      onClick={() => toggleItem(i)}
+                    >
+                      <span className="instruction-checkbox">{done ? "✓" : ""}</span>
+                      <span className="instruction-check-label">{item}</span>
+                      {!done && <span className="instruction-check-tap-hint">нажми</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {step.type === "bullets" && (
+              <ul className="instruction-bullets">
+                {(step.items ?? []).map((item, i) => (
+                  <li key={i} className="instruction-bullet-item">
+                    <span className="instruction-bullet-dot">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <button
+            className={`instruction-drawer-toggle${listOpen ? " instruction-drawer-toggle--open" : ""}`}
+            onClick={() => setListOpen((v) => !v)}
+          >
+            <span className="instruction-drawer-pill" />
+            <span className="instruction-drawer-label">все шаги {listOpen ? "▲" : "▼"}</span>
+          </button>
+
+          {listOpen && (
+            <div className="instruction-drawer" ref={listRef}>
+              {steps.map((s, i) => {
+                const isDone = i < stepIndex;
+                const isActive = i === stepIndex;
+                return (
+                  <div
+                    key={s.id}
+                    className={[
+                      "instruction-list-item",
+                      isDone ? "instruction-list-item--done" : "",
+                      isActive ? "instruction-list-item--active" : "",
+                    ].filter(Boolean).join(" ")}
+                  >
+                    <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
+                    {s.type !== "heading" && <span className="instruction-list-num">{i + 1}.</span>}
+                    <span className="instruction-list-text">{s.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="instruction-nav">
+            <button className="reading-secondary-btn" onClick={goBack}>Назад</button>
+            <button className="reading-primary-btn" disabled={!allChecked} onClick={handleNext}>
+              {isLast ? "Готово" : "Дальше"}
+            </button>
+          </div>
+        </div>
+
       </div>
 
       {group.length > 1 && (
         <div className="instruction-participants">
           {group.map((member) => {
             const isActive = owner && (owner.id === member.id || owner.name === member.name);
+            const isChef = member.role === "chef";
             return (
               <div
                 key={member.id ?? member.name}
-                className={`instruction-participant${isActive ? " instruction-participant--active" : ""}`}
+                className={[
+                  "instruction-participant",
+                  isActive ? "instruction-participant--active" : "",
+                  isChef ? "instruction-participant--chef" : "",
+                ].filter(Boolean).join(" ")}
               >
                 <div className="instruction-participant-avatar">
                   {member.photoDataUrl
@@ -754,49 +824,13 @@ function InstructionTask({ task, topicId, onAdvance }) {
                   }
                 </div>
                 <div className="instruction-participant-name">{member.name}</div>
+                {isChef && <span className="instruction-participant-chef-mark">👑</span>}
               </div>
             );
           })}
         </div>
       )}
 
-      <button
-        className={`instruction-drawer-toggle${listOpen ? " instruction-drawer-toggle--open" : ""}`}
-        onClick={() => setListOpen((v) => !v)}
-      >
-        <span className="instruction-drawer-pill" />
-        <span className="instruction-drawer-label">все шаги {listOpen ? "▲" : "▼"}</span>
-      </button>
-
-      {listOpen && (
-        <div className="instruction-drawer" ref={listRef}>
-          {steps.map((s, i) => {
-            const isDone = i < stepIndex;
-            const isActive = i === stepIndex;
-            return (
-              <div
-                key={s.id}
-                className={[
-                  "instruction-list-item",
-                  isDone ? "instruction-list-item--done" : "",
-                  isActive ? "instruction-list-item--active" : "",
-                ].filter(Boolean).join(" ")}
-              >
-                <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
-                {s.type !== "heading" && <span className="instruction-list-num">{i + 1}.</span>}
-                <span className="instruction-list-text">{s.text}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="instruction-nav">
-        <button className="reading-secondary-btn" onClick={goBack}>Назад</button>
-        <button className="reading-primary-btn" disabled={!allChecked} onClick={handleNext}>
-          {isLast ? "Готово" : "Дальше"}
-        </button>
-      </div>
     </div>
   );
 }

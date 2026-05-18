@@ -12762,6 +12762,42 @@ kbd {
 }
 .summary-actions .btn { flex: 1; }
 
+.summary-finish-btn {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 14px;
+  background: #4a9b8f;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 5px 0 #2a6b60, 0 8px 20px rgba(42,107,96,0.35);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.summary-finish-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #2a6b60, 0 4px 10px rgba(42,107,96,0.25); }
+.summary-finish-btn__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+}
+.summary-finish-btn__label {
+  position: relative;
+  pointer-events: none;
+}
+
 /* Teacher details */
 .summary-details {
   border-top: 1px solid #ebebeb;
@@ -16997,4 +17033,180 @@ body { background: #eef0ef; }
   background: #fff5f5;
   border-color: #f5c0c0;
   color: #b33;
+}
+
+/* ─── Chef role toggle button in setup ─────────────────────────────────────── */
+.instruction-cover-chef-btn {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid #e0e0e0;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.3;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+  margin-right: 4px;
+}
+.instruction-cover-chef-btn--active {
+  opacity: 1;
+  background: #fffbe8;
+  border-color: #d4a800;
+}
+
+/* ─── Running phase layout wrapper ─────────────────────────────────────────── */
+.instruction-running-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.instruction-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ─── Owner name inline in step ─────────────────────────────────────────────── */
+.instruction-step-owner {
+  font-size: clamp(22px, 4.5vmin, 40px);
+  font-weight: 900;
+  color: #1a6040;
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+
+/* ─── Chef panel (hidden in portrait) ───────────────────────────────────────── */
+.instruction-chef-panel {
+  display: none;
+}
+
+/* ─── Chef mark in participant strip ─────────────────────────────────────────── */
+.instruction-participant--chef {
+  position: relative;
+}
+.instruction-participant-chef-mark {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 11px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* ─── Landscape layout ───────────────────────────────────────────────────────── */
+@media (orientation: landscape) {
+  /* Remove body padding — inner layout handles spacing */
+  .session-body.reading-body.instruction-body {
+    padding: 0;
+    gap: 0;
+  }
+
+  .instruction-running-layout {
+    flex-direction: row;
+  }
+
+  /* Chef panel: golden left column */
+  .instruction-chef-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: clamp(110px, 18vw, 170px);
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #fffdf0 0%, #fff8d6 100%);
+    border-right: 1.5px solid #e8d060;
+    padding: 12px 10px;
+  }
+
+  .instruction-chef-crown {
+    font-size: clamp(20px, 3.5vh, 30px);
+    line-height: 1;
+  }
+
+  .instruction-chef-avatar {
+    width: clamp(64px, 12vh, 100px);
+    height: clamp(64px, 12vh, 100px);
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2.5px solid #d4a800;
+    flex-shrink: 0;
+    background: #fdf0c0;
+  }
+
+  .instruction-chef-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .instruction-chef-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(24px, 5vh, 40px);
+    font-weight: 800;
+    color: #7a5500;
+  }
+
+  .instruction-chef-name {
+    font-size: clamp(12px, 2.2vh, 16px);
+    font-weight: 800;
+    color: #3a2800;
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .instruction-chef-label {
+    font-size: clamp(9px, 1.5vh, 11px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8a6000;
+    background: #fde88a;
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  /* Main content area */
+  .instruction-main {
+    padding: 8px 14px 6px;
+    gap: 6px;
+  }
+
+  /* Bigger owner name and step text in landscape */
+  .instruction-step-owner {
+    font-size: clamp(24px, 5.5vh, 46px);
+    margin-bottom: 4px;
+  }
+
+  .instruction-step-text {
+    font-size: clamp(17px, 4vh, 32px) !important;
+  }
+
+  /* Participants strip: stays at bottom, no extra padding */
+  .instruction-participants {
+    padding: 6px 10px;
+    gap: 12px;
+  }
+
+  .instruction-participant-avatar,
+  .instruction-participant-avatar img,
+  .instruction-participant-initials {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
 }
