@@ -16376,39 +16376,42 @@ body { background: #eef0ef; }
 /* ── Global Timer ─────────────────────────────────────────── */
 
 :root {
-  --gt-panel-w: min(90vw, 88vh);
+  --gt-clock-size: min(90vw, 88vh);
   --gt-tab-w: 32px;
 }
 
 .global-timer {
   position: fixed;
-  top: 0;
+  top: 50%;
   left: 0;
-  height: 100%;
-  width: calc(var(--gt-panel-w) + var(--gt-tab-w));
+  width: calc(var(--gt-clock-size) + var(--gt-tab-w));
+  height: var(--gt-clock-size);
   z-index: 200;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   pointer-events: none;
-  transform: translateX(calc(-1 * var(--gt-panel-w)));
+  /* closed: clock behind left edge, only tab peeks out */
+  transform: translate(calc(-1 * var(--gt-clock-size)), -50%);
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .global-timer--open {
-  /* center the clock (panel) at 50vw; tab sticks out to the right */
-  transform: translateX(calc(50vw - var(--gt-panel-w) / 2));
+  /* clock centered horizontally, tab to the right */
+  transform: translate(calc(50vw - var(--gt-clock-size) / 2), -50%);
 }
 
-.global-timer__panel {
-  flex: 0 0 var(--gt-panel-w);
-  height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background:
-    radial-gradient(circle at top, rgba(74, 155, 143, 0.08), transparent 40%),
-    linear-gradient(180deg, #fffdf9 0%, #f8f0e5 100%);
-  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.18);
+.global-timer__clock {
+  flex: 0 0 var(--gt-clock-size);
+  width: var(--gt-clock-size);
+  height: var(--gt-clock-size);
   pointer-events: all;
+  filter: drop-shadow(0 6px 40px rgba(0, 0, 0, 0.22));
+}
+
+.global-timer__clock svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .global-timer__tab {

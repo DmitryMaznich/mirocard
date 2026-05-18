@@ -10,16 +10,17 @@ function formatTabTime(seconds) {
 
 export default function GlobalTimer({ rewardVideos = [] }) {
   const { isOpen, setIsOpen, timeLeft, isRunning } = useTimer();
-  const panelRef = useRef(null);
+  const containerRef = useRef(null);
   const swipeRef = useRef(null);
 
   const showCountdown = timeLeft > 0;
   const tabState = isRunning ? "running" : showCountdown ? "paused" : "idle";
 
+  // Close on tap outside the clock+tab
   useEffect(() => {
     if (!isOpen) return;
     function onPointerDown(e) {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     }
@@ -27,11 +28,11 @@ export default function GlobalTimer({ rewardVideos = [] }) {
     return () => document.removeEventListener("pointerdown", onPointerDown, { capture: true });
   }, [isOpen, setIsOpen]);
 
-  function handlePanelPointerDown(e) {
+  function handleClockPointerDown(e) {
     swipeRef.current = { x: e.clientX };
   }
 
-  function handlePanelPointerUp(e) {
+  function handleClockPointerUp(e) {
     if (!swipeRef.current) return;
     const dx = e.clientX - swipeRef.current.x;
     swipeRef.current = null;
@@ -40,15 +41,15 @@ export default function GlobalTimer({ rewardVideos = [] }) {
 
   return (
     <div
-      ref={panelRef}
+      ref={containerRef}
       className={`global-timer${isOpen ? " global-timer--open" : ""}`}
     >
       <div
-        className="global-timer__panel"
-        onPointerDown={handlePanelPointerDown}
-        onPointerUp={handlePanelPointerUp}
+        className="global-timer__clock"
+        onPointerDown={handleClockPointerDown}
+        onPointerUp={handleClockPointerUp}
       >
-        <AnalogTimer rewardVideos={rewardVideos} />
+        <AnalogTimer rewardVideos={rewardVideos} clockOnly />
       </div>
 
       <button

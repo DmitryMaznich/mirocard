@@ -64,7 +64,7 @@ function getSecondLabel(value) {
   return "секунд";
 }
 
-export default function AnalogTimer({ rewardVideos = [] }) {
+export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   const { setIsOpen, setTimeLeft, setIsRunning } = useTimer();
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -554,6 +554,10 @@ export default function AnalogTimer({ rewardVideos = [] }) {
       </g>
     </svg>
   );
+
+  if (clockOnly) {
+    return clockSvg;
+  }
 
   return (
     <div
