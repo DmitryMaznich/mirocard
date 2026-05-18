@@ -267,13 +267,15 @@ export function appendSession(db, accountId, session) {
     INSERT OR IGNORE INTO sessions
       (id, account_id, student_id, topic_id, topic_version, mode,
        started_at, completed_at, correct_count, incorrect_count,
-       percent_correct, mistakes, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       percent_correct, mistakes, card_events, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     session.id, accountId, session.studentId, session.topicId,
     session.topicVersion, session.mode, session.startedAt, session.completedAt,
     session.correctCount, session.incorrectCount, session.percentCorrect,
-    JSON.stringify(session.mistakes ?? []), now()
+    JSON.stringify(session.mistakes ?? []),
+    JSON.stringify(session.cardEvents ?? []),
+    now()
   );
 }
 
