@@ -65,9 +65,10 @@ const QA_BUTTONS = [
 const KEY_MAP = { "1": "fail", "2": "prompted", "3": "correct", "4": "easy" };
 
 function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
-  const audioPath   = getTaskAudioPath(task);
-  const useKeyboard = Boolean(sessionParams?.useKeyboard);
-  const [revealed,  setRevealed] = useState(false);
+  const audioPath       = getTaskAudioPath(task);
+  const prefixAudioPath = mode?.answerPrefixAudio ?? null;
+  const useKeyboard     = Boolean(sessionParams?.useKeyboard);
+  const [revealed,      setRevealed] = useState(false);
 
   useEffect(() => {
     setRevealed(false);
@@ -78,10 +79,22 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
     if (revealed) return;
     setRevealed(true);
     onQuality?.(value, task.card?.id, task.conceptId);
-    if (audioPath && soundEnabled) playTopicFile(topicId, audioPath);
+
+    const hasPrefix = Boolean(prefixAudioPath && soundEnabled);
+    const hasMain   = Boolean(audioPath && soundEnabled);
+    const PREFIX_GAP = 480; // ms to wait after prefix before main audio
+
+    if (hasPrefix) {
+      playTopicFile(topicId, prefixAudioPath);
+      if (hasMain) setTimeout(() => playTopicFile(topicId, audioPath), PREFIX_GAP);
+    } else if (hasMain) {
+      playTopicFile(topicId, audioPath);
+    }
+
+    const delay = hasPrefix ? PREFIX_GAP + 1400 : (hasMain ? 1400 : 700);
     setTimeout(() => {
       onQualityAnswer(value, task.conceptId, task.card?.id);
-    }, audioPath ? 1400 : 700);
+    }, delay);
   }
 
   useEffect(() => {

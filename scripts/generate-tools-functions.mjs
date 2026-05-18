@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.5";
+const VERSION = "1.3.6";
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
