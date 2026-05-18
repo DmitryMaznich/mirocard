@@ -16,7 +16,7 @@ export function getCompletedTaskCount(sessionState) {
   if (!sessionState) return 0;
 
   const total = sessionState.tasks?.length ?? 0;
-  if (sessionState.status === "completed") return total;
+  if (sessionState.status === "completed") return sessionState.correctCount ?? total;
 
   const taskIndex = Math.max(0, Math.floor(Number(sessionState.taskIndex) || 0));
   const currentTaskCompleted = sessionState.status === "answer_correct" ? 1 : 0;

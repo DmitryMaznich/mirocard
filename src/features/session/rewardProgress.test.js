@@ -53,6 +53,41 @@ describe("reward progress", () => {
     expect(progress.earned).toBe(true);
   });
 
+  it("uses correctCount (not total) when session is completed and child failed threshold", () => {
+    const progress = buildRewardProgress({
+      sessionState: {
+        status: "completed",
+        tasks: TASKS,
+        taskIndex: 9,
+        correctCount: 6,
+      },
+      mode: MODE,
+      videoRewardEnabled: true,
+      hasRewardVideos: true,
+      rewardThreshold: 80,
+    });
+    expect(progress.completed).toBe(6);
+    expect(progress.target).toBe(8);
+    expect(progress.earned).toBe(false);
+  });
+
+  it("marks reward earned when correctCount meets threshold on completion", () => {
+    const progress = buildRewardProgress({
+      sessionState: {
+        status: "completed",
+        tasks: TASKS,
+        taskIndex: 9,
+        correctCount: 9,
+      },
+      mode: MODE,
+      videoRewardEnabled: true,
+      hasRewardVideos: true,
+      rewardThreshold: 80,
+    });
+    expect(progress.completed).toBe(9);
+    expect(progress.earned).toBe(true);
+  });
+
   it("does not expose reward progress when videos are unavailable", () => {
     const progress = buildRewardProgress({
       sessionState: makeState({ taskIndex: 8 }),
