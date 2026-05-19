@@ -28,7 +28,8 @@ export function getEngineLabel(engineId) {
 
 export function useSpeech() {
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null);
-  const ttsEngine = useAppStore((s) => s.settings?.ttsEngine ?? "");
+  const ttsEngine    = useAppStore((s) => s.settings?.ttsEngine ?? "");
+  const soundEnabled = useAppStore((s) => s.settings?.soundEnabled ?? false);
 
   useEffect(() => {
     return () => {
@@ -38,7 +39,7 @@ export function useSpeech() {
 
   const speak = useCallback((text, { rate = 0.88, pitch = 1.0 } = {}) => {
     const synth = synthRef.current;
-    if (!synth || !text) return;
+    if (!synth || !text || !soundEnabled) return;
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
@@ -56,7 +57,7 @@ export function useSpeech() {
     }
 
     synth.speak(utterance);
-  }, [ttsEngine]);
+  }, [ttsEngine, soundEnabled]);
 
   const cancel = useCallback(() => {
     synthRef.current?.cancel();
