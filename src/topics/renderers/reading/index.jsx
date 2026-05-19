@@ -717,20 +717,51 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
       <div className="instruction-running-layout">
 
-        {/* Chef panel — visible only in landscape */}
-        {chef && (
-          <div className="instruction-chef-panel">
-            <div className="instruction-chef-crown">👑</div>
-            <div className="instruction-chef-avatar">
-              {chef.photoDataUrl
-                ? <img src={chef.photoDataUrl} alt={chef.name} />
-                : <div className="instruction-chef-initials">{chef.name?.[0] ?? "?"}</div>
-              }
+        {/* Left panel — visible only in landscape; contains chef info + team at bottom */}
+        <div className="instruction-chef-panel">
+          {chef && (
+            <>
+              <div className="instruction-chef-crown">👑</div>
+              <div className="instruction-chef-avatar">
+                {chef.photoDataUrl
+                  ? <img src={chef.photoDataUrl} alt={chef.name} />
+                  : <div className="instruction-chef-initials">{chef.name?.[0] ?? "?"}</div>
+                }
+              </div>
+              <div className="instruction-chef-name">{chef.name}</div>
+              <div className="instruction-chef-label">шеф</div>
+            </>
+          )}
+
+          {/* Team avatars at bottom of left panel */}
+          {group.length > 1 && (
+            <div className="instruction-panel-participants">
+              {group.map((member) => {
+                const isActive = owner && (owner.id === member.id || owner.name === member.name);
+                const isChef = member.role === "chef";
+                return (
+                  <div
+                    key={member.id ?? member.name}
+                    className={[
+                      "instruction-panel-participant",
+                      isActive ? "instruction-panel-participant--active" : "",
+                      isChef ? "instruction-panel-participant--chef" : "",
+                    ].filter(Boolean).join(" ")}
+                  >
+                    <div className="instruction-panel-participant-avatar">
+                      {member.photoDataUrl
+                        ? <img src={member.photoDataUrl} alt={member.name} />
+                        : <div className="instruction-panel-participant-initials">{member.name?.[0] ?? "?"}</div>
+                      }
+                    </div>
+                    <div className="instruction-panel-participant-name">{member.name}</div>
+                    {isChef && <span className="instruction-panel-participant-chef-mark">👑</span>}
+                  </div>
+                );
+              })}
             </div>
-            <div className="instruction-chef-name">{chef.name}</div>
-            <div className="instruction-chef-label">шеф</div>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="instruction-main">
           <div className="instruction-header">

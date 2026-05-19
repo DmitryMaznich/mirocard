@@ -17126,13 +17126,14 @@ body { background: #eef0ef; }
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 10px;
     flex: 0 0 33.333%;
     width: 33.333%;
     background: linear-gradient(160deg, #fffbe8 0%, #fff3c0 100%);
     border-right: 2px solid #e8d060;
     padding: 16px 20px;
+    overflow: hidden;
   }
 
   .instruction-chef-crown {
@@ -17204,18 +17205,86 @@ body { background: #eef0ef; }
     font-size: clamp(17px, 4vh, 32px) !important;
   }
 
-  /* Participants strip: stays at bottom, no extra padding */
+  /* External participants strip is replaced by in-panel list in landscape */
   .instruction-participants {
-    padding: 6px 10px;
-    gap: 12px;
+    display: none;
   }
 
-  .instruction-participant-avatar,
-  .instruction-participant-avatar img,
-  .instruction-participant-initials {
-    width: 36px;
-    height: 36px;
+  /* ── Team list at bottom of left panel ── */
+  .instruction-panel-participants {
+    margin-top: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px solid rgba(210, 165, 0, 0.4);
+    padding-top: 10px;
+    overflow-y: auto;
+  }
+
+  .instruction-panel-participant {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 3px 6px;
+    border-radius: 10px;
+    transition: background 0.15s;
+  }
+
+  .instruction-panel-participant--active {
+    background: rgba(210, 165, 0, 0.22);
+  }
+
+  .instruction-panel-participant-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #fde88a;
+    border: 2px solid #d4a800;
+  }
+
+  .instruction-panel-participant--active .instruction-panel-participant-avatar {
+    border-color: #7a5500;
+    box-shadow: 0 0 0 2px #ffe066;
+  }
+
+  .instruction-panel-participant-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .instruction-panel-participant-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 14px;
+    font-weight: 800;
+    color: #7a5500;
+  }
+
+  .instruction-panel-participant-name {
+    flex: 1;
+    min-width: 0;
+    font-size: clamp(11px, 2.2vh, 15px);
+    font-weight: 700;
+    color: #2a1800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .instruction-panel-participant--active .instruction-panel-participant-name {
+    color: #7a5500;
+  }
+
+  .instruction-panel-participant-chef-mark {
+    font-size: 12px;
+    line-height: 1;
   }
 }
 
