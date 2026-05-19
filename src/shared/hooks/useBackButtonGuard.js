@@ -31,6 +31,7 @@ function installBackGuardStack() {
 
   if (currentState?.mirocardBackGuard) {
     const sequence = getGuardSequence(currentState);
+    guardSequence    = Math.max(guardSequence, sequence);
     guardTopSequence = Math.max(guardTopSequence, sequence);
     lastObservedSequence = sequence;
     return;
@@ -60,6 +61,7 @@ function installBackGuardStack() {
 
 function reboundToGuardTop(sequence) {
   if (sequence >= guardTopSequence) return;
+  if (guardSequence < guardTopSequence) guardSequence = guardTopSequence;
   guardSequence += 1;
   guardTopSequence = guardSequence;
   lastObservedSequence = guardTopSequence;
