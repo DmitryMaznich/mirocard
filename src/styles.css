@@ -17196,6 +17196,11 @@ body { background: #eef0ef; }
     gap: 6px;
   }
 
+  /* Center step content vertically within its flex-1 area */
+  .instruction-step {
+    justify-content: center;
+  }
+
   /* Bigger owner name and step text in landscape */
   .instruction-step-owner {
     font-size: clamp(24px, 5.5vh, 46px);
