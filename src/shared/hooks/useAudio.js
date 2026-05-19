@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { getDb, topics } from "@/core/db";
+import { useCallback, useEffect, useRef } from "react";
+import { getDb, kv, topics } from "@/core/db";
+import { useAppStore } from "@/core/store";
 
 const FEEDBACK_SOURCES = {
   correct: "/sounds/correct.wav",
@@ -15,7 +16,9 @@ function createAudio(src) {
 }
 
 export function useAudio() {
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const soundEnabled  = useAppStore((s) => s.settings.soundEnabled ?? false);
+  const patchSettings = useAppStore((s) => s.patchSettings);
+  const settings      = useAppStore((s) => s.settings);
   const currentRef = useRef(null);
   const genRef     = useRef(0);
   const feedbackRef = useRef(null);
@@ -121,15 +124,14 @@ export function useAudio() {
   }, [soundEnabled, stop]);
 
   const toggleSound = useCallback(() => {
-    setSoundEnabled((v) => {
-      const next = !v;
-      if (next) {
-        unlockedRef.current = false;
-        window.setTimeout(unlockFeedbackAudio, 0);
-      }
-      return next;
-    });
-  }, [unlockFeedbackAudio]);
+    const next = !soundEnabled;
+    patchSettings({ soundEnabled: next });
+    getDb().then((db) => kv.set(db, "settings", { ...settings, soundEnabled: next }));
+    if (next) {
+      unlockedRef.current = false;
+      window.setTimeout(unlockFeedbackAudio, 0);
+    }
+  }, [soundEnabled, patchSettings, settings, unlockFeedbackAudio]);
 
   return { soundEnabled, toggleSound, playFeedback, playTopicFile };
 }

@@ -23,6 +23,7 @@ export const useAppStore = create((set) => ({
     adultConfirmAdvance: true,
     tapToAdvance: true,
     autoAdvanceDelay: 3,
+    soundEnabled: false,
   },
   setSettings: (settings) => set({ settings }),
   patchSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
