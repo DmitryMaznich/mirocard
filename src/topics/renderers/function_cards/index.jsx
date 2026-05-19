@@ -49,11 +49,19 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
     }, 1200);
   }
 
+  const correctOption = task.options.find(o => o.isTarget);
+
   return (
     <div className="fc-choose-action session-body">
       <div className="fc-ca-photo-wrap">
         <ToolImage topicId={topicId} card={task.toolCard} className="fc-ca-img" />
         <div className="fc-ca-question">{task.question}</div>
+        {selected !== null && (
+          <div className="fc-ca-answer">
+            <span className="fc-ca-answer-key">{task.labelInstrumental}</span>
+            <span className="fc-ca-answer-action">{correctOption?.action}</span>
+          </div>
+        )}
       </div>
 
       <div className="fc-action-options">
@@ -75,10 +83,6 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
           );
         })}
       </div>
-
-      {selected && (
-        <p className="fc-feedback">{task.feedbackText}</p>
-      )}
     </div>
   );
 }
