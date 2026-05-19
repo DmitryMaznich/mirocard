@@ -107,3 +107,20 @@ export function resolveStepOwner(ownerName, group, student) {
   }
   return null;
 }
+
+/**
+ * Resolve all owners of a step (supports multiple assignees).
+ * Falls back to the active student when no group is configured.
+ */
+export function resolveStepOwners(ownerNames, group, student) {
+  if (ownerNames?.length) {
+    return ownerNames.map((name) => {
+      const member = group?.find((m) => m.name === name);
+      return member ?? { id: null, name, photoDataUrl: null };
+    });
+  }
+  if (!group?.length && student) {
+    return [{ id: student.id, name: student.name, photoDataUrl: student.photo ?? null }];
+  }
+  return [];
+}

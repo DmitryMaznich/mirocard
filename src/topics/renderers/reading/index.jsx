@@ -6,7 +6,7 @@ import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import Modal from "@/shared/components/Modal";
 import { useSpeech } from "@/shared/hooks/useSpeech";
-import { parseRecipeTxt, resolveStepOwner } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners } from "./parseRecipeTxt";
 import { getGroup, getRecipeOverride, getRawRecipeTxt, saveGroup, saveRecipeOverride } from "@/core/groupStore";
 import { getAudioOverride, listLocalAudioOverrides, syncAudioOverrides } from "@/core/audioStore";
 import AudioRecordDialog from "./AudioRecordDialog";
@@ -327,8 +327,8 @@ function applyGroupToSteps(parsedSteps, group) {
   let actionNum = 0;
   return parsedSteps.map((step) => {
     if (step.type !== "heading") actionNum++;
-    const match = memberRanges.find((mr) => mr.nums.has(actionNum));
-    return { ...step, owner: match ? match.name : null };
+    const matches = memberRanges.filter((mr) => mr.nums.has(actionNum));
+    return { ...step, owners: matches.map((mr) => mr.name) };
   });
 }
 
@@ -458,7 +458,10 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   // ── Running helpers ────────────────────────────────────────────────────────
   const step = steps[stepIndex];
-  const owner = step ? resolveStepOwner(step.owner, group, student) : null;
+  // Support both old single-owner (step.owner) and new multi-owner (step.owners) formats
+  const owners = step
+    ? resolveStepOwners(step.owners ?? (step.owner ? [step.owner] : []), group, student)
+    : [];
   const isLast = stepIndex === steps.length - 1;
   const allChecked =
     step?.type !== "checklist" ||
@@ -478,12 +481,14 @@ function InstructionTask({ task, topicId, onAdvance }) {
           a.onended = () => URL.revokeObjectURL(url);
           a.play();
         } else {
-          const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+          const ownerPrefix = owners.map((o) => o.name).join(", ");
+          const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
           speak(text);
         }
       });
     } else {
-      const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+      const ownerPrefix = owners.map((o) => o.name).join(", ");
+      const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
       speak(text);
     }
     return () => { cancelled = true; };
@@ -531,15 +536,17 @@ function InstructionTask({ task, topicId, onAdvance }) {
           a.onended = () => URL.revokeObjectURL(url);
           a.play();
         } else {
-          const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+          const ownerPrefix = owners.map((o) => o.name).join(", ");
+          const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
           speak(text);
         }
       });
     } else {
-      const text = owner?.name ? `${owner.name}. ${step.text}` : step.text;
+      const ownerPrefix = owners.map((o) => o.name).join(", ");
+      const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
       speak(text);
     }
-  }, [step, owner, speak, topicId, task.text?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [step, owners, speak, topicId, task.text?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (phase !== "running") return;
@@ -737,7 +744,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
           {group.length > 1 && (
             <div className="instruction-panel-participants">
               {group.map((member) => {
-                const isActive = owner && (owner.id === member.id || owner.name === member.name);
+                const isActive = owners.some((o) => o.id === member.id || o.name === member.name);
                 const isChef = member.role === "chef";
                 return (
                   <div
@@ -769,8 +776,8 @@ function InstructionTask({ task, topicId, onAdvance }) {
           </div>
 
           <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}`}>
-            {owner && step.type !== "heading" && (
-              <div className="instruction-step-owner">{owner.name},</div>
+            {owners.length > 0 && step.type !== "heading" && (
+              <div className="instruction-step-owner">{owners.map((o) => o.name).join(", ")},</div>
             )}
             <div className="instruction-step-text">{step.text}</div>
             {step.type === "checklist" && (
@@ -849,7 +856,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
       {group.length > 1 && (
         <div className="instruction-participants">
           {group.map((member) => {
-            const isActive = owner && (owner.id === member.id || owner.name === member.name);
+            const isActive = owners.some((o) => o.id === member.id || o.name === member.name);
             const isChef = member.role === "chef";
             return (
               <div
