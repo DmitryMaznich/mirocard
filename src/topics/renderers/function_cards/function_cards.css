@@ -334,6 +334,23 @@
     grid-area: feedback;
     margin-top: 0;
   }
+
+  /* ── choose_action landscape: small centered photo + 1-col answers ── */
+  .fc-choose-action .fc-ca-left {
+    align-items: center;
+  }
+  .fc-choose-action .fc-ca-photo-wrap {
+    width: 25%;
+    max-width: 110px;
+  }
+  .fc-choose-action .fc-action-options {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+  .fc-choose-action .fc-option {
+    white-space: nowrap;
+    font-size: clamp(0.78rem, 1.8vw, 0.97rem);
+  }
 }
 
 /* ── Portrait (tablet): overlay labels, shift down, bigger tiles ── */
