@@ -53,4 +53,21 @@ describe("computeStarProgress", () => {
   it("does not exceed 5 stars", () => {
     expect(computeStarProgress({ correctCount: 100, total: 10, rewardThreshold: 80, available: true }).litStars).toBe(5);
   });
+
+  it("incorrect answers reduce lit stars", () => {
+    // 6 correct, 0 wrong → 3 stars; 6 correct, 2 wrong → net 4 → 2 stars
+    expect(computeStarProgress({ correctCount: 6, incorrectCount: 0, total: 10, rewardThreshold: 80, available: true }).litStars).toBe(3);
+    expect(computeStarProgress({ correctCount: 6, incorrectCount: 2, total: 10, rewardThreshold: 80, available: true }).litStars).toBe(2);
+  });
+
+  it("stars never go below 0", () => {
+    expect(computeStarProgress({ correctCount: 2, incorrectCount: 10, total: 10, rewardThreshold: 80, available: true }).litStars).toBe(0);
+  });
+
+  it("video locks if wrong answers drop litStars below threshold", () => {
+    // 8 correct unlocks at threshold 80 (4 stars needed), but 2 wrong makes net 6 → 3 stars → locked
+    const r = computeStarProgress({ correctCount: 8, incorrectCount: 2, total: 10, rewardThreshold: 80, available: true });
+    expect(r.litStars).toBe(3);
+    expect(r.videoUnlocked).toBe(false);
+  });
 });

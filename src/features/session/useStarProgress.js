@@ -4,9 +4,10 @@ export function thresholdToStars(threshold) {
   return 5;
 }
 
-export function computeStarProgress({ correctCount, total, rewardThreshold, available }) {
+export function computeStarProgress({ correctCount, incorrectCount = 0, total, rewardThreshold, available }) {
   const thresholdStars = thresholdToStars(rewardThreshold ?? 90);
-  const litStars = Math.min(5, Math.floor(correctCount / Math.max(1, total) * 5));
+  const netScore = Math.max(0, correctCount - incorrectCount);
+  const litStars = Math.min(5, Math.floor(netScore / Math.max(1, total) * 5));
   const videoUnlocked = available && litStars >= thresholdStars;
   return { litStars, thresholdStars, videoUnlocked, available };
 }

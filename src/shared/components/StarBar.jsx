@@ -3,8 +3,8 @@ import { useStarProgress } from "@/features/session/useStarProgress";
 
 const STAR_COUNT = 5;
 
-export default function StarBar({ className = "", correctCount, total, rewardThreshold, available }) {
-  const { litStars, videoUnlocked } = useStarProgress({ correctCount, total, rewardThreshold, available });
+export default function StarBar({ className = "", correctCount, incorrectCount = 0, total, rewardThreshold, available }) {
+  const { litStars, videoUnlocked } = useStarProgress({ correctCount, incorrectCount, total, rewardThreshold, available });
 
   const prevLitRef      = useRef(litStars);
   const prevUnlockedRef = useRef(videoUnlocked);

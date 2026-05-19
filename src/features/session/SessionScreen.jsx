@@ -150,6 +150,7 @@ export default function SessionScreen() {
           <StarBar
             className="session-progress"
             correctCount={correctCount ?? 0}
+            incorrectCount={incorrectCount ?? 0}
             total={total}
             rewardThreshold={rewardProgress?.threshold}
             available={rewardProgress?.available ?? false}

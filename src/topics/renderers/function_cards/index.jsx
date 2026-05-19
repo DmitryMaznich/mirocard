@@ -26,19 +26,27 @@ function SceneImage({ topicId, card, blurred, className = "" }) {
   );
 }
 
+const Q_AUDIO_GAP = 1200; // ms between prefix phrase and tool name audio (~1s for phrase to finish)
+
 // ── ChooseActionTask ─────────────────────────────────────────
 function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer }) {
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => {
-    setSelected(null);
-  }, [task]);
+  useEffect(() => { setSelected(null); }, [task]);
 
   useEffect(() => {
-    if (task.toolCard?.audio?.ru && soundEnabled) {
-      playTopicFile(topicId, task.toolCard.audio.ru);
-    }
+    if (soundEnabled) playQuestion();
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function playQuestion() {
+    if (!soundEnabled) return;
+    if (task.questionPrefixAudio) {
+      playTopicFile(topicId, task.questionPrefixAudio);
+      if (task.toolNameAudio) setTimeout(() => playTopicFile(topicId, task.toolNameAudio), Q_AUDIO_GAP);
+    } else if (task.toolNameAudio) {
+      playTopicFile(topicId, task.toolNameAudio);
+    }
+  }
 
   function handleSelect(option) {
     if (selected !== null) return;
@@ -46,42 +54,58 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
     const quality = option.isTarget ? "correct" : "fail";
     setTimeout(() => {
       onQualityAnswer(quality, task.conceptId, task.toolCard?.id ?? null);
-    }, 1200);
+    }, 1800);
   }
 
-  const correctOption = task.options.find(o => o.isTarget);
+  const hasQuestionAudio = Boolean(task.questionPrefixAudio || task.toolNameAudio);
 
   return (
     <div className="fc-choose-action session-body">
-      <div className="fc-ca-photo-wrap">
-        <ToolImage topicId={topicId} card={task.toolCard} className="fc-ca-img" />
-        <div className="fc-ca-question">{task.question}</div>
-        {selected !== null && (
-          <div className="fc-ca-answer">
-            <span className="fc-ca-answer-key">{task.labelInstrumental}</span>
-            <span className="fc-ca-answer-action">{correctOption?.action}</span>
-          </div>
+      <div className="fc-ca-question-bar">
+        <span>{task.question}</span>
+        {hasQuestionAudio && soundEnabled && (
+          <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
         )}
       </div>
 
-      <div className="fc-action-options">
-        {task.options.map(opt => {
-          let mod = "";
-          if (selected !== null) {
-            if (opt.isTarget) mod = "fc-option--correct";
-            else if (selected.conceptId === opt.conceptId) mod = "fc-option--wrong";
-          }
-          return (
-            <button
-              key={opt.conceptId}
-              className={`fc-option ${mod}`}
-              onClick={() => handleSelect(opt)}
-              disabled={selected !== null}
-            >
-              {opt.action}
-            </button>
-          );
-        })}
+      <div className="fc-ca-left">
+        <div className="fc-ca-photo-wrap">
+          <ToolImage topicId={topicId} card={task.toolCard} className="fc-ca-img" />
+        </div>
+        <div className="fc-action-options">
+          {task.options.map(opt => {
+            let mod = "";
+            if (selected !== null) {
+              if (opt.isTarget) mod = "fc-option--correct";
+              else if (selected.conceptId === opt.conceptId) mod = "fc-option--wrong";
+            }
+            return (
+              <button
+                key={opt.conceptId}
+                className={`fc-option ${mod}`}
+                onClick={() => handleSelect(opt)}
+                disabled={selected !== null}
+              >
+                {opt.actionInf}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="fc-ca-right">
+        {selected === null ? (
+          <div className="fc-ca-placeholder" aria-hidden="true" />
+        ) : (
+          <>
+            {task.sceneAfterCard && (
+              <div className="fc-ca-scene-wrap">
+                <SceneImage topicId={topicId} card={task.sceneAfterCard} blurred={false} className="fc-ca-scene-img" />
+              </div>
+            )}
+            <div className="fc-ca-answer-text">{task.feedbackText}</div>
+          </>
+        )}
       </div>
     </div>
   );

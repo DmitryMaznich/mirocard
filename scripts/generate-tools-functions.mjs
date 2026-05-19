@@ -6,10 +6,102 @@ import JSZip from "jszip";
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createSign } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.7";
+const VERSION = "1.3.9";
+
+// ── Google TTS config ────────────────────────────────────────
+const SA_PATH = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
+const TF_AUDIO_DIR = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/audio";
+const TTS_VOICE = "ru-RU-Wavenet-D";
+const TTS_RATE = 0.9;
+
+// Forms of "нужен/нужна/нужно/нужны" — one audio file per form
+const NEEDS_FORMS = ["нужен", "нужна", "нужно", "нужны"];
+const NEEDS_FORM_ZIP_PATH = {
+  "нужен": "audio/q_nuzhen.mp3",
+  "нужна": "audio/q_nuzhna.mp3",
+  "нужно": "audio/q_nuzhno.mp3",
+  "нужны": "audio/q_nuzhny.mp3",
+};
+const NEEDS_FORM_FILENAME = {
+  "нужен": "q_nuzhen.mp3",
+  "нужна": "q_nuzhna.mp3",
+  "нужно": "q_nuzhno.mp3",
+  "нужны": "q_nuzhny.mp3",
+};
+
+let _ttsToken = null;
+let _ttsTokenExpiry = 0;
+
+async function getTTSToken(sa) {
+  const now = Math.floor(Date.now() / 1000);
+  if (_ttsToken && now < _ttsTokenExpiry - 60) return _ttsToken;
+  const header  = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({
+    iss: sa.client_email,
+    scope: "https://www.googleapis.com/auth/cloud-platform",
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now, exp: now + 3600,
+  })).toString("base64url");
+  const sign = createSign("RSA-SHA256");
+  sign.update(header + "." + payload);
+  const jwt = header + "." + payload + "." + sign.sign(sa.private_key, "base64url");
+  const resp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=" + jwt,
+  });
+  const body = await resp.json();
+  _ttsToken = body.access_token;
+  _ttsTokenExpiry = now + (body.expires_in || 3600);
+  return _ttsToken;
+}
+
+async function synthesize(sa, text) {
+  const token = await getTTSToken(sa);
+  const resp = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({
+      input: { text },
+      voice: { languageCode: "ru-RU", name: TTS_VOICE },
+      audioConfig: { audioEncoding: "MP3", speakingRate: TTS_RATE },
+    }),
+  });
+  const data = await resp.json();
+  if (!data.audioContent) throw new Error("TTS error: " + JSON.stringify(data));
+  return Buffer.from(data.audioContent, "base64");
+}
+
+// Returns map: needsForm → zipPath, or {} if SA not found
+async function packPrefixAudio(zip) {
+  if (!existsSync(SA_PATH)) {
+    console.warn("⚠️  google-tts-sa.json not found — skipping question prefix audio");
+    return {};
+  }
+  const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
+  if (!existsSync(TF_AUDIO_DIR)) mkdirSync(TF_AUDIO_DIR, { recursive: true });
+  const map = {};
+  for (const form of NEEDS_FORMS) {
+    const cachePath = join(TF_AUDIO_DIR, NEEDS_FORM_FILENAME[form]);
+    const zipPath   = NEEDS_FORM_ZIP_PATH[form];
+    let buf;
+    if (existsSync(cachePath)) {
+      buf = readFileSync(cachePath);
+    } else {
+      // No question mark → neutral/falling intonation for clean concatenation
+      console.log(`🔊 TTS: "Для чего ${form}"`);
+      buf = await synthesize(sa, `Для чего ${form}`);
+      writeFileSync(cachePath, buf);
+    }
+    zip.file(zipPath, buf);
+    map[form] = zipPath;
+  }
+  return map;
+}
 const CARDGEN_GENERATED = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/tools_functions/generated";
 
 const IMAGE_STYLE_PREFIX =
@@ -28,8 +120,10 @@ const CONCEPTS = [
   {
     id: "hammer",
     label: "Молоток",
+    needsForm: "нужен",
     labelInstrumental: "молотком",
     action: "забивают гвозди",
+    actionInf: "забивать гвозди",
     sceneQuestion: "Нужно забить гвоздь. Что взять?",
     toolPrompt: "a hammer, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a nail lying next to a wooden board on a clean surface, the nail is not driven in yet, 4:3 composition, no text",
@@ -38,8 +132,10 @@ const CONCEPTS = [
   {
     id: "screwdriver",
     label: "Отвёртка",
+    needsForm: "нужна",
     labelInstrumental: "отвёрткой",
     action: "закручивают шурупы",
+    actionInf: "закручивать шурупы",
     sceneQuestion: "Нужно закрутить шуруп. Что взять?",
     toolPrompt: "a screwdriver, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a screw lying next to a wooden plank on a clean surface, the screw is not inserted yet, 4:3 composition, no text",
@@ -48,8 +144,10 @@ const CONCEPTS = [
   {
     id: "drill",
     label: "Дрель",
+    needsForm: "нужна",
     labelInstrumental: "дрелью",
     action: "сверлят отверстия",
+    actionInf: "сверлить отверстия",
     sceneQuestion: "Нужно просверлить отверстие в стене. Что взять?",
     toolPrompt: "a power drill, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a smooth concrete wall section without any holes, clean even surface, 4:3 composition, no text",
@@ -58,8 +156,10 @@ const CONCEPTS = [
   {
     id: "handsaw",
     label: "Пила",
+    needsForm: "нужна",
     labelInstrumental: "пилой",
     action: "пилят доску",
+    actionInf: "пилить доску",
     sceneQuestion: "Нужно распилить доску. Что взять?",
     toolPrompt: "a hand saw, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "one whole wooden plank lying on a clean surface, 4:3 composition, no text",
@@ -68,8 +168,10 @@ const CONCEPTS = [
   {
     id: "wrench",
     label: "Гаечный ключ",
+    needsForm: "нужен",
     labelInstrumental: "гаечным ключом",
     action: "закручивают гайки",
+    actionInf: "закручивать гайки",
     sceneQuestion: "Нужно затянуть гайку на болте. Что взять?",
     toolPrompt: "an open-end wrench, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a bolt with a loose nut sitting beside it on a clean surface, 4:3 composition, no text",
@@ -78,8 +180,10 @@ const CONCEPTS = [
   {
     id: "pliers",
     label: "Пассатижи",
+    needsForm: "нужны",
     labelInstrumental: "пассатижами",
     action: "сгибают проволоку",
+    actionInf: "сгибать проволоку",
     sceneQuestion: "Нужно согнуть проволоку. Что взять?",
     toolPrompt: "a pair of pliers, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a straight piece of metal wire lying on a clean surface, 4:3 composition, no text",
@@ -88,8 +192,10 @@ const CONCEPTS = [
   {
     id: "wire_cutters",
     label: "Кусачки",
+    needsForm: "нужны",
     labelInstrumental: "кусачками",
     action: "режут проволоку",
+    actionInf: "резать проволоку",
     sceneQuestion: "Нужно перекусить проволоку. Что взять?",
     toolPrompt: "wire cutters (diagonal cutting pliers), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a long piece of wire lying on a clean surface, 4:3 composition, no text",
@@ -98,8 +204,10 @@ const CONCEPTS = [
   {
     id: "tape_measure",
     label: "Рулетка",
+    needsForm: "нужна",
     labelInstrumental: "рулеткой",
     action: "измеряют длину",
+    actionInf: "измерять длину",
     sceneQuestion: "Нужно измерить длину большого предмета. Что взять?",
     toolPrompt: "a tape measure (retractable measuring tape), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a wooden board without any markings lying on a clean surface, 4:3 composition, no text",
@@ -108,8 +216,10 @@ const CONCEPTS = [
   {
     id: "paintbrush",
     label: "Кисточка",
+    needsForm: "нужна",
     labelInstrumental: "кисточкой",
     action: "красят поверхность",
+    actionInf: "красить поверхность",
     sceneQuestion: "Нужно покрасить стену. Что взять?",
     toolPrompt: "a paint brush, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "an unpainted grey wall section, clean and bare, 4:3 composition, no text",
@@ -118,8 +228,10 @@ const CONCEPTS = [
   {
     id: "spatula",
     label: "Шпатель",
+    needsForm: "нужен",
     labelInstrumental: "шпателем",
     action: "наносят шпаклёвку",
+    actionInf: "наносить шпаклёвку",
     sceneQuestion: "Нужно заделать трещину в стене. Что взять?",
     toolPrompt: "a wall spatula (putty knife), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a wall section with a visible crack in the plaster, 4:3 composition, no text",
@@ -128,8 +240,10 @@ const CONCEPTS = [
   {
     id: "drill_bit",
     label: "Сверло",
+    needsForm: "нужно",
     labelInstrumental: "сверлом",
     action: "сверлят дерево",
+    actionInf: "сверлить дерево",
     sceneQuestion: "Нужно просверлить дырку в деревянном бруске. Что взять?",
     toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a small wooden block without any holes on a clean surface, 4:3 composition, no text",
@@ -138,8 +252,10 @@ const CONCEPTS = [
   {
     id: "ruler",
     label: "Линейка",
+    needsForm: "нужна",
     labelInstrumental: "линейкой",
     action: "чертят ровные линии",
+    actionInf: "чертить ровные линии",
     sceneQuestion: "Нужно провести ровную линию на бумаге. Что взять?",
     toolPrompt: "a wooden ruler, isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a blank white sheet of paper on a clean desk, 4:3 composition, no text",
@@ -173,6 +289,9 @@ async function run() {
   const ANSWER_PREFIX_AUDIO = existsSync(etoSrc) ? "audio/eto.mp3" : null;
   if (ANSWER_PREFIX_AUDIO) zip.file("audio/eto.mp3", readFileSync(etoSrc));
 
+  // Pack question prefix audio ("Для чего нужен/нужна/нужно/нужны")
+  const prefixAudioMap = await packPrefixAudio(zip);
+
   function addImage(cardId, zipPath) {
     const srcPath = join(CARDGEN_GENERATED, `${cardId}.webp`);
     if (existsSync(srcPath)) {
@@ -200,7 +319,10 @@ async function run() {
         ...(v === 1 ? {
           labelInstrumental: concept.labelInstrumental,
           action: concept.action,
+          actionInf: concept.actionInf,
           sceneQuestion: concept.sceneQuestion,
+          needsForm: concept.needsForm,
+          ...(prefixAudioMap[concept.needsForm] ? { questionPrefixAudio: prefixAudioMap[concept.needsForm] } : {}),
         } : {}),
         ...audioRu,
         image: filename,

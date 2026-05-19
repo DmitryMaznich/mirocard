@@ -27,22 +27,31 @@ function generateChooseActionTasks(concepts) {
   const tasks = [];
   for (const concept of concepts) {
     const toolCard = getToolCard(concept);
+    const sceneAfterCard = concept.cards.find(c => c.type === "scene_after") ?? null;
     const distractors = pickDistractors(concept.conceptId, concepts, 3);
     const options = shuffle([
-      { action: concept.primary.action, conceptId: concept.conceptId, isTarget: true },
+      { actionInf: concept.primary.actionInf, conceptId: concept.conceptId, isTarget: true },
       ...distractors.map(d => ({
-        action: d.primary.action,
+        actionInf: d.primary.actionInf,
         conceptId: d.conceptId,
         isTarget: false,
       })),
     ]);
+    const needsForm = concept.primary.needsForm ?? "";
+    const question = needsForm
+      ? `Для чего ${needsForm} ${concept.primary.label}?`
+      : `Что делают ${concept.primary.labelInstrumental}?`;
+    const lInstr = concept.primary.labelInstrumental;
     tasks.push({
       type: "choose_action",
       conceptId: concept.conceptId,
       toolCard,
-      labelInstrumental: concept.primary.labelInstrumental,
-      question: `Что делают ${concept.primary.labelInstrumental}?`,
-      feedbackText: `${concept.primary.label} ${concept.primary.action}!`,
+      sceneAfterCard,
+      question,
+      questionPrefixAudio: concept.primary.questionPrefixAudio ?? null,
+      toolNameAudio: toolCard.audio?.ru ?? null,
+      action: concept.primary.action,
+      feedbackText: `${lInstr[0].toUpperCase()}${lInstr.slice(1)} ${concept.primary.action}!`,
       options,
     });
   }
@@ -76,7 +85,7 @@ function generateSceneFunctionTasks(concepts) {
       sceneBefore,
       sceneAfter,
       question: concept.primary.sceneQuestion ?? null,
-      feedbackText: `${concept.primary.label} ${concept.primary.action}!`,
+      feedbackText: `${concept.primary.labelInstrumental[0].toUpperCase()}${concept.primary.labelInstrumental.slice(1)} ${concept.primary.action}!`,
       options,
     });
   }

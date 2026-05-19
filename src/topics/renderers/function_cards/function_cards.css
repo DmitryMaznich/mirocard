@@ -15,15 +15,55 @@
 
 /* ── choose_action ──────────────────────────────────────────── */
 
-/* Photo block with question overlay */
+/* Grid: question row (full-width) + left col (photo+options) / right col (reveal) */
+.fc-choose-action.session-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "question question"
+    "left right";
+  gap: 8px;
+  padding: 8px 14px;
+  overflow: hidden;
+}
+
+.fc-ca-question-bar {
+  grid-area: question;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: clamp(1.1rem, 4.5vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+.fc-ca-audio-btn {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.fc-ca-left {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: start;
+}
 .fc-ca-photo-wrap {
   position: relative;
-  width: 100%;
-  flex-shrink: 0;
-  border-radius: 18px;
+  border-radius: 14px;
   overflow: hidden;
   background: #f5f5f5;
-  height: min(38svh, 52vw);
+  width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
 }
 .fc-ca-img {
   width: 100%;
@@ -31,78 +71,25 @@
   object-fit: contain;
   border-radius: 0;
 }
-.fc-ca-question {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 32px 16px 14px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.62));
-  color: #fff;
-  font-size: clamp(1.05rem, 4.5vw, 1.4rem);
-  font-weight: 700;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  line-height: 1.25;
-}
-
-/* Answer panel — bottom-right quarter of photo */
-.fc-ca-answer {
-  position: absolute;
-  bottom: 0; right: 0;
-  width: 52%;
-  height: 52%;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(6px);
-  border-radius: 16px 0 0 0;
-  border-top: 3px solid #4caf50;
-  border-left: 3px solid #4caf50;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 10px 12px;
-  text-align: center;
-  animation: fc-ca-answer-in 0.22s ease both;
-}
-@keyframes fc-ca-answer-in {
-  from { opacity: 0; transform: scale(0.88) translateY(6px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0); }
-}
-.fc-ca-answer-key {
-  font-size: clamp(0.78rem, 2.5vw, 0.95rem);
-  color: #555;
-  font-weight: 600;
-  line-height: 1.1;
-}
-.fc-ca-answer-action {
-  font-size: clamp(1rem, 3.5vw, 1.3rem);
-  color: #1b5e20;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-/* Answer options — left-bar style, tight to photo */
-.fc-choose-action.session-body { gap: 0; }
 .fc-action-options {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
   width: 100%;
-  max-width: 480px;
-  margin: 6px auto 0;
   flex-shrink: 0;
 }
 .fc-option {
-  padding: 11px 16px;
+  padding: 9px 12px;
   border: none;
   border-left: 4px solid #d8d8d8;
   border-radius: 0 12px 12px 0;
   background: #fafafa;
-  font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+  font-size: clamp(0.85rem, 3vw, 1.05rem);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 .fc-option:disabled { cursor: default; }
 .fc-option--correct {
@@ -117,40 +104,52 @@
   color: #b71c1c;
 }
 
+.fc-ca-right {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: start;
+}
+.fc-ca-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  border: 2px dashed #e4e4e4;
+  background: #f8f8f8;
+  flex-shrink: 0;
+}
+.fc-ca-answer-text {
+  width: 100%;
+  font-size: clamp(1rem, 3.5vw, 1.3rem);
+  color: #1b5e20;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.2;
+  animation: fc-ca-in 0.22s ease both;
+}
+.fc-ca-scene-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+.fc-ca-scene-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: fc-ca-in 0.3s ease both;
+}
+@keyframes fc-ca-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* Override global tablet font scaling */
 .fc-scene-function .session-instruction {
   font-size: clamp(1.15rem, 5vw, 1.55rem);
-}
-
-/* ── Landscape: photo left, options right ─────────────────── */
-@media (orientation: landscape) {
-  .fc-choose-action.session-body {
-    display: grid;
-    grid-template-columns: 52% 1fr;
-    grid-template-rows: 1fr auto;
-    grid-template-areas:
-      "photo options"
-      "photo feedback";
-    padding: 8px 14px;
-    gap: 8px min(56px, 6vw);
-    align-items: start;
-    overflow: hidden;
-  }
-  .fc-ca-photo-wrap {
-    grid-area: photo;
-    height: 100%;
-    align-self: stretch;
-  }
-  .fc-action-options {
-    grid-area: options;
-    align-self: center;
-    max-width: none;
-    margin: 0;
-  }
-  .fc-choose-action .fc-feedback {
-    grid-area: feedback;
-    margin-top: 0;
-  }
 }
 
 /* scene_function */
