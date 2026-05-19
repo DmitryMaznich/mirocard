@@ -17104,18 +17104,21 @@ body { background: #eef0ef; }
 
 /* ─── Landscape layout ───────────────────────────────────────────────────────── */
 @media (orientation: landscape) {
-  /* Remove body padding — inner layout handles spacing */
-  /* Negative margin-left negates session-screen's padding-left (safe-area inset),
-     pressing the chef panel flush to the physical left edge of the screen. */
+  /* Remove body padding; override align-items:center inherited from .session-body
+     so children stretch to full landscape width instead of collapsing to content width.
+     Negative margin negates session-screen's safe-area padding-left, pressing
+     the chef panel flush to the physical screen edge. */
   .session-body.reading-body.instruction-body {
     padding: 0;
     gap: 0;
+    align-items: stretch;
     margin-left: calc(-1 * var(--app-safe-left));
     width: calc(100% + var(--app-safe-left));
   }
 
   .instruction-running-layout {
     flex-direction: row;
+    width: 100%;
   }
 
   /* Chef panel: golden left column — 1/3 of screen */
