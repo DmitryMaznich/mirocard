@@ -35,7 +35,6 @@ export default function SettingsScreen() {
   const settings         = useAppStore((s) => s.settings);
   const patchSettings    = useAppStore((s) => s.patchSettings);
 
-  const soundEnabled     = settings.soundEnabled ?? false;
   const adultConfirmAdvance = settings.adultConfirmAdvance ?? true;
   const tapToAdvance     = settings.tapToAdvance ?? true;
   const requiresTapToAdvance = adultConfirmAdvance || tapToAdvance;
@@ -187,23 +186,6 @@ export default function SettingsScreen() {
                 onClick={() => handlePatchSettings({ autoAdvanceDelay: autoAdvanceDelay + 1 })}
               >+</button>
             </div>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <div className="settings-section-title">Аудио</div>
-          <div
-            className="settings-row"
-            style={{ cursor: "pointer" }}
-            onClick={() => handlePatchSettings({ soundEnabled: !soundEnabled })}
-          >
-            <span className="settings-row__label">Звук включён</span>
-            <input
-              type="checkbox"
-              checked={soundEnabled}
-              readOnly
-              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
-            />
           </div>
         </div>
 

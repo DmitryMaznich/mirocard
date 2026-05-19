@@ -339,7 +339,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const { speak } = useSpeech();
-  const soundEnabled  = useAppStore((s) => s.settings?.soundEnabled ?? false);
   const coverImageUrl = useTopicFile(topicId, task.text?.image);
 
   // ── Shared state ──────────────────────────────────────────────────────────
@@ -350,6 +349,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const [group, setGroup] = useState([]);
 
   // ── Setup-phase state ─────────────────────────────────────────────────────
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberPhoto, setNewMemberPhoto] = useState(null);
   const [editingRecipe, setEditingRecipe] = useState(false);
@@ -469,7 +469,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
 
   useEffect(() => {
-    if (phase !== "running" || !step || !soundEnabled) return;
+    if (phase !== "running" || !step || !audioEnabled) return;
     const textId  = task.text?.id ?? "";
     const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
     let cancelled = false;
@@ -526,7 +526,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
   }, [stepIndex]);
 
   const reSpeak = useCallback(() => {
-    if (!step || !soundEnabled) return;
+    if (!step || !audioEnabled) return;
     const textId  = task.text?.id ?? "";
     const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
     if (textId && stepNum != null) {
@@ -676,6 +676,20 @@ function InstructionTask({ task, topicId, onAdvance }) {
           </button>
 
           {audioSection}
+
+          <div className="instruction-cover-section">
+            <div className="instruction-cover-section-label">Режим</div>
+            <div
+              className="instruction-cover-audio-toggle"
+              onClick={() => setAudioEnabled((v) => !v)}
+            >
+              <span className="instruction-cover-audio-icon">{audioEnabled ? "🔊" : "🔇"}</span>
+              <span className="instruction-cover-audio-label">
+                {audioEnabled ? "Аудио включено" : "Аудио выключено"}
+              </span>
+              <input type="checkbox" checked={audioEnabled} readOnly />
+            </div>
+          </div>
         </div>
 
         {audioDialogStep && (

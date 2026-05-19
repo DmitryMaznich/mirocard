@@ -846,6 +846,30 @@ html.app-ios-standalone {
   color: #6a9a80;
 }
 
+.instruction-cover-audio-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f0f7f4;
+  border: 1px solid #c8ddd6;
+  cursor: pointer;
+  user-select: none;
+}
+
+.instruction-cover-audio-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.instruction-cover-audio-label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2a4a40;
+}
+
 .instruction-cover-members {
   display: flex;
   flex-direction: column;
