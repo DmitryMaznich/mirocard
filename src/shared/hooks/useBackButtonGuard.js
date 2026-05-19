@@ -2,22 +2,26 @@ import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
 
-// 2 entries is enough: one fires the popstate, one is the fallback.
-// Keeping it small avoids Chrome's same-URL pushState rate-limit (100/30 s).
-const BACK_GUARD_DEPTH = 2;
+const BACK_GUARD_DEPTH = 5;
 
-// A distinct hash URL so Chrome/Android recognises these as navigatable history
-// entries that differ from the app root. Without a different URL, Android Chrome
-// may silently collapse same-URL pushState entries and bypass the guard entirely.
-const GUARD_HASH = "#_guard";
+// Each guard entry gets a unique URL so Chrome never collapses same-URL entries.
+const GUARD_HASH_PREFIX = "#_g";
 
-let guardSequence = 0;
+// Start from Date.now() so new-session sequences are always larger than any
+// old-session sequence still sitting in the browser history stack.
+// This is the key invariant: sequence(new entry) > sequence(any old entry).
+let guardSequence    = Date.now();
 let guardTopSequence = 0;
 let lastObservedSequence = 0;
-let lastHandledBackAt = 0;
+let lastHandledBackAt    = 0;
 
-function guardUrl() {
-  return window.location.href.replace(/#.*$/, "") + GUARD_HASH;
+let _baseUrl = null;
+function baseUrl() {
+  if (!_baseUrl) _baseUrl = window.location.href.replace(/#.*$/, "");
+  return _baseUrl;
+}
+function guardUrl(seq) {
+  return baseUrl() + GUARD_HASH_PREFIX + seq;
 }
 
 function getGuardSequence(state) {
@@ -31,13 +35,14 @@ function installBackGuardStack() {
 
   if (currentState?.mirocardBackGuard) {
     const sequence = getGuardSequence(currentState);
+    // Sync guardSequence so the next rebound always stays above the existing top.
     guardSequence    = Math.max(guardSequence, sequence);
     guardTopSequence = Math.max(guardTopSequence, sequence);
     lastObservedSequence = sequence;
     return;
   }
 
-  const rootUrl = window.location.href.replace(/#.*$/, "");
+  const rootUrl = baseUrl();
   if (!currentState?.mirocardBackRoot) {
     window.history.replaceState(
       { ...(currentState ?? {}), mirocardBackRoot: true, guardSequence: 0 },
@@ -46,13 +51,12 @@ function installBackGuardStack() {
     );
   }
 
-  const url = guardUrl();
   for (let i = 0; i < BACK_GUARD_DEPTH; i += 1) {
     guardSequence += 1;
     window.history.pushState(
       { mirocardBackGuard: true, guardSequence },
       "",
-      url,
+      guardUrl(guardSequence),
     );
   }
   guardTopSequence = guardSequence;
@@ -61,6 +65,7 @@ function installBackGuardStack() {
 
 function reboundToGuardTop(sequence) {
   if (sequence >= guardTopSequence) return;
+  // Defence: guardSequence must never fall behind guardTopSequence.
   if (guardSequence < guardTopSequence) guardSequence = guardTopSequence;
   guardSequence += 1;
   guardTopSequence = guardSequence;
@@ -68,7 +73,7 @@ function reboundToGuardTop(sequence) {
   window.history.pushState(
     { mirocardBackGuard: true, guardSequence },
     "",
-    guardUrl(),
+    guardUrl(guardSequence),
   );
 }
 
