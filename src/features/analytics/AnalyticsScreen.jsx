@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "@/core/api";
+import { flushQueue } from "@/core/syncApi";
 
 const HYPOTHESIS_COLOR = {
   "усваивает":  "#43a047",
@@ -42,6 +43,7 @@ export function AnalyticsScreen({ studentId, topicId, topicTitle, onClose }) {
     setLoading(true);
     setError(null);
     try {
+      await flushQueue();
       await api.delete(`/analysis/topic?studentId=${studentId}&topicId=${topicId}`);
       const data = await api.post("/analysis/topic", { studentId, topicId });
       setReport(data);
