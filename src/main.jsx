@@ -38,12 +38,10 @@ if ("serviceWorker" in navigator) {
     .then((registration) => {
       registration.waiting?.postMessage({ type: "SKIP_WAITING" });
       registration.addEventListener("updatefound", () => {
-        const worker = registration.installing;
-        worker?.addEventListener("statechange", () => {
-          if (worker.state === "installed" && navigator.serviceWorker.controller) {
-            worker.postMessage({ type: "SKIP_WAITING" });
-          }
-        });
+        // Don't send SKIP_WAITING automatically during an active session.
+        // HomeScreen detects the waiting SW and shows an "Обновить" button.
+        // Auto-SKIP_WAITING caused silent reloads mid-session that users
+        // experienced as the back button "reloading the app."
       });
       registration.update().catch(() => {
         // Update checks are best-effort; the app still works with the active worker.
