@@ -17440,7 +17440,13 @@ body { background: #eef0ef; }
     padding: 4px 0;
   }
 
-  /* Checklist items: smaller in landscape to save vertical space */
+  /* Checklist: two columns in landscape */
+  .instruction-checklist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
   .instruction-check-item {
     font-size: clamp(14px, 3.5vh, 22px);
     padding: 8px 12px;
