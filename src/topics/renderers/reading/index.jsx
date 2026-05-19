@@ -339,6 +339,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const { speak } = useSpeech();
+  const soundEnabled  = useAppStore((s) => s.settings?.soundEnabled ?? false);
   const coverImageUrl = useTopicFile(topicId, task.text?.image);
 
   // ── Shared state ──────────────────────────────────────────────────────────
@@ -468,7 +469,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
 
   useEffect(() => {
-    if (phase !== "running" || !step) return;
+    if (phase !== "running" || !step || !soundEnabled) return;
     const textId  = task.text?.id ?? "";
     const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
     let cancelled = false;
@@ -525,7 +526,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
   }, [stepIndex]);
 
   const reSpeak = useCallback(() => {
-    if (!step) return;
+    if (!step || !soundEnabled) return;
     const textId  = task.text?.id ?? "";
     const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
     if (textId && stepNum != null) {
