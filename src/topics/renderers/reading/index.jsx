@@ -744,6 +744,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
           {/* Team avatars at bottom of left panel */}
           {group.length > 1 && (
             <div className="instruction-panel-participants">
+              <div className="instruction-panel-participants-label">Команда шефа:</div>
               {group.map((member) => {
                 const isActive = owners.some((o) => o.id === member.id || o.name === member.name);
                 const isChef = member.role === "chef";

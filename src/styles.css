@@ -17217,6 +17217,15 @@ body { background: #eef0ef; }
   }
 
   /* ── Team list at bottom of left panel ── */
+  .instruction-panel-participants-label {
+    font-size: clamp(9px, 1.6vh, 12px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8a6000;
+    margin-bottom: 4px;
+  }
+
   .instruction-panel-participants {
     margin-top: auto;
     width: 100%;
