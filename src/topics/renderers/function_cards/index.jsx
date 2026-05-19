@@ -51,10 +51,9 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
 
   return (
     <div className="fc-choose-action session-body">
-      <p className="session-instruction">{task.question}</p>
-
-      <div className="fc-tool-card">
-        <ToolImage topicId={topicId} card={task.toolCard} />
+      <div className="fc-ca-photo-wrap">
+        <ToolImage topicId={topicId} card={task.toolCard} className="fc-ca-img" />
+        <div className="fc-ca-question">{task.question}</div>
       </div>
 
       <div className="fc-action-options">
@@ -78,7 +77,7 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
       </div>
 
       {selected && (
-        <p className="fc-feedback session-label">{task.feedbackText}</p>
+        <p className="fc-feedback">{task.feedbackText}</p>
       )}
     </div>
   );

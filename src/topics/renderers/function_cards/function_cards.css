@@ -13,39 +13,106 @@
   min-height: 120px;
 }
 
-/* choose_action */
-.fc-tool-card {
+/* ── choose_action ──────────────────────────────────────────── */
+
+/* Photo block with question overlay */
+.fc-ca-photo-wrap {
+  position: relative;
+  width: 100%;
   flex-shrink: 0;
-  width: min(180px, 38vw, 28svh);
-  height: min(180px, 38vw, 28svh);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f5f5f5;
+  height: min(38svh, 52vw);
 }
+.fc-ca-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+}
+.fc-ca-question {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 32px 16px 14px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.62));
+  color: #fff;
+  font-size: clamp(1.05rem, 4.5vw, 1.4rem);
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  line-height: 1.25;
+}
+
+/* Answer options — left-bar style */
 .fc-action-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
-  max-width: 360px;
+  max-width: 480px;
   margin: 0 auto;
   flex-shrink: 0;
 }
 .fc-option {
-  padding: 10px 14px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  background: white;
-  font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+  padding: 11px 16px;
+  border: none;
+  border-left: 4px solid #d8d8d8;
+  border-radius: 0 12px 12px 0;
+  background: #fafafa;
+  font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+  font-weight: 500;
+  text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
   line-height: 1.3;
 }
 .fc-option:disabled { cursor: default; }
-.fc-option--correct { background: #e8f5e9; border-color: #4caf50; color: #1b5e20; font-weight: 600; }
-.fc-option--wrong   { background: #ffebee; border-color: #f44336; color: #b71c1c; }
+.fc-option--correct {
+  border-left-color: #4caf50;
+  background: #e8f5e9;
+  color: #1b5e20;
+  font-weight: 700;
+}
+.fc-option--wrong {
+  border-left-color: #f44336;
+  background: #ffebee;
+  color: #b71c1c;
+}
 
-/* Override global tablet font scaling inside function_cards layouts */
-.fc-choose-action .session-instruction,
+/* Override global tablet font scaling */
 .fc-scene-function .session-instruction {
   font-size: clamp(1.15rem, 5vw, 1.55rem);
+}
+
+/* ── Landscape: photo left, options right ─────────────────── */
+@media (orientation: landscape) {
+  .fc-choose-action.session-body {
+    display: grid;
+    grid-template-columns: 52% 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "photo options"
+      "photo feedback";
+    padding: 8px 14px;
+    gap: 8px min(56px, 6vw);
+    align-items: start;
+    overflow: hidden;
+  }
+  .fc-ca-photo-wrap {
+    grid-area: photo;
+    height: 100%;
+    align-self: stretch;
+  }
+  .fc-action-options {
+    grid-area: options;
+    align-self: center;
+    max-width: none;
+    margin: 0;
+  }
+  .fc-choose-action .fc-feedback {
+    grid-area: feedback;
+    margin-top: 0;
+  }
 }
 
 /* scene_function */
