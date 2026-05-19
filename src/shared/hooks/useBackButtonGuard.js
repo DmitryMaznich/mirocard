@@ -2,26 +2,18 @@ import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
 
-const BACK_GUARD_DEPTH = 5;
+// One entry is enough. With DEPTH=1 the rebound always goes root→#_guard
+// (different URLs), so Chrome Android never silently ignores the pushState.
+// DEPTH≥2 causes same-URL rebounds (#_guard→#_guard) which Chrome may drop.
+const GUARD_HASH = "#_guard";
 
-// Each guard entry gets a unique URL so Chrome never collapses same-URL entries.
-const GUARD_HASH_PREFIX = "#_g";
-
-// Start from Date.now() so new-session sequences are always larger than any
-// old-session sequence still sitting in the browser history stack.
-// This is the key invariant: sequence(new entry) > sequence(any old entry).
-let guardSequence    = Date.now();
+let guardSequence = 0;
 let guardTopSequence = 0;
 let lastObservedSequence = 0;
-let lastHandledBackAt    = 0;
+let lastHandledBackAt = 0;
 
-let _baseUrl = null;
-function baseUrl() {
-  if (!_baseUrl) _baseUrl = window.location.href.replace(/#.*$/, "");
-  return _baseUrl;
-}
-function guardUrl(seq) {
-  return baseUrl() + GUARD_HASH_PREFIX + seq;
+function guardUrl() {
+  return window.location.href.replace(/#.*$/, "") + GUARD_HASH;
 }
 
 function getGuardSequence(state) {
@@ -35,14 +27,13 @@ function installBackGuardStack() {
 
   if (currentState?.mirocardBackGuard) {
     const sequence = getGuardSequence(currentState);
-    // Sync guardSequence so the next rebound always stays above the existing top.
     guardSequence    = Math.max(guardSequence, sequence);
     guardTopSequence = Math.max(guardTopSequence, sequence);
     lastObservedSequence = sequence;
     return;
   }
 
-  const rootUrl = baseUrl();
+  const rootUrl = window.location.href.replace(/#.*$/, "");
   if (!currentState?.mirocardBackRoot) {
     window.history.replaceState(
       { ...(currentState ?? {}), mirocardBackRoot: true, guardSequence: 0 },
@@ -51,29 +42,28 @@ function installBackGuardStack() {
     );
   }
 
-  for (let i = 0; i < BACK_GUARD_DEPTH; i += 1) {
-    guardSequence += 1;
-    window.history.pushState(
-      { mirocardBackGuard: true, guardSequence },
-      "",
-      guardUrl(guardSequence),
-    );
-  }
+  guardSequence += 1;
+  window.history.pushState(
+    { mirocardBackGuard: true, guardSequence },
+    "",
+    guardUrl(),
+  );
   guardTopSequence = guardSequence;
   lastObservedSequence = guardTopSequence;
 }
 
 function reboundToGuardTop(sequence) {
   if (sequence >= guardTopSequence) return;
-  // Defence: guardSequence must never fall behind guardTopSequence.
-  if (guardSequence < guardTopSequence) guardSequence = guardTopSequence;
   guardSequence += 1;
   guardTopSequence = guardSequence;
   lastObservedSequence = guardTopSequence;
+  // guardUrl() is computed fresh from window.location.href (current entry after
+  // the back press) → always baseUrl + #_guard, never same as the guard entry
+  // we just left, so Chrome will not drop this pushState.
   window.history.pushState(
     { mirocardBackGuard: true, guardSequence },
     "",
-    guardUrl(guardSequence),
+    guardUrl(),
   );
 }
 
