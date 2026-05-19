@@ -17105,9 +17105,13 @@ body { background: #eef0ef; }
 /* ─── Landscape layout ───────────────────────────────────────────────────────── */
 @media (orientation: landscape) {
   /* Remove body padding — inner layout handles spacing */
+  /* Negative margin-left negates session-screen's padding-left (safe-area inset),
+     pressing the chef panel flush to the physical left edge of the screen. */
   .session-body.reading-body.instruction-body {
     padding: 0;
     gap: 0;
+    margin-left: calc(-1 * var(--app-safe-left));
+    width: calc(100% + var(--app-safe-left));
   }
 
   .instruction-running-layout {
