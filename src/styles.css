@@ -16639,7 +16639,7 @@ body { background: #eef0ef; }
 /* ── Global Timer ─────────────────────────────────────────── */
 
 :root {
-  --gt-clock-size: min(90vw, 82vh);
+  --gt-clock-size: min(84vw, 74vh);
   --gt-tab-h: 34px;
   --gt-strip-h: 60px;
 }
@@ -16658,9 +16658,11 @@ body { background: #eef0ef; }
 }
 
 .global-timer--open {
+  /* В портрете: опускаем на 88px ниже язычка — чтобы drag-label с цифрой было видно над циферблатом.
+     В ландшафте: места меньше, прижимаем к верху чтобы низ не вышел за экран. */
   transform: translateX(-50%) translateY(
     min(
-      calc(var(--app-safe-top, 0px) + var(--gt-tab-h)),
+      calc(var(--app-safe-top, 0px) + var(--gt-tab-h) + 88px),
       calc(100dvh - var(--gt-clock-size) - var(--gt-strip-h) - 8px)
     )
   );
@@ -16689,11 +16691,13 @@ body { background: #eef0ef; }
   display: block;
 }
 
-/* Драг-лейбл внутри overlay: показываем поверх SVG, а не выше враппера */
-.global-timer__clock .analog-timer-drag-label {
-  bottom: auto;
-  top: 10%;
-  z-index: 11;
+/* Ландшафт: над циферблатом нет места — показываем цифру внутри него */
+@media (orientation: landscape) {
+  .global-timer__clock .analog-timer-drag-label {
+    bottom: auto;
+    top: 8%;
+    z-index: 11;
+  }
 }
 
 /* ── Полоса тишины под циферблатом ──────────────────────────── */
