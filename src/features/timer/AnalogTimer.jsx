@@ -612,30 +612,18 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
         </div>
       );
     } else {
-      silenceStrip = (
-        <div className="cts-idle">
-          {!running && (
-            <button
-              className={`cts-toggle${listenMode ? " is-active" : ""}`}
-              onClick={() => setListenMode((v) => !v)}
-            >
-              🤫&nbsp;Тишина
-            </button>
-          )}
-          {listenMode && !running && (
-            <div className="cts-mic">
-              <span className="cts-mic__label">Точнее</span>
-              <input
-                className="cts-mic__slider"
-                type="range" min="1" max="7" step="1"
-                value={sensitivity}
-                onChange={(e) => setSensitivity(Number.parseInt(e.target.value, 10) || 4)}
-              />
-              <span className="cts-mic__label">Грубее</span>
-            </div>
-          )}
+      silenceStrip = listenMode && !running ? (
+        <div className="cts-mic">
+          <span className="cts-mic__label">Точнее</span>
+          <input
+            className="cts-mic__slider"
+            type="range" min="1" max="7" step="1"
+            value={sensitivity}
+            onChange={(e) => setSensitivity(Number.parseInt(e.target.value, 10) || 4)}
+          />
+          <span className="cts-mic__label">Грубее</span>
         </div>
-      );
+      ) : null;
     }
 
     return (
@@ -648,6 +636,18 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
             </div>
           )}
           {clockSvg}
+          {!running && listenState !== "success" && (
+            <button
+              className={`cts-silence-toggle${listenMode ? " is-active" : ""}`}
+              onClick={() => setListenMode((v) => !v)}
+              aria-pressed={listenMode}
+            >
+              <span className="cts-silence-toggle__label">🤫 Тишина</span>
+              <span className="cts-silence-toggle__track">
+                <span className="cts-silence-toggle__thumb" />
+              </span>
+            </button>
+          )}
           {listenState === "success" && (
             <div className="cts-overlay">
               {embedUrl ? (
@@ -679,7 +679,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
             </div>
           )}
         </div>
-        <div className="analog-timer-silence-strip">
+        <div className={`analog-timer-silence-strip${listenMode ? " is-visible" : ""}`}>
           {silenceStrip}
         </div>
       </>
