@@ -16691,12 +16691,10 @@ body { background: #eef0ef; }
   display: block;
 }
 
-/* Ландшафт: над циферблатом нет места — показываем цифру внутри него */
+/* Ландшафт: циферблат уменьшается ровно настолько, чтобы drag-label поместился над ним */
 @media (orientation: landscape) {
-  .global-timer__clock .analog-timer-drag-label {
-    bottom: auto;
-    top: 8%;
-    z-index: 11;
+  :root {
+    --gt-clock-size: min(50vw, calc(100dvh - var(--app-safe-top, 0px) - 190px));
   }
 }
 
