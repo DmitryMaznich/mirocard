@@ -276,6 +276,40 @@
   50%       { transform: scale(1.18); filter: brightness(1.3); }
 }
 
+/* ── Replay counter dots ── */
+.sp-audio-replay-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sp-audio-replay-count {
+  display: flex;
+  gap: 5px;
+}
+
+.sp-audio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+  transition: background 0.2s;
+}
+
+.sp-audio-dot--used {
+  background: #6b7280;
+}
+
+.sp-audio-btn--exhausted {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.sp-audio-btn:disabled {
+  cursor: not-allowed;
+}
+
 /* ── Word-hint flash (listen_build_mono) ── */
 .sp-piece--hint {
   animation: sp-piece-hint 600ms ease-out;

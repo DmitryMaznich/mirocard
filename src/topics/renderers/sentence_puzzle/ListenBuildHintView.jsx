@@ -53,6 +53,7 @@ export default function ListenBuildHintView({
   const [activeCard,      setActiveCard]      = useState(null);
   const [highlightCardId, setHighlightCardId] = useState(null);
   const [activeSlotIndex, setActiveSlotIndex] = useState(0);
+  const [replayCount,     setReplayCount]     = useState(0);
   const errorTimer     = useRef(null);
   const highlightTimer = useRef(null);
   const ttsCancel      = useRef(null);
@@ -139,7 +140,11 @@ export default function ListenBuildHintView({
     setActiveSlotIndex((prev) => prev + 1);
   }
 
+  const MAX_REPLAYS = 3;
+
   function handleReplay() {
+    if (replayCount >= MAX_REPLAYS) return;
+    setReplayCount((c) => c + 1);
     if (task.audioPath) {
       if (soundEnabled) playTopicFile(topicId, task.audioPath);
     } else if (hasTts) {
@@ -154,13 +159,21 @@ export default function ListenBuildHintView({
 
           <div className="sp-audio-section">
             {(task.audioPath || hasTts) ? (
+              <div className="sp-audio-replay-wrap">
               <button
-                className={`sp-audio-btn${speaking ? " sp-audio-btn--speaking" : ""}`}
+                className={`sp-audio-btn${speaking ? " sp-audio-btn--speaking" : ""}${replayCount >= MAX_REPLAYS ? " sp-audio-btn--exhausted" : ""}`}
                 onClick={handleReplay}
+                disabled={replayCount >= MAX_REPLAYS}
                 aria-label="Прослушать предложение"
               >
                 🔊
               </button>
+              <span className="sp-audio-replay-count">
+                {Array.from({ length: MAX_REPLAYS }, (_, i) => (
+                  <span key={i} className={`sp-audio-dot${i < replayCount ? " sp-audio-dot--used" : ""}`} />
+                ))}
+              </span>
+            </div>
             ) : (
               <div className="sp-audio-prompt">
                 <span className="sp-audio-prompt__label">Произнесите вслух:</span>
