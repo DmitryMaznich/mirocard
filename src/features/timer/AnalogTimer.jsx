@@ -629,10 +629,26 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
     return (
       <>
         <div className="analog-timer-clock-only-wrap">
-          {setMinutes > 0 && (
+          {(running || setMinutes > 0) && listenState !== "success" && (
             <div className="analog-timer-drag-label">
-              <span className="analog-timer-drag-label__value">{setMinutes}</span>
-              <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
+              {running ? (
+                remainingSeconds < 60 ? (
+                  <>
+                    <span className="analog-timer-drag-label__value">{remainingSeconds}</span>
+                    <span className="analog-timer-drag-label__unit">{getSecondLabel(remainingSeconds)}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="analog-timer-drag-label__value">{displayMin}</span>
+                    <span className="analog-timer-drag-label__unit">{minuteWord}</span>
+                  </>
+                )
+              ) : (
+                <>
+                  <span className="analog-timer-drag-label__value">{setMinutes}</span>
+                  <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
+                </>
+              )}
             </div>
           )}
           {clockSvg}
