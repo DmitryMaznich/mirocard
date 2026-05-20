@@ -351,6 +351,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
   // ── Setup-phase state ─────────────────────────────────────────────────────
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [audioSectionOpen, setAudioSectionOpen] = useState(false);
+  const [audioStepsOpen, setAudioStepsOpen] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberPhoto, setNewMemberPhoto] = useState(null);
   const [editingRecipe, setEditingRecipe] = useState(false);
@@ -620,28 +621,37 @@ function InstructionTask({ task, topicId, onAdvance }) {
       </div>
     );
 
+    const recordedCount = baseSteps.filter((s) => s.type !== "heading" && recordedSteps.has(s.id)).length;
     const audioSection = baseSteps.some((s) => s.type !== "heading") && (
       <div className="instruction-cover-section">
-        <div className="instruction-cover-section-label">Аудио шагов</div>
-        <div className="instruction-audio-list">
-          {baseSteps.filter((s) => s.type !== "heading").map((s) => {
-            const num = parseInt(s.id.slice(1), 10);
-            const hasAudio = recordedSteps.has(s.id);
-            return (
-              <button
-                key={s.id}
-                className={`instruction-audio-item${hasAudio ? " instruction-audio-item--recorded" : ""}`}
-                onClick={() => setAudioDialogStep({ id: s.id, num, text: s.text })}
-              >
-                <span className="instruction-audio-num">{num}</span>
-                <span className="instruction-audio-text">
-                  {s.text.length > 55 ? s.text.slice(0, 55) + "…" : s.text}
-                </span>
-                {hasAudio && <span className="instruction-audio-dot" aria-label="записано" />}
-              </button>
-            );
-          })}
-        </div>
+        <button
+          className="instruction-cover-section-label instruction-cover-section-collapse"
+          onClick={() => setAudioStepsOpen((v) => !v)}
+        >
+          Аудио шагов{recordedCount > 0 ? ` · ${recordedCount} записано` : ""}
+          <span className="instruction-cover-collapse-arrow">{audioStepsOpen ? "▲" : "▼"}</span>
+        </button>
+        {audioStepsOpen && (
+          <div className="instruction-audio-list">
+            {baseSteps.filter((s) => s.type !== "heading").map((s) => {
+              const num = parseInt(s.id.slice(1), 10);
+              const hasAudio = recordedSteps.has(s.id);
+              return (
+                <button
+                  key={s.id}
+                  className={`instruction-audio-item${hasAudio ? " instruction-audio-item--recorded" : ""}`}
+                  onClick={() => setAudioDialogStep({ id: s.id, num, text: s.text })}
+                >
+                  <span className="instruction-audio-num">{num}</span>
+                  <span className="instruction-audio-text">
+                    {s.text.length > 55 ? s.text.slice(0, 55) + "…" : s.text}
+                  </span>
+                  {hasAudio && <span className="instruction-audio-dot" aria-label="записано" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
 
