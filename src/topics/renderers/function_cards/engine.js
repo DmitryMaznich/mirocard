@@ -58,6 +58,8 @@ function generateChooseActionTasks(concepts) {
   return shuffle(tasks);
 }
 
+const ETA_AUDIO = "audio/eto.mp3"; // "Это" prefix, packed from tools_basic
+
 function generateFunctionIntroTasks(concepts) {
   return concepts.map(concept => {
     const toolCard = getToolCard(concept);
@@ -66,6 +68,7 @@ function generateFunctionIntroTasks(concepts) {
     const question = needsForm
       ? `Для чего ${needsForm} ${concept.primary.label}?`
       : `Что делают ${concept.primary.labelInstrumental}?`;
+    const lInstr = concept.primary.labelInstrumental;
     return {
       type: "fc_intro",
       conceptId: concept.conceptId,
@@ -73,6 +76,8 @@ function generateFunctionIntroTasks(concepts) {
       sceneAfterCard,
       label: concept.primary.label,
       question,
+      feedbackText: `${lInstr[0].toUpperCase()}${lInstr.slice(1)} ${concept.primary.action}!`,
+      etaAudio: ETA_AUDIO,
       toolNameAudio: toolCard.audio?.ru ?? null,
     };
   });

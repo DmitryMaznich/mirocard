@@ -18,35 +18,59 @@
 .fc-intro.session-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 8px 14px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
   cursor: pointer;
   user-select: none;
 }
 
-.fc-intro-tool,
-.fc-intro-scene {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* Step 1: only question visible → center it vertically */
+.fc-intro--step-1 {
+  justify-content: center;
 }
 
-.fc-intro-scene {
-  animation: fc-ca-in 0.35s ease both;
-}
-
-.fc-intro-img-wrap {
+/* Step 0: tool photo fills remaining height */
+.fc-intro-tool-wrap {
   flex: 1;
   min-height: 0;
-  border-radius: 14px;
+  width: 100%;
+  border-radius: 16px;
   overflow: hidden;
   background: #f5f5f5;
 }
 
-/* Scene image fills the wrap completely */
-.fc-intro-img-wrap .fc-intro-scene-img {
+.fc-intro-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: clamp(1.3rem, 5.5vw, 2rem);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Step 1–2: large question */
+.fc-intro-question {
+  font-size: clamp(1.3rem, 5.5vw, 2rem);
+  font-weight: 700;
+  text-align: center;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+/* Step 2: square scene photo */
+.fc-intro-scene-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f5f5f5;
+  animation: fc-ca-in 0.3s ease both;
+}
+
+.fc-intro-scene-img {
   width: 100%;
   height: 100%;
   max-height: none;
@@ -55,22 +79,15 @@
   border-radius: 0;
 }
 
-.fc-intro-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: clamp(1.2rem, 5vw, 1.8rem);
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.fc-intro-question {
-  font-size: clamp(0.95rem, 3.5vw, 1.2rem);
-  color: #555;
-  font-weight: 600;
+/* Step 2: feedback text */
+.fc-intro-feedback {
+  font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+  font-weight: 800;
+  color: #1b5e20;
   text-align: center;
   flex-shrink: 0;
+  margin: 0;
+  animation: fc-ca-in 0.3s ease both;
 }
 
 /* ── choose_action ──────────────────────────────────────────── */

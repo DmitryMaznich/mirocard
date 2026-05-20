@@ -26,43 +26,59 @@ function SceneImage({ topicId, card, blurred, className = "" }) {
   );
 }
 
+const ETA_GAP = 480; // ms between "Это" and tool name audio
+
 // ── FunctionIntroTask ─────────────────────────────────────────
 function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
-  const [sceneVisible, setSceneVisible] = useState(false);
+  const [step, setStep] = useState(0); // 0=tool photo, 1=question only, 2=question+scene+feedback
 
   useEffect(() => {
-    setSceneVisible(false);
-    if (soundEnabled && task.toolNameAudio) playTopicFile(topicId, task.toolNameAudio);
-    const t = setTimeout(() => setSceneVisible(true), 800);
-    return () => clearTimeout(t);
+    setStep(0);
+    playEta();
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function replay(e) {
-    e.stopPropagation();
-    if (soundEnabled && task.toolNameAudio) playTopicFile(topicId, task.toolNameAudio);
+  function playEta() {
+    if (!soundEnabled) return;
+    if (task.etaAudio) {
+      playTopicFile(topicId, task.etaAudio);
+      if (task.toolNameAudio) setTimeout(() => playTopicFile(topicId, task.toolNameAudio), ETA_GAP);
+    } else if (task.toolNameAudio) {
+      playTopicFile(topicId, task.toolNameAudio);
+    }
+  }
+
+  function handleTap() {
+    if (step < 2) setStep(s => s + 1);
+    else onAdvance?.();
   }
 
   return (
-    <div className="fc-intro session-body" onClick={onAdvance}>
-      <div className="fc-intro-tool">
-        <div className="fc-intro-img-wrap">
-          <ToolImage topicId={topicId} card={task.toolCard} />
-        </div>
-        <div className="fc-intro-label">
-          <span>{task.label}</span>
-          {task.toolNameAudio && soundEnabled && (
-            <button className="fc-ca-audio-btn" onClick={replay} aria-label="Повторить">🔊</button>
-          )}
-        </div>
-      </div>
+    <div className={`fc-intro fc-intro--step-${step} session-body`} onClick={handleTap}>
+      {step === 0 && (
+        <>
+          <div className="fc-intro-tool-wrap">
+            <ToolImage topicId={topicId} card={task.toolCard} />
+          </div>
+          <div className="fc-intro-label">
+            <span>{task.label}</span>
+            {soundEnabled && (task.etaAudio || task.toolNameAudio) && (
+              <button className="fc-ca-audio-btn" onClick={e => { e.stopPropagation(); playEta(); }} aria-label="Повторить">🔊</button>
+            )}
+          </div>
+        </>
+      )}
 
-      {sceneVisible && (
-        <div className="fc-intro-scene">
-          <div className="fc-intro-img-wrap">
+      {step >= 1 && (
+        <p className="fc-intro-question">{task.question}</p>
+      )}
+
+      {step === 2 && (
+        <>
+          <div className="fc-intro-scene-wrap">
             <SceneImage topicId={topicId} card={task.sceneAfterCard} blurred={false} className="fc-intro-scene-img" />
           </div>
-          <div className="fc-intro-question">{task.question}</div>
-        </div>
+          <p className="fc-intro-feedback">{task.feedbackText}</p>
+        </>
       )}
     </div>
   );
