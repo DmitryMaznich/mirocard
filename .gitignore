@@ -29,4 +29,4 @@ backend/restart-backend.py
 *.sln
 *.sw?
 __codex_deploy_*
-public/decks/reading_dad_texts_v1.14.0.zip
+public/decks/reading_dad_texts_v1.13.0.zip
