@@ -16639,7 +16639,7 @@ body { background: #eef0ef; }
 /* ── Global Timer ─────────────────────────────────────────── */
 
 :root {
-  --gt-clock-size: min(82vw, 62vh, calc(100dvh - var(--gt-tab-h) - var(--gt-strip-h) - 20px));
+  --gt-clock-size: min(90vw, 82vh);
   --gt-tab-h: 34px;
   --gt-strip-h: 60px;
 }
@@ -16658,7 +16658,12 @@ body { background: #eef0ef; }
 }
 
 .global-timer--open {
-  transform: translateX(-50%) translateY(calc(var(--app-safe-top, 0px) + var(--gt-tab-h)));
+  transform: translateX(-50%) translateY(
+    min(
+      calc(var(--app-safe-top, 0px) + var(--gt-tab-h)),
+      calc(100dvh - var(--gt-clock-size) - var(--gt-strip-h) - 8px)
+    )
+  );
 }
 
 .global-timer__clock {
