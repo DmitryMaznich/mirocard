@@ -26,6 +26,48 @@ function SceneImage({ topicId, card, blurred, className = "" }) {
   );
 }
 
+// ── FunctionIntroTask ─────────────────────────────────────────
+function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
+  const [sceneVisible, setSceneVisible] = useState(false);
+
+  useEffect(() => {
+    setSceneVisible(false);
+    if (soundEnabled && task.toolNameAudio) playTopicFile(topicId, task.toolNameAudio);
+    const t = setTimeout(() => setSceneVisible(true), 800);
+    return () => clearTimeout(t);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function replay(e) {
+    e.stopPropagation();
+    if (soundEnabled && task.toolNameAudio) playTopicFile(topicId, task.toolNameAudio);
+  }
+
+  return (
+    <div className="fc-intro session-body" onClick={onAdvance}>
+      <div className="fc-intro-tool">
+        <div className="fc-intro-img-wrap">
+          <ToolImage topicId={topicId} card={task.toolCard} />
+        </div>
+        <div className="fc-intro-label">
+          <span>{task.label}</span>
+          {task.toolNameAudio && soundEnabled && (
+            <button className="fc-ca-audio-btn" onClick={replay} aria-label="Повторить">🔊</button>
+          )}
+        </div>
+      </div>
+
+      {sceneVisible && (
+        <div className="fc-intro-scene">
+          <div className="fc-intro-img-wrap">
+            <SceneImage topicId={topicId} card={task.sceneAfterCard} blurred={false} className="fc-intro-scene-img" />
+          </div>
+          <div className="fc-intro-question">{task.question}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const Q_AUDIO_GAP = 1200; // ms between prefix phrase and tool name audio (~1s for phrase to finish)
 
 // ── ChooseActionTask ─────────────────────────────────────────
@@ -186,6 +228,7 @@ export default function FunctionCardsRenderer({
   soundEnabled,
   playTopicFile,
   onQualityAnswer,
+  onAdvance,
   ...rest
 }) {
   if (!task) return null;
@@ -193,11 +236,13 @@ export default function FunctionCardsRenderer({
   const sharedProps = { task, mode, topicId, soundEnabled, playTopicFile, onQualityAnswer };
 
   switch (task.type) {
+    case "fc_intro":
+      return <FunctionIntroTask task={task} topicId={topicId} soundEnabled={soundEnabled} playTopicFile={playTopicFile} onAdvance={onAdvance} />;
     case "choose_action":
       return <ChooseActionTask {...sharedProps} />;
     case "scene_function":
       return <SceneFunctionTask {...sharedProps} mode={mode} />;
     default:
-      return <FlashcardsRenderer {...sharedProps} {...rest} />;
+      return <FlashcardsRenderer {...sharedProps} onAdvance={onAdvance} {...rest} />;
   }
 }

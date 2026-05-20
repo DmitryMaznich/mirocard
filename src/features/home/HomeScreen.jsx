@@ -160,7 +160,12 @@ export default function HomeScreen() {
 
   const { hasUpdate, applyUpdate } = useAppUpdate();
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
-  const canStart = !!student && !!topic && (isReading || !!mode);
+  const canStart = !!student && !!topic && (
+    !isReading ? !!mode :
+    !activeText ? false :
+    activeText.kind === "instruction" ? true :
+    !!mode
+  );
 
   const s1 = stepState(!!student, true);
   const s2 = stepState(!!topic, !!student);
@@ -176,22 +181,8 @@ export default function HomeScreen() {
     : "Не выбран";
 
   function startOrContinue() {
-    if (!isReading) {
-      setScreen("params");
-      return;
-    }
-    if (!activeText) {
-      setScreen("texts");
-      return;
-    }
-    if (activeText.kind === "instruction") {
-      setScreen("session");
-      return;
-    }
-    if (!mode) {
-      setScreen("modes");
-      return;
-    }
+    if (!isReading) { setScreen("params"); return; }
+    if (!activeText) { setScreen("texts"); return; }
     setScreen("params");
   }
 

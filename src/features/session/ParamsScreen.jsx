@@ -11,6 +11,7 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
+import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 
 function NumberStepper({ label, value, min, max, onChange }) {
   return (
@@ -272,7 +273,24 @@ export default function ParamsScreen() {
   const student   = students.find((s) => s.id === activeStudentId);
   const hasVideos = (student?.rewardVideos?.length ?? 0) > 0;
 
-  const isComparison = topicRecord?.meta.renderer === "comparison";
+  const isComparison        = topicRecord?.meta.renderer === "comparison";
+  const isReadingInstruction = isReading && activeText?.kind === "instruction";
+
+  if (isReadingInstruction) {
+    return (
+      <div className="screen">
+        <div className="screen-header">
+          <button className="back-btn" onClick={() => setScreen("texts")}>←</button>
+          <h1 className="screen-title">{getTopicTitle(activeText.title)}</h1>
+        </div>
+        <InstructionParamsContent
+          topicId={activeTopicId}
+          textId={activeTextId}
+          filePath={activeText.file}
+        />
+      </div>
+    );
+  }
 
   function getInitialParams() {
     const saved = link.params ?? {};

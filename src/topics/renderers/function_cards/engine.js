@@ -58,6 +58,26 @@ function generateChooseActionTasks(concepts) {
   return shuffle(tasks);
 }
 
+function generateFunctionIntroTasks(concepts) {
+  return concepts.map(concept => {
+    const toolCard = getToolCard(concept);
+    const sceneAfterCard = concept.cards.find(c => c.type === "scene_after") ?? null;
+    const needsForm = concept.primary.needsForm ?? "";
+    const question = needsForm
+      ? `Для чего ${needsForm} ${concept.primary.label}?`
+      : `Что делают ${concept.primary.labelInstrumental}?`;
+    return {
+      type: "fc_intro",
+      conceptId: concept.conceptId,
+      toolCard,
+      sceneAfterCard,
+      label: concept.primary.label,
+      question,
+      toolNameAudio: toolCard.audio?.ru ?? null,
+    };
+  });
+}
+
 function generateSceneFunctionTasks(concepts) {
   const tasks = [];
   for (const concept of concepts) {
@@ -96,6 +116,7 @@ function generateSceneFunctionTasks(concepts) {
 // params is accepted for interface compatibility.
 export function generateTasks(modeType, concepts, allCards, params = {}) {  // eslint-disable-line no-unused-vars
   switch (modeType) {
+    case "intro":          return generateFunctionIntroTasks(concepts);
     case "choose_action":  return generateChooseActionTasks(concepts);
     case "scene_function": return generateSceneFunctionTasks(concepts);
     default:               return flashcardsGenerateTasks(modeType, toolOnlyConcepts(concepts), allCards, params);

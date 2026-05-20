@@ -4,12 +4,10 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import Modal from "@/shared/components/Modal";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { parseRecipeTxt, resolveStepOwners } from "./parseRecipeTxt";
-import { getGroup, getRecipeOverride, getRawRecipeTxt, saveGroup, saveRecipeOverride } from "@/core/groupStore";
-import { getAudioOverride, listLocalAudioOverrides, syncAudioOverrides } from "@/core/audioStore";
-import AudioRecordDialog from "./AudioRecordDialog";
+import { getGroup, getRecipeOverride, getRawRecipeTxt } from "@/core/groupStore";
+import { getAudioOverride } from "@/core/audioStore";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -333,46 +331,28 @@ function applyGroupToSteps(parsedSteps, group) {
 }
 
 function InstructionTask({ task, topicId, onAdvance }) {
-  const setScreen = useAppStore((s) => s.setScreen);
-  const activeStudentId = useAppStore((s) => s.activeStudentId);
-  const students = useAppStore((s) => s.students);
+  const setScreen               = useAppStore((s) => s.setScreen);
+  const activeStudentId         = useAppStore((s) => s.activeStudentId);
+  const students                = useAppStore((s) => s.students);
+  const instructionAudioEnabled = useAppStore((s) => s.instructionAudioEnabled);
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const { speak } = useSpeech();
-  const coverImageUrl = useTopicFile(topicId, task.text?.image);
 
-  // ── Shared state ──────────────────────────────────────────────────────────
-  const [phase, setPhase] = useState("setup"); // "setup" | "running"
-  const [baseSteps, setBaseSteps] = useState(task.text?.steps ?? []); // steps WITHOUT owner overrides
-  const [steps, setSteps] = useState(task.text?.steps ?? []);         // steps used in session
-  const [rawRecipe, setRawRecipe] = useState("");
-  const [group, setGroup] = useState([]);
-
-  // ── Setup-phase state ─────────────────────────────────────────────────────
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [audioSectionOpen, setAudioSectionOpen] = useState(false);
-  const [audioStepsOpen, setAudioStepsOpen] = useState(false);
-  const [newMemberName, setNewMemberName] = useState("");
-  const [newMemberPhoto, setNewMemberPhoto] = useState(null);
-  const [editingRecipe, setEditingRecipe] = useState(false);
-  const [recipeEdit, setRecipeEdit] = useState("");
-  const memberPhotoRef = useRef(null);
-  const [recordedSteps, setRecordedSteps] = useState(new Set()); // step ids like "s1"
-  const [audioDialogStep, setAudioDialogStep] = useState(null);  // {id, num, text} | null
-
-  // ── Running-phase state ───────────────────────────────────────────────────
+  const [audioEnabled] = useState(instructionAudioEnabled);
+  const [steps,     setSteps]     = useState(task.text?.steps ?? []);
+  const [group,     setGroup]     = useState([]);
   const [stepIndex, setStepIndex] = useState(0);
-  const [checked, setChecked] = useState({});
-  const [listOpen, setListOpen] = useState(false);
+  const [checked,   setChecked]   = useState({});
+  const [listOpen,  setListOpen]  = useState(false);
   const listRef = useRef(null);
 
-  // Load recipe .txt and group from IndexedDB
   useEffect(() => {
     async function load() {
       const [grp, rawText] = await Promise.all([
         getGroup(topicId).catch(() => []),
         (async () => {
-          const textId = task.text?.id;
+          const textId   = task.text?.id;
           const filePath = task.text?.file;
           if (textId) {
             const override = await getRecipeOverride(topicId, textId).catch(() => null);
@@ -382,84 +362,15 @@ function InstructionTask({ task, topicId, onAdvance }) {
           return null;
         })(),
       ]);
-      setGroup(grp ?? []);
-      if (rawText) {
-        setRawRecipe(rawText);
-        const parsed = parseRecipeTxt(rawText);
-        setBaseSteps(parsed);
-        setSteps(parsed);
-      }
-      // Load local audio overrides + sync from server
-      const textId = task.text?.id ?? "";
-      const overrides = await listLocalAudioOverrides(topicId, textId).catch(() => []);
-      setRecordedSteps(new Set(overrides.map((o) => `s${o.stepNum}`)));
-      syncAudioOverrides(topicId, textId)
-        .then(() => listLocalAudioOverrides(topicId, textId))
-        .then((ovrs) => setRecordedSteps(new Set(ovrs.map((o) => `s${o.stepNum}`))))
-        .catch(() => {});
+      const grpList      = grp ?? [];
+      const parsedSteps  = rawText ? parseRecipeTxt(rawText) : (task.text?.steps ?? []);
+      const annotated    = applyGroupToSteps(parsedSteps, grpList);
+      setGroup(grpList);
+      setSteps(annotated);
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]);
 
-  // ── Setup helpers ──────────────────────────────────────────────────────────
-  function handleMemberPhotoFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setNewMemberPhoto(ev.target.result);
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  }
-
-  async function addMember() {
-    const name = newMemberName.trim();
-    if (!name) return;
-    const newMember = { id: `m_${Date.now()}`, name, photoDataUrl: newMemberPhoto ?? null, stepRanges: "" };
-    const next = [...group, newMember];
-    setGroup(next);
-    await saveGroup(topicId, next).catch(() => {});
-    setNewMemberName("");
-    setNewMemberPhoto(null);
-  }
-
-  async function removeMember(idx) {
-    const next = group.filter((_, i) => i !== idx);
-    setGroup(next);
-    await saveGroup(topicId, next).catch(() => {});
-  }
-
-  function updateMemberRanges(idx, ranges) {
-    setGroup((prev) => prev.map((m, i) => (i === idx ? { ...m, stepRanges: ranges } : m)));
-  }
-
-  async function toggleChef(idx) {
-    const next = group.map((m, i) => ({ ...m, role: i === idx && m.role !== "chef" ? "chef" : null }));
-    setGroup(next);
-    await saveGroup(topicId, next).catch(() => {});
-  }
-
-  async function saveRecipeEdit() {
-    const textId = task.text?.id;
-    if (textId) await saveRecipeOverride(topicId, textId, recipeEdit).catch(() => {});
-    setRawRecipe(recipeEdit);
-    const parsed = parseRecipeTxt(recipeEdit);
-    setBaseSteps(parsed);
-    setSteps(parsed);
-    setEditingRecipe(false);
-  }
-
-  async function startSession() {
-    // Persist group (with updated stepRanges)
-    await saveGroup(topicId, group).catch(() => {});
-    // Apply owner assignments from stepRanges on top of base steps
-    const annotated = applyGroupToSteps(baseSteps, group);
-    setSteps(annotated);
-    setStepIndex(0);
-    setChecked({});
-    setPhase("running");
-  }
-
-  // ── Running helpers ────────────────────────────────────────────────────────
   const step = steps[stepIndex];
   // Support both old single-owner (step.owner) and new multi-owner (step.owners) formats
   const owners = step
@@ -524,8 +435,8 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   const goBack = useCallback(() => {
     if (stepIndex > 0) setStepIndex((n) => n - 1);
-    else setPhase("setup");
-  }, [stepIndex]);
+    else setScreen("params");
+  }, [stepIndex, setScreen]);
 
   const reSpeak = useCallback(() => {
     if (!step || !audioEnabled) return;
@@ -560,195 +471,13 @@ function InstructionTask({ task, topicId, onAdvance }) {
         case " ":          e.preventDefault(); handleSpace(); break;
         case "ArrowLeft":  case "Backspace": e.preventDefault(); goBack(); break;
         case "r": case "R": e.preventDefault(); reSpeak(); break;
-        case "Escape": e.preventDefault(); setPhase("setup"); break;
+        case "Escape": e.preventDefault(); setScreen("params"); break;
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [phase, handleNext, handleSpace, goBack, reSpeak]);
 
-  // ── SETUP PHASE ────────────────────────────────────────────────────────────
-  if (phase === "setup") {
-    const memberList = (
-      <div className="instruction-cover-members">
-        {group.map((member, i) => (
-          <div key={member.id ?? member.name} className="instruction-cover-member">
-            <div className="instruction-cover-member-avatar">
-              {member.photoDataUrl
-                ? <img src={member.photoDataUrl} alt={member.name} />
-                : <div className="instruction-cover-member-initials">{member.name?.[0] ?? "?"}</div>
-              }
-            </div>
-            <div className="instruction-cover-member-info">
-              <div className="instruction-cover-member-name">{member.name}</div>
-              <input
-                className="instruction-cover-ranges-input"
-                value={member.stepRanges ?? ""}
-                onChange={(e) => updateMemberRanges(i, e.target.value)}
-                placeholder="шаги: 1-15"
-              />
-            </div>
-            <button
-              className={`instruction-cover-chef-btn${member.role === "chef" ? " instruction-cover-chef-btn--active" : ""}`}
-              onClick={() => toggleChef(i)}
-              title={member.role === "chef" ? "Снять роль шефа" : "Назначить шефом"}
-            >
-              👑
-            </button>
-            <button className="instruction-cover-member-remove" onClick={() => removeMember(i)}>×</button>
-          </div>
-        ))}
-        <div className="instruction-cover-add-member">
-          <button
-            className="instruction-cover-photo-btn"
-            onClick={() => memberPhotoRef.current?.click()}
-            title="Фото"
-          >
-            {newMemberPhoto
-              ? <img src={newMemberPhoto} alt="" className="instruction-cover-photo-preview" />
-              : "📷"}
-          </button>
-          <input ref={memberPhotoRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleMemberPhotoFile} />
-          <input
-            className="instruction-cover-name-input"
-            value={newMemberName}
-            onChange={(e) => setNewMemberName(e.target.value)}
-            placeholder="Имя участника"
-            onKeyDown={(e) => e.key === "Enter" && addMember()}
-          />
-          <button className="instruction-cover-add-btn" onClick={addMember} disabled={!newMemberName.trim()}>+</button>
-        </div>
-      </div>
-    );
-
-    const recordedCount = baseSteps.filter((s) => s.type !== "heading" && recordedSteps.has(s.id)).length;
-    const audioSection = baseSteps.some((s) => s.type !== "heading") && (
-      <div className="instruction-cover-section">
-        <button
-          className="instruction-cover-section-label instruction-cover-section-collapse"
-          onClick={() => setAudioStepsOpen((v) => !v)}
-        >
-          Аудио шагов{recordedCount > 0 ? ` · ${recordedCount} записано` : ""}
-          <span className="instruction-cover-collapse-arrow">{audioStepsOpen ? "▲" : "▼"}</span>
-        </button>
-        {audioStepsOpen && (
-          <div className="instruction-audio-list">
-            {baseSteps.filter((s) => s.type !== "heading").map((s) => {
-              const num = parseInt(s.id.slice(1), 10);
-              const hasAudio = recordedSteps.has(s.id);
-              return (
-                <button
-                  key={s.id}
-                  className={`instruction-audio-item${hasAudio ? " instruction-audio-item--recorded" : ""}`}
-                  onClick={() => setAudioDialogStep({ id: s.id, num, text: s.text })}
-                >
-                  <span className="instruction-audio-num">{num}</span>
-                  <span className="instruction-audio-text">
-                    {s.text.length > 55 ? s.text.slice(0, 55) + "…" : s.text}
-                  </span>
-                  {hasAudio && <span className="instruction-audio-dot" aria-label="записано" />}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    );
-
-    return (
-      <div className="session-body reading-body instruction-cover">
-        <button className="back-btn instruction-cover-back" onClick={() => setScreen("texts")}>←</button>
-
-        {/* Left column: cover image + title */}
-        <div className="instruction-cover-left">
-          {coverImageUrl && (
-            <div className="instruction-cover-image">
-              <img src={coverImageUrl} alt="" draggable={false} />
-            </div>
-          )}
-          <h1 className="instruction-cover-title">{getTopicTitle(task.text?.title)}</h1>
-          <button className="reading-primary-btn instruction-cover-start" onClick={startSession}>
-            Начать
-          </button>
-        </div>
-
-        {/* Right column: group + audio */}
-        <div className="instruction-cover-right">
-          <div className="instruction-cover-section">
-            <div className="instruction-cover-section-label">Группа</div>
-            {memberList}
-          </div>
-
-          <button
-            className="instruction-cover-edit-recipe"
-            onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
-          >
-            Изменить текст инструкции
-          </button>
-
-          {audioSection}
-
-          <div className="instruction-cover-section">
-            <button
-              className="instruction-cover-section-label instruction-cover-section-collapse"
-              onClick={() => setAudioSectionOpen((v) => !v)}
-            >
-              Озвучка
-              <span className="instruction-cover-collapse-arrow">{audioSectionOpen ? "▲" : "▼"}</span>
-            </button>
-            {audioSectionOpen && (
-              <div
-                className="instruction-cover-audio-toggle"
-                onClick={() => setAudioEnabled((v) => !v)}
-              >
-                <span className="instruction-cover-audio-icon">{audioEnabled ? "🔊" : "🔇"}</span>
-                <span className="instruction-cover-audio-label">
-                  {audioEnabled ? "Аудио включено" : "Аудио выключено"}
-                </span>
-                <input type="checkbox" checked={audioEnabled} readOnly />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {audioDialogStep && (
-          <AudioRecordDialog
-            topicId={topicId}
-            textId={task.text?.id ?? ""}
-            stepNum={audioDialogStep.num}
-            stepText={audioDialogStep.text}
-            onClose={() => setAudioDialogStep(null)}
-            onSaved={(stepId) => {
-              setRecordedSteps((prev) => new Set([...prev, stepId]));
-              setAudioDialogStep(null);
-            }}
-            onDeleted={(stepId) => {
-              setRecordedSteps((prev) => { const n = new Set(prev); n.delete(stepId); return n; });
-              setAudioDialogStep(null);
-            }}
-          />
-        )}
-
-        {editingRecipe && (
-          <Modal title="Редактирование инструкции" onClose={() => setEditingRecipe(false)}>
-            <textarea
-              className="instruction-recipe-textarea"
-              value={recipeEdit}
-              onChange={(e) => setRecipeEdit(e.target.value)}
-              rows={18}
-            />
-            <div className="instruction-recipe-actions">
-              <button className="reading-secondary-btn" onClick={() => setEditingRecipe(false)}>Отмена</button>
-              <button className="reading-primary-btn" onClick={saveRecipeEdit}>Сохранить</button>
-            </div>
-          </Modal>
-        )}
-
-      </div>
-    );
-  }
-
-  // ── RUNNING PHASE ──────────────────────────────────────────────────────────
   if (!step) return null;
 
   const chef = group.find((m) => m.role === "chef") ?? null;

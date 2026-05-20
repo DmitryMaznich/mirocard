@@ -53,7 +53,7 @@ export default function TextPickerScreen() {
     setActiveTextId(text.id);
     if (text.kind === "instruction") {
       setActiveModeId("follow_instruction");
-      setScreen("session");
+      setScreen("home");
     } else {
       setScreen("modes");
     }
