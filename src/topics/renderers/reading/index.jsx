@@ -350,6 +350,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   // ── Setup-phase state ─────────────────────────────────────────────────────
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioSectionOpen, setAudioSectionOpen] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberPhoto, setNewMemberPhoto] = useState(null);
   const [editingRecipe, setEditingRecipe] = useState(false);
@@ -678,17 +679,25 @@ function InstructionTask({ task, topicId, onAdvance }) {
           {audioSection}
 
           <div className="instruction-cover-section">
-            <div className="instruction-cover-section-label">Режим</div>
-            <div
-              className="instruction-cover-audio-toggle"
-              onClick={() => setAudioEnabled((v) => !v)}
+            <button
+              className="instruction-cover-section-label instruction-cover-section-collapse"
+              onClick={() => setAudioSectionOpen((v) => !v)}
             >
-              <span className="instruction-cover-audio-icon">{audioEnabled ? "🔊" : "🔇"}</span>
-              <span className="instruction-cover-audio-label">
-                {audioEnabled ? "Аудио включено" : "Аудио выключено"}
-              </span>
-              <input type="checkbox" checked={audioEnabled} readOnly />
-            </div>
+              Озвучка
+              <span className="instruction-cover-collapse-arrow">{audioSectionOpen ? "▲" : "▼"}</span>
+            </button>
+            {audioSectionOpen && (
+              <div
+                className="instruction-cover-audio-toggle"
+                onClick={() => setAudioEnabled((v) => !v)}
+              >
+                <span className="instruction-cover-audio-icon">{audioEnabled ? "🔊" : "🔇"}</span>
+                <span className="instruction-cover-audio-label">
+                  {audioEnabled ? "Аудио включено" : "Аудио выключено"}
+                </span>
+                <input type="checkbox" checked={audioEnabled} readOnly />
+              </div>
+            )}
           </div>
         </div>
 

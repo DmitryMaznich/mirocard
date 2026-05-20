@@ -12746,6 +12746,8 @@ kbd {
 .summary-star--1 { animation-delay: 0.25s; }
 .summary-star--2 { animation-delay: 0.55s; }
 .summary-star--3 { animation-delay: 0.85s; }
+.summary-star--4 { animation-delay: 1.15s; }
+.summary-star--5 { animation-delay: 1.45s; }
 .summary-star--dim { filter: grayscale(1) opacity(0.3); }
 .summary-check {
   font-size: 4rem;
@@ -17501,4 +17503,26 @@ body { background: #eef0ef; }
     padding: 4px 12px;
     gap: 8px;
   }
+}
+
+/* ─── Collapsible section header in setup cover ─────────────────────────────── */
+.instruction-cover-section-collapse {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6a9a80;
+}
+.instruction-cover-collapse-arrow {
+  font-size: 10px;
+  opacity: 0.6;
 }
