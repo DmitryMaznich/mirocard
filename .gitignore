@@ -28,3 +28,5 @@ backend/restart-backend.py
 *.njsproj
 *.sln
 *.sw?
+__codex_deploy_*
+public/decks/reading_dad_texts_v1.14.0.zip
