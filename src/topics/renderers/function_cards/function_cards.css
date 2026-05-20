@@ -54,9 +54,9 @@
   flex-shrink: 0;
 }
 
-/* Step 1–2: large question */
+/* Step 1: large question */
 .fc-intro-question {
-  font-size: clamp(1.3rem, 5.5vw, 2rem);
+  font-size: clamp(1.5rem, 6.5vw, 2.2rem);
   font-weight: 700;
   text-align: center;
   flex-shrink: 0;

@@ -68,7 +68,7 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
         </>
       )}
 
-      {step >= 1 && (
+      {step === 1 && (
         <p className="fc-intro-question">{task.question}</p>
       )}
 
