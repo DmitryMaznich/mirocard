@@ -57,25 +57,30 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
     }, 1800);
   }
 
+  const revealed = selected !== null;
   const hasQuestionAudio = Boolean(task.questionPrefixAudio || task.toolNameAudio);
 
   return (
     <div className="fc-choose-action session-body">
-      <div className="fc-ca-question-bar">
-        <span>{task.question}</span>
-        {hasQuestionAudio && soundEnabled && (
-          <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
-        )}
+      <div className="fc-ca-photo-wrap">
+        {revealed && task.sceneAfterCard
+          ? <SceneImage topicId={topicId} card={task.sceneAfterCard} blurred={false} className="fc-ca-revealed" />
+          : <ToolImage topicId={topicId} card={task.toolCard} />
+        }
       </div>
 
-      <div className="fc-ca-left">
-        <div className="fc-ca-photo-wrap">
-          <ToolImage topicId={topicId} card={task.toolCard} className="fc-ca-img" />
+      <div className="fc-ca-content">
+        <div className="fc-ca-question-bar">
+          <span>{task.question}</span>
+          {hasQuestionAudio && soundEnabled && (
+            <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
+          )}
         </div>
+
         <div className="fc-action-options">
           {task.options.map(opt => {
             let mod = "";
-            if (selected !== null) {
+            if (revealed) {
               if (opt.isTarget) mod = "fc-option--correct";
               else if (selected.conceptId === opt.conceptId) mod = "fc-option--wrong";
             }
@@ -84,27 +89,16 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
                 key={opt.conceptId}
                 className={`fc-option ${mod}`}
                 onClick={() => handleSelect(opt)}
-                disabled={selected !== null}
+                disabled={revealed}
               >
                 {opt.actionInf}
               </button>
             );
           })}
         </div>
-      </div>
 
-      <div className="fc-ca-right">
-        {selected === null ? (
-          <div className="fc-ca-placeholder" aria-hidden="true" />
-        ) : (
-          <>
-            {task.sceneAfterCard && (
-              <div className="fc-ca-scene-wrap">
-                <SceneImage topicId={topicId} card={task.sceneAfterCard} blurred={false} className="fc-ca-scene-img" />
-              </div>
-            )}
-            <div className="fc-ca-answer-text">{task.feedbackText}</div>
-          </>
+        {revealed && (
+          <div className="fc-ca-answer-text">{task.feedbackText}</div>
         )}
       </div>
     </div>
