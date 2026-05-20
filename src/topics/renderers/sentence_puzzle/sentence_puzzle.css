@@ -291,15 +291,15 @@
 
 .sp-audio-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #d1d5db;
+  background: #9ca3af;
   transition: background 0.2s;
 }
 
 .sp-audio-dot--used {
-  background: #6b7280;
+  background: #1f2937;
 }
 
 .sp-audio-btn--exhausted {
