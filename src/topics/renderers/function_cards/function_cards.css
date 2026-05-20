@@ -340,8 +340,8 @@
     align-items: center;
   }
   .fc-choose-action .fc-ca-photo-wrap {
-    width: 25%;
-    max-width: 110px;
+    width: 42%;
+    max-width: 170px;
   }
   .fc-choose-action .fc-action-options {
     grid-template-columns: 1fr;
