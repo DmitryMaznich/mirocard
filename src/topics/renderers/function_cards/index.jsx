@@ -126,20 +126,22 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
 const Q_AUDIO_GAP = 1680; // ms between prefix phrase and tool name audio (~1s for phrase to finish)
 
 // ── ChooseActionTask ─────────────────────────────────────────
-function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer }) {
+function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, playFeedback }) {
   const [selected, setSelected] = useState(null);
-
-  useEffect(() => { setSelected(null); }, [task]);
+  const pendingRef = useRef(null);
 
   useEffect(() => {
+    if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
+    setSelected(null);
     if (soundEnabled) playQuestion();
+    return () => { if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; } };
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function playQuestion() {
     if (!soundEnabled) return;
     if (task.questionPrefixAudio) {
       playTopicFile(topicId, task.questionPrefixAudio);
-      if (task.toolNameAudio) setTimeout(() => playTopicFile(topicId, task.toolNameAudio), Q_AUDIO_GAP);
+      if (task.toolNameAudio) pendingRef.current = setTimeout(() => playTopicFile(topicId, task.toolNameAudio), Q_AUDIO_GAP);
     } else if (task.toolNameAudio) {
       playTopicFile(topicId, task.toolNameAudio);
     }
@@ -147,56 +149,46 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualit
 
   function handleSelect(option) {
     if (selected !== null) return;
+    if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
     setSelected(option);
-    const quality = option.isTarget ? "correct" : "fail";
+    const correct = option.isTarget;
+    playFeedback?.(correct ? "correct" : "incorrect");
     setTimeout(() => {
-      onQualityAnswer(quality, task.conceptId, task.toolCard?.id ?? null);
-    }, 1800);
+      if (correct) onCorrect(task.conceptId, task.toolCard?.id ?? null);
+      else         onIncorrect(task.conceptId, task.toolCard?.id ?? null);
+    }, 1500);
   }
 
   const revealed = selected !== null;
-  const hasQuestionAudio = Boolean(task.questionPrefixAudio || task.toolNameAudio);
+
+  if (revealed) {
+    return (
+      <div className="session-body fc-ca-reveal">
+        <div className="fc-intro-scene-wrap">
+          <SceneImage topicId={topicId} card={task.sceneProcessCard ?? task.sceneAfterCard} blurred={false} />
+        </div>
+        <p className="fc-intro-feedback">{task.feedbackText}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="fc-choose-action session-body">
-      <div className="fc-ca-photo-wrap">
-        {revealed && task.sceneAfterCard
-          ? <SceneImage topicId={topicId} card={task.sceneAfterCard} blurred={false} className="fc-ca-revealed" />
-          : <ToolImage topicId={topicId} card={task.toolCard} />
-        }
+    <div className="session-body session-body--choose-word">
+      <div className="fc-ca-tool-wrap">
+        <ToolImage topicId={topicId} card={task.toolCard} />
       </div>
-
-      <div className="fc-ca-content">
-        <div className="fc-ca-question-bar">
-          <span>{task.question}</span>
-          {hasQuestionAudio && soundEnabled && (
-            <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
-          )}
-        </div>
-
-        <div className="fc-action-options">
-          {task.options.map(opt => {
-            let mod = "";
-            if (revealed) {
-              if (opt.isTarget) mod = "fc-option--correct";
-              else if (selected.conceptId === opt.conceptId) mod = "fc-option--wrong";
-            }
-            return (
-              <button
-                key={opt.conceptId}
-                className={`fc-option ${mod}`}
-                onClick={() => handleSelect(opt)}
-                disabled={revealed}
-              >
-                {opt.actionInf}
-              </button>
-            );
-          })}
-        </div>
-
-        {revealed && (
-          <div className="fc-ca-answer-text">{task.feedbackText}</div>
+      <div className="fc-ca-question-row">
+        <span className="session-instruction">{task.question}</span>
+        {soundEnabled && (task.questionPrefixAudio || task.toolNameAudio) && (
+          <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
         )}
+      </div>
+      <div className="choose-word-options">
+        {task.options.map(opt => (
+          <button key={opt.conceptId} className="choose-word-btn" onClick={() => handleSelect(opt)}>
+            {opt.actionInf}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -282,19 +274,22 @@ export default function FunctionCardsRenderer({
   topicId,
   soundEnabled,
   playTopicFile,
+  playFeedback,
+  onCorrect,
+  onIncorrect,
   onQualityAnswer,
   onAdvance,
   ...rest
 }) {
   if (!task) return null;
 
-  const sharedProps = { task, mode, topicId, soundEnabled, playTopicFile, onQualityAnswer };
+  const sharedProps = { task, mode, topicId, soundEnabled, playTopicFile, playFeedback, onCorrect, onIncorrect, onQualityAnswer };
 
   switch (task.type) {
     case "fc_intro":
       return <FunctionIntroTask task={task} topicId={topicId} soundEnabled={soundEnabled} playTopicFile={playTopicFile} onAdvance={onAdvance} />;
     case "choose_action":
-      return <ChooseActionTask {...sharedProps} />;
+      return <ChooseActionTask task={task} topicId={topicId} soundEnabled={soundEnabled} playTopicFile={playTopicFile} playFeedback={playFeedback} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
     case "scene_function":
       return <SceneFunctionTask {...sharedProps} mode={mode} />;
     default:
