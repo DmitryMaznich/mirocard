@@ -134,25 +134,46 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
 }
 
 function YesNoTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  const [result, setResult] = useState(null); // null | "correct" | "incorrect"
+
   useEffect(() => {
+    setResult(null);
     onCardShown?.(task.card?.id, task.conceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAnswer(tappedYes) {
+    if (result !== null) return;
     const correct = tappedYes === task.isLabelCorrect;
+    const outcome = correct ? "correct" : "incorrect";
+    setResult(outcome);
     onTap?.(tappedYes ? "yes" : "no", correct);
-    if (correct) onCorrect(task.conceptId, task.card.id);
-    else         onIncorrect(task.conceptId, task.card.id);
+    setTimeout(() => {
+      if (correct) onCorrect(task.conceptId, task.card.id);
+      else         onIncorrect(task.conceptId, task.card.id);
+    }, 1500);
   }
+
+  const displayLower  = task.displayLabel?.toLowerCase() ?? "";
+  const correctLower  = task.correctLabel?.toLowerCase()  ?? displayLower;
+  const question      = `Это ${displayLower}?`;
+  const feedbackText  = result === "correct"
+    ? `Да! Это ${correctLower}!`
+    : result === "incorrect"
+      ? `Нет! Это ${correctLower}!`
+      : null;
 
   return (
     <div className="session-body">
       <CardArea topicId={topicId} card={task.card} />
-      <div className="session-label">{task.displayLabel}</div>
-      <div className="yes-no-row">
-        <button className="yes-no-btn yes-no-btn--no"  onClick={() => handleAnswer(false)}>НЕТ</button>
-        <button className="yes-no-btn yes-no-btn--yes" onClick={() => handleAnswer(true)}>ДА</button>
+      <div className={`session-label yn-label${result ? ` yn-label--${result}` : ""}`}>
+        {feedbackText ?? question}
       </div>
+      {!result && (
+        <div className="yes-no-row">
+          <button className="yes-no-btn yes-no-btn--no"  onClick={() => handleAnswer(false)}>НЕТ</button>
+          <button className="yes-no-btn yes-no-btn--yes" onClick={() => handleAnswer(true)}>ДА</button>
+        </div>
+      )}
     </div>
   );
 }

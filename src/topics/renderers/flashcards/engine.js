@@ -36,6 +36,7 @@ function generateYesNoTasks(concepts, params) {
         conceptId: concept.conceptId,
         card: pickVariation(concept),
         displayLabel,
+        correctLabel: concept.primary?.label ?? concept.conceptId,
         isLabelCorrect: useCorrect,
       });
     }
