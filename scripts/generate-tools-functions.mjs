@@ -10,7 +10,7 @@ import { createSign } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.4.1";
+const VERSION = "1.4.2";
 
 // ── Google TTS config ────────────────────────────────────────
 const SA_PATH = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
@@ -280,14 +280,14 @@ const CONCEPTS = [
     id: "drill_bit",
     label: "Сверло",
     needsForm: "нужно",
-    labelInstrumental: "сверлом",
-    action: "сверлят дерево",
-    actionInf: "сверлить дерево",
-    sceneQuestion: "Нужно просверлить дырку в деревянном бруске. Что взять?",
+    labelInstrumental: "сверло",
+    action: "вставляют в патрон дрели",
+    actionInf: "вставить в патрон дрели",
+    sceneQuestion: "Нужно вставить насадку в дрель. Что взять?",
     toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneProcessPrompt: "a power drill with a drill bit actively boring into a small wooden block, sawdust visible, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a small wooden block without any holes on a clean surface, square 1:1 composition, no text",
-    sceneAfterPrompt: "a small wooden block with a clean round hole drilled through it, sawdust nearby, clean surface background, square 1:1 composition, no text",
+    sceneProcessPrompt: "a close-up of a hand inserting a metal twist drill bit into the chuck of a power drill, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a drill bit lying next to a power drill on a clean surface, the drill bit is not inserted yet, square 1:1 composition, no text",
+    sceneAfterPrompt: "a power drill with a drill bit fully inserted and secured in the chuck, ready to use, clean background, square 1:1 composition, no text",
   },
   {
     id: "ruler",
