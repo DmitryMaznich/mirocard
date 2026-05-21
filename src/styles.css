@@ -12475,6 +12475,7 @@ button {
   color: #fff;
   box-shadow: 0 6px 0 #b71c1c, 0 10px 24px rgba(229, 57, 53, 0.35);
 }
+.yn-label           { transform: none; }
 .yn-label--correct  { color: #1b5e20; font-weight: 800; animation: yn-pop 0.25s ease both; }
 .yn-label--incorrect { color: #b71c1c; font-weight: 800; animation: yn-pop 0.25s ease both; }
 @keyframes yn-pop {
