@@ -62,8 +62,9 @@ const ETA_AUDIO = "audio/eto.mp3"; // "Это" prefix, packed from tools_basic
 
 function generateFunctionIntroTasks(concepts) {
   return concepts.map(concept => {
-    const toolCard = getToolCard(concept);
-    const sceneAfterCard = concept.cards.find(c => c.type === "scene_after") ?? null;
+    const toolCard        = getToolCard(concept);
+    const sceneProcessCard = concept.cards.find(c => c.type === "scene_process") ?? null;
+    const sceneAfterCard   = concept.cards.find(c => c.type === "scene_after")   ?? null;
     const needsForm = concept.primary.needsForm ?? "";
     const question = needsForm
       ? `Для чего ${needsForm} ${concept.primary.label}?`
@@ -73,6 +74,7 @@ function generateFunctionIntroTasks(concepts) {
       type: "fc_intro",
       conceptId: concept.conceptId,
       toolCard,
+      sceneProcessCard,
       sceneAfterCard,
       label: concept.primary.label,
       question,

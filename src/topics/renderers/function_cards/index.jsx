@@ -30,7 +30,10 @@ const ETA_GAP = 480; // ms between "Это" and tool name audio
 
 // ── FunctionIntroTask ─────────────────────────────────────────
 function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
-  const [step, setStep] = useState(0); // 0=tool photo, 1=question only, 2=question+scene+feedback
+  // steps: 0=tool+audio, 1=question, 2=process scene+feedback, 3=result scene+feedback
+  const maxStep = task.sceneProcessCard ? 3 : 2;
+
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
     setStep(0);
@@ -48,9 +51,13 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
   }
 
   function handleTap() {
-    if (step < 2) setStep(s => s + 1);
+    if (step < maxStep) setStep(s => s + 1);
     else onAdvance?.();
   }
+
+  const sceneCard = step === 2 && task.sceneProcessCard
+    ? task.sceneProcessCard
+    : task.sceneAfterCard;
 
   return (
     <div className={`fc-intro fc-intro--step-${step} session-body`} onClick={handleTap}>
@@ -72,10 +79,10 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
         <p className="fc-intro-question">{task.question}</p>
       )}
 
-      {step === 2 && (
+      {step >= 2 && (
         <>
           <div className="fc-intro-scene-wrap">
-            <SceneImage topicId={topicId} card={task.sceneAfterCard} blurred={false} className="fc-intro-scene-img" />
+            <SceneImage topicId={topicId} card={sceneCard} blurred={false} className="fc-intro-scene-img" />
           </div>
           <p className="fc-intro-feedback">{task.feedbackText}</p>
         </>

@@ -29,10 +29,16 @@ function img64(file) {
 function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 const rows = CONCEPTS.map((c, i) => {
-  const tool  = img64(`${c.id}_tool_1.webp`);
-  const scene = img64(`${c.id}_scene_after.webp`);
-  const imgTool  = tool  ? `<img src="${tool}"  title="${c.id}_tool_1">` : `<div class="miss">нет фото</div>`;
-  const imgScene = scene ? `<img src="${scene}" title="${c.id}_scene_after">` : `<div class="miss">нет фото</div>`;
+  const tool    = img64(`${c.id}_tool_1.webp`);
+  const process = img64(`${c.id}_scene_process.webp`);
+  const after   = img64(`${c.id}_scene_after.webp`);
+
+  function photo(src, title, label) {
+    return `<div class="photo-col">
+      ${src ? `<img src="${src}" title="${title}">` : `<div class="miss">нет фото</div>`}
+      <div class="photo-label">${label}</div>
+    </div>`;
+  }
 
   const q1 = "Что это?";
   const a1 = `Это ${c.label}.`;
@@ -43,7 +49,11 @@ const rows = CONCEPTS.map((c, i) => {
   return `
   <div class="pair">
     <div class="num">${i + 1}</div>
-    <div class="photos">${imgTool}${imgScene}</div>
+    <div class="photos">
+      ${photo(tool,    c.id + "_tool_1",        "предмет")}
+      ${photo(process, c.id + "_scene_process", "процесс")}
+      ${photo(after,   c.id + "_scene_after",   "результат")}
+    </div>
     <div class="info">
       <div class="cid"><code>${c.id}</code></div>
       <table>
@@ -69,10 +79,12 @@ const html = `<!DOCTYPE html>
           box-shadow: 0 1px 5px rgba(0,0,0,.09); }
   .num { font-size: 1.8rem; font-weight: 800; color: #ccc; min-width: 36px; line-height: 1; padding-top: 6px; }
   .photos { display: flex; gap: 8px; flex-shrink: 0; }
-  .photos img { width: 130px; height: 130px; object-fit: cover; border-radius: 10px; border: 1px solid #eee; }
-  .miss { width: 130px; height: 130px; background: #fff0f0; border-radius: 10px;
+  .photo-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .photo-col img { width: 110px; height: 110px; object-fit: cover; border-radius: 10px; border: 1px solid #eee; }
+  .photo-label { font-size: .68rem; color: #aaa; text-transform: uppercase; letter-spacing: .5px; }
+  .miss { width: 110px; height: 110px; background: #fff0f0; border-radius: 10px;
           display: flex; align-items: center; justify-content: center;
-          font-size: .75rem; color: #c00; border: 1px solid #fcc; }
+          font-size: .72rem; color: #c00; border: 1px solid #fcc; text-align: center; }
   .info { flex: 1; min-width: 0; }
   .cid { font-size: .72rem; color: #aaa; margin-bottom: 8px; }
   code { background: #f4f4f4; padding: 1px 6px; border-radius: 4px; font-size: .85em; }

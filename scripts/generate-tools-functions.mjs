@@ -126,8 +126,9 @@ const CONCEPTS = [
     actionInf: "забивать гвозди",
     sceneQuestion: "Нужно забить гвоздь. Что взять?",
     toolPrompt: "a hammer, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a nail lying next to a wooden board on a clean surface, the nail is not driven in yet, 4:3 composition, no text",
-    sceneAfterPrompt: "a nail fully hammered into a wooden board, clean surface background, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand gripping a hammer mid-swing, driving a nail into a wooden board, dynamic action, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a nail lying next to a wooden board on a clean surface, the nail is not driven in yet, square 1:1 composition, no text",
+    sceneAfterPrompt: "a nail fully hammered into a wooden board, clean surface background, square 1:1 composition, no text",
   },
   {
     id: "screwdriver",
@@ -138,8 +139,9 @@ const CONCEPTS = [
     actionInf: "закручивать шурупы",
     sceneQuestion: "Нужно закрутить шуруп. Что взять?",
     toolPrompt: "a screwdriver, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a screw lying next to a wooden plank on a clean surface, the screw is not inserted yet, 4:3 composition, no text",
-    sceneAfterPrompt: "a screw fully driven into a wooden plank, clean surface background, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand holding a screwdriver, turning a screw into a wooden plank, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a screw lying next to a wooden plank on a clean surface, the screw is not inserted yet, square 1:1 composition, no text",
+    sceneAfterPrompt: "a screw fully driven into a wooden plank, clean surface background, square 1:1 composition, no text",
   },
   {
     id: "drill",
@@ -150,8 +152,9 @@ const CONCEPTS = [
     actionInf: "сверлить отверстия",
     sceneQuestion: "Нужно просверлить отверстие в стене. Что взять?",
     toolPrompt: "a power drill, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a smooth concrete wall section without any holes, clean even surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a smooth concrete wall with a clean round hole drilled through it, concrete dust around the hole, 4:3 composition, no text",
+    sceneProcessPrompt: "hands holding a power drill pressed against a concrete wall, actively drilling, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a smooth concrete wall section without any holes, clean even surface, square 1:1 composition, no text",
+    sceneAfterPrompt: "a smooth concrete wall with a clean round hole drilled through it, concrete dust around the hole, square 1:1 composition, no text",
   },
   {
     id: "handsaw",
@@ -162,8 +165,9 @@ const CONCEPTS = [
     actionInf: "пилить доску",
     sceneQuestion: "Нужно распилить доску. Что взять?",
     toolPrompt: "a hand saw, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "one whole wooden plank lying on a clean surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a wooden plank cut into two pieces on a clean surface, sawdust at the cut, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand holding a hand saw, actively cutting through a wooden plank, sawdust visible, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "one whole wooden plank lying on a clean surface, square 1:1 composition, no text",
+    sceneAfterPrompt: "a wooden plank cut into two pieces on a clean surface, sawdust at the cut, square 1:1 composition, no text",
   },
   {
     id: "wrench",
@@ -174,8 +178,9 @@ const CONCEPTS = [
     actionInf: "закручивать гайки",
     sceneQuestion: "Нужно затянуть гайку на болте. Что взять?",
     toolPrompt: "an open-end wrench, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a bolt with a loose nut sitting beside it on a clean surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a bolt with a nut tightly fastened on it, clean surface background, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand holding a wrench, tightening a nut on a bolt, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a bolt with a loose nut sitting beside it on a clean surface, square 1:1 composition, no text",
+    sceneAfterPrompt: "a bolt with a nut tightly fastened on it, clean surface background, square 1:1 composition, no text",
   },
   {
     id: "pliers",
@@ -186,8 +191,9 @@ const CONCEPTS = [
     actionInf: "сгибать проволоку",
     sceneQuestion: "Нужно согнуть проволоку. Что взять?",
     toolPrompt: "a pair of pliers, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a straight piece of metal wire lying on a clean surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a piece of metal wire bent into a U-shape on a clean surface, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand gripping pliers, actively bending a metal wire, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a straight piece of metal wire lying on a clean surface, square 1:1 composition, no text",
+    sceneAfterPrompt: "a piece of metal wire bent into a U-shape on a clean surface, square 1:1 composition, no text",
   },
   {
     id: "wire_cutters",
@@ -198,8 +204,9 @@ const CONCEPTS = [
     actionInf: "резать проволоку",
     sceneQuestion: "Нужно перекусить проволоку. Что взять?",
     toolPrompt: "wire cutters (diagonal cutting pliers), isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a long piece of wire lying on a clean surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a piece of wire cut in two, the two ends slightly apart, clean surface background, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand holding wire cutters, cutting through a metal wire at the cutting point, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a long piece of wire lying on a clean surface, square 1:1 composition, no text",
+    sceneAfterPrompt: "a piece of wire cut in two, the two ends slightly apart, clean surface background, square 1:1 composition, no text",
   },
   {
     id: "tape_measure",
@@ -210,8 +217,9 @@ const CONCEPTS = [
     actionInf: "измерять длину",
     sceneQuestion: "Нужно измерить длину большого предмета. Что взять?",
     toolPrompt: "a tape measure (retractable measuring tape), isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a wooden board without any markings lying on a clean surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a wooden board with a pencil measurement mark on it, clean surface background, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand extending a tape measure along a wooden board, measuring its length, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a wooden board without any markings lying on a clean surface, square 1:1 composition, no text",
+    sceneAfterPrompt: "a wooden board with a pencil measurement mark on it, clean surface background, square 1:1 composition, no text",
   },
   {
     id: "paintbrush",
@@ -222,8 +230,9 @@ const CONCEPTS = [
     actionInf: "красить поверхность",
     sceneQuestion: "Нужно покрасить стену. Что взять?",
     toolPrompt: "a paint brush, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "an unpainted grey wall section, clean and bare, 4:3 composition, no text",
-    sceneAfterPrompt: "a wall section painted with a coat of light blue paint, clean and smooth, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand holding a paint brush, actively painting a wall with blue paint, mid-stroke, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "an unpainted grey wall section, clean and bare, square 1:1 composition, no text",
+    sceneAfterPrompt: "a wall section painted with a coat of light blue paint, clean and smooth, square 1:1 composition, no text",
   },
   {
     id: "spatula",
@@ -234,8 +243,9 @@ const CONCEPTS = [
     actionInf: "наносить шпаклёвку",
     sceneQuestion: "Нужно заделать трещину в стене. Что взять?",
     toolPrompt: "a wall spatula (putty knife), isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a wall section with a visible crack in the plaster, 4:3 composition, no text",
-    sceneAfterPrompt: "the same wall section with the crack smoothly filled and levelled with putty, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand holding a spatula, spreading putty over a crack in a wall, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a wall section with a visible crack in the plaster, square 1:1 composition, no text",
+    sceneAfterPrompt: "the same wall section with the crack smoothly filled and levelled with putty, square 1:1 composition, no text",
   },
   {
     id: "drill_bit",
@@ -246,8 +256,9 @@ const CONCEPTS = [
     actionInf: "сверлить дерево",
     sceneQuestion: "Нужно просверлить дырку в деревянном бруске. Что взять?",
     toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a small wooden block without any holes on a clean surface, 4:3 composition, no text",
-    sceneAfterPrompt: "a small wooden block with a clean round hole drilled through it, sawdust nearby, clean surface background, 4:3 composition, no text",
+    sceneProcessPrompt: "a power drill with a drill bit actively boring into a small wooden block, sawdust visible, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a small wooden block without any holes on a clean surface, square 1:1 composition, no text",
+    sceneAfterPrompt: "a small wooden block with a clean round hole drilled through it, sawdust nearby, clean surface background, square 1:1 composition, no text",
   },
   {
     id: "ruler",
@@ -258,8 +269,9 @@ const CONCEPTS = [
     actionInf: "чертить ровные линии",
     sceneQuestion: "Нужно провести ровную линию на бумаге. Что взять?",
     toolPrompt: "a wooden ruler, isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a blank white sheet of paper on a clean desk, 4:3 composition, no text",
-    sceneAfterPrompt: "a sheet of paper with one straight pencil line drawn across it, clean desk background, 4:3 composition, no text",
+    sceneProcessPrompt: "a hand holding a pencil against a ruler, drawing a straight line on white paper, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a blank white sheet of paper on a clean desk, square 1:1 composition, no text",
+    sceneAfterPrompt: "a sheet of paper with one straight pencil line drawn across it, clean desk background, square 1:1 composition, no text",
   },
 ];
 
@@ -330,6 +342,14 @@ async function run() {
         tags: ["tools"],
       });
 
+      addImage(id, filename);
+    }
+
+    // ── Scene process ───────────────────────────────────────
+    {
+      const id       = `${concept.id}_scene_process`;
+      const filename = `media/${id}.webp`;
+      cards.push({ id, conceptId: concept.id, primary: false, image: filename, type: "scene_process" });
       addImage(id, filename);
     }
 
@@ -601,7 +621,7 @@ async function run() {
 
   // ── Summary ─────────────────────────────────────────────────
   console.log(`\n✅ Written: ${outPath}`);
-  console.log(`   Cards: ${cards.length} (${CONCEPTS.length * TOOL_VARIATIONS} tool + ${CONCEPTS.length * 2} scene)`);
+  console.log(`   Cards: ${cards.length} (${CONCEPTS.length * TOOL_VARIATIONS} tool + ${CONCEPTS.length * 3} scene)`);
   console.log(`   Images packed: ${imagesFound}`);
   if (imagesMissing.length) console.warn(`   ⚠️  Missing images: ${imagesMissing.join(", ")}`);
   console.log(`   Avatar: ${metaAvatar ? "✓" : "missing"}`);
