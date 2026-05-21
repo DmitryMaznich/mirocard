@@ -93,9 +93,13 @@ export default function App() {
   const topicRecords = useAppStore((s) => s.topicRecords);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const activeModeId = useAppStore((s) => s.activeModeId);
-  const { isOpen: isTimerOpen, setIsOpen } = useTimer();
+  const { isOpen: isTimerOpen, setIsOpen, resetSession } = useTimer();
   const [isSessionExitPromptOpen, setIsSessionExitPromptOpen] = useState(false);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
+
+  useEffect(() => {
+    if (screen === "home") resetSession();
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
   const closeSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(false), []);
   const openSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(true), []);
   const finishSessionFromPrompt = useCallback(() => {

@@ -26,6 +26,11 @@ export function TimerProvider({ children }) {
     }
   }
 
+  function resetSession() {
+    sessionStart.current = null;
+    setSessionSeconds(0);
+  }
+
   return (
     <TimerContext.Provider value={{
       isOpen, setIsOpen,
@@ -34,6 +39,7 @@ export function TimerProvider({ children }) {
       configMinutes, setConfigMinutes,
       sessionSeconds,
       markSessionStart,
+      resetSession,
     }}>
       {children}
     </TimerContext.Provider>
