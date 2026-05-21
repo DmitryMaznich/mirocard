@@ -16895,7 +16895,10 @@ body { background: #eef0ef; }
   cursor: pointer;
   pointer-events: all;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.2s, box-shadow 0.2s;
+  transition: background 0.2s, box-shadow 0.2s,
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
 }
 
@@ -16919,6 +16922,7 @@ body { background: #eef0ef; }
   line-height: 1;
   color: #3a2e22;
   letter-spacing: -0.5px;
+  transition: font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .global-timer-tab__sep {
@@ -16928,6 +16932,7 @@ body { background: #eef0ef; }
   line-height: 1;
   color: #3a2e22;
   letter-spacing: -0.5px;
+  transition: font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .global-timer-tab--running .global-timer-tab__sep {
@@ -16948,6 +16953,23 @@ body { background: #eef0ef; }
 .global-timer-tab--set { background: #fffdf9; }
 .global-timer-tab--set .global-timer-tab__mm,
 .global-timer-tab--set .global-timer-tab__ss { color: #c84b2a; }
+
+.global-timer-tab--set,
+.global-timer-tab--running {
+  width: 240px;
+  height: 102px;
+  border-radius: 0 0 42px 42px;
+}
+
+.global-timer-tab--set .global-timer-tab__mm,
+.global-timer-tab--set .global-timer-tab__ss,
+.global-timer-tab--set .global-timer-tab__sep,
+.global-timer-tab--running .global-timer-tab__mm,
+.global-timer-tab--running .global-timer-tab__ss,
+.global-timer-tab--running .global-timer-tab__sep {
+  font-size: 45px;
+  letter-spacing: -1px;
+}
 
 .global-timer-tab--running {
   background: #f5c842;
