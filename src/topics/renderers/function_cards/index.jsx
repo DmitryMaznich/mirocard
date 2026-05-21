@@ -152,7 +152,6 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrec
     if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
     setSelected(option);
     const correct = option.isTarget;
-    playFeedback?.(correct ? "correct" : "incorrect");
     setTimeout(() => {
       if (correct) onCorrect(task.conceptId, task.toolCard?.id ?? null);
       else         onIncorrect(task.conceptId, task.toolCard?.id ?? null);
