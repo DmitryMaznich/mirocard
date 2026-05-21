@@ -26,8 +26,8 @@ function SceneImage({ topicId, card, blurred, className = "" }) {
   );
 }
 
-const ETA_GAP = 480;     // ms between "Это" and tool name audio
-const Q_INTRO_GAP = 900; // ms between "Для чего нужен" and tool name audio
+const ETA_GAP = 960;      // ms between "Это" and tool name audio
+const Q_INTRO_GAP = 1800; // ms between "Для чего нужен" and tool name audio
 
 // ── FunctionIntroTask ─────────────────────────────────────────
 function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
@@ -120,7 +120,7 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
   );
 }
 
-const Q_AUDIO_GAP = 1200; // ms between prefix phrase and tool name audio (~1s for phrase to finish)
+const Q_AUDIO_GAP = 2400; // ms between prefix phrase and tool name audio (~1s for phrase to finish)
 
 // ── ChooseActionTask ─────────────────────────────────────────
 function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer }) {
