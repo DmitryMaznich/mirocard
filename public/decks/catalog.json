@@ -142,6 +142,19 @@
         "en": "12 tools: names, functions, before-and-after scenes"
       },
       "url": "./decks/tools_functions_v1.3.9.zip"
+    },
+    {
+      "id": "coffee_preparation",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Приготовление кофе",
+        "en": "Coffee Preparation"
+      },
+      "description": {
+        "ru": "17 предметов бариста: оборудование, инвентарь и ингредиенты. Фото на белом фоне. Для взрослых учеников.",
+        "en": "17 barista items: equipment, utensils and ingredients. Photo style on white background."
+      },
+      "url": "./decks/coffee_preparation_v1.0.0.zip"
     }
   ]
 }
