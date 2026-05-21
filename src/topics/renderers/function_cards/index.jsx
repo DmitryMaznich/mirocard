@@ -50,7 +50,8 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
 
   useEffect(() => {
     if (step === 1) playQuestion();
-    if (step >= 2 && soundEnabled && task.feedbackAudio) playTopicFile(topicId, task.feedbackAudio);
+    if (step === 2 && soundEnabled && task.feedbackAudio) playTopicFile(topicId, task.feedbackAudio);
+    if (step === 3 && soundEnabled && task.closingAudio)  playTopicFile(topicId, task.closingAudio);
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function playEta() {
@@ -113,7 +114,9 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
           <div className="fc-intro-scene-wrap">
             <SceneImage topicId={topicId} card={sceneCard} blurred={false} />
           </div>
-          <p className="fc-intro-feedback">{task.feedbackText}</p>
+          <p className="fc-intro-feedback">
+            {step === 3 ? "Вот так!" : task.feedbackText}
+          </p>
         </>
       )}
     </div>

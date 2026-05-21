@@ -58,7 +58,8 @@ function generateChooseActionTasks(concepts) {
   return shuffle(tasks);
 }
 
-const ETA_AUDIO = "audio/eto.mp3"; // "Это" prefix, packed from tools_basic
+const ETA_AUDIO     = "audio/eto.mp3";     // "Это" prefix, packed from tools_basic
+const CLOSING_AUDIO = "audio/vot_tak.mp3"; // "Вот так!" — closing phrase on last intro screen
 
 function generateFunctionIntroTasks(concepts) {
   return concepts.map(concept => {
@@ -83,6 +84,7 @@ function generateFunctionIntroTasks(concepts) {
       toolNameAudio: toolCard.audio?.ru ?? null,
       questionPrefixAudio: toolCard.questionPrefixAudio ?? null,
       feedbackAudio: concept.primary.feedbackAudio ?? null,
+      closingAudio: CLOSING_AUDIO,
     };
   });
 }

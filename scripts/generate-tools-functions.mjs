@@ -10,7 +10,7 @@ import { createSign } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.4.0";
+const VERSION = "1.4.1";
 
 // ── Google TTS config ────────────────────────────────────────
 const SA_PATH = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
@@ -335,6 +335,20 @@ async function run() {
 
   // Pack feedback audio ("Молотком забивают гвозди!" etc.)
   const feedbackAudioMap = await packFeedbackAudio(zip, CONCEPTS);
+
+  // Pack closing phrase "Вот так!" — single file used on the last intro screen
+  {
+    const cachePath = join(TF_AUDIO_DIR, "vot_tak.mp3");
+    if (!existsSync(cachePath)) {
+      if (existsSync(SA_PATH)) {
+        const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
+        console.log(`🔊 TTS: "Вот так!"`);
+        const buf = await synthesize(sa, "Вот так!");
+        writeFileSync(cachePath, buf);
+      }
+    }
+    if (existsSync(cachePath)) zip.file("audio/vot_tak.mp3", readFileSync(cachePath));
+  }
 
   function addImage(cardId, zipPath) {
     const srcPath = join(CARDGEN_GENERATED, `${cardId}.webp`);
