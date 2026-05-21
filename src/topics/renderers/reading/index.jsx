@@ -382,7 +382,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
 
   useEffect(() => {
-    if (phase !== "running" || !step || !audioEnabled) return;
+    if (!step || !audioEnabled) return;
     const textId  = task.text?.id ?? "";
     const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
     let cancelled = false;
@@ -406,7 +406,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
       speak(text);
     }
     return () => { cancelled = true; };
-  }, [stepIndex, steps, phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [stepIndex, steps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!listOpen || !listRef.current) return;
@@ -463,7 +463,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
   }, [step, owners, speak, topicId, task.text?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (phase !== "running") return;
     function onKey(e) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
       switch (e.key) {
@@ -476,7 +475,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, handleNext, handleSpace, goBack, reSpeak]);
+  }, [handleNext, handleSpace, goBack, reSpeak]);
 
   if (!step) return null;
 
