@@ -82,7 +82,7 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
       {step >= 2 && (
         <>
           <div className="fc-intro-scene-wrap">
-            <SceneImage topicId={topicId} card={sceneCard} blurred={false} className="fc-intro-scene-img" />
+            <SceneImage topicId={topicId} card={sceneCard} blurred={false} />
           </div>
           <p className="fc-intro-feedback">{task.feedbackText}</p>
         </>
