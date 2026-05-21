@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
+import { getDb, kv } from "@/core/db";
 import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
@@ -24,7 +25,47 @@ export default function SessionScreen() {
   const students        = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
+  const settings        = useAppStore((s) => s.settings);
+  const patchSettings   = useAppStore((s) => s.patchSettings);
   const activeStudent   = students.find((s) => s.id === activeStudentId) ?? null;
+
+  const LOCK_HOLD_MS = 5000;
+  const lockIntervalRef  = useRef(null);
+  const lockStartRef     = useRef(null);
+  const [lockHoldProgress, setLockHoldProgress] = useState(0);
+  const [lockFlash, setLockFlash] = useState(null);
+
+  useEffect(() => () => {
+    if (lockIntervalRef.current) clearInterval(lockIntervalRef.current);
+  }, []);
+
+  function startLockHold() {
+    if (lockIntervalRef.current) return;
+    lockStartRef.current = Date.now();
+    lockIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - lockStartRef.current;
+      const pct = Math.min((elapsed / LOCK_HOLD_MS) * 100, 100);
+      setLockHoldProgress(pct);
+      if (pct >= 100) {
+        clearInterval(lockIntervalRef.current);
+        lockIntervalRef.current = null;
+        setLockHoldProgress(0);
+        const next = !adultConfirmAdvance;
+        patchSettings({ adultConfirmAdvance: next });
+        getDb().then((db) => kv.set(db, "settings", { ...settings, adultConfirmAdvance: next }));
+        setLockFlash(next ? "locked" : "unlocked");
+        setTimeout(() => setLockFlash(null), 1800);
+      }
+    }, 40);
+  }
+
+  function cancelLockHold() {
+    if (lockIntervalRef.current) {
+      clearInterval(lockIntervalRef.current);
+      lockIntervalRef.current = null;
+    }
+    setLockHoldProgress(0);
+  }
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
@@ -170,6 +211,25 @@ export default function SessionScreen() {
               <span className="session-audio-speaker-icon">
                 {soundEnabled ? "🔊" : "🔇"}
               </span>
+            </button>
+            <button
+              className="session-lock-btn"
+              style={{ "--lock-p": lockHoldProgress }}
+              onPointerDown={startLockHold}
+              onPointerUp={cancelLockHold}
+              onPointerLeave={cancelLockHold}
+              onPointerCancel={cancelLockHold}
+              onContextMenu={(e) => e.preventDefault()}
+              aria-label={adultConfirmAdvance ? "Снять блокировку (удержать)" : "Включить блокировку (удержать)"}
+            >
+              <span className="session-lock-btn__icon">
+                {adultConfirmAdvance ? "🔒" : "🔓"}
+              </span>
+              {lockFlash && (
+                <span className={`session-lock-flash session-lock-flash--${lockFlash}`}>
+                  {lockFlash === "locked" ? "Блок." : "Снято"}
+                </span>
+              )}
             </button>
             <button className="session-finish-btn" onClick={() => setScreen("home")}>✕</button>
           </div>

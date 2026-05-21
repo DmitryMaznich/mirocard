@@ -17688,3 +17688,77 @@ body { background: #eef0ef; }
 @media (max-width: 380px) {
   .install-banner__hint { display: none; }
 }
+
+/* ── Session lock button ──────────────────────────────────────────── */
+.session-lock-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.session-lock-btn__icon {
+  font-size: 16px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.session-lock-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(74, 155, 143, 0.55) calc(var(--lock-p, 0) * 1%),
+    rgba(74, 155, 143, 0.10) 0
+  );
+  transition: opacity 0.1s;
+}
+
+.session-lock-flash {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 6px);
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 6px;
+  pointer-events: none;
+  animation: lock-flash-in 0.2s ease, lock-flash-out 0.4s ease 1.3s forwards;
+  z-index: 10;
+}
+
+.session-lock-flash--locked {
+  background: rgba(74, 155, 143, 0.18);
+  color: #1a7a6e;
+  border: 1px solid rgba(74, 155, 143, 0.3);
+}
+
+.session-lock-flash--unlocked {
+  background: rgba(212, 168, 67, 0.18);
+  color: #7a5c1a;
+  border: 1px solid rgba(212, 168, 67, 0.3);
+}
+
+@keyframes lock-flash-in {
+  from { opacity: 0; transform: translateY(-50%) scale(0.85); }
+  to   { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+@keyframes lock-flash-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
