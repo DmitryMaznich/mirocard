@@ -3701,21 +3701,21 @@ button {
   background: #fffaf4;
   color: #3e4c49;
   border-radius: 999px;
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font: inherit;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, opacity 140ms ease;
 }
 
 .session-audio-speaker-icon {
   position: relative;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
