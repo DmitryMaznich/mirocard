@@ -1,5 +1,5 @@
 // src/topics/renderers/function_cards/index.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import FlashcardsRenderer from "@/topics/renderers/flashcards";
 import "./function_cards.css";
@@ -26,7 +26,7 @@ function SceneImage({ topicId, card, blurred, className = "" }) {
   );
 }
 
-const ETA_GAP = 480;  // ms between "Это" and tool name audio
+const ETA_GAP = 480;     // ms between "Это" and tool name audio
 const Q_INTRO_GAP = 900; // ms between "Для чего нужен" and tool name audio
 
 // ── FunctionIntroTask ─────────────────────────────────────────
@@ -35,22 +35,30 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
   const maxStep = task.sceneProcessCard ? 3 : 2;
 
   const [step, setStep] = useState(0);
+  const pendingRef = useRef(null);
+
+  function clearPending() {
+    if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
+  }
 
   useEffect(() => {
+    clearPending();
     setStep(0);
     playEta();
+    return clearPending;
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    clearPending();
     if (step === 1) playQuestion();
-    if (step >= 2 && task.feedbackAudio) playTopicFile(topicId, task.feedbackAudio);
+    if (step >= 2 && soundEnabled && task.feedbackAudio) playTopicFile(topicId, task.feedbackAudio);
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function playEta() {
     if (!soundEnabled) return;
     if (task.etaAudio) {
       playTopicFile(topicId, task.etaAudio);
-      if (task.toolNameAudio) setTimeout(() => playTopicFile(topicId, task.toolNameAudio), ETA_GAP);
+      if (task.toolNameAudio) pendingRef.current = setTimeout(() => playTopicFile(topicId, task.toolNameAudio), ETA_GAP);
     } else if (task.toolNameAudio) {
       playTopicFile(topicId, task.toolNameAudio);
     }
@@ -60,7 +68,7 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
     if (!soundEnabled) return;
     if (task.questionPrefixAudio) {
       playTopicFile(topicId, task.questionPrefixAudio);
-      if (task.toolNameAudio) setTimeout(() => playTopicFile(topicId, task.toolNameAudio), Q_INTRO_GAP);
+      if (task.toolNameAudio) pendingRef.current = setTimeout(() => playTopicFile(topicId, task.toolNameAudio), Q_INTRO_GAP);
     } else if (task.toolNameAudio) {
       playTopicFile(topicId, task.toolNameAudio);
     }
