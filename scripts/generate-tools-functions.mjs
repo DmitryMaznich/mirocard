@@ -10,7 +10,7 @@ import { createSign } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.4.3";
+const VERSION = "1.4.4";
 
 // ── Google TTS config ────────────────────────────────────────
 const SA_PATH = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
@@ -173,6 +173,19 @@ const CONCEPTS = [
     sceneAfterPrompt: "a screw fully driven into a wooden plank, clean surface background, square 1:1 composition, no text",
   },
   {
+    id: "drill_bit",
+    label: "Сверло",
+    needsForm: "нужно",
+    labelInstrumental: "сверло",
+    action: "вставляют в дрель, чтобы сверлить отверстия",
+    actionInf: "вставить в дрель для сверления",
+    sceneQuestion: "Нужно вставить насадку в дрель. Что взять?",
+    toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
+    sceneProcessPrompt: "realistic photo of a human hand with natural finger positions gently inserting a silver metal twist drill bit into the chuck of a yellow-and-black cordless power drill, clean workshop background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a silver twist drill bit lying next to a yellow-and-black cordless power drill on a clean surface, the drill bit is not inserted yet, square 1:1 composition, no text",
+    sceneAfterPrompt: "a yellow-and-black cordless power drill with a silver twist drill bit fully inserted and tightened in the chuck, the same drill model as in the previous step, lying on a clean workshop surface ready to use, square 1:1 composition, no text",
+  },
+  {
     id: "drill",
     label: "Дрель",
     needsForm: "нужна",
@@ -275,19 +288,6 @@ const CONCEPTS = [
     sceneProcessPrompt: "a hand holding a spatula, spreading putty over a crack in a wall, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a wall section with a visible crack in the plaster, square 1:1 composition, no text",
     sceneAfterPrompt: "the same wall section with the crack smoothly filled and levelled with putty, square 1:1 composition, no text",
-  },
-  {
-    id: "drill_bit",
-    label: "Сверло",
-    needsForm: "нужно",
-    labelInstrumental: "сверло",
-    action: "вставляют в дрель, чтобы сверлить отверстия",
-    actionInf: "вставить в дрель для сверления",
-    sceneQuestion: "Нужно вставить насадку в дрель. Что взять?",
-    toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneProcessPrompt: "realistic photo of a human hand with natural finger positions gently inserting a silver metal twist drill bit into the chuck of a yellow-and-black cordless power drill, clean workshop background, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a silver twist drill bit lying next to a yellow-and-black cordless power drill on a clean surface, the drill bit is not inserted yet, square 1:1 composition, no text",
-    sceneAfterPrompt: "a yellow-and-black cordless power drill with a silver twist drill bit fully inserted and tightened in the chuck, the same drill model as in the previous step, lying on a clean workshop surface ready to use, square 1:1 composition, no text",
   },
   {
     id: "ruler",
