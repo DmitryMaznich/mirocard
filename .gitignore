@@ -30,3 +30,7 @@ backend/restart-backend.py
 *.sw?
 __codex_deploy_*
 public/decks/reading_dad_texts_v1.13.0.zip
+
+# User asset photos
+*.png
+*.jpg
