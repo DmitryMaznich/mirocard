@@ -157,7 +157,7 @@ function YesNoTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
   const correctLower  = task.correctLabel?.toLowerCase()  ?? displayLower;
   const question      = `Это ${displayLower}?`;
   const feedbackText  = result === "correct"
-    ? `Да! Это ${correctLower}!`
+    ? `Правильно! Это ${correctLower}!`
     : result === "incorrect"
       ? `Нет! Это ${correctLower}!`
       : null;
