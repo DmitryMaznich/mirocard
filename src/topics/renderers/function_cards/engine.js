@@ -81,6 +81,8 @@ function generateFunctionIntroTasks(concepts) {
       feedbackText: `${lInstr[0].toUpperCase()}${lInstr.slice(1)} ${concept.primary.action}!`,
       etaAudio: ETA_AUDIO,
       toolNameAudio: toolCard.audio?.ru ?? null,
+      questionPrefixAudio: toolCard.questionPrefixAudio ?? null,
+      feedbackAudio: concept.primary.feedbackAudio ?? null,
     };
   });
 }

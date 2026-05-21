@@ -55,12 +55,21 @@
 }
 
 /* Step 1: large question */
+.fc-intro-question-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
 .fc-intro-question {
   font-size: clamp(1.5rem, 6.5vw, 2.2rem);
   font-weight: 700;
   text-align: center;
   flex-shrink: 0;
   margin: 0;
+}
+.fc-intro-q-audio-btn {
+  font-size: 1.6rem;
 }
 
 /* Step 2: square scene photo */

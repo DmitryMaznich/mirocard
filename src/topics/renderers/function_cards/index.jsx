@@ -26,7 +26,8 @@ function SceneImage({ topicId, card, blurred, className = "" }) {
   );
 }
 
-const ETA_GAP = 480; // ms between "Это" and tool name audio
+const ETA_GAP = 480;  // ms between "Это" and tool name audio
+const Q_INTRO_GAP = 900; // ms between "Для чего нужен" and tool name audio
 
 // ── FunctionIntroTask ─────────────────────────────────────────
 function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
@@ -40,11 +41,26 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
     playEta();
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (step === 1) playQuestion();
+    if (step >= 2 && task.feedbackAudio) playTopicFile(topicId, task.feedbackAudio);
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function playEta() {
     if (!soundEnabled) return;
     if (task.etaAudio) {
       playTopicFile(topicId, task.etaAudio);
       if (task.toolNameAudio) setTimeout(() => playTopicFile(topicId, task.toolNameAudio), ETA_GAP);
+    } else if (task.toolNameAudio) {
+      playTopicFile(topicId, task.toolNameAudio);
+    }
+  }
+
+  function playQuestion() {
+    if (!soundEnabled) return;
+    if (task.questionPrefixAudio) {
+      playTopicFile(topicId, task.questionPrefixAudio);
+      if (task.toolNameAudio) setTimeout(() => playTopicFile(topicId, task.toolNameAudio), Q_INTRO_GAP);
     } else if (task.toolNameAudio) {
       playTopicFile(topicId, task.toolNameAudio);
     }
@@ -76,7 +92,12 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
       )}
 
       {step === 1 && (
-        <p className="fc-intro-question">{task.question}</p>
+        <div className="fc-intro-question-wrap">
+          <p className="fc-intro-question">{task.question}</p>
+          {soundEnabled && (task.questionPrefixAudio || task.toolNameAudio) && (
+            <button className="fc-ca-audio-btn fc-intro-q-audio-btn" onClick={e => { e.stopPropagation(); playQuestion(); }} aria-label="Повторить вопрос">🔊</button>
+          )}
+        </div>
       )}
 
       {step >= 2 && (

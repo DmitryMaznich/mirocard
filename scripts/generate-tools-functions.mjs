@@ -10,7 +10,7 @@ import { createSign } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.3.9";
+const VERSION = "1.4.0";
 
 // ── Google TTS config ────────────────────────────────────────
 const SA_PATH = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
@@ -74,6 +74,35 @@ async function synthesize(sa, text) {
   const data = await resp.json();
   if (!data.audioContent) throw new Error("TTS error: " + JSON.stringify(data));
   return Buffer.from(data.audioContent, "base64");
+}
+
+// Returns map: conceptId → zipPath for feedback sentences ("Молотком забивают гвозди!")
+async function packFeedbackAudio(zip, concepts) {
+  if (!existsSync(SA_PATH)) {
+    console.warn("⚠️  google-tts-sa.json not found — skipping feedback audio");
+    return {};
+  }
+  const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
+  if (!existsSync(TF_AUDIO_DIR)) mkdirSync(TF_AUDIO_DIR, { recursive: true });
+  const map = {};
+  for (const concept of concepts) {
+    const lInstr = concept.labelInstrumental;
+    const sentence = `${lInstr[0].toUpperCase()}${lInstr.slice(1)} ${concept.action}!`;
+    const filename = `feedback_${concept.id}.mp3`;
+    const cachePath = join(TF_AUDIO_DIR, filename);
+    const zipPath   = `audio/${filename}`;
+    let buf;
+    if (existsSync(cachePath)) {
+      buf = readFileSync(cachePath);
+    } else {
+      console.log(`🔊 TTS: "${sentence}"`);
+      buf = await synthesize(sa, sentence);
+      writeFileSync(cachePath, buf);
+    }
+    zip.file(zipPath, buf);
+    map[concept.id] = zipPath;
+  }
+  return map;
 }
 
 // Returns map: needsForm → zipPath, or {} if SA not found
@@ -304,6 +333,9 @@ async function run() {
   // Pack question prefix audio ("Для чего нужен/нужна/нужно/нужны")
   const prefixAudioMap = await packPrefixAudio(zip);
 
+  // Pack feedback audio ("Молотком забивают гвозди!" etc.)
+  const feedbackAudioMap = await packFeedbackAudio(zip, CONCEPTS);
+
   function addImage(cardId, zipPath) {
     const srcPath = join(CARDGEN_GENERATED, `${cardId}.webp`);
     if (existsSync(srcPath)) {
@@ -335,6 +367,7 @@ async function run() {
           sceneQuestion: concept.sceneQuestion,
           needsForm: concept.needsForm,
           ...(prefixAudioMap[concept.needsForm] ? { questionPrefixAudio: prefixAudioMap[concept.needsForm] } : {}),
+          ...(feedbackAudioMap[concept.id]      ? { feedbackAudio: feedbackAudioMap[concept.id] }            : {}),
         } : {}),
         ...audioRu,
         image: filename,
