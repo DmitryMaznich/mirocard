@@ -155,6 +155,19 @@
         "en": "17 barista items: equipment, utensils and ingredients. Photo style on white background."
       },
       "url": "./decks/coffee_preparation_v1.0.0.zip"
+    },
+    {
+      "id": "coffee_methods",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Способы приготовления кофе",
+        "en": "Coffee Brewing Methods"
+      },
+      "description": {
+        "ru": "7 способов приготовления кофе: от рожковой машины до джезвы. Стартовая колода — карта кофейного мира.",
+        "en": "7 coffee brewing methods: from espresso machine to cezve. Starting deck — map of the coffee world."
+      },
+      "url": "./decks/coffee_methods_v1.0.0.zip"
     }
   ]
 }
