@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import {
   formatDate, getTopicTitle,
@@ -6,6 +6,7 @@ import {
 } from "@/shared/utils/format";
 import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 import { computeProgressAfterSession } from "./useConceptProgress";
+import { computeStarProgress } from "./useStarProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
 
@@ -21,19 +22,11 @@ const ASSESSMENT_LABELS = {
   easy: "Легко",
 };
 
-const STAR_THRESHOLD = 90;
-const FINISH_HOLD_MS = 1500;
-
-function getStarCount(percentCorrect, rewardThreshold) {
-  if (percentCorrect === null || percentCorrect === undefined) return null;
-  if (percentCorrect >= rewardThreshold)      return 3;
-  if (percentCorrect >= rewardThreshold - 20) return 2;
-  return 1;
-}
-
 function getPraiseText(starCount, isReading) {
   if (starCount === null) return isReading ? "Молодец, ты прочитал!" : "Молодец, ты справился!";
-  if (starCount === 3) return "Молодец! Три звезды!";
+  if (starCount === 5) return "Молодец! Пять звёзд!";
+  if (starCount === 4) return "Отлично! Четыре звезды!";
+  if (starCount === 3) return "Хорошо! Три звезды!";
   if (starCount === 2) return "Хорошо! Две звезды!";
   return "Старался! Одна звезда!";
 }
@@ -67,29 +60,44 @@ export default function SessionSummary() {
   const sessionReward      = session?.reward ?? null;
   const videoRewardEnabled = sessionReward?.videoEnabled ?? link.videoRewardEnabled ?? true;
   const rewardThreshold    = sessionReward?.threshold ?? link.rewardThreshold ?? 90;
-  // Recompute from stored correctCount + target to survive old data where
-  // session.reward.earned was incorrectly set to true due to a prior engine bug.
-  const rewardEarned = (
-    sessionReward?.target != null && session?.correctCount != null
-      ? session.correctCount >= sessionReward.target
-      : Boolean(sessionReward?.earned)
-  ) && (sessionReward?.videoAvailable ?? false);
-  const rewardSeconds      = rewardEarned && videoRewardEnabled
-    ? computeRewardSeconds(session.modeId, sessionReward?.total ?? topicRecord?.cards?.length ?? 10)
+  const rewardAvailable    = Boolean(sessionReward?.videoAvailable ?? false);
+
+  // Use the same star formula as the live StarBar so the result is consistent
+  const rewardTotal = sessionReward?.total
+    ?? ((session?.correctCount ?? 0) + (session?.incorrectCount ?? 0));
+  const starProgress = isReading
+    ? null
+    : computeStarProgress({
+      correctCount:   session?.correctCount   ?? 0,
+      incorrectCount: session?.incorrectCount ?? 0,
+      total:          rewardTotal,
+      rewardThreshold,
+      available: rewardAvailable && videoRewardEnabled,
+    });
+  const rewardEarned  = Boolean(starProgress?.videoUnlocked);
+  const rewardSeconds = rewardEarned
+    ? computeRewardSeconds(session?.modeId, sessionReward?.total ?? topicRecord?.cards?.length ?? 10)
     : 0;
 
-  const isEvaluated  = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
-  const starCount    = isEvaluated ? getStarCount(session.percentCorrect, STAR_THRESHOLD) : null;
-  const praiseText   = getPraiseText(starCount, isReading);
+  const isEvaluated = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
+  // For display-only stars when reward system is off, compute without available gate
+  const displayStars = isEvaluated
+    ? (starProgress ?? computeStarProgress({
+      correctCount:   session?.correctCount   ?? 0,
+      incorrectCount: session?.incorrectCount ?? 0,
+      total:          rewardTotal,
+      rewardThreshold,
+      available: true,
+    }))
+    : null;
+  const starCount  = displayStars?.litStars ?? null;
+  const praiseText = getPraiseText(starCount, isReading);
 
-  const [videoOpen,       setVideoOpen]       = useState(false);
-  const [rewardConsumed,  setRewardConsumed]  = useState(false);
-  const [rewardRemaining, setRewardRemaining] = useState(0);
-  const [detailsOpen,     setDetailsOpen]     = useState(false);
-  const [rewardVideoUrl,  setRewardVideoUrl]  = useState(null);
-  const [holdProgress,    setHoldProgress]    = useState(0);
-  const holdIntervalRef = useRef(null);
-  const holdStartRef    = useRef(null);
+  const [videoOpen,      setVideoOpen]      = useState(false);
+  const [rewardConsumed, setRewardConsumed] = useState(false);
+  const [rewardRemaining,setRewardRemaining]= useState(0);
+  const [detailsOpen,    setDetailsOpen]    = useState(false);
+  const [rewardVideoUrl, setRewardVideoUrl] = useState(null);
 
   useEffect(() => {
     if (!session) return;
@@ -98,7 +106,7 @@ export default function SessionSummary() {
       clearTimeout(timer);
       window.speechSynthesis?.cancel();
     };
-  }, []);
+  }, [praiseText, session]);
 
   useEffect(() => {
     if (!videoOpen) return undefined;
@@ -110,34 +118,6 @@ export default function SessionSummary() {
     }, 1000);
     return () => window.clearInterval(intervalId);
   }, [videoOpen, rewardSeconds]);
-
-  useEffect(() => () => {
-    if (holdIntervalRef.current) window.clearInterval(holdIntervalRef.current);
-  }, []);
-
-  function startHold() {
-    if (holdIntervalRef.current) return;
-    holdStartRef.current = Date.now();
-    holdIntervalRef.current = window.setInterval(() => {
-      const elapsed = Date.now() - holdStartRef.current;
-      const pct = Math.min((elapsed / FINISH_HOLD_MS) * 100, 100);
-      setHoldProgress(pct);
-      if (pct >= 100) {
-        window.clearInterval(holdIntervalRef.current);
-        holdIntervalRef.current = null;
-        setScreen("home");
-      }
-    }, 16);
-  }
-
-  function cancelHold() {
-    if (holdIntervalRef.current) {
-      window.clearInterval(holdIntervalRef.current);
-      holdIntervalRef.current = null;
-    }
-    holdStartRef.current = null;
-    setHoldProgress(0);
-  }
 
   if (!session) {
     return (
@@ -180,7 +160,7 @@ export default function SessionSummary() {
 
         {starCount !== null ? (
           <div className="summary-stars">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <span
                 key={i}
                 className={`summary-star summary-star--${i} ${i <= starCount ? "summary-star--lit" : "summary-star--dim"}`}
@@ -208,16 +188,10 @@ export default function SessionSummary() {
         <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
         <button
           className="summary-finish-btn"
-          onPointerDown={startHold}
-          onPointerUp={cancelHold}
-          onPointerLeave={cancelHold}
-          onPointerCancel={cancelHold}
+          onClick={() => setScreen("home")}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <div className="summary-finish-btn__fill" style={{ width: `${holdProgress}%` }} />
-          <span className="summary-finish-btn__label">
-            {holdProgress > 0 ? "Держите…" : "Завершить"}
-          </span>
+          <span className="summary-finish-btn__label">Завершить</span>
         </button>
       </div>
 
