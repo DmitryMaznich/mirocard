@@ -26,8 +26,8 @@ function SceneImage({ topicId, card, blurred, className = "" }) {
   );
 }
 
-const ETA_GAP = 960;      // ms between "Это" and tool name audio
-const Q_INTRO_GAP = 1800; // ms between "Для чего нужен" and tool name audio
+const ETA_GAP = 670;      // ms between "Это" and tool name audio
+const Q_INTRO_GAP = 1260; // ms between "Для чего нужен" and tool name audio
 
 // ── FunctionIntroTask ─────────────────────────────────────────
 function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
@@ -49,7 +49,6 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    clearPending();
     if (step === 1) playQuestion();
     if (step >= 2 && soundEnabled && task.feedbackAudio) playTopicFile(topicId, task.feedbackAudio);
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -75,6 +74,7 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
   }
 
   function handleTap() {
+    clearPending();
     if (step < maxStep) setStep(s => s + 1);
     else onAdvance?.();
   }
@@ -120,7 +120,7 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
   );
 }
 
-const Q_AUDIO_GAP = 2400; // ms between prefix phrase and tool name audio (~1s for phrase to finish)
+const Q_AUDIO_GAP = 1680; // ms between prefix phrase and tool name audio (~1s for phrase to finish)
 
 // ── ChooseActionTask ─────────────────────────────────────────
 function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer }) {
