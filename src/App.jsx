@@ -26,6 +26,7 @@ import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
+import InstallBanner from "@/shared/components/InstallBanner";
 
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
@@ -217,6 +218,7 @@ export default function App() {
         <Screen />
       </ErrorBoundary>
       <OrientationGuard orientationLock={orientationLock} />
+      {screen !== "boot" && screen !== "session" && <InstallBanner />}
       {showSessionExitPrompt && (
         <Modal
           title="Завершить занятие?"
