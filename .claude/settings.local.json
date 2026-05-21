@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in @\\(3000, 3001, 5000, 8080, 4000\\) } | ForEach-Object { Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue } | Select-Object Id, Name, MainWindowTitle | Sort-Object -Unique Id)",
+      "PowerShell(Get-Process | Where-Object { $_.Name -match \"node\" } | Select-Object Id, Name, CPU, StartTime)",
+      "PowerShell([Environment]::GetFolderPath\\('Desktop'\\))",
+      "PowerShell(Get-Process | Where-Object { $_.Name -match \"node|electron|serve|vite|http-server|express\" } | Select-Object Id, Name, CPU)",
+      "PowerShell(openfiles /query /fo table 2>&1)",
+      "PowerShell(Get-Process | Select-Object Id, Name, @{N='Path';E={try{$_.MainModule.FileName}catch{''}}} | Where-Object { $_.Path -match \"Mirocard|node\" } | Select-Object Id, Name, Path)",
+      "PowerShell(cmd /c \"rmdir /s /q C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\dist\\\\decks\" 2>&1)"
+    ]
+  }
+}

@@ -287,6 +287,9 @@ export default function ParamsScreen() {
           topicId={activeTopicId}
           textId={activeTextId}
           filePath={activeText.file}
+          topicTitle={getTopicTitle(topicRecord.meta.title)}
+          textTitle={getTopicTitle(activeText.title)}
+          student={student}
         />
       </div>
     );
