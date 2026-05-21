@@ -3712,6 +3712,19 @@ button {
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, opacity 140ms ease;
 }
 
+.session-topbar .session-audio-icon-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.session-topbar .session-audio-icon-button--active {
+  background: transparent;
+  border: none;
+}
+
 .session-audio-speaker-icon {
   position: relative;
   width: 16px;
