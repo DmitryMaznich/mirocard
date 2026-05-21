@@ -172,24 +172,22 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrec
   }
 
   return (
-    <div className="session-body session-body--choose-word fc-ca-pre">
+    <div className="session-body session-body--choose-word">
       <div className="fc-ca-tool-wrap">
         <ToolImage topicId={topicId} card={task.toolCard} />
       </div>
-      <div className="fc-ca-right-panel">
-        <div className="fc-ca-question-row">
-          <span className="session-instruction">{task.question}</span>
-          {soundEnabled && (task.questionPrefixAudio || task.toolNameAudio) && (
-            <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
-          )}
-        </div>
-        <div className="choose-word-options">
-          {task.options.map(opt => (
-            <button key={opt.conceptId} className="choose-word-btn" onClick={() => handleSelect(opt)}>
-              {opt.actionInf}
-            </button>
-          ))}
-        </div>
+      <div className="fc-ca-question-row">
+        <span className="session-instruction">{task.question}</span>
+        {soundEnabled && (task.questionPrefixAudio || task.toolNameAudio) && (
+          <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
+        )}
+      </div>
+      <div className="choose-word-options">
+        {task.options.map(opt => (
+          <button key={opt.conceptId} className="choose-word-btn" onClick={() => handleSelect(opt)}>
+            {opt.actionInf}
+          </button>
+        ))}
       </div>
     </div>
   );
