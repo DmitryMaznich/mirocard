@@ -131,5 +131,10 @@ export function useAudio() {
     });
   }, [unlockFeedbackAudio]);
 
-  return { soundEnabled, toggleSound, playFeedback, playTopicFile };
+  const isAudioPlaying = useCallback(() => {
+    const a = currentRef.current;
+    return Boolean(a && !a.paused && !a.ended);
+  }, []);
+
+  return { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying };
 }

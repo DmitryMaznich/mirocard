@@ -73,7 +73,12 @@ export default function SessionScreen() {
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
-  const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
+  const { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying } = useAudio();
+
+  const isBusy = useCallback(
+    () => isAudioPlaying() || window.speechSynthesis?.speaking === true,
+    [isAudioPlaying],
+  );
   const [manualAdvanceGate, setManualAdvanceGate] = useState({ key: null, state: null });
 
   useEffect(() => {
@@ -84,18 +89,26 @@ export default function SessionScreen() {
   }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer]);
 
   function handleCorrect(conceptId, cardId) {
+    if (isBusy()) return;
     playFeedback("correct");
     onCorrect(conceptId, cardId);
   }
 
   function handleIncorrect(conceptId, cardId) {
+    if (isBusy()) return;
     playFeedback("incorrect");
     onIncorrect(conceptId, cardId);
   }
 
   function handleMistake(conceptId, cardId) {
+    if (isBusy()) return;
     playFeedback("incorrect");
     onMistake(conceptId, cardId);
+  }
+
+  function handleQualityAnswer(quality, conceptId, cardId) {
+    if (isBusy()) return;
+    onQualityAnswer(quality, conceptId, cardId);
   }
 
   const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState ?? {};
@@ -130,6 +143,7 @@ export default function SessionScreen() {
 
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
+    if (isBusy()) return;
 
     if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction") {
       setManualAdvanceGate({ key: null, state: null });
@@ -138,7 +152,7 @@ export default function SessionScreen() {
     }
 
     setManualAdvanceGate({ key: advanceGateKey, state: ADVANCE_GATE_WAITING });
-  }, [adultConfirmAdvance, advanceGate, advanceGateKey, mode?.type, onAdvance]);
+  }, [adultConfirmAdvance, advanceGate, advanceGateKey, isBusy, mode?.type, onAdvance]);
 
   // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
   const [Renderer, setRenderer]           = useState(() =>
@@ -284,7 +298,7 @@ export default function SessionScreen() {
             onIncorrect={isAdvanceGateActive ? noop : handleIncorrect}
             onMistake={isAdvanceGateActive ? noop : handleMistake}
             onAdvance={requestAdvance}
-            onQualityAnswer={isAdvanceGateActive ? noop : onQualityAnswer}
+            onQualityAnswer={isAdvanceGateActive ? noop : handleQualityAnswer}
             onCardShown={onCardShown}
             onTap={onTap}
             onQuality={onQuality}
