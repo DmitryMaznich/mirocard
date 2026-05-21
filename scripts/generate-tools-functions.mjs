@@ -10,7 +10,7 @@ import { createSign } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.4.2";
+const VERSION = "1.4.3";
 
 // ── Google TTS config ────────────────────────────────────────
 const SA_PATH = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
@@ -281,13 +281,13 @@ const CONCEPTS = [
     label: "Сверло",
     needsForm: "нужно",
     labelInstrumental: "сверло",
-    action: "вставляют в патрон дрели",
-    actionInf: "вставить в патрон дрели",
+    action: "вставляют в дрель, чтобы сверлить отверстия",
+    actionInf: "вставить в дрель для сверления",
     sceneQuestion: "Нужно вставить насадку в дрель. Что взять?",
     toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
-    sceneProcessPrompt: "a close-up of a hand inserting a metal twist drill bit into the chuck of a power drill, square 1:1 composition, no text, no watermark",
-    sceneBeforePrompt: "a drill bit lying next to a power drill on a clean surface, the drill bit is not inserted yet, square 1:1 composition, no text",
-    sceneAfterPrompt: "a power drill with a drill bit fully inserted and secured in the chuck, ready to use, clean background, square 1:1 composition, no text",
+    sceneProcessPrompt: "realistic photo of a human hand with natural finger positions gently inserting a silver metal twist drill bit into the chuck of a yellow-and-black cordless power drill, clean workshop background, square 1:1 composition, no text, no watermark",
+    sceneBeforePrompt: "a silver twist drill bit lying next to a yellow-and-black cordless power drill on a clean surface, the drill bit is not inserted yet, square 1:1 composition, no text",
+    sceneAfterPrompt: "a yellow-and-black cordless power drill with a silver twist drill bit fully inserted and tightened in the chuck, the same drill model as in the previous step, lying on a clean workshop surface ready to use, square 1:1 composition, no text",
   },
   {
     id: "ruler",
