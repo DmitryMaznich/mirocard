@@ -30,22 +30,35 @@ const ETA_GAP = 670;      // ms between "Это" and tool name audio
 const Q_INTRO_GAP = 1260; // ms between "Для чего нужен" and tool name audio
 
 // ── FunctionIntroTask ─────────────────────────────────────────
+// Audio durations for tap-lock: "Это" (~600ms) + gap + tool name (~900ms) ≈ 2200ms total
+const ETA_LOCK_MS      = ETA_GAP + 900;   // lock after playEta starts
+const Q_LOCK_MS        = Q_INTRO_GAP + 900; // lock after playQuestion starts
+
 function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
   // steps: 0=tool+audio, 1=question, 2=process scene+feedback, 3=result scene+feedback
   const maxStep = task.sceneProcessCard ? 3 : 2;
 
   const [step, setStep] = useState(0);
-  const pendingRef = useRef(null);
+  const pendingRef  = useRef(null);
+  const tapLockRef  = useRef(null); // blocks taps while audio plays
 
   function clearPending() {
     if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
+  }
+
+  function lockTaps(ms) {
+    if (tapLockRef.current) clearTimeout(tapLockRef.current);
+    tapLockRef.current = setTimeout(() => { tapLockRef.current = null; }, ms);
   }
 
   useEffect(() => {
     clearPending();
     setStep(0);
     playEta();
-    return clearPending;
+    return () => {
+      clearPending();
+      if (tapLockRef.current) { clearTimeout(tapLockRef.current); tapLockRef.current = null; }
+    };
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -59,8 +72,10 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
     if (task.etaAudio) {
       playTopicFile(topicId, task.etaAudio);
       if (task.toolNameAudio) pendingRef.current = setTimeout(() => playTopicFile(topicId, task.toolNameAudio), ETA_GAP);
+      lockTaps(ETA_LOCK_MS);
     } else if (task.toolNameAudio) {
       playTopicFile(topicId, task.toolNameAudio);
+      lockTaps(900);
     }
   }
 
@@ -69,12 +84,15 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
     if (task.questionPrefixAudio) {
       playTopicFile(topicId, task.questionPrefixAudio);
       if (task.toolNameAudio) pendingRef.current = setTimeout(() => playTopicFile(topicId, task.toolNameAudio), Q_INTRO_GAP);
+      lockTaps(Q_LOCK_MS);
     } else if (task.toolNameAudio) {
       playTopicFile(topicId, task.toolNameAudio);
+      lockTaps(900);
     }
   }
 
   function handleTap() {
+    if (tapLockRef.current) return; // audio still playing
     clearPending();
     if (step < maxStep) setStep(s => s + 1);
     else onAdvance?.();

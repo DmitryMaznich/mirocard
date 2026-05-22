@@ -89,25 +89,21 @@ export default function SessionScreen() {
   }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer]);
 
   function handleCorrect(conceptId, cardId) {
-    if (isBusy()) return;
     playFeedback("correct");
     onCorrect(conceptId, cardId);
   }
 
   function handleIncorrect(conceptId, cardId) {
-    if (isBusy()) return;
     playFeedback("incorrect");
     onIncorrect(conceptId, cardId);
   }
 
   function handleMistake(conceptId, cardId) {
-    if (isBusy()) return;
     playFeedback("incorrect");
     onMistake(conceptId, cardId);
   }
 
   function handleQualityAnswer(quality, conceptId, cardId) {
-    if (isBusy()) return;
     onQualityAnswer(quality, conceptId, cardId);
   }
 
