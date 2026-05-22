@@ -105,24 +105,18 @@
 
 /* ── choose_action (new layout) ─────────────────────────────── */
 
-/* Square tool photo — same height cap as choose-word card */
-.fc-ca-tool-wrap {
-  width: min(100%, 50svh);
-  aspect-ratio: 1;
-  flex-shrink: 0;
-  align-self: center;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #f5f5f5;
-}
-
-/* Question + 🔊 button row */
+/* Question + 🔊 button row — flat column child, no landscape switch */
 .fc-ca-question-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* Override tablet font scaling — keeps question from blowing up to 3.6rem */
+.fc-ca-question-row .session-instruction {
+  font-size: clamp(1.2rem, 3.5vw, 1.8rem);
 }
 
 /* Revealed screen — same as fc_intro step 2 */
@@ -335,8 +329,104 @@
   flex-shrink: 0;
 }
 
-/* ── Landscape: scenes fill left column, answers on right ── */
+
+/* Right-panel wrapper for choose_action pre-answer */
+.fc-ca-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* ── Landscape: square photo flush left, content centered right ── */
 @media (orientation: landscape) {
+
+  /* fc_intro steps with photo (0, 2, 3): row layout */
+  .fc-intro--step-0.session-body,
+  .fc-intro--step-2.session-body,
+  .fc-intro--step-3.session-body {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    justify-content: flex-start;
+  }
+
+  /* Photo: square based on height, flush left, rounded on right */
+  .fc-intro--step-0 .fc-intro-tool-wrap,
+  .fc-intro--step-2 .fc-intro-scene-wrap,
+  .fc-intro--step-3 .fc-intro-scene-wrap {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: 0 16px 16px 0;
+    overflow: hidden;
+  }
+
+  /* Right: label/feedback centered */
+  .fc-intro--step-0 .fc-intro-label,
+  .fc-intro--step-2 .fc-intro-feedback,
+  .fc-intro--step-3 .fc-intro-feedback {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    margin: 0;
+  }
+
+  /* choose_action pre-answer */
+  .fc-ca-pre.session-body {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+  }
+  .fc-ca-pre .fc-ca-tool-wrap {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    align-self: unset;
+    border-radius: 0 16px 16px 0;
+    overflow: hidden;
+  }
+  .fc-ca-pre .fc-ca-right-panel {
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 16px 24px;
+  }
+  .fc-ca-pre .fc-ca-question-row {
+    justify-content: center;
+  }
+
+  /* choose_action revealed */
+  .fc-ca-reveal.session-body {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+  }
+  .fc-ca-reveal .fc-intro-scene-wrap {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: 0 16px 16px 0;
+    overflow: hidden;
+  }
+  .fc-ca-reveal .fc-intro-feedback {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    margin: 0;
+  }
+
+  /* ── scene_function: scenes fill left column, answers on right ── */
   .fc-scene-function.session-body {
     display: grid;
     grid-template-columns: 55% 1fr;

@@ -129,6 +129,7 @@ const Q_AUDIO_GAP = 1680; // ms between prefix phrase and tool name audio (~1s f
 function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, playFeedback }) {
   const [selected, setSelected] = useState(null);
   const pendingRef = useRef(null);
+  const toolUrl = useTopicFile(topicId, task.toolCard?.image);
 
   useEffect(() => {
     if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
@@ -173,8 +174,11 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrec
 
   return (
     <div className="session-body session-body--choose-word">
-      <div className="fc-ca-tool-wrap">
-        <ToolImage topicId={topicId} card={task.toolCard} />
+      <div className="card-area">
+        {toolUrl
+          ? <img className="card-img" src={toolUrl} alt="" draggable={false} style={{ objectFit: "contain" }} />
+          : <div className="card-img card-img--loading" />
+        }
       </div>
       <div className="fc-ca-question-row">
         <span className="session-instruction">{task.question}</span>

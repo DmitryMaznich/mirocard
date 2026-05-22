@@ -12706,6 +12706,38 @@ kbd {
   cursor: pointer;
 }
 
+/* Landscape: square photo flush left, options centered right */
+@media (orientation: landscape) {
+  .session-body--choose-word {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+  }
+  .session-body--choose-word .card-area {
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1;
+    flex: unset;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 0 16px 16px 0;
+  }
+  .session-body--choose-word .card-area .card-img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+  .session-body--choose-word .choose-word-options {
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 16px 24px;
+    max-width: none;
+  }
+}
+
 @media (min-width: 768px) {
   .session-label          { font-size: 4.2rem; }
   .session-instruction    { font-size: 3.6rem; }
