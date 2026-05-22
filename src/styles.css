@@ -12711,17 +12711,16 @@ kbd {
   .session-body--choose-word {
     flex-direction: row;
     align-items: stretch;
-    padding: 0;
-    gap: 0;
+    padding: 12px;
+    gap: 16px;
   }
   .session-body--choose-word .card-area {
-    height: 100%;
     width: auto;
     aspect-ratio: 1;
     flex: unset;
     flex-shrink: 0;
     overflow: hidden;
-    border-radius: 0 16px 16px 0;
+    border-radius: 16px;
   }
   .session-body--choose-word .card-area .card-img {
     width: 100%;
@@ -12733,7 +12732,7 @@ kbd {
     flex: 1;
     justify-content: center;
     align-items: center;
-    padding: 16px 24px;
+    padding: 0;
     max-width: none;
   }
 }

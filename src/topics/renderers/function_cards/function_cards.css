@@ -338,7 +338,7 @@
   min-width: 0;
 }
 
-/* ── Landscape: square photo flush left, content centered right ── */
+/* ── Landscape: square photo left with frame, content centered right ── */
 @media (orientation: landscape) {
 
   /* fc_intro steps with photo (0, 2, 3): row layout */
@@ -347,21 +347,18 @@
   .fc-intro--step-3.session-body {
     flex-direction: row;
     align-items: stretch;
-    padding: 0;
-    gap: 0;
+    padding: 12px;
+    gap: 16px;
     justify-content: flex-start;
   }
 
-  /* Photo: square based on height, flush left, rounded on right */
+  /* Photo: square, height constrained by padding, keeps portrait border-radius */
   .fc-intro--step-0 .fc-intro-tool-wrap,
   .fc-intro--step-2 .fc-intro-scene-wrap,
   .fc-intro--step-3 .fc-intro-scene-wrap {
-    height: 100%;
     width: auto;
     aspect-ratio: 1;
     flex-shrink: 0;
-    border-radius: 0 16px 16px 0;
-    overflow: hidden;
   }
 
   /* Right: label/feedback centered */
@@ -372,7 +369,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 24px;
+    padding: 0 8px;
     margin: 0;
   }
 
@@ -380,23 +377,20 @@
   .fc-ca-pre.session-body {
     flex-direction: row;
     align-items: stretch;
-    padding: 0;
-    gap: 0;
+    padding: 12px;
+    gap: 16px;
   }
   .fc-ca-pre .fc-ca-tool-wrap {
-    height: 100%;
     width: auto;
     aspect-ratio: 1;
     flex-shrink: 0;
     align-self: unset;
-    border-radius: 0 16px 16px 0;
-    overflow: hidden;
   }
   .fc-ca-pre .fc-ca-right-panel {
     flex: 1;
     justify-content: center;
     align-items: center;
-    padding: 16px 24px;
+    padding: 0;
   }
   .fc-ca-pre .fc-ca-question-row {
     justify-content: center;
@@ -406,23 +400,20 @@
   .fc-ca-reveal.session-body {
     flex-direction: row;
     align-items: stretch;
-    padding: 0;
-    gap: 0;
+    padding: 12px;
+    gap: 16px;
   }
   .fc-ca-reveal .fc-intro-scene-wrap {
-    height: 100%;
     width: auto;
     aspect-ratio: 1;
     flex-shrink: 0;
-    border-radius: 0 16px 16px 0;
-    overflow: hidden;
   }
   .fc-ca-reveal .fc-intro-feedback {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 24px;
+    padding: 0 8px;
     margin: 0;
   }
 
