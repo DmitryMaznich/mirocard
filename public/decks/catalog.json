@@ -168,6 +168,19 @@
         "en": "7 coffee brewing methods: from espresso machine to cezve. Starting deck — map of the coffee world."
       },
       "url": "./decks/coffee_methods_v1.0.0.zip"
+    },
+    {
+      "id": "coffee_espresso_parts",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Детали эспрессо машины",
+        "en": "Espresso Machine Parts"
+      },
+      "description": {
+        "ru": "7 деталей рожковой кофемашины Quickmill Vetrano 2B: тумблеры, краны, манометр, рычаг, поддон, резервуар. Реальные фото.",
+        "en": "7 parts of the Quickmill Vetrano 2B espresso machine: switches, taps, gauge, lever, drip tray, water tank. Real photos."
+      },
+      "url": "./decks/coffee_espresso_parts_v1.0.0.zip"
     }
   ]
 }
