@@ -453,6 +453,9 @@ async function run() {
         type: "intro",
         evaluation: "none",
         ui: { title: "Знакомство", instruction: "Нажми, чтобы продолжить", ...icon("intro") },
+        params: {
+          concepts: { type: "concept_selector" },
+        },
         methodology: {
           text: "Знакомство с 12 инструментами и их назначением. Название и фото, потом вопрос «Для чего нужен?», потом сцена с ответом. Без оценки — только погружение.",
           goal: "Ребёнок спокойно просматривает все инструменты, слушает названия и видит сцены применения — без тревоги и без заданий.",
@@ -471,6 +474,7 @@ async function run() {
         ui: { title: "Что это?", instruction: "Что это?", ...icon("question_answer") },
         ...(ANSWER_PREFIX_AUDIO ? { answerPrefixAudio: ANSWER_PREFIX_AUDIO, answerPrefix: "Это" } : {}),
         params: {
+          concepts: { type: "concept_selector" },
           useKeyboard: {
             type: "boolean",
             label: { ru: "Использовать клавиатуру" },
@@ -505,6 +509,7 @@ async function run() {
           duration: "4–6 минут",
         },
         params: {
+          concepts: { type: "concept_selector" },
           optionCount: {
             type: "enum",
             label: { ru: "Вариантов" },
@@ -536,6 +541,7 @@ async function run() {
           duration: "3–5 минут",
         },
         params: {
+          concepts: { type: "concept_selector" },
           repsPerConcept: {
             type: "number",
             label: { ru: "Повторений на понятие" },
@@ -561,6 +567,7 @@ async function run() {
           duration: "4–6 минут",
         },
         params: {
+          concepts: { type: "concept_selector" },
           repsPerConcept: {
             type: "number",
             label: { ru: "Повторений на понятие" },
@@ -568,7 +575,6 @@ async function run() {
             min: 1,
             max: 3,
           },
-          concepts: { type: "concept_selector" },
         },
       },
       {
@@ -587,6 +593,7 @@ async function run() {
           duration: "5–8 минут",
         },
         params: {
+          concepts: { type: "concept_selector" },
           optionCount: {
             type: "enum",
             label: { ru: "Карточек в сетке" },
@@ -603,6 +610,9 @@ async function run() {
           title: "Что чем делают?",
           instruction: "Выбери, что делают этим инструментом",
           ...icon("choose_action"),
+        },
+        params: {
+          concepts: { type: "concept_selector" },
         },
         methodology: {
           text: "Показывается фото инструмента, звучит вопрос «Для чего нужен?». Ребёнок выбирает действие из четырёх вариантов. Тренирует знание функции, а не только названия.",
@@ -623,6 +633,9 @@ async function run() {
           title: "Какой инструмент нужен?",
           instruction: "Посмотри на задачу и выбери нужный инструмент",
           ...icon("scene_function"),
+        },
+        params: {
+          concepts: { type: "concept_selector" },
         },
         methodology: {
           text: "Показывается сцена «до» и «после» — ребёнок выбирает инструмент, который дал результат. Применение знаний в контексте реальной задачи.",
