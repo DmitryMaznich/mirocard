@@ -163,17 +163,19 @@ function YesNoTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
       : null;
 
   return (
-    <div className="session-body">
+    <div className="session-body session-body--yes-no">
       <CardArea topicId={topicId} card={task.card} />
-      <div className={`session-label yn-label${result ? ` yn-label--${result}` : ""}`}>
-        {feedbackText ?? question}
-      </div>
-      {!result && (
-        <div className="yes-no-row">
-          <button className="yes-no-btn yes-no-btn--no"  onClick={() => handleAnswer(false)}>НЕТ</button>
-          <button className="yes-no-btn yes-no-btn--yes" onClick={() => handleAnswer(true)}>ДА</button>
+      <div className="yn-right-panel">
+        <div className={`session-label yn-label${result ? ` yn-label--${result}` : ""}`}>
+          {feedbackText ?? question}
         </div>
-      )}
+        {!result && (
+          <div className="yes-no-row">
+            <button className="yes-no-btn yes-no-btn--no"  onClick={() => handleAnswer(false)}>НЕТ</button>
+            <button className="yes-no-btn yes-no-btn--yes" onClick={() => handleAnswer(true)}>ДА</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

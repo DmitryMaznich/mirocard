@@ -12496,6 +12496,47 @@ button {
   to   { opacity: 1; transform: scale(1); }
 }
 
+/* yn-right-panel: label + buttons stacked, always a column */
+.yn-right-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Landscape: square photo left, label + buttons right */
+@media (orientation: landscape) {
+  .session-body--yes-no {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 12px;
+    gap: 16px;
+  }
+  .session-body--yes-no .card-area {
+    width: auto;
+    aspect-ratio: 1;
+    flex: unset;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+  .session-body--yes-no .card-area .card-img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+  .session-body--yes-no .yn-right-panel {
+    flex: 1;
+  }
+  .session-body--yes-no .yes-no-row {
+    max-width: none;
+    width: 100%;
+  }
+}
+
 /* find-n grid: fills available space, cards stay square and equal */
 .find-n-grid {
   flex: 1;
