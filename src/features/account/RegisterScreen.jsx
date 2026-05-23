@@ -11,6 +11,7 @@ export default function RegisterScreen() {
   const [email,       setEmail]       = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password,    setPassword]    = useState("");
+  const [showPass,    setShowPass]    = useState(false);
   const [error,       setError]       = useState("");
   const [loading,     setLoading]     = useState(false);
 
@@ -77,15 +78,26 @@ export default function RegisterScreen() {
           placeholder="Имя (необязательно)"
           autoComplete="name"
         />
-        <input
-          className="auth-input"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Пароль (минимум 8 символов)"
-          required
-          autoComplete="new-password"
-        />
+        <div className="auth-password-wrap">
+          <input
+            className="auth-input"
+            type={showPass ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Пароль (минимум 8 символов)"
+            required
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            className="auth-password-toggle"
+            onClick={() => setShowPass((v) => !v)}
+            tabIndex={-1}
+            aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+          >
+            {showPass ? "🙈" : "👁"}
+          </button>
+        </div>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
           {loading ? "Создаём аккаунт…" : "Создать аккаунт"}

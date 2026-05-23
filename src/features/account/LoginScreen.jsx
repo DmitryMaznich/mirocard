@@ -8,10 +8,11 @@ import Button from "@/shared/components/Button";
 export default function LoginScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
 
-  const [email,    setEmail]    = useState("");
-  const [password, setPassword] = useState("");
-  const [error,    setError]    = useState("");
-  const [loading,  setLoading]  = useState(false);
+  const [email,       setEmail]       = useState("");
+  const [password,    setPassword]    = useState("");
+  const [showPass,    setShowPass]    = useState(false);
+  const [error,       setError]       = useState("");
+  const [loading,     setLoading]     = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -114,15 +115,26 @@ export default function LoginScreen() {
           autoFocus
           autoComplete="email"
         />
-        <input
-          className="auth-input"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Пароль"
-          required
-          autoComplete="current-password"
-        />
+        <div className="auth-password-wrap">
+          <input
+            className="auth-input"
+            type={showPass ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Пароль"
+            required
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            className="auth-password-toggle"
+            onClick={() => setShowPass((v) => !v)}
+            tabIndex={-1}
+            aria-label={showPass ? "Скрыть пароль" : "Показать пароль"}
+          >
+            {showPass ? "🙈" : "👁"}
+          </button>
+        </div>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
           {loading ? "Входим…" : "Войти"}
