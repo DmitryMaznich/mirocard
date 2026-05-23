@@ -109,26 +109,28 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
 
   return (
     <div className="session-body qa-body">
-      <div className="session-instruction">{getTopicTitle(mode.ui.instruction)}</div>
       <CardArea topicId={topicId} card={task.card} />
-      <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
-        {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
+      <div className="qa-right-panel">
+        <div className="session-instruction">{getTopicTitle(mode.ui.instruction)}</div>
+        <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
+          {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
+        </div>
+        <div className="qa-row">
+          {QA_BUTTONS.map((btn, i) => (
+            <button
+              key={btn.value}
+              className={`qa-btn qa-btn--${btn.mod}`}
+              disabled={revealed}
+              onClick={() => handleQuality(btn.value)}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+        <p className="qa-legend">
+          {QA_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
+        </p>
       </div>
-      <div className="qa-row">
-        {QA_BUTTONS.map((btn, i) => (
-          <button
-            key={btn.value}
-            className={`qa-btn qa-btn--${btn.mod}`}
-            disabled={revealed}
-            onClick={() => handleQuality(btn.value)}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
-      <p className="qa-legend">
-        {QA_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
-      </p>
     </div>
   );
 }
