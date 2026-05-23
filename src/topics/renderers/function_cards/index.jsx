@@ -63,8 +63,14 @@ function FunctionIntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvan
 
   useEffect(() => {
     if (step === 1) playQuestion();
-    if (step === 2 && soundEnabled && task.feedbackAudio) playTopicFile(topicId, task.feedbackAudio);
-    if (step === 3 && soundEnabled && task.closingAudio)  playTopicFile(topicId, task.closingAudio);
+    if (step === 2 && soundEnabled && task.feedbackAudio) {
+      playTopicFile(topicId, task.feedbackAudio);
+      lockTaps(1800);
+    }
+    if (step === 3 && soundEnabled && task.closingAudio) {
+      playTopicFile(topicId, task.closingAudio);
+      lockTaps(900);
+    }
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function playEta() {
