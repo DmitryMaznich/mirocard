@@ -15,50 +15,6 @@
   overflow: hidden;
 }
 
-/* ── Prompt bar (magnetic_words mode) ── */
-.mag-prompt-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px 8px;
-  background: #fdfcf9;
-  border-bottom: 2px dashed #d6cbbf;
-  flex-shrink: 0;
-}
-
-.mag-prompt-input {
-  flex: 1;
-  height: 44px;
-  border: 2px solid #d6cbbf;
-  border-radius: 10px;
-  padding: 0 14px;
-  font-size: clamp(16px, 2.5vw, 22px);
-  font-weight: 700;
-  color: #263131;
-  background: #fff;
-  outline: none;
-}
-
-.mag-prompt-input:focus { border-color: #4a9b8f; }
-
-.mag-check-btn {
-  height: 44px;
-  padding: 0 18px;
-  border-radius: 10px;
-  border: none;
-  background: #4a9b8f;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
-}
-
-.mag-check-btn:disabled        { opacity: 0.7; cursor: default; }
-.mag-check-btn--correct        { background: #16a34a; }
-.mag-check-btn--incorrect      { background: #dc2626; }
-
 /* ── Canvas ── */
 .mag-canvas {
   flex: 1;
@@ -206,7 +162,7 @@
 
 .mag-kb-row.digits  { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 .mag-kb-row.letters { grid-template-columns: repeat(11, minmax(0, 1fr)); }
-.mag-kb-row.bottom  { grid-template-columns: 1fr 1fr 5fr 1fr 1fr; }
+.mag-kb-row.bottom  { grid-template-columns: repeat(9, minmax(0, 1fr)); }
 
 .mag-key {
   width: 100%;
@@ -223,6 +179,7 @@
   cursor: grab;
   touch-action: none;
   user-select: none;
+  flex-shrink: 0;
   box-shadow: 0 2px 4px rgba(0,0,0,.18), inset 0 -3px 0 rgba(0,0,0,.2);
 }
 
@@ -234,6 +191,7 @@
 .mag-key-space {
   width: 100%;
   min-width: 0;
+  grid-column: span 5;
   height: clamp(42px, 6.8vw, 62px);
   border-radius: 8px;
   border: none;
