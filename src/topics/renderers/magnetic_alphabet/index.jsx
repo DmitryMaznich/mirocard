@@ -35,19 +35,31 @@ function ensureTrailing(lines) {
   return toAdd > 0 ? [...safe, ...emptyLines(toAdd)] : safe;
 }
 
-export default function MagneticAlphabetRenderer({ task, sessionParams }) {
-  const layout    = sessionParams?.layout ?? "abv";
-  const kbRows    = layout === "qwerty" ? QWERTY_ROWS : ABV_ROWS;
+function normalize(text) {
+  return String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function getTextFromLines(lines) {
+  return lines
+    .map((line) => line.map((t) => (t.type === "space" ? " " : t.letter ?? "")).join(""))
+    .join("\n");
+}
+
+export default function MagneticAlphabetRenderer({ task, mode, sessionParams, soundEnabled, playFeedback }) {
+  const layout     = sessionParams?.layout ?? "abv";
+  const isWords    = mode?.type === "magnetic_words";
+  const kbRows     = layout === "qwerty" ? QWERTY_ROWS : ABV_ROWS;
   const spaceLabel = layout === "qwerty" ? "пробел" : "новое слово";
-  const letterMap = Object.fromEntries((task?.letters ?? []).map((l) => [l.letter, l.category]));
+  const letterMap  = Object.fromEntries((task?.letters ?? []).map((l) => [l.letter, l.category]));
 
   const canvasRef  = useRef(null);
   const pendingRef = useRef(null);
 
-  const [lines,      setLines]      = useState(() => ensureTrailing(emptyLines()));
-  const [drag,       setDrag]       = useState(null);
-  const [dropTarget, setDropTarget] = useState(null);
-  const [spiralN,    setSpiralN]    = useState(11);
+  const [lines,       setLines]       = useState(() => ensureTrailing(emptyLines()));
+  const [drag,        setDrag]        = useState(null);
+  const [dropTarget,  setDropTarget]  = useState(null);
+  const [prompt,      setPrompt]      = useState("");
+  const [checkResult, setCheckResult] = useState(null);
 
   function getCategory(symbol) {
     const s = String(symbol || "");
@@ -61,20 +73,6 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
   function updateLines(fn) {
     setLines((cur) => ensureTrailing(fn(cur)));
   }
-
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    const update = () => setSpiralN(Math.max(11, Math.min(28, Math.floor((el.clientWidth - 24) / 34))));
-    update();
-    if (typeof ResizeObserver === "function") {
-      const ro = new ResizeObserver(update);
-      ro.observe(el);
-      return () => ro.disconnect();
-    }
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
 
   useEffect(() => {
     setLines(ensureTrailing(emptyLines()));
@@ -182,6 +180,15 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
     pendingRef.current = null;
   }
 
+  function handleCheck() {
+    if (checkResult) return;
+    const assembled = getTextFromLines(lines);
+    const correct   = normalize(assembled) === normalize(prompt);
+    if (soundEnabled) playFeedback?.(correct ? "correct" : "incorrect");
+    setCheckResult(correct ? "correct" : "incorrect");
+    setTimeout(() => setCheckResult(null), 1500);
+  }
+
   return (
     <div
       className="mag-screen"
@@ -189,13 +196,28 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
       onPointerUp={handleUp}
       onPointerCancel={handleUp}
     >
+      {isWords && (
+        <div className="mag-prompt-bar">
+          <input
+            className="mag-prompt-input"
+            type="text"
+            placeholder="Введите слово или фразу…"
+            value={prompt}
+            onChange={(e) => { setPrompt(e.target.value); setCheckResult(null); }}
+          />
+          {prompt && (
+            <button
+              className={`mag-check-btn${checkResult ? ` mag-check-btn--${checkResult}` : ""}`}
+              onClick={handleCheck}
+              disabled={!!checkResult}
+            >
+              {checkResult === "correct" ? "✓" : checkResult === "incorrect" ? "✗" : "Проверить"}
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="mag-canvas" ref={canvasRef}>
-        <div className="mag-spiral" aria-hidden>
-          {Array.from({ length: spiralN }, (_, i) => <span key={i} className="mag-spiral-ring" />)}
-        </div>
-        <div className="mag-spiral-holes" aria-hidden>
-          {Array.from({ length: spiralN }, (_, i) => <span key={i} className="mag-spiral-hole" />)}
-        </div>
         {lines.map((line, li) => (
           <div key={li} className={`mag-line${dropTarget?.lineIdx === li ? " drag-target" : ""}`}>
             {line.map((tok, ti) => (
