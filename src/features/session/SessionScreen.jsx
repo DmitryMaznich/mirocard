@@ -97,7 +97,7 @@ export default function SessionScreen() {
   }
 
   function handleMistake(conceptId, cardId) {
-    playFeedback("incorrect");
+    if (!ownsFeedback) playFeedback("incorrect");
     onMistake(conceptId, cardId);
   }
 

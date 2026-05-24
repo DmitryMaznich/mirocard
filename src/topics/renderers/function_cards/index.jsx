@@ -257,7 +257,7 @@ function ToolOption({ option, topicId, selected, onSelect }) {
 }
 
 // ── SceneFunctionTask ─────────────────────────────────────────
-function SceneFunctionTask({ task, topicId, soundEnabled, playFeedback, onCorrect, onIncorrect, mode }) {
+function SceneFunctionTask({ task, topicId, soundEnabled, playFeedback, onCorrect, onMistake, mode }) {
   const [selected, setSelected] = useState(null);
   const [phase, setPhase]       = useState("question"); // "question" | "feedback" | "scene"
   const pendingRef = useRef(null);
@@ -279,11 +279,18 @@ function SceneFunctionTask({ task, topicId, soundEnabled, playFeedback, onCorrec
     setSelected(option);
     setPhase("feedback");
     if (soundEnabled) playFeedback(option.isTarget ? "correct" : "incorrect");
-    pendingRef.current = setTimeout(() => {
-      setPhase("scene");
-      if (option.isTarget) onCorrect(task.conceptId, null);
-      else                 onIncorrect(task.conceptId, null);
-    }, 1000);
+    if (!option.isTarget) {
+      onMistake?.(task.conceptId, null);
+      pendingRef.current = setTimeout(() => {
+        setSelected(null);
+        setPhase("question");
+      }, 800);
+    } else {
+      pendingRef.current = setTimeout(() => {
+        setPhase("scene");
+        onCorrect(task.conceptId, null);
+      }, 1000);
+    }
   }
 
   if (phase === "scene") {
@@ -344,13 +351,14 @@ export default function FunctionCardsRenderer({
   playFeedback,
   onCorrect,
   onIncorrect,
+  onMistake,
   onQualityAnswer,
   onAdvance,
   ...rest
 }) {
   if (!task) return null;
 
-  const sharedProps = { task, mode, topicId, soundEnabled, playTopicFile, playFeedback, onCorrect, onIncorrect, onQualityAnswer };
+  const sharedProps = { task, mode, topicId, soundEnabled, playTopicFile, playFeedback, onCorrect, onIncorrect, onMistake, onQualityAnswer };
 
   switch (task.type) {
     case "fc_intro":
