@@ -257,23 +257,47 @@ function ToolOption({ option, topicId, selected, onSelect }) {
 }
 
 // ── SceneFunctionTask ─────────────────────────────────────────
-function SceneFunctionTask({ task, topicId, onQualityAnswer, mode }) {
+function SceneFunctionTask({ task, topicId, soundEnabled, playFeedback, onCorrect, onIncorrect, mode }) {
   const [selected, setSelected] = useState(null);
+  const [phase, setPhase]       = useState("question"); // "question" | "feedback" | "scene"
+  const pendingRef = useRef(null);
+
+  function clearPending() {
+    if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
+  }
 
   useEffect(() => {
+    clearPending();
     setSelected(null);
-  }, [task]);
+    setPhase("question");
+    return clearPending;
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSelect(option) {
     if (selected !== null) return;
+    clearPending();
     setSelected(option);
-    const quality = option.isTarget ? "correct" : "fail";
-    setTimeout(() => {
-      onQualityAnswer(quality, task.conceptId, null);
-    }, 1500);
+    setPhase("feedback");
+    if (soundEnabled) playFeedback(option.isTarget ? "correct" : "incorrect");
+    pendingRef.current = setTimeout(() => {
+      setPhase("scene");
+      if (option.isTarget) onCorrect(task.conceptId, null);
+      else                 onIncorrect(task.conceptId, null);
+    }, 1000);
   }
 
-  const revealed = selected?.isTarget === true;
+  if (phase === "scene") {
+    return (
+      <div className="session-body fc-sf-reveal">
+        <div className="fc-sf-after-wrap">
+          <SceneImage topicId={topicId} card={task.sceneAfter} blurred={false} />
+        </div>
+        {task.feedbackText && (
+          <p className="fc-sf-feedback">{task.feedbackText}</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="fc-scene-function session-body">
@@ -281,11 +305,6 @@ function SceneFunctionTask({ task, topicId, onQualityAnswer, mode }) {
         <div className="fc-scene">
           <SceneImage topicId={topicId} card={task.sceneBefore} blurred={false} />
           <span className="fc-scene-label">до</span>
-        </div>
-        <span className="fc-arrow" aria-hidden="true">→</span>
-        <div className="fc-scene">
-          <SceneImage topicId={topicId} card={task.sceneAfter} blurred={!revealed} />
-          <span className="fc-scene-label">после</span>
         </div>
       </div>
 
@@ -303,8 +322,13 @@ function SceneFunctionTask({ task, topicId, onQualityAnswer, mode }) {
         ))}
       </div>
 
-      {selected && (
-        <p className="fc-feedback session-label">{task.feedbackText}</p>
+      {phase === "feedback" && selected && (
+        <div
+          className={`session-fb-overlay session-fb-overlay--${selected.isTarget ? "correct" : "incorrect"} session-fb-overlay--ready`}
+          aria-hidden="true"
+        >
+          <span className="session-fb-overlay__icon">{selected.isTarget ? "✓" : "✕"}</span>
+        </div>
       )}
     </div>
   );

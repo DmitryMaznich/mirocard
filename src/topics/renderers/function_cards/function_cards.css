@@ -524,3 +524,57 @@
   }
 }
 
+/* ── scene_function: экран 2 (после + описание действия) ─────── */
+.fc-sf-reveal.session-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.fc-sf-after-wrap {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 4/3;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.fc-sf-after-wrap .fc-scene-img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.fc-sf-feedback {
+  font-size: clamp(1.1rem, 4vw, 1.6rem);
+  font-weight: 700;
+  color: #1b5e20;
+  text-align: center;
+  margin: 0;
+}
+
+@media (orientation: landscape) {
+  .fc-sf-reveal.session-body {
+    flex-direction: row;
+    padding: 12px;
+    gap: 20px;
+  }
+
+  .fc-sf-after-wrap {
+    width: auto;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+  }
+
+  .fc-sf-feedback {
+    flex: 1;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+  }
+}
+

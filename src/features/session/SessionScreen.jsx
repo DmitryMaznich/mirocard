@@ -84,7 +84,7 @@ export default function SessionScreen() {
     setScreen(isInstruction ? "texts" : skipSummary ? "modes" : "summary");
   }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer]);
 
-  const ownsFeedback = currentTask?.type === "choose_action";
+  const ownsFeedback = currentTask?.type === "choose_action" || currentTask?.type === "scene_function";
 
   function handleCorrect(conceptId, cardId) {
     if (!ownsFeedback) playFeedback("correct");
