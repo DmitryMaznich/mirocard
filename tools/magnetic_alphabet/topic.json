@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "id": "magnetic_alphabet",
+    "version": "1.0.0",
+    "renderer": "magnetic_alphabet",
+    "title": "Магнитная азбука",
+    "avatar": "media/avatar.svg"
+  },
+  "modes": [
+    {
+      "id": "magnetic_free",
+      "type": "magnetic_free",
+      "evaluation": "none",
+      "ui": {
+        "title": "Свободная азбука",
+        "instruction": "Составляй слова и предложения из букв"
+      },
+      "params": {
+        "layout": {
+          "type": "enum",
+          "label": { "ru": "Раскладка" },
+          "values": ["abv", "qwerty"],
+          "labels": { "ru": { "abv": "АБВ", "qwerty": "ЙЦУКЕН" } },
+          "default": "abv"
+        }
+      }
+    }
+  ],
+  "cards": [
+    { "id": "А", "type": "letter", "label": "А", "category": "vowel" },
+    { "id": "Б", "type": "letter", "label": "Б", "category": "consonant" },
+    { "id": "В", "type": "letter", "label": "В", "category": "consonant" },
+    { "id": "Г", "type": "letter", "label": "Г", "category": "consonant" },
+    { "id": "Д", "type": "letter", "label": "Д", "category": "consonant" },
+    { "id": "Е", "type": "letter", "label": "Е", "category": "vowel" },
+    { "id": "Ё", "type": "letter", "label": "Ё", "category": "vowel" },
+    { "id": "Ж", "type": "letter", "label": "Ж", "category": "consonant" },
+    { "id": "З", "type": "letter", "label": "З", "category": "consonant" },
+    { "id": "И", "type": "letter", "label": "И", "category": "vowel" },
+    { "id": "Й", "type": "letter", "label": "Й", "category": "consonant" },
+    { "id": "К", "type": "letter", "label": "К", "category": "consonant" },
+    { "id": "Л", "type": "letter", "label": "Л", "category": "consonant" },
+    { "id": "М", "type": "letter", "label": "М", "category": "consonant" },
+    { "id": "Н", "type": "letter", "label": "Н", "category": "consonant" },
+    { "id": "О", "type": "letter", "label": "О", "category": "vowel" },
+    { "id": "П", "type": "letter", "label": "П", "category": "consonant" },
+    { "id": "Р", "type": "letter", "label": "Р", "category": "consonant" },
+    { "id": "С", "type": "letter", "label": "С", "category": "consonant" },
+    { "id": "Т", "type": "letter", "label": "Т", "category": "consonant" },
+    { "id": "У", "type": "letter", "label": "У", "category": "vowel" },
+    { "id": "Ф", "type": "letter", "label": "Ф", "category": "consonant" },
+    { "id": "Х", "type": "letter", "label": "Х", "category": "consonant" },
+    { "id": "Ц", "type": "letter", "label": "Ц", "category": "consonant" },
+    { "id": "Ч", "type": "letter", "label": "Ч", "category": "consonant" },
+    { "id": "Ш", "type": "letter", "label": "Ш", "category": "consonant" },
+    { "id": "Щ", "type": "letter", "label": "Щ", "category": "consonant" },
+    { "id": "Ъ", "type": "letter", "label": "Ъ", "category": "sign" },
+    { "id": "Ы", "type": "letter", "label": "Ы", "category": "vowel" },
+    { "id": "Ь", "type": "letter", "label": "Ь", "category": "sign" },
+    { "id": "Э", "type": "letter", "label": "Э", "category": "vowel" },
+    { "id": "Ю", "type": "letter", "label": "Ю", "category": "vowel" },
+    { "id": "Я", "type": "letter", "label": "Я", "category": "vowel" }
+  ]
+}

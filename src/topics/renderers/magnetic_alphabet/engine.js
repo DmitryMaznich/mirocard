@@ -1,0 +1,6 @@
+export function generateTasks(_mode, topicRecord) {
+  const letters = (topicRecord.cards ?? [])
+    .filter((c) => c.type === "letter")
+    .map((c) => ({ letter: c.id, category: c.category ?? "consonant" }));
+  return [{ type: "magnetic_free", letters }];
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fdfcf9"/>
+  <!-- lines (notebook) -->
+  <line x1="14" y1="52" x2="114" y2="52" stroke="#d6cbbf" stroke-width="2"/>
+  <line x1="14" y1="72" x2="114" y2="72" stroke="#d6cbbf" stroke-width="2"/>
+  <line x1="14" y1="92" x2="114" y2="92" stroke="#d6cbbf" stroke-width="2"/>
+  <!-- letter tiles -->
+  <rect x="16" y="36" width="26" height="30" rx="6" fill="#dc2626"/>
+  <text x="29" y="59" text-anchor="middle" font-size="22" font-weight="900" fill="white" font-family="sans-serif">М</text>
+  <rect x="48" y="36" width="26" height="30" rx="6" fill="#1d4ed8"/>
+  <text x="61" y="59" text-anchor="middle" font-size="22" font-weight="900" fill="white" font-family="sans-serif">А</text>
+  <rect x="80" y="36" width="26" height="30" rx="6" fill="#1d4ed8"/>
+  <text x="93" y="59" text-anchor="middle" font-size="22" font-weight="900" fill="white" font-family="sans-serif">М</text>
+  <rect x="48" y="74" width="26" height="30" rx="6" fill="#dc2626"/>
+  <text x="61" y="97" text-anchor="middle" font-size="22" font-weight="900" fill="white" font-family="sans-serif">А</text>
+</svg>

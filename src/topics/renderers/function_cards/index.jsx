@@ -152,14 +152,20 @@ const Q_AUDIO_GAP = 1680; // ms between prefix phrase and tool name audio (~1s f
 // ── ChooseActionTask ─────────────────────────────────────────
 function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, playFeedback }) {
   const [selected, setSelected] = useState(null);
+  const [phase, setPhase] = useState("question"); // "question" | "feedback" | "scene"
   const pendingRef = useRef(null);
   const toolUrl = useTopicFile(topicId, task.toolCard?.image);
 
-  useEffect(() => {
+  function clearPending() {
     if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
+  }
+
+  useEffect(() => {
+    clearPending();
     setSelected(null);
+    setPhase("question");
     if (soundEnabled) playQuestion();
-    return () => { if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; } };
+    return clearPending;
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function playQuestion() {
@@ -174,18 +180,20 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrec
 
   function handleSelect(option) {
     if (selected !== null) return;
-    if (pendingRef.current) { clearTimeout(pendingRef.current); pendingRef.current = null; }
+    clearPending();
     setSelected(option);
-    const correct = option.isTarget;
-    setTimeout(() => {
-      if (correct) onCorrect(task.conceptId, task.toolCard?.id ?? null);
-      else         onIncorrect(task.conceptId, task.toolCard?.id ?? null);
-    }, 1500);
+    setPhase("feedback");
+    if (soundEnabled) playFeedback(option.isTarget ? "correct" : "incorrect");
+    pendingRef.current = setTimeout(() => {
+      setPhase("scene");
+      pendingRef.current = setTimeout(() => {
+        if (option.isTarget) onCorrect(task.conceptId, task.toolCard?.id ?? null);
+        else                 onIncorrect(task.conceptId, task.toolCard?.id ?? null);
+      }, 1500);
+    }, 1000);
   }
 
-  const revealed = selected !== null;
-
-  if (revealed) {
+  if (phase === "scene") {
     return (
       <div className="session-body fc-ca-reveal">
         <div className="fc-intro-scene-wrap">
@@ -197,26 +205,36 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrec
   }
 
   return (
-    <div className="session-body session-body--choose-word">
+    <div className="session-body fc-choose-action">
       <div className="card-area">
         {toolUrl
           ? <img className="card-img" src={toolUrl} alt="" draggable={false} style={{ objectFit: "contain" }} />
           : <div className="card-img card-img--loading" />
         }
       </div>
-      <div className="fc-ca-question-row">
-        <span className="session-instruction">{task.question}</span>
-        {soundEnabled && (task.questionPrefixAudio || task.toolNameAudio) && (
-          <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
-        )}
+      <div className="fc-ca-right">
+        <div className="fc-ca-question-row">
+          <span className="session-instruction">{task.question}</span>
+          {soundEnabled && (task.questionPrefixAudio || task.toolNameAudio) && (
+            <button className="fc-ca-audio-btn" onClick={playQuestion} aria-label="Повторить вопрос">🔊</button>
+          )}
+        </div>
+        <div className="choose-word-options">
+          {task.options.map(opt => (
+            <button key={opt.conceptId} className="choose-word-btn" onClick={() => handleSelect(opt)}>
+              {opt.actionInf}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="choose-word-options">
-        {task.options.map(opt => (
-          <button key={opt.conceptId} className="choose-word-btn" onClick={() => handleSelect(opt)}>
-            {opt.actionInf}
-          </button>
-        ))}
-      </div>
+      {phase === "feedback" && selected && (
+        <div
+          className={`session-fb-overlay session-fb-overlay--${selected.isTarget ? "correct" : "incorrect"} session-fb-overlay--ready`}
+          aria-hidden="true"
+        >
+          <span className="session-fb-overlay__icon">{selected.isTarget ? "✓" : "✕"}</span>
+        </div>
+      )}
     </div>
   );
 }
