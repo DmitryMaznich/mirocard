@@ -157,43 +157,17 @@
       "url": "./decks/tools_functions_v1.4.4.zip"
     },
     {
-      "id": "coffee_preparation",
+      "id": "coffee",
       "version": "1.0.0",
       "title": {
         "ru": "Приготовление кофе",
-        "en": "Coffee Preparation"
+        "en": "Coffee Making"
       },
       "description": {
-        "ru": "17 предметов бариста: оборудование, инвентарь и ингредиенты. Фото на белом фоне. Для взрослых учеников.",
-        "en": "17 barista items: equipment, utensils and ingredients. Photo style on white background."
+        "ru": "27 карточек в трёх сетах: Способы приготовления, Оборудование и инвентарь, Детали машины Vetrano 2B.",
+        "en": "27 cards in three sets: Brewing Methods, Equipment and Tools, Vetrano 2B Machine Parts."
       },
-      "url": "./decks/coffee_preparation_v1.0.0.zip"
-    },
-    {
-      "id": "coffee_methods",
-      "version": "1.0.0",
-      "title": {
-        "ru": "Способы приготовления кофе",
-        "en": "Coffee Brewing Methods"
-      },
-      "description": {
-        "ru": "7 способов приготовления кофе: от рожковой машины до джезвы. Стартовая колода — карта кофейного мира.",
-        "en": "7 coffee brewing methods: from espresso machine to cezve. Starting deck — map of the coffee world."
-      },
-      "url": "./decks/coffee_methods_v1.0.0.zip"
-    },
-    {
-      "id": "coffee_espresso_parts",
-      "version": "1.0.0",
-      "title": {
-        "ru": "Детали эспрессо машины",
-        "en": "Espresso Machine Parts"
-      },
-      "description": {
-        "ru": "7 деталей рожковой кофемашины Quickmill Vetrano 2B: тумблеры, краны, манометр, рычаг, поддон, резервуар. Реальные фото.",
-        "en": "7 parts of the Quickmill Vetrano 2B espresso machine: switches, taps, gauge, lever, drip tray, water tank. Real photos."
-      },
-      "url": "./decks/coffee_espresso_parts_v1.0.0.zip"
+      "url": "./decks/coffee_v1.0.0.zip"
     }
   ]
 }
