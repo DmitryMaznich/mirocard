@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "magnetic_alphabet",
-    "version": "1.1.0",
+    "version": "1.3.0",
     "renderer": "magnetic_alphabet",
     "title": "Магнитная азбука",
     "avatar": "media/avatar.svg"
@@ -14,24 +14,6 @@
       "ui": {
         "title": "Свободная азбука",
         "instruction": "Составляй слова и предложения из букв"
-      },
-      "params": {
-        "layout": {
-          "type": "enum",
-          "label": { "ru": "Раскладка" },
-          "values": ["abv", "qwerty"],
-          "labels": { "ru": { "abv": "АБВ", "qwerty": "ЙЦУКЕН" } },
-          "default": "abv"
-        }
-      }
-    },
-    {
-      "id": "magnetic_words",
-      "type": "magnetic_words",
-      "evaluation": "none",
-      "ui": {
-        "title": "Сборка по заданию",
-        "instruction": "Взрослый задаёт текст, ученик собирает его на доске"
       },
       "params": {
         "layout": {
