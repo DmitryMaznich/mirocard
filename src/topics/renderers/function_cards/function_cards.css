@@ -161,13 +161,12 @@
   width: 100%;
 }
 
-/* Кнопки-ответы: полная ширина, одна строка, адаптивный шрифт */
+/* Кнопки-ответы: полная ширина, перенос текста если не помещается */
 .fc-choose-action .choose-word-btn {
   font-size: clamp(1rem, 3vw, 1.5rem) !important;
   min-height: unset !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.3;
   width: 100%;
 }
 
@@ -182,19 +181,19 @@
 
   .fc-choose-action .card-area {
     flex: none;
+    flex-shrink: 0;
     width: auto;
-    height: 50%;
     aspect-ratio: 1;
     overflow: hidden;
     border-radius: 16px;
-    align-self: center;
+    align-self: stretch;
   }
 
   .fc-choose-action .card-area .card-img {
     width: 100%;
     height: 100%;
     max-height: none;
-    border-radius: 16px;
+    border-radius: 0;
   }
 
   .fc-choose-action .fc-ca-right {
