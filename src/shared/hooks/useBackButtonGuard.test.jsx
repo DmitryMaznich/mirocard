@@ -74,7 +74,7 @@ describe("useBackButtonGuard", () => {
     expect(pushSpy).toHaveBeenCalledWith(
       expect.objectContaining({ mirocardBackGuard: true }),
       "",
-      window.location.href,
+      expect.stringMatching(/#_guard_\d+$/),
     );
   });
 

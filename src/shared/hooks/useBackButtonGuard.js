@@ -2,24 +2,41 @@ import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
 
-// One entry is enough. With DEPTH=1 the rebound always goes root→#_guard
-// (different URLs), so Chrome Android never silently ignores the pushState.
-// DEPTH≥2 causes same-URL rebounds (#_guard→#_guard) which Chrome may drop.
-const GUARD_HASH = "#_guard";
+// Keep GUARD_DEPTH history entries ahead of root so rapid-fire back presses
+// (before JS can rebound) can't escape the app. Each entry uses a unique URL
+// so Chrome Android never silently drops the pushState.
+const GUARD_DEPTH = 3;
 
 let guardSequence = 0;
 let guardTopSequence = 0;
 let lastObservedSequence = 0;
 let lastHandledBackAt = 0;
 
-function guardUrl() {
-  return window.location.href.replace(/#.*$/, "") + GUARD_HASH;
+function baseUrl() {
+  return window.location.href.replace(/#.*$/, "");
+}
+
+function guardUrl(seq) {
+  return `${baseUrl()}#_guard_${seq}`;
 }
 
 function getGuardSequence(state) {
   return state?.mirocardBackGuard && Number.isFinite(state.guardSequence)
     ? state.guardSequence
     : 0;
+}
+
+function pushGuardEntries(count) {
+  for (let i = 0; i < count; i++) {
+    guardSequence += 1;
+    window.history.pushState(
+      { mirocardBackGuard: true, guardSequence },
+      "",
+      guardUrl(guardSequence),
+    );
+  }
+  guardTopSequence = guardSequence;
+  lastObservedSequence = guardTopSequence;
 }
 
 function installBackGuardStack() {
@@ -42,29 +59,14 @@ function installBackGuardStack() {
     );
   }
 
-  guardSequence += 1;
-  window.history.pushState(
-    { mirocardBackGuard: true, guardSequence },
-    "",
-    guardUrl(),
-  );
-  guardTopSequence = guardSequence;
-  lastObservedSequence = guardTopSequence;
+  pushGuardEntries(GUARD_DEPTH);
 }
 
 function reboundToGuardTop(sequence) {
   if (sequence >= guardTopSequence) return;
-  guardSequence += 1;
-  guardTopSequence = guardSequence;
-  lastObservedSequence = guardTopSequence;
-  // guardUrl() is computed fresh from window.location.href (current entry after
-  // the back press) → always baseUrl + #_guard, never same as the guard entry
-  // we just left, so Chrome will not drop this pushState.
-  window.history.pushState(
-    { mirocardBackGuard: true, guardSequence },
-    "",
-    guardUrl(),
-  );
+  // Always restore a full GUARD_DEPTH buffer so subsequent rapid-fire back
+  // presses (queued before this rebound fires) are also absorbed.
+  pushGuardEntries(GUARD_DEPTH);
 }
 
 export function useBackButtonGuard({
