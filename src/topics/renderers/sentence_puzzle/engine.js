@@ -26,6 +26,42 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null, 
     }];
   }
 
+  if (mode.type === "listen_write_letters") {
+    const structure = sessionParams?.structure ?? "full";
+    const isSimple  = structure === "simple";
+    const slotTypes = isSimple
+      ? ["subject", "verb"]
+      : ["subject", "verb", "adjective", "object"];
+
+    const sentences = (topicRecord.sentences ?? []).filter((s) => {
+      if (isSimple ? (s.adjective || s.object) : (!s.adjective || !s.object)) return false;
+      if (!selectedIds) return true;
+      if (!selectedIds.has(s.verb)) return false;
+      if (!isSimple && (!selectedIds.has(s.adjective) || !selectedIds.has(s.object))) return false;
+      return true;
+    });
+
+    const cardById   = Object.fromEntries(cards.map((c) => [c.id, c]));
+    const adultCards = adultsFromStudent(student);
+
+    return shuffle([...sentences]).map((sentence) => {
+      const target = {};
+      for (const slotType of slotTypes) {
+        if (slotType === "subject" && adultCards) {
+          target[slotType] = shuffle([...adultCards])[0];
+        } else {
+          target[slotType] = cardById[sentence[slotType]];
+        }
+      }
+      return {
+        type:      "listen_write_letters",
+        structure,
+        target,
+        audioPath: sentence.audio ?? null,
+      };
+    });
+  }
+
   if (mode.type === "listen_build" || mode.type === "listen_build_mono") {
     const structure   = sessionParams?.structure ?? "simple";
     const distractors = Math.max(0, Number(sessionParams?.distractors ?? 2));

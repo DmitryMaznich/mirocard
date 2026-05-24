@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "sentence_puzzle",
-    "version": "1.9.22",
+    "version": "1.10.0",
     "renderer": "sentence_puzzle",
     "title": "Конструктор предложений",
     "avatar": "media/avatar_sentence_puzzle.svg",
@@ -61,6 +61,32 @@
           "values": [1, 2, 3],
           "labels": { "ru": { "1": "1×4", "2": "2×4", "3": "3×4" } },
           "default": 2
+        }
+      }
+    },
+    {
+      "id": "listen_write_letters",
+      "type": "listen_write_letters",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Слушаем и пишем буквами",
+        "instruction": "Послушай предложение и напиши его буквами",
+        "icon": "media/icons/listen_build_mode.svg"
+      },
+      "params": {
+        "structure": {
+          "type": "enum",
+          "label": { "ru": "Структура" },
+          "values": ["simple", "full"],
+          "labels": { "ru": { "simple": "Простая (кто + что делает)", "full": "Полная (кто + что делает + какую + что)" } },
+          "default": "full"
+        },
+        "layout": {
+          "type": "enum",
+          "label": { "ru": "Раскладка клавиатуры" },
+          "values": ["abv", "qwerty"],
+          "labels": { "ru": { "abv": "АБВ", "qwerty": "ЙЦУКЕН" } },
+          "default": "abv"
         }
       }
     }
