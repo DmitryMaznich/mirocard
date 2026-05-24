@@ -13094,6 +13094,26 @@ kbd {
 }
 .summary-actions .btn { flex: 1; }
 
+/* ── Hold-to-confirm button ─────────────────────────────────────────── */
+.hold-btn {
+  position: relative;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.hold-btn::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  width: calc(var(--hold-p, 0) * 1%);
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 0 0 0 inherit;
+  pointer-events: none;
+}
+
 .summary-finish-btn {
   flex: 1;
   position: relative;

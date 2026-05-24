@@ -9,6 +9,7 @@ import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
+import HoldButton from "@/shared/components/HoldButton";
 
 import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
@@ -227,7 +228,7 @@ export default function App() {
           actions={
             <>
               <Button variant="secondary" onClick={closeSessionExitPrompt}>Остаться</Button>
-              <Button variant="danger" onClick={finishSessionFromPrompt}>Завершить</Button>
+              <HoldButton className="btn btn--danger" onAction={finishSessionFromPrompt}>Завершить</HoldButton>
             </>
           }
         >
