@@ -179,7 +179,7 @@ const CONCEPTS = [
     labelInstrumental: "сверло",
     action: "вставляют в дрель, чтобы сверлить отверстия",
     actionInf: "вставить в дрель для сверления",
-    sceneQuestion: "Нужно вставить насадку в дрель. Что взять?",
+    sceneQuestion: "Что вставить в дрель, чтобы просверлить отверстие?",
     toolPrompt: "a drill bit (twist drill), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneProcessPrompt: "realistic photo of a human hand with natural finger positions gently inserting a silver metal twist drill bit into the chuck of a yellow-and-black cordless power drill, clean workshop background, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a silver twist drill bit lying next to a yellow-and-black cordless power drill on a clean surface, the drill bit is not inserted yet, square 1:1 composition, no text",
@@ -287,7 +287,7 @@ const CONCEPTS = [
     toolPrompt: "a wall spatula (putty knife), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneProcessPrompt: "a hand holding a spatula, spreading putty over a crack in a wall, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a wall section with a visible crack in the plaster, square 1:1 composition, no text",
-    sceneAfterPrompt: "the same wall section with the crack smoothly filled and levelled with putty, square 1:1 composition, no text",
+    sceneAfterPrompt: "a close-up of a wall section with a horizontal crack cleanly filled and smoothed with white putty, square 1:1 composition, no text",
   },
   {
     id: "ruler",

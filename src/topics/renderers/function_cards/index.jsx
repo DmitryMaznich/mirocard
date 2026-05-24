@@ -297,7 +297,7 @@ function SceneFunctionTask({ task, topicId, soundEnabled, playFeedback, onCorrec
     return (
       <div className="session-body fc-sf-reveal">
         <div className="fc-sf-after-wrap">
-          <SceneImage topicId={topicId} card={task.sceneAfter} blurred={false} />
+          <SceneImage topicId={topicId} card={task.sceneProcess ?? task.sceneAfter} blurred={false} />
         </div>
         {task.feedbackText && (
           <p className="fc-sf-feedback">{task.feedbackText}</p>

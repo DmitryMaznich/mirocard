@@ -92,9 +92,10 @@ function generateFunctionIntroTasks(concepts) {
 function generateSceneFunctionTasks(concepts) {
   const tasks = [];
   for (const concept of concepts) {
-    const sceneBefore = concept.cards.find(c => c.type === "scene_before");
-    const sceneAfter  = concept.cards.find(c => c.type === "scene_after");
-    const toolCard    = getToolCard(concept);
+    const sceneBefore   = concept.cards.find(c => c.type === "scene_before");
+    const sceneProcess  = concept.cards.find(c => c.type === "scene_process") ?? null;
+    const sceneAfter    = concept.cards.find(c => c.type === "scene_after");
+    const toolCard      = getToolCard(concept);
     const distractors = pickDistractors(concept.conceptId, concepts, 3);
     const options = shuffle([
       {
@@ -114,6 +115,7 @@ function generateSceneFunctionTasks(concepts) {
       type: "scene_function",
       conceptId: concept.conceptId,
       sceneBefore,
+      sceneProcess,
       sceneAfter,
       question: concept.primary.sceneQuestion ?? null,
       feedbackText: `${concept.primary.labelInstrumental[0].toUpperCase()}${concept.primary.labelInstrumental.slice(1)} ${concept.primary.action}!`,
