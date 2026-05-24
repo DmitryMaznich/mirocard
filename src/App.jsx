@@ -1,4 +1,4 @@
-import { useCallback, useEffect, Component, useState } from "react";
+import { useCallback, useEffect, Component } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { api, setApiToken } from "@/core/api";
@@ -95,20 +95,21 @@ export default function App() {
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const activeModeId = useAppStore((s) => s.activeModeId);
   const { isOpen: isTimerOpen, setIsOpen, resetSession } = useTimer();
-  const [isSessionExitPromptOpen, setIsSessionExitPromptOpen] = useState(false);
+  const sessionExitPromptOpen  = useAppStore((s) => s.sessionExitPromptOpen);
+  const openSessionExitPrompt  = useAppStore((s) => s.openSessionExitPrompt);
+  const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   useEffect(() => {
     if (screen === "home") resetSession();
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
-  const closeSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(false), []);
-  const openSessionExitPrompt = useCallback(() => setIsSessionExitPromptOpen(true), []);
-  const finishSessionFromPrompt = useCallback(() => {
-    setIsSessionExitPromptOpen(false);
-    setScreen("home");
-  }, [setScreen]);
 
-  const showSessionExitPrompt = screen === "session" && isSessionExitPromptOpen;
+  const finishSessionFromPrompt = useCallback(() => {
+    closeSessionExitPrompt();
+    setScreen("home");
+  }, [closeSessionExitPrompt, setScreen]);
+
+  const showSessionExitPrompt = screen === "session" && sessionExitPromptOpen;
   const orientationLock = getActiveOrientationLock({ screen, topicRecords, activeTopicId, activeModeId });
 
   useKioskMode(orientationLock);

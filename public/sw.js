@@ -1,4 +1,4 @@
-const CACHE = "mirocard2-v8";
+const CACHE = "mirocard2-v9";
 
 self.addEventListener("install", () => self.skipWaiting());
 

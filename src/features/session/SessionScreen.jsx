@@ -21,8 +21,9 @@ function isEditableTarget(target) {
 }
 
 export default function SessionScreen() {
-  const setScreen       = useAppStore((s) => s.setScreen);
-  const students        = useAppStore((s) => s.students);
+  const setScreen             = useAppStore((s) => s.setScreen);
+  const openSessionExitPrompt = useAppStore((s) => s.openSessionExitPrompt);
+  const students              = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
   const settings        = useAppStore((s) => s.settings);
@@ -73,12 +74,7 @@ export default function SessionScreen() {
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
-  const { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying } = useAudio();
-
-  const isBusy = useCallback(
-    () => isAudioPlaying() || window.speechSynthesis?.speaking === true,
-    [isAudioPlaying],
-  );
+  const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
   const [manualAdvanceGate, setManualAdvanceGate] = useState({ key: null, state: null });
 
   useEffect(() => {
@@ -139,7 +135,6 @@ export default function SessionScreen() {
 
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
-    if (isBusy()) return;
 
     if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction") {
       setManualAdvanceGate({ key: null, state: null });
@@ -148,7 +143,7 @@ export default function SessionScreen() {
     }
 
     setManualAdvanceGate({ key: advanceGateKey, state: ADVANCE_GATE_WAITING });
-  }, [adultConfirmAdvance, advanceGate, advanceGateKey, isBusy, mode?.type, onAdvance]);
+  }, [adultConfirmAdvance, advanceGate, advanceGateKey, mode?.type, onAdvance]);
 
   // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
   const [Renderer, setRenderer]           = useState(() =>
@@ -180,16 +175,7 @@ export default function SessionScreen() {
   const total = tasks.length;
   const isAdvanceGateActive = adultConfirmAdvance && advanceGate !== ADVANCE_GATE_IDLE;
   const isAdvanceReady = adultConfirmAdvance && advanceGate === ADVANCE_GATE_READY;
-  const advanceFeedbackHint = adultConfirmAdvance
-    ? (isAdvanceReady ? "Можно продолжить" : "Пробел: следующая карточка")
-    : "Нажмите, чтобы продолжить";
-  const advanceGateLabel = isAdvanceReady ? "Можно продолжить" : "Ждем подтверждения";
   const showStandaloneGate = isAdvanceGateActive && !isCorrectFeedback;
-
-  const feedbackClass =
-    isCorrectFeedback   ? "session-feedback session-feedback--correct"
-  : isIncorrectFeedback ? "session-feedback session-feedback--incorrect"
-  : "";
 
   const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
@@ -241,38 +227,11 @@ export default function SessionScreen() {
                 </span>
               )}
             </button>
-            <button className="session-finish-btn" onClick={() => setScreen("home")}>✕</button>
+            <button className="session-finish-btn" onClick={openSessionExitPrompt}>✕</button>
           </div>
         </div>
         <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
       </div>
-
-      {feedbackClass && (
-        <div
-          className={`${feedbackClass}${isCorrectFeedback && (!adultConfirmAdvance || isAdvanceReady) ? " session-feedback--tappable" : ""}${isCorrectFeedback && adultConfirmAdvance ? ` session-feedback--confirm-${advanceGate}` : ""}`}
-          onClick={isCorrectFeedback ? requestAdvance : undefined}
-        >
-          {isCorrectFeedback ? "Правильно!" : "Попробуем ещё раз…"}
-          {isCorrectFeedback && (
-            <div className="session-feedback__tap-hint">
-              {advanceFeedbackHint}
-              {isAdvanceReady && adultConfirmAdvance && (
-                <span className="session-feedback__tap-subhint">Нажмите, чтобы продолжить</span>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {showStandaloneGate && (
-        <div
-          className={`session-advance-gate${isAdvanceReady ? " session-advance-gate--ready" : ""}`}
-          onClick={isAdvanceReady ? requestAdvance : undefined}
-        >
-          {advanceGateLabel}
-          {isAdvanceReady && <span>Нажмите, чтобы продолжить</span>}
-        </div>
-      )}
 
       {Renderer && currentTask ? (
         <div
@@ -317,6 +276,34 @@ export default function SessionScreen() {
         </div>
       ) : (
         <div className="screen-center">Неизвестный рендерер: {topicRecord.meta.renderer}</div>
+      )}
+
+      {isIncorrectFeedback && (
+        <div className="session-fb-overlay session-fb-overlay--incorrect" aria-hidden="true">
+          <span className="session-fb-overlay__icon">✕</span>
+        </div>
+      )}
+
+      {isCorrectFeedback && (
+        <div
+          className={`session-fb-overlay session-fb-overlay--correct${!adultConfirmAdvance || isAdvanceReady ? " session-fb-overlay--ready" : ""}`}
+          onClick={requestAdvance}
+        >
+          <span className="session-fb-overlay__icon">✓</span>
+          {(!adultConfirmAdvance || isAdvanceReady) && (
+            <span className="session-fb-overlay__hint">Нажмите, чтобы продолжить</span>
+          )}
+        </div>
+      )}
+
+      {showStandaloneGate && (
+        <div
+          className={`session-fb-overlay session-fb-overlay--gate${isAdvanceReady ? " session-fb-overlay--ready" : ""}`}
+          onClick={isAdvanceReady ? requestAdvance : undefined}
+        >
+          {isAdvanceReady ? "Можно продолжить" : "Ждём подтверждения"}
+          {isAdvanceReady && <span className="session-fb-overlay__hint">Нажмите, чтобы продолжить</span>}
+        </div>
       )}
     </div>
   );

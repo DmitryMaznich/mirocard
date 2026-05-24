@@ -4,6 +4,9 @@ export const useAppStore = create((set) => ({
   // ─── Navigation ────────────────────────────────────────────────────────────
   screen: "boot",
   setScreen: (screen) => set({ screen }),
+  sessionExitPromptOpen: false,
+  openSessionExitPrompt:  () => set({ sessionExitPromptOpen: true }),
+  closeSessionExitPrompt: () => set({ sessionExitPromptOpen: false }),
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
   account: null,

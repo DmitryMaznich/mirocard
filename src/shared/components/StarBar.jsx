@@ -40,11 +40,6 @@ export default function StarBar({ className = "", correctCount, incorrectCount =
 
   return (
     <div className={`star-bar-zone ${className}`}>
-      <div className="star-bar-score">
-        <span className="star-bar-score__icon">⭐</span>
-        <span className="star-bar-score__num">{correctCount}</span>
-      </div>
-      <div className="star-bar-divider" />
       <div className="star-bar-stars">
         {Array.from({ length: STAR_COUNT }, (_, i) => {
           const isLit  = i < litStars;
