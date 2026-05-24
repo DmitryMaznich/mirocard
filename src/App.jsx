@@ -18,6 +18,7 @@ import StudentsScreen from "@/features/students/StudentsScreen";
 import StudentEditScreen from "@/features/students/StudentEditScreen";
 import TopicLibraryScreen from "@/features/topics/TopicLibraryScreen";
 import TextPickerScreen from "@/features/reading/TextPickerScreen";
+import AllTextsScreen from "@/features/reading/AllTextsScreen";
 import ModePickerScreen from "@/features/home/ModePickerScreen";
 import ParamsScreen from "@/features/session/ParamsScreen";
 import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
@@ -59,6 +60,7 @@ const SCREENS = {
   student_edit: StudentEditScreen,
   topics: TopicLibraryScreen,
   texts: TextPickerScreen,
+  all_texts: AllTextsScreen,
   modes: ModePickerScreen,
   params: ParamsScreen,
   concepts: ConceptPickerScreen,

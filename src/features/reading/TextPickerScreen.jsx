@@ -79,6 +79,7 @@ export default function TextPickerScreen() {
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}>←</button>
         <h1 className="screen-title">{getTopicTitle(topicRecord.meta.title)}</h1>
+        <button className="header-action-btn" onClick={() => setScreen("all_texts")} title="Все тексты">≡</button>
       </div>
 
       {texts.length === 0 ? (
