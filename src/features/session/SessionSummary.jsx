@@ -186,7 +186,7 @@ export default function SessionSummary() {
 
       {/* Actions */}
       <div className="summary-actions">
-        <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
+        <Button variant="secondary" onClick={() => setScreen("session")}>Ещё раз</Button>
         <HoldButton
           className="summary-finish-btn"
           onAction={() => setScreen("home")}
