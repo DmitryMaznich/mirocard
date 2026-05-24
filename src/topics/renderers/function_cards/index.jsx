@@ -186,10 +186,8 @@ function ChooseActionTask({ task, topicId, soundEnabled, playTopicFile, onCorrec
     if (soundEnabled) playFeedback(option.isTarget ? "correct" : "incorrect");
     pendingRef.current = setTimeout(() => {
       setPhase("scene");
-      pendingRef.current = setTimeout(() => {
-        if (option.isTarget) onCorrect(task.conceptId, task.toolCard?.id ?? null);
-        else                 onIncorrect(task.conceptId, task.toolCard?.id ?? null);
-      }, 1500);
+      if (option.isTarget) onCorrect(task.conceptId, task.toolCard?.id ?? null);
+      else                 onIncorrect(task.conceptId, task.toolCard?.id ?? null);
     }, 1000);
   }
 

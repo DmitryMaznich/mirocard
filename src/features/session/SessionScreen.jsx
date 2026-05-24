@@ -84,13 +84,15 @@ export default function SessionScreen() {
     setScreen(isInstruction ? "texts" : skipSummary ? "modes" : "summary");
   }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer]);
 
+  const ownsFeedback = currentTask?.type === "choose_action";
+
   function handleCorrect(conceptId, cardId) {
-    playFeedback("correct");
+    if (!ownsFeedback) playFeedback("correct");
     onCorrect(conceptId, cardId);
   }
 
   function handleIncorrect(conceptId, cardId) {
-    playFeedback("incorrect");
+    if (!ownsFeedback) playFeedback("incorrect");
     onIncorrect(conceptId, cardId);
   }
 
@@ -278,13 +280,13 @@ export default function SessionScreen() {
         <div className="screen-center">Неизвестный рендерер: {topicRecord.meta.renderer}</div>
       )}
 
-      {isIncorrectFeedback && (
+      {isIncorrectFeedback && !ownsFeedback && (
         <div className="session-fb-overlay session-fb-overlay--incorrect" aria-hidden="true">
           <span className="session-fb-overlay__icon">✕</span>
         </div>
       )}
 
-      {isCorrectFeedback && (
+      {isCorrectFeedback && !ownsFeedback && (
         <div
           className={`session-fb-overlay session-fb-overlay--correct${!adultConfirmAdvance || isAdvanceReady ? " session-fb-overlay--ready" : ""}`}
           onClick={requestAdvance}
