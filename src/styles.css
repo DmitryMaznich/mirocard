@@ -12439,13 +12439,12 @@ button {
   animation: session-fb-fade-out 1.5s ease-out forwards;
 }
 .session-fb-overlay--correct {
-  background: rgba(50, 160, 75, 0.5);
+  background: transparent;
   cursor: pointer;
   user-select: none;
-  transition: background 0.2s;
 }
 .session-fb-overlay--correct.session-fb-overlay--ready {
-  background: rgba(40, 155, 65, 0.62);
+  background: transparent;
 }
 .session-fb-overlay--gate {
   background: rgba(71, 85, 105, 0.42);
@@ -12466,6 +12465,12 @@ button {
 }
 .session-fb-overlay--correct .session-fb-overlay__icon {
   animation: session-fb-check-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  color: #22a04a;
+  text-shadow: 0 2px 12px rgba(255, 255, 255, 0.9), 0 0 32px rgba(255, 255, 255, 0.6);
+}
+.session-fb-overlay--correct .session-fb-overlay__hint {
+  color: #22a04a;
+  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.95), 0 0 20px rgba(255, 255, 255, 0.7);
 }
 .session-fb-overlay__hint {
   font-size: 18px;
