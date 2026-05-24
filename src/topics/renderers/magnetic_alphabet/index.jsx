@@ -18,6 +18,9 @@ const QWERTY_ROWS = [
 const BOTTOM_LEFT  = ["!", "?"];
 const BOTTOM_RIGHT = [".", ","];
 
+const VOWELS = new Set(["А","Е","Ё","И","О","У","Ы","Э","Ю","Я"]);
+const SIGNS  = new Set(["Ъ","Ь"]);
+
 let _tokenSeq = 0;
 function newId() { return `t_${++_tokenSeq}`; }
 
@@ -47,8 +50,12 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
   const [spiralN,    setSpiralN]    = useState(11);
 
   function getCategory(symbol) {
-    if (/^[А-ЯЁ]$/u.test(String(symbol || ""))) return letterMap[symbol] ?? "consonant";
-    return "neutral";
+    const s = String(symbol || "");
+    if (!s || !/^[А-ЯЁ]$/u.test(s)) return "neutral";
+    if (letterMap[s]) return letterMap[s];
+    if (VOWELS.has(s)) return "vowel";
+    if (SIGNS.has(s))  return "sign";
+    return "consonant";
   }
 
   function updateLines(fn) {
