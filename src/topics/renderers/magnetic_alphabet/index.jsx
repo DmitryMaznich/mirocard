@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, Fragment } from "react";
 import "./magnetic_alphabet.css";
 
+const DIGIT_ROW = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
 const ABV_ROWS = [
   ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "Й"],
   ["К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф"],
@@ -22,26 +24,40 @@ function newId() { return `t_${++_tokenSeq}`; }
 function emptyLines(n = 12) { return Array.from({ length: n }, () => []); }
 
 function ensureTrailing(lines) {
-  const safe = Array.isArray(lines) ? lines : [];
-  const rev   = [...safe].reverse();
+  const safe    = Array.isArray(lines) ? lines : [];
+  const rev     = [...safe].reverse();
   const nonEmpty = rev.findIndex((l) => l.length > 0);
-  const tail  = nonEmpty === -1 ? safe.length : nonEmpty;
-  const toAdd = Math.max(0, 4 - tail);
+  const tail    = nonEmpty === -1 ? safe.length : nonEmpty;
+  const toAdd   = Math.max(0, 4 - tail);
   return toAdd > 0 ? [...safe, ...emptyLines(toAdd)] : safe;
 }
 
-export default function MagneticAlphabetRenderer({ task, sessionParams }) {
-  const layout   = sessionParams?.layout ?? "abv";
-  const kbRows   = layout === "qwerty" ? QWERTY_ROWS : ABV_ROWS;
-  const letterMap = Object.fromEntries((task?.letters ?? []).map((l) => [l.letter, l.category]));
+function normalize(text) {
+  return String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
 
-  const canvasRef = useRef(null);
+function getTextFromLines(lines) {
+  return lines
+    .map((line) => line.map((t) => (t.type === "space" ? " " : t.letter ?? "")).join(""))
+    .join("\n");
+}
+
+export default function MagneticAlphabetRenderer({ task, mode, sessionParams, soundEnabled, playFeedback }) {
+  const layout     = sessionParams?.layout ?? "abv";
+  const isWords    = mode?.type === "magnetic_words";
+  const kbRows     = layout === "qwerty" ? QWERTY_ROWS : ABV_ROWS;
+  const spaceLabel = layout === "qwerty" ? "пробел" : "новое слово";
+  const letterMap  = Object.fromEntries((task?.letters ?? []).map((l) => [l.letter, l.category]));
+
+  const canvasRef  = useRef(null);
   const pendingRef = useRef(null);
 
-  const [lines,      setLines]      = useState(() => ensureTrailing(emptyLines()));
-  const [drag,       setDrag]       = useState(null);
-  const [dropTarget, setDropTarget] = useState(null);
-  const [spiralN,    setSpiralN]    = useState(11);
+  const [lines,       setLines]       = useState(() => ensureTrailing(emptyLines()));
+  const [drag,        setDrag]        = useState(null);
+  const [dropTarget,  setDropTarget]  = useState(null);
+  const [spiralN,     setSpiralN]     = useState(11);
+  const [prompt,      setPrompt]      = useState("");
+  const [checkResult, setCheckResult] = useState(null); // "correct" | "incorrect" | null
 
   function getCategory(symbol) {
     if (/^[А-ЯЁ]$/u.test(String(symbol || ""))) return letterMap[symbol] ?? "consonant";
@@ -93,11 +109,11 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
     return { lineIdx: best, insertIdx: ins };
   }
 
-  function beginFromKeyboard(e, letter) {
+  function beginFromKeyboard(e, letter, category) {
     e.preventDefault();
     try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch {}
-    const category = getCategory(letter);
-    setDrag({ pointerId: e.pointerId, source: "keyboard", letter, category, x: e.clientX, y: e.clientY });
+    const cat = category ?? getCategory(letter);
+    setDrag({ pointerId: e.pointerId, source: "keyboard", letter, category: cat, x: e.clientX, y: e.clientY });
     setDropTarget(computeDrop(e.clientX, e.clientY));
   }
 
@@ -118,10 +134,10 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
     });
     setDrag({
       pointerId: pending.pointerId,
-      source: "canvas",
-      letter: pending.token.letter,
+      source:   "canvas",
+      letter:   pending.token.letter,
       category: pending.token.category,
-      type: pending.token.type,
+      type:     pending.token.type,
       x: cx, y: cy,
     });
     setDropTarget(computeDrop(cx, cy, snap));
@@ -155,9 +171,9 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
     if (!drag || e.pointerId !== drag.pointerId) return;
     if (dropTarget) {
       const token = {
-        id: newId(),
-        type: drag.type ?? (drag.category === "space" ? "space" : "letter"),
-        letter: drag.letter,
+        id:       newId(),
+        type:     drag.type ?? (drag.category === "space" ? "space" : "letter"),
+        letter:   drag.letter,
         category: drag.category,
       };
       updateLines((cur) =>
@@ -174,6 +190,15 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
     pendingRef.current = null;
   }
 
+  function handleCheck() {
+    if (checkResult) return;
+    const assembled = getTextFromLines(lines);
+    const correct   = normalize(assembled) === normalize(prompt);
+    if (soundEnabled) playFeedback?.(correct ? "correct" : "incorrect");
+    setCheckResult(correct ? "correct" : "incorrect");
+    setTimeout(() => setCheckResult(null), 1500);
+  }
+
   return (
     <div
       className="mag-screen"
@@ -181,6 +206,28 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
       onPointerUp={handleUp}
       onPointerCancel={handleUp}
     >
+      {/* Задание (только в режиме "Сборка по заданию") */}
+      {isWords && (
+        <div className="mag-prompt-bar">
+          <input
+            className="mag-prompt-input"
+            type="text"
+            placeholder="Введите слово или фразу…"
+            value={prompt}
+            onChange={(e) => { setPrompt(e.target.value); setCheckResult(null); }}
+          />
+          {prompt && (
+            <button
+              className={`mag-check-btn${checkResult ? ` mag-check-btn--${checkResult}` : ""}`}
+              onClick={handleCheck}
+              disabled={!!checkResult}
+            >
+              {checkResult === "correct" ? "✓" : checkResult === "incorrect" ? "✗" : "Проверить"}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Canvas */}
       <div className="mag-canvas" ref={canvasRef}>
         <div className="mag-spiral" aria-hidden>
@@ -209,6 +256,13 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
 
       {/* Keyboard */}
       <div className="mag-keyboard">
+        <div className="mag-kb-row digits">
+          {DIGIT_ROW.map((d) => (
+            <button key={d} type="button" className="mag-key neutral" onPointerDown={(e) => beginFromKeyboard(e, d)}>
+              {d}
+            </button>
+          ))}
+        </div>
         {kbRows.map((row, ri) => (
           <div key={ri} className="mag-kb-row letters">
             {row.map((letter) => (
@@ -230,14 +284,9 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
           <button
             type="button"
             className="mag-key-space"
-            onPointerDown={(e) => {
-              e.preventDefault();
-              try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch {}
-              setDrag({ pointerId: e.pointerId, source: "keyboard", letter: " ", category: "space", type: "space", x: e.clientX, y: e.clientY });
-              setDropTarget(computeDrop(e.clientX, e.clientY));
-            }}
+            onPointerDown={(e) => beginFromKeyboard(e, null, "space")}
           >
-            пробел
+            {spaceLabel}
           </button>
           {BOTTOM_RIGHT.map((s) => (
             <button key={s} type="button" className="mag-key neutral" onPointerDown={(e) => beginFromKeyboard(e, s)}>{s}</button>
@@ -245,13 +294,13 @@ export default function MagneticAlphabetRenderer({ task, sessionParams }) {
         </div>
       </div>
 
-      {/* Floating drag ghost */}
+      {/* Floating ghost */}
       {drag && (
         <div
           className={`mag-token ${drag.category} mag-floating`}
           style={{ left: drag.x, top: drag.y }}
         >
-          {drag.type === "space" ? null : drag.letter}
+          {drag.category === "space" ? "·" : drag.letter}
         </div>
       )}
     </div>
