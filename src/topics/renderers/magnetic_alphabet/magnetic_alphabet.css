@@ -211,3 +211,148 @@
   .mag-kb-row   { gap: clamp(8px, .9vw, 14px); }
   .mag-key, .mag-key-space { height: clamp(52px, 5vw, 72px); }
 }
+
+/* ── Sentence bar (assemble phase) ── */
+.mag-sentence-bar {
+  flex-shrink: 0;
+  padding: 10px 16px 8px;
+  background: #f0f7ff;
+  border-bottom: 2px solid #b8d4f0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mag-sentence-text {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 700;
+  color: #1a3a5c;
+  letter-spacing: 0.01em;
+}
+
+.mag-sentence-bar--audio {
+  background: #f5f0ff;
+  border-bottom-color: #c4b0e8;
+}
+
+.mag-listen-btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 2px solid #7c5cbf;
+  background: #fff;
+  color: #5a3ea0;
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mag-listen-btn:hover { background: #f0eaff; }
+.mag-listen-btn:active { background: #e4d8ff; }
+
+/* ── Check bar (assemble phase) ── */
+.mag-sentence-check-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 12px 6px;
+  background: #fdfcf9;
+  border-top: 1.5px solid #e8e2d9;
+}
+
+.mag-sentence-counter {
+  font-size: 14px;
+  color: #8a7f76;
+  font-weight: 600;
+}
+
+/* ── Success screen ── */
+.mag-success-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8f8e8;
+  animation: mag-success-flash 1.5s ease-out forwards;
+}
+
+@keyframes mag-success-flash {
+  0%   { background: #e8f8e8; }
+  50%  { background: #b8f0b8; }
+  100% { background: #e8f8e8; }
+}
+
+.mag-success-icon {
+  font-size: clamp(64px, 12vw, 96px);
+  color: #2e8b2e;
+  font-weight: 900;
+  animation: mag-success-pop 0.4s ease-out;
+}
+
+@keyframes mag-success-pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Copy screen ── */
+.mag-copy-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 32px 24px;
+  background: #fffdf5;
+}
+
+.mag-copy-animation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(36px, 7vw, 56px);
+}
+
+.mag-copy-pen {
+  display: inline-block;
+  animation: pen-write 1.8s ease-in-out infinite alternate;
+  transform-origin: bottom right;
+}
+
+@keyframes pen-write {
+  0%   { transform: translateX(0) rotate(-10deg); }
+  100% { transform: translateX(48px) rotate(-10deg); }
+}
+
+.mag-copy-notebook {
+  display: inline-block;
+}
+
+.mag-copy-text {
+  font-size: clamp(20px, 3.5vw, 30px);
+  font-weight: 700;
+  color: #1a3a5c;
+  text-align: center;
+  border-bottom: 3px dashed #b0c4d8;
+  padding-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+
+.mag-copy-done-btn {
+  height: 52px;
+  padding: 0 40px;
+  border-radius: 14px;
+  border: none;
+  background: #4a9b8f;
+  color: #fff;
+  font-size: clamp(16px, 2.4vw, 22px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.mag-copy-done-btn:hover  { background: #3d8278; }
+.mag-copy-done-btn:active { transform: scale(0.97); }

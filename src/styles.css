@@ -18217,3 +18217,47 @@ body { background: #eef0ef; }
   min-height: 120px;
   overflow: hidden;
 }
+
+/* ── SentenceListParam ── */
+.param-sentence-list .param-sentence-list__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.param-sentence-list__predefined {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.param-sentence-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: #263131;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.param-sentence-list__custom {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.param-sentence-textarea {
+  width: 100%;
+  border: 2px solid #d6cbbf;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #263131;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.param-sentence-textarea:focus { border-color: #4a9b8f; }
