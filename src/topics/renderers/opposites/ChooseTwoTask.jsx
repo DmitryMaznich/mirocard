@@ -2,25 +2,20 @@ import { useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import "./Opposites.css";
 
-function GridCard({ topicId, opt, onClick, disabled, modifier }) {
-  const url = useTopicFile(topicId, opt.card?.image);
+function GridCard({ topicId, card, modifier, onClick, disabled }) {
+  const url = useTopicFile(topicId, card?.image);
   return (
-    <button
-      className={`opp-grid-card${modifier ? " " + modifier : ""}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
+    <button className={`opp-grid-card${modifier ? " " + modifier : ""}`} onClick={onClick} disabled={disabled}>
       {url
-        ? <img className="opp-img" src={url} alt="" draggable={false} style={{ height: "auto", aspectRatio: "1" }} />
-        : <div className="opp-img opp-img--loading" style={{ height: "auto", aspectRatio: "1" }} />
+        ? <img className="opp-grid-card__img" src={url} alt="" draggable={false} />
+        : <div className="opp-grid-card__img opp-grid-card__img--loading" />
       }
-      <div className="opp-grid-card__label">{opt.card.nominativeLabel}</div>
+      <div className="opp-grid-card__label">{card.nominativeLabel}</div>
     </button>
   );
 }
 
 export default function ChooseTwoTask({ task, topicId, onCorrect, onIncorrect }) {
-  const { targetLabel, options } = task;
   const [answered, setAnswered] = useState(false);
 
   function handleSelect(opt) {
@@ -31,17 +26,17 @@ export default function ChooseTwoTask({ task, topicId, onCorrect, onIncorrect })
   }
 
   return (
-    <div className="opp-choose session-body">
-      <div className="opp-instruction">Покажи: {targetLabel}</div>
+    <div className="session-body">
+      <div className="session-instruction">Покажи: {task.targetLabel}</div>
       <div className="opp-grid">
-        {options.map((opt) => (
+        {task.options.map((opt) => (
           <GridCard
             key={opt.card.id}
             topicId={topicId}
-            opt={opt}
+            card={opt.card}
+            modifier={null}
             onClick={() => handleSelect(opt)}
             disabled={answered}
-            modifier={null}
           />
         ))}
       </div>

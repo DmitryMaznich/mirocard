@@ -12,8 +12,8 @@ function GridCard({ topicId, card, isSelected, submitted, isCorrect, onClick }) 
   return (
     <button className={`opp-grid-card${mod ? " " + mod : ""}`} onClick={onClick} disabled={submitted}>
       {url
-        ? <img className="opp-img" src={url} alt="" draggable={false} style={{ height: "auto", aspectRatio: "1" }} />
-        : <div className="opp-img opp-img--loading" style={{ height: "auto", aspectRatio: "1" }} />
+        ? <img className="opp-grid-card__img" src={url} alt="" draggable={false} />
+        : <div className="opp-grid-card__img opp-grid-card__img--loading" />
       }
       <div className="opp-grid-card__label">{card.nominativeLabel}</div>
     </button>
@@ -46,8 +46,8 @@ export default function FindAllTask({ task, topicId, onCorrect, onIncorrect }) {
   }
 
   return (
-    <div className="opp-findall session-body">
-      <div className="opp-instruction">Найди все: {targetLabel}</div>
+    <div className="session-body">
+      <div className="session-instruction">Найди все: {targetLabel}</div>
       <div className="opp-grid">
         {allCards.map((card) => (
           <GridCard
@@ -61,11 +61,7 @@ export default function FindAllTask({ task, topicId, onCorrect, onIncorrect }) {
           />
         ))}
       </div>
-      <button
-        className="opp-submit-btn"
-        onClick={handleSubmit}
-        disabled={selected.size === 0 || submitted}
-      >
+      <button className="opp-submit-btn" onClick={handleSubmit} disabled={selected.size === 0 || submitted}>
         Готово
       </button>
     </div>

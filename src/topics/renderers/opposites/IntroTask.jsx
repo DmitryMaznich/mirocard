@@ -1,24 +1,20 @@
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import "./Opposites.css";
 
-function CardImage({ topicId, card }) {
-  const url = useTopicFile(topicId, card?.image);
-  if (!card?.image) return <div className="opp-img opp-img--loading" />;
-  if (!url)         return <div className="opp-img opp-img--loading" />;
-  return <img className="opp-img" src={url} alt="" draggable={false} />;
-}
-
 export default function IntroTask({ task, topicId, onAdvance }) {
   const { card } = task;
+  const url = useTopicFile(topicId, card?.image);
+
   return (
-    <div className="opp-intro session-body" onClick={onAdvance}>
-      <div className="opp-intro__card-wrap">
-        <CardImage topicId={topicId} card={card} />
+    <div className="session-body opp-intro" onClick={onAdvance}>
+      <div className="card-area">
+        {url
+          ? <img className="card-img" src={url} alt="" draggable={false} style={{ objectFit: "contain" }} />
+          : <div className="card-img card-img--loading" />
+        }
       </div>
-      <div className="opp-intro__labels">
-        <div className="opp-label">{card.nominativeLabel}</div>
-        <div className="opp-label opp-label--secondary">{card.objectLabel}</div>
-      </div>
+      <div className="session-label">{card.nominativeLabel}</div>
+      <div className="session-hint">{card.objectLabel}</div>
     </div>
   );
 }

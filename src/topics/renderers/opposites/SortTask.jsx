@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import "./Opposites.css";
 
-function SortCardImage({ topicId, card, className }) {
+function SortImage({ topicId, card }) {
   const url = useTopicFile(topicId, card?.image);
-  if (!url) return <div className={`opp-img opp-img--loading ${className ?? ""}`} />;
-  return <img className={`opp-img ${className ?? ""}`} src={url} alt="" draggable={false} />;
+  if (!url) return <div style={{ width: "100%", height: "100%", background: "#e0e0e0" }} />;
+  return <img src={url} alt="" draggable={false} />;
 }
 
 export default function SortTask({ task, topicId, onCorrect, onMistake }) {
@@ -40,13 +40,13 @@ export default function SortTask({ task, topicId, onCorrect, onMistake }) {
   const inRight  = cards.filter((item) => placements[item.card.id] === "right");
 
   return (
-    <div className="opp-sort session-body">
+    <div className="session-body opp-sort">
       <div className="opp-sort__zones">
         <div className={`opp-sort__zone${pending ? " opp-sort__zone--active" : ""}`} onClick={() => assignToZone("left")}>
           <div className="opp-sort__zone-label">{leftLabel}</div>
           {inLeft.map(({ card }) => (
             <div key={card.id} className="opp-sort__placed">
-              <SortCardImage topicId={topicId} card={card} className="opp-img" />
+              <SortImage topicId={topicId} card={card} />
             </div>
           ))}
         </div>
@@ -54,26 +54,23 @@ export default function SortTask({ task, topicId, onCorrect, onMistake }) {
           <div className="opp-sort__zone-label">{rightLabel}</div>
           {inRight.map(({ card }) => (
             <div key={card.id} className="opp-sort__placed">
-              <SortCardImage topicId={topicId} card={card} className="opp-img" />
+              <SortImage topicId={topicId} card={card} />
             </div>
           ))}
         </div>
       </div>
 
       <div className="opp-sort__hand">
-        {unplaced.map((item) => {
-          const isPending = pending?.card.id === item.card.id;
-          return (
-            <button
-              key={item.card.id}
-              className={`opp-sort__card${isPending ? " opp-sort__card--pending" : ""}`}
-              onClick={() => selectCard(item)}
-              disabled={done}
-            >
-              <SortCardImage topicId={topicId} card={item.card} />
-            </button>
-          );
-        })}
+        {unplaced.map((item) => (
+          <button
+            key={item.card.id}
+            className={`opp-sort__card${pending?.card.id === item.card.id ? " opp-sort__card--pending" : ""}`}
+            onClick={() => selectCard(item)}
+            disabled={done}
+          >
+            <SortImage topicId={topicId} card={item.card} />
+          </button>
+        ))}
       </div>
 
       <div className="opp-sort__hint">
