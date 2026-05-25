@@ -1,11 +1,23 @@
 {
   "meta": {
     "id": "magnetic_alphabet",
-    "version": "1.4.0",
+    "version": "1.7.0",
     "renderer": "magnetic_alphabet",
     "title": "Магнитная азбука",
     "avatar": "media/avatar.svg"
   },
+  "sentences": [
+    { "id": "s01", "text": "Мама мыла раму." },
+    { "id": "s02", "text": "У Тани кот." },
+    { "id": "s03", "text": "Дети идут в школу." },
+    { "id": "s04", "text": "Папа читает книгу." },
+    { "id": "s05", "text": "Собака сидит у дома." },
+    { "id": "s06", "text": "На столе стоит ваза." },
+    { "id": "s07", "text": "Кот пьёт молоко." },
+    { "id": "s08", "text": "Бабушка вяжет носки." },
+    { "id": "s09", "text": "Дети любят играть." },
+    { "id": "s10", "text": "Солнце светит ярко." }
+  ],
   "modes": [
     {
       "id": "magnetic_free",
@@ -40,6 +52,52 @@
           "values": ["abv", "qwerty"],
           "labels": { "ru": { "abv": "АБВ", "qwerty": "ЙЦУКЕН" } },
           "default": "abv"
+        }
+      }
+    },
+    {
+      "id": "magnetic_sentence",
+      "type": "magnetic_sentence",
+      "evaluation": "none",
+      "ui": {
+        "title": "Предложение (текст)",
+        "instruction": "Прочитай предложение и составь его из букв, затем перепиши в тетрадь"
+      },
+      "params": {
+        "layout": {
+          "type": "enum",
+          "label": { "ru": "Раскладка" },
+          "values": ["abv", "qwerty"],
+          "labels": { "ru": { "abv": "АБВ", "qwerty": "ЙЦУКЕН" } },
+          "default": "abv"
+        },
+        "sentences": {
+          "type": "sentence_list",
+          "label": { "ru": "Предложения" },
+          "source": "topic.sentences"
+        }
+      }
+    },
+    {
+      "id": "magnetic_sentence_audio",
+      "type": "magnetic_sentence_audio",
+      "evaluation": "none",
+      "ui": {
+        "title": "Предложение (по памяти)",
+        "instruction": "Послушай предложение и составь его из букв по памяти, затем перепиши в тетрадь"
+      },
+      "params": {
+        "layout": {
+          "type": "enum",
+          "label": { "ru": "Раскладка" },
+          "values": ["abv", "qwerty"],
+          "labels": { "ru": { "abv": "АБВ", "qwerty": "ЙЦУКЕН" } },
+          "default": "abv"
+        },
+        "sentences": {
+          "type": "sentence_list",
+          "label": { "ru": "Предложения" },
+          "source": "topic.sentences"
         }
       }
     }
