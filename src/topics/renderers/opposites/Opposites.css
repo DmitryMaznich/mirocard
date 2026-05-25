@@ -4,6 +4,14 @@
   user-select: none;
 }
 
+.opp-intro .session-label {
+  transform: none;
+}
+
+.opp-intro .session-hint {
+  font-size: 0.8rem;
+}
+
 /* ── Pair comparison ────────────────────────────────── */
 .opp-pair {
   cursor: pointer;
@@ -40,15 +48,15 @@
 }
 
 .opp-pair__label {
-  font-size: clamp(1rem, 4vw, 1.4rem);
+  font-size: clamp(1.2rem, 5vw, 1.6rem);
   font-weight: 700;
   text-align: center;
   flex-shrink: 0;
 }
 
 .opp-pair__hint {
-  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
-  color: #888;
+  font-size: 0.7rem;
+  color: #999;
   flex-shrink: 0;
 }
 
