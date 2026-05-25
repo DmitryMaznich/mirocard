@@ -174,8 +174,8 @@
   100% { transform: translateX(0); }
 }
 
-/* ══ Landscape: card left, jars right ══ */
-@media (orientation: landscape) {
+/* ══ Phone landscape only (height ≤ 500px): card left, jars right ══ */
+@media (orientation: landscape) and (max-height: 500px) {
   .vc-screen {
     flex-direction: row;
     padding: 10px;
