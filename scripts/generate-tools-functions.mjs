@@ -10,7 +10,7 @@ import { createSign } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const VERSION = "1.4.5";
+const VERSION = "1.4.6";
 
 // ── Google TTS config ────────────────────────────────────────
 const SA_PATH = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
@@ -242,9 +242,9 @@ const CONCEPTS = [
     label: "Кусачки",
     needsForm: "нужны",
     labelInstrumental: "кусачками",
-    action: "режут проволоку",
-    actionInf: "резать проволоку",
-    sceneQuestion: "Нужно перекусить проволоку. Что взять?",
+    action: "режут проволоку и провода",
+    actionInf: "резать проволоку и провода",
+    sceneQuestion: "Нужно перекусить провод. Что взять?",
     toolPrompt: "wire cutters (diagonal cutting pliers), isolated, plain white background, square 1:1 composition, no text, no watermark",
     sceneProcessPrompt: "a hand holding wire cutters, cutting through a metal wire at the cutting point, square 1:1 composition, no text, no watermark",
     sceneBeforePrompt: "a long piece of wire lying on a clean surface, square 1:1 composition, no text",
