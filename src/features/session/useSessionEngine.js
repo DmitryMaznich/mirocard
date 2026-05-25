@@ -73,6 +73,9 @@ export function useSessionEngine() {
       const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
       const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;
       tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent, spSelected) : [];
+    } else if (renderer === "magnetic_alphabet") {
+      const generateTasks = ENGINE_REGISTRY["magnetic_alphabet"];
+      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
     } else {
       const generateTasks = ENGINE_REGISTRY[renderer];
       const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
