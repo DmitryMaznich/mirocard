@@ -61,6 +61,64 @@ function BooleanParam({ label, hint, value, onChange, disabled }) {
   );
 }
 
+function SentenceListParam({ label, predefined, value, onChange }) {
+  const selected = Array.isArray(value) ? value : [];
+  const [customText, setCustomText] = useState(() =>
+    selected.filter((s) => !predefined.some((p) => p.text === s)).join("\n")
+  );
+
+  function togglePredefined(text) {
+    if (selected.includes(text)) {
+      onChange(selected.filter((s) => s !== text));
+    } else {
+      onChange([...selected, text]);
+    }
+  }
+
+  function handleCustomChange(e) {
+    setCustomText(e.target.value);
+    const customLines = e.target.value
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const predefinedSelected = selected.filter((s) => predefined.some((p) => p.text === s));
+    onChange([...predefinedSelected, ...customLines]);
+  }
+
+  return (
+    <div className="param-row param-row--block param-sentence-list">
+      <div className="param-label">{label}</div>
+      <div className="param-sentence-list__body">
+        {predefined.length > 0 && (
+          <div className="param-sentence-list__predefined">
+            {predefined.map((s) => (
+              <label key={s.id} className="param-sentence-list__item">
+                <input
+                  type="checkbox"
+                  className="param-checkbox"
+                  checked={selected.includes(s.text)}
+                  onChange={() => togglePredefined(s.text)}
+                />
+                <span>{s.text}</span>
+              </label>
+            ))}
+          </div>
+        )}
+        <div className="param-sentence-list__custom">
+          <div className="param-hint">Свои предложения (по одному на строку):</div>
+          <textarea
+            className="param-sentence-textarea"
+            rows={3}
+            value={customText}
+            onChange={handleCustomChange}
+            placeholder="Например: Ваня читает книгу."
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function getModeTitle(mode) {
   return getTopicTitle(mode?.ui?.title) || mode?.id || "";
 }
@@ -313,6 +371,10 @@ export default function ParamsScreen() {
     const out = {};
     for (const [key, def] of Object.entries(modeParams)) {
       if (def.type === "concept_selector") continue;
+      if (def.type === "sentence_list") {
+        out[key] = saved[key] ?? [];
+        continue;
+      }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
     }
     return out;
@@ -451,10 +513,25 @@ export default function ParamsScreen() {
             />
           );
         }
+        if (def.type === "sentence_list") {
+          const predefined = topicRecord?.sentences ?? [];
+          return (
+            <SentenceListParam
+              key={key}
+              label={def.label?.ru ?? key}
+              predefined={predefined}
+              value={params[key] ?? []}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+            />
+          );
+        }
         return null;
       })}
     </>
   );
+
+  const hasSentenceListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "sentence_list");
+  const sentenceListEmpty = hasSentenceListParam && (params.sentences ?? []).length === 0;
 
   return (
     <div className="screen">
@@ -492,7 +569,7 @@ export default function ParamsScreen() {
             </div>
           )}
           <div className="params-info-start">
-            <Button fullWidth onClick={startSession}>Начать занятие</Button>
+            <Button fullWidth onClick={startSession} disabled={sentenceListEmpty}>Начать занятие</Button>
           </div>
         </div>
 
@@ -532,7 +609,7 @@ export default function ParamsScreen() {
 
           {/* Start button — phone only, hidden on tablet via CSS */}
           <div className="params-start-phone">
-            <Button fullWidth onClick={startSession}>Начать занятие</Button>
+            <Button fullWidth onClick={startSession} disabled={sentenceListEmpty}>Начать занятие</Button>
           </div>
         </div>
       </div>
