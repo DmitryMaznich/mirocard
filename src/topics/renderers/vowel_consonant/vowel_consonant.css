@@ -1,54 +1,56 @@
+/* ── Screen layout: letter card top, jars bottom ── */
 .vc-screen {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 12px;
-  padding-top: 28px;
+  padding: 12px 0 0;
   gap: 12px;
   box-sizing: border-box;
   user-select: none;
   touch-action: none;
-  background: #f8f9fb;
+  background: #f0f4f8;
 }
 
-/* ── Zones row ── */
-.vc-zones {
+/* ── Letter dock — grows to fill remaining space ── */
+.vc-dock {
+  flex: 1;
   display: flex;
-  gap: 10px;
-  flex: 1;
-  overflow: visible;
-  align-items: stretch;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px;
 }
 
-/* ── Jar body ── */
-.vc-zone {
-  flex: 1;
-  position: relative;
-  border-radius: 8px 8px 22px 22px;
-  border: 3px solid var(--zone-color);
+/* ── Jars row — fixed height at bottom ── */
+.vc-zones {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 24px;
+  /* visual height = jar cap (96px) + jar body */
+  height: calc(96px + clamp(150px, 32vh, 230px));
+  overflow: visible;
+}
+
+/* ── Jar wrapper — fixed width, each hugs its edge ── */
+.vc-zone-wrap {
+  width: 38%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 6px 10px;
-  gap: 8px;
-  background: color-mix(in srgb, var(--zone-color) 7%, #fff);
-  transition: background 0.15s, box-shadow 0.15s;
-  overflow: visible;
-  margin-top: 22px;
+  position: relative;
+  transition: filter 0.15s;
 }
 
-.vc-zone--active {
+.vc-zone-wrap--active .vc-jar-body {
   background: color-mix(in srgb, var(--zone-color) 18%, #fff);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--zone-color) 35%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--zone-color) 40%, transparent);
 }
 
-/* ── Jar cap (lid + ring, sits above the body) ── */
+/* ── Jar cap: lid + neck ring ── */
 .vc-jar-cap {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 58%;
+  flex-shrink: 0;
+  width: 52%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -57,69 +59,84 @@
 
 .vc-jar-lid {
   width: 100%;
-  height: 10px;
+  height: 32px;
   background: var(--zone-color);
-  border-radius: 5px 5px 0 0;
+  border-radius: 8px 8px 0 0;
 }
 
-.vc-jar-ring {
-  width: 110%;
-  height: 7px;
-  background: color-mix(in srgb, var(--zone-color) 75%, #000);
-  border-radius: 0 0 3px 3px;
+.vc-jar-neck {
+  width: 120%;
+  height: 64px;
+  background: color-mix(in srgb, var(--zone-color) 70%, #000 30%);
+  border-radius: 0 0 6px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
-/* ── Label sticker on jar body ── */
+.vc-jar-neck .vc-jar-label {
+  flex: 0 1 auto;
+  align-self: center;
+  margin-top: 0.6em;
+}
+
+/* ── Jar body ── */
+.vc-jar-body {
+  flex: 1;
+  width: 100%;
+  border: 2.5px solid var(--zone-color);
+  border-radius: 20px 20px 20px 20px;
+  background: color-mix(in srgb, var(--zone-color) 7%, #fff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 6px;
+  gap: 6px;
+  overflow: hidden;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+/* ── Label — lives on the neck rectangle ── */
 .vc-jar-label {
-  width: 90%;
-  background: #fff;
-  border: 2px solid var(--zone-color);
-  border-radius: 6px;
-  padding: 4px 6px;
-  font-size: clamp(0.65rem, 1.8vw, 0.85rem);
-  font-weight: 800;
-  color: var(--zone-color);
+  font-size: clamp(1.4rem, 3.8vw, 1.76rem);
+  font-weight: 700;
+  color: #fff;
   text-align: center;
   line-height: 1.2;
-  flex-shrink: 0;
+  pointer-events: none;
 }
 
-/* ── Placed letter chips inside jar ── */
+/* ── Placed letter chips ── */
 .vc-zone-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
   justify-content: center;
   overflow-y: auto;
   width: 100%;
+  align-content: flex-start;
 }
 
 .vc-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(24px, 7vw, 38px);
-  height: clamp(24px, 7vw, 38px);
+  width: clamp(33px, 9.75vw, 51px);
+  height: clamp(33px, 9.75vw, 51px);
   border-radius: 7px;
   background: var(--zone-color);
   color: #fff;
   font-weight: 800;
-  font-size: clamp(0.7rem, 2vw, 0.95rem);
-}
-
-/* ── Card dock ── */
-.vc-dock {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: clamp(100px, 20vw, 140px);
-  flex-shrink: 0;
+  font-size: clamp(0.98rem, 2.7vw, 1.32rem);
 }
 
 /* ── Draggable letter card ── */
 .vc-card {
-  width: clamp(82px, 22vw, 120px);
-  height: clamp(82px, 22vw, 120px);
+  width: clamp(90px, 24vw, 130px);
+  height: clamp(90px, 24vw, 130px);
   border-radius: 18px;
   background: #fff;
   border: 3px solid #e2e8f0;
@@ -127,7 +144,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(2rem, 9vw, 3.2rem);
+  font-size: clamp(2.2rem, 10vw, 3.5rem);
   font-weight: 900;
   color: #1e293b;
   cursor: grab;

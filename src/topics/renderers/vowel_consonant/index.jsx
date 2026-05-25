@@ -89,35 +89,6 @@ export default function VowelConsonantRenderer({
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
     >
-      <div className="vc-zones">
-        {zones.map((zone) => (
-          <div
-            key={zone.id}
-            ref={(el) => { zoneRefs.current[zone.id] = el; }}
-            className={`vc-zone${hoveredZone === zone.id ? " vc-zone--active" : ""}`}
-            style={{ "--zone-color": zone.color }}
-          >
-            {/* Jar cap — sits above the zone border */}
-            <div className="vc-jar-cap" aria-hidden="true">
-              <div className="vc-jar-lid" />
-              <div className="vc-jar-ring" />
-            </div>
-
-            {/* Label sticker on the jar body */}
-            <div className="vc-jar-label">{zone.label}</div>
-
-            {/* Placed letter chips */}
-            <div className="vc-zone-chips">
-              {letters
-                .filter((l) => placed[l.id] === zone.id)
-                .map((l) => (
-                  <span key={l.id} className="vc-chip">{l.letter}</span>
-                ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
       <div className="vc-dock">
         {done ? (
           <div className="vc-done">Все буквы разложены!</div>
@@ -129,6 +100,33 @@ export default function VowelConsonantRenderer({
             {current.letter}
           </div>
         ) : null}
+      </div>
+
+      <div className="vc-zones">
+        {zones.map((zone) => (
+          <div
+            key={zone.id}
+            ref={(el) => { zoneRefs.current[zone.id] = el; }}
+            className={`vc-zone-wrap${hoveredZone === zone.id ? " vc-zone-wrap--active" : ""}`}
+            style={{ "--zone-color": zone.color }}
+          >
+            <div className="vc-jar-cap" aria-hidden="true">
+              <div className="vc-jar-lid" />
+              <div className="vc-jar-neck">
+                <span className="vc-jar-label">{zone.label}</span>
+              </div>
+            </div>
+            <div className="vc-jar-body">
+              <div className="vc-zone-chips">
+                {letters
+                  .filter((l) => placed[l.id] === zone.id)
+                  .map((l) => (
+                    <span key={l.id} className="vc-chip">{l.letter}</span>
+                  ))}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {dragPos && current && (
