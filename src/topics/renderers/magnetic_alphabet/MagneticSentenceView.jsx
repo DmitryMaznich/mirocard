@@ -32,7 +32,13 @@ function ensureTrailing(lines) {
 }
 
 function normalize(text) {
-  return String(text || "").toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+  return String(text || "")
+    .normalize("NFC")
+    .toLowerCase()
+    .replace(/ё/g, "е")
+    .replace(/\s+([.,!?;:])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function getTextFromLines(lines) {
