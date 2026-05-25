@@ -15,16 +15,16 @@
     },
     {
       "id": "reading_dad_texts",
-      "version": "1.16.0",
+      "version": "1.17.0",
       "title": {
-        "ru": "Чтение. Готовим еду",
-        "en": "Reading: Cooking"
+        "ru": "Инструкции — рецепты",
+        "en": "Instructions: Recipes"
       },
       "description": {
         "ru": "Пошаговые инструкции для самостоятельных действий.",
         "en": "Step-by-step instructions for independent tasks."
       },
-      "url": "./decks/reading_dad_texts_v1.16.0.zip"
+      "url": "./decks/reading_dad_texts_v1.17.0.zip"
     },
     {
       "id": "emotions_v2",

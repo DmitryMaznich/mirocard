@@ -1,15 +1,30 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.15.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.16.0.zip";
-const NEW_VERSION = "1.16.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.16.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.17.0.zip";
+const NEW_VERSION = "1.17.0";
 const RECIPES_DIR = "content/recipes";
 
 const recipeIds = [
   "omelet", "mashed_potatoes", "pasta", "fried_eggs", "oatmeal",
   "salad", "chicken", "syrnik", "tea", "cocoa", "kompot", "lemonade",
 ];
+
+const TITLES = {
+  omelet:           { ru: "Омлет с колбасой",              en: "Omelette with Sausage" },
+  mashed_potatoes:  { ru: "Картофельное пюре",             en: "Mashed Potatoes" },
+  pasta:            { ru: "Макароны с маслом и сыром",     en: "Pasta with Butter and Cheese" },
+  fried_eggs:       { ru: "Яичница-глазунья",              en: "Fried Eggs" },
+  oatmeal:          { ru: "Овсяная каша на молоке",        en: "Oatmeal" },
+  salad:            { ru: "Салат из огурцов и помидоров",  en: "Cucumber and Tomato Salad" },
+  chicken:          { ru: "Курица в сливочном соусе",      en: "Chicken in Cream Sauce" },
+  syrnik:           { ru: "Сырники",                       en: "Cottage Cheese Pancakes" },
+  tea:              { ru: "Чай с мёдом",                   en: "Tea with Honey" },
+  cocoa:            { ru: "Какао",                         en: "Cocoa" },
+  kompot:           { ru: "Компот из ягод",                en: "Berry Compote" },
+  lemonade:         { ru: "Лимонад",                       en: "Lemonade" },
+};
 
 function countSteps(txt) {
   return txt.split("\n").filter(l => /^\d+\./.test(l)).length;
@@ -48,6 +63,7 @@ for (const oldText of oldTopic.texts) {
 
   textsManifest.push({
     ...oldText,
+    title: TITLES[id] ?? oldText.title,
     stepCount: steps,
   });
 
@@ -60,6 +76,11 @@ const newTopic = {
   meta: {
     ...oldTopic.meta,
     version: NEW_VERSION,
+    title: { ru: "Инструкции — рецепты", en: "Instructions: Recipes" },
+    description: {
+      ru: "Пошаговые инструкции для работы в группе под руководством шеф-повара.",
+      en: "Step-by-step instructions for group cooking sessions.",
+    },
   },
   texts: textsManifest,
 };
@@ -77,6 +98,7 @@ const deckIdx = catalog.decks.findIndex(d => d.id === "reading_dad_texts");
 if (deckIdx !== -1) {
   catalog.decks[deckIdx].version = NEW_VERSION;
   catalog.decks[deckIdx].url = `./decks/reading_dad_texts_v${NEW_VERSION}.zip`;
+  catalog.decks[deckIdx].title = { ru: "Инструкции — рецепты", en: "Instructions: Recipes" };
   writeFileSync("public/decks/catalog.json", JSON.stringify(catalog, null, 2));
   console.log("Обновлён catalog.json");
 }
