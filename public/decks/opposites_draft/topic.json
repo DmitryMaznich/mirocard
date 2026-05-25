@@ -100,7 +100,8 @@
       "nominativeLabel": "большая",
       "instructionLabel": "большую",
       "poleLabelPlural": "большие",
-      "primary": true
+      "primary": true,
+      "image": "media/big_dog_1.webp"
     },
     {
       "id": "small_dog",
@@ -112,7 +113,8 @@
       "nominativeLabel": "маленькая",
       "instructionLabel": "маленькую",
       "poleLabelPlural": "маленькие",
-      "primary": false
+      "primary": false,
+      "image": "media/small_dog_1.webp"
     },
     {
       "id": "big_ball",
@@ -124,7 +126,8 @@
       "nominativeLabel": "большой",
       "instructionLabel": "большой",
       "poleLabelPlural": "большие",
-      "primary": false
+      "primary": false,
+      "image": "media/big_ball_1.webp"
     },
     {
       "id": "small_ball",
@@ -136,7 +139,8 @@
       "nominativeLabel": "маленький",
       "instructionLabel": "маленький",
       "poleLabelPlural": "маленькие",
-      "primary": false
+      "primary": false,
+      "image": "media/small_ball_1.webp"
     },
     {
       "id": "big_car",
@@ -148,7 +152,8 @@
       "nominativeLabel": "большая",
       "instructionLabel": "большую",
       "poleLabelPlural": "большие",
-      "primary": false
+      "primary": false,
+      "image": "media/big_car_1.webp"
     },
     {
       "id": "small_car",
@@ -160,7 +165,8 @@
       "nominativeLabel": "маленькая",
       "instructionLabel": "маленькую",
       "poleLabelPlural": "маленькие",
-      "primary": false
+      "primary": false,
+      "image": "media/small_car_1.webp"
     },
     {
       "id": "big_house",
@@ -172,7 +178,8 @@
       "nominativeLabel": "большой",
       "instructionLabel": "большой",
       "poleLabelPlural": "большие",
-      "primary": false
+      "primary": false,
+      "image": "media/big_house_1.webp"
     },
     {
       "id": "small_house",
@@ -184,7 +191,8 @@
       "nominativeLabel": "маленький",
       "instructionLabel": "маленький",
       "poleLabelPlural": "маленькие",
-      "primary": false
+      "primary": false,
+      "image": "media/small_house_1.webp"
     },
     {
       "id": "big_cup",
@@ -196,7 +204,8 @@
       "nominativeLabel": "большая",
       "instructionLabel": "большую",
       "poleLabelPlural": "большие",
-      "primary": false
+      "primary": false,
+      "image": "media/big_cup_1.webp"
     },
     {
       "id": "small_cup",
@@ -208,7 +217,8 @@
       "nominativeLabel": "маленькая",
       "instructionLabel": "маленькую",
       "poleLabelPlural": "маленькие",
-      "primary": false
+      "primary": false,
+      "image": "media/small_cup_1.webp"
     }
   ]
 }
