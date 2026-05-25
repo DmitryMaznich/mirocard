@@ -1,0 +1,214 @@
+{
+  "meta": {
+    "id": "opposites",
+    "version": "1.0.0",
+    "renderer": "opposites",
+    "title": "Противоположности",
+    "avatar": "media/avatar.webp"
+  },
+  "modes": [
+    {
+      "id": "intro",
+      "type": "intro",
+      "evaluation": "none",
+      "ui": {
+        "title": "Знакомство",
+        "instruction": "Смотрим на карточки"
+      }
+    },
+    {
+      "id": "pair_comparison",
+      "type": "pair_comparison",
+      "evaluation": "none",
+      "ui": {
+        "title": "Сравниваем",
+        "instruction": "Посмотри на оба"
+      }
+    },
+    {
+      "id": "choose_two",
+      "type": "choose_two",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Покажи",
+        "instruction": "Найди нужную карточку"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "values": [2, 4],
+          "default": 2,
+          "label": { "ru": "Вариантов" }
+        },
+        "repsPerPair": {
+          "type": "number",
+          "default": 2,
+          "min": 1,
+          "max": 4,
+          "label": { "ru": "Повторений на пару" }
+        },
+        "mixPairs": {
+          "type": "boolean",
+          "default": false,
+          "label": { "ru": "Дистракторы из других пар" }
+        }
+      }
+    },
+    {
+      "id": "sort",
+      "type": "sort",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Сортировка",
+        "instruction": "Перетащи в нужную группу"
+      },
+      "params": {
+        "cardCount": {
+          "type": "enum",
+          "values": [4, 6, 8],
+          "default": 4,
+          "label": { "ru": "Карточек" }
+        }
+      }
+    },
+    {
+      "id": "find_all",
+      "type": "find_all",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Найди все",
+        "instruction": "Отметь все подходящие"
+      },
+      "params": {
+        "gridSize": {
+          "type": "enum",
+          "values": [4, 6],
+          "default": 6,
+          "label": { "ru": "Карточек в сетке" }
+        }
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "big_dog",
+      "conceptId": "big_small",
+      "pole": "left",
+      "objectId": "dog",
+      "objectLabel": "собака",
+      "poleLabel": "большой",
+      "nominativeLabel": "большая",
+      "instructionLabel": "большую",
+      "poleLabelPlural": "большие",
+      "primary": true
+    },
+    {
+      "id": "small_dog",
+      "conceptId": "big_small",
+      "pole": "right",
+      "objectId": "dog",
+      "objectLabel": "собака",
+      "poleLabel": "маленький",
+      "nominativeLabel": "маленькая",
+      "instructionLabel": "маленькую",
+      "poleLabelPlural": "маленькие",
+      "primary": false
+    },
+    {
+      "id": "big_ball",
+      "conceptId": "big_small",
+      "pole": "left",
+      "objectId": "ball",
+      "objectLabel": "мяч",
+      "poleLabel": "большой",
+      "nominativeLabel": "большой",
+      "instructionLabel": "большой",
+      "poleLabelPlural": "большие",
+      "primary": false
+    },
+    {
+      "id": "small_ball",
+      "conceptId": "big_small",
+      "pole": "right",
+      "objectId": "ball",
+      "objectLabel": "мяч",
+      "poleLabel": "маленький",
+      "nominativeLabel": "маленький",
+      "instructionLabel": "маленький",
+      "poleLabelPlural": "маленькие",
+      "primary": false
+    },
+    {
+      "id": "big_car",
+      "conceptId": "big_small",
+      "pole": "left",
+      "objectId": "car",
+      "objectLabel": "машина",
+      "poleLabel": "большой",
+      "nominativeLabel": "большая",
+      "instructionLabel": "большую",
+      "poleLabelPlural": "большие",
+      "primary": false
+    },
+    {
+      "id": "small_car",
+      "conceptId": "big_small",
+      "pole": "right",
+      "objectId": "car",
+      "objectLabel": "машина",
+      "poleLabel": "маленький",
+      "nominativeLabel": "маленькая",
+      "instructionLabel": "маленькую",
+      "poleLabelPlural": "маленькие",
+      "primary": false
+    },
+    {
+      "id": "big_house",
+      "conceptId": "big_small",
+      "pole": "left",
+      "objectId": "house",
+      "objectLabel": "дом",
+      "poleLabel": "большой",
+      "nominativeLabel": "большой",
+      "instructionLabel": "большой",
+      "poleLabelPlural": "большие",
+      "primary": false
+    },
+    {
+      "id": "small_house",
+      "conceptId": "big_small",
+      "pole": "right",
+      "objectId": "house",
+      "objectLabel": "дом",
+      "poleLabel": "маленький",
+      "nominativeLabel": "маленький",
+      "instructionLabel": "маленький",
+      "poleLabelPlural": "маленькие",
+      "primary": false
+    },
+    {
+      "id": "big_cup",
+      "conceptId": "big_small",
+      "pole": "left",
+      "objectId": "cup",
+      "objectLabel": "чашка",
+      "poleLabel": "большой",
+      "nominativeLabel": "большая",
+      "instructionLabel": "большую",
+      "poleLabelPlural": "большие",
+      "primary": false
+    },
+    {
+      "id": "small_cup",
+      "conceptId": "big_small",
+      "pole": "right",
+      "objectId": "cup",
+      "objectLabel": "чашка",
+      "poleLabel": "маленький",
+      "nominativeLabel": "маленькая",
+      "instructionLabel": "маленькую",
+      "poleLabelPlural": "маленькие",
+      "primary": false
+    }
+  ]
+}
