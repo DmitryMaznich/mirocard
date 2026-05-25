@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from "react";
 import "./magnetic_alphabet.css";
+import MagneticSentenceView from "./MagneticSentenceView";
 
 const DIGIT_ROW = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
@@ -45,7 +46,22 @@ function getTextFromLines(lines) {
     .join("\n");
 }
 
-export default function MagneticAlphabetRenderer({ task, mode, sessionParams, soundEnabled, playFeedback }) {
+export default function MagneticAlphabetRenderer({ task, mode, sessionParams, soundEnabled, playFeedback, topicId, playTopicFile, onAdvance }) {
+  if (mode?.type === "magnetic_sentence" || mode?.type === "magnetic_sentence_audio") {
+    return (
+      <MagneticSentenceView
+        task={task}
+        mode={mode}
+        topicId={topicId}
+        sessionParams={sessionParams}
+        soundEnabled={soundEnabled}
+        playTopicFile={playTopicFile}
+        playFeedback={playFeedback}
+        onAdvance={onAdvance}
+      />
+    );
+  }
+
   const layout     = sessionParams?.layout ?? "abv";
   const isWords    = mode?.type === "magnetic_words";
   const kbRows     = layout === "qwerty" ? QWERTY_ROWS : ABV_ROWS;
