@@ -24,6 +24,7 @@ export default function VowelConsonantRenderer({
   const [shaking,     setShaking]     = useState(false);
 
   const zoneRefs     = useRef({});
+  const screenRef    = useRef(null);
   const pointerIdRef = useRef(null);
 
   const remaining = letters.filter((l) => !placed[l.id]);
@@ -41,7 +42,8 @@ export default function VowelConsonantRenderer({
   const handlePointerDown = useCallback((e) => {
     if (!current) return;
     e.preventDefault();
-    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+    // Capture on the stable screen element so pointer events survive card unmount during drag
+    try { screenRef.current?.setPointerCapture(e.pointerId); } catch {}
     pointerIdRef.current = e.pointerId;
     setDragPos({ x: e.clientX, y: e.clientY });
   }, [current]);
@@ -84,6 +86,7 @@ export default function VowelConsonantRenderer({
 
   return (
     <div
+      ref={screenRef}
       className="vc-screen"
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
