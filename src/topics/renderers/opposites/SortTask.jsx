@@ -1,11 +1,18 @@
 import { useState } from "react";
+import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import "./Opposites.css";
 
-export default function SortTask({ task, onCorrect, onMistake }) {
+function SortCardImage({ topicId, card, className }) {
+  const url = useTopicFile(topicId, card?.image);
+  if (!url) return <div className={`opp-img opp-img--loading ${className ?? ""}`} />;
+  return <img className={`opp-img ${className ?? ""}`} src={url} alt="" draggable={false} />;
+}
+
+export default function SortTask({ task, topicId, onCorrect, onMistake }) {
   const { leftLabel, rightLabel, cards } = task;
   const [placements, setPlacements] = useState({});
-  const [pending,    setPending]    = useState(null);
-  const [done,       setDone]       = useState(false);
+  const [pending, setPending]       = useState(null);
+  const [done, setDone]             = useState(false);
 
   function selectCard(item) {
     if (done || placements[item.card.id]) return;
@@ -32,34 +39,29 @@ export default function SortTask({ task, onCorrect, onMistake }) {
   const inLeft   = cards.filter((item) => placements[item.card.id] === "left");
   const inRight  = cards.filter((item) => placements[item.card.id] === "right");
 
-  function PlacedCard({ card }) {
-    const imgSrc = card.imageUrl ?? card.photo ?? null;
-    return (
-      <div className="opp-sort__placed">
-        {imgSrc
-          ? <img className="opp-card__img" src={imgSrc} alt={card.nominativeLabel} />
-          : <span>{card.nominativeLabel}</span>
-        }
-      </div>
-    );
-  }
-
   return (
-    <div className="opp-sort">
+    <div className="opp-sort session-body">
       <div className="opp-sort__zones">
         <div className={`opp-sort__zone${pending ? " opp-sort__zone--active" : ""}`} onClick={() => assignToZone("left")}>
           <div className="opp-sort__zone-label">{leftLabel}</div>
-          {inLeft.map(({ card }) => <PlacedCard key={card.id} card={card} />)}
+          {inLeft.map(({ card }) => (
+            <div key={card.id} className="opp-sort__placed">
+              <SortCardImage topicId={topicId} card={card} className="opp-img" />
+            </div>
+          ))}
         </div>
         <div className={`opp-sort__zone${pending ? " opp-sort__zone--active" : ""}`} onClick={() => assignToZone("right")}>
           <div className="opp-sort__zone-label">{rightLabel}</div>
-          {inRight.map(({ card }) => <PlacedCard key={card.id} card={card} />)}
+          {inRight.map(({ card }) => (
+            <div key={card.id} className="opp-sort__placed">
+              <SortCardImage topicId={topicId} card={card} className="opp-img" />
+            </div>
+          ))}
         </div>
       </div>
 
       <div className="opp-sort__hand">
         {unplaced.map((item) => {
-          const imgSrc    = item.card.imageUrl ?? item.card.photo ?? null;
           const isPending = pending?.card.id === item.card.id;
           return (
             <button
@@ -68,10 +70,7 @@ export default function SortTask({ task, onCorrect, onMistake }) {
               onClick={() => selectCard(item)}
               disabled={done}
             >
-              {imgSrc
-                ? <img className="opp-card__img" src={imgSrc} alt={item.card.nominativeLabel} />
-                : <div className="opp-card__placeholder">{item.card.nominativeLabel}</div>
-              }
+              <SortCardImage topicId={topicId} card={item.card} />
             </button>
           );
         })}

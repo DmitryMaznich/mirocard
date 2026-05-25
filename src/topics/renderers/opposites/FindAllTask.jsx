@@ -1,7 +1,26 @@
 import { useState } from "react";
+import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import "./Opposites.css";
 
-export default function FindAllTask({ task, onCorrect, onIncorrect }) {
+function GridCard({ topicId, card, isSelected, submitted, isCorrect, onClick }) {
+  const url = useTopicFile(topicId, card?.image);
+  let mod = "";
+  if (submitted && isCorrect)       mod = "opp-grid-card--correct";
+  else if (submitted && isSelected) mod = "opp-grid-card--wrong";
+  else if (isSelected)              mod = "opp-grid-card--selected";
+
+  return (
+    <button className={`opp-grid-card${mod ? " " + mod : ""}`} onClick={onClick} disabled={submitted}>
+      {url
+        ? <img className="opp-img" src={url} alt="" draggable={false} style={{ height: "auto", aspectRatio: "1" }} />
+        : <div className="opp-img opp-img--loading" style={{ height: "auto", aspectRatio: "1" }} />
+      }
+      <div className="opp-grid-card__label">{card.nominativeLabel}</div>
+    </button>
+  );
+}
+
+export default function FindAllTask({ task, topicId, onCorrect, onIncorrect }) {
   const { targetLabel, allCards, correctCardIds } = task;
   const correctSet = new Set(correctCardIds);
   const [selected, setSelected]   = useState(new Set());
@@ -27,27 +46,20 @@ export default function FindAllTask({ task, onCorrect, onIncorrect }) {
   }
 
   return (
-    <div className="opp-findall">
+    <div className="opp-findall session-body">
       <div className="opp-instruction">Найди все: {targetLabel}</div>
       <div className="opp-grid">
-        {allCards.map((card) => {
-          const imgSrc     = card.imageUrl ?? card.photo ?? null;
-          const isSelected = selected.has(card.id);
-          let cls = "opp-grid-card";
-          if (submitted && correctSet.has(card.id))  cls += " opp-grid-card--correct";
-          else if (submitted && isSelected)           cls += " opp-grid-card--wrong";
-          else if (isSelected)                        cls += " opp-grid-card--selected";
-
-          return (
-            <button key={card.id} className={cls} onClick={() => toggle(card.id)} disabled={submitted}>
-              {imgSrc
-                ? <img className="opp-card__img" src={imgSrc} alt={card.nominativeLabel} />
-                : <div className="opp-card__placeholder">{card.nominativeLabel}<br />{card.objectLabel}</div>
-              }
-              <div className="opp-grid-card__label">{card.nominativeLabel}</div>
-            </button>
-          );
-        })}
+        {allCards.map((card) => (
+          <GridCard
+            key={card.id}
+            topicId={topicId}
+            card={card}
+            isSelected={selected.has(card.id)}
+            submitted={submitted}
+            isCorrect={correctSet.has(card.id)}
+            onClick={() => toggle(card.id)}
+          />
+        ))}
       </div>
       <button
         className="opp-submit-btn"
