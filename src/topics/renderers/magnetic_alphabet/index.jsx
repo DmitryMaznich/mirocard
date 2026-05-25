@@ -196,6 +196,10 @@ export default function MagneticAlphabetRenderer({ task, mode, sessionParams, so
       onPointerUp={handleUp}
       onPointerCancel={handleUp}
     >
+      {mode?.ui?.instruction && (
+        <div className="mag-instruction-bar">{mode.ui.instruction}</div>
+      )}
+
       {isWords && (
         <div className="mag-prompt-bar">
           <input

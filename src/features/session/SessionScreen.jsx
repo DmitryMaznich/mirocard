@@ -138,7 +138,7 @@ export default function SessionScreen() {
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
 
-    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction") {
+    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction" || mode?.type === "listen_write_letters") {
       setManualAdvanceGate({ key: null, state: null });
       onAdvance();
       return;

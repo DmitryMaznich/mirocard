@@ -131,8 +131,21 @@
       "url": "./decks/sentence_puzzle_v1.10.0.zip"
     },
     {
+      "id": "vowel_consonant_ru",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Гласные и согласные",
+        "en": "Vowels and Consonants"
+      },
+      "description": {
+        "ru": "31 буква русского алфавита. Перетащи каждую букву в группу гласных или согласных.",
+        "en": "31 Russian letters. Drag each letter into the vowel or consonant group."
+      },
+      "url": "./decks/vowel_consonant_ru_v1.0.0.zip"
+    },
+    {
       "id": "magnetic_alphabet",
-      "version": "1.5.0",
+      "version": "1.6.1",
       "title": {
         "ru": "Магнитная азбука",
         "en": "Magnetic Alphabet"
@@ -141,7 +154,7 @@
         "ru": "33 буквы русского алфавита на магнитной доске. Составляй слова и предложения из букв. Гласные — красные, согласные — синие.",
         "en": "33 Russian letters on a magnetic board. Build words and sentences by dragging letters. Vowels in red, consonants in blue."
       },
-      "url": "./decks/magnetic_alphabet_v1.5.0.zip"
+      "url": "./decks/magnetic_alphabet_v1.6.1.zip"
     },
     {
       "id": "tools_functions",

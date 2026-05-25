@@ -15,6 +15,7 @@ export default function SentencePuzzleRenderer(props) {
         playTopicFile={props.playTopicFile}
         playFeedback={props.playFeedback}
         onCorrect={props.onCorrect}
+        onAdvance={props.onAdvance}
       />
     );
   }

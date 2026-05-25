@@ -38,7 +38,12 @@ function ensureTrailing(lines) {
 }
 
 function normalize(t) {
-  return String(t || "").toLowerCase().replace(/\s+/g, " ").trim();
+  return String(t || "")
+    .normalize("NFC")
+    .toLowerCase()
+    .replace(/ё/g, "е")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function linesText(lines) {
@@ -64,7 +69,7 @@ function speakRu(text, { onStart, onEnd } = {}) {
 }
 
 export default function LetterWriteView({
-  task, sessionParams, topicId, soundEnabled, playTopicFile, playFeedback, onCorrect,
+  task, sessionParams, topicId, soundEnabled, playTopicFile, playFeedback, onCorrect, onAdvance,
 }) {
   const layout     = sessionParams?.layout ?? "abv";
   const kbRows     = layout === "qwerty" ? QWERTY_ROWS : ABV_ROWS;
@@ -215,11 +220,18 @@ export default function LetterWriteView({
   function handleCheck() {
     if (checkResult) return;
     const assembled = linesText(lines);
-    const correct   = normalize(assembled) === normalize(targetText);
-    if (soundEnabled) playFeedback?.(correct ? "correct" : "incorrect");
+    const normA = normalize(assembled);
+    const normT = normalize(targetText);
+    if (normA !== normT) {
+      console.log("[lw-check] assembled:", JSON.stringify(normA));
+      console.log("[lw-check] target:  ", JSON.stringify(normT));
+    }
+    const correct = normA === normT;
+    if (soundEnabled && !correct) playFeedback?.("incorrect");
     setCheckResult(correct ? "correct" : "incorrect");
     if (correct) {
-      setTimeout(() => onCorrect(), 800);
+      onCorrect();
+      setTimeout(() => onAdvance?.(), 1500);
     } else {
       setTimeout(() => setCheckResult(null), 1500);
     }
