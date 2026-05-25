@@ -569,6 +569,9 @@ const DEFAULT_MODES = {
         instruction: "Перетащи каждую букву в нужную группу",
         icon: "media/icons/sort_letters.svg",
       },
+      params: {
+        singCheck: { type: "boolean", label: { ru: "Рожица-проверялка" }, default: false },
+      },
     },
   ],
   addition_subtraction: [

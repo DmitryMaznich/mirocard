@@ -1,4 +1,4 @@
-export function generateTasks(mode, cards) {
+export function generateTasks(mode, cards, _sessionSize, sessionParams) {
   const allCards = Array.isArray(cards) ? cards : (cards?.cards ?? []);
   const letters = allCards
     .filter((c) => c.params?.category)
@@ -10,7 +10,8 @@ export function generateTasks(mode, cards) {
 
   if (mode.type === "sort_letters") {
     const shuffled = [...letters].sort(() => Math.random() - 0.5);
-    return [{ type: "sort_letters", letters: shuffled }];
+    const singCheck = Boolean(sessionParams?.singCheck);
+    return [{ type: "sort_letters", letters: shuffled, singCheck }];
   }
   return [];
 }
