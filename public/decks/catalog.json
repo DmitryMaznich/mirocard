@@ -181,6 +181,17 @@
         "en": "27 cards in three sets: Brewing Methods, Equipment and Tools, Vetrano 2B Machine Parts."
       },
       "url": "./decks/coffee_v1.0.0.zip"
+    },
+    {
+      "id": "opposites",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Противоположности"
+      },
+      "description": {
+        "ru": "Пара признаков «большой / маленький» на 5 объектах. 5 режимов: знакомство, сравнение, выбор, сортировка, найди все."
+      },
+      "url": "./decks/opposites_draft.zip"
     }
   ]
 }
