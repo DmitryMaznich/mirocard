@@ -165,7 +165,7 @@
 }
 
 .opp-sort__zone {
-  border: 2.5px dashed #ccc;
+  border: 2.5px solid #ccc;
   border-radius: 14px;
   padding: 8px;
   display: flex;
@@ -175,10 +175,12 @@
   overflow-y: auto;
   transition: border-color 0.15s, background 0.15s;
 }
-.opp-sort__zone--active { border-color: #2196f3; background: #e3f2fd; }
+.opp-sort__zone--left  { background: #e3f2fd; border-color: #90caf9; }
+.opp-sort__zone--right { background: #fff3e0; border-color: #ffcc80; }
+.opp-sort__zone--active { border-color: #1565c0; background: #bbdefb; }
 
 .opp-sort__zone-label {
-  font-size: clamp(0.8rem, 3vw, 1rem);
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
   font-weight: 700;
   color: #333;
   text-align: center;
