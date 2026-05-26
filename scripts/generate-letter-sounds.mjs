@@ -11,7 +11,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT      = join(__dirname, "..");
 const SA_PATH   = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
 const OUT_DIR   = join(ROOT, "public/sounds/letters");
-const VOICE     = "ru-RU-Wavenet-D";
+const VOICE       = "ru-RU-Wavenet-D";
+const VOICE_VOWEL = "ru-RU-Wavenet-A"; // female — sounds more musical for sustained vowels
 
 const VOWELS = new Set(["А","Е","Ё","И","О","У","Ы","Э","Ю","Я"]);
 
@@ -26,9 +27,9 @@ function buildRequest(letter) {
   const lo = letter.toLowerCase();
   if (VOWELS.has(letter)) {
     return {
-      input: { text: lo.repeat(14) },
-      voice: { languageCode: "ru-RU", name: VOICE },
-      audioConfig: { audioEncoding: "MP3", speakingRate: 0.28, pitch: 2.0 },
+      input: { ssml: `<speak><prosody rate="8%" pitch="+8st">${lo}</prosody></speak>` },
+      voice: { languageCode: "ru-RU", name: VOICE_VOWEL },
+      audioConfig: { audioEncoding: "MP3" },
     };
   }
   // Signs (Ъ, Ь) → neutral single pronunciation
