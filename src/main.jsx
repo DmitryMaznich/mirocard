@@ -36,7 +36,6 @@ if ("serviceWorker" in navigator) {
 
   navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" })
     .then((registration) => {
-      registration.waiting?.postMessage({ type: "SKIP_WAITING" });
       registration.addEventListener("updatefound", () => {
         // Don't send SKIP_WAITING automatically during an active session.
         // HomeScreen detects the waiting SW and shows an "Обновить" button.

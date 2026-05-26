@@ -16,7 +16,8 @@
       "PowerShell(npm run deploy:prod -- --allow-dirty 2>&1)",
       "Bash(mkdir -p \"C:/Users/dmazn/.claude/skills/new-objects-deck\")",
       "Bash(cat)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "PowerShell(cd C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\public\\\\decks; $zip = [System.IO.Compression.ZipFile]::OpenRead\\(\"clothes_basic_v1.1.0.zip\"\\); $entry = $zip.Entries | Where-Object {$_.Name -eq \"deck.json\"}; $stream = $entry.Open\\(\\); $reader = [System.IO.StreamReader]::new\\($stream\\); $content = $reader.ReadToEnd\\(\\); $reader.Close\\(\\); $stream.Close\\(\\); $zip.Dispose\\(\\); $parsed = $content | ConvertFrom-Json; $parsed.cards[0] | ConvertTo-Json -Depth 3)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"

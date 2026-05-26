@@ -59,23 +59,20 @@ afterEach(() => {
 describe("useBackButtonGuard", () => {
   it("keeps the app on home when browser back is pressed", () => {
     resetStore("home");
-    const pushSpy = vi.spyOn(window.history, "pushState");
+    const goSpy = vi.spyOn(window.history, "go").mockImplementation(() => {});
 
     act(() => {
       root.render(<GuardHost />);
     });
-    pushSpy.mockClear();
+    goSpy.mockClear();
 
     act(() => {
       pressBrowserBack();
     });
 
     expect(useAppStore.getState().screen).toBe("home");
-    expect(pushSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ mirocardBackGuard: true }),
-      "",
-      expect.stringMatching(/#_guard_\d+$/),
-    );
+    expect(goSpy).toHaveBeenCalledWith(expect.any(Number));
+    expect(goSpy.mock.calls[0][0]).toBeGreaterThan(0);
   });
 
   it("routes regular screens to their app-level parent", () => {
@@ -104,6 +101,42 @@ describe("useBackButtonGuard", () => {
 
     expect(useAppStore.getState().screen).toBe("session");
     expect(onRequestSessionExit).toHaveBeenCalledTimes(1);
+  });
+
+  it("installs a deep same-url guard stack on app start", () => {
+    resetStore("home");
+    const pushSpy = vi.spyOn(window.history, "pushState");
+
+    act(() => {
+      root.render(<GuardHost />);
+    });
+
+    expect(pushSpy).toHaveBeenCalledTimes(64);
+    expect(window.history.state).toEqual(
+      expect.objectContaining({
+        mirocardBackGuard: true,
+        guardSequence: expect.any(Number),
+      }),
+    );
+
+    act(() => {
+      pressBrowserBack();
+    });
+
+    expect(useAppStore.getState().screen).toBe("home");
+  });
+
+  it("adds a native unload fallback only during active sessions", () => {
+    resetStore("session");
+
+    act(() => {
+      root.render(<GuardHost />);
+    });
+
+    const event = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
   });
 
   it("closes the timer before app navigation", () => {

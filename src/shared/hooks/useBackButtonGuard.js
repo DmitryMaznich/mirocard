@@ -2,28 +2,25 @@ import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
 
-// Keep GUARD_DEPTH history entries ahead of root so rapid-fire back presses
-// (before JS can rebound) can't escape the app. Each entry uses a unique URL
-// so Chrome Android never silently drops the pushState.
-const GUARD_DEPTH = 3;
+const BACK_GUARD_DEPTH = 64;
 
 let guardSequence = 0;
 let guardTopSequence = 0;
 let lastObservedSequence = 0;
 let lastHandledBackAt = 0;
 
-function baseUrl() {
-  return window.location.href.replace(/#.*$/, "");
-}
-
-function guardUrl(seq) {
-  return `${baseUrl()}#_guard_${seq}`;
-}
-
 function getGuardSequence(state) {
   return state?.mirocardBackGuard && Number.isFinite(state.guardSequence)
     ? state.guardSequence
     : 0;
+}
+
+function rootStateFrom(state) {
+  const nextState = { ...(state ?? {}) };
+  delete nextState.mirocardBackGuard;
+  nextState.mirocardBackRoot = true;
+  nextState.guardSequence = 0;
+  return nextState;
 }
 
 function pushGuardEntries(count) {
@@ -32,7 +29,7 @@ function pushGuardEntries(count) {
     window.history.pushState(
       { mirocardBackGuard: true, guardSequence },
       "",
-      guardUrl(guardSequence),
+      window.location.href,
     );
   }
   guardTopSequence = guardSequence;
@@ -41,32 +38,24 @@ function pushGuardEntries(count) {
 
 function installBackGuardStack() {
   const currentState = window.history.state;
+  const currentSequence = getGuardSequence(currentState);
 
   if (currentState?.mirocardBackGuard) {
-    const sequence = getGuardSequence(currentState);
-    guardSequence    = Math.max(guardSequence, sequence);
-    guardTopSequence = Math.max(guardTopSequence, sequence);
-    lastObservedSequence = sequence;
+    guardSequence = Math.max(guardSequence, currentSequence);
+    guardTopSequence = Math.max(guardTopSequence, currentSequence);
+    lastObservedSequence = currentSequence;
     return;
   }
 
-  const rootUrl = window.location.href.replace(/#.*$/, "");
-  if (!currentState?.mirocardBackRoot) {
-    window.history.replaceState(
-      { ...(currentState ?? {}), mirocardBackRoot: true, guardSequence: 0 },
-      "",
-      rootUrl,
-    );
-  }
+  guardSequence = Math.max(guardSequence, guardTopSequence, currentSequence);
+  window.history.replaceState(rootStateFrom(currentState), "", window.location.href);
 
-  pushGuardEntries(GUARD_DEPTH);
+  pushGuardEntries(BACK_GUARD_DEPTH);
 }
 
 function reboundToGuardTop(sequence) {
   if (sequence >= guardTopSequence) return;
-  // Always restore a full GUARD_DEPTH buffer so subsequent rapid-fire back
-  // presses (queued before this rebound fires) are also absorbed.
-  pushGuardEntries(GUARD_DEPTH);
+  window.history.go(guardTopSequence - sequence);
 }
 
 export function useBackButtonGuard({
@@ -137,7 +126,29 @@ export function useBackButtonGuard({
       }
     }
 
+    function ensureGuardAfterResume() {
+      if (document.visibilityState === "hidden") return;
+      if (window.history.state?.mirocardBackGuard) return;
+      installBackGuardStack();
+    }
+
+    function handleBeforeUnload(event) {
+      if (useAppStore.getState().screen !== "session") return;
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    window.addEventListener("pageshow", ensureGuardAfterResume);
+    window.addEventListener("focus", ensureGuardAfterResume);
+    document.addEventListener("visibilitychange", ensureGuardAfterResume);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("pageshow", ensureGuardAfterResume);
+      window.removeEventListener("focus", ensureGuardAfterResume);
+      document.removeEventListener("visibilitychange", ensureGuardAfterResume);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, []);
 }
