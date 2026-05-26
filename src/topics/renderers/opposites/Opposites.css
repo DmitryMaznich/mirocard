@@ -136,7 +136,8 @@
 .opp-submit-btn:disabled { background: #ccc; cursor: default; }
 
 /* ── Sort ───────────────────────────────────────────── */
-/* Portrait: hand top, zones bottom. Landscape: hand left, zones right */
+/* Portrait: hand top (flex:1, cards align-start), zones bottom (fixed height).
+   Landscape: hand left (fixed width), zones right (fill). */
 
 .opp-sort {
   padding: 12px;
@@ -145,36 +146,40 @@
   align-items: stretch;
 }
 
+/* Hand fills remaining space; cards sit at top of that area */
 .opp-sort__hand {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  align-content: start;
   gap: 8px;
-  flex-shrink: 0;
+  flex: 1;
+  min-height: 0;
 }
 
+/* Zones: fixed shorter height at bottom */
 .opp-sort__zones {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  flex: 1;
-  min-height: 0;
+  height: min(190px, 36vh);
+  flex-shrink: 0;
 }
 
 .opp-sort__zone {
   border: 2.5px dashed #ccc;
   border-radius: 14px;
-  padding: 10px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   overflow-y: auto;
   transition: border-color 0.15s, background 0.15s;
 }
 .opp-sort__zone--active { border-color: #2196f3; background: #e3f2fd; }
 
 .opp-sort__zone-label {
-  font-size: clamp(0.85rem, 3vw, 1.1rem);
+  font-size: clamp(0.8rem, 3vw, 1rem);
   font-weight: 700;
   color: #333;
   text-align: center;
@@ -184,7 +189,7 @@
 }
 
 .opp-sort__placed {
-  width: clamp(44px, 10vw, 72px);
+  width: clamp(36px, 8vw, 60px);
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
@@ -198,6 +203,7 @@
   display: block;
 }
 
+/* Card fills grid cell */
 .opp-sort__card {
   width: 100%;
   aspect-ratio: 1;
@@ -241,10 +247,11 @@
   text-align: center;
   color: #888;
   font-size: clamp(0.8rem, 3vw, 0.95rem);
-  min-height: 20px;
+  min-height: 18px;
   flex-shrink: 0;
 }
 
+/* Landscape: hand left (2-col grid), zones right (fill) */
 @media (orientation: landscape) {
   .opp-sort {
     flex-direction: row;
@@ -254,13 +261,14 @@
   .opp-sort__hand {
     grid-template-columns: repeat(2, 1fr);
     align-content: start;
+    flex: 0 0 auto;
     width: clamp(110px, 26vw, 190px);
     gap: 6px;
   }
 
   .opp-sort__zones {
     flex: 1;
-    grid-template-columns: 1fr 1fr;
+    height: auto;
   }
 
   .opp-sort__hint { display: none; }
