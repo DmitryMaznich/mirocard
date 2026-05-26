@@ -68,6 +68,7 @@
 }
 
 .vc-jar-neck {
+  position: relative;
   width: 120%;
   height: 64px;
   background: color-mix(in srgb, var(--zone-color) 70%, #000 30%);
@@ -77,7 +78,22 @@
   justify-content: center;
   padding: 4px 8px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
+}
+
+/* DEBUG: center of rectangle */
+.vc-jar-neck::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  z-index: 100;
+  pointer-events: none;
 }
 
 /* ── Jar body ── */
