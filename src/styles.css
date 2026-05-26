@@ -10393,13 +10393,13 @@ button {
 }
 
 .mag-screen {
-  position: fixed;
-  inset: 0;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   background: #fdfcf9;
   touch-action: none;
-  z-index: 120;
+  overflow: hidden;
 }
 
 .mag-exit-btn {
