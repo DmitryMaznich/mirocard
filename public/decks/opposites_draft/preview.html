@@ -24,31 +24,42 @@
 
 <script>
 const cards = [
-  { conceptId:"big_small", pole:"left",  id:"big_dog",        label:"большая собака",   file:"media/big_dog_1.webp",        primary:true  },
-  { conceptId:"big_small", pole:"right", id:"small_dog",      label:"маленькая собака", file:"media/small_dog_1.webp",      primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_ball",       label:"большой мяч",      file:"media/big_ball_1.webp",       primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_ball",     label:"маленький мяч",    file:"media/small_ball_1.webp",     primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_car",        label:"большая машина",   file:"media/big_car_1.webp",        primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_car",      label:"маленькая машина", file:"media/small_car_1.webp",      primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_house",      label:"большой дом",      file:"media/big_house_1.webp",      primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_house",    label:"маленький дом",    file:"media/small_house_1.webp",    primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_cup",        label:"большая чашка",    file:"media/big_cup_1.webp",        primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_cup",      label:"маленькая чашка",  file:"media/small_cup_1.webp",      primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_cat_1",      label:"большая кошка",    file:"media/big_cat_1.webp",        primary:true  },
+  { conceptId:"big_small", pole:"right", id:"small_cat_1",    label:"маленькая кошка",  file:"media/small_cat_1.webp",      primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_ball_1",     label:"большой мяч",      file:"media/big_ball_1.webp",       primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_ball_1",   label:"маленький мяч",    file:"media/small_ball_1.webp",     primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_car_1",      label:"большая машина",   file:"media/big_car_1.webp",        primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_car_1",    label:"маленькая машина", file:"media/small_car_1.webp",      primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_cake_1",     label:"большой торт",     file:"media/big_cake_1.webp",       primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_cake_1",   label:"маленький торт",   file:"media/small_cake_1.webp",     primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_cup_1",      label:"большая чашка",    file:"media/big_cup_1.webp",        primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_cup_1",    label:"маленькая чашка",  file:"media/small_cup_1.webp",      primary:false },
 
-  { conceptId:"tall_short", pole:"left",  id:"tall_giraffe",   label:"высокий жираф",    file:"media/tall_giraffe_1.webp",   primary:true  },
-  { conceptId:"tall_short", pole:"right", id:"short_dachshund",label:"низкая такса",     file:"media/short_dachshund_1.webp",primary:true  },
-  { conceptId:"tall_short", pole:"left",  id:"tall_person",    label:"высокий человек",  file:"media/tall_person_1.webp",    primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_child",    label:"низкий ребёнок",   file:"media/short_child_1.webp",    primary:false },
-  { conceptId:"tall_short", pole:"left",  id:"tall_tree",      label:"высокое дерево",   file:"media/tall_tree_1.webp",      primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_bush",     label:"низкий куст",      file:"media/short_bush_1.webp",     primary:false },
-  { conceptId:"tall_short", pole:"left",  id:"tall_building",  label:"высокий дом",      file:"media/tall_building_1.webp",  primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_house",    label:"низкий домик",     file:"media/short_house_1.webp",    primary:false },
-  { conceptId:"tall_short", pole:"left",  id:"tall_mountain",  label:"высокая гора",     file:"media/tall_mountain_1.webp",  primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_hill",     label:"низкая горка",     file:"media/short_hill_1.webp",     primary:false },
+  { conceptId:"tall_short", pole:"left",  id:"tall_dog_1",      label:"высокая собака",   file:"media/tall_dog_1.webp",       primary:true  },
+  { conceptId:"tall_short", pole:"right", id:"short_dog_1",     label:"низкая собака",    file:"media/short_dog_1.webp",      primary:true  },
+  { conceptId:"tall_short", pole:"left",  id:"tall_person_1",   label:"высокий человек",  file:"media/tall_person_1.webp",    primary:false },
+  { conceptId:"tall_short", pole:"right", id:"short_person_1",  label:"низкий человек",   file:"media/short_person_1.webp",   primary:false },
+  { conceptId:"tall_short", pole:"left",  id:"tall_tree_1",     label:"высокое дерево",   file:"media/tall_tree_1.webp",      primary:false },
+  { conceptId:"tall_short", pole:"right", id:"short_bush_1",    label:"низкий куст",      file:"media/short_bush_1.webp",     primary:false },
+  { conceptId:"tall_short", pole:"left",  id:"tall_building_1", label:"высокий дом",      file:"media/tall_building_1.webp",  primary:false },
+  { conceptId:"tall_short", pole:"right", id:"short_house_1",   label:"низкий дом",       file:"media/short_house_1.webp",    primary:false },
+  { conceptId:"tall_short", pole:"left",  id:"tall_mountain_1",  label:"высокая гора",      file:"media/tall_mountain_1.webp",  primary:false },
+  { conceptId:"tall_short", pole:"right", id:"short_hill_1",    label:"низкий холм",       file:"media/short_hill_1.webp",     primary:false },
+
+  { conceptId:"long_short", pole:"left",  id:"long_pencil_1",   label:"длинный карандаш",  file:"media/long_pencil_1.webp",    primary:true  },
+  { conceptId:"long_short", pole:"right", id:"short_pencil_1",  label:"короткий карандаш", file:"media/short_pencil_1.webp",   primary:true  },
+  { conceptId:"long_short", pole:"left",  id:"long_scarf_1",    label:"длинный шарф",      file:"media/long_scarf_1.webp",     primary:false },
+  { conceptId:"long_short", pole:"right", id:"short_scarf_1",   label:"короткий шарф",     file:"media/short_scarf_1.webp",    primary:false },
+  { conceptId:"long_short", pole:"left",  id:"long_hair_1",     label:"длинные волосы",    file:"media/long_hair_1.webp",      primary:false },
+  { conceptId:"long_short", pole:"right", id:"short_hair_1",    label:"короткие волосы",   file:"media/short_hair_1.webp",     primary:false },
+  { conceptId:"long_short", pole:"left",  id:"long_road_1",     label:"длинная дорога",    file:"media/long_road_1.webp",      primary:false },
+  { conceptId:"long_short", pole:"right", id:"short_road_1",    label:"короткая дорога",   file:"media/short_road_1.webp",     primary:false },
+  { conceptId:"long_short", pole:"left",  id:"long_rope_1",     label:"длинная верёвка",   file:"media/long_rope_1.webp",      primary:false },
+  { conceptId:"long_short", pole:"right", id:"short_rope_1",    label:"короткая верёвка",  file:"media/short_rope_1.webp",     primary:false },
 ];
 
 const concepts = [...new Set(cards.map(c => c.conceptId))];
-const conceptLabels = { big_small: "Большой / Маленький", tall_short: "Высокий / Низкий" };
+const conceptLabels = { big_small: "Большой / Маленький", tall_short: "Высокий / Низкий", long_short: "Длинный / Короткий" };
 
 const container = document.body;
 
