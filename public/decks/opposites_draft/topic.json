@@ -323,6 +323,32 @@
       "poleLabelPlural": "низкие",
       "primary": false,
       "image": "media/short_house_1.webp"
+    },
+    {
+      "id": "tall_mountain",
+      "conceptId": "tall_short",
+      "pole": "left",
+      "objectId": "mountain",
+      "objectLabel": "гора",
+      "poleLabel": "высокий",
+      "nominativeLabel": "высокая",
+      "instructionLabel": "высокую",
+      "poleLabelPlural": "высокие",
+      "primary": false,
+      "image": "media/tall_mountain_1.webp"
+    },
+    {
+      "id": "short_hill",
+      "conceptId": "tall_short",
+      "pole": "right",
+      "objectId": "hill",
+      "objectLabel": "горка",
+      "poleLabel": "низкий",
+      "nominativeLabel": "низкая",
+      "instructionLabel": "низкую",
+      "poleLabelPlural": "низкие",
+      "primary": false,
+      "image": "media/short_hill_1.webp"
     }
   ]
 }
