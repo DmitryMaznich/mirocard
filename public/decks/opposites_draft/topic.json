@@ -1,10 +1,11 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "renderer": "opposites",
     "title": "Противоположности",
-    "avatar": "media/avatar.webp"
+    "avatar": "media/avatar.webp",
+    "conceptCount": 2
   },
   "modes": [
     {
