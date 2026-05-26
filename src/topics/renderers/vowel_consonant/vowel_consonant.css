@@ -14,17 +14,13 @@
 /* ── Letter dock — grows to fill remaining space ── */
 .vc-dock {
   flex: 1;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 80px;
   /* shift card ~2 lines toward top */
   padding-bottom: clamp(2.5rem, 7vh, 4.5rem);
-  gap: 20px;
-}
-
-.vc-dock--with-face {
-  padding-bottom: 0;
 }
 
 /* ── Jars row — fixed height at bottom ── */
@@ -229,33 +225,29 @@
   text-align: center;
 }
 
-/* ── Card placeholder — keeps layout stable while dragging ── */
-.vc-card-placeholder {
-  width: clamp(90px, 24vw, 130px);
-  height: clamp(90px, 24vw, 130px);
-  flex-shrink: 0;
-}
-
-/* ── Sing face wrapper ── */
+/* ── Sing face wrapper — absolute, secondary element to the right ── */
 .vc-sing-wrap {
-  width: clamp(80px, 20vw, 116px);
-  height: clamp(80px, 20vw, 116px);
-  flex-shrink: 0;
-  border-radius: 50%;
-  transition: transform 0.15s, box-shadow 0.15s;
+  position: absolute;
+  right: clamp(8px, 3vw, 20px);
+  top: 50%;
+  transform: translateY(-60%);
+  width: clamp(54px, 13vw, 76px);
+  opacity: 0.82;
+  transition: transform 0.15s, opacity 0.15s, filter 0.15s;
+  cursor: pointer;
 }
 
 .vc-sing-wrap--hover {
-  transform: scale(1.08);
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.45);
+  opacity: 1;
+  transform: translateY(-60%) scale(1.1);
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
 }
 
 /* ── Sing face SVG ── */
 .vc-sing-face {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
-  drop-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
@@ -263,11 +255,13 @@
     padding-bottom: 0;
   }
   .vc-sing-wrap {
-    width: clamp(64px, 16vh, 96px);
-    height: clamp(64px, 16vh, 96px);
+    top: auto;
+    bottom: 10px;
+    right: 50%;
+    transform: translateX(50%);
+    width: clamp(44px, 11vh, 64px);
   }
-  .vc-card-placeholder {
-    width: clamp(80px, 18vh, 120px);
-    height: clamp(80px, 18vh, 120px);
+  .vc-sing-wrap--hover {
+    transform: translateX(50%) scale(1.1);
   }
 }

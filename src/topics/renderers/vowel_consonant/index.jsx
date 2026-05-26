@@ -7,42 +7,70 @@ const ZONE_DEFS = [
   { id: "sign",      label: "Знаки",           color: "#8b5cf6" },
 ];
 
-// Mouth path variants for the sing face
+// Face+mic: viewBox 0 0 100 130 — face top, mic bottom
 const MOUTH = {
-  idle:      "M 30 58 Q 50 66 70 58",
-  hover:     "M 34 57 Q 50 70 66 57",
-  vowel:     "M 32 54 Q 50 76 68 54 Q 50 64 32 54",
-  consonant: "M 35 60 Q 50 57 65 60",
+  idle:      "M 40 46 Q 50 52 60 46",
+  hover:     "M 38 44 Q 50 55 62 44",
+  vowel:     "M 38 41 Q 50 62 62 41 Q 50 52 38 41",
+  consonant: "M 41 48 Q 50 44 59 48",
 };
 
 function SingFace({ state }) {
+  const isVowel = state === "vowel";
+  const isCons  = state === "consonant";
   return (
-    <svg className="vc-sing-face" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="46" fill="#fde68a" stroke="#f59e0b" strokeWidth="3" />
-      {/* eyes */}
-      <circle cx="34" cy="40" r="5" fill="#1e293b" />
-      <circle cx="66" cy="40" r="5" fill="#1e293b" />
-      {/* eye shine */}
-      <circle cx="36" cy="38" r="2" fill="#fff" />
-      <circle cx="68" cy="38" r="2" fill="#fff" />
+    <svg className="vc-sing-face" viewBox="0 0 100 128" xmlns="http://www.w3.org/2000/svg">
+      {/* ── face ── */}
+      <circle cx="50" cy="36" r="31" fill="#fde68a" stroke="#f59e0b" strokeWidth="2.5" />
+      {/* eyes — squint when consonant */}
+      {isCons ? (
+        <>
+          <path d="M 37 30 Q 41 27 45 30" fill="none" stroke="#1e293b" strokeWidth="2.5" strokeLinecap="round"/>
+          <path d="M 55 30 Q 59 27 63 30" fill="none" stroke="#1e293b" strokeWidth="2.5" strokeLinecap="round"/>
+        </>
+      ) : (
+        <>
+          <circle cx="41" cy="30" r="4" fill="#1e293b" />
+          <circle cx="59" cy="30" r="4" fill="#1e293b" />
+          <circle cx="42.5" cy="28.5" r="1.5" fill="#fff" />
+          <circle cx="60.5" cy="28.5" r="1.5" fill="#fff" />
+        </>
+      )}
       {/* mouth */}
       <path
         d={MOUTH[state] ?? MOUTH.idle}
-        fill={state === "vowel" ? "#1e293b" : "none"}
+        fill={isVowel ? "#1e293b" : "none"}
         stroke="#1e293b"
-        strokeWidth="3.5"
+        strokeWidth="3"
         strokeLinecap="round"
-        style={{ transition: "d 0.2s ease" }}
       />
-      {/* tongue visible when vowel */}
-      {state === "vowel" && (
-        <ellipse cx="50" cy="67" rx="8" ry="5" fill="#f87171" />
-      )}
-      {/* music notes when vowel */}
-      {state === "vowel" && (
+      {isVowel && <ellipse cx="50" cy="54" rx="7" ry="4" fill="#f87171" />}
+
+      {/* ── microphone ── */}
+      {/* body */}
+      <rect x="43" y="72" width="14" height="22" rx="7" fill="#64748b" />
+      {/* grille lines */}
+      <line x1="43.5" y1="78" x2="56.5" y2="78" stroke="#94a3b8" strokeWidth="1.2"/>
+      <line x1="43.5" y1="82" x2="56.5" y2="82" stroke="#94a3b8" strokeWidth="1.2"/>
+      <line x1="43.5" y1="86" x2="56.5" y2="86" stroke="#94a3b8" strokeWidth="1.2"/>
+      {/* stand stem */}
+      <rect x="49" y="94" width="2" height="8" fill="#64748b" />
+      {/* stand base */}
+      <path d="M 42 102 Q 50 108 58 102" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round"/>
+
+      {/* ── music notes float when vowel ── */}
+      {isVowel && (
         <>
-          <text x="18" y="28" fontSize="14" fill="#f59e0b" style={{ fontWeight: 700 }}>♪</text>
-          <text x="70" y="24" fontSize="11" fill="#f59e0b" style={{ fontWeight: 700 }}>♫</text>
+          <text x="10" y="22" fontSize="13" fill="#f59e0b" fontWeight="bold">♪</text>
+          <text x="74" y="18" fontSize="10" fill="#f59e0b" fontWeight="bold">♫</text>
+          <text x="68" y="60" fontSize="10" fill="#f59e0b" fontWeight="bold">♪</text>
+        </>
+      )}
+      {/* ── X marks when consonant ── */}
+      {isCons && (
+        <>
+          <line x1="14" y1="56" x2="22" y2="64" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="22" y1="56" x2="14" y2="64" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"/>
         </>
       )}
     </svg>
@@ -165,30 +193,26 @@ export default function VowelConsonantRenderer({
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
     >
-      <div className={`vc-dock${singCheck ? " vc-dock--with-face" : ""}`}>
+      <div className="vc-dock">
         {done ? (
           <div className="vc-done">Все буквы разложены!</div>
         ) : (
-          <>
-            {current && !dragPos ? (
-              <div
-                className={`vc-card${shaking ? " vc-card--shake" : ""}`}
-                onPointerDown={handlePointerDown}
-              >
-                {current.letter}
-              </div>
-            ) : (
-              !done && <div className="vc-card-placeholder" />
-            )}
-            {singCheck && (
-              <div
-                ref={singFaceRef}
-                className={`vc-sing-wrap${onFace ? " vc-sing-wrap--hover" : ""}`}
-              >
-                <SingFace state={onFace ? "hover" : faceState} />
-              </div>
-            )}
-          </>
+          current && !dragPos ? (
+            <div
+              className={`vc-card${shaking ? " vc-card--shake" : ""}`}
+              onPointerDown={handlePointerDown}
+            >
+              {current.letter}
+            </div>
+          ) : null
+        )}
+        {singCheck && !done && (
+          <div
+            ref={singFaceRef}
+            className={`vc-sing-wrap${onFace ? " vc-sing-wrap--hover" : ""}`}
+          >
+            <SingFace state={onFace ? "hover" : faceState} />
+          </div>
         )}
       </div>
 
