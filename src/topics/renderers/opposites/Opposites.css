@@ -9,7 +9,7 @@
 }
 
 .opp-intro .session-hint {
-  font-size: 0.8rem;
+  font-size: calc(1.8rem - 2px);
 }
 
 /* ── Pair comparison ────────────────────────────────── */
@@ -55,7 +55,7 @@
 }
 
 .opp-pair__hint {
-  font-size: 0.7rem;
+  font-size: calc(clamp(1.2rem, 5vw, 1.6rem) - 2px);
   color: #999;
   flex-shrink: 0;
 }
