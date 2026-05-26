@@ -74,21 +74,7 @@
   background: color-mix(in srgb, var(--zone-color) 70%, #000 30%);
   border-radius: 0 0 6px 6px;
   overflow: hidden;
-}
-
-/* DEBUG: center of rectangle */
-.vc-jar-neck::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #22c55e;
-  z-index: 100;
-  pointer-events: none;
+  container-type: inline-size;
 }
 
 /* ── Jar body ── */
@@ -116,26 +102,13 @@
   top: 50%;
   transform: translateY(-50%);
   padding: 0 8px;
-  font-size: clamp(0.72rem, 3.2vw, 1.05rem);
+  /* 16cqi = 16% of neck width — fills it without overflow for longest label */
+  font-size: clamp(0.6rem, 16cqi, 1.45rem);
   font-weight: 700;
   color: #fff;
   text-align: center;
   line-height: 1.15;
   pointer-events: none;
-}
-
-/* DEBUG: center dot on label */
-.vc-jar-label::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #facc15;
-  z-index: 99;
 }
 
 /* ── Placed letter chips ── */
