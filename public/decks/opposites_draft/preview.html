@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Opposites — просмотр картинок</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+  h2 { margin: 24px 0 10px; font-size: 1rem; color: #555; text-transform: uppercase; letter-spacing: .05em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .card img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; background: #fafafa; }
+  .card .name { padding: 6px 8px; font-size: .7rem; color: #777; word-break: break-all; }
+  .card .label { padding: 0 8px 8px; font-size: .85rem; font-weight: 600; color: #333; }
+  .missing img { background: #fee; }
+  .missing .name { color: #c00; }
+  .badge { display: inline-block; font-size: .6rem; padding: 1px 5px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
+  .badge--left { background: #e3f2fd; color: #1565c0; }
+  .badge--right { background: #fff3e0; color: #e65100; }
+  .badge--primary { background: #e8f5e9; color: #2e7d32; }
+</style>
+</head>
+<body>
+
+<script>
+const cards = [
+  { conceptId:"big_small", pole:"left",  id:"big_dog",        label:"большая собака",   file:"media/big_dog_1.webp",        primary:true  },
+  { conceptId:"big_small", pole:"right", id:"small_dog",      label:"маленькая собака", file:"media/small_dog_1.webp",      primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_ball",       label:"большой мяч",      file:"media/big_ball_1.webp",       primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_ball",     label:"маленький мяч",    file:"media/small_ball_1.webp",     primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_car",        label:"большая машина",   file:"media/big_car_1.webp",        primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_car",      label:"маленькая машина", file:"media/small_car_1.webp",      primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_house",      label:"большой дом",      file:"media/big_house_1.webp",      primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_house",    label:"маленький дом",    file:"media/small_house_1.webp",    primary:false },
+  { conceptId:"big_small", pole:"left",  id:"big_cup",        label:"большая чашка",    file:"media/big_cup_1.webp",        primary:false },
+  { conceptId:"big_small", pole:"right", id:"small_cup",      label:"маленькая чашка",  file:"media/small_cup_1.webp",      primary:false },
+
+  { conceptId:"tall_short", pole:"left",  id:"tall_giraffe",   label:"высокий жираф",    file:"media/tall_giraffe_1.webp",   primary:true  },
+  { conceptId:"tall_short", pole:"right", id:"short_dachshund",label:"низкая такса",     file:"media/short_dachshund_1.webp",primary:true  },
+  { conceptId:"tall_short", pole:"left",  id:"tall_person",    label:"высокий человек",  file:"media/tall_person_1.webp",    primary:false },
+  { conceptId:"tall_short", pole:"right", id:"short_child",    label:"низкий ребёнок",   file:"media/short_child_1.webp",    primary:false },
+  { conceptId:"tall_short", pole:"left",  id:"tall_tree",      label:"высокое дерево",   file:"media/tall_tree_1.webp",      primary:false },
+  { conceptId:"tall_short", pole:"right", id:"short_bush",     label:"низкий куст",      file:"media/short_bush_1.webp",     primary:false },
+  { conceptId:"tall_short", pole:"left",  id:"tall_building",  label:"высокий дом",      file:"media/tall_building_1.webp",  primary:false },
+  { conceptId:"tall_short", pole:"right", id:"short_house",    label:"низкий домик",     file:"media/short_house_1.webp",    primary:false },
+];
+
+const concepts = [...new Set(cards.map(c => c.conceptId))];
+const conceptLabels = { big_small: "Большой / Маленький", tall_short: "Высокий / Низкий" };
+
+const container = document.body;
+
+concepts.forEach(cid => {
+  const h = document.createElement("h2");
+  h.textContent = conceptLabels[cid] || cid;
+  container.appendChild(h);
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+
+  cards.filter(c => c.conceptId === cid).forEach(card => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    const img = document.createElement("img");
+    img.src = card.file;
+    img.alt = card.label;
+    img.onerror = () => { div.classList.add("missing"); img.src = ""; img.style.minHeight="140px"; };
+
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = card.file.replace("media/","");
+
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = card.label;
+    const b1 = document.createElement("span");
+    b1.className = "badge badge--" + card.pole;
+    b1.textContent = card.pole === "left" ? "left" : "right";
+    label.appendChild(b1);
+    if (card.primary) {
+      const b2 = document.createElement("span");
+      b2.className = "badge badge--primary";
+      b2.textContent = "★";
+      label.appendChild(b2);
+    }
+
+    div.appendChild(img);
+    div.appendChild(name);
+    div.appendChild(label);
+    grid.appendChild(div);
+  });
+
+  container.appendChild(grid);
+});
+</script>
+</body>
+</html>
