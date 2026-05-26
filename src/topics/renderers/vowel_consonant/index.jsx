@@ -47,15 +47,11 @@ function SingFace({ state }) {
       {isVowel && <ellipse cx="50" cy="54" rx="7" ry="4" fill="#f87171" />}
 
       {/* ── microphone ── */}
-      {/* body */}
       <rect x="43" y="72" width="14" height="22" rx="7" fill="#64748b" />
-      {/* grille lines */}
       <line x1="43.5" y1="78" x2="56.5" y2="78" stroke="#94a3b8" strokeWidth="1.2"/>
       <line x1="43.5" y1="82" x2="56.5" y2="82" stroke="#94a3b8" strokeWidth="1.2"/>
       <line x1="43.5" y1="86" x2="56.5" y2="86" stroke="#94a3b8" strokeWidth="1.2"/>
-      {/* stand stem */}
       <rect x="49" y="94" width="2" height="8" fill="#64748b" />
-      {/* stand base */}
       <path d="M 42 102 Q 50 108 58 102" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round"/>
 
       {/* ── music notes float when vowel ── */}
@@ -77,19 +73,40 @@ function SingFace({ state }) {
   );
 }
 
+// Persists placed chips across task remounts (renderer remounts on each taskIndex change).
+// Keyed by sessionKey so a new session always starts empty.
+let _chipsStore = { key: null, chips: [] };
+
+function getSessionChips(sessionKey) {
+  if (_chipsStore.key !== sessionKey) {
+    _chipsStore = { key: sessionKey, chips: [] };
+  }
+  return _chipsStore.chips;
+}
+
+function pushSessionChip(sessionKey, chip) {
+  if (_chipsStore.key !== sessionKey) {
+    _chipsStore = { key: sessionKey, chips: [] };
+  }
+  _chipsStore.chips = [..._chipsStore.chips, chip];
+  return _chipsStore.chips;
+}
+
 export default function VowelConsonantRenderer({
   task,
   soundEnabled,
-  playFeedback,
   onMistake,
+  onCorrect,
   onAdvance,
 }) {
-  const letters    = task?.letters ?? [];
-  const singCheck  = task?.singCheck ?? false;
-  const hasSign    = letters.some((l) => l.category === "sign");
+  const letter     = task?.letter     ?? "";
+  const category   = task?.category   ?? "";
+  const singCheck  = task?.singCheck  ?? false;
+  const hasSign    = task?.hasSign    ?? false;
+  const sessionKey = task?.sessionKey ?? "";
   const zones      = hasSign ? ZONE_DEFS : ZONE_DEFS.slice(0, 2);
 
-  const [placed,      setPlaced]      = useState({});
+  const chips = getSessionChips(sessionKey);
   const [dragPos,     setDragPos]     = useState(null);
   const [hoveredZone, setHoveredZone] = useState(null);
   const [shaking,     setShaking]     = useState(false);
@@ -100,9 +117,6 @@ export default function VowelConsonantRenderer({
   const screenRef    = useRef(null);
   const pointerIdRef = useRef(null);
   const audioRef     = useRef(null);
-
-  const remaining = letters.filter((l) => !placed[l.id]);
-  const current   = remaining[0] ?? null;
 
   function detectZone(x, y) {
     for (const [id, el] of Object.entries(zoneRefs.current)) {
@@ -118,12 +132,11 @@ export default function VowelConsonantRenderer({
   }
 
   const handlePointerDown = useCallback((e) => {
-    if (!current) return;
     e.preventDefault();
     try { screenRef.current?.setPointerCapture(e.pointerId); } catch {}
     pointerIdRef.current = e.pointerId;
     setDragPos({ x: e.clientX, y: e.clientY });
-  }, [current]);
+  }, []);
 
   const handlePointerMove = useCallback((e) => {
     if (!dragPos || e.pointerId !== pointerIdRef.current) return;
@@ -131,18 +144,17 @@ export default function VowelConsonantRenderer({
     setHoveredZone(detectZone(e.clientX, e.clientY));
   }, [dragPos]);
 
-  function playSingSound(letter, category) {
+  function playSingSound(ltr, cat) {
     if (!soundEnabled) return;
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    const audio = new Audio(`/sounds/letters/${letter}.mp3`);
+    const audio = new Audio(`/sounds/letters/${ltr}.mp3`);
     audioRef.current = audio;
     audio.play().catch(() => {});
-    const duration = category === "vowel" ? 2200 : 1200;
-    const newState = category === "vowel" ? "vowel" : "consonant";
-    setFaceState(newState);
+    const duration = cat === "vowel" ? 2200 : 1200;
+    setFaceState(cat === "vowel" ? "vowel" : "consonant");
     setTimeout(() => setFaceState("idle"), duration);
   }
 
@@ -151,7 +163,7 @@ export default function VowelConsonantRenderer({
 
   const handlePointerEnd = useCallback((e) => {
     if (e.pointerId !== pointerIdRef.current) return;
-    if (!dragPos || !current) {
+    if (!dragPos) {
       setDragPos(null);
       return;
     }
@@ -163,26 +175,21 @@ export default function VowelConsonantRenderer({
     if (!zone) return;
 
     if (zone === "sing") {
-      playSingSound(current.letter, current.category);
+      playSingSound(letter, category);
       return;
     }
 
-    if (zone === current.category) {
-      const newPlaced = { ...placed, [current.id]: zone };
-      setPlaced(newPlaced);
-      if (soundEnabled) playFeedback?.("correct");
-      if (letters.length - Object.keys(newPlaced).length === 0) {
-        setTimeout(() => onAdvance?.(), 700);
-      }
+    if (zone === category) {
+      pushSessionChip(sessionKey, { letter, zoneId: zone });
+      onCorrect?.(letter, letter);
+      onAdvance?.();
     } else {
       setShaking(true);
-      if (soundEnabled) playFeedback?.("incorrect");
-      onMistake?.(current.id, current.id);
+      onMistake?.(letter, letter);
       setTimeout(() => setShaking(false), 500);
     }
-  }, [dragPos, current, placed, letters.length, soundEnabled, playFeedback, onMistake, onAdvance]);
+  }, [dragPos, letter, category, sessionKey, onCorrect, onMistake, onAdvance]);
 
-  const done = remaining.length === 0;
   const onFace = hoveredZone === "sing";
 
   return (
@@ -194,19 +201,15 @@ export default function VowelConsonantRenderer({
       onPointerCancel={handlePointerEnd}
     >
       <div className="vc-dock">
-        {done ? (
-          <div className="vc-done">Все буквы разложены!</div>
-        ) : (
-          current && !dragPos ? (
-            <div
-              className={`vc-card${shaking ? " vc-card--shake" : ""}`}
-              onPointerDown={handlePointerDown}
-            >
-              {current.letter}
-            </div>
-          ) : null
+        {!dragPos && (
+          <div
+            className={`vc-card${shaking ? " vc-card--shake" : ""}`}
+            onPointerDown={handlePointerDown}
+          >
+            {letter}
+          </div>
         )}
-        {singCheck && !done && (
+        {singCheck && (
           <div
             ref={singFaceRef}
             className={`vc-sing-wrap${onFace ? " vc-sing-wrap--hover" : ""}`}
@@ -232,10 +235,10 @@ export default function VowelConsonantRenderer({
             </div>
             <div className="vc-jar-body">
               <div className="vc-zone-chips">
-                {letters
-                  .filter((l) => placed[l.id] === zone.id)
-                  .map((l) => (
-                    <span key={l.id} className="vc-chip">{l.letter}</span>
+                {chips
+                  .filter((c) => c.zoneId === zone.id)
+                  .map((c, i) => (
+                    <span key={i} className="vc-chip">{c.letter}</span>
                   ))}
               </div>
             </div>
@@ -243,12 +246,12 @@ export default function VowelConsonantRenderer({
         ))}
       </div>
 
-      {dragPos && current && (
+      {dragPos && (
         <div
           className="vc-card vc-card--floating"
           style={{ left: dragPos.x, top: dragPos.y }}
         >
-          {current.letter}
+          {letter}
         </div>
       )}
     </div>
