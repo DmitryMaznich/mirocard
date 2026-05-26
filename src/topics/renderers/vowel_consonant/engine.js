@@ -9,9 +9,18 @@ export function generateTasks(mode, cards, _sessionSize, sessionParams) {
     }));
 
   if (mode.type === "sort_letters") {
-    const shuffled = [...letters].sort(() => Math.random() - 0.5);
-    const singCheck = Boolean(sessionParams?.singCheck);
-    return [{ type: "sort_letters", letters: shuffled, singCheck }];
+    const shuffled   = [...letters].sort(() => Math.random() - 0.5);
+    const singCheck  = Boolean(sessionParams?.singCheck);
+    const hasSign    = letters.some((l) => l.category === "sign");
+    const sessionKey = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    return shuffled.map((l) => ({
+      type:     "sort_letters",
+      letter:   l.letter,
+      category: l.category,
+      singCheck,
+      hasSign,
+      sessionKey,
+    }));
   }
   return [];
 }

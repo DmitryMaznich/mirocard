@@ -7,6 +7,7 @@ import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, computeSessionRecord } from "./sessionEngine";
 import { buildRewardProgress } from "./rewardProgress";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
+import { getDefaultModeSettings } from "@/topics/topicLoader";
 
 const INCORRECT_FEEDBACK_MS = 1500;
 
@@ -25,18 +26,24 @@ export function useSessionEngine() {
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const modeFromTopic = topicRecord?.modes?.find((m) => m.id === activeModeId);
-  const mode = modeFromTopic ?? (
-    activeModeId === "follow_instruction"
+  // Override evaluation/rewardThreshold from DEFAULT_MODES — stored records may be stale.
+  const defaultModeSettings = topicRecord
+    ? getDefaultModeSettings(topicRecord.meta.renderer, activeModeId)
+    : null;
+  const mode = modeFromTopic
+    ? (defaultModeSettings
+        ? { ...modeFromTopic, evaluation: defaultModeSettings.evaluation }
+        : modeFromTopic)
+    : activeModeId === "follow_instruction"
       ? { id: "follow_instruction", type: "follow_instruction", evaluation: "none" }
-      : undefined
-  );
+      : undefined;
   const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
   const link = studentTopicLinks[linkKey] ?? {};
   const rewardConfig = {
     videoRewardEnabled: link.videoRewardEnabled ?? true,
-    rewardThreshold: link.rewardThreshold ?? 90,
+    rewardThreshold: link.rewardThreshold ?? defaultModeSettings?.rewardThreshold ?? 90,
     hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
   };
   const isReading = topicRecord?.meta.renderer === "reading";
@@ -167,6 +174,7 @@ export function useSessionEngine() {
         setSessionState((s) => {
           if (s.status !== "answer_correct") return s;
           if (s.mode.type === "compare_first_number") return s;
+          if (s.mode.type === "sort_letters") return s;
           const advanced = handleAdvance(s);
           if (advanced.status === "completed") finishSession(advanced);
           return advanced;

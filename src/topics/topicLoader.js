@@ -563,7 +563,8 @@ const DEFAULT_MODES = {
     {
       id: "sort_letters",
       type: "sort_letters",
-      evaluation: "none",
+      evaluation: "auto",
+      rewardThreshold: 70,
       ui: {
         title: "Сортировка букв",
         instruction: "Перетащи каждую букву в нужную группу",
@@ -1011,6 +1012,17 @@ function inferMimeType(filename) {
   if (filename.endsWith(".wav"))  return "audio/wav";
   if (filename.endsWith(".ogg"))  return "audio/ogg";
   return "application/octet-stream";
+}
+
+// Returns authoritative evaluation/rewardThreshold from DEFAULT_MODES for a given renderer+modeId.
+// Used to override stale stored values in topicRecords (IndexedDB may hold old evaluation:"none").
+export function getDefaultModeSettings(renderer, modeId) {
+  const m = DEFAULT_MODES[renderer]?.find((d) => d.id === modeId);
+  if (!m) return null;
+  return {
+    evaluation:      m.evaluation,
+    rewardThreshold: m.rewardThreshold ?? null,
+  };
 }
 
 export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
