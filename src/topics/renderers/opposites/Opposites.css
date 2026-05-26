@@ -170,8 +170,8 @@
   padding: 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  align-items: stretch;
+  gap: 6px;
   overflow-y: auto;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -189,13 +189,19 @@
   flex-shrink: 0;
 }
 
+.opp-sort__placed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 4px;
+  width: 100%;
+}
+
 .opp-sort__placed {
-  width: clamp(36px, 8vw, 60px);
+  width: 100%;
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
   background: #e0e0e0;
-  flex-shrink: 0;
 }
 .opp-sort__placed img {
   width: 100%;

@@ -100,22 +100,26 @@ export default function SortTask({ task, topicId, onCorrect, onMistake }) {
           className={`opp-sort__zone opp-sort__zone--left${hoverZone === "left" ? " opp-sort__zone--active" : ""}`}
         >
           <div className="opp-sort__zone-label">{leftLabel}</div>
-          {inLeft.map(({ card }) => (
-            <div key={card.id} className="opp-sort__placed">
-              <SortImage topicId={topicId} card={card} />
-            </div>
-          ))}
+          <div className="opp-sort__placed-grid">
+            {inLeft.map(({ card }) => (
+              <div key={card.id} className="opp-sort__placed">
+                <SortImage topicId={topicId} card={card} />
+              </div>
+            ))}
+          </div>
         </div>
         <div
           ref={rightZoneRef}
           className={`opp-sort__zone opp-sort__zone--right${hoverZone === "right" ? " opp-sort__zone--active" : ""}`}
         >
           <div className="opp-sort__zone-label">{rightLabel}</div>
-          {inRight.map(({ card }) => (
-            <div key={card.id} className="opp-sort__placed">
-              <SortImage topicId={topicId} card={card} />
-            </div>
-          ))}
+          <div className="opp-sort__placed-grid">
+            {inRight.map(({ card }) => (
+              <div key={card.id} className="opp-sort__placed">
+                <SortImage topicId={topicId} card={card} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
