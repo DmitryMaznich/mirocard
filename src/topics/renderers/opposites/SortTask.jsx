@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState, useRef } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import "./Opposites.css";
 
@@ -11,38 +11,91 @@ function SortImage({ topicId, card }) {
 export default function SortTask({ task, topicId, onCorrect, onMistake }) {
   const { leftLabel, rightLabel, cards } = task;
   const [placements, setPlacements] = useState({});
-  const [pending, setPending]       = useState(null);
+  const [dragging, setDragging]     = useState(null);
+  const [hoverZone, setHoverZone]   = useState(null);
   const [done, setDone]             = useState(false);
+  const leftZoneRef  = useRef(null);
+  const rightZoneRef = useRef(null);
 
-  function selectCard(item) {
-    if (done || placements[item.card.id]) return;
-    setPending((prev) => (prev?.card.id === item.card.id ? null : item));
+  function getZoneAt(x, y) {
+    const l = leftZoneRef.current?.getBoundingClientRect();
+    const r = rightZoneRef.current?.getBoundingClientRect();
+    if (l && x >= l.left && x <= l.right && y >= l.top && y <= l.bottom) return "left";
+    if (r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return "right";
+    return null;
   }
 
-  function assignToZone(zone) {
-    if (!pending || done) return;
-    const item = pending;
-    setPending(null);
+  function handlePointerDown(e, item) {
+    if (done || placements[item.card.id]) return;
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragging({
+      item,
+      x: rect.left,
+      y: rect.top,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      size: rect.width,
+    });
+  }
+
+  function handlePointerMove(e) {
+    if (!dragging) return;
+    setDragging(prev => ({
+      ...prev,
+      x: e.clientX - prev.offsetX,
+      y: e.clientY - prev.offsetY,
+    }));
+    setHoverZone(getZoneAt(e.clientX, e.clientY));
+  }
+
+  function handlePointerUp(e) {
+    if (!dragging) return;
+    const zone = getZoneAt(e.clientX, e.clientY);
+    const item = dragging.item;
+    setDragging(null);
+    setHoverZone(null);
+    if (!zone) return;
     if (item.pole !== zone) {
       onMistake(zone, item.card.id);
       return;
     }
-    setPlacements((prev) => {
+    setPlacements(prev => {
       const next = { ...prev, [item.card.id]: zone };
-      const allDone = cards.every((c) => next[c.card.id] === c.pole);
+      const allDone = cards.every(c => next[c.card.id] === c.pole);
       if (allDone) { setDone(true); setTimeout(() => onCorrect(null, null), 400); }
       return next;
     });
   }
 
-  const unplaced = cards.filter((item) => !placements[item.card.id]);
-  const inLeft   = cards.filter((item) => placements[item.card.id] === "left");
-  const inRight  = cards.filter((item) => placements[item.card.id] === "right");
+  const unplaced = cards.filter(item => !placements[item.card.id]);
+  const inLeft   = cards.filter(item => placements[item.card.id] === "left");
+  const inRight  = cards.filter(item => placements[item.card.id] === "right");
 
   return (
-    <div className="session-body opp-sort">
+    <div
+      className="session-body opp-sort"
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      style={{ touchAction: "none" }}
+    >
+      <div className="opp-sort__hand">
+        {unplaced.map(item => (
+          <div
+            key={item.card.id}
+            className={`opp-sort__card${dragging?.item.card.id === item.card.id ? " opp-sort__card--dragging" : ""}`}
+            onPointerDown={e => handlePointerDown(e, item)}
+          >
+            <SortImage topicId={topicId} card={item.card} />
+          </div>
+        ))}
+      </div>
+
       <div className="opp-sort__zones">
-        <div className={`opp-sort__zone${pending ? " opp-sort__zone--active" : ""}`} onClick={() => assignToZone("left")}>
+        <div
+          ref={leftZoneRef}
+          className={`opp-sort__zone${hoverZone === "left" ? " opp-sort__zone--active" : ""}`}
+        >
           <div className="opp-sort__zone-label">{leftLabel}</div>
           {inLeft.map(({ card }) => (
             <div key={card.id} className="opp-sort__placed">
@@ -50,7 +103,10 @@ export default function SortTask({ task, topicId, onCorrect, onMistake }) {
             </div>
           ))}
         </div>
-        <div className={`opp-sort__zone${pending ? " opp-sort__zone--active" : ""}`} onClick={() => assignToZone("right")}>
+        <div
+          ref={rightZoneRef}
+          className={`opp-sort__zone${hoverZone === "right" ? " opp-sort__zone--active" : ""}`}
+        >
           <div className="opp-sort__zone-label">{rightLabel}</div>
           {inRight.map(({ card }) => (
             <div key={card.id} className="opp-sort__placed">
@@ -60,22 +116,18 @@ export default function SortTask({ task, topicId, onCorrect, onMistake }) {
         </div>
       </div>
 
-      <div className="opp-sort__hand">
-        {unplaced.map((item) => (
-          <button
-            key={item.card.id}
-            className={`opp-sort__card${pending?.card.id === item.card.id ? " opp-sort__card--pending" : ""}`}
-            onClick={() => selectCard(item)}
-            disabled={done}
-          >
-            <SortImage topicId={topicId} card={item.card} />
-          </button>
-        ))}
+      <div className="opp-sort__hint">
+        {dragging ? "Перетащи в нужную группу" : unplaced.length > 0 ? "Перетащи карточку" : ""}
       </div>
 
-      <div className="opp-sort__hint">
-        {pending ? "Нажми на нужную группу" : unplaced.length > 0 ? "Выбери карточку" : ""}
-      </div>
+      {dragging && (
+        <div
+          className="opp-sort__ghost"
+          style={{ left: dragging.x, top: dragging.y, width: dragging.size, height: dragging.size }}
+        >
+          <SortImage topicId={topicId} card={dragging.item.card} />
+        </div>
+      )}
     </div>
   );
 }
