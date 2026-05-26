@@ -41,7 +41,10 @@
       "PowerShell(python \"C:\\\\Users\\\\dmazn\\\\AppData\\\\Local\\\\Temp\\\\test_login2.py\")",
       "PowerShell(python \"C:\\\\Users\\\\dmazn\\\\AppData\\\\Local\\\\Temp\\\\check_db.py\")",
       "PowerShell(python \"C:\\\\Users\\\\dmazn\\\\AppData\\\\Local\\\\Temp\\\\check_db2.py\")",
-      "PowerShell(python \"C:\\\\Users\\\\dmazn\\\\AppData\\\\Local\\\\Temp\\\\check_real_db.py\")"
+      "PowerShell(python \"C:\\\\Users\\\\dmazn\\\\AppData\\\\Local\\\\Temp\\\\check_real_db.py\")",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\Downloads\" | Sort-Object LastWriteTime -Descending | Select-Object -First 20 Name, LastWriteTime)",
+      "PowerShell(head -30)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\public\\\\decks\" | Where-Object {$_.PSIsContainer} | Select-Object Name)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
