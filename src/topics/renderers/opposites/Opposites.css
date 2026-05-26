@@ -160,7 +160,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  height: min(190px, 36vh);
+  height: min(380px, 72vh);
   flex-shrink: 0;
 }
 
@@ -257,8 +257,9 @@
   }
 
   .opp-sort__zones {
-    height: min(140px, 32vh);
+    height: min(280px, 56vh);
   }
 
   .opp-sort__hint { display: none; }
 }
+

@@ -14,8 +14,10 @@ export default function SortTask({ task, topicId, onCorrect, onMistake }) {
   const [dragging, setDragging]     = useState(null);
   const [hoverZone, setHoverZone]   = useState(null);
   const [done, setDone]             = useState(false);
-  const leftZoneRef  = useRef(null);
-  const rightZoneRef = useRef(null);
+  const leftZoneRef   = useRef(null);
+  const rightZoneRef  = useRef(null);
+  const onCorrectRef  = useRef(onCorrect);
+  onCorrectRef.current = onCorrect;
 
   function getZoneAt(x, y) {
     const l = leftZoneRef.current?.getBoundingClientRect();
@@ -60,12 +62,13 @@ export default function SortTask({ task, topicId, onCorrect, onMistake }) {
       onMistake(zone, item.card.id);
       return;
     }
-    setPlacements(prev => {
-      const next = { ...prev, [item.card.id]: zone };
-      const allDone = cards.every(c => next[c.card.id] === c.pole);
-      if (allDone) { setDone(true); setTimeout(() => onCorrect(null, null), 400); }
-      return next;
-    });
+    const newPlacements = { ...placements, [item.card.id]: zone };
+    setPlacements(newPlacements);
+    const allDone = cards.every(c => newPlacements[c.card.id] === c.pole);
+    if (allDone) {
+      setDone(true);
+      setTimeout(() => onCorrectRef.current(null, null), 400);
+    }
   }
 
   const unplaced = cards.filter(item => !placements[item.card.id]);
