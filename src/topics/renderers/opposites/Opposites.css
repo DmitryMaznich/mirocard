@@ -136,8 +136,7 @@
 .opp-submit-btn:disabled { background: #ccc; cursor: default; }
 
 /* ── Sort ───────────────────────────────────────────── */
-/* Portrait: hand top (flex:1, cards align-start), zones bottom (fixed height).
-   Landscape: hand left (fixed width), zones right (fill). */
+/* Both orientations: hand (top, flex:1) → zones (bottom, fixed height) */
 
 .opp-sort {
   padding: 12px;
@@ -146,17 +145,17 @@
   align-items: stretch;
 }
 
-/* Hand fills remaining space; cards sit at top of that area */
+/* Hand: 4 columns in portrait, fills remaining space */
 .opp-sort__hand {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   align-content: start;
   gap: 8px;
   flex: 1;
   min-height: 0;
 }
 
-/* Zones: fixed shorter height at bottom */
+/* Zones: fixed shorter height */
 .opp-sort__zones {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -203,7 +202,6 @@
   display: block;
 }
 
-/* Card fills grid cell */
 .opp-sort__card {
   width: 100%;
   aspect-ratio: 1;
@@ -251,24 +249,15 @@
   flex-shrink: 0;
 }
 
-/* Landscape: hand left (2-col grid), zones right (fill) */
+/* Landscape: 8 columns, compact zones */
 @media (orientation: landscape) {
-  .opp-sort {
-    flex-direction: row;
-    align-items: stretch;
-  }
-
   .opp-sort__hand {
-    grid-template-columns: repeat(2, 1fr);
-    align-content: start;
-    flex: 0 0 auto;
-    width: clamp(110px, 26vw, 190px);
+    grid-template-columns: repeat(8, 1fr);
     gap: 6px;
   }
 
   .opp-sort__zones {
-    flex: 1;
-    height: auto;
+    height: min(140px, 32vh);
   }
 
   .opp-sort__hint { display: none; }
