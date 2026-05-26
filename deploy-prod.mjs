@@ -67,6 +67,7 @@ function assertCleanWorktree() {
 function collectFiles(dir, prefix = "") {
   const files = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isSymbolicLink()) continue; // skip junctions/symlinks (Windows reparse points)
     const relPath = prefix ? `${prefix}/${entry.name}` : entry.name;
     const absPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
