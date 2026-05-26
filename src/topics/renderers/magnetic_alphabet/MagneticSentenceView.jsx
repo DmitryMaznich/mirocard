@@ -62,7 +62,7 @@ export default function MagneticSentenceView({
   task, mode, topicId,
   sessionParams, soundEnabled,
   playTopicFile, playFeedback,
-  onAdvance,
+  onCorrect, onAdvance,
 }) {
   const audioMode = mode?.type === "magnetic_sentence_audio";
   const layout    = sessionParams?.layout ?? "abv";
@@ -208,6 +208,7 @@ export default function MagneticSentenceView({
   function handleDone() {
     const nextIdx = sentenceIdx + 1;
     if (nextIdx >= sentences.length) {
+      onCorrect?.();
       onAdvance?.();
     } else {
       setSentenceIdx(nextIdx);

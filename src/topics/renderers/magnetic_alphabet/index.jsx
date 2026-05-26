@@ -46,7 +46,7 @@ function getTextFromLines(lines) {
     .join("\n");
 }
 
-export default function MagneticAlphabetRenderer({ task, mode, sessionParams, soundEnabled, playFeedback, topicId, playTopicFile, onAdvance }) {
+export default function MagneticAlphabetRenderer({ task, mode, sessionParams, soundEnabled, playFeedback, topicId, playTopicFile, onCorrect, onAdvance }) {
   if (mode?.type === "magnetic_sentence" || mode?.type === "magnetic_sentence_audio") {
     return (
       <MagneticSentenceView
@@ -57,6 +57,7 @@ export default function MagneticAlphabetRenderer({ task, mode, sessionParams, so
         soundEnabled={soundEnabled}
         playTopicFile={playTopicFile}
         playFeedback={playFeedback}
+        onCorrect={onCorrect}
         onAdvance={onAdvance}
       />
     );
