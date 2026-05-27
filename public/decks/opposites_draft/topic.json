@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "renderer": "opposites",
     "title": "Противоположности",
-    "avatar": "media/avatar.webp",
+    "avatar": "media/avatar.svg",
     "conceptCount": 9
   },
   "modes": [
@@ -14,7 +14,8 @@
       "evaluation": "none",
       "ui": {
         "title": "Знакомство",
-        "instruction": "Смотрим на карточки"
+        "instruction": "Смотрим на карточки",
+        "icon": "media/icons/intro.svg"
       }
     },
     {
@@ -23,7 +24,8 @@
       "evaluation": "none",
       "ui": {
         "title": "Сравниваем",
-        "instruction": "Посмотри на оба"
+        "instruction": "Посмотри на оба",
+        "icon": "media/icons/pair_comparison.svg"
       }
     },
     {
@@ -32,7 +34,8 @@
       "evaluation": "auto",
       "ui": {
         "title": "Покажи",
-        "instruction": "Найди нужную карточку"
+        "instruction": "Найди нужную карточку",
+        "icon": "media/icons/choose_two.svg"
       },
       "params": {
         "optionCount": {
@@ -61,7 +64,8 @@
       "evaluation": "auto",
       "ui": {
         "title": "Сортировка",
-        "instruction": "Перетащи в нужную группу"
+        "instruction": "Перетащи в нужную группу",
+        "icon": "media/icons/sort.svg"
       },
       "params": {
         "cardCount": {
@@ -78,7 +82,8 @@
       "evaluation": "auto",
       "ui": {
         "title": "Найди все",
-        "instruction": "Отметь все подходящие"
+        "instruction": "Отметь все подходящие",
+        "icon": "media/icons/find_all.svg"
       },
       "params": {
         "gridSize": {
