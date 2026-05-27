@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const OLD_ZIP = "public/decks/reading_dad_texts_v1.17.0.zip";
 const NEW_ZIP = "public/decks/reading_dad_texts_v1.18.0.zip";
@@ -40,12 +40,16 @@ const oldTopic = JSON.parse(oldTopicRaw);
 
 const newZip = new JSZip();
 
-// Copy SVG media files from old zip (skip silently if not found — new recipes have no SVG yet)
+// Copy SVG media files: prefer local content/media/, fall back to old ZIP
 for (const id of recipeIds) {
   const svgPath = `media/${id}.svg`;
-  const svgFile = oldZip.file(svgPath);
-  if (svgFile) {
-    newZip.file(svgPath, await svgFile.async("string"));
+  const localSvg = `content/media/${id}.svg`;
+  if (existsSync(localSvg)) {
+    newZip.file(svgPath, readFileSync(localSvg, "utf-8"));
+    console.log(`${id}.svg: из content/media/`);
+  } else {
+    const svgFile = oldZip.file(svgPath);
+    if (svgFile) newZip.file(svgPath, await svgFile.async("string"));
   }
 }
 
