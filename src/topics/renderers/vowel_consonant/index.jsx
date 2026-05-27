@@ -7,6 +7,61 @@ const ZONE_DEFS = [
   { id: "sign",      label: "Знаки",           color: "#8b5cf6" },
 ];
 
+function VowelFaceHint() {
+  return (
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="50" cy="50" r="44" fill="#fde68a" stroke="#f59e0b" strokeWidth="2"/>
+      {/* cheeks */}
+      <ellipse cx="26" cy="60" rx="11" ry="8" fill="#fca5a5" opacity="0.7"/>
+      <ellipse cx="74" cy="60" rx="11" ry="8" fill="#fca5a5" opacity="0.7"/>
+      {/* eyebrows raised */}
+      <path d="M26 32 Q35 26 44 31" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M56 31 Q65 26 74 32" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"/>
+      {/* eyes wide */}
+      <circle cx="36" cy="42" r="7" fill="#1e293b"/>
+      <circle cx="64" cy="42" r="7" fill="#1e293b"/>
+      <circle cx="38.5" cy="39.5" r="2.5" fill="#fff"/>
+      <circle cx="66.5" cy="39.5" r="2.5" fill="#fff"/>
+      {/* mouth — big open О */}
+      <ellipse cx="50" cy="68" rx="16" ry="14" fill="#1e293b"/>
+      <ellipse cx="50" cy="68" rx="11" ry="9"  fill="#dc2626"/>
+      <ellipse cx="50" cy="72" rx="7" ry="5" fill="#f87171"/>
+      {/* music notes */}
+      <text x="8"  y="28" fontSize="16" fill="#f59e0b" fontWeight="bold">♪</text>
+      <text x="76" y="24" fontSize="13" fill="#f59e0b" fontWeight="bold">♫</text>
+    </svg>
+  );
+}
+
+function ConsonantFaceHint() {
+  return (
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="50" cy="50" r="44" fill="#dbeafe" stroke="#93c5fd" strokeWidth="2"/>
+      {/* eyebrows furrowed */}
+      <path d="M25 34 Q35 30 43 35" fill="none" stroke="#1e40af" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M57 35 Q65 30 75 34" fill="none" stroke="#1e40af" strokeWidth="2.5" strokeLinecap="round"/>
+      {/* eyes squinting */}
+      <path d="M28 44 Q36 39 44 44" fill="none" stroke="#1e293b" strokeWidth="3" strokeLinecap="round"/>
+      <path d="M56 44 Q64 39 72 44" fill="none" stroke="#1e293b" strokeWidth="3" strokeLinecap="round"/>
+      {/* clenched teeth mouth */}
+      <rect x="30" y="62" width="40" height="14" rx="4" fill="#1e293b"/>
+      <rect x="31" y="63" width="38" height="6"  rx="2" fill="#f1f5f9"/>
+      <rect x="31" y="69" width="38" height="6"  rx="2" fill="#f1f5f9"/>
+      {/* tooth dividers top row */}
+      <line x1="40" y1="63" x2="40" y2="69" stroke="#cbd5e1" strokeWidth="1"/>
+      <line x1="50" y1="63" x2="50" y2="69" stroke="#cbd5e1" strokeWidth="1"/>
+      <line x1="60" y1="63" x2="60" y2="69" stroke="#cbd5e1" strokeWidth="1"/>
+      {/* tooth dividers bottom row */}
+      <line x1="36" y1="69" x2="36" y2="75" stroke="#cbd5e1" strokeWidth="1"/>
+      <line x1="46" y1="69" x2="46" y2="75" stroke="#cbd5e1" strokeWidth="1"/>
+      <line x1="56" y1="69" x2="56" y2="75" stroke="#cbd5e1" strokeWidth="1"/>
+      {/* effort marks */}
+      <line x1="16" y1="42" x2="22" y2="46" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="78" y1="46" x2="84" y2="42" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 // Face+mic: viewBox 0 0 100 130 — face top, mic bottom
 const MOUTH = {
   idle:      "M 40 46 Q 50 52 60 46",
@@ -234,6 +289,8 @@ export default function VowelConsonantRenderer({
               </div>
             </div>
             <div className="vc-jar-body">
+              {zone.id === "vowel"     && <div className="vc-jar-hint"><VowelFaceHint /></div>}
+              {zone.id === "consonant" && <div className="vc-jar-hint"><ConsonantFaceHint /></div>}
               <div className="vc-zone-chips">
                 {chips
                   .filter((c) => c.zoneId === zone.id)

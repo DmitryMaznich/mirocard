@@ -92,6 +92,19 @@
   overflow: hidden;
   transition: background 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
+  position: relative;
+}
+
+/* ── Hint face — centered watermark inside jar ── */
+.vc-jar-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(72px, 18vw, 110px);
+  height: clamp(72px, 18vw, 110px);
+  opacity: 0.13;
+  pointer-events: none;
 }
 
 /* ── Label — lives on the neck rectangle ── */
