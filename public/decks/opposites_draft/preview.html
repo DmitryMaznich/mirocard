@@ -6,7 +6,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
-  h2 { margin: 24px 0 10px; font-size: 1rem; color: #555; text-transform: uppercase; letter-spacing: .05em; }
+  h2 { margin: 32px 0 10px; font-size: 1rem; color: #555; text-transform: uppercase; letter-spacing: .05em; border-top: 2px solid #ddd; padding-top: 12px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
   .card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
   .card img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; background: #fafafa; }
@@ -17,61 +17,130 @@
   .badge { display: inline-block; font-size: .6rem; padding: 1px 5px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
   .badge--left { background: #e3f2fd; color: #1565c0; }
   .badge--right { background: #fff3e0; color: #e65100; }
-  .badge--primary { background: #e8f5e9; color: #2e7d32; }
 </style>
 </head>
 <body>
-
 <script>
-const cards = [
-  { conceptId:"big_small", pole:"left",  id:"big_cat_1",      label:"большая кошка",    file:"media/big_cat_1.webp",        primary:true  },
-  { conceptId:"big_small", pole:"right", id:"small_cat_1",    label:"маленькая кошка",  file:"media/small_cat_1.webp",      primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_ball_1",     label:"большой мяч",      file:"media/big_ball_1.webp",       primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_ball_1",   label:"маленький мяч",    file:"media/small_ball_1.webp",     primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_car_1",      label:"большая машина",   file:"media/big_car_1.webp",        primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_car_1",    label:"маленькая машина", file:"media/small_car_1.webp",      primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_cake_1",     label:"большой торт",     file:"media/big_cake_1.webp",       primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_cake_1",   label:"маленький торт",   file:"media/small_cake_1.webp",     primary:false },
-  { conceptId:"big_small", pole:"left",  id:"big_cup_1",      label:"большая чашка",    file:"media/big_cup_1.webp",        primary:false },
-  { conceptId:"big_small", pole:"right", id:"small_cup_1",    label:"маленькая чашка",  file:"media/small_cup_1.webp",      primary:false },
-
-  { conceptId:"tall_short", pole:"left",  id:"tall_dog_1",      label:"высокая собака",   file:"media/tall_dog_1.webp",       primary:true  },
-  { conceptId:"tall_short", pole:"right", id:"short_dog_1",     label:"низкая собака",    file:"media/short_dog_1.webp",      primary:true  },
-  { conceptId:"tall_short", pole:"left",  id:"tall_person_1",   label:"высокий человек",  file:"media/tall_person_1.webp",    primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_person_1",  label:"низкий человек",   file:"media/short_person_1.webp",   primary:false },
-  { conceptId:"tall_short", pole:"left",  id:"tall_tree_1",     label:"высокое дерево",   file:"media/tall_tree_1.webp",      primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_bush_1",    label:"низкий куст",      file:"media/short_bush_1.webp",     primary:false },
-  { conceptId:"tall_short", pole:"left",  id:"tall_building_1", label:"высокий дом",      file:"media/tall_building_1.webp",  primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_house_1",   label:"низкий дом",       file:"media/short_house_1.webp",    primary:false },
-  { conceptId:"tall_short", pole:"left",  id:"tall_mountain_1",  label:"высокая гора",      file:"media/tall_mountain_1.webp",  primary:false },
-  { conceptId:"tall_short", pole:"right", id:"short_hill_1",    label:"низкий холм",       file:"media/short_hill_1.webp",     primary:false },
-
-  { conceptId:"long_short", pole:"left",  id:"long_pencil_1",   label:"длинный карандаш",  file:"media/long_pencil_1.webp",    primary:true  },
-  { conceptId:"long_short", pole:"right", id:"short_pencil_1",  label:"короткий карандаш", file:"media/short_pencil_1.webp",   primary:true  },
-  { conceptId:"long_short", pole:"left",  id:"long_scarf_1",    label:"длинный шарф",      file:"media/long_scarf_1.webp",     primary:false },
-  { conceptId:"long_short", pole:"right", id:"short_scarf_1",   label:"короткий шарф",     file:"media/short_scarf_1.webp",    primary:false },
-  { conceptId:"long_short", pole:"left",  id:"long_hair_1",     label:"длинные волосы",    file:"media/long_hair_1.webp",      primary:false },
-  { conceptId:"long_short", pole:"right", id:"short_hair_1",    label:"короткие волосы",   file:"media/short_hair_1.webp",     primary:false },
-  { conceptId:"long_short", pole:"left",  id:"long_road_1",     label:"длинная дорога",    file:"media/long_road_1.webp",      primary:false },
-  { conceptId:"long_short", pole:"right", id:"short_road_1",    label:"короткая дорога",   file:"media/short_road_1.webp",     primary:false },
-  { conceptId:"long_short", pole:"left",  id:"long_rope_1",     label:"длинная верёвка",   file:"media/long_rope_1.webp",      primary:false },
-  { conceptId:"long_short", pole:"right", id:"short_rope_1",    label:"короткая верёвка",  file:"media/short_rope_1.webp",     primary:false },
+const concepts = [
+  { id: "big_small", label: "Большой / Маленький", cards: [
+    { pole:"left",  id:"big_cat_1",      label:"большая кошка",    file:"media/big_cat_1.webp" },
+    { pole:"right", id:"small_cat_1",    label:"маленькая кошка",  file:"media/small_cat_1.webp" },
+    { pole:"left",  id:"big_ball_1",     label:"большой мяч",      file:"media/big_ball_1.webp" },
+    { pole:"right", id:"small_ball_1",   label:"маленький мяч",    file:"media/small_ball_1.webp" },
+    { pole:"left",  id:"big_car_1",      label:"большая машина",   file:"media/big_car_1.webp" },
+    { pole:"right", id:"small_car_1",    label:"маленькая машина", file:"media/small_car_1.webp" },
+    { pole:"left",  id:"big_cake_1",     label:"большой торт",     file:"media/big_cake_1.webp" },
+    { pole:"right", id:"small_cake_1",   label:"маленький торт",   file:"media/small_cake_1.webp" },
+    { pole:"left",  id:"big_cup_1",      label:"большая чашка",    file:"media/big_cup_1.webp" },
+    { pole:"right", id:"small_cup_1",    label:"маленькая чашка",  file:"media/small_cup_1.webp" },
+  ]},
+  { id: "tall_short", label: "Высокий / Низкий", cards: [
+    { pole:"left",  id:"tall_dog_1",      label:"высокая собака",   file:"media/tall_dog_1.webp" },
+    { pole:"right", id:"short_dog_1",     label:"низкая собака",    file:"media/short_dog_1.webp" },
+    { pole:"left",  id:"tall_person_1",   label:"высокий человек",  file:"media/tall_person_1.webp" },
+    { pole:"right", id:"short_person_1",  label:"низкий человек",   file:"media/short_person_1.webp" },
+    { pole:"left",  id:"tall_tree_1",     label:"высокое дерево",   file:"media/tall_tree_1.webp" },
+    { pole:"right", id:"short_bush_1",    label:"низкий куст",      file:"media/short_bush_1.webp" },
+    { pole:"left",  id:"tall_building_1", label:"высокий дом",      file:"media/tall_building_1.webp" },
+    { pole:"right", id:"short_house_1",   label:"низкий дом",       file:"media/short_house_1.webp" },
+    { pole:"left",  id:"tall_mountain_1", label:"высокая гора",     file:"media/tall_mountain_1.webp" },
+    { pole:"right", id:"short_hill_1",    label:"низкий холм",      file:"media/short_hill_1.webp" },
+  ]},
+  { id: "long_short", label: "Длинный / Короткий", cards: [
+    { pole:"left",  id:"long_pencil_1",   label:"длинный карандаш",  file:"media/long_pencil_1.webp" },
+    { pole:"right", id:"short_pencil_1",  label:"короткий карандаш", file:"media/short_pencil_1.webp" },
+    { pole:"left",  id:"long_scarf_1",    label:"длинный шарф",      file:"media/long_scarf_1.webp" },
+    { pole:"right", id:"short_scarf_1",   label:"короткий шарф",     file:"media/short_scarf_1.webp" },
+    { pole:"left",  id:"long_hair_1",     label:"длинные волосы",    file:"media/long_hair_1.webp" },
+    { pole:"right", id:"short_hair_1",    label:"короткие волосы",   file:"media/short_hair_1.webp" },
+    { pole:"left",  id:"long_road_1",     label:"длинная дорога",    file:"media/long_road_1.webp" },
+    { pole:"right", id:"short_road_1",    label:"короткая дорога",   file:"media/short_road_1.webp" },
+    { pole:"left",  id:"long_rope_1",     label:"длинная верёвка",   file:"media/long_rope_1.webp" },
+    { pole:"right", id:"short_rope_1",    label:"короткая верёвка",  file:"media/short_rope_1.webp" },
+  ]},
+  { id: "wide_narrow", label: "Широкий / Узкий", cards: [
+    { pole:"left",  id:"wide_river_1",    label:"широкая река",      file:"media/wide_river_1.webp" },
+    { pole:"right", id:"narrow_stream_1", label:"узкий ручей",       file:"media/narrow_stream_1.webp" },
+    { pole:"left",  id:"wide_door_1",     label:"широкая дверь",     file:"media/wide_door_1.webp" },
+    { pole:"right", id:"narrow_door_1",   label:"узкая дверь",       file:"media/narrow_door_1.webp" },
+    { pole:"left",  id:"wide_street_1",   label:"широкая улица",     file:"media/wide_street_1.webp" },
+    { pole:"right", id:"narrow_alley_1",  label:"узкая улица",       file:"media/narrow_alley_1.webp" },
+    { pole:"left",  id:"wide_belt_1",     label:"широкий ремень",    file:"media/wide_belt_1.webp" },
+    { pole:"right", id:"narrow_belt_1",   label:"узкий ремень",      file:"media/narrow_belt_1.webp" },
+    { pole:"left",  id:"wide_table_1",    label:"широкий стол",      file:"media/wide_table_1.webp" },
+    { pole:"right", id:"narrow_table_1",  label:"узкий стол",        file:"media/narrow_table_1.webp" },
+  ]},
+  { id: "full_empty", label: "Полный / Пустой", cards: [
+    { pole:"left",  id:"full_bottle_1",   label:"полная бутылка",    file:"media/full_bottle_1.webp" },
+    { pole:"right", id:"empty_bottle_1",  label:"пустая бутылка",    file:"media/empty_bottle_1.webp" },
+    { pole:"left",  id:"full_bucket_1",   label:"полное ведро",      file:"media/full_bucket_1.webp" },
+    { pole:"right", id:"empty_bucket_1",  label:"пустое ведро",      file:"media/empty_bucket_1.webp" },
+    { pole:"left",  id:"full_backpack_1", label:"полный рюкзак",     file:"media/full_backpack_1.webp" },
+    { pole:"right", id:"empty_backpack_1",label:"пустой рюкзак",     file:"media/empty_backpack_1.webp" },
+    { pole:"left",  id:"full_plate_1",    label:"полная тарелка",    file:"media/full_plate_1.webp" },
+    { pole:"right", id:"empty_plate_1",   label:"пустая тарелка",    file:"media/empty_plate_1.webp" },
+    { pole:"left",  id:"full_basket_1",   label:"полная корзина",    file:"media/full_basket_1.webp" },
+    { pole:"right", id:"empty_basket_1",  label:"пустая корзина",    file:"media/empty_basket_1.webp" },
+  ]},
+  { id: "clean_dirty", label: "Чистый / Грязный", cards: [
+    { pole:"left",  id:"clean_hands_1",   label:"чистые руки",       file:"media/clean_hands_1.webp" },
+    { pole:"right", id:"dirty_hands_1",   label:"грязные руки",      file:"media/dirty_hands_1.webp" },
+    { pole:"left",  id:"clean_face_1",    label:"чистое лицо",       file:"media/clean_face_1.webp" },
+    { pole:"right", id:"dirty_face_1",    label:"грязное лицо",      file:"media/dirty_face_1.webp" },
+    { pole:"left",  id:"clean_shirt_1",   label:"чистая футболка",   file:"media/clean_shirt_1.webp" },
+    { pole:"right", id:"dirty_shirt_1",   label:"грязная футболка",  file:"media/dirty_shirt_1.webp" },
+    { pole:"left",  id:"clean_shoes_1",   label:"чистая обувь",      file:"media/clean_shoes_1.webp" },
+    { pole:"right", id:"dirty_shoes_1",   label:"грязная обувь",     file:"media/dirty_shoes_1.webp" },
+    { pole:"left",  id:"clean_car_1",     label:"чистая машина",     file:"media/clean_car_1.webp" },
+    { pole:"right", id:"dirty_car_1",     label:"грязная машина",    file:"media/dirty_car_1.webp" },
+  ]},
+  { id: "hot_cold", label: "Горячий / Холодный", cards: [
+    { pole:"left",  id:"hot_kettle_1",    label:"горячий чайник",    file:"media/hot_kettle_1.webp" },
+    { pole:"right", id:"cold_drink_1",    label:"холодный напиток",  file:"media/cold_drink_1.webp" },
+    { pole:"left",  id:"hot_soup_1",      label:"горячий суп",       file:"media/hot_soup_1.webp" },
+    { pole:"right", id:"cold_icecream_1", label:"холодное мороженое",file:"media/cold_icecream_1.webp" },
+    { pole:"left",  id:"hot_sand_1",      label:"горячий песок",     file:"media/hot_sand_1.webp" },
+    { pole:"right", id:"cold_snow_1",     label:"холодный снег",     file:"media/cold_snow_1.webp" },
+    { pole:"left",  id:"hot_fire_1",      label:"горячий огонь",     file:"media/hot_fire_1.webp" },
+    { pole:"right", id:"cold_ice_1",      label:"холодный лёд",      file:"media/cold_ice_1.webp" },
+    { pole:"left",  id:"hot_pan_1",       label:"горячая сковородка",file:"media/hot_pan_1.webp" },
+    { pole:"right", id:"cold_pitcher_1",  label:"холодный кувшин",   file:"media/cold_pitcher_1.webp" },
+  ]},
+  { id: "wet_dry", label: "Мокрый / Сухой", cards: [
+    { pole:"left",  id:"wet_towel_1",    label:"мокрое полотенце",  file:"media/wet_towel_1.webp" },
+    { pole:"right", id:"dry_towel_1",    label:"сухое полотенце",   file:"media/dry_towel_1.webp" },
+    { pole:"left",  id:"wet_umbrella_1", label:"мокрый зонт",       file:"media/wet_umbrella_1.webp" },
+    { pole:"right", id:"dry_umbrella_1", label:"сухой зонт",        file:"media/dry_umbrella_1.webp" },
+    { pole:"left",  id:"wet_grass_1",    label:"мокрая трава",      file:"media/wet_grass_1.webp" },
+    { pole:"right", id:"dry_grass_1",    label:"сухая трава",       file:"media/dry_grass_1.webp" },
+    { pole:"left",  id:"wet_stone_1",    label:"мокрый камень",     file:"media/wet_stone_1.webp" },
+    { pole:"right", id:"dry_stone_1",    label:"сухой камень",      file:"media/dry_stone_1.webp" },
+    { pole:"left",  id:"wet_socks_1",    label:"мокрые носки",      file:"media/wet_socks_1.webp" },
+    { pole:"right", id:"dry_socks_1",    label:"сухие носки",       file:"media/dry_socks_1.webp" },
+  ]},
+  { id: "new_old", label: "Новый / Старый", cards: [
+    { pole:"left",  id:"new_bicycle_1",  label:"новый велосипед",   file:"media/new_bicycle_1.webp" },
+    { pole:"right", id:"old_bicycle_1",  label:"старый велосипед",  file:"media/old_bicycle_1.webp" },
+    { pole:"left",  id:"new_book_1",     label:"новая книга",       file:"media/new_book_1.webp" },
+    { pole:"right", id:"old_book_1",     label:"старая книга",      file:"media/old_book_1.webp" },
+    { pole:"left",  id:"new_doll_1",     label:"новая кукла",       file:"media/new_doll_1.webp" },
+    { pole:"right", id:"old_doll_1",     label:"старая кукла",      file:"media/old_doll_1.webp" },
+    { pole:"left",  id:"new_jacket_1",   label:"новая куртка",      file:"media/new_jacket_1.webp" },
+    { pole:"right", id:"old_jacket_1",   label:"старая куртка",     file:"media/old_jacket_1.webp" },
+    { pole:"left",  id:"new_fence_1",    label:"новый забор",       file:"media/new_fence_1.webp" },
+    { pole:"right", id:"old_fence_1",    label:"старый забор",      file:"media/old_fence_1.webp" },
+  ]},
 ];
 
-const concepts = [...new Set(cards.map(c => c.conceptId))];
-const conceptLabels = { big_small: "Большой / Маленький", tall_short: "Высокий / Низкий", long_short: "Длинный / Короткий" };
-
-const container = document.body;
-
-concepts.forEach(cid => {
+concepts.forEach(concept => {
   const h = document.createElement("h2");
-  h.textContent = conceptLabels[cid] || cid;
-  container.appendChild(h);
+  h.textContent = concept.label;
+  document.body.appendChild(h);
 
   const grid = document.createElement("div");
   grid.className = "grid";
 
-  cards.filter(c => c.conceptId === cid).forEach(card => {
+  concept.cards.forEach(card => {
     const div = document.createElement("div");
     div.className = "card";
 
@@ -87,16 +156,10 @@ concepts.forEach(cid => {
     const label = document.createElement("div");
     label.className = "label";
     label.textContent = card.label;
-    const b1 = document.createElement("span");
-    b1.className = "badge badge--" + card.pole;
-    b1.textContent = card.pole === "left" ? "left" : "right";
-    label.appendChild(b1);
-    if (card.primary) {
-      const b2 = document.createElement("span");
-      b2.className = "badge badge--primary";
-      b2.textContent = "★";
-      label.appendChild(b2);
-    }
+    const badge = document.createElement("span");
+    badge.className = "badge badge--" + card.pole;
+    badge.textContent = card.pole === "left" ? "◀" : "▶";
+    label.appendChild(badge);
 
     div.appendChild(img);
     div.appendChild(name);
@@ -104,7 +167,7 @@ concepts.forEach(cid => {
     grid.appendChild(div);
   });
 
-  container.appendChild(grid);
+  document.body.appendChild(grid);
 });
 </script>
 </body>
