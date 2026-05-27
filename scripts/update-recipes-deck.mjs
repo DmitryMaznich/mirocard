@@ -1,14 +1,15 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.16.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.17.0.zip";
-const NEW_VERSION = "1.17.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.17.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.18.0.zip";
+const NEW_VERSION = "1.18.0";
 const RECIPES_DIR = "content/recipes";
 
 const recipeIds = [
   "omelet", "mashed_potatoes", "pasta", "fried_eggs", "oatmeal",
   "salad", "chicken", "syrnik", "tea", "cocoa", "kompot", "lemonade",
+  "pasta_meat",
 ];
 
 const TITLES = {
@@ -24,49 +25,56 @@ const TITLES = {
   cocoa:            { ru: "Какао",                         en: "Cocoa" },
   kompot:           { ru: "Компот из ягод",                en: "Berry Compote" },
   lemonade:         { ru: "Лимонад",                       en: "Lemonade" },
+  pasta_meat:       { ru: "Макароны болоньезе",            en: "Pasta Bolognese" },
 };
 
 function countSteps(txt) {
   return txt.split("\n").filter(l => /^\d+\./.test(l)).length;
 }
 
-// Load old zip to extract SVGs
+// Load old zip to extract SVGs and existing topic structure
 const oldData = readFileSync(OLD_ZIP);
 const oldZip = await JSZip.loadAsync(oldData);
+const oldTopicRaw = await oldZip.file("topic.json").async("string");
+const oldTopic = JSON.parse(oldTopicRaw);
 
 const newZip = new JSZip();
 
-// Copy all SVG media files from old zip
+// Copy SVG media files from old zip (skip silently if not found — new recipes have no SVG yet)
 for (const id of recipeIds) {
   const svgPath = `media/${id}.svg`;
   const svgFile = oldZip.file(svgPath);
   if (svgFile) {
-    const svgContent = await svgFile.async("string");
-    newZip.file(svgPath, svgContent);
-  } else {
-    console.warn(`SVG not found in old zip: ${svgPath}`);
+    newZip.file(svgPath, await svgFile.async("string"));
   }
 }
 
-// Read updated recipe texts and count steps
+// Build texts manifest from recipeIds
 const textsManifest = [];
-const oldTopicRaw = await oldZip.file("topic.json").async("string");
-const oldTopic = JSON.parse(oldTopicRaw);
 
-for (const oldText of oldTopic.texts) {
-  const id = oldText.id.replace("_instruction", "");
+for (const id of recipeIds) {
   const txtPath = `${RECIPES_DIR}/${id}.txt`;
   const content = readFileSync(txtPath, "utf-8");
   const steps = countSteps(content);
 
   newZip.file(`recipes/${id}.txt`, content);
 
-  textsManifest.push({
-    ...oldText,
-    title: TITLES[id] ?? oldText.title,
-    stepCount: steps,
-  });
+  // Find existing text entry in old topic (by id with or without _instruction suffix)
+  const existing = oldTopic.texts.find(
+    (t) => t.id === `${id}_instruction` || t.id === id
+  );
 
+  const textEntry = existing
+    ? { ...existing, title: TITLES[id] ?? existing.title, stepCount: steps }
+    : {
+        id: `${id}_instruction`,
+        kind: "instruction",
+        title: TITLES[id] ?? { ru: id, en: id },
+        file: `recipes/${id}.txt`,
+        stepCount: steps,
+      };
+
+  textsManifest.push(textEntry);
   console.log(`${id}.txt: ${steps} шагов`);
 }
 
