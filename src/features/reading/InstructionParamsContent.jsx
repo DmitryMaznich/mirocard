@@ -4,7 +4,7 @@ import { useTimer } from "@/features/timer/TimerContext";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import { getInitials } from "@/shared/utils/format";
-import { getGroup, saveGroup, getRecipeOverride, getRawRecipeTxt, saveRecipeOverride } from "@/core/groupStore";
+import { getGroup, saveGroup, getRecipeSettings, saveRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, saveRecipeOverride } from "@/core/groupStore";
 import { listLocalAudioOverrides, syncAudioOverrides } from "@/core/audioStore";
 import AudioRecordDialog from "@/topics/renderers/reading/AudioRecordDialog";
 import { parseRecipeTxt } from "@/topics/renderers/reading/parseRecipeTxt";
@@ -19,6 +19,8 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
   const [newMemberPhoto,  setNewMemberPhoto]  = useState(null);
   const memberPhotoRef = useRef(null);
 
+  const [recipeMode,      setRecipeMode]      = useState("group");
+  const [portions,        setPortions]        = useState(1);
   const [audioEnabled,    setAudioEnabled]    = useState(false);
   const [audioStepsOpen,  setAudioStepsOpen]  = useState(false);
   const [recordedSteps,   setRecordedSteps]   = useState(new Set());
@@ -31,11 +33,16 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
 
   useEffect(() => {
     async function load() {
+      const settings = await getRecipeSettings(topicId).catch(() => ({ mode: "group", portions: 1 }));
+      const mode = settings.mode ?? "group";
+      setRecipeMode(mode);
+      setPortions(settings.portions ?? 1);
+
       const [grp, rawText] = await Promise.all([
         getGroup(topicId).catch(() => []),
         (async () => {
           if (textId) {
-            const override = await getRecipeOverride(topicId, textId).catch(() => null);
+            const override = await getRecipeOverrideForMode(topicId, textId, mode).catch(() => null);
             if (override) return override;
           }
           if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
@@ -100,9 +107,20 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
     setEditingRecipe(false);
   }
 
+  async function handleModeChange(newMode) {
+    setRecipeMode(newMode);
+    await saveRecipeSettings(topicId, { mode: newMode, portions }).catch(() => {});
+  }
+
+  async function handlePortionsChange(delta) {
+    const next = Math.max(1, Math.min(20, portions + delta));
+    setPortions(next);
+    await saveRecipeSettings(topicId, { mode: recipeMode, portions: next }).catch(() => {});
+  }
+
   async function startSession() {
     await saveGroup(topicId, group).catch(() => {});
-    setInstructionAudioEnabled(audioEnabled);
+    setInstructionAudioEnabled(recipeMode === "individual" ? audioEnabled : false);
     markSessionStart();
     setScreen("session");
   }
@@ -133,6 +151,33 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
 
       <div className="params-settings-col">
         <div className="params-body">
+
+          <div className="param-row">
+            <div className="param-label">Режим</div>
+            <div className="param-enum-group">
+              <button
+                className={`enum-btn ${recipeMode === "group" ? "enum-btn--active" : ""}`}
+                onClick={() => handleModeChange("group")}
+              >
+                Группа
+              </button>
+              <button
+                className={`enum-btn ${recipeMode === "individual" ? "enum-btn--active" : ""}`}
+                onClick={() => handleModeChange("individual")}
+              >
+                Индивидуально
+              </button>
+            </div>
+          </div>
+
+          <div className="param-row">
+            <div className="param-label">Порций</div>
+            <div className="all-texts-portions">
+              <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(-1)} disabled={portions <= 1}>−</button>
+              <span className="all-texts-portions-value">{portions}</span>
+              <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(+1)} disabled={portions >= 20}>+</button>
+            </div>
+          </div>
 
           <div className="param-row param-row--block">
             <div className="param-label">Группа</div>
@@ -187,25 +232,27 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
             </div>
           </div>
 
-          <div className="param-row">
-            <div className="param-label">Аудио</div>
-            <div className="param-enum-group">
-              <button
-                className={`enum-btn ${!audioEnabled ? "enum-btn--active" : ""}`}
-                onClick={() => setAudioEnabled(false)}
-              >
-                Выкл
-              </button>
-              <button
-                className={`enum-btn ${audioEnabled ? "enum-btn--active" : ""}`}
-                onClick={() => setAudioEnabled(true)}
-              >
-                Вкл
-              </button>
+          {recipeMode === "individual" && (
+            <div className="param-row">
+              <div className="param-label">Аудио</div>
+              <div className="param-enum-group">
+                <button
+                  className={`enum-btn ${!audioEnabled ? "enum-btn--active" : ""}`}
+                  onClick={() => setAudioEnabled(false)}
+                >
+                  Выкл
+                </button>
+                <button
+                  className={`enum-btn ${audioEnabled ? "enum-btn--active" : ""}`}
+                  onClick={() => setAudioEnabled(true)}
+                >
+                  Вкл
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {actionSteps.length > 0 && (
+          {recipeMode === "individual" && actionSteps.length > 0 && (
             <>
               <div className="param-row">
                 <div className="param-label">

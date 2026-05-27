@@ -5,7 +5,6 @@ import {
   getRecipeOverrideForMode,
   saveRecipeOverrideForMode,
   getRecipeSettings,
-  saveRecipeSettings,
 } from "@/core/groupStore";
 import { getTopicTitle } from "@/shared/utils/format";
 
@@ -29,7 +28,6 @@ function RecipeEditor({ topicId, text, original, saved, mode }) {
     }
   }, [original, saved]);
 
-  // When mode changes, reload saved value for the new mode
   useEffect(() => {
     setValue(saved ?? original ?? "");
     setStatus(saved ? "saved" : "original");
@@ -50,8 +48,7 @@ function RecipeEditor({ topicId, text, original, saved, mode }) {
   }
 
   function handleReset() {
-    const orig = originalRef.current ?? "";
-    setValue(orig);
+    setValue(originalRef.current ?? "");
     setStatus("original");
   }
 
@@ -100,30 +97,22 @@ function RecipeEditor({ topicId, text, original, saved, mode }) {
 }
 
 export default function AllTextsScreen() {
-  const setScreen              = useAppStore((s) => s.setScreen);
-  const activeTopicId          = useAppStore((s) => s.activeTopicId);
-  const topicRecords           = useAppStore((s) => s.topicRecords);
-  const instructionAudioEnabled = useAppStore((s) => s.instructionAudioEnabled);
-  const setInstructionAudioEnabled = useAppStore((s) => s.setInstructionAudioEnabled);
+  const setScreen     = useAppStore((s) => s.setScreen);
+  const activeTopicId = useAppStore((s) => s.activeTopicId);
+  const topicRecords  = useAppStore((s) => s.topicRecords);
 
   const topicRecord  = topicRecords.find((r) => r.meta.id === activeTopicId);
   const instructions = (topicRecord?.texts ?? []).filter((t) => t.kind === "instruction");
 
-  const [mode,     setMode]     = useState("group");
-  const [portions, setPortions] = useState(1);
-  const [data,     setData]     = useState({});
-  const [loading,  setLoading]  = useState(true);
+  const [mode,    setMode]    = useState("group");
+  const [data,    setData]    = useState({});
+  const [loading, setLoading] = useState(true);
 
-  // Load settings once
   useEffect(() => {
     if (!activeTopicId) return;
-    getRecipeSettings(activeTopicId).then((s) => {
-      setMode(s.mode ?? "group");
-      setPortions(s.portions ?? 1);
-    }).catch(() => {});
+    getRecipeSettings(activeTopicId).then((s) => setMode(s.mode ?? "group")).catch(() => {});
   }, [activeTopicId]);
 
-  // Load overrides for current mode
   useEffect(() => {
     if (!activeTopicId || !instructions.length) { setLoading(false); return; }
     setLoading(true);
@@ -141,17 +130,6 @@ export default function AllTextsScreen() {
     });
   }, [activeTopicId, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleModeChange(newMode) {
-    setMode(newMode);
-    await saveRecipeSettings(activeTopicId, { mode: newMode, portions }).catch(() => {});
-  }
-
-  async function handlePortionsChange(delta) {
-    const next = Math.max(1, Math.min(20, portions + delta));
-    setPortions(next);
-    await saveRecipeSettings(activeTopicId, { mode, portions: next }).catch(() => {});
-  }
-
   return (
     <div className="screen">
       <div className="screen-header">
@@ -159,50 +137,20 @@ export default function AllTextsScreen() {
         <h1 className="screen-title">
           {topicRecord ? getTopicTitle(topicRecord.meta.title) : "Все тексты"}
         </h1>
-      </div>
-
-      <div className="all-texts-settings">
-        {/* Mode toggle */}
-        <div className="all-texts-setting-row">
-          <span className="all-texts-setting-label">Режим</span>
-          <div className="all-texts-mode-toggle">
-            <button
-              className={`all-texts-mode-btn ${mode === "group" ? "all-texts-mode-btn--active" : ""}`}
-              onClick={() => handleModeChange("group")}
-            >
-              Группа
-            </button>
-            <button
-              className={`all-texts-mode-btn ${mode === "individual" ? "all-texts-mode-btn--active" : ""}`}
-              onClick={() => handleModeChange("individual")}
-            >
-              Индивидуально
-            </button>
-          </div>
+        <div className="all-texts-mode-toggle">
+          <button
+            className={`all-texts-mode-btn ${mode === "group" ? "all-texts-mode-btn--active" : ""}`}
+            onClick={() => setMode("group")}
+          >
+            Группа
+          </button>
+          <button
+            className={`all-texts-mode-btn ${mode === "individual" ? "all-texts-mode-btn--active" : ""}`}
+            onClick={() => setMode("individual")}
+          >
+            Инд.
+          </button>
         </div>
-
-        {/* Portions stepper */}
-        <div className="all-texts-setting-row">
-          <span className="all-texts-setting-label">Порций</span>
-          <div className="all-texts-portions">
-            <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(-1)} disabled={portions <= 1}>−</button>
-            <span className="all-texts-portions-value">{portions}</span>
-            <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(+1)} disabled={portions >= 20}>+</button>
-          </div>
-        </div>
-
-        {/* Audio toggle — individual mode only */}
-        {mode === "individual" && (
-          <div className="all-texts-setting-row">
-            <span className="all-texts-setting-label">Аудио</span>
-            <button
-              className={`all-texts-mode-btn ${instructionAudioEnabled ? "all-texts-mode-btn--active" : ""}`}
-              onClick={() => setInstructionAudioEnabled?.(!instructionAudioEnabled)}
-            >
-              {instructionAudioEnabled ? "Вкл" : "Выкл"}
-            </button>
-          </div>
-        )}
       </div>
 
       {loading ? (
