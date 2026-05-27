@@ -650,6 +650,7 @@ html.app-ios-standalone {
   justify-content: space-between;
   gap: 12px;
   flex-shrink: 0;
+  padding-bottom: max(4px, var(--app-safe-bottom, 0px));
 }
 
 .instruction-nav .reading-secondary-btn,
@@ -17494,7 +17495,7 @@ body { background: #eef0ef; }
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .instruction-main {
