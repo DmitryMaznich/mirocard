@@ -12,23 +12,29 @@ function VowelFaceHint() {
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <circle cx="50" cy="50" r="44" fill="#fde68a" stroke="#f59e0b" strokeWidth="2"/>
       {/* cheeks */}
-      <ellipse cx="26" cy="60" rx="11" ry="8" fill="#fca5a5" opacity="0.7"/>
-      <ellipse cx="74" cy="60" rx="11" ry="8" fill="#fca5a5" opacity="0.7"/>
-      {/* eyebrows raised */}
-      <path d="M26 32 Q35 26 44 31" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"/>
-      <path d="M56 31 Q65 26 74 32" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"/>
-      {/* eyes wide */}
-      <circle cx="36" cy="42" r="7" fill="#1e293b"/>
-      <circle cx="64" cy="42" r="7" fill="#1e293b"/>
-      <circle cx="38.5" cy="39.5" r="2.5" fill="#fff"/>
-      <circle cx="66.5" cy="39.5" r="2.5" fill="#fff"/>
-      {/* mouth — big open О */}
-      <ellipse cx="50" cy="68" rx="16" ry="14" fill="#1e293b"/>
-      <ellipse cx="50" cy="68" rx="11" ry="9"  fill="#dc2626"/>
-      <ellipse cx="50" cy="72" rx="7" ry="5" fill="#f87171"/>
+      <ellipse cx="24" cy="59" rx="10" ry="7" fill="#fca5a5" opacity="0.65"/>
+      <ellipse cx="76" cy="59" rx="10" ry="7" fill="#fca5a5" opacity="0.65"/>
+      {/* eyebrows — raised, arched */}
+      <path d="M27 33 Q36 27 45 31" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M55 31 Q64 27 73 33" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"/>
+      {/* eyes — happy crescents, squinting from singing */}
+      <path d="M29 43 Q36 37 43 43" fill="none" stroke="#1e293b" strokeWidth="3" strokeLinecap="round"/>
+      <path d="M57 43 Q64 37 71 43" fill="none" stroke="#1e293b" strokeWidth="3" strokeLinecap="round"/>
+      {/* mouth — lips with defined cupid's bow, open O */}
+      {/* lip outline filled with lip colour */}
+      <path d="M34 64 Q42 59 50 60 Q58 59 66 64 Q62 76 50 77 Q38 76 34 64 Z" fill="#e11d48"/>
+      {/* upper lip cupid's bow */}
+      <path d="M34 64 Q40 62 44 64 Q47 61 50 61 Q53 61 56 64 Q60 62 66 64" fill="none" stroke="#9f1239" strokeWidth="1.2"/>
+      {/* throat opening */}
+      <ellipse cx="50" cy="69" rx="9" ry="7" fill="#1e293b"/>
+      {/* upper teeth strip */}
+      <rect x="41" y="64" width="18" height="5" rx="2" fill="#f8fafc"/>
+      {/* tongue */}
+      <ellipse cx="50" cy="74" rx="5.5" ry="3" fill="#f87171"/>
       {/* music notes */}
-      <text x="8"  y="28" fontSize="16" fill="#f59e0b" fontWeight="bold">♪</text>
-      <text x="76" y="24" fontSize="13" fill="#f59e0b" fontWeight="bold">♫</text>
+      <text x="8"  y="27" fontSize="15" fill="#f59e0b" fontWeight="bold">♪</text>
+      <text x="75" y="23" fontSize="12" fill="#f59e0b" fontWeight="bold">♫</text>
+      <text x="74" y="56" fontSize="10" fill="#f59e0b" fontWeight="bold">♩</text>
     </svg>
   );
 }
