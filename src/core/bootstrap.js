@@ -219,6 +219,11 @@ export async function persistBootstrap(db, raw) {
   if ("conceptProgress" in raw) writes.push(kv.set(db, "conceptProgress", bootstrap.conceptProgress));
   if ("sessions" in raw) writes.push(kv.set(db, "sessions", bootstrap.sessions));
   if ("lastContext" in raw) writes.push(kv.set(db, "lastContext", bootstrap.lastContext));
+  if (Array.isArray(raw.kvStore)) {
+    for (const { key, value } of raw.kvStore) {
+      writes.push(kv.set(db, key, value));
+    }
+  }
 
   await Promise.all(writes);
 }

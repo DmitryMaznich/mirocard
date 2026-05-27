@@ -109,6 +109,17 @@ export function resolveStepOwner(ownerName, group, student) {
 }
 
 /**
+ * Scale ingredient quantities in text marked with {N} syntax.
+ * {2} with portions=3 → "6", {0.5} with portions=4 → "2".
+ */
+export function applyPortions(text, portions) {
+  if (!portions || portions === 1) return text;
+  return text.replace(/\{(\d+(?:\.\d+)?)\}/g, (_, n) =>
+    String(Math.round(parseFloat(n) * portions))
+  );
+}
+
+/**
  * Resolve all owners of a step (supports multiple assignees).
  * Falls back to the active student when no group is configured.
  */

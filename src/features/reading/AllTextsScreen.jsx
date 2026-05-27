@@ -1,6 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
-import { getRawRecipeTxt, getRecipeOverride, saveRecipeOverride } from "@/core/groupStore";
+import {
+  getRawRecipeTxt,
+  getRecipeOverrideForMode,
+  saveRecipeOverrideForMode,
+  getRecipeSettings,
+  saveRecipeSettings,
+} from "@/core/groupStore";
 import { getTopicTitle } from "@/shared/utils/format";
 
 function autoResize(el) {
@@ -9,13 +15,12 @@ function autoResize(el) {
   el.style.height = el.scrollHeight + "px";
 }
 
-function RecipeEditor({ topicId, text, original, saved }) {
-  const [value, setValue]       = useState(saved ?? original ?? "");
-  const [status, setStatus]     = useState(saved ? "saved" : "original"); // "original" | "dirty" | "saving" | "saved"
-  const textareaRef             = useRef(null);
-  const originalRef             = useRef(original);
+function RecipeEditor({ topicId, text, original, saved, mode }) {
+  const [value, setValue]   = useState(saved ?? original ?? "");
+  const [status, setStatus] = useState(saved ? "saved" : "original");
+  const textareaRef         = useRef(null);
+  const originalRef         = useRef(original);
 
-  // sync original once it loads
   useEffect(() => {
     if (original && !saved) {
       setValue(original);
@@ -23,6 +28,12 @@ function RecipeEditor({ topicId, text, original, saved }) {
       setStatus("original");
     }
   }, [original, saved]);
+
+  // When mode changes, reload saved value for the new mode
+  useEffect(() => {
+    setValue(saved ?? original ?? "");
+    setStatus(saved ? "saved" : "original");
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { autoResize(textareaRef.current); }, [value]);
 
@@ -34,13 +45,14 @@ function RecipeEditor({ topicId, text, original, saved }) {
 
   async function handleSave() {
     setStatus("saving");
-    await saveRecipeOverride(topicId, text.id, value);
+    await saveRecipeOverrideForMode(topicId, text.id, mode, value);
     setStatus("saved");
   }
 
   function handleReset() {
-    setValue(originalRef.current ?? "");
-    setStatus(originalRef.current === value ? "original" : "dirty");
+    const orig = originalRef.current ?? "";
+    setValue(orig);
+    setStatus("original");
   }
 
   const isDirty  = status === "dirty";
@@ -88,23 +100,38 @@ function RecipeEditor({ topicId, text, original, saved }) {
 }
 
 export default function AllTextsScreen() {
-  const setScreen     = useAppStore((s) => s.setScreen);
-  const activeTopicId = useAppStore((s) => s.activeTopicId);
-  const topicRecords  = useAppStore((s) => s.topicRecords);
+  const setScreen              = useAppStore((s) => s.setScreen);
+  const activeTopicId          = useAppStore((s) => s.activeTopicId);
+  const topicRecords           = useAppStore((s) => s.topicRecords);
+  const instructionAudioEnabled = useAppStore((s) => s.instructionAudioEnabled);
+  const setInstructionAudioEnabled = useAppStore((s) => s.setInstructionAudioEnabled);
 
   const topicRecord  = topicRecords.find((r) => r.meta.id === activeTopicId);
   const instructions = (topicRecord?.texts ?? []).filter((t) => t.kind === "instruction");
 
-  const [data, setData]       = useState({}); // { [id]: { original, saved } }
-  const [loading, setLoading] = useState(true);
+  const [mode,     setMode]     = useState("group");
+  const [portions, setPortions] = useState(1);
+  const [data,     setData]     = useState({});
+  const [loading,  setLoading]  = useState(true);
 
+  // Load settings once
+  useEffect(() => {
+    if (!activeTopicId) return;
+    getRecipeSettings(activeTopicId).then((s) => {
+      setMode(s.mode ?? "group");
+      setPortions(s.portions ?? 1);
+    }).catch(() => {});
+  }, [activeTopicId]);
+
+  // Load overrides for current mode
   useEffect(() => {
     if (!activeTopicId || !instructions.length) { setLoading(false); return; }
+    setLoading(true);
     Promise.all(
       instructions.map(async (t) => {
         const [original, saved] = await Promise.all([
           t.file ? getRawRecipeTxt(activeTopicId, t.file) : null,
-          getRecipeOverride(activeTopicId, t.id).catch(() => null),
+          getRecipeOverrideForMode(activeTopicId, t.id, mode).catch(() => null),
         ]);
         return [t.id, { original, saved }];
       })
@@ -112,7 +139,18 @@ export default function AllTextsScreen() {
       setData(Object.fromEntries(entries));
       setLoading(false);
     });
-  }, [activeTopicId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTopicId, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleModeChange(newMode) {
+    setMode(newMode);
+    await saveRecipeSettings(activeTopicId, { mode: newMode, portions }).catch(() => {});
+  }
+
+  async function handlePortionsChange(delta) {
+    const next = Math.max(1, Math.min(20, portions + delta));
+    setPortions(next);
+    await saveRecipeSettings(activeTopicId, { mode, portions: next }).catch(() => {});
+  }
 
   return (
     <div className="screen">
@@ -123,6 +161,50 @@ export default function AllTextsScreen() {
         </h1>
       </div>
 
+      <div className="all-texts-settings">
+        {/* Mode toggle */}
+        <div className="all-texts-setting-row">
+          <span className="all-texts-setting-label">Режим</span>
+          <div className="all-texts-mode-toggle">
+            <button
+              className={`all-texts-mode-btn ${mode === "group" ? "all-texts-mode-btn--active" : ""}`}
+              onClick={() => handleModeChange("group")}
+            >
+              Группа
+            </button>
+            <button
+              className={`all-texts-mode-btn ${mode === "individual" ? "all-texts-mode-btn--active" : ""}`}
+              onClick={() => handleModeChange("individual")}
+            >
+              Индивидуально
+            </button>
+          </div>
+        </div>
+
+        {/* Portions stepper */}
+        <div className="all-texts-setting-row">
+          <span className="all-texts-setting-label">Порций</span>
+          <div className="all-texts-portions">
+            <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(-1)} disabled={portions <= 1}>−</button>
+            <span className="all-texts-portions-value">{portions}</span>
+            <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(+1)} disabled={portions >= 20}>+</button>
+          </div>
+        </div>
+
+        {/* Audio toggle — individual mode only */}
+        {mode === "individual" && (
+          <div className="all-texts-setting-row">
+            <span className="all-texts-setting-label">Аудио</span>
+            <button
+              className={`all-texts-mode-btn ${instructionAudioEnabled ? "all-texts-mode-btn--active" : ""}`}
+              onClick={() => setInstructionAudioEnabled?.(!instructionAudioEnabled)}
+            >
+              {instructionAudioEnabled ? "Вкл" : "Выкл"}
+            </button>
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <div className="empty-state">
           <div className="empty-state__text">Загрузка…</div>
@@ -130,7 +212,7 @@ export default function AllTextsScreen() {
       ) : (
         <div className="all-texts-scroll">
           {instructions.map((text, i) => (
-            <div key={text.id} className="all-texts-block">
+            <div key={`${text.id}_${mode}`} className="all-texts-block">
               <div className="all-texts-block__header">
                 <span className="all-texts-index">{i + 1}</span>
                 <span className="all-texts-block__title">
@@ -142,6 +224,7 @@ export default function AllTextsScreen() {
                 text={text}
                 original={data[text.id]?.original ?? null}
                 saved={data[text.id]?.saved ?? null}
+                mode={mode}
               />
             </div>
           ))}

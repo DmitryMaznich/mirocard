@@ -149,6 +149,14 @@ export function initDb(dbPath = DB_PATH) {
     );
     CREATE INDEX IF NOT EXISTS idx_audio_overrides_lookup
       ON audio_overrides(account_id, topic_id, text_id);
+
+    CREATE TABLE IF NOT EXISTS account_kv (
+      account_id  TEXT    NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      key         TEXT    NOT NULL,
+      value       TEXT    NOT NULL,
+      updated_at  INTEGER NOT NULL,
+      PRIMARY KEY (account_id, key)
+    );
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();

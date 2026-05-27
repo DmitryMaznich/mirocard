@@ -185,6 +185,22 @@ export function consumePasswordResetToken(db, tokenHash) {
   return row.account_id;
 }
 
+// ─── Account KV ───────────────────────────────────────────────────────────────
+
+export function upsertAccountKv(db, accountId, key, value) {
+  db.prepare(`
+    INSERT INTO account_kv (account_id, key, value, updated_at)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(account_id, key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+  `).run(accountId, key, JSON.stringify(value), Date.now());
+}
+
+export function getAllAccountKv(db, accountId) {
+  return db.prepare(
+    "SELECT key, value FROM account_kv WHERE account_id = ? ORDER BY updated_at ASC"
+  ).all(accountId).map((r) => ({ key: r.key, value: JSON.parse(r.value) }));
+}
+
 // ─── Sync revision ────────────────────────────────────────────────────────────
 
 export function getRevision(db, accountId) {

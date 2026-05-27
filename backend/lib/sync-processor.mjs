@@ -4,6 +4,7 @@ import {
   upsertAccountTopic, softDeleteAccountTopic,
   upsertStudentTopicLink,
   upsertConceptProgress,
+  upsertAccountKv,
   incrementRevision,
 } from "./account-repository.mjs";
 
@@ -28,6 +29,9 @@ const HANDLERS = {
 
   "concept_progress.upsert": (db, accountId, data) =>
     upsertConceptProgress(db, data),
+
+  "kv.upsert": (db, accountId, data) =>
+    upsertAccountKv(db, accountId, data.key, data.value),
 };
 
 export function processSync(db, accountId, operations) {

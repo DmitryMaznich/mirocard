@@ -5,8 +5,8 @@ import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import { useSpeech } from "@/shared/hooks/useSpeech";
-import { parseRecipeTxt, resolveStepOwners } from "./parseRecipeTxt";
-import { getGroup, getRecipeOverride, getRawRecipeTxt } from "@/core/groupStore";
+import { parseRecipeTxt, resolveStepOwners, applyPortions } from "./parseRecipeTxt";
+import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt } from "@/core/groupStore";
 import { getAudioOverride } from "@/core/audioStore";
 
 const UNDERSTAND_BUTTONS = [
@@ -339,23 +339,28 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   const { speak } = useSpeech();
 
-  const [audioEnabled] = useState(instructionAudioEnabled);
-  const [steps,     setSteps]     = useState(task.text?.steps ?? []);
-  const [group,     setGroup]     = useState([]);
-  const [stepIndex, setStepIndex] = useState(0);
-  const [checked,   setChecked]   = useState({});
-  const [listOpen,  setListOpen]  = useState(false);
+  const [recipeMode, setRecipeMode] = useState("group");
+  const [portions,   setPortions]   = useState(1);
+  const [steps,      setSteps]      = useState(task.text?.steps ?? []);
+  const [group,      setGroup]      = useState([]);
+  const [stepIndex,  setStepIndex]  = useState(0);
+  const [checked,    setChecked]    = useState({});
+  const [listOpen,   setListOpen]   = useState(false);
   const listRef = useRef(null);
+
+  const audioEnabled = recipeMode === "individual" && instructionAudioEnabled;
 
   useEffect(() => {
     async function load() {
-      const [grp, rawText] = await Promise.all([
+      const textId   = task.text?.id;
+      const filePath = task.text?.file;
+      const [grp, settings, rawText] = await Promise.all([
         getGroup(topicId).catch(() => []),
+        getRecipeSettings(topicId).catch(() => ({ mode: "group", portions: 1 })),
         (async () => {
-          const textId   = task.text?.id;
-          const filePath = task.text?.file;
           if (textId) {
-            const override = await getRecipeOverride(topicId, textId).catch(() => null);
+            const mode = (await getRecipeSettings(topicId).catch(() => ({ mode: "group" }))).mode ?? "group";
+            const override = await getRecipeOverrideForMode(topicId, textId, mode).catch(() => null);
             if (override) return override;
           }
           if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
@@ -367,6 +372,8 @@ function InstructionTask({ task, topicId, onAdvance }) {
       const annotated    = applyGroupToSteps(parsedSteps, grpList);
       setGroup(grpList);
       setSteps(annotated);
+      setRecipeMode(settings.mode ?? "group");
+      setPortions(settings.portions ?? 1);
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]);
@@ -542,7 +549,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
             {owners.length > 0 && step.type !== "heading" && (
               <div className="instruction-step-owner">{owners.map((o) => o.name).join(", ")},</div>
             )}
-            <div className="instruction-step-text">{step.text}</div>
+            <div className="instruction-step-text">{applyPortions(step.text, portions)}</div>
             {step.type === "checklist" && (
               <ul className="instruction-checklist">
                 {(step.items ?? []).map((item, i) => {

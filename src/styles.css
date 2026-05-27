@@ -18218,6 +18218,92 @@ body { background: #eef0ef; }
   overflow: hidden;
 }
 
+/* ── AllTextsScreen settings bar ───────────────────────── */
+.all-texts-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border, #ddd);
+  background: var(--color-surface, #fafafa);
+}
+
+.all-texts-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.all-texts-setting-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #777);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.all-texts-mode-toggle {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid var(--color-primary, #4a90e2);
+}
+
+.all-texts-mode-btn {
+  border: none;
+  background: transparent;
+  padding: 5px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--color-primary, #4a90e2);
+  transition: background 0.15s, color 0.15s;
+}
+.all-texts-mode-btn--active {
+  background: var(--color-primary, #4a90e2);
+  color: #fff;
+}
+.all-texts-mode-btn:not(.all-texts-mode-btn--active):hover {
+  background: rgba(74, 144, 226, 0.08);
+}
+
+.all-texts-portions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.all-texts-portions-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-primary, #4a90e2);
+  background: transparent;
+  color: var(--color-primary, #4a90e2);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.all-texts-portions-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.all-texts-portions-btn:not(:disabled):hover {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.all-texts-portions-value {
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+  color: var(--color-text, #1a1a1a);
+}
+
 /* ── SentenceListParam ── */
 .param-sentence-list .param-sentence-list__body {
   display: flex;

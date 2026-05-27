@@ -2,6 +2,7 @@ import {
   findAccountById, getAccountSettings, getRevision,
   getStudents, getAccountTopics,
   getStudentTopicLinks, getAllConceptProgress,
+  getAllAccountKv,
 } from "./account-repository.mjs";
 
 function safeJson(value, fallback) {
@@ -18,6 +19,7 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
   const ownedTopics       = getAccountTopics(db, accountId);
   const studentTopicLinks = getStudentTopicLinks(db, accountId);
   const conceptProgress   = getAllConceptProgress(db, accountId);
+  const kvStore           = getAllAccountKv(db, accountId);
 
   return {
     account: {
@@ -72,6 +74,7 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
       lastSeenAt: p.last_seen_at,
       updatedAt:  p.updated_at,
     })),
+    kvStore,
     revision,
     generatedAt: new Date().toISOString(),
   };
