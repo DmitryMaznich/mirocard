@@ -314,6 +314,7 @@ export default function ParamsScreen() {
   const activeTopicId          = useAppStore((s) => s.activeTopicId);
   const activeStudentId        = useAppStore((s) => s.activeStudentId);
   const activeTextId           = useAppStore((s) => s.activeTextId);
+  const activeTextStored       = useAppStore((s) => s.activeText);
   const activeModeId           = useAppStore((s) => s.activeModeId);
   const topicRecords           = useAppStore((s) => s.topicRecords);
   const students               = useAppStore((s) => s.students);
@@ -323,7 +324,9 @@ export default function ParamsScreen() {
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode        = topicRecord?.modes.find((m) => m.id === activeModeId);
   const isReading   = topicRecord?.meta.renderer === "reading";
-  const activeText  = isReading ? topicRecord?.texts?.find((text) => text.id === activeTextId) : null;
+  const activeText  = isReading
+    ? (topicRecord?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
+    : null;
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
   const link    = studentTopicLinks[linkKey] ?? {};

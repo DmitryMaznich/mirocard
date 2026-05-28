@@ -1,5 +1,6 @@
 
-export function getReadingText(topicRecord, textId) {
+export function getReadingText(topicRecord, textId, textOverride = null) {
+  if (textOverride?.id === textId) return textOverride;
   const texts = topicRecord?.texts ?? [];
   return texts.find((text) => text.id === textId) ?? texts[0] ?? null;
 }
@@ -57,8 +58,8 @@ function buildFollowInstructionTask(text) {
   };
 }
 
-export function generateTasks(mode, topicRecord, textId) {
-  const text = getReadingText(topicRecord, textId);
+export function generateTasks(mode, topicRecord, textId, _sessionParams = null, textOverride = null) {
+  const text = getReadingText(topicRecord, textId, textOverride);
   if (!text) return [];
 
   switch (mode.type) {

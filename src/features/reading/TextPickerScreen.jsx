@@ -45,7 +45,7 @@ export default function TextPickerScreen() {
   const activeStudentId  = useAppStore((s) => s.activeStudentId);
   const topicRecords     = useAppStore((s) => s.topicRecords);
   const sessions         = useAppStore((s) => s.sessions);
-  const setActiveTextId  = useAppStore((s) => s.setActiveTextId);
+  const setActiveText    = useAppStore((s) => s.setActiveText);
   const setActiveModeId  = useAppStore((s) => s.setActiveModeId);
 
   const topicRecord = topicRecords.find((record) => record.meta.id === activeTopicId);
@@ -60,7 +60,7 @@ export default function TextPickerScreen() {
   const texts = [...(topicRecord?.texts ?? []), ...userRecipes];
 
   function pickText(text) {
-    setActiveTextId(text.id);
+    setActiveText(text);
     if (text.kind === "instruction") {
       setActiveModeId("follow_instruction");
       setScreen("home");

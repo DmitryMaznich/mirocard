@@ -15,6 +15,7 @@ export function useSessionEngine() {
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
   const activeTopicId     = useAppStore((s) => s.activeTopicId);
   const activeTextId      = useAppStore((s) => s.activeTextId);
+  const activeText        = useAppStore((s) => s.activeText);
   const activeModeId      = useAppStore((s) => s.activeModeId);
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const students          = useAppStore((s) => s.students);
@@ -64,7 +65,7 @@ export function useSessionEngine() {
     if (renderer === "reading") {
       const generateTasks = ENGINE_REGISTRY["reading"];
       tasks = generateTasks
-        ? generateTasks(mode, topicRecord, activeTextId, sessionParams)
+        ? generateTasks(mode, topicRecord, activeTextId, sessionParams, activeText)
         : [];
     } else if (renderer === "flashcards") {
       const allConcepts = deriveConcepts(topicRecord.cards);

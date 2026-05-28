@@ -128,6 +128,7 @@ export default function HomeScreen() {
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const activeTextId = useAppStore((s) => s.activeTextId);
+  const activeTextStored = useAppStore((s) => s.activeText);
   const activeModeId = useAppStore((s) => s.activeModeId);
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
@@ -139,7 +140,7 @@ export default function HomeScreen() {
   const topic = topicRecords.find((r) => r.meta.id === activeTopicId) ?? topicRecords[0];
   const isReading = topic?.meta?.renderer === "reading";
   const activeText = isReading
-    ? topic?.texts?.find((text) => text.id === activeTextId)
+    ? (topic?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
   const availableModes = isReading
     ? (activeText ? topic?.modes?.filter((m) => !(m.id === "assemble_text" && activeText.kind !== "poem")) : [])

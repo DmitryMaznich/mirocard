@@ -52,6 +52,7 @@ export default function ModePickerScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
   const activeTextId    = useAppStore((s) => s.activeTextId);
+  const activeTextStored = useAppStore((s) => s.activeText);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const topicRecords    = useAppStore((s) => s.topicRecords);
   const sessions        = useAppStore((s) => s.sessions);
@@ -63,7 +64,7 @@ export default function ModePickerScreen() {
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const isReading = topicRecord?.meta.renderer === "reading";
   const activeText = isReading
-    ? topicRecord?.texts?.find((text) => text.id === activeTextId)
+    ? (topicRecord?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
   const modes = isReading
     ? filterReadingModes(topicRecord?.modes, activeText)
