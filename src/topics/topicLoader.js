@@ -42,12 +42,13 @@ async function parseManifest(zip) {
 function validateManifest(manifest, appVersion) {
   if (!manifest.meta?.id) throw new TopicImportError("Отсутствует meta.id");
   if (!manifest.meta?.version) throw new TopicImportError("Отсутствует meta.version");
-  const isReading = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
+  const isReading   = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
+  const isNarrative = manifest.meta.renderer === "narrative";
   if (isReading) {
     if (!Array.isArray(manifest.texts) || manifest.texts.length === 0) {
       throw new TopicImportError("Тема чтения не содержит текстов");
     }
-  } else if (!Array.isArray(manifest.cards) || manifest.cards.length === 0) {
+  } else if (!isNarrative && (!Array.isArray(manifest.cards) || manifest.cards.length === 0)) {
     throw new TopicImportError("Тема не содержит карточек");
   }
 
@@ -572,6 +573,22 @@ const DEFAULT_MODES = {
       },
       params: {
         singCheck: { type: "boolean", label: { ru: "Рожица-проверялка" }, default: false },
+      },
+    },
+  ],
+  narrative: [
+    {
+      id: "story_sequence",
+      type: "story_sequence",
+      evaluation: "auto",
+      rewardThreshold: 70,
+      ui: {
+        title: "Что сначала?",
+        instruction: "Расставь карточки по порядку",
+      },
+      params: {
+        scenario: { type: "enum", label: { ru: "Сценарий" }, values: ["weekday", "weekend"], default: "weekday" },
+        branch:   { type: "enum", label: { ru: "После школы" }, values: ["pool", "sport", "walk", "home_arrive"], default: "pool" },
       },
     },
   ],
