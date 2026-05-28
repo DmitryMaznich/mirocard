@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.18.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.19.0.zip";
-const NEW_VERSION = "1.19.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.19.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.20.0.zip";
+const NEW_VERSION = "1.20.0";
 const RECIPES_DIR = "content/recipes";
 
 const recipeIds = [
@@ -69,11 +69,12 @@ for (const id of recipeIds) {
   );
 
   const textEntry = existing
-    ? { ...existing, title: TITLES[id] ?? existing.title, stepCount: steps }
+    ? { ...existing, title: TITLES[id] ?? existing.title, stepCount: steps, image: existing.image ?? `media/${id}.svg` }
     : {
         id: `${id}_instruction`,
         kind: "instruction",
         title: TITLES[id] ?? { ru: id, en: id },
+        image: `media/${id}.svg`,
         file: `recipes/${id}.txt`,
         stepCount: steps,
       };
