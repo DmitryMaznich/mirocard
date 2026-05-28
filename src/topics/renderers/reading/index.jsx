@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
@@ -549,7 +549,17 @@ function InstructionTask({ task, topicId, onAdvance }) {
             {owners.length > 0 && step.type !== "heading" && (
               <div className="instruction-step-owner">{owners.map((o) => o.name).join(", ")},</div>
             )}
-            <div className="instruction-step-text">{applyPortions(step.text, portions).replace(/\. (?=[А-ЯЁA-Z])/gu, ".\n")}</div>
+            <div className="instruction-step-text">{(() => {
+              const text = applyPortions(step.text, portions);
+              const parts = text.split(/\. (?=[А-ЯЁA-Z])/g);
+              if (parts.length === 1) return text;
+              return parts.map((s, i, a) => (
+                <Fragment key={i}>
+                  {i > 0 && <br />}
+                  {i < a.length - 1 ? s + "." : s}
+                </Fragment>
+              ));
+            })()}</div>
             {step.type === "checklist" && (
               <ul className="instruction-checklist">
                 {(step.items ?? []).map((item, i) => {
