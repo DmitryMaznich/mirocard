@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
+import { getUserRecipes } from "@/core/groupStore";
 
 const KIND_LABELS = { poem: "стих", instruction: "инструкция" };
 
@@ -47,7 +49,15 @@ export default function TextPickerScreen() {
   const setActiveModeId  = useAppStore((s) => s.setActiveModeId);
 
   const topicRecord = topicRecords.find((record) => record.meta.id === activeTopicId);
-  const texts = topicRecord?.texts ?? [];
+  const [userRecipes, setUserRecipes] = useState([]);
+
+  useEffect(() => {
+    if (activeTopicId) {
+      getUserRecipes(activeTopicId).then(setUserRecipes).catch(() => {});
+    }
+  }, [activeTopicId]);
+
+  const texts = [...(topicRecord?.texts ?? []), ...userRecipes];
 
   function pickText(text) {
     setActiveTextId(text.id);

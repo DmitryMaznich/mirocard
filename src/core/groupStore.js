@@ -61,3 +61,43 @@ export async function getRawRecipeTxt(topicId, filePath) {
   if (!blob) return null;
   return blob.text();
 }
+
+// ─── User-created recipes ─────────────────────────────────────────────────────
+
+const userRecipesKey = (topicId) => `user_recipes_${topicId}`;
+
+export async function getUserRecipes(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, userRecipesKey(topicId))) ?? [];
+}
+
+export async function createUserRecipe(topicId, titleRu) {
+  const db = await getDb();
+  const id = `user_${Date.now()}`;
+  const entry = {
+    id,
+    kind: "instruction",
+    title: { ru: titleRu, en: titleRu },
+    file: null,
+    stepCount: 0,
+    createdByUser: true,
+  };
+  const list = await getUserRecipes(topicId);
+  list.push(entry);
+  const key = userRecipesKey(topicId);
+  await kv.set(db, key, list);
+  pushOp("kv.upsert", { key, value: list }).catch(() => {});
+  return entry;
+}
+
+export async function deleteUserRecipe(topicId, recipeId) {
+  const db = await getDb();
+  const list = await getUserRecipes(topicId);
+  const filtered = list.filter((r) => r.id !== recipeId);
+  const key = userRecipesKey(topicId);
+  await kv.set(db, key, filtered);
+  pushOp("kv.upsert", { key, value: filtered }).catch(() => {});
+  for (const mode of ["group", "individual"]) {
+    await kv.set(db, overrideKey(topicId, recipeId, mode), null);
+  }
+}

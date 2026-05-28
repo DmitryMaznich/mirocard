@@ -18207,6 +18207,61 @@ body { background: #eef0ef; }
 }
 .recipe-editor__btn--reset:hover { background: #d8d8d8; }
 
+.recipe-editor__btn--delete {
+  background: #fde8e8;
+  color: #c0392b;
+  padding: 4px 8px;
+}
+.recipe-editor__btn--delete:hover { background: #f5c6c6; }
+
+.all-texts-user-badge {
+  font-size: 0.75em;
+  color: #888;
+  font-weight: 400;
+}
+
+.all-texts-add-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0 24px;
+  background: none;
+  border: 2px dashed #c8d8d5;
+  border-radius: 12px;
+  color: #5a8a85;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+.all-texts-add-btn:hover { background: #f0f8f7; border-color: #4a9a90; }
+
+.all-texts-new-recipe {
+  padding: 12px;
+  margin: 8px 0 24px;
+  border: 2px solid #4a9a90;
+  border-radius: 12px;
+  background: #f6fbfa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.all-texts-new-recipe__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #c0d5d2;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+.all-texts-new-recipe__input:focus { border-color: #4a9a90; }
+.all-texts-new-recipe__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .recipe-editor__textarea {
   display: block;
   width: 100%;

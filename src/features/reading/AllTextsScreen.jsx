@@ -5,6 +5,9 @@ import {
   getRecipeOverrideForMode,
   saveRecipeOverrideForMode,
   getRecipeSettings,
+  getUserRecipes,
+  createUserRecipe,
+  deleteUserRecipe,
 } from "@/core/groupStore";
 import { getTopicTitle } from "@/shared/utils/format";
 
@@ -14,7 +17,7 @@ function autoResize(el) {
   el.style.height = el.scrollHeight + "px";
 }
 
-function RecipeEditor({ topicId, text, original, saved, mode }) {
+function RecipeEditor({ topicId, text, original, saved, mode, onDelete }) {
   const [value, setValue]   = useState(saved ?? original ?? "");
   const [status, setStatus] = useState(saved ? "saved" : "original");
   const textareaRef         = useRef(null);
@@ -65,13 +68,22 @@ function RecipeEditor({ topicId, text, original, saved, mode }) {
           {isDirty  && "● Изменено"}
         </span>
         <div className="recipe-editor__actions">
-          {(isDirty || isSaved) && (
+          {!text.createdByUser && (isDirty || isSaved) && (
             <button
               className="recipe-editor__btn recipe-editor__btn--reset"
               onClick={handleReset}
               title="Сбросить к оригиналу из ZIP"
             >
               ↺
+            </button>
+          )}
+          {text.createdByUser && onDelete && (
+            <button
+              className="recipe-editor__btn recipe-editor__btn--delete"
+              onClick={onDelete}
+              title="Удалить рецепт"
+            >
+              ✕
             </button>
           )}
           <button
@@ -91,6 +103,7 @@ function RecipeEditor({ topicId, text, original, saved, mode }) {
         spellCheck={false}
         autoCorrect="off"
         autoCapitalize="off"
+        placeholder={text.createdByUser ? "Введите название рецепта в первой строке, затем шаги…" : ""}
       />
     </div>
   );
@@ -101,16 +114,22 @@ export default function AllTextsScreen() {
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const topicRecords  = useAppStore((s) => s.topicRecords);
 
-  const topicRecord  = topicRecords.find((r) => r.meta.id === activeTopicId);
-  const instructions = (topicRecord?.texts ?? []).filter((t) => t.kind === "instruction");
+  const topicRecord    = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const baseInstructions = (topicRecord?.texts ?? []).filter((t) => t.kind === "instruction");
 
-  const [mode,    setMode]    = useState("group");
-  const [data,    setData]    = useState({});
-  const [loading, setLoading] = useState(true);
+  const [mode,         setMode]         = useState("group");
+  const [data,         setData]         = useState({});
+  const [loading,      setLoading]      = useState(true);
+  const [userRecipes,  setUserRecipes]  = useState([]);
+  const [newTitle,     setNewTitle]     = useState("");
+  const [addingNew,    setAddingNew]    = useState(false);
+
+  const instructions = [...baseInstructions, ...userRecipes];
 
   useEffect(() => {
     if (!activeTopicId) return;
     getRecipeSettings(activeTopicId).then((s) => setMode(s.mode ?? "group")).catch(() => {});
+    getUserRecipes(activeTopicId).then(setUserRecipes).catch(() => {});
   }, [activeTopicId]);
 
   useEffect(() => {
@@ -128,7 +147,23 @@ export default function AllTextsScreen() {
       setData(Object.fromEntries(entries));
       setLoading(false);
     });
-  }, [activeTopicId, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTopicId, mode, userRecipes.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleCreateRecipe() {
+    const title = newTitle.trim();
+    if (!title) return;
+    const entry = await createUserRecipe(activeTopicId, title);
+    setUserRecipes((prev) => [...prev, entry]);
+    setData((prev) => ({ ...prev, [entry.id]: { original: null, saved: null } }));
+    setNewTitle("");
+    setAddingNew(false);
+  }
+
+  async function handleDeleteRecipe(recipeId) {
+    await deleteUserRecipe(activeTopicId, recipeId);
+    setUserRecipes((prev) => prev.filter((r) => r.id !== recipeId));
+    setData((prev) => { const next = { ...prev }; delete next[recipeId]; return next; });
+  }
 
   return (
     <div className="screen">
@@ -165,6 +200,7 @@ export default function AllTextsScreen() {
                 <span className="all-texts-index">{i + 1}</span>
                 <span className="all-texts-block__title">
                   {getTopicTitle(text.title) || text.id}
+                  {text.createdByUser && <span className="all-texts-user-badge"> · мой</span>}
                 </span>
               </div>
               <RecipeEditor
@@ -173,9 +209,36 @@ export default function AllTextsScreen() {
                 original={data[text.id]?.original ?? null}
                 saved={data[text.id]?.saved ?? null}
                 mode={mode}
+                onDelete={text.createdByUser ? () => handleDeleteRecipe(text.id) : null}
               />
             </div>
           ))}
+
+          {addingNew ? (
+            <div className="all-texts-new-recipe">
+              <input
+                className="all-texts-new-recipe__input"
+                type="text"
+                placeholder="Название рецепта"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateRecipe()}
+                autoFocus
+              />
+              <div className="all-texts-new-recipe__actions">
+                <button className="recipe-editor__btn recipe-editor__btn--save" onClick={handleCreateRecipe} disabled={!newTitle.trim()}>
+                  Создать
+                </button>
+                <button className="recipe-editor__btn" onClick={() => { setAddingNew(false); setNewTitle(""); }}>
+                  Отмена
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button className="all-texts-add-btn" onClick={() => setAddingNew(true)}>
+              + Новый рецепт
+            </button>
+          )}
         </div>
       )}
     </div>

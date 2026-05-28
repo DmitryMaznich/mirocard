@@ -22,6 +22,8 @@ export function parseRecipeTxt(raw) {
   }
 
   for (const line of lines) {
+    if (line.startsWith("#")) continue; // metadata comment, skip
+
     if (line.startsWith("@")) {
       flush();
       currentOwner = line.slice(1).trim() || null;
