@@ -41,6 +41,11 @@ export function parseRecipeTxt(raw) {
       continue;
     }
 
+    if (line.startsWith("> ") && current && (current.type === "action" || current.type === "heading")) {
+      current.text += "\n" + line.slice(2).trim();
+      continue;
+    }
+
     if (line.startsWith("- ") && current && (current.type === "action" || current.type === "checklist")) {
       if (current.type === "action") {
         current.type = "checklist";
