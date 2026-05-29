@@ -84,6 +84,9 @@ export function useSessionEngine() {
     } else if (renderer === "magnetic_alphabet") {
       const generateTasks = ENGINE_REGISTRY["magnetic_alphabet"];
       tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
+    } else if (renderer === "narrative") {
+      const generateTasks = ENGINE_REGISTRY["narrative"];
+      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
     } else {
       const generateTasks = ENGINE_REGISTRY[renderer];
       const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;

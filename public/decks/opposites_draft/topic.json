@@ -26,6 +26,14 @@
         "title": "Сравниваем",
         "instruction": "Посмотри на оба",
         "icon": "media/icons/pair_comparison.svg"
+      },
+      "params": {
+        "showLabels": {
+          "type": "boolean",
+          "default": true,
+          "label": { "ru": "Подписи к карточкам" },
+          "hint": { "ru": "Выключи для лайт-режима — только картинки" }
+        }
       }
     },
     {
@@ -40,21 +48,30 @@
       "params": {
         "optionCount": {
           "type": "enum",
-          "values": [2, 4],
+          "values": [
+            2,
+            4
+          ],
           "default": 2,
-          "label": { "ru": "Вариантов" }
+          "label": {
+            "ru": "Вариантов"
+          }
         },
         "repsPerPair": {
           "type": "number",
           "default": 2,
           "min": 1,
           "max": 4,
-          "label": { "ru": "Повторений на пару" }
+          "label": {
+            "ru": "Повторений на пару"
+          }
         },
         "mixPairs": {
           "type": "boolean",
           "default": false,
-          "label": { "ru": "Дистракторы из других пар" }
+          "label": {
+            "ru": "Дистракторы из других пар"
+          }
         }
       }
     },
@@ -70,9 +87,15 @@
       "params": {
         "cardCount": {
           "type": "enum",
-          "values": [4, 6, 8],
+          "values": [
+            4,
+            6,
+            8
+          ],
           "default": 4,
-          "label": { "ru": "Карточек" }
+          "label": {
+            "ru": "Карточек"
+          }
         }
       }
     },
@@ -88,9 +111,14 @@
       "params": {
         "gridSize": {
           "type": "enum",
-          "values": [4, 6],
+          "values": [
+            4,
+            6
+          ],
           "default": 6,
-          "label": { "ru": "Карточек в сетке" }
+          "label": {
+            "ru": "Карточек в сетке"
+          }
         }
       }
     }
@@ -107,7 +135,8 @@
       "instructionLabel": "большую",
       "poleLabelPlural": "большие",
       "primary": true,
-      "image": "media/big_cat_1.webp"
+      "image": "media/big_cat_1.webp",
+      "poleLabelNeutral": "большое"
     },
     {
       "id": "small_cat",
@@ -120,7 +149,8 @@
       "instructionLabel": "маленькую",
       "poleLabelPlural": "маленькие",
       "primary": true,
-      "image": "media/small_cat_1.webp"
+      "image": "media/small_cat_1.webp",
+      "poleLabelNeutral": "маленькое"
     },
     {
       "id": "big_ball",
@@ -133,7 +163,8 @@
       "instructionLabel": "большой",
       "poleLabelPlural": "большие",
       "primary": false,
-      "image": "media/big_ball_1.webp"
+      "image": "media/big_ball_1.webp",
+      "poleLabelNeutral": "большое"
     },
     {
       "id": "small_ball",
@@ -146,7 +177,8 @@
       "instructionLabel": "маленький",
       "poleLabelPlural": "маленькие",
       "primary": false,
-      "image": "media/small_ball_1.webp"
+      "image": "media/small_ball_1.webp",
+      "poleLabelNeutral": "маленькое"
     },
     {
       "id": "big_car",
@@ -159,7 +191,8 @@
       "instructionLabel": "большую",
       "poleLabelPlural": "большие",
       "primary": false,
-      "image": "media/big_car_1.webp"
+      "image": "media/big_car_1.webp",
+      "poleLabelNeutral": "большое"
     },
     {
       "id": "small_car",
@@ -172,7 +205,8 @@
       "instructionLabel": "маленькую",
       "poleLabelPlural": "маленькие",
       "primary": false,
-      "image": "media/small_car_1.webp"
+      "image": "media/small_car_1.webp",
+      "poleLabelNeutral": "маленькое"
     },
     {
       "id": "big_cake",
@@ -185,7 +219,8 @@
       "instructionLabel": "большой",
       "poleLabelPlural": "большие",
       "primary": false,
-      "image": "media/big_cake_1.webp"
+      "image": "media/big_cake_1.webp",
+      "poleLabelNeutral": "большое"
     },
     {
       "id": "small_cake",
@@ -198,7 +233,8 @@
       "instructionLabel": "маленький",
       "poleLabelPlural": "маленькие",
       "primary": false,
-      "image": "media/small_cake_1.webp"
+      "image": "media/small_cake_1.webp",
+      "poleLabelNeutral": "маленькое"
     },
     {
       "id": "big_cup",
@@ -211,7 +247,8 @@
       "instructionLabel": "большую",
       "poleLabelPlural": "большие",
       "primary": false,
-      "image": "media/big_cup_1.webp"
+      "image": "media/big_cup_1.webp",
+      "poleLabelNeutral": "большое"
     },
     {
       "id": "small_cup",
@@ -224,7 +261,8 @@
       "instructionLabel": "маленькую",
       "poleLabelPlural": "маленькие",
       "primary": false,
-      "image": "media/small_cup_1.webp"
+      "image": "media/small_cup_1.webp",
+      "poleLabelNeutral": "маленькое"
     },
     {
       "id": "tall_dog",
@@ -237,7 +275,8 @@
       "instructionLabel": "высокую",
       "poleLabelPlural": "высокие",
       "primary": true,
-      "image": "media/tall_dog_1.webp"
+      "image": "media/tall_dog_1.webp",
+      "poleLabelNeutral": "высокое"
     },
     {
       "id": "short_dog",
@@ -250,7 +289,8 @@
       "instructionLabel": "низкую",
       "poleLabelPlural": "низкие",
       "primary": true,
-      "image": "media/short_dog_1.webp"
+      "image": "media/short_dog_1.webp",
+      "poleLabelNeutral": "низкое"
     },
     {
       "id": "tall_person",
@@ -263,7 +303,8 @@
       "instructionLabel": "высокого",
       "poleLabelPlural": "высокие",
       "primary": false,
-      "image": "media/tall_person_1.webp"
+      "image": "media/tall_person_1.webp",
+      "poleLabelNeutral": "высокое"
     },
     {
       "id": "short_person",
@@ -276,7 +317,8 @@
       "instructionLabel": "низкого",
       "poleLabelPlural": "низкие",
       "primary": false,
-      "image": "media/short_person_1.webp"
+      "image": "media/short_person_1.webp",
+      "poleLabelNeutral": "низкое"
     },
     {
       "id": "tall_tree",
@@ -289,7 +331,8 @@
       "instructionLabel": "высокое",
       "poleLabelPlural": "высокие",
       "primary": false,
-      "image": "media/tall_tree_1.webp"
+      "image": "media/tall_tree_1.webp",
+      "poleLabelNeutral": "высокое"
     },
     {
       "id": "short_bush",
@@ -302,7 +345,8 @@
       "instructionLabel": "низкий",
       "poleLabelPlural": "низкие",
       "primary": false,
-      "image": "media/short_bush_1.webp"
+      "image": "media/short_bush_1.webp",
+      "poleLabelNeutral": "низкое"
     },
     {
       "id": "tall_building",
@@ -315,7 +359,8 @@
       "instructionLabel": "высокий",
       "poleLabelPlural": "высокие",
       "primary": false,
-      "image": "media/tall_building_1.webp"
+      "image": "media/tall_building_1.webp",
+      "poleLabelNeutral": "высокое"
     },
     {
       "id": "short_house",
@@ -328,7 +373,8 @@
       "instructionLabel": "низкий",
       "poleLabelPlural": "низкие",
       "primary": false,
-      "image": "media/short_house_1.webp"
+      "image": "media/short_house_1.webp",
+      "poleLabelNeutral": "низкое"
     },
     {
       "id": "tall_mountain",
@@ -341,7 +387,8 @@
       "instructionLabel": "высокую",
       "poleLabelPlural": "высокие",
       "primary": false,
-      "image": "media/tall_mountain_1.webp"
+      "image": "media/tall_mountain_1.webp",
+      "poleLabelNeutral": "высокое"
     },
     {
       "id": "short_hill",
@@ -354,7 +401,8 @@
       "instructionLabel": "низкий",
       "poleLabelPlural": "низкие",
       "primary": false,
-      "image": "media/short_hill_1.webp"
+      "image": "media/short_hill_1.webp",
+      "poleLabelNeutral": "низкое"
     },
     {
       "id": "long_pencil",
@@ -367,7 +415,8 @@
       "instructionLabel": "длинный",
       "poleLabelPlural": "длинные",
       "primary": true,
-      "image": "media/long_pencil_1.webp"
+      "image": "media/long_pencil_1.webp",
+      "poleLabelNeutral": "длинное"
     },
     {
       "id": "short_pencil",
@@ -380,7 +429,8 @@
       "instructionLabel": "короткий",
       "poleLabelPlural": "короткие",
       "primary": true,
-      "image": "media/short_pencil_1.webp"
+      "image": "media/short_pencil_1.webp",
+      "poleLabelNeutral": "короткое"
     },
     {
       "id": "long_scarf",
@@ -393,7 +443,8 @@
       "instructionLabel": "длинный",
       "poleLabelPlural": "длинные",
       "primary": false,
-      "image": "media/long_scarf_1.webp"
+      "image": "media/long_scarf_1.webp",
+      "poleLabelNeutral": "длинное"
     },
     {
       "id": "short_scarf",
@@ -406,7 +457,8 @@
       "instructionLabel": "короткий",
       "poleLabelPlural": "короткие",
       "primary": false,
-      "image": "media/short_scarf_1.webp"
+      "image": "media/short_scarf_1.webp",
+      "poleLabelNeutral": "короткое"
     },
     {
       "id": "long_hair",
@@ -419,7 +471,8 @@
       "instructionLabel": "длинные",
       "poleLabelPlural": "длинные",
       "primary": false,
-      "image": "media/long_hair_1.webp"
+      "image": "media/long_hair_1.webp",
+      "poleLabelNeutral": "длинное"
     },
     {
       "id": "short_hair",
@@ -432,7 +485,8 @@
       "instructionLabel": "короткие",
       "poleLabelPlural": "короткие",
       "primary": false,
-      "image": "media/short_hair_1.webp"
+      "image": "media/short_hair_1.webp",
+      "poleLabelNeutral": "короткое"
     },
     {
       "id": "long_road",
@@ -445,7 +499,8 @@
       "instructionLabel": "длинную",
       "poleLabelPlural": "длинные",
       "primary": false,
-      "image": "media/long_road_1.webp"
+      "image": "media/long_road_1.webp",
+      "poleLabelNeutral": "длинное"
     },
     {
       "id": "short_road",
@@ -458,7 +513,8 @@
       "instructionLabel": "короткую",
       "poleLabelPlural": "короткие",
       "primary": false,
-      "image": "media/short_road_1.webp"
+      "image": "media/short_road_1.webp",
+      "poleLabelNeutral": "короткое"
     },
     {
       "id": "long_rope",
@@ -471,7 +527,8 @@
       "instructionLabel": "длинную",
       "poleLabelPlural": "длинные",
       "primary": false,
-      "image": "media/long_rope_1.webp"
+      "image": "media/long_rope_1.webp",
+      "poleLabelNeutral": "длинное"
     },
     {
       "id": "short_rope",
@@ -484,7 +541,8 @@
       "instructionLabel": "короткую",
       "poleLabelPlural": "короткие",
       "primary": false,
-      "image": "media/short_rope_1.webp"
+      "image": "media/short_rope_1.webp",
+      "poleLabelNeutral": "короткое"
     },
     {
       "id": "wide_river",
@@ -497,7 +555,8 @@
       "instructionLabel": "широкую",
       "poleLabelPlural": "широкие",
       "primary": true,
-      "image": "media/wide_river_1.webp"
+      "image": "media/wide_river_1.webp",
+      "poleLabelNeutral": "широкое"
     },
     {
       "id": "narrow_stream",
@@ -510,7 +569,8 @@
       "instructionLabel": "узкий",
       "poleLabelPlural": "узкие",
       "primary": true,
-      "image": "media/narrow_stream_1.webp"
+      "image": "media/narrow_stream_1.webp",
+      "poleLabelNeutral": "узкое"
     },
     {
       "id": "wide_door",
@@ -523,7 +583,8 @@
       "instructionLabel": "широкую",
       "poleLabelPlural": "широкие",
       "primary": false,
-      "image": "media/wide_door_1.webp"
+      "image": "media/wide_door_1.webp",
+      "poleLabelNeutral": "широкое"
     },
     {
       "id": "narrow_door",
@@ -536,7 +597,8 @@
       "instructionLabel": "узкую",
       "poleLabelPlural": "узкие",
       "primary": false,
-      "image": "media/narrow_door_1.webp"
+      "image": "media/narrow_door_1.webp",
+      "poleLabelNeutral": "узкое"
     },
     {
       "id": "wide_street",
@@ -549,7 +611,8 @@
       "instructionLabel": "широкую",
       "poleLabelPlural": "широкие",
       "primary": false,
-      "image": "media/wide_street_1.webp"
+      "image": "media/wide_street_1.webp",
+      "poleLabelNeutral": "широкое"
     },
     {
       "id": "narrow_street",
@@ -562,7 +625,8 @@
       "instructionLabel": "узкую",
       "poleLabelPlural": "узкие",
       "primary": false,
-      "image": "media/narrow_alley_1.webp"
+      "image": "media/narrow_alley_1.webp",
+      "poleLabelNeutral": "узкое"
     },
     {
       "id": "wide_belt",
@@ -575,7 +639,8 @@
       "instructionLabel": "широкий",
       "poleLabelPlural": "широкие",
       "primary": false,
-      "image": "media/wide_belt_1.webp"
+      "image": "media/wide_belt_1.webp",
+      "poleLabelNeutral": "широкое"
     },
     {
       "id": "narrow_belt",
@@ -588,7 +653,8 @@
       "instructionLabel": "узкий",
       "poleLabelPlural": "узкие",
       "primary": false,
-      "image": "media/narrow_belt_1.webp"
+      "image": "media/narrow_belt_1.webp",
+      "poleLabelNeutral": "узкое"
     },
     {
       "id": "wide_table",
@@ -601,7 +667,8 @@
       "instructionLabel": "широкий",
       "poleLabelPlural": "широкие",
       "primary": false,
-      "image": "media/wide_table_1.webp"
+      "image": "media/wide_table_1.webp",
+      "poleLabelNeutral": "широкое"
     },
     {
       "id": "narrow_table",
@@ -614,7 +681,8 @@
       "instructionLabel": "узкий",
       "poleLabelPlural": "узкие",
       "primary": false,
-      "image": "media/narrow_table_1.webp"
+      "image": "media/narrow_table_1.webp",
+      "poleLabelNeutral": "узкое"
     },
     {
       "id": "full_bottle",
@@ -627,7 +695,8 @@
       "instructionLabel": "полную",
       "poleLabelPlural": "полные",
       "primary": true,
-      "image": "media/full_bottle_1.webp"
+      "image": "media/full_bottle_1.webp",
+      "poleLabelNeutral": "полное"
     },
     {
       "id": "empty_bottle",
@@ -640,7 +709,8 @@
       "instructionLabel": "пустую",
       "poleLabelPlural": "пустые",
       "primary": true,
-      "image": "media/empty_bottle_1.webp"
+      "image": "media/empty_bottle_1.webp",
+      "poleLabelNeutral": "пустое"
     },
     {
       "id": "full_bucket",
@@ -653,7 +723,8 @@
       "instructionLabel": "полное",
       "poleLabelPlural": "полные",
       "primary": false,
-      "image": "media/full_bucket_1.webp"
+      "image": "media/full_bucket_1.webp",
+      "poleLabelNeutral": "полное"
     },
     {
       "id": "empty_bucket",
@@ -666,7 +737,8 @@
       "instructionLabel": "пустое",
       "poleLabelPlural": "пустые",
       "primary": false,
-      "image": "media/empty_bucket_1.webp"
+      "image": "media/empty_bucket_1.webp",
+      "poleLabelNeutral": "пустое"
     },
     {
       "id": "full_backpack",
@@ -679,7 +751,8 @@
       "instructionLabel": "полный",
       "poleLabelPlural": "полные",
       "primary": false,
-      "image": "media/full_backpack_1.webp"
+      "image": "media/full_backpack_1.webp",
+      "poleLabelNeutral": "полное"
     },
     {
       "id": "empty_backpack",
@@ -692,7 +765,8 @@
       "instructionLabel": "пустой",
       "poleLabelPlural": "пустые",
       "primary": false,
-      "image": "media/empty_backpack_1.webp"
+      "image": "media/empty_backpack_1.webp",
+      "poleLabelNeutral": "пустое"
     },
     {
       "id": "full_plate",
@@ -705,7 +779,8 @@
       "instructionLabel": "полную",
       "poleLabelPlural": "полные",
       "primary": false,
-      "image": "media/full_plate_1.webp"
+      "image": "media/full_plate_1.webp",
+      "poleLabelNeutral": "полное"
     },
     {
       "id": "empty_plate",
@@ -718,7 +793,8 @@
       "instructionLabel": "пустую",
       "poleLabelPlural": "пустые",
       "primary": false,
-      "image": "media/empty_plate_1.webp"
+      "image": "media/empty_plate_1.webp",
+      "poleLabelNeutral": "пустое"
     },
     {
       "id": "full_basket",
@@ -731,7 +807,8 @@
       "instructionLabel": "полную",
       "poleLabelPlural": "полные",
       "primary": false,
-      "image": "media/full_basket_1.webp"
+      "image": "media/full_basket_1.webp",
+      "poleLabelNeutral": "полное"
     },
     {
       "id": "empty_basket",
@@ -744,7 +821,8 @@
       "instructionLabel": "пустую",
       "poleLabelPlural": "пустые",
       "primary": false,
-      "image": "media/empty_basket_1.webp"
+      "image": "media/empty_basket_1.webp",
+      "poleLabelNeutral": "пустое"
     },
     {
       "id": "clean_hands",
@@ -757,7 +835,8 @@
       "instructionLabel": "чистые",
       "poleLabelPlural": "чистые",
       "primary": true,
-      "image": "media/clean_hands_1.webp"
+      "image": "media/clean_hands_1.webp",
+      "poleLabelNeutral": "чистое"
     },
     {
       "id": "dirty_hands",
@@ -770,7 +849,8 @@
       "instructionLabel": "грязные",
       "poleLabelPlural": "грязные",
       "primary": true,
-      "image": "media/dirty_hands_1.webp"
+      "image": "media/dirty_hands_1.webp",
+      "poleLabelNeutral": "грязное"
     },
     {
       "id": "clean_face",
@@ -783,7 +863,8 @@
       "instructionLabel": "чистое",
       "poleLabelPlural": "чистые",
       "primary": false,
-      "image": "media/clean_face_1.webp"
+      "image": "media/clean_face_1.webp",
+      "poleLabelNeutral": "чистое"
     },
     {
       "id": "dirty_face",
@@ -796,7 +877,8 @@
       "instructionLabel": "грязное",
       "poleLabelPlural": "грязные",
       "primary": false,
-      "image": "media/dirty_face_1.webp"
+      "image": "media/dirty_face_1.webp",
+      "poleLabelNeutral": "грязное"
     },
     {
       "id": "clean_shirt",
@@ -809,7 +891,8 @@
       "instructionLabel": "чистую",
       "poleLabelPlural": "чистые",
       "primary": false,
-      "image": "media/clean_shirt_1.webp"
+      "image": "media/clean_shirt_1.webp",
+      "poleLabelNeutral": "чистое"
     },
     {
       "id": "dirty_shirt",
@@ -822,7 +905,8 @@
       "instructionLabel": "грязную",
       "poleLabelPlural": "грязные",
       "primary": false,
-      "image": "media/dirty_shirt_1.webp"
+      "image": "media/dirty_shirt_1.webp",
+      "poleLabelNeutral": "грязное"
     },
     {
       "id": "clean_shoes",
@@ -835,7 +919,8 @@
       "instructionLabel": "чистую",
       "poleLabelPlural": "чистые",
       "primary": false,
-      "image": "media/clean_shoes_1.webp"
+      "image": "media/clean_shoes_1.webp",
+      "poleLabelNeutral": "чистое"
     },
     {
       "id": "dirty_shoes",
@@ -848,7 +933,8 @@
       "instructionLabel": "грязную",
       "poleLabelPlural": "грязные",
       "primary": false,
-      "image": "media/dirty_shoes_1.webp"
+      "image": "media/dirty_shoes_1.webp",
+      "poleLabelNeutral": "грязное"
     },
     {
       "id": "clean_car",
@@ -861,7 +947,8 @@
       "instructionLabel": "чистую",
       "poleLabelPlural": "чистые",
       "primary": false,
-      "image": "media/clean_car_1.webp"
+      "image": "media/clean_car_1.webp",
+      "poleLabelNeutral": "чистое"
     },
     {
       "id": "dirty_car",
@@ -874,7 +961,8 @@
       "instructionLabel": "грязную",
       "poleLabelPlural": "грязные",
       "primary": false,
-      "image": "media/dirty_car_1.webp"
+      "image": "media/dirty_car_1.webp",
+      "poleLabelNeutral": "грязное"
     },
     {
       "id": "hot_kettle",
@@ -887,7 +975,8 @@
       "instructionLabel": "горячий",
       "poleLabelPlural": "горячие",
       "primary": true,
-      "image": "media/hot_kettle_1.webp"
+      "image": "media/hot_kettle_1.webp",
+      "poleLabelNeutral": "горячее"
     },
     {
       "id": "cold_drink",
@@ -900,7 +989,8 @@
       "instructionLabel": "холодный",
       "poleLabelPlural": "холодные",
       "primary": true,
-      "image": "media/cold_drink_1.webp"
+      "image": "media/cold_drink_1.webp",
+      "poleLabelNeutral": "холодное"
     },
     {
       "id": "hot_soup",
@@ -913,7 +1003,8 @@
       "instructionLabel": "горячий",
       "poleLabelPlural": "горячие",
       "primary": false,
-      "image": "media/hot_soup_1.webp"
+      "image": "media/hot_soup_1.webp",
+      "poleLabelNeutral": "горячее"
     },
     {
       "id": "cold_icecream",
@@ -926,7 +1017,8 @@
       "instructionLabel": "холодное",
       "poleLabelPlural": "холодные",
       "primary": false,
-      "image": "media/cold_icecream_1.webp"
+      "image": "media/cold_icecream_1.webp",
+      "poleLabelNeutral": "холодное"
     },
     {
       "id": "hot_sand",
@@ -939,7 +1031,8 @@
       "instructionLabel": "горячий",
       "poleLabelPlural": "горячие",
       "primary": false,
-      "image": "media/hot_sand_1.webp"
+      "image": "media/hot_sand_1.webp",
+      "poleLabelNeutral": "горячее"
     },
     {
       "id": "cold_snow",
@@ -952,7 +1045,8 @@
       "instructionLabel": "холодный",
       "poleLabelPlural": "холодные",
       "primary": false,
-      "image": "media/cold_snow_1.webp"
+      "image": "media/cold_snow_1.webp",
+      "poleLabelNeutral": "холодное"
     },
     {
       "id": "hot_fire",
@@ -965,7 +1059,8 @@
       "instructionLabel": "горячий",
       "poleLabelPlural": "горячие",
       "primary": false,
-      "image": "media/hot_fire_1.webp"
+      "image": "media/hot_fire_1.webp",
+      "poleLabelNeutral": "горячее"
     },
     {
       "id": "cold_ice",
@@ -978,7 +1073,8 @@
       "instructionLabel": "холодный",
       "poleLabelPlural": "холодные",
       "primary": false,
-      "image": "media/cold_ice_1.webp"
+      "image": "media/cold_ice_1.webp",
+      "poleLabelNeutral": "холодное"
     },
     {
       "id": "hot_pan",
@@ -991,7 +1087,8 @@
       "instructionLabel": "горячую",
       "poleLabelPlural": "горячие",
       "primary": false,
-      "image": "media/hot_pan_1.webp"
+      "image": "media/hot_pan_1.webp",
+      "poleLabelNeutral": "горячее"
     },
     {
       "id": "cold_pitcher",
@@ -1004,7 +1101,8 @@
       "instructionLabel": "холодный",
       "poleLabelPlural": "холодные",
       "primary": false,
-      "image": "media/cold_pitcher_1.webp"
+      "image": "media/cold_pitcher_1.webp",
+      "poleLabelNeutral": "холодное"
     },
     {
       "id": "new_bicycle",
@@ -1017,7 +1115,8 @@
       "instructionLabel": "новый",
       "poleLabelPlural": "новые",
       "primary": true,
-      "image": "media/new_bicycle_1.webp"
+      "image": "media/new_bicycle_1.webp",
+      "poleLabelNeutral": "новое"
     },
     {
       "id": "old_bicycle",
@@ -1030,7 +1129,8 @@
       "instructionLabel": "старый",
       "poleLabelPlural": "старые",
       "primary": true,
-      "image": "media/old_bicycle_1.webp"
+      "image": "media/old_bicycle_1.webp",
+      "poleLabelNeutral": "старое"
     },
     {
       "id": "new_book",
@@ -1043,7 +1143,8 @@
       "instructionLabel": "новую",
       "poleLabelPlural": "новые",
       "primary": false,
-      "image": "media/new_book_1.webp"
+      "image": "media/new_book_1.webp",
+      "poleLabelNeutral": "новое"
     },
     {
       "id": "old_book",
@@ -1056,7 +1157,8 @@
       "instructionLabel": "старую",
       "poleLabelPlural": "старые",
       "primary": false,
-      "image": "media/old_book_1.webp"
+      "image": "media/old_book_1.webp",
+      "poleLabelNeutral": "старое"
     },
     {
       "id": "new_doll",
@@ -1069,7 +1171,8 @@
       "instructionLabel": "новую",
       "poleLabelPlural": "новые",
       "primary": false,
-      "image": "media/new_doll_1.webp"
+      "image": "media/new_doll_1.webp",
+      "poleLabelNeutral": "новое"
     },
     {
       "id": "old_doll",
@@ -1082,7 +1185,8 @@
       "instructionLabel": "старую",
       "poleLabelPlural": "старые",
       "primary": false,
-      "image": "media/old_doll_1.webp"
+      "image": "media/old_doll_1.webp",
+      "poleLabelNeutral": "старое"
     },
     {
       "id": "new_jacket",
@@ -1095,7 +1199,8 @@
       "instructionLabel": "новую",
       "poleLabelPlural": "новые",
       "primary": false,
-      "image": "media/new_jacket_1.webp"
+      "image": "media/new_jacket_1.webp",
+      "poleLabelNeutral": "новое"
     },
     {
       "id": "old_jacket",
@@ -1108,7 +1213,8 @@
       "instructionLabel": "старую",
       "poleLabelPlural": "старые",
       "primary": false,
-      "image": "media/old_jacket_1.webp"
+      "image": "media/old_jacket_1.webp",
+      "poleLabelNeutral": "старое"
     },
     {
       "id": "new_fence",
@@ -1121,7 +1227,8 @@
       "instructionLabel": "новый",
       "poleLabelPlural": "новые",
       "primary": false,
-      "image": "media/new_fence_1.webp"
+      "image": "media/new_fence_1.webp",
+      "poleLabelNeutral": "новое"
     },
     {
       "id": "old_fence",
@@ -1134,7 +1241,8 @@
       "instructionLabel": "старый",
       "poleLabelPlural": "старые",
       "primary": false,
-      "image": "media/old_fence_1.webp"
+      "image": "media/old_fence_1.webp",
+      "poleLabelNeutral": "старое"
     },
     {
       "id": "wet_towel",
@@ -1147,7 +1255,8 @@
       "instructionLabel": "мокрое",
       "poleLabelPlural": "мокрые",
       "primary": true,
-      "image": "media/wet_towel_1.webp"
+      "image": "media/wet_towel_1.webp",
+      "poleLabelNeutral": "мокрое"
     },
     {
       "id": "dry_towel",
@@ -1160,7 +1269,8 @@
       "instructionLabel": "сухое",
       "poleLabelPlural": "сухие",
       "primary": true,
-      "image": "media/dry_towel_1.webp"
+      "image": "media/dry_towel_1.webp",
+      "poleLabelNeutral": "сухое"
     },
     {
       "id": "wet_umbrella",
@@ -1173,7 +1283,8 @@
       "instructionLabel": "мокрый",
       "poleLabelPlural": "мокрые",
       "primary": false,
-      "image": "media/wet_umbrella_1.webp"
+      "image": "media/wet_umbrella_1.webp",
+      "poleLabelNeutral": "мокрое"
     },
     {
       "id": "dry_umbrella",
@@ -1186,7 +1297,8 @@
       "instructionLabel": "сухой",
       "poleLabelPlural": "сухие",
       "primary": false,
-      "image": "media/dry_umbrella_1.webp"
+      "image": "media/dry_umbrella_1.webp",
+      "poleLabelNeutral": "сухое"
     },
     {
       "id": "wet_grass",
@@ -1199,7 +1311,8 @@
       "instructionLabel": "мокрую",
       "poleLabelPlural": "мокрые",
       "primary": false,
-      "image": "media/wet_grass_1.webp"
+      "image": "media/wet_grass_1.webp",
+      "poleLabelNeutral": "мокрое"
     },
     {
       "id": "dry_grass",
@@ -1212,7 +1325,8 @@
       "instructionLabel": "сухую",
       "poleLabelPlural": "сухие",
       "primary": false,
-      "image": "media/dry_grass_1.webp"
+      "image": "media/dry_grass_1.webp",
+      "poleLabelNeutral": "сухое"
     },
     {
       "id": "wet_stone",
@@ -1225,7 +1339,8 @@
       "instructionLabel": "мокрый",
       "poleLabelPlural": "мокрые",
       "primary": false,
-      "image": "media/wet_stone_1.webp"
+      "image": "media/wet_stone_1.webp",
+      "poleLabelNeutral": "мокрое"
     },
     {
       "id": "dry_stone",
@@ -1238,7 +1353,8 @@
       "instructionLabel": "сухой",
       "poleLabelPlural": "сухие",
       "primary": false,
-      "image": "media/dry_stone_1.webp"
+      "image": "media/dry_stone_1.webp",
+      "poleLabelNeutral": "сухое"
     },
     {
       "id": "wet_socks",
@@ -1251,7 +1367,8 @@
       "instructionLabel": "мокрые",
       "poleLabelPlural": "мокрые",
       "primary": false,
-      "image": "media/wet_socks_1.webp"
+      "image": "media/wet_socks_1.webp",
+      "poleLabelNeutral": "мокрое"
     },
     {
       "id": "dry_socks",
@@ -1264,7 +1381,8 @@
       "instructionLabel": "сухие",
       "poleLabelPlural": "сухие",
       "primary": false,
-      "image": "media/dry_socks_1.webp"
+      "image": "media/dry_socks_1.webp",
+      "poleLabelNeutral": "сухое"
     }
   ]
 }

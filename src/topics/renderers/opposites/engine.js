@@ -21,13 +21,17 @@ function generateIntroTasks(cards) {
   return tasks;
 }
 
-function generatePairComparisonTasks(cards) {
+function generatePairComparisonTasks(cards, params) {
+  const showLabels = params.showLabels ?? true;
   const byObject = groupByObjectId(cards);
-  const tasks = [];
+  const byConcept = new Map();
   for (const [, { left, right }] of byObject) {
-    if (left && right) tasks.push({ type: "pair_comparison", leftCard: left, rightCard: right });
+    if (!left || !right) continue;
+    const cid = left.conceptId;
+    if (!byConcept.has(cid)) byConcept.set(cid, []);
+    byConcept.get(cid).push({ type: "pair_comparison", leftCard: left, rightCard: right, showLabels });
   }
-  return shuffle(tasks);
+  return shuffle([...byConcept.values()].map(shuffle)).flat();
 }
 
 function buildChooseTwoTask(target, sameObjOpposite, allEntries, optionCount) {
@@ -93,7 +97,7 @@ function generateFindAllTasks(cards, params) {
     return {
       type:           "find_all",
       targetPole,
-      targetLabel:    selectedTargets[0]?.poleLabelPlural ?? targetPole,
+      targetLabel:    selectedTargets[0]?.poleLabelNeutral ?? selectedTargets[0]?.poleLabelPlural ?? targetPole,
       allCards:       shuffle([...selectedTargets, ...selectedOthers]),
       correctCardIds: selectedTargets.map((c) => c.id),
     };
@@ -103,7 +107,7 @@ function generateFindAllTasks(cards, params) {
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   switch (mode.type) {
     case "intro":           return generateIntroTasks(cards);
-    case "pair_comparison": return generatePairComparisonTasks(cards);
+    case "pair_comparison": return generatePairComparisonTasks(cards, params);
     case "choose_two":      return generateChooseTwoTasks(cards, params);
     case "sort":            return generateSortTask(cards, params);
     case "find_all":        return generateFindAllTasks(cards, params);

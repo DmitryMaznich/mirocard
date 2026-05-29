@@ -1,5 +1,6 @@
 import { getDb, kv, topics } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
+import { api } from "@/core/api";
 
 const groupKey     = (topicId) => `group_${topicId}`;
 const settingsKey  = (topicId) => `recipe_settings_${topicId}`;
@@ -99,5 +100,23 @@ export async function deleteUserRecipe(topicId, recipeId) {
   pushOp("kv.upsert", { key, value: filtered }).catch(() => {});
   for (const mode of ["group", "individual"]) {
     await kv.set(db, overrideKey(topicId, recipeId, mode), null);
+  }
+}
+
+// ─── Server sync (pull) ───────────────────────────────────────────────────────
+
+const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_"];
+
+export async function pullRecipeKvFromServer() {
+  try {
+    const query = RECIPE_KV_PREFIXES.map((p) => `prefix=${encodeURIComponent(p)}`).join("&");
+    const { kv: items } = await api.get(`/account/kv?${query}`);
+    if (!Array.isArray(items) || !items.length) return;
+    const db = await getDb();
+    for (const { key, value } of items) {
+      await kv.set(db, key, value);
+    }
+  } catch {
+    // Offline или не авторизован — пропускаем тихо
   }
 }

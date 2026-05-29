@@ -104,7 +104,7 @@ export default function App() {
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   useEffect(() => {
-    if (screen === "home") resetSession();
+    if (screen !== "session") resetSession();
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finishSessionFromPrompt = useCallback(() => {

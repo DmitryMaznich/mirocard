@@ -46,7 +46,19 @@
       "PowerShell(head -30)",
       "PowerShell(Get-ChildItem \"c:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\public\\\\decks\" | Where-Object {$_.PSIsContainer} | Select-Object Name)",
       "PowerShell(Test-NetConnection -ComputerName 100.72.91.115 -Port 22 -InformationLevel Quiet)",
-      "PowerShell(cd c:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2; git status --short | Where-Object { $_ -match \"^ M\" })"
+      "PowerShell(cd c:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2; git status --short | Where-Object { $_ -match \"^ M\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://192.168.1.163:8080/api/sessions\" -TimeoutSec 5 -UseBasicParsing; \"Status: $\\($r.StatusCode\\)\" } catch { \"Error: $_\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/sessions\" -TimeoutSec 10 -UseBasicParsing; \"Status: $\\($r.StatusCode\\)\" } catch { \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Resolve-DnsName mirocard.kaplieva.help -Type CNAME 2>&1)",
+      "PowerShell(Resolve-DnsName mirocard.kaplieva.help -Type A 2>&1)",
+      "PowerShell(curl.exe -v --max-time 10 https://mirocard.kaplieva.help/ 2>&1)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/version.json\" -UseBasicParsing)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/\" -TimeoutSec 10 -UseBasicParsing; \"Status: $\\($r.StatusCode\\), Length: $\\($r.Content.Length\\)\" } catch { \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(curl.exe -sI --max-time 10 https://mirocard.kaplieva.help/ 2>&1)",
+      "PowerShell(curl.exe -s --max-time 10 -o NUL -w \"%{http_code} %{redirect_url}\" https://mirocard.kaplieva.help/ 2>&1)",
+      "PowerShell(Invoke-RestMethod -Uri \"https://mirocard.kaplieva.help/version.json\" 2>&1)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/version.json\" -TimeoutSec 10 -UseBasicParsing; $r.Content } catch { \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; $r.Content } catch { \"HTTP $\\($_.Exception.Response.StatusCode\\): $\\($_.Exception.Message\\)\" })"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"

@@ -6,7 +6,7 @@ import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { parseRecipeTxt, resolveStepOwners, applyPortions } from "./parseRecipeTxt";
-import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt } from "@/core/groupStore";
+import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
 import { getAudioOverride } from "@/core/audioStore";
 
 const UNDERSTAND_BUTTONS = [
@@ -339,7 +339,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
 
   const { speak } = useSpeech();
 
-  const [recipeMode, setRecipeMode] = useState("group");
   const [portions,   setPortions]   = useState(1);
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
   const [group,      setGroup]      = useState([]);
@@ -348,19 +347,19 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const [listOpen,   setListOpen]   = useState(false);
   const listRef = useRef(null);
 
-  const audioEnabled = recipeMode === "individual" && instructionAudioEnabled;
+  const audioEnabled = instructionAudioEnabled;
 
   useEffect(() => {
     async function load() {
+      await pullRecipeKvFromServer().catch(() => {});
       const textId   = task.text?.id;
       const filePath = task.text?.file;
       const [grp, settings, rawText] = await Promise.all([
         getGroup(topicId).catch(() => []),
-        getRecipeSettings(topicId).catch(() => ({ mode: "group", portions: 1 })),
+        getRecipeSettings(topicId).catch(() => ({ portions: 1 })),
         (async () => {
           if (textId) {
-            const mode = (await getRecipeSettings(topicId).catch(() => ({ mode: "group" }))).mode ?? "group";
-            const override = await getRecipeOverrideForMode(topicId, textId, mode).catch(() => null);
+            const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);
             if (override) return override;
           }
           if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
@@ -372,7 +371,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
       const annotated    = applyGroupToSteps(parsedSteps, grpList);
       setGroup(grpList);
       setSteps(annotated);
-      setRecipeMode(settings.mode ?? "group");
       setPortions(settings.portions ?? 1);
     }
     load();
@@ -546,9 +544,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
           </div>
 
           <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}`}>
-            {owners.length > 0 && step.type !== "heading" && (
-              <div className="instruction-step-owner">{owners.map((o) => o.name).join(", ")},</div>
-            )}
             <div className="instruction-step-text">{(() => {
               const text = applyPortions(step.text, portions);
               const parts = text.split(/\. (?=[А-ЯЁA-Z])/g);

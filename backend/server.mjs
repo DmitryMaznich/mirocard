@@ -24,6 +24,7 @@ import {
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
   getPhoto, migratePhotoData,
+  getAccountKvByPrefixes,
 } from "./lib/account-repository.mjs";
 import {
   createPasswordHash, verifyPasswordHash,
@@ -300,6 +301,14 @@ async function handleBootstrap(req, res) {
   const url = new URL(req.url, "http://localhost");
   const since = Number(url.searchParams.get("since") || 0);
   writeJson(res, 200, buildBootstrap(db, account.id, since));
+}
+
+async function handleGetAccountKv(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const prefixes = url.searchParams.getAll("prefix");
+  const items = getAccountKvByPrefixes(db, account.id, prefixes);
+  writeJson(res, 200, { kv: items });
 }
 
 // ─── Student handlers ──────────────────────────────────────────────────────────
@@ -653,6 +662,7 @@ async function router(req, res) {
 
     // Account
     if (method === "GET"    && p === "/account/bootstrap")        return await handleBootstrap(req, res);
+    if (method === "GET"    && p === "/account/kv")              return await handleGetAccountKv(req, res);
     if (method === "PATCH"  && p === "/account")                  return await handlePatchAccount(req, res);
     if (method === "POST"   && p === "/account/change-password")  return await handleChangePassword(req, res);
     if (method === "DELETE" && p === "/account")                  return await handleDeleteAccount(req, res);

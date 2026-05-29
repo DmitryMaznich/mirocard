@@ -6,6 +6,7 @@ import AdditionSubtractionRenderer from "./renderers/addition_subtraction/index.
 import ReadingRenderer             from "./renderers/reading/index.jsx";
 import FunctionCardsRenderer       from "./renderers/function_cards/index.jsx";
 import VowelConsonantRenderer      from "./renderers/vowel_consonant/index.jsx";
+import NarrativeRenderer           from "./renderers/narrative/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -16,4 +17,5 @@ export const RENDERER_REGISTRY = {
   function_cards:        FunctionCardsRenderer,
   vowel_consonant:       VowelConsonantRenderer,
   opposites:             OppositeRenderer,
+  narrative:             NarrativeRenderer,
 };

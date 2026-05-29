@@ -8,6 +8,7 @@ import { generateTasks as sentencePuzzleEngine }       from "./sentence_puzzle/e
 import { generateTasks as functionCardsEngine }        from "./function_cards/engine";
 import { generateTasks as magneticAlphabetEngine }     from "./magnetic_alphabet/engine";
 import { generateTasks as vowelConsonantEngine }       from "./vowel_consonant/engine";
+import { generateTasks as narrativeEngine }            from "./narrative/engine";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -20,4 +21,5 @@ export const ENGINE_REGISTRY = {
   magnetic_alphabet:     magneticAlphabetEngine,
   vowel_consonant:       vowelConsonantEngine,
   opposites:             oppositeEngine,
+  narrative:             narrativeEngine,
 };

@@ -4,10 +4,10 @@ import {
   getRawRecipeTxt,
   getRecipeOverrideForMode,
   saveRecipeOverrideForMode,
-  getRecipeSettings,
   getUserRecipes,
   createUserRecipe,
   deleteUserRecipe,
+  pullRecipeKvFromServer,
 } from "@/core/groupStore";
 import { getTopicTitle } from "@/shared/utils/format";
 
@@ -17,7 +17,7 @@ function autoResize(el) {
   el.style.height = el.scrollHeight + "px";
 }
 
-function RecipeEditor({ topicId, text, original, saved, mode, onDelete }) {
+function RecipeEditor({ topicId, text, original, saved, onDelete, onSave }) {
   const [value, setValue]   = useState(saved ?? original ?? "");
   const [status, setStatus] = useState(saved ? "saved" : "original");
   const textareaRef         = useRef(null);
@@ -31,11 +31,6 @@ function RecipeEditor({ topicId, text, original, saved, mode, onDelete }) {
     }
   }, [original, saved]);
 
-  useEffect(() => {
-    setValue(saved ?? original ?? "");
-    setStatus(saved ? "saved" : "original");
-  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => { autoResize(textareaRef.current); }, [value]);
 
   function handleChange(e) {
@@ -46,8 +41,9 @@ function RecipeEditor({ topicId, text, original, saved, mode, onDelete }) {
 
   async function handleSave() {
     setStatus("saving");
-    await saveRecipeOverrideForMode(topicId, text.id, mode, value);
+    await saveRecipeOverrideForMode(topicId, text.id, "group", value);
     setStatus("saved");
+    onSave?.(value);
   }
 
   function handleReset() {
@@ -117,37 +113,44 @@ export default function AllTextsScreen() {
   const topicRecord    = topicRecords.find((r) => r.meta.id === activeTopicId);
   const baseInstructions = (topicRecord?.texts ?? []).filter((t) => t.kind === "instruction");
 
-  const [mode,         setMode]         = useState("group");
   const [data,         setData]         = useState({});
   const [loading,      setLoading]      = useState(true);
   const [userRecipes,  setUserRecipes]  = useState([]);
   const [newTitle,     setNewTitle]     = useState("");
   const [addingNew,    setAddingNew]    = useState(false);
+  const [pullTick,     setPullTick]     = useState(0);
 
   const instructions = [...baseInstructions, ...userRecipes];
 
   useEffect(() => {
     if (!activeTopicId) return;
-    getRecipeSettings(activeTopicId).then((s) => setMode(s.mode ?? "group")).catch(() => {});
-    getUserRecipes(activeTopicId).then(setUserRecipes).catch(() => {});
+    pullRecipeKvFromServer()
+      .catch(() => {})
+      .finally(() => {
+        getUserRecipes(activeTopicId).then(setUserRecipes).catch(() => {});
+        setPullTick((t) => t + 1);
+      });
   }, [activeTopicId]);
 
   useEffect(() => {
     if (!activeTopicId || !instructions.length) { setLoading(false); return; }
+    let cancelled = false;
     setLoading(true);
     Promise.all(
       instructions.map(async (t) => {
         const [original, saved] = await Promise.all([
           t.file ? getRawRecipeTxt(activeTopicId, t.file) : null,
-          getRecipeOverrideForMode(activeTopicId, t.id, mode).catch(() => null),
+          getRecipeOverrideForMode(activeTopicId, t.id, "group").catch(() => null),
         ]);
         return [t.id, { original, saved }];
       })
     ).then((entries) => {
+      if (cancelled) return;
       setData(Object.fromEntries(entries));
       setLoading(false);
     });
-  }, [activeTopicId, mode, userRecipes.length]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { cancelled = true; };
+  }, [activeTopicId, userRecipes.length, pullTick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleCreateRecipe() {
     const title = newTitle.trim();
@@ -172,20 +175,6 @@ export default function AllTextsScreen() {
         <h1 className="screen-title">
           {topicRecord ? getTopicTitle(topicRecord.meta.title) : "Все тексты"}
         </h1>
-        <div className="all-texts-mode-toggle">
-          <button
-            className={`all-texts-mode-btn ${mode === "group" ? "all-texts-mode-btn--active" : ""}`}
-            onClick={() => setMode("group")}
-          >
-            Группа
-          </button>
-          <button
-            className={`all-texts-mode-btn ${mode === "individual" ? "all-texts-mode-btn--active" : ""}`}
-            onClick={() => setMode("individual")}
-          >
-            Инд.
-          </button>
-        </div>
       </div>
 
       {loading ? (
@@ -195,7 +184,7 @@ export default function AllTextsScreen() {
       ) : (
         <div className="all-texts-scroll">
           {instructions.map((text, i) => (
-            <div key={`${text.id}_${mode}`} className="all-texts-block">
+            <div key={text.id} className="all-texts-block">
               <div className="all-texts-block__header">
                 <span className="all-texts-index">{i + 1}</span>
                 <span className="all-texts-block__title">
@@ -208,8 +197,8 @@ export default function AllTextsScreen() {
                 text={text}
                 original={data[text.id]?.original ?? null}
                 saved={data[text.id]?.saved ?? null}
-                mode={mode}
                 onDelete={text.createdByUser ? () => handleDeleteRecipe(text.id) : null}
+                onSave={(val) => setData((prev) => ({ ...prev, [text.id]: { ...prev[text.id], saved: val } }))}
               />
             </div>
           ))}

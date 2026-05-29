@@ -4,7 +4,7 @@ import { useTimer } from "@/features/timer/TimerContext";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import { getInitials } from "@/shared/utils/format";
-import { getGroup, saveGroup, getRecipeSettings, saveRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, saveRecipeOverride } from "@/core/groupStore";
+import { getGroup, saveGroup, getRecipeSettings, saveRecipeSettings, getRecipeOverrideForMode, saveRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
 import { listLocalAudioOverrides, syncAudioOverrides } from "@/core/audioStore";
 import AudioRecordDialog from "@/topics/renderers/reading/AudioRecordDialog";
 import { parseRecipeTxt } from "@/topics/renderers/reading/parseRecipeTxt";
@@ -19,7 +19,6 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
   const [newMemberPhoto,  setNewMemberPhoto]  = useState(null);
   const memberPhotoRef = useRef(null);
 
-  const [recipeMode,      setRecipeMode]      = useState("group");
   const [portions,        setPortions]        = useState(1);
   const [audioEnabled,    setAudioEnabled]    = useState(false);
   const [audioStepsOpen,  setAudioStepsOpen]  = useState(false);
@@ -31,29 +30,34 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
   const [editingRecipe, setEditingRecipe] = useState(false);
   const [recipeEdit,    setRecipeEdit]    = useState("");
 
+  async function loadRecipeText() {
+    const rawText = await (async () => {
+      if (textId) {
+        const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);
+        if (override) return override;
+      }
+      if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
+      return null;
+    })();
+    if (rawText) {
+      setRawRecipe(rawText);
+      setBaseSteps(parseRecipeTxt(rawText));
+    }
+  }
+
   useEffect(() => {
     async function load() {
-      const settings = await getRecipeSettings(topicId).catch(() => ({ mode: "group", portions: 1 }));
-      const mode = settings.mode ?? "group";
-      setRecipeMode(mode);
+      await pullRecipeKvFromServer().catch(() => {});
+
+      const settings = await getRecipeSettings(topicId).catch(() => ({ portions: 1 }));
       setPortions(settings.portions ?? 1);
 
-      const [grp, rawText] = await Promise.all([
+      const [grp] = await Promise.all([
         getGroup(topicId).catch(() => []),
-        (async () => {
-          if (textId) {
-            const override = await getRecipeOverrideForMode(topicId, textId, mode).catch(() => null);
-            if (override) return override;
-          }
-          if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
-          return null;
-        })(),
+        loadRecipeText(),
       ]);
       setGroup(grp ?? []);
-      if (rawText) {
-        setRawRecipe(rawText);
-        setBaseSteps(parseRecipeTxt(rawText));
-      }
+
       const tid = textId ?? "";
       const overrides = await listLocalAudioOverrides(topicId, tid).catch(() => []);
       setRecordedSteps(new Set(overrides.map((o) => `s${o.stepNum}`)));
@@ -63,7 +67,7 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
         .catch(() => {});
     }
     load();
-  }, [topicId, textId, filePath]);
+  }, [topicId, textId, filePath]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleMemberPhotoFile(e) {
     const file = e.target.files?.[0];
@@ -101,26 +105,21 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
   }
 
   async function saveRecipeEdit() {
-    if (textId) await saveRecipeOverride(topicId, textId, recipeEdit).catch(() => {});
+    if (textId) await saveRecipeOverrideForMode(topicId, textId, "group", recipeEdit).catch(() => {});
     setRawRecipe(recipeEdit);
     setBaseSteps(parseRecipeTxt(recipeEdit));
     setEditingRecipe(false);
   }
 
-  async function handleModeChange(newMode) {
-    setRecipeMode(newMode);
-    await saveRecipeSettings(topicId, { mode: newMode, portions }).catch(() => {});
-  }
-
   async function handlePortionsChange(delta) {
     const next = Math.max(1, Math.min(20, portions + delta));
     setPortions(next);
-    await saveRecipeSettings(topicId, { mode: recipeMode, portions: next }).catch(() => {});
+    await saveRecipeSettings(topicId, { portions: next }).catch(() => {});
   }
 
   async function startSession() {
     await saveGroup(topicId, group).catch(() => {});
-    setInstructionAudioEnabled(recipeMode === "individual" ? audioEnabled : false);
+    setInstructionAudioEnabled(audioEnabled);
     markSessionStart();
     setScreen("session");
   }
@@ -151,24 +150,6 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
 
       <div className="params-settings-col">
         <div className="params-body">
-
-          <div className="param-row">
-            <div className="param-label">Режим</div>
-            <div className="param-enum-group">
-              <button
-                className={`enum-btn ${recipeMode === "group" ? "enum-btn--active" : ""}`}
-                onClick={() => handleModeChange("group")}
-              >
-                Группа
-              </button>
-              <button
-                className={`enum-btn ${recipeMode === "individual" ? "enum-btn--active" : ""}`}
-                onClick={() => handleModeChange("individual")}
-              >
-                Индивидуально
-              </button>
-            </div>
-          </div>
 
           <div className="param-row">
             <div className="param-label">Порций</div>
@@ -232,27 +213,25 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
             </div>
           </div>
 
-          {recipeMode === "individual" && (
-            <div className="param-row">
-              <div className="param-label">Аудио</div>
-              <div className="param-enum-group">
-                <button
-                  className={`enum-btn ${!audioEnabled ? "enum-btn--active" : ""}`}
-                  onClick={() => setAudioEnabled(false)}
-                >
-                  Выкл
-                </button>
-                <button
-                  className={`enum-btn ${audioEnabled ? "enum-btn--active" : ""}`}
-                  onClick={() => setAudioEnabled(true)}
-                >
-                  Вкл
-                </button>
-              </div>
+          <div className="param-row">
+            <div className="param-label">Аудио</div>
+            <div className="param-enum-group">
+              <button
+                className={`enum-btn ${!audioEnabled ? "enum-btn--active" : ""}`}
+                onClick={() => setAudioEnabled(false)}
+              >
+                Выкл
+              </button>
+              <button
+                className={`enum-btn ${audioEnabled ? "enum-btn--active" : ""}`}
+                onClick={() => setAudioEnabled(true)}
+              >
+                Вкл
+              </button>
             </div>
-          )}
+          </div>
 
-          {recipeMode === "individual" && actionSteps.length > 0 && (
+          {actionSteps.length > 0 && (
             <>
               <div className="param-row">
                 <div className="param-label">

@@ -21,20 +21,23 @@
   flex-direction: row;
   gap: 12px;
   padding: 12px 16px;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
 }
 
 .opp-pair__side {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex: 1;
   min-width: 0;
 }
 
 .opp-pair__card {
-  width: 100%;
+  /* Portrait: fills side width; landscape: capped by viewport height so labels always fit */
+  width: min(100%, calc(100svh - 160px));
   aspect-ratio: 1;
   border-radius: 16px;
   overflow: hidden;
@@ -51,32 +54,28 @@
 }
 
 .opp-pair__label {
-  font-size: clamp(1.2rem, 5vw, 1.6rem);
+  font-size: clamp(1rem, 4vw, 1.6rem);
   font-weight: 700;
   text-align: center;
   flex-shrink: 0;
 }
 
 .opp-pair__hint {
-  font-size: calc(clamp(1.2rem, 5vw, 1.6rem) - 2px);
+  font-size: clamp(0.9rem, 3.5vw, 1.4rem);
   font-weight: 700;
   color: #333;
   flex-shrink: 0;
 }
 
-/* ── Choose two & Find all grid ─────────────────────── */
+/* ── Choose two & Find all — shared grid ────────────── */
 .opp-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   width: 100%;
-  max-width: 360px;
+  max-width: 480px;
   margin: 0 auto;
   flex-shrink: 0;
-}
-
-@media (orientation: portrait) {
-  .opp-grid { max-width: min(508px, 100%); }
 }
 
 @media (min-width: 768px) {
@@ -88,7 +87,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px;
+  padding: 6px;
   border: 2px solid #e0e0e0;
   border-radius: 12px;
   background: white;
@@ -102,9 +101,8 @@
 
 .opp-grid-card__img {
   width: 100%;
-  height: auto;
   aspect-ratio: 1;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 8px;
   display: block;
 }
@@ -114,11 +112,30 @@
   aspect-ratio: 1;
   width: 100%;
 }
-
 .opp-grid-card__label {
   font-size: clamp(10px, 3vw, 13px);
   color: #555;
   text-align: center;
+}
+
+/* ── Find all overrides — no labels, fills screen ───── */
+.opp-find-all {
+  gap: 8px;
+  padding: 8px;
+}
+.opp-find-all .opp-grid {
+  max-width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  align-content: start;
+  margin: 0;
+}
+.opp-find-all .opp-grid-card {
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+  border-width: 3px;
 }
 
 /* ── Find all submit ────────────────────────────────── */

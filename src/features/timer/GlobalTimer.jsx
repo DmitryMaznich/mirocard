@@ -5,7 +5,7 @@ import AnalogTimer from "./AnalogTimer";
 function pad(n) { return String(n).padStart(2, "0"); }
 
 export default function GlobalTimer({ rewardVideos = [] }) {
-  const { isOpen, setIsOpen, timeLeft, isRunning, configMinutes, sessionSeconds } = useTimer();
+  const { isOpen, setIsOpen, timeLeft, isRunning, sessionSeconds } = useTimer();
   const clockRef = useRef(null);
   const tabRef = useRef(null);
   const swipeRef = useRef(null);
@@ -15,10 +15,6 @@ export default function GlobalTimer({ rewardVideos = [] }) {
     tabState = "running";
     tabMM = pad(Math.floor(timeLeft / 60));
     tabSS = pad(timeLeft % 60);
-  } else if (configMinutes > 0) {
-    tabState = "set";
-    tabMM = pad(configMinutes);
-    tabSS = "00";
   } else if (sessionSeconds > 0) {
     tabState = "session";
     tabMM = pad(Math.floor(sessionSeconds / 60));

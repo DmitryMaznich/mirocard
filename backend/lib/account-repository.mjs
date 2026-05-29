@@ -201,6 +201,15 @@ export function getAllAccountKv(db, accountId) {
   ).all(accountId).map((r) => ({ key: r.key, value: JSON.parse(r.value) }));
 }
 
+export function getAccountKvByPrefixes(db, accountId, prefixes) {
+  if (!prefixes.length) return [];
+  const conditions = prefixes.map(() => "key LIKE ?").join(" OR ");
+  return db.prepare(
+    `SELECT key, value, updated_at FROM account_kv WHERE account_id = ? AND (${conditions}) ORDER BY updated_at ASC`
+  ).all(accountId, ...prefixes.map((p) => p + "%"))
+    .map((r) => ({ key: r.key, value: JSON.parse(r.value), updatedAt: r.updated_at }));
+}
+
 // ─── Sync revision ────────────────────────────────────────────────────────────
 
 export function getRevision(db, accountId) {
