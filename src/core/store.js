@@ -78,13 +78,11 @@ export const useAppStore = create((set) => ({
   activeTextId: null,
   activeText: null,
   activeModeId: null,
-  instructionAudioEnabled: false,
   setActiveStudentId:           (id) => set({ activeStudentId: id }),
   setActiveTopicId:             (id) => set({ activeTopicId: id, activeTextId: null, activeText: null, activeModeId: null }),
   setActiveTextId:              (id) => set({ activeTextId: id, activeModeId: null }),
   setActiveText:                (text) => set({ activeText: text, activeTextId: text?.id ?? null, activeModeId: null }),
   setActiveModeId:              (id) => set({ activeModeId: id }),
-  setInstructionAudioEnabled:   (v)  => set({ instructionAudioEnabled: v }),
 
   // ─── Student-topic links ───────────────────────────────────────────────────
   studentTopicLinks: {},

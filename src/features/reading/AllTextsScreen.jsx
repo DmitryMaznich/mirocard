@@ -46,9 +46,11 @@ function RecipeEditor({ topicId, text, original, saved, onDelete, onSave }) {
     onSave?.(value);
   }
 
-  function handleReset() {
+  async function handleReset() {
+    await saveRecipeOverrideForMode(topicId, text.id, "group", null);
     setValue(originalRef.current ?? "");
     setStatus("original");
+    onSave?.(null);
   }
 
   const isDirty  = status === "dirty";

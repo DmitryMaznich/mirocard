@@ -4,10 +4,8 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { useSpeech } from "@/shared/hooks/useSpeech";
 import { parseRecipeTxt, resolveStepOwners, applyPortions } from "./parseRecipeTxt";
 import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
-import { getAudioOverride } from "@/core/audioStore";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -334,10 +332,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const activeStudentId         = useAppStore((s) => s.activeStudentId);
   const students                = useAppStore((s) => s.students);
-  const instructionAudioEnabled = useAppStore((s) => s.instructionAudioEnabled);
   const student = students.find((s) => s.id === activeStudentId) ?? null;
-
-  const { speak } = useSpeech();
 
   const [portions,   setPortions]   = useState(1);
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
@@ -346,8 +341,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const [checked,    setChecked]    = useState({});
   const [listOpen,   setListOpen]   = useState(false);
   const listRef = useRef(null);
-
-  const audioEnabled = instructionAudioEnabled;
 
   useEffect(() => {
     async function load() {
@@ -377,6 +370,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
   }, [topicId, task.text?.id, task.text?.file]);
 
   const step = steps[stepIndex];
+  const imageUrl = useTopicFile(topicId, step?.type === "image" ? `media/${step.file}` : null);
   // Support both old single-owner (step.owner) and new multi-owner (step.owners) formats
   const owners = step
     ? resolveStepOwners(step.owners ?? (step.owner ? [step.owner] : []), group, student)
@@ -385,33 +379,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
   const allChecked =
     step?.type !== "checklist" ||
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
-
-  useEffect(() => {
-    if (!step || !audioEnabled) return;
-    const textId  = task.text?.id ?? "";
-    const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
-    let cancelled = false;
-    if (textId && stepNum != null) {
-      getAudioOverride(topicId, textId, stepNum).then((blob) => {
-        if (cancelled) return;
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = new Audio(url);
-          a.onended = () => URL.revokeObjectURL(url);
-          a.play();
-        } else {
-          const ownerPrefix = owners.map((o) => o.name).join(", ");
-          const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
-          speak(text);
-        }
-      });
-    } else {
-      const ownerPrefix = owners.map((o) => o.name).join(", ");
-      const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
-      speak(text);
-    }
-    return () => { cancelled = true; };
-  }, [stepIndex, steps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!listOpen || !listRef.current) return;
@@ -443,30 +410,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
     else setScreen("params");
   }, [stepIndex, setScreen]);
 
-  const reSpeak = useCallback(() => {
-    if (!step || !audioEnabled) return;
-    const textId  = task.text?.id ?? "";
-    const stepNum = step.id?.startsWith("s") ? parseInt(step.id.slice(1), 10) : null;
-    if (textId && stepNum != null) {
-      getAudioOverride(topicId, textId, stepNum).then((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = new Audio(url);
-          a.onended = () => URL.revokeObjectURL(url);
-          a.play();
-        } else {
-          const ownerPrefix = owners.map((o) => o.name).join(", ");
-          const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
-          speak(text);
-        }
-      });
-    } else {
-      const ownerPrefix = owners.map((o) => o.name).join(", ");
-      const text = ownerPrefix ? `${ownerPrefix}. ${step.text}` : step.text;
-      speak(text);
-    }
-  }, [step, owners, speak, topicId, task.text?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     function onKey(e) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
@@ -474,13 +417,12 @@ function InstructionTask({ task, topicId, onAdvance }) {
         case "ArrowRight": case "Enter": e.preventDefault(); handleNext(); break;
         case " ":          e.preventDefault(); handleSpace(); break;
         case "ArrowLeft":  case "Backspace": e.preventDefault(); goBack(); break;
-        case "r": case "R": e.preventDefault(); reSpeak(); break;
         case "Escape": e.preventDefault(); setScreen("params"); break;
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleNext, handleSpace, goBack, reSpeak]);
+  }, [handleNext, handleSpace, goBack]);
 
   if (!step) return null;
 
@@ -543,7 +485,12 @@ function InstructionTask({ task, topicId, onAdvance }) {
             <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
           </div>
 
-          <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}`}>
+          <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}`}>
+            {step.type === "image" ? (
+              imageUrl
+                ? <img src={imageUrl} alt="" className="instruction-step-img" />
+                : <div className="instruction-step-img-placeholder" />
+            ) : (
             <div className="instruction-step-text">{(() => {
               const text = applyPortions(step.text, portions);
               const parts = text.split(/\. (?=[А-ЯЁA-Z])/g);
@@ -555,6 +502,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
                 </Fragment>
               ));
             })()}</div>
+            )}
             {step.type === "checklist" && (
               <ul className="instruction-checklist">
                 {(step.items ?? []).map((item, i) => {
@@ -586,6 +534,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
               </ul>
             )}
           </div>
+
 
           <button
             className={`instruction-drawer-toggle${listOpen ? " instruction-drawer-toggle--open" : ""}`}

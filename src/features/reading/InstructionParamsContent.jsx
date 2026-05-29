@@ -5,30 +5,21 @@ import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import { getInitials } from "@/shared/utils/format";
 import { getGroup, saveGroup, getRecipeSettings, saveRecipeSettings, getRecipeOverrideForMode, saveRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
-import { listLocalAudioOverrides, syncAudioOverrides } from "@/core/audioStore";
-import AudioRecordDialog from "@/topics/renderers/reading/AudioRecordDialog";
 import { parseRecipeTxt } from "@/topics/renderers/reading/parseRecipeTxt";
 
 export default function InstructionParamsContent({ topicId, textId, filePath, topicTitle, textTitle, student }) {
-  const setScreen                  = useAppStore((s) => s.setScreen);
-  const setInstructionAudioEnabled = useAppStore((s) => s.setInstructionAudioEnabled);
-  const { markSessionStart }       = useTimer();
+  const setScreen        = useAppStore((s) => s.setScreen);
+  const { markSessionStart } = useTimer();
 
-  const [group,           setGroup]           = useState([]);
-  const [newMemberName,   setNewMemberName]   = useState("");
-  const [newMemberPhoto,  setNewMemberPhoto]  = useState(null);
+  const [group,          setGroup]          = useState([]);
+  const [newMemberName,  setNewMemberName]  = useState("");
+  const [newMemberPhoto, setNewMemberPhoto] = useState(null);
   const memberPhotoRef = useRef(null);
 
-  const [portions,        setPortions]        = useState(1);
-  const [audioEnabled,    setAudioEnabled]    = useState(false);
-  const [audioStepsOpen,  setAudioStepsOpen]  = useState(false);
-  const [recordedSteps,   setRecordedSteps]   = useState(new Set());
-  const [audioDialogStep, setAudioDialogStep] = useState(null);
-
-  const [baseSteps,     setBaseSteps]     = useState([]);
-  const [rawRecipe,     setRawRecipe]     = useState("");
-  const [editingRecipe, setEditingRecipe] = useState(false);
-  const [recipeEdit,    setRecipeEdit]    = useState("");
+  const [portions,       setPortions]       = useState(1);
+  const [rawRecipe,      setRawRecipe]      = useState("");
+  const [editingRecipe,  setEditingRecipe]  = useState(false);
+  const [recipeEdit,     setRecipeEdit]     = useState("");
 
   async function loadRecipeText() {
     const rawText = await (async () => {
@@ -41,30 +32,19 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
     })();
     if (rawText) {
       setRawRecipe(rawText);
-      setBaseSteps(parseRecipeTxt(rawText));
     }
   }
 
   useEffect(() => {
     async function load() {
       await pullRecipeKvFromServer().catch(() => {});
-
       const settings = await getRecipeSettings(topicId).catch(() => ({ portions: 1 }));
       setPortions(settings.portions ?? 1);
-
       const [grp] = await Promise.all([
         getGroup(topicId).catch(() => []),
         loadRecipeText(),
       ]);
       setGroup(grp ?? []);
-
-      const tid = textId ?? "";
-      const overrides = await listLocalAudioOverrides(topicId, tid).catch(() => []);
-      setRecordedSteps(new Set(overrides.map((o) => `s${o.stepNum}`)));
-      syncAudioOverrides(topicId, tid)
-        .then(() => listLocalAudioOverrides(topicId, tid))
-        .then((ovrs) => setRecordedSteps(new Set(ovrs.map((o) => `s${o.stepNum}`))))
-        .catch(() => {});
     }
     load();
   }, [topicId, textId, filePath]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -107,8 +87,18 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
   async function saveRecipeEdit() {
     if (textId) await saveRecipeOverrideForMode(topicId, textId, "group", recipeEdit).catch(() => {});
     setRawRecipe(recipeEdit);
-    setBaseSteps(parseRecipeTxt(recipeEdit));
     setEditingRecipe(false);
+  }
+
+  function handleDownload() {
+    const filename = textTitle ? `${textTitle}.txt` : "recipe.txt";
+    const blob = new Blob([rawRecipe], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handlePortionsChange(delta) {
@@ -119,13 +109,9 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
 
   async function startSession() {
     await saveGroup(topicId, group).catch(() => {});
-    setInstructionAudioEnabled(audioEnabled);
     markSessionStart();
     setScreen("session");
   }
-
-  const actionSteps   = baseSteps.filter((s) => s.type !== "heading");
-  const recordedCount = actionSteps.filter((s) => recordedSteps.has(s.id)).length;
 
   return (
     <div className="params-layout">
@@ -214,70 +200,22 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
           </div>
 
           <div className="param-row">
-            <div className="param-label">Аудио</div>
-            <div className="param-enum-group">
+            <div className="param-label">Инструкция</div>
+            <div style={{ display: "flex", gap: "12px" }}>
               <button
-                className={`enum-btn ${!audioEnabled ? "enum-btn--active" : ""}`}
-                onClick={() => setAudioEnabled(false)}
+                className="link-btn"
+                onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
               >
-                Выкл
+                Редактировать
               </button>
               <button
-                className={`enum-btn ${audioEnabled ? "enum-btn--active" : ""}`}
-                onClick={() => setAudioEnabled(true)}
+                className="link-btn"
+                onClick={handleDownload}
+                disabled={!rawRecipe}
               >
-                Вкл
+                Скачать
               </button>
             </div>
-          </div>
-
-          {actionSteps.length > 0 && (
-            <>
-              <div className="param-row">
-                <div className="param-label">
-                  Запись шагов{recordedCount > 0 ? ` · ${recordedCount}/${actionSteps.length}` : ""}
-                </div>
-                <button
-                  className="link-btn"
-                  onClick={() => setAudioStepsOpen((v) => !v)}
-                >
-                  {audioStepsOpen ? "Скрыть" : "Открыть"}
-                </button>
-              </div>
-              {audioStepsOpen && (
-                <div className="param-row param-row--block" style={{ paddingTop: 4 }}>
-                  <div className="instruction-audio-list">
-                    {actionSteps.map((s) => {
-                      const num = parseInt(s.id.slice(1), 10);
-                      const hasAudio = recordedSteps.has(s.id);
-                      return (
-                        <button
-                          key={s.id}
-                          className={`instruction-audio-item${hasAudio ? " instruction-audio-item--recorded" : ""}`}
-                          onClick={() => setAudioDialogStep({ id: s.id, num, text: s.text })}
-                        >
-                          <span className="instruction-audio-num">{num}</span>
-                          <span className="instruction-audio-text">
-                            {s.text.length > 55 ? s.text.slice(0, 55) + "…" : s.text}
-                          </span>
-                          {hasAudio && <span className="instruction-audio-dot" aria-label="записано" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="param-row">
-            <div className="param-label">Инструкция</div>
-            <button
-              className="link-btn"
-              onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
-            >
-              Редактировать
-            </button>
           </div>
 
         </div>
@@ -286,24 +224,6 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
           <Button fullWidth onClick={startSession}>Начать занятие</Button>
         </div>
       </div>
-
-      {audioDialogStep && (
-        <AudioRecordDialog
-          topicId={topicId}
-          textId={textId ?? ""}
-          stepNum={audioDialogStep.num}
-          stepText={audioDialogStep.text}
-          onClose={() => setAudioDialogStep(null)}
-          onSaved={(stepId) => {
-            setRecordedSteps((prev) => new Set([...prev, stepId]));
-            setAudioDialogStep(null);
-          }}
-          onDeleted={(stepId) => {
-            setRecordedSteps((prev) => { const n = new Set(prev); n.delete(stepId); return n; });
-            setAudioDialogStep(null);
-          }}
-        />
-      )}
 
       {editingRecipe && (
         <Modal title="Редактирование инструкции" onClose={() => setEditingRecipe(false)}>

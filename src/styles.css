@@ -428,6 +428,22 @@ html.app-ios-standalone {
   margin: 0 auto;
   padding: 16px 0;
 }
+.instruction-step--image {
+  padding: 8px 0;
+  justify-content: center;
+}
+.instruction-step-img {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 16px;
+}
+.instruction-step-img-placeholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #f0f0f0;
+  border-radius: 16px;
+}
 
 .instruction-step-text {
   font-size: 1.7rem;
@@ -502,8 +518,6 @@ html.app-ios-standalone {
   background: #e2f4ef;
   border-color: #4caf90;
   color: #1c5043;
-  text-decoration: line-through;
-  text-decoration-color: #4caf90;
   box-shadow: none;
 }
 
@@ -13929,6 +13943,8 @@ kbd {
 .params-info-col { display: none; }
 .params-settings-col { display: flex; flex-direction: column; flex: 1; }
 .params-start-phone { padding: 16px 12px 24px; }
+.recipe-cover-photo--mobile { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 0; margin-bottom: 0; }
+.recipe-cover-photo { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 12px; margin-bottom: 4px; }
 
 .params-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .param-row {
@@ -16195,7 +16211,16 @@ button.operation-dot {
     gap: 8px;
     position: sticky;
     top: 76px;
+    overflow: hidden;
   }
+  .recipe-cover-photo {
+    width: calc(100% + 40px);
+    margin: -22px -20px 4px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 20px 20px 0 0;
+  }
+  .recipe-cover-photo--mobile { display: none; }
   .params-info-topic {
     font-size: 0.72rem;
     font-weight: 800;

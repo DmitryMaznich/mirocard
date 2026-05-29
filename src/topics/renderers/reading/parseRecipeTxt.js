@@ -24,6 +24,14 @@ export function parseRecipeTxt(raw) {
   for (const line of lines) {
     if (line.startsWith("#")) continue; // metadata comment, skip
 
+    const imgMatch = line.match(/^\[([^\]]+\.\w+)\]$/);
+    if (imgMatch) {
+      flush();
+      stepNum++;
+      current = { id: `s${stepNum}`, type: "image", file: imgMatch[1] };
+      continue;
+    }
+
     if (line.startsWith("@")) {
       flush();
       currentOwner = line.slice(1).trim() || null;

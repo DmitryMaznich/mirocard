@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.30.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.31.0.zip";
-const NEW_VERSION = "1.31.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.35.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.36.0.zip";
+const NEW_VERSION = "1.36.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -13,17 +13,14 @@ function countSteps(txt) {
 
 function extractMeta(txt) {
   const lines = txt.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  let ru = "";
-  let en = "";
+  let ru = "", en = "", photo = "";
   for (const line of lines) {
-    if (line.startsWith("# en:")) {
-      en = line.slice(5).trim();
-    } else if (!line.startsWith("#") && !ru) {
-      ru = line;
-    }
-    if (ru && en) break;
+    if (line.startsWith("# en:"))    { en    = line.slice(5).trim(); }
+    else if (line.startsWith("# photo:")) { photo = line.slice(8).trim(); }
+    else if (!line.startsWith("#") && !ru) { ru = line; }
+    if (ru && en && photo) break;
   }
-  return { ru, en: en || ru };
+  return { ru, en: en || ru, photo };
 }
 
 // Load old zip to copy over SVGs that aren't available locally
@@ -64,8 +61,27 @@ for (const id of recipeIds) {
   const txtPath = `${RECIPES_DIR}/${id}.txt`;
   const content = readFileSync(txtPath, "utf-8");
   const steps = countSteps(content);
-  const title = extractMeta(content);
+  const { ru, en, photo } = extractMeta(content);
+  const title = { ru, en: en || ru };
   const hasSvg = existsSync(`${MEDIA_DIR}/${id}.svg`) || !!oldZip.file(`media/${id}.svg`);
+
+  // Include photo if specified and file exists locally
+  let photoPath = null;
+  if (photo) {
+    const localPhoto = `${MEDIA_DIR}/${photo}`;
+    if (existsSync(localPhoto)) {
+      newZip.file(`media/${photo}`, readFileSync(localPhoto));
+      photoPath = `media/${photo}`;
+      console.log(`  photo: ${photo} (local)`);
+    } else {
+      const oldPhoto = oldZip.file(`media/${photo}`);
+      if (oldPhoto) {
+        newZip.file(`media/${photo}`, await oldPhoto.async("nodebuffer"));
+        photoPath = `media/${photo}`;
+        console.log(`  photo: ${photo} (from old ZIP)`);
+      }
+    }
+  }
 
   newZip.file(`recipes/${id}.txt`, content);
 
@@ -73,7 +89,8 @@ for (const id of recipeIds) {
     id: `${id}_instruction`,
     kind: "instruction",
     title,
-    ...(hasSvg ? { image: `media/${id}.svg` } : {}),
+    ...(hasSvg    ? { image: `media/${id}.svg` } : {}),
+    ...(photoPath ? { photo: photoPath }          : {}),
     file: `recipes/${id}.txt`,
     stepCount: steps,
   });
