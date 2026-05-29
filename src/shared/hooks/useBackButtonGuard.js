@@ -2,60 +2,28 @@ import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
 
-const BACK_GUARD_DEPTH = 64;
+// History layout maintained by this guard:
+//   [...browser history...] [ROOT] [GUARD]  ← always at GUARD
+//
+// On back press → we land at ROOT, which fires popstate.
+// We push a new GUARD synchronously (before any React updates),
+// so the next back press is already absorbed before we process this one.
+// pushState from ROOT truncates the old GUARD, so the stack never grows.
 
-let guardSequence = 0;
-let guardTopSequence = 0;
-let lastObservedSequence = 0;
+const ROOT_STATE = { mirocardBackRoot: true };
+const GUARD_STATE = { mirocardBackGuard: true };
+
 let lastHandledBackAt = 0;
 
-function getGuardSequence(state) {
-  return state?.mirocardBackGuard && Number.isFinite(state.guardSequence)
-    ? state.guardSequence
-    : 0;
-}
-
-function rootStateFrom(state) {
-  const nextState = { ...(state ?? {}) };
-  delete nextState.mirocardBackGuard;
-  nextState.mirocardBackRoot = true;
-  nextState.guardSequence = 0;
-  return nextState;
-}
-
-function pushGuardEntries(count) {
-  for (let i = 0; i < count; i++) {
-    guardSequence += 1;
-    window.history.pushState(
-      { mirocardBackGuard: true, guardSequence },
-      "",
-      window.location.href,
-    );
-  }
-  guardTopSequence = guardSequence;
-  lastObservedSequence = guardTopSequence;
-}
-
-function installBackGuardStack() {
-  const currentState = window.history.state;
-  const currentSequence = getGuardSequence(currentState);
-
-  if (currentState?.mirocardBackGuard) {
-    guardSequence = Math.max(guardSequence, currentSequence);
-    guardTopSequence = Math.max(guardTopSequence, currentSequence);
-    lastObservedSequence = currentSequence;
+function installBackGuard() {
+  const current = window.history.state;
+  if (current?.mirocardBackGuard) return;
+  if (current?.mirocardBackRoot) {
+    window.history.pushState(GUARD_STATE, "", window.location.href);
     return;
   }
-
-  guardSequence = Math.max(guardSequence, guardTopSequence, currentSequence);
-  window.history.replaceState(rootStateFrom(currentState), "", window.location.href);
-
-  pushGuardEntries(BACK_GUARD_DEPTH);
-}
-
-function reboundToGuardTop(sequence) {
-  if (sequence >= guardTopSequence) return;
-  window.history.go(guardTopSequence - sequence);
+  window.history.replaceState(ROOT_STATE, "", window.location.href);
+  window.history.pushState(GUARD_STATE, "", window.location.href);
 }
 
 export function useBackButtonGuard({
@@ -88,32 +56,39 @@ export function useBackButtonGuard({
   useEffect(() => {
     if (!window.history?.pushState) return undefined;
 
-    installBackGuardStack();
+    installBackGuard();
 
     function handlePopState(event) {
-      const sequence = getGuardSequence(event.state);
-      const isBackNavigation = sequence < lastObservedSequence;
-      lastObservedSequence = sequence;
-      reboundToGuardTop(sequence);
+      // Forward navigation back to guard entry — not a user back press
+      if (event.state?.mirocardBackGuard) return;
 
-      if (!isBackNavigation) return;
+      // Re-establish guard synchronously FIRST, before any async React updates.
+      // pushState from ROOT truncates the old GUARD, so history stays at 2 entries.
+      if (event.state?.mirocardBackRoot) {
+        window.history.pushState(GUARD_STATE, "", window.location.href);
+      } else {
+        // Went past ROOT (e.g., multi-step history jump via long-press back menu)
+        window.history.replaceState(ROOT_STATE, "", window.location.href);
+        window.history.pushState(GUARD_STATE, "", window.location.href);
+      }
 
+      // Debounce: suppress app-level action on rapid presses.
+      // Guard is already restored above, so rapid presses can never escape.
       const now = Date.now();
       if (now - lastHandledBackAt < 180) return;
       lastHandledBackAt = now;
-
-      const state = useAppStore.getState();
 
       if (isTimerOpenRef.current) {
         onCloseTimerRef.current?.();
         return;
       }
 
-      if (state.screen === "session" && isSessionExitPromptOpenRef.current) {
+      if (isSessionExitPromptOpenRef.current) {
         onCloseSessionExitPromptRef.current?.();
         return;
       }
 
+      const state = useAppStore.getState();
       const target = getBackTarget(state);
 
       if (target === SESSION_EXIT_TARGET) {
@@ -126,16 +101,16 @@ export function useBackButtonGuard({
       }
     }
 
-    function ensureGuardAfterResume() {
-      if (document.visibilityState === "hidden") return;
-      if (window.history.state?.mirocardBackGuard) return;
-      installBackGuardStack();
-    }
-
     function handleBeforeUnload(event) {
+      // Last-resort protection if the guard is somehow bypassed
       if (useAppStore.getState().screen !== "session") return;
       event.preventDefault();
       event.returnValue = "";
+    }
+
+    function ensureGuardAfterResume() {
+      if (document.visibilityState === "hidden") return;
+      installBackGuard();
     }
 
     window.addEventListener("popstate", handlePopState);
@@ -143,6 +118,7 @@ export function useBackButtonGuard({
     window.addEventListener("focus", ensureGuardAfterResume);
     document.addEventListener("visibilitychange", ensureGuardAfterResume);
     window.addEventListener("beforeunload", handleBeforeUnload);
+
     return () => {
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("pageshow", ensureGuardAfterResume);

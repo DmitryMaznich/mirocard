@@ -4,6 +4,7 @@ const STATIC_BACK_TARGETS = {
   student_edit: "students",
   topics: "home",
   texts: "home",
+  all_texts: "texts",
   params: "modes",
   concepts: "params",
   history: "students",

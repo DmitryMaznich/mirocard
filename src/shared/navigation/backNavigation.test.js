@@ -15,6 +15,7 @@ describe("getBackTarget", () => {
     expect(getBackTarget(state({ screen: "students" }))).toBe("home");
     expect(getBackTarget(state({ screen: "student_edit" }))).toBe("students");
     expect(getBackTarget(state({ screen: "concepts" }))).toBe("params");
+    expect(getBackTarget(state({ screen: "all_texts" }))).toBe("texts");
   });
 
   it("returns texts before reading modes", () => {
