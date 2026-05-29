@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Drinks background: blue -->
+  <circle cx="120" cy="120" r="116" fill="#e8f5fc" stroke="#6aafd4" stroke-width="3"/>
+  <!-- Glass shadow -->
+  <ellipse cx="122" cy="192" rx="36" ry="6" fill="#6aafd4" opacity="0.2"/>
+  <!-- Glass body -->
+  <path d="M 88 100 L 84 186 Q 84 192 90 192 L 150 192 Q 156 192 156 186 L 152 100 Z" fill="#d0ecf8" opacity="0.5"/>
+  <path d="M 90 100 L 86 184 Q 86 190 92 190 L 148 190 Q 154 190 154 184 L 150 100 Z" fill="#e8f6fc" opacity="0.7"/>
+  <!-- Kompot liquid (amber-red) -->
+  <path d="M 90 120 L 87 184 Q 87 189 92 189 L 148 189 Q 153 189 153 184 L 150 120 Z" fill="#e85040" opacity="0.55"/>
+  <!-- Berries/fruit in glass -->
+  <circle cx="106" cy="160" r="10" fill="#c82030" opacity="0.85"/>
+  <circle cx="134" cy="155" r="9" fill="#d02838" opacity="0.85"/>
+  <circle cx="118" cy="172" r="9" fill="#e03040" opacity="0.8"/>
+  <circle cx="98" cy="175" r="7" fill="#b81828" opacity="0.8"/>
+  <circle cx="142" cy="170" r="7" fill="#c82030" opacity="0.8"/>
+  <!-- Cherry stem -->
+  <path d="M 106 150 Q 108 140 114 138" fill="none" stroke="#5a3020" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 134 146 Q 132 136 126 134" fill="none" stroke="#5a3020" stroke-width="2" stroke-linecap="round"/>
+  <!-- Fruit highlights -->
+  <circle cx="102" cy="156" r="3" fill="#ff7070" opacity="0.5"/>
+  <circle cx="130" cy="151" r="2.5" fill="#ff7070" opacity="0.5"/>
+  <!-- Liquid surface highlight -->
+  <ellipse cx="120" cy="120" rx="29" ry="4" fill="#fff8f0" opacity="0.5"/>
+  <!-- Glass rim -->
+  <rect x="86" y="96" width="68" height="8" rx="4" fill="#c0e4f4" opacity="0.8"/>
+  <!-- Glass shine -->
+  <path d="M 94 108 L 92 176" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+</svg>

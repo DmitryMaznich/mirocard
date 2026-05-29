@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="182" rx="68" ry="9" fill="#d4b870" opacity="0.25"/>
+  <!-- Plate -->
+  <circle cx="120" cy="134" r="72" fill="#fffef8" stroke="#e8dfc0" stroke-width="2.5"/>
+  <circle cx="120" cy="134" r="64" fill="none" stroke="#f5edda" stroke-width="1.5"/>
+  <!-- Buckwheat mound -->
+  <ellipse cx="120" cy="150" rx="50" ry="16" fill="#8b5e3c"/>
+  <ellipse cx="120" cy="140" rx="46" ry="24" fill="#a06840"/>
+  <ellipse cx="120" cy="132" rx="40" ry="20" fill="#b87848"/>
+  <!-- Grain texture -->
+  <ellipse cx="104" cy="128" rx="5" ry="3.5" fill="#7a4e2c" opacity="0.8" transform="rotate(-20 104 128)"/>
+  <ellipse cx="118" cy="122" rx="5" ry="3.5" fill="#7a4e2c" opacity="0.8" transform="rotate(10 118 122)"/>
+  <ellipse cx="132" cy="126" rx="5" ry="3.5" fill="#7a4e2c" opacity="0.8" transform="rotate(-30 132 126)"/>
+  <ellipse cx="110" cy="138" rx="5" ry="3.5" fill="#7a4e2c" opacity="0.75" transform="rotate(15 110 138)"/>
+  <ellipse cx="126" cy="136" rx="5" ry="3.5" fill="#7a4e2c" opacity="0.75" transform="rotate(-10 126 136)"/>
+  <ellipse cx="98" cy="136" rx="4.5" ry="3" fill="#7a4e2c" opacity="0.7" transform="rotate(25 98 136)"/>
+  <ellipse cx="140" cy="132" rx="4.5" ry="3" fill="#7a4e2c" opacity="0.7" transform="rotate(-20 140 132)"/>
+  <ellipse cx="120" cy="146" rx="5" ry="3.5" fill="#7a4e2c" opacity="0.7" transform="rotate(5 120 146)"/>
+  <ellipse cx="108" cy="148" rx="4" ry="3" fill="#7a4e2c" opacity="0.65" transform="rotate(-15 108 148)"/>
+  <ellipse cx="134" cy="144" rx="4" ry="3" fill="#7a4e2c" opacity="0.65" transform="rotate(20 134 144)"/>
+  <!-- Butter pat -->
+  <ellipse cx="120" cy="125" rx="14" ry="8" fill="#f5d060" opacity="0.9"/>
+  <ellipse cx="120" cy="123" rx="11" ry="6" fill="#f8e080" opacity="0.7"/>
+</svg>

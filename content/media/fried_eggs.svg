@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Pan shadow -->
+  <ellipse cx="124" cy="192" rx="72" ry="8" fill="#c09040" opacity="0.2"/>
+  <!-- Pan body -->
+  <ellipse cx="116" cy="162" rx="70" ry="32" fill="#3a3a3a"/>
+  <ellipse cx="116" cy="158" rx="68" ry="30" fill="#484848"/>
+  <ellipse cx="116" cy="155" rx="65" ry="27" fill="#2e2e2e"/>
+  <!-- Pan handle -->
+  <rect x="184" y="148" width="40" height="14" rx="7" fill="#3a3a3a"/>
+  <rect x="186" y="150" width="38" height="10" rx="5" fill="#4a4a4a"/>
+  <!-- Egg white 1 -->
+  <ellipse cx="102" cy="152" rx="34" ry="22" fill="#f8f8f0"/>
+  <ellipse cx="100" cy="150" rx="32" ry="20" fill="#fffef8"/>
+  <!-- Egg white 2 -->
+  <ellipse cx="136" cy="150" rx="28" ry="20" fill="#f8f8f0"/>
+  <ellipse cx="134" cy="148" rx="26" ry="18" fill="#fffef8"/>
+  <!-- Yolk 1 -->
+  <circle cx="100" cy="148" r="14" fill="#f0a818"/>
+  <circle cx="100" cy="148" r="12" fill="#f5b820"/>
+  <circle cx="96" cy="144" r="4" fill="#ffd050" opacity="0.6"/>
+  <!-- Yolk 2 -->
+  <circle cx="136" cy="146" r="12" fill="#f0a818"/>
+  <circle cx="136" cy="146" r="10" fill="#f5b820"/>
+  <circle cx="132" cy="142" r="3.5" fill="#ffd050" opacity="0.6"/>
+  <!-- Fried edge texture on whites -->
+  <path d="M 70 158 Q 80 145 96 150" fill="none" stroke="#e8e0c8" stroke-width="2" opacity="0.5"/>
+  <path d="M 148 148 Q 158 140 162 150" fill="none" stroke="#e8e0c8" stroke-width="2" opacity="0.5"/>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Drinks background: blue -->
+  <circle cx="120" cy="120" r="116" fill="#e8f5fc" stroke="#6aafd4" stroke-width="3"/>
+  <!-- Glass shadow -->
+  <ellipse cx="122" cy="192" rx="36" ry="6" fill="#6aafd4" opacity="0.2"/>
+  <!-- Glass body -->
+  <path d="M 88 96 L 84 186 Q 84 192 90 192 L 150 192 Q 156 192 156 186 L 152 96 Z" fill="#c8e8f8" opacity="0.4"/>
+  <path d="M 90 96 L 86 184 Q 86 190 92 190 L 148 190 Q 154 190 154 184 L 150 96 Z" fill="#e0f4fc" opacity="0.6"/>
+  <!-- Lemonade liquid (pale yellow) -->
+  <path d="M 90 116 L 87 184 Q 87 189 92 189 L 148 189 Q 153 189 153 184 L 150 116 Z" fill="#f8f068" opacity="0.55"/>
+  <!-- Bubbles -->
+  <circle cx="106" cy="175" r="3.5" fill="white" opacity="0.6"/>
+  <circle cx="120" cy="165" r="4" fill="white" opacity="0.5"/>
+  <circle cx="136" cy="172" r="3" fill="white" opacity="0.55"/>
+  <circle cx="112" cy="150" r="3" fill="white" opacity="0.5"/>
+  <circle cx="130" cy="155" r="2.5" fill="white" opacity="0.5"/>
+  <circle cx="102" cy="160" r="2.5" fill="white" opacity="0.45"/>
+  <circle cx="144" cy="158" r="2.5" fill="white" opacity="0.45"/>
+  <!-- Lemon slice inside glass -->
+  <circle cx="120" cy="138" r="18" fill="#f8d840" opacity="0.85"/>
+  <circle cx="120" cy="138" r="14" fill="#f8e860" opacity="0.9"/>
+  <!-- Lemon segments -->
+  <line x1="120" y1="124" x2="120" y2="152" stroke="#e8c820" stroke-width="1.5" opacity="0.7"/>
+  <line x1="106" y1="131" x2="134" y2="145" stroke="#e8c820" stroke-width="1.5" opacity="0.7"/>
+  <line x1="106" y1="145" x2="134" y2="131" stroke="#e8c820" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="120" cy="138" r="4" fill="#f0d030" opacity="0.8"/>
+  <!-- Straw -->
+  <rect x="143" y="86" width="6" height="96" rx="3" fill="#f04060" opacity="0.9"/>
+  <rect x="144" y="87" width="3" height="94" rx="1.5" fill="#ff8090" opacity="0.5"/>
+  <!-- Glass rim -->
+  <rect x="86" y="92" width="68" height="8" rx="4" fill="#c0e4f4" opacity="0.8"/>
+  <!-- Glass shine -->
+  <path d="M 94 104 L 92 176" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+  <!-- Lemon slice on rim -->
+  <circle cx="88" cy="92" r="14" fill="#f8d840"/>
+  <circle cx="88" cy="92" r="11" fill="#f8e860"/>
+  <line x1="88" y1="80" x2="88" y2="104" stroke="#e8c820" stroke-width="1.5" opacity="0.7"/>
+  <line x1="76" y1="86" x2="100" y2="98" stroke="#e8c820" stroke-width="1.5" opacity="0.7"/>
+  <line x1="76" y1="98" x2="100" y2="86" stroke="#e8c820" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="88" cy="92" r="4" fill="#f0d030" opacity="0.8"/>
+</svg>

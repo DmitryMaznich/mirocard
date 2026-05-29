@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="182" rx="68" ry="9" fill="#d4b870" opacity="0.25"/>
+  <!-- Plate -->
+  <circle cx="120" cy="134" r="72" fill="#fffef8" stroke="#e8dfc0" stroke-width="2.5"/>
+  <circle cx="120" cy="134" r="64" fill="none" stroke="#f5edda" stroke-width="1.5"/>
+  <!-- Kotleta 1 (left) -->
+  <ellipse cx="103" cy="140" rx="28" ry="18" fill="#7a3818" transform="rotate(-15 103 140)"/>
+  <ellipse cx="101" cy="137" rx="25" ry="15" fill="#9a4822" transform="rotate(-15 101 137)"/>
+  <!-- Surface texture 1 -->
+  <path d="M 80 133 Q 92 124 108 132" fill="none" stroke="#6a2e14" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <path d="M 82 140 Q 94 132 108 139" fill="none" stroke="#6a2e14" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+  <circle cx="95" cy="130" r="3.5" fill="#6a2e14" opacity="0.4"/>
+  <circle cx="108" cy="127" r="3" fill="#6a2e14" opacity="0.4"/>
+  <!-- Kotleta 2 (right) -->
+  <ellipse cx="137" cy="138" rx="28" ry="18" fill="#7a3818" transform="rotate(10 137 138)"/>
+  <ellipse cx="135" cy="135" rx="25" ry="15" fill="#9a4822" transform="rotate(10 135 135)"/>
+  <!-- Surface texture 2 -->
+  <path d="M 116 130 Q 128 122 144 130" fill="none" stroke="#6a2e14" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <path d="M 118 138 Q 130 130 144 137" fill="none" stroke="#6a2e14" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="3.5" fill="#6a2e14" opacity="0.4"/>
+  <circle cx="142" cy="126" r="3" fill="#6a2e14" opacity="0.4"/>
+  <!-- Gravy sauce -->
+  <path d="M 88 150 Q 120 160 152 150" fill="none" stroke="#b87840" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+  <!-- Greens garnish -->
+  <circle cx="94" cy="156" r="3" fill="#5a9040"/>
+  <circle cx="101" cy="158" r="2.5" fill="#4e8038"/>
+  <circle cx="140" cy="154" r="3" fill="#5a9040"/>
+  <circle cx="148" cy="156" r="2.5" fill="#4e8038"/>
+</svg>

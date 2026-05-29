@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="182" rx="68" ry="9" fill="#d4b870" opacity="0.25"/>
+  <!-- Plate -->
+  <circle cx="120" cy="134" r="72" fill="#fffef8" stroke="#e8dfc0" stroke-width="2.5"/>
+  <circle cx="120" cy="134" r="64" fill="none" stroke="#f5edda" stroke-width="1.5"/>
+  <!-- Creamy sauce pool -->
+  <ellipse cx="120" cy="148" rx="50" ry="18" fill="#f5e8c0" opacity="0.9"/>
+  <!-- Chicken thigh/leg shape -->
+  <ellipse cx="112" cy="135" rx="30" ry="22" fill="#d4824a" transform="rotate(-15 112 135)"/>
+  <ellipse cx="108" cy="132" rx="26" ry="18" fill="#e09050" transform="rotate(-15 108 132)"/>
+  <!-- Chicken skin texture -->
+  <path d="M 86 128 Q 96 118 112 124 Q 126 116 138 126" fill="none" stroke="#c07040" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 88 136 Q 100 128 114 134" fill="none" stroke="#c07040" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+  <!-- Golden roasted patches -->
+  <ellipse cx="104" cy="128" rx="10" ry="7" fill="#c06830" opacity="0.5" transform="rotate(-10 104 128)"/>
+  <ellipse cx="120" cy="122" rx="8" ry="5" fill="#c06830" opacity="0.4" transform="rotate(5 120 122)"/>
+  <!-- Bone end -->
+  <ellipse cx="136" cy="138" rx="8" ry="6" fill="#f0dcc0"/>
+  <ellipse cx="136" cy="138" rx="5" ry="4" fill="#e8d0b0"/>
+  <circle cx="136" cy="138" r="3" fill="#d8c0a0"/>
+  <!-- Creamy sauce drizzle -->
+  <path d="M 80 145 Q 100 138 120 144 Q 140 138 160 145" fill="none" stroke="#fffde8" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 85 152 Q 105 145 125 151 Q 145 144 162 152" fill="none" stroke="#f8f0d0" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <!-- Herbs -->
+  <circle cx="96" cy="143" r="3" fill="#5a9040"/>
+  <circle cx="104" cy="148" r="2.5" fill="#4e8038"/>
+  <circle cx="144" cy="142" r="3" fill="#5a9040"/>
+</svg>
