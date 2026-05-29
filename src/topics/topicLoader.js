@@ -1085,6 +1085,20 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
     await topics.saveFile(db, topicId, filename, blob);
   }
 
+  // Pre-resolve scene image and audio paths to blob URLs for narrative renderer
+  const sceneAssetUrls = {};
+  for (const scene of manifest.scenes ?? []) {
+    for (const field of ["image", "audio"]) {
+      const path = scene[field];
+      if (!path) continue;
+      const file = zip.file(path);
+      if (!file) continue;
+      const blob = await file.async("blob");
+      const mime = blob.type || inferMimeType(path);
+      sceneAssetUrls[path] = URL.createObjectURL(mime !== blob.type ? new Blob([blob], { type: mime }) : blob);
+    }
+  }
+
   const record = {
     id: topicId,
     meta: manifest.meta,
@@ -1093,8 +1107,14 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
       const imageUrl = cardImageUrls[card.id];
       return imageUrl ? { ...card, imageUrl, photo: imageUrl } : card;
     }),
-    texts: manifest.texts ?? undefined,
+    texts:     manifest.texts     ?? undefined,
     sentences: manifest.sentences?.length ? manifest.sentences : undefined,
+    scenes:    (manifest.scenes ?? []).map((scene) => ({
+      ...scene,
+      image: sceneAssetUrls[scene.image] ?? scene.image,
+      audio: sceneAssetUrls[scene.audio] ?? scene.audio,
+    })),
+    scenarios: manifest.scenarios ?? undefined,
     installedAt: new Date().toISOString(),
   };
 
