@@ -15,7 +15,7 @@
     },
     {
       "id": "reading_dad_texts",
-      "version": "1.31.0",
+      "version": "1.33.0",
       "title": {
         "ru": "Инструкции — рецепты",
         "en": "Instructions: Recipes"
@@ -24,7 +24,7 @@
         "ru": "Пошаговые инструкции для самостоятельных действий.",
         "en": "Step-by-step instructions for independent tasks."
       },
-      "url": "./decks/reading_dad_texts_v1.31.0.zip"
+      "url": "./decks/reading_dad_texts_v1.33.0.zip"
     },
     {
       "id": "emotions_v2",
@@ -195,14 +195,14 @@
     },
     {
       "id": "my_day",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": {
         "ru": "Мой день"
       },
       "description": {
         "ru": "Тренажёр нарративного понимания на основе распорядка дня."
       },
-      "url": "./decks/my_day_v1.0.0.zip"
+      "url": "./decks/my_day_v1.0.1.zip"
     }
   ]
 }
