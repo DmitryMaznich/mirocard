@@ -370,7 +370,10 @@ function InstructionTask({ task, topicId, onAdvance }) {
   }, [topicId, task.text?.id, task.text?.file]);
 
   const step = steps[stepIndex];
-  const imageUrl = useTopicFile(topicId, step?.type === "image" ? `media/${step.file}` : null);
+  const imageUrl = useTopicFile(topicId,
+    step?.type === "image" ? `media/${step.file}` :
+    step?.image ? `media/${step.image}` : null
+  );
   // Support both old single-owner (step.owner) and new multi-owner (step.owners) formats
   const owners = step
     ? resolveStepOwners(step.owners ?? (step.owner ? [step.owner] : []), group, student)
@@ -532,6 +535,9 @@ function InstructionTask({ task, topicId, onAdvance }) {
                   </li>
                 ))}
               </ul>
+            )}
+            {step.image && imageUrl && (
+              <img src={imageUrl} alt="" className="instruction-step-img instruction-step-img--inline" />
             )}
           </div>
 

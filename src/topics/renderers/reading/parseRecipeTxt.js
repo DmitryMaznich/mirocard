@@ -26,9 +26,13 @@ export function parseRecipeTxt(raw) {
 
     const imgMatch = line.match(/^\[([^\]]+\.\w+)\]$/);
     if (imgMatch) {
-      flush();
-      stepNum++;
-      current = { id: `s${stepNum}`, type: "image", file: imgMatch[1] };
+      if (current && (current.type === "action" || current.type === "checklist")) {
+        current.image = imgMatch[1];
+      } else {
+        flush();
+        stepNum++;
+        current = { id: `s${stepNum}`, type: "image", file: imgMatch[1] };
+      }
       continue;
     }
 
