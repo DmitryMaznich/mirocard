@@ -58,7 +58,8 @@
       "PowerShell(curl.exe -s --max-time 10 -o NUL -w \"%{http_code} %{redirect_url}\" https://mirocard.kaplieva.help/ 2>&1)",
       "PowerShell(Invoke-RestMethod -Uri \"https://mirocard.kaplieva.help/version.json\" 2>&1)",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/version.json\" -TimeoutSec 10 -UseBasicParsing; $r.Content } catch { \"Error: $\\($_.Exception.Message\\)\" })",
-      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; $r.Content } catch { \"HTTP $\\($_.Exception.Response.StatusCode\\): $\\($_.Exception.Message\\)\" })"
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; $r.Content } catch { \"HTTP $\\($_.Exception.Response.StatusCode\\): $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Stop-Process -Force)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
