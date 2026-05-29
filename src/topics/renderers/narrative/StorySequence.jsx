@@ -55,7 +55,9 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
 
   useEffect(() => () => { if (advTimerRef.current) clearTimeout(advTimerRef.current); }, []);
 
-  const sceneMap = Object.fromEntries(sequence.map((s) => [s.id, s]));
+  const sceneMap  = Object.fromEntries(sequence.map((s) => [s.id, s]));
+  const nextSlot  = slots.findIndex((s) => s === null);
+  const question  = done ? null : nextSlot === 0 ? "Что сначала?" : "Что потом?";
 
   function detectSlot(x, y) {
     for (let i = 0; i < slotRefs.current.length; i++) {
@@ -122,6 +124,10 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
     >
+      {question && (
+        <div key={question} className="ns-question">{question}</div>
+      )}
+
       <div className="ns-bank">
         {shuffled.map((sceneId) => {
           const scene = sceneMap[sceneId];
