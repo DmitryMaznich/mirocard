@@ -452,6 +452,12 @@ function InstructionTask({ task, topicId, onAdvance }) {
             </>
           )}
 
+          {/* Recipe title block */}
+          <div className="instruction-panel-now-cooking">
+            <div className="instruction-panel-now-cooking__label">сейчас готовим:</div>
+            <div className="instruction-panel-now-cooking__title">{getTopicTitle(task.text?.title)}</div>
+          </div>
+
           {/* Team avatars at bottom of left panel — chef excluded (shown above) */}
           {group.length > 1 && (
             <div className="instruction-panel-participants">
