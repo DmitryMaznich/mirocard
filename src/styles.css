@@ -17661,6 +17661,28 @@ body { background: #eef0ef; }
     padding: 2px 7px;
   }
 
+  .instruction-panel-now-cooking {
+    margin-top: auto;
+    padding: 12px 0 4px;
+    text-align: center;
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+  .instruction-panel-now-cooking__label {
+    font-size: clamp(9px, 1.4vh, 12px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #9aab99;
+  }
+  .instruction-panel-now-cooking__title {
+    font-size: clamp(16px, 3vh, 24px);
+    font-weight: 900;
+    color: #1c3634;
+    line-height: 1.15;
+    margin-top: 4px;
+    font-style: italic;
+  }
+
   /* Main content area */
   .instruction-main {
     padding: 8px 14px 6px;
