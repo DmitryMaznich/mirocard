@@ -1,0 +1,160 @@
+/* ── Screen ── */
+.ns-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 12px;
+  gap: 12px;
+  box-sizing: border-box;
+  background: #f0f4f8;
+  user-select: none;
+  touch-action: none;
+}
+
+/* ── Bank — unplaced cards ── */
+.ns-bank {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-content: center;
+  min-height: 0;
+}
+
+/* ── Scene card ── */
+.ns-card {
+  width: clamp(90px, 22vw, 130px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border-radius: 14px;
+  border: 2.5px solid #e2e8f0;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.09);
+  padding: 6px 6px 8px;
+  cursor: grab;
+  touch-action: none;
+  box-sizing: border-box;
+}
+
+.ns-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 9px;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.ns-card span {
+  font-size: clamp(0.62rem, 2vw, 0.82rem);
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.ns-card--floating {
+  position: fixed;
+  transform: translate(-50%, -50%) scale(1.08);
+  cursor: grabbing;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  z-index: 1000;
+  transition: none;
+  pointer-events: none;
+}
+
+/* ── Slots row ── */
+.ns-slots {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding-bottom: 8px;
+}
+
+/* ── Individual slot ── */
+.ns-slot {
+  width: clamp(80px, 18vw, 118px);
+  aspect-ratio: 1 / 1.25;
+  border-radius: 14px;
+  border: 2.5px dashed #94a3b8;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ns-slot-num {
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 900;
+  color: #cbd5e1;
+}
+
+.ns-slot--filled {
+  border: 2.5px solid #22c55e;
+  background: #f0fdf4;
+}
+
+.ns-slot--filled img {
+  width: 100%;
+  border-radius: 9px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.ns-slot--filled span {
+  font-size: clamp(0.58rem, 1.8vw, 0.76rem);
+  font-weight: 700;
+  color: #15803d;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.ns-slot--done {
+  border-color: #22c55e;
+  background: #dcfce7;
+}
+
+.ns-slot--shake {
+  animation: ns-shake 0.42s ease;
+}
+
+@keyframes ns-shake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-10px); }
+  40%  { transform: translateX(10px); }
+  60%  { transform: translateX(-7px); }
+  80%  { transform: translateX(7px); }
+  100% { transform: translateX(0); }
+}
+
+/* ── Landscape phone ── */
+@media (orientation: landscape) and (max-height: 500px) {
+  .ns-screen {
+    flex-direction: row;
+    padding: 8px;
+  }
+  .ns-bank {
+    flex: 1;
+    align-content: center;
+  }
+  .ns-slots {
+    flex-direction: column;
+    padding-bottom: 0;
+    justify-content: center;
+  }
+  .ns-slot {
+    width: clamp(64px, 14vh, 96px);
+  }
+  .ns-card {
+    width: clamp(72px, 16vh, 110px);
+  }
+}

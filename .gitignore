@@ -30,6 +30,22 @@ backend/restart-backend.py
 *.sw?
 __codex_deploy_*
 public/decks/reading_dad_texts_v1.13.0.zip
+public/decks/reading_dad_texts_v*.zip
+
+# Codex deploy backups
+.codex-deploy-backfix*/
+codex-deploy-backfix*/
+*.tar
+
+# Python
+__pycache__/
+*.pyc
+
+# Binary / document assets (not tracked in git)
+*.webp
+*.jpeg
+*.docx
+*.pdf
 
 # User asset photos
 *.png
