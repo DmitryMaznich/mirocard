@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="182" rx="68" ry="9" fill="#d4b870" opacity="0.25"/>
+  <!-- Plate -->
+  <circle cx="120" cy="134" r="72" fill="#fffef8" stroke="#e8dfc0" stroke-width="2.5"/>
+  <circle cx="120" cy="134" r="64" fill="none" stroke="#f5edda" stroke-width="1.5"/>
+  <!-- Mashed potato mound -->
+  <ellipse cx="120" cy="152" rx="52" ry="14" fill="#f0d890"/>
+  <ellipse cx="120" cy="143" rx="48" ry="22" fill="#f8e8a0"/>
+  <ellipse cx="120" cy="136" rx="44" ry="20" fill="#faf0b0"/>
+  <!-- Soft peak top -->
+  <path d="M 94 128 Q 108 112 120 118 Q 132 112 146 128" fill="#faf4c0" stroke="#f0e890" stroke-width="1.5"/>
+  <ellipse cx="120" cy="126" rx="28" ry="12" fill="#fcf8d0"/>
+  <!-- Butter pool on top -->
+  <ellipse cx="120" cy="122" rx="18" ry="8" fill="#f8c830" opacity="0.75"/>
+  <ellipse cx="120" cy="120" rx="14" ry="6" fill="#fcd840" opacity="0.6"/>
+  <!-- Butter drips down sides -->
+  <path d="M 110 124 Q 104 132 100 142" fill="none" stroke="#f8c830" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 130 124 Q 136 132 140 142" fill="none" stroke="#f8c830" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <!-- Surface texture (fork marks) -->
+  <path d="M 100 136 Q 120 130 140 136" fill="none" stroke="#f0e080" stroke-width="1.5" opacity="0.5"/>
+  <path d="M 98 143 Q 120 137 142 143" fill="none" stroke="#f0e080" stroke-width="1.5" opacity="0.5"/>
+  <!-- Parsley garnish -->
+  <circle cx="116" cy="116" r="4" fill="#5a9040"/>
+  <circle cx="124" cy="114" r="3.5" fill="#4e8038"/>
+  <circle cx="120" cy="112" r="3" fill="#6aa050"/>
+</svg>
