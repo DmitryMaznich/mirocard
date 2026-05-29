@@ -506,6 +506,9 @@ function InstructionTask({ task, topicId, onAdvance }) {
               ));
             })()}</div>
             )}
+            {step.image && imageUrl && (
+              <img src={imageUrl} alt="" className="instruction-step-illustration" />
+            )}
             {step.type === "checklist" && (
               <ul className="instruction-checklist">
                 {(step.items ?? []).map((item, i) => {
