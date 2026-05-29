@@ -539,9 +539,6 @@ function InstructionTask({ task, topicId, onAdvance }) {
                 ))}
               </ul>
             )}
-            {step.image && imageUrl && (
-              <img src={imageUrl} alt="" className="instruction-step-img instruction-step-img--inline" />
-            )}
           </div>
 
 
