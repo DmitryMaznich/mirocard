@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Drinks background: blue -->
+  <circle cx="120" cy="120" r="116" fill="#e8f5fc" stroke="#6aafd4" stroke-width="3"/>
+  <!-- Saucer shadow -->
+  <ellipse cx="122" cy="194" rx="52" ry="7" fill="#6aafd4" opacity="0.15"/>
+  <!-- Saucer -->
+  <ellipse cx="120" cy="188" rx="54" ry="10" fill="#e0c890"/>
+  <ellipse cx="120" cy="186" rx="50" ry="8" fill="#f0d8a0"/>
+  <ellipse cx="120" cy="184" rx="44" ry="6" fill="#f8e8b8"/>
+  <!-- Cup body -->
+  <path d="M 84 130 L 88 182 Q 88 188 94 188 L 146 188 Q 152 188 152 182 L 156 130 Z" fill="#c8a060"/>
+  <path d="M 86 130 L 90 180 Q 90 186 96 186 L 144 186 Q 150 186 150 180 L 154 130 Z" fill="#d8b070"/>
+  <!-- Cup inside -->
+  <ellipse cx="120" cy="130" rx="36" ry="7" fill="#4a2810"/>
+  <!-- Tea surface -->
+  <ellipse cx="120" cy="128" rx="34" ry="6" fill="#7a4820"/>
+  <ellipse cx="120" cy="127" rx="32" ry="5" fill="#9a5828" opacity="0.9"/>
+  <!-- Tea surface shimmer -->
+  <ellipse cx="110" cy="126" rx="9" ry="2.5" fill="#c07840" opacity="0.4"/>
+  <!-- Cup handle -->
+  <path d="M 156 140 Q 176 140 176 158 Q 176 176 156 176" fill="none" stroke="#c8a060" stroke-width="11" stroke-linecap="round"/>
+  <path d="M 156 140 Q 172 140 172 158 Q 172 176 156 176" fill="none" stroke="#d8b070" stroke-width="6" stroke-linecap="round"/>
+  <!-- Cup rim -->
+  <ellipse cx="120" cy="130" rx="36" ry="8" fill="none" stroke="#d8b070" stroke-width="4"/>
+  <rect x="84" y="126" width="72" height="8" rx="4" fill="#e0c080"/>
+  <!-- Steam -->
+  <path d="M 104 118 Q 100 108 104 98 Q 108 88 104 78" fill="none" stroke="#b0d8f0" stroke-width="3.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 120 116 Q 116 106 120 96 Q 124 86 120 76" fill="none" stroke="#b0d8f0" stroke-width="3.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 136 118 Q 132 108 136 98 Q 140 88 136 78" fill="none" stroke="#b0d8f0" stroke-width="3.5" stroke-linecap="round" opacity="0.6"/>
+  <!-- Honey jar on saucer -->
+  <rect x="88" y="170" width="18" height="14" rx="4" fill="#f8c030"/>
+  <rect x="89" y="171" width="16" height="12" rx="3" fill="#fad040"/>
+  <rect x="90" y="168" width="16" height="4" rx="2" fill="#e8b020"/>
+  <!-- Honey spoon -->
+  <line x1="102" y1="168" x2="106" y2="158" stroke="#c8a040" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="106" cy="156" r="3" fill="#f8c030"/>
+</svg>

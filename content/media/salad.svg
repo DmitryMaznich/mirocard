@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Cold dish background: green -->
+  <circle cx="120" cy="120" r="116" fill="#edfaf0" stroke="#90c890" stroke-width="3"/>
+  <!-- Bowl shadow -->
+  <ellipse cx="122" cy="188" rx="62" ry="8" fill="#70b870" opacity="0.2"/>
+  <!-- Bowl outer -->
+  <path d="M 62 128 Q 62 196 120 196 Q 178 196 178 128 Z" fill="#c8e8a0"/>
+  <path d="M 66 128 Q 66 190 120 190 Q 174 190 174 128 Z" fill="#d8f0b0"/>
+  <!-- Bowl rim -->
+  <ellipse cx="120" cy="128" rx="58" ry="11" fill="#d8f0b0"/>
+  <ellipse cx="120" cy="126" rx="56" ry="9" fill="#e8f8c0"/>
+  <!-- Lettuce/greens base -->
+  <ellipse cx="120" cy="124" rx="52" ry="8" fill="#78c040"/>
+  <!-- Cucumber slices -->
+  <circle cx="100" cy="118" r="11" fill="#78b840"/>
+  <circle cx="100" cy="118" r="8" fill="#90c850"/>
+  <circle cx="100" cy="118" r="4" fill="#c0e060" opacity="0.7"/>
+  <circle cx="126" cy="113" r="11" fill="#78b840"/>
+  <circle cx="126" cy="113" r="8" fill="#90c850"/>
+  <circle cx="126" cy="113" r="4" fill="#c0e060" opacity="0.7"/>
+  <circle cx="144" cy="119" r="10" fill="#78b840"/>
+  <circle cx="144" cy="119" r="7" fill="#90c850"/>
+  <circle cx="144" cy="119" r="3.5" fill="#c0e060" opacity="0.7"/>
+  <!-- Tomato pieces -->
+  <ellipse cx="110" cy="107" rx="12" ry="9" fill="#e04030"/>
+  <ellipse cx="108" cy="105" rx="10" ry="7" fill="#f05040"/>
+  <circle cx="106" cy="103" r="3" fill="#ff7060" opacity="0.5"/>
+  <ellipse cx="136" cy="105" rx="11" ry="8" fill="#e04030"/>
+  <ellipse cx="134" cy="103" rx="9" ry="6" fill="#f05040"/>
+  <circle cx="132" cy="101" r="2.5" fill="#ff7060" opacity="0.5"/>
+  <!-- Green onion bits -->
+  <line x1="88" y1="124" x2="90" y2="108" stroke="#4a9030" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="95" y1="126" x2="97" y2="110" stroke="#4a9030" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="152" y1="122" x2="154" y2="106" stroke="#4a9030" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Dill sprigs -->
+  <circle cx="116" cy="100" r="3" fill="#4e8038"/>
+  <circle cx="122" cy="97" r="2.5" fill="#5a9040"/>
+  <circle cx="130" cy="100" r="3" fill="#4e8038"/>
+</svg>

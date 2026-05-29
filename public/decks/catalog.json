@@ -15,7 +15,7 @@
     },
     {
       "id": "reading_dad_texts",
-      "version": "1.40.0",
+      "version": "1.41.0",
       "title": {
         "ru": "Инструкции — рецепты",
         "en": "Instructions: Recipes"
@@ -24,7 +24,7 @@
         "ru": "Пошаговые инструкции для самостоятельных действий.",
         "en": "Step-by-step instructions for independent tasks."
       },
-      "url": "./decks/reading_dad_texts_v1.40.0.zip"
+      "url": "./decks/reading_dad_texts_v1.41.0.zip"
     },
     {
       "id": "emotions_v2",
@@ -203,6 +203,22 @@
         "ru": "Тренажёр нарративного понимания на основе распорядка дня."
       },
       "url": "./decks/my_day_v1.0.2.zip"
+    },
+    {
+      "id": "teeth_brushing",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Чистка зубов"
+      },
+      "url": "./decks/teeth_brushing_v1.0.0.zip"
+    },
+    {
+      "id": "shower",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Душ"
+      },
+      "url": "./decks/shower_v1.0.0.zip"
     }
   ]
 }

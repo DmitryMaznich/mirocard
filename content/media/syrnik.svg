@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="182" rx="68" ry="9" fill="#d4b870" opacity="0.25"/>
+  <!-- Plate -->
+  <circle cx="120" cy="134" r="72" fill="#fffef8" stroke="#e8dfc0" stroke-width="2.5"/>
+  <circle cx="120" cy="134" r="64" fill="none" stroke="#f5edda" stroke-width="1.5"/>
+  <!-- Syrnik 1 (back left) -->
+  <ellipse cx="99" cy="143" rx="24" ry="14" fill="#c07830"/>
+  <ellipse cx="97" cy="140" rx="22" ry="12" fill="#d89040"/>
+  <ellipse cx="96" cy="138" rx="20" ry="10" fill="#e8a850"/>
+  <!-- Syrnik 1 texture -->
+  <ellipse cx="92" cy="135" rx="6" ry="3.5" fill="#c07830" opacity="0.4" transform="rotate(-10 92 135)"/>
+  <ellipse cx="102" cy="132" rx="5" ry="3" fill="#c07830" opacity="0.4" transform="rotate(15 102 132)"/>
+  <!-- Syrnik 2 (back right) -->
+  <ellipse cx="141" cy="141" rx="24" ry="14" fill="#c07830"/>
+  <ellipse cx="139" cy="138" rx="22" ry="12" fill="#d89040"/>
+  <ellipse cx="138" cy="136" rx="20" ry="10" fill="#e8a850"/>
+  <ellipse cx="133" cy="133" rx="6" ry="3.5" fill="#c07830" opacity="0.4" transform="rotate(-5 133 133)"/>
+  <ellipse cx="143" cy="131" rx="5" ry="3" fill="#c07830" opacity="0.4" transform="rotate(10 143 131)"/>
+  <!-- Syrnik 3 (front center) -->
+  <ellipse cx="120" cy="152" rx="26" ry="15" fill="#c07830"/>
+  <ellipse cx="118" cy="149" rx="24" ry="13" fill="#d89040"/>
+  <ellipse cx="116" cy="147" rx="22" ry="11" fill="#e8a850"/>
+  <ellipse cx="110" cy="144" rx="7" ry="3.5" fill="#c07830" opacity="0.4" transform="rotate(-15 110 144)"/>
+  <ellipse cx="122" cy="142" rx="6" ry="3" fill="#c07830" opacity="0.4" transform="rotate(10 122 142)"/>
+  <!-- Sour cream dollop -->
+  <ellipse cx="116" cy="145" rx="10" ry="6" fill="white" opacity="0.85"/>
+  <ellipse cx="115" cy="144" rx="8" ry="5" fill="#fffef8" opacity="0.7"/>
+  <!-- Berry jam drizzle -->
+  <path d="M 88 144 Q 96 158 104 152" fill="none" stroke="#c02848" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <circle cx="88" cy="144" r="4" fill="#c02848" opacity="0.8"/>
+  <circle cx="96" cy="158" r="3.5" fill="#d03858" opacity="0.75"/>
+</svg>
