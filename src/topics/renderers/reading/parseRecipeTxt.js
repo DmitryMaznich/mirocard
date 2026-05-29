@@ -24,14 +24,15 @@ export function parseRecipeTxt(raw) {
   for (const line of lines) {
     if (line.startsWith("#")) continue; // metadata comment, skip
 
-    const imgMatch = line.match(/^\[([^\]]+\.\w+)\]$/);
+    // Accept ASCII brackets [ ] or fullwidth ［ ］ (U+FF3B / U+FF3D)
+    const imgMatch = line.match(/^[\[［]([^\]］]+\.\w+)[\]］]$/);
     if (imgMatch) {
       if (current) {
-        current.image = imgMatch[1];
+        current.image = imgMatch[1].trim();
       } else {
         flush();
         stepNum++;
-        current = { id: `s${stepNum}`, type: "image", file: imgMatch[1] };
+        current = { id: `s${stepNum}`, type: "image", file: imgMatch[1].trim() };
       }
       continue;
     }
@@ -80,6 +81,17 @@ export function parseRecipeTxt(raw) {
   }
 
   flush();
+
+  // Post-process: any heading whose text looks like [file.ext] becomes step.image on previous step
+  const imgTagRe = /^[\[［]([^\]］]+\.\w+)[\]］]$/;
+  for (let i = steps.length - 1; i >= 0; i--) {
+    if (steps[i].type !== "heading") continue;
+    const m = steps[i].text.match(imgTagRe);
+    if (!m) continue;
+    if (i > 0) steps[i - 1].image = m[1].trim();
+    steps.splice(i, 1);
+  }
+
   return steps;
 }
 

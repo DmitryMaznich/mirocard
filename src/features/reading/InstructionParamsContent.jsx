@@ -90,6 +90,11 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
     setEditingRecipe(false);
   }
 
+  async function handleReset() {
+    if (textId) await saveRecipeOverrideForMode(topicId, textId, "group", null).catch(() => {});
+    await loadRecipeText();
+  }
+
   function handleDownload() {
     const filename = textTitle ? `${textTitle}.txt` : "recipe.txt";
     const blob = new Blob([rawRecipe], { type: "text/plain;charset=utf-8" });
@@ -207,6 +212,14 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
                 onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
               >
                 Редактировать
+              </button>
+              <button
+                className="link-btn"
+                onClick={handleReset}
+                disabled={!textId}
+                title="Сбросить изменения и загрузить из колоды"
+              >
+                Сбросить
               </button>
               <button
                 className="link-btn"
