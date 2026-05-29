@@ -246,6 +246,7 @@ export default function SessionScreen() {
             mode={mode}
             sessionStatus={status}
             topicId={topicRecord.meta.id}
+            topicRecord={topicRecord}
             sessionParams={sessionParams}
             student={activeStudent}
             soundEnabled={soundEnabled}
