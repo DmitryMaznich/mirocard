@@ -130,15 +130,20 @@ PASSWORD = os.environ.get("MIROCARD_DEPLOY_PASSWORD") or None
 KEY_PATH = os.environ.get("MIROCARD_DEPLOY_KEY_PATH") or None
 FILES = ${JSON.stringify(files, null, 2)}
 
+_known_dirs = set()
+
 def mkdir_p(sftp, remote_path):
     parts = remote_path.replace("\\\\", "/").split("/")
     current = parts[0]
     for part in parts[1:]:
         current = current + "/" + part
+        if current in _known_dirs:
+            continue
         try:
             sftp.stat(current)
         except IOError:
             sftp.mkdir(current)
+        _known_dirs.add(current)
 
 def connect():
     last_error = None
@@ -168,11 +173,25 @@ def connect():
 
 client = connect()
 sftp = client.open_sftp()
-for item in FILES:
+for idx, item in enumerate(FILES):
     remote_dir = posixpath.dirname(item["remote"])
-    mkdir_p(sftp, remote_dir)
-    sftp.put(item["local"], item["remote"])
-    print("uploaded", item["remote"])
+    for attempt in range(4):
+        try:
+            mkdir_p(sftp, remote_dir)
+            sftp.put(item["local"], item["remote"])
+            print("uploaded", item["remote"])
+            break
+        except Exception as exc:
+            print(f"  error on {item['remote']}: {exc}, reconnecting...")
+            try: sftp.close()
+            except: pass
+            try: client.close()
+            except: pass
+            client = connect()
+            sftp = client.open_sftp()
+    else:
+        print(f"FAILED after retries: {item['remote']}", file=sys.stderr)
+        sys.exit(1)
 sftp.close()
 client.close()
 `);
