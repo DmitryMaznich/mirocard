@@ -1085,17 +1085,22 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
     await topics.saveFile(db, topicId, filename, blob);
   }
 
-  // Pre-resolve scene image and audio paths to blob URLs for narrative renderer
+  // Pre-resolve scene image and audio paths to base64 data URLs (same approach as card images)
   const sceneAssetUrls = {};
   for (const scene of manifest.scenes ?? []) {
     for (const field of ["image", "audio"]) {
       const path = scene[field];
-      if (!path) continue;
+      if (!path || sceneAssetUrls[path]) continue;
       const file = zip.file(path);
       if (!file) continue;
-      const blob = await file.async("blob");
-      const mime = blob.type || inferMimeType(path);
-      sceneAssetUrls[path] = URL.createObjectURL(mime !== blob.type ? new Blob([blob], { type: mime }) : blob);
+      const ab    = await file.async("arraybuffer");
+      const bytes = new Uint8Array(ab);
+      let binary  = "";
+      const chunk = 8192;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      }
+      sceneAssetUrls[path] = `data:${inferMimeType(path)};base64,${btoa(binary)}`;
     }
   }
 
