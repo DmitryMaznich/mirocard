@@ -158,6 +158,7 @@ def connect():
             else:
                 kwargs["password"] = PASSWORD
             client.connect(**kwargs)
+            client.get_transport().set_keepalive(20)
             print(f"connected {host}:{PORT}")
             return client
         except Exception as exc:
