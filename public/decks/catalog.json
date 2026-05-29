@@ -195,14 +195,14 @@
     },
     {
       "id": "my_day",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "title": {
         "ru": "Мой день"
       },
       "description": {
         "ru": "Тренажёр нарративного понимания на основе распорядка дня."
       },
-      "url": "./decks/my_day_v1.0.1.zip"
+      "url": "./decks/my_day_v1.0.2.zip"
     }
   ]
 }
