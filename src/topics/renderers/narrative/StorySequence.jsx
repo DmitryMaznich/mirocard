@@ -58,7 +58,7 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
 
   const sceneMap  = Object.fromEntries(sequence.map((s) => [s.id, s]));
   const nextSlot  = slots.findIndex((s) => s === null);
-  const question  = done ? null : nextSlot === 0 ? "Что сначала?" : "Что потом?";
+  const question  = done || nextSlot < 0 ? null : nextSlot === 0 ? "Что сначала?" : "Что потом?";
 
   function detectSlot(x, y) {
     for (let i = 0; i < slotRefs.current.length; i++) {
