@@ -27,15 +27,15 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* ── Bank — unplaced cards ── */
+/* ── Bank — unplaced cards at the bottom ── */
 .ns-bank {
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  align-content: center;
-  min-height: 0;
+  align-content: flex-end;
+  padding-bottom: 8px;
 }
 
 /* ── Scene card ── */
@@ -82,13 +82,14 @@
   pointer-events: none;
 }
 
-/* ── Slots row ── */
+/* ── Slots row — at the top ── */
 .ns-slots {
-  flex-shrink: 0;
+  flex: 1;
   display: flex;
   gap: 8px;
   justify-content: center;
-  padding-bottom: 8px;
+  align-items: flex-start;
+  padding-top: 4px;
 }
 
 /* ── Individual slot ── */

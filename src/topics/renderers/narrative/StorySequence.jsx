@@ -129,6 +129,29 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
         <div key={question} className="ns-question">{question}</div>
       )}
 
+      <div className="ns-slots">
+        {correctOrder.map((_, idx) => {
+          const placedId = slots[idx];
+          const isShaking = shakingSlot === idx;
+          return (
+            <div
+              key={idx}
+              ref={(el) => { slotRefs.current[idx] = el; }}
+              className={`ns-slot${placedId ? " ns-slot--filled" : ""}${isShaking ? " ns-slot--shake" : ""}${done ? " ns-slot--done" : ""}`}
+            >
+              {placedId ? (
+                <>
+                  <img src={getImage(placedId)} alt={sceneMap[placedId]?.label?.ru ?? ""} draggable={false} />
+                  <span>{sceneMap[placedId]?.label?.ru ?? sceneMap[placedId]?.caption?.ru ?? ""}</span>
+                </>
+              ) : (
+                <span className="ns-slot-num">{idx + 1}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       <div className="ns-bank">
         {shuffled.map((sceneId) => {
           const scene = sceneMap[sceneId];
@@ -146,28 +169,7 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
         })}
       </div>
 
-      <div className="ns-slots">
-        {correctOrder.map((_, idx) => {
-          const placedId = slots[idx];
-          const isShaking = shakingSlot === idx;
-          return (
-            <div
-              key={idx}
-              ref={(el) => { slotRefs.current[idx] = el; }}
-              className={`ns-slot${placedId ? " ns-slot--filled" : ""}${isShaking ? " ns-slot--shake" : ""}${done ? " ns-slot--done" : ""}`}
-            >
-              {placedId ? (
-                <>
-                  <img src={getImage(placedId)} alt={sceneMap[placedId]?.caption?.ru ?? ""} draggable={false} />
-                  <span>{sceneMap[placedId]?.caption?.ru ?? ""}</span>
-                </>
-              ) : (
-                <span className="ns-slot-num">{idx + 1}</span>
-              )}
-            </div>
-          );
-        })}
-      </div>
+
 
       {dragging && (
         <div
