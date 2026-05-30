@@ -576,22 +576,7 @@ const DEFAULT_MODES = {
       },
     },
   ],
-  narrative: [
-    {
-      id: "story_sequence",
-      type: "story_sequence",
-      evaluation: "auto",
-      rewardThreshold: 70,
-      ui: {
-        title: "Что сначала?",
-        instruction: "Расставь карточки по порядку",
-      },
-      params: {
-        scenario: { type: "enum", label: { ru: "Сценарий" }, values: ["weekday", "weekend"], default: "weekday" },
-        branch:   { type: "enum", label: { ru: "После школы" }, values: ["pool", "sport", "walk", "home_arrive"], default: "pool" },
-      },
-    },
-  ],
+  narrative: [],
   addition_subtraction: [
     {
       id: "operation_observe",
