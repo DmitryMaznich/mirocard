@@ -86,7 +86,7 @@ export function useSessionEngine() {
       tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
     } else if (renderer === "narrative") {
       const generateTasks = ENGINE_REGISTRY["narrative"];
-      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
+      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, selectedConceptIds) : [];
     } else {
       const generateTasks = ENGINE_REGISTRY[renderer];
       const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;

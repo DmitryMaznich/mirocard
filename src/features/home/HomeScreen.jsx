@@ -70,9 +70,6 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
     ).length;
     return { total: texts.length, mastered: completed };
   }
-  if (topicRecord.meta?.renderer === "narrative") {
-    return { total: null, mastered: null };
-  }
   const concepts = deriveConcepts(topicRecord.cards);
   const total = concepts.length;
   const mastered = concepts.filter(
@@ -176,9 +173,7 @@ export default function HomeScreen() {
   const s3 = stepState(isReading ? !!activeText : !!mode, !!student && !!topic);
 
   const topicLabel = topic
-    ? (progress.total === null
-        ? getTopicTitle(topic.meta.title)
-        : `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`)
+    ? `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`
     : "Не выбрана";
   const modeTitle = mode ? (getTopicTitle(mode.ui?.title) || mode.id) : "";
 

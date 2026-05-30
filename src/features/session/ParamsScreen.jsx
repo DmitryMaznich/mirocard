@@ -324,7 +324,6 @@ export default function ParamsScreen() {
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode        = topicRecord?.modes.find((m) => m.id === activeModeId);
   const isReading   = topicRecord?.meta.renderer === "reading";
-  const isNarrative = topicRecord?.meta.renderer === "narrative";
   const activeText  = isReading
     ? (topicRecord?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
@@ -458,7 +457,6 @@ export default function ParamsScreen() {
     <ComparisonParams params={params} onChange={setParams} />
   ) : (
     <>
-      {!isNarrative && (
       <div className="param-row param-row--block">
         <div className="param-label">Понятия</div>
         <div className="param-concept-col">
@@ -477,7 +475,6 @@ export default function ParamsScreen() {
           </div>
         </div>
       </div>
-      )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
         if (def.type === "concept_selector") return null;
         if (def.showWhen) {

@@ -32,6 +32,7 @@ function useSceneUrls(topicId, cards) {
 export default function StorySequence({ task, topicRecord, soundEnabled, onMistake, onCorrect, onAdvance }) {
   const sequence     = task?.sequence    ?? [];
   const correctOrder = task?.correctOrder ?? [];
+  const conceptId    = task?.conceptId   ?? "unknown";
   const topicId      = topicRecord?.meta?.id;
   const cards        = topicRecord?.cards ?? [];
 
@@ -98,7 +99,7 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
       setShuffled((s) => s.filter((id) => id !== sceneId));
       if (next.every((s) => s !== null)) {
         setDone(true);
-        onCorrect?.(sceneId, sceneId);
+        onCorrect?.(conceptId, conceptId);
         advTimerRef.current = setTimeout(() => onAdvance?.(), 1200);
       }
     } else {

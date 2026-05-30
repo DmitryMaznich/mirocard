@@ -1,40 +1,41 @@
-export function generateTasks(mode, topicRecord, sessionParams) {
-  if (mode.type === "story_sequence") {
-    return [buildSequenceTask(mode, topicRecord, sessionParams)];
-  }
-  return [];
-}
+export function generateTasks(mode, topicRecord, sessionParams, selectedConceptIds = []) {
+  const allCards = topicRecord.cards ?? [];
 
-function buildSequenceTask(mode, topicRecord, sessionParams) {
-  const scenario = mode.scenario;
-  if (!scenario) return { type: "story_sequence", sequence: [], correctOrder: [] };
-
-  // Build scene map from cards (imageUrl already resolved by importTopic)
+  // Build scene map: id → card (for cards with kind=scene)
   const sceneMap = Object.fromEntries(
-    (topicRecord.cards ?? []).map((card) => [
-      card.id,
-      {
-        id:      card.id,
-        caption: card.label ?? card.params?.caption ?? {},
-        image:   card.imageUrl ?? card.image ?? "",
-        audio:   card.params?.audioId ? `audio/${card.params.audioId}.mp3` : "",
-      },
-    ])
+    allCards
+      .filter((c) => c.params?.kind === "scene")
+      .map((c) => [c.id, c])
   );
 
-  const branch = sessionParams?.branch
-    ?? scenario.branches?.[0]?.options[Math.floor(Math.random() * (scenario.branches?.[0]?.options?.length ?? 1))];
+  // Get scenario cards (kind=scenario) filtered by selection
+  const scenarios = allCards.filter(
+    (c) =>
+      c.params?.kind === "scenario" &&
+      (selectedConceptIds.length === 0 || selectedConceptIds.includes(c.conceptId ?? c.id))
+  );
 
-  const sequence = (scenario.spine ?? []).map((id, idx) => {
+  return scenarios.map((scenario) => buildSequenceTask(scenario, sceneMap, sessionParams));
+}
+
+function buildSequenceTask(scenario, sceneMap, sessionParams) {
+  const spine      = scenario.params?.spine    ?? [];
+  const branches   = scenario.params?.branches ?? [];
+  const conceptId  = scenario.conceptId ?? scenario.id;
+
+  const branch = sessionParams?.branch ?? null;
+
+  const sequence = spine.map((id, idx) => {
     if (id !== null) return sceneMap[id] ?? null;
-    const branchDef = scenario.branches?.find((b) => b.slot === idx);
+    const branchDef = branches.find((b) => b.slot === idx);
     if (!branchDef) return null;
-    const chosen = branch ?? branchDef.options[0];
+    const chosen = branch ?? branchDef.options[Math.floor(Math.random() * branchDef.options.length)];
     return sceneMap[chosen] ?? sceneMap[branchDef.options[0]] ?? null;
   }).filter(Boolean);
 
   return {
-    type:         "story_sequence",
+    type:        "story_sequence",
+    conceptId,
     sequence,
     correctOrder: sequence.map((s) => s.id),
   };
