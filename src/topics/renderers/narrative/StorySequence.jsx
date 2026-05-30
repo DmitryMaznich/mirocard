@@ -5,6 +5,7 @@ import "./narrative.css";
 function useSceneAssets(topicId, cards) {
   const [imageUrls, setImageUrls] = useState({});
   const [audioUrls, setAudioUrls] = useState({});
+  const [completionAudios, setCompletionAudios] = useState({});
 
   useEffect(() => {
     if (!topicId || !cards?.length) return;
@@ -13,6 +14,7 @@ function useSceneAssets(topicId, cards) {
       const db = await getDb();
       const imgs = {};
       const auds = {};
+      const compl = {};
       for (const card of cards) {
         // image
         if (card.imageUrl) {
@@ -21,20 +23,35 @@ function useSceneAssets(topicId, cards) {
           const blob = await topics.getFile(db, topicId, card.image);
           if (blob && !cancelled) imgs[card.id] = URL.createObjectURL(blob);
         }
-        // audio
+        // scene audio
         const audioId = card.params?.audioId;
         if (audioId) {
           const blob = await topics.getFile(db, topicId, `audio/${audioId}.mp3`);
           if (blob && !cancelled) auds[card.id] = URL.createObjectURL(blob);
         }
+        // completion audio for scenario cards
+        const ca = card.params?.completionAudio;
+        if (ca) {
+          if (typeof ca === "string") {
+            const blob = await topics.getFile(db, topicId, `audio/${ca}.mp3`);
+            if (blob && !cancelled) compl[card.id] = { type: "single", url: URL.createObjectURL(blob) };
+          } else if (typeof ca === "object") {
+            const map = {};
+            for (const [k, v] of Object.entries(ca)) {
+              const blob = await topics.getFile(db, topicId, `audio/${v}.mp3`);
+              if (blob && !cancelled) map[k] = URL.createObjectURL(blob);
+            }
+            if (!cancelled) compl[card.id] = { type: "branched", map };
+          }
+        }
         if (cancelled) return;
       }
-      if (!cancelled) { setImageUrls(imgs); setAudioUrls(auds); }
+      if (!cancelled) { setImageUrls(imgs); setAudioUrls(auds); setCompletionAudios(compl); }
     })();
     return () => { cancelled = true; };
   }, [topicId, cards]);
 
-  return { imageUrls, audioUrls };
+  return { imageUrls, audioUrls, completionAudios };
 }
 
 export default function StorySequence({ task, topicRecord, soundEnabled, onMistake, onCorrect, onAdvance }) {
@@ -44,7 +61,7 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
   const topicId      = topicRecord?.meta?.id;
   const cards        = topicRecord?.cards ?? [];
 
-  const { imageUrls, audioUrls } = useSceneAssets(topicId, cards);
+  const { imageUrls, audioUrls, completionAudios } = useSceneAssets(topicId, cards);
 
   function getImage(sceneId) {
     const card = cards.find((c) => c.id === sceneId);
@@ -108,6 +125,22 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
       if (next.every((s) => s !== null)) {
         setDone(true);
         onCorrect?.(conceptId, conceptId);
+        if (soundEnabled) {
+          const scenarioCard = cards.find(
+            (c) => c.params?.kind === "scenario" && (c.conceptId ?? c.id) === conceptId
+          );
+          const complData = scenarioCard ? completionAudios[scenarioCard.id] : null;
+          let url = null;
+          if (complData?.type === "single") {
+            url = complData.url;
+          } else if (complData?.type === "branched") {
+            const branchId = next.find((id) => id && complData.map[id] !== undefined);
+            if (branchId) url = complData.map[branchId];
+          }
+          if (url) {
+            new Audio(url).play().catch(() => {});
+          }
+        }
         advTimerRef.current = setTimeout(() => onAdvance?.(), 1200);
       }
     } else {
@@ -115,7 +148,7 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
       onMistake?.(sceneId, sceneId);
       setTimeout(() => setShaking(null), 450);
     }
-  }, [dragging, slots, correctOrder, onCorrect, onMistake, onAdvance]);
+  }, [dragging, slots, correctOrder, onCorrect, onMistake, onAdvance, soundEnabled, cards, completionAudios, conceptId]);
 
   function playAudio(sceneId) {
     if (!soundEnabled) return;
