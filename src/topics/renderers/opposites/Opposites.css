@@ -288,3 +288,97 @@
   .opp-sort__hint { display: none; }
 }
 
+/* ── Pair comparison v2 (two-step reveal) ───────────── */
+.opp-pair-v2 {
+  user-select: none;
+  gap: 0;
+  padding: 8px 12px 12px;
+  justify-content: space-between;
+}
+
+.opp-pair-v2__content {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Приглушённый полюс: виден как силуэт, layout не прыгает */
+.opp-pair__side--hidden {
+  opacity: 0.2;
+  filter: grayscale(1);
+  pointer-events: none;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.opp-pair__side {
+  transition: opacity 0.3s ease;
+}
+
+.opp-pair-v2__tap-hint {
+  text-align: center;
+  color: #aaa;
+  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+
+.opp-pair-v2__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  flex-shrink: 0;
+}
+
+.opp-pair-v2__nav-btn {
+  padding: 10px 22px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: #f5f5f5;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  min-width: 72px;
+}
+.opp-pair-v2__nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.opp-pair-v2__nav-btn--next {
+  background: #e3f2fd;
+  border-color: #90caf9;
+}
+.opp-pair-v2__nav-btn--next:hover:not(:disabled) {
+  background: #bbdefb;
+}
+
+.opp-pair-v2__progress {
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  color: #666;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Sort: 4-zone grid (Level 2) ────────────────────── */
+.opp-sort__zones--four {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  height: min(460px, 80vh);
+}
+
+@media (orientation: landscape) {
+  .opp-sort__zones--four {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr;
+    height: min(280px, 56vh);
+  }
+}
+
