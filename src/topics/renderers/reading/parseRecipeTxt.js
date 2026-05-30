@@ -139,16 +139,36 @@ export function resolveStepOwner(ownerName, group, student) {
   return null;
 }
 
+function pluralizeRu(n, one, few, many) {
+  const mod100 = Math.abs(Math.round(n)) % 100;
+  const mod10  = mod100 % 10;
+  if (mod100 >= 11 && mod100 <= 19) return many;
+  if (mod10 === 1)  return one;
+  if (mod10 >= 2 && mod10 <= 4) return few;
+  return many;
+}
+
 /**
- * Scale ingredient quantities in text marked with {N} syntax.
- * {2} with portions=3 → "6", {0.5} with portions=4 → "2".
+ * Scale ingredient quantities in text marked with {N} or {N|one|few|many} syntax.
+ * {2} with portions=3 → "6"
+ * {2|стакан|стакана|стаканов} with portions=3 → "6 стаканов"
  */
 export function applyPortions(text, portions) {
+  if (!text) return text ?? "";
   const factor = portions || 1;
-  return text.replace(/\{(\d+(?:\.\d+)?)\}/g, (_, n) => {
-    const result = parseFloat(n) * factor;
-    return Number.isInteger(result) ? String(result) : String(parseFloat(result.toFixed(2)));
+  let result = text.replace(
+    /\{(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
+    (_, n, one, few, many) => {
+      const val = parseFloat(n) * factor;
+      const rounded = Number.isInteger(val) ? val : parseFloat(val.toFixed(2));
+      return `${rounded} ${pluralizeRu(rounded, one.trim(), few.trim(), many.trim())}`;
+    }
+  );
+  result = result.replace(/\{(\d+(?:\.\d+)?)\}/g, (_, n) => {
+    const val = parseFloat(n) * factor;
+    return Number.isInteger(val) ? String(val) : String(parseFloat(val.toFixed(2)));
   });
+  return result;
 }
 
 /**

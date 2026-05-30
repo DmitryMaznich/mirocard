@@ -528,7 +528,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
                       onClick={() => toggleItem(i)}
                     >
                       <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                      <span className="instruction-check-label">{item}</span>
+                      <span className="instruction-check-label">{applyPortions(item, portions)}</span>
                       {!done && <span className="instruction-check-tap-hint">нажми</span>}
                     </li>
                   );
@@ -572,7 +572,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
                   >
                     <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
                     {s.type !== "heading" && <span className="instruction-list-num">{i + 1}.</span>}
-                    <span className="instruction-list-text">{s.text}</span>
+                    <span className="instruction-list-text">{applyPortions(s.text, portions)}</span>
                   </div>
                 );
               })}
