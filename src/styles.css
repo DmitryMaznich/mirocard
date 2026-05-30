@@ -13146,6 +13146,14 @@ kbd {
   border-radius: 0 0 0 inherit;
   pointer-events: none;
 }
+.hold-btn-taps {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  margin-top: 2px;
+  line-height: 1;
+}
 
 .summary-finish-btn {
   flex: 1;
