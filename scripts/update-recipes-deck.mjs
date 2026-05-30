@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.40.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.41.0.zip";
-const NEW_VERSION = "1.41.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.41.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.42.0.zip";
+const NEW_VERSION = "1.42.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -15,8 +15,9 @@ function extractMeta(txt) {
   const lines = txt.split("\n").map(l => l.trim()).filter(l => l.length > 0);
   let ru = "", en = "", photo = "";
   for (const line of lines) {
-    if (line.startsWith("# en:"))    { en    = line.slice(5).trim(); }
+    if (line.startsWith("# en:"))         { en    = line.slice(5).trim(); }
     else if (line.startsWith("# photo:")) { photo = line.slice(8).trim(); }
+    else if (line.startsWith("# ") && !ru) { ru = line.slice(2).trim(); }
     else if (!line.startsWith("#") && !ru) { ru = line; }
     if (ru && en && photo) break;
   }
