@@ -24,14 +24,13 @@ function generateIntroTasks(cards) {
 function generatePairComparisonTasks(cards, params) {
   const showLabels = params.showLabels ?? true;
   const byObject = groupByObjectId(cards);
-  const byConcept = new Map();
+  const pairs = [];
   for (const [, { left, right }] of byObject) {
     if (!left || !right) continue;
-    const cid = left.conceptId;
-    if (!byConcept.has(cid)) byConcept.set(cid, []);
-    byConcept.get(cid).push({ type: "pair_comparison", leftCard: left, rightCard: right, showLabels });
+    pairs.push({ leftCard: left, rightCard: right });
   }
-  return shuffle([...byConcept.values()].map(shuffle)).flat();
+  if (!pairs.length) return [];
+  return [{ type: "pair_comparison", pairs: shuffle(pairs), showLabels }];
 }
 
 function buildChooseTwoTask(target, sameObjOpposite, allEntries, optionCount) {
@@ -52,7 +51,6 @@ function buildChooseTwoTask(target, sameObjOpposite, allEntries, optionCount) {
 }
 
 function generateChooseTwoTasks(cards, params) {
-  const optionCount = params.optionCount ?? 2;
   const repsPerPair = params.repsPerPair ?? 2;
   const byObject    = groupByObjectId(cards);
   const entries     = [...byObject.entries()];
@@ -60,27 +58,91 @@ function generateChooseTwoTasks(cards, params) {
   for (const [, { left, right }] of entries) {
     if (!left || !right) continue;
     for (let i = 0; i < repsPerPair; i++) {
-      tasks.push(buildChooseTwoTask(left,  right, entries, optionCount));
-      tasks.push(buildChooseTwoTask(right, left,  entries, optionCount));
+      tasks.push(buildChooseTwoTask(left,  right, entries, 2));
+      tasks.push(buildChooseTwoTask(right, left,  entries, 2));
     }
   }
   return shuffle(tasks);
 }
 
-function generateSortTask(cards, params) {
-  const cardCount  = params.cardCount ?? 4;
-  const half       = Math.floor(cardCount / 2);
-  const leftCards  = shuffle(cards.filter((c) => c.pole === "left")).slice(0, half);
-  const rightCards = shuffle(cards.filter((c) => c.pole === "right")).slice(0, half);
-  return [{
-    type:       "sort",
-    leftLabel:  leftCards[0]?.poleLabel  ?? "левая",
-    rightLabel: rightCards[0]?.poleLabel ?? "правая",
+function buildConceptZones(conceptCards) {
+  const left  = conceptCards.filter(c => c.pole === "left");
+  const right = conceptCards.filter(c => c.pole === "right");
+  if (!left.length || !right.length) return null;
+  const zL = `${left[0].conceptId}_left`;
+  const zR = `${left[0].conceptId}_right`;
+  return {
+    zones: [
+      { id: zL, label: left[0].poleLabel },
+      { id: zR, label: right[0].poleLabel },
+    ],
     cards: shuffle([
-      ...leftCards.map((card)  => ({ card, pole: "left"  })),
-      ...rightCards.map((card) => ({ card, pole: "right" })),
+      ...left.map(card  => ({ card, targetZoneId: zL })),
+      ...right.map(card => ({ card, targetZoneId: zR })),
     ]),
-  }];
+  };
+}
+
+function groupByConcept(cards) {
+  const map = new Map();
+  for (const card of cards) {
+    if (!map.has(card.conceptId)) map.set(card.conceptId, []);
+    map.get(card.conceptId).push(card);
+  }
+  return map;
+}
+
+function generateSortL1Tasks(cards) {
+  const byConcept = groupByConcept(cards);
+  const tasks = [];
+  for (const [, conceptCards] of byConcept) {
+    const built = buildConceptZones(conceptCards);
+    if (!built) continue;
+    tasks.push({ type: "sort", ...built });
+  }
+  return shuffle(tasks);
+}
+
+function generateSortL2Tasks(cards, params) {
+  const cardsPerConcept = params.cardsPerConcept ?? 4;
+  const byConcept = groupByConcept(cards);
+  const conceptIds = [...byConcept.keys()];
+  const tasks = [];
+  for (let i = 0; i + 1 < conceptIds.length; i += 2) {
+    const aCards = byConcept.get(conceptIds[i]);
+    const bCards = byConcept.get(conceptIds[i + 1]);
+    const aL = aCards.filter(c => c.pole === "left");
+    const aR = aCards.filter(c => c.pole === "right");
+    const bL = bCards.filter(c => c.pole === "left");
+    const bR = bCards.filter(c => c.pole === "right");
+    if (!aL.length || !aR.length || !bL.length || !bR.length) continue;
+    const half = Math.ceil(cardsPerConcept / 2);
+    const zAL = `${conceptIds[i]}_left`;
+    const zAR = `${conceptIds[i]}_right`;
+    const zBL = `${conceptIds[i+1]}_left`;
+    const zBR = `${conceptIds[i+1]}_right`;
+    tasks.push({
+      type: "sort",
+      zones: [
+        { id: zAL, label: aL[0].poleLabel },
+        { id: zAR, label: aR[0].poleLabel },
+        { id: zBL, label: bL[0].poleLabel },
+        { id: zBR, label: bR[0].poleLabel },
+      ],
+      cards: shuffle([
+        ...shuffle(aL).slice(0, half).map(card => ({ card, targetZoneId: zAL })),
+        ...shuffle(aR).slice(0, half).map(card => ({ card, targetZoneId: zAR })),
+        ...shuffle(bL).slice(0, half).map(card => ({ card, targetZoneId: zBL })),
+        ...shuffle(bR).slice(0, half).map(card => ({ card, targetZoneId: zBR })),
+      ]),
+    });
+  }
+  return tasks;
+}
+
+function generateSortTask(cards, params) {
+  const level = params.level ?? 1;
+  return level === 2 ? generateSortL2Tasks(cards, params) : generateSortL1Tasks(cards);
 }
 
 function generateFindAllTasks(cards, params) {

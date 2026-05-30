@@ -56,29 +56,89 @@ function generatePairComparisonTasks(cards, params) {
 
 - [ ] **Заменить функцию `generateSortTask`:**
 
+Новый unified-формат задачи: `zones[]` + `targetZoneId` на карточке. Работает и для 2 и для 4 зон.
+
 ```js
-function generateSortTask(cards, _params) {
-  const byConcept = new Map();
+function buildConceptZones(conceptCards) {
+  const left  = conceptCards.filter(c => c.pole === "left");
+  const right = conceptCards.filter(c => c.pole === "right");
+  if (!left.length || !right.length) return null;
+  const zL = `${left[0].conceptId}_left`;
+  const zR = `${left[0].conceptId}_right`;
+  return {
+    zones: [
+      { id: zL, label: left[0].poleLabel },
+      { id: zR, label: right[0].poleLabel },
+    ],
+    cards: shuffle([
+      ...left.map(card  => ({ card, targetZoneId: zL })),
+      ...right.map(card => ({ card, targetZoneId: zR })),
+    ]),
+  };
+}
+
+function groupByConcept(cards) {
+  const map = new Map();
   for (const card of cards) {
-    if (!byConcept.has(card.conceptId)) byConcept.set(card.conceptId, []);
-    byConcept.get(card.conceptId).push(card);
+    if (!map.has(card.conceptId)) map.set(card.conceptId, []);
+    map.get(card.conceptId).push(card);
   }
+  return map;
+}
+
+// Level 1: один таск на концепт, 2 зоны
+function generateSortL1Tasks(cards) {
+  const byConcept = groupByConcept(cards);
   const tasks = [];
   for (const [, conceptCards] of byConcept) {
-    const left  = conceptCards.filter(c => c.pole === "left");
-    const right = conceptCards.filter(c => c.pole === "right");
-    if (!left.length || !right.length) continue;
+    const built = buildConceptZones(conceptCards);
+    if (!built) continue;
+    tasks.push({ type: "sort", ...built });
+  }
+  return shuffle(tasks);
+}
+
+// Level 2: один таск на пару концептов, 4 зоны
+function generateSortL2Tasks(cards, params) {
+  const cardsPerConcept = params.cardsPerConcept ?? 4;
+  const byConcept = groupByConcept(cards);
+  const conceptIds = [...byConcept.keys()];
+  const tasks = [];
+  for (let i = 0; i + 1 < conceptIds.length; i += 2) {
+    const aCards = byConcept.get(conceptIds[i]);
+    const bCards = byConcept.get(conceptIds[i + 1]);
+    const aL = aCards.filter(c => c.pole === "left");
+    const aR = aCards.filter(c => c.pole === "right");
+    const bL = bCards.filter(c => c.pole === "left");
+    const bR = bCards.filter(c => c.pole === "right");
+    if (!aL.length || !aR.length || !bL.length || !bR.length) continue;
+    const half = Math.ceil(cardsPerConcept / 2);
+    const zAL = `${conceptIds[i]}_left`;
+    const zAR = `${conceptIds[i]}_right`;
+    const zBL = `${conceptIds[i+1]}_left`;
+    const zBR = `${conceptIds[i+1]}_right`;
     tasks.push({
-      type:       "sort",
-      leftLabel:  left[0].poleLabel,
-      rightLabel: right[0].poleLabel,
+      type: "sort",
+      zones: [
+        { id: zAL, label: aL[0].poleLabel },
+        { id: zAR, label: aR[0].poleLabel },
+        { id: zBL, label: bL[0].poleLabel },
+        { id: zBR, label: bR[0].poleLabel },
+      ],
       cards: shuffle([
-        ...left.map(card  => ({ card, pole: "left"  })),
-        ...right.map(card => ({ card, pole: "right" })),
+        ...shuffle(aL).slice(0, half).map(card => ({ card, targetZoneId: zAL })),
+        ...shuffle(aR).slice(0, half).map(card => ({ card, targetZoneId: zAR })),
+        ...shuffle(bL).slice(0, half).map(card => ({ card, targetZoneId: zBL })),
+        ...shuffle(bR).slice(0, half).map(card => ({ card, targetZoneId: zBR })),
       ]),
     });
   }
-  return shuffle(tasks);
+  return tasks;
+}
+
+function generateSortTask(cards, params) {
+  const level = params.level ?? 1;
+  return level === 2 ? generateSortL2Tasks(cards, params) : generateSortL1Tasks(cards);
 }
 ```
 
@@ -403,6 +463,177 @@ git commit -m "feat(opposites): CSS styles for pair_comparison v2 navigation"
 
 ---
 
+## Task 4b: Переписать SortTask.jsx для N зон
+
+**Files:**
+- Modify: `src/topics/renderers/opposites/SortTask.jsx`
+
+Старый формат (`leftLabel/rightLabel`, `pole`) заменяется на `zones[]` + `targetZoneId`.
+Компонент рендерит зоны динамически:
+- `zones.length === 2` → две колонки (текущий layout)
+- `zones.length === 4` → сетка 2×2
+
+- [ ] **Полностью заменить содержимое файла:**
+
+```jsx
+import { useState, useRef } from "react";
+import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import "./Opposites.css";
+
+function SortImage({ topicId, card }) {
+  const url = useTopicFile(topicId, card?.image);
+  if (!url) return <div style={{ width: "100%", height: "100%", background: "#e0e0e0" }} />;
+  return <img src={url} alt="" draggable={false} />;
+}
+
+export default function SortTask({ task, topicId, onCorrect, onMistake }) {
+  const { zones, cards } = task;
+  const [placements, setPlacements] = useState({});
+  const [dragging, setDragging]     = useState(null);
+  const [hoverZone, setHoverZone]   = useState(null);
+  const [done, setDone]             = useState(false);
+  const zoneRefs    = useRef({});
+  const onCorrectRef = useRef(onCorrect);
+  onCorrectRef.current = onCorrect;
+
+  function getZoneAt(x, y) {
+    for (const zone of zones) {
+      const el = zoneRefs.current[zone.id];
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return zone.id;
+    }
+    return null;
+  }
+
+  function handlePointerDown(e, item) {
+    if (done || placements[item.card.id]) return;
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragging({
+      item,
+      x: rect.left, y: rect.top,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      size: rect.width,
+    });
+  }
+
+  function handlePointerMove(e) {
+    if (!dragging) return;
+    setDragging(prev => ({ ...prev, x: e.clientX - prev.offsetX, y: e.clientY - prev.offsetY }));
+    setHoverZone(getZoneAt(e.clientX, e.clientY));
+  }
+
+  function handlePointerUp(e) {
+    if (!dragging) return;
+    const zoneId = getZoneAt(e.clientX, e.clientY);
+    const item   = dragging.item;
+    setDragging(null);
+    setHoverZone(null);
+    if (!zoneId) return;
+    if (item.targetZoneId !== zoneId) {
+      onMistake(zoneId, item.card.id);
+      return;
+    }
+    const newPlacements = { ...placements, [item.card.id]: zoneId };
+    setPlacements(newPlacements);
+    const allDone = cards.every(c => newPlacements[c.card.id] === c.targetZoneId);
+    if (allDone) {
+      setDone(true);
+      setTimeout(() => onCorrectRef.current(null, null), 400);
+    }
+  }
+
+  const unplaced = cards.filter(item => !placements[item.card.id]);
+  const gridClass = zones.length === 4 ? "opp-sort__zones opp-sort__zones--four" : "opp-sort__zones";
+
+  return (
+    <div
+      className="session-body opp-sort"
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      style={{ touchAction: "none" }}
+    >
+      <div className="opp-sort__hand">
+        {unplaced.map(item => (
+          <div
+            key={item.card.id}
+            className={`opp-sort__card${dragging?.item.card.id === item.card.id ? " opp-sort__card--dragging" : ""}`}
+            onPointerDown={e => handlePointerDown(e, item)}
+          >
+            <SortImage topicId={topicId} card={item.card} />
+          </div>
+        ))}
+      </div>
+
+      <div className={gridClass}>
+        {zones.map(zone => {
+          const inZone = cards.filter(item => placements[item.card.id] === zone.id);
+          return (
+            <div
+              key={zone.id}
+              ref={el => { zoneRefs.current[zone.id] = el; }}
+              className={`opp-sort__zone${hoverZone === zone.id ? " opp-sort__zone--active" : ""}`}
+            >
+              <div className="opp-sort__zone-label">{zone.label}</div>
+              <div className="opp-sort__placed-grid">
+                {inZone.map(({ card }) => (
+                  <div key={card.id} className="opp-sort__placed">
+                    <SortImage topicId={topicId} card={card} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="opp-sort__hint">
+        {dragging ? "Перетащи в нужную группу" : unplaced.length > 0 ? "Перетащи карточку" : ""}
+      </div>
+
+      {dragging && (
+        <div
+          className="opp-sort__ghost"
+          style={{ left: dragging.x, top: dragging.y, width: dragging.size, height: dragging.size }}
+        >
+          <SortImage topicId={topicId} card={dragging.item.card} />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+- [ ] **Добавить в `Opposites.css`** стиль для 4 зон (после существующих `.opp-sort__zones`):
+
+```css
+/* 4-zone grid (Level 2 sort) */
+.opp-sort__zones--four {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  height: min(460px, 80vh);
+}
+
+@media (orientation: landscape) {
+  .opp-sort__zones--four {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr;
+    height: min(280px, 56vh);
+  }
+}
+```
+
+- [ ] **Commit:**
+
+```bash
+git add src/topics/renderers/opposites/SortTask.jsx src/topics/renderers/opposites/Opposites.css
+git commit -m "feat(opposites): sort — N-zone layout, unified zones[]/targetZoneId format, 4-zone 2x2 grid"
+```
+
+---
+
 ## Task 5: Убрать intro из index.jsx и удалить IntroTask.jsx
 
 **Files:**
@@ -463,9 +694,12 @@ git commit -m "feat(opposites): remove intro mode, pair_comparison is now the in
 - [ ] Открыть режим **Покажи**:
   - Две карточки, одна пара объектов (big_dog / small_dog)
   - Подписей на карточках нет
-- [ ] Открыть режим **Разложи**:
-  - Один таск = один концепт (все big_* и small_* этого концепта)
+- [ ] Открыть режим **Разложи** (Level 1, `params.level: 1`):
+  - Один таск = один концепт (все big_* и small_* этого концепта), 2 зоны
   - Несколько тасков по очереди если концептов несколько
+- [ ] Открыть режим **Разложи** (Level 2, `params.level: 2`):
+  - Один таск = два концепта, 4 зоны в сетке 2×2
+  - В ландшафтной ориентации — 4 колонки
 
 ---
 
@@ -481,6 +715,8 @@ git commit -m "feat(opposites): remove intro mode, pair_comparison is now the in
 | choose_two: без label на карточках | Task 3 |
 | choose_two: визуальный фидбек 600 мс перед авансом | Task 3 |
 | choose_two: всегда 2 карточки одной пары | Task 1c |
-| sort: один task на концепт | Task 1b |
+| sort Level 1: один task на концепт, 2 зоны | Task 1b |
+| sort Level 2: два концепта, 4 зоны 2×2 | Task 1b |
+| SortTask: N зон динамически, новый формат zones[]/targetZoneId | Task 4b |
 | intro: упразднён | Task 5 |
 | CSS для нового layout | Task 4 |
