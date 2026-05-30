@@ -2,31 +2,39 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { getDb, topics } from "@/core/db";
 import "./narrative.css";
 
-function useSceneUrls(topicId, cards) {
-  const [urls, setUrls] = useState({});
+function useSceneAssets(topicId, cards) {
+  const [imageUrls, setImageUrls] = useState({});
+  const [audioUrls, setAudioUrls] = useState({});
 
   useEffect(() => {
     if (!topicId || !cards?.length) return;
     let cancelled = false;
     (async () => {
       const db = await getDb();
-      const result = {};
+      const imgs = {};
+      const auds = {};
       for (const card of cards) {
+        // image
         if (card.imageUrl) {
-          result[card.id] = card.imageUrl;
-          continue;
+          imgs[card.id] = card.imageUrl;
+        } else if (card.image) {
+          const blob = await topics.getFile(db, topicId, card.image);
+          if (blob && !cancelled) imgs[card.id] = URL.createObjectURL(blob);
         }
-        if (!card.image) continue;
-        const blob = await topics.getFile(db, topicId, card.image);
-        if (!blob || cancelled) continue;
-        result[card.id] = URL.createObjectURL(blob);
+        // audio
+        const audioId = card.params?.audioId;
+        if (audioId) {
+          const blob = await topics.getFile(db, topicId, `audio/${audioId}.mp3`);
+          if (blob && !cancelled) auds[card.id] = URL.createObjectURL(blob);
+        }
+        if (cancelled) return;
       }
-      if (!cancelled) setUrls(result);
+      if (!cancelled) { setImageUrls(imgs); setAudioUrls(auds); }
     })();
     return () => { cancelled = true; };
   }, [topicId, cards]);
 
-  return urls;
+  return { imageUrls, audioUrls };
 }
 
 export default function StorySequence({ task, topicRecord, soundEnabled, onMistake, onCorrect, onAdvance }) {
@@ -36,7 +44,7 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
   const topicId      = topicRecord?.meta?.id;
   const cards        = topicRecord?.cards ?? [];
 
-  const imageUrls = useSceneUrls(topicId, cards);
+  const { imageUrls, audioUrls } = useSceneAssets(topicId, cards);
 
   function getImage(sceneId) {
     const card = cards.find((c) => c.id === sceneId);
@@ -111,10 +119,9 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
 
   function playAudio(sceneId) {
     if (!soundEnabled) return;
-    const card = cards.find((c) => c.id === sceneId);
-    const audioId = card?.params?.audioId ?? sceneId;
-    const audio = new Audio(`audio/${audioId}.mp3`);
-    audio.play().catch(() => {});
+    const url = audioUrls[sceneId];
+    if (!url) return;
+    new Audio(url).play().catch(() => {});
   }
 
   return (
