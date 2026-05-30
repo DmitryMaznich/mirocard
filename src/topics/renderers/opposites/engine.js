@@ -137,7 +137,13 @@ function generateSortL2Tasks(cards, params) {
       ]),
     });
   }
-  return tasks;
+  // leftover concept when odd count
+  if (conceptIds.length % 2 !== 0) {
+    const lastCards = byConcept.get(conceptIds[conceptIds.length - 1]);
+    const built = buildConceptZones(lastCards);
+    if (built) tasks.push({ type: "sort", ...built });
+  }
+  return shuffle(tasks);
 }
 
 function generateSortTask(cards, params) {
