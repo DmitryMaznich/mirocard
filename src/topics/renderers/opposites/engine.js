@@ -43,10 +43,10 @@ function buildChooseTwoTask(target, sameObjOpposite, allEntries, optionCount) {
     }
   }
   return {
-    type:        "choose_two",
-    targetPole:  target.pole,
-    targetLabel: target.instructionLabel,
-    options:     shuffle(options.slice(0, optionCount)),
+    type:             "choose_two",
+    targetPole:       target.pole,
+    poleLabelNeutral: target.poleLabelNeutral,
+    options:          shuffle(options.slice(0, optionCount)),
   };
 }
 
