@@ -222,42 +222,75 @@ git commit -m "feat(opposites): pair_comparison — two-step reveal with prev/ne
 
 ---
 
-## Task 3: Убрать label с карточки в ChooseTwoTask.jsx
+## Task 3: Переработать ChooseTwoTask.jsx
 
 **Files:**
-- Modify: `src/topics/renderers/opposites/ChooseTwoTask.jsx:13`
+- Modify: `src/topics/renderers/opposites/ChooseTwoTask.jsx`
 
-Строка 13 в `GridCard` рендерит `nominativeLabel` — это подсказка, которую нужно убрать.
+Три изменения в одном файле:
+1. Убрать `nominativeLabel` с карточки — текстовая подсказка исчезает
+2. Добавить визуальный фидбек после ответа (зелёная/красная рамка 600 мс) перед вызовом коллбека
+3. Упростить проп `GridCard`: `modifier` → `state` (`"idle" | "correct" | "wrong"`)
 
-- [ ] **Удалить строку с label** в функции `GridCard`:
+- [ ] **Полностью заменить содержимое файла:**
 
-Было:
 ```jsx
-function GridCard({ topicId, card, modifier, onClick, disabled }) {
+import { useState } from "react";
+import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import "./Opposites.css";
+
+function GridCard({ topicId, card, state, onClick, disabled }) {
   const url = useTopicFile(topicId, card?.image);
+  const mod =
+    state === "correct" ? " opp-grid-card--correct" :
+    state === "wrong"   ? " opp-grid-card--wrong"   : "";
   return (
-    <button className={`opp-grid-card${modifier ? " " + modifier : ""}`} onClick={onClick} disabled={disabled}>
+    <button
+      className={`opp-grid-card${mod}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {url
         ? <img className="opp-grid-card__img" src={url} alt="" draggable={false} />
         : <div className="opp-grid-card__img opp-grid-card__img--loading" />
       }
-      <div className="opp-grid-card__label">{card.nominativeLabel}</div>
     </button>
   );
 }
-```
 
-Стало:
-```jsx
-function GridCard({ topicId, card, modifier, onClick, disabled }) {
-  const url = useTopicFile(topicId, card?.image);
+export default function ChooseTwoTask({ task, topicId, onCorrect, onIncorrect }) {
+  const [answered, setAnswered] = useState(false);
+  const [pickedId, setPickedId] = useState(null);
+
+  function handleSelect(opt) {
+    if (answered) return;
+    setAnswered(true);
+    setPickedId(opt.card.id);
+    const cb = opt.isTarget ? onCorrect : onIncorrect;
+    setTimeout(() => cb(task.targetPole, opt.card.id), 600);
+  }
+
+  function cardState(opt) {
+    if (!answered || pickedId !== opt.card.id) return "idle";
+    return opt.isTarget ? "correct" : "wrong";
+  }
+
   return (
-    <button className={`opp-grid-card${modifier ? " " + modifier : ""}`} onClick={onClick} disabled={disabled}>
-      {url
-        ? <img className="opp-grid-card__img" src={url} alt="" draggable={false} />
-        : <div className="opp-grid-card__img opp-grid-card__img--loading" />
-      }
-    </button>
+    <div className="session-body">
+      <div className="session-instruction">Покажи: {task.targetLabel}</div>
+      <div className="opp-grid">
+        {task.options.map((opt) => (
+          <GridCard
+            key={opt.card.id}
+            topicId={topicId}
+            card={opt.card}
+            state={cardState(opt)}
+            onClick={() => handleSelect(opt)}
+            disabled={answered}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 ```
@@ -266,7 +299,7 @@ function GridCard({ topicId, card, modifier, onClick, disabled }) {
 
 ```bash
 git add src/topics/renderers/opposites/ChooseTwoTask.jsx
-git commit -m "fix(opposites): choose_two — remove label from option cards"
+git commit -m "feat(opposites): choose_two — no labels, visual feedback 600ms before advancing"
 ```
 
 ---
@@ -446,6 +479,7 @@ git commit -m "feat(opposites): remove intro mode, pair_comparison is now the in
 | pair_comparison: «Пред» всегда сбрасывает к шагу 1 | Task 2 |
 | pair_comparison: счётчик пар | Task 2 |
 | choose_two: без label на карточках | Task 3 |
+| choose_two: визуальный фидбек 600 мс перед авансом | Task 3 |
 | choose_two: всегда 2 карточки одной пары | Task 1c |
 | sort: один task на концепт | Task 1b |
 | intro: упразднён | Task 5 |
