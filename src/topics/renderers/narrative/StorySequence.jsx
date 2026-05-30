@@ -139,8 +139,8 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
               onPointerDown={(e) => handlePointerDown(e, sceneId)}
               onClick={() => playAudio(sceneId)}
             >
-              <img src={getImage(sceneId)} alt={scene?.caption?.ru ?? sceneId} draggable={false} />
-              <span>{scene?.caption?.ru ?? sceneId}</span>
+              <img src={getImage(sceneId)} alt={scene?.label?.ru ?? scene?.caption?.ru ?? sceneId} draggable={false} />
+              <span>{scene?.label?.ru ?? scene?.caption?.ru ?? sceneId}</span>
             </div>
           );
         })}
