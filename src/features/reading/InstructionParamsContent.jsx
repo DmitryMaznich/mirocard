@@ -206,7 +206,7 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
 
           <div className="param-row">
             <div className="param-label">Инструкция</div>
-            <div style={{ display: "flex", gap: "12px" }}>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
               <button
                 className="link-btn"
                 onClick={() => { setRecipeEdit(rawRecipe); setEditingRecipe(true); }}
