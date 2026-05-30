@@ -112,9 +112,6 @@ export default function HoldButton({ onAction, children, className = "", holdMs 
           {"●".repeat(tapCount)}{"○".repeat(REQUIRED_TAPS - tapCount)}
         </span>
       )}
-      {phase === "hold" && (
-        <span className="hold-btn-taps">удержи →</span>
-      )}
     </button>
   );
 }
