@@ -80,11 +80,34 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
   const [shakingSlot, setShaking]   = useState(null);
   const [done,        setDone]      = useState(false);
 
-  const pointerIdRef  = useRef(null);
-  const screenRef     = useRef(null);
-  const slotRefs      = useRef([]);
-  const advTimerRef   = useRef(null);
-  const complAudioRef = useRef(null);
+  const pointerIdRef   = useRef(null);
+  const screenRef      = useRef(null);
+  const slotRefs       = useRef([]);
+  const advTimerRef    = useRef(null);
+  const complAudioRef  = useRef(null);
+  const advancedRef    = useRef(false);
+  const onAdvanceRef   = useRef(onAdvance);
+  useEffect(() => { onAdvanceRef.current = onAdvance; }, [onAdvance]);
+
+  function advanceNow() {
+    if (advancedRef.current) return;
+    advancedRef.current = true;
+    if (advTimerRef.current) clearTimeout(advTimerRef.current);
+    if (complAudioRef.current) { complAudioRef.current.pause(); complAudioRef.current = null; }
+    onAdvanceRef.current?.();
+  }
+
+  useEffect(() => {
+    if (!done) return;
+    function handleKeyDown(e) {
+      if (e.repeat) return;
+      if (e.key !== " " && e.key !== "Spacebar" && e.key !== "Enter") return;
+      e.preventDefault();
+      advanceNow();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [done]);
 
   useEffect(() => () => {
     if (advTimerRef.current) clearTimeout(advTimerRef.current);
@@ -155,14 +178,14 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
         if (complUrl) {
           const audio = new Audio(complUrl);
           complAudioRef.current = audio;
-          audio.onended = () => { complAudioRef.current = null; onAdvance?.(); };
-          audio.onerror = () => { complAudioRef.current = null; onAdvance?.(); };
+          audio.onended = () => { complAudioRef.current = null; advanceNow(); };
+          audio.onerror = () => { complAudioRef.current = null; advanceNow(); };
           audio.play().catch(() => {
             complAudioRef.current = null;
-            advTimerRef.current = setTimeout(() => onAdvance?.(), 1400);
+            advTimerRef.current = setTimeout(() => advanceNow(), 1400);
           });
         } else {
-          advTimerRef.current = setTimeout(() => onAdvance?.(), 1400);
+          advTimerRef.current = setTimeout(() => advanceNow(), 1400);
         }
       }
     } else {
@@ -182,10 +205,11 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
   return (
     <div
       ref={screenRef}
-      className="ns-screen"
+      className={`ns-screen${done ? " ns-screen--done" : ""}`}
       onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={handlePointerEnd}
+      onPointerUp={done ? undefined : handlePointerEnd}
+      onPointerCancel={done ? undefined : handlePointerEnd}
+      onClick={done ? () => advanceNow() : undefined}
     >
       {question && (
         <div key={question} className="ns-question">{question}</div>

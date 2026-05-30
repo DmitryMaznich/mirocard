@@ -27,6 +27,11 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
+/* ── Done state: whole screen is tappable ── */
+.ns-screen--done {
+  cursor: pointer;
+}
+
 /* ── Progressive sentence ── */
 .ns-sentence {
   flex-shrink: 0;
