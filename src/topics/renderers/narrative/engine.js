@@ -1,17 +1,16 @@
+const isSceneCard    = (c) => c.params?.kind === "scene"    || (!!(c.image || c.imageUrl) && !c.params?.spine);
+const isScenarioCard = (c) => c.params?.kind === "scenario" || (!!(c.params?.spine)         && !(c.image || c.imageUrl));
+
 export function generateTasks(mode, topicRecord, sessionParams, selectedConceptIds = []) {
   const allCards = topicRecord.cards ?? [];
 
-  // Build scene map: id → card (for cards with kind=scene)
   const sceneMap = Object.fromEntries(
-    allCards
-      .filter((c) => c.params?.kind === "scene")
-      .map((c) => [c.id, c])
+    allCards.filter(isSceneCard).map((c) => [c.id, c])
   );
 
-  // Get scenario cards (kind=scenario) filtered by selection
   const scenarios = allCards.filter(
     (c) =>
-      c.params?.kind === "scenario" &&
+      isScenarioCard(c) &&
       (selectedConceptIds.length === 0 || selectedConceptIds.includes(c.conceptId ?? c.id))
   );
 

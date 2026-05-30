@@ -179,6 +179,7 @@ export function useSessionEngine() {
           if (s.status !== "answer_correct") return s;
           if (s.mode.type === "compare_first_number") return s;
           if (s.mode.type === "sort_letters") return s;
+          if (s.mode.type === "story_sequence") return s;
           const advanced = handleAdvance(s);
           if (advanced.status === "completed") finishSession(advanced);
           return advanced;
