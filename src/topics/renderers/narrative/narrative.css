@@ -27,6 +27,23 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
+/* ── Progressive sentence ── */
+.ns-sentence {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: clamp(0.82rem, 2.4vw, 1.05rem);
+  color: #475569;
+  padding: 2px 8px;
+  line-height: 1.45;
+  transition: color 0.3s, font-size 0.3s;
+}
+
+.ns-sentence--done {
+  font-weight: 700;
+  font-size: clamp(0.95rem, 2.8vw, 1.2rem);
+  color: #15803d;
+}
+
 /* ── Bank — unplaced cards at the bottom ── */
 .ns-bank {
   flex-shrink: 0;

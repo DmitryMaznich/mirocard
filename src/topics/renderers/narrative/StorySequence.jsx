@@ -16,20 +16,17 @@ function useSceneAssets(topicId, cards) {
       const auds = {};
       const compl = {};
       for (const card of cards) {
-        // image
         if (card.imageUrl) {
           imgs[card.id] = card.imageUrl;
         } else if (card.image) {
           const blob = await topics.getFile(db, topicId, card.image);
           if (blob && !cancelled) imgs[card.id] = URL.createObjectURL(blob);
         }
-        // scene audio
         const audioId = card.params?.audioId;
         if (audioId) {
           const blob = await topics.getFile(db, topicId, `audio/${audioId}.mp3`);
           if (blob && !cancelled) auds[card.id] = URL.createObjectURL(blob);
         }
-        // completion audio for scenario cards
         const ca = card.params?.completionAudio;
         if (ca) {
           if (typeof ca === "string") {
@@ -54,6 +51,15 @@ function useSceneAssets(topicId, cards) {
   return { imageUrls, audioUrls, completionAudios };
 }
 
+function buildSentence(slots, sceneMap) {
+  const filled = slots.filter(Boolean);
+  if (!filled.length) return null;
+  return filled.map((id, i) => {
+    const label = (sceneMap[id]?.label?.ru ?? "").toLowerCase();
+    return i === 0 ? `Сначала я ${label}` : `потом ${label}`;
+  }).join(", ");
+}
+
 export default function StorySequence({ task, topicRecord, soundEnabled, onMistake, onCorrect, onAdvance }) {
   const sequence     = task?.sequence    ?? [];
   const correctOrder = task?.correctOrder ?? [];
@@ -74,16 +80,21 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
   const [shakingSlot, setShaking]   = useState(null);
   const [done,        setDone]      = useState(false);
 
-  const pointerIdRef = useRef(null);
-  const screenRef    = useRef(null);
-  const slotRefs     = useRef([]);
-  const advTimerRef  = useRef(null);
+  const pointerIdRef  = useRef(null);
+  const screenRef     = useRef(null);
+  const slotRefs      = useRef([]);
+  const advTimerRef   = useRef(null);
+  const complAudioRef = useRef(null);
 
-  useEffect(() => () => { if (advTimerRef.current) clearTimeout(advTimerRef.current); }, []);
+  useEffect(() => () => {
+    if (advTimerRef.current) clearTimeout(advTimerRef.current);
+    if (complAudioRef.current) { complAudioRef.current.pause(); complAudioRef.current = null; }
+  }, []);
 
-  const sceneMap  = Object.fromEntries(sequence.map((s) => [s.id, s]));
-  const nextSlot  = slots.findIndex((s) => s === null);
-  const question  = done || nextSlot < 0 ? null : nextSlot === 0 ? "Что сначала?" : "Что потом?";
+  const sceneMap   = Object.fromEntries(sequence.map((s) => [s.id, s]));
+  const nextSlot   = slots.findIndex((s) => s === null);
+  const question   = done || nextSlot < 0 ? null : nextSlot === 0 ? "Что сначала?" : "Что потом?";
+  const sentence   = buildSentence(slots, sceneMap);
 
   function detectSlot(x, y) {
     for (let i = 0; i < slotRefs.current.length; i++) {
@@ -122,26 +133,37 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
       next[slotIdx] = sceneId;
       setSlots(next);
       setShuffled((s) => s.filter((id) => id !== sceneId));
+
       if (next.every((s) => s !== null)) {
         setDone(true);
         onCorrect?.(conceptId, conceptId);
+
+        let complUrl = null;
         if (soundEnabled) {
           const scenarioCard = cards.find(
             (c) => c.params?.kind === "scenario" && (c.conceptId ?? c.id) === conceptId
           );
           const complData = scenarioCard ? completionAudios[scenarioCard.id] : null;
-          let url = null;
           if (complData?.type === "single") {
-            url = complData.url;
+            complUrl = complData.url;
           } else if (complData?.type === "branched") {
             const branchId = next.find((id) => id && complData.map[id] !== undefined);
-            if (branchId) url = complData.map[branchId];
-          }
-          if (url) {
-            new Audio(url).play().catch(() => {});
+            if (branchId) complUrl = complData.map[branchId];
           }
         }
-        advTimerRef.current = setTimeout(() => onAdvance?.(), 1200);
+
+        if (complUrl) {
+          const audio = new Audio(complUrl);
+          complAudioRef.current = audio;
+          audio.onended = () => { complAudioRef.current = null; onAdvance?.(); };
+          audio.onerror = () => { complAudioRef.current = null; onAdvance?.(); };
+          audio.play().catch(() => {
+            complAudioRef.current = null;
+            advTimerRef.current = setTimeout(() => onAdvance?.(), 1400);
+          });
+        } else {
+          advTimerRef.current = setTimeout(() => onAdvance?.(), 1400);
+        }
       }
     } else {
       setShaking(slotIdx);
@@ -192,24 +214,28 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
         })}
       </div>
 
-      <div className="ns-bank">
-        {shuffled.map((sceneId) => {
-          const scene = sceneMap[sceneId];
-          return (
-            <div
-              key={sceneId}
-              className="ns-card"
-              onPointerDown={(e) => handlePointerDown(e, sceneId)}
-              onClick={() => playAudio(sceneId)}
-            >
-              <img src={getImage(sceneId)} alt={scene?.label?.ru ?? scene?.caption?.ru ?? sceneId} draggable={false} />
-              <span>{scene?.label?.ru ?? scene?.caption?.ru ?? sceneId}</span>
-            </div>
-          );
-        })}
-      </div>
+      {sentence && (
+        <div className={`ns-sentence${done ? " ns-sentence--done" : ""}`}>{sentence}</div>
+      )}
 
-
+      {!done && (
+        <div className="ns-bank">
+          {shuffled.map((sceneId) => {
+            const scene = sceneMap[sceneId];
+            return (
+              <div
+                key={sceneId}
+                className="ns-card"
+                onPointerDown={(e) => handlePointerDown(e, sceneId)}
+                onClick={() => playAudio(sceneId)}
+              >
+                <img src={getImage(sceneId)} alt={scene?.label?.ru ?? scene?.caption?.ru ?? sceneId} draggable={false} />
+                <span>{scene?.label?.ru ?? scene?.caption?.ru ?? sceneId}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {dragging && (
         <div
@@ -217,7 +243,7 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
           style={{ left: dragging.x, top: dragging.y }}
         >
           <img src={getImage(dragging.sceneId)} alt="" draggable={false} />
-          <span>{sceneMap[dragging.sceneId]?.caption?.ru ?? ""}</span>
+          <span>{sceneMap[dragging.sceneId]?.label?.ru ?? sceneMap[dragging.sceneId]?.caption?.ru ?? ""}</span>
         </div>
       )}
     </div>
