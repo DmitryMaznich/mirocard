@@ -45,15 +45,15 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
 
   return (
     <div className="helper-panel" role="dialog" aria-label="Счётный помощник">
+      <button
+        type="button"
+        className="helper-panel__close"
+        onClick={onClose}
+        aria-label="Закрыть помощник"
+      >
+        ✕
+      </button>
       <div className="helper-panel__sheet">
-        <button
-          type="button"
-          className="helper-panel__close"
-          onClick={onClose}
-          aria-label="Закрыть помощник"
-        >
-          ✕
-        </button>
         <div className="operation-stick">
           <div
             ref={wrapRef}

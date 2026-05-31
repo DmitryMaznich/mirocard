@@ -15716,8 +15716,9 @@ button.operation-dot {
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
   z-index: 200;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -15732,13 +15733,12 @@ button.operation-dot {
   flex-direction: column;
   align-items: stretch;
   overflow: hidden;
-  position: relative;
 }
 
 .helper-panel__close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+  align-self: flex-end;
+  margin-right: 12px;
+  margin-bottom: 8px;
   background: radial-gradient(circle at 36% 30%, #72d4c4, #1a8a7a 72%);
   box-shadow: 0 3px 8px rgba(31, 122, 111, .35), inset 0 1px 0 rgba(255, 255, 255, .4);
   border: none;
@@ -15753,7 +15753,7 @@ button.operation-dot {
   align-items: center;
   justify-content: center;
   transition: transform 0.1s;
-  z-index: 1;
+  flex-shrink: 0;
 }
 
 .helper-panel__close:active {
