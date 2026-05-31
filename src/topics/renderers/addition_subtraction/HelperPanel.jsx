@@ -1,19 +1,13 @@
 import { useRef, useState } from "react";
-import { buildStickSlots, getStickBeadColor, getStickBeadCount, STICK_DRAG_THRESHOLD, STICK_GAP_SLOTS } from "./stickModel";
+import { buildStickSlots, getStickBeadColor, STICK_DRAG_THRESHOLD } from "./stickModel";
 
 export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onClose }) {
   const helperTask = { railSize: maxNumber, maxNumber, operation: "add", start: 0, delta: maxNumber, result: maxNumber };
   const [workCount, setWorkCount] = useState(0);
-  const [lastHint, setLastHint] = useState(null); // { sign, count, boundary, key }
+  const [lastHint, setLastHint] = useState(null); // { sign, count, key }
   const wrapRef = useRef(null);
   const dragRef = useRef(null);
   const slots = buildStickSlots(helperTask, workCount);
-
-  const beadCount = getStickBeadCount(helperTask);
-  const totalSlots = beadCount + STICK_GAP_SLOTS;
-  const hintLeftPercent = lastHint
-    ? ((lastHint.boundary + STICK_GAP_SLOTS / 2) / totalSlots) * 100
-    : null;
 
   function startDrag(e, slot) {
     e.preventDefault();
@@ -33,14 +27,12 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
     const { slot } = d;
     if (deltaX < 0 && slot.zone === "side") {
       const count = slot.zoneIndex + 1;
-      const newWork = workCount + count;
-      setWorkCount(newWork);
-      setLastHint({ sign: "+", count, boundary: newWork, key: Date.now() });
+      setWorkCount(workCount + count);
+      setLastHint({ sign: "+", count, key: Date.now() });
     } else if (deltaX > 0 && slot.zone === "work") {
-      const newWork = slot.zoneIndex;
-      const count = workCount - newWork;
-      setWorkCount(newWork);
-      setLastHint({ sign: "-", count, boundary: newWork, key: Date.now() });
+      const count = workCount - slot.zoneIndex;
+      setWorkCount(slot.zoneIndex);
+      setLastHint({ sign: "-", count, key: Date.now() });
     }
   }
 
@@ -54,6 +46,14 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
   return (
     <div className="helper-panel" role="dialog" aria-label="Счётный помощник">
       <div className="helper-panel__sheet">
+        <button
+          type="button"
+          className="helper-panel__close"
+          onClick={onClose}
+          aria-label="Закрыть помощник"
+        >
+          ✕
+        </button>
         <div className="operation-stick">
           <div
             ref={wrapRef}
@@ -90,26 +90,17 @@ export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onCl
                 </div>
               ))}
             </div>
-            {showMoveHint && lastHint && (
-              <div
-                key={lastHint.key}
-                className={`helper-panel__hint helper-panel__hint--${lastHint.sign === "+" ? "add" : "sub"}`}
-                style={{ left: `${hintLeftPercent}%` }}
-              >
-                {lastHint.sign}{lastHint.count}
-              </div>
-            )}
           </div>
         </div>
-        <div className="helper-panel__controls">
-          <button
-            type="button"
-            className="helper-panel__close"
-            onClick={onClose}
-            aria-label="Закрыть помощник"
-          >
-            ✕
-          </button>
+        <div className="helper-panel__hint-area">
+          {showMoveHint && lastHint && (
+            <span
+              key={lastHint.key}
+              className={`helper-panel__hint helper-panel__hint--${lastHint.sign === "+" ? "add" : "sub"}`}
+            >
+              {lastHint.sign}{lastHint.count}
+            </span>
+          )}
         </div>
       </div>
     </div>
