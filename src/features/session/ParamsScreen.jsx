@@ -446,6 +446,7 @@ export default function ParamsScreen() {
               label={def.label?.ru ?? key}
               hint={def.hint?.ru ?? ""}
               value={params[key] ?? def.default ?? false}
+              disabled={def.dependsOn ? !params[def.dependsOn] : false}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
             />
           );
@@ -512,6 +513,7 @@ export default function ParamsScreen() {
               label={def.label?.ru ?? key}
               hint={def.hint?.ru ?? ""}
               value={params[key] ?? def.default ?? false}
+              disabled={def.dependsOn ? !params[def.dependsOn] : false}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
             />
           );

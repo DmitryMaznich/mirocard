@@ -515,7 +515,7 @@ function FindSignTask({ task, onCorrect, onIncorrect }) {
         </button>
       )}
       {helperOpen && (
-        <HelperPanel maxNumber={task.maxNumber} onClose={() => setHelperOpen(false)} />
+        <HelperPanel maxNumber={task.maxNumber} showMoveHint={task.showMoveHint} onClose={() => setHelperOpen(false)} />
       )}
     </div>
   );
@@ -588,7 +588,7 @@ function ResultTask({ task, onCorrect, onIncorrect }) {
         </button>
       )}
       {helperOpen && (
-        <HelperPanel maxNumber={task.maxNumber} onClose={() => setHelperOpen(false)} />
+        <HelperPanel maxNumber={task.maxNumber} showMoveHint={task.showMoveHint} onClose={() => setHelperOpen(false)} />
       )}
     </div>
   );
@@ -651,7 +651,7 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
         </button>
       )}
       {helperOpen && (
-        <HelperPanel maxNumber={task.maxNumber} onClose={() => setHelperOpen(false)} />
+        <HelperPanel maxNumber={task.maxNumber} showMoveHint={task.showMoveHint} onClose={() => setHelperOpen(false)} />
       )}
     </div>
   );

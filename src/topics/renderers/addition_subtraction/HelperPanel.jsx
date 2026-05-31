@@ -1,11 +1,10 @@
 import { useRef, useState } from "react";
 import { buildStickSlots, getStickBeadColor, getStickBeadCount, STICK_DRAG_THRESHOLD, STICK_GAP_SLOTS } from "./stickModel";
 
-export default function HelperPanel({ maxNumber = 10, onClose }) {
+export default function HelperPanel({ maxNumber = 10, showMoveHint = false, onClose }) {
   const helperTask = { railSize: maxNumber, maxNumber, operation: "add", start: 0, delta: maxNumber, result: maxNumber };
   const [workCount, setWorkCount] = useState(0);
   const [lastHint, setLastHint] = useState(null); // { sign, count, boundary, key }
-  const [showHint, setShowHint] = useState(true);
   const wrapRef = useRef(null);
   const dragRef = useRef(null);
   const slots = buildStickSlots(helperTask, workCount);
@@ -91,7 +90,7 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
                 </div>
               ))}
             </div>
-            {showHint && lastHint && (
+            {showMoveHint && lastHint && (
               <div
                 key={lastHint.key}
                 className={`helper-panel__hint helper-panel__hint--${lastHint.sign === "+" ? "add" : "sub"}`}
@@ -103,24 +102,14 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
           </div>
         </div>
         <div className="helper-panel__controls">
-          <div className="helper-panel__btn-row">
-            <button
-              type="button"
-              className={`helper-panel__hint-toggle${showHint ? " helper-panel__hint-toggle--on" : ""}`}
-              onClick={() => setShowHint(s => !s)}
-              aria-label={showHint ? "Скрыть подсказку" : "Показать подсказку"}
-            >
-              ±
-            </button>
-            <button
-              type="button"
-              className="helper-panel__close"
-              onClick={onClose}
-              aria-label="Закрыть помощник"
-            >
-              ✕
-            </button>
-          </div>
+          <button
+            type="button"
+            className="helper-panel__close"
+            onClick={onClose}
+            aria-label="Закрыть помощник"
+          >
+            ✕
+          </button>
         </div>
       </div>
     </div>
