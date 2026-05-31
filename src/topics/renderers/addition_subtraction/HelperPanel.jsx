@@ -1,12 +1,20 @@
 import { useRef, useState } from "react";
-import { buildStickSlots, getStickBeadColor, STICK_DRAG_THRESHOLD } from "./stickModel";
+import { buildStickSlots, getStickBeadColor, getStickBeadCount, STICK_DRAG_THRESHOLD, STICK_GAP_SLOTS } from "./stickModel";
 
 export default function HelperPanel({ maxNumber = 10, onClose }) {
   const helperTask = { railSize: maxNumber, maxNumber, operation: "add", start: 0, delta: maxNumber, result: maxNumber };
   const [workCount, setWorkCount] = useState(0);
+  const [lastHint, setLastHint] = useState(null); // { sign, count, boundary, key }
+  const [showHint, setShowHint] = useState(true);
   const wrapRef = useRef(null);
   const dragRef = useRef(null);
   const slots = buildStickSlots(helperTask, workCount);
+
+  const beadCount = getStickBeadCount(helperTask);
+  const totalSlots = beadCount + STICK_GAP_SLOTS;
+  const hintLeftPercent = lastHint
+    ? ((lastHint.boundary + STICK_GAP_SLOTS / 2) / totalSlots) * 100
+    : null;
 
   function startDrag(e, slot) {
     e.preventDefault();
@@ -25,11 +33,15 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
 
     const { slot } = d;
     if (deltaX < 0 && slot.zone === "side") {
-      // swipe left — push side beads into work zone
-      setWorkCount(c => c + slot.zoneIndex + 1);
+      const count = slot.zoneIndex + 1;
+      const newWork = workCount + count;
+      setWorkCount(newWork);
+      setLastHint({ sign: "+", count, boundary: newWork, key: Date.now() });
     } else if (deltaX > 0 && slot.zone === "work") {
-      // swipe right — push work beads back to side
-      setWorkCount(slot.zoneIndex);
+      const newWork = slot.zoneIndex;
+      const count = workCount - newWork;
+      setWorkCount(newWork);
+      setLastHint({ sign: "-", count, boundary: newWork, key: Date.now() });
     }
   }
 
@@ -79,17 +91,36 @@ export default function HelperPanel({ maxNumber = 10, onClose }) {
                 </div>
               ))}
             </div>
+            {showHint && lastHint && (
+              <div
+                key={lastHint.key}
+                className={`helper-panel__hint helper-panel__hint--${lastHint.sign === "+" ? "add" : "sub"}`}
+                style={{ left: `${hintLeftPercent}%` }}
+              >
+                {lastHint.sign}{lastHint.count}
+              </div>
+            )}
           </div>
         </div>
         <div className="helper-panel__controls">
-          <button
-            type="button"
-            className="helper-panel__close"
-            onClick={onClose}
-            aria-label="Закрыть помощник"
-          >
-            ✕
-          </button>
+          <div className="helper-panel__btn-row">
+            <button
+              type="button"
+              className={`helper-panel__hint-toggle${showHint ? " helper-panel__hint-toggle--on" : ""}`}
+              onClick={() => setShowHint(s => !s)}
+              aria-label={showHint ? "Скрыть подсказку" : "Показать подсказку"}
+            >
+              ±
+            </button>
+            <button
+              type="button"
+              className="helper-panel__close"
+              onClick={onClose}
+              aria-label="Закрыть помощник"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       </div>
     </div>
