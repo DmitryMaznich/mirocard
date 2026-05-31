@@ -1,6 +1,7 @@
 import { kv } from "@/core/db";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords } from "@/topics/topicLoader";
+import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
 
 export function isDeletedStudent(student) {
   return Boolean(student?.deletedAt);
@@ -147,12 +148,13 @@ export function normalizeBootstrap(raw = {}) {
     conceptProgress: indexConceptProgress(raw.conceptProgress),
     sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-200) : [],
     lastContext: raw.lastContext ?? null,
+    activeSession: normalizeActiveSessionSnapshot(raw.activeSession),
   };
 }
 
 export function applyBootstrapToStore(raw) {
   const bootstrap = normalizeBootstrap(raw);
-  const lastContext = bootstrap.lastContext;
+  const resumeContext = bootstrap.activeSession?.context ?? bootstrap.lastContext;
 
   useAppStore.setState((state) => ({
     ...state,
@@ -166,19 +168,20 @@ export function applyBootstrapToStore(raw) {
     studentTopicLinks: bootstrap.studentTopicLinks,
     conceptProgress: bootstrap.conceptProgress,
     sessions: bootstrap.sessions,
-    // Only restore active context when lastContext is explicitly present (local bootstrap).
-    // A server-side apply without lastContext must not clear the user's current navigation.
-    ...(lastContext != null ? {
-      activeStudentId: lastContext.studentId ?? null,
-      activeTopicId:   lastContext.topicId   ?? null,
-      activeTextId:    lastContext.textId     ?? null,
-      activeModeId:    lastContext.modeId     ?? null,
+    ...("activeSession" in raw ? { activeSessionSnapshot: bootstrap.activeSession } : {}),
+    // Only restore active context from local bootstrap artifacts.
+    // A server-side apply without lastContext/activeSession must not clear current navigation.
+    ...((bootstrap.activeSession != null || bootstrap.lastContext != null) ? {
+      activeStudentId: resumeContext?.studentId ?? null,
+      activeTopicId:   resumeContext?.topicId   ?? null,
+      activeTextId:    resumeContext?.textId    ?? null,
+      activeModeId:    resumeContext?.modeId    ?? null,
     } : {}),
   }));
 }
 
 export async function loadLocalBootstrap(db) {
-  const [token, account, settings, students, ownedTopics, studentTopicLinks, conceptProgress, sessions, lastContext, topicRecords] =
+  const [token, account, settings, students, ownedTopics, studentTopicLinks, conceptProgress, sessions, lastContext, activeSession, topicRecords] =
     await Promise.all([
       kv.get(db, "token"),
       kv.get(db, "account"),
@@ -189,6 +192,7 @@ export async function loadLocalBootstrap(db) {
       kv.get(db, "conceptProgress"),
       kv.get(db, "sessions"),
       kv.get(db, "lastContext"),
+      kv.get(db, "activeSession"),
       listTopicRecords(db),
     ]);
 
@@ -203,6 +207,7 @@ export async function loadLocalBootstrap(db) {
     conceptProgress,
     sessions,
     lastContext,
+    activeSession,
   });
 }
 
@@ -219,6 +224,7 @@ export async function persistBootstrap(db, raw) {
   if ("conceptProgress" in raw) writes.push(kv.set(db, "conceptProgress", bootstrap.conceptProgress));
   if ("sessions" in raw) writes.push(kv.set(db, "sessions", bootstrap.sessions));
   if ("lastContext" in raw) writes.push(kv.set(db, "lastContext", bootstrap.lastContext));
+  if ("activeSession" in raw) writes.push(kv.set(db, "activeSession", bootstrap.activeSession));
   if (Array.isArray(raw.kvStore)) {
     for (const { key, value } of raw.kvStore) {
       writes.push(kv.set(db, key, value));

@@ -7,6 +7,7 @@ import { flushQueue, setupOnlineListener } from "@/core/syncApi";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
 import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
+import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import HoldButton from "@/shared/components/HoldButton";
@@ -101,16 +102,24 @@ export default function App() {
   const sessionExitPromptOpen  = useAppStore((s) => s.sessionExitPromptOpen);
   const openSessionExitPrompt  = useAppStore((s) => s.openSessionExitPrompt);
   const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
+  const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   useEffect(() => {
     if (screen !== "session") resetSession();
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const finishSessionFromPrompt = useCallback(() => {
+  const finishSessionFromPrompt = useCallback(async () => {
     closeSessionExitPrompt();
+    clearActiveSessionSnapshot();
+    try {
+      const db = await getDb();
+      await clearPersistedActiveSessionSnapshot(db);
+    } catch {
+      // Local cleanup is best-effort; navigation should still proceed.
+    }
     setScreen("home");
-  }, [closeSessionExitPrompt, setScreen]);
+  }, [clearActiveSessionSnapshot, closeSessionExitPrompt, setScreen]);
 
   const showSessionExitPrompt = screen === "session" && sessionExitPromptOpen;
   const orientationLock = getActiveOrientationLock({ screen, topicRecords, activeTopicId, activeModeId });
@@ -140,7 +149,7 @@ export default function App() {
         if (bootstrap.token && bootstrap.account) {
           setApiToken(bootstrap.token);
           setupOnlineListener();
-          setScreen("home");
+          setScreen(bootstrap.activeSession?.sessionState ? "session" : "home");
 
           (async () => {
             try {
@@ -227,6 +236,8 @@ export default function App() {
         <Modal
           title="Завершить занятие?"
           onClose={closeSessionExitPrompt}
+          closeOnOverlay={false}
+          showCloseButton={false}
           actions={
             <>
               <Button variant="secondary" onClick={closeSessionExitPrompt}>Остаться</Button>

@@ -38,6 +38,7 @@ describe("bootstrap helpers", () => {
       activeStudentId: null,
       activeTopicId: null,
       activeModeId: null,
+      activeSessionSnapshot: null,
       studentTopicLinks: {},
       conceptProgress: {},
       sessions: [],
@@ -85,6 +86,7 @@ describe("bootstrap helpers", () => {
     expect(result.sessions).toHaveLength(200);
     expect(result.sessions[0].id).toBe(6);
     expect(result.lastContext).toBeNull();
+    expect(result.activeSession).toBeNull();
   });
 
   it("mergeStudents removes local active records when server sends a tombstone", () => {
@@ -159,6 +161,10 @@ describe("bootstrap helpers", () => {
       conceptProgress: [{ studentId: "s1", topicId: "t1", conceptId: "c1", level: 3 }],
       sessions: [{ id: "session-1" }],
       lastContext: { studentId: "s1", topicId: "t1", modeId: "intro" },
+      activeSession: {
+        context: { studentId: "s1", topicId: "t1", textId: null, modeId: "intro" },
+        sessionState: { status: "task_active", topicVersion: "1.0.0" },
+      },
     });
 
     const state = useAppStore.getState();
@@ -173,6 +179,27 @@ describe("bootstrap helpers", () => {
     expect(state.activeStudentId).toBe("s1");
     expect(state.activeTopicId).toBe("t1");
     expect(state.activeModeId).toBe("intro");
+    expect(state.activeSessionSnapshot).toEqual({
+      schemaVersion: 1,
+      updatedAt: null,
+      context: { studentId: "s1", topicId: "t1", textId: null, modeId: "intro" },
+      sessionState: { status: "task_active", topicVersion: "1.0.0" },
+    });
+  });
+
+  it("applyBootstrapToStore restores active context from activeSession when present", () => {
+    applyBootstrapToStore({
+      activeSession: {
+        context: { studentId: "s9", topicId: "t9", textId: "text-1", modeId: "read_text" },
+        sessionState: { status: "task_active", topicVersion: "1.0.0" },
+      },
+    });
+
+    const state = useAppStore.getState();
+    expect(state.activeStudentId).toBe("s9");
+    expect(state.activeTopicId).toBe("t9");
+    expect(state.activeTextId).toBe("text-1");
+    expect(state.activeModeId).toBe("read_text");
   });
 
   it("applyBootstrapToStore without lastContext preserves current active context", () => {
@@ -227,6 +254,10 @@ describe("bootstrap helpers", () => {
       conceptProgress: [{ studentId: "s2", topicId: "topic-1", conceptId: "c2", level: 1 }],
       sessions: Array.from({ length: 201 }, (_, index) => ({ id: index + 1 })),
       lastContext: { studentId: "s2", topicId: "topic-1", modeId: "find_n" },
+      activeSession: {
+        context: { studentId: "s2", topicId: "topic-1", textId: null, modeId: "find_n" },
+        sessionState: { status: "task_active", topicVersion: "1.0.0", taskIndex: 3 },
+      },
     });
 
     expect(await kv.get(db, "studentTopicLinks")).toEqual({
@@ -246,6 +277,12 @@ describe("bootstrap helpers", () => {
     expect(bootstrap.sessions).toHaveLength(200);
     expect(bootstrap.sessions[0].id).toBe(2);
     expect(bootstrap.lastContext).toEqual({ studentId: "s2", topicId: "topic-1", modeId: "find_n" });
+    expect(bootstrap.activeSession).toEqual({
+      schemaVersion: 1,
+      updatedAt: null,
+      context: { studentId: "s2", topicId: "topic-1", textId: null, modeId: "find_n" },
+      sessionState: { status: "task_active", topicVersion: "1.0.0", taskIndex: 3 },
+    });
     expect(bootstrap.topicRecords).toHaveLength(1);
     expect(bootstrap.topicRecords[0].id).toBe("topic-1");
   });

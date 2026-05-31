@@ -8,8 +8,83 @@ import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, c
 import { buildRewardProgress } from "./rewardProgress";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
+import {
+  clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot,
+  createActiveSessionSnapshot,
+  persistActiveSessionSnapshot,
+  restoreActiveSessionState,
+} from "./activeSession";
 
 const INCORRECT_FEEDBACK_MS = 1500;
+
+function buildGeneratedSessionState({
+  topicRecord,
+  mode,
+  activeStudentId,
+  activeTopicId,
+  activeTextId,
+  activeText,
+  activeStudent,
+  link,
+  selectedConceptIds,
+  sessionParams,
+}) {
+  if (!topicRecord || !mode) return null;
+
+  const renderer = topicRecord.meta.renderer;
+  let tasks;
+
+  if (renderer === "reading") {
+    const generateTasks = ENGINE_REGISTRY.reading;
+    tasks = generateTasks
+      ? generateTasks(mode, topicRecord, activeTextId, sessionParams, activeText)
+      : [];
+  } else if (renderer === "flashcards") {
+    const allConcepts = deriveConcepts(topicRecord.cards);
+    const concepts = allConcepts.filter((concept) => selectedConceptIds.includes(concept.conceptId));
+    const generateTasks = ENGINE_REGISTRY.flashcards;
+    tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
+  } else if (renderer === "function_cards") {
+    const allConcepts = deriveConcepts(topicRecord.cards);
+    const concepts = allConcepts.filter((concept) => selectedConceptIds.includes(concept.conceptId));
+    const generateTasks = ENGINE_REGISTRY.function_cards;
+    tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
+  } else if (renderer === "sentence_puzzle") {
+    const generateTasks = ENGINE_REGISTRY.sentence_puzzle;
+    const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;
+    tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent, spSelected) : [];
+  } else if (renderer === "magnetic_alphabet") {
+    const generateTasks = ENGINE_REGISTRY.magnetic_alphabet;
+    tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
+  } else if (renderer === "narrative") {
+    const generateTasks = ENGINE_REGISTRY.narrative;
+    tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, selectedConceptIds) : [];
+  } else {
+    const generateTasks = ENGINE_REGISTRY[renderer];
+    const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
+    const selectedCards = topicRecord.cards.filter((card) => selectedConceptIds.includes(card.conceptId));
+    tasks = generateTasks
+      ? generateTasks(mode, selectedCards.length ? selectedCards : topicRecord.cards, sessionSize, sessionParams)
+      : [];
+  }
+
+  const baseState = createSessionState(
+    tasks,
+    mode,
+    activeStudentId,
+    activeTopicId,
+    topicRecord.meta.version,
+    selectedConceptIds,
+    renderer === "reading" ? activeTextId : null,
+  );
+
+  if (mode.type === "assemble_text") {
+    const totalWords = tasks.reduce((sum, task) => sum + (task.tokenCount ?? 0), 0);
+    return { ...baseState, totalWords };
+  }
+
+  return baseState;
+}
 
 export function useSessionEngine() {
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
@@ -21,6 +96,9 @@ export function useSessionEngine() {
   const students          = useAppStore((s) => s.students);
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
+  const activeSessionSnapshot = useAppStore((s) => s.activeSessionSnapshot);
+  const setActiveSessionSnapshot = useAppStore((s) => s.setActiveSessionSnapshot);
+  const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
   const tapToAdvance      = useAppStore((s) => s.settings.tapToAdvance ?? true);
   const autoAdvanceDelay  = useAppStore((s) => s.settings.autoAdvanceDelay ?? 3);
@@ -57,54 +135,27 @@ export function useSessionEngine() {
   const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
-    if (!topicRecord || !mode) return null;
+    const generatedState = buildGeneratedSessionState({
+      topicRecord,
+      mode,
+      activeStudentId,
+      activeTopicId,
+      activeTextId,
+      activeText,
+      activeStudent,
+      link,
+      selectedConceptIds,
+      sessionParams,
+    });
+    if (!generatedState) return null;
 
-    const renderer = topicRecord.meta.renderer;
-    let tasks;
-
-    if (renderer === "reading") {
-      const generateTasks = ENGINE_REGISTRY["reading"];
-      tasks = generateTasks
-        ? generateTasks(mode, topicRecord, activeTextId, sessionParams, activeText)
-        : [];
-    } else if (renderer === "flashcards") {
-      const allConcepts = deriveConcepts(topicRecord.cards);
-      const concepts = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
-      const generateTasks = ENGINE_REGISTRY["flashcards"];
-      tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
-    } else if (renderer === "function_cards") {
-      const allConcepts = deriveConcepts(topicRecord.cards);
-      const concepts = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
-      const generateTasks = ENGINE_REGISTRY["function_cards"];
-      tasks = generateTasks(mode.type, concepts, topicRecord.cards, sessionParams);
-    } else if (renderer === "sentence_puzzle") {
-      const generateTasks = ENGINE_REGISTRY["sentence_puzzle"];
-      const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;
-      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, activeStudent, spSelected) : [];
-    } else if (renderer === "magnetic_alphabet") {
-      const generateTasks = ENGINE_REGISTRY["magnetic_alphabet"];
-      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];
-    } else if (renderer === "narrative") {
-      const generateTasks = ENGINE_REGISTRY["narrative"];
-      tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, selectedConceptIds) : [];
-    } else {
-      const generateTasks = ENGINE_REGISTRY[renderer];
-      const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
-      const selectedCards = topicRecord.cards.filter((c) => selectedConceptIds.includes(c.conceptId));
-      tasks = generateTasks
-        ? generateTasks(mode, selectedCards.length ? selectedCards : topicRecord.cards, sessionSize, sessionParams)
-        : [];
-    }
-
-    const baseState = createSessionState(
-      tasks, mode, activeStudentId, activeTopicId,
-      topicRecord.meta.version, selectedConceptIds, isReading ? activeTextId : null
-    );
-    if (mode.type === "assemble_text") {
-      const totalWords = tasks.reduce((sum, t) => sum + (t.tokenCount ?? 0), 0);
-      return { ...baseState, totalWords };
-    }
-    return baseState;
+    return restoreActiveSessionState(activeSessionSnapshot, {
+      studentId: activeStudentId,
+      topicId: activeTopicId,
+      textId: isReading ? activeTextId : null,
+      modeId: activeModeId,
+      topicVersion: topicRecord.meta.version,
+    }) ?? generatedState;
   });
 
   // Recovery: if the session was built without adult cards (closeAdults not yet
@@ -161,10 +212,50 @@ export function useSessionEngine() {
     const existing = (await kv.get(db, "sessions")) ?? [];
     const updated = [...existing, record].slice(-200);
     await kv.set(db, "sessions", updated);
+    await clearPersistedActiveSessionSnapshot(db);
+    clearActiveSessionSnapshot();
     appendSession(record);
     setCompletedRecord(record);
     pushOp("session.append", { ...record, mode: record.modeId });
   }
+
+  useEffect(() => {
+    if (!sessionState || !topicRecord || !activeModeId) return undefined;
+    if (sessionState.status === "completed") return undefined;
+
+    const snapshot = createActiveSessionSnapshot(
+      {
+        studentId: activeStudentId,
+        topicId: activeTopicId,
+        textId: isReading ? activeTextId : null,
+        modeId: activeModeId,
+      },
+      sessionState,
+    );
+
+    setActiveSessionSnapshot(snapshot);
+
+    let cancelled = false;
+    getDb()
+      .then((db) => {
+        if (cancelled) return;
+        return persistActiveSessionSnapshot(db, snapshot);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeModeId,
+    activeStudentId,
+    activeTextId,
+    activeTopicId,
+    isReading,
+    sessionState,
+    setActiveSessionSnapshot,
+    topicRecord,
+  ]);
 
   const onCorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => {

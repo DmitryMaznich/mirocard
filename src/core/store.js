@@ -7,13 +7,23 @@ export const useAppStore = create((set) => ({
   sessionExitPromptOpen: false,
   openSessionExitPrompt:  () => set({ sessionExitPromptOpen: true }),
   closeSessionExitPrompt: () => set({ sessionExitPromptOpen: false }),
+  activeSessionSnapshot: null,
+  setActiveSessionSnapshot: (activeSessionSnapshot) => set({ activeSessionSnapshot }),
+  clearActiveSessionSnapshot: () => set({ activeSessionSnapshot: null }),
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
   account: null,
   token: null,
   setAccount: (account) => set({ account }),
   setToken: (token) => set({ token }),
-  logout: () => set({ account: null, token: null, students: [], ownedTopics: [], screen: "login" }),
+  logout: () => set({
+    account: null,
+    token: null,
+    students: [],
+    ownedTopics: [],
+    activeSessionSnapshot: null,
+    screen: "login",
+  }),
 
   // ─── Settings ──────────────────────────────────────────────────────────────
   settings: {
