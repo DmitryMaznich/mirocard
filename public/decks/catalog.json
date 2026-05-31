@@ -200,6 +200,14 @@
         "ru": "Сначала — потом"
       },
       "url": "./decks/first_then_v1.0.7.zip"
+    },
+    {
+      "id": "shower",
+      "version": "1.0.1",
+      "title": {
+        "ru": "Душ"
+      },
+      "url": "./decks/shower_v1.0.1.zip"
     }
   ]
 }
