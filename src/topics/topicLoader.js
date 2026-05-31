@@ -627,6 +627,7 @@ const DEFAULT_MODES = {
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
         showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
+        showMoveHint: { type: "boolean", default: false, dependsOn: "showHelper", label: { ru: "Подсказка последнего хода" }, hint: { ru: "Показывает +N / −N под палкой после каждого сдвига бусин" } },
       },
     },
     {
@@ -647,6 +648,7 @@ const DEFAULT_MODES = {
         },
         timer: { type: "number", min: 0, max: 60, default: 0, label: { ru: "Таймер (сек, 0 = выкл)" } },
         showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
+        showMoveHint: { type: "boolean", default: false, dependsOn: "showHelper", label: { ru: "Подсказка последнего хода" }, hint: { ru: "Показывает +N / −N под палкой после каждого сдвига бусин" } },
       },
     },
     {
@@ -667,6 +669,7 @@ const DEFAULT_MODES = {
         },
         timer: { type: "number", min: 0, max: 60, default: 0, label: { ru: "Таймер (сек, 0 = выкл)" } },
         showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
+        showMoveHint: { type: "boolean", default: false, dependsOn: "showHelper", label: { ru: "Подсказка последнего хода" }, hint: { ru: "Показывает +N / −N под палкой после каждого сдвига бусин" } },
       },
     },
     {
