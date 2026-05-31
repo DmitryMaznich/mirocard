@@ -51,15 +51,18 @@ function buildChooseTwoTask(target, sameObjOpposite, allEntries, optionCount) {
 }
 
 function generateChooseTwoTasks(cards, params) {
-  const repsPerPair = params.repsPerPair ?? 2;
+  const repsPerPair = params.repsPerPair ?? 1;
   const byObject    = groupByObjectId(cards);
   const entries     = [...byObject.entries()];
   const tasks       = [];
   for (const [, { left, right }] of entries) {
     if (!left || !right) continue;
-    for (let i = 0; i < repsPerPair; i++) {
-      tasks.push(buildChooseTwoTask(left,  right, entries, 2));
-      tasks.push(buildChooseTwoTask(right, left,  entries, 2));
+    // Each rep = 1 task. Randomise pole order so both get asked when repsPerPair >= 2.
+    const poles = shuffle([left, right]);
+    for (let i = 0; i < Math.min(repsPerPair, 2); i++) {
+      const target   = poles[i];
+      const opposite = target === left ? right : left;
+      tasks.push(buildChooseTwoTask(target, opposite, entries, 2));
     }
   }
   return shuffle(tasks);
