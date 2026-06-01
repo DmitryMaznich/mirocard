@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -31,8 +31,12 @@
         "showLabels": {
           "type": "boolean",
           "default": true,
-          "label": { "ru": "Подписи к карточкам" },
-          "hint": { "ru": "Выключи для лайт-режима — только картинки" }
+          "label": {
+            "ru": "Подписи к карточкам"
+          },
+          "hint": {
+            "ru": "Выключи для лайт-режима — только картинки"
+          }
         }
       }
     },
@@ -48,7 +52,10 @@
       "params": {
         "repsPerPair": {
           "type": "enum",
-          "values": [1, 2],
+          "values": [
+            1,
+            2
+          ],
           "default": 1,
           "label": {
             "ru": "Повторений на пару"
@@ -102,6 +109,43 @@
           "default": 6,
           "label": {
             "ru": "Карточек в сетке"
+          }
+        }
+      }
+    },
+    {
+      "id": "find_opposite",
+      "type": "find_opposite",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Найди неприятеля",
+        "instruction": "Перетащи противоположную карточку",
+        "icon": "media/icons/find_opposite.svg"
+      },
+      "params": {
+        "distractorCount": {
+          "type": "enum",
+          "values": [
+            2,
+            4,
+            6
+          ],
+          "default": 2,
+          "label": {
+            "ru": "Дистракторов"
+          },
+          "hint": {
+            "ru": "2 — легко, 6 — сложно"
+          }
+        },
+        "sameConcept": {
+          "type": "boolean",
+          "default": false,
+          "label": {
+            "ru": "Дистракторы из той же пары понятий"
+          },
+          "hint": {
+            "ru": "Включи для максимальной сложности"
           }
         }
       }
