@@ -15477,10 +15477,6 @@ button.operation-dot {
   .operation-stick-caption {
     font-size: 1rem;
   }
-  .operation-stick-caption--headline {
-    font-size: min(clamp(2.1rem, 13vw, 5.2rem), calc((100dvw - 24px) / 5.8));
-  }
-
   .operation-link-drill {
     min-height: 180px;
   }
@@ -15519,10 +15515,6 @@ button.operation-dot {
   .operation-expression {
     --operation-expression-font-size: min(clamp(1.8rem, 10vw, 4rem), calc((100dvh - 80px) / 5));
   }
-  .operation-stick-caption--headline {
-    font-size: min(clamp(1.8rem, 10vw, 4rem), calc((100dvh - 80px) / 5));
-  }
-
   .operation-link-drill {
     min-height: 160px;
     flex-direction: row;
@@ -15659,9 +15651,11 @@ button.operation-dot {
 .operation-stick-caption--subtract { color: #c04040; }
 .operation-stick-caption.show      { max-height: 80px; opacity: 1; margin: 4px 0; }
 .operation-stick-caption--headline {
-  font-size: min(clamp(2.2rem, 13vw, 12rem), calc((100dvw - 36px) / 5.8));
+  font-size: clamp(2.2rem, 8vw, 3.4rem);
   font-variant-numeric: tabular-nums;
-  max-height: 200px;
+}
+.operation-stick-caption--headline.show {
+  max-height: 120px;
 }
 
 @keyframes operation-answer-pop {
