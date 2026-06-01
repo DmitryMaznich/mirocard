@@ -175,6 +175,41 @@ function generateFindAllTasks(cards, params) {
   });
 }
 
+function generateFindOppositeTasks(cards, params) {
+  const distractorCount = params.distractorCount ?? 2;
+  const sameConcept     = params.sameConcept ?? false;
+  const byObject        = groupByObjectId(cards);
+  const tasks           = [];
+
+  for (const [, { left, right }] of byObject) {
+    if (!left || !right) continue;
+    const pair     = shuffle([left, right]);
+    const stimulus = pair[0];
+    const correct  = pair[1];
+
+    const distractors = sameConcept
+      ? shuffle(cards.filter(c =>
+          c.conceptId === stimulus.conceptId &&
+          c.pole      === correct.pole       &&
+          c.objectId  !== stimulus.objectId
+        )).slice(0, distractorCount)
+      : shuffle(cards.filter(c =>
+          c.conceptId !== stimulus.conceptId
+        )).slice(0, distractorCount);
+
+    tasks.push({
+      type:         "find_opposite",
+      stimulusCard: stimulus,
+      options:      shuffle([
+        { card: correct, isTarget: true },
+        ...distractors.map(c => ({ card: c, isTarget: false })),
+      ]),
+    });
+  }
+
+  return shuffle(tasks);
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   switch (mode.type) {
     case "intro":           return generateIntroTasks(cards);
@@ -182,6 +217,7 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
     case "choose_two":      return generateChooseTwoTasks(cards, params);
     case "sort":            return generateSortTask(cards, params);
     case "find_all":        return generateFindAllTasks(cards, params);
+    case "find_opposite":   return generateFindOppositeTasks(cards, params);
     default:                return [];
   }
 }
