@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji } from "./parseRecipeTxt";
 import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
 
 const UNDERSTAND_BUTTONS = [
@@ -501,7 +501,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
                 : <div className="instruction-step-img-placeholder" />
             ) : (
             <div className="instruction-step-text">{(() => {
-              const text = applyPortions(step.text, portions);
+              const text = applyFireEmoji(applyPortions(step.text, portions));
               const parts = text.split(/\. (?=[А-ЯЁA-Z])/g);
               if (parts.length === 1) return text;
               return parts.map((s, i, a) => (
@@ -528,7 +528,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
                       onClick={() => toggleItem(i)}
                     >
                       <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                      <span className="instruction-check-label">{applyPortions(item, portions)}</span>
+                      <span className="instruction-check-label">{applyFireEmoji(applyPortions(item, portions))}</span>
                       {!done && <span className="instruction-check-tap-hint">нажми</span>}
                     </li>
                   );
@@ -572,7 +572,7 @@ function InstructionTask({ task, topicId, onAdvance }) {
                   >
                     <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
                     {s.type !== "heading" && <span className="instruction-list-num">{i + 1}.</span>}
-                    <span className="instruction-list-text">{applyPortions(s.text, portions)}</span>
+                    <span className="instruction-list-text">{applyFireEmoji(applyPortions(s.text, portions))}</span>
                   </div>
                 );
               })}

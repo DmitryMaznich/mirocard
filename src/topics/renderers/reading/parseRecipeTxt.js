@@ -139,6 +139,20 @@ export function resolveStepOwner(ownerName, group, student) {
   return null;
 }
 
+const FIRE_MAP = [
+  [/очень сильный огонь/gi, "🔥🔥🔥🔥"],
+  [/сильный огонь/gi,       "🔥🔥🔥"],
+  [/средний огонь/gi,       "🔥🔥"],
+  [/слабый огонь/gi,        "🔥"],
+];
+
+export function applyFireEmoji(text) {
+  if (!text) return text ?? "";
+  let result = text;
+  for (const [pattern, emoji] of FIRE_MAP) result = result.replace(pattern, emoji);
+  return result;
+}
+
 function pluralizeRu(n, one, few, many) {
   const mod100 = Math.abs(Math.round(n)) % 100;
   const mod10  = mod100 % 10;
