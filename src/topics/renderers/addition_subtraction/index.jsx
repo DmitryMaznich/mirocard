@@ -262,7 +262,6 @@ function SignActionTask({ task, onCorrect, onIncorrect, onMistake }) {
     return (
       <div className="operation-stage operation-stage--stick">
         <div className="operation-stage-stick__main">
-          <OperationExpression task={task} missingResult={true} activeParts={["sign", "delta"]} />
           <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
             {actionWord} {task.delta}
           </div>
