@@ -9,10 +9,6 @@ import {
   isStickComplete,
 } from "./stickModel";
 
-const ACTION_MEANING_OPTIONS = [
-  { value: "add", label: "Прибавить" },
-  { value: "remove", label: "Убрать" },
-];
 
 const ACTION_OPTIONS_PAST = [
   { value: "add",    label: "Прибавили" },
@@ -23,10 +19,6 @@ const SIGN_OPTIONS = [
   { value: "+", label: "+" },
   { value: "-", label: "-" },
 ];
-
-function getActionInfinitive(task) {
-  return task.operation === "add" ? "Прибавить" : "Убрать";
-}
 
 function getRightLabel(task) {
   return task.operation === "add" ? "Берём отсюда" : "Сюда убираем";
@@ -208,7 +200,13 @@ function getSignActionLinkPrompt(task) {
   const isSignToAction = direction === "sign_to_action";
   const question = isSignToAction ? "Что значит этот знак:" : "Какой знак поставить для:";
   const answer = isSignToAction ? task.action : task.sign;
-  const options = isSignToAction ? ACTION_MEANING_OPTIONS : SIGN_OPTIONS;
+  const actionInfinitive = task.operation === "add" ? "Прибавить" : "Убрать";
+  const options = isSignToAction
+    ? [
+        { value: "add",    label: `Прибавить ${task.delta}` },
+        { value: "remove", label: `Убрать ${task.delta}` },
+      ]
+    : SIGN_OPTIONS;
   const choiceVariant = isSignToAction ? "action-words" : "large-signs";
 
   return {
@@ -220,16 +218,93 @@ function getSignActionLinkPrompt(task) {
         <div className="operation-link-drill__question">{question}</div>
         {isSignToAction ? (
           <div className={`operation-link-drill__symbol operation-link-drill__symbol--${task.operation}`}>
-            {task.sign}
+            {task.sign}{task.delta}
           </div>
         ) : (
           <div className={`operation-link-drill__verb operation-link-drill__verb--${task.operation}`}>
-            {getActionInfinitive(task)}
+            {actionInfinitive} {task.delta}
           </div>
         )}
       </div>
     ),
   };
+}
+
+function SignActionTask({ task, onCorrect, onIncorrect, onMistake }) {
+  const [phase, setPhase] = useState("choice");
+  const [choiceSelected, setChoiceSelected] = useState(null);
+  const [helperOpen, setHelperOpen] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  const prompt = getSignActionLinkPrompt(task);
+  const actionWord = task.operation === "add" ? "Прибавь" : "Убери";
+
+  function handleChoice(value) {
+    if (choiceSelected != null) return;
+    setChoiceSelected(value);
+    if (value === prompt.answer) {
+      if (task.showStickPhase) {
+        timerRef.current = setTimeout(() => setPhase("stick"), 500);
+      } else {
+        onCorrect(task.conceptId, task.cardId);
+      }
+    } else {
+      onIncorrect(task.conceptId, task.cardId);
+    }
+  }
+
+  if (phase === "stick") {
+    return (
+      <div className="operation-stage operation-stage--stick">
+        <div className="operation-stage-stick__main">
+          <OperationExpression task={task} missingResult={true} activeParts={["sign", "delta"]} />
+          <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
+            {actionWord} {task.delta}
+          </div>
+          <LiveBeadTool
+            key={`sign-action-stick-${task.cardId}-${task.start}-${task.delta}`}
+            task={task}
+            initialWorkCount={task.start}
+            disabled={false}
+            onAnswer={() => onCorrect(task.conceptId, task.cardId)}
+            onMistake={onMistake}
+          />
+        </div>
+        {task.showHelper && !helperOpen && (
+          <button
+            type="button"
+            className="helper-toggle-btn"
+            onClick={() => setHelperOpen(true)}
+            aria-label="Открыть помощник"
+          >
+            🧮
+          </button>
+        )}
+        {helperOpen && (
+          <HelperPanel
+            maxNumber={task.maxNumber}
+            showMoveHint={task.showMoveHint}
+            onClose={() => setHelperOpen(false)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="operation-stage">
+      {prompt.node}
+      <ChoiceGrid
+        options={prompt.options}
+        selected={choiceSelected}
+        answer={prompt.answer}
+        variant={prompt.choiceVariant}
+        onAnswer={handleChoice}
+      />
+    </div>
+  );
 }
 
 function ChoiceGrid({ options, selected, answer, onAnswer, variant }) {
@@ -658,64 +733,32 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
 }
 
 function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
-  const [selected, setSelected] = useState(null);
   const type = task.type;
-
-  function finish(value, answer) {
-    if (selected != null) return;
-    setSelected(value);
-    if (value === answer) {
-      onCorrect(task.conceptId, task.cardId);
-    } else {
-      onIncorrect(task.conceptId, task.cardId);
-    }
-  }
 
   if (type === "operation_worksheet") {
     return <WorksheetTask task={task} />;
   }
-
   if (type === "operation_observe") {
     return <PlaceholderTask />;
   }
-
   if (type === "operation_do_action") {
     return <ManipulationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
   }
-
   if (type === "operation_name_action") {
     return <PlaceholderTask />;
   }
-
   if (type === "operation_action_from_sign") {
-    const prompt = getSignActionLinkPrompt(task);
-
-    return (
-      <div className="operation-stage">
-        {prompt.node}
-        <ChoiceGrid
-          options={prompt.options}
-          selected={selected}
-          answer={prompt.answer}
-          variant={prompt.choiceVariant}
-          onAnswer={(value) => finish(value, prompt.answer)}
-        />
-      </div>
-    );
+    return <SignActionTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
   }
-
   if (type === "operation_find_sign") {
     return <FindSignTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
-
   if (type === "operation_result") {
     return <ResultTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
-
   if (type === "operation_chain") {
     return <ChainTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
-
   return null;
 }
 

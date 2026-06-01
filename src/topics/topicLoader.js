@@ -615,6 +615,11 @@ const DEFAULT_MODES = {
           default: "alternating",
           label: { ru: "Направление" },
         },
+        maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        showStickPhase: { type: "boolean", default: false, label: { ru: "Фаза со счётной палкой" }, hint: { ru: "После выбора слова — сдвинуть фишки в правильную сторону" } },
+        showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" }, showWhen: { showStickPhase: true } },
+        showMoveHint: { type: "boolean", default: false, dependsOn: "showHelper", label: { ru: "Подсказка последнего хода" }, hint: { ru: "Показывает +N / −N под палкой после каждого сдвига бусин" }, showWhen: { showStickPhase: true } },
       },
     },
     {

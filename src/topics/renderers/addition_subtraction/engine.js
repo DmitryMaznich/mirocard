@@ -64,6 +64,7 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
     showInstruction: params.showInstruction === false ? false : true,
     inputMode: params.inputMode ?? "choices",
     timer: params.timer ?? null,
+    showStickPhase: Boolean(params.showStickPhase),
   };
 
   let delta = randomInt(1, changeMax);
