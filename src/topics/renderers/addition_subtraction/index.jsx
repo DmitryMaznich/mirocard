@@ -262,7 +262,7 @@ function SignActionTask({ task, onCorrect, onIncorrect, onMistake }) {
     return (
       <div className="operation-stage operation-stage--stick">
         <div className="operation-stage-stick__main">
-          <div className={`operation-stick-caption operation-stick-caption--${task.operation} show`}>
+          <div className={`operation-stick-caption operation-stick-caption--${task.operation} operation-stick-caption--headline show`}>
             {actionWord} {task.delta}
           </div>
           <LiveBeadTool
