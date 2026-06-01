@@ -206,7 +206,10 @@ function getSignActionLinkPrompt(task) {
         { value: "add",    label: `Прибавить ${task.delta}` },
         { value: "remove", label: `Убрать ${task.delta}` },
       ]
-    : SIGN_OPTIONS;
+    : [
+        { value: "+", label: `+${task.delta}` },
+        { value: "-", label: `-${task.delta}` },
+      ];
   const choiceVariant = isSignToAction ? "action-words" : "large-signs";
 
   return {
