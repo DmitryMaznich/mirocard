@@ -18,8 +18,9 @@ import {
 } from "./catalogService";
 
 function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAnalytics, hasUpdate }) {
+  const isBuiltin = Boolean(record.meta.builtin);
   return (
-    <li className={`topic-item ${isActive ? "topic-item--active" : ""}`} onClick={() => onSelect(record)}>
+    <li className={`topic-item ${isActive ? "topic-item--active" : ""}${isBuiltin ? " topic-item--builtin" : ""}`} onClick={() => onSelect(record)}>
       <TopicCover
         topicId={record.meta.id}
         avatarPath={record.meta.avatar}
@@ -29,13 +30,13 @@ function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAn
       <div className="topic-item__info">
         <div className="topic-item__title">{getTopicTitle(record.meta.title)}</div>
         <div className="topic-item__meta">
-          v{record.meta.version} · {record.meta.conceptCount ?? record.cards.length} понятий
+          {isBuiltin ? "встроенная" : `v${record.meta.version} · ${record.meta.conceptCount ?? record.cards.length} понятий`}
           {hasUpdate && <span className="tab-badge" style={{ marginLeft: 6 }}>обновление</span>}
         </div>
       </div>
       <button className="icon-btn icon-btn--info" onClick={(e) => { e.stopPropagation(); onInfo(record); }} title="О теме">i</button>
-      <button className="icon-btn" onClick={(e) => { e.stopPropagation(); onAnalytics(record); }} title="Аналитика">📊</button>
-      <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>
+      {!isBuiltin && <button className="icon-btn" onClick={(e) => { e.stopPropagation(); onAnalytics(record); }} title="Аналитика">📊</button>}
+      {!isBuiltin && <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>}
     </li>
   );
 }
