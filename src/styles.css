@@ -16009,8 +16009,7 @@ button.operation-dot {
 .operation-stage--manual {
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  padding-bottom: clamp(80px, 18vh, 140px);
+  padding-bottom: 120px;
 }
 
 .operation-manual__stars {
@@ -16045,8 +16044,18 @@ button.operation-dot {
 }
 
 .operation-manual__btns {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
-  gap: 32px;
+  justify-content: center;
+  gap: 40px;
+  padding: 16px 24px env(safe-area-inset-bottom, 20px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
 }
 
 .operation-manual__btn {
