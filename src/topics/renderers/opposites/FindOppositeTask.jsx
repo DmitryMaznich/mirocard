@@ -93,7 +93,9 @@ export default function FindOppositeTask({ task, topicId, onCorrect, onIncorrect
           className={`opp-fo__slot opp-fo__slot--${slotState}`}
         >
           {slotState === "correct"
-            ? <CardImage topicId={topicId} card={correctCard} />
+            ? task.distractorType === "text"
+              ? <span className="opp-fo__slot-text">{correctCard?.poleLabel}</span>
+              : <CardImage topicId={topicId} card={correctCard} />
             : "+"}
         </div>
       </div>
@@ -103,18 +105,22 @@ export default function FindOppositeTask({ task, topicId, onCorrect, onIncorrect
           const rotation   = ((opt.card.id.charCodeAt(0) * 7 + i * 13) % 9) - 4;
           const isDragging = dragging?.opt.card.id === opt.card.id;
           const isFaded    = answered && !isDragging;
+          const isText     = task.distractorType === "text";
           return (
             <div
               key={opt.card.id}
               className={[
-                "opp-fo__card",
+                isText ? "opp-fo__card--text" : "opp-fo__card",
                 isDragging ? "opp-fo__card--dragging" : "",
                 isFaded    ? "opp-fo__card--faded"    : "",
               ].filter(Boolean).join(" ")}
               style={{ transform: `rotate(${rotation}deg)` }}
               onPointerDown={e => handlePointerDown(e, opt)}
             >
-              <CardImage topicId={topicId} card={opt.card} />
+              {isText
+                ? opt.card.poleLabel
+                : <CardImage topicId={topicId} card={opt.card} />
+              }
             </div>
           );
         })}

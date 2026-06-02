@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -160,6 +160,20 @@
           },
           "hint": {
             "ru": "Картинка — найди противоположную картинку; Слово — найди картинку-антоним"
+          }
+        },
+        "distractorType": {
+          "type": "enum",
+          "values": [
+            "image",
+            "text"
+          ],
+          "default": "image",
+          "label": {
+            "ru": "Дистракторы"
+          },
+          "hint": {
+            "ru": "Картинки или слова"
           }
         }
       }

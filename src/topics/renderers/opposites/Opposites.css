@@ -632,6 +632,34 @@
   background: #e0e0e0;
 }
 
+.opp-fo__card--text {
+  width: clamp(64px, 18vw, 96px);
+  height: clamp(64px, 18vw, 96px);
+  border-radius: 10px;
+  border: 1.5px solid #ddd;
+  background: white;
+  cursor: grab;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.9rem, 4vw, 1.3rem);
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  padding: 6px;
+  line-height: 1.2;
+  transition: opacity 0.2s;
+}
+
+.opp-fo__slot-text {
+  font-size: clamp(1rem, 5vw, 1.6rem);
+  font-weight: 700;
+  color: #2e7d32;
+  text-align: center;
+  padding: 4px;
+}
+
 .opp-fo__card--dragging {
   opacity: 0.35;
 }

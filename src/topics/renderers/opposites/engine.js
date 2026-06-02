@@ -198,10 +198,11 @@ function generateFindOppositeImageTasks(cards, params) {
         )).slice(0, distractorCount);
 
     tasks.push({
-      type:         "find_opposite",
-      stimulusType: "image",
-      stimulusCard: stimulus,
-      options:      shuffle([
+      type:           "find_opposite",
+      stimulusType:   "image",
+      distractorType: params.distractorType ?? "image",
+      stimulusCard:   stimulus,
+      options:        shuffle([
         { card: correct, isTarget: true },
         ...distractors.map(c => ({ card: c, isTarget: false })),
       ]),
@@ -238,11 +239,12 @@ function generateFindOppositeTextTasks(cards, params) {
           .slice(0, distractorCount);
 
     tasks.push({
-      type:          "find_opposite",
-      stimulusType:  "text",
-      stimulusLabel: textCard.poleLabel,
-      stimulusCard:  textCard,
-      options:       shuffle([
+      type:           "find_opposite",
+      stimulusType:   "text",
+      distractorType: params.distractorType ?? "image",
+      stimulusLabel:  textCard.poleLabel,
+      stimulusCard:   textCard,
+      options:        shuffle([
         { card: correctCard, isTarget: true },
         ...distractors.map(c => ({ card: c, isTarget: false })),
       ]),
