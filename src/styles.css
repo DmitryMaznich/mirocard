@@ -16007,13 +16007,16 @@ button.operation-dot {
 
 /* ─── Mode 1: Manual session (physical stick) ──────────────────────────── */
 .operation-stage--manual {
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  padding-bottom: 120px;
+  padding-bottom: clamp(24px, 6vh, 48px);
 }
 
 .operation-manual__stars {
+  flex: 1;
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 14px;
 }
 
@@ -16044,18 +16047,10 @@ button.operation-dot {
 }
 
 .operation-manual__btns {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   justify-content: center;
   gap: 40px;
-  padding: 16px 24px env(safe-area-inset-bottom, 20px);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  padding-bottom: 8px;
 }
 
 .operation-manual__btn {
