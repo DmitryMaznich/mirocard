@@ -70,7 +70,8 @@ export default function SessionScreen() {
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
-    completedRecord, rewardProgress, onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
+    completedRecord, rewardProgress, streakCount,
+    onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
@@ -106,6 +107,7 @@ export default function SessionScreen() {
   }
 
   const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState ?? {};
+  const isInstantMode = mode?.evaluation === "instant";
   const isCorrectFeedback   = status === "answer_correct";
   const isIncorrectFeedback = status === "answer_incorrect";
   const advanceGateKey = `${taskIndex ?? "none"}:${status ?? "none"}`;
@@ -188,10 +190,10 @@ export default function SessionScreen() {
         <div className="session-topbar-controls">
           <StarBar
             className="session-progress"
-            correctCount={correctCount ?? 0}
-            incorrectCount={incorrectCount ?? 0}
-            total={total}
-            rewardThreshold={rewardProgress?.threshold}
+            correctCount={isInstantMode ? streakCount : (correctCount ?? 0)}
+            incorrectCount={isInstantMode ? 0 : (incorrectCount ?? 0)}
+            total={isInstantMode ? 5 : total}
+            rewardThreshold={isInstantMode ? 100 : rewardProgress?.threshold}
             available={rewardProgress?.available ?? false}
           />
           <div className="session-topbar-right">
@@ -260,6 +262,7 @@ export default function SessionScreen() {
             onCardShown={onCardShown}
             onTap={onTap}
             onQuality={onQuality}
+            streakCount={isInstantMode ? streakCount : undefined}
           />
         </div>
       ) : !rendererReady ? (

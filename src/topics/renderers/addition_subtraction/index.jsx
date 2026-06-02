@@ -520,6 +520,36 @@ function ManipulationTask({ task, onCorrect, onIncorrect, onMistake }) {
   );
 }
 
+function ManualSessionTask({ task, onCorrect, onIncorrect, streakCount = 0 }) {
+  return (
+    <div className="operation-stage operation-stage--manual">
+      <div className="operation-manual__stars">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span
+            key={i}
+            className={`operation-manual__star${i < streakCount ? " operation-manual__star--lit" : ""}`}
+          >★</span>
+        ))}
+      </div>
+      <OperationExpression task={task} missingResult />
+      <div className="operation-manual__btns">
+        <button
+          type="button"
+          className="operation-manual__btn operation-manual__btn--wrong"
+          onClick={() => onIncorrect(task.conceptId, task.cardId)}
+          aria-label="Неверно"
+        >✗</button>
+        <button
+          type="button"
+          className="operation-manual__btn operation-manual__btn--correct"
+          onClick={() => onCorrect(task.conceptId, task.cardId)}
+          aria-label="Верно"
+        >✓</button>
+      </div>
+    </div>
+  );
+}
+
 function PlaceholderTask() {
   return (
     <div className="operation-stage operation-stage--placeholder">
@@ -732,14 +762,14 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
-function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
+function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount }) {
   const type = task.type;
 
   if (type === "operation_worksheet") {
     return <WorksheetTask task={task} />;
   }
   if (type === "operation_observe") {
-    return <PlaceholderTask />;
+    return <ManualSessionTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} streakCount={streakCount} />;
   }
   if (type === "operation_do_action") {
     return <ManipulationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
@@ -762,7 +792,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake }) {
   return null;
 }
 
-export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake }) {
+export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake, streakCount }) {
   if (!task) return null;
-  return <OperationTask key={`${task.cardId}:${task.start}:${task.delta}:${task.type}:${task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
+  return <OperationTask key={`${task.cardId}:${task.start}:${task.delta}:${task.type}:${task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} />;
 }

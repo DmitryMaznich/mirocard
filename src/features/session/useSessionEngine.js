@@ -4,7 +4,7 @@ import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
-import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
 import { buildRewardProgress } from "./rewardProgress";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
@@ -185,11 +185,21 @@ export function useSessionEngine() {
   async function finishSession(state) {
     const cardEvents = cardLogger.getCardEvents();
     cardLogger.resetCardEvents();
-    const finalRewardProgress = buildRewardProgress({
-      sessionState: state,
-      mode: state.mode,
-      ...rewardConfig,
-    });
+    const finalRewardProgress = state.mode?.evaluation === "instant"
+      ? {
+          available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
+          earned: (state.streakCount ?? 0) >= 5,
+          threshold: 100,
+          target: 5,
+          completed: state.streakCount ?? 0,
+          total: 5,
+          remaining: 0,
+        }
+      : buildRewardProgress({
+          sessionState: state,
+          mode: state.mode,
+          ...rewardConfig,
+        });
     const record = {
       ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents),
       reward: {
@@ -259,6 +269,11 @@ export function useSessionEngine() {
 
   const onCorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => {
+      if (s.mode?.evaluation === "instant") {
+        const next = handleInstantCorrect(s, conceptId, cardId);
+        if (next.status === "completed") finishSession(next);
+        return next;
+      }
       const next = handleAnswer(s, true, conceptId, cardId);
       if (next.status === "completed") finishSession(next);
       return next;
@@ -280,7 +295,14 @@ export function useSessionEngine() {
   }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay]);
 
   const onIncorrect = useCallback((conceptId, cardId) => {
-    setSessionState((s) => handleAnswer(s, false, conceptId, cardId));
+    setSessionState((s) => {
+      if (s.mode?.evaluation === "instant") {
+        const next = handleInstantIncorrect(s, conceptId, cardId);
+        if (next.status === "completed") finishSession(next);
+        return next;
+      }
+      return handleAnswer(s, false, conceptId, cardId);
+    });
     setTimeout(() => {
       setSessionState((s) => {
         if (s.status !== "answer_incorrect") return s;
@@ -325,11 +347,22 @@ export function useSessionEngine() {
   }, []);
 
   const currentTask = sessionState?.tasks[sessionState.taskIndex] ?? null;
-  const rewardProgress = buildRewardProgress({
-    sessionState,
-    mode,
-    ...rewardConfig,
-  });
+  const streakCount = sessionState?.streakCount ?? 0;
+  const rewardProgress = mode?.evaluation === "instant"
+    ? {
+        available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
+        earned: sessionState?.status === "completed" && streakCount >= 5,
+        threshold: 100,
+        target: 5,
+        completed: streakCount,
+        total: 5,
+        remaining: Math.max(0, 5 - streakCount),
+      }
+    : buildRewardProgress({
+        sessionState,
+        mode,
+        ...rewardConfig,
+      });
 
   return {
     sessionState,
@@ -339,6 +372,7 @@ export function useSessionEngine() {
     sessionParams,
     completedRecord,
     rewardProgress,
+    streakCount,
     onCorrect,
     onIncorrect,
     onMistake,

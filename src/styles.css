@@ -16005,6 +16005,65 @@ button.operation-dot {
   font-weight: 600;
 }
 
+/* ─── Mode 1: Manual session (physical stick) ──────────────────────────── */
+.operation-stage--manual {
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+}
+
+.operation-manual__stars {
+  display: flex;
+  gap: 14px;
+}
+
+.operation-manual__star {
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  color: #ddd;
+  transition: color 0.25s, transform 0.25s;
+  line-height: 1;
+}
+
+.operation-manual__star--lit {
+  color: #f5c42c;
+  transform: scale(1.15);
+}
+
+.operation-manual__btns {
+  display: flex;
+  gap: 32px;
+}
+
+.operation-manual__btn {
+  width: clamp(80px, 20vw, 120px);
+  height: clamp(80px, 20vw, 120px);
+  font-size: clamp(2.4rem, 8vw, 3.6rem);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s, box-shadow 0.12s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.operation-manual__btn:active {
+  transform: scale(0.93);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.14);
+}
+
+.operation-manual__btn--correct {
+  background: #4caf50;
+  color: #fff;
+}
+
+.operation-manual__btn--wrong {
+  background: #f44336;
+  color: #fff;
+}
+
 @media (max-width: 520px) {
   .chain-expression__group {
     padding: 4px 8px;

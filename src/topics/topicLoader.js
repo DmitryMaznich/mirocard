@@ -381,8 +381,10 @@ const DEFAULT_MODE_METHODOLOGY = {
   },
   addition_subtraction: {
     operation_observe: {
-      settings: [],
-      goal: "Ребёнок наблюдает за действием и формирует зрительный образ прибавления и убирания.",
+      summary: "Живая работа с физической палкой под руководством специалиста.",
+      text: "Специалист называет пример, ребёнок выполняет действие на физической счётной палке. Специалист отмечает результат на экране — верно или нет.",
+      settings: ["Правило приза: 5 верных ответов подряд. Ошибка обнуляет счётчик."],
+      goal: "Ребёнок выполняет действие с фишками уверенно и без подсказки — понимает смысл прибавления и убирания через собственное действие.",
     },
     operation_name_action: {
       settings: [],
@@ -581,8 +583,8 @@ const DEFAULT_MODES = {
     {
       id: "operation_observe",
       type: "operation_observe",
-      evaluation: "auto",
-      ui: { title: "1. Наблюдение (скоро)", instruction: "Смотрим, как меняется количество", icon: "media/icons/operations_mode.svg" },
+      evaluation: "instant",
+      ui: { title: "1. Физическая палка", instruction: "Специалист задаёт пример — отмечайте результат", icon: "media/icons/operations_mode.svg" },
     },
     {
       id: "operation_name_action",

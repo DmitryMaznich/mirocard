@@ -39,6 +39,30 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
   };
 }
 
+export function handleInstantCorrect(state, conceptId, cardId) {
+  const streakCount = (state.streakCount ?? 0) + 1;
+  const correctCount = state.correctCount + 1;
+  if (streakCount >= 5) {
+    return { ...state, status: "completed", correctCount, streakCount };
+  }
+  const nextIndex = state.taskIndex + 1;
+  if (nextIndex >= state.tasks.length) {
+    return { ...state, status: "completed", correctCount, streakCount };
+  }
+  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, correctCount, streakCount };
+}
+
+export function handleInstantIncorrect(state, conceptId, cardId) {
+  const incorrectCount = state.incorrectCount + 1;
+  const streakCount = 0;
+  const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
+  const nextIndex = state.taskIndex + 1;
+  if (nextIndex >= state.tasks.length) {
+    return { ...state, status: "completed", incorrectCount, streakCount, mistakes };
+  }
+  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount, mistakes };
+}
+
 export function handleQualityAnswer(state, quality, conceptId, cardId) {
   const assessment = { quality, conceptId, cardId, taskIndex: state.taskIndex };
   return handleAdvance({
