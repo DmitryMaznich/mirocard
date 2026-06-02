@@ -653,11 +653,12 @@
 }
 
 .opp-fo__slot-text {
-  font-size: clamp(1rem, 5vw, 1.6rem);
+  font-size: clamp(1.4rem, 7vw, 3rem);
   font-weight: 700;
   color: #2e7d32;
   text-align: center;
-  padding: 4px;
+  padding: 8px;
+  line-height: 1.2;
 }
 
 .opp-fo__card--dragging {
