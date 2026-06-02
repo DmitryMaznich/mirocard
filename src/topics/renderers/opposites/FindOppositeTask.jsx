@@ -83,9 +83,6 @@ export default function FindOppositeTask({ task, topicId, onCorrect, onIncorrect
           <div className="opp-fo__stimulus-card">
             <CardImage topicId={topicId} card={stimulusCard} />
           </div>
-          <div className="opp-fo__stimulus-label">
-            {stimulusCard.nominativeLabel} {stimulusCard.objectLabel}
-          </div>
         </div>
 
         <div className="opp-fo__arrow">→</div>

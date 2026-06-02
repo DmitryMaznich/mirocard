@@ -521,12 +521,6 @@
   display: block;
 }
 
-.opp-fo__stimulus-label {
-  font-size: clamp(0.7rem, 2.5vw, 0.9rem);
-  font-weight: 600;
-  color: #e65100;
-  text-align: center;
-}
 
 .opp-fo__arrow {
   font-size: 1.8rem;
