@@ -76,7 +76,7 @@ describe("bootstrap helpers", () => {
     expect(result.settings).toBeNull();
     expect(result.students).toEqual([]);
     expect(result.ownedTopics).toEqual([]);
-    expect(result.topicRecords).toEqual([]);
+    expect(result.topicRecords.filter((r) => !r.meta?.builtin)).toEqual([]);
     expect(result.studentTopicLinks).toEqual({
       s1_t1: { studentId: "s1", topicId: "t1", id: "l1" },
     });
@@ -283,7 +283,8 @@ describe("bootstrap helpers", () => {
       context: { studentId: "s2", topicId: "topic-1", textId: null, modeId: "find_n" },
       sessionState: { status: "task_active", topicVersion: "1.0.0", taskIndex: 3 },
     });
-    expect(bootstrap.topicRecords).toHaveLength(1);
-    expect(bootstrap.topicRecords[0].id).toBe("topic-1");
+    const userRecords = bootstrap.topicRecords.filter((r) => !r.meta?.builtin);
+    expect(userRecords).toHaveLength(1);
+    expect(userRecords[0].meta.id).toBe("topic-1");
   });
 });

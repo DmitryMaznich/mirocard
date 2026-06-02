@@ -2,6 +2,7 @@ import { kv } from "@/core/db";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
+import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
 
 export function isDeletedStudent(student) {
   return Boolean(student?.deletedAt);
@@ -143,7 +144,10 @@ export function normalizeBootstrap(raw = {}) {
     settings: raw.settings ?? null,
     students: Array.isArray(raw.students) ? raw.students : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
-    topicRecords: Array.isArray(raw.topicRecords) ? raw.topicRecords : [],
+    topicRecords: [
+      ...BUILTIN_TOPICS,
+      ...(Array.isArray(raw.topicRecords) ? raw.topicRecords.filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta.id)) : []),
+    ],
     studentTopicLinks: indexStudentTopicLinks(raw.studentTopicLinks),
     conceptProgress: indexConceptProgress(raw.conceptProgress),
     sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-200) : [],
