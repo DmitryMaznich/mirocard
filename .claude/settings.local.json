@@ -60,7 +60,9 @@
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/version.json\" -TimeoutSec 10 -UseBasicParsing; $r.Content } catch { \"Error: $\\($_.Exception.Message\\)\" })",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; $r.Content } catch { \"HTTP $\\($_.Exception.Response.StatusCode\\): $\\($_.Exception.Message\\)\" })",
       "PowerShell(Stop-Process -Force)",
-      "PowerShell(Get-Process -Name node | Where-Object { $_.CPU -gt 30 } | Stop-Process -Force -PassThru | Select-Object Id, Name)"
+      "PowerShell(Get-Process -Name node | Where-Object { $_.CPU -gt 30 } | Stop-Process -Force -PassThru | Select-Object Id, Name)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\dist\\\\assets\" | Where-Object { $_.Name -match \"css|index\" } | Select-Object Name, LastWriteTime)",
+      "PowerShell(Invoke-RestMethod \"http://192.168.1.163:8080/version.json\" -TimeoutSec 10)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
