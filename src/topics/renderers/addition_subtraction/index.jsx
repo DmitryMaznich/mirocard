@@ -531,7 +531,6 @@ function ManualSessionTask({ task, onCorrect, onIncorrect, streakCount = 0 }) {
           >★</span>
         ))}
       </div>
-      <OperationExpression task={task} missingResult />
       <div className="operation-manual__btns">
         <button
           type="button"

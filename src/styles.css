@@ -16018,15 +16018,29 @@ button.operation-dot {
 }
 
 .operation-manual__star {
-  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  font-size: clamp(3.6rem, 12vw, 5.2rem);
   color: #ddd;
-  transition: color 0.25s, transform 0.25s;
+  transition: color 0.25s, transform 0.25s, text-shadow 0.25s;
   line-height: 1;
+  cursor: default;
+  user-select: none;
+}
+
+.operation-manual__star:hover {
+  transform: scale(1.22);
+  text-shadow: 0 0 18px rgba(245, 196, 44, 0.55);
+  color: #f0c030;
 }
 
 .operation-manual__star--lit {
   color: #f5c42c;
   transform: scale(1.15);
+  text-shadow: 0 0 14px rgba(245, 196, 44, 0.6);
+}
+
+.operation-manual__star--lit:hover {
+  transform: scale(1.28);
+  text-shadow: 0 0 24px rgba(245, 196, 44, 0.9), 0 0 40px rgba(255, 200, 0, 0.4);
 }
 
 .operation-manual__btns {
