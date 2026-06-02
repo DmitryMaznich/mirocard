@@ -80,9 +80,10 @@ export default function FindOppositeTask({ task, topicId, onCorrect, onIncorrect
 
       <div className="opp-fo__pair">
         <div className="opp-fo__stimulus">
-          <div className="opp-fo__stimulus-card">
-            <CardImage topicId={topicId} card={stimulusCard} />
-          </div>
+          {task.stimulusType === "text"
+            ? <div className="opp-fo__stimulus-text">{task.stimulusLabel}</div>
+            : <div className="opp-fo__stimulus-card"><CardImage topicId={topicId} card={stimulusCard} /></div>
+          }
         </div>
 
         <div className="opp-fo__arrow">→</div>

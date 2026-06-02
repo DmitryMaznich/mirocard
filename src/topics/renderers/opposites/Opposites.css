@@ -505,13 +505,31 @@
   gap: 6px;
 }
 
-.opp-fo__stimulus-card {
+.opp-fo__stimulus-card,
+.opp-fo__stimulus-text {
   width: min(calc((100vw - 82px) / 2), 45svh);
   height: min(calc((100vw - 82px) / 2), 45svh);
   border-radius: 12px;
+}
+
+.opp-fo__stimulus-card {
   overflow: hidden;
   border: 2px solid #ffb74d;
   background: #fff3e0;
+}
+
+.opp-fo__stimulus-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffb74d;
+  background: #fff3e0;
+  font-size: clamp(1.4rem, 7vw, 3rem);
+  font-weight: 700;
+  color: #e65100;
+  text-align: center;
+  padding: 8px;
+  line-height: 1.2;
 }
 
 .opp-fo__stimulus-card img {

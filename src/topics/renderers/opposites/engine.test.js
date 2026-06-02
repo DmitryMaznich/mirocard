@@ -2,27 +2,27 @@ import { describe, it, expect } from "vitest";
 import { generateTasks } from "./engine";
 
 const CARDS = [
-  { id: "big_dog",    conceptId: "big_small", pole: "left",  objectId: "dog",   objectLabel: "собака", nominativeLabel: "большая",   image: "media/big_dog.webp" },
-  { id: "small_dog",  conceptId: "big_small", pole: "right", objectId: "dog",   objectLabel: "собака", nominativeLabel: "маленькая", image: "media/small_dog.webp" },
-  { id: "big_cat",    conceptId: "big_small", pole: "left",  objectId: "cat",   objectLabel: "кошка",  nominativeLabel: "большая",   image: "media/big_cat.webp" },
-  { id: "small_cat",  conceptId: "big_small", pole: "right", objectId: "cat",   objectLabel: "кошка",  nominativeLabel: "маленькая", image: "media/small_cat.webp" },
-  { id: "big_ball",   conceptId: "big_small", pole: "left",  objectId: "ball",  objectLabel: "мяч",    nominativeLabel: "большой",   image: "media/big_ball.webp" },
-  { id: "small_ball", conceptId: "big_small", pole: "right", objectId: "ball",  objectLabel: "мяч",    nominativeLabel: "маленький", image: "media/small_ball.webp" },
-  { id: "wet_stone",  conceptId: "wet_dry",   pole: "left",  objectId: "stone", objectLabel: "камень", nominativeLabel: "мокрый",    image: "media/wet_stone.webp" },
-  { id: "dry_stone",  conceptId: "wet_dry",   pole: "right", objectId: "stone", objectLabel: "камень", nominativeLabel: "сухой",     image: "media/dry_stone.webp" },
-  { id: "wet_leaf",   conceptId: "wet_dry",   pole: "left",  objectId: "leaf",  objectLabel: "лист",   nominativeLabel: "мокрый",    image: "media/wet_leaf.webp" },
-  { id: "dry_leaf",   conceptId: "wet_dry",   pole: "right", objectId: "leaf",  objectLabel: "лист",   nominativeLabel: "сухой",     image: "media/dry_leaf.webp" },
+  { id: "big_dog",    conceptId: "big_small", pole: "left",  objectId: "dog",   objectLabel: "собака", poleLabel: "большой",   nominativeLabel: "большая",   image: "media/big_dog.webp" },
+  { id: "small_dog",  conceptId: "big_small", pole: "right", objectId: "dog",   objectLabel: "собака", poleLabel: "маленький", nominativeLabel: "маленькая", image: "media/small_dog.webp" },
+  { id: "big_cat",    conceptId: "big_small", pole: "left",  objectId: "cat",   objectLabel: "кошка",  poleLabel: "большой",   nominativeLabel: "большая",   image: "media/big_cat.webp" },
+  { id: "small_cat",  conceptId: "big_small", pole: "right", objectId: "cat",   objectLabel: "кошка",  poleLabel: "маленький", nominativeLabel: "маленькая", image: "media/small_cat.webp" },
+  { id: "big_ball",   conceptId: "big_small", pole: "left",  objectId: "ball",  objectLabel: "мяч",    poleLabel: "большой",   nominativeLabel: "большой",   image: "media/big_ball.webp" },
+  { id: "small_ball", conceptId: "big_small", pole: "right", objectId: "ball",  objectLabel: "мяч",    poleLabel: "маленький", nominativeLabel: "маленький", image: "media/small_ball.webp" },
+  { id: "wet_stone",  conceptId: "wet_dry",   pole: "left",  objectId: "stone", objectLabel: "камень", poleLabel: "мокрый",    nominativeLabel: "мокрый",    image: "media/wet_stone.webp" },
+  { id: "dry_stone",  conceptId: "wet_dry",   pole: "right", objectId: "stone", objectLabel: "камень", poleLabel: "сухой",     nominativeLabel: "сухой",     image: "media/dry_stone.webp" },
+  { id: "wet_leaf",   conceptId: "wet_dry",   pole: "left",  objectId: "leaf",  objectLabel: "лист",   poleLabel: "мокрый",    nominativeLabel: "мокрый",    image: "media/wet_leaf.webp" },
+  { id: "dry_leaf",   conceptId: "wet_dry",   pole: "right", objectId: "leaf",  objectLabel: "лист",   poleLabel: "сухой",     nominativeLabel: "сухой",     image: "media/dry_leaf.webp" },
 ];
 
-describe("generateTasks — find_opposite", () => {
+describe("generateTasks — find_opposite (image)", () => {
   it("returns one task per objectId", () => {
     const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { distractorCount: 2 });
     expect(tasks).toHaveLength(5);
   });
 
-  it("each task has type find_opposite", () => {
+  it("each task has stimulusType=image", () => {
     const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, {});
-    expect(tasks.every(t => t.type === "find_opposite")).toBe(true);
+    expect(tasks.every(t => t.stimulusType === "image")).toBe(true);
   });
 
   it("each task has stimulusCard and options array", () => {
@@ -49,7 +49,7 @@ describe("generateTasks — find_opposite", () => {
     }
   });
 
-  it("with distractorCount=2, options has 3 items (1 correct + 2 distractors)", () => {
+  it("with distractorCount=2, options has 3 items", () => {
     const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { distractorCount: 2 });
     for (const t of tasks) {
       expect(t.options).toHaveLength(3);
@@ -63,11 +63,10 @@ describe("generateTasks — find_opposite", () => {
     }
   });
 
-  it("sameConcept=false: distractors come from different conceptIds", () => {
+  it("sameConcept=false: distractors from different conceptIds", () => {
     const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { distractorCount: 2, sameConcept: false });
     for (const t of tasks) {
-      const distractors = t.options.filter(o => !o.isTarget);
-      for (const d of distractors) {
+      for (const d of t.options.filter(o => !o.isTarget)) {
         expect(d.card.conceptId).not.toBe(t.stimulusCard.conceptId);
       }
     }
@@ -76,10 +75,60 @@ describe("generateTasks — find_opposite", () => {
   it("sameConcept=true: distractors from same conceptId, different objectId", () => {
     const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { distractorCount: 2, sameConcept: true });
     for (const t of tasks) {
-      const distractors = t.options.filter(o => !o.isTarget);
-      for (const d of distractors) {
+      for (const d of t.options.filter(o => !o.isTarget)) {
         expect(d.card.conceptId).toBe(t.stimulusCard.conceptId);
         expect(d.card.objectId).not.toBe(t.stimulusCard.objectId);
+      }
+    }
+  });
+});
+
+describe("generateTasks — find_opposite (text)", () => {
+  it("returns one task per concept", () => {
+    const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { stimulusType: "text" });
+    expect(tasks).toHaveLength(2); // 2 concepts in CARDS
+  });
+
+  it("each task has stimulusType=text and stimulusLabel", () => {
+    const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { stimulusType: "text" });
+    for (const t of tasks) {
+      expect(t.stimulusType).toBe("text");
+      expect(typeof t.stimulusLabel).toBe("string");
+      expect(t.stimulusLabel.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("exactly one option is the target", () => {
+    const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { stimulusType: "text", distractorCount: 2 });
+    for (const t of tasks) {
+      expect(t.options.filter(o => o.isTarget)).toHaveLength(1);
+    }
+  });
+
+  it("target card is the opposite pole to stimulusLabel's pole", () => {
+    const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { stimulusType: "text", distractorCount: 2 });
+    for (const t of tasks) {
+      const target = t.options.find(o => o.isTarget);
+      expect(target.card.conceptId).toBe(t.stimulusCard.conceptId);
+      expect(target.card.pole).not.toBe(t.stimulusCard.pole);
+    }
+  });
+
+  it("sameConcept=true: distractors are same pole as stimulus label", () => {
+    const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { stimulusType: "text", distractorCount: 2, sameConcept: true });
+    for (const t of tasks) {
+      for (const d of t.options.filter(o => !o.isTarget)) {
+        expect(d.card.conceptId).toBe(t.stimulusCard.conceptId);
+        expect(d.card.pole).toBe(t.stimulusCard.pole);
+      }
+    }
+  });
+
+  it("sameConcept=false: distractors from different conceptIds", () => {
+    const tasks = generateTasks({ type: "find_opposite" }, CARDS, 10, { stimulusType: "text", distractorCount: 2, sameConcept: false });
+    for (const t of tasks) {
+      for (const d of t.options.filter(o => !o.isTarget)) {
+        expect(d.card.conceptId).not.toBe(t.stimulusCard.conceptId);
       }
     }
   });

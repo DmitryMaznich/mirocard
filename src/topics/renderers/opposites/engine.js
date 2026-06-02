@@ -175,7 +175,7 @@ function generateFindAllTasks(cards, params) {
   });
 }
 
-function generateFindOppositeTasks(cards, params) {
+function generateFindOppositeImageTasks(cards, params) {
   const distractorCount = params.distractorCount ?? 2;
   const sameConcept     = params.sameConcept ?? false;
   const byObject        = groupByObjectId(cards);
@@ -199,6 +199,7 @@ function generateFindOppositeTasks(cards, params) {
 
     tasks.push({
       type:         "find_opposite",
+      stimulusType: "image",
       stimulusCard: stimulus,
       options:      shuffle([
         { card: correct, isTarget: true },
@@ -208,6 +209,53 @@ function generateFindOppositeTasks(cards, params) {
   }
 
   return shuffle(tasks);
+}
+
+function generateFindOppositeTextTasks(cards, params) {
+  const distractorCount = params.distractorCount ?? 2;
+  const sameConcept     = params.sameConcept ?? false;
+  const byConcept       = groupByConcept(cards);
+  const tasks           = [];
+
+  for (const [conceptId, conceptCards] of byConcept) {
+    const leftCards  = conceptCards.filter(c => c.pole === "left");
+    const rightCards = conceptCards.filter(c => c.pole === "right");
+    if (!leftCards.length || !rightCards.length) continue;
+
+    // One task per concept, random pole as text stimulus
+    const pair = shuffle([
+      { textCards: leftCards,  answerCards: rightCards },
+      { textCards: rightCards, answerCards: leftCards  },
+    ]);
+    const { textCards, answerCards } = pair[0];
+    const textCard    = textCards[0];
+    const correctCard = shuffle(answerCards)[0];
+
+    const distractors = sameConcept
+      ? shuffle(textCards.filter(c => c.id !== textCard.id))
+          .slice(0, distractorCount)
+      : shuffle(cards.filter(c => c.conceptId !== conceptId))
+          .slice(0, distractorCount);
+
+    tasks.push({
+      type:          "find_opposite",
+      stimulusType:  "text",
+      stimulusLabel: textCard.poleLabel,
+      stimulusCard:  textCard,
+      options:       shuffle([
+        { card: correctCard, isTarget: true },
+        ...distractors.map(c => ({ card: c, isTarget: false })),
+      ]),
+    });
+  }
+
+  return shuffle(tasks);
+}
+
+function generateFindOppositeTasks(cards, params) {
+  return params.stimulusType === "text"
+    ? generateFindOppositeTextTasks(cards, params)
+    : generateFindOppositeImageTasks(cards, params);
 }
 
 export function generateTasks(mode, cards, _sessionSize, params = {}) {

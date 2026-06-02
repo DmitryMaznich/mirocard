@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -146,6 +146,20 @@
           },
           "hint": {
             "ru": "Включи для максимальной сложности"
+          }
+        },
+        "stimulusType": {
+          "type": "enum",
+          "values": [
+            "image",
+            "text"
+          ],
+          "default": "image",
+          "label": {
+            "ru": "Стимул"
+          },
+          "hint": {
+            "ru": "Картинка — найди противоположную картинку; Слово — найди картинку-антоним"
           }
         }
       }
