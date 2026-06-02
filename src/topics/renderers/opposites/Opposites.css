@@ -506,8 +506,8 @@
 }
 
 .opp-fo__stimulus-card {
-  width: min(calc((100vw - 82px) / 2), 45svh, 220px);
-  height: min(calc((100vw - 82px) / 2), 45svh, 220px);
+  width: min(calc((100vw - 82px) / 2), 45svh);
+  height: min(calc((100vw - 82px) / 2), 45svh);
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid #ffb74d;
@@ -535,8 +535,8 @@
 }
 
 .opp-fo__slot {
-  width: min(calc((100vw - 82px) / 2), 45svh, 220px);
-  height: min(calc((100vw - 82px) / 2), 45svh, 220px);
+  width: min(calc((100vw - 82px) / 2), 45svh);
+  height: min(calc((100vw - 82px) / 2), 45svh);
   border-radius: 12px;
   border: 2.5px dashed #bbb;
   background: rgba(255, 255, 255, 0.5);
