@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
 import TopicCover from "@/shared/components/TopicCover";
@@ -18,10 +18,10 @@ function SettingsIcon() {
   );
 }
 
-function HomeHeader({ onSettings }) {
+function HomeHeader({ onSettings, onBrandTap }) {
   return (
     <header className="home-header">
-      <div className="home-header__brand">
+      <div className="home-header__brand" onClick={onBrandTap} style={{ cursor: "default" }}>
         <img className="home-header__logo" src="/mirocard-mark.svg" alt="" aria-hidden />
         <div className="home-header__copy">
           <span className="home-header__name">Mirocard</span>
@@ -136,6 +136,23 @@ export default function HomeScreen() {
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
 
+  const streakTapCountRef = useRef(0);
+  const streakTapTimerRef = useRef(null);
+  const handleBrandTap = useCallback(() => {
+    streakTapCountRef.current += 1;
+    clearTimeout(streakTapTimerRef.current);
+    if (streakTapCountRef.current >= 5) {
+      streakTapCountRef.current = 0;
+      if (activeStudentId) {
+        setActiveTopicId("streak_tracker");
+        setActiveModeId("streak");
+        setScreen("session");
+      }
+      return;
+    }
+    streakTapTimerRef.current = setTimeout(() => { streakTapCountRef.current = 0; }, 2000);
+  }, [activeStudentId, setActiveTopicId, setActiveModeId, setScreen]);
+
   const student = students.find((s) => s.id === activeStudentId) ?? students[0];
   const topic = topicRecords.find((r) => r.meta.id === activeTopicId) ?? topicRecords[0];
   const isReading = topic?.meta?.renderer === "reading";
@@ -222,7 +239,7 @@ export default function HomeScreen() {
 
   return (
     <div className="screen home-screen-v2">
-      <HomeHeader onSettings={() => setScreen("settings")} />
+      <HomeHeader onSettings={() => setScreen("settings")} onBrandTap={handleBrandTap} />
 
       <section className="home-section">
         <div className="home-section-header">
