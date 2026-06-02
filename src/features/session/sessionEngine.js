@@ -45,10 +45,7 @@ export function handleInstantCorrect(state, conceptId, cardId) {
   if (streakCount >= 5) {
     return { ...state, status: "completed", correctCount, streakCount };
   }
-  const nextIndex = state.taskIndex + 1;
-  if (nextIndex >= state.tasks.length) {
-    return { ...state, status: "completed", correctCount, streakCount };
-  }
+  const nextIndex = (state.taskIndex + 1) % state.tasks.length;
   return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, correctCount, streakCount };
 }
 
@@ -56,10 +53,7 @@ export function handleInstantIncorrect(state, conceptId, cardId) {
   const incorrectCount = state.incorrectCount + 1;
   const streakCount = 0;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
-  const nextIndex = state.taskIndex + 1;
-  if (nextIndex >= state.tasks.length) {
-    return { ...state, status: "completed", incorrectCount, streakCount, mistakes };
-  }
+  const nextIndex = (state.taskIndex + 1) % state.tasks.length;
   return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount, mistakes };
 }
 

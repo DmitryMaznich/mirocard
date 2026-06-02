@@ -197,12 +197,14 @@ export default function SessionScreen() {
             available={rewardProgress?.available ?? false}
           />
           <div className="session-topbar-right">
-            <div className="session-counter">
-              {taskIndex + 1} / {total}
-              {mode.evaluation === "auto" && (
-                <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
-              )}
-            </div>
+            {!isInstantMode && (
+              <div className="session-counter">
+                {taskIndex + 1} / {total}
+                {mode.evaluation === "auto" && (
+                  <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
+                )}
+              </div>
+            )}
             <button
               className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
               onClick={toggleSound}
