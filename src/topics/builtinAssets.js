@@ -1,4 +1,15 @@
 const BUILTIN_ASSETS = {
+  "media/avatar_streak_tracker.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fffbeb"/>
+  <text x="19" y="58" font-family="Arial,sans-serif" font-size="26" fill="#f5c42c">★</text>
+  <text x="44" y="44" font-family="Arial,sans-serif" font-size="26" fill="#f5c42c">★</text>
+  <text x="70" y="40" font-family="Arial,sans-serif" font-size="32" fill="#f5c42c">★</text>
+  <text x="96" y="44" font-family="Arial,sans-serif" font-size="26" fill="#f5c42c">★</text>
+  <text x="88" y="70" font-family="Arial,sans-serif" font-size="20" fill="#fbbf24">★</text>
+  <rect x="20" y="84" width="88" height="22" rx="11" fill="#4caf50"/>
+  <text x="64" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="900" fill="#fff">5 ИЗ 5</text>
+</svg>`,
   "media/avatar_flashcards.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f4efe6"/>
@@ -442,6 +453,7 @@ export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId === "addition_subtraction") return "media/avatar_operations.svg";
   if (topicId?.startsWith("reading_")) return "media/avatar_reading.svg";
   if (topicId === "sentence_puzzle") return "media/avatar_sentence_puzzle.svg";
+  if (topicId === "streak_tracker") return "media/avatar_streak_tracker.svg";
   return "media/avatar_flashcards.svg";
 }
 

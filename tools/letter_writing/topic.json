@@ -1,0 +1,429 @@
+{
+  "meta": {
+    "id": "letter_writing",
+    "version": "1.0.0",
+    "renderer": "letter_writing",
+    "title": "Написание букв",
+    "avatar": "media/avatar.svg"
+  },
+  "modes": [
+    {
+      "id": "letter_demo",
+      "type": "letter_demo",
+      "evaluation": "none",
+      "ui": {
+        "title": "Смотрим, как пишется",
+        "instruction": "Смотри, как рисуется каждая буква по штрихам"
+      }
+    },
+    {
+      "id": "letter_follow",
+      "type": "letter_follow",
+      "evaluation": "none",
+      "ui": {
+        "title": "Следим пальцем",
+        "instruction": "Веди пальцем вместе с пером по экрану"
+      }
+    },
+    {
+      "id": "letter_trace",
+      "type": "letter_trace",
+      "evaluation": "none",
+      "ui": {
+        "title": "Обводим сами",
+        "instruction": "Обведи букву по контурной линии"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "А",
+      "type": "letter",
+      "label": "А",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 50,5 L 8,105" },
+        { "d": "M 50,5 L 92,105" },
+        { "d": "M 27,60 L 73,60" }
+      ]
+    },
+    {
+      "id": "Б",
+      "type": "letter",
+      "label": "Б",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 75,5 L 10,5" },
+        { "d": "M 10,5 L 10,105" },
+        { "d": "M 10,52 C 90,52 90,105 10,105" }
+      ]
+    },
+    {
+      "id": "В",
+      "type": "letter",
+      "label": "В",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 12,5 C 50,5 80,12 80,30 C 80,48 50,52 12,52" },
+        { "d": "M 12,52 C 55,52 88,62 88,80 C 88,100 55,105 12,105" }
+      ]
+    },
+    {
+      "id": "Г",
+      "type": "letter",
+      "label": "Г",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 88,5" },
+        { "d": "M 12,5 L 12,105" }
+      ]
+    },
+    {
+      "id": "Д",
+      "type": "letter",
+      "label": "Д",
+      "category": "consonant",
+      "viewBox": "0 0 100 120",
+      "strokes": [
+        { "d": "M 50,5 L 12,90" },
+        { "d": "M 50,5 L 88,90" },
+        { "d": "M 5,90 L 95,90" },
+        { "d": "M 12,90 L 12,116" },
+        { "d": "M 88,90 L 88,116" }
+      ]
+    },
+    {
+      "id": "Е",
+      "type": "letter",
+      "label": "Е",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 82,5 L 10,5 L 10,105 L 82,105" },
+        { "d": "M 10,52 L 70,52" }
+      ]
+    },
+    {
+      "id": "Ё",
+      "type": "letter",
+      "label": "Ё",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 82,5 L 10,5 L 10,105 L 82,105" },
+        { "d": "M 10,52 L 70,52" },
+        { "d": "M 27,-3 L 33,-3" },
+        { "d": "M 57,-3 L 63,-3" }
+      ]
+    },
+    {
+      "id": "Ж",
+      "type": "letter",
+      "label": "Ж",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 50,5 L 50,105" },
+        { "d": "M 12,5 L 50,52 L 12,105" },
+        { "d": "M 88,5 L 50,52 L 88,105" }
+      ]
+    },
+    {
+      "id": "З",
+      "type": "letter",
+      "label": "З",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 15,15 C 40,2 88,5 85,32 C 82,50 55,52 40,52" },
+        { "d": "M 40,52 C 55,52 90,58 88,82 C 85,108 45,115 15,98" }
+      ]
+    },
+    {
+      "id": "И",
+      "type": "letter",
+      "label": "И",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 12,105 L 88,5" },
+        { "d": "M 88,5 L 88,105" }
+      ]
+    },
+    {
+      "id": "Й",
+      "type": "letter",
+      "label": "Й",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 12,105 L 88,5" },
+        { "d": "M 88,5 L 88,105" },
+        { "d": "M 25,-5 Q 50,-20 75,-5" }
+      ]
+    },
+    {
+      "id": "К",
+      "type": "letter",
+      "label": "К",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 88,5 L 12,52" },
+        { "d": "M 12,52 L 88,105" }
+      ]
+    },
+    {
+      "id": "Л",
+      "type": "letter",
+      "label": "Л",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 55,5 L 18,105" },
+        { "d": "M 55,5 L 88,5 L 88,105" }
+      ]
+    },
+    {
+      "id": "М",
+      "type": "letter",
+      "label": "М",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 10,105 L 10,5" },
+        { "d": "M 10,5 L 50,55" },
+        { "d": "M 50,55 L 90,5" },
+        { "d": "M 90,5 L 90,105" }
+      ]
+    },
+    {
+      "id": "Н",
+      "type": "letter",
+      "label": "Н",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 12,52 L 88,52" },
+        { "d": "M 88,5 L 88,105" }
+      ]
+    },
+    {
+      "id": "О",
+      "type": "letter",
+      "label": "О",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 50,5 C 80,5 93,28 93,55 C 93,82 80,105 50,105 C 20,105 7,82 7,55 C 7,28 20,5 50,5" }
+      ]
+    },
+    {
+      "id": "П",
+      "type": "letter",
+      "label": "П",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 88,5" },
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 88,5 L 88,105" }
+      ]
+    },
+    {
+      "id": "Р",
+      "type": "letter",
+      "label": "Р",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 15,5 L 15,105" },
+        { "d": "M 15,5 C 55,5 82,15 82,32 C 82,52 55,60 15,60" }
+      ]
+    },
+    {
+      "id": "С",
+      "type": "letter",
+      "label": "С",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 88,20 C 80,5 60,2 45,5 C 20,10 8,28 8,55 C 8,82 20,100 45,105 C 60,108 80,105 88,90" }
+      ]
+    },
+    {
+      "id": "Т",
+      "type": "letter",
+      "label": "Т",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 8,5 L 92,5" },
+        { "d": "M 50,5 L 50,105" }
+      ]
+    },
+    {
+      "id": "У",
+      "type": "letter",
+      "label": "У",
+      "category": "vowel",
+      "viewBox": "0 0 100 115",
+      "strokes": [
+        { "d": "M 18,5 L 50,62" },
+        { "d": "M 82,5 L 50,62 L 50,110" }
+      ]
+    },
+    {
+      "id": "Ф",
+      "type": "letter",
+      "label": "Ф",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 50,5 L 50,105" },
+        { "d": "M 50,28 C 20,28 8,38 8,55 C 8,72 20,82 50,82 C 80,82 92,72 92,55 C 92,38 80,28 50,28" }
+      ]
+    },
+    {
+      "id": "Х",
+      "type": "letter",
+      "label": "Х",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 88,105" },
+        { "d": "M 88,5 L 12,105" }
+      ]
+    },
+    {
+      "id": "Ц",
+      "type": "letter",
+      "label": "Ц",
+      "category": "consonant",
+      "viewBox": "0 0 100 120",
+      "strokes": [
+        { "d": "M 12,5 L 88,5" },
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 88,5 L 88,105" },
+        { "d": "M 88,105 L 96,105 L 96,118" }
+      ]
+    },
+    {
+      "id": "Ч",
+      "type": "letter",
+      "label": "Ч",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 C 12,5 80,5 80,32 C 80,55 50,62 12,62" },
+        { "d": "M 80,5 L 80,105" }
+      ]
+    },
+    {
+      "id": "Ш",
+      "type": "letter",
+      "label": "Ш",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 8,5 L 92,5" },
+        { "d": "M 8,5 L 8,105" },
+        { "d": "M 50,5 L 50,105" },
+        { "d": "M 92,5 L 92,105" }
+      ]
+    },
+    {
+      "id": "Щ",
+      "type": "letter",
+      "label": "Щ",
+      "category": "consonant",
+      "viewBox": "0 0 100 120",
+      "strokes": [
+        { "d": "M 8,5 L 92,5" },
+        { "d": "M 8,5 L 8,105" },
+        { "d": "M 50,5 L 50,105" },
+        { "d": "M 92,5 L 92,105" },
+        { "d": "M 92,105 L 100,105 L 100,118" }
+      ]
+    },
+    {
+      "id": "Ъ",
+      "type": "letter",
+      "label": "Ъ",
+      "category": "sign",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 28,5 L 8,5" },
+        { "d": "M 15,5 L 15,105" },
+        { "d": "M 15,50 C 18,90 32,108 58,108 C 82,108 92,88 92,68 C 92,50 75,42 15,46" }
+      ]
+    },
+    {
+      "id": "Ы",
+      "type": "letter",
+      "label": "Ы",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 12,52 C 15,92 28,108 52,108 C 75,108 85,88 85,68 C 85,50 68,42 12,48" },
+        { "d": "M 78,5 L 78,105" }
+      ]
+    },
+    {
+      "id": "Ь",
+      "type": "letter",
+      "label": "Ь",
+      "category": "sign",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 12,52 C 15,92 28,108 55,108 C 80,108 90,88 90,68 C 90,50 72,42 12,48" }
+      ]
+    },
+    {
+      "id": "Э",
+      "type": "letter",
+      "label": "Э",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 15,20 C 22,5 45,2 58,5 C 80,10 92,28 92,55 C 92,82 80,100 58,105 C 45,108 22,105 15,90" },
+        { "d": "M 92,52 L 42,52" }
+      ]
+    },
+    {
+      "id": "Ю",
+      "type": "letter",
+      "label": "Ю",
+      "category": "vowel",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 12,5 L 12,105" },
+        { "d": "M 12,52 L 32,52" },
+        { "d": "M 65,5 C 90,5 95,28 95,55 C 95,82 90,105 65,105 C 40,105 32,82 32,55 C 32,28 40,5 65,5" }
+      ]
+    },
+    {
+      "id": "Я",
+      "type": "letter",
+      "label": "Я",
+      "category": "consonant",
+      "viewBox": "0 0 100 110",
+      "strokes": [
+        { "d": "M 88,5 C 55,5 18,15 18,35 C 18,55 45,62 88,62" },
+        { "d": "M 88,5 L 88,105" },
+        { "d": "M 18,62 L 8,105" }
+      ]
+    }
+  ]
+}

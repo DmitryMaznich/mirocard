@@ -7,6 +7,8 @@ import ReadingRenderer             from "./renderers/reading/index.jsx";
 import FunctionCardsRenderer       from "./renderers/function_cards/index.jsx";
 import VowelConsonantRenderer      from "./renderers/vowel_consonant/index.jsx";
 import NarrativeRenderer           from "./renderers/narrative/index.jsx";
+import LetterWritingRenderer       from "./renderers/letter_writing/index.jsx";
+import StreakTrackerRenderer        from "./renderers/streak_tracker/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -18,4 +20,6 @@ export const RENDERER_REGISTRY = {
   vowel_consonant:       VowelConsonantRenderer,
   opposites:             OppositeRenderer,
   narrative:             NarrativeRenderer,
+  letter_writing:        LetterWritingRenderer,
+  streak_tracker:        StreakTrackerRenderer,
 };

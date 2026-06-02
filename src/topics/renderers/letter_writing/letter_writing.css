@@ -1,0 +1,141 @@
+/* ── Wrapper ───────────────────────────────────────────────────── */
+.lw-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  gap: 12px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* ── Card ──────────────────────────────────────────────────────── */
+.lw-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  width: 100%;
+  max-width: 380px;
+  flex-shrink: 1;
+}
+
+/* ── Card header ───────────────────────────────────────────────── */
+.lw-card-header {
+  background: #1d4ed8;
+  color: white;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lw-letter-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.lw-step-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.lw-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: background 0.25s;
+}
+
+.lw-step-dot--active { background: #fbbf24; }
+.lw-step-dot--done   { background: rgba(255, 255, 255, 0.85); }
+
+/* ── SVG ───────────────────────────────────────────────────────── */
+.lw-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+}
+
+/* ── Controls ──────────────────────────────────────────────────── */
+.lw-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 380px;
+}
+
+.lw-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #1d4ed8;
+  color: white;
+  box-shadow: 0 3px 10px rgba(29, 78, 216, 0.3);
+  transition: transform 0.1s, box-shadow 0.1s;
+  flex: 1;
+  min-width: 100px;
+}
+
+.lw-btn:active {
+  transform: scale(0.97);
+}
+
+.lw-btn--secondary {
+  background: white;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+  box-shadow: none;
+}
+
+.lw-btn--advance {
+  background: #16a34a;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.35);
+}
+
+.lw-btn--done {
+  background: #16a34a;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.35);
+}
+
+/* ── Follow mode touch indicator ──────────────────────────────── */
+.lw-touch-indicator {
+  pointer-events: none;
+}
+
+/* ── Trace mode canvas overlay ─────────────────────────────────── */
+.lw-trace-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+}
+
+.lw-trace-wrap .lw-card {
+  max-width: 100%;
+}
+
+.lw-trace-canvas {
+  position: absolute;
+  top: 44px; /* below the card header */
+  left: 0;
+  width: 100%;
+  height: calc(100% - 44px);
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ── Category colours (badge glow on SVG) ───────────────────────── */
+.lw-badge-vowel     circle { fill: #ef4444; }
+.lw-badge-consonant circle { fill: #3b82f6; }
+.lw-badge-sign      circle { fill: #8b5cf6; }

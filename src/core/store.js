@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
 
 export const useAppStore = create((set) => ({
   // ─── Navigation ────────────────────────────────────────────────────────────
@@ -65,15 +66,20 @@ export const useAppStore = create((set) => ({
 
   // ─── Topics ────────────────────────────────────────────────────────────────
   ownedTopics: [],
-  topicRecords: [],
+  topicRecords: [...BUILTIN_TOPICS],
   setOwnedTopics: (ownedTopics) => set({ ownedTopics }),
-  setTopicRecords: (topicRecords) => set({ topicRecords }),
-  upsertTopicRecord: (record) => set((s) => ({
-    topicRecords: [
-      ...s.topicRecords.filter((r) => r.meta.id !== record.meta.id),
-      record,
-    ],
-  })),
+  setTopicRecords: (topicRecords) => set({
+    topicRecords: [...BUILTIN_TOPICS, ...(topicRecords ?? []).filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta.id))],
+  }),
+  upsertTopicRecord: (record) => set((s) => {
+    if (BUILTIN_TOPIC_IDS.has(record.meta.id)) return s;
+    return {
+      topicRecords: [
+        ...s.topicRecords.filter((r) => r.meta.id !== record.meta.id),
+        record,
+      ],
+    };
+  }),
   upsertOwnedTopic: (topic) => set((s) => {
     const idx = s.ownedTopics.findIndex((x) => x.topicId === topic.topicId);
     const next = [...s.ownedTopics];

@@ -9,6 +9,8 @@ import { generateTasks as functionCardsEngine }        from "./function_cards/en
 import { generateTasks as magneticAlphabetEngine }     from "./magnetic_alphabet/engine";
 import { generateTasks as vowelConsonantEngine }       from "./vowel_consonant/engine";
 import { generateTasks as narrativeEngine }            from "./narrative/engine";
+import { generateTasks as letterWritingEngine }        from "./letter_writing/engine";
+import { generateTasks as streakTrackerEngine }        from "./streak_tracker/engine";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -22,4 +24,6 @@ export const ENGINE_REGISTRY = {
   vowel_consonant:       vowelConsonantEngine,
   opposites:             oppositeEngine,
   narrative:             narrativeEngine,
+  letter_writing:        letterWritingEngine,
+  streak_tracker:        streakTrackerEngine,
 };
