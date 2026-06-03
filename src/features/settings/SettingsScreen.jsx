@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
+import PinGateModal from "@/shared/components/PinGateModal";
 import { getVoiceEngineId, getEngineLabel } from "@/shared/hooks/useSpeech";
 
 function fakeSession(pct, studentId, topicId) {
@@ -35,6 +36,9 @@ export default function SettingsScreen() {
   const settings         = useAppStore((s) => s.settings);
   const patchSettings    = useAppStore((s) => s.patchSettings);
 
+  const adultPinHash     = settings.adultPinHash ?? null;
+  const [pinResetMode, setPinResetMode] = useState(null); // null | "verify-old" | "set-new"
+
   const adultConfirmAdvance = settings.adultConfirmAdvance ?? true;
   const tapToAdvance     = settings.tapToAdvance ?? true;
   const requiresTapToAdvance = adultConfirmAdvance || tapToAdvance;
@@ -44,6 +48,22 @@ export default function SettingsScreen() {
     patchSettings(patch);
     const db = await getDb();
     await kv.set(db, "settings", { ...settings, ...patch });
+  }
+
+  function startPinReset() {
+    setPinResetMode(adultPinHash === null ? "set-new" : "verify-old");
+  }
+
+  function handleVerifyOldSuccess() {
+    setPinResetMode("set-new");
+  }
+
+  async function handleSetNewPin(hash) {
+    await handlePatchSettings({ adultPinHash: hash });
+  }
+
+  function handleSetNewSuccess() {
+    setPinResetMode(null);
   }
 
   function testSummary(pct) {
@@ -187,6 +207,12 @@ export default function SettingsScreen() {
               >+</button>
             </div>
           </div>
+          <div className="settings-row">
+            <span className="settings-label">PIN-код занятия</span>
+            <button className="link-btn" onClick={startPinReset}>
+              {adultPinHash ? "Изменить PIN" : "Задать PIN"}
+            </button>
+          </div>
         </div>
 
         <div className="settings-section">
@@ -245,6 +271,21 @@ export default function SettingsScreen() {
       <div className="settings-build-info">
         v{buildInfo.version} · {buildInfo.gitSha}
       </div>
+
+      {pinResetMode === "verify-old" && (
+        <PinGateModal
+          pinHash={adultPinHash}
+          onSuccess={handleVerifyOldSuccess}
+          onSetPin={() => {}}
+        />
+      )}
+      {pinResetMode === "set-new" && (
+        <PinGateModal
+          pinHash={null}
+          onSuccess={handleSetNewSuccess}
+          onSetPin={handleSetNewPin}
+        />
+      )}
     </div>
   );
 }
