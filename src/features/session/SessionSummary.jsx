@@ -9,7 +9,6 @@ import { computeProgressAfterSession } from "./useConceptProgress";
 import { computeStarProgress } from "./useStarProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
-import HoldButton from "@/shared/components/HoldButton";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -187,12 +186,9 @@ export default function SessionSummary() {
       {/* Actions */}
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("session")}>Ещё раз</Button>
-        <HoldButton
-          className="summary-finish-btn"
-          onAction={() => setScreen("home")}
-        >
-          <span className="summary-finish-btn__label">Завершить</span>
-        </HoldButton>
+        <Button className="summary-finish-btn" onClick={() => setScreen("home")}>
+          Завершить
+        </Button>
       </div>
 
       {/* Collapsible teacher stats */}
