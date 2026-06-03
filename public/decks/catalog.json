@@ -208,11 +208,11 @@
     },
     {
       "id": "first_then",
-      "version": "1.1.5",
+      "version": "1.1.6",
       "title": {
         "ru": "Сначала — потом"
       },
-      "url": "./decks/first_then_v1.1.5.zip"
+      "url": "./decks/first_then_v1.1.6.zip"
     }
   ]
 }
