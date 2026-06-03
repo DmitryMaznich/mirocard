@@ -431,7 +431,7 @@ export default function ParamsScreen() {
   async function handleSetPin(hash) {
     patchSettings({ adultPinHash: hash });
     const db = await getDb();
-    await kv.set(db, "settings", { ...settings, adultPinHash: hash });
+    await kv.set(db, "settings", { ...useAppStore.getState().settings, adultPinHash: hash });
   }
 
   const paramsContent = isReading ? (
@@ -647,6 +647,7 @@ export default function ParamsScreen() {
           pinHash={adultPinHash}
           onSuccess={launchSession}
           onSetPin={handleSetPin}
+          onCancel={() => setShowPinGate(false)}
         />
       )}
     </div>

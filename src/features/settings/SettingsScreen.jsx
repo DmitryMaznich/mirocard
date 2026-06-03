@@ -47,7 +47,7 @@ export default function SettingsScreen() {
   async function handlePatchSettings(patch) {
     patchSettings(patch);
     const db = await getDb();
-    await kv.set(db, "settings", { ...settings, ...patch });
+    await kv.set(db, "settings", { ...useAppStore.getState().settings, ...patch });
   }
 
   function startPinReset() {
@@ -277,6 +277,7 @@ export default function SettingsScreen() {
           pinHash={adultPinHash}
           onSuccess={handleVerifyOldSuccess}
           onSetPin={() => {}}
+          onCancel={() => setPinResetMode(null)}
         />
       )}
       {pinResetMode === "set-new" && (
@@ -284,6 +285,7 @@ export default function SettingsScreen() {
           pinHash={null}
           onSuccess={handleSetNewSuccess}
           onSetPin={handleSetNewPin}
+          onCancel={() => setPinResetMode(null)}
         />
       )}
     </div>

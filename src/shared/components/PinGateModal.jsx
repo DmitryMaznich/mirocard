@@ -2,7 +2,7 @@ import { useState } from "react";
 import { hashPin, verifyPin } from "@/shared/utils/pinHash";
 import "./PinGateModal.css";
 
-export default function PinGateModal({ pinHash, onSuccess, onSetPin }) {
+export default function PinGateModal({ pinHash, onSuccess, onSetPin, onCancel = null }) {
   const isSetup = pinHash === null;
 
   const [stage,       setStage]       = useState("enter"); // "enter" | "confirm"
@@ -87,6 +87,10 @@ export default function PinGateModal({ pinHash, onSuccess, onSetPin }) {
           <button className="pin-key" onClick={() => pressDigit("0")}>0</button>
           <button className="pin-key pin-key--back" onClick={pressBackspace}>⌫</button>
         </div>
+
+        {onCancel && (
+          <button className="pin-gate__cancel" onClick={onCancel}>Отмена</button>
+        )}
       </div>
     </div>
   );
