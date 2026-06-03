@@ -125,20 +125,19 @@
 
 /* ── Slots row ── */
 .ns-slots {
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
   gap: 8px;
-  justify-content: center;
   align-items: flex-start;
   padding-top: 4px;
-  min-height: 0;
 }
 
-/* ── Individual slot — fixed dimensions, text clips inside ── */
+/* ── Individual slot — fills available width, height from aspect-ratio ── */
 .ns-slot {
-  width: clamp(80px, 18vw, 118px);
-  height: clamp(100px, 22.5vw, 148px);
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 4 / 5;
+  contain: size;          /* children cannot affect slot dimensions */
   border-radius: 14px;
   border: 2.5px dashed #94a3b8;
   background: #f8fafc;
