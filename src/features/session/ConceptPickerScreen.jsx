@@ -8,7 +8,7 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 
 function ConceptCard({ concept, topicId, level, selected, onToggle }) {
-  const imgUrl = useTopicFile(topicId, concept.primary?.image);
+  const imgUrl = useTopicFile(topicId, concept.primary?.icon ?? concept.primary?.image);
   const label  = concept.primary?.label ?? concept.conceptId;
 
   return (
