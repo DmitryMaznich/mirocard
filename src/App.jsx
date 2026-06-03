@@ -241,7 +241,7 @@ export default function App() {
           actions={
             <>
               <Button variant="secondary" onClick={closeSessionExitPrompt}>Остаться</Button>
-              <HoldButton className="btn btn--danger" onAction={finishSessionFromPrompt}>Завершить</HoldButton>
+              <HoldButton className="btn btn--danger" onAction={finishSessionFromPrompt} skipTaps>Завершить</HoldButton>
             </>
           }
         >
