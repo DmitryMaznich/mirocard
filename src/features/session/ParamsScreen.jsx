@@ -4,6 +4,8 @@ import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
+import PinGateModal from "@/shared/components/PinGateModal";
+import { getDb, kv } from "@/core/db";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -320,6 +322,9 @@ export default function ParamsScreen() {
   const students               = useAppStore((s) => s.students);
   const studentTopicLinks      = useAppStore((s) => s.studentTopicLinks);
   const sessions               = useAppStore((s) => s.sessions);
+  const adultPinHash           = useAppStore((s) => s.settings.adultPinHash);
+  const settings               = useAppStore((s) => s.settings);
+  const patchSettings          = useAppStore((s) => s.patchSettings);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode        = topicRecord?.modes.find((m) => m.id === activeModeId);
@@ -387,6 +392,7 @@ export default function ParamsScreen() {
   const [videoReward,    setVideoReward]     = useState(link.videoRewardEnabled ?? true);
   const [rewardThreshold, setRewardThreshold] = useState(link.rewardThreshold ?? 90);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
+  const [showPinGate,    setShowPinGate]     = useState(false);
 
   if (!topicRecord || !mode) {
     return (
@@ -407,14 +413,25 @@ export default function ParamsScreen() {
   const modeGoal           = getModeGoal(mode);
   const { markSessionStart } = useTimer();
 
-  function startSession() {
+  function openPinGate() {
     if (isReading && !activeText) {
       setScreen("texts");
       return;
     }
+    setShowPinGate(true);
+  }
+
+  function launchSession() {
+    setShowPinGate(false);
     markSessionStart();
     persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold });
     setScreen("session");
+  }
+
+  async function handleSetPin(hash) {
+    patchSettings({ adultPinHash: hash });
+    const db = await getDb();
+    await kv.set(db, "settings", { ...settings, adultPinHash: hash });
   }
 
   const paramsContent = isReading ? (
@@ -574,7 +591,7 @@ export default function ParamsScreen() {
             </div>
           )}
           <div className="params-info-start">
-            <Button fullWidth onClick={startSession} disabled={sentenceListEmpty}>Начать занятие</Button>
+            <Button fullWidth onClick={openPinGate} disabled={sentenceListEmpty}>Начать занятие</Button>
           </div>
         </div>
 
@@ -614,7 +631,7 @@ export default function ParamsScreen() {
 
           {/* Start button — phone only, hidden on tablet via CSS */}
           <div className="params-start-phone">
-            <Button fullWidth onClick={startSession} disabled={sentenceListEmpty}>Начать занятие</Button>
+            <Button fullWidth onClick={openPinGate} disabled={sentenceListEmpty}>Начать занятие</Button>
           </div>
         </div>
       </div>
@@ -623,6 +640,14 @@ export default function ParamsScreen() {
         <Modal title={modeTitle} onClose={() => setShowModeInfo(false)}>
           <ModeMethodology mode={mode} />
         </Modal>
+      )}
+
+      {showPinGate && (
+        <PinGateModal
+          pinHash={adultPinHash}
+          onSuccess={launchSession}
+          onSetPin={handleSetPin}
+        />
       )}
     </div>
   );
