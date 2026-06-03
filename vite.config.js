@@ -41,6 +41,7 @@ function gitSha() {
 
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
+  build: { emptyOutDir: false },
   server: {
     proxy: apiProxy,
   },

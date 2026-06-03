@@ -2,16 +2,16 @@
   "decks": [
     {
       "id": "letter_writing",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": {
         "ru": "Написание букв",
         "en": "Letter Writing"
       },
       "description": {
-        "ru": "33 заглавных буквы русского алфавита с анимацией написания по штрихам. Демонстрация, слежение пальцем и самостоятельная обводка.",
-        "en": "33 uppercase Russian letters with stroke-by-stroke animation. Demonstration, finger tracking, and independent tracing."
+        "ru": "33 заглавных буквы русского алфавита. Рабочий лист: буквы на линейке, нажми — увидишь анимацию по штрихам.",
+        "en": "33 uppercase Russian letters. Worksheet: letters on lined paper, tap to see stroke-by-stroke animation."
       },
-      "url": "./decks/letter_writing_v1.0.0.zip"
+      "url": "./decks/letter_writing_v1.1.0.zip"
     },
     {
       "id": "reading_dad_poems",

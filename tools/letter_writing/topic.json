@@ -1,12 +1,44 @@
 {
   "meta": {
     "id": "letter_writing",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "renderer": "letter_writing",
     "title": "Написание букв",
     "avatar": "media/avatar.svg"
   },
   "modes": [
+    {
+      "id": "worksheet",
+      "type": "worksheet",
+      "evaluation": "none",
+      "ui": {
+        "title": "Рабочий лист",
+        "instruction": "Нажми на букву — увидишь, как её писать"
+      },
+      "params": {
+        "background": {
+          "type": "enum",
+          "label": { "ru": "Фон" },
+          "values": ["lined", "grid", "blank"],
+          "labels": { "ru": { "lined": "Линейка", "grid": "Клетка", "blank": "Чистый" } },
+          "default": "lined"
+        },
+        "letterHeightCells": {
+          "type": "enum",
+          "label": { "ru": "Высота буквы" },
+          "values": [1, 2, 3],
+          "labels": { "ru": { "1": "Маленькая", "2": "Средняя", "3": "Большая" } },
+          "default": 2
+        },
+        "blankRows": {
+          "type": "enum",
+          "label": { "ru": "Строк для написания" },
+          "values": [0, 1, 2],
+          "labels": { "ru": { "0": "0", "1": "1", "2": "2" } },
+          "default": 1
+        }
+      }
+    },
     {
       "id": "letter_demo",
       "type": "letter_demo",
