@@ -1,4 +1,5 @@
 import "./letter_writing.css";
+import WorksheetView    from "./WorksheetView";
 import LetterDemoView   from "./LetterDemoView";
 import LetterFollowView from "./LetterFollowView";
 import LetterTraceView  from "./LetterTraceView";
@@ -7,6 +8,8 @@ export default function LetterWritingRenderer({ task, mode, onAdvance }) {
   if (!task) return null;
 
   switch (task.type) {
+    case "worksheet":
+      return <WorksheetView    task={task} onAdvance={onAdvance} />;
     case "letter_demo":
       return <LetterDemoView   task={task} onAdvance={onAdvance} />;
     case "letter_follow":
@@ -14,6 +17,6 @@ export default function LetterWritingRenderer({ task, mode, onAdvance }) {
     case "letter_trace":
       return <LetterTraceView  task={task} onAdvance={onAdvance} />;
     default:
-      return <LetterDemoView   task={task} onAdvance={onAdvance} />;
+      return <WorksheetView    task={task} onAdvance={onAdvance} />;
   }
 }
