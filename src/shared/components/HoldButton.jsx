@@ -1,13 +1,15 @@
 import { useRef, useState, useEffect } from "react";
 
 const TICK_MS       = 40;
-const TAP_MAX_MS    = 400;   // shorter than this = counts as tap
-const TAP_WINDOW_MS = 2500;  // taps must come within this window
+const TAP_MAX_MS    = 400;
+const TAP_WINDOW_MS = 2500;
 const REQUIRED_TAPS = 3;
 
-export default function HoldButton({ onAction, children, className = "", holdMs = 3000, style }) {
+export default function HoldButton({ onAction, children, className = "", holdMs = 3000, style, skipTaps = false }) {
+  const requiredTaps = skipTaps ? 0 : REQUIRED_TAPS;
+
   const [tapCount,  setTapCount]  = useState(0);
-  const [phase,     setPhase]     = useState("tap"); // "tap" | "hold"
+  const [phase,     setPhase]     = useState("tap");
   const [progress,  setProgress]  = useState(0);
 
   const intervalRef   = useRef(null);
@@ -57,14 +59,13 @@ export default function HoldButton({ onAction, children, className = "", holdMs 
       intervalRef.current = null;
     }
     setProgress(0);
-    // give a short window to re-press without resetting tap count
     scheduleReset();
   }
 
   function onPointerDown(e) {
     e.currentTarget.setPointerCapture(e.pointerId);
     pressStartRef.current = Date.now();
-    if (tapCountRef.current >= REQUIRED_TAPS) {
+    if (tapCountRef.current >= requiredTaps) {
       startHold();
     }
   }
@@ -72,7 +73,7 @@ export default function HoldButton({ onAction, children, className = "", holdMs 
   function onPointerUp() {
     const duration = Date.now() - (pressStartRef.current ?? Date.now());
 
-    if (tapCountRef.current >= REQUIRED_TAPS) {
+    if (tapCountRef.current >= requiredTaps) {
       cancelHold();
       return;
     }
@@ -80,18 +81,17 @@ export default function HoldButton({ onAction, children, className = "", holdMs 
     if (duration < TAP_MAX_MS) {
       tapCountRef.current += 1;
       setTapCount(tapCountRef.current);
-      if (tapCountRef.current >= REQUIRED_TAPS) {
+      if (tapCountRef.current >= requiredTaps) {
         setPhase("hold");
       }
       scheduleReset();
     } else {
-      // slow press during tap phase — treat as misfire, reset
       resetAll();
     }
   }
 
   function onPointerLeave() {
-    if (tapCountRef.current >= REQUIRED_TAPS && intervalRef.current) {
+    if (tapCountRef.current >= requiredTaps && intervalRef.current) {
       cancelHold();
     }
   }
@@ -107,7 +107,7 @@ export default function HoldButton({ onAction, children, className = "", holdMs 
       onContextMenu={(e) => e.preventDefault()}
     >
       {children}
-      {tapCount > 0 && tapCount < REQUIRED_TAPS && (
+      {!skipTaps && tapCount > 0 && tapCount < REQUIRED_TAPS && (
         <span className="hold-btn-taps">
           {"●".repeat(tapCount)}{"○".repeat(REQUIRED_TAPS - tapCount)}
         </span>
