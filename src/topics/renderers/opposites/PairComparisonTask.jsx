@@ -50,7 +50,7 @@ export default function PairComparisonTask({ task, topicId, onAdvance }) {
     <div className="session-body opp-pair-v2">
       <div className="opp-pair-v2__content" onClick={handleContentTap}>
         <PairCard topicId={topicId} card={pair.leftCard}  showLabels={showLabels} visible />
-        <PairCard topicId={topicId} card={pair.rightCard} showLabels={showLabels} visible={step === 2} />
+        {step === 2 && <PairCard topicId={topicId} card={pair.rightCard} showLabels={showLabels} visible />}
       </div>
 
       {step === 1 && (
