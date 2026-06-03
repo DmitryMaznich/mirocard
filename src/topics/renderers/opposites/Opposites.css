@@ -297,13 +297,12 @@
 }
 
 .opp-pair-v2__content {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   flex: 1;
   min-height: 0;
   align-items: center;
-  justify-content: center;
   cursor: pointer;
 }
 
