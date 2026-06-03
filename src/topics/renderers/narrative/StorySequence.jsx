@@ -67,6 +67,8 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
   const topicId      = topicRecord?.meta?.id;
   const cards        = topicRecord?.cards ?? [];
 
+  const scenarioTitle = cards.find(c => c.id === conceptId)?.label?.ru ?? "";
+
   const { imageUrls, audioUrls, completionAudios } = useSceneAssets(topicId, cards);
 
   function getImage(sceneId) {
@@ -211,8 +213,8 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
       onPointerCancel={done ? undefined : handlePointerEnd}
       onClick={done ? () => advanceNow() : undefined}
     >
-      {question && (
-        <div key={question} className="ns-question">{question}</div>
+      {scenarioTitle && (
+        <div className="ns-title">{scenarioTitle}</div>
       )}
 
       <div className="ns-slots">
@@ -237,6 +239,10 @@ export default function StorySequence({ task, topicRecord, soundEnabled, onMista
           );
         })}
       </div>
+
+      {question && (
+        <div key={question} className="ns-question">{question}</div>
+      )}
 
       {sentence && (
         <div className={`ns-sentence${done ? " ns-sentence--done" : ""}`}>{sentence}</div>

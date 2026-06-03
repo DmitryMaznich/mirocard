@@ -11,20 +11,30 @@
   touch-action: none;
 }
 
+/* ── Scenario title ── */
+.ns-title {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: clamp(1rem, 3vw, 1.35rem);
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: 0.01em;
+}
+
 /* ── Sliding question ── */
 .ns-question {
   flex-shrink: 0;
   text-align: center;
-  font-size: clamp(1.1rem, 3.5vw, 1.5rem);
-  font-weight: 800;
-  color: #1e293b;
-  padding: 4px 0;
+  font-size: clamp(1rem, 3.2vw, 1.35rem);
+  font-weight: 700;
+  color: #3b82f6;
+  padding: 2px 0;
   animation: ns-slide-in 0.3s ease;
 }
 
 @keyframes ns-slide-in {
-  from { opacity: 0; transform: translateX(32px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Done state: whole screen is tappable ── */
