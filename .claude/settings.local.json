@@ -62,7 +62,8 @@
       "PowerShell(Stop-Process -Force)",
       "PowerShell(Get-Process -Name node | Where-Object { $_.CPU -gt 30 } | Stop-Process -Force -PassThru | Select-Object Id, Name)",
       "PowerShell(Get-ChildItem \"c:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\dist\\\\assets\" | Where-Object { $_.Name -match \"css|index\" } | Select-Object Name, LastWriteTime)",
-      "PowerShell(Invoke-RestMethod \"http://192.168.1.163:8080/version.json\" -TimeoutSec 10)"
+      "PowerShell(Invoke-RestMethod \"http://192.168.1.163:8080/version.json\" -TimeoutSec 10)",
+      "PowerShell(Invoke-WebRequest -Uri \"http://192.168.1.163:8080/decks/catalog.json\" -UseBasicParsing | Select-Object -ExpandProperty Content | ConvertFrom-Json | Select-Object -ExpandProperty decks | Where-Object { $_.id -eq \"letter_writing\" } | ConvertTo-Json)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
