@@ -4,7 +4,7 @@
   flex-direction: column;
   height: 100%;
   padding: 12px;
-  gap: 12px;
+  gap: 10px;
   box-sizing: border-box;
   background: #f0f4f8;
   user-select: none;
@@ -70,9 +70,11 @@
   padding-bottom: 8px;
 }
 
-/* ── Scene card ── */
+/* ── Scene card — fixed dimensions, text clips inside ── */
 .ns-card {
   width: clamp(90px, 22vw, 130px);
+  height: clamp(118px, 28vw, 162px);
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -81,15 +83,17 @@
   border-radius: 14px;
   border: 2.5px solid #e2e8f0;
   box-shadow: 0 3px 10px rgba(0,0,0,0.09);
-  padding: 6px 6px 8px;
+  padding: 6px 6px 6px;
   cursor: grab;
   touch-action: none;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .ns-card img {
   width: 100%;
-  aspect-ratio: 1;
+  flex: 1;
+  min-height: 0;
   border-radius: 9px;
   object-fit: cover;
   display: block;
@@ -97,11 +101,16 @@
 }
 
 .ns-card span {
+  flex-shrink: 0;
   font-size: clamp(0.62rem, 2vw, 0.82rem);
   font-weight: 700;
   color: #1e293b;
   text-align: center;
   line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ns-card--floating {
@@ -114,7 +123,7 @@
   pointer-events: none;
 }
 
-/* ── Slots row — at the top ── */
+/* ── Slots row ── */
 .ns-slots {
   flex: 1;
   display: flex;
@@ -122,12 +131,14 @@
   justify-content: center;
   align-items: flex-start;
   padding-top: 4px;
+  min-height: 0;
 }
 
-/* ── Individual slot ── */
+/* ── Individual slot — fixed dimensions, text clips inside ── */
 .ns-slot {
   width: clamp(80px, 18vw, 118px);
-  aspect-ratio: 1 / 1.25;
+  height: clamp(100px, 22.5vw, 148px);
+  flex-shrink: 0;
   border-radius: 14px;
   border: 2.5px dashed #94a3b8;
   background: #f8fafc;
@@ -138,6 +149,7 @@
   gap: 4px;
   padding: 6px;
   box-sizing: border-box;
+  overflow: hidden;
   transition: border-color 0.15s, background 0.15s;
 }
 
@@ -154,17 +166,24 @@
 
 .ns-slot--filled img {
   width: 100%;
+  flex: 1;
+  min-height: 0;
   border-radius: 9px;
   object-fit: cover;
   pointer-events: none;
 }
 
 .ns-slot--filled span {
+  flex-shrink: 0;
   font-size: clamp(0.58rem, 1.8vw, 0.76rem);
   font-weight: 700;
   color: #15803d;
   text-align: center;
   line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ns-slot--done {
@@ -202,8 +221,10 @@
   }
   .ns-slot {
     width: clamp(64px, 14vh, 96px);
+    height: clamp(80px, 17.5vh, 120px);
   }
   .ns-card {
     width: clamp(72px, 16vh, 110px);
+    height: clamp(94px, 20vh, 138px);
   }
 }
