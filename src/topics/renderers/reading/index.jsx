@@ -328,7 +328,37 @@ function applyGroupToSteps(parsedSteps, group) {
   });
 }
 
-function InstructionTask({ task, topicId, onAdvance }) {
+function playWarningChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const notes = [
+      { freq: 880,  start: 0.00, dur: 0.35 },
+      { freq: 1047, start: 0.20, dur: 0.35 },
+      { freq: 1319, start: 0.40, dur: 0.55 },
+    ];
+    for (const { freq, start, dur } of notes) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + start;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.55, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t);
+      osc.stop(t + dur);
+    }
+    setTimeout(() => ctx.close().catch(() => {}), 1500);
+  } catch {
+    // Audio is optional
+  }
+}
+
+function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const activeStudentId         = useAppStore((s) => s.activeStudentId);
   const students                = useAppStore((s) => s.students);
@@ -388,6 +418,12 @@ function InstructionTask({ task, topicId, onAdvance }) {
     const el = listRef.current.querySelector(".instruction-list-item--active");
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [listOpen]);
+
+  useEffect(() => {
+    if (step?.type === "warning" && soundEnabled !== false) {
+      playWarningChime();
+    }
+  }, [stepIndex, soundEnabled]); // step derived from stepIndex
 
   const toggleItem = useCallback((i) => {
     const key = `${stepIndex}_${i}`;
@@ -494,11 +530,16 @@ function InstructionTask({ task, topicId, onAdvance }) {
             <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
           </div>
 
-          <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}`}>
+          <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}${step.type === "warning" ? " instruction-step--warning" : ""}`}>
             {step.type === "image" ? (
               imageUrl
                 ? <img src={imageUrl} alt="" className="instruction-step-img" />
                 : <div className="instruction-step-img-placeholder" />
+            ) : step.type === "warning" ? (
+              <div className="instruction-step-text instruction-step-text--warning">
+                <span className="instruction-warning-icon">🔔</span>
+                {step.text}
+              </div>
             ) : (
             <div className="instruction-step-text">{(() => {
               const text = applyFireEmoji(applyPortions(step.text, portions));

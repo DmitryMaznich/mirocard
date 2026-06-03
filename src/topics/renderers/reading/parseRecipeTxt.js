@@ -47,10 +47,11 @@ export function parseRecipeTxt(raw) {
     if (numMatch) {
       flush();
       stepNum++;
+      const text = numMatch[2];
       current = {
         id: `s${stepNum}`,
-        type: "action",
-        text: numMatch[2],
+        type: text.trim() === "Проверка!" ? "warning" : "action",
+        text,
         owner: currentOwner,
       };
       continue;
