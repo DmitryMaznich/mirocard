@@ -160,9 +160,15 @@ export default function LetterDemoView({ task, onAdvance }) {
           </div>
         </div>
         <svg ref={svgRef} viewBox={viewBox} className="lw-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="lw-demo-arr" viewBox="0 0 9 7" refX="8.5" refY="3.5"
+              markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="7" orient="auto">
+              <path d="M 0,0 L 9,3.5 L 0,7 Z" fill="#fbbf24" opacity="0.85" />
+            </marker>
+          </defs>
           <NotebookBg w={vbW} h={vbH} />
 
-          {/* ghost */}
+          {/* ghost with direction arrows */}
           {strokes.map((s, i) => (
             <path
               key={`g${i}`}
@@ -172,7 +178,8 @@ export default function LetterDemoView({ task, onAdvance }) {
               strokeWidth={STROKE_WIDTH}
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity={0.1}
+              opacity={0.15}
+              markerEnd="url(#lw-demo-arr)"
             />
           ))}
 

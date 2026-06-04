@@ -108,11 +108,18 @@ function LetterCell({ letter, heightPx, replayKey }) {
       xmlns="http://www.w3.org/2000/svg"
       style={{ display: "block", flexShrink: 0 }}
     >
-      {/* ghost strokes */}
+      <defs>
+        <marker id="lw-ws-arr" viewBox="0 0 9 7" refX="8.5" refY="3.5"
+          markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="7" orient="auto">
+          <path d="M 0,0 L 9,3.5 L 0,7 Z" fill="#fbbf24" opacity="0.85" />
+        </marker>
+      </defs>
+      {/* ghost strokes with direction arrows */}
       {letter.strokes.map((s, i) => (
         <path key={`g${i}`} d={s.d} fill="none"
           stroke="#1d4ed8" strokeWidth={STROKE_W}
-          strokeLinecap="round" strokeLinejoin="round" opacity={0.12} />
+          strokeLinecap="round" strokeLinejoin="round" opacity={0.15}
+          markerEnd="url(#lw-ws-arr)" />
       ))}
       {/* animated strokes */}
       {letter.strokes.map((s, i) => (
