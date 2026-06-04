@@ -168,20 +168,32 @@ function pluralizeRu(n, one, few, many) {
  * {2} with portions=3 → "6"
  * {2|стакан|стакана|стаканов} with portions=3 → "6 стаканов"
  */
+function formatWithUnit(val, one, few, many) {
+  // Snap to nearest 0.5 to avoid floating-point drift (e.g. 0.5*7 = 3.5000000000000004)
+  const snapped = Math.round(val * 2) / 2;
+  const whole   = Math.floor(snapped);
+  const isHalf  = snapped - whole === 0.5;
+
+  if (isHalf) {
+    const prefix = whole > 0 ? `${whole} с половиной` : "половина";
+    return `${prefix} ${few.trim()}`;
+  }
+  return `${whole} ${pluralizeRu(whole, one.trim(), few.trim(), many.trim())}`;
+}
+
 export function applyPortions(text, portions) {
   if (!text) return text ?? "";
   const factor = portions || 1;
   let result = text.replace(
     /\{(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
-    (_, n, one, few, many) => {
-      const val = parseFloat(n) * factor;
-      const rounded = Number.isInteger(val) ? val : parseFloat(val.toFixed(2));
-      return `${rounded} ${pluralizeRu(rounded, one.trim(), few.trim(), many.trim())}`;
-    }
+    (_, n, one, few, many) => formatWithUnit(parseFloat(n) * factor, one, few, many)
   );
   result = result.replace(/\{(\d+(?:\.\d+)?)\}/g, (_, n) => {
-    const val = parseFloat(n) * factor;
-    return Number.isInteger(val) ? String(val) : String(parseFloat(val.toFixed(2)));
+    const snapped = Math.round(parseFloat(n) * factor * 2) / 2;
+    const whole   = Math.floor(snapped);
+    if (snapped - whole === 0.5)
+      return whole > 0 ? `${whole} с половиной` : "половина";
+    return Number.isInteger(snapped) ? String(snapped) : String(parseFloat(snapped.toFixed(2)));
   });
   return result;
 }
