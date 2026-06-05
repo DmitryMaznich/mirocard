@@ -6,6 +6,7 @@ import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
 import { useAudio } from "@/shared/hooks/useAudio";
 import StarBar from "@/shared/components/StarBar";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 
 const ADVANCE_GATE_IDLE = "idle";
@@ -71,6 +72,8 @@ export default function SessionScreen() {
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
     completedRecord, rewardProgress, streakCount,
+    rewardPending, clearRewardPending,
+    deckExhausted, handleRestartDeck, handleFinishDeck,
     onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
@@ -107,7 +110,6 @@ export default function SessionScreen() {
   }
 
   const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState ?? {};
-  const isInstantMode = mode?.evaluation === "instant";
   const isCorrectFeedback   = status === "answer_correct";
   const isIncorrectFeedback = status === "answer_incorrect";
   const advanceGateKey = `${taskIndex ?? "none"}:${status ?? "none"}`;
@@ -190,17 +192,14 @@ export default function SessionScreen() {
         <div className="session-topbar-controls">
           <StarBar
             className="session-progress"
-            correctCount={isInstantMode ? streakCount : (correctCount ?? 0)}
-            incorrectCount={isInstantMode ? 0 : (incorrectCount ?? 0)}
-            total={isInstantMode ? 5 : total}
-            rewardThreshold={isInstantMode ? 100 : rewardProgress?.threshold}
+            streakCount={streakCount}
             available={rewardProgress?.available ?? false}
           />
           <div className="session-topbar-right">
-            {!isInstantMode && (
+            {!sessionState?.isDeckMode && (
               <div className="session-counter">
                 {taskIndex + 1} / {total}
-                {mode.evaluation === "auto" && (
+                {mode.evaluation !== "none" && (
                   <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
                 )}
               </div>
@@ -264,7 +263,7 @@ export default function SessionScreen() {
             onCardShown={onCardShown}
             onTap={onTap}
             onQuality={onQuality}
-            streakCount={isInstantMode ? streakCount : undefined}
+            streakCount={streakCount}
           />
         </div>
       ) : !rendererReady ? (
@@ -311,6 +310,31 @@ export default function SessionScreen() {
         >
           {isAdvanceReady ? "Можно продолжить" : "Ждём подтверждения"}
           {isAdvanceReady && <span className="session-fb-overlay__hint">Нажмите, чтобы продолжить</span>}
+        </div>
+      )}
+
+      {rewardPending && activeStudent && (
+        <RewardVideoModal
+          rewardVideos={activeStudent.rewardVideos ?? []}
+          studentId={activeStudent.id}
+          onDismiss={clearRewardPending}
+        />
+      )}
+
+      {deckExhausted && (
+        <div className="deck-exhausted-overlay">
+          <div className="deck-exhausted-dialog">
+            <div className="deck-exhausted-dialog__icon">🎉</div>
+            <div className="deck-exhausted-dialog__title">Вы прошли все карточки!</div>
+            <div className="deck-exhausted-dialog__actions">
+              <button className="deck-exhausted-dialog__btn" onClick={handleRestartDeck}>
+                Начать снова
+              </button>
+              <button className="deck-exhausted-dialog__btn deck-exhausted-dialog__btn--finish" onClick={handleFinishDeck}>
+                Завершить
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
