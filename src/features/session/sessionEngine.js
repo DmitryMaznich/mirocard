@@ -2,7 +2,7 @@ function generateId() {
   return "session_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
 }
 
-export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null) {
+export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false) {
   return {
     status: "task_active",
     tasks,
@@ -13,8 +13,11 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     topicVersion,
     textId,
     conceptIds,
+    isDeckMode,
     correctCount: 0,
     incorrectCount: 0,
+    streakCount: 0,
+    rewardEarnedCount: 0,
     mistakes: [],
     assessments: [],
     startedAt: new Date().toISOString(),
@@ -26,13 +29,24 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
     return handleAdvance(state);
   }
   if (isCorrect) {
-    return { ...state, status: "answer_correct", correctCount: state.correctCount + 1 };
+    const streakCount = (state.streakCount ?? 0) + 1;
+    const rewardEarnedCount = streakCount >= 5
+      ? (state.rewardEarnedCount ?? 0) + 1
+      : (state.rewardEarnedCount ?? 0);
+    const finalStreak = streakCount >= 5 ? 0 : streakCount;
+    return {
+      ...state,
+      status: "answer_correct",
+      correctCount: state.correctCount + 1,
+      streakCount: finalStreak,
+      rewardEarnedCount,
+    };
   }
-
   return {
     ...state,
     status: "answer_incorrect",
     incorrectCount: state.incorrectCount + 1,
+    streakCount: 0,
     mistakes: conceptId
       ? [...state.mistakes, { conceptId, cardId }]
       : state.mistakes,
@@ -42,19 +56,27 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
 export function handleInstantCorrect(state, conceptId, cardId) {
   const streakCount = (state.streakCount ?? 0) + 1;
   const correctCount = state.correctCount + 1;
-  if (streakCount >= 5) {
-    return { ...state, status: "completed", correctCount, streakCount };
-  }
+  const rewardEarnedCount = streakCount >= 5
+    ? (state.rewardEarnedCount ?? 0) + 1
+    : (state.rewardEarnedCount ?? 0);
+  const finalStreak = streakCount >= 5 ? 0 : streakCount;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
-  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, correctCount, streakCount };
+  return {
+    ...state,
+    status: "task_active",
+    taskIndex: nextIndex,
+    taskRetry: 0,
+    correctCount,
+    streakCount: finalStreak,
+    rewardEarnedCount,
+  };
 }
 
 export function handleInstantIncorrect(state, conceptId, cardId) {
   const incorrectCount = state.incorrectCount + 1;
-  const streakCount = 0;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
-  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount, mistakes };
+  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount: 0, mistakes };
 }
 
 export function handleQualityAnswer(state, quality, conceptId, cardId) {
@@ -68,7 +90,7 @@ export function handleQualityAnswer(state, quality, conceptId, cardId) {
 export function handleAdvance(state) {
   const nextIndex = state.taskIndex + 1;
   if (nextIndex >= state.tasks.length) {
-    return { ...state, status: "completed" };
+    return { ...state, status: state.isDeckMode ? "deck_exhausted" : "completed" };
   }
   return { ...state, status: "task_active", taskIndex: nextIndex };
 }

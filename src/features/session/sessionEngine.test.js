@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSessionState, handleAnswer, handleAdvance, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
 
 const TASKS = [
   { type: "yes_no", conceptId: "tshirt", card: { id: "t1" }, displayLabel: "футболка", isLabelCorrect: true },
@@ -70,6 +70,98 @@ describe("handleAdvance — none evaluation (intro)", () => {
     let state = createSessionState([INTRO_TASKS[0]], INTRO_MODE, "s1", "t1", "1.0.0", ["tshirt"]);
     state = handleAdvance(state);
     expect(state.status).toBe("completed");
+  });
+});
+
+describe("handleAnswer — streak tracking", () => {
+  const MODE = { id: "yes_no", type: "yes_no", evaluation: "auto" };
+  const TASKS = Array.from({ length: 10 }, (_, i) => ({
+    type: "yes_no", conceptId: `c${i}`, card: { id: `c${i}` },
+  }));
+
+  it("increments streakCount on correct answer", () => {
+    const state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    const next = handleAnswer(state, true);
+    expect(next.streakCount).toBe(1);
+  });
+
+  it("resets streakCount on incorrect answer", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    state = handleAnswer(state, true);
+    state = handleAnswer(state, true);
+    expect(state.streakCount).toBe(2);
+    state = handleAnswer(state, false);
+    expect(state.streakCount).toBe(0);
+  });
+
+  it("resets streakCount to 0 and increments rewardEarnedCount at streak 5", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    for (let i = 0; i < 4; i++) state = handleAnswer(state, true);
+    expect(state.streakCount).toBe(4);
+    expect(state.rewardEarnedCount).toBe(0);
+    state = handleAnswer(state, true);
+    expect(state.streakCount).toBe(0);
+    expect(state.rewardEarnedCount).toBe(1);
+  });
+
+  it("can earn reward multiple times per session", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    for (let i = 0; i < 5; i++) state = handleAnswer(state, true);
+    expect(state.rewardEarnedCount).toBe(1);
+    for (let i = 0; i < 5; i++) state = handleAnswer(state, true);
+    expect(state.rewardEarnedCount).toBe(2);
+  });
+});
+
+describe("handleAdvance — deck_exhausted for deck modes", () => {
+  const MODE = { id: "yes_no", type: "yes_no", evaluation: "auto" };
+  const TASKS = [
+    { type: "yes_no", conceptId: "c1", card: { id: "c1" } },
+  ];
+
+  it("returns deck_exhausted instead of completed when isDeckMode is true", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", ["c1"], null, true);
+    state = handleAnswer(state, true);
+    state = handleAdvance(state);
+    expect(state.status).toBe("deck_exhausted");
+  });
+
+  it("still returns completed when isDeckMode is false", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", ["c1"], null, false);
+    state = handleAnswer(state, true);
+    state = handleAdvance(state);
+    expect(state.status).toBe("completed");
+  });
+});
+
+describe("handleInstantCorrect — streak without session completion", () => {
+  const MODE = { id: "operation_observe", type: "operation_observe", evaluation: "instant" };
+  const TASKS = Array.from({ length: 10 }, (_, i) => ({
+    type: "operation_observe", conceptId: `c${i}`, card: { id: `c${i}` },
+  }));
+
+  it("increments streakCount", () => {
+    const state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    const next = handleInstantCorrect(state);
+    expect(next.streakCount).toBe(1);
+    expect(next.status).toBe("task_active");
+  });
+
+  it("does NOT set status to completed at streak 5", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    for (let i = 0; i < 5; i++) state = handleInstantCorrect(state);
+    expect(state.status).toBe("task_active");
+    expect(state.streakCount).toBe(0);
+    expect(state.rewardEarnedCount).toBe(1);
+  });
+
+  it("resets streakCount on incorrect", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    state = handleInstantCorrect(state);
+    state = handleInstantCorrect(state);
+    expect(state.streakCount).toBe(2);
+    state = handleInstantIncorrect(state);
+    expect(state.streakCount).toBe(0);
   });
 });
 
