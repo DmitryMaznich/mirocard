@@ -1,13 +1,13 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
-import { buildRewardProgress } from "./rewardProgress";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
+import { persistStudentTopicLink } from "@/core/linkUtils";
 import {
   clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot,
   createActiveSessionSnapshot,
@@ -33,6 +33,7 @@ function buildGeneratedSessionState({
 
   const renderer = topicRecord.meta.renderer;
   let tasks;
+  let isDeckMode = false;
 
   if (renderer === "reading") {
     const generateTasks = ENGINE_REGISTRY.reading;
@@ -41,14 +42,22 @@ function buildGeneratedSessionState({
       : [];
   } else if (renderer === "flashcards") {
     const allConcepts = deriveConcepts(topicRecord.cards);
-    const concepts = allConcepts.filter((concept) => selectedConceptIds.includes(concept.conceptId));
+    const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
+    const deckPos = link.deckPosition ?? 0;
+    const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
+    const concepts = safeStart === 0 ? selected : selected.slice(safeStart);
     const generateTasks = ENGINE_REGISTRY.flashcards;
     tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
+    isDeckMode = true;
   } else if (renderer === "function_cards") {
     const allConcepts = deriveConcepts(topicRecord.cards);
-    const concepts = allConcepts.filter((concept) => selectedConceptIds.includes(concept.conceptId));
+    const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
+    const deckPos = link.deckPosition ?? 0;
+    const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
+    const concepts = safeStart === 0 ? selected : selected.slice(safeStart);
     const generateTasks = ENGINE_REGISTRY.function_cards;
     tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
+    isDeckMode = true;
   } else if (renderer === "sentence_puzzle") {
     const generateTasks = ENGINE_REGISTRY.sentence_puzzle;
     const spSelected = link.selectedConceptIds?.length ? link.selectedConceptIds : null;
@@ -61,7 +70,7 @@ function buildGeneratedSessionState({
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, selectedConceptIds) : [];
   } else {
     const generateTasks = ENGINE_REGISTRY[renderer];
-    const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 15;
+    const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 500;
     const selectedCards = topicRecord.cards.filter((card) => selectedConceptIds.includes(card.conceptId));
     tasks = generateTasks
       ? generateTasks(mode, selectedCards.length ? selectedCards : topicRecord.cards, sessionSize, sessionParams)
@@ -76,6 +85,7 @@ function buildGeneratedSessionState({
     topicRecord.meta.version,
     selectedConceptIds,
     renderer === "reading" ? activeTextId : null,
+    isDeckMode,
   );
 
   if (mode.type === "assemble_text") {
@@ -181,35 +191,29 @@ export function useSessionEngine() {
   }, [activeStudent]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [completedRecord, setCompletedRecord] = useState(null);
+  const [rewardPending, setRewardPending] = useState(false);
+  const [deckExhausted, setDeckExhausted] = useState(false);
+  const lastRewardEarnedCountRef = useRef(0);
 
   async function finishSession(state) {
     const cardEvents = cardLogger.getCardEvents();
     cardLogger.resetCardEvents();
-    const finalRewardProgress = state.mode?.evaluation === "instant"
-      ? {
-          available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
-          earned: (state.streakCount ?? 0) >= 5,
-          threshold: 100,
-          target: 5,
-          completed: state.streakCount ?? 0,
-          total: 5,
-          remaining: 0,
-        }
-      : buildRewardProgress({
-          sessionState: state,
-          mode: state.mode,
-          ...rewardConfig,
-        });
+
+    if (state.isDeckMode) {
+      const reps = link.repsPerConcept ?? 1;
+      const conceptsDone = Math.max(0, Math.floor(state.taskIndex / reps));
+      const currentDeckPos = link.deckPosition ?? 0;
+      const totalSelected = selectedConceptIds.length;
+      const newPos = totalSelected > 0 ? (currentDeckPos + conceptsDone) % totalSelected : 0;
+      await persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: newPos });
+    }
+
     const record = {
       ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents),
       reward: {
         videoEnabled: Boolean(rewardConfig.videoRewardEnabled),
-        videoAvailable: finalRewardProgress.available,
-        threshold: finalRewardProgress.threshold,
-        target: finalRewardProgress.target,
-        earned: finalRewardProgress.earned,
-        completed: finalRewardProgress.completed,
-        total: finalRewardProgress.total,
+        videoAvailable: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
+        earned: (state.rewardEarnedCount ?? 0) > 0,
       },
     };
     const db = await getDb();
@@ -267,14 +271,26 @@ export function useSessionEngine() {
     topicRecord,
   ]);
 
+  useEffect(() => {
+    if (!sessionState) return;
+    const earned = sessionState.rewardEarnedCount ?? 0;
+    if (earned > lastRewardEarnedCountRef.current) {
+      lastRewardEarnedCountRef.current = earned;
+      if (rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled) {
+        setRewardPending(true);
+      }
+    }
+  }, [sessionState?.rewardEarnedCount]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const clearRewardPending = useCallback(() => setRewardPending(false), []);
+
   const onCorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
-        const next = handleInstantCorrect(s, conceptId, cardId);
-        if (next.status === "completed") finishSession(next);
-        return next;
+        return handleInstantCorrect(s, conceptId, cardId);
       }
       const next = handleAnswer(s, true, conceptId, cardId);
+      if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;
     });
@@ -287,6 +303,7 @@ export function useSessionEngine() {
           if (s.mode.type === "sort_letters") return s;
           if (s.mode.type === "story_sequence") return s;
           const advanced = handleAdvance(s);
+          if (advanced.status === "deck_exhausted") { setDeckExhausted(true); return advanced; }
           if (advanced.status === "completed") finishSession(advanced);
           return advanced;
         });
@@ -297,9 +314,7 @@ export function useSessionEngine() {
   const onIncorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
-        const next = handleInstantIncorrect(s, conceptId, cardId);
-        if (next.status === "completed") finishSession(next);
-        return next;
+        return handleInstantIncorrect(s, conceptId, cardId);
       }
       return handleAnswer(s, false, conceptId, cardId);
     });
@@ -309,6 +324,7 @@ export function useSessionEngine() {
         if (s.mode.type === "compare_first_number") return s;
         if (s.tasks[s.taskIndex]?.type === "choose_all") {
           const advanced = handleAdvance(s);
+          if (advanced.status === "deck_exhausted") { setDeckExhausted(true); return advanced; }
           if (advanced.status === "completed") finishSession(advanced);
           return advanced;
         }
@@ -333,6 +349,7 @@ export function useSessionEngine() {
   const onAdvance = useCallback(() => {
     setSessionState((s) => {
       const next = handleAdvance(s);
+      if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;
     });
@@ -341,28 +358,35 @@ export function useSessionEngine() {
   const onQualityAnswer = useCallback((quality, conceptId, cardId) => {
     setSessionState((s) => {
       const next = handleQualityAnswer(s, quality, conceptId, cardId);
+      if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;
     });
   }, []);
 
+  const handleRestartDeck = useCallback(async () => {
+    await persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: 0 });
+    setDeckExhausted(false);
+    const newState = buildGeneratedSessionState({
+      topicRecord, mode, activeStudentId, activeTopicId,
+      activeTextId, activeText, activeStudent,
+      link: { ...link, deckPosition: 0 },
+      selectedConceptIds, sessionParams,
+    });
+    if (newState) setSessionState(newState);
+  }, [activeStudentId, activeTopicId, topicRecord, mode, activeTextId, activeText, activeStudent, link, selectedConceptIds, sessionParams]);
+
+  const handleFinishDeck = useCallback(() => {
+    setDeckExhausted(false);
+    persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: 0 });
+    if (sessionState) finishSession({ ...sessionState, status: "completed" });
+  }, [sessionState, activeStudentId, activeTopicId]);
+
   const currentTask = sessionState?.tasks[sessionState.taskIndex] ?? null;
   const streakCount = sessionState?.streakCount ?? 0;
-  const rewardProgress = mode?.evaluation === "instant"
-    ? {
-        available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
-        earned: sessionState?.status === "completed" && streakCount >= 5,
-        threshold: 100,
-        target: 5,
-        completed: streakCount,
-        total: 5,
-        remaining: Math.max(0, 5 - streakCount),
-      }
-    : buildRewardProgress({
-        sessionState,
-        mode,
-        ...rewardConfig,
-      });
+  const rewardProgress = {
+    available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
+  };
 
   return {
     sessionState,
@@ -373,6 +397,11 @@ export function useSessionEngine() {
     completedRecord,
     rewardProgress,
     streakCount,
+    rewardPending,
+    clearRewardPending,
+    deckExhausted,
+    handleRestartDeck,
+    handleFinishDeck,
     onCorrect,
     onIncorrect,
     onMistake,
