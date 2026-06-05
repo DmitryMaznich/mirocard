@@ -1,17 +1,14 @@
-export function thresholdToStars(threshold) {
-  if (threshold <= 70) return 3;
-  if (threshold <= 80) return 4;
-  return 5;
+export function computeStreakProgress({ streakCount, available }) {
+  const litStars = Math.min(5, Math.max(0, streakCount ?? 0));
+  return { litStars, available: Boolean(available) };
 }
 
-export function computeStarProgress({ correctCount, incorrectCount = 0, total, rewardThreshold, available }) {
-  const thresholdStars = thresholdToStars(rewardThreshold ?? 90);
-  const netScore = Math.max(0, correctCount - incorrectCount);
-  const litStars = Math.min(5, Math.floor(netScore / Math.max(1, total) * 5));
-  const videoUnlocked = available && litStars >= thresholdStars;
-  return { litStars, thresholdStars, videoUnlocked, available };
+// Used by SessionSummary for display-only stars (percentage-based, not for reward logic)
+export function computeDisplayStars({ correctCount, incorrectCount = 0, total }) {
+  const netScore = Math.max(0, (correctCount ?? 0) - (incorrectCount ?? 0));
+  return Math.min(5, Math.floor(netScore / Math.max(1, total) * 5));
 }
 
 export function useStarProgress(props) {
-  return computeStarProgress(props);
+  return computeStreakProgress(props);
 }
