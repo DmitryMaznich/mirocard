@@ -37,7 +37,9 @@
       "PowerShell(tailscale serve --bg --funnel 8080 2>&1)",
       "PowerShell(tailscale funnel --bg 8080 2>&1)",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; \"OK: \" + $r.Content } catch { \"Error: $\\($_.Exception.Message\\)\" })",
-      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://laptop-353ltno0.taile45e98.ts.net/api/version\" -TimeoutSec 10 -UseBasicParsing; \"Direct OK: \" + $r.Content } catch { \"Direct error: $\\($_.Exception.Message\\)\" })"
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://laptop-353ltno0.taile45e98.ts.net/api/version\" -TimeoutSec 10 -UseBasicParsing; \"Direct OK: \" + $r.Content } catch { \"Direct error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; \"OK: \" + $r.Content.Substring\\(0,60\\) } catch { \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(tailscale version 2>&1)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
