@@ -71,8 +71,8 @@ export default function RewardVideoModal({ rewardVideos = [], studentId, onDismi
   }
 
   return (
-    <div className="reward-modal-overlay">
-      <div className="reward-modal">
+    <div className="reward-modal-overlay" onClick={onDismiss}>
+      <div className="reward-modal" onClick={(e) => e.stopPropagation()}>
         <div className="reward-modal__stars">⭐⭐⭐⭐⭐</div>
         <div className="reward-modal__title">Молодец! Пять правильных подряд!</div>
         <div className="reward-modal__actions">
