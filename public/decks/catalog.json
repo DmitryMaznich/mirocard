@@ -28,7 +28,7 @@
     },
     {
       "id": "reading_dad_texts",
-      "version": "1.64.0",
+      "version": "1.65.0",
       "title": {
         "ru": "Инструкции — рецепты",
         "en": "Instructions: Recipes"
@@ -37,7 +37,7 @@
         "ru": "Пошаговые инструкции для самостоятельных действий.",
         "en": "Step-by-step instructions for independent tasks."
       },
-      "url": "./decks/reading_dad_texts_v1.64.0.zip"
+      "url": "./decks/reading_dad_texts_v1.65.0.zip"
     },
     {
       "id": "emotions_v2",
