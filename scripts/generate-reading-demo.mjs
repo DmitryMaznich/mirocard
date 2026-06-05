@@ -4,10 +4,37 @@ import { readFileSync, writeFileSync } from "node:fs";
 const dadBestImage = readFileSync(new URL("./assets/reading_dad_poems/dad_best.webp", import.meta.url));
 const momLoveImage = readFileSync(new URL("./assets/reading_dad_poems/mom_love.webp", import.meta.url));
 
+const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <circle cx="120" cy="120" r="116" fill="#fef6f0" stroke="#f0d8c8" stroke-width="3"/>
+  <ellipse cx="120" cy="202" rx="86" ry="12" fill="#b8dc90" opacity="0.55"/>
+  <!-- Dad left -->
+  <rect x="46" y="118" width="30" height="54" rx="8" fill="#3c6abf"/>
+  <circle cx="61" cy="103" r="18" fill="#f5c896"/>
+  <path d="M 43 99 Q 61 77 79 99 L 79 94 Q 61 73 43 94 Z" fill="#5a3010"/>
+  <!-- Mom right -->
+  <path d="M 153 122 Q 165 118 178 122 L 183 178 Q 165 181 147 178 Z" fill="#e8609a"/>
+  <circle cx="165" cy="107" r="16" fill="#f5c896"/>
+  <path d="M 149 104 Q 165 84 181 104 L 183 128 Q 165 136 147 128 Z" fill="#8b4513"/>
+  <!-- Child 1 -->
+  <rect x="95" y="134" width="22" height="40" rx="6" fill="#5cb870"/>
+  <circle cx="106" cy="120" r="13" fill="#f5d0a0"/>
+  <ellipse cx="96" cy="112" rx="5" ry="4" fill="#8b4513"/>
+  <ellipse cx="116" cy="112" rx="5" ry="4" fill="#8b4513"/>
+  <!-- Child 2 -->
+  <rect x="122" y="137" width="20" height="36" rx="6" fill="#e07830"/>
+  <circle cx="132" cy="124" r="12" fill="#f5d0a0"/>
+  <!-- Heart -->
+  <path d="M 120 54 C 115 46 102 42 96 52 C 90 60 92 70 100 76 L 120 93 L 140 76 C 148 70 150 60 144 52 C 138 42 125 46 120 54 Z" fill="#e83060" opacity="0.9"/>
+  <circle cx="55" cy="62" r="3" fill="#ffd700" opacity="0.8"/>
+  <circle cx="185" cy="67" r="3" fill="#ffd700" opacity="0.8"/>
+  <circle cx="45" cy="82" r="2" fill="#ffd700" opacity="0.6"/>
+  <circle cx="196" cy="82" r="2" fill="#ffd700" opacity="0.6"/>
+</svg>`;
+
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.10",
+    version: "1.0.11",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -25,7 +52,7 @@ const manifest = {
       ],
       en: ["Designed for therapist-led reading sessions."],
     },
-    conceptCount: 2,
+    conceptCount: 3,
     sessionConfig: { maxSize: 8 },
   },
   modes: [],
@@ -231,6 +258,97 @@ const manifest = {
         },
       ],
     },
+    {
+      id: "family_poem",
+      kind: "poem",
+      title: { ru: "Наша семья", en: "Our Family" },
+      image: "media/family.svg",
+      level: 1,
+      lines: [
+        { id: "l1", text: "Мама и папа- главные самые!" },
+        { id: "l2", text: "Нет на земле красивее мамы!" },
+        { id: "l3", text: "Папы добрей и сильней в мире нет!" },
+        { id: "l4", text: "Кто всех важнее?" },
+        { id: "l5", text: "Готов наш ответ:" },
+        { id: "l6", text: "Самое главное-это семья!" },
+        { id: "l7", text: "Папа и мама, Алина, Полина," },
+        { id: "l8", text: "Ну и конечно же, Я!" },
+      ],
+      questions: [
+        {
+          id: "q_about",
+          prompt: "О чём это стихотворение?",
+          answer: ["о семье", "семья"],
+          supportLineIds: ["l6", "l7"],
+        },
+        {
+          id: "q_main",
+          prompt: "Кто главные самые?",
+          answer: ["мама и папа", "папа и мама"],
+          supportLineIds: ["l1"],
+        },
+        {
+          id: "q_beautiful",
+          prompt: "Кто красивее всех на земле?",
+          answer: ["мама"],
+          supportLineIds: ["l2"],
+        },
+        {
+          id: "q_dad_character",
+          prompt: "Какой папа в стихотворении?",
+          answer: ["добрый", "сильный", "добрый и сильный"],
+          supportLineIds: ["l3"],
+        },
+        {
+          id: "q_important",
+          prompt: "Что самое главное?",
+          answer: ["семья"],
+          supportLineIds: ["l6"],
+        },
+        {
+          id: "q_who_important",
+          prompt: "Кто всех важнее?",
+          answer: ["семья"],
+          supportLineIds: ["l4", "l5", "l6"],
+        },
+        {
+          id: "q_family_members",
+          prompt: "Кто входит в семью в стихотворении?",
+          answer: ["папа", "мама", "Алина", "Полина", "я", "все"],
+          supportLineIds: ["l7", "l8"],
+        },
+        {
+          id: "q_children_names",
+          prompt: "Как зовут детей в стихотворении?",
+          answer: ["Алина и Полина", "Алина", "Полина"],
+          supportLineIds: ["l7"],
+        },
+        {
+          id: "q_last",
+          prompt: "Кого не забыли упомянуть в конце?",
+          answer: ["я", "себя", "меня"],
+          supportLineIds: ["l8"],
+        },
+        {
+          id: "q_mom_or_dad_main",
+          prompt: "Только мама главная или папа тоже?",
+          answer: ["оба", "и мама и папа", "папа тоже"],
+          supportLineIds: ["l1"],
+        },
+        {
+          id: "q_answer_ready",
+          prompt: "Что значит «Готов наш ответ»?",
+          answer: ["мы знаем ответ", "ответ готов", "знаем кто важнее"],
+          supportLineIds: ["l5", "l6"],
+        },
+        {
+          id: "q_what_kind_family",
+          prompt: "Какая семья в стихотворении?",
+          answer: ["дружная", "любящая", "счастливая", "хорошая"],
+          supportLineIds: ["l1", "l6", "l7", "l8"],
+        },
+      ],
+    },
   ],
 };
 
@@ -238,5 +356,6 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/dad_best.webp", dadBestImage);
 zip.file("media/mom_love.webp", momLoveImage);
+zip.file("media/family.svg", familySvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.10.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.11.zip", buffer);
