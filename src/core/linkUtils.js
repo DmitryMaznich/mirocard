@@ -20,5 +20,6 @@ export async function persistStudentTopicLink(studentId, topicId, patch) {
     params:             link.params ?? {},
     videoRewardEnabled: link.videoRewardEnabled ?? true,
     rewardThreshold:    link.rewardThreshold ?? 90,
+    deckPosition:       link.deckPosition ?? 0,
   });
 }
