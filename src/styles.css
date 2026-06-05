@@ -18593,3 +18593,117 @@ body { background: #eef0ef; }
   box-sizing: border-box;
 }
 .param-sentence-textarea:focus { border-color: #4a9b8f; }
+
+/* reward modal (pre-video choice) */
+.reward-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.reward-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 340px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reward-modal__stars {
+  font-size: 2rem;
+  letter-spacing: 4px;
+}
+
+.reward-modal__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.reward-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reward-modal__btn {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reward-modal__btn--watch {
+  background: #FF0000;
+  color: #fff;
+}
+
+.reward-modal__btn--continue {
+  background: #f0f0f0;
+  color: #333;
+}
+
+/* deck-exhausted dialog */
+.deck-exhausted-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.deck-exhausted-dialog {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.deck-exhausted-dialog__icon {
+  font-size: 2.5rem;
+}
+
+.deck-exhausted-dialog__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.deck-exhausted-dialog__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.deck-exhausted-dialog__btn {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #4CAF50;
+  color: #fff;
+}
+
+.deck-exhausted-dialog__btn--finish {
+  background: #f0f0f0;
+  color: #333;
+}
