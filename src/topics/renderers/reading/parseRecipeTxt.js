@@ -175,7 +175,7 @@ function formatWithUnit(val, one, few, many) {
   const isHalf  = snapped - whole === 0.5;
 
   if (isHalf) {
-    const prefix = whole > 0 ? `${whole} с половиной` : "половина";
+    const prefix = whole > 0 ? `${whole} с половиной` : "половину";
     return `${prefix} ${few.trim()}`;
   }
   return `${whole} ${pluralizeRu(whole, one.trim(), few.trim(), many.trim())}`;
