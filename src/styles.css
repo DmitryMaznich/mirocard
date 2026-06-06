@@ -18722,74 +18722,123 @@ body { background: #eef0ef; }
   overflow: hidden;
 }
 
-.shopping-list {
+/* ── Grid view ── */
+
+.shopping-grid {
   flex: 1;
   overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 16px;
+  align-content: start;
+}
+
+.shopping-tile {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 16px;
-}
-
-.shopping-category {
-  border: 2px solid #b2d8d8;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.shopping-category--done {
-  border-color: #4caf90;
-}
-
-.shopping-category-header {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px 16px;
-  background: none;
-  border: none;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 8px 14px;
+  background: #fff;
+  border: 2px solid #b2d8d8;
+  border-radius: 14px;
   cursor: pointer;
-  text-align: left;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #263131;
+  text-align: center;
+  min-height: 110px;
+  position: relative;
 }
 
-.shopping-category--done .shopping-category-header {
+.shopping-tile:active {
+  background: #f0faf5;
+  transform: scale(0.97);
+}
+
+.shopping-tile--done {
+  border-color: #4caf90;
   background: #f0faf5;
 }
 
-.shopping-category-toggle {
-  font-size: 0.85rem;
+.shopping-tile-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.shopping-tile-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #263131;
+  line-height: 1.25;
+}
+
+.shopping-tile-count {
+  font-size: 0.72rem;
+  font-weight: 700;
   color: #4caf90;
-  min-width: 16px;
+  background: #c8f0de;
+  border-radius: 10px;
+  padding: 1px 8px;
 }
 
-.shopping-category-name {
+.shopping-tile-count--done {
+  background: #4caf90;
+  color: #fff;
+}
+
+/* ── Detail view ── */
+
+.shopping-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0f0f0;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.shopping-back-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4caf90;
+  cursor: pointer;
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+
+.shopping-detail-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.shopping-detail-title {
   flex: 1;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #263131;
 }
 
-.shopping-category-count {
+.shopping-detail-count {
   font-size: 0.82rem;
   font-weight: 700;
   color: #888;
   background: #f0f0f0;
   border-radius: 12px;
   padding: 2px 10px;
+  flex-shrink: 0;
 }
 
-.shopping-category-count--done {
-  background: #c8f0de;
-  color: #2a8a62;
-}
+/* ── Items list (detail view) ── */
 
 .shopping-items {
   list-style: none;
   margin: 0;
-  padding: 0 0 8px;
-  border-top: 1px solid #e0f0f0;
+  padding: 0;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .shopping-item {

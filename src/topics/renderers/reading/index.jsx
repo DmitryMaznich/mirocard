@@ -664,7 +664,8 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
 function ShoppingListTask({ task, topicId, onAdvance }) {
   const [steps, setSteps] = useState([]);
-  const [expanded, setExpanded] = useState({});
+  const [categoryIcons, setCategoryIcons] = useState([]);
+  const [selectedIdx, setSelectedIdx] = useState(null);
   const [checked, setChecked] = useState({});
 
   useEffect(() => {
@@ -679,13 +680,10 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       } else {
         setSteps((task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action"));
       }
+      setCategoryIcons(task.text?.categoryIcons ?? []);
     }
     load();
   }, [topicId, task.text?.file]);
-
-  const toggleCategory = useCallback((idx) => {
-    setExpanded((e) => ({ ...e, [idx]: !e[idx] }));
-  }, []);
 
   const toggleItem = useCallback((stepIdx, itemIdx) => {
     const key = `${stepIdx}_${itemIdx}`;
@@ -697,47 +695,68 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
 
   const totalChecked = steps.reduce((sum, step, si) => sum + checkedCountFor(si, step.items), 0);
 
+  // ── DETAIL VIEW ──────────────────────────────────────────────
+  if (selectedIdx !== null) {
+    const step = steps[selectedIdx];
+    const items = step?.items ?? [];
+    const icon = categoryIcons[selectedIdx] ?? "📦";
+    const doneCount = checkedCountFor(selectedIdx, items);
+
+    return (
+      <div className="session-body reading-body shopping-body">
+        <div className="shopping-detail-header">
+          <button className="shopping-back-btn" onClick={() => setSelectedIdx(null)}>
+            ← Назад
+          </button>
+          <span className="shopping-detail-icon">{icon}</span>
+          <span className="shopping-detail-title">{step?.text.replace(/:$/, "")}</span>
+          <span className="shopping-detail-count">{doneCount}/{items.length}</span>
+        </div>
+        <ul className="shopping-items">
+          {items.map((item, ii) => {
+            const done = !!checked[`${selectedIdx}_${ii}`];
+            return (
+              <li
+                key={ii}
+                role="checkbox"
+                aria-checked={done}
+                className={`shopping-item${done ? " shopping-item--done" : ""}`}
+                onClick={() => toggleItem(selectedIdx, ii)}
+              >
+                <span className="shopping-checkbox">{done ? "✓" : ""}</span>
+                <span className="shopping-item-label">{item}</span>
+                {!done && <span className="shopping-tap-hint">нажми</span>}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  }
+
+  // ── GRID VIEW ────────────────────────────────────────────────
   return (
     <div className="session-body reading-body shopping-body">
-      <div className="shopping-list">
+      <div className="shopping-grid">
         {steps.map((step, si) => {
           const items = step.items ?? [];
           const doneCount = checkedCountFor(si, items);
           const allDone = doneCount === items.length && items.length > 0;
-          const isOpen = !!expanded[si];
+          const icon = categoryIcons[si] ?? "📦";
           return (
-            <div key={step.id ?? si} className={`shopping-category${allDone ? " shopping-category--done" : ""}`}>
-              <button
-                className="shopping-category-header"
-                onClick={() => toggleCategory(si)}
-              >
-                <span className="shopping-category-toggle">{isOpen ? "▼" : "▶"}</span>
-                <span className="shopping-category-name">{step.text.replace(/:$/, "")}</span>
-                <span className={`shopping-category-count${allDone ? " shopping-category-count--done" : ""}`}>
+            <button
+              key={step.id ?? si}
+              className={`shopping-tile${allDone ? " shopping-tile--done" : ""}`}
+              onClick={() => setSelectedIdx(si)}
+            >
+              <span className="shopping-tile-icon">{icon}</span>
+              <span className="shopping-tile-name">{step.text.replace(/:$/, "")}</span>
+              {doneCount > 0 && (
+                <span className={`shopping-tile-count${allDone ? " shopping-tile-count--done" : ""}`}>
                   {doneCount}/{items.length}
                 </span>
-              </button>
-              {isOpen && (
-                <ul className="shopping-items">
-                  {items.map((item, ii) => {
-                    const done = !!checked[`${si}_${ii}`];
-                    return (
-                      <li
-                        key={ii}
-                        role="checkbox"
-                        aria-checked={done}
-                        className={`shopping-item${done ? " shopping-item--done" : ""}`}
-                        onClick={() => toggleItem(si, ii)}
-                      >
-                        <span className="shopping-checkbox">{done ? "✓" : ""}</span>
-                        <span className="shopping-item-label">{item}</span>
-                        {!done && <span className="shopping-tap-hint">нажми</span>}
-                      </li>
-                    );
-                  })}
-                </ul>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
