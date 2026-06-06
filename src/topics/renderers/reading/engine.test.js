@@ -42,3 +42,29 @@ describe("reading engine", () => {
     ]);
   });
 });
+
+describe("shopping_list mode", () => {
+  const SHOPPING_TOPIC = {
+    meta: { id: "reading_test", renderer: "reading" },
+    texts: [
+      {
+        id: "shopping_list",
+        kind: "shopping_list",
+        title: { ru: "Список покупок" },
+        file: "shopping/shopping.txt",
+      },
+    ],
+  };
+
+  it("generates one shopping_list task ignoring textId", () => {
+    const tasks = generateTasks({ type: "shopping_list" }, SHOPPING_TOPIC, "any_text_id");
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].type).toBe("shopping_list");
+    expect(tasks[0].text.kind).toBe("shopping_list");
+  });
+
+  it("returns empty if no shopping_list kind text exists", () => {
+    const tasks = generateTasks({ type: "shopping_list" }, TOPIC, "dad_best");
+    expect(tasks).toHaveLength(0);
+  });
+});

@@ -58,6 +58,14 @@ function buildFollowInstructionTask(text) {
   };
 }
 
+function buildShoppingListTask(text) {
+  return {
+    type: "shopping_list",
+    textId: text.id,
+    text,
+  };
+}
+
 export function generateTasks(mode, topicRecord, textId, _sessionParams = null, textOverride = null) {
   const text = getReadingText(topicRecord, textId, textOverride);
   if (!text) return [];
@@ -71,6 +79,10 @@ export function generateTasks(mode, topicRecord, textId, _sessionParams = null, 
       return text.kind === "poem" ? buildAssembleTasks(text) : [];
     case "follow_instruction":
       return text.kind === "instruction" ? [buildFollowInstructionTask(text)] : [];
+    case "shopping_list": {
+      const shoppingText = (topicRecord.texts ?? []).find((t) => t.kind === "shopping_list");
+      return shoppingText ? [buildShoppingListTask(shoppingText)] : [];
+    }
     default:
       return [];
   }
