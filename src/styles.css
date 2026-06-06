@@ -17815,9 +17815,9 @@ body { background: #eef0ef; }
     gap: 6px;
   }
 
-  /* Center step content vertically within its flex-1 area */
+  /* Center step content vertically within its flex-1 area; safe = fall back to flex-start on overflow */
   .instruction-step {
-    justify-content: center;
+    justify-content: safe center;
   }
 
   /* Bigger owner name and step text in landscape */
