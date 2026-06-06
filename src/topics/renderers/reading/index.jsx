@@ -543,7 +543,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
             ) : (
             <div className="instruction-step-text">{(() => {
               const text = applyFireEmoji(applyPortions(step.text, portions));
-              const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z])/g);
+              const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g);
               if (parts.length === 1) return text;
               return parts.map((s, i) => (
                 <Fragment key={i}>
