@@ -18722,6 +18722,13 @@ body { background: #eef0ef; }
   overflow: hidden;
 }
 
+/* Reset session-body's align-items:center and reading-body's padding/gap */
+.session-body.reading-body.shopping-body {
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
+}
+
 /* ── Grid view ── */
 
 .shopping-grid {
@@ -18796,6 +18803,8 @@ body { background: #eef0ef; }
   border-bottom: 1px solid #e0f0f0;
   background: #fff;
   flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .shopping-back-btn {
@@ -18839,6 +18848,8 @@ body { background: #eef0ef; }
   padding: 0;
   flex: 1;
   overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .shopping-item {
@@ -18927,18 +18938,19 @@ body { background: #eef0ef; }
     visibility: hidden;
   }
 
-  .shopping-print-area,
-  .shopping-print-area * {
-    visibility: visible;
-  }
-
   .shopping-print-area {
+    display: block !important;
+    visibility: visible;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     padding: 20mm 15mm;
     box-sizing: border-box;
+  }
+
+  .shopping-print-area * {
+    visibility: visible;
   }
 
   .shopping-print-title {
