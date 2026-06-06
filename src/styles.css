@@ -18707,3 +18707,7 @@ body { background: #eef0ef; }
   background: #f0f0f0;
   color: #333;
 }
+
+@media (orientation: landscape) {
+  .croc-put-sign-btns { flex-direction: row; }
+}
