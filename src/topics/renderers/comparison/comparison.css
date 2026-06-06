@@ -361,9 +361,12 @@
   .croc-put-sign-btn   { width: 100px; height: 100px; font-size: 48px; }
 }
 
-/* ── Landscape (mobile horizontal) ──────────────────────────────── */
-@media (orientation: landscape) and (max-height: 600px) {
+/* ── Landscape ───────────────────────────────────────────────────── */
+@media (orientation: landscape) {
+  .compare-body       { gap: 10px; padding: 8px 16px; }
   .croc-put-sign-btns { flex-direction: row; }
+  .croc-put-sign-btn  { width: 72px; height: 72px; font-size: 34px; }
   .cfn-options        { flex-direction: row; max-width: none; justify-content: center; }
-  .cfn-btn            { min-height: 52px; min-width: 100px; flex: 1; max-width: 160px; }
+  .cfn-btn            { min-height: 52px; min-width: 90px; flex: 1; max-width: 150px; padding: 0 8px; }
+  .cfn-multi-row      { padding: 2px 16px; }
 }
