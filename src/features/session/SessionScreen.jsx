@@ -196,7 +196,7 @@ export default function SessionScreen() {
             available={rewardProgress?.available ?? false}
           />
           <div className="session-topbar-right">
-            {!sessionState?.isDeckMode && (
+            {mode?.evaluation !== "instant" && (
               <div className="session-counter">
                 {taskIndex + 1} / {total}
                 {mode.evaluation !== "none" && (
