@@ -360,3 +360,10 @@
   .croc-put-sign-blank { font-size: 84px; min-width: 80px; }
   .croc-put-sign-btn   { width: 100px; height: 100px; font-size: 48px; }
 }
+
+/* ── Landscape (mobile horizontal) ──────────────────────────────── */
+@media (orientation: landscape) and (max-height: 600px) {
+  .croc-put-sign-btns { flex-direction: row; }
+  .cfn-options        { flex-direction: row; max-width: none; justify-content: center; }
+  .cfn-btn            { min-height: 52px; min-width: 100px; flex: 1; max-width: 160px; }
+}
