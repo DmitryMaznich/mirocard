@@ -70,7 +70,7 @@ function buildGeneratedSessionState({
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, selectedConceptIds) : [];
   } else {
     const generateTasks = ENGINE_REGISTRY[renderer];
-    const sessionSize = topicRecord.meta.sessionConfig?.maxSize ?? 500;
+    const sessionSize = 500;
     const selectedCards = topicRecord.cards.filter((card) => selectedConceptIds.includes(card.conceptId));
     tasks = generateTasks
       ? generateTasks(mode, selectedCards.length ? selectedCards : topicRecord.cards, sessionSize, sessionParams)
