@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.64.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.65.0.zip";
-const NEW_VERSION = "1.65.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.65.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.66.0.zip";
+const NEW_VERSION = "1.66.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -99,6 +99,29 @@ for (const id of recipeIds) {
   console.log(`${id}.txt: ${steps} шагов — "${title.ru}"`);
 }
 
+// Add shopping list content file to ZIP
+const shoppingContent = readFileSync("content/shopping/shopping.txt", "utf-8");
+newZip.file("shopping/shopping.txt", shoppingContent);
+console.log("shopping.txt: добавлен список покупок (14 категорий)");
+
+const shoppingTextEntry = {
+  id: "shopping_list",
+  kind: "shopping_list",
+  title: { ru: "Список покупок", en: "Shopping list" },
+  file: "shopping/shopping.txt",
+};
+
+const shoppingMode = {
+  id: "shopping_list",
+  type: "shopping_list",
+  evaluation: "none",
+  ui: {
+    title: { ru: "Список в магазин", en: "Shopping list" },
+    instruction: { ru: "Отметь, что нужно купить, и распечатай список" },
+    icon: "media/icons/reading_read.svg",
+  },
+};
+
 // Build new topic.json
 const newTopic = {
   ...oldTopic,
@@ -106,7 +129,8 @@ const newTopic = {
     ...oldTopic.meta,
     version: NEW_VERSION,
   },
-  texts: textsManifest,
+  texts: [...textsManifest, shoppingTextEntry],
+  modes: [...(oldTopic.modes ?? []), shoppingMode],
 };
 
 newZip.file("topic.json", JSON.stringify(newTopic, null, 2));
