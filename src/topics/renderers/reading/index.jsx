@@ -662,11 +662,134 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   );
 }
 
+function ShoppingListTask({ task, topicId, onAdvance }) {
+  const [steps, setSteps] = useState([]);
+  const [expanded, setExpanded] = useState({});
+  const [checked, setChecked] = useState({});
+
+  useEffect(() => {
+    async function load() {
+      await pullRecipeKvFromServer().catch(() => {});
+      const filePath = task.text?.file;
+      if (filePath) {
+        const raw = await getRawRecipeTxt(topicId, filePath).catch(() => null);
+        if (raw) {
+          setSteps(parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action"));
+        }
+      } else {
+        setSteps((task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action"));
+      }
+    }
+    load();
+  }, [topicId, task.text?.file]);
+
+  const toggleCategory = useCallback((idx) => {
+    setExpanded((e) => ({ ...e, [idx]: !e[idx] }));
+  }, []);
+
+  const toggleItem = useCallback((stepIdx, itemIdx) => {
+    const key = `${stepIdx}_${itemIdx}`;
+    setChecked((c) => ({ ...c, [key]: !c[key] }));
+  }, []);
+
+  const checkedCountFor = (stepIdx, items) =>
+    (items ?? []).filter((_, i) => checked[`${stepIdx}_${i}`]).length;
+
+  const totalChecked = steps.reduce((sum, step, si) => sum + checkedCountFor(si, step.items), 0);
+
+  return (
+    <div className="session-body reading-body shopping-body">
+      <div className="shopping-list">
+        {steps.map((step, si) => {
+          const items = step.items ?? [];
+          const doneCount = checkedCountFor(si, items);
+          const allDone = doneCount === items.length && items.length > 0;
+          const isOpen = !!expanded[si];
+          return (
+            <div key={step.id ?? si} className={`shopping-category${allDone ? " shopping-category--done" : ""}`}>
+              <button
+                className="shopping-category-header"
+                onClick={() => toggleCategory(si)}
+              >
+                <span className="shopping-category-toggle">{isOpen ? "▼" : "▶"}</span>
+                <span className="shopping-category-name">{step.text.replace(/:$/, "")}</span>
+                <span className={`shopping-category-count${allDone ? " shopping-category-count--done" : ""}`}>
+                  {doneCount}/{items.length}
+                </span>
+              </button>
+              {isOpen && (
+                <ul className="shopping-items">
+                  {items.map((item, ii) => {
+                    const done = !!checked[`${si}_${ii}`];
+                    return (
+                      <li
+                        key={ii}
+                        role="checkbox"
+                        aria-checked={done}
+                        className={`shopping-item${done ? " shopping-item--done" : ""}`}
+                        onClick={() => toggleItem(si, ii)}
+                      >
+                        <span className="shopping-checkbox">{done ? "✓" : ""}</span>
+                        <span className="shopping-item-label">{item}</span>
+                        {!done && <span className="shopping-tap-hint">нажми</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="shopping-print-area">
+        <h1 className="shopping-print-title">Список покупок</h1>
+        {totalChecked === 0
+          ? steps.map((step, si) => (
+              <div key={si} className="shopping-print-category">
+                <div className="shopping-print-category-name">{step.text.replace(/:$/, "")}</div>
+                <ul className="shopping-print-items">
+                  {(step.items ?? []).map((item, i) => (
+                    <li key={i} className="shopping-print-item">☐ {item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          : steps.map((step, si) => {
+              const checkedItems = (step.items ?? []).filter((_, i) => checked[`${si}_${i}`]);
+              if (checkedItems.length === 0) return null;
+              return (
+                <div key={si} className="shopping-print-category">
+                  <div className="shopping-print-category-name">{step.text.replace(/:$/, "")}</div>
+                  <ul className="shopping-print-items">
+                    {checkedItems.map((item, i) => (
+                      <li key={i} className="shopping-print-item">☐ {item}</li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })
+        }
+      </div>
+
+      <div className="shopping-actions">
+        <button className="shopping-print-btn" onClick={() => window.print()}>
+          🖨 Печатать
+        </button>
+        <button className="reading-primary-btn" onClick={onAdvance}>
+          Готово
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const TASK_RENDERERS = {
   read_text:           ReadTextTask,
   understand_text:     UnderstandTextTask,
   assemble_line:       AssembleLineTask,
   follow_instruction:  InstructionTask,
+  shopping_list:       ShoppingListTask,
 };
 
 export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onQualityAnswer }) {
