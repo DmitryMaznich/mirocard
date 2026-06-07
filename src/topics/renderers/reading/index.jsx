@@ -667,9 +667,17 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   );
 }
 
+const RU_DAYS   = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+const RU_MONTHS = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+function formatTodayRu() {
+  const d = new Date();
+  return `${d.getDate()} ${RU_MONTHS[d.getMonth()]}, ${RU_DAYS[d.getDay()]}`;
+}
+
 function ShoppingListTask({ task, topicId, onAdvance }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
+  const [group, setGroup] = useState([]);
   const [view, setView] = useState("grid"); // "grid" | "preview" | number
   const [checked, setChecked] = useState({});
 
@@ -678,20 +686,24 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       await pullRecipeKvFromServer().catch(() => {});
       const textId   = task.text?.id;
       const filePath = task.text?.file;
-      const raw = await (async () => {
-        if (textId) {
-          const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);
-          if (override) return override;
-        }
-        if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
-        return null;
-      })();
+      const [raw, grp] = await Promise.all([
+        (async () => {
+          if (textId) {
+            const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);
+            if (override) return override;
+          }
+          if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
+          return null;
+        })(),
+        getGroup(topicId).catch(() => []),
+      ]);
       if (raw) {
         setSteps(parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action"));
       } else {
         setSteps((task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action"));
       }
       setCategoryIcons(task.text?.categoryIcons ?? []);
+      setGroup(grp ?? []);
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]);
@@ -771,6 +783,10 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       ? steps.map((step, si) => ({ step, si, icon: categoryIcons[si] ?? "📦", items: step.items ?? [] }))
       : selected;
 
+    const responsible = group.find((m) => m.role === "chef");
+    const teammates   = group.filter((m) => m.role !== "chef");
+    const todayStr    = formatTodayRu();
+
     return (
       <div className="session-body reading-body shopping-body">
         <div className="shopping-preview-header">
@@ -781,7 +797,16 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
             {isEmpty ? "Ничего не выбрано" : "Список покупок"}
           </span>
         </div>
+
         <div className="shopping-preview-content">
+          {/* Date — visible on screen and in print */}
+          <div className="shopping-preview-date">{todayStr}</div>
+
+          {/* Title for print only (header is hidden in @media print) */}
+          <div className="shopping-preview-title-print">Список покупок</div>
+
+          <div className="shopping-preview-separator" />
+
           {renderList.map(({ step, si, icon, items }) => (
             <div key={si} className="shopping-preview-category">
               <div className="shopping-preview-cat-name">
@@ -790,12 +815,29 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
               </div>
               <ul className="shopping-preview-items">
                 {items.map((item, i) => (
-                  <li key={i} className="shopping-preview-item">☐ {item}</li>
+                  <li key={i} className="shopping-preview-item">☐&nbsp;{item}</li>
                 ))}
               </ul>
             </div>
           ))}
+
+          {group.length > 0 && (
+            <div className="shopping-preview-team-section">
+              <div className="shopping-preview-separator" />
+              {responsible && (
+                <div className="shopping-preview-responsible">
+                  Ответственный:&nbsp;<strong>{responsible.name}</strong>&nbsp;★
+                </div>
+              )}
+              {teammates.length > 0 && (
+                <div className="shopping-preview-teammates">
+                  Команда:&nbsp;{teammates.map((m) => m.name).join(", ")}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
         <div className="shopping-actions">
           <button className="shopping-print-btn" onClick={() => window.print()}>
             🖨 Печатать
