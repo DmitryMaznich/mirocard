@@ -362,6 +362,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const activeStudentId         = useAppStore((s) => s.activeStudentId);
   const students                = useAppStore((s) => s.students);
+  const adultConfirmAdvance     = useAppStore((s) => s.settings?.adultConfirmAdvance ?? true);
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const [portions,   setPortions]   = useState(1);
@@ -620,10 +621,14 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
             </div>
           )}
 
-          <div className="instruction-nav">
-            <button className="reading-secondary-btn" onClick={goBack}>Назад</button>
-            <button className="reading-primary-btn" disabled={!allChecked} onClick={handleNext}>
+          <div className={`instruction-nav${adultConfirmAdvance ? " instruction-nav--kbd" : ""}`}>
+            <button className="reading-secondary-btn" onClick={adultConfirmAdvance ? undefined : goBack}>
+              <span className="kb-key kb-key--back">←</span>
+              Назад
+            </button>
+            <button className="reading-primary-btn" disabled={!allChecked} onClick={adultConfirmAdvance ? undefined : handleNext}>
               {isLast ? "Готово" : "Дальше"}
+              <span className="kb-key kb-key--fwd">→</span>
             </button>
           </div>
         </div>

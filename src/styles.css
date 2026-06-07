@@ -682,6 +682,43 @@ html.app-ios-standalone {
 .instruction-nav .reading-secondary-btn,
 .instruction-nav .reading-primary-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Keyboard key badges inside nav buttons */
+.kb-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 900;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.kb-key--back {
+  background: #c4cbca;
+  color: #3a4a47;
+  box-shadow: 0 3px 0 #8fa0a0;
+}
+
+.kb-key--fwd {
+  background: rgba(255,255,255,0.22);
+  color: white;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.18);
+}
+
+/* Keyboard-only mode: screen taps disabled, keys are the cue */
+.instruction-nav--kbd .reading-secondary-btn,
+.instruction-nav--kbd .reading-primary-btn {
+  pointer-events: none;
+  cursor: default;
 }
 
 @media (min-width: 768px) {
