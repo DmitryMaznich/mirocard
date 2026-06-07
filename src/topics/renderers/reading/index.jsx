@@ -690,6 +690,16 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
     setChecked((c) => ({ ...c, [key]: !c[key] }));
   }, []);
 
+  const resetCategory = useCallback((stepIdx, itemCount) => {
+    setChecked((c) => {
+      const next = { ...c };
+      for (let i = 0; i < itemCount; i++) delete next[`${stepIdx}_${i}`];
+      return next;
+    });
+  }, []);
+
+  const resetAll = useCallback(() => setChecked({}), []);
+
   const checkedCountFor = (stepIdx, items) =>
     (items ?? []).filter((_, i) => checked[`${stepIdx}_${i}`]).length;
 
@@ -711,6 +721,14 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
           <span className="shopping-detail-icon">{icon}</span>
           <span className="shopping-detail-title">{step?.text.replace(/:$/, "")}</span>
           <span className="shopping-detail-count">{doneCount}/{items.length}</span>
+          {doneCount > 0 && (
+            <button
+              className="shopping-reset-btn"
+              onClick={() => resetCategory(selectedIdx, items.length)}
+            >
+              ✕
+            </button>
+          )}
         </div>
         <ul className="shopping-items">
           {items.map((item, ii) => {
@@ -793,9 +811,16 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
         <button className="shopping-print-btn" onClick={() => window.print()}>
           🖨 Печатать
         </button>
-        <button className="reading-primary-btn" onClick={onAdvance}>
-          Готово
-        </button>
+        <div className="shopping-actions-row">
+          {totalChecked > 0 && (
+            <button className="shopping-reset-all-btn" onClick={resetAll}>
+              Сбросить выбор
+            </button>
+          )}
+          <button className="reading-primary-btn" onClick={onAdvance}>
+            Готово
+          </button>
+        </div>
       </div>
     </div>
   );
