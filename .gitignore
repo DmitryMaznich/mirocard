@@ -44,6 +44,7 @@ __pycache__/
 
 # Binary / document assets (not tracked in git)
 *.webp
+!content/media/*.webp
 *.jpeg
 *.docx
 *.pdf
