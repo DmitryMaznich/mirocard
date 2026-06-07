@@ -157,9 +157,8 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
           </div>
           )}
 
-          {!isShopping && (
           <div className="param-row param-row--block">
-            <div className="param-label">Группа</div>
+            <div className="param-label">{isShopping ? "Команда в магазин" : "Группа"}</div>
             <div className="instruction-cover-members">
               {group.map((member, i) => (
                 <div key={member.id ?? member.name} className="instruction-cover-member">
@@ -171,19 +170,23 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
                   </div>
                   <div className="instruction-cover-member-info">
                     <div className="instruction-cover-member-name">{member.name}</div>
-                    <input
-                      className="instruction-cover-ranges-input"
-                      value={member.stepRanges ?? ""}
-                      onChange={(e) => updateMemberRanges(i, e.target.value)}
-                      placeholder="шаги: 1-15"
-                    />
+                    {!isShopping && (
+                      <input
+                        className="instruction-cover-ranges-input"
+                        value={member.stepRanges ?? ""}
+                        onChange={(e) => updateMemberRanges(i, e.target.value)}
+                        placeholder="шаги: 1-15"
+                      />
+                    )}
                   </div>
                   <button
                     className={`instruction-cover-chef-btn${member.role === "chef" ? " instruction-cover-chef-btn--active" : ""}`}
                     onClick={() => toggleChef(i)}
-                    title={member.role === "chef" ? "Снять роль шефа" : "Назначить шефом"}
+                    title={member.role === "chef"
+                      ? (isShopping ? "Снять роль ответственного" : "Снять роль шефа")
+                      : (isShopping ? "Назначить ответственным" : "Назначить шефом")}
                   >
-                    👑
+                    {isShopping ? "★" : "👑"}
                   </button>
                   <button className="instruction-cover-member-remove" onClick={() => removeMember(i)}>×</button>
                 </div>
@@ -203,14 +206,13 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
                   className="instruction-cover-name-input"
                   value={newMemberName}
                   onChange={(e) => setNewMemberName(e.target.value)}
-                  placeholder="Имя участника"
+                  placeholder={isShopping ? "Имя участника" : "Имя участника"}
                   onKeyDown={(e) => e.key === "Enter" && addMember()}
                 />
                 <button className="instruction-cover-add-btn" onClick={addMember} disabled={!newMemberName.trim()}>+</button>
               </div>
             </div>
           </div>
-          )}
 
           <div className="param-row">
             <div className="param-label">{isShopping ? "Список покупок" : "Инструкция"}</div>
