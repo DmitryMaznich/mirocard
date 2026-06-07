@@ -7,7 +7,8 @@ import { getInitials } from "@/shared/utils/format";
 import { getGroup, saveGroup, getRecipeSettings, saveRecipeSettings, getRecipeOverrideForMode, saveRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
 import { parseRecipeTxt } from "@/topics/renderers/reading/parseRecipeTxt";
 
-export default function InstructionParamsContent({ topicId, textId, filePath, topicTitle, textTitle, student }) {
+export default function InstructionParamsContent({ topicId, textId, filePath, topicTitle, textTitle, student, kind = "instruction" }) {
+  const isShopping = kind === "shopping_list";
   const setScreen        = useAppStore((s) => s.setScreen);
   const { markSessionStart } = useTimer();
 
@@ -142,6 +143,7 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
       <div className="params-settings-col">
         <div className="params-body">
 
+          {!isShopping && (
           <div className="param-row">
             <div className="param-label">Порций</div>
             <div className="all-texts-portions">
@@ -150,7 +152,9 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
               <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(+1)} disabled={portions >= 20}>+</button>
             </div>
           </div>
+          )}
 
+          {!isShopping && (
           <div className="param-row param-row--block">
             <div className="param-label">Группа</div>
             <div className="instruction-cover-members">
@@ -203,9 +207,10 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
               </div>
             </div>
           </div>
+          )}
 
           <div className="param-row">
-            <div className="param-label">Инструкция</div>
+            <div className="param-label">{isShopping ? "Список покупок" : "Инструкция"}</div>
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "flex-end" }}>
               <button
                 className="link-btn"

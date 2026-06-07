@@ -5,7 +5,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { getUserRecipes } from "@/core/groupStore";
 
-const KIND_LABELS = { poem: "стих", instruction: "инструкция" };
+const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список" };
 
 function getTextTitle(text) {
   return getTopicTitle(text?.title) || text?.id || "";
@@ -63,6 +63,9 @@ export default function TextPickerScreen() {
     setActiveText(text);
     if (text.kind === "instruction") {
       setActiveModeId("follow_instruction");
+      setScreen("home");
+    } else if (text.kind === "shopping_list") {
+      setActiveModeId("shopping_list");
       setScreen("home");
     } else {
       setScreen("modes");

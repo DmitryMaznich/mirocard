@@ -340,7 +340,7 @@ export default function ParamsScreen() {
   const hasVideos = (student?.rewardVideos?.length ?? 0) > 0;
 
   const isComparison        = topicRecord?.meta.renderer === "comparison";
-  const isReadingInstruction = isReading && activeText?.kind === "instruction";
+  const isReadingInstruction = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
 
   if (isReadingInstruction) {
     return (
@@ -356,6 +356,7 @@ export default function ParamsScreen() {
           topicTitle={getTopicTitle(topicRecord.meta.title)}
           textTitle={getTopicTitle(activeText.title)}
           student={student}
+          kind={activeText.kind}
         />
       </div>
     );

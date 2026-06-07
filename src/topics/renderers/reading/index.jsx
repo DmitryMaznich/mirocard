@@ -668,38 +668,33 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 }
 
 function ShoppingListTask({ task, topicId, onAdvance }) {
-  const [rawText, setRawText] = useState("");
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
-  const [view, setView] = useState("edit"); // "edit" | "grid" | "preview" | number
+  const [view, setView] = useState("grid"); // "grid" | "preview" | number
   const [checked, setChecked] = useState({});
 
   useEffect(() => {
     async function load() {
       await pullRecipeKvFromServer().catch(() => {});
+      const textId   = task.text?.id;
       const filePath = task.text?.file;
-      if (filePath) {
-        const raw = await getRawRecipeTxt(topicId, filePath).catch(() => null);
-        if (raw) {
-          setRawText(raw);
-          setSteps(parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action"));
+      const raw = await (async () => {
+        if (textId) {
+          const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);
+          if (override) return override;
         }
+        if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
+        return null;
+      })();
+      if (raw) {
+        setSteps(parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action"));
       } else {
-        const fallback = (task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action");
-        setSteps(fallback);
+        setSteps((task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action"));
       }
       setCategoryIcons(task.text?.categoryIcons ?? []);
     }
     load();
-  }, [topicId, task.text?.file]);
-
-  const startSession = useCallback(() => {
-    if (rawText) {
-      setSteps(parseRecipeTxt(rawText).filter((s) => s.type === "checklist" || s.type === "action"));
-    }
-    setChecked({});
-    setView("grid");
-  }, [rawText]);
+  }, [topicId, task.text?.id, task.text?.file]);
 
   const toggleItem = useCallback((stepIdx, itemIdx) => {
     const key = `${stepIdx}_${itemIdx}`;
@@ -716,34 +711,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
 
   const checkedCountFor = (stepIdx, items) =>
     (items ?? []).filter((_, i) => checked[`${stepIdx}_${i}`]).length;
-
-  // ── EDIT VIEW (first screen — справочник) ───────────────────
-  if (view === "edit") {
-    return (
-      <div className="session-body reading-body shopping-body">
-        <div className="shopping-edit-header">
-          <span className="shopping-edit-title">Список покупок</span>
-          <span className="shopping-edit-hint">Отредактируй список перед занятием</span>
-        </div>
-        <textarea
-          className="shopping-edit-textarea"
-          value={rawText}
-          onChange={(e) => setRawText(e.target.value)}
-          spellCheck={false}
-          autoCorrect="off"
-          autoCapitalize="off"
-        />
-        <div className="shopping-actions">
-          <button className="shopping-view-btn" onClick={startSession}>
-            Начать занятие →
-          </button>
-          <button className="shopping-close-btn" onClick={onAdvance}>
-            Закрыть
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // ── DETAIL VIEW ──────────────────────────────────────────────
   if (typeof view === "number") {
