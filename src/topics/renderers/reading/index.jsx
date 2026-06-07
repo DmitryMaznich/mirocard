@@ -395,7 +395,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       const annotated    = applyGroupToSteps(parsedSteps, grpList);
       setGroup(grpList);
       setSteps(annotated);
-      setPortions(settings.portions ?? 1);
+      setPortions(task.text?.fixedPortions ?? settings.portions ?? 1);
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]);

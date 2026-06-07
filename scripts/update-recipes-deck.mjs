@@ -63,7 +63,7 @@ for (const id of recipeIds) {
   const txtPath = `${RECIPES_DIR}/${id}.txt`;
   const content = readFileSync(txtPath, "utf-8");
   const steps = countSteps(content);
-  const { ru, en, photo } = extractMeta(content);
+  const { ru, en, photo, fixedPortions } = extractMeta(content);
   const title = { ru, en: en || ru };
   const hasSvg = existsSync(`${MEDIA_DIR}/${id}.svg`) || !!oldZip.file(`media/${id}.svg`);
 

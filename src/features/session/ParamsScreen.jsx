@@ -357,6 +357,7 @@ export default function ParamsScreen() {
           textTitle={getTopicTitle(activeText.title)}
           student={student}
           kind={activeText.kind}
+          fixedPortions={activeText.fixedPortions ?? null}
         />
       </div>
     );

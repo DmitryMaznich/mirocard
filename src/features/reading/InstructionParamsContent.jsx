@@ -7,7 +7,7 @@ import { getInitials } from "@/shared/utils/format";
 import { getGroup, saveGroup, getRecipeSettings, saveRecipeSettings, getRecipeOverrideForMode, saveRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
 import { parseRecipeTxt } from "@/topics/renderers/reading/parseRecipeTxt";
 
-export default function InstructionParamsContent({ topicId, textId, filePath, topicTitle, textTitle, student, kind = "instruction" }) {
+export default function InstructionParamsContent({ topicId, textId, filePath, topicTitle, textTitle, student, kind = "instruction", fixedPortions = null }) {
   const isShopping = kind === "shopping_list";
   const setScreen        = useAppStore((s) => s.setScreen);
   const { markSessionStart } = useTimer();
@@ -146,11 +146,14 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
           {!isShopping && (
           <div className="param-row">
             <div className="param-label">Порций</div>
-            <div className="all-texts-portions">
-              <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(-1)} disabled={portions <= 1}>−</button>
-              <span className="all-texts-portions-value">{portions}</span>
-              <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(+1)} disabled={portions >= 20}>+</button>
-            </div>
+            {fixedPortions
+              ? <span className="all-texts-portions-fixed">готовим {fixedPortions}</span>
+              : <div className="all-texts-portions">
+                  <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(-1)} disabled={portions <= 1}>−</button>
+                  <span className="all-texts-portions-value">{portions}</span>
+                  <button className="all-texts-portions-btn" onClick={() => handlePortionsChange(+1)} disabled={portions >= 20}>+</button>
+                </div>
+            }
           </div>
           )}
 

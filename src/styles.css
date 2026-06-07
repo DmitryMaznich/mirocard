@@ -18587,6 +18587,12 @@ body { background: #eef0ef; }
   color: var(--color-text, #1a1a1a);
 }
 
+.all-texts-portions-fixed {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4a9b8f;
+}
+
 /* ── SentenceListParam ── */
 .param-sentence-list .param-sentence-list__body {
   display: flex;
