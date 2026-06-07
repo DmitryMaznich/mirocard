@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.66.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.67.0.zip";
-const NEW_VERSION = "1.67.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.68.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.69.0.zip";
+const NEW_VERSION = "1.69.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -116,6 +116,7 @@ const shoppingMode = {
   id: "shopping_list",
   type: "shopping_list",
   evaluation: "none",
+  requirePin: false,
   ui: {
     title: { ru: "Список в магазин", en: "Shopping list" },
     instruction: { ru: "Отметь, что нужно купить, и распечатай список" },
@@ -131,7 +132,7 @@ const newTopic = {
     version: NEW_VERSION,
   },
   texts: [...textsManifest, shoppingTextEntry],
-  modes: [...(oldTopic.modes ?? []), shoppingMode],
+  modes: [...(oldTopic.modes ?? []).filter((m) => m.id !== "shopping_list"), shoppingMode],
 };
 
 newZip.file("topic.json", JSON.stringify(newTopic, null, 2));

@@ -418,6 +418,10 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
+    if (mode?.requirePin === false) {
+      launchSession();
+      return;
+    }
     setShowPinGate(true);
   }
 
