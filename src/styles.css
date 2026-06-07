@@ -18766,6 +18766,45 @@ body { background: #eef0ef; }
   align-items: stretch;
 }
 
+/* ── Edit view (справочник) ── */
+
+.shopping-edit-header {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid #e0f0f0;
+  flex-shrink: 0;
+}
+
+.shopping-edit-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #263131;
+}
+
+.shopping-edit-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.shopping-edit-textarea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  font-family: monospace;
+  font-size: clamp(0.82rem, 2dvh, 0.95rem);
+  line-height: 1.65;
+  color: #263131;
+  background: #fafcfc;
+  border: none;
+  border-bottom: 1px solid #e0f0f0;
+  outline: none;
+  resize: none;
+}
+
 /* ── Grid view ── */
 
 .shopping-grid {
