@@ -751,11 +751,9 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
             >
               <span className="shopping-tile-icon">{icon}</span>
               <span className="shopping-tile-name">{step.text.replace(/:$/, "")}</span>
-              {doneCount > 0 && (
-                <span className={`shopping-tile-count${allDone ? " shopping-tile-count--done" : ""}`}>
-                  {doneCount}/{items.length}
-                </span>
-              )}
+              <span className={`shopping-tile-count ${allDone ? "shopping-tile-count--done" : doneCount > 0 ? "shopping-tile-count--partial" : "shopping-tile-count--zero"}`}>
+                {doneCount}/{items.length}
+              </span>
             </button>
           );
         })}
