@@ -18826,17 +18826,17 @@ body { background: #eef0ef; }
 
 .shopping-tile {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
-  padding: clamp(10px, 3dvh, 20px) 6px clamp(8px, 2dvh, 14px);
+  gap: 12px;
+  padding: clamp(8px, 2dvh, 12px) 14px;
   background: #fff;
   border: 2px solid #b2d8d8;
   border-radius: 14px;
   cursor: pointer;
-  text-align: center;
-  min-height: clamp(90px, 20dvh, 140px);
+  text-align: left;
+  min-height: clamp(56px, 12dvh, 78px);
 }
 
 .shopping-tile:active {
@@ -18856,10 +18856,11 @@ body { background: #eef0ef; }
 }
 
 .shopping-tile-name {
-  font-size: clamp(0.95rem, 2.8dvh, 1.15rem);
+  font-size: clamp(1.1rem, 3.2dvh, 1.3rem);
   font-weight: 700;
   color: #263131;
   line-height: 1.2;
+  text-align: left;
 }
 
 .shopping-tile--partial {
