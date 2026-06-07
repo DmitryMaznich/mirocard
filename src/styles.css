@@ -19031,14 +19031,18 @@ body { background: #eef0ef; }
   box-sizing: border-box;
 }
 
-.shopping-preview-date {
-  font-size: clamp(0.85rem, 2dvh, 1rem);
-  color: #888;
+.shopping-print-header {
   margin-bottom: 2px;
 }
 
 .shopping-preview-title-print {
   display: none;
+}
+
+.shopping-preview-date {
+  font-size: clamp(0.85rem, 2dvh, 1rem);
+  color: #888;
+  margin-bottom: 2px;
 }
 
 .shopping-preview-separator {
@@ -19190,81 +19194,79 @@ body { background: #eef0ef; }
     top: 0;
     left: 0;
     width: 100%;
-    padding: 18mm 20mm 16mm;
+    padding: 14mm 20mm 14mm;
     box-sizing: border-box;
     overflow: visible;
     font-family: Arial, Helvetica, sans-serif;
   }
 
-  /* Date */
-  .shopping-preview-date {
-    font-size: 11pt;
-    color: #666;
-    margin-bottom: 3pt;
+  /* ── Шапка ── */
+  .shopping-print-header {
+    margin-bottom: 0;
   }
 
-  /* Title (hidden on screen, shown in print) */
   .shopping-preview-title-print {
     display: block;
     font-size: 22pt;
     font-weight: 900;
     letter-spacing: 0.04em;
     color: #111;
-    margin-bottom: 0;
     text-transform: uppercase;
+    margin-bottom: 4pt;
   }
 
-  /* Separator line */
+  .shopping-preview-date {
+    font-size: 14pt;
+    color: #444;
+    margin-bottom: 2pt;
+  }
+
+  .shopping-preview-responsible {
+    font-size: 14pt;
+    color: #222;
+    margin-bottom: 2pt;
+  }
+
+  .shopping-preview-teammates {
+    font-size: 14pt;
+    color: #444;
+    margin-bottom: 0;
+  }
+
+  /* ── Разделитель ── */
   .shopping-preview-separator {
     border-top: 1.5pt solid #bbb;
-    margin: 8pt 0;
+    margin: 7pt 0;
   }
 
-  /* Category header */
-  .shopping-preview-cat-name {
-    font-size: 12pt;
-    font-weight: 700;
-    border-bottom: none;
-    margin-bottom: 3pt;
-    padding-bottom: 0;
-    color: #222;
-  }
-
-  .shopping-preview-cat-icon {
-    font-size: 12pt;
-  }
-
-  /* Items — single column, generous spacing */
-  .shopping-preview-items {
-    margin: 0 0 0 6pt;
-    padding: 0;
-  }
-
-  .shopping-preview-item {
-    font-size: 13pt;
-    padding: 3pt 0;
-    line-height: 1.5;
-    color: #111;
-  }
-
+  /* ── Список ── */
   .shopping-preview-category {
     page-break-inside: avoid;
     margin-bottom: 10pt;
   }
 
-  /* Team section */
-  .shopping-preview-team-section {
-    margin-top: 4pt;
-  }
-
-  .shopping-preview-responsible {
-    font-size: 11pt;
+  .shopping-preview-cat-name {
+    font-size: 13pt;
+    font-weight: 700;
+    border-bottom: none;
+    margin-bottom: 2pt;
+    padding-bottom: 0;
     color: #222;
-    margin-bottom: 3pt;
   }
 
-  .shopping-preview-teammates {
-    font-size: 11pt;
-    color: #444;
+  .shopping-preview-cat-icon {
+    font-size: 13pt;
+  }
+
+  .shopping-preview-items {
+    margin: 0 0 0 4pt;
+    padding: 0;
+  }
+
+  .shopping-preview-item {
+    font-size: 14pt;
+    padding: 3pt 0;
+    line-height: 1.45;
+    color: #111;
   }
 }

@@ -799,11 +799,21 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
         </div>
 
         <div className="shopping-preview-content">
-          {/* Date — visible on screen and in print */}
-          <div className="shopping-preview-date">{todayStr}</div>
-
-          {/* Title for print only (header is hidden in @media print) */}
-          <div className="shopping-preview-title-print">Список покупок</div>
+          {/* Шапка — title (print only) + date + team */}
+          <div className="shopping-print-header">
+            <div className="shopping-preview-title-print">Список покупок</div>
+            <div className="shopping-preview-date">{todayStr}</div>
+            {responsible && (
+              <div className="shopping-preview-responsible">
+                Ответственный:&nbsp;<strong>{responsible.name}</strong>&nbsp;★
+              </div>
+            )}
+            {teammates.length > 0 && (
+              <div className="shopping-preview-teammates">
+                Команда:&nbsp;{teammates.map((m) => m.name).join(", ")}
+              </div>
+            )}
+          </div>
 
           <div className="shopping-preview-separator" />
 
@@ -820,22 +830,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
               </ul>
             </div>
           ))}
-
-          {group.length > 0 && (
-            <div className="shopping-preview-team-section">
-              <div className="shopping-preview-separator" />
-              {responsible && (
-                <div className="shopping-preview-responsible">
-                  Ответственный:&nbsp;<strong>{responsible.name}</strong>&nbsp;★
-                </div>
-              )}
-              {teammates.length > 0 && (
-                <div className="shopping-preview-teammates">
-                  Команда:&nbsp;{teammates.map((m) => m.name).join(", ")}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="shopping-actions">
