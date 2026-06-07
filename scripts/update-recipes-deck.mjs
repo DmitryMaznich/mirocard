@@ -13,15 +13,16 @@ function countSteps(txt) {
 
 function extractMeta(txt) {
   const lines = txt.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  let ru = "", en = "", photo = "";
+  let ru = "", en = "", photo = "", fixedPortions = null;
   for (const line of lines) {
-    if (line.startsWith("# en:"))         { en    = line.slice(5).trim(); }
-    else if (line.startsWith("# photo:")) { photo = line.slice(8).trim(); }
-    else if (line.startsWith("# ") && !ru) { ru = line.slice(2).trim(); }
-    else if (!line.startsWith("#") && !ru) { ru = line; }
-    if (ru && en && photo) break;
+    if (line.startsWith("# en:"))               { en             = line.slice(5).trim(); }
+    else if (line.startsWith("# photo:"))        { photo          = line.slice(8).trim(); }
+    else if (line.startsWith("# fixed_portions:")){ fixedPortions = parseInt(line.slice(17).trim()) || null; }
+    else if (line.startsWith("# ") && !ru)       { ru             = line.slice(2).trim(); }
+    else if (!line.startsWith("#") && !ru)        { ru             = line; }
+    if (ru && en && photo && fixedPortions) break;
   }
-  return { ru, en: en || ru, photo };
+  return { ru, en: en || ru, photo, fixedPortions };
 }
 
 // Load old zip to copy over SVGs that aren't available locally
@@ -90,8 +91,9 @@ for (const id of recipeIds) {
     id: `${id}_instruction`,
     kind: "instruction",
     title,
-    ...(hasSvg    ? { image: `media/${id}.svg` } : {}),
-    ...(photoPath ? { photo: photoPath }          : {}),
+    ...(hasSvg         ? { image: `media/${id}.svg` } : {}),
+    ...(photoPath      ? { photo: photoPath }          : {}),
+    ...(fixedPortions  ? { fixedPortions }             : {}),
     file: `recipes/${id}.txt`,
     stepCount: steps,
   });
