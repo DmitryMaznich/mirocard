@@ -445,7 +445,7 @@ html.app-ios-standalone {
 .instruction-step-illustration {
   display: block;
   max-width: 100%;
-  max-height: 220px;
+  max-height: 440px;
   object-fit: contain;
   border-radius: 12px;
   margin: 12px auto 0;
