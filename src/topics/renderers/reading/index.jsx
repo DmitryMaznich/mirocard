@@ -665,7 +665,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 function ShoppingListTask({ task, topicId, onAdvance }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
-  const [selectedIdx, setSelectedIdx] = useState(null);
+  const [view, setView] = useState("grid"); // "grid" | "preview" | number (category index)
   const [checked, setChecked] = useState({});
 
   useEffect(() => {
@@ -698,48 +698,41 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
     });
   }, []);
 
-  const resetAll = useCallback(() => setChecked({}), []);
-
   const checkedCountFor = (stepIdx, items) =>
     (items ?? []).filter((_, i) => checked[`${stepIdx}_${i}`]).length;
 
-  const totalChecked = steps.reduce((sum, step, si) => sum + checkedCountFor(si, step.items), 0);
-
   // ── DETAIL VIEW ──────────────────────────────────────────────
-  if (selectedIdx !== null) {
-    const step = steps[selectedIdx];
+  if (typeof view === "number") {
+    const step = steps[view];
     const items = step?.items ?? [];
-    const icon = categoryIcons[selectedIdx] ?? "📦";
-    const doneCount = checkedCountFor(selectedIdx, items);
+    const icon = categoryIcons[view] ?? "📦";
+    const doneCount = checkedCountFor(view, items);
 
     return (
       <div className="session-body reading-body shopping-body">
         <div className="shopping-detail-header">
-          <button className="shopping-back-btn" onClick={() => setSelectedIdx(null)}>
+          <button className="shopping-back-btn" onClick={() => setView("grid")}>
             ← Назад
           </button>
           <span className="shopping-detail-icon">{icon}</span>
           <span className="shopping-detail-title">{step?.text.replace(/:$/, "")}</span>
           <span className="shopping-detail-count">{doneCount}/{items.length}</span>
           {doneCount > 0 && (
-            <button
-              className="shopping-reset-btn"
-              onClick={() => resetCategory(selectedIdx, items.length)}
-            >
+            <button className="shopping-reset-btn" onClick={() => resetCategory(view, items.length)}>
               ✕
             </button>
           )}
         </div>
         <ul className="shopping-items">
           {items.map((item, ii) => {
-            const done = !!checked[`${selectedIdx}_${ii}`];
+            const done = !!checked[`${view}_${ii}`];
             return (
               <li
                 key={ii}
                 role="checkbox"
                 aria-checked={done}
                 className={`shopping-item${done ? " shopping-item--done" : ""}`}
-                onClick={() => toggleItem(selectedIdx, ii)}
+                onClick={() => toggleItem(view, ii)}
               >
                 <span className="shopping-checkbox">{done ? "✓" : ""}</span>
                 <span className="shopping-item-label">{item}</span>
@@ -748,6 +741,58 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
             );
           })}
         </ul>
+      </div>
+    );
+  }
+
+  // ── PREVIEW VIEW ──────────────────────────────────────────────
+  if (view === "preview") {
+    const selected = steps
+      .map((step, si) => ({
+        step, si,
+        icon: categoryIcons[si] ?? "📦",
+        items: (step.items ?? []).filter((_, i) => checked[`${si}_${i}`]),
+      }))
+      .filter(({ items }) => items.length > 0);
+
+    const isEmpty = selected.length === 0;
+    const renderList = isEmpty
+      ? steps.map((step, si) => ({ step, si, icon: categoryIcons[si] ?? "📦", items: step.items ?? [] }))
+      : selected;
+
+    return (
+      <div className="session-body reading-body shopping-body">
+        <div className="shopping-preview-header">
+          <button className="shopping-back-btn" onClick={() => setView("grid")}>
+            ← Назад
+          </button>
+          <span className="shopping-preview-title">
+            {isEmpty ? "Ничего не выбрано" : "Список покупок"}
+          </span>
+        </div>
+        <div className="shopping-preview-content">
+          {renderList.map(({ step, si, icon, items }) => (
+            <div key={si} className="shopping-preview-category">
+              <div className="shopping-preview-cat-name">
+                <span className="shopping-preview-cat-icon">{icon}</span>
+                {step.text.replace(/:$/, "")}
+              </div>
+              <ul className="shopping-preview-items">
+                {items.map((item, i) => (
+                  <li key={i} className="shopping-preview-item">☐ {item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="shopping-actions">
+          <button className="shopping-print-btn" onClick={() => window.print()}>
+            🖨 Печатать
+          </button>
+          <button className="shopping-close-btn" onClick={onAdvance}>
+            Закрыть
+          </button>
+        </div>
       </div>
     );
   }
@@ -764,63 +809,22 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
           return (
             <button
               key={step.id ?? si}
-              className={`shopping-tile${allDone ? " shopping-tile--done" : ""}`}
-              onClick={() => setSelectedIdx(si)}
+              className={`shopping-tile${allDone ? " shopping-tile--done" : doneCount > 0 ? " shopping-tile--partial" : ""}`}
+              onClick={() => setView(si)}
             >
               <span className="shopping-tile-icon">{icon}</span>
               <span className="shopping-tile-name">{step.text.replace(/:$/, "")}</span>
-              <span className={`shopping-tile-count ${allDone ? "shopping-tile-count--done" : doneCount > 0 ? "shopping-tile-count--partial" : "shopping-tile-count--zero"}`}>
-                {doneCount}/{items.length}
-              </span>
             </button>
           );
         })}
       </div>
-
-      <div className="shopping-print-area">
-        <h1 className="shopping-print-title">Список покупок</h1>
-        {totalChecked === 0
-          ? steps.map((step, si) => (
-              <div key={si} className="shopping-print-category">
-                <div className="shopping-print-category-name">{step.text.replace(/:$/, "")}</div>
-                <ul className="shopping-print-items">
-                  {(step.items ?? []).map((item, i) => (
-                    <li key={i} className="shopping-print-item">☐ {item}</li>
-                  ))}
-                </ul>
-              </div>
-            ))
-          : steps.map((step, si) => {
-              const checkedItems = (step.items ?? []).filter((_, i) => checked[`${si}_${i}`]);
-              if (checkedItems.length === 0) return null;
-              return (
-                <div key={si} className="shopping-print-category">
-                  <div className="shopping-print-category-name">{step.text.replace(/:$/, "")}</div>
-                  <ul className="shopping-print-items">
-                    {checkedItems.map((item, i) => (
-                      <li key={i} className="shopping-print-item">☐ {item}</li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })
-        }
-      </div>
-
       <div className="shopping-actions">
-        <button className="shopping-print-btn" onClick={() => window.print()}>
-          🖨 Печатать
+        <button className="shopping-view-btn" onClick={() => setView("preview")}>
+          Посмотреть список покупок
         </button>
-        <div className="shopping-actions-row">
-          {totalChecked > 0 && (
-            <button className="shopping-reset-all-btn" onClick={resetAll}>
-              Сбросить выбор
-            </button>
-          )}
-          <button className="reading-primary-btn" onClick={onAdvance}>
-            Готово
-          </button>
-        </div>
+        <button className="shopping-close-btn" onClick={onAdvance}>
+          Закрыть
+        </button>
       </div>
     </div>
   );
