@@ -18944,6 +18944,18 @@ body { background: #eef0ef; }
   box-sizing: border-box;
 }
 
+.shopping-subgroup-header {
+  list-style: none;
+  padding: 6px 16px 4px;
+  font-size: clamp(0.72rem, 2dvh, 0.85rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #3a7a6a;
+  background: #f0faf6;
+  border-bottom: 1px solid #d8ede7;
+}
+
 .shopping-item {
   display: flex;
   align-items: center;
@@ -19077,6 +19089,17 @@ body { background: #eef0ef; }
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.shopping-preview-subgroup {
+  list-style: none;
+  font-size: clamp(0.68rem, 1.8dvh, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #3a7a6a;
+  padding: 5px 0 2px 4px;
+  margin-top: 4px;
 }
 
 .shopping-preview-item {
@@ -19262,6 +19285,16 @@ body { background: #eef0ef; }
   .shopping-preview-items {
     margin: 0 0 0 4pt;
     padding: 0;
+  }
+
+  .shopping-preview-subgroup {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #3a7a6a;
+    padding: 4pt 0 1pt 4pt;
+    margin-top: 3pt;
   }
 
   .shopping-preview-item {
