@@ -1,4 +1,5 @@
 # photo: buckwheat.webp
+# status: final
 Сладкая гречневая каша
 [buckwheat.webp]
 

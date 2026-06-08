@@ -12253,6 +12253,7 @@ button {
 .topic-item__title { font-size: 1rem; font-weight: 700; color: #1a2e2b; }
 .topic-item__meta  { font-size: 0.78rem; color: #a0b0ae; margin-top: 2px; font-weight: 600; }
 .topic-item__desc  { font-size: 0.82rem; color: #6b8380; margin-top: 4px; }
+.recipe-status-badge { margin-left: 6px; font-size: 0.72rem; font-weight: 700; color: #4a9b8f; background: #e6f5f3; padding: 1px 6px; border-radius: 5px; }
 .topic-import { padding: 0 0 12px; }
 /* ─── Session screen ─────────────────────────────────────────────────────── */
 .session-screen {

@@ -119,6 +119,7 @@ export default function TextPickerScreen() {
                     {text.kind === "instruction"
                       ? `${text.stepCount ?? text.steps?.length ?? 0} шагов`
                       : `${text.lines?.length ?? 0} строк · уровень ${text.level ?? 1}`}
+                    {text.status === "final" && <span className="recipe-status-badge">✓ финал</span>}
                   </div>
                   <TextResultBadge session={lastSession} />
                 </div>

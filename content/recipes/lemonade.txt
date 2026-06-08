@@ -1,4 +1,5 @@
 # photo: lemonade.webp
+# status: final
 Лимонад
 [lemonade.webp]
 1. Вымыть руки с мылом и вытереть насухо.

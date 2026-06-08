@@ -1,6 +1,6 @@
 # photo: soup.webp
-﻿# photo: soup.webp
 # fixed_portions: 6
+# status: final
 Куриный суп с вермишелью
 [soup.webp]
 

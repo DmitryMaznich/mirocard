@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.70.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.71.0.zip";
-const NEW_VERSION = "1.71.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.71.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.72.0.zip";
+const NEW_VERSION = "1.72.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -13,16 +13,16 @@ function countSteps(txt) {
 
 function extractMeta(txt) {
   const lines = txt.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  let ru = "", en = "", photo = "", fixedPortions = null;
+  let ru = "", en = "", photo = "", fixedPortions = null, status = null;
   for (const line of lines) {
-    if (line.startsWith("# en:"))               { en             = line.slice(5).trim(); }
-    else if (line.startsWith("# photo:"))        { photo          = line.slice(8).trim(); }
+    if (line.startsWith("# en:"))                { en            = line.slice(5).trim(); }
+    else if (line.startsWith("# photo:"))         { photo         = line.slice(8).trim(); }
     else if (line.startsWith("# fixed_portions:")){ fixedPortions = parseInt(line.slice(17).trim()) || null; }
-    else if (line.startsWith("# ") && !ru)       { ru             = line.slice(2).trim(); }
-    else if (!line.startsWith("#") && !ru)        { ru             = line; }
-    if (ru && en && photo && fixedPortions) break;
+    else if (line.startsWith("# status:"))        { status        = line.slice(9).trim(); }
+    else if (line.startsWith("# ") && !ru)        { ru            = line.slice(2).trim(); }
+    else if (!line.startsWith("#") && !ru)         { ru            = line; }
   }
-  return { ru, en: en || ru, photo, fixedPortions };
+  return { ru, en: en || ru, photo, fixedPortions, status };
 }
 
 // Load old zip to copy over SVGs that aren't available locally
@@ -63,7 +63,7 @@ for (const id of recipeIds) {
   const txtPath = `${RECIPES_DIR}/${id}.txt`;
   const content = readFileSync(txtPath, "utf-8");
   const steps = countSteps(content);
-  const { ru, en, photo, fixedPortions } = extractMeta(content);
+  const { ru, en, photo, fixedPortions, status } = extractMeta(content);
   const title = { ru, en: en || ru };
   const hasSvg = existsSync(`${MEDIA_DIR}/${id}.svg`) || !!oldZip.file(`media/${id}.svg`);
 
@@ -93,7 +93,8 @@ for (const id of recipeIds) {
     title,
     ...(hasSvg         ? { image: `media/${id}.svg` } : {}),
     ...(photoPath      ? { photo: photoPath }          : {}),
-    ...(fixedPortions  ? { fixedPortions }             : {}),
+    ...(fixedPortions  ? { fixedPortions }              : {}),
+    ...(status         ? { status }                     : {}),
     file: `recipes/${id}.txt`,
     stepCount: steps,
   });
