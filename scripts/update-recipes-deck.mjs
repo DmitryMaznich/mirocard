@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.75.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.76.0.zip";
-const NEW_VERSION = "1.76.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.76.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.77.0.zip";
+const NEW_VERSION = "1.77.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -40,6 +40,16 @@ const recipeFiles = readdirSync(RECIPES_DIR)
 
 const recipeIds = recipeFiles.map(f => f.replace(".txt", ""));
 console.log(`Найдено рецептов: ${recipeIds.length}`);
+
+// Copy extra inline media files (referenced inside recipe steps, not per-recipe SVG/photo)
+const EXTRA_MEDIA = ["oven_mode.jpg"];
+for (const fname of EXTRA_MEDIA) {
+  const localPath = `${MEDIA_DIR}/${fname}`;
+  if (existsSync(localPath)) {
+    newZip.file(`media/${fname}`, readFileSync(localPath));
+    console.log(`${fname}: из content/media/ (inline)`);
+  }
+}
 
 // Copy SVG media files
 for (const id of recipeIds) {

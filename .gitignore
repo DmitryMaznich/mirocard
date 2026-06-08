@@ -44,11 +44,14 @@ __pycache__/
 
 # Binary / document assets (not tracked in git)
 *.webp
-!content/media/*.webp
 *.jpeg
+*.jpg
 *.docx
 *.pdf
 
 # User asset photos
 *.png
-*.jpg
+
+# Allow tracked media assets
+!content/media/*.webp
+!content/media/*.jpg
