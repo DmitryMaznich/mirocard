@@ -130,6 +130,9 @@ PASSWORD = os.environ.get("MIROCARD_DEPLOY_PASSWORD") or None
 KEY_PATH = os.environ.get("MIROCARD_DEPLOY_KEY_PATH") or None
 FILES = ${JSON.stringify(files, null, 2)}
 
+# Caddy keeps these files open for serving — upload via tmp+rename to avoid SFTP Failure
+LOCKED_FILENAMES = {"index.html", "version.json"}
+
 _known_dirs = set()
 
 def mkdir_p(sftp, remote_path):
@@ -171,15 +174,39 @@ def connect():
             print(f"connect failed {host}:{PORT}: {exc}")
     raise last_error
 
+def upload_file(sftp, client, local, remote):
+    local_size = os.path.getsize(local)
+    try:
+        if sftp.stat(remote).st_size == local_size:
+            return False  # unchanged
+    except IOError:
+        pass
+    mkdir_p(sftp, posixpath.dirname(remote))
+    filename = posixpath.basename(remote)
+    if filename in LOCKED_FILENAMES:
+        tmp = remote + ".tmp"
+        sftp.put(local, tmp)
+        win_tmp = tmp.replace("/", "\\\\")
+        win_dst = remote.replace("/", "\\\\")
+        cmd = "powershell -Command \\"Move-Item -Force -Path '{}' -Destination '{}'\\""
+        stdin, stdout, stderr = client.exec_command(cmd.format(win_tmp, win_dst))
+        stdout.channel.recv_exit_status()
+    else:
+        sftp.put(local, remote)
+    return True
+
 client = connect()
 sftp = client.open_sftp()
-for idx, item in enumerate(FILES):
-    remote_dir = posixpath.dirname(item["remote"])
+uploaded = 0
+skipped = 0
+for item in FILES:
     for attempt in range(4):
         try:
-            mkdir_p(sftp, remote_dir)
-            sftp.put(item["local"], item["remote"])
-            print("uploaded", item["remote"])
+            if upload_file(sftp, client, item["local"], item["remote"]):
+                print("uploaded", item["remote"])
+                uploaded += 1
+            else:
+                skipped += 1
             break
         except Exception as exc:
             print(f"  error on {item['remote']}: {exc}, reconnecting...")
@@ -194,6 +221,7 @@ for idx, item in enumerate(FILES):
         sys.exit(1)
 sftp.close()
 client.close()
+print(f"\\nDone: {uploaded} uploaded, {skipped} skipped (unchanged)")
 `);
 
   run("python", [pyPath]);
@@ -244,7 +272,7 @@ async function main() {
     }
     version = writeVersionJson();
     const files = buildUploadPlan();
-    console.log(`uploading ${files.length} files to canonical Windows/Caddy runtime...`);
+    console.log(`uploading ${files.length} files to canonical Windows/Caddy runtime (skipping unchanged)...`);
     upload(files);
   } else {
     version = null;
