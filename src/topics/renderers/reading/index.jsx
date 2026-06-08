@@ -749,18 +749,25 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
         <ul className="shopping-items">
           {items.map((item, ii) => {
             const done = !!checked[`${view}_${ii}`];
+            const subs = step?.itemSubgroups;
+            const subgroup = subs?.[ii] ?? null;
+            const showSubheader = subgroup && subgroup !== (subs?.[ii - 1] ?? null);
             return (
-              <li
-                key={ii}
-                role="checkbox"
-                aria-checked={done}
-                className={`shopping-item${done ? " shopping-item--done" : ""}`}
-                onClick={() => toggleItem(view, ii)}
-              >
-                <span className="shopping-checkbox">{done ? "✓" : ""}</span>
-                <span className="shopping-item-label">{item}</span>
-                {!done && <span className="shopping-tap-hint">нажми</span>}
-              </li>
+              <Fragment key={ii}>
+                {showSubheader && (
+                  <li className="shopping-subgroup-header">{subgroup}</li>
+                )}
+                <li
+                  role="checkbox"
+                  aria-checked={done}
+                  className={`shopping-item${done ? " shopping-item--done" : ""}`}
+                  onClick={() => toggleItem(view, ii)}
+                >
+                  <span className="shopping-checkbox">{done ? "✓" : ""}</span>
+                  <span className="shopping-item-label">{item}</span>
+                  {!done && <span className="shopping-tap-hint">нажми</span>}
+                </li>
+              </Fragment>
             );
           })}
         </ul>
@@ -770,17 +777,22 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
 
   // ── PREVIEW VIEW ──────────────────────────────────────────────
   if (view === "preview") {
+    const toEntries = (step, si, filterFn = () => true) =>
+      (step.items ?? [])
+        .map((item, i) => ({ item, subgroup: step.itemSubgroups?.[i] ?? null, _i: i }))
+        .filter(({ _i }) => filterFn(_i));
+
     const selected = steps
       .map((step, si) => ({
         step, si,
         icon: categoryIcons[si] ?? "📦",
-        items: (step.items ?? []).filter((_, i) => checked[`${si}_${i}`]),
+        entries: toEntries(step, si, (i) => !!checked[`${si}_${i}`]),
       }))
-      .filter(({ items }) => items.length > 0);
+      .filter(({ entries }) => entries.length > 0);
 
     const isEmpty = selected.length === 0;
     const renderList = isEmpty
-      ? steps.map((step, si) => ({ step, si, icon: categoryIcons[si] ?? "📦", items: step.items ?? [] }))
+      ? steps.map((step, si) => ({ step, si, icon: categoryIcons[si] ?? "📦", entries: toEntries(step, si) }))
       : selected;
 
     const responsible = group.find((m) => m.role === "chef");
@@ -817,16 +829,24 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
 
           <div className="shopping-preview-separator" />
 
-          {renderList.map(({ step, si, icon, items }) => (
+          {renderList.map(({ step, si, icon, entries }) => (
             <div key={si} className="shopping-preview-category">
               <div className="shopping-preview-cat-name">
                 <span className="shopping-preview-cat-icon">{icon}</span>
                 {step.text.replace(/:$/, "")}
               </div>
               <ul className="shopping-preview-items">
-                {items.map((item, i) => (
-                  <li key={i} className="shopping-preview-item">☐&nbsp;{item}</li>
-                ))}
+                {entries.map(({ item, subgroup }, i) => {
+                  const prevSub = entries[i - 1]?.subgroup ?? null;
+                  return (
+                    <Fragment key={i}>
+                      {subgroup && subgroup !== prevSub && (
+                        <li className="shopping-preview-subgroup">{subgroup}</li>
+                      )}
+                      <li className="shopping-preview-item">☐&nbsp;{item}</li>
+                    </Fragment>
+                  );
+                })}
               </ul>
             </div>
           ))}

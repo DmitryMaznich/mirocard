@@ -13,11 +13,13 @@ export function parseRecipeTxt(raw) {
   let currentOwner = null;
   let current = null;
   let stepNum = 0;
+  let currentSubgroup = null;
 
   function flush() {
     if (current) {
       steps.push(current);
       current = null;
+      currentSubgroup = null;
     }
   }
 
@@ -62,12 +64,27 @@ export function parseRecipeTxt(raw) {
       continue;
     }
 
+    if (line.startsWith("* ") && current && (current.type === "action" || current.type === "checklist")) {
+      if (current.type === "action") {
+        current.type = "checklist";
+        current.items = [];
+      }
+      currentSubgroup = line.slice(2).trim() || null;
+      continue;
+    }
+
     if (line.startsWith("- ") && current && (current.type === "action" || current.type === "checklist")) {
       if (current.type === "action") {
         current.type = "checklist";
         current.items = [];
       }
       current.items.push(line.slice(2).trim());
+      if (currentSubgroup !== null) {
+        if (!current.itemSubgroups) current.itemSubgroups = new Array(current.items.length - 1).fill(null);
+        current.itemSubgroups.push(currentSubgroup);
+      } else if (current.itemSubgroups) {
+        current.itemSubgroups.push(null);
+      }
       continue;
     }
 
@@ -116,8 +133,13 @@ export function serializeRecipeTxt(steps) {
     } else {
       num++;
       lines.push(`${num}. ${step.text}`);
-      for (const item of step.items ?? []) {
-        lines.push(`- ${item}`);
+      const subs = step.itemSubgroups;
+      let prevSub = undefined;
+      for (let i = 0; i < (step.items ?? []).length; i++) {
+        const sub = subs?.[i] ?? null;
+        if (sub !== null && sub !== prevSub) lines.push(`* ${sub}`);
+        lines.push(`- ${step.items[i]}`);
+        prevSub = sub;
       }
     }
   }
