@@ -105,14 +105,15 @@ for (const id of recipeIds) {
 // Add shopping list content file to ZIP
 const shoppingContent = readFileSync("content/shopping/shopping.txt", "utf-8");
 newZip.file("shopping/shopping.txt", shoppingContent);
-console.log("shopping.txt: добавлен список покупок (14 категорий)");
+console.log("shopping.txt: добавлен список покупок (15 категорий)");
 
 const shoppingTextEntry = {
   id: "shopping_list",
   kind: "shopping_list",
   title: { ru: "Список покупок", en: "Shopping list" },
   file: "shopping/shopping.txt",
-  categoryIcons: ["🥦", "🍎", "🌿", "🌾", "🥩", "🐟", "🥤", "🥛", "🧴", "🍬", "🍞", "🥫", "🧊", "🐾"],
+  //         Овощи  Фрукты Ягоды  Зелень Бакалея Мясо  Рыба  Напитки Молочн Химия  Сладости Хлеб  Консервы Заморозка Животные
+  categoryIcons: ["🥦", "🍎", "🍓", "🌿", "🌾", "🥩", "🐟", "🥤", "🥛", "🧴", "🍬", "🍞", "🥫", "🧊", "🐾"],
 };
 
 const shoppingMode = {
