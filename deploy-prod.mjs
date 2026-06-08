@@ -130,8 +130,10 @@ PASSWORD = os.environ.get("MIROCARD_DEPLOY_PASSWORD") or None
 KEY_PATH = os.environ.get("MIROCARD_DEPLOY_KEY_PATH") or None
 FILES = ${JSON.stringify(files, null, 2)}
 
-# Caddy keeps these files open for serving — upload via tmp+rename to avoid SFTP Failure
-LOCKED_FILENAMES = {"index.html", "version.json"}
+# index.html is kept open by Caddy — must use tmp+rename to avoid SFTP Failure
+# version.json and index.html change every build — always force-upload, skip size check
+ALWAYS_UPLOAD = {"index.html", "version.json"}
+TMP_RENAME    = {"index.html"}
 
 _known_dirs = set()
 
@@ -175,15 +177,16 @@ def connect():
     raise last_error
 
 def upload_file(sftp, client, local, remote):
-    local_size = os.path.getsize(local)
-    try:
-        if sftp.stat(remote).st_size == local_size:
-            return False  # unchanged
-    except IOError:
-        pass
-    mkdir_p(sftp, posixpath.dirname(remote))
     filename = posixpath.basename(remote)
-    if filename in LOCKED_FILENAMES:
+    local_size = os.path.getsize(local)
+    if filename not in ALWAYS_UPLOAD:
+        try:
+            if sftp.stat(remote).st_size == local_size:
+                return False  # unchanged
+        except IOError:
+            pass
+    mkdir_p(sftp, posixpath.dirname(remote))
+    if filename in TMP_RENAME:
         tmp = remote + ".tmp"
         sftp.put(local, tmp)
         win_tmp = tmp.replace("/", "\\\\")
