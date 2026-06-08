@@ -132,7 +132,7 @@ FILES = ${JSON.stringify(files, null, 2)}
 
 # index.html is kept open by Caddy — must use tmp+rename to avoid SFTP Failure
 # version.json and index.html change every build — always force-upload, skip size check
-ALWAYS_UPLOAD = {"index.html", "version.json"}
+ALWAYS_UPLOAD = {"index.html", "version.json", "catalog.json"}
 TMP_RENAME    = {"index.html"}
 
 _known_dirs = set()
