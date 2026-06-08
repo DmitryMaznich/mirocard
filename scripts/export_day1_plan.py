@@ -266,26 +266,51 @@ CATEGORY_ICONS = [
 
 
 def parse_shopping_txt(path):
-    """Разбирает shopping.txt → список (название, [элементы])."""
+    """Разбирает shopping.txt → список (название, items, subgroups).
+
+    items      — плоский список строк
+    subgroups  — список (subgroup_name, count) или [] если подкатегорий нет
+    """
     categories = []
     cur_name = None
     cur_items = []
+    cur_subs = []       # [(name, count), ...]
+    cur_subname = None  # активная подкатегория
+    cur_subcount = 0
+
+    def flush_cat():
+        nonlocal cur_name, cur_items, cur_subs, cur_subname, cur_subcount
+        if cur_name is None:
+            return
+        if cur_subname is not None and cur_subcount > 0:
+            cur_subs.append((cur_subname, cur_subcount))
+        categories.append((cur_name, cur_items, cur_subs))
+        cur_name = None
+        cur_items = []
+        cur_subs = []
+        cur_subname = None
+        cur_subcount = 0
+
     with open(path, encoding="utf-8") as f:
         for raw in f:
             line = raw.rstrip()
             if not line:
                 continue
-            # «N. Название:» или «N. Название»
             m = re.match(r"^\d+\.\s+(.+?):\s*$", line) or re.match(r"^\d+\.\s+(.+)$", line)
             if m:
-                if cur_name is not None:
-                    categories.append((cur_name, cur_items))
-                cur_name  = m.group(1).rstrip(":")
-                cur_items = []
+                flush_cat()
+                cur_name = m.group(1).rstrip(":")
+            elif line.startswith("* ") and cur_name is not None:
+                if cur_subname is not None and cur_subcount > 0:
+                    cur_subs.append((cur_subname, cur_subcount))
+                cur_subname = line[2:].strip()
+                cur_subcount = 0
             elif line.startswith("- ") and cur_name is not None:
                 cur_items.append(line[2:].strip())
-    if cur_name is not None:
-        categories.append((cur_name, cur_items))
+                if cur_subname is not None:
+                    cur_subcount += 1
+
+    flush_cat()
     return categories
 
 
@@ -318,11 +343,14 @@ def draw_shopping_list(cv, shopping_path):
     ITEM_H    = 5.5 * mm   # высота одной строки товара
     CAT_GAP   = 4 * mm     # пробел между категориями
 
-    for i, (name, items) in enumerate(categories):
+    SUBGROUP_H = 4.5 * mm   # высота строки подкатегории
+
+    for i, (name, items, subgroups) in enumerate(categories):
         icon = CATEGORY_ICONS[i] if i < len(CATEGORY_ICONS) else "📦"
 
-        # Нужная высота: заголовок + items + отступ
-        card_h = HEADER_H + len(items) * ITEM_H + 2 * mm
+        # Нужная высота: заголовок + подкатегории + items + отступ
+        n_subs = len(subgroups)
+        card_h = HEADER_H + n_subs * SUBGROUP_H + len(items) * ITEM_H + 2 * mm
 
         # Выбор колонки — берём ту, что выше (больше y)
         c = 0 if col_y[0] >= col_y[1] else 1
@@ -387,22 +415,45 @@ def draw_shopping_list(cv, shopping_path):
         cv.rect(cx, card_top - card_h, COL_W, card_h, fill=0, stroke=1)
 
         item_y = card_top - HEADER_H - ITEM_H * 0.15
-        for item in items:
-            item_y -= ITEM_H
-            # Чекбокс
-            cb_size = 3 * mm
-            cb_x = cx + 2.5 * mm
-            cb_y = item_y + 0.5 * mm
-            cv.setFillColorRGB(*WHITE)
-            cv.setStrokeColorRGB(*GREY_MID)
-            cv.setLineWidth(0.6)
-            cv.roundRect(cb_x, cb_y, cb_size, cb_size, 0.5 * mm, fill=1, stroke=1)
+        item_idx = 0
+        sub_iter = iter(subgroups)
+        next_sub = next(sub_iter, None)  # (name, count) или None
 
-            # Текст товара
-            cv.setFont("Segoe", 8.5)
-            cv.setFillColorRGB(*GREY_DARK)
-            item_lines = wrap(cv, item, "Segoe", 8.5, COL_W - 9 * mm)
-            cv.drawString(cx + 7.5 * mm, item_y + 1.2 * mm, item_lines[0])
+        while item_idx < len(items):
+            # Нарисовать заголовок подкатегории, если пришёл черёд
+            if next_sub is not None and next_sub[1] > 0:
+                sub_name, sub_count = next_sub
+                item_y -= SUBGROUP_H
+                cv.setFillColorRGB(0.90, 0.97, 0.94)
+                cv.rect(cx, item_y, COL_W, SUBGROUP_H, fill=1, stroke=0)
+                cv.setFont("SegoeBold", 7)
+                cv.setFillColorRGB(0.20, 0.50, 0.42)
+                cv.drawString(cx + 3 * mm, item_y + 1.4 * mm, sub_name.upper())
+                next_sub = next(sub_iter, None)
+                sub_items_left = sub_count
+            else:
+                sub_items_left = len(items) - item_idx
+
+            # Рисуем товары этой подкатегории (или все оставшиеся)
+            for _ in range(sub_items_left):
+                if item_idx >= len(items):
+                    break
+                item = items[item_idx]
+                item_idx += 1
+                item_y -= ITEM_H
+                # Чекбокс
+                cb_size = 3 * mm
+                cb_x = cx + 2.5 * mm
+                cb_y = item_y + 0.5 * mm
+                cv.setFillColorRGB(*WHITE)
+                cv.setStrokeColorRGB(*GREY_MID)
+                cv.setLineWidth(0.6)
+                cv.roundRect(cb_x, cb_y, cb_size, cb_size, 0.5 * mm, fill=1, stroke=1)
+                # Текст товара
+                cv.setFont("Segoe", 8.5)
+                cv.setFillColorRGB(*GREY_DARK)
+                item_lines = wrap(cv, item, "Segoe", 8.5, COL_W - 9 * mm)
+                cv.drawString(cx + 7.5 * mm, item_y + 1.2 * mm, item_lines[0])
 
         col_y[c] = card_top - card_h - CAT_GAP
 
