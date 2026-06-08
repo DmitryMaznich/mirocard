@@ -115,13 +115,16 @@ export default function TextPickerScreen() {
                 <ReadingTextThumb topicId={activeTopicId} text={text} />
                 <div className="topic-item__info">
                   <div className="topic-item__title">{getTextTitle(text)}</div>
-                  <div className="topic-item__meta">
-                    {text.kind === "instruction"
-                      ? text.status === "final"
-                        ? <span className="recipe-status-badge">✓ финал</span>
-                        : `${text.stepCount ?? text.steps?.length ?? 0} шагов`
-                      : `${text.lines?.length ?? 0} строк · уровень ${text.level ?? 1}`}
-                  </div>
+                  {text.kind !== "instruction" && (
+                    <div className="topic-item__meta">
+                      {`${text.lines?.length ?? 0} строк · уровень ${text.level ?? 1}`}
+                    </div>
+                  )}
+                  {text.status === "final" && (
+                    <div className="topic-item__meta">
+                      <span className="recipe-status-badge">✓ финал</span>
+                    </div>
+                  )}
                   <TextResultBadge session={lastSession} />
                 </div>
                 <span className="reading-text-arrow">→</span>
