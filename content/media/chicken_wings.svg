@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Warm background -->
+  <circle cx="120" cy="120" r="116" fill="#fff8ee" stroke="#e8d4a0" stroke-width="3"/>
+  <!-- Tray shadow -->
+  <ellipse cx="122" cy="192" rx="74" ry="8" fill="#b08030" opacity="0.2"/>
+  <!-- Baking tray rim -->
+  <rect x="44" y="118" width="152" height="68" rx="8" fill="#c0a060"/>
+  <!-- Baking tray surface -->
+  <rect x="48" y="122" width="144" height="60" rx="6" fill="#d4b47a"/>
+  <!-- Parchment paper -->
+  <rect x="52" y="125" width="136" height="54" rx="4" fill="#f5ecd0"/>
+
+  <!-- Wing 1 (left) - drumette -->
+  <ellipse cx="82" cy="160" rx="22" ry="14" fill="#c07030" transform="rotate(-20 82 160)"/>
+  <ellipse cx="80" cy="158" rx="20" ry="12" fill="#d48040" transform="rotate(-20 80 158)"/>
+  <!-- Wing 1 flat part -->
+  <ellipse cx="100" cy="150" rx="18" ry="10" fill="#bf6828" transform="rotate(-30 100 150)"/>
+  <ellipse cx="98" cy="148" rx="16" ry="8" fill="#d07c38" transform="rotate(-30 98 148)"/>
+  <!-- Wing 1 golden patches -->
+  <ellipse cx="84" cy="155" rx="8" ry="5" fill="#b05820" opacity="0.5" transform="rotate(-20 84 155)"/>
+  <ellipse cx="96" cy="145" rx="6" ry="4" fill="#b05820" opacity="0.4" transform="rotate(-30 96 145)"/>
+  <!-- Wing 1 bone tip -->
+  <ellipse cx="112" cy="144" rx="5" ry="3" fill="#e8d4b0"/>
+
+  <!-- Wing 2 (center) - larger, prominent -->
+  <ellipse cx="120" cy="163" rx="24" ry="14" fill="#c87030" transform="rotate(5 120 163)"/>
+  <ellipse cx="120" cy="161" rx="22" ry="12" fill="#dc8444" transform="rotate(5 120 161)"/>
+  <!-- Wing 2 flat part -->
+  <ellipse cx="138" cy="152" rx="20" ry="10" fill="#c06828" transform="rotate(15 138 152)"/>
+  <ellipse cx="136" cy="150" rx="18" ry="9" fill="#d47c3c" transform="rotate(15 136 150)"/>
+  <!-- Wing 2 golden patches -->
+  <ellipse cx="118" cy="158" rx="9" ry="5" fill="#a84e18" opacity="0.5" transform="rotate(5 118 158)"/>
+  <ellipse cx="134" cy="147" rx="7" ry="4" fill="#a84e18" opacity="0.4" transform="rotate(15 134 147)"/>
+  <!-- Wing 2 bone tip -->
+  <ellipse cx="154" cy="146" rx="5" ry="3" fill="#e8d4b0"/>
+
+  <!-- Wing 3 (right) -->
+  <ellipse cx="162" cy="159" rx="20" ry="13" fill="#c47030" transform="rotate(20 162 159)"/>
+  <ellipse cx="160" cy="157" rx="18" ry="11" fill="#d88040" transform="rotate(20 160 157)"/>
+  <!-- Wing 3 flat part -->
+  <ellipse cx="148" cy="170" rx="16" ry="9" fill="#ba6828" transform="rotate(10 148 170)"/>
+  <ellipse cx="146" cy="168" rx="14" ry="7" fill="#d07838" transform="rotate(10 146 168)"/>
+  <!-- Wing 3 golden patches -->
+  <ellipse cx="158" cy="154" rx="7" ry="4" fill="#aa4e18" opacity="0.5" transform="rotate(20 158 154)"/>
+  <!-- Wing 3 bone tip -->
+  <ellipse cx="174" cy="152" rx="4" ry="3" fill="#e8d4b0"/>
+
+  <!-- Crispy skin texture lines -->
+  <path d="M 68 154 Q 76 148 88 152" fill="none" stroke="#9e4010" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <path d="M 108 156 Q 118 150 130 154" fill="none" stroke="#9e4010" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <path d="M 150 154 Q 158 148 166 153" fill="none" stroke="#9e4010" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Rosemary sprigs -->
+  <line x1="62" y1="175" x2="80" y2="155" stroke="#4a7a30" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="64" cy="174" r="2.5" fill="#5a8a3a"/>
+  <circle cx="68" cy="170" r="2" fill="#4e7e34"/>
+  <circle cx="72" cy="166" r="2.5" fill="#5a8a3a"/>
+  <circle cx="76" cy="162" r="2" fill="#4e7e34"/>
+
+  <line x1="170" y1="176" x2="186" y2="158" stroke="#4a7a30" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="172" cy="175" r="2" fill="#5a8a3a"/>
+  <circle cx="176" cy="171" r="2.5" fill="#4e7e34"/>
+  <circle cx="180" cy="167" r="2" fill="#5a8a3a"/>
+  <circle cx="184" cy="162" r="2" fill="#4e7e34"/>
+
+  <!-- Steam wisps -->
+  <path d="M 90 118 Q 86 108 90 98 Q 94 88 90 78" fill="none" stroke="#d0b080" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+  <path d="M 120 116 Q 116 106 120 96 Q 124 86 120 76" fill="none" stroke="#d0b080" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+  <path d="M 150 118 Q 146 108 150 98 Q 154 88 150 78" fill="none" stroke="#d0b080" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+</svg>

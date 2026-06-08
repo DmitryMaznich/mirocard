@@ -70,6 +70,7 @@ const RECIPES = {
   soup:            "chicken noodle soup in a white bowl, clear golden broth with chicken pieces, thin vermicelli noodles, carrots, onion, and half a boiled egg, garnished with fresh dill",
   tea:             "cold iced tea in a tall glass with lemon slices and fresh mint, ice cubes, condensation on the glass, refreshing",
   fried_potatoes:  "golden crispy fried potatoes with caramelized onions on a white plate, brown crust, sprinkled with fresh dill, rustic and appetizing",
+  chicken_wings:   "golden-brown baked chicken wings on a baking tray lined with parchment paper, crispy skin, seasoned with garlic, fresh rosemary and thyme sprigs, appetizing caramelized crust",
 };
 
 // ── Gemini API ────────────────────────────────────────────────────────────────
