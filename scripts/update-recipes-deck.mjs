@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.71.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.72.0.zip";
-const NEW_VERSION = "1.72.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.72.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.73.0.zip";
+const NEW_VERSION = "1.73.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -105,15 +105,15 @@ for (const id of recipeIds) {
 // Add shopping list content file to ZIP
 const shoppingContent = readFileSync("content/shopping/shopping.txt", "utf-8");
 newZip.file("shopping/shopping.txt", shoppingContent);
-console.log("shopping.txt: добавлен список покупок (15 категорий)");
+console.log("shopping.txt: добавлен список покупок (16 категорий)");
 
 const shoppingTextEntry = {
   id: "shopping_list",
   kind: "shopping_list",
   title: { ru: "Список покупок", en: "Shopping list" },
   file: "shopping/shopping.txt",
-  //         Овощи  Фрукты Ягоды  Зелень Бакалея Мясо  Рыба  Напитки Молочн Химия  Сладости Хлеб  Консервы Заморозка Животные
-  categoryIcons: ["🥦", "🍎", "🍓", "🌿", "🌾", "🥩", "🐟", "🥤", "🥛", "🧴", "🍬", "🍞", "🥫", "🧊", "🐾"],
+  //         Овощи  Фрукты Ягоды  Зелень Бакалея Мясо  Рыба  Гастрон Напитки Молочн Химия  Сладости Хлеб  Консервы Заморозка Животные
+  categoryIcons: ["🥦", "🍎", "🍓", "🌿", "🌾", "🥩", "🐟", "🧀", "🥤", "🥛", "🧴", "🍬", "🍞", "🥫", "🧊", "🐾"],
 };
 
 const shoppingMode = {
