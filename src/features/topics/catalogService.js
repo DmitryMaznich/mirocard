@@ -37,6 +37,34 @@ export function getImportErrorMessage(err) {
   return `Ошибка загрузки: ${err?.message ?? err}`;
 }
 
+export async function silentUpdateOutdatedTopics({ topicRecords, appVersion }) {
+  try {
+    const catalog = await fetchCatalog(false);
+    const installedById = Object.fromEntries(topicRecords.map((r) => [r.meta.id, r]));
+    const outdated = (catalog.decks ?? []).filter((entry) => {
+      const installed = installedById[entry.id];
+      return installed && installed.meta.version !== entry.version;
+    });
+    if (!outdated.length) return { nextRecords: topicRecords, updated: [] };
+
+    const nextRecords = [...topicRecords];
+    const updated = [];
+    for (const entry of outdated) {
+      try {
+        const record = await fetchCatalogTopic(entry, appVersion, false);
+        const idx = nextRecords.findIndex((r) => r.meta.id === record.meta.id);
+        if (idx >= 0) nextRecords[idx] = record;
+        updated.push(record);
+      } catch {
+        // ignore per-topic errors silently
+      }
+    }
+    return { nextRecords, updated };
+  } catch {
+    return { nextRecords: topicRecords, updated: [] };
+  }
+}
+
 export async function refreshInstalledCatalogTopics({
   topicRecords,
   appVersion,

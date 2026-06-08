@@ -6,7 +6,7 @@ import ModeIcon from "@/shared/components/ModeIcon";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
-import { refreshInstalledCatalogTopics } from "@/features/topics/catalogService";
+import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 
 function SettingsIcon() {
   return (
@@ -135,6 +135,17 @@ export default function HomeScreen() {
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
+  const didAutoUpdateRef = useRef(false);
+
+  useEffect(() => {
+    if (!topicRecords.length || didAutoUpdateRef.current) return;
+    didAutoUpdateRef.current = true;
+    silentUpdateOutdatedTopics({ topicRecords, appVersion: buildInfo.version })
+      .then(({ nextRecords, updated }) => {
+        if (updated.length > 0) setTopicRecords(nextRecords);
+      })
+      .catch(() => {});
+  }, [topicRecords.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const streakTapCountRef = useRef(0);
   const streakTapTimerRef = useRef(null);
