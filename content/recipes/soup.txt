@@ -1,3 +1,4 @@
+# photo: soup.webp
 ﻿# photo: soup.webp
 # fixed_portions: 6
 Куриный суп с вермишелью

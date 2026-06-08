@@ -67,7 +67,7 @@ const RECIPES = {
   pasta:           "pasta with butter and freshly grated cheese in a white bowl, cheese melting, simple and delicious",
   pasta_meat:      "spaghetti bolognese with rich meat sauce, topped with grated parmesan and fresh basil leaf, white plate",
   salad:           "fresh vegetable salad with tomatoes, cucumber, avocado, radishes and bell pepper in a white bowl, drizzled with balsamic dressing",
-  soup:            "chicken vegetable soup in a white bowl, clear golden broth with chicken pieces, vegetables, and half a boiled egg, garnished with fresh dill",
+  soup:            "chicken noodle soup in a white bowl, clear golden broth with chicken pieces, thin vermicelli noodles, carrots, onion, and half a boiled egg, garnished with fresh dill",
   tea:             "cold iced tea in a tall glass with lemon slices and fresh mint, ice cubes, condensation on the glass, refreshing",
 };
 
