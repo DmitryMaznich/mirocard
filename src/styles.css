@@ -18820,14 +18820,17 @@ body { background: #eef0ef; }
   overflow-y: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 10px 12px;
-  align-content: start;
+  gap: 5px;
+  padding: 6px 8px;
+  align-content: stretch;
 }
 
 @media (orientation: landscape) {
   .shopping-grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 8px 12px;
+    align-content: start;
   }
 }
 
@@ -18836,14 +18839,14 @@ body { background: #eef0ef; }
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
-  padding: clamp(8px, 2dvh, 12px) 14px;
+  gap: 8px;
+  padding: clamp(4px, 1.2dvh, 8px) 10px;
   background: #fff;
   border: 2px solid #b2d8d8;
-  border-radius: 14px;
+  border-radius: 12px;
   cursor: pointer;
   text-align: left;
-  min-height: clamp(56px, 12dvh, 78px);
+  min-height: 0;
 }
 
 .shopping-tile:active {
@@ -18857,13 +18860,13 @@ body { background: #eef0ef; }
 }
 
 .shopping-tile-icon {
-  font-size: clamp(2rem, 7dvh, 3rem);
+  font-size: clamp(1.4rem, 4dvh, 2.2rem);
   line-height: 1;
   flex-shrink: 0;
 }
 
 .shopping-tile-name {
-  font-size: clamp(1.1rem, 3.2dvh, 1.3rem);
+  font-size: clamp(0.75rem, 2dvh, 1rem);
   font-weight: 700;
   color: #263131;
   line-height: 1.2;
@@ -18873,6 +18876,20 @@ body { background: #eef0ef; }
 .shopping-tile--partial {
   border-color: #8cc8b8;
   background: #f8fdfc;
+}
+
+@media (orientation: landscape) {
+  .shopping-tile {
+    min-height: clamp(50px, 10dvh, 70px);
+    padding: clamp(6px, 2dvh, 10px) 14px;
+    gap: 10px;
+  }
+  .shopping-tile-icon {
+    font-size: clamp(1.8rem, 5dvh, 2.5rem);
+  }
+  .shopping-tile-name {
+    font-size: clamp(0.9rem, 2.5dvh, 1.2rem);
+  }
 }
 
 /* ── Detail view ── */
