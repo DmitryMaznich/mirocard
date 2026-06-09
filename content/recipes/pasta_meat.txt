@@ -1,4 +1,5 @@
 # photo: pasta_meat.webp
+# status: final
 Паста болоньезе
 [pasta_meat.webp]
 
