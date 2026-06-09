@@ -18892,6 +18892,19 @@ body { background: #eef0ef; }
   }
 }
 
+@media (orientation: portrait) and (min-width: 600px) {
+  .shopping-tile {
+    padding: clamp(8px, 1.5vw, 14px) 14px;
+    gap: 12px;
+  }
+  .shopping-tile-icon {
+    font-size: clamp(2rem, 4.5vw, 3rem);
+  }
+  .shopping-tile-name {
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  }
+}
+
 /* ── Detail view ── */
 
 .shopping-detail-header {
