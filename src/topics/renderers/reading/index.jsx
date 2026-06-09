@@ -829,27 +829,19 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
 
           <div className="shopping-preview-separator" />
 
-          {renderList.map(({ step, si, icon, entries }) => (
-            <div key={si} className="shopping-preview-category">
-              <div className="shopping-preview-cat-name">
-                <span className="shopping-preview-cat-icon">{icon}</span>
-                {step.text.replace(/:$/, "")}
-              </div>
-              <ul className="shopping-preview-items">
-                {entries.map(({ item, subgroup }, i) => {
-                  const prevSub = entries[i - 1]?.subgroup ?? null;
-                  return (
-                    <Fragment key={i}>
-                      {subgroup && subgroup !== prevSub && (
-                        <li className="shopping-preview-subgroup">{subgroup}</li>
-                      )}
-                      <li className="shopping-preview-item">☐&nbsp;{item}</li>
-                    </Fragment>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+          <ul className="shopping-preview-items">
+            {renderList.flatMap(({ entries }) => entries).map(({ item, subgroup }, i, all) => {
+              const prevSub = all[i - 1]?.subgroup ?? null;
+              return (
+                <Fragment key={i}>
+                  {subgroup && subgroup !== prevSub && (
+                    <li className="shopping-preview-subgroup">{subgroup}</li>
+                  )}
+                  <li className="shopping-preview-item">☐&nbsp;{item}</li>
+                </Fragment>
+              );
+            })}
+          </ul>
         </div>
 
         <div className="shopping-actions">
