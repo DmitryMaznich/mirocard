@@ -71,6 +71,7 @@ const RECIPES = {
   tea:             "cold iced tea in a tall glass with lemon slices and fresh mint, ice cubes, condensation on the glass, refreshing",
   fried_potatoes:  "golden crispy fried potatoes with caramelized onions on a white plate, brown crust, sprinkled with fresh dill, rustic and appetizing",
   chicken_wings:   "golden-brown baked chicken wings on a baking tray lined with parchment paper, crispy skin, seasoned with garlic, fresh rosemary and thyme sprigs, appetizing caramelized crust",
+  scramble_sausage: "soft creamy scrambled eggs with golden-brown fried sausage rounds on a white plate, fluffy yellow eggs, sausage slightly caramelized, simple home-style breakfast",
 };
 
 // ── Gemini API ────────────────────────────────────────────────────────────────

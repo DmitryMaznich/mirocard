@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Pan shadow -->
+  <ellipse cx="124" cy="192" rx="72" ry="8" fill="#c09040" opacity="0.2"/>
+  <!-- Pan body -->
+  <ellipse cx="116" cy="164" rx="70" ry="32" fill="#3a3a3a"/>
+  <ellipse cx="116" cy="160" rx="68" ry="30" fill="#484848"/>
+  <ellipse cx="116" cy="157" rx="65" ry="27" fill="#2e2e2e"/>
+  <!-- Pan handle -->
+  <rect x="184" y="150" width="40" height="14" rx="7" fill="#3a3a3a"/>
+  <rect x="186" y="152" width="38" height="10" rx="5" fill="#4a4a4a"/>
+  <!-- Butter sheen -->
+  <ellipse cx="116" cy="154" rx="56" ry="20" fill="#f0c840" opacity="0.15"/>
+  <!-- Scrambled egg base — soft curds -->
+  <ellipse cx="96" cy="156" rx="32" ry="16" fill="#f8e890"/>
+  <ellipse cx="128" cy="152" rx="28" ry="14" fill="#fdf0a0"/>
+  <ellipse cx="110" cy="162" rx="30" ry="12" fill="#f8e890"/>
+  <!-- Egg curd texture -->
+  <ellipse cx="88" cy="152" rx="14" ry="8" fill="#fffcc0" opacity="0.8"/>
+  <ellipse cx="118" cy="148" rx="16" ry="7" fill="#fffcc0" opacity="0.75"/>
+  <ellipse cx="136" cy="158" rx="12" ry="7" fill="#fffcc0" opacity="0.7"/>
+  <ellipse cx="104" cy="166" rx="13" ry="6" fill="#fffcc0" opacity="0.65"/>
+  <!-- Sausage rounds — 3 pieces overlapping the scramble -->
+  <!-- Sausage 1 -->
+  <ellipse cx="76" cy="146" rx="14" ry="13" fill="#a84010"/>
+  <ellipse cx="76" cy="146" rx="12" ry="11" fill="#c85018"/>
+  <ellipse cx="76" cy="146" rx="9" ry="8" fill="#d86020"/>
+  <ellipse cx="73" cy="143" rx="4" ry="3" fill="#e07830" opacity="0.5"/>
+  <!-- Sausage 2 -->
+  <ellipse cx="145" cy="143" rx="15" ry="13" fill="#a84010"/>
+  <ellipse cx="145" cy="143" rx="13" ry="11" fill="#c85018"/>
+  <ellipse cx="145" cy="143" rx="10" ry="8" fill="#d86020"/>
+  <ellipse cx="142" cy="140" rx="4" ry="3" fill="#e07830" opacity="0.5"/>
+  <!-- Sausage 3 (top center) -->
+  <ellipse cx="110" cy="136" rx="14" ry="12" fill="#b04818"/>
+  <ellipse cx="110" cy="136" rx="12" ry="10" fill="#c85018"/>
+  <ellipse cx="110" cy="136" rx="9" ry="7" fill="#d86020"/>
+  <ellipse cx="107" cy="133" rx="4" ry="3" fill="#e07830" opacity="0.45"/>
+  <!-- Steam -->
+  <path d="M 90 110 Q 86 101 90 92 Q 94 83 90 75" fill="none" stroke="#cccccc" stroke-width="3" stroke-linecap="round" opacity="0.38"/>
+  <path d="M 116 108 Q 112 99 116 90 Q 120 81 116 73" fill="none" stroke="#cccccc" stroke-width="3" stroke-linecap="round" opacity="0.32"/>
+</svg>
