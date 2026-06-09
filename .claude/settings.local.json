@@ -39,7 +39,10 @@
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; \"OK: \" + $r.Content } catch { \"Error: $\\($_.Exception.Message\\)\" })",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://laptop-353ltno0.taile45e98.ts.net/api/version\" -TimeoutSec 10 -UseBasicParsing; \"Direct OK: \" + $r.Content } catch { \"Direct error: $\\($_.Exception.Message\\)\" })",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -TimeoutSec 10 -UseBasicParsing; \"OK: \" + $r.Content.Substring\\(0,60\\) } catch { \"Error: $\\($_.Exception.Message\\)\" })",
-      "PowerShell(tailscale version 2>&1)"
+      "PowerShell(tailscale version 2>&1)",
+      "PowerShell(Get-Command gemini -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Command gemini.cmd -ErrorAction SilentlyContinue)",
+      "PowerShell(Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_male.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_female.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_a4.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\scripts\\\\generate-toilet-signs.mjs\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\toilet_a4.svg\" -ErrorAction SilentlyContinue; if \\(\\(Get-ChildItem \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue | Measure-Object\\).Count -eq 0\\) { Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue }; echo \"done\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
