@@ -856,9 +856,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
           <button className="shopping-print-btn" onClick={() => window.print()}>
             🖨 Печатать
           </button>
-          <button className="shopping-close-btn" onClick={onAdvance}>
-            Закрыть
-          </button>
         </div>
       </div>
     );
@@ -888,9 +885,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       <div className="shopping-actions">
         <button className="shopping-view-btn" onClick={() => setView("preview")}>
           Посмотреть список покупок
-        </button>
-        <button className="shopping-close-btn" onClick={onAdvance}>
-          Закрыть
         </button>
       </div>
     </div>
