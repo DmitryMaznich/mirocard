@@ -1,4 +1,5 @@
 # photo: fried_potatoes.webp
+# status: final
 Жареная картошка
 [fried_potatoes.webp]
 

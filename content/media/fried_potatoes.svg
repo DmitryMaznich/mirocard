@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Pan shadow -->
+  <ellipse cx="124" cy="192" rx="72" ry="8" fill="#c09040" opacity="0.2"/>
+  <!-- Pan body -->
+  <ellipse cx="116" cy="164" rx="70" ry="32" fill="#3a3a3a"/>
+  <ellipse cx="116" cy="160" rx="68" ry="30" fill="#484848"/>
+  <ellipse cx="116" cy="157" rx="65" ry="27" fill="#2e2e2e"/>
+  <!-- Pan handle -->
+  <rect x="184" y="150" width="40" height="14" rx="7" fill="#3a3a3a"/>
+  <rect x="186" y="152" width="38" height="10" rx="5" fill="#4a4a4a"/>
+  <!-- Oil sheen -->
+  <ellipse cx="116" cy="154" rx="56" ry="20" fill="#b07010" opacity="0.18"/>
+  <!-- Potato pieces — bottom row -->
+  <rect x="62" y="147" width="30" height="13" rx="4" fill="#c07808"/>
+  <rect x="62" y="147" width="30" height="5" rx="3" fill="#e8a820" opacity="0.5"/>
+  <rect x="96" y="144" width="32" height="14" rx="4" fill="#d48810"/>
+  <rect x="96" y="144" width="32" height="5" rx="3" fill="#f0b828" opacity="0.45"/>
+  <rect x="132" y="145" width="28" height="13" rx="4" fill="#c88010"/>
+  <rect x="132" y="145" width="28" height="5" rx="3" fill="#ebb820" opacity="0.45"/>
+  <rect x="158" y="147" width="22" height="12" rx="4" fill="#bc7408"/>
+  <rect x="158" y="147" width="22" height="5" rx="3" fill="#dfa018" opacity="0.4"/>
+  <!-- Potato pieces — top row (slightly rotated) -->
+  <rect x="70" y="132" width="28" height="13" rx="4" fill="#d09012" transform="rotate(-9 84 138)"/>
+  <rect x="70" y="132" width="28" height="5" rx="3" fill="#f0b828" opacity="0.4" transform="rotate(-9 84 134)"/>
+  <rect x="105" y="130" width="30" height="14" rx="4" fill="#b87010" transform="rotate(7 120 137)"/>
+  <rect x="105" y="130" width="30" height="5" rx="3" fill="#dca018" opacity="0.4" transform="rotate(7 120 132)"/>
+  <rect x="138" y="132" width="24" height="13" rx="4" fill="#d08010" transform="rotate(-5 150 138)"/>
+  <rect x="138" y="132" width="24" height="5" rx="3" fill="#e8a820" opacity="0.4" transform="rotate(-5 150 134)"/>
+  <!-- Caramelised onion strands -->
+  <path d="M 78 149 Q 94 144 112 149" fill="none" stroke="#d4a840" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+  <path d="M 116 146 Q 132 141 148 146" fill="none" stroke="#c89830" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 76 157 Q 90 153 106 157" fill="none" stroke="#d4a840" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <!-- Steam -->
+  <path d="M 88 108 Q 84 99 88 90 Q 92 81 88 73" fill="none" stroke="#cccccc" stroke-width="3" stroke-linecap="round" opacity="0.38"/>
+  <path d="M 114 105 Q 110 96 114 87 Q 118 78 114 70" fill="none" stroke="#cccccc" stroke-width="3" stroke-linecap="round" opacity="0.32"/>
+</svg>
