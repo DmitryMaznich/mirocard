@@ -186,6 +186,62 @@ function buildChainTask(card, params = {}) {
   };
 }
 
+function resolveMissingPosition(unknownPosition, taskIndex) {
+  if (unknownPosition === "left")  return "left";
+  if (unknownPosition === "right") return "right";
+  return taskIndex % 2 === 0 ? "right" : "left";
+}
+
+function buildMissingTermTask(card, params = {}, taskIndex = 0) {
+  const operation = normalizeOperation(card.params?.operation);
+  const railSize = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.railSize ?? params.maxNumber, DEFAULT_RAIL_SIZE)));
+  const maxNumber = railSize;
+  const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, DEFAULT_CHANGE_MAX)));
+  const includeZero = Boolean(params.includeZero);
+  const minVal = includeZero ? 0 : 1;
+  const missingPosition = resolveMissingPosition(params.unknownPosition ?? "right", taskIndex);
+
+  const delta = randomInt(1, changeMax);
+  let A, B, C, answer;
+
+  if (operation === "add") {
+    if (missingPosition === "right") {
+      A = randomInt(minVal, Math.max(minVal, maxNumber - delta));
+      B = null; answer = delta; C = A + delta;
+    } else {
+      B = randomInt(minVal, Math.max(minVal, maxNumber - delta));
+      A = null; answer = delta; C = B + delta;
+    }
+  } else {
+    if (missingPosition === "right") {
+      const minA = delta + minVal;
+      if (minA > maxNumber) return null;
+      A = randomInt(minA, maxNumber);
+      B = null; answer = delta; C = A - delta;
+    } else {
+      B = randomInt(1, changeMax);
+      const maxC = maxNumber - B;
+      if (maxC < minVal) return null;
+      C = randomInt(minVal, maxC);
+      A = null; answer = C + B;
+    }
+  }
+
+  return {
+    type: "operation_missing_term",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    operation,
+    sign: operation === "add" ? "+" : "-",
+    missingPosition,
+    A, B, C, answer,
+    maxNumber,
+    resultOptions: makeNumberOptions(answer, maxNumber),
+    inputMode: params.inputMode ?? "choices",
+    showHelper: Boolean(params.showHelper),
+  };
+}
+
 export function generateTasks(mode, cards, arg3, arg4) {
   const count = typeof arg3 === "number" ? arg3 : typeof arg4 === "number" ? arg4 : 15;
   const params = (
@@ -224,6 +280,26 @@ export function generateTasks(mode, cards, arg3, arg4) {
       const card = operationCards[result.length % operationCards.length];
       const task = buildChainTask(card, params);
       if (task !== null) result.push(task);
+    }
+    return shuffle(result);
+  }
+
+  if (modeType === "operation_missing_term") {
+    const operationParam = params.operation ?? "add";
+    let pool;
+    if (operationParam === "add")           pool = operationCards.filter((c) => normalizeOperation(c.params?.operation) === "add");
+    else if (operationParam === "subtract") pool = operationCards.filter((c) => normalizeOperation(c.params?.operation) === "subtract");
+    else                                    pool = operationCards;
+    if (!pool.length) pool = operationCards;
+
+    const result = [];
+    let attempts = 0;
+    let idx = 0;
+    while (result.length < count && attempts < count * 20) {
+      attempts++;
+      const card = pool[idx % pool.length];
+      const task = buildMissingTermTask(card, params, result.length);
+      if (task !== null) { result.push(task); idx++; }
     }
     return shuffle(result);
   }

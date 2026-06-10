@@ -165,3 +165,103 @@ describe("operation_chain", () => {
     expect(typeof t.intermediate).toBe("number");
   });
 });
+
+describe("operation_missing_term", () => {
+  it("generates tasks with operation_missing_term type", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 5, { operation: "add" });
+    expect(tasks.every((t) => t.type === "operation_missing_term")).toBe(true);
+  });
+
+  it("right+add: A + ? = C is arithmetically valid", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 20, {
+      operation: "add", unknownPosition: "right", maxNumber: 10, changeMax: 3,
+    });
+    const rightAdd = tasks.filter((t) => t.missingPosition === "right" && t.operation === "add");
+    expect(rightAdd.length).toBeGreaterThan(0);
+    rightAdd.forEach((t) => {
+      expect(t.A).not.toBeNull();
+      expect(t.B).toBeNull();
+      expect(t.A + t.answer).toBe(t.C);
+      expect(t.C).toBeLessThanOrEqual(10);
+      expect(t.answer).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("left+add: ? + B = C is arithmetically valid", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 20, {
+      operation: "add", unknownPosition: "left", maxNumber: 10, changeMax: 3,
+    });
+    tasks.forEach((t) => {
+      expect(t.A).toBeNull();
+      expect(t.B).not.toBeNull();
+      expect(t.answer + t.B).toBe(t.C);
+      expect(t.C).toBeLessThanOrEqual(10);
+      expect(t.answer).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("right+subtract: A - ? = C is arithmetically valid", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 20, {
+      operation: "subtract", unknownPosition: "right", maxNumber: 10, changeMax: 3,
+    });
+    tasks.forEach((t) => {
+      expect(t.A).not.toBeNull();
+      expect(t.B).toBeNull();
+      expect(t.A - t.answer).toBe(t.C);
+      expect(t.C).toBeGreaterThanOrEqual(1);
+      expect(t.answer).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("left+subtract: ? - B = C is arithmetically valid", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 20, {
+      operation: "subtract", unknownPosition: "left", maxNumber: 10, changeMax: 3,
+    });
+    tasks.forEach((t) => {
+      expect(t.A).toBeNull();
+      expect(t.B).not.toBeNull();
+      expect(t.answer - t.B).toBe(t.C);
+      expect(t.answer).toBeLessThanOrEqual(10);
+      expect(t.C).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("both: alternates left and right positions", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 20, {
+      operation: "add", unknownPosition: "both", maxNumber: 10,
+    });
+    const positions = tasks.map((t) => t.missingPosition);
+    expect(positions).toContain("left");
+    expect(positions).toContain("right");
+  });
+
+  it("mixed operation: produces both add and subtract tasks", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 20, {
+      operation: "mixed", unknownPosition: "right", maxNumber: 10,
+    });
+    const ops = tasks.map((t) => t.operation);
+    expect(ops).toContain("add");
+    expect(ops).toContain("subtract");
+  });
+
+  it("resultOptions contain the answer", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 5, { operation: "add", maxNumber: 10 });
+    tasks.forEach((t) => {
+      expect(t.resultOptions).toContain(t.answer);
+      expect(new Set(t.resultOptions).size).toBe(t.resultOptions.length);
+    });
+  });
+
+  it("passes inputMode and showHelper to task", () => {
+    const [t] = generateTasks("operation_missing_term", CARDS, 1, {
+      operation: "add", inputMode: "pad", showHelper: true,
+    });
+    expect(t.inputMode).toBe("pad");
+    expect(t.showHelper).toBe(true);
+  });
+
+  it("generates requested count", () => {
+    const tasks = generateTasks("operation_missing_term", CARDS, 8, { operation: "mixed", maxNumber: 10 });
+    expect(tasks).toHaveLength(8);
+  });
+});
