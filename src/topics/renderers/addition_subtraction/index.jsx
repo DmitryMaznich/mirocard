@@ -761,6 +761,88 @@ function ChainTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
+function MissingTermExpression({ task, answered }) {
+  const answeredCls = answered
+    ? `operation-expression__unknown--answered${task.operation === "subtract" ? "-sub" : ""}`
+    : "";
+
+  function renderSlot(value, key) {
+    if (value !== null) {
+      return <span key={key} className="operation-expression__number">{value}</span>;
+    }
+    return (
+      <span
+        key={key}
+        className={["operation-expression__unknown", answeredCls].filter(Boolean).join(" ")}
+      >
+        {answered ? task.answer : "❓"}
+      </span>
+    );
+  }
+
+  return (
+    <div className="operation-expression" aria-label="пример">
+      {renderSlot(task.A, "left")}
+      <span className={`operation-expression__sign operation-expression__sign--${task.operation}`}>{task.sign}</span>
+      {renderSlot(task.B, "right")}
+      <span className="operation-expression__equals">=</span>
+      <span className="operation-expression__number">{task.C}</span>
+    </div>
+  );
+}
+
+function MissingTermTask({ task, onCorrect, onIncorrect }) {
+  const [selected, setSelected] = useState(null);
+  const [helperOpen, setHelperOpen] = useState(false);
+  const answered = selected != null;
+
+  const handleAnswer = useCallback((value) => {
+    if (answered) return;
+    setSelected(value);
+    if (value === task.answer) {
+      onCorrect(task.conceptId, task.cardId);
+    } else {
+      onIncorrect(task.conceptId, task.cardId);
+    }
+  }, [answered, task, onCorrect, onIncorrect]);
+
+  return (
+    <div className="operation-stage operation-stage--missing-term">
+      <MissingTermExpression task={task} answered={selected === task.answer} />
+      {task.inputMode === "pad" ? (
+        <NumberPad
+          maxNumber={task.maxNumber}
+          answer={task.answer}
+          selected={selected}
+          onAnswer={handleAnswer}
+        />
+      ) : (
+        <NumberChoices
+          task={{ result: task.answer, resultOptions: task.resultOptions }}
+          selected={selected}
+          onAnswer={handleAnswer}
+        />
+      )}
+      {task.showHelper && !helperOpen && (
+        <button
+          type="button"
+          className="helper-toggle-btn"
+          onClick={() => setHelperOpen(true)}
+          aria-label="Открыть помощник"
+        >
+          🧮
+        </button>
+      )}
+      {helperOpen && (
+        <HelperPanel
+          maxNumber={task.maxNumber}
+          onClose={() => setHelperOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
 function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount }) {
   const type = task.type;
 
@@ -788,10 +870,13 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount })
   if (type === "operation_chain") {
     return <ChainTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
+  if (type === "operation_missing_term") {
+    return <MissingTermTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  }
   return null;
 }
 
 export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake, streakCount }) {
   if (!task) return null;
-  return <OperationTask key={`${task.cardId}:${task.start}:${task.delta}:${task.type}:${task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} />;
+  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} />;
 }
