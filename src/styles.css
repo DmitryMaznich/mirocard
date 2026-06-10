@@ -15742,6 +15742,26 @@ button.operation-dot {
 .operation-expression__result--pop     { animation: operation-answer-pop .38s ease both; color: #1f7a6f; }
 .operation-expression__result--pop-sub { animation: operation-answer-pop .38s ease both; color: #c04040; }
 
+.operation-expression__unknown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--operation-expression-font-size);
+  color: #2a6bb5;
+  cursor: default;
+  min-width: 1.2ch;
+}
+
+.operation-expression__unknown--answered {
+  animation: operation-answer-pop .38s ease both;
+  color: #1f7a6f;
+}
+
+.operation-expression__unknown--answered-sub {
+  animation: operation-answer-pop .38s ease both;
+  color: #c04040;
+}
+
 @keyframes stick-error-shake {
   0%, 100% { transform: translateX(0); }
   20%       { transform: translateX(-9px); }
