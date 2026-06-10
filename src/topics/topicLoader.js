@@ -424,6 +424,10 @@ const DEFAULT_MODE_METHODOLOGY = {
       settings: ["Начинайте с maxNumber=10 и изменения на 1.", "Счётный помощник помогает удержать промежуточный результат."],
       goal: "Ребёнок считает пример из двух последовательных действий (A ± B ± C).",
     },
+    operation_missing_term: {
+      settings: ["Начинайте с правого неизвестного и операции +.", "Счётный помощник (🧮) помогает отсчитать от результата назад."],
+      goal: "Ребёнок находит неизвестный операнд в уравнении вида A + ❓ = C или ❓ + B = C.",
+    },
   },
   sentence_puzzle: {
     sentence_puzzle: {
@@ -734,6 +738,38 @@ const DEFAULT_MODES = {
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
         groupCount: { type: "enum", values: [2, 3, 4, 6], labels: { ru: { "2": "2 группы", "3": "3 группы", "4": "4 группы", "6": "6 групп" } }, default: 6, label: { ru: "Количество групп" } },
         perGroup: { type: "enum", values: [4, 6, 8, 10], labels: { ru: { "4": "4 примера", "6": "6 примеров", "8": "8 примеров", "10": "10 примеров" } }, default: 6, label: { ru: "Примеров в группе" } },
+      },
+    },
+    {
+      id: "operation_missing_term",
+      type: "operation_missing_term",
+      evaluation: "auto",
+      ui: { title: "9. Найди неизвестное", instruction: "Какое число спрятано под ❓", icon: "media/icons/operations_missing_sign.svg" },
+      params: {
+        operation: {
+          type: "enum",
+          values: ["add", "subtract", "mixed"],
+          labels: { ru: { add: "Только +", subtract: "Только −", mixed: "Микс" } },
+          default: "add",
+          label: { ru: "Операция" },
+        },
+        unknownPosition: {
+          type: "enum",
+          values: ["right", "left", "both"],
+          labels: { ru: { right: "Правый операнд", left: "Левый операнд", both: "Оба" } },
+          default: "right",
+          label: { ru: "Позиция неизвестного" },
+        },
+        maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
+        changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
+        inputMode: {
+          type: "enum",
+          values: ["choices", "pad"],
+          labels: { ru: { choices: "Варианты ответа", pad: "Числовая клавиатура" } },
+          default: "choices",
+          label: { ru: "Тип ввода" },
+        },
+        showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
       },
     },
   ],
