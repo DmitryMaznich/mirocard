@@ -55,3 +55,8 @@ __pycache__/
 # Allow tracked media assets
 !content/media/*.webp
 !content/media/*.jpg
+
+# Verification scripts and output
+verify-*.cjs
+verify-*.mjs
+output/
