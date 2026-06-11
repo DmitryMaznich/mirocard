@@ -19263,8 +19263,13 @@ body { background: #eef0ef; }
   .shopping-preview-content,
   .shopping-preview-content * { visibility: visible; }
 
+  .shopping-body,
+  .session-body,
+  html,
+  body { overflow: visible !important; height: auto !important; }
+
   .shopping-preview-content {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
