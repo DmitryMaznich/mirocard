@@ -813,7 +813,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
         <div className="shopping-preview-content">
           {/* Шапка — title (print only) + date + team */}
           <div className="shopping-print-header">
-            <div className="shopping-preview-title-print">Список покупок</div>
             <div className="shopping-preview-date">{todayStr}</div>
             {responsible && (
               <div className="shopping-preview-responsible">
@@ -845,8 +844,46 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
         </div>
 
         <div className="shopping-actions">
-          <button className="shopping-print-btn" onClick={() => window.print()}>
-            🖨 Печатать
+          <button className="shopping-print-btn" onClick={() => {
+            const allEntries = renderList.flatMap(({ entries }) => entries);
+            let listHtml = "";
+            let prevSub = null;
+            for (const { item, subgroup } of allEntries) {
+              if (subgroup && subgroup !== prevSub) {
+                listHtml += `<li class="sub">${subgroup}</li>`;
+              }
+              listHtml += `<li class="item">&#9744;&nbsp;${item}</li>`;
+              prevSub = subgroup;
+            }
+            const teamHtml = [
+              responsible ? `<div>Ответственный: <strong>${responsible.name}</strong> ★</div>` : "",
+              teammates.length ? `<div>Команда: ${teammates.map(m => m.name).join(", ")}</div>` : "",
+            ].join("");
+            const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Список покупок</title><style>
+@page{size:A4;margin:18mm 22mm}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#111}
+h1{font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 4pt}
+.meta{font-size:12pt;color:#444;margin-bottom:2pt}
+hr{border:none;border-top:1.5pt solid #bbb;margin:8pt 0}
+ul{list-style:none;margin:0;padding:0}
+li.sub{font-size:8pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#3a7a6a;padding:5pt 0 1pt 4pt;margin-top:3pt}
+li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
+</style></head><body>
+<h1>Список покупок</h1>
+<div class="meta">${todayStr}</div>${teamHtml}<hr>
+<ul>${listHtml}</ul>
+</body></html>`;
+            const iframe = document.createElement("iframe");
+            iframe.style.cssText = "position:fixed;width:0;height:0;opacity:0;border:none";
+            document.body.appendChild(iframe);
+            iframe.contentDocument.open();
+            iframe.contentDocument.write(html);
+            iframe.contentDocument.close();
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            setTimeout(() => document.body.removeChild(iframe), 2000);
+          }}>
+            🖨 Печать / PDF
           </button>
         </div>
       </div>
