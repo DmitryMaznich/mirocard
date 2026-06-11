@@ -776,7 +776,7 @@ function MissingTermExpression({ task, answered }) {
         key={key}
         className={["operation-expression__unknown", symbolCls, answeredCls].filter(Boolean).join(" ")}
       >
-        {answered ? task.answer : (task.unknownSymbol === "x" ? "x" : "?")}
+        {answered ? task.answer : (task.unknownSymbol === "x" ? "X" : "?")}
       </span>
     );
   }
