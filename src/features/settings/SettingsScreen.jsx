@@ -60,6 +60,7 @@ export default function SettingsScreen() {
 
   async function handleSetNewPin(hash) {
     await handlePatchSettings({ adultPinHash: hash });
+    api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
   }
 
   function handleSetNewSuccess() {

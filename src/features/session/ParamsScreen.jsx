@@ -6,6 +6,7 @@ import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import PinGateModal from "@/shared/components/PinGateModal";
 import { getDb, kv } from "@/core/db";
+import { api } from "@/core/api";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -438,6 +439,7 @@ export default function ParamsScreen() {
     patchSettings({ adultPinHash: hash });
     const db = await getDb();
     await kv.set(db, "settings", { ...useAppStore.getState().settings, adultPinHash: hash });
+    api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
   }
 
   const paramsContent = isReading ? (
