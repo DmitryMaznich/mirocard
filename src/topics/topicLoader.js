@@ -770,6 +770,13 @@ const DEFAULT_MODES = {
           label: { ru: "Тип ввода" },
         },
         showHelper: { type: "boolean", default: false, label: { ru: "Кнопка счётного помощника" } },
+        unknownSymbol: {
+          type: "enum",
+          values: ["question", "x"],
+          labels: { ru: { question: "? Знак вопроса", x: "x Буква икс" } },
+          default: "question",
+          label: { ru: "Символ неизвестного" },
+        },
       },
     },
   ],

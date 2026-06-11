@@ -770,12 +770,13 @@ function MissingTermExpression({ task, answered }) {
     if (value !== null) {
       return <span key={key} className="operation-expression__number">{value}</span>;
     }
+    const symbolCls = task.unknownSymbol === "x" ? "operation-expression__unknown--x" : "";
     return (
       <span
         key={key}
-        className={["operation-expression__unknown", answeredCls].filter(Boolean).join(" ")}
+        className={["operation-expression__unknown", symbolCls, answeredCls].filter(Boolean).join(" ")}
       >
-        {answered ? task.answer : "❓"}
+        {answered ? task.answer : (task.unknownSymbol === "x" ? "x" : "?")}
       </span>
     );
   }

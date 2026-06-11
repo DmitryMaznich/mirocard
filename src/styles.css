@@ -15747,9 +15747,15 @@ button.operation-dot {
   align-items: center;
   justify-content: center;
   font-size: var(--operation-expression-font-size);
+  font-weight: 900;
+  line-height: 1;
   color: #2a6bb5;
   cursor: default;
-  min-width: 1.2ch;
+  min-width: 0.9ch;
+}
+
+.operation-expression__unknown--x {
+  font-style: italic;
 }
 
 .operation-expression__unknown--answered {

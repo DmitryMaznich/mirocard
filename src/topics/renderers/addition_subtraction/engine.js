@@ -239,6 +239,7 @@ function buildMissingTermTask(card, params = {}, taskIndex = 0) {
     resultOptions: makeNumberOptions(answer, maxNumber),
     inputMode: params.inputMode ?? "choices",
     showHelper: Boolean(params.showHelper),
+    unknownSymbol: params.unknownSymbol === "x" ? "x" : "question",
   };
 }
 
