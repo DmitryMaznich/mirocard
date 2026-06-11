@@ -42,7 +42,9 @@
       "PowerShell(tailscale version 2>&1)",
       "PowerShell(Get-Command gemini -ErrorAction SilentlyContinue)",
       "PowerShell(Get-Command gemini.cmd -ErrorAction SilentlyContinue)",
-      "PowerShell(Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_male.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_female.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_a4.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\scripts\\\\generate-toilet-signs.mjs\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\toilet_a4.svg\" -ErrorAction SilentlyContinue; if \\(\\(Get-ChildItem \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue | Measure-Object\\).Count -eq 0\\) { Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue }; echo \"done\")"
+      "PowerShell(Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_male.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_female.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_a4.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\scripts\\\\generate-toilet-signs.mjs\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\toilet_a4.svg\" -ErrorAction SilentlyContinue; if \\(\\(Get-ChildItem \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue | Measure-Object\\).Count -eq 0\\) { Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue }; echo \"done\")",
+      "PowerShell(Resolve-DnsName mirocard.kaplieva.help -Type CNAME 2>&1)",
+      "PowerShell(tailscale funnel --https=443 off 2>&1)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
