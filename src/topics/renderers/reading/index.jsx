@@ -955,6 +955,7 @@ li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
   // ── GRID VIEW ────────────────────────────────────────────────
   return (
     <div className="session-body reading-body shopping-body">
+      <div className="shopping-grid-header">Что нужно купить?</div>
       {sortMode ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>

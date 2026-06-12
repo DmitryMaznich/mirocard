@@ -19265,6 +19265,14 @@ body { background: #eef0ef; }
   background: #fdf0f0;
 }
 
+.shopping-grid-header {
+  padding: 10px 14px 4px;
+  font-size: clamp(1rem, 2.8dvh, 1.25rem);
+  font-weight: 800;
+  color: #263131;
+  flex-shrink: 0;
+}
+
 /* Sort mode */
 .shopping-tile--sortable {
   cursor: grab;
