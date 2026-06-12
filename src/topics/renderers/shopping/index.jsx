@@ -10,7 +10,7 @@ import {
   getShoppingPlan, saveShoppingPlan,
 } from "@/core/groupStore";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// ─── helpers ─────────────────────────────────────────────────────────────────
 
 function sName(step) { return step.text.replace(/:$/, "").trim(); }
 function planKey(name, ii) { return `${name}_${ii}`; }
@@ -22,7 +22,7 @@ async function loadShoppingData(topicId, task) {
     getShoppingOrder(topicId).catch(() => null),
     getShoppingPlan(topicId).catch(() => ({})),
   ]);
-  let rawSteps = raw
+  const rawSteps = raw
     ? parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action")
     : (task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action");
   const rawIcons = task.text?.categoryIcons ?? [];
@@ -30,7 +30,7 @@ async function loadShoppingData(topicId, task) {
   return { rawSteps, rawIcons, steps, categoryIcons, savedPlan: savedPlan ?? {} };
 }
 
-// ─── SortablePlanTile ────────────────────────────────────────────────────────
+// ─── SortablePlanTile  (uses same shopping-tile CSS as reading renderer) ──────
 
 function SortablePlanTile({ id, icon, name, count }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -44,19 +44,20 @@ function SortablePlanTile({ id, icon, name, count }) {
     <div
       ref={setNodeRef}
       style={style}
-      className={`shop-tile${count > 0 ? " shop-tile--active" : ""} shop-tile--sortable${isDragging ? " shop-tile--dragging" : ""}`}
+      className={`shopping-tile shopping-tile--sortable${count > 0 ? " shopping-tile--partial" : ""}${isDragging ? " shopping-tile--dragging" : ""}`}
       {...attributes}
       {...listeners}
     >
-      <span className="shop-tile-drag-handle">⠿</span>
-      <span className="shop-tile-icon">{icon}</span>
-      <span className="shop-tile-name">{name}</span>
-      {count > 0 && <span className="shop-tile-badge">{count}</span>}
+      <span className="shopping-tile-drag-handle">⠿</span>
+      <span className="shopping-tile-icon">{icon}</span>
+      <span className="shopping-tile-name">{name}</span>
+      {count > 0 && <span className="shopping-tile-badge">{count}</span>}
     </div>
   );
 }
 
-// ─── PlanMode ────────────────────────────────────────────────────────────────
+// ─── PlanMode ─────────────────────────────────────────────────────────────────
+// Uses the same shopping-* CSS classes as ShoppingListTask in reading renderer.
 
 function PlanMode({ task, topicId, onGoToShop }) {
   const [steps, setSteps] = useState([]);
@@ -108,10 +109,10 @@ function PlanMode({ task, topicId, onGoToShop }) {
     const oi = ids.indexOf(active.id), ni = ids.indexOf(over.id);
     if (oi < 0 || ni < 0) return;
     const ns = arrayMove(steps, oi, ni);
-    const ni2 = arrayMove(categoryIcons, oi, ni);
+    const nc = arrayMove(categoryIcons, oi, ni);
     setSteps(ns);
-    setCategoryIcons(ni2);
-    saveShoppingOrder(topicId, ns.map((s) => sName(s))).catch(() => {});
+    setCategoryIcons(nc);
+    saveShoppingOrder(topicId, ns.map(sName)).catch(() => {});
   }
 
   function resetOrder() {
@@ -137,7 +138,7 @@ function PlanMode({ task, topicId, onGoToShop }) {
     setPressingTile(null);
   }
 
-  // ── Detail view ────────────────────────────────────────────
+  // ── Detail view ────────────────────────────────────────────────────────────
   if (typeof view === "number") {
     const step = steps[view];
     const items = step?.items ?? [];
@@ -146,9 +147,9 @@ function PlanMode({ task, topicId, onGoToShop }) {
     const pCount = plannedInStep(step);
 
     return (
-      <div className="session-body shop-body">
-        <div className="shop-detail-header">
-          <button className="shop-back-btn" onClick={() => setView("grid")} aria-label="К категориям">
+      <div className="session-body reading-body shopping-body">
+        <div className="shopping-detail-header">
+          <button className="shopping-back-btn" onClick={() => setView("grid")} aria-label="К категориям">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
               <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
               <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
@@ -156,11 +157,11 @@ function PlanMode({ task, topicId, onGoToShop }) {
               <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
             </svg>
           </button>
-          <span className="shop-detail-icon">{icon}</span>
-          <span className="shop-detail-title">{step?.text.replace(/:$/, "")}</span>
-          <span className="shop-detail-count">{pCount}/{items.length}</span>
+          <span className="shopping-detail-icon">{icon}</span>
+          <span className="shopping-detail-title">{step?.text.replace(/:$/, "")}</span>
+          <span className="shopping-detail-count">{pCount}/{items.length}</span>
           {view + 1 < steps.length && (
-            <button className="shop-next-btn" onClick={() => setView(view + 1)} aria-label="Следующая категория">
+            <button className="shopping-next-btn" onClick={() => setView(view + 1)} aria-label="Следующая категория">
               <span>{categoryIcons[view + 1] ?? "📦"}</span>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                 <path d="M5 2.5l4.5 4.5L5 11.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -168,7 +169,7 @@ function PlanMode({ task, topicId, onGoToShop }) {
             </button>
           )}
         </div>
-        <ul className="shop-items">
+        <ul className="shopping-items">
           {items.map((item, ii) => {
             const subs = step?.itemSubgroups;
             const subgroup = subs?.[ii] ?? null;
@@ -176,15 +177,16 @@ function PlanMode({ task, topicId, onGoToShop }) {
             const isPlanned = !!planned[planKey(name, ii)];
             return (
               <Fragment key={ii}>
-                {showSub && <li className="shop-subgroup-header">{subgroup}</li>}
+                {showSub && <li className="shopping-subgroup-header">{subgroup}</li>}
                 <li
                   role="checkbox"
                   aria-checked={isPlanned}
-                  className={`shop-item${isPlanned ? " shop-item--planned" : ""}`}
+                  className={`shopping-item${isPlanned ? " shopping-item--done" : ""}`}
                   onClick={() => toggleItem(step, ii)}
                 >
-                  <span className="shop-item-check">{isPlanned ? "✓" : ""}</span>
-                  <span className="shop-item-label">{item}</span>
+                  <span className="shopping-checkbox">{isPlanned ? "✓" : ""}</span>
+                  <span className="shopping-item-label">{item}</span>
+                  {!isPlanned && <span className="shopping-tap-hint">нажми</span>}
                 </li>
               </Fragment>
             );
@@ -194,16 +196,16 @@ function PlanMode({ task, topicId, onGoToShop }) {
     );
   }
 
-  // ── Grid view ──────────────────────────────────────────────
+  // ── Grid view ──────────────────────────────────────────────────────────────
   return (
-    <div className="session-body shop-body">
-      <div className="shop-grid-header">
+    <div className="session-body reading-body shopping-body">
+      <div className="shopping-grid-header">
         {totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}
       </div>
       {sortMode ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
-            <div className="shop-grid">
+            <div className="shopping-grid">
               {steps.map((step, si) => (
                 <SortablePlanTile
                   key={step.text}
@@ -217,36 +219,38 @@ function PlanMode({ task, topicId, onGoToShop }) {
           </SortableContext>
         </DndContext>
       ) : (
-        <div className="shop-grid">
+        <div className="shopping-grid">
           {steps.map((step, si) => {
             const count = plannedInStep(step);
+            const total = (step.items ?? []).length;
+            const allDone = count === total && total > 0;
             const isPressing = pressingTile === si;
             return (
               <button
                 key={step.id ?? si}
-                className={`shop-tile${count > 0 ? " shop-tile--active" : ""}${isPressing ? " shop-tile--pressing" : ""}`}
+                className={`shopping-tile${allDone ? " shopping-tile--done" : count > 0 ? " shopping-tile--partial" : ""}${isPressing ? " shopping-tile--pressing" : ""}`}
                 onClick={() => { if (!didLongPressRef.current) setView(si); }}
                 onPointerDown={() => startLongPress(si)}
                 onPointerUp={cancelLongPress}
                 onPointerLeave={cancelLongPress}
                 onPointerCancel={cancelLongPress}
               >
-                <span className="shop-tile-icon">{categoryIcons[si] ?? "📦"}</span>
-                <span className="shop-tile-name">{sName(step)}</span>
-                {count > 0 && <span className="shop-tile-badge">{count}</span>}
+                <span className="shopping-tile-icon">{categoryIcons[si] ?? "📦"}</span>
+                <span className="shopping-tile-name">{sName(step)}</span>
+                {count > 0 && <span className="shopping-tile-badge">{count}</span>}
               </button>
             );
           })}
         </div>
       )}
-      <div className="shop-actions">
+      <div className="shopping-actions">
         {sortMode ? (
           <>
-            <button className="shop-btn shop-btn--primary" onClick={() => setSortMode(false)}>✓ Готово</button>
-            <button className="shop-btn shop-btn--ghost" onClick={resetOrder}>Сбросить порядок</button>
+            <button className="shopping-sort-done-btn" onClick={() => setSortMode(false)}>✓ Готово</button>
+            <button className="shopping-sort-reset-btn" onClick={resetOrder}>Сбросить порядок</button>
           </>
         ) : totalPlanned > 0 ? (
-          <button className="shop-btn shop-btn--go" onClick={onGoToShop}>
+          <button className="shop-go-btn" onClick={onGoToShop}>
             → В магазин ({totalPlanned})
           </button>
         ) : (
@@ -257,7 +261,7 @@ function PlanMode({ task, topicId, onGoToShop }) {
   );
 }
 
-// ─── ShopMode ────────────────────────────────────────────────────────────────
+// ─── ShopMode ─────────────────────────────────────────────────────────────────
 
 function ShopMode({ task, topicId, onGoToPlan }) {
   const [steps, setSteps] = useState([]);
@@ -300,16 +304,17 @@ function ShopMode({ task, topicId, onGoToPlan }) {
     setDone({});
   }
 
-  if (!isLoaded) return <div className="session-body shop-body" />;
+  if (!isLoaded) return <div className="session-body reading-body shopping-body" />;
 
+  // Empty state
   if (totalPlanned === 0) {
     return (
-      <div className="session-body shop-body shop-body--center">
-        <div className="shop-empty">
-          <div className="shop-empty-icon">🛒</div>
-          <div className="shop-empty-title">Список пуст</div>
-          <div className="shop-empty-hint">Сначала составь список покупок</div>
-          <button className="shop-btn shop-btn--primary" onClick={onGoToPlan}>
+      <div className="session-body reading-body shopping-body shop-center">
+        <div className="shop-state">
+          <div className="shop-state__icon">🛒</div>
+          <div className="shop-state__title">Список пуст</div>
+          <div className="shop-state__hint">Сначала составь список покупок</div>
+          <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onGoToPlan}>
             ← Составить список
           </button>
         </div>
@@ -317,14 +322,15 @@ function ShopMode({ task, topicId, onGoToPlan }) {
     );
   }
 
+  // Success state
   if (allDone) {
     return (
-      <div className="session-body shop-body shop-body--center">
-        <div className="shop-success">
-          <div className="shop-success-icon">🎉</div>
-          <div className="shop-success-title">Всё куплено!</div>
-          <div className="shop-success-count">{totalPlanned} продуктов</div>
-          <button className="shop-btn shop-btn--primary" onClick={clearPlan}>
+      <div className="session-body reading-body shopping-body shop-center">
+        <div className="shop-state">
+          <div className="shop-state__icon">🎉</div>
+          <div className="shop-state__title">Всё куплено!</div>
+          <div className="shop-state__hint">{totalPlanned} продуктов</div>
+          <button className="shopping-view-btn" style={{ marginTop: 8, background: "#4caf90" }} onClick={clearPlan}>
             Начать новый список
           </button>
         </div>
@@ -335,7 +341,7 @@ function ShopMode({ task, topicId, onGoToPlan }) {
   const progress = totalPlanned > 0 ? (totalDone / totalPlanned) * 100 : 0;
 
   return (
-    <div className="session-body shop-body">
+    <div className="session-body reading-body shopping-body">
       <div className="shop-progress">
         <div className="shop-progress__bar">
           <div className="shop-progress__fill" style={{ width: `${progress}%` }} />
@@ -343,15 +349,15 @@ function ShopMode({ task, topicId, onGoToPlan }) {
         <span className="shop-progress__label">{totalDone} / {totalPlanned}</span>
       </div>
 
-      <ul className="shop-list">
+      <ul className="shopping-items">
         {shoppingList.map(({ step, name, icon, plannedItems }) => {
           const catDone = plannedItems.every(({ ii }) => done[planKey(name, ii)]);
           return (
             <Fragment key={name}>
               <li className={`shop-section-header${catDone ? " shop-section-header--done" : ""}`}>
-                <span className="shop-section-icon">{icon}</span>
-                <span className="shop-section-name">{step.text.replace(/:$/, "")}</span>
-                {catDone && <span className="shop-section-check">✓</span>}
+                <span>{icon}</span>
+                <span>{step.text.replace(/:$/, "")}</span>
+                {catDone && <span className="shop-section-check"> ✓</span>}
               </li>
               {plannedItems.map(({ item, ii, subgroup }, idx) => {
                 const prevSub = idx > 0 ? plannedItems[idx - 1].subgroup : null;
@@ -359,15 +365,16 @@ function ShopMode({ task, topicId, onGoToPlan }) {
                 const isDone = !!done[planKey(name, ii)];
                 return (
                   <Fragment key={`${name}_${ii}`}>
-                    {showSub && <li className="shop-subgroup-header">{subgroup}</li>}
+                    {showSub && <li className="shopping-subgroup-header">{subgroup}</li>}
                     <li
                       role="checkbox"
                       aria-checked={isDone}
-                      className={`shop-row${isDone ? " shop-row--done" : ""}`}
+                      className={`shopping-item${isDone ? " shopping-item--done" : ""}`}
                       onClick={() => toggleDone(step, ii)}
                     >
-                      <span className="shop-row-check">{isDone ? "✓" : ""}</span>
-                      <span className="shop-row-label">{item}</span>
+                      <span className="shopping-checkbox">{isDone ? "✓" : ""}</span>
+                      <span className="shopping-item-label">{item}</span>
+                      {!isDone && <span className="shopping-tap-hint">взял</span>}
                     </li>
                   </Fragment>
                 );
@@ -377,8 +384,8 @@ function ShopMode({ task, topicId, onGoToPlan }) {
         })}
       </ul>
 
-      <div className="shop-actions">
-        <button className="shop-btn shop-btn--ghost" onClick={clearPlan}>
+      <div className="shopping-actions">
+        <button className="shopping-close-btn" onClick={clearPlan}>
           Новый список
         </button>
       </div>
