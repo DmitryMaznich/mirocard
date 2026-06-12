@@ -44,7 +44,15 @@
       "PowerShell(Get-Command gemini.cmd -ErrorAction SilentlyContinue)",
       "PowerShell(Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_male.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_female.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\\\\toilet_a4.png\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\scripts\\\\generate-toilet-signs.mjs\", \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\toilet_a4.svg\" -ErrorAction SilentlyContinue; if \\(\\(Get-ChildItem \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue | Measure-Object\\).Count -eq 0\\) { Remove-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\output\" -ErrorAction SilentlyContinue }; echo \"done\")",
       "PowerShell(Resolve-DnsName mirocard.kaplieva.help -Type CNAME 2>&1)",
-      "PowerShell(tailscale funnel --https=443 off 2>&1)"
+      "PowerShell(tailscale funnel --https=443 off 2>&1)",
+      "PowerShell(Get-Item \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\runtime\\\\data\\\\mirocard.db\" -ErrorAction SilentlyContinue | Select-Object FullName, @{N='Size KB';E={[math]::Round\\($_.Length/1KB,1\\)}}, LastWriteTime)",
+      "PowerShell(node \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\runtime\\\\migrate-account-kv.mjs\")",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\backend\\\\logs\\\\\" | Select-Object Name, @{N='Size KB';E={[math]::Round\\($_.Length/1KB,1\\)}}, LastWriteTime)",
+      "PowerShell(Resolve-DnsName mirocard.kaplieva.help -Type A 2>&1)",
+      "PowerShell(tailscale funnel --https=443 8080 2>&1)",
+      "PowerShell(tailscale serve --https=443 8080 2>&1)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://mazpc.taile45e98.ts.net/api/version\" -UseBasicParsing -TimeoutSec 10 2>&1)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -UseBasicParsing -TimeoutSec 15)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
