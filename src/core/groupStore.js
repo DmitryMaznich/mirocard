@@ -103,9 +103,42 @@ export async function deleteUserRecipe(topicId, recipeId) {
   }
 }
 
+// ─── Shopping category order ──────────────────────────────────────────────────
+
+const shoppingOrderKey = (topicId) => `shopping_order_${topicId}`;
+
+export async function getShoppingOrder(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, shoppingOrderKey(topicId))) ?? null;
+}
+
+export async function saveShoppingOrder(topicId, names) {
+  const db = await getDb();
+  const key = shoppingOrderKey(topicId);
+  await kv.set(db, key, names);
+  pushOp("kv.upsert", { key, value: names }).catch(() => {});
+}
+
+export function applyShoppingOrder(steps, categoryIcons, savedOrder) {
+  if (!savedOrder?.length) return { steps, categoryIcons };
+  const nameToIdx = {};
+  steps.forEach((s, i) => { nameToIdx[s.text.replace(/:$/, "").trim()] = i; });
+  const ordered = [];
+  const used = new Set();
+  for (const name of savedOrder) {
+    const i = nameToIdx[name];
+    if (i !== undefined) { ordered.push(i); used.add(i); }
+  }
+  steps.forEach((_, i) => { if (!used.has(i)) ordered.push(i); });
+  return {
+    steps:         ordered.map((i) => steps[i]),
+    categoryIcons: ordered.map((i) => categoryIcons[i] ?? "📦"),
+  };
+}
+
 // ─── Server sync (pull) ───────────────────────────────────────────────────────
 
-const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_"];
+const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_"];
 
 export async function pullRecipeKvFromServer() {
   try {
