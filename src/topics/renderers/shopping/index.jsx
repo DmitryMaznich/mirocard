@@ -66,10 +66,27 @@ function PlanMode({ task, topicId, onGoToShop }) {
   const [view, setView] = useState("grid"); // "grid" | number
   const [sortMode, setSortMode] = useState(false);
   const [pressingTile, setPressingTile] = useState(null);
+  const [editingNote, setEditingNote] = useState(null); // { key, value } | null
   const rawStepsRef = useRef([]);
   const rawIconsRef = useRef([]);
   const longPressTimerRef = useRef(null);
   const didLongPressRef = useRef(false);
+
+  function noteFor(key) {
+    const v = planned[key];
+    return v && typeof v === "object" ? (v.note ?? "") : "";
+  }
+
+  function saveNote(key, rawValue) {
+    const note = rawValue.trim();
+    setPlanned((prev) => {
+      const next = { ...prev };
+      next[key] = note ? { note } : true;
+      saveShoppingPlan(topicId, next).catch(() => {});
+      return next;
+    });
+    setEditingNote(null);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -174,7 +191,10 @@ function PlanMode({ task, topicId, onGoToShop }) {
             const subs = step?.itemSubgroups;
             const subgroup = subs?.[ii] ?? null;
             const showSub = subgroup && subgroup !== (subs?.[ii - 1] ?? null);
-            const isPlanned = !!planned[planKey(name, ii)];
+            const key = planKey(name, ii);
+            const isPlanned = !!planned[key];
+            const note = noteFor(key);
+            const isEditing = editingNote?.key === key;
             return (
               <Fragment key={ii}>
                 {showSub && <li className="shopping-subgroup-header">{subgroup}</li>}
@@ -182,10 +202,34 @@ function PlanMode({ task, topicId, onGoToShop }) {
                   role="checkbox"
                   aria-checked={isPlanned}
                   className={`shopping-item${isPlanned ? " shopping-item--done" : ""}`}
-                  onClick={() => toggleItem(step, ii)}
                 >
-                  <span className="shopping-checkbox">{isPlanned ? "✓" : ""}</span>
-                  <span className="shopping-item-label">{item}</span>
+                  <span className="shopping-checkbox" onClick={() => toggleItem(step, ii)}>
+                    {isPlanned ? "✓" : ""}
+                  </span>
+                  <span
+                    className="shopping-item-body"
+                    onClick={() => isPlanned ? setEditingNote({ key, value: note }) : toggleItem(step, ii)}
+                  >
+                    <span className="shopping-item-label">{item}</span>
+                    {isPlanned && (
+                      isEditing ? (
+                        <input
+                          className="shopping-item-note-input"
+                          autoFocus
+                          value={editingNote.value}
+                          onChange={(e) => setEditingNote({ key, value: e.target.value })}
+                          onBlur={() => saveNote(key, editingNote.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") e.target.blur(); }}
+                          placeholder="Заметка..."
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span className={`shopping-item-note${note ? " shopping-item-note--set" : ""}`}>
+                          {note || "+ заметка"}
+                        </span>
+                      )
+                    )}
+                  </span>
                   {!isPlanned && <span className="shopping-tap-hint">нажми</span>}
                 </li>
               </Fragment>
@@ -363,6 +407,8 @@ function ShopMode({ task, topicId, onGoToPlan }) {
                 const prevSub = idx > 0 ? plannedItems[idx - 1].subgroup : null;
                 const showSub = subgroup && subgroup !== prevSub;
                 const isDone = !!done[planKey(name, ii)];
+                const noteVal = planned[planKey(name, ii)];
+                const note = noteVal && typeof noteVal === "object" ? (noteVal.note ?? "") : "";
                 return (
                   <Fragment key={`${name}_${ii}`}>
                     {showSub && <li className="shopping-subgroup-header">{subgroup}</li>}
@@ -373,7 +419,10 @@ function ShopMode({ task, topicId, onGoToPlan }) {
                       onClick={() => toggleDone(step, ii)}
                     >
                       <span className="shopping-checkbox">{isDone ? "✓" : ""}</span>
-                      <span className="shopping-item-label">{item}</span>
+                      <span className="shopping-item-body">
+                        <span className="shopping-item-label">{item}</span>
+                        {note && <span className="shopping-item-note shopping-item-note--set">{note}</span>}
+                      </span>
                       {!isDone && <span className="shopping-tap-hint">взял</span>}
                     </li>
                   </Fragment>
