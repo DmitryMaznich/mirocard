@@ -164,7 +164,14 @@ export function applyBootstrapToStore(raw) {
     ...state,
     token: bootstrap.token,
     account: bootstrap.account,
-    settings: { ...state.settings, ...(bootstrap.settings ?? {}) },
+    settings: (() => {
+      const merged = { ...state.settings, ...(bootstrap.settings ?? {}) };
+      // Server null must not overwrite a locally-held PIN that hasn't synced yet.
+      if (merged.adultPinHash === null && (state.settings.adultPinHash ?? null) !== null) {
+        merged.adultPinHash = state.settings.adultPinHash;
+      }
+      return merged;
+    })(),
     // Merge with current store state so a concurrent local save isn't overwritten in memory.
     students: mergeStudents(state.students, bootstrap.students),
     ownedTopics: bootstrap.ownedTopics,
@@ -221,7 +228,15 @@ export async function persistBootstrap(db, raw) {
 
   if ("token" in raw) writes.push(kv.set(db, "token", bootstrap.token));
   if ("account" in raw) writes.push(kv.set(db, "account", bootstrap.account));
-  if ("settings" in raw) writes.push(kv.set(db, "settings", bootstrap.settings));
+  if ("settings" in raw) {
+    const settings = { ...bootstrap.settings };
+    // Preserve locally-set PIN if server returns null (race: API call may not have completed).
+    const localPinHash = useAppStore.getState().settings.adultPinHash ?? null;
+    if (settings.adultPinHash === null && localPinHash !== null) {
+      settings.adultPinHash = localPinHash;
+    }
+    writes.push(kv.set(db, "settings", settings));
+  }
   if ("students" in raw) writes.push(atomicMergeStudents(db, bootstrap.students));
   if ("ownedTopics" in raw) writes.push(kv.set(db, "ownedTopics", bootstrap.ownedTopics));
   if ("studentTopicLinks" in raw) writes.push(kv.set(db, "studentTopicLinks", bootstrap.studentTopicLinks));
