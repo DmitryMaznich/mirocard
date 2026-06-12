@@ -11,6 +11,7 @@ import { generateTasks as vowelConsonantEngine }       from "./vowel_consonant/e
 import { generateTasks as narrativeEngine }            from "./narrative/engine";
 import { generateTasks as letterWritingEngine }        from "./letter_writing/engine";
 import { generateTasks as streakTrackerEngine }        from "./streak_tracker/engine";
+import { generateTasks as shoppingEngine }             from "./shopping/engine";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -26,4 +27,5 @@ export const ENGINE_REGISTRY = {
   narrative:             narrativeEngine,
   letter_writing:        letterWritingEngine,
   streak_tracker:        streakTrackerEngine,
+  shopping:              shoppingEngine,
 };

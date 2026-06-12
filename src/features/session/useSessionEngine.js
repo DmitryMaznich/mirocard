@@ -68,6 +68,9 @@ function buildGeneratedSessionState({
   } else if (renderer === "narrative") {
     const generateTasks = ENGINE_REGISTRY.narrative;
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams, selectedConceptIds) : [];
+  } else if (renderer === "shopping") {
+    const generateTasks = ENGINE_REGISTRY.shopping;
+    tasks = generateTasks ? generateTasks(mode, topicRecord) : [];
   } else {
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;

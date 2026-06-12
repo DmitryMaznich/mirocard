@@ -138,7 +138,23 @@ export function applyShoppingOrder(steps, categoryIcons, savedOrder) {
 
 // ─── Server sync (pull) ───────────────────────────────────────────────────────
 
-const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_"];
+// ─── Shopping plan (standalone topic) ────────────────────────────────────────
+
+const shoppingPlanKey = (topicId) => `shopping_plan_${topicId}`;
+
+export async function getShoppingPlan(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, shoppingPlanKey(topicId))) ?? {};
+}
+
+export async function saveShoppingPlan(topicId, plan) {
+  const db = await getDb();
+  const key = shoppingPlanKey(topicId);
+  await kv.set(db, key, plan);
+  pushOp("kv.upsert", { key, value: plan }).catch(() => {});
+}
+
+const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {
   try {

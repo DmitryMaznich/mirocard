@@ -9,6 +9,7 @@ import VowelConsonantRenderer      from "./renderers/vowel_consonant/index.jsx";
 import NarrativeRenderer           from "./renderers/narrative/index.jsx";
 import LetterWritingRenderer       from "./renderers/letter_writing/index.jsx";
 import StreakTrackerRenderer        from "./renderers/streak_tracker/index.jsx";
+import ShoppingRenderer             from "./renderers/shopping/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -22,4 +23,5 @@ export const RENDERER_REGISTRY = {
   narrative:             NarrativeRenderer,
   letter_writing:        LetterWritingRenderer,
   streak_tracker:        StreakTrackerRenderer,
+  shopping:              ShoppingRenderer,
 };
