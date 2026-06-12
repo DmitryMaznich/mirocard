@@ -52,7 +52,9 @@
       "PowerShell(tailscale funnel --https=443 8080 2>&1)",
       "PowerShell(tailscale serve --https=443 8080 2>&1)",
       "PowerShell(Invoke-WebRequest -Uri \"https://mazpc.taile45e98.ts.net/api/version\" -UseBasicParsing -TimeoutSec 10 2>&1)",
-      "PowerShell(Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -UseBasicParsing -TimeoutSec 15)"
+      "PowerShell(Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -UseBasicParsing -TimeoutSec 15)",
+      "Skill(run)",
+      "Skill(run:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
