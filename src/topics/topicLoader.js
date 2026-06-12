@@ -1091,7 +1091,7 @@ function normalizeProcedural(manifest) {
 }
 
 function normalizeReading(manifest) {
-  if (manifest.meta.renderer !== "reading" && !Array.isArray(manifest.texts)) return manifest;
+  if (manifest.meta.renderer !== "reading" && (manifest.meta.renderer != null || !Array.isArray(manifest.texts))) return manifest;
 
   const meta = mergeDefaultMeta({ ...manifest.meta, renderer: "reading" }, "reading");
   const cards = Array.isArray(manifest.cards) ? manifest.cards : [];
