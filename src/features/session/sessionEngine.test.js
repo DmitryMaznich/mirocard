@@ -111,6 +111,25 @@ describe("handleAnswer — streak tracking", () => {
     for (let i = 0; i < 5; i++) state = handleAnswer(state, true);
     expect(state.rewardEarnedCount).toBe(2);
   });
+
+  it("answersPerStar=2: earns reward at streak 10, not at 5", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", [], null, false, 2);
+    for (let i = 0; i < 5; i++) state = handleAnswer(state, true);
+    expect(state.streakCount).toBe(5);
+    expect(state.rewardEarnedCount).toBe(0);
+    for (let i = 0; i < 5; i++) state = handleAnswer(state, true);
+    expect(state.streakCount).toBe(0);
+    expect(state.rewardEarnedCount).toBe(1);
+  });
+
+  it("answersPerStar=3: earns reward at streak 15", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", [], null, false, 3);
+    for (let i = 0; i < 14; i++) state = handleAnswer(state, true);
+    expect(state.rewardEarnedCount).toBe(0);
+    state = handleAnswer(state, true);
+    expect(state.streakCount).toBe(0);
+    expect(state.rewardEarnedCount).toBe(1);
+  });
 });
 
 describe("handleAdvance — deck_exhausted for deck modes", () => {

@@ -71,7 +71,7 @@ export default function SessionScreen() {
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
-    completedRecord, rewardProgress, streakCount,
+    completedRecord, rewardProgress, streakCount, answersPerStar,
     rewardPending, clearRewardPending,
     deckExhausted, handleRestartDeck, handleFinishDeck,
     onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
@@ -194,6 +194,7 @@ export default function SessionScreen() {
             className="session-progress"
             streakCount={streakCount}
             available={rewardProgress?.available ?? false}
+            answersPerStar={answersPerStar}
           />
           <div className="session-topbar-right">
             {mode?.evaluation !== "instant" && (

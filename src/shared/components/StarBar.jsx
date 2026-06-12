@@ -3,8 +3,8 @@ import { computeStreakProgress } from "@/features/session/useStarProgress";
 
 const STAR_COUNT = 5;
 
-export default function StarBar({ className = "", streakCount = 0, available }) {
-  const { litStars } = computeStreakProgress({ streakCount, available });
+export default function StarBar({ className = "", streakCount = 0, available, answersPerStar = 1 }) {
+  const { litStars } = computeStreakProgress({ streakCount, available, answersPerStar });
 
   const prevLitRef = useRef(litStars);
   const [animState, setAnimState] = useState({ gainIdx: null, loseIdx: null });
@@ -29,6 +29,9 @@ export default function StarBar({ className = "", streakCount = 0, available }) 
 
   return (
     <div className={`star-bar-zone ${className}`}>
+      {answersPerStar > 1 && (
+        <span className="star-bar-multiplier">×{answersPerStar}</span>
+      )}
       <div className="star-bar-stars">
         {Array.from({ length: STAR_COUNT }, (_, i) => {
           const isLit  = i < litStars;

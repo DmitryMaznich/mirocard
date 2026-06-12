@@ -2,7 +2,7 @@ function generateId() {
   return "session_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
 }
 
-export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false) {
+export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false, answersPerStar = 1) {
   return {
     status: "task_active",
     tasks,
@@ -14,6 +14,7 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     textId,
     conceptIds,
     isDeckMode,
+    answersPerStar: Math.max(1, Math.min(3, Math.round(answersPerStar ?? 1))),
     correctCount: 0,
     incorrectCount: 0,
     streakCount: 0,
@@ -29,11 +30,12 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
     return handleAdvance(state);
   }
   if (isCorrect) {
+    const streakTarget = 5 * (state.answersPerStar ?? 1);
     const streakCount = (state.streakCount ?? 0) + 1;
-    const rewardEarnedCount = streakCount >= 5
+    const rewardEarnedCount = streakCount >= streakTarget
       ? (state.rewardEarnedCount ?? 0) + 1
       : (state.rewardEarnedCount ?? 0);
-    const finalStreak = streakCount >= 5 ? 0 : streakCount;
+    const finalStreak = streakCount >= streakTarget ? 0 : streakCount;
     return {
       ...state,
       status: "answer_correct",
@@ -54,12 +56,13 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
 }
 
 export function handleInstantCorrect(state, conceptId, cardId) {
+  const streakTarget = 5 * (state.answersPerStar ?? 1);
   const streakCount = (state.streakCount ?? 0) + 1;
   const correctCount = state.correctCount + 1;
-  const rewardEarnedCount = streakCount >= 5
+  const rewardEarnedCount = streakCount >= streakTarget
     ? (state.rewardEarnedCount ?? 0) + 1
     : (state.rewardEarnedCount ?? 0);
-  const finalStreak = streakCount >= 5 ? 0 : streakCount;
+  const finalStreak = streakCount >= streakTarget ? 0 : streakCount;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
   return {
     ...state,

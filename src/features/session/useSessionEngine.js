@@ -86,6 +86,7 @@ function buildGeneratedSessionState({
     selectedConceptIds,
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
+    link.answersPerStar ?? 1,
   );
 
   if (mode.type === "assemble_text") {
@@ -384,6 +385,7 @@ export function useSessionEngine() {
 
   const currentTask = sessionState?.tasks[sessionState.taskIndex] ?? null;
   const streakCount = sessionState?.streakCount ?? 0;
+  const answersPerStar = sessionState?.answersPerStar ?? 1;
   const rewardProgress = {
     available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
   };
@@ -397,6 +399,7 @@ export function useSessionEngine() {
     completedRecord,
     rewardProgress,
     streakCount,
+    answersPerStar,
     rewardPending,
     clearRewardPending,
     deckExhausted,

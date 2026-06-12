@@ -394,6 +394,7 @@ export default function ParamsScreen() {
   const [params,          setParams]          = useState(getInitialParams);
   const [videoReward,    setVideoReward]     = useState(link.videoRewardEnabled ?? true);
   const [rewardThreshold, setRewardThreshold] = useState(link.rewardThreshold ?? 90);
+  const [answersPerStar,  setAnswersPerStar]  = useState(link.answersPerStar ?? 1);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
 
@@ -431,7 +432,7 @@ export default function ParamsScreen() {
   function launchSession() {
     setShowPinGate(false);
     markSessionStart();
-    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold });
+    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold, answersPerStar });
     setScreen("session");
   }
 
@@ -608,6 +609,28 @@ export default function ParamsScreen() {
           <div className="params-body">
             {paramsContent}
           </div>
+
+          {hasVideos && mode.evaluation !== "none" && (
+            <div className="param-row param-row--block">
+              <div className="param-label">Сложность серии</div>
+              <div className="param-enum-section">
+                <div className="param-enum-group">
+                  {[1, 2, 3].map((n) => (
+                    <button
+                      key={n}
+                      className={`enum-btn enum-btn--compact ${answersPerStar === n ? "enum-btn--active" : ""}`}
+                      onClick={() => setAnswersPerStar(n)}
+                    >
+                      ×{n}
+                    </button>
+                  ))}
+                </div>
+                <div className="param-hint">
+                  Бонус каждые {5 * answersPerStar} правильных ответов подряд
+                </div>
+              </div>
+            </div>
+          )}
 
           {hasVideos && mode.evaluation !== "none" && (
             <div className="param-row param-row--block">

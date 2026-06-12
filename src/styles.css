@@ -12302,6 +12302,14 @@ button {
   align-items: center;
   gap: 6px;
 }
+.star-bar-multiplier {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(251, 191, 36, 0.85);
+  line-height: 1;
+  min-width: 20px;
+  text-align: right;
+}
 .star-bar-score {
   display: flex;
   align-items: center;

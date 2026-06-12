@@ -25,6 +25,18 @@ describe("computeStreakProgress", () => {
     expect(computeStreakProgress({ streakCount: 5, available: false }).available).toBe(false);
     expect(computeStreakProgress({ streakCount: 5, available: true }).available).toBe(true);
   });
+
+  it("answersPerStar=2: lights 1 star after 2 correct, 3 after 6", () => {
+    expect(computeStreakProgress({ streakCount: 1, available: true, answersPerStar: 2 }).litStars).toBe(0);
+    expect(computeStreakProgress({ streakCount: 2, available: true, answersPerStar: 2 }).litStars).toBe(1);
+    expect(computeStreakProgress({ streakCount: 6, available: true, answersPerStar: 2 }).litStars).toBe(3);
+  });
+
+  it("answersPerStar=3: lights 1 star after 3 correct, full bar after 15", () => {
+    expect(computeStreakProgress({ streakCount: 2, available: true, answersPerStar: 3 }).litStars).toBe(0);
+    expect(computeStreakProgress({ streakCount: 3, available: true, answersPerStar: 3 }).litStars).toBe(1);
+    expect(computeStreakProgress({ streakCount: 15, available: true, answersPerStar: 3 }).litStars).toBe(5);
+  });
 });
 
 describe("computeDisplayStars", () => {
