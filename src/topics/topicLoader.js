@@ -1223,7 +1223,7 @@ export async function getTopicRecord(db, topicId) {
 
 function migrateRecord(record) {
   if (!record) return record;
-  if (record.meta?.renderer === "reading" || Array.isArray(record.texts)) {
+  if (record.meta?.renderer === "reading" || (record.meta?.renderer == null && Array.isArray(record.texts))) {
     return normalizeReading({
       ...record,
       meta: { ...record.meta, renderer: "reading" },
