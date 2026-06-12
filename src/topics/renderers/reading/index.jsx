@@ -815,8 +815,13 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
     return (
       <div className="session-body reading-body shopping-body">
         <div className="shopping-detail-header">
-          <button className="shopping-back-btn" onClick={() => setView("grid")}>
-            ← Назад
+          <button className="shopping-back-btn" onClick={() => setView("grid")} aria-label="К списку категорий">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+            </svg>
           </button>
           <span className="shopping-detail-icon">{icon}</span>
           <span className="shopping-detail-title">{step?.text.replace(/:$/, "")}</span>
@@ -824,6 +829,14 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
           {doneCount > 0 && (
             <button className="shopping-reset-btn" onClick={() => resetCategory(view, items.length)}>
               ✕
+            </button>
+          )}
+          {view + 1 < steps.length && (
+            <button className="shopping-next-btn" onClick={() => setView(view + 1)} aria-label="Следующая категория">
+              <span>{categoryIcons[view + 1] ?? "📦"}</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                <path d="M5 2.5l4.5 4.5L5 11.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
           )}
         </div>

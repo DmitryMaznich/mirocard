@@ -18956,19 +18956,36 @@ body { background: #eef0ef; }
 .shopping-back-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   background: #f0faf5;
   border: 2px solid #4caf90;
   border-radius: 10px;
-  font-size: clamp(0.9rem, 2.5dvh, 1rem);
-  font-weight: 700;
   color: #2a8a62;
   cursor: pointer;
-  padding: 7px 12px;
+  padding: clamp(6px, 1.5dvh, 9px);
   flex-shrink: 0;
-  white-space: nowrap;
 }
 
 .shopping-back-btn:active {
+  background: #d8f0e4;
+}
+
+.shopping-next-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: #f0faf5;
+  border: 2px solid #4caf90;
+  border-radius: 10px;
+  color: #2a8a62;
+  cursor: pointer;
+  padding: clamp(4px, 1dvh, 7px) clamp(7px, 1.5dvh, 11px);
+  flex-shrink: 0;
+  font-size: clamp(1.1rem, 3dvh, 1.4rem);
+  line-height: 1;
+}
+
+.shopping-next-btn:active {
   background: #d8f0e4;
 }
 
