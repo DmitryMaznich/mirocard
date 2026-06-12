@@ -13,6 +13,49 @@ import {
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function sName(step) { return step.text.replace(/:$/, "").trim(); }
+
+const RU_DAYS   = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+const RU_MONTHS = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+function formatTodayRu() {
+  const d = new Date();
+  return `${d.getDate()} ${RU_MONTHS[d.getMonth()]}, ${RU_DAYS[d.getDay()]}`;
+}
+
+function printShoppingList(allItems, todayStr) {
+  let listHtml = "";
+  let prevSub = null;
+  for (const { item, subgroup, note } of allItems) {
+    if (subgroup && subgroup !== prevSub) {
+      listHtml += `<li class="sub">${subgroup}</li>`;
+    }
+    listHtml += `<li class="item">&#9744;&nbsp;${item}${note ? ` <em>(${note})</em>` : ""}</li>`;
+    prevSub = subgroup;
+  }
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Список покупок</title><style>
+@page{size:A4;margin:18mm 22mm}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#111}
+h1{font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 4pt}
+.meta{font-size:12pt;color:#444;margin-bottom:2pt}
+hr{border:none;border-top:1.5pt solid #bbb;margin:8pt 0}
+ul{list-style:none;margin:0;padding:0}
+li.sub{font-size:8pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#3a7a6a;padding:5pt 0 1pt 4pt;margin-top:3pt}
+li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
+li.item em{font-size:11pt;color:#666}
+</style></head><body>
+<h1>Список покупок</h1>
+<div class="meta">${todayStr}</div><hr>
+<ul>${listHtml}</ul>
+</body></html>`;
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;width:0;height:0;opacity:0;border:none";
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(html);
+  iframe.contentDocument.close();
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+  setTimeout(() => document.body.removeChild(iframe), 2000);
+}
 function planKey(name, ii) { return `${name}_${ii}`; }
 
 async function loadShoppingData(topicId, task) {
@@ -240,6 +283,67 @@ function PlanMode({ task, topicId, onGoToShop }) {
     );
   }
 
+  // ── Preview / print view ──────────────────────────────────────────────────
+  if (view === "preview") {
+    const todayStr = formatTodayRu();
+    const allItems = steps.flatMap((step) => {
+      const name = sName(step);
+      return (step.items ?? [])
+        .map((item, ii) => {
+          const key = planKey(name, ii);
+          if (!planned[key]) return null;
+          return {
+            item,
+            subgroup: step.itemSubgroups?.[ii] ?? null,
+            note: noteFor(key),
+          };
+        })
+        .filter(Boolean);
+    });
+    return (
+      <div className="session-body reading-body shopping-body">
+        <div className="shopping-preview-header">
+          <button className="shopping-back-btn" onClick={() => setView("grid")} aria-label="К категориям">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <span className="shopping-preview-title">Список покупок</span>
+        </div>
+        <div className="shopping-preview-content">
+          <div className="shopping-print-header">
+            <div className="shopping-preview-date">{todayStr}</div>
+          </div>
+          <div className="shopping-preview-separator" />
+          <ul className="shopping-preview-items">
+            {allItems.map(({ item, subgroup, note }, i) => {
+              const prevSub = allItems[i - 1]?.subgroup ?? null;
+              return (
+                <Fragment key={i}>
+                  {subgroup && subgroup !== prevSub && (
+                    <li className="shopping-preview-subgroup">{subgroup}</li>
+                  )}
+                  <li className="shopping-preview-item">
+                    ☐&nbsp;{item}
+                    {note && <em className="shopping-preview-note">&nbsp;({note})</em>}
+                  </li>
+                </Fragment>
+              );
+            })}
+          </ul>
+        </div>
+        <div className="shopping-actions">
+          <button className="shopping-print-btn" onClick={() => printShoppingList(allItems, todayStr)}>
+            🖨 Печать / PDF
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ── Grid view ──────────────────────────────────────────────────────────────
   return (
     <div className="session-body reading-body shopping-body">
@@ -294,9 +398,14 @@ function PlanMode({ task, topicId, onGoToShop }) {
             <button className="shopping-sort-reset-btn" onClick={resetOrder}>Сбросить порядок</button>
           </>
         ) : totalPlanned > 0 ? (
-          <button className="shop-go-btn" onClick={onGoToShop}>
-            → В магазин ({totalPlanned})
-          </button>
+          <>
+            <button className="shop-go-btn" onClick={onGoToShop}>
+              → В магазин ({totalPlanned})
+            </button>
+            <button className="shopping-print-btn" onClick={() => setView("preview")}>
+              🖨 Печать
+            </button>
+          </>
         ) : (
           <div className="shop-hint">Нажми на категорию, чтобы выбрать продукты</div>
         )}

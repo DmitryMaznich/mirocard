@@ -19262,6 +19262,11 @@ body { background: #eef0ef; }
   transform: scale(0.98);
 }
 
+.shopping-preview-note {
+  font-size: 0.85em;
+  color: #666;
+}
+
 .shopping-print-btn {
   width: 100%;
   padding: clamp(12px, 2.5dvh, 16px);
