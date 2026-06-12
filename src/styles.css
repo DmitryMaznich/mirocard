@@ -19265,3 +19265,79 @@ body { background: #eef0ef; }
   background: #fdf0f0;
 }
 
+/* Sort mode */
+.shopping-tile--sortable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  border-color: #8cc8b8;
+  background: #f8fdfc;
+}
+
+.shopping-tile--sortable:active {
+  cursor: grabbing;
+}
+
+.shopping-tile--dragging {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  border-color: #4caf90;
+  background: #eaf7f2;
+}
+
+.shopping-tile-drag-handle {
+  font-size: 1.1rem;
+  color: #8abaaa;
+  line-height: 1;
+  flex-shrink: 0;
+  letter-spacing: -0.1em;
+}
+
+.shopping-sort-done-btn {
+  width: 100%;
+  padding: clamp(12px, 2.5dvh, 16px);
+  font-size: clamp(1rem, 3dvh, 1.2rem);
+  font-weight: 700;
+  background: #4caf90;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.shopping-sort-done-btn:active {
+  background: #3a9070;
+  transform: scale(0.98);
+}
+
+.shopping-sort-reset-btn {
+  width: 100%;
+  padding: clamp(8px, 1.8dvh, 12px);
+  font-size: clamp(0.85rem, 2.2dvh, 1rem);
+  font-weight: 600;
+  background: none;
+  border: 2px solid #c8d8d8;
+  border-radius: 12px;
+  color: #5a7a7a;
+  cursor: pointer;
+}
+
+.shopping-sort-reset-btn:active {
+  background: #f0f8f5;
+}
+
+.shopping-sort-btn {
+  width: 100%;
+  padding: clamp(8px, 1.8dvh, 12px);
+  font-size: clamp(0.85rem, 2.2dvh, 1rem);
+  font-weight: 600;
+  background: none;
+  border: 2px solid #c8d8d8;
+  border-radius: 12px;
+  color: #5a7a7a;
+  cursor: pointer;
+}
+
+.shopping-sort-btn:active {
+  background: #f0f8f5;
+}
+

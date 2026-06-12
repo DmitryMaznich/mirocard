@@ -5,7 +5,10 @@ import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji } from "./parseRecipeTxt";
-import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
+import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
+import { CSS as DndCSS } from "@dnd-kit/utilities";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -674,19 +677,50 @@ function formatTodayRu() {
   return `${d.getDate()} ${RU_MONTHS[d.getMonth()]}, ${RU_DAYS[d.getDay()]}`;
 }
 
+function SortableTile({ id, icon, name }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: DndCSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.45 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`shopping-tile shopping-tile--sortable${isDragging ? " shopping-tile--dragging" : ""}`}
+      {...attributes}
+      {...listeners}
+    >
+      <span className="shopping-tile-drag-handle">⠿</span>
+      <span className="shopping-tile-icon">{icon}</span>
+      <span className="shopping-tile-name">{name}</span>
+    </div>
+  );
+}
+
 function ShoppingListTask({ task, topicId, onAdvance }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
   const [group, setGroup] = useState([]);
   const [view, setView] = useState("grid"); // "grid" | "preview" | number
   const [checked, setChecked] = useState({});
+  const [sortMode, setSortMode] = useState(false);
+  const rawStepsRef = useRef([]);
+  const rawIconsRef = useRef([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+  );
 
   useEffect(() => {
     async function load() {
       await pullRecipeKvFromServer().catch(() => {});
       const textId   = task.text?.id;
       const filePath = task.text?.file;
-      const [raw, grp] = await Promise.all([
+      const [raw, grp, savedOrder] = await Promise.all([
         (async () => {
           if (textId) {
             const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);
@@ -696,13 +730,20 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
           return null;
         })(),
         getGroup(topicId).catch(() => []),
+        getShoppingOrder(topicId).catch(() => null),
       ]);
+      let rawSteps;
       if (raw) {
-        setSteps(parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action"));
+        rawSteps = parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action");
       } else {
-        setSteps((task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action"));
+        rawSteps = (task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action");
       }
-      setCategoryIcons(task.text?.categoryIcons ?? []);
+      const rawIcons = task.text?.categoryIcons ?? [];
+      rawStepsRef.current = rawSteps;
+      rawIconsRef.current = rawIcons;
+      const { steps: orderedSteps, categoryIcons: orderedIcons } = applyShoppingOrder(rawSteps, rawIcons, savedOrder);
+      setSteps(orderedSteps);
+      setCategoryIcons(orderedIcons);
       setGroup(grp ?? []);
     }
     load();
@@ -723,6 +764,27 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
 
   const checkedCountFor = (stepIdx, items) =>
     (items ?? []).filter((_, i) => checked[`${stepIdx}_${i}`]).length;
+
+  function handleDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const ids = steps.map((s) => s.text);
+    const oldIndex = ids.indexOf(active.id);
+    const newIndex = ids.indexOf(over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const newSteps = arrayMove(steps, oldIndex, newIndex);
+    const newIcons = arrayMove(categoryIcons, oldIndex, newIndex);
+    setSteps(newSteps);
+    setCategoryIcons(newIcons);
+    saveShoppingOrder(topicId, newSteps.map((s) => s.text.replace(/:$/, "").trim())).catch(() => {});
+  }
+
+  function resetOrder() {
+    saveShoppingOrder(topicId, null).catch(() => {});
+    setSteps(rawStepsRef.current);
+    setCategoryIcons(rawIconsRef.current);
+    setSortMode(false);
+  }
 
   // ── DETAIL VIEW ──────────────────────────────────────────────
   if (typeof view === "number") {
@@ -893,28 +955,61 @@ li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
   // ── GRID VIEW ────────────────────────────────────────────────
   return (
     <div className="session-body reading-body shopping-body">
-      <div className="shopping-grid">
-        {steps.map((step, si) => {
-          const items = step.items ?? [];
-          const doneCount = checkedCountFor(si, items);
-          const allDone = doneCount === items.length && items.length > 0;
-          const icon = categoryIcons[si] ?? "📦";
-          return (
-            <button
-              key={step.id ?? si}
-              className={`shopping-tile${allDone ? " shopping-tile--done" : doneCount > 0 ? " shopping-tile--partial" : ""}`}
-              onClick={() => setView(si)}
-            >
-              <span className="shopping-tile-icon">{icon}</span>
-              <span className="shopping-tile-name">{step.text.replace(/:$/, "")}</span>
-            </button>
-          );
-        })}
-      </div>
+      {sortMode ? (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
+            <div className="shopping-grid">
+              {steps.map((step, si) => (
+                <SortableTile
+                  key={step.text}
+                  id={step.text}
+                  icon={categoryIcons[si] ?? "📦"}
+                  name={step.text.replace(/:$/, "")}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <div className="shopping-grid">
+          {steps.map((step, si) => {
+            const items = step.items ?? [];
+            const doneCount = checkedCountFor(si, items);
+            const allDone = doneCount === items.length && items.length > 0;
+            const icon = categoryIcons[si] ?? "📦";
+            return (
+              <button
+                key={step.id ?? si}
+                className={`shopping-tile${allDone ? " shopping-tile--done" : doneCount > 0 ? " shopping-tile--partial" : ""}`}
+                onClick={() => setView(si)}
+              >
+                <span className="shopping-tile-icon">{icon}</span>
+                <span className="shopping-tile-name">{step.text.replace(/:$/, "")}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       <div className="shopping-actions">
-        <button className="shopping-view-btn" onClick={() => setView("preview")}>
-          Посмотреть список покупок
-        </button>
+        {sortMode ? (
+          <>
+            <button className="shopping-sort-done-btn" onClick={() => setSortMode(false)}>
+              ✓ Готово
+            </button>
+            <button className="shopping-sort-reset-btn" onClick={resetOrder}>
+              Сбросить порядок
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="shopping-sort-btn" onClick={() => setSortMode(true)}>
+              ⠿ Порядок категорий
+            </button>
+            <button className="shopping-view-btn" onClick={() => setView("preview")}>
+              Посмотреть список покупок
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

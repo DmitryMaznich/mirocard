@@ -391,10 +391,9 @@ export default function ParamsScreen() {
     return out;
   }
 
-  const [params,          setParams]          = useState(getInitialParams);
-  const [videoReward,    setVideoReward]     = useState(link.videoRewardEnabled ?? true);
-  const [rewardThreshold, setRewardThreshold] = useState(link.rewardThreshold ?? 90);
-  const [answersPerStar,  setAnswersPerStar]  = useState(link.answersPerStar ?? 1);
+  const [params,         setParams]        = useState(getInitialParams);
+  const [videoReward,   setVideoReward]   = useState(link.videoRewardEnabled ?? true);
+  const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
 
@@ -432,7 +431,7 @@ export default function ParamsScreen() {
   function launchSession() {
     setShowPinGate(false);
     markSessionStart();
-    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, rewardThreshold, answersPerStar });
+    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, answersPerStar });
     setScreen("session");
   }
 
@@ -643,18 +642,15 @@ export default function ParamsScreen() {
                   >
                     Нет
                   </button>
-                  {[70, 80, 90].map((pct) => (
-                    <button
-                      key={pct}
-                      className={`enum-btn enum-btn--compact ${videoReward && rewardThreshold === pct ? "enum-btn--active" : ""}`}
-                      onClick={() => { setVideoReward(true); setRewardThreshold(pct); }}
-                    >
-                      ≥{pct}%
-                    </button>
-                  ))}
+                  <button
+                    className={`enum-btn enum-btn--compact ${videoReward ? "enum-btn--active" : ""}`}
+                    onClick={() => setVideoReward(true)}
+                  >
+                    Да
+                  </button>
                 </div>
                 <div className="param-hint">
-                  {videoReward ? `Показ видео после ${rewardThreshold}% занятия` : "Видео-награда отключена"}
+                  {videoReward ? "Видео показывается за серию правильных ответов" : "Видео-награда отключена"}
                 </div>
               </div>
             </div>
