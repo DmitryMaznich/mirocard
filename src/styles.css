@@ -19273,6 +19273,28 @@ body { background: #eef0ef; }
   flex-shrink: 0;
 }
 
+/* Long-press countdown on tile */
+.shopping-tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.shopping-tile--pressing::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #4caf90;
+  border-radius: 0 0 0 12px;
+  animation: shopping-press-fill 5s linear forwards;
+}
+
+@keyframes shopping-press-fill {
+  0%   { width: 0; }
+  100% { width: 100%; }
+}
+
 /* Sort mode */
 .shopping-tile--sortable {
   cursor: grab;

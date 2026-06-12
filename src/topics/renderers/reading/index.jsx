@@ -707,8 +707,11 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
   const [view, setView] = useState("grid"); // "grid" | "preview" | number
   const [checked, setChecked] = useState({});
   const [sortMode, setSortMode] = useState(false);
+  const [pressingTile, setPressingTile] = useState(null);
   const rawStepsRef = useRef([]);
   const rawIconsRef = useRef([]);
+  const longPressTimerRef = useRef(null);
+  const didLongPressRef = useRef(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -784,6 +787,22 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
     setSteps(rawStepsRef.current);
     setCategoryIcons(rawIconsRef.current);
     setSortMode(false);
+  }
+
+  function startLongPress(si) {
+    didLongPressRef.current = false;
+    setPressingTile(si);
+    longPressTimerRef.current = setTimeout(() => {
+      didLongPressRef.current = true;
+      setPressingTile(null);
+      setSortMode(true);
+      if (navigator.vibrate) navigator.vibrate(60);
+    }, 5000);
+  }
+
+  function cancelLongPress() {
+    clearTimeout(longPressTimerRef.current);
+    setPressingTile(null);
   }
 
   // ── DETAIL VIEW ──────────────────────────────────────────────
@@ -978,11 +997,16 @@ li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
             const doneCount = checkedCountFor(si, items);
             const allDone = doneCount === items.length && items.length > 0;
             const icon = categoryIcons[si] ?? "📦";
+            const isPressing = pressingTile === si;
             return (
               <button
                 key={step.id ?? si}
-                className={`shopping-tile${allDone ? " shopping-tile--done" : doneCount > 0 ? " shopping-tile--partial" : ""}`}
-                onClick={() => setView(si)}
+                className={`shopping-tile${allDone ? " shopping-tile--done" : doneCount > 0 ? " shopping-tile--partial" : ""}${isPressing ? " shopping-tile--pressing" : ""}`}
+                onClick={() => { if (!didLongPressRef.current) setView(si); }}
+                onPointerDown={() => startLongPress(si)}
+                onPointerUp={cancelLongPress}
+                onPointerLeave={cancelLongPress}
+                onPointerCancel={cancelLongPress}
               >
                 <span className="shopping-tile-icon">{icon}</span>
                 <span className="shopping-tile-name">{step.text.replace(/:$/, "")}</span>
@@ -1002,14 +1026,9 @@ li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
             </button>
           </>
         ) : (
-          <>
-            <button className="shopping-sort-btn" onClick={() => setSortMode(true)}>
-              ⠿ Порядок категорий
-            </button>
-            <button className="shopping-view-btn" onClick={() => setView("preview")}>
-              Посмотреть список покупок
-            </button>
-          </>
+          <button className="shopping-view-btn" onClick={() => setView("preview")}>
+            Посмотреть список покупок
+          </button>
         )}
       </div>
     </div>
