@@ -15,6 +15,7 @@ import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
+import ShoppingParamsContent from "@/features/session/ShoppingParamsContent";
 
 function NumberStepper({ label, value, min, max, onChange }) {
   return (
@@ -359,6 +360,26 @@ export default function ParamsScreen() {
           student={student}
           kind={activeText.kind}
           fixedPortions={activeText.fixedPortions ?? null}
+        />
+      </div>
+    );
+  }
+
+  const isShoppingPlan = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
+  if (isShoppingPlan) {
+    const shoppingText = topicRecord?.texts?.[0];
+    return (
+      <div className="screen">
+        <div className="screen-header">
+          <button className="back-btn" onClick={() => setScreen("modes")}>←</button>
+          <h1 className="screen-title">{getTopicTitle(mode?.ui?.title) || mode?.id}</h1>
+        </div>
+        <ShoppingParamsContent
+          topicId={activeTopicId}
+          textId={shoppingText?.id}
+          filePath={shoppingText?.file}
+          topicTitle={getTopicTitle(topicRecord.meta.title)}
+          modeTitle={getTopicTitle(mode?.ui?.title) || mode?.id}
         />
       </div>
     );
