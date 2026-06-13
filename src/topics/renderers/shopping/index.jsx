@@ -563,11 +563,10 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
 // ─── Main renderer ────────────────────────────────────────────────────────────
 
 export default function ShoppingRenderer({ task, topicId, onExit }) {
-  const [modeView, setModeView] = useState(task?.type ?? "plan");
-  const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+  const [modeView, setModeView] = useState("plan");
 
-  function switchToShop() { setModeView("shop"); setActiveModeId("shop"); }
-  function switchToPlan() { setModeView("plan"); setActiveModeId("plan"); }
+  function switchToShop() { setModeView("shop"); }
+  function switchToPlan() { setModeView("plan"); }
 
   if (modeView === "plan") return <PlanMode task={task} topicId={topicId} onGoToShop={switchToShop} onExit={onExit} />;
   if (modeView === "shop") return <ShopMode task={task} topicId={topicId} onGoToPlan={switchToPlan} onExit={onExit} />;
