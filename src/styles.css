@@ -19217,13 +19217,16 @@ body { background: #eef0ef; }
 
 .shopping-preview-subgroup {
   list-style: none;
-  font-size: clamp(0.68rem, 1.8dvh, 0.8rem);
+  font-size: clamp(0.68rem, 1.8dvh, 0.78rem);
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #3a7a6a;
-  padding: 5px 0 2px 4px;
-  margin-top: 4px;
+  color: #fff;
+  background: #4a9a82;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin: 6px 0 3px;
 }
 
 .shopping-preview-item {

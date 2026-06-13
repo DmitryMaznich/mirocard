@@ -46,7 +46,7 @@ hr{border:none;border-top:1.5pt solid #bbb;margin:8pt 0}
 ul{list-style:none;margin:0;padding:0}
 li.cat{font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top:4pt;border-top:1pt solid #d0eae5}
 li.cat:first-child{border-top:none;margin-top:0}
-li.sub{font-size:8pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#3a7a6a;padding:3pt 0 1pt 6pt}
+li.sub{font-size:9pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#4a9a82;padding:2pt 8pt;margin:5pt 0 2pt;border-radius:3pt;display:inline-block}
 li.item{font-size:13pt;padding:2.5pt 0 2.5pt 6pt;line-height:1.4}
 li.item em{font-size:10pt;color:#666}
 </style></head><body>
