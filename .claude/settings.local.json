@@ -54,7 +54,8 @@
       "PowerShell(Invoke-WebRequest -Uri \"https://mazpc.taile45e98.ts.net/api/version\" -UseBasicParsing -TimeoutSec 10 2>&1)",
       "PowerShell(Invoke-WebRequest -Uri \"https://mirocard.kaplieva.help/api/version\" -UseBasicParsing -TimeoutSec 15)",
       "Skill(run)",
-      "Skill(run:*)"
+      "Skill(run:*)",
+      "PowerShell(Get-ChildItem c:\\\\Users\\\\dmazn\\\\Projects\\\\Mirocard2\\\\backend -Recurse -Depth 1 | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object Name, FullName)"
     ],
     "additionalDirectories": [
       "C:\\Users\\dmazn\\.claude\\skills"
