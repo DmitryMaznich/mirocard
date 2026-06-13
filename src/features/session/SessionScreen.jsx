@@ -197,7 +197,7 @@ export default function SessionScreen() {
             answersPerStar={answersPerStar}
           />
           <div className="session-topbar-right">
-            {mode?.evaluation !== "instant" && (
+            {mode?.evaluation !== "instant" && total > 1 && (
               <div className="session-counter">
                 {taskIndex + 1} / {total}
                 {mode.evaluation !== "none" && (
