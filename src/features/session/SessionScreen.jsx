@@ -173,7 +173,10 @@ export default function SessionScreen() {
   if (!sessionState || !topicRecord || !mode) {
     return (
       <div className="session-screen">
-        <div className="screen-center">Нет данных для сессии</div>
+        <div className="screen-center" style={{ gap: 16, padding: 24, textAlign: "center" }}>
+          <div>Нет данных для сессии</div>
+          <button className="btn btn--secondary" onClick={() => setScreen("home")}>← На главную</button>
+        </div>
       </div>
     );
   }
