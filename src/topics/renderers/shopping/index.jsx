@@ -23,12 +23,18 @@ function formatTodayRu() {
 
 function printShoppingList(allItems, todayStr) {
   let listHtml = "";
+  let prevCat = null;
   let prevSub = null;
-  for (const { item, subgroup, note } of allItems) {
+  for (const { item, category, subgroup, note } of allItems) {
+    if (category && category !== prevCat) {
+      listHtml += `<li class="cat">${category}</li>`;
+      prevSub = null;
+    }
     if (subgroup && subgroup !== prevSub) {
       listHtml += `<li class="sub">${subgroup}</li>`;
     }
     listHtml += `<li class="item">&#9744;&nbsp;${item}${note ? ` <em>(${note})</em>` : ""}</li>`;
+    prevCat = category;
     prevSub = subgroup;
   }
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Список покупок</title><style>
@@ -38,9 +44,11 @@ h1{font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 4pt}
 .meta{font-size:12pt;color:#444;margin-bottom:2pt}
 hr{border:none;border-top:1.5pt solid #bbb;margin:8pt 0}
 ul{list-style:none;margin:0;padding:0}
-li.sub{font-size:8pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#3a7a6a;padding:5pt 0 1pt 4pt;margin-top:3pt}
-li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
-li.item em{font-size:11pt;color:#666}
+li.cat{font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top:4pt;border-top:1pt solid #d0eae5}
+li.cat:first-child{border-top:none;margin-top:0}
+li.sub{font-size:8pt;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#3a7a6a;padding:3pt 0 1pt 6pt}
+li.item{font-size:13pt;padding:2.5pt 0 2.5pt 6pt;line-height:1.4}
+li.item em{font-size:10pt;color:#666}
 </style></head><body>
 <h1>Список покупок</h1>
 <div class="meta">${todayStr}</div><hr>
@@ -294,6 +302,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
           if (!planned[key]) return null;
           return {
             item,
+            category: name,
             subgroup: step.itemSubgroups?.[ii] ?? null,
             note: noteFor(key),
           };
@@ -319,10 +328,14 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
           </div>
           <div className="shopping-preview-separator" />
           <ul className="shopping-preview-items">
-            {allItems.map(({ item, subgroup, note }, i) => {
+            {allItems.map(({ item, category, subgroup, note }, i) => {
+              const prevCat = allItems[i - 1]?.category ?? null;
               const prevSub = allItems[i - 1]?.subgroup ?? null;
               return (
                 <Fragment key={i}>
+                  {category && category !== prevCat && (
+                    <li className="shopping-preview-category">{category}</li>
+                  )}
                   {subgroup && subgroup !== prevSub && (
                     <li className="shopping-preview-subgroup">{subgroup}</li>
                   )}

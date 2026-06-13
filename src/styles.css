@@ -19200,6 +19200,21 @@ body { background: #eef0ef; }
   padding: 0;
 }
 
+.shopping-preview-category {
+  list-style: none;
+  font-size: clamp(0.85rem, 2.2dvh, 1rem);
+  font-weight: 900;
+  color: #1a6a55;
+  padding: 8px 0 2px;
+  margin-top: 6px;
+  border-top: 1.5px solid #d0eae5;
+}
+.shopping-preview-category:first-child {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 2px;
+}
+
 .shopping-preview-subgroup {
   list-style: none;
   font-size: clamp(0.68rem, 1.8dvh, 0.8rem);
