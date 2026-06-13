@@ -19349,6 +19349,9 @@ body { background: #eef0ef; }
 /* Long-press countdown on tile */
 .shopping-tile {
   position: relative;
+}
+
+.shopping-tile--pressing {
   overflow: hidden;
 }
 
@@ -19452,15 +19455,24 @@ body { background: #eef0ef; }
 
 /* Badge on plan mode tiles */
 .shopping-tile-badge {
-  font-size: clamp(0.65rem, 1.8dvh, 0.8rem);
-  font-weight: 900;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: #e53935;
   color: #fff;
-  background: #4caf90;
-  border-radius: 20px;
-  padding: 1px 7px;
-  flex-shrink: 0;
-  line-height: 1.4;
-  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  line-height: 1;
+  pointer-events: none;
 }
 
 /* "→ В магазин" button */
