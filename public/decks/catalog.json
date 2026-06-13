@@ -216,8 +216,8 @@
     },
     {
       "id": "shopping_list",
-      "version": "1.0.2",
-      "url": "./decks/shopping_list_v1.0.2.zip",
+      "version": "1.0.3",
+      "url": "./decks/shopping_list_v1.0.3.zip",
       "title": {
         "ru": "Список покупок",
         "en": "Shopping list"

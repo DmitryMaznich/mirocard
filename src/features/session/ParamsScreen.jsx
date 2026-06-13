@@ -371,7 +371,7 @@ export default function ParamsScreen() {
     return (
       <div className="screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("modes")}>←</button>
+          <button className="back-btn" onClick={() => setScreen("home")}>←</button>
           <h1 className="screen-title">{getTopicTitle(mode?.ui?.title) || mode?.id}</h1>
         </div>
         <ShoppingParamsContent

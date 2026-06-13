@@ -2,7 +2,7 @@ import JSZip from "jszip";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const TOPIC_ID = "shopping_list";
-const VERSION  = "1.0.2";
+const VERSION  = "1.0.3";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 
 const topic = {
@@ -22,16 +22,6 @@ const topic = {
       ui: {
         title: { ru: "Составить список", en: "Build list" },
         instruction: { ru: "Выбери, что нужно купить" },
-      },
-    },
-    {
-      id: "shop",
-      type: "shop",
-      evaluation: "none",
-      requirePin: false,
-      ui: {
-        title: { ru: "В магазин", en: "Go shopping" },
-        instruction: { ru: "Отмечай, что кладёшь в корзину" },
       },
     },
   ],

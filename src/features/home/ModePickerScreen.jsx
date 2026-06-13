@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import Modal from "@/shared/components/Modal";
 import InfoModal from "@/shared/components/InfoModal";
@@ -100,10 +100,21 @@ export default function ModePickerScreen() {
     );
   }
 
+  const hasSingleMode = !isReading && !!topicRecord && modes.length === 1;
+
+  useEffect(() => {
+    if (hasSingleMode) {
+      setActiveModeId(modes[0].id);
+      setScreen("params");
+    }
+  }, [hasSingleMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function pickMode(mode) {
     setActiveModeId(mode.id);
     setScreen("params");
   }
+
+  if (hasSingleMode) return null;
 
   return (
     <div className="screen">
