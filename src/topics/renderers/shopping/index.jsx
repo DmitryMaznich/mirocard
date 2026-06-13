@@ -54,13 +54,37 @@ li.item em{font-size:10pt;color:#666}
 <div class="meta">${todayStr}</div><hr>
 <ul>${listHtml}</ul>
 </body></html>`;
-  const win = window.open("", "_blank");
-  if (!win) return;
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  win.print();
+  const style = document.createElement("style");
+  style.setAttribute("data-shopping-print", "");
+  style.textContent = `@media print {
+    body * { visibility: hidden !important; }
+    [data-shopping-print-root] { display: block !important; visibility: visible !important;
+      position: absolute; top: 0; left: 0; width: 100%;
+      font-family: Arial, Helvetica, sans-serif; color: #111; padding: 18mm 22mm; box-sizing: border-box; }
+    [data-shopping-print-root] * { visibility: visible !important; }
+    [data-shopping-print-root] h1 { font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 4pt }
+    [data-shopping-print-root] .meta { font-size:12pt;color:#444;margin-bottom:2pt }
+    [data-shopping-print-root] hr { border:none;border-top:1.5pt solid #bbb;margin:8pt 0 }
+    [data-shopping-print-root] ul { list-style:none;margin:0;padding:0 }
+    [data-shopping-print-root] li.cat { font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top:4pt;border-top:1pt solid #d0eae5 }
+    [data-shopping-print-root] li.cat:first-child { border-top:none;margin-top:0 }
+    [data-shopping-print-root] li.sub { font-size:9pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#4a9a82;padding:2pt 8pt;margin:5pt 0 2pt;border-radius:3pt;display:inline-block }
+    [data-shopping-print-root] li.item { font-size:13pt;padding:2.5pt 0 2.5pt 6pt;line-height:1.4 }
+    [data-shopping-print-root] li.item em { font-size:10pt;color:#666 }
+  }`;
+
+  const root = document.createElement("div");
+  root.setAttribute("data-shopping-print-root", "");
+  root.style.display = "none";
+  root.innerHTML = `<h1>Список покупок</h1><div class="meta">${todayStr}</div><hr><ul>${listHtml}</ul>`;
+
+  document.head.appendChild(style);
+  document.body.appendChild(root);
+
+  const cleanup = () => { style.remove(); root.remove(); window.removeEventListener("afterprint", cleanup); };
+  window.addEventListener("afterprint", cleanup);
+
+  window.print();
 }
 function planKey(name, ii) { return `${name}_${ii}`; }
 
