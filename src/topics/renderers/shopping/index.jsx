@@ -549,6 +549,9 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
       </ul>
 
       <div className="shopping-actions">
+        <button className="shopping-view-btn" onClick={onGoToPlan}>
+          ← К списку
+        </button>
         <button className="shopping-close-btn" onClick={clearPlan}>
           Новый список
         </button>
