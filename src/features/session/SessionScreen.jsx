@@ -186,58 +186,62 @@ export default function SessionScreen() {
   const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
 
+  const isShoppingRenderer = topicRecord.meta.renderer === "shopping";
+
   return (
     <div className="session-screen">
-      <div className="session-topbar">
-        <div className="session-topbar-controls">
-          <StarBar
-            className="session-progress"
-            streakCount={streakCount}
-            available={rewardProgress?.available ?? false}
-            answersPerStar={answersPerStar}
-          />
-          <div className="session-topbar-right">
-            {mode?.evaluation !== "instant" && total > 1 && (
-              <div className="session-counter">
-                {taskIndex + 1} / {total}
-                {mode.evaluation !== "none" && (
-                  <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
-                )}
-              </div>
-            )}
-            <button
-              className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
-              onClick={toggleSound}
-              aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
-            >
-              <span className="session-audio-speaker-icon">
-                {soundEnabled ? "🔊" : "🔇"}
-              </span>
-            </button>
-            <button
-              className="session-lock-btn"
-              style={{ "--lock-p": lockHoldProgress }}
-              onPointerDown={startLockHold}
-              onPointerUp={cancelLockHold}
-              onPointerLeave={cancelLockHold}
-              onPointerCancel={cancelLockHold}
-              onContextMenu={(e) => e.preventDefault()}
-              aria-label={adultConfirmAdvance ? "Снять блокировку (удержать)" : "Включить блокировку (удержать)"}
-            >
-              <span className="session-lock-btn__icon">
-                {adultConfirmAdvance ? "🔒" : "🔓"}
-              </span>
-              {lockFlash && (
-                <span className={`session-lock-flash session-lock-flash--${lockFlash}`}>
-                  {lockFlash === "locked" ? "Блок." : "Снято"}
-                </span>
+      {!isShoppingRenderer && (
+        <div className="session-topbar">
+          <div className="session-topbar-controls">
+            <StarBar
+              className="session-progress"
+              streakCount={streakCount}
+              available={rewardProgress?.available ?? false}
+              answersPerStar={answersPerStar}
+            />
+            <div className="session-topbar-right">
+              {mode?.evaluation !== "instant" && total > 1 && (
+                <div className="session-counter">
+                  {taskIndex + 1} / {total}
+                  {mode.evaluation !== "none" && (
+                    <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
+                  )}
+                </div>
               )}
-            </button>
-            <button className="session-finish-btn" onClick={openSessionExitPrompt}>✕</button>
+              <button
+                className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
+                onClick={toggleSound}
+                aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
+              >
+                <span className="session-audio-speaker-icon">
+                  {soundEnabled ? "🔊" : "🔇"}
+                </span>
+              </button>
+              <button
+                className="session-lock-btn"
+                style={{ "--lock-p": lockHoldProgress }}
+                onPointerDown={startLockHold}
+                onPointerUp={cancelLockHold}
+                onPointerLeave={cancelLockHold}
+                onPointerCancel={cancelLockHold}
+                onContextMenu={(e) => e.preventDefault()}
+                aria-label={adultConfirmAdvance ? "Снять блокировку (удержать)" : "Включить блокировку (удержать)"}
+              >
+                <span className="session-lock-btn__icon">
+                  {adultConfirmAdvance ? "🔒" : "🔓"}
+                </span>
+                {lockFlash && (
+                  <span className={`session-lock-flash session-lock-flash--${lockFlash}`}>
+                    {lockFlash === "locked" ? "Блок." : "Снято"}
+                  </span>
+                )}
+              </button>
+              <button className="session-finish-btn" onClick={openSessionExitPrompt}>✕</button>
+            </div>
           </div>
+          <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
         </div>
-        <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
-      </div>
+      )}
 
       {Renderer && currentTask ? (
         <div
@@ -265,6 +269,7 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
+            onExit={isShoppingRenderer ? openSessionExitPrompt : undefined}
           />
         </div>
       ) : !rendererReady ? (

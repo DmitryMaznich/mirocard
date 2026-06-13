@@ -19320,11 +19320,30 @@ body { background: #eef0ef; }
 }
 
 .shopping-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 14px 4px;
   font-size: clamp(1rem, 2.8dvh, 1.25rem);
   font-weight: 800;
   color: #263131;
   flex-shrink: 0;
+}
+
+.shopping-exit-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #a0b8b8;
+  cursor: pointer;
+  padding: 4px 6px;
+  line-height: 1;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.shopping-exit-btn:active {
+  background: #e8f4f0;
+  color: #4a7070;
 }
 
 /* Long-press countdown on tile */

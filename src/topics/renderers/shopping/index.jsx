@@ -102,7 +102,7 @@ function SortablePlanTile({ id, icon, name, count }) {
 // ─── PlanMode ─────────────────────────────────────────────────────────────────
 // Uses the same shopping-* CSS classes as ShoppingListTask in reading renderer.
 
-function PlanMode({ task, topicId, onGoToShop }) {
+function PlanMode({ task, topicId, onGoToShop, onExit }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
   const [planned, setPlanned] = useState({});
@@ -348,7 +348,10 @@ function PlanMode({ task, topicId, onGoToShop }) {
   return (
     <div className="session-body reading-body shopping-body">
       <div className="shopping-grid-header">
-        {totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}
+        <span>{totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}</span>
+        {onExit && (
+          <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
+        )}
       </div>
       {sortMode ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -416,7 +419,7 @@ function PlanMode({ task, topicId, onGoToShop }) {
 
 // ─── ShopMode ─────────────────────────────────────────────────────────────────
 
-function ShopMode({ task, topicId, onGoToPlan }) {
+function ShopMode({ task, topicId, onGoToPlan, onExit }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
   const [planned, setPlanned] = useState({});
@@ -500,6 +503,9 @@ function ShopMode({ task, topicId, onGoToPlan }) {
           <div className="shop-progress__fill" style={{ width: `${progress}%` }} />
         </div>
         <span className="shop-progress__label">{totalDone} / {totalPlanned}</span>
+        {onExit && (
+          <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
+        )}
       </div>
 
       <ul className="shopping-items">
@@ -553,14 +559,14 @@ function ShopMode({ task, topicId, onGoToPlan }) {
 
 // ─── Main renderer ────────────────────────────────────────────────────────────
 
-export default function ShoppingRenderer({ task, topicId }) {
+export default function ShoppingRenderer({ task, topicId, onExit }) {
   const [modeView, setModeView] = useState(task?.type ?? "plan");
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
   function switchToShop() { setModeView("shop"); setActiveModeId("shop"); }
   function switchToPlan() { setModeView("plan"); setActiveModeId("plan"); }
 
-  if (modeView === "plan") return <PlanMode task={task} topicId={topicId} onGoToShop={switchToShop} />;
-  if (modeView === "shop") return <ShopMode task={task} topicId={topicId} onGoToPlan={switchToPlan} />;
+  if (modeView === "plan") return <PlanMode task={task} topicId={topicId} onGoToShop={switchToShop} onExit={onExit} />;
+  if (modeView === "shop") return <ShopMode task={task} topicId={topicId} onGoToPlan={switchToPlan} onExit={onExit} />;
   return null;
 }
