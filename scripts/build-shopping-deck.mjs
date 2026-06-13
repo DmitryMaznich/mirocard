@@ -2,7 +2,7 @@ import JSZip from "jszip";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const TOPIC_ID = "shopping_list";
-const VERSION  = "1.0.3";
+const VERSION  = "1.0.4";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 
 const topic = {
