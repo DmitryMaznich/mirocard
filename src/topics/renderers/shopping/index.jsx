@@ -54,15 +54,13 @@ li.item em{font-size:10pt;color:#666}
 <div class="meta">${todayStr}</div><hr>
 <ul>${listHtml}</ul>
 </body></html>`;
-  const iframe = document.createElement("iframe");
-  iframe.style.cssText = "position:fixed;width:0;height:0;opacity:0;border:none";
-  document.body.appendChild(iframe);
-  iframe.contentDocument.open();
-  iframe.contentDocument.write(html);
-  iframe.contentDocument.close();
-  iframe.contentWindow.focus();
-  iframe.contentWindow.print();
-  setTimeout(() => document.body.removeChild(iframe), 2000);
+  const win = window.open("", "_blank");
+  if (!win) return;
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
 }
 function planKey(name, ii) { return `${name}_${ii}`; }
 
