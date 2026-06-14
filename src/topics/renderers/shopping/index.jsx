@@ -543,7 +543,10 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
           <div className="shop-state__icon">🎉</div>
           <div className="shop-state__title">Всё куплено!</div>
           <div className="shop-state__hint">{totalPlanned} продуктов</div>
-          <button className="shopping-view-btn" style={{ marginTop: 8, background: "#4caf90" }} onClick={clearPlan}>
+          <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onGoToPlan}>
+            ← К списку
+          </button>
+          <button className="shopping-view-btn" style={{ marginTop: 8, background: "#4caf90" }} onClick={() => { clearPlan(); onGoToPlan(); }}>
             Начать новый список
           </button>
         </div>
@@ -609,7 +612,7 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
         <button className="shopping-view-btn" onClick={onGoToPlan}>
           ← К списку
         </button>
-        <button className="shopping-close-btn" onClick={clearPlan}>
+        <button className="shopping-close-btn" onClick={() => { clearPlan(); onGoToPlan(); }}>
           Новый список
         </button>
       </div>
