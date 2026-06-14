@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.94.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.95.0.zip";
-const NEW_VERSION = "1.95.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.95.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.96.0.zip";
+const NEW_VERSION = "1.96.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -49,6 +49,13 @@ for (const fname of EXTRA_MEDIA) {
     newZip.file(`media/${fname}`, readFileSync(localPath));
     console.log(`${fname}: из content/media/ (inline)`);
   }
+}
+
+// Copy topic-level avatar (checklist icon)
+const topicAvatarLocal = `${MEDIA_DIR}/topic_checklist.svg`;
+if (existsSync(topicAvatarLocal)) {
+  newZip.file("media/topic_checklist.svg", readFileSync(topicAvatarLocal, "utf-8"));
+  console.log("topic_checklist.svg: из content/media/");
 }
 
 // Copy SVG media files
@@ -144,6 +151,7 @@ const newTopic = {
   meta: {
     ...oldTopic.meta,
     version: NEW_VERSION,
+    avatar: "media/topic_checklist.svg",
   },
   texts: [...textsManifest, shoppingTextEntry],
   modes: [...(oldTopic.modes ?? []).filter((m) => m.id !== "shopping_list"), shoppingMode],

@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
 import TopicCover from "@/shared/components/TopicCover";
 import ModeIcon from "@/shared/components/ModeIcon";
+import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
@@ -33,6 +34,12 @@ function HomeHeader({ onSettings, onBrandTap }) {
       </button>
     </header>
   );
+}
+
+function RecipeAvatar({ topicId, imagePath }) {
+  const url = useTopicFile(topicId, imagePath);
+  if (!url) return null;
+  return <img className="topic-cover topic-cover--step" src={url} alt="" />;
 }
 
 function stepState(condition, prevCondition) {
@@ -291,9 +298,13 @@ export default function HomeScreen() {
             label={isReading ? "Текст и режим" : "Режим"}
             value={isReading ? readingStepValue : modeTitle || "Не выбран"}
             onClick={() => setScreen(isReading && activeText?.kind !== "instruction" && activeText ? "modes" : isReading ? "texts" : "modes")}
-            avatar={(mode?.ui?.icon) ? (
-              <ModeIcon topicId={topic?.meta.id} iconPath={mode.ui.icon} size="step" />
-            ) : null}
+            avatar={
+              isReading && activeText?.kind === "instruction" && activeText?.image
+                ? <RecipeAvatar topicId={topic?.meta.id} imagePath={activeText.image} />
+                : mode?.ui?.icon
+                  ? <ModeIcon topicId={topic?.meta.id} iconPath={mode.ui.icon} size="step" />
+                  : null
+            }
           />
         </div>
 

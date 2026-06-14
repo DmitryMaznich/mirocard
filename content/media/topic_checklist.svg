@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Paper shadow -->
+  <rect x="67" y="67" width="112" height="124" rx="10" fill="#e0d8c8" opacity="0.5"/>
+  <!-- Paper -->
+  <rect x="62" y="60" width="112" height="124" rx="10" fill="#ffffff" stroke="#e4ddd0" stroke-width="1.5"/>
+  <!-- Title bar -->
+  <rect x="78" y="76" width="78" height="9" rx="4.5" fill="#b8d4d0"/>
+  <!-- Row 1 checked -->
+  <rect x="78" y="100" width="15" height="15" rx="3.5" fill="#4a9b8f"/>
+  <path d="M81 107.5 L84.5 111 L91.5 103.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="101" y="104" width="55" height="7" rx="3.5" fill="#d0e8e4"/>
+  <!-- Row 2 checked -->
+  <rect x="78" y="123" width="15" height="15" rx="3.5" fill="#4a9b8f"/>
+  <path d="M81 130.5 L84.5 134 L91.5 126.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="101" y="127" width="44" height="7" rx="3.5" fill="#d0e8e4"/>
+  <!-- Row 3 unchecked -->
+  <rect x="78" y="146" width="15" height="15" rx="3.5" fill="none" stroke="#c8d8d4" stroke-width="2"/>
+  <rect x="101" y="150" width="50" height="7" rx="3.5" fill="#eaeae8"/>
+  <!-- Row 4 unchecked -->
+  <rect x="78" y="169" width="15" height="15" rx="3.5" fill="none" stroke="#c8d8d4" stroke-width="2"/>
+  <rect x="101" y="173" width="36" height="7" rx="3.5" fill="#eaeae8"/>
+</svg>
