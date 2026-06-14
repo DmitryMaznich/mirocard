@@ -17,7 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, "cardgen-studio", "projects", "phrase_match_pilot", "generated");
 const TOPIC_ID  = "phrase_match_pilot";
-const VERSION   = "1.0.0";
+const VERSION   = "1.1.0";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 const SKIP      = process.argv.includes("--skip");
 
@@ -153,67 +153,76 @@ const deck = {
         title: { ru: "Сопоставить" },
         instruction: { ru: "Перетащи картинку к нужной фразе" },
       },
+      params: {
+        answerType: {
+          type: "enum",
+          label: { ru: "Подсказки" },
+          values: ["image", "text"],
+          labels: { ru: ["Картинки", "Текстом"] },
+          default: "image",
+        },
+      },
     },
   ],
   groups: [
     {
       id: "soup",
       items: [
-        { id: "soup_pour", phrase: "Чем наливают суп?",  image: "media/soup_pour.webp"  },
-        { id: "soup_eat",  phrase: "Чем едят суп?",       image: "media/soup_eat.webp"   },
-        { id: "soup_cook", phrase: "В чём варят суп?",    image: "media/soup_cook.webp"  },
+        { id: "soup_pour", phrase: "Чем наливают суп?",  image: "media/soup_pour.webp",  answer: "Суп наливают половником"     },
+        { id: "soup_eat",  phrase: "Чем едят суп?",       image: "media/soup_eat.webp",   answer: "Суп едят ложкой"             },
+        { id: "soup_cook", phrase: "В чём варят суп?",    image: "media/soup_cook.webp",  answer: "Суп варят в кастрюле"        },
       ],
       distractors: [
-        { id: "d_fork",  image: "media/d_fork.webp"  },
-        { id: "d_plate", image: "media/d_plate.webp" },
+        { id: "d_fork",  image: "media/d_fork.webp",  text: "Суп едят вилкой"      },
+        { id: "d_plate", image: "media/d_plate.webp", text: "Суп подают в тарелке" },
       ],
     },
     {
       id: "cut",
       items: [
-        { id: "cut_bread", phrase: "Чем режут хлеб?",   image: "media/cut_bread.webp" },
-        { id: "cut_paper", phrase: "Чем режут бумагу?", image: "media/cut_paper.webp" },
-        { id: "cut_nails", phrase: "Чем режут ногти?",  image: "media/cut_nails.webp" },
+        { id: "cut_bread", phrase: "Чем режут хлеб?",   image: "media/cut_bread.webp", answer: "Хлеб режут ножом"       },
+        { id: "cut_paper", phrase: "Чем режут бумагу?", image: "media/cut_paper.webp", answer: "Бумагу режут ножницами" },
+        { id: "cut_nails", phrase: "Чем режут ногти?",  image: "media/cut_nails.webp", answer: "Ногти режут щипчиками"  },
       ],
       distractors: [
-        { id: "d_pencil", image: "media/d_pencil.webp" },
-        { id: "d_ruler",  image: "media/d_ruler.webp"  },
+        { id: "d_pencil", image: "media/d_pencil.webp", text: "Бумагу режут карандашом" },
+        { id: "d_ruler",  image: "media/d_ruler.webp",  text: "Бумагу режут линейкой"   },
       ],
     },
     {
       id: "transport",
       items: [
-        { id: "transp_road", phrase: "На чём едут по дороге?", image: "media/transp_road.webp" },
-        { id: "transp_sky",  phrase: "На чём летят по небу?",  image: "media/transp_sky.webp"  },
-        { id: "transp_sea",  phrase: "На чём плывут по морю?", image: "media/transp_sea.webp"  },
+        { id: "transp_road", phrase: "На чём едут по дороге?", image: "media/transp_road.webp", answer: "По дороге едут на автобусе" },
+        { id: "transp_sky",  phrase: "На чём летят по небу?",  image: "media/transp_sky.webp",  answer: "По небу летят на самолёте" },
+        { id: "transp_sea",  phrase: "На чём плывут по морю?", image: "media/transp_sea.webp",  answer: "По морю плывут на корабле" },
       ],
       distractors: [
-        { id: "d_bike",  image: "media/d_bike.webp"  },
-        { id: "d_train", image: "media/d_train.webp" },
+        { id: "d_bike",  image: "media/d_bike.webp",  text: "По дороге едут на велосипеде" },
+        { id: "d_train", image: "media/d_train.webp", text: "По дороге едут на поезде"     },
       ],
     },
     {
       id: "clothing",
       items: [
-        { id: "cloth_wash", phrase: "Чем стирают одежду?", image: "media/cloth_wash.webp" },
-        { id: "cloth_iron", phrase: "Чем гладят одежду?",  image: "media/cloth_iron.webp" },
-        { id: "cloth_dry",  phrase: "Где сушат одежду?",   image: "media/cloth_dry.webp"  },
+        { id: "cloth_wash", phrase: "Чем стирают одежду?", image: "media/cloth_wash.webp", answer: "Одежду стирают в машине"   },
+        { id: "cloth_iron", phrase: "Чем гладят одежду?",  image: "media/cloth_iron.webp", answer: "Одежду гладят утюгом"      },
+        { id: "cloth_dry",  phrase: "Где сушат одежду?",   image: "media/cloth_dry.webp",  answer: "Одежду сушат на верёвке"   },
       ],
       distractors: [
-        { id: "d_wardrobe", image: "media/d_wardrobe.webp" },
-        { id: "d_hanger",   image: "media/d_hanger.webp"   },
+        { id: "d_wardrobe", image: "media/d_wardrobe.webp", text: "Одежду хранят в шкафу"     },
+        { id: "d_hanger",   image: "media/d_hanger.webp",   text: "Одежду вешают на вешалку"  },
       ],
     },
     {
       id: "play",
       items: [
-        { id: "play_with",  phrase: "С кем играет девочка?", image: "media/play_with.webp"  },
-        { id: "play_where", phrase: "Где играет девочка?",   image: "media/play_where.webp" },
-        { id: "play_what",  phrase: "Во что играет девочка?",image: "media/play_what.webp"  },
+        { id: "play_with",  phrase: "С кем играет девочка?",  image: "media/play_with.webp",  answer: "Девочка играет с подругой" },
+        { id: "play_where", phrase: "Где играет девочка?",    image: "media/play_where.webp", answer: "Девочка играет на площадке"},
+        { id: "play_what",  phrase: "Во что играет девочка?", image: "media/play_what.webp",  answer: "Девочка играет в мяч"     },
       ],
       distractors: [
-        { id: "d_doll",      image: "media/d_doll.webp"      },
-        { id: "d_play_bike", image: "media/d_play_bike.webp" },
+        { id: "d_doll",      image: "media/d_doll.webp",      text: "Девочка играет с куклой"        },
+        { id: "d_play_bike", image: "media/d_play_bike.webp", text: "Девочка катается на велосипеде" },
       ],
     },
   ],

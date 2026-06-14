@@ -12,11 +12,16 @@ function GhostImage({ topicId, image, x, y, size }) {
   const url = useTopicFile(topicId, image);
   if (!url) return null;
   return (
-    <div
-      className="pm-ghost"
-      style={{ left: x, top: y, width: size, height: size }}
-    >
+    <div className="pm-ghost pm-ghost--img" style={{ left: x, top: y, width: size, height: size }}>
       <img src={url} alt="" draggable={false} />
+    </div>
+  );
+}
+
+function GhostText({ text, x, y, width, height }) {
+  return (
+    <div className="pm-ghost pm-ghost--text" style={{ left: x, top: y, width, height }}>
+      {text}
     </div>
   );
 }
@@ -28,17 +33,17 @@ function SlotThumb({ topicId, image }) {
 }
 
 export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
-  const { items, images } = task;
+  const { items, images, answerType = "image" } = task;
+  const isTextMode = answerType === "text";
 
-  // itemId → imageId of placed image
   const [placements, setPlacements] = useState({});
-  const [dragging, setDragging]     = useState(null); // { imageId, image, x, y, offsetX, offsetY, size }
+  const [dragging, setDragging]     = useState(null);
   const [hoverSlot, setHoverSlot]   = useState(null);
   const [errorSlot, setErrorSlot]   = useState(null);
   const [done, setDone]             = useState(false);
 
-  const slotRefs      = useRef({});
-  const onCorrectRef  = useRef(onCorrect);
+  const slotRefs     = useRef({});
+  const onCorrectRef = useRef(onCorrect);
   onCorrectRef.current = onCorrect;
 
   const placedImageIds = new Set(Object.values(placements));
@@ -54,20 +59,20 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
   }
 
   function handlePointerDown(e, imgEntry) {
-    if (done || placedImageIds.has(imgEntry.id) || imgEntry.isDistractor && false) return;
-    // don't allow dragging already-placed correct images
-    if (placedImageIds.has(imgEntry.id)) return;
+    if (done || placedImageIds.has(imgEntry.id)) return;
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
     setDragging({
-      imageId:  imgEntry.id,
-      image:    imgEntry.image,
+      imageId:      imgEntry.id,
+      image:        imgEntry.image,
+      text:         imgEntry.text,
       isDistractor: imgEntry.isDistractor,
-      x:        rect.left,
-      y:        rect.top,
-      offsetX:  e.clientX - rect.left,
-      offsetY:  e.clientY - rect.top,
-      size:     rect.width,
+      x:            rect.left,
+      y:            rect.top,
+      offsetX:      e.clientX - rect.left,
+      offsetY:      e.clientY - rect.top,
+      width:        rect.width,
+      height:       rect.height,
     });
   }
 
@@ -89,11 +94,8 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
     setHoverSlot(null);
 
     if (!slotId) return;
-
-    // Already matched slot — ignore
     if (placements[slotId]) return;
 
-    // Find which item this image belongs to
     const correctItem = items.find(it => it.id === imageId);
     const isCorrect   = !isDistractor && correctItem && correctItem.id === slotId;
 
@@ -115,15 +117,22 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
 
   function slotClass(itemId) {
     let cls = "pm-slot";
-    if (placements[itemId])    cls += " pm-slot--matched";
+    if (placements[itemId])        cls += " pm-slot--matched";
     else if (errorSlot === itemId) cls += " pm-slot--error";
     else if (hoverSlot === itemId) cls += " pm-slot--hover";
     return cls;
   }
 
+  // Find the matched answer text for a slot (text mode only)
+  function matchedText(itemId) {
+    const imgId = placements[itemId];
+    if (!imgId) return null;
+    return images.find(i => i.id === imgId)?.text ?? null;
+  }
+
   return (
     <div
-      className="session-body pm-root"
+      className={`session-body pm-root${isTextMode ? " pm-root--text" : ""}`}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       style={{ touchAction: "none" }}
@@ -136,18 +145,37 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
             ref={el => { slotRefs.current[item.id] = el; }}
             className={slotClass(item.id)}
           >
-            {placements[item.id] && (
+            {!isTextMode && placements[item.id] && (
               <SlotThumb topicId={topicId} image={item.image} />
             )}
-            {item.phrase}
+            {isTextMode && placements[item.id] ? (
+              <span className="pm-slot__answer">{matchedText(item.id)}</span>
+            ) : (
+              item.phrase
+            )}
           </div>
         ))}
       </div>
 
-      {/* Right: image pool */}
-      <div className="pm-pool">
+      {/* Right: pool */}
+      <div className={`pm-pool${isTextMode ? " pm-pool--text" : ""}`}>
         {images.map(imgEntry => {
           const isPlaced = placedImageIds.has(imgEntry.id);
+          if (isTextMode) {
+            return (
+              <div
+                key={imgEntry.id}
+                className={[
+                  "pm-text-card",
+                  dragging?.imageId === imgEntry.id ? "pm-text-card--dragging" : "",
+                  isPlaced ? "pm-text-card--placed" : "",
+                ].filter(Boolean).join(" ")}
+                onPointerDown={e => handlePointerDown(e, imgEntry)}
+              >
+                {imgEntry.text}
+              </div>
+            );
+          }
           return (
             <div
               key={imgEntry.id}
@@ -166,13 +194,23 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
 
       {/* Ghost follows pointer */}
       {dragging && (
-        <GhostImage
-          topicId={topicId}
-          image={dragging.image}
-          x={dragging.x}
-          y={dragging.y}
-          size={dragging.size}
-        />
+        isTextMode ? (
+          <GhostText
+            text={dragging.text}
+            x={dragging.x}
+            y={dragging.y}
+            width={dragging.width}
+            height={dragging.height}
+          />
+        ) : (
+          <GhostImage
+            topicId={topicId}
+            image={dragging.image}
+            x={dragging.x}
+            y={dragging.y}
+            size={dragging.width}
+          />
+        )
       )}
     </div>
   );
