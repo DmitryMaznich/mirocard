@@ -1,111 +1,109 @@
-/* ── Root layout ────────────────────────────────────── */
+/* ── Root: vertical column ───────────────────────────── */
 .pm-root {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px;
   width: 100%;
   height: 100%;
-  max-width: 640px;
+  max-width: 580px;
   margin: 0 auto;
   box-sizing: border-box;
   user-select: none;
+  justify-content: center;
 }
 
-/* ── Left column: phrase slots ──────────────────────── */
+/* ── Questions (top section) ─────────────────────────── */
 .pm-phrases {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
+  gap: 8px;
 }
 
 .pm-slot {
   display: flex;
   align-items: center;
-  min-height: 68px;
-  padding: 12px 16px;
+  min-height: 58px;
+  padding: 10px 14px;
   border-radius: 16px;
   background: #fff;
   border: 1.5px solid #ebebeb;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  font-size: clamp(0.95rem, 3.2vw, 1.2rem);
+  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
   font-weight: 700;
   color: #333;
-  line-height: 1.35;
+  line-height: 1.3;
   gap: 10px;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
-.pm-slot--hover {
-  border-color: #90caf9;
-  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15), 0 1px 4px rgba(0, 0, 0, 0.06);
-  background: #f8fbff;
+/* Number badge */
+.pm-slot__num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  color: #999;
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
 }
 
-.pm-slot--matched {
-  border-color: #a5d6a7;
-  background: #f6fef6;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.12), 0 1px 4px rgba(0, 0, 0, 0.04);
-}
+.pm-slot--hover   { border-color: #90caf9; background: #f8fbff; box-shadow: 0 0 0 3px rgba(66,165,245,0.15), 0 1px 4px rgba(0,0,0,0.05); }
+.pm-slot--matched { border-color: #a5d6a7; background: #f6fef6; box-shadow: 0 0 0 2px rgba(76,175,80,0.12), 0 1px 4px rgba(0,0,0,0.04); }
+.pm-slot--error   { border-color: #ef9a9a; background: #fff5f5; box-shadow: 0 0 0 2px rgba(229,115,115,0.2); animation: pm-shake 0.35s ease; }
 
-.pm-slot--error {
-  border-color: #ef9a9a;
-  background: #fff5f5;
-  box-shadow: 0 0 0 2px rgba(229, 115, 115, 0.2);
-  animation: pm-shake 0.35s ease;
-}
+.pm-slot--matched .pm-slot__num { background: #c8e6c9; color: #2e7d32; }
 
 @keyframes pm-shake {
-  0%, 100% { transform: translateX(0); }
-  20%       { transform: translateX(-6px); }
-  60%       { transform: translateX(6px); }
-  80%       { transform: translateX(-3px); }
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-6px); }
+  60%     { transform: translateX(6px); }
+  80%     { transform: translateX(-3px); }
 }
 
-/* Thumbnail placed in slot after correct match */
 .pm-slot__thumb {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   object-fit: contain;
   flex-shrink: 0;
   background: #f5f5f5;
 }
 
-/* Answer text shown in slot after correct match (text mode) */
 .pm-slot__answer {
   font-size: clamp(0.85rem, 2.8vw, 1.05rem);
   font-weight: 600;
   color: #2e7d32;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
-/* ── Right column: answer pool ──────────────────────── */
+/* ── Pool: image grid (bottom section) ───────────────── */
 .pm-pool {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  justify-content: center;
-  flex-shrink: 0;
+}
+
+.pm-pool--text {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 /* ── Image cards ─────────────────────────────────────── */
 .pm-img-card {
-  width:  clamp(72px, 19vw, 108px);
-  height: clamp(72px, 19vw, 108px);
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: 14px;
   overflow: hidden;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.04);
   cursor: grab;
   touch-action: none;
-  transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
-  flex-shrink: 0;
+  transition: opacity 0.2s, transform 0.15s;
 }
 
 .pm-img-card img {
@@ -116,45 +114,30 @@
   pointer-events: none;
 }
 
-.pm-img-card--dragging {
-  opacity: 0.25;
-}
+.pm-img-card--dragging { opacity: 0.2; }
+.pm-img-card--placed   { opacity: 0; transform: scale(0.85); pointer-events: none; }
 
-.pm-img-card--placed {
-  opacity: 0;
-  transform: scale(0.85);
-  pointer-events: none;
-}
-
-/* ── Text answer cards (text mode pool) ─────────────── */
+/* ── Text answer cards ───────────────────────────────── */
 .pm-text-card {
-  width: clamp(130px, 36vw, 200px);
-  padding: 10px 14px;
+  width: 100%;
+  padding: 12px 10px;
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(0, 0, 0, 0.04);
   cursor: grab;
   touch-action: none;
-  font-size: clamp(0.78rem, 2.4vw, 0.95rem);
+  font-size: clamp(0.78rem, 2.4vw, 0.92rem);
   font-weight: 600;
   color: #333;
   line-height: 1.35;
   text-align: center;
   transition: opacity 0.2s, transform 0.15s;
-  flex-shrink: 0;
 }
 
-.pm-text-card--dragging {
-  opacity: 0.25;
-}
+.pm-text-card--dragging { opacity: 0.2; }
+.pm-text-card--placed   { opacity: 0; transform: scale(0.85); pointer-events: none; }
 
-.pm-text-card--placed {
-  opacity: 0;
-  transform: scale(0.85);
-  pointer-events: none;
-}
-
-/* ── Ghost (follows pointer) ────────────────────────── */
+/* ── Ghost ───────────────────────────────────────────── */
 .pm-ghost {
   position: fixed;
   pointer-events: none;
@@ -165,30 +148,22 @@
   background: white;
 }
 
-.pm-ghost--img {
-  overflow: hidden;
-}
-
-.pm-ghost--img img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
+.pm-ghost--img { overflow: hidden; }
+.pm-ghost--img img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
 .pm-ghost--text {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 14px;
-  font-size: clamp(0.78rem, 2.4vw, 0.95rem);
+  padding: 12px 10px;
+  font-size: clamp(0.78rem, 2.4vw, 0.92rem);
   font-weight: 600;
   color: #333;
   line-height: 1.35;
   text-align: center;
 }
 
-/* ── Done overlay ───────────────────────────────────── */
+/* ── Done overlay ────────────────────────────────────── */
 .pm-done {
   display: flex;
   flex-direction: column;
@@ -198,11 +173,7 @@
   height: 100%;
   gap: 16px;
 }
-
-.pm-done__emoji {
-  font-size: clamp(3rem, 12vw, 5rem);
-}
-
+.pm-done__emoji { font-size: clamp(3rem, 12vw, 5rem); }
 .pm-done__btn {
   padding: 12px 36px;
   font-size: 1.1rem;
@@ -214,14 +185,58 @@
   cursor: pointer;
 }
 
-/* ── Landscape adjustments ──────────────────────────── */
-@media (orientation: landscape) {
-  .pm-img-card {
-    width:  clamp(60px, 12vw, 90px);
-    height: clamp(60px, 12vw, 90px);
+/* ── Tablet portrait: 2-col questions + 5-col pool ───── */
+@media (min-width: 560px) {
+  .pm-phrases {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
-  .pm-text-card {
-    width: clamp(110px, 28vw, 180px);
-    font-size: clamp(0.72rem, 2vw, 0.88rem);
+  /* Last question spans full width if it's alone in its row */
+  .pm-phrases > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  .pm-pool {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .pm-pool--text {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── Landscape phone: side-by-side compact ───────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+  .pm-root {
+    flex-direction: row;
+    gap: 10px;
+  }
+  .pm-phrases {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 6px;
+  }
+  .pm-slot {
+    min-height: 46px;
+    padding: 7px 12px;
+    font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+    border-radius: 12px;
+    gap: 8px;
+  }
+  .pm-slot__num {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+  .pm-pool {
+    grid-template-columns: repeat(2, 1fr);
+    width: clamp(110px, 28vw, 160px);
+    flex-shrink: 0;
+    align-self: center;
+    gap: 6px;
+  }
+  .pm-pool--text {
+    grid-template-columns: 1fr;
+    width: clamp(130px, 34vw, 185px);
   }
 }

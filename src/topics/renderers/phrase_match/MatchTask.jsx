@@ -148,12 +148,13 @@ export default function MatchTask({ task, topicId, onCorrect, onIncorrect }) {
     >
       {/* Left: phrase drop zones */}
       <div className="pm-phrases">
-        {items.map(item => (
+        {items.map((item, idx) => (
           <div
             key={item.id}
             ref={el => { slotRefs.current[item.id] = el; }}
             className={slotClass(item.id)}
           >
+            <span className="pm-slot__num">{idx + 1}</span>
             {!isTextMode && placements[item.id] && (
               <SlotThumb topicId={topicId} image={item.image} />
             )}
