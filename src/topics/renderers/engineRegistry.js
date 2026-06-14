@@ -12,6 +12,7 @@ import { generateTasks as narrativeEngine }            from "./narrative/engine"
 import { generateTasks as letterWritingEngine }        from "./letter_writing/engine";
 import { generateTasks as streakTrackerEngine }        from "./streak_tracker/engine";
 import { generateTasks as shoppingEngine }             from "./shopping/engine";
+import { generateTasks as phraseMatchEngine }           from "./phrase_match/engine";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -28,4 +29,5 @@ export const ENGINE_REGISTRY = {
   letter_writing:        letterWritingEngine,
   streak_tracker:        streakTrackerEngine,
   shopping:              shoppingEngine,
+  phrase_match:          phraseMatchEngine,
 };
