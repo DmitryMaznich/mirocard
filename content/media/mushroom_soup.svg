@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Bowl shadow -->
+  <ellipse cx="122" cy="192" rx="68" ry="9" fill="#c8a060" opacity="0.2"/>
+  <!-- Bowl body -->
+  <path d="M 56 128 Q 56 194 120 196 Q 184 194 184 128 Z" fill="#faf7f2" stroke="#e0d8c8" stroke-width="2"/>
+  <!-- Bowl rim -->
+  <ellipse cx="120" cy="128" rx="64" ry="14" fill="#faf7f2" stroke="#e0d8c8" stroke-width="2"/>
+  <!-- Soup surface -->
+  <ellipse cx="120" cy="128" rx="60" ry="12" fill="#c07818"/>
+  <!-- Golden sheen -->
+  <ellipse cx="96" cy="122" rx="24" ry="6" fill="#e09030" opacity="0.45" transform="rotate(-8 96 122)"/>
+  <!-- Mushroom slice 1 -->
+  <ellipse cx="95" cy="127" rx="14" ry="7" fill="#7a4818" opacity="0.85" transform="rotate(-15 95 127)"/>
+  <ellipse cx="95" cy="126" rx="10" ry="4" fill="#b07838" opacity="0.5" transform="rotate(-15 95 126)"/>
+  <!-- Mushroom slice 2 -->
+  <ellipse cx="143" cy="130" rx="12" ry="6" fill="#7a4818" opacity="0.8" transform="rotate(12 143 130)"/>
+  <ellipse cx="143" cy="129" rx="8" ry="3.5" fill="#b07838" opacity="0.45" transform="rotate(12 143 129)"/>
+  <!-- Mushroom slice 3 -->
+  <ellipse cx="120" cy="134" rx="9" ry="5" fill="#8a5020" opacity="0.7"/>
+  <!-- Green herbs -->
+  <path d="M 110 118 L 108 109" stroke="#48902a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 110 118 L 113 108" stroke="#48902a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 126 116 L 125 107" stroke="#48902a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 126 116 L 129 108" stroke="#48902a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Sour cream dollop -->
+  <ellipse cx="157" cy="122" rx="10" ry="7" fill="white" opacity="0.88"/>
+  <!-- Steam wisps -->
+  <path d="M 85 108 Q 81 98 85 88 Q 89 78 85 68" fill="none" stroke="#d4c8a0" stroke-width="2" stroke-linecap="round" opacity="0.38"/>
+  <path d="M 118 103 Q 114 93 118 83 Q 122 73 118 63" fill="none" stroke="#d4c8a0" stroke-width="2" stroke-linecap="round" opacity="0.32"/>
+  <path d="M 152 108 Q 148 98 152 88 Q 156 78 152 68" fill="none" stroke="#d4c8a0" stroke-width="2" stroke-linecap="round" opacity="0.38"/>
+</svg>
