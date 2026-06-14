@@ -881,28 +881,65 @@ git commit -m "feat(phrase_match): add pilot generate script with 5 groups"
 
 ---
 
-## Task 7 — catalog.json + wire renderer in app
+## Task 7 — Register React component + add to catalog
 
 **Files:**
+- Modify: `src/topics/registry.js`
 - Modify: `public/decks/catalog.json`
 
-The renderer `PhraseMatchRenderer` must also be registered in the app's renderer loader. Check `src/topics/rendererLoader.js` — it dynamically loads renderers from ZIPs, so the renderer itself ships inside the ZIP. **However**, for built-in renderers registered in `engineRegistry.js`, the app also needs to know which React component to render. Check how other built-in renderers (like `opposites`) are wired to their React components in `SessionScreen.jsx` or similar.
+React-компоненты рендереров хранятся в `src/topics/registry.js` (отдельно от `engineRegistry.js`). `SessionScreen` импортирует `RENDERER_REGISTRY` из этого файла и выбирает нужный компонент по `topicRecord.meta.renderer`.
 
-- [ ] **Step 7.1 — Find where renderer components are mounted**
+- [ ] **Step 7.1 — Добавить PhraseMatchRenderer в registry.js**
 
+Открыть `src/topics/registry.js`. Добавить импорт после последнего импорта:
+
+```js
+import PhraseMatchRenderer from "./renderers/phrase_match/index.jsx";
 ```
-grep -r "OppositeRenderer\|flashcards\|function_cards" src/features/session/ --include="*.jsx" -l
+
+Добавить в `RENDERER_REGISTRY`:
+
+```js
+  phrase_match: PhraseMatchRenderer,
 ```
 
-Inspect the result file to understand how renderer component is selected per `topicRecord.meta.renderer`.
+Итоговый файл должен выглядеть так:
 
-- [ ] **Step 7.2 — Register PhraseMatchRenderer alongside other built-in renderers**
+```js
+import FlashcardsRenderer          from "./renderers/flashcards/index.jsx";
+import OppositeRenderer            from "./renderers/opposites/index.jsx";
+import ComparisonRenderer          from "./renderers/comparison/index.jsx";
+import MathHousesRenderer          from "./renderers/math_houses/index.jsx";
+import AdditionSubtractionRenderer from "./renderers/addition_subtraction/index.jsx";
+import ReadingRenderer             from "./renderers/reading/index.jsx";
+import FunctionCardsRenderer       from "./renderers/function_cards/index.jsx";
+import VowelConsonantRenderer      from "./renderers/vowel_consonant/index.jsx";
+import NarrativeRenderer           from "./renderers/narrative/index.jsx";
+import LetterWritingRenderer       from "./renderers/letter_writing/index.jsx";
+import StreakTrackerRenderer        from "./renderers/streak_tracker/index.jsx";
+import ShoppingRenderer             from "./renderers/shopping/index.jsx";
+import PhraseMatchRenderer          from "./renderers/phrase_match/index.jsx";
 
-Follow the same pattern you find in Step 7.1. Import `PhraseMatchRenderer` from `@/topics/renderers/phrase_match` and add it to the renderer switch/map.
+export const RENDERER_REGISTRY = {
+  flashcards:            FlashcardsRenderer,
+  comparison:            ComparisonRenderer,
+  math_houses:           MathHousesRenderer,
+  addition_subtraction:  AdditionSubtractionRenderer,
+  reading:               ReadingRenderer,
+  function_cards:        FunctionCardsRenderer,
+  vowel_consonant:       VowelConsonantRenderer,
+  opposites:             OppositeRenderer,
+  narrative:             NarrativeRenderer,
+  letter_writing:        LetterWritingRenderer,
+  streak_tracker:        StreakTrackerRenderer,
+  shopping:              ShoppingRenderer,
+  phrase_match:          PhraseMatchRenderer,
+};
+```
 
-- [ ] **Step 7.3 — Add pilot to catalog.json**
+- [ ] **Step 7.2 — Добавить запись в catalog.json**
 
-Open `public/decks/catalog.json`. Add this entry to the `"decks"` array:
+В `public/decks/catalog.json` добавить в массив `"decks"` (в конец, перед закрывающей `]`):
 
 ```json
 {
@@ -912,32 +949,50 @@ Open `public/decks/catalog.json`. Add this entry to the `"decks"` array:
     "ru": "Точное чтение"
   },
   "description": {
-    "ru": "Пилот: 5 групп похожих фраз. Перетащи картинку к правильной фразе."
+    "ru": "Пилот: 5 групп похожих фраз. Перетащи картинку к нужной фразе."
   },
   "url": "./decks/phrase_match_pilot_v1.0.0.zip"
 }
 ```
 
-- [ ] **Step 7.4 — Build and import the deck in the app**
+- [ ] **Step 7.3 — Запустить тесты (проверка на регрессии)**
+
+```
+npx vitest run
+```
+
+Expected: все тесты `PASS`
+
+- [ ] **Step 7.4 — Собрать приложение**
 
 ```
 npm run build
 ```
 
-Open the app, go to Topics → Import → choose `public/decks/phrase_match_pilot_v1.0.0.zip` (or install from catalog).
+Expected: сборка завершается без ошибок.
 
-- [ ] **Step 7.5 — Manual smoke test**
-
-1. Start a session → mode "Соедини фразу с картинкой"
-2. Verify 3 phrases appear on left, pool on right (empty if no images yet)
-3. If images exist: drag correct image → green lock; drag wrong → red flash + return; drag distractor → red flash
-4. Complete all 3 pairs → session advances to next group
-
-- [ ] **Step 7.6 — Commit**
+- [ ] **Step 7.5 — Запустить generate-скрипт и проверить ZIP**
 
 ```
-git add public/decks/catalog.json src/features/session/SessionScreen.jsx
-git commit -m "feat(phrase_match): wire renderer component + add pilot to catalog"
+node scripts/generate-phrase-match-pilot.mjs
+```
+
+Убедиться что `public/decks/phrase_match_pilot_v1.0.0.zip` создан.
+
+- [ ] **Step 7.6 — Smoke test в приложении**
+
+1. Открыть `http://localhost:8080` (или `npm run dev`)
+2. Перейти в Темы → Каталог → найти «Точное чтение» → установить
+3. Открыть тему → выбрать режим «Соедини фразу с картинкой»
+4. Начать сессию → 3 фразы слева, 5 картинок справа (серые заглушки если нет изображений)
+5. Перетащить картинку на фразу → зелёная рамка при совпадении, красная при ошибке
+6. Заполнить все 3 пары → сессия переходит к следующей группе
+
+- [ ] **Step 7.7 — Commit**
+
+```
+git add src/topics/registry.js public/decks/catalog.json
+git commit -m "feat(phrase_match): register React renderer + add pilot to catalog"
 ```
 
 ---
@@ -956,11 +1011,12 @@ git commit -m "feat(phrase_match): wire renderer component + add pilot to catalo
 - ✅ 5 pilot groups — GROUPS constant in generate script
 - ✅ topicLoader update — Task 2
 - ✅ Session routing — Task 3
-- ✅ Catalog entry — Task 7
+- ✅ React renderer registration — Task 7 Step 7.1 (`src/topics/registry.js`)
+- ✅ Catalog entry — Task 7 Step 7.2 (`public/decks/catalog.json`)
 
-**Placeholder scan:** None found — all steps have concrete code.
+**Placeholder scan:** None found — все шаги содержат конкретный код.
 
 **Type consistency:**
-- `img.id` matches `item.id` for correct pairs (engine sets `id: item.id` for non-distractor images) ✅
-- `placements` maps `itemId → imageId` consistently across setPlacements and matchedImageIds ✅
-- `onCorrect(null, null)` matches the signature used in SortTask.jsx ✅
+- `img.id` matches `item.id` для корректных пар (engine устанавливает `id: item.id` для non-distractor images) ✅
+- `placements` отображает `itemId → imageId` консистентно во всех setPlacements и matchedImageIds ✅
+- `onCorrect(null, null)` соответствует сигнатуре в SortTask.jsx ✅
