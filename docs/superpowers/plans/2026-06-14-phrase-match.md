@@ -720,102 +720,241 @@ The script reads 25 images from Cardgen Studio and packs the pilot deck. Images 
 
 ```js
 // scripts/generate-phrase-match-pilot.mjs
+// Generates 25 images via Gemini, converts to webp 512×512, packs pilot ZIP.
+//
+// Usage:
+//   node scripts/generate-phrase-match-pilot.mjs         # generate missing
+//   node scripts/generate-phrase-match-pilot.mjs --skip  # skip cached images
 import JSZip from "jszip";
-import { writeFileSync, readFileSync, existsSync } from "node:fs";
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT      = join(__dirname, "..");
 const VERSION   = "1.0.0";
-const SRC_DIR   = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/phrase_match_pilot/generated";
+const CACHE_DIR = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/projects/phrase_match_pilot/generated";
 const OUT_PATH  = join(ROOT, "public", "decks", `phrase_match_pilot_v${VERSION}.zip`);
+const SKIP      = process.argv.includes("--skip");
 
+// ── Load env (same pattern as other generate scripts) ──────────────────────
+function loadEnv(filePath) {
+  if (!existsSync(filePath)) return;
+  for (const line of readFileSync(filePath, "utf8").split(/\r?\n/)) {
+    const l = line.trim();
+    if (!l || l.startsWith("#")) continue;
+    const sep = l.indexOf("=");
+    if (sep <= 0) continue;
+    const key = l.slice(0, sep).trim();
+    let val = l.slice(sep + 1).trim();
+    if (/^['"].*['"]$/.test(val)) val = val.slice(1, -1);
+    if (!(key in process.env)) process.env[key] = val;
+  }
+}
+loadEnv(join(ROOT, ".env"));
+loadEnv(join(ROOT, ".env.local"));
+loadEnv("C:/Users/dmazn/Projects/Mirocard/.env");
+loadEnv("C:/Users/dmazn/Projects/Mirocard/.env.local");
+
+const API_KEY = process.env.GEMINI_API_KEY;
+const MODEL   = process.env.GEMINI_MODEL || "gemini-2.5-flash-image";
+if (!API_KEY) { console.error("GEMINI_API_KEY not found"); process.exit(1); }
+console.log(`Model: ${MODEL}\n`);
+
+// ── Gemini image generation ─────────────────────────────────────────────────
+async function callGemini(prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL)}:generateContent`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": API_KEY },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { imageConfig: { aspectRatio: "1:1", imageSize: "1K" } },
+    }),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body?.error?.message || `HTTP ${res.status}`);
+  const parts   = body.candidates?.[0]?.content?.parts ?? [];
+  const imgPart = parts.find(p => p?.inlineData || p?.inline_data);
+  const inline  = imgPart?.inlineData ?? imgPart?.inline_data;
+  if (!inline?.data) throw new Error("No image in response");
+  return Buffer.from(inline.data, "base64");
+}
+
+// ── Generate or load from cache, convert to webp 512×512 ───────────────────
+async function getImage(id, prompt) {
+  const cachePath = join(CACHE_DIR, `${id}.png`);
+  let raw;
+  if (SKIP && existsSync(cachePath)) {
+    console.log(`  ↩ ${id} (cached)`);
+    raw = readFileSync(cachePath);
+  } else {
+    console.log(`▶ ${id}…`);
+    raw = await callGemini(prompt);
+    writeFileSync(cachePath, raw);
+    console.log(`  ✓ saved to cache`);
+  }
+  return sharp(raw).resize(512, 512, { fit: "cover" }).webp({ quality: 85 }).toBuffer();
+}
+
+const STYLE = "high-quality photorealistic educational image, natural soft lighting, " +
+  "clean light background, sharp focus, true-to-life colors, square 1:1 composition, " +
+  "no text, no watermark, child-friendly";
+
+// ── Content: 5 groups × (3 items + 2 distractors) = 25 images ──────────────
 const GROUPS = [
   {
     id: "soup",
     items: [
-      { id: "soup_pour", phrase: "Чем наливают суп?", image: "media/soup_pour.webp", src: "soup_pour.webp" },
-      { id: "soup_eat",  phrase: "Чем едят суп?",      image: "media/soup_eat.webp",  src: "soup_eat.webp"  },
-      { id: "soup_cook", phrase: "В чём варят суп?",   image: "media/soup_cook.webp", src: "soup_cook.webp" },
+      {
+        id: "soup_pour",  phrase: "Чем наливают суп?",  image: "media/soup_pour.webp",
+        prompt: `${STYLE}, a soup ladle (половник), isolated on plain white background`,
+      },
+      {
+        id: "soup_eat",   phrase: "Чем едят суп?",       image: "media/soup_eat.webp",
+        prompt: `${STYLE}, a soup spoon (ложка), isolated on plain white background`,
+      },
+      {
+        id: "soup_cook",  phrase: "В чём варят суп?",    image: "media/soup_cook.webp",
+        prompt: `${STYLE}, a cooking pot with lid (кастрюля), isolated on plain white background`,
+      },
     ],
     distractors: [
-      { id: "soup_d_fork",  image: "media/soup_d_fork.webp",  src: "soup_d_fork.webp"  },
-      { id: "soup_d_plate", image: "media/soup_d_plate.webp", src: "soup_d_plate.webp" },
+      {
+        id: "soup_d_fork",  image: "media/soup_d_fork.webp",
+        prompt: `${STYLE}, a dinner fork (вилка), isolated on plain white background`,
+      },
+      {
+        id: "soup_d_plate", image: "media/soup_d_plate.webp",
+        prompt: `${STYLE}, a white dinner plate (тарелка), isolated on plain white background`,
+      },
     ],
   },
   {
     id: "cut",
     items: [
-      { id: "cut_bread", phrase: "Чем режут хлеб?",   image: "media/cut_bread.webp", src: "cut_bread.webp" },
-      { id: "cut_paper", phrase: "Чем режут бумагу?", image: "media/cut_paper.webp", src: "cut_paper.webp" },
-      { id: "cut_nails", phrase: "Чем режут ногти?",  image: "media/cut_nails.webp", src: "cut_nails.webp" },
+      {
+        id: "cut_bread",  phrase: "Чем режут хлеб?",    image: "media/cut_bread.webp",
+        prompt: `${STYLE}, a kitchen bread knife (нож), isolated on plain white background`,
+      },
+      {
+        id: "cut_paper",  phrase: "Чем режут бумагу?",  image: "media/cut_paper.webp",
+        prompt: `${STYLE}, a pair of scissors (ножницы), isolated on plain white background`,
+      },
+      {
+        id: "cut_nails",  phrase: "Чем режут ногти?",   image: "media/cut_nails.webp",
+        prompt: `${STYLE}, nail clippers (щипчики для ногтей), isolated on plain white background`,
+      },
     ],
     distractors: [
-      { id: "cut_d_pencil", image: "media/cut_d_pencil.webp", src: "cut_d_pencil.webp" },
-      { id: "cut_d_ruler",  image: "media/cut_d_ruler.webp",  src: "cut_d_ruler.webp"  },
+      {
+        id: "cut_d_pencil", image: "media/cut_d_pencil.webp",
+        prompt: `${STYLE}, a pencil (карандаш), isolated on plain white background`,
+      },
+      {
+        id: "cut_d_ruler",  image: "media/cut_d_ruler.webp",
+        prompt: `${STYLE}, a wooden ruler (линейка), isolated on plain white background`,
+      },
     ],
   },
   {
     id: "transport",
     items: [
-      { id: "trans_road", phrase: "На чём едут по дороге?", image: "media/trans_road.webp", src: "trans_road.webp" },
-      { id: "trans_sky",  phrase: "На чём летят по небу?",  image: "media/trans_sky.webp",  src: "trans_sky.webp"  },
-      { id: "trans_sea",  phrase: "На чём плывут по морю?", image: "media/trans_sea.webp",  src: "trans_sea.webp"  },
+      {
+        id: "trans_road",  phrase: "На чём едут по дороге?", image: "media/trans_road.webp",
+        prompt: `${STYLE}, a city bus (автобус) on a road, clean urban background`,
+      },
+      {
+        id: "trans_sky",   phrase: "На чём летят по небу?",  image: "media/trans_sky.webp",
+        prompt: `${STYLE}, a passenger airplane (самолёт) in a clear blue sky`,
+      },
+      {
+        id: "trans_sea",   phrase: "На чём плывут по морю?", image: "media/trans_sea.webp",
+        prompt: `${STYLE}, a large ship (корабль) on calm blue sea water`,
+      },
     ],
     distractors: [
-      { id: "trans_d_bike",  image: "media/trans_d_bike.webp",  src: "trans_d_bike.webp"  },
-      { id: "trans_d_train", image: "media/trans_d_train.webp", src: "trans_d_train.webp" },
+      {
+        id: "trans_d_bike",  image: "media/trans_d_bike.webp",
+        prompt: `${STYLE}, a bicycle (велосипед), isolated on plain white background`,
+      },
+      {
+        id: "trans_d_train", image: "media/trans_d_train.webp",
+        prompt: `${STYLE}, a passenger train (поезд) on railway tracks`,
+      },
     ],
   },
   {
     id: "clothing",
     items: [
-      { id: "cloth_wash", phrase: "Чем стирают одежду?", image: "media/cloth_wash.webp", src: "cloth_wash.webp" },
-      { id: "cloth_iron", phrase: "Чем гладят одежду?",  image: "media/cloth_iron.webp", src: "cloth_iron.webp" },
-      { id: "cloth_dry",  phrase: "Где сушат одежду?",   image: "media/cloth_dry.webp",  src: "cloth_dry.webp"  },
+      {
+        id: "cloth_wash",  phrase: "Чем стирают одежду?",   image: "media/cloth_wash.webp",
+        prompt: `${STYLE}, a front-loading washing machine (стиральная машина), isolated on plain white background`,
+      },
+      {
+        id: "cloth_iron",  phrase: "Чем гладят одежду?",    image: "media/cloth_iron.webp",
+        prompt: `${STYLE}, a clothes steam iron (утюг), isolated on plain white background`,
+      },
+      {
+        id: "cloth_dry",   phrase: "Где сушат одежду?",     image: "media/cloth_dry.webp",
+        prompt: `${STYLE}, clothes hanging on a clothesline with wooden pegs (верёвка с прищепками) outdoors`,
+      },
     ],
     distractors: [
-      { id: "cloth_d_wardrobe", image: "media/cloth_d_wardrobe.webp", src: "cloth_d_wardrobe.webp" },
-      { id: "cloth_d_hanger",   image: "media/cloth_d_hanger.webp",   src: "cloth_d_hanger.webp"   },
+      {
+        id: "cloth_d_wardrobe", image: "media/cloth_d_wardrobe.webp",
+        prompt: `${STYLE}, a wooden wardrobe cabinet (шкаф), isolated on plain white background`,
+      },
+      {
+        id: "cloth_d_hanger",   image: "media/cloth_d_hanger.webp",
+        prompt: `${STYLE}, a clothes hanger (вешалка), isolated on plain white background`,
+      },
     ],
   },
   {
     id: "play",
     items: [
-      { id: "play_with",  phrase: "С кем играет девочка?",  image: "media/play_with.webp",  src: "play_with.webp"  },
-      { id: "play_where", phrase: "Где играет девочка?",    image: "media/play_where.webp", src: "play_where.webp" },
-      { id: "play_what",  phrase: "Во что играет девочка?", image: "media/play_what.webp",  src: "play_what.webp"  },
+      {
+        id: "play_with",   phrase: "С кем играет девочка?",  image: "media/play_with.webp",
+        prompt: `${STYLE}, two girls playing together outdoors, smiling, friendly scene`,
+      },
+      {
+        id: "play_where",  phrase: "Где играет девочка?",    image: "media/play_where.webp",
+        prompt: `${STYLE}, a children's playground with swings and slide (детская площадка), sunny day`,
+      },
+      {
+        id: "play_what",   phrase: "Во что играет девочка?", image: "media/play_what.webp",
+        prompt: `${STYLE}, a colorful soccer ball (мяч), isolated on plain white background`,
+      },
     ],
     distractors: [
-      { id: "play_d_doll", image: "media/play_d_doll.webp", src: "play_d_doll.webp" },
-      { id: "play_d_bike", image: "media/play_d_bike.webp", src: "play_d_bike.webp" },
+      {
+        id: "play_d_doll", image: "media/play_d_doll.webp",
+        prompt: `${STYLE}, a doll toy (кукла), isolated on plain white background`,
+      },
+      {
+        id: "play_d_bike", image: "media/play_d_bike.webp",
+        prompt: `${STYLE}, a children's bicycle (детский велосипед), isolated on plain white background`,
+      },
     ],
   },
 ];
 
+// ── Main ────────────────────────────────────────────────────────────────────
 async function main() {
+  mkdirSync(CACHE_DIR, { recursive: true });
   const zip = new JSZip();
-  const missing = [];
 
   for (const group of GROUPS) {
     for (const entry of [...group.items, ...group.distractors]) {
-      const srcPath = join(SRC_DIR, entry.src);
-      if (existsSync(srcPath)) {
-        zip.file(entry.image, readFileSync(srcPath));
-      } else {
-        missing.push(entry.src);
-      }
+      const webp = await getImage(entry.id, entry.prompt);
+      zip.file(entry.image, webp);
     }
   }
 
-  if (missing.length > 0) {
-    console.warn("⚠️  Missing images (add placeholder or generate first):");
-    missing.forEach(f => console.warn("   -", f));
-  }
-
   const groupsForDeck = GROUPS.map(g => ({
-    id: g.id,
+    id:          g.id,
     items:       g.items.map(({ id, phrase, image }) => ({ id, phrase, image })),
     distractors: g.distractors.map(({ id, image }) => ({ id, image })),
   }));
@@ -846,37 +985,45 @@ async function main() {
 
   const buf = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
   writeFileSync(OUT_PATH, buf);
-  console.log(`✅  Written: ${OUT_PATH}`);
-  console.log(`   Groups: ${GROUPS.length}, Images: ${GROUPS.length * 5} (${missing.length} missing)`);
+  console.log(`\n✅  Written: ${OUT_PATH}`);
+  console.log(`   Groups: ${GROUPS.length} | Images: ${GROUPS.length * 5} | Model: ${MODEL}`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
 ```
 
-- [ ] **Step 6.2 — Run the script with placeholder images first**
-
-Create a tiny test image placeholder to verify script structure:
+- [ ] **Step 6.2 — Запустить скрипт (генерация всех 25 картинок)**
 
 ```
 node scripts/generate-phrase-match-pilot.mjs
 ```
 
-Expected output (with missing images):
+Ожидаемый вывод:
 ```
-⚠️  Missing images (add placeholder or generate first):
-   - soup_pour.webp
-   ... (25 lines)
+Model: gemini-2.5-flash-image
+
+▶ soup_pour…
+  ✓ saved to cache
+▶ soup_eat…
+  ✓ saved to cache
+...
+▶ play_d_bike…
+  ✓ saved to cache
+
 ✅  Written: C:\Users\dmazn\Projects\Mirocard2\public\decks\phrase_match_pilot_v1.0.0.zip
-   Groups: 5, Images: 25 (25 missing)
+   Groups: 5 | Images: 25 | Model: gemini-2.5-flash-image
 ```
 
-The ZIP is created (with no media, just deck.json) — this confirms the script runs without errors.
+Если картинки уже сгенерированы, следующий запуск использует кэш:
+```
+node scripts/generate-phrase-match-pilot.mjs --skip
+```
 
 - [ ] **Step 6.3 — Commit**
 
 ```
 git add scripts/generate-phrase-match-pilot.mjs
-git commit -m "feat(phrase_match): add pilot generate script with 5 groups"
+git commit -m "feat(phrase_match): generate script — Gemini image gen + webp + cache"
 ```
 
 ---
