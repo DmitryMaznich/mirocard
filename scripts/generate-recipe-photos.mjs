@@ -72,6 +72,8 @@ const RECIPES = {
   fried_potatoes:  "golden crispy fried potatoes with caramelized onions on a white plate, brown crust, sprinkled with fresh dill, rustic and appetizing",
   chicken_wings:   "golden-brown baked chicken wings on a baking tray lined with parchment paper, crispy skin, seasoned with garlic, fresh rosemary and thyme sprigs, appetizing caramelized crust",
   scramble_sausage: "soft creamy scrambled eggs with golden-brown fried sausage rounds on a white plate, fluffy yellow eggs, sausage slightly caramelized, simple home-style breakfast",
+  risotto_shrimp:   "creamy shrimp risotto with arborio rice, plump pink shrimp, grated parmesan on top, flecks of fresh thyme, golden buttery sauce, served in a white shallow bowl",
+  ravioli:          "fresh pasta ravioli in golden sage butter sauce, sprinkled with grated parmesan, crispy sage leaves as garnish, white plate, Italian-style",
 };
 
 // ── Gemini API ────────────────────────────────────────────────────────────────
