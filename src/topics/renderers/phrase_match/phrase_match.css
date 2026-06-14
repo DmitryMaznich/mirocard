@@ -13,7 +13,7 @@
   justify-content: center;
 }
 
-/* ── Questions (top section) ─────────────────────────── */
+/* ── Questions (top) ─────────────────────────────────── */
 .pm-phrases {
   display: flex;
   flex-direction: column;
@@ -37,7 +37,6 @@
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
-/* Number badge */
 .pm-slot__num {
   width: 26px;
   height: 26px;
@@ -66,15 +65,6 @@
   80%     { transform: translateX(-3px); }
 }
 
-.pm-slot__thumb {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  object-fit: contain;
-  flex-shrink: 0;
-  background: #f5f5f5;
-}
-
 .pm-slot__answer {
   font-size: clamp(0.85rem, 2.8vw, 1.05rem);
   font-weight: 600;
@@ -82,60 +72,30 @@
   line-height: 1.3;
 }
 
-/* ── Pool: image grid (bottom section) ───────────────── */
+/* ── Answer pool (bottom) ────────────────────────────── */
 .pm-pool {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.pm-pool--text {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-/* ── Image cards ─────────────────────────────────────── */
-.pm-img-card {
+.pm-answer-card {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  cursor: grab;
-  touch-action: none;
-  transition: opacity 0.2s, transform 0.15s;
-}
-
-.pm-img-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  pointer-events: none;
-}
-
-.pm-img-card--dragging { opacity: 0.2; }
-.pm-img-card--placed   { opacity: 0; transform: scale(0.85); pointer-events: none; }
-
-/* ── Text answer cards ───────────────────────────────── */
-.pm-text-card {
-  width: 100%;
-  padding: 12px 10px;
+  padding: 13px 16px;
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(0, 0, 0, 0.04);
   cursor: grab;
   touch-action: none;
-  font-size: clamp(0.78rem, 2.4vw, 0.92rem);
+  font-size: clamp(0.9rem, 2.8vw, 1.05rem);
   font-weight: 600;
   color: #333;
   line-height: 1.35;
-  text-align: center;
   transition: opacity 0.2s, transform 0.15s;
 }
 
-.pm-text-card--dragging { opacity: 0.2; }
-.pm-text-card--placed   { opacity: 0; transform: scale(0.85); pointer-events: none; }
+.pm-answer-card--dragging { opacity: 0.2; }
+.pm-answer-card--placed   { opacity: 0; transform: scale(0.9); pointer-events: none; }
 
 /* ── Ghost ───────────────────────────────────────────── */
 .pm-ghost {
@@ -143,24 +103,16 @@
   pointer-events: none;
   z-index: 1000;
   border-radius: 14px;
+  padding: 13px 16px;
+  background: #fff;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 0 0 2px #42a5f5;
-  transform: scale(1.07) rotate(1.5deg);
-  background: white;
-}
-
-.pm-ghost--img { overflow: hidden; }
-.pm-ghost--img img { width: 100%; height: 100%; object-fit: contain; display: block; }
-
-.pm-ghost--text {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 10px;
-  font-size: clamp(0.78rem, 2.4vw, 0.92rem);
+  transform: scale(1.04) rotate(1deg);
+  font-size: clamp(0.9rem, 2.8vw, 1.05rem);
   font-weight: 600;
   color: #333;
   line-height: 1.35;
-  text-align: center;
+  display: flex;
+  align-items: center;
 }
 
 /* ── Done overlay ────────────────────────────────────── */
@@ -185,25 +137,23 @@
   cursor: pointer;
 }
 
-/* ── Tablet portrait: 2-col questions + 5-col pool ───── */
+/* ── Tablet: 2-col questions ─────────────────────────── */
 @media (min-width: 560px) {
   .pm-phrases {
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
-  /* Last question spans full width if it's alone in its row */
   .pm-phrases > :last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
   .pm-pool {
-    grid-template-columns: repeat(5, 1fr);
-  }
-  .pm-pool--text {
+    display: grid;
     grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 }
 
-/* ── Landscape phone: side-by-side compact ───────────── */
+/* ── Landscape phone: compact ────────────────────────── */
 @media (orientation: landscape) and (max-height: 500px) {
   .pm-root {
     flex-direction: row;
@@ -221,22 +171,18 @@
     padding: 7px 12px;
     font-size: clamp(0.82rem, 2.4vw, 0.95rem);
     border-radius: 12px;
-    gap: 8px;
   }
-  .pm-slot__num {
-    width: 22px;
-    height: 22px;
-    font-size: 0.7rem;
-  }
+  .pm-slot__num { width: 22px; height: 22px; font-size: 0.7rem; }
   .pm-pool {
-    grid-template-columns: repeat(2, 1fr);
-    width: clamp(110px, 28vw, 160px);
+    display: flex;
+    flex-direction: column;
+    width: clamp(140px, 36vw, 200px);
     flex-shrink: 0;
     align-self: center;
     gap: 6px;
   }
-  .pm-pool--text {
-    grid-template-columns: 1fr;
-    width: clamp(130px, 34vw, 185px);
+  .pm-answer-card {
+    padding: 8px 12px;
+    font-size: 0.82rem;
   }
 }

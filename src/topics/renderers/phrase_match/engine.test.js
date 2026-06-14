@@ -6,25 +6,17 @@ const MOCK_RECORD = {
     {
       id: "soup",
       items: [
-        { id: "soup_pour", phrase: "Чем наливают суп?", image: "media/soup_pour.webp" },
-        { id: "soup_eat",  phrase: "Чем едят суп?",      image: "media/soup_eat.webp"  },
-        { id: "soup_cook", phrase: "В чём варят суп?",   image: "media/soup_cook.webp" },
-      ],
-      distractors: [
-        { id: "d_fork",  image: "media/d_fork.webp"  },
-        { id: "d_plate", image: "media/d_plate.webp" },
+        { id: "soup_pour", phrase: "Чем наливают суп?",  answer: "Суп наливают половником" },
+        { id: "soup_eat",  phrase: "Чем едят суп?",       answer: "Суп едят ложкой"         },
+        { id: "soup_cook", phrase: "В чём варят суп?",    answer: "Суп варят в кастрюле"    },
       ],
     },
     {
       id: "cut",
       items: [
-        { id: "cut_bread", phrase: "Чем режут хлеб?",   image: "media/cut_bread.webp" },
-        { id: "cut_paper", phrase: "Чем режут бумагу?", image: "media/cut_paper.webp" },
-        { id: "cut_nails", phrase: "Чем режут ногти?",  image: "media/cut_nails.webp" },
-      ],
-      distractors: [
-        { id: "d_pencil", image: "media/d_pencil.webp" },
-        { id: "d_ruler",  image: "media/d_ruler.webp"  },
+        { id: "cut_bread", phrase: "Чем режут хлеб?",   answer: "Хлеб режут ножом"       },
+        { id: "cut_paper", phrase: "Чем режут бумагу?", answer: "Бумагу режут ножницами" },
+        { id: "cut_nails", phrase: "Чем режут ногти?",  answer: "Ногти режут щипчиками"  },
       ],
     },
   ],
@@ -35,33 +27,31 @@ describe("generateTasks", () => {
     expect(generateTasks({ type: "unknown" }, MOCK_RECORD)).toEqual([]);
   });
 
-  it("returns one task per group for mode type 'match'", () => {
+  it("returns one task per group", () => {
     const tasks = generateTasks({ type: "match" }, MOCK_RECORD);
     expect(tasks).toHaveLength(2);
   });
 
-  it("each task has type 'match', groupId, items, and images", () => {
+  it("each task has type, groupId, items, and answers", () => {
     const tasks = generateTasks({ type: "match" }, MOCK_RECORD);
     const task = tasks.find(t => t.groupId === "soup");
     expect(task.type).toBe("match");
     expect(task.items).toHaveLength(3);
-    expect(task.images).toHaveLength(5);
+    expect(task.answers).toHaveLength(3);
   });
 
-  it("images contains both correct and distractor entries", () => {
+  it("answer ids match item ids", () => {
     const tasks = generateTasks({ type: "match" }, MOCK_RECORD);
     const task = tasks.find(t => t.groupId === "soup");
-    const correct = task.images.filter(i => !i.isDistractor);
-    const wrong   = task.images.filter(i =>  i.isDistractor);
-    expect(correct).toHaveLength(3);
-    expect(wrong).toHaveLength(2);
+    const answerIds = task.answers.map(a => a.id).sort();
+    expect(answerIds).toEqual(["soup_cook", "soup_eat", "soup_pour"]);
   });
 
-  it("correct image ids match item ids", () => {
+  it("answers carry the correct text", () => {
     const tasks = generateTasks({ type: "match" }, MOCK_RECORD);
     const task = tasks.find(t => t.groupId === "soup");
-    const correctIds = task.images.filter(i => !i.isDistractor).map(i => i.id);
-    expect(correctIds.sort()).toEqual(["soup_cook", "soup_eat", "soup_pour"]);
+    const pour = task.answers.find(a => a.id === "soup_pour");
+    expect(pour.text).toBe("Суп наливают половником");
   });
 
   it("handles missing groups gracefully", () => {
