@@ -10,6 +10,7 @@ import NarrativeRenderer           from "./renderers/narrative/index.jsx";
 import LetterWritingRenderer       from "./renderers/letter_writing/index.jsx";
 import StreakTrackerRenderer        from "./renderers/streak_tracker/index.jsx";
 import ShoppingRenderer             from "./renderers/shopping/index.jsx";
+import PhraseMatchRenderer          from "./renderers/phrase_match/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -24,4 +25,5 @@ export const RENDERER_REGISTRY = {
   letter_writing:        LetterWritingRenderer,
   streak_tracker:        StreakTrackerRenderer,
   shopping:              ShoppingRenderer,
+  phrase_match:          PhraseMatchRenderer,
 };

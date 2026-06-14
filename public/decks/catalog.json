@@ -223,6 +223,18 @@
         "en": "Shopping list"
       },
       "renderer": "shopping"
+    },
+    {
+      "id": "phrase_match_pilot",
+      "version": "1.0.0",
+      "renderer": "phrase_match",
+      "url": "./decks/phrase_match_pilot_v1.0.0.zip",
+      "title": {
+        "ru": "Точное чтение"
+      },
+      "description": {
+        "ru": "Пилот: 5 групп похожих фраз. Перетащи картинку к нужной фразе."
+      }
     }
   ]
 }
