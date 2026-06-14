@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.96.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.97.0.zip";
-const NEW_VERSION = "1.97.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.97.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.98.0.zip";
+const NEW_VERSION = "1.98.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -119,32 +119,6 @@ for (const id of recipeIds) {
   console.log(`${id}.txt: ${steps} шагов — "${title.ru}"`);
 }
 
-// Add shopping list content file to ZIP
-const shoppingContent = readFileSync("content/shopping/shopping.txt", "utf-8");
-newZip.file("shopping/shopping.txt", shoppingContent);
-console.log("shopping.txt: добавлен список покупок (16 категорий)");
-
-const shoppingTextEntry = {
-  id: "shopping_list",
-  kind: "shopping_list",
-  title: { ru: "Список покупок", en: "Shopping list" },
-  file: "shopping/shopping.txt",
-  //         Овощи  Фрукты Ягоды  Зелень Бакалея Мясо  Рыба  Гастрон Напитки Молочн Химия  Сладости Хлеб  Консервы Заморозка Животные
-  categoryIcons: ["🥦", "🍎", "🍓", "🌿", "🌾", "🥩", "🐟", "🧀", "🥤", "🥛", "🧴", "🍬", "🍞", "🥫", "🧊", "🐾"],
-};
-
-const shoppingMode = {
-  id: "shopping_list",
-  type: "shopping_list",
-  evaluation: "none",
-  requirePin: false,
-  ui: {
-    title: { ru: "Список в магазин", en: "Shopping list" },
-    instruction: { ru: "Отметь, что нужно купить, и распечатай список" },
-    icon: "media/icons/reading_read.svg",
-  },
-};
-
 // Build new topic.json
 const newTopic = {
   ...oldTopic,
@@ -153,8 +127,8 @@ const newTopic = {
     version: NEW_VERSION,
     avatar: "media/topic_checklist.svg",
   },
-  texts: [...textsManifest, shoppingTextEntry],
-  modes: [...(oldTopic.modes ?? []).filter((m) => m.id !== "shopping_list"), shoppingMode],
+  texts: textsManifest,
+  modes: (oldTopic.modes ?? []).filter((m) => m.id !== "shopping_list"),
 };
 
 newZip.file("topic.json", JSON.stringify(newTopic, null, 2));
