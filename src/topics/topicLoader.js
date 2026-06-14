@@ -1218,6 +1218,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
       const imageUrl = cardImageUrls[card.id];
       return imageUrl ? { ...card, imageUrl, photo: imageUrl } : card;
     }),
+    groups:    manifest.groups    ?? undefined,
     texts:     manifest.texts     ?? undefined,
     sentences: manifest.sentences?.length ? manifest.sentences : undefined,
     scenes:    (manifest.scenes ?? []).map((scene) => ({

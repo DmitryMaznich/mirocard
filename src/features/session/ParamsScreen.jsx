@@ -342,6 +342,7 @@ export default function ParamsScreen() {
   const hasVideos = (student?.rewardVideos?.length ?? 0) > 0;
 
   const isComparison        = topicRecord?.meta.renderer === "comparison";
+  const isPhraseMatch       = topicRecord?.meta.renderer === "phrase_match";
   const isReadingInstruction = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
 
   if (isReadingInstruction) {
@@ -504,24 +505,26 @@ export default function ParamsScreen() {
     <ComparisonParams params={params} onChange={setParams} />
   ) : (
     <>
-      <div className="param-row param-row--block">
-        <div className="param-label">Понятия</div>
-        <div className="param-concept-col">
-          <div className="param-concept-dots">
-            {allConcepts.map((c) => (
-              <ConceptDot
-                key={c.conceptId}
-                level={computeConceptLevel(sessions, activeStudentId, activeTopicId, c.conceptId)}
-                size={10}
-              />
-            ))}
-          </div>
-          <div className="param-concept-row">
-            <span className="param-hint">{selectedConceptIds.length} из {allConcepts.length} выбрано</span>
-            <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
+      {!isPhraseMatch && (
+        <div className="param-row param-row--block">
+          <div className="param-label">Понятия</div>
+          <div className="param-concept-col">
+            <div className="param-concept-dots">
+              {allConcepts.map((c) => (
+                <ConceptDot
+                  key={c.conceptId}
+                  level={computeConceptLevel(sessions, activeStudentId, activeTopicId, c.conceptId)}
+                  size={10}
+                />
+              ))}
+            </div>
+            <div className="param-concept-row">
+              <span className="param-hint">{selectedConceptIds.length} из {allConcepts.length} выбрано</span>
+              <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
         if (def.type === "concept_selector") return null;
         if (def.showWhen) {
