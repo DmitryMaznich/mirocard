@@ -19257,7 +19257,7 @@ body { background: #eef0ef; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 10px 14px max(10px, var(--app-safe-bottom, 0px));
   border-top: 1px solid #e0f0f0;
   background: #fff;
   flex-shrink: 0;
@@ -19341,7 +19341,7 @@ body { background: #eef0ef; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px 4px;
+  padding: calc(10px + var(--app-safe-top, 0px)) 14px 4px;
   font-size: clamp(1rem, 2.8dvh, 1.25rem);
   font-weight: 800;
   color: #263131;
@@ -19522,7 +19522,7 @@ body { background: #eef0ef; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px 8px;
+  padding: calc(10px + var(--app-safe-top, 0px)) 14px 8px;
   flex-shrink: 0;
 }
 .shop-progress__bar {
