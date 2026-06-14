@@ -42,11 +42,16 @@ async function parseManifest(zip) {
 function validateManifest(manifest, appVersion) {
   if (!manifest.meta?.id) throw new TopicImportError("Отсутствует meta.id");
   if (!manifest.meta?.version) throw new TopicImportError("Отсутствует meta.version");
-  const isReading   = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
-  const isNarrative = manifest.meta.renderer === "narrative";
+  const isReading     = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
+  const isNarrative   = manifest.meta.renderer === "narrative";
+  const isPhraseMatch = manifest.meta.renderer === "phrase_match";
   if (isReading) {
     if (!Array.isArray(manifest.texts) || manifest.texts.length === 0) {
       throw new TopicImportError("Тема чтения не содержит текстов");
+    }
+  } else if (isPhraseMatch) {
+    if (!Array.isArray(manifest.groups) || manifest.groups.length === 0) {
+      throw new TopicImportError("Тема phrase_match не содержит групп");
     }
   } else if (!isNarrative && (!Array.isArray(manifest.cards) || manifest.cards.length === 0)) {
     throw new TopicImportError("Тема не содержит карточек");
@@ -77,6 +82,19 @@ function validateImages(manifest, zip) {
     if (isProcedural && card.renderer) continue;
     if (card.image && !zip.file(card.image)) {
       throw new TopicImportError(`Файл не найден в ZIP: ${card.image}`);
+    }
+  }
+
+  for (const group of manifest.groups ?? []) {
+    for (const item of group.items ?? []) {
+      if (item.image && !zip.file(item.image)) {
+        throw new TopicImportError(`Файл не найден в ZIP: ${item.image}`);
+      }
+    }
+    for (const d of group.distractors ?? []) {
+      if (d.image && !zip.file(d.image)) {
+        throw new TopicImportError(`Файл не найден в ZIP: ${d.image}`);
+      }
     }
   }
 
