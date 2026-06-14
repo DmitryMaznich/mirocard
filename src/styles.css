@@ -19348,6 +19348,57 @@ body { background: #eef0ef; }
   flex-shrink: 0;
 }
 
+.shopping-grid-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shopping-clear-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #b0a0a0;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.shopping-clear-btn:active {
+  color: #e53935;
+  background: #fff0f0;
+}
+
+.shopping-undo-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #263131;
+  color: #fff;
+  font-size: clamp(0.85rem, 2.2dvh, 0.95rem);
+  flex-shrink: 0;
+  animation: shopping-toast-in 0.18s ease;
+}
+@keyframes shopping-toast-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.shopping-undo-btn {
+  background: none;
+  border: none;
+  color: #4cdf9a;
+  font-size: clamp(0.85rem, 2.2dvh, 0.95rem);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.shopping-undo-btn:active {
+  background: rgba(76,223,154,0.15);
+}
+
 .shopping-exit-btn {
   background: none;
   border: none;

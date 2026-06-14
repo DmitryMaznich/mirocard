@@ -140,15 +140,36 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
   const [sortMode, setSortMode] = useState(false);
   const [pressingTile, setPressingTile] = useState(null);
   const [editingNote, setEditingNote] = useState(null); // { key, value } | null
+  const [undoPlanned, setUndoPlanned] = useState(null);
   const rawStepsRef = useRef([]);
   const rawIconsRef = useRef([]);
   const longPressTimerRef = useRef(null);
   const didLongPressRef = useRef(false);
+  const undoTimerRef = useRef(null);
 
   function noteFor(key) {
     const v = planned[key];
     return v && typeof v === "object" ? (v.note ?? "") : "";
   }
+
+  function clearAll() {
+    setUndoPlanned({ ...planned });
+    const next = {};
+    setPlanned(next);
+    saveShoppingPlan(topicId, next).catch(() => {});
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setUndoPlanned(null), 4000);
+  }
+
+  function handleUndo() {
+    if (!undoPlanned) return;
+    setPlanned(undoPlanned);
+    saveShoppingPlan(topicId, undoPlanned).catch(() => {});
+    setUndoPlanned(null);
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+  }
+
+  useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
   function saveNote(key, rawValue) {
     const note = rawValue.trim();
@@ -384,9 +405,14 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
     <div className="session-body reading-body shopping-body">
       <div className="shopping-grid-header">
         <span>{totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}</span>
-        {onExit && (
-          <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
-        )}
+        <div className="shopping-grid-header-actions">
+          {totalPlanned > 0 && (
+            <button className="shopping-clear-btn" onClick={clearAll} aria-label="Очистить список">🗑</button>
+          )}
+          {onExit && (
+            <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
+          )}
+        </div>
       </div>
       {sortMode ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -427,6 +453,12 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
               </button>
             );
           })}
+        </div>
+      )}
+      {undoPlanned && (
+        <div className="shopping-undo-toast">
+          <span>Список очищен</span>
+          <button className="shopping-undo-btn" onClick={handleUndo}>Отмена</button>
         </div>
       )}
       <div className="shopping-actions">
