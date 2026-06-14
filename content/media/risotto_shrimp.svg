@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="182" rx="68" ry="9" fill="#d4b870" opacity="0.25"/>
+  <!-- Plate -->
+  <circle cx="120" cy="134" r="72" fill="#fffef8" stroke="#e8dfc0" stroke-width="2.5"/>
+  <circle cx="120" cy="134" r="64" fill="none" stroke="#f5edda" stroke-width="1.5"/>
+  <!-- Risotto base -->
+  <ellipse cx="120" cy="150" rx="52" ry="18" fill="#f8e8a0"/>
+  <ellipse cx="120" cy="144" rx="50" ry="20" fill="#f0e0a0"/>
+  <ellipse cx="120" cy="140" rx="48" ry="18" fill="#ece0b8"/>
+  <!-- Rice texture -->
+  <circle cx="100" cy="142" r="3" fill="#f8e8b0" opacity="0.7"/>
+  <circle cx="110" cy="138" r="3.5" fill="#f0d890" opacity="0.6"/>
+  <circle cx="120" cy="136" r="3" fill="#f8e8b0" opacity="0.7"/>
+  <circle cx="130" cy="140" r="3.5" fill="#f0d890" opacity="0.6"/>
+  <circle cx="140" cy="142" r="3" fill="#f8e8b0" opacity="0.7"/>
+  <circle cx="105" cy="150" r="3" fill="#f0d890" opacity="0.6"/>
+  <circle cx="135" cy="148" r="3.5" fill="#f8e8b0" opacity="0.7"/>
+  <!-- Shrimp 1 -->
+  <path d="M 95 130 Q 82 140 86 154 Q 88 160 96 158" fill="none" stroke="#e07060" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 95 130 Q 82 140 86 154 Q 88 160 96 158" fill="none" stroke="#f8a090" stroke-width="4" stroke-linecap="round"/>
+  <!-- Shrimp 2 -->
+  <path d="M 130 128 Q 144 136 142 150 Q 140 158 132 157" fill="none" stroke="#e07060" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 130 128 Q 144 136 142 150 Q 140 158 132 157" fill="none" stroke="#f8a090" stroke-width="4" stroke-linecap="round"/>
+  <!-- Shrimp 3 top -->
+  <path d="M 106 124 Q 120 118 132 126 Q 136 132 128 136" fill="none" stroke="#e07060" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 106 124 Q 120 118 132 126 Q 136 132 128 136" fill="none" stroke="#f8a090" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Parmesan flakes -->
+  <rect x="108" y="132" width="7" height="2" rx="1" fill="#fffce0" opacity="0.9" transform="rotate(-15 108 132)"/>
+  <rect x="122" y="130" width="6" height="2" rx="1" fill="#fffce0" opacity="0.9" transform="rotate(10 122 130)"/>
+  <rect x="115" y="144" width="7" height="2" rx="1" fill="#fffce0" opacity="0.85" transform="rotate(-5 115 144)"/>
+  <!-- Thyme dots -->
+  <circle cx="104" cy="136" r="2" fill="#6a9050" opacity="0.8"/>
+  <circle cx="136" cy="134" r="2" fill="#6a9050" opacity="0.8"/>
+  <circle cx="120" cy="128" r="1.5" fill="#6a9050" opacity="0.7"/>
+</svg>
