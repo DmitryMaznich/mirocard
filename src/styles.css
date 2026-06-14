@@ -18945,7 +18945,7 @@ body { background: #eef0ef; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: clamp(10px, 2dvh, 14px) 12px;
+  padding: calc(clamp(10px, 2dvh, 14px) + var(--app-safe-top, 0px)) 12px clamp(10px, 2dvh, 14px);
   border-bottom: 2px solid #e8f5f0;
   background: #fff;
   flex-shrink: 0;
@@ -19133,7 +19133,7 @@ body { background: #eef0ef; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: clamp(10px, 2dvh, 14px) 12px;
+  padding: calc(clamp(10px, 2dvh, 14px) + var(--app-safe-top, 0px)) 12px clamp(10px, 2dvh, 14px);
   border-bottom: 2px solid #e8f5f0;
   background: #fff;
   flex-shrink: 0;
