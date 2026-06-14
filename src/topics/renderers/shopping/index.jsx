@@ -140,12 +140,11 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
   const [sortMode, setSortMode] = useState(false);
   const [pressingTile, setPressingTile] = useState(null);
   const [editingNote, setEditingNote] = useState(null); // { key, value } | null
-  const [undoPlanned, setUndoPlanned] = useState(null);
+  const [confirmClear, setConfirmClear] = useState(false);
   const rawStepsRef = useRef([]);
   const rawIconsRef = useRef([]);
   const longPressTimerRef = useRef(null);
   const didLongPressRef = useRef(false);
-  const undoTimerRef = useRef(null);
 
   function noteFor(key) {
     const v = planned[key];
@@ -153,23 +152,11 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
   }
 
   function clearAll() {
-    setUndoPlanned({ ...planned });
     const next = {};
     setPlanned(next);
     saveShoppingPlan(topicId, next).catch(() => {});
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    undoTimerRef.current = setTimeout(() => setUndoPlanned(null), 4000);
+    setConfirmClear(false);
   }
-
-  function handleUndo() {
-    if (!undoPlanned) return;
-    setPlanned(undoPlanned);
-    saveShoppingPlan(topicId, undoPlanned).catch(() => {});
-    setUndoPlanned(null);
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-  }
-
-  useEffect(() => () => { if (undoTimerRef.current) clearTimeout(undoTimerRef.current); }, []);
 
   function saveNote(key, rawValue) {
     const note = rawValue.trim();
@@ -407,7 +394,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
         <span>{totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}</span>
         <div className="shopping-grid-header-actions">
           {totalPlanned > 0 && (
-            <button className="shopping-clear-btn" onClick={clearAll} aria-label="Очистить список">🗑</button>
+            <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить список">🗑</button>
           )}
           {onExit && (
             <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
@@ -455,10 +442,13 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
           })}
         </div>
       )}
-      {undoPlanned && (
-        <div className="shopping-undo-toast">
-          <span>Список очищен</span>
-          <button className="shopping-undo-btn" onClick={handleUndo}>Отмена</button>
+      {confirmClear && (
+        <div className="shopping-confirm-bar">
+          <span className="shopping-confirm-text">Очистить весь список?</span>
+          <div className="shopping-confirm-actions">
+            <button className="shopping-confirm-cancel" onClick={() => setConfirmClear(false)}>Нет</button>
+            <button className="shopping-confirm-ok" onClick={clearAll}>Да, очистить</button>
+          </div>
         </div>
       )}
       <div className="shopping-actions">
