@@ -74,6 +74,8 @@ const RECIPES = {
   scramble_sausage: "soft creamy scrambled eggs with golden-brown fried sausage rounds on a white plate, fluffy yellow eggs, sausage slightly caramelized, simple home-style breakfast",
   risotto_shrimp:   "creamy shrimp risotto with arborio rice, plump pink shrimp, grated parmesan on top, flecks of fresh thyme, golden buttery sauce, served in a white shallow bowl",
   ravioli:          "fresh pasta ravioli in golden sage butter sauce, sprinkled with grated parmesan, crispy sage leaves as garnish, white plate, Italian-style",
+  breakfast_champion: "creamy white cottage cheese and yogurt dessert bowl, smooth silky texture, topped with fresh strawberries and a drizzle of honey, served in a white ceramic bowl, cozy breakfast table",
+  kislo_zelje:      "Slovenian braised sauerkraut with pieces of smoked meat, golden-brown color, hearty rustic dish, served on a white plate, traditional Slavic comfort food",
 };
 
 // ── Gemini API ────────────────────────────────────────────────────────────────
