@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Bowl shadow -->
+  <ellipse cx="122" cy="186" rx="58" ry="7" fill="#d4b870" opacity="0.22"/>
+  <!-- Bowl body -->
+  <path d="M 58 122 Q 62 184 120 186 Q 178 184 182 122 Z" fill="#f5f0e8" stroke="#ddd0b8" stroke-width="2"/>
+  <!-- Bowl rim -->
+  <ellipse cx="120" cy="122" rx="62" ry="13" fill="#ece8dc" stroke="#ddd0b8" stroke-width="2"/>
+  <!-- Cream filling surface -->
+  <ellipse cx="120" cy="120" rx="54" ry="9" fill="#fffef8"/>
+  <!-- Creamy swirls -->
+  <path d="M 78 118 Q 99 110 120 118 Q 141 126 162 118" fill="none" stroke="#f0eae0" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M 84 123 Q 102 116 120 123 Q 138 130 156 123" fill="none" stroke="#eee8dc" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <!-- Cream texture spots -->
+  <circle cx="98" cy="116" r="4" fill="#f8f0e0" opacity="0.9"/>
+  <circle cx="138" cy="120" r="3.5" fill="#f4ead8" opacity="0.8"/>
+  <circle cx="116" cy="114" r="3" fill="#f8f4ec" opacity="0.85"/>
+  <!-- Sugar sparkles -->
+  <circle cx="105" cy="112" r="1.2" fill="#f8e868" opacity="0.75"/>
+  <circle cx="128" cy="115" r="1" fill="#f8e868" opacity="0.65"/>
+  <circle cx="118" cy="122" r="1.1" fill="#f8e868" opacity="0.6"/>
+  <circle cx="95" cy="120" r="1" fill="#f8e868" opacity="0.55"/>
+  <circle cx="142" cy="117" r="1" fill="#f8e868" opacity="0.6"/>
+  <!-- Whisk handle -->
+  <rect x="155" y="68" width="5" height="40" rx="2.5" fill="#c8b890" transform="rotate(15 157 88)"/>
+  <!-- Whisk wires -->
+  <path d="M 148 106 Q 152 122 156 106" fill="none" stroke="#b8a878" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 145 108 Q 152 126 159 108" fill="none" stroke="#b8a878" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M 144 113 Q 152 128 160 113" fill="none" stroke="#b8a878" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+  <ellipse cx="152" cy="107" rx="9" ry="4" fill="none" stroke="#b8a878" stroke-width="1.5"/>
+</svg>

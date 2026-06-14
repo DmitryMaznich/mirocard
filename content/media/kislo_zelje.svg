@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="182" rx="68" ry="9" fill="#d4b870" opacity="0.25"/>
+  <!-- Plate outer -->
+  <circle cx="120" cy="134" r="72" fill="#fffef8" stroke="#e8dfc0" stroke-width="2.5"/>
+  <circle cx="120" cy="134" r="64" fill="none" stroke="#f5edda" stroke-width="1.5"/>
+  <!-- Cabbage stew base -->
+  <ellipse cx="120" cy="148" rx="52" ry="18" fill="#c8a860" opacity="0.85"/>
+  <!-- Braised cabbage strands -->
+  <path d="M 75 148 Q 90 138 105 145 Q 120 152 135 143 Q 150 135 165 144" fill="none" stroke="#a08040" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 78 154 Q 95 144 112 151 Q 128 158 145 149 Q 158 142 166 150" fill="none" stroke="#b09050" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 82 159 Q 100 149 118 156 Q 136 163 154 154" fill="none" stroke="#908030" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <!-- Cabbage pieces -->
+  <ellipse cx="96" cy="145" rx="12" ry="6" fill="#d4b060" opacity="0.7" transform="rotate(-10 96 145)"/>
+  <ellipse cx="138" cy="142" rx="10" ry="5" fill="#c8a850" opacity="0.65" transform="rotate(8 138 142)"/>
+  <ellipse cx="118" cy="156" rx="11" ry="5" fill="#c0a048" opacity="0.6" transform="rotate(-5 118 156)"/>
+  <!-- Smoked meat pieces -->
+  <ellipse cx="102" cy="152" rx="8" ry="5" fill="#7a5030" opacity="0.85" transform="rotate(-15 102 152)"/>
+  <ellipse cx="140" cy="150" rx="7" ry="4" fill="#8a5838" opacity="0.8" transform="rotate(10 140 150)"/>
+  <!-- Dark braising juices -->
+  <ellipse cx="120" cy="155" rx="44" ry="10" fill="#a07830" opacity="0.28"/>
+  <!-- Caraway seeds -->
+  <ellipse cx="110" cy="144" rx="2" ry="1" fill="#604020" opacity="0.7" transform="rotate(-30 110 144)"/>
+  <ellipse cx="130" cy="151" rx="2" ry="1" fill="#604020" opacity="0.65" transform="rotate(15 130 151)"/>
+  <ellipse cx="122" cy="140" rx="1.5" ry="0.8" fill="#604020" opacity="0.6" transform="rotate(-45 122 140)"/>
+  <!-- Steam -->
+  <path d="M 100 118 Q 96 108 100 98 Q 104 88 100 78" fill="none" stroke="#d8c8a0" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+  <path d="M 120 114 Q 116 104 120 94 Q 124 84 120 74" fill="none" stroke="#d8c8a0" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+  <path d="M 140 118 Q 136 108 140 98 Q 144 88 140 78" fill="none" stroke="#d8c8a0" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+</svg>
