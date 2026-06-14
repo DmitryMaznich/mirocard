@@ -32,7 +32,7 @@ function SlotThumb({ topicId, image }) {
   return <img className="pm-slot__thumb" src={url} alt="" draggable={false} />;
 }
 
-export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
+export default function MatchTask({ task, topicId, onCorrect, onIncorrect }) {
   const { items, images, answerType = "image" } = task;
   const isTextMode = answerType === "text";
 
@@ -42,9 +42,12 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
   const [errorSlot, setErrorSlot]   = useState(null);
   const [done, setDone]             = useState(false);
 
-  const slotRefs     = useRef({});
-  const onCorrectRef = useRef(onCorrect);
-  onCorrectRef.current = onCorrect;
+  const slotRefs      = useRef({});
+  const hadMistake    = useRef(false);
+  const onCorrectRef  = useRef(onCorrect);
+  const onIncorrectRef = useRef(onIncorrect);
+  onCorrectRef.current  = onCorrect;
+  onIncorrectRef.current = onIncorrect;
 
   const placedImageIds = new Set(Object.values(placements));
 
@@ -100,7 +103,7 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
     const isCorrect   = !isDistractor && correctItem && correctItem.id === slotId;
 
     if (!isCorrect) {
-      onMistake(slotId, imageId);
+      hadMistake.current = true;
       setErrorSlot(slotId);
       setTimeout(() => setErrorSlot(null), 500);
       return;
@@ -111,7 +114,13 @@ export default function MatchTask({ task, topicId, onCorrect, onMistake }) {
 
     if (Object.keys(next).length === items.length) {
       setDone(true);
-      setTimeout(() => onCorrectRef.current(null, null), 600);
+      setTimeout(() => {
+        if (hadMistake.current) {
+          onIncorrectRef.current(null, null);
+        } else {
+          onCorrectRef.current(null, null);
+        }
+      }, 600);
     }
   }
 

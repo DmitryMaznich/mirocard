@@ -7,7 +7,7 @@ export default function PhraseMatchRenderer({ task, topicId, onAdvance, onCorrec
         task={task}
         topicId={topicId}
         onCorrect={onCorrect}
-        onMistake={onMistake}
+        onIncorrect={onIncorrect}
       />
     );
   }
