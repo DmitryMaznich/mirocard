@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.102.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.103.0.zip";
-const NEW_VERSION = "1.103.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.103.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.104.0.zip";
+const NEW_VERSION = "1.104.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
