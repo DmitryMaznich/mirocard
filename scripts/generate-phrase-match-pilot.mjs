@@ -158,7 +158,7 @@ const deck = {
           type: "enum",
           label: { ru: "Подсказки" },
           values: ["image", "text"],
-          labels: { ru: ["Картинки", "Текстом"] },
+          labels: { ru: { image: "Картинки", text: "Текстом" } },
           default: "image",
         },
       },
