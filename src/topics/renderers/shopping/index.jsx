@@ -86,7 +86,7 @@ function printShoppingList(allItems, todayStr) {
       listHtml += `<li class="cat">${category}</li>`;
       prevSub = null;
     }
-    if (subgroup && subgroup !== prevSub) {
+    if (subgroup && subgroup !== prevSub && !isDupSubgroup(subgroup, category)) {
       listHtml += `<li class="sub">${subgroup}</li>`;
     }
     listHtml += `<li class="item">&#9744;&nbsp;${item}${note ? ` <em>(${note})</em>` : ""}</li>`;
@@ -143,6 +143,9 @@ li.item em{font-size:10pt;color:#666}
   window.print();
 }
 function planKey(name, ii) { return `${name}_${ii}`; }
+
+function stripEmoji(s) { return s.replace(/^\S+\s+/, "").trim(); }
+function isDupSubgroup(subgroup, categoryName) { return stripEmoji(subgroup) === categoryName; }
 
 async function loadShoppingData(topicId, task) {
   await pullRecipeKvFromServer().catch(() => {});
@@ -329,7 +332,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
           {items.map((item, ii) => {
             const subs = step?.itemSubgroups;
             const subgroup = subs?.[ii] ?? null;
-            const showSub = subgroup && subgroup !== (subs?.[ii - 1] ?? null);
+            const showSub = subgroup && subgroup !== (subs?.[ii - 1] ?? null) && !isDupSubgroup(subgroup, name);
             const key = planKey(name, ii);
             const isPlanned = !!planned[key];
             const note = noteFor(key);
@@ -461,7 +464,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
                   {category && category !== prevCat && (
                     <li className="shopping-preview-category">{category}</li>
                   )}
-                  {subgroup && subgroup !== prevSub && (
+                  {subgroup && subgroup !== prevSub && !isDupSubgroup(subgroup, category) && (
                     <li className="shopping-preview-subgroup">{subgroup}</li>
                   )}
                   <li className="shopping-preview-item">
@@ -692,7 +695,7 @@ function ShopMode({ task, topicId, store, onGoToPlan, onExit }) {
               </li>
               {plannedItems.map(({ item, ii, subgroup }, idx) => {
                 const prevSub = idx > 0 ? plannedItems[idx - 1].subgroup : null;
-                const showSub = subgroup && subgroup !== prevSub;
+                const showSub = subgroup && subgroup !== prevSub && !isDupSubgroup(subgroup, name);
                 const isDone = !!done[planKey(name, ii)];
                 const noteVal = planned[planKey(name, ii)];
                 const note = noteVal && typeof noteVal === "object" ? (noteVal.note ?? "") : "";
