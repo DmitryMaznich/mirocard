@@ -394,6 +394,9 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
         <span>{totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}</span>
         <div className="shopping-grid-header-actions">
           {totalPlanned > 0 && (
+            <button className="shopping-clear-btn" onClick={() => setView("preview")} aria-label="Предпросмотр и печать">🖨</button>
+          )}
+          {totalPlanned > 0 && (
             <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить список">🗑</button>
           )}
           {onExit && (
@@ -458,14 +461,9 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
             <button className="shopping-sort-reset-btn" onClick={resetOrder}>Сбросить порядок</button>
           </>
         ) : totalPlanned > 0 ? (
-          <>
-            <button className="shop-go-btn" onClick={onGoToShop}>
-              → В магазин ({totalPlanned})
-            </button>
-            <button className="shopping-print-btn" onClick={() => setView("preview")}>
-              🖨 Печать
-            </button>
-          </>
+          <button className="shop-go-btn" onClick={onGoToShop}>
+            → В магазин ({totalPlanned})
+          </button>
         ) : (
           <div className="shop-hint">Нажми на категорию, чтобы выбрать продукты</div>
         )}
