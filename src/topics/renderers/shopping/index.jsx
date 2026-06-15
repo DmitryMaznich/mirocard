@@ -9,6 +9,7 @@ import {
   getShoppingOrder, saveShoppingOrder, applyShoppingOrder,
   getShoppingPlan, saveShoppingPlan,
   getShoppingHistory, saveShoppingHistory,
+  getShoppingStores, saveShoppingStores,
 } from "@/core/groupStore";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -37,47 +38,93 @@ function pluralItems(n) {
 
 // ─── Store picker ──────────────────────────────────────────────────────────────
 
-const STORES = ["Mercator", "Spar", "Lidl", "Hofer"];
+const DEFAULT_STORES = ["Меркатор", "Спар", "Лидл", "Хофер"];
 
-function StorePicker({ onSelect, onBack }) {
-  const [customMode, setCustomMode] = useState(false);
-  const [customVal, setCustomVal] = useState("");
+function StorePicker({ storeList, onSelect, onSaveList, onBack }) {
+  const [editingIdx, setEditingIdx] = useState(null);
+  const [editVal, setEditVal] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addVal, setAddVal] = useState("");
+
+  function startEdit(i) { setEditingIdx(i); setEditVal(storeList[i]); }
+  function saveEdit() {
+    if (!editVal.trim()) return;
+    const next = storeList.map((s, i) => (i === editingIdx ? editVal.trim() : s));
+    onSaveList(next);
+    setEditingIdx(null);
+  }
+  function deleteStore(i) { onSaveList(storeList.filter((_, j) => j !== i)); }
+  function saveAdd() {
+    if (!addVal.trim()) return;
+    onSaveList([...storeList, addVal.trim()]);
+    setAddVal(""); setAdding(false);
+  }
+
   return (
-    <div className="session-body reading-body shopping-body shop-center">
-      <div className="store-picker">
-        <div className="store-picker__title">В какой магазин?</div>
-        <div className="store-picker__grid">
-          {STORES.map((s) => (
-            <button key={s} className="store-btn" onClick={() => onSelect(s)}>{s}</button>
-          ))}
-          {customMode ? (
-            <div className="store-custom">
+    <div className="session-body reading-body shopping-body">
+      <div className="store-picker-header">
+        {onBack && (
+          <button className="shopping-back-btn" onClick={onBack} aria-label="Назад">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+            </svg>
+          </button>
+        )}
+        <span className="store-picker-title">В какой магазин?</span>
+      </div>
+
+      <div className="store-picker-list">
+        {storeList.map((s, i) => (
+          editingIdx === i ? (
+            <div key={i} className="store-row store-row--editing">
               <input
-                className="store-custom__input"
+                className="store-edit-input"
                 autoFocus
-                value={customVal}
-                onChange={(e) => setCustomVal(e.target.value)}
-                placeholder="Название магазина"
-                onKeyDown={(e) => e.key === "Enter" && customVal.trim() && onSelect(customVal.trim())}
+                value={editVal}
+                onChange={(e) => setEditVal(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveEdit()}
               />
-              <button
-                className="store-custom__go"
-                disabled={!customVal.trim()}
-                onClick={() => customVal.trim() && onSelect(customVal.trim())}
-              >→</button>
+              <button className="store-edit-ok" onClick={saveEdit} disabled={!editVal.trim()}>✓</button>
+              <button className="store-edit-cancel" onClick={() => setEditingIdx(null)}>✕</button>
             </div>
           ) : (
-            <button className="store-btn store-btn--other" onClick={() => setCustomMode(true)}>Другой…</button>
-          )}
-        </div>
-        <button className="store-skip-btn" onClick={() => onSelect(null)}>Пропустить</button>
-        <button className="shopping-view-btn" style={{ marginTop: 4 }} onClick={onBack}>← Назад</button>
+            <div key={i} className="store-row">
+              <button className="store-row-name" onClick={() => onSelect(s)}>{s}</button>
+              <button className="store-row-edit" onClick={() => startEdit(i)} aria-label="Переименовать">✏️</button>
+              <button className="store-row-delete" onClick={() => deleteStore(i)} aria-label="Удалить">×</button>
+            </div>
+          )
+        ))}
+
+        {adding ? (
+          <div className="store-row store-row--editing">
+            <input
+              className="store-edit-input"
+              autoFocus
+              value={addVal}
+              onChange={(e) => setAddVal(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveAdd()}
+              placeholder="Название магазина"
+            />
+            <button className="store-edit-ok" onClick={saveAdd} disabled={!addVal.trim()}>✓</button>
+            <button className="store-edit-cancel" onClick={() => { setAdding(false); setAddVal(""); }}>✕</button>
+          </div>
+        ) : (
+          <button className="store-add-btn" onClick={() => setAdding(true)}>+ Добавить магазин</button>
+        )}
+      </div>
+
+      <div className="store-picker-footer">
+        <button className="store-skip-btn" onClick={() => onSelect(null)}>Без магазина</button>
       </div>
     </div>
   );
 }
 
-function printShoppingList(allItems, todayStr) {
+function printShoppingList(allItems, todayStr, store) {
   let listHtml = "";
   let prevCat = null;
   let prevSub = null;
@@ -96,8 +143,9 @@ function printShoppingList(allItems, todayStr) {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Список покупок</title><style>
 @page{size:A4;margin:18mm 22mm}
 body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#111}
-h1{font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 4pt}
-.meta{font-size:12pt;color:#444;margin-bottom:2pt}
+h1{font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt}
+.store{font-size:18pt;font-weight:800;color:#1a6a55;margin:0 0 2pt}
+.meta{font-size:11pt;color:#666;margin-bottom:2pt}
 hr{border:none;border-top:1.5pt solid #bbb;margin:8pt 0}
 ul{list-style:none;margin:0;padding:0}
 li.cat{font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top:4pt;border-top:1pt solid #d0eae5}
@@ -118,8 +166,9 @@ li.item em{font-size:10pt;color:#666}
       position: absolute; top: 0; left: 0; width: 100%;
       font-family: Arial, Helvetica, sans-serif; color: #111; padding: 18mm 22mm; box-sizing: border-box; }
     [data-shopping-print-root] * { visibility: visible !important; }
-    [data-shopping-print-root] h1 { font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 4pt }
-    [data-shopping-print-root] .meta { font-size:12pt;color:#444;margin-bottom:2pt }
+    [data-shopping-print-root] h1 { font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt }
+    [data-shopping-print-root] .store { font-size:18pt;font-weight:800;color:#1a6a55;margin:0 0 2pt }
+    [data-shopping-print-root] .meta { font-size:11pt;color:#666;margin-bottom:2pt }
     [data-shopping-print-root] hr { border:none;border-top:1.5pt solid #bbb;margin:8pt 0 }
     [data-shopping-print-root] ul { list-style:none;margin:0;padding:0 }
     [data-shopping-print-root] li.cat { font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top:4pt;border-top:1pt solid #d0eae5 }
@@ -132,7 +181,7 @@ li.item em{font-size:10pt;color:#666}
   const root = document.createElement("div");
   root.setAttribute("data-shopping-print-root", "");
   root.style.display = "none";
-  root.innerHTML = `<h1>Список покупок</h1><div class="meta">${todayStr}</div><hr><ul>${listHtml}</ul>`;
+  root.innerHTML = `<h1>Список покупок</h1>${store ? `<div class="store">${store}</div>` : ""}<div class="meta">${todayStr}</div><hr><ul>${listHtml}</ul>`;
 
   document.head.appendChild(style);
   document.body.appendChild(root);
@@ -191,7 +240,7 @@ function SortablePlanTile({ id, icon, name, count }) {
 // ─── PlanMode ─────────────────────────────────────────────────────────────────
 // Uses the same shopping-* CSS classes as ShoppingListTask in reading renderer.
 
-function PlanMode({ task, topicId, onGoToShop, onExit }) {
+function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
   const [planned, setPlanned] = useState({});
@@ -452,6 +501,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
         </div>
         <div className="shopping-preview-content">
           <div className="shopping-print-header">
+            {store && <div className="shopping-preview-store">{store}</div>}
             <div className="shopping-preview-date">{todayStr}</div>
           </div>
           <div className="shopping-preview-separator" />
@@ -477,7 +527,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
           </ul>
         </div>
         <div className="shopping-actions">
-          <button className="shopping-print-btn" onClick={() => printShoppingList(allItems, todayStr)}>
+          <button className="shopping-print-btn" onClick={() => printShoppingList(allItems, todayStr, store)}>
             🖨 Печать / PDF
           </button>
         </div>
@@ -491,6 +541,9 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
       <div className="shopping-grid-header">
         <span>{totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}</span>
         <div className="shopping-grid-header-actions">
+          <button className="shop-store-chip" onClick={onChangeStore} aria-label="Сменить магазин">
+            {store || "🛒"}
+          </button>
           {history.length > 0 && (
             <button className="shopping-clear-btn" onClick={() => setView("history")} aria-label="История списков">🕐</button>
           )}
@@ -738,15 +791,67 @@ function ShopMode({ task, topicId, store, onGoToPlan, onExit }) {
 // ─── Main renderer ────────────────────────────────────────────────────────────
 
 export default function ShoppingRenderer({ task, topicId, onExit }) {
-  const [modeView, setModeView] = useState("plan"); // "plan" | "storePicker" | "shop"
-  const [store, setStore] = useState(null);
+  const [modeView, setModeView] = useState("loading"); // "loading" | "storePicker" | "plan" | "shop"
+  const [stores, setStores] = useState(null); // { current: string|null, list: string[] }
 
-  function handleGoToShop() { setModeView("storePicker"); }
-  function handleStoreSelect(s) { setStore(s); setModeView("shop"); }
+  useEffect(() => {
+    getShoppingStores(topicId).then((saved) => {
+      const data = saved ?? { current: null, list: [...DEFAULT_STORES] };
+      setStores(data);
+      setModeView(data.current !== null ? "plan" : "storePicker");
+    }).catch(() => {
+      setStores({ current: null, list: [...DEFAULT_STORES] });
+      setModeView("storePicker");
+    });
+  }, [topicId]);
+
+  function persistStores(next) {
+    setStores(next);
+    saveShoppingStores(topicId, next).catch(() => {});
+  }
+
+  function handleStoreSelect(s) {
+    persistStores({ ...stores, current: s });
+    setModeView("plan");
+  }
+
+  function handleSaveList(list) {
+    persistStores({ ...stores, list });
+  }
+
+  function handleChangeStore() { setModeView("storePicker"); }
+  function switchToShop() { setModeView("shop"); }
   function switchToPlan() { setModeView("plan"); }
 
-  if (modeView === "plan") return <PlanMode task={task} topicId={topicId} onGoToShop={handleGoToShop} onExit={onExit} />;
-  if (modeView === "storePicker") return <StorePicker onSelect={handleStoreSelect} onBack={switchToPlan} />;
-  if (modeView === "shop") return <ShopMode task={task} topicId={topicId} store={store} onGoToPlan={switchToPlan} onExit={onExit} />;
+  if (modeView === "loading") return <div className="session-body reading-body shopping-body" />;
+
+  if (modeView === "storePicker") return (
+    <StorePicker
+      storeList={stores?.list ?? DEFAULT_STORES}
+      onSelect={handleStoreSelect}
+      onSaveList={handleSaveList}
+      onBack={stores?.current !== null ? switchToPlan : null}
+    />
+  );
+
+  if (modeView === "plan") return (
+    <PlanMode
+      task={task} topicId={topicId}
+      store={stores?.current}
+      onGoToShop={switchToShop}
+      onChangeStore={handleChangeStore}
+      onExit={onExit}
+    />
+  );
+
+  if (modeView === "shop") return (
+    <ShopMode
+      task={task} topicId={topicId}
+      store={stores?.current}
+      onGoToPlan={switchToPlan}
+      onExit={onExit}
+    />
+  );
+
   return null;
 }
