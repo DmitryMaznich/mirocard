@@ -154,6 +154,21 @@ export async function saveShoppingPlan(topicId, plan) {
   pushOp("kv.upsert", { key, value: plan }).catch(() => {});
 }
 
+// ─── Shopping history (last 5 completed lists) ───────────────────────────────
+
+const shoppingHistoryKey = (topicId) => `shopping_history_${topicId}`;
+
+export async function getShoppingHistory(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, shoppingHistoryKey(topicId))) ?? [];
+}
+
+export async function saveShoppingHistory(topicId, history) {
+  const db = await getDb();
+  const key = shoppingHistoryKey(topicId);
+  await kv.set(db, key, history);
+}
+
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {

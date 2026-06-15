@@ -8,6 +8,7 @@ import {
   getRawRecipeTxt, pullRecipeKvFromServer,
   getShoppingOrder, saveShoppingOrder, applyShoppingOrder,
   getShoppingPlan, saveShoppingPlan,
+  getShoppingHistory, saveShoppingHistory,
 } from "@/core/groupStore";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -19,6 +20,61 @@ const RU_MONTHS = ["января","февраля","марта","апреля","
 function formatTodayRu() {
   const d = new Date();
   return `${d.getDate()} ${RU_MONTHS[d.getMonth()]}, ${RU_DAYS[d.getDay()]}`;
+}
+
+function formatHistoryDate(d) {
+  return `${d.getDate()} ${RU_MONTHS[d.getMonth()]} • ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function pluralItems(n) {
+  const abs = Math.abs(n) % 100;
+  const m = abs % 10;
+  if (abs >= 11 && abs <= 19) return "товаров";
+  if (m === 1) return "товар";
+  if (m >= 2 && m <= 4) return "товара";
+  return "товаров";
+}
+
+// ─── Store picker ──────────────────────────────────────────────────────────────
+
+const STORES = ["Mercator", "Spar", "Lidl", "Hofer"];
+
+function StorePicker({ onSelect, onBack }) {
+  const [customMode, setCustomMode] = useState(false);
+  const [customVal, setCustomVal] = useState("");
+  return (
+    <div className="session-body reading-body shopping-body shop-center">
+      <div className="store-picker">
+        <div className="store-picker__title">В какой магазин?</div>
+        <div className="store-picker__grid">
+          {STORES.map((s) => (
+            <button key={s} className="store-btn" onClick={() => onSelect(s)}>{s}</button>
+          ))}
+          {customMode ? (
+            <div className="store-custom">
+              <input
+                className="store-custom__input"
+                autoFocus
+                value={customVal}
+                onChange={(e) => setCustomVal(e.target.value)}
+                placeholder="Название магазина"
+                onKeyDown={(e) => e.key === "Enter" && customVal.trim() && onSelect(customVal.trim())}
+              />
+              <button
+                className="store-custom__go"
+                disabled={!customVal.trim()}
+                onClick={() => customVal.trim() && onSelect(customVal.trim())}
+              >→</button>
+            </div>
+          ) : (
+            <button className="store-btn store-btn--other" onClick={() => setCustomMode(true)}>Другой…</button>
+          )}
+        </div>
+        <button className="store-skip-btn" onClick={() => onSelect(null)}>Пропустить</button>
+        <button className="shopping-view-btn" style={{ marginTop: 4 }} onClick={onBack}>← Назад</button>
+      </div>
+    </div>
+  );
 }
 
 function printShoppingList(allItems, todayStr) {
@@ -136,7 +192,8 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
   const [planned, setPlanned] = useState({});
-  const [view, setView] = useState("grid"); // "grid" | number
+  const [history, setHistory] = useState([]);
+  const [view, setView] = useState("grid"); // "grid" | "history" | "preview" | number
   const [sortMode, setSortMode] = useState(false);
   const [pressingTile, setPressingTile] = useState(null);
   const [editingNote, setEditingNote] = useState(null); // { key, value } | null
@@ -182,6 +239,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
       setCategoryIcons(categoryIcons);
       setPlanned(savedPlan);
     });
+    getShoppingHistory(topicId).then(setHistory).catch(() => {});
   }, [topicId, task.text?.id, task.text?.file]);
 
   function toggleItem(step, ii) {
@@ -321,6 +379,43 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
     );
   }
 
+  // ── History view ───────────────────────────────────────────────────────────
+  if (view === "history") {
+    return (
+      <div className="session-body reading-body shopping-body">
+        <div className="shopping-detail-header">
+          <button className="shopping-back-btn" onClick={() => setView("grid")} aria-label="К категориям">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+              <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+              <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+            </svg>
+          </button>
+          <span className="shopping-detail-title">История списков</span>
+        </div>
+        <div className="shop-history-list">
+          {history.length === 0 ? (
+            <div className="shop-history-empty">История пока пуста</div>
+          ) : history.map((entry) => (
+            <div key={entry.id} className="shop-history-entry">
+              <div className="shop-history-meta">
+                <span className="shop-history-date">{entry.date}</span>
+                {entry.store && <span className="shop-history-store">{entry.store}</span>}
+                <span className="shop-history-count">{entry.count} {pluralItems(entry.count)}</span>
+              </div>
+              <button className="shop-history-restore" onClick={() => {
+                setPlanned(entry.plan);
+                saveShoppingPlan(topicId, entry.plan).catch(() => {});
+                setView("grid");
+              }}>Открыть</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // ── Preview / print view ──────────────────────────────────────────────────
   if (view === "preview") {
     const todayStr = formatTodayRu();
@@ -393,6 +488,9 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
       <div className="shopping-grid-header">
         <span>{totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}</span>
         <div className="shopping-grid-header-actions">
+          {history.length > 0 && (
+            <button className="shopping-clear-btn" onClick={() => setView("history")} aria-label="История списков">🕐</button>
+          )}
           {totalPlanned > 0 && (
             <button className="shopping-clear-btn" onClick={() => setView("preview")} aria-label="Предпросмотр и печать">🖨</button>
           )}
@@ -474,7 +572,7 @@ function PlanMode({ task, topicId, onGoToShop, onExit }) {
 
 // ─── ShopMode ─────────────────────────────────────────────────────────────────
 
-function ShopMode({ task, topicId, onGoToPlan, onExit }) {
+function ShopMode({ task, topicId, store, onGoToPlan, onExit }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
   const [planned, setPlanned] = useState({});
@@ -509,10 +607,25 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
     sum + plannedItems.filter(({ ii }) => done[planKey(name, ii)]).length, 0);
   const allDone = totalPlanned > 0 && totalDone === totalPlanned;
 
-  function clearPlan() {
+  async function clearPlanAndGo() {
+    if (Object.keys(planned).length > 0) {
+      const now = new Date();
+      const entry = {
+        id: now.getTime(),
+        date: formatHistoryDate(now),
+        store: store ?? null,
+        plan: { ...planned },
+        count: Object.keys(planned).length,
+      };
+      try {
+        const hist = await getShoppingHistory(topicId);
+        await saveShoppingHistory(topicId, [entry, ...hist].slice(0, 5));
+      } catch {}
+    }
     saveShoppingPlan(topicId, {}).catch(() => {});
     setPlanned({});
     setDone({});
+    onGoToPlan();
   }
 
   if (!isLoaded) return <div className="session-body reading-body shopping-body" />;
@@ -540,11 +653,11 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
         <div className="shop-state">
           <div className="shop-state__icon">🎉</div>
           <div className="shop-state__title">Всё куплено!</div>
-          <div className="shop-state__hint">{totalPlanned} продуктов</div>
+          <div className="shop-state__hint">{totalPlanned} продуктов{store ? ` • ${store}` : ""}</div>
           <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onGoToPlan}>
             ← К списку
           </button>
-          <button className="shopping-view-btn" style={{ marginTop: 8, background: "#4caf90" }} onClick={() => { clearPlan(); onGoToPlan(); }}>
+          <button className="shopping-view-btn" style={{ marginTop: 8, background: "#4caf90" }} onClick={clearPlanAndGo}>
             Начать новый список
           </button>
         </div>
@@ -561,6 +674,7 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
           <div className="shop-progress__fill" style={{ width: `${progress}%` }} />
         </div>
         <span className="shop-progress__label">{totalDone} / {totalPlanned}</span>
+        {store && <span className="shop-store-label">{store}</span>}
         {onExit && (
           <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
         )}
@@ -610,7 +724,7 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
         <button className="shopping-view-btn" onClick={onGoToPlan}>
           ← К списку
         </button>
-        <button className="shopping-close-btn" onClick={() => { clearPlan(); onGoToPlan(); }}>
+        <button className="shopping-close-btn" onClick={clearPlanAndGo}>
           Новый список
         </button>
       </div>
@@ -621,12 +735,15 @@ function ShopMode({ task, topicId, onGoToPlan, onExit }) {
 // ─── Main renderer ────────────────────────────────────────────────────────────
 
 export default function ShoppingRenderer({ task, topicId, onExit }) {
-  const [modeView, setModeView] = useState("plan");
+  const [modeView, setModeView] = useState("plan"); // "plan" | "storePicker" | "shop"
+  const [store, setStore] = useState(null);
 
-  function switchToShop() { setModeView("shop"); }
+  function handleGoToShop() { setModeView("storePicker"); }
+  function handleStoreSelect(s) { setStore(s); setModeView("shop"); }
   function switchToPlan() { setModeView("plan"); }
 
-  if (modeView === "plan") return <PlanMode task={task} topicId={topicId} onGoToShop={switchToShop} onExit={onExit} />;
-  if (modeView === "shop") return <ShopMode task={task} topicId={topicId} onGoToPlan={switchToPlan} onExit={onExit} />;
+  if (modeView === "plan") return <PlanMode task={task} topicId={topicId} onGoToShop={handleGoToShop} onExit={onExit} />;
+  if (modeView === "storePicker") return <StorePicker onSelect={handleStoreSelect} onBack={switchToPlan} />;
+  if (modeView === "shop") return <ShopMode task={task} topicId={topicId} store={store} onGoToPlan={switchToPlan} onExit={onExit} />;
   return null;
 }
