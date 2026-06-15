@@ -1,9 +1,16 @@
 import { useState, useRef } from "react";
 import "./phrase_match.css";
 
-function GhostText({ text, x, y, width, height }) {
+// 3 color keys assigned by position in the shuffled answers array
+const COLOR_KEYS = ["blue", "amber", "purple"];
+
+function GhostText({ text, x, y, width, height, colorKey }) {
   return (
-    <div className="pm-ghost" style={{ left: x, top: y, width, height }}>
+    <div
+      className="pm-ghost"
+      data-color={colorKey}
+      style={{ left: x, top: y, width, height }}
+    >
       {text}
     </div>
   );
@@ -24,6 +31,11 @@ export default function MatchTask({ task, onCorrect, onIncorrect }) {
   onCorrectRef.current  = onCorrect;
   onIncorrectRef.current = onIncorrect;
 
+  // Map answerId → color key based on position in shuffled answers array
+  const colorMap = Object.fromEntries(
+    answers.map((a, i) => [a.id, COLOR_KEYS[i % COLOR_KEYS.length]])
+  );
+
   const placedIds = new Set(Object.values(placements));
 
   function getSlotAt(x, y) {
@@ -43,6 +55,7 @@ export default function MatchTask({ task, onCorrect, onIncorrect }) {
     setDragging({
       answerId: answer.id,
       text:     answer.text,
+      colorKey: colorMap[answer.id],
       x:        rect.left,
       y:        rect.top,
       offsetX:  e.clientX - rect.left,
@@ -113,19 +126,23 @@ export default function MatchTask({ task, onCorrect, onIncorrect }) {
       style={{ touchAction: "none" }}
     >
       <div className="pm-phrases">
-        {items.map((item, idx) => (
-          <div
-            key={item.id}
-            ref={el => { slotRefs.current[item.id] = el; }}
-            className={slotClass(item.id)}
-          >
-            <span className="pm-slot__num">{idx + 1}</span>
-            {placements[item.id]
-              ? <span className="pm-slot__answer">{matchedText(item.id)}</span>
-              : item.phrase
-            }
-          </div>
-        ))}
+        {items.map((item, idx) => {
+          const placedAnswerId = placements[item.id];
+          return (
+            <div
+              key={item.id}
+              ref={el => { slotRefs.current[item.id] = el; }}
+              className={slotClass(item.id)}
+              data-color={placedAnswerId ? colorMap[placedAnswerId] : undefined}
+            >
+              <span className="pm-slot__num">{idx + 1}</span>
+              {placedAnswerId
+                ? <span className="pm-slot__answer">{matchedText(item.id)}</span>
+                : item.phrase
+              }
+            </div>
+          );
+        })}
       </div>
 
       <div className="pm-pool">
@@ -137,6 +154,7 @@ export default function MatchTask({ task, onCorrect, onIncorrect }) {
               dragging?.answerId === answer.id ? "pm-answer-card--dragging" : "",
               placedIds.has(answer.id)          ? "pm-answer-card--placed"   : "",
             ].filter(Boolean).join(" ")}
+            data-color={colorMap[answer.id]}
             onPointerDown={e => handlePointerDown(e, answer)}
           >
             {answer.text}
@@ -147,6 +165,7 @@ export default function MatchTask({ task, onCorrect, onIncorrect }) {
       {dragging && (
         <GhostText
           text={dragging.text}
+          colorKey={dragging.colorKey}
           x={dragging.x}
           y={dragging.y}
           width={dragging.width}

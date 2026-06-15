@@ -115,6 +115,41 @@
   align-items: center;
 }
 
+/* ── Answer card colors ──────────────────────────────── */
+.pm-answer-card[data-color="blue"] {
+  background: #e3f2fd;
+  color: #1565c0;
+  box-shadow: 0 2px 8px rgba(21,101,192,0.12), 0 0 0 1px rgba(21,101,192,0.1);
+}
+.pm-answer-card[data-color="amber"] {
+  background: #fff8e1;
+  color: #bf360c;
+  box-shadow: 0 2px 8px rgba(191,54,12,0.1), 0 0 0 1px rgba(191,54,12,0.08);
+}
+.pm-answer-card[data-color="purple"] {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  box-shadow: 0 2px 8px rgba(106,27,154,0.12), 0 0 0 1px rgba(106,27,154,0.08);
+}
+
+/* ── Matched slot inherits card color ────────────────── */
+.pm-slot--matched[data-color="blue"]   { border-color: #90caf9; background: #e8f4fd; box-shadow: 0 0 0 2px rgba(21,101,192,0.15), 0 1px 4px rgba(0,0,0,0.04); }
+.pm-slot--matched[data-color="amber"]  { border-color: #ffcc80; background: #fff9e6; box-shadow: 0 0 0 2px rgba(191,54,12,0.12),  0 1px 4px rgba(0,0,0,0.04); }
+.pm-slot--matched[data-color="purple"] { border-color: #ce93d8; background: #f5eaf7; box-shadow: 0 0 0 2px rgba(106,27,154,0.12), 0 1px 4px rgba(0,0,0,0.04); }
+
+.pm-slot--matched[data-color="blue"]   .pm-slot__num { background: #bbdefb; color: #1565c0; }
+.pm-slot--matched[data-color="amber"]  .pm-slot__num { background: #ffe0b2; color: #bf360c; }
+.pm-slot--matched[data-color="purple"] .pm-slot__num { background: #e1bee7; color: #6a1b9a; }
+
+.pm-slot--matched[data-color="blue"]   .pm-slot__answer { color: #1565c0; }
+.pm-slot--matched[data-color="amber"]  .pm-slot__answer { color: #bf360c; }
+.pm-slot--matched[data-color="purple"] .pm-slot__answer { color: #6a1b9a; }
+
+/* ── Ghost colors ────────────────────────────────────── */
+.pm-ghost[data-color="blue"]   { background: #e3f2fd; color: #1565c0; box-shadow: 0 12px 32px rgba(21,101,192,0.2),  0 0 0 2px #90caf9; }
+.pm-ghost[data-color="amber"]  { background: #fff8e1; color: #bf360c; box-shadow: 0 12px 32px rgba(191,54,12,0.18),  0 0 0 2px #ffcc80; }
+.pm-ghost[data-color="purple"] { background: #f3e5f5; color: #6a1b9a; box-shadow: 0 12px 32px rgba(106,27,154,0.18), 0 0 0 2px #ce93d8; }
+
 /* ── Done overlay ────────────────────────────────────── */
 .pm-done {
   display: flex;
