@@ -189,36 +189,38 @@
   }
 }
 
-/* ── Landscape phone: compact ────────────────────────── */
-@media (orientation: landscape) and (max-height: 500px) {
+/* ── Landscape: questions left, answers right, full width ── */
+@media (orientation: landscape) {
   .pm-root {
     flex-direction: row;
-    gap: 10px;
+    max-width: 100%;
+    gap: 24px;
+    padding: 12px 24px;
+    align-items: center;
   }
   .pm-phrases {
     display: flex;
     flex-direction: column;
     flex: 1;
     min-width: 0;
-    gap: 6px;
+    gap: 8px;
   }
   .pm-slot {
-    min-height: 46px;
-    padding: 7px 12px;
-    font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+    min-height: 48px;
+    padding: 8px 14px;
+    font-size: clamp(0.82rem, 2vw, 1rem);
     border-radius: 12px;
   }
   .pm-slot__num { width: 22px; height: 22px; font-size: 0.7rem; }
   .pm-pool {
     display: flex;
     flex-direction: column;
-    width: clamp(140px, 36vw, 200px);
-    flex-shrink: 0;
-    align-self: center;
-    gap: 6px;
+    flex: 0 0 36%;
+    margin-top: 0;
+    gap: 8px;
   }
   .pm-answer-card {
-    padding: 8px 12px;
-    font-size: 0.82rem;
+    padding: 10px 14px;
+    font-size: clamp(0.82rem, 1.8vw, 1rem);
   }
 }
