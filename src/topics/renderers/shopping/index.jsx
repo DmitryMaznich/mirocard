@@ -143,8 +143,7 @@ function printShoppingList(allItems, todayStr, store) {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Список покупок</title><style>
 @page{size:A4;margin:18mm 22mm}
 body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#111}
-h1{font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt}
-.store{font-size:18pt;font-weight:800;color:#1a6a55;margin:0 0 2pt}
+h1{font-size:20pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt;line-height:1.2}
 .meta{font-size:11pt;color:#666;margin-bottom:2pt}
 hr{border:none;border-top:1.5pt solid #bbb;margin:8pt 0}
 ul{list-style:none;margin:0;padding:0}
@@ -166,8 +165,7 @@ li.item em{font-size:10pt;color:#666}
       position: absolute; top: 0; left: 0; width: 100%;
       font-family: Arial, Helvetica, sans-serif; color: #111; padding: 18mm 22mm; box-sizing: border-box; }
     [data-shopping-print-root] * { visibility: visible !important; }
-    [data-shopping-print-root] h1 { font-size:22pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt }
-    [data-shopping-print-root] .store { font-size:18pt;font-weight:800;color:#1a6a55;margin:0 0 2pt }
+    [data-shopping-print-root] h1 { font-size:20pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt;line-height:1.2 }
     [data-shopping-print-root] .meta { font-size:11pt;color:#666;margin-bottom:2pt }
     [data-shopping-print-root] hr { border:none;border-top:1.5pt solid #bbb;margin:8pt 0 }
     [data-shopping-print-root] ul { list-style:none;margin:0;padding:0 }
@@ -181,7 +179,8 @@ li.item em{font-size:10pt;color:#666}
   const root = document.createElement("div");
   root.setAttribute("data-shopping-print-root", "");
   root.style.display = "none";
-  root.innerHTML = `<h1>Список покупок</h1>${store ? `<div class="store">${store}</div>` : ""}<div class="meta">${todayStr}</div><hr><ul>${listHtml}</ul>`;
+  const title = store ? `Список покупок для похода в ${store}` : "Список покупок";
+  root.innerHTML = `<h1>${title}</h1><div class="meta">${todayStr}</div><hr><ul>${listHtml}</ul>`;
 
   document.head.appendChild(style);
   document.body.appendChild(root);
@@ -501,7 +500,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
         </div>
         <div className="shopping-preview-content">
           <div className="shopping-print-header">
-            {store && <div className="shopping-preview-store">{store}</div>}
+            {store && <div className="shopping-preview-store">для похода в {store}</div>}
             <div className="shopping-preview-date">{todayStr}</div>
           </div>
           <div className="shopping-preview-separator" />
