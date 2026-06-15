@@ -1,19 +1,27 @@
-/* ── Root: vertical column ───────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   Adaptive font token.
+   Portrait : 6 cards (3+3) stack vertically — height-limited.
+              font = (96dvh - 236px) / 11.7  (capped at 2.5rem)
+   Landscape: 3 cards per column — min(height, column-width).
+              font = min( (100dvh-96px)/5.85, (38vw-40px)/11 )
+   ───────────────────────────────────────────────────────── */
 .pm-root {
+  --pm-font: clamp(0.9rem, calc((96dvh - 236px) / 11.7), 2.5rem);
+
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 14px 16px;
   width: 100%;
   height: 100%;
-  max-width: 580px;
+  max-width: 600px;
   margin: 0 auto;
   box-sizing: border-box;
   user-select: none;
   justify-content: center;
 }
 
-/* ── Questions (top) ─────────────────────────────────── */
+/* ── Questions ───────────────────────────────────────────── */
 .pm-phrases {
   display: flex;
   flex-direction: column;
@@ -23,13 +31,12 @@
 .pm-slot {
   display: flex;
   align-items: center;
-  min-height: clamp(72px, 14vw, 96px);
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-radius: 16px;
   background: #fff;
   border: 1.5px solid #ebebeb;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  font-size: clamp(1.9rem, 6.4vw, 2.3rem);
+  font-size: var(--pm-font);
   font-weight: 700;
   color: #333;
   line-height: 1.3;
@@ -38,12 +45,14 @@
 }
 
 .pm-slot__num {
-  width: clamp(34px, 6vw, 42px);
-  height: clamp(34px, 6vw, 42px);
+  width:  calc(var(--pm-font) * 1.4);
+  height: calc(var(--pm-font) * 1.4);
+  min-width:  28px;
+  min-height: 28px;
   border-radius: 50%;
   background: #f2f2f2;
   color: #999;
-  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  font-size: calc(var(--pm-font) * 0.55);
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -66,29 +75,29 @@
 }
 
 .pm-slot__answer {
-  font-size: clamp(1.7rem, 5.6vw, 2.1rem);
+  font-size: calc(var(--pm-font) * 0.92);
   font-weight: 600;
   color: #2e7d32;
   line-height: 1.3;
 }
 
-/* ── Answer pool (bottom) ────────────────────────────── */
+/* ── Answer pool ─────────────────────────────────────────── */
 .pm-pool {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 60px;
+  margin-top: clamp(16px, 5dvh, 60px);
 }
 
 .pm-answer-card {
   width: 100%;
-  padding: clamp(14px, 3vw, 20px) clamp(16px, 3.5vw, 24px);
+  padding: calc(var(--pm-font) * 0.45) calc(var(--pm-font) * 0.55);
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(0, 0, 0, 0.04);
   cursor: grab;
   touch-action: none;
-  font-size: clamp(1.8rem, 5.6vw, 2.1rem);
+  font-size: var(--pm-font);
   font-weight: 600;
   color: #333;
   line-height: 1.35;
@@ -98,17 +107,17 @@
 .pm-answer-card--dragging { opacity: 0.2; }
 .pm-answer-card--placed   { opacity: 0; transform: scale(0.9); pointer-events: none; }
 
-/* ── Ghost ───────────────────────────────────────────── */
+/* ── Ghost ───────────────────────────────────────────────── */
 .pm-ghost {
   position: fixed;
   pointer-events: none;
   z-index: 1000;
   border-radius: 14px;
-  padding: clamp(14px, 3vw, 20px) clamp(16px, 3.5vw, 24px);
+  padding: calc(var(--pm-font) * 0.45) calc(var(--pm-font) * 0.55);
   background: #fff;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 0 0 2px #42a5f5;
   transform: scale(1.04) rotate(1deg);
-  font-size: clamp(1.8rem, 5.6vw, 2.1rem);
+  font-size: var(--pm-font);
   font-weight: 600;
   color: #333;
   line-height: 1.35;
@@ -116,27 +125,15 @@
   align-items: center;
 }
 
-/* ── Answer card colors ──────────────────────────────── */
-.pm-answer-card[data-color="blue"] {
-  background: #e3f2fd;
-  color: #1565c0;
-  box-shadow: 0 2px 8px rgba(21,101,192,0.12), 0 0 0 1px rgba(21,101,192,0.1);
-}
-.pm-answer-card[data-color="amber"] {
-  background: #fff8e1;
-  color: #bf360c;
-  box-shadow: 0 2px 8px rgba(191,54,12,0.1), 0 0 0 1px rgba(191,54,12,0.08);
-}
-.pm-answer-card[data-color="purple"] {
-  background: #f3e5f5;
-  color: #6a1b9a;
-  box-shadow: 0 2px 8px rgba(106,27,154,0.12), 0 0 0 1px rgba(106,27,154,0.08);
-}
+/* ── Answer card colors ──────────────────────────────────── */
+.pm-answer-card[data-color="blue"]   { background: #e3f2fd; color: #1565c0; box-shadow: 0 2px 8px rgba(21,101,192,0.12),  0 0 0 1px rgba(21,101,192,0.1); }
+.pm-answer-card[data-color="amber"]  { background: #fff8e1; color: #bf360c; box-shadow: 0 2px 8px rgba(191,54,12,0.1),    0 0 0 1px rgba(191,54,12,0.08); }
+.pm-answer-card[data-color="purple"] { background: #f3e5f5; color: #6a1b9a; box-shadow: 0 2px 8px rgba(106,27,154,0.12),  0 0 0 1px rgba(106,27,154,0.08); }
 
-/* ── Matched slot inherits card color ────────────────── */
-.pm-slot--matched[data-color="blue"]   { border-color: #90caf9; background: #e8f4fd; box-shadow: 0 0 0 2px rgba(21,101,192,0.15), 0 1px 4px rgba(0,0,0,0.04); }
-.pm-slot--matched[data-color="amber"]  { border-color: #ffcc80; background: #fff9e6; box-shadow: 0 0 0 2px rgba(191,54,12,0.12),  0 1px 4px rgba(0,0,0,0.04); }
-.pm-slot--matched[data-color="purple"] { border-color: #ce93d8; background: #f5eaf7; box-shadow: 0 0 0 2px rgba(106,27,154,0.12), 0 1px 4px rgba(0,0,0,0.04); }
+/* ── Matched slot inherits card color ────────────────────── */
+.pm-slot--matched[data-color="blue"]   { border-color: #90caf9; background: #e8f4fd; box-shadow: 0 0 0 2px rgba(21,101,192,0.15),  0 1px 4px rgba(0,0,0,0.04); }
+.pm-slot--matched[data-color="amber"]  { border-color: #ffcc80; background: #fff9e6; box-shadow: 0 0 0 2px rgba(191,54,12,0.12),   0 1px 4px rgba(0,0,0,0.04); }
+.pm-slot--matched[data-color="purple"] { border-color: #ce93d8; background: #f5eaf7; box-shadow: 0 0 0 2px rgba(106,27,154,0.12),  0 1px 4px rgba(0,0,0,0.04); }
 
 .pm-slot--matched[data-color="blue"]   .pm-slot__num { background: #bbdefb; color: #1565c0; }
 .pm-slot--matched[data-color="amber"]  .pm-slot__num { background: #ffe0b2; color: #bf360c; }
@@ -146,12 +143,12 @@
 .pm-slot--matched[data-color="amber"]  .pm-slot__answer { color: #bf360c; }
 .pm-slot--matched[data-color="purple"] .pm-slot__answer { color: #6a1b9a; }
 
-/* ── Ghost colors ────────────────────────────────────── */
+/* ── Ghost colors ────────────────────────────────────────── */
 .pm-ghost[data-color="blue"]   { background: #e3f2fd; color: #1565c0; box-shadow: 0 12px 32px rgba(21,101,192,0.2),  0 0 0 2px #90caf9; }
 .pm-ghost[data-color="amber"]  { background: #fff8e1; color: #bf360c; box-shadow: 0 12px 32px rgba(191,54,12,0.18),  0 0 0 2px #ffcc80; }
 .pm-ghost[data-color="purple"] { background: #f3e5f5; color: #6a1b9a; box-shadow: 0 12px 32px rgba(106,27,154,0.18), 0 0 0 2px #ce93d8; }
 
-/* ── Done overlay ────────────────────────────────────── */
+/* ── Done overlay ────────────────────────────────────────── */
 .pm-done {
   display: flex;
   flex-direction: column;
@@ -173,25 +170,15 @@
   cursor: pointer;
 }
 
-/* ── Tablet: 2-col questions ─────────────────────────── */
-@media (min-width: 560px) {
-  .pm-phrases {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .pm-phrases > :last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-  }
-  .pm-pool {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-}
-
-/* ── Landscape: questions left, answers right, full width ── */
+/* ── Landscape: full-width split, questions left / answers right ── */
 @media (orientation: landscape) {
   .pm-root {
+    /* height-limited by 3 stacked cards; also width-limited by answer column */
+    --pm-font: clamp(0.9rem, min(
+      calc((100dvh - 96px) / 5.85),
+      calc((38vw - 40px) / 11)
+    ), 2.2rem);
+
     flex-direction: row;
     max-width: 100%;
     gap: 24px;
@@ -205,27 +192,11 @@
     min-width: 0;
     gap: 8px;
   }
-  .pm-slot {
-    min-height: clamp(56px, 10vh, 80px);
-    padding: 10px 16px;
-    font-size: clamp(1.4rem, 3.2vw, 2rem);
-    border-radius: 12px;
-  }
-  .pm-slot__num {
-    width: clamp(28px, 4vw, 38px);
-    height: clamp(28px, 4vw, 38px);
-    font-size: clamp(0.8rem, 1.4vw, 1.1rem);
-  }
-  .pm-slot__answer { font-size: clamp(1.3rem, 3vw, 1.9rem); }
   .pm-pool {
     display: flex;
     flex-direction: column;
     flex: 0 0 38%;
     margin-top: 0;
     gap: 8px;
-  }
-  .pm-answer-card {
-    padding: 10px 16px;
-    font-size: clamp(1.4rem, 3vw, 2rem);
   }
 }
