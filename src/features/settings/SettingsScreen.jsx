@@ -36,7 +36,8 @@ export default function SettingsScreen() {
   const settings         = useAppStore((s) => s.settings);
   const patchSettings    = useAppStore((s) => s.patchSettings);
 
-  const adultPinHash     = settings.adultPinHash ?? null;
+  const adultPinHash      = settings.adultPinHash ?? null;
+  const physicalKeyboard  = settings.physicalKeyboard ?? false;
   const [pinResetMode, setPinResetMode] = useState(null); // null | "verify-old" | "set-new"
 
   const adultConfirmAdvance = settings.adultConfirmAdvance ?? true;
@@ -213,6 +214,23 @@ export default function SettingsScreen() {
             <button className="link-btn" onClick={startPinReset}>
               {adultPinHash ? "Изменить PIN" : "Задать PIN"}
             </button>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-title">Управление</div>
+          <div
+            className="settings-row"
+            style={{ cursor: "pointer" }}
+            onClick={() => handlePatchSettings({ physicalKeyboard: !physicalKeyboard })}
+          >
+            <span className="settings-row__label">Физическая клавиатура</span>
+            <input
+              type="checkbox"
+              checked={physicalKeyboard}
+              readOnly
+              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
+            />
           </div>
         </div>
 

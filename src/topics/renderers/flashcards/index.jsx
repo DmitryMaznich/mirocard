@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { getTopicTitle } from "@/shared/utils/format";
 
@@ -67,7 +68,7 @@ const KEY_MAP = { "1": "fail", "2": "prompted", "3": "correct", "4": "easy" };
 function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
   const audioPath       = getTaskAudioPath(task);
   const prefixAudioPath = mode?.answerPrefixAudio ?? null;
-  const useKeyboard     = Boolean(sessionParams?.useKeyboard);
+  const useKeyboard     = useAppStore((s) => s.settings.physicalKeyboard ?? false);
   const [revealed,      setRevealed] = useState(false);
 
   useEffect(() => {

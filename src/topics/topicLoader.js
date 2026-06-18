@@ -179,14 +179,7 @@ function sortModes(modes) {
   });
 }
 
-const QA_PARAMS = {
-  useKeyboard: {
-    type: "boolean",
-    label: { ru: "Использовать клавиатуру" },
-    hint:  { ru: "1 — Не ответил  2 — С подсказкой  3 — Правильно  4 — Легко!" },
-    default: false,
-  },
-};
+const QA_PARAMS = {};
 
 
 const DEFAULT_TOPIC_ABOUT = {
