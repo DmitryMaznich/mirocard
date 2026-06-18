@@ -145,7 +145,7 @@ export function useSessionEngine() {
   const isReading = topicRecord?.meta.renderer === "reading";
   const selectedConceptIds = isReading
     ? (activeTextId ? [activeTextId] : [])
-    : link.selectedConceptIds
+    : (link.selectedConceptIds?.length ? link.selectedConceptIds : null)
       ?? topicRecord?.cards.filter((c) => c.primary).map((c) => c.conceptId)
       ?? [];
   const sessionParams = link.params ?? {};

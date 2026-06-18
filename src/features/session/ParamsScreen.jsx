@@ -432,7 +432,7 @@ export default function ParamsScreen() {
   }
 
   const allConcepts        = deriveConcepts(topicRecord.cards);
-  const selectedConceptIds = link.selectedConceptIds ?? allConcepts.map((c) => c.conceptId);
+  const selectedConceptIds = link.selectedConceptIds?.length ? link.selectedConceptIds : allConcepts.map((c) => c.conceptId);
   const modeTitle          = getModeTitle(mode);
   const modeInstruction    = getModeInstruction(mode);
   const modeGoal           = getModeGoal(mode);
