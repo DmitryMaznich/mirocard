@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+
+  <!-- Board shadow -->
+  <rect x="30" y="112" width="182" height="72" rx="12" fill="#a07840" opacity="0.2"/>
+
+  <!-- Wooden board -->
+  <rect x="28" y="104" width="184" height="72" rx="12" fill="#d4a96a"/>
+  <rect x="28" y="104" width="184" height="72" rx="12" fill="none" stroke="#b8885a" stroke-width="2"/>
+
+  <!-- Wood grain -->
+  <path d="M 42 116 Q 88 122 134 116 Q 178 110 208 116" fill="none" stroke="#b89050" stroke-width="0.8" opacity="0.6"/>
+  <path d="M 38 130 Q 90 136 136 130 Q 178 124 208 130" fill="none" stroke="#b89050" stroke-width="0.8" opacity="0.6"/>
+  <path d="M 40 145 Q 92 151 138 145 Q 180 139 206 145" fill="none" stroke="#b89050" stroke-width="0.8" opacity="0.6"/>
+  <path d="M 40 158 Q 90 164 136 158 Q 178 152 204 158" fill="none" stroke="#b89050" stroke-width="0.8" opacity="0.6"/>
+
+  <!-- Bread slice 1 — prosciutto (red) -->
+  <rect x="38" y="78" width="36" height="66" rx="7" fill="#e0b84a"/>
+  <rect x="38" y="78" width="36" height="66" rx="7" fill="none" stroke="#c09030" stroke-width="1.5"/>
+  <ellipse cx="56" cy="105" rx="14" ry="10" fill="#e06050" opacity="0.9"/>
+  <path d="M 48 101 Q 56 95 64 101 Q 60 109 52 110 Z" fill="#f07060" opacity="0.6"/>
+
+  <!-- Bread slice 2 — cream cheese + herbs (white/green) -->
+  <rect x="84" y="78" width="36" height="66" rx="7" fill="#e0b84a"/>
+  <rect x="84" y="78" width="36" height="66" rx="7" fill="none" stroke="#c09030" stroke-width="1.5"/>
+  <ellipse cx="102" cy="105" rx="14" ry="10" fill="#fffde8" opacity="0.95"/>
+  <ellipse cx="98" cy="100" rx="5" ry="3" fill="#68b848" opacity="0.9" transform="rotate(-15 98 100)"/>
+  <ellipse cx="106" cy="101" rx="4" ry="2.5" fill="#58a838" opacity="0.85" transform="rotate(10 106 101)"/>
+
+  <!-- Bread slice 3 — tomato + mozzarella (red + white) -->
+  <rect x="130" y="78" width="36" height="66" rx="7" fill="#e0b84a"/>
+  <rect x="130" y="78" width="36" height="66" rx="7" fill="none" stroke="#c09030" stroke-width="1.5"/>
+  <circle cx="148" cy="104" r="12" fill="#e84040" opacity="0.88"/>
+  <circle cx="151" cy="101" r="7.5" fill="#fffef5" opacity="0.93"/>
+  <ellipse cx="142" cy="96" rx="5" ry="3" fill="#50b840" opacity="0.88" transform="rotate(-20 142 96)"/>
+
+  <!-- Bread slice 4 — olive tapenade (dark green) -->
+  <rect x="176" y="78" width="36" height="66" rx="7" fill="#e0b84a"/>
+  <rect x="176" y="78" width="36" height="66" rx="7" fill="none" stroke="#c09030" stroke-width="1.5"/>
+  <ellipse cx="194" cy="105" rx="14" ry="10" fill="#607040" opacity="0.88"/>
+  <circle cx="190" cy="102" r="3.5" fill="#404820" opacity="0.9"/>
+  <circle cx="198" cy="108" r="3" fill="#404820" opacity="0.9"/>
+  <circle cx="193" cy="113" r="2.5" fill="#404820" opacity="0.85"/>
+</svg>
