@@ -60,7 +60,7 @@ const RECIPES = {
   cocoa:           "hot chocolate cocoa in a white ceramic mug, steaming, drizzle of honey beside it, cozy warm atmosphere",
   fried_eggs:      "sunny-side-up fried eggs on a white plate, perfectly set whites, bright golden yolks, light seasoning, simple and appetizing",
   kompot:          "berry compote in a glass, deep red color with whole berries visible, slight steam, on a wooden table",
-  kotlety:         "three golden-brown pan-fried meat cutlets on a white plate, crispy crust, garnished with fresh dill",
+  kotlety:         "three Russian-style meat kotlety on a white plate, golden-brown flour-breaded crispy crust, fried in butter and oil, rich caramelized exterior with slight flour dusting, one cut open showing juicy inside, garnished with fresh dill, home-cooked comfort food",
   mashed_potatoes: "creamy mashed potatoes in a white bowl, smooth texture, topped with a pat of melting butter and a sprinkle of herbs",
   oatmeal:         "oatmeal porridge in a white bowl with a spoon of butter melting on top and a sprinkle of sugar, warm and inviting",
   omelet:          "folded golden omelet with sliced sausage on a white plate, slightly crispy edges, garnished with fresh herbs",
