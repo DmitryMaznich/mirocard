@@ -153,7 +153,7 @@ li.cat{font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top
 li.cat:first-child{border-top:none;margin-top:0}
 li.sub{font-size:9pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#4a9a82;padding:2pt 8pt;margin:5pt 0 2pt;border-radius:3pt;display:inline-block}
 li.item{font-size:13pt;padding:2.5pt 0 2.5pt 6pt;line-height:1.4}
-li.item em{font-size:10pt;color:#666}
+li.item em{color:#555;font-style:normal}
 </style></head><body>
 <h1>${title}</h1>
 <div class="meta">${todayStr}</div><hr>
