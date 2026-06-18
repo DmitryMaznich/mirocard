@@ -140,55 +140,31 @@ function printShoppingList(allItems, todayStr, store) {
     prevCat = category;
     prevSub = subgroup;
   }
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Список покупок</title><style>
+  const title = store ? `Список покупок для похода в ${store}` : "Список покупок";
+  const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>${title}</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
 @page{size:A4;margin:18mm 22mm}
-body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#111}
-h1{font-size:20pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt;line-height:1.2}
-.meta{font-size:11pt;color:#666;margin-bottom:2pt}
+body{font-family:Arial,Helvetica,sans-serif;color:#111}
+h1{font-size:20pt;font-weight:900;text-transform:uppercase;margin:0 0 3pt;line-height:1.2}
+.meta{font-size:11pt;color:#666;margin-bottom:3pt}
 hr{border:none;border-top:1.5pt solid #bbb;margin:8pt 0}
-ul{list-style:none;margin:0;padding:0}
+ul{list-style:none}
 li.cat{font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top:4pt;border-top:1pt solid #d0eae5}
 li.cat:first-child{border-top:none;margin-top:0}
 li.sub{font-size:9pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#4a9a82;padding:2pt 8pt;margin:5pt 0 2pt;border-radius:3pt;display:inline-block}
 li.item{font-size:13pt;padding:2.5pt 0 2.5pt 6pt;line-height:1.4}
 li.item em{font-size:10pt;color:#666}
 </style></head><body>
-<h1>Список покупок</h1>
+<h1>${title}</h1>
 <div class="meta">${todayStr}</div><hr>
 <ul>${listHtml}</ul>
+<script>window.addEventListener('load',function(){window.print();window.addEventListener('afterprint',function(){window.close();});})</script>
 </body></html>`;
-  const style = document.createElement("style");
-  style.setAttribute("data-shopping-print", "");
-  style.textContent = `@media print {
-    body * { visibility: hidden !important; }
-    [data-shopping-print-root] { display: block !important; visibility: visible !important;
-      position: absolute; top: 0; left: 0; width: 100%;
-      font-family: Arial, Helvetica, sans-serif; color: #111; padding: 18mm 22mm; box-sizing: border-box; }
-    [data-shopping-print-root] * { visibility: visible !important; }
-    [data-shopping-print-root] h1 { font-size:20pt;font-weight:900;text-transform:uppercase;margin:0 0 2pt;line-height:1.2 }
-    [data-shopping-print-root] .meta { font-size:11pt;color:#666;margin-bottom:2pt }
-    [data-shopping-print-root] hr { border:none;border-top:1.5pt solid #bbb;margin:8pt 0 }
-    [data-shopping-print-root] ul { list-style:none;margin:0;padding:0 }
-    [data-shopping-print-root] li.cat { font-size:13pt;font-weight:900;color:#1a6a55;padding:7pt 0 2pt;margin-top:4pt;border-top:1pt solid #d0eae5 }
-    [data-shopping-print-root] li.cat:first-child { border-top:none;margin-top:0 }
-    [data-shopping-print-root] li.sub { font-size:9pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#4a9a82;padding:2pt 8pt;margin:5pt 0 2pt;border-radius:3pt;display:inline-block }
-    [data-shopping-print-root] li.item { font-size:13pt;padding:2.5pt 0 2.5pt 6pt;line-height:1.4 }
-    [data-shopping-print-root] li.item em { font-size:10pt;color:#666 }
-  }`;
-
-  const root = document.createElement("div");
-  root.setAttribute("data-shopping-print-root", "");
-  root.style.display = "none";
-  const title = store ? `Список покупок для похода в ${store}` : "Список покупок";
-  root.innerHTML = `<h1>${title}</h1><div class="meta">${todayStr}</div><hr><ul>${listHtml}</ul>`;
-
-  document.head.appendChild(style);
-  document.body.appendChild(root);
-
-  const cleanup = () => { style.remove(); root.remove(); window.removeEventListener("afterprint", cleanup); };
-  window.addEventListener("afterprint", cleanup);
-
-  window.print();
+  const win = window.open("about:blank", "_blank");
+  if (!win) return;
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
 }
 function planKey(name, ii) { return `${name}_${ii}`; }
 
