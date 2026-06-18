@@ -1,7 +1,7 @@
 {
   "name": "mirocard2",
   "private": true,
-  "version": "1.0.896",
+  "version": "1.0.897",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 8080 --configLoader native",
