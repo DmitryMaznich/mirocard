@@ -79,6 +79,7 @@ const RECIPES = {
   mushroom_soup:    "mushroom soup with champignons in a white ceramic bowl, rich golden-brown broth, sliced mushrooms visible, fresh green herbs sprinkled on top, dollop of white sour cream, rustic wooden table, steam rising",
   chicken_potato_oven: "rustic baked chicken pieces with golden crispy skin and potato wedges skin-on, fresh rosemary and thyme sprigs, roasted garlic, drizzled with olive oil, on parchment-lined baking sheet, golden-brown caramelized, overhead shot",
   cicchetti: "Venetian cicchetti assortment on a rustic wooden board, four toasted baguette slices with colorful toppings: prosciutto, creamy white spread with herbs, tomato and mozzarella with basil, dark olive tapenade, soft warm light, Italian appetizer, overhead shot",
+  stuffed_eggs: "deviled stuffed eggs on a white plate, halved hard-boiled eggs filled with creamy yellow yolk and cream cheese mixture, garnished with fresh green dill, six halves arranged neatly, top-down overhead shot, appetizing",
 };
 
 // ── Gemini API ────────────────────────────────────────────────────────────────

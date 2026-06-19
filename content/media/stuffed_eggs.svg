@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Plate shadow -->
+  <ellipse cx="122" cy="196" rx="82" ry="8" fill="#c09040" opacity="0.15"/>
+  <!-- Plate rim -->
+  <ellipse cx="120" cy="178" rx="88" ry="30" fill="#eae5dc"/>
+  <!-- Plate surface -->
+  <ellipse cx="120" cy="175" rx="84" ry="26" fill="#f5f2ec"/>
+  <ellipse cx="120" cy="172" rx="78" ry="21" fill="#ffffff"/>
+
+  <!-- EGG LEFT (center x=78) -->
+  <!-- White dome -->
+  <path d="M 48 164 Q 48 128 78 128 Q 108 128 108 164 Z" fill="#e8e4dc"/>
+  <path d="M 51 163 Q 51 131 78 131 Q 105 131 105 163 Z" fill="#fffef8"/>
+  <!-- Cup depression -->
+  <ellipse cx="78" cy="158" rx="21" ry="11" fill="#ede0c0"/>
+  <!-- Yellow filling -->
+  <ellipse cx="78" cy="156" rx="18" ry="9" fill="#f0d030"/>
+  <ellipse cx="78" cy="155" rx="14" ry="7" fill="#f8e040"/>
+  <!-- Highlight -->
+  <ellipse cx="74" cy="151" rx="4" ry="2.5" fill="#fef8a0" opacity="0.65"/>
+  <!-- Herb dots -->
+  <circle cx="78" cy="147" r="2.5" fill="#3a8018"/>
+  <circle cx="84" cy="149" r="1.8" fill="#4a9020" opacity="0.9"/>
+  <circle cx="72" cy="149" r="1.5" fill="#3a7818" opacity="0.85"/>
+
+  <!-- EGG MIDDLE (center x=120) -->
+  <path d="M 90 160 Q 90 122 120 122 Q 150 122 150 160 Z" fill="#e8e4dc"/>
+  <path d="M 93 159 Q 93 125 120 125 Q 147 125 147 159 Z" fill="#fffef8"/>
+  <ellipse cx="120" cy="154" rx="21" ry="11" fill="#ede0c0"/>
+  <ellipse cx="120" cy="152" rx="18" ry="9" fill="#f0d030"/>
+  <ellipse cx="120" cy="151" rx="14" ry="7" fill="#f8e040"/>
+  <ellipse cx="116" cy="147" rx="4" ry="2.5" fill="#fef8a0" opacity="0.65"/>
+  <circle cx="120" cy="143" r="2.5" fill="#3a8018"/>
+  <circle cx="126" cy="145" r="1.8" fill="#4a9020" opacity="0.9"/>
+  <circle cx="114" cy="145" r="1.5" fill="#3a7818" opacity="0.85"/>
+
+  <!-- EGG RIGHT (center x=162) -->
+  <path d="M 132 164 Q 132 128 162 128 Q 192 128 192 164 Z" fill="#e8e4dc"/>
+  <path d="M 135 163 Q 135 131 162 131 Q 189 131 189 163 Z" fill="#fffef8"/>
+  <ellipse cx="162" cy="158" rx="21" ry="11" fill="#ede0c0"/>
+  <ellipse cx="162" cy="156" rx="18" ry="9" fill="#f0d030"/>
+  <ellipse cx="162" cy="155" rx="14" ry="7" fill="#f8e040"/>
+  <ellipse cx="158" cy="151" rx="4" ry="2.5" fill="#fef8a0" opacity="0.65"/>
+  <circle cx="162" cy="147" r="2.5" fill="#3a8018"/>
+  <circle cx="168" cy="149" r="1.8" fill="#4a9020" opacity="0.9"/>
+  <circle cx="156" cy="149" r="1.5" fill="#3a7818" opacity="0.85"/>
+</svg>
