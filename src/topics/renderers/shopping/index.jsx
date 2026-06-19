@@ -15,6 +15,12 @@ import {
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 import PinGateModal from "@/shared/components/PinGateModal";
+import SHOPPING_TXT_EMBEDDED from "../../../../content/shopping/shopping.txt?raw";
+
+// Parsed once at module load — always up-to-date from the current build
+const EMBEDDED_STEPS = parseRecipeTxt(SHOPPING_TXT_EMBEDDED).filter(
+  (s) => s.type === "checklist" || s.type === "action"
+);
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -251,15 +257,13 @@ function mergeBaseIntoCustom(customData, rawSteps, rawIcons) {
 
 async function loadShoppingData(topicId, task) {
   await pullRecipeKvFromServer().catch(() => {});
-  const [raw, savedOrder, savedPlan, customData] = await Promise.all([
-    getRawRecipeTxt(topicId, task.text?.file).catch(() => null),
+  const [savedOrder, savedPlan, customData] = await Promise.all([
     getShoppingOrder(topicId).catch(() => null),
     getShoppingPlan(topicId).catch(() => ({})),
     getShoppingCustomData(topicId).catch(() => null),
   ]);
-  const rawSteps = raw
-    ? parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action")
-    : (task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action");
+  // Use embedded steps — always matches current build, no ZIP race condition
+  const rawSteps = EMBEDDED_STEPS;
   const rawIcons = task.text?.categoryIcons ?? [];
   if (customData) {
     const { merged, changed } = mergeBaseIntoCustom(customData, rawSteps, rawIcons);
