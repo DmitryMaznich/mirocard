@@ -10,7 +10,11 @@ import {
   getShoppingPlan, saveShoppingPlan,
   getShoppingHistory, saveShoppingHistory,
   getShoppingStores, saveShoppingStores,
+  getShoppingCustomData, saveShoppingCustomData,
 } from "@/core/groupStore";
+import { getDb, kv } from "@/core/db";
+import { api } from "@/core/api";
+import PinGateModal from "@/shared/components/PinGateModal";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -171,24 +175,320 @@ function planKey(name, ii) { return `${name}_${ii}`; }
 function stripEmoji(s) { return s.replace(/^\S+\s+/, "").trim(); }
 function isDupSubgroup(subgroup, categoryName) { return stripEmoji(subgroup) === categoryName; }
 
+// Convert base steps + icons → custom data format (used when initialising edit mode)
+function stepsToCustomData(steps, icons) {
+  return {
+    categories: steps.map((step, i) => {
+      const name = sName(step);
+      const icon = icons[i] ?? "📦";
+      const subgroups = [];
+      let curSg = null;
+      let curItems = [];
+      (step.items ?? []).forEach((item, ii) => {
+        const sg = step.itemSubgroups?.[ii] ?? null;
+        if (sg !== curSg) {
+          if (curItems.length) subgroups.push({ name: curSg, items: curItems });
+          curSg = sg; curItems = [item];
+        } else { curItems.push(item); }
+      });
+      if (curItems.length) subgroups.push({ name: curSg, items: curItems });
+      if (!subgroups.length) subgroups.push({ name: null, items: [] });
+      return { id: `base_${name}`, name, icon, subgroups };
+    }),
+  };
+}
+
+// Convert custom data → steps format used internally for rendering
+function customDataToSteps(customData) {
+  return customData.categories.map((cat) => {
+    const items = [];
+    const itemSubgroups = [];
+    for (const sg of cat.subgroups) {
+      for (const item of sg.items) {
+        items.push(item);
+        itemSubgroups.push(sg.name ?? null);
+      }
+    }
+    return { type: "checklist", text: `${cat.name}:`, items, itemSubgroups };
+  });
+}
+
 async function loadShoppingData(topicId, task) {
   await pullRecipeKvFromServer().catch(() => {});
-  const [raw, savedOrder, savedPlan] = await Promise.all([
+  const [raw, savedOrder, savedPlan, customData] = await Promise.all([
     getRawRecipeTxt(topicId, task.text?.file).catch(() => null),
     getShoppingOrder(topicId).catch(() => null),
     getShoppingPlan(topicId).catch(() => ({})),
+    getShoppingCustomData(topicId).catch(() => null),
   ]);
   const rawSteps = raw
     ? parseRecipeTxt(raw).filter((s) => s.type === "checklist" || s.type === "action")
     : (task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action");
   const rawIcons = task.text?.categoryIcons ?? [];
+  if (customData) {
+    const steps = customDataToSteps(customData);
+    const categoryIcons = customData.categories.map((c) => c.icon);
+    return { rawSteps, rawIcons, steps, categoryIcons, savedPlan: savedPlan ?? {} };
+  }
   const { steps, categoryIcons } = applyShoppingOrder(rawSteps, rawIcons, savedOrder);
   return { rawSteps, rawIcons, steps, categoryIcons, savedPlan: savedPlan ?? {} };
 }
 
+// ─── EmojiPicker ─────────────────────────────────────────────────────────────
+
+const CAT_EMOJI = [
+  "🥦","🥕","🧅","🧄","🍅","🥑","🥒","🥔","🌽","🫑","🥬","🌿",
+  "🍎","🍊","🍋","🍌","🍇","🍓","🍒","🍑","🫐","🍍","🥭","🍈",
+  "🥩","🍗","🥓","🌭","🥚","🧀","🥛","🧈",
+  "🐟","🦐","🥫","🍞","🥐","🧇","🍬","🍫","🍪","🧁","☕","🧃",
+  "🥤","🍺","🧴","🧹","🧺","🧻","🐾","🌾","🧂","🫙","📦","🛒",
+];
+
+function EmojiPicker({ onSelect, onClose }) {
+  return (
+    <div className="emoji-picker-overlay" onClick={onClose}>
+      <div className="emoji-picker" onClick={(e) => e.stopPropagation()}>
+        {CAT_EMOJI.map((e) => (
+          <button key={e} className="emoji-picker-item" onClick={() => onSelect(e)}>{e}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── CategoryEditor ───────────────────────────────────────────────────────────
+
+const BACK_ICON_SVG = (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+    <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/>
+    <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+    <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor"/>
+  </svg>
+);
+
+function CategoryEditor({ category, onSave, onDelete, onBack }) {
+  const [cat, setCat] = useState(() => JSON.parse(JSON.stringify(category)));
+  const [showEmojiFor, setShowEmojiFor] = useState(null); // null | "cat" | sgIdx (number)
+  const [editingName, setEditingName] = useState(false);
+  const [nameVal, setNameVal] = useState(category.name);
+  const [editingSg, setEditingSg] = useState(null); // { sgIdx, val } | null
+  const [editingItem, setEditingItem] = useState(null); // { sgIdx, itemIdx, val } | null
+  const [addingItemSg, setAddingItemSg] = useState(null); // sgIdx | null
+  const [addingItemVal, setAddingItemVal] = useState("");
+  const [addingSg, setAddingSg] = useState(false);
+  const [addingSgVal, setAddingSgVal] = useState("");
+
+  function mutate(fn) {
+    setCat((prev) => {
+      const next = JSON.parse(JSON.stringify(prev));
+      fn(next);
+      onSave(next);
+      return next;
+    });
+  }
+
+  function saveNameBlur() {
+    const t = nameVal.trim();
+    if (t && t !== cat.name) mutate((c) => { c.name = t; });
+    setEditingName(false);
+  }
+
+  function saveSgNameBlur(sgIdx) {
+    if (!editingSg) return;
+    const t = editingSg.val.trim();
+    if (t) mutate((c) => { c.subgroups[sgIdx].name = t; });
+    setEditingSg(null);
+  }
+
+  function saveItemBlur(sgIdx, itemIdx) {
+    if (!editingItem) return;
+    const t = editingItem.val.trim();
+    if (t) mutate((c) => { c.subgroups[sgIdx].items[itemIdx] = t; });
+    setEditingItem(null);
+  }
+
+  function addItem(sgIdx) {
+    const t = addingItemVal.trim();
+    if (t) mutate((c) => { c.subgroups[sgIdx].items.push(t); });
+    setAddingItemSg(null);
+    setAddingItemVal("");
+  }
+
+  function deleteItem(sgIdx, itemIdx) {
+    mutate((c) => { c.subgroups[sgIdx].items.splice(itemIdx, 1); });
+  }
+
+  function moveItem(sgIdx, itemIdx, dir) {
+    mutate((c) => {
+      const arr = c.subgroups[sgIdx].items;
+      const ni = itemIdx + dir;
+      if (ni < 0 || ni >= arr.length) return;
+      [arr[itemIdx], arr[ni]] = [arr[ni], arr[itemIdx]];
+    });
+  }
+
+  function addSubgroup() {
+    const t = addingSgVal.trim();
+    if (t) mutate((c) => { c.subgroups.push({ name: t, items: [] }); });
+    setAddingSg(false);
+    setAddingSgVal("");
+  }
+
+  function deleteSubgroup(sgIdx) {
+    mutate((c) => { c.subgroups.splice(sgIdx, 1); });
+  }
+
+  function moveSg(sgIdx, dir) {
+    mutate((c) => {
+      const ni = sgIdx + dir;
+      if (ni < 0 || ni >= c.subgroups.length) return;
+      [c.subgroups[sgIdx], c.subgroups[ni]] = [c.subgroups[ni], c.subgroups[sgIdx]];
+    });
+  }
+
+  function handleEmojiSelect(emoji) {
+    if (showEmojiFor === "cat") {
+      mutate((c) => { c.icon = emoji; });
+    } else if (typeof showEmojiFor === "number") {
+      mutate((c) => {
+        const sg = c.subgroups[showEmojiFor];
+        const text = sg.name ? sg.name.replace(/^\S+\s+/, "").trim() : "";
+        sg.name = text ? `${emoji} ${text}` : emoji;
+        if (editingSg?.sgIdx === showEmojiFor) setEditingSg({ sgIdx: showEmojiFor, val: sg.name });
+      });
+    }
+    setShowEmojiFor(null);
+  }
+
+  return (
+    <div className="session-body reading-body shopping-body">
+      <div className="cat-editor-header">
+        <button className="shopping-back-btn" onClick={onBack} aria-label="Назад">{BACK_ICON_SVG}</button>
+        <button className="cat-editor-icon-btn" onClick={() => setShowEmojiFor("cat")}>{cat.icon}</button>
+        {editingName ? (
+          <input
+            className="cat-editor-name-input"
+            autoFocus
+            value={nameVal}
+            onChange={(e) => setNameVal(e.target.value)}
+            onBlur={saveNameBlur}
+            onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+          />
+        ) : (
+          <span className="cat-editor-name" onClick={() => { setEditingName(true); setNameVal(cat.name); }}>
+            {cat.name || "Без названия"}
+          </span>
+        )}
+        <button className="cat-editor-delete-btn" onClick={onDelete} aria-label="Удалить категорию">🗑</button>
+      </div>
+
+      <div className="cat-editor-body">
+        {cat.subgroups.map((sg, sgIdx) => (
+          <div key={sgIdx} className="cat-editor-subgroup">
+            <div className="cat-editor-sg-header">
+              <button className="cat-editor-sg-emoji-btn" onClick={() => setShowEmojiFor(sgIdx)} aria-label="Иконка подгруппы">
+                {sg.name ? (sg.name.split(" ")[0]) : "📋"}
+              </button>
+              {editingSg?.sgIdx === sgIdx ? (
+                <input
+                  className="cat-editor-sg-name-input"
+                  autoFocus
+                  value={editingSg.val}
+                  onChange={(e) => setEditingSg({ sgIdx, val: e.target.value })}
+                  onBlur={() => saveSgNameBlur(sgIdx)}
+                  onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+                />
+              ) : (
+                <span
+                  className={`cat-editor-sg-name${sg.name === null ? " cat-editor-sg-name--null" : ""}`}
+                  onClick={() => sg.name !== null && setEditingSg({ sgIdx, val: sg.name })}
+                >
+                  {sg.name ?? "— без подгруппы —"}
+                </span>
+              )}
+              <div className="cat-editor-sg-actions">
+                <button className="cat-editor-arrow-btn" onClick={() => moveSg(sgIdx, -1)} disabled={sgIdx === 0}>↑</button>
+                <button className="cat-editor-arrow-btn" onClick={() => moveSg(sgIdx, 1)} disabled={sgIdx === cat.subgroups.length - 1}>↓</button>
+                {cat.subgroups.length > 1 && (
+                  <button className="cat-editor-sg-del-btn" onClick={() => deleteSubgroup(sgIdx)} aria-label="Удалить подгруппу">×</button>
+                )}
+              </div>
+            </div>
+
+            <ul className="cat-editor-items">
+              {sg.items.map((item, itemIdx) => (
+                <li key={itemIdx} className="cat-editor-item">
+                  {editingItem?.sgIdx === sgIdx && editingItem?.itemIdx === itemIdx ? (
+                    <input
+                      className="cat-editor-item-input"
+                      autoFocus
+                      value={editingItem.val}
+                      onChange={(e) => setEditingItem({ ...editingItem, val: e.target.value })}
+                      onBlur={() => saveItemBlur(sgIdx, itemIdx)}
+                      onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+                    />
+                  ) : (
+                    <span className="cat-editor-item-name" onClick={() => setEditingItem({ sgIdx, itemIdx, val: item })}>
+                      {item}
+                    </span>
+                  )}
+                  <div className="cat-editor-item-actions">
+                    <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, -1)} disabled={itemIdx === 0}>↑</button>
+                    <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, 1)} disabled={itemIdx === sg.items.length - 1}>↓</button>
+                    <button className="cat-editor-item-del-btn" onClick={() => deleteItem(sgIdx, itemIdx)} aria-label="Удалить">×</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {addingItemSg === sgIdx ? (
+              <div className="cat-editor-add-item-row">
+                <input
+                  className="cat-editor-item-input"
+                  autoFocus
+                  value={addingItemVal}
+                  onChange={(e) => setAddingItemVal(e.target.value)}
+                  onBlur={() => addItem(sgIdx)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { addItem(sgIdx); setAddingItemSg(sgIdx); setAddingItemVal(""); } }}
+                  placeholder="Название товара"
+                />
+              </div>
+            ) : (
+              <button className="cat-editor-add-item-btn" onClick={() => { setAddingItemSg(sgIdx); setAddingItemVal(""); }}>
+                + Добавить товар
+              </button>
+            )}
+          </div>
+        ))}
+
+        {addingSg ? (
+          <div className="cat-editor-add-sg-row">
+            <input
+              className="cat-editor-sg-name-input"
+              autoFocus
+              value={addingSgVal}
+              onChange={(e) => setAddingSgVal(e.target.value)}
+              onBlur={addSubgroup}
+              onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+              placeholder="Название подгруппы (можно начать с 🌾)"
+            />
+          </div>
+        ) : (
+          <button className="cat-editor-add-sg-btn" onClick={() => setAddingSg(true)}>+ Добавить подгруппу</button>
+        )}
+      </div>
+
+      {showEmojiFor !== null && (
+        <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiFor(null)} />
+      )}
+    </div>
+  );
+}
+
 // ─── SortablePlanTile  (uses same shopping-tile CSS as reading renderer) ──────
 
-function SortablePlanTile({ id, icon, name, count }) {
+function SortablePlanTile({ id, icon, name, count, editMode, onEdit, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = {
     transform: DndCSS.Transform.toString(transform),
@@ -200,14 +500,18 @@ function SortablePlanTile({ id, icon, name, count }) {
     <div
       ref={setNodeRef}
       style={style}
-      className={`shopping-tile shopping-tile--sortable${count > 0 ? " shopping-tile--partial" : ""}${isDragging ? " shopping-tile--dragging" : ""}`}
-      {...attributes}
-      {...listeners}
+      className={`shopping-tile shopping-tile--sortable${count > 0 ? " shopping-tile--partial" : ""}${isDragging ? " shopping-tile--dragging" : ""}${editMode ? " shopping-tile--editable" : ""}`}
     >
-      <span className="shopping-tile-drag-handle">⠿</span>
+      <span className="shopping-tile-drag-handle" {...attributes} {...listeners}>⠿</span>
       <span className="shopping-tile-icon">{icon}</span>
       <span className="shopping-tile-name">{name}</span>
       {count > 0 && <span className="shopping-tile-badge">{count}</span>}
+      {editMode && (
+        <div className="tile-edit-overlay">
+          <button className="tile-edit-btn" onClick={(e) => { e.stopPropagation(); onEdit(); }} aria-label="Редактировать">✏️</button>
+          <button className="tile-delete-btn" onClick={(e) => { e.stopPropagation(); onDelete(); }} aria-label="Удалить">×</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -216,19 +520,23 @@ function SortablePlanTile({ id, icon, name, count }) {
 // Uses the same shopping-* CSS classes as ShoppingListTask in reading renderer.
 
 function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
+  const adultPinHash = useAppStore((s) => s.settings.adultPinHash);
+  const patchSettings = useAppStore((s) => s.patchSettings);
+
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
   const [planned, setPlanned] = useState({});
   const [history, setHistory] = useState([]);
   const [view, setView] = useState("grid"); // "grid" | "history" | "preview" | number
-  const [sortMode, setSortMode] = useState(false);
-  const [pressingTile, setPressingTile] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [customData, setCustomData] = useState(null);
+  const [showPinGate, setShowPinGate] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { catId, catName, plannedCount }
   const [editingNote, setEditingNote] = useState(null); // { key, value } | null
   const [confirmClear, setConfirmClear] = useState(false);
   const rawStepsRef = useRef([]);
   const rawIconsRef = useRef([]);
-  const longPressTimerRef = useRef(null);
-  const didLongPressRef = useRef(false);
 
   function noteFor(key) {
     const v = planned[key];
@@ -267,6 +575,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
       setPlanned(savedPlan);
     });
     getShoppingHistory(topicId).then(setHistory).catch(() => {});
+    getShoppingCustomData(topicId).then(setCustomData).catch(() => {});
   }, [topicId, task.text?.id, task.text?.file]);
 
   function toggleItem(step, ii) {
@@ -295,34 +604,126 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
     const nc = arrayMove(categoryIcons, oi, ni);
     setSteps(ns);
     setCategoryIcons(nc);
-    saveShoppingOrder(topicId, ns.map(sName)).catch(() => {});
+    if (customData) {
+      const nd = { ...customData, categories: arrayMove(customData.categories, oi, ni) };
+      setCustomData(nd);
+      saveShoppingCustomData(topicId, nd).catch(() => {});
+    } else {
+      saveShoppingOrder(topicId, ns.map(sName)).catch(() => {});
+    }
   }
 
-  function resetOrder() {
-    saveShoppingOrder(topicId, null).catch(() => {});
-    setSteps(rawStepsRef.current);
-    setCategoryIcons(rawIconsRef.current);
-    setSortMode(false);
+  async function handleLocalSetPin(hash) {
+    patchSettings({ adultPinHash: hash });
+    try {
+      const db = await getDb();
+      await kv.set(db, "settings", { ...useAppStore.getState().settings, adultPinHash: hash });
+    } catch {}
+    api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
   }
 
-  function startLongPress(si) {
-    didLongPressRef.current = false;
-    setPressingTile(si);
-    longPressTimerRef.current = setTimeout(() => {
-      didLongPressRef.current = true;
-      setPressingTile(null);
-      setSortMode(true);
-      if (navigator.vibrate) navigator.vibrate(60);
-    }, 5000);
+  function enterEditMode() {
+    let cd = customData;
+    if (!cd) {
+      cd = stepsToCustomData(rawStepsRef.current, rawIconsRef.current);
+      setCustomData(cd);
+      saveShoppingCustomData(topicId, cd).catch(() => {});
+      setSteps(customDataToSteps(cd));
+      setCategoryIcons(cd.categories.map((c) => c.icon));
+    }
+    setEditMode(true);
+    setView("grid");
   }
 
-  function cancelLongPress() {
-    clearTimeout(longPressTimerRef.current);
-    setPressingTile(null);
+  function exitEditMode() {
+    setEditMode(false);
+    setEditingCategoryId(null);
+  }
+
+  function handleCategoryEditorSave(updatedCat) {
+    setCustomData((prev) => {
+      const nd = { ...prev, categories: prev.categories.map((c) => c.id === updatedCat.id ? updatedCat : c) };
+      saveShoppingCustomData(topicId, nd).catch(() => {});
+      setSteps(customDataToSteps(nd));
+      setCategoryIcons(nd.categories.map((c) => c.icon));
+      return nd;
+    });
+  }
+
+  function handleAddCategory() {
+    const newCat = { id: `user_${Date.now()}`, name: "Новая категория", icon: "📦", subgroups: [{ name: null, items: [] }] };
+    setCustomData((prev) => {
+      const nd = { ...prev, categories: [...prev.categories, newCat] };
+      saveShoppingCustomData(topicId, nd).catch(() => {});
+      setSteps(customDataToSteps(nd));
+      setCategoryIcons(nd.categories.map((c) => c.icon));
+      return nd;
+    });
+    setEditingCategoryId(newCat.id);
+  }
+
+  function handleDeleteCategory(catId) {
+    if (!catId || !customData) return;
+    const cat = customData.categories.find((c) => c.id === catId);
+    if (!cat) return;
+    const allItems = cat.subgroups.flatMap((sg) => sg.items);
+    const plannedCount = allItems.filter((_, ii) => planned[planKey(cat.name, ii)]).length;
+    setDeleteConfirm({ catId, catName: cat.name, plannedCount });
+  }
+
+  function confirmDeleteCategory() {
+    if (!deleteConfirm || !customData) return;
+    const { catId, catName } = deleteConfirm;
+    const cat = customData.categories.find((c) => c.id === catId);
+    if (cat) {
+      const newPlanned = { ...planned };
+      cat.subgroups.flatMap((sg) => sg.items).forEach((_, ii) => {
+        delete newPlanned[planKey(catName, ii)];
+      });
+      setPlanned(newPlanned);
+      saveShoppingPlan(topicId, newPlanned).catch(() => {});
+    }
+    setCustomData((prev) => {
+      const nd = { ...prev, categories: prev.categories.filter((c) => c.id !== catId) };
+      saveShoppingCustomData(topicId, nd).catch(() => {});
+      setSteps(customDataToSteps(nd));
+      setCategoryIcons(nd.categories.map((c) => c.icon));
+      return nd;
+    });
+    setDeleteConfirm(null);
+    setEditingCategoryId(null);
+  }
+
+  // ── Category editor (edit mode) ────────────────────────────────────────────
+  if (editMode && editingCategoryId !== null) {
+    const cat = customData?.categories.find((c) => c.id === editingCategoryId);
+    return (
+      <>
+        {cat && (
+          <CategoryEditor
+            category={cat}
+            onSave={handleCategoryEditorSave}
+            onDelete={() => handleDeleteCategory(editingCategoryId)}
+            onBack={() => setEditingCategoryId(null)}
+          />
+        )}
+        {deleteConfirm && (
+          <div className="shopping-confirm-bar cat-editor-delete-bar">
+            <span className="shopping-confirm-text">
+              Удалить «{deleteConfirm.catName}»?{deleteConfirm.plannedCount > 0 && ` Снимет ${deleteConfirm.plannedCount} отмеченных.`}
+            </span>
+            <div className="shopping-confirm-actions">
+              <button className="shopping-confirm-cancel" onClick={() => setDeleteConfirm(null)}>Нет</button>
+              <button className="shopping-confirm-ok" onClick={confirmDeleteCategory}>Удалить</button>
+            </div>
+          </div>
+        )}
+      </>
+    );
   }
 
   // ── Detail view ────────────────────────────────────────────────────────────
-  if (typeof view === "number") {
+  if (!editMode && typeof view === "number") {
     const step = steps[view];
     const items = step?.items ?? [];
     const name = sName(step);
@@ -407,7 +808,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   }
 
   // ── History view ───────────────────────────────────────────────────────────
-  if (view === "history") {
+  if (!editMode && view === "history") {
     return (
       <div className="session-body reading-body shopping-body">
         <div className="shopping-detail-header">
@@ -444,7 +845,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   }
 
   // ── Preview / print view ──────────────────────────────────────────────────
-  if (view === "preview") {
+  if (!editMode && view === "preview") {
     const todayStr = formatTodayRu();
     const allItems = steps.flatMap((step) => {
       const name = sName(step);
@@ -514,26 +915,33 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   return (
     <div className="session-body reading-body shopping-body">
       <div className="shopping-grid-header">
-        <span>{totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?"}</span>
+        <span>{editMode ? "Редактор категорий" : (totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?")}</span>
         <div className="shopping-grid-header-actions">
-          <button className="shop-store-chip" onClick={onChangeStore} aria-label="Сменить магазин">
-            {store || "🛒"}
-          </button>
-          {history.length > 0 && (
-            <button className="shopping-clear-btn" onClick={() => setView("history")} aria-label="История списков">🕐</button>
-          )}
-          {totalPlanned > 0 && (
-            <button className="shopping-clear-btn" onClick={() => setView("preview")} aria-label="Предпросмотр и печать">🖨</button>
-          )}
-          {totalPlanned > 0 && (
-            <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить список">🗑</button>
-          )}
-          {onExit && (
-            <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
+          {editMode ? (
+            <button className="shopping-sort-done-btn" onClick={exitEditMode}>✓ Готово</button>
+          ) : (
+            <>
+              <button className="shop-store-chip" onClick={onChangeStore} aria-label="Сменить магазин">
+                {store || "🛒"}
+              </button>
+              {history.length > 0 && (
+                <button className="shopping-clear-btn" onClick={() => setView("history")} aria-label="История">🕐</button>
+              )}
+              {totalPlanned > 0 && (
+                <button className="shopping-clear-btn" onClick={() => setView("preview")} aria-label="Печать">🖨</button>
+              )}
+              {totalPlanned > 0 && (
+                <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить">🗑</button>
+              )}
+              <button className="shopping-clear-btn" onClick={() => setShowPinGate(true)} aria-label="Редактировать категории">✏️</button>
+              {onExit && (
+                <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
+              )}
+            </>
           )}
         </div>
       </div>
-      {sortMode ? (
+      {editMode ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
             <div className="shopping-grid">
@@ -544,8 +952,15 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
                   icon={categoryIcons[si] ?? "📦"}
                   name={sName(step)}
                   count={plannedInStep(step)}
+                  editMode={true}
+                  onEdit={() => setEditingCategoryId(customData?.categories[si]?.id ?? null)}
+                  onDelete={() => handleDeleteCategory(customData?.categories[si]?.id)}
                 />
               ))}
+              <button className="shopping-tile shopping-tile--add" onClick={handleAddCategory} aria-label="Добавить категорию">
+                <span className="shopping-tile-icon">＋</span>
+                <span className="shopping-tile-name">Добавить</span>
+              </button>
             </div>
           </SortableContext>
         </DndContext>
@@ -555,16 +970,11 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
             const count = plannedInStep(step);
             const total = (step.items ?? []).length;
             const allDone = count === total && total > 0;
-            const isPressing = pressingTile === si;
             return (
               <button
                 key={step.id ?? si}
-                className={`shopping-tile${allDone ? " shopping-tile--done" : count > 0 ? " shopping-tile--partial" : ""}${isPressing ? " shopping-tile--pressing" : ""}`}
-                onClick={() => { if (!didLongPressRef.current) setView(si); }}
-                onPointerDown={() => startLongPress(si)}
-                onPointerUp={cancelLongPress}
-                onPointerLeave={cancelLongPress}
-                onPointerCancel={cancelLongPress}
+                className={`shopping-tile${allDone ? " shopping-tile--done" : count > 0 ? " shopping-tile--partial" : ""}`}
+                onClick={() => setView(si)}
               >
                 <span className="shopping-tile-icon">{categoryIcons[si] ?? "📦"}</span>
                 <span className="shopping-tile-name">{sName(step)}</span>
@@ -574,21 +984,9 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
           })}
         </div>
       )}
-      {confirmClear && (
-        <div className="shopping-confirm-bar">
-          <span className="shopping-confirm-text">Очистить весь список?</span>
-          <div className="shopping-confirm-actions">
-            <button className="shopping-confirm-cancel" onClick={() => setConfirmClear(false)}>Нет</button>
-            <button className="shopping-confirm-ok" onClick={clearAll}>Да, очистить</button>
-          </div>
-        </div>
-      )}
       <div className="shopping-actions">
-        {sortMode ? (
-          <>
-            <button className="shopping-sort-done-btn" onClick={() => setSortMode(false)}>✓ Готово</button>
-            <button className="shopping-sort-reset-btn" onClick={resetOrder}>Сбросить порядок</button>
-          </>
+        {editMode ? (
+          <div className="shop-hint">Перетащи плашки чтобы изменить порядок</div>
         ) : totalPlanned > 0 ? (
           <button className="shop-go-btn" onClick={onGoToShop}>
             → В магазин ({totalPlanned})
@@ -597,6 +995,37 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
           <div className="shop-hint">Нажми на категорию, чтобы выбрать продукты</div>
         )}
       </div>
+
+      {showPinGate && (
+        <PinGateModal
+          pinHash={adultPinHash}
+          onSuccess={() => { setShowPinGate(false); enterEditMode(); }}
+          onSetPin={handleLocalSetPin}
+          onCancel={() => setShowPinGate(false)}
+        />
+      )}
+
+      {!editMode && confirmClear && (
+        <div className="shopping-confirm-bar">
+          <span className="shopping-confirm-text">Очистить весь список?</span>
+          <div className="shopping-confirm-actions">
+            <button className="shopping-confirm-cancel" onClick={() => setConfirmClear(false)}>Нет</button>
+            <button className="shopping-confirm-ok" onClick={clearAll}>Да, очистить</button>
+          </div>
+        </div>
+      )}
+
+      {editMode && deleteConfirm && (
+        <div className="shopping-confirm-bar">
+          <span className="shopping-confirm-text">
+            Удалить «{deleteConfirm.catName}»?{deleteConfirm.plannedCount > 0 && ` Снимет ${deleteConfirm.plannedCount} отмеченных.`}
+          </span>
+          <div className="shopping-confirm-actions">
+            <button className="shopping-confirm-cancel" onClick={() => setDeleteConfirm(null)}>Нет</button>
+            <button className="shopping-confirm-ok" onClick={confirmDeleteCategory}>Удалить</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

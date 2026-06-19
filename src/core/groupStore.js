@@ -184,6 +184,20 @@ export async function saveShoppingHistory(topicId, history) {
   await kv.set(db, key, history);
 }
 
+// ─── Shopping custom category data ───────────────────────────────────────────
+
+const shoppingCustomKey = (topicId) => `shopping_custom_${topicId}`;
+
+export async function getShoppingCustomData(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, shoppingCustomKey(topicId))) ?? null;
+}
+
+export async function saveShoppingCustomData(topicId, data) {
+  const db = await getDb();
+  await kv.set(db, shoppingCustomKey(topicId), data);
+}
+
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {
