@@ -1,11 +1,24 @@
 # Student Portal — Design Spec
 
-**Date:** 2026-06-14  
+**Date:** 2026-06-14 (updated 2026-06-19)
 **Status:** Approved
 
 ## Overview
 
-Разделение уровней доступа в Mirocard: логопед получает новую возможность создавать ссылки-порталы для учеников. Ученик открывает приложение по ссылке из мессенджера — без регистрации, с упрощённым интерфейсом. Логопед может назначать задания удалённо и наблюдать за работой ученика в реальном времени (список покупок).
+Mirocard — приложение для логопеда. Логопед работает с ним как сейчас: ученики, темы, аналитика. Новая возможность: логопед создаёт портальную ссылку для ученика. Ученик открывает **то же самое приложение** по этой ссылке — в «режиме ученика». Режим ученика: упрощённая навигация (новый StudentHomeScreen), только назначенные темы, сессии работают через существующие рендереры без изменений.
+
+---
+
+## Ключевые архитектурные решения
+
+| Решение | Выбор | Обоснование |
+|---|---|---|
+| Вход ученика | Ссылка через мессенджер | Без регистрации, просто для ученика |
+| Бандл | **Один**, тот же что у логопеда | Все рендереры тем переиспользуются |
+| Разветвление | Guard clause в `App.jsx` | Минимальное изменение существующего кода |
+| UI ученика | **Новый StudentHomeScreen** | Оптимизирован: крупные кнопки, простой фокус |
+| Сессии | Существующие экраны без изменений | StudentApp заполняет store, дальше работает существующий флоу |
+| Real-time | Только для списка покупок (polling 2–3 сек) | Другие темы не требуют |
 
 ---
 
@@ -13,57 +26,94 @@
 
 ### В рамках этого спека
 
-- Создание и отзыв портальных ссылок для учеников
-- Аутентификация ученика по portal-token (отдельный механизм, не трогает существующие аккаунты)
-- Интерфейс ученика: главный экран (активное задание + список доступных тем)
-- Интерфейс ученика: поход в магазин (ShopMode с real-time синхронизацией)
-- Назначение активного задания логопедом (topicId + modeId)
-- Live-наблюдение логопеда за списком покупок (polling 2 сек)
-- Редактирование списка покупок логопедом во время сессии
+**Фаза 1 — Базис:**
+- Таблица `student_portals`, генерация/отзыв токенов
+- Секция «Доступ» в карточке ученика у логопеда
+- Guard clause в `App.jsx` + `StudentApp.jsx`
+- `StudentHomeScreen` (новый дизайн: активное задание + список тем)
+- Назначение активного задания логопедом (`PATCH /students/:id/active-task`)
+- Студент проходит сессии любых тем через существующие экраны
+
+**Фаза 2 — Real-time список покупок:**
+- Таблица `shopping_live_state`
+- `StudentShoppingScreen` с polling
+- Live-панель наблюдения для логопеда
+- Редактирование списка логопедом во время сессии
 
 ### Вне скоупа
 
-- Другие темы кроме shopping в real-time (не нужно)
 - Push-уведомления ученику
 - Чат между логопедом и учеником
+- Real-time для тем кроме shopping
 
 ---
 
 ## Архитектура
+
+### Единственное изменение существующего кода — `App.jsx`
+
+```jsx
+export default function App() {
+  // НОВОЕ: guard clause в самом начале, до любой другой логики
+  const portalToken = localStorage.getItem('student_portal_token');
+  if (portalToken) return <StudentApp token={portalToken} />;
+
+  // ... весь существующий код логопеда не трогается
+}
+```
+
+Все текущие пользователи (логопеды) не имеют `student_portal_token` в localStorage → guard никогда не срабатывает → приложение работает как прежде.
+
+### Обработка URL `/s/<token>`
+
+`App.jsx` при старте дополнительно проверяет `window.location.pathname`:
+
+```jsx
+// Тоже в самом начале App(), до guard clause
+const match = window.location.pathname.match(/^\/s\/([A-Za-z0-9_-]+)$/);
+if (match) {
+  localStorage.setItem('student_portal_token', match[1]);
+  history.replaceState(null, '', '/');
+}
+```
+
+Это позволяет ученику просто тапнуть ссылку — токен сохраняется, URL чистится, guard clause подхватывает токен и рендерит StudentApp.
 
 ### Новые таблицы в БД
 
 **`student_portals`**
 
 ```sql
-CREATE TABLE student_portals (
-  id           TEXT PRIMARY KEY,
-  account_id   TEXT NOT NULL REFERENCES accounts(id),
-  student_id   TEXT NOT NULL REFERENCES students(id),
-  token_hash   TEXT UNIQUE NOT NULL,
-  label        TEXT,                      -- "iPad Васи"
+CREATE TABLE IF NOT EXISTS student_portals (
+  id              TEXT PRIMARY KEY,
+  account_id      TEXT NOT NULL REFERENCES accounts(id),
+  student_id      TEXT NOT NULL,
+  token_hash      TEXT UNIQUE NOT NULL,
+  label           TEXT,                   -- "iPad Васи"
   active_topic_id TEXT,                   -- текущее назначенное задание
   active_mode_id  TEXT,
-  created_at   TEXT NOT NULL,
-  last_used_at TEXT,
-  revoked_at   TEXT                       -- NULL = активен
+  created_at      TEXT NOT NULL,
+  last_used_at    TEXT,
+  revoked_at      TEXT                    -- NULL = активен
 );
+CREATE INDEX IF NOT EXISTS idx_portals_account ON student_portals(account_id);
+CREATE INDEX IF NOT EXISTS idx_portals_student ON student_portals(student_id);
 ```
 
-**`shopping_live_state`**
+**`shopping_live_state`** (Фаза 2)
 
 ```sql
-CREATE TABLE shopping_live_state (
-  id           TEXT PRIMARY KEY,
-  student_id   TEXT NOT NULL,
-  account_id   TEXT NOT NULL,
-  items_json   TEXT NOT NULL DEFAULT '[]',      -- полный список товаров
-  checked_ids_json TEXT NOT NULL DEFAULT '[]',  -- отмеченные id
-  started_at   TEXT NOT NULL,
-  updated_at   TEXT NOT NULL,
-  finished_at  TEXT
+CREATE TABLE IF NOT EXISTS shopping_live_state (
+  id               TEXT PRIMARY KEY,
+  student_id       TEXT NOT NULL,
+  account_id       TEXT NOT NULL,
+  items_json       TEXT NOT NULL DEFAULT '[]',
+  checked_ids_json TEXT NOT NULL DEFAULT '[]',
+  started_at       TEXT NOT NULL,
+  updated_at       TEXT NOT NULL,
+  finished_at      TEXT
 );
-CREATE INDEX idx_shopping_live ON shopping_live_state(student_id, finished_at);
+CREATE INDEX IF NOT EXISTS idx_shopping_live ON shopping_live_state(student_id, finished_at);
 ```
 
 ### Два типа аутентификации
@@ -71,17 +121,28 @@ CREATE INDEX idx_shopping_live ON shopping_live_state(student_id, finished_at);
 | | Логопед | Ученик |
 |---|---|---|
 | Тип токена | Bearer JWT (существующий) | Bearer portal-token (новый) |
-| Хранение | localStorage (существующее) | localStorage на устройстве ученика |
+| Хранение | localStorage (ключ `token`) | localStorage (ключ `student_portal_token`) |
 | Endpoints | `/account/*`, `/sync`, `/sessions` | `/student/*` |
 | Вход | email + пароль | тап по ссылке из мессенджера |
+| При 401 | → экран логина | → «Ссылка недействительна» |
 
-### Flow входа ученика
+---
 
-1. Логопед нажимает «Создать ссылку» в карточке ученика
-2. Генерируется UUID-токен, в БД сохраняется его хеш
-3. Логопед копирует ссылку `https://mirocard.kaplieva.help/s/<raw-token>` и отправляет в мессенджер
-4. Ученик тапает → фронтенд читает токен из URL, сохраняет в localStorage, перенаправляет на `/student`
-5. При следующих открытиях — токен берётся из localStorage, ссылка не нужна
+## Новые файлы (не изменяют существующие)
+
+```
+src/
+  StudentApp.jsx           — корень режима ученика
+  features/
+    student/
+      StudentHomeScreen.jsx — главный экран ученика
+      StudentShoppingScreen.jsx — (Фаза 2) shopping с real-time
+      useStudentPortal.js   — хук: загрузка /student/me, polling
+backend/
+  lib/
+    student-portal.mjs     — DB-функции для student_portals
+    shopping-live.mjs      — (Фаза 2) DB-функции для shopping_live_state
+```
 
 ---
 
@@ -89,110 +150,163 @@ CREATE INDEX idx_shopping_live ON shopping_live_state(student_id, finished_at);
 
 ### Новые endpoints для ученика (`/student/*`)
 
-Все требуют заголовок `Authorization: Bearer <portal-token>`. Middleware проверяет токен через `student_portals`, обновляет `last_used_at`, возвращает 401 если `revoked_at IS NOT NULL`.
+Middleware `requireStudentPortal`: проверяет Bearer-токен через таблицу `student_portals`, обновляет `last_used_at`, возвращает 401 если `revoked_at IS NOT NULL`.
 
 | Метод | Путь | Описание |
 |---|---|---|
-| `GET` | `/student/me` | Профиль ученика + `activeTask` (topicId + modeId) + список доступных тем с topic.json |
-| `POST` | `/student/session` | Сохранить завершённую сессию |
-| `GET` | `/student/shopping` | Текущее состояние списка покупок (items + checked_ids) |
-| `PATCH` | `/student/shopping` | Обновить checked_ids (ученик отмечает товары) |
+| `GET` | `/student/me` | Имя ученика + `activeTask` (topicId + modeId) + список `assignedTopics` с topic.json и params из `student_topic_links` |
+| `POST` | `/student/session` | Сохранить завершённую сессию (аналог существующего `/sync` с `session.append`) |
+| `GET` | `/student/shopping` | (Фаза 2) Текущее состояние списка покупок |
+| `PATCH` | `/student/shopping` | (Фаза 2) Обновить `checked_ids` |
 
-### Новые endpoints для логопеда (JWT)
+**Ответ `GET /student/me`:**
+```json
+{
+  "student": { "id": "...", "name": "Вася", "photo": null },
+  "activeTask": { "topicId": "shopping_v1", "modeId": "shop" },
+  "assignedTopics": [
+    {
+      "topicId": "shopping_v1",
+      "topicJson": { ... },
+      "params": { "items": [...] },
+      "locked": false
+    }
+  ]
+}
+```
+
+### Новые endpoints для логопеда (существующий JWT)
 
 | Метод | Путь | Описание |
 |---|---|---|
-| `POST` | `/students/:id/portal` | Создать портал, вернуть `{ url, portalId }` |
-| `DELETE` | `/students/:id/portal/:pid` | Отозвать доступ (`revoked_at = now()`) |
-| `GET` | `/students/:id/portals` | Список активных порталов ученика |
-| `PATCH` | `/students/:id/active-task` | Установить активное задание `{ topicId, modeId }` |
-| `POST` | `/students/:id/shopping/start` | Начать сессию покупок (создаёт запись в `shopping_live_state`) |
-| `GET` | `/students/:id/shopping` | Текущее состояние списка (для live-наблюдения, polling 2 сек) |
-| `PUT` | `/students/:id/shopping/items` | Логопед обновляет список товаров во время сессии |
-| `POST` | `/students/:id/shopping/finish` | Завершить сессию (`finished_at = now()`) |
+| `POST` | `/students/:id/portal` | Создать портал → `{ url, portalId }` |
+| `DELETE` | `/students/:id/portal/:pid` | Отозвать доступ |
+| `GET` | `/students/:id/portals` | Список активных порталов |
+| `PATCH` | `/students/:id/active-task` | Установить `{ topicId, modeId \| null }` |
+| `POST` | `/students/:id/shopping/start` | (Фаза 2) Начать live-сессию покупок |
+| `GET` | `/students/:id/shopping` | (Фаза 2) Состояние для наблюдения (polling 2 сек) |
+| `PUT` | `/students/:id/shopping/items` | (Фаза 2) Логопед редактирует список |
+| `POST` | `/students/:id/shopping/finish` | (Фаза 2) Завершить сессию |
 
 ---
 
 ## Интерфейс ученика
 
-### Маршрут `/s/:token`
+### `StudentApp.jsx`
 
-Фронтенд использует store-based навигацию (не URL-роутинг), поэтому обработка токена происходит в `App.jsx` при загрузке:
+Корень режима ученика. Не использует `useAppStore` и существующий SCREENS-роутер напрямую.
 
-- При старте `App.jsx` проверяет `window.location.pathname` на паттерн `/s/<token>`
-- Если совпадает — сохраняет токен в localStorage под ключом `student_portal_token`, меняет URL на `/` через `history.replaceState`
-- Если токен уже есть в localStorage — `/s/:token` всё равно обновляет его (смена устройства или переезд на новый телефон)
-- После сохранения токена и при последующих запусках: если в localStorage есть `student_portal_token`, приложение входит в «режим ученика» вместо обычного потока
+**Собственный mini-router:**
+```
+'home'     → StudentHomeScreen
+'session'  → (делегирует в существующий SessionScreen через store)
+'shopping' → (Фаза 2) StudentShoppingScreen
+'summary'  → существующий SessionSummary
+'error'    → экран «Ссылка недействительна»
+```
 
-### Главный экран (`StudentHomeScreen`)
+**Boot-последовательность:**
+1. Вызов `GET /student/me` с portal-token
+2. 401 → показать экран ошибки
+3. OK → показать StudentHomeScreen с данными
 
-- **Шапка:** «Привет, [имя ученика]»
-- **Блок активного задания** (показывается если `activeTask` задан): оранжевая карточка с названием темы и кнопкой «Начать →»
-- **Блок «Ещё доступно»**: список назначенных тем кроме активной; темы без доступа показываются замком и недоступны для нажатия
-- **Состояние без задания**: серая карточка «Логопед ещё не назначил задание» + список доступных тем
+### `StudentHomeScreen.jsx`
 
-### Экран списка покупок (`StudentShoppingScreen`)
+Дизайн: фиолетовый градиент, крупные элементы, оптимизирован для планшета/телефона.
 
-- Polling `GET /student/shopping` каждые 3 секунды
-- Каждый тап по товару → `PATCH /student/shopping` немедленно
-- Новые товары, добавленные логопедом после начала сессии, помечаются оранжевым «новое» и исчезают после тапа
-- Прогресс в шапке: «N из M»
+- **Шапка:** `Привет, [имя] 👋`
+- **Карточка активного задания** (если `activeTask` задан): пульсирующий индикатор «ЗАДАНИЕ СЕЙЧАС», иконка темы, кнопка «Начать →»
+- **Список «Ещё доступно»**: остальные `assignedTopics` (не активная); `locked: true` → серые с замком
+- **Если `activeTask` не задан**: серая карточка «Логопед ещё не назначил задание» + список доступных тем
 
-### Что ученик НЕ видит
+**Тап по теме → переход в сессию:**
 
-Настройки аккаунта, список учеников, аналитику, библиотеку тем, импорт. Только `StudentHomeScreen` и рендереры тем.
+Для **shopping** (Фаза 2): переключиться на `'shopping'`.
+
+Для **всех остальных тем**:
+```js
+// StudentApp заполняет store и делегирует существующему флоу
+useAppStore.setState({
+  activeStudentId: student.id,
+  activeTopicId: topicId,
+  activeModeId: modeId,
+  // params берутся из assignedTopics[n].params
+});
+setScreen('session'); // существующий SessionScreen
+```
+
+SessionScreen, SessionSummary — работают без единого изменения.
+
+### `StudentShoppingScreen.jsx` (Фаза 2)
+
+- `GET /student/shopping` каждые 3 секунды
+- Тап по товару → `PATCH /student/shopping` немедленно
+- Новый товар (добавленный логопедом) → оранжевый badge «новое», исчезает после тапа
+- Прогресс: «N из M куплено» в шапке
+- Кнопка «Всё куплено! ✓» → `POST /student/session` для сохранения
 
 ---
 
 ## Интерфейс логопеда
 
-### Карточка ученика — новая секция «Доступ с устройства ученика»
+### Карточка ученика (`StudentEditScreen`) — новая секция
 
-- Список активных порталов с меткой (`label`) и датой последнего входа
-- Кнопка «Создать ссылку для нового устройства» → modal с полем для метки + кнопкой «Скопировать ссылку»
-- «Отозвать» рядом с каждым порталом (с confirm-диалогом)
+Секция «Доступ с устройства ученика» добавляется в конец существующего экрана:
 
-### Список тем ученика — колонка «Активное задание»
+- Список активных порталов: `label` + «последний вход N дней назад»
+- Кнопка «+ Создать ссылку» → modal: поле метки (опционально) → кнопка «Скопировать ссылку»
+- «Отозвать» рядом с каждым порталом (с подтверждением)
 
-- Рядом с каждой назначенной темой: кнопка «Назначить» / «Снять» (только одна тема активна одновременно)
-- Рядом с темой `shopping` если она активна: ссылка «👁 Следить»
+### Карточка ученика — секция тем: новая колонка «Активное задание»
 
-### Live-панель наблюдения
+Рядом с каждой назначенной темой:
+- Кнопка «Назначить сейчас» / «Снять» (только одна тема активна)
+- Для shopping если активна: «👁 Следить» (Фаза 2)
 
-- Открывается при клике «Следить» по теме shopping
-- Показывает список товаров с отметками в реальном времени (polling 2 сек)
-- Поле для добавления товара — ученик видит изменение в течение 3 сек
-- Кнопка «Завершить сессию»
+### Live-панель (Фаза 2)
+
+- Открывается по кнопке «👁 Следить»
+- Список товаров с галочками, обновляется каждые 2 сек
+- Поле «+ Добавить товар»
+- Кнопка «Завершить поход»
 
 ---
 
-## Синхронизация списка покупок
+## Синхронизация списка покупок (Фаза 2)
 
 ```
-Логопед:                              Ученик:
+Логопед:                                  Ученик:
 POST /students/:id/shopping/start
-                                      GET /student/shopping  (polling 3s)
-PUT /students/:id/shopping/items  →   GET /student/shopping  → видит новые товары
-GET /students/:id/shopping (2s)   ←   PATCH /student/shopping (тап по товару)
+                                          GET /student/me → activeTask = shopping
+                                          Тап «Начать» → StudentShoppingScreen
+                                          GET /student/shopping (polling 3s)
+PUT /students/:id/shopping/items  ──────► (ученик видит через 3 сек)
+GET /students/:id/shopping (2s)   ◄────── PATCH /student/shopping (тап по товару)
 POST /students/:id/shopping/finish
+                                          POST /student/session (сохранение)
 ```
 
-- `shopping_live_state.items_json` — единственный источник правды для списка
-- `shopping_live_state.checked_ids_json` — обновляется учеником через PATCH, логопед видит при следующем GET
-- По завершении сессии данные сохраняются в обычный `sessions` (тип `shopping`)
+- `shopping_live_state` — единственный источник правды во время сессии
+- Конфликты (одновременный PATCH + PUT): last-write-wins по `updated_at`
+- По завершении: запись добавляется в `sessions` (тип `shopping`)
 
 ---
 
 ## Обработка ошибок
 
-- Portal-token не найден или отозван → 401, фронтенд ученика показывает «Ссылка недействительна. Попросите логопеда прислать новую»
-- Сеть недоступна во время shopping → ученик видит «Нет соединения», тапы на товары сохраняются в очередь и отправляются при восстановлении
-- Параллельные редактирования списка (логопед + ученик одновременно) → последний PATCH/PUT побеждает (last-write-wins), конфликтов не ожидается на практике
+| Ситуация | Поведение |
+|---|---|
+| Portal-token отозван или не найден | StudentApp показывает «Ссылка недействительна. Попросите логопеда прислать новую» |
+| Нет сети во время shopping | Тапы сохраняются в очередь, отправляются при восстановлении; UI показывает «Нет соединения» |
+| `/student/me` временно недоступен | Показать cached данные (если были) + spinner |
+| Логопед ещё не назначил тему | StudentHomeScreen: серая карточка-заглушка |
 
 ---
 
-## Что не меняется
+## Что не изменяется
 
+- Все существующие таблицы и endpoints — не трогаются
+- `App.jsx` — одна guard clause + 4 строки для URL-токена в самом начале
+- `SessionScreen`, `ModePickerScreen`, `ParamsScreen`, `SessionSummary`, все рендереры тем — не трогаются
+- `StudentEditScreen` — добавляется одна новая секция в конец
 - Существующая аутентификация логопеда — не трогается
-- Существующие таблицы и endpoints — не изменяются
-- ShopMode рендерер ученика — переиспользуется, только источник данных другой
