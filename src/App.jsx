@@ -223,10 +223,12 @@ export default function App() {
   const activeStudent = students?.find(s => s.id === activeStudentId);
   const rewardVideos = activeStudent?.rewardVideos || [];
   const Screen = SCREENS[screen] ?? NotFoundScreen;
+  const activeTopicRecord = topicRecords.find(r => r.meta.id === activeTopicId);
+  const timerEnabled = activeTopicRecord?.meta?.requiresTimer === true;
 
   return (
     <>
-      <GlobalTimer rewardVideos={rewardVideos} />
+      {timerEnabled && <GlobalTimer rewardVideos={rewardVideos} />}
       <ErrorBoundary key={screen}>
         <Screen />
       </ErrorBoundary>
