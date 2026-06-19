@@ -213,6 +213,42 @@ function customDataToSteps(customData) {
   });
 }
 
+// Adds items from rawSteps that are missing from customData (e.g. after deck update)
+function mergeBaseIntoCustom(customData, rawSteps, rawIcons) {
+  const existing = new Set();
+  for (const cat of customData.categories) {
+    for (const sg of cat.subgroups) {
+      for (const item of sg.items) {
+        existing.add(item.toLowerCase().trim());
+      }
+    }
+  }
+  const merged = JSON.parse(JSON.stringify(customData));
+  let changed = false;
+  rawSteps.forEach((step, ci) => {
+    const catName = sName(step);
+    const items = step.items ?? [];
+    const subgroups = step.itemSubgroups ?? [];
+    items.forEach((item, ii) => {
+      if (existing.has(item.toLowerCase().trim())) return;
+      let customCat = merged.categories.find(
+        (c) => c.name.toLowerCase().trim() === catName.toLowerCase().trim()
+      );
+      if (!customCat) {
+        customCat = { id: `base_${catName}`, name: catName, icon: rawIcons[ci] ?? "📦", subgroups: [{ name: null, items: [] }] };
+        merged.categories.push(customCat);
+      }
+      const sgName = subgroups[ii] ?? null;
+      let sg = customCat.subgroups.find((s) => s.name === sgName);
+      if (!sg) { sg = { name: sgName, items: [] }; customCat.subgroups.push(sg); }
+      sg.items.push(item);
+      existing.add(item.toLowerCase().trim());
+      changed = true;
+    });
+  });
+  return { merged, changed };
+}
+
 async function loadShoppingData(topicId, task) {
   await pullRecipeKvFromServer().catch(() => {});
   const [raw, savedOrder, savedPlan, customData] = await Promise.all([
@@ -226,12 +262,14 @@ async function loadShoppingData(topicId, task) {
     : (task.text?.steps ?? []).filter((s) => s.type === "checklist" || s.type === "action");
   const rawIcons = task.text?.categoryIcons ?? [];
   if (customData) {
-    const steps = customDataToSteps(customData);
-    const categoryIcons = customData.categories.map((c) => c.icon);
-    return { rawSteps, rawIcons, steps, categoryIcons, savedPlan: savedPlan ?? {} };
+    const { merged, changed } = mergeBaseIntoCustom(customData, rawSteps, rawIcons);
+    if (changed) saveShoppingCustomData(topicId, merged).catch(() => {});
+    const steps = customDataToSteps(merged);
+    const categoryIcons = merged.categories.map((c) => c.icon);
+    return { rawSteps, rawIcons, steps, categoryIcons, savedPlan: savedPlan ?? {}, customData: merged };
   }
   const { steps, categoryIcons } = applyShoppingOrder(rawSteps, rawIcons, savedOrder);
-  return { rawSteps, rawIcons, steps, categoryIcons, savedPlan: savedPlan ?? {} };
+  return { rawSteps, rawIcons, steps, categoryIcons, savedPlan: savedPlan ?? {}, customData: null };
 }
 
 // ─── EmojiPicker ─────────────────────────────────────────────────────────────
@@ -533,6 +571,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   const [customData, setCustomData] = useState(null);
   const [showPinGate, setShowPinGate] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { catId, catName, plannedCount }
+  const [confirmReset, setConfirmReset] = useState(false);
   const [editingNote, setEditingNote] = useState(null); // { key, value } | null
   const [confirmClear, setConfirmClear] = useState(false);
   const rawStepsRef = useRef([]);
@@ -567,15 +606,15 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   );
 
   useEffect(() => {
-    loadShoppingData(topicId, task).then(({ rawSteps, rawIcons, steps, categoryIcons, savedPlan }) => {
+    loadShoppingData(topicId, task).then(({ rawSteps, rawIcons, steps, categoryIcons, savedPlan, customData: cd }) => {
       rawStepsRef.current = rawSteps;
       rawIconsRef.current = rawIcons;
       setSteps(steps);
       setCategoryIcons(categoryIcons);
       setPlanned(savedPlan);
+      setCustomData(cd);
     });
     getShoppingHistory(topicId).then(setHistory).catch(() => {});
-    getShoppingCustomData(topicId).then(setCustomData).catch(() => {});
   }, [topicId, task.text?.id, task.text?.file]);
 
   function toggleItem(step, ii) {
@@ -638,6 +677,20 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   function exitEditMode() {
     setEditMode(false);
     setEditingCategoryId(null);
+  }
+
+  async function resetToDefault() {
+    await saveShoppingCustomData(topicId, null).catch(() => {});
+    setCustomData(null);
+    setConfirmReset(false);
+    setEditMode(false);
+    setEditingCategoryId(null);
+    const { rawSteps, rawIcons, steps: s, categoryIcons: ci, savedPlan: sp } = await loadShoppingData(topicId, task);
+    rawStepsRef.current = rawSteps;
+    rawIconsRef.current = rawIcons;
+    setSteps(s);
+    setCategoryIcons(ci);
+    setPlanned(sp);
   }
 
   function handleCategoryEditorSave(updatedCat) {
@@ -986,7 +1039,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
       )}
       <div className="shopping-actions">
         {editMode ? (
-          <div className="shop-hint">Перетащи плашки чтобы изменить порядок</div>
+          <button className="shopping-reset-btn" onClick={() => setConfirmReset(true)}>Сбросить к стандартному</button>
         ) : totalPlanned > 0 ? (
           <button className="shop-go-btn" onClick={onGoToShop}>
             → В магазин ({totalPlanned})
@@ -1003,6 +1056,16 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
           onSetPin={handleLocalSetPin}
           onCancel={() => setShowPinGate(false)}
         />
+      )}
+
+      {editMode && confirmReset && (
+        <div className="shopping-confirm-bar">
+          <span className="shopping-confirm-text">Сбросить все изменения и вернуть стандартный список?</span>
+          <div className="shopping-confirm-actions">
+            <button className="shopping-confirm-cancel" onClick={() => setConfirmReset(false)}>Нет</button>
+            <button className="shopping-confirm-ok" onClick={resetToDefault}>Сбросить</button>
+          </div>
+        </div>
       )}
 
       {!editMode && confirmClear && (
