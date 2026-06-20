@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useStudentPortal } from "@/features/student/useStudentPortal";
 import StudentHomeScreen from "@/features/student/StudentHomeScreen";
@@ -6,6 +7,9 @@ import ParamsScreen from "@/features/session/ParamsScreen";
 import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
 import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
+import { getDb } from "@/core/db";
+import { listTopicRecords, importTopic } from "@/topics/topicLoader";
+import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
 
 const SESSION_SCREENS = {
   modes: ModePickerScreen,
@@ -69,11 +73,57 @@ export default function StudentApp({ token }) {
   const { status, data, error } = useStudentPortal(token);
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
+  const [topicsReady, setTopicsReady] = useState(false);
 
-  if (status === "loading") return <LoadingScreen />;
+  useEffect(() => {
+    if (status !== "ok" || !data) return;
+    let cancelled = false;
+
+    (async () => {
+      const db = await getDb();
+
+      // Load installed topics from local IndexedDB
+      const installed = await listTopicRecords(db);
+      let allRecords = [
+        ...BUILTIN_TOPICS,
+        ...installed.filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta.id)),
+      ];
+      useAppStore.setState({ topicRecords: allRecords });
+
+      // If the active topic is not installed, download it from the static catalog
+      const activeTopicId = data.activeTask?.topicId;
+      const alreadyHave = !activeTopicId || allRecords.some((r) => r.meta.id === activeTopicId);
+
+      if (!alreadyHave) {
+        try {
+          const catalogResp = await fetch("/decks/catalog.json");
+          const catalog = await catalogResp.json();
+          const deck = catalog.decks.find((d) => d.id === activeTopicId);
+          if (deck) {
+            const zipResp = await fetch(deck.url);
+            const zipBuffer = await zipResp.arrayBuffer();
+            const record = await importTopic(db, zipBuffer);
+            allRecords = [
+              ...allRecords.filter((r) => r.meta.id !== record.meta.id),
+              record,
+            ];
+            useAppStore.setState({ topicRecords: allRecords });
+          }
+        } catch {
+          // Download failed — session screens will show "topic not found"
+        }
+      }
+
+      if (!cancelled) setTopicsReady(true);
+    })();
+
+    return () => { cancelled = true; };
+  }, [status, data]);
+
+  if (status === "loading" || (status === "ok" && !topicsReady)) return <LoadingScreen />;
   if (status === "error") return <ErrorScreen reason={error} />;
 
-  // When a session is active, render the corresponding session screen
+  // Route session screens
   const SessionScreenComp = SESSION_SCREENS[screen];
   if (SessionScreenComp) return <SessionScreenComp />;
 
