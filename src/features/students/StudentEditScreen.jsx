@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
+import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
 
@@ -110,6 +111,8 @@ export default function StudentEditScreen() {
   const students            = useAppStore((s) => s.students);
   const setStudents         = useAppStore((s) => s.setStudents);
   const editingStudentId    = useAppStore((s) => s.editingStudentId);
+  const studentTopicLinks   = useAppStore((s) => s.studentTopicLinks);
+  const topicRecords        = useAppStore((s) => s.topicRecords);
 
   const initial = editingStudentId ? (students.find((s) => s.id === editingStudentId) ?? null) : null;
   const isEdit  = !!initial;
@@ -130,9 +133,56 @@ export default function StudentEditScreen() {
   const [confirmDel,   setConfirmDel]   = useState(false);
   const [saving,       setSaving]       = useState(false);
 
+  // Portal management
+  const [portals,         setPortals]         = useState(null);
+  const [portalsLoading,  setPortalsLoading]  = useState(false);
+  const [newPortalLabel,  setNewPortalLabel]  = useState("");
+  const [newPortalUrl,    setNewPortalUrl]    = useState(null);
+  const [confirmRevokeId, setConfirmRevokeId] = useState(null);
+  const [activeTaskLocal, setActiveTaskLocal] = useState(null);
+
   const studentPhotoRef = useRef(null);
 
   function goBack() { setScreen("students"); }
+
+  async function loadPortals() {
+    if (!isEdit || portalsLoading) return;
+    setPortalsLoading(true);
+    try {
+      const data = await api.get(`/students/${initial.id}/portals`);
+      setPortals(data.portals);
+    } catch {
+      setPortals([]);
+    } finally {
+      setPortalsLoading(false);
+    }
+  }
+
+  async function handleCreatePortal() {
+    try {
+      const data = await api.post(`/students/${initial.id}/portal`, { label: newPortalLabel || null });
+      setNewPortalUrl(data.url);
+      setNewPortalLabel("");
+      loadPortals();
+    } catch { /* show nothing — portal section stays visible */ }
+  }
+
+  async function handleRevokePortal(portalId) {
+    try {
+      await api.delete(`/students/${initial.id}/portal/${portalId}`);
+    } catch { /* best effort */ }
+    setConfirmRevokeId(null);
+    loadPortals();
+  }
+
+  async function handleSetActiveTask(topicId) {
+    const isSame = activeTaskLocal?.topicId === topicId;
+    const next = isSame ? null : { topicId, modeId: null };
+    try {
+      await api.patch(`/students/${initial.id}/active-task`, next ?? { topicId: null, modeId: null });
+      setActiveTaskLocal(next);
+    } catch { /* ignore */ }
+  }
 
   async function handleStudentPhoto(e) {
     const file = e.target.files?.[0];
@@ -332,6 +382,129 @@ export default function StudentEditScreen() {
 
        </div>{/* /se-col right */}
       </div>{/* /se-body */}
+
+      {/* ── Доступ с устройства ученика ── */}
+      {isEdit && (
+        <div className="settings-section" style={{ margin: "0 16px 8px" }}>
+          <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            Доступ с устройства ученика
+            {portals === null && (
+              <button type="button" className="se-add-row" style={{ fontSize: 12 }} onClick={loadPortals}>
+                Показать
+              </button>
+            )}
+          </div>
+
+          {portals !== null && (
+            <>
+              {portalsLoading && (
+                <div style={{ color: "#9ca3af", fontSize: 13, padding: "6px 0" }}>Загрузка…</div>
+              )}
+
+              {portals.map((portal) => (
+                <div key={portal.id} className="se-list-row">
+                  <span className="se-list-name">
+                    {portal.label || "Без названия"}
+                    {portal.last_used_at && (
+                      <span style={{ marginLeft: 8, fontSize: 11, color: "#9ca3af" }}>
+                        (был {new Date(portal.last_used_at).toLocaleDateString("ru")})
+                      </span>
+                    )}
+                  </span>
+                  {confirmRevokeId === portal.id ? (
+                    <>
+                      <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓ Отозвать</button>
+                      <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
+                    </>
+                  ) : (
+                    <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
+                  )}
+                </div>
+              ))}
+
+              {portals.length === 0 && !portalsLoading && (
+                <div style={{ color: "#9ca3af", fontSize: 13, padding: "4px 0" }}>Нет активных ссылок</div>
+              )}
+
+              {newPortalUrl ? (
+                <div style={{ marginTop: 10, padding: 12, background: "#f0f9ff", borderRadius: 10 }}>
+                  <div style={{ fontSize: 12, color: "#0369a1", fontWeight: 600, marginBottom: 6 }}>Ссылка создана:</div>
+                  <div style={{ fontSize: 12, wordBreak: "break-all", color: "#1e40af", marginBottom: 8 }}>{newPortalUrl}</div>
+                  <button type="button" className="se-add-row" onClick={() => navigator.clipboard.writeText(newPortalUrl)}>
+                    Скопировать
+                  </button>
+                  <button
+                    type="button"
+                    style={{ marginLeft: 8, fontSize: 12, background: "none", border: "none", color: "#9ca3af", cursor: "pointer" }}
+                    onClick={() => setNewPortalUrl(null)}
+                  >
+                    Закрыть
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <input
+                    className="se-video-input"
+                    placeholder="Название устройства (необязательно)"
+                    value={newPortalLabel}
+                    onChange={(e) => setNewPortalLabel(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleCreatePortal()}
+                  />
+                  <button type="button" className="se-video-add-btn" onClick={handleCreatePortal}>
+                    Создать ссылку
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Активное задание ── */}
+      {isEdit && (() => {
+        const prefix = initial.id + "_";
+        const assignedTopicIds = Object.keys(studentTopicLinks)
+          .filter((k) => k.startsWith(prefix))
+          .map((k) => studentTopicLinks[k].topicId);
+        if (assignedTopicIds.length === 0) return null;
+        return (
+          <div className="settings-section" style={{ margin: "0 16px 8px" }}>
+            <div className="settings-section-title">Активное задание</div>
+            {assignedTopicIds.map((topicId) => {
+              const record = topicRecords.find((r) => r.meta?.id === topicId);
+              const title = record ? (record.meta?.title?.ru ?? topicId) : topicId;
+              const isActive = activeTaskLocal?.topicId === topicId;
+              return (
+                <div key={topicId} className="se-list-row">
+                  <span className="se-list-name">{title}</span>
+                  <button
+                    type="button"
+                    style={{
+                      fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "none", cursor: "pointer",
+                      background: isActive ? "#dbeafe" : "#f3f4f6",
+                      color: isActive ? "#1d4ed8" : "#6b7280",
+                      fontWeight: 600, whiteSpace: "nowrap",
+                    }}
+                    onClick={() => handleSetActiveTask(topicId)}
+                  >
+                    {isActive ? "✓ Активно" : "Назначить"}
+                  </button>
+                </div>
+              );
+            })}
+            {activeTaskLocal && (
+              <button
+                type="button"
+                className="se-add-row"
+                style={{ marginTop: 4, color: "#9ca3af" }}
+                onClick={() => handleSetActiveTask(activeTaskLocal.topicId)}
+              >
+                Снять задание
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Удаление — мелко, внизу ── */}
       {isEdit && (
