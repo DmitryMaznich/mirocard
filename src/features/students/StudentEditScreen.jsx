@@ -137,7 +137,7 @@ export default function StudentEditScreen() {
   const [portals,         setPortals]         = useState(null);
   const [portalsLoading,  setPortalsLoading]  = useState(false);
   const [newPortalLabel,  setNewPortalLabel]  = useState("");
-  const [newPortalUrl,    setNewPortalUrl]    = useState(null);
+  const [portalUrlMap,    setPortalUrlMap]    = useState({});   // { [portalId]: url }
   const [confirmRevokeId, setConfirmRevokeId] = useState(null);
   const [activeTaskLocal, setActiveTaskLocal] = useState(null);
 
@@ -161,10 +161,18 @@ export default function StudentEditScreen() {
   async function handleCreatePortal() {
     try {
       const data = await api.post(`/students/${initial.id}/portal`, { label: newPortalLabel || null });
-      setNewPortalUrl(data.url);
+      setPortalUrlMap((prev) => ({ ...prev, [data.portalId]: data.url }));
       setNewPortalLabel("");
       loadPortals();
     } catch { /* show nothing — portal section stays visible */ }
+  }
+
+  function shareOrCopy(url) {
+    if (navigator.share) {
+      navigator.share({ title: "Ссылка для ученика", url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).catch(() => {});
+    }
   }
 
   async function handleRevokePortal(portalId) {
@@ -402,22 +410,39 @@ export default function StudentEditScreen() {
               )}
 
               {portals.map((portal) => (
-                <div key={portal.id} className="se-list-row">
-                  <span className="se-list-name">
-                    {portal.label || "Без названия"}
-                    {portal.last_used_at && (
-                      <span style={{ marginLeft: 8, fontSize: 11, color: "#9ca3af" }}>
-                        (был {new Date(portal.last_used_at).toLocaleDateString("ru")})
-                      </span>
+                <div key={portal.id} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "6px 0", borderBottom: "1px solid #f3f4f6" }}>
+                  <div className="se-list-row" style={{ borderBottom: "none", paddingBottom: 0 }}>
+                    <span className="se-list-name">
+                      {portal.label || "Без названия"}
+                      {portal.last_used_at && (
+                        <span style={{ marginLeft: 8, fontSize: 11, color: "#9ca3af" }}>
+                          (был {new Date(portal.last_used_at).toLocaleDateString("ru")})
+                        </span>
+                      )}
+                    </span>
+                    {confirmRevokeId === portal.id ? (
+                      <>
+                        <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓ Отозвать</button>
+                        <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
+                      </>
+                    ) : (
+                      <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
                     )}
-                  </span>
-                  {confirmRevokeId === portal.id ? (
-                    <>
-                      <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓ Отозвать</button>
-                      <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
-                    </>
-                  ) : (
-                    <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
+                  </div>
+                  {portalUrlMap[portal.id] && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 2 }}>
+                      <span style={{ fontSize: 11, color: "#6b7280", wordBreak: "break-all", flex: 1 }}>
+                        {portalUrlMap[portal.id]}
+                      </span>
+                      <button
+                        type="button"
+                        className="se-video-add-btn"
+                        style={{ fontSize: 12, padding: "4px 10px", flexShrink: 0 }}
+                        onClick={() => shareOrCopy(portalUrlMap[portal.id])}
+                      >
+                        {navigator.share ? "Поделиться" : "Скопировать"}
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
@@ -426,35 +451,18 @@ export default function StudentEditScreen() {
                 <div style={{ color: "#9ca3af", fontSize: 13, padding: "4px 0" }}>Нет активных ссылок</div>
               )}
 
-              {newPortalUrl ? (
-                <div style={{ marginTop: 10, padding: 12, background: "#f0f9ff", borderRadius: 10 }}>
-                  <div style={{ fontSize: 12, color: "#0369a1", fontWeight: 600, marginBottom: 6 }}>Ссылка создана:</div>
-                  <div style={{ fontSize: 12, wordBreak: "break-all", color: "#1e40af", marginBottom: 8 }}>{newPortalUrl}</div>
-                  <button type="button" className="se-add-row" onClick={() => navigator.clipboard.writeText(newPortalUrl)}>
-                    Скопировать
-                  </button>
-                  <button
-                    type="button"
-                    style={{ marginLeft: 8, fontSize: 12, background: "none", border: "none", color: "#9ca3af", cursor: "pointer" }}
-                    onClick={() => setNewPortalUrl(null)}
-                  >
-                    Закрыть
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                  <input
-                    className="se-video-input"
-                    placeholder="Название устройства (необязательно)"
-                    value={newPortalLabel}
-                    onChange={(e) => setNewPortalLabel(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleCreatePortal()}
-                  />
-                  <button type="button" className="se-video-add-btn" onClick={handleCreatePortal}>
-                    Создать ссылку
-                  </button>
-                </div>
-              )}
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <input
+                  className="se-video-input"
+                  placeholder="Название (необязательно)"
+                  value={newPortalLabel}
+                  onChange={(e) => setNewPortalLabel(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCreatePortal()}
+                />
+                <button type="button" className="se-video-add-btn" onClick={handleCreatePortal}>
+                  Создать ссылку
+                </button>
+              </div>
             </>
           )}
         </div>
