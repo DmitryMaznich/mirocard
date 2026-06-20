@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useStudentPortal } from "@/features/student/useStudentPortal";
+import { createApiClient } from "@/core/api";
 import StudentHomeScreen from "@/features/student/StudentHomeScreen";
 import ModePickerScreen from "@/features/home/ModePickerScreen";
 import ParamsScreen from "@/features/session/ParamsScreen";
@@ -74,6 +75,24 @@ export default function StudentApp({ token }) {
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
   const [topicsReady, setTopicsReady] = useState(false);
+  const sessions = useAppStore((s) => s.sessions);
+  const baselineSessionCount = useRef(null);
+
+  // Once portal is ready, capture session baseline so we can detect new completions
+  useEffect(() => {
+    if (status === "ok" && topicsReady && baselineSessionCount.current === null) {
+      baselineSessionCount.current = sessions.length;
+    }
+  }, [status, topicsReady, sessions.length]);
+
+  // When a new session is appended (count grows), sync it via the student portal endpoint
+  useEffect(() => {
+    if (baselineSessionCount.current === null) return;
+    if (sessions.length <= baselineSessionCount.current) return;
+    const newest = sessions[sessions.length - 1];
+    baselineSessionCount.current = sessions.length;
+    createApiClient({ token }).post("/student/session", { ...newest, mode: newest.modeId }).catch(() => {});
+  }, [sessions, token]);
 
   useEffect(() => {
     if (status !== "ok" || !data) return;
