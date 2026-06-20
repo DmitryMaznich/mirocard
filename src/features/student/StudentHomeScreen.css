@@ -1,0 +1,132 @@
+.shs-root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f7f8fc;
+}
+
+/* Header */
+.shs-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px 20px 28px;
+  color: white;
+  flex-shrink: 0;
+}
+.shs-greeting { font-size: 14px; opacity: 0.8; margin-bottom: 2px; }
+.shs-name { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+
+/* Body */
+.shs-body {
+  flex: 1;
+  padding: 20px 16px 32px;
+  overflow-y: auto;
+}
+
+/* Active task card */
+.shs-active-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+  border: 2px solid #667eea;
+  position: relative;
+  overflow: hidden;
+}
+.shs-active-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+.shs-now-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #667eea;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.shs-pulse {
+  width: 7px; height: 7px;
+  background: #667eea;
+  border-radius: 50%;
+  animation: shs-pulse 1.5s ease-in-out infinite;
+}
+@keyframes shs-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.shs-task-icon { font-size: 44px; display: block; margin-bottom: 8px; }
+.shs-task-name {
+  font-size: 22px; font-weight: 700; color: #1a1a2e;
+  margin-bottom: 16px; line-height: 1.2;
+}
+.shs-start-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+/* Empty active task */
+.shs-empty-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 20px;
+  margin-bottom: 24px;
+  text-align: center;
+  color: #9ca3af;
+  border: 2px dashed #e5e7eb;
+}
+.shs-empty-icon { font-size: 36px; margin-bottom: 10px; }
+.shs-empty-text { font-size: 15px; }
+
+/* Topic list */
+.shs-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #aaa;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+.shs-topic-list { display: flex; flex-direction: column; gap: 8px; }
+.shs-topic-item {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: opacity 0.15s;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+.shs-topic-item:active { opacity: 0.8; }
+.shs-topic-emoji {
+  font-size: 24px;
+  width: 44px; height: 44px;
+  background: #f0f2ff;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.shs-topic-info { flex: 1; }
+.shs-topic-name { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; }
+.shs-topic-sub { font-size: 12px; color: #aaa; }
+.shs-topic-arrow { color: #ccc; font-size: 20px; }

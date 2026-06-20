@@ -5,6 +5,7 @@ import * as ReactDOM from "react-dom";
 import * as jsxRuntime from "react/jsx-runtime";
 import "./styles.css";
 import App from "./App";
+import StudentApp from "./StudentApp";
 import { TimerProvider } from "./features/timer/TimerContext";
 
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
@@ -24,6 +25,15 @@ function markIosStandalone() {
 }
 
 markIosStandalone();
+
+// ── Student portal entry ──────────────────────────────────────────────────────
+const _urlPortalMatch = window.location.pathname.match(/^\/s\/([A-Za-z0-9_-]+)$/);
+if (_urlPortalMatch) {
+  localStorage.setItem("student_portal_token", _urlPortalMatch[1]);
+  history.replaceState(null, "", "/");
+}
+const _portalToken = localStorage.getItem("student_portal_token");
+// ─────────────────────────────────────────────────────────────────────────────
 
 if ("serviceWorker" in navigator) {
   let refreshing = false;
@@ -75,7 +85,7 @@ window.addEventListener("pageshow", (event) => {
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <TimerProvider>
-      <App />
+      {_portalToken ? <StudentApp token={_portalToken} /> : <App />}
     </TimerProvider>
   </StrictMode>
 );
