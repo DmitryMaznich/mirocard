@@ -55,28 +55,23 @@ htaccess = (
     "Options -Indexes\n"
     "RewriteEngine On\n"
     "\n"
-    "<IfModule mod_proxy.c>\n"
-    "    ProxyRequests Off\n"
-    "    ProxyPreserveHost Off\n"
-    f"    ProxyPass / {FUNNEL}/\n"
-    f"    ProxyPassReverse / {FUNNEL}/\n"
-    "</IfModule>\n"
+    "# Pass through PHP scripts directly\n"
+    "RewriteRule ^(proxy\\.php|purge\\.php|test\\.php)$ - [L]\n"
     "\n"
-    "<IfModule !mod_proxy.c>\n"
-    f"    RewriteRule ^(.*)$ {FUNNEL}/$1 [R=302,L]\n"
-    "</IfModule>\n"
+    "# Route everything else through PHP proxy\n"
+    "RewriteRule ^ proxy.php [L,QSA]\n"
 )
 
 with sftp.open("/home/kaplie98/public_html/mirocard/.htaccess", "w") as f:
     f.write(htaccess)
-print(f"Updated .htaccess → proxy to {FUNNEL}")
+print(f"Updated .htaccess → routes via proxy.php to {FUNNEL}")
 
 out, _ = run(c, "cat /home/kaplie98/public_html/mirocard/.htaccess")
 print(out)
 
-# Also test curl from hosting to new funnel
-print("=== Curl from hosting to new Funnel ===")
-out, err = run(c, f"curl -sI {FUNNEL}/manifest.json 2>&1")
+# Test curl from hosting to funnel via proxy.php
+print("=== Curl from hosting (public URL) ===")
+out, err = run(c, "curl -sI https://mirocard.kaplieva.help/manifest.json 2>&1")
 print(out or err)
 
 sftp.close()

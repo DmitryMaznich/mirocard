@@ -6,7 +6,7 @@
 |-----------|-------|
 | LAN IP | `192.168.1.163` |
 | Tailscale IP | `100.124.69.40` |
-| Tailscale hostname | `mazpc.taile45e98.ts.net` (Funnel → :8080) |
+| Tailscale hostname | `laptop-353ltno0.taile45e98.ts.net` (Funnel → :8080) |
 | SSH port | 22 |
 | User | `dmazn` |
 | Password | `241078diMA` |
