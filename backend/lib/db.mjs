@@ -157,6 +157,22 @@ export function initDb(dbPath = DB_PATH) {
       updated_at  INTEGER NOT NULL,
       PRIMARY KEY (account_id, key)
     );
+
+    CREATE TABLE IF NOT EXISTS student_portals (
+      id              TEXT PRIMARY KEY,
+      account_id      TEXT NOT NULL REFERENCES accounts(id),
+      student_id      TEXT NOT NULL,
+      token_hash      TEXT UNIQUE NOT NULL,
+      label           TEXT,
+      active_topic_id TEXT,
+      active_mode_id  TEXT,
+      created_at      TEXT NOT NULL,
+      last_used_at    TEXT,
+      revoked_at      TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_portals_account ON student_portals(account_id);
+    CREATE INDEX IF NOT EXISTS idx_portals_student ON student_portals(student_id);
+    CREATE INDEX IF NOT EXISTS idx_portals_token   ON student_portals(token_hash);
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();
