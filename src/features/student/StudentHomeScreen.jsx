@@ -1,7 +1,5 @@
 import "./StudentHomeScreen.css";
 
-// Display metadata for known topics — extend as new topics are added.
-// Topics not in this map get a generic fallback.
 const TOPIC_META = {
   shopping_list:  { name: "Список покупок",     emoji: "🛒", sub: "Поход в магазин" },
   opposites:      { name: "Противоположности",   emoji: "↔️",  sub: "Карточки" },
@@ -13,10 +11,7 @@ function getTopicMeta(topicId) {
   return TOPIC_META[topicId] ?? { name: topicId, emoji: "📚", sub: "Задание" };
 }
 
-export default function StudentHomeScreen({ student, activeTask, assignedTopics, onStartSession }) {
-  const otherTopics = assignedTopics.filter(
-    (t) => !activeTask || t.topicId !== activeTask.topicId
-  );
+export default function StudentHomeScreen({ student, activeTask, onStartSession }) {
   const activeMeta = activeTask ? getTopicMeta(activeTask.topicId) : null;
 
   return (
@@ -47,31 +42,6 @@ export default function StudentHomeScreen({ student, activeTask, assignedTopics,
             <div className="shs-empty-icon">⏳</div>
             <div className="shs-empty-text">Логопед ещё не назначил задание</div>
           </div>
-        )}
-
-        {otherTopics.length > 0 && (
-          <>
-            <div className="shs-section-label">Ещё доступно</div>
-            <div className="shs-topic-list">
-              {otherTopics.map((t) => {
-                const meta = getTopicMeta(t.topicId);
-                return (
-                  <button
-                    key={t.topicId}
-                    className="shs-topic-item"
-                    onClick={() => onStartSession({ topicId: t.topicId, modeId: null })}
-                  >
-                    <div className="shs-topic-emoji">{meta.emoji}</div>
-                    <div className="shs-topic-info">
-                      <div className="shs-topic-name">{meta.name}</div>
-                      <div className="shs-topic-sub">{meta.sub}</div>
-                    </div>
-                    <div className="shs-topic-arrow">›</div>
-                  </button>
-                );
-              })}
-            </div>
-          </>
         )}
       </div>
     </div>

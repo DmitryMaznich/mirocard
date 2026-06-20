@@ -1,6 +1,19 @@
 import { useAppStore } from "@/core/store";
 import { useStudentPortal } from "@/features/student/useStudentPortal";
 import StudentHomeScreen from "@/features/student/StudentHomeScreen";
+import ModePickerScreen from "@/features/home/ModePickerScreen";
+import ParamsScreen from "@/features/session/ParamsScreen";
+import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
+import SessionScreen from "@/features/session/SessionScreen";
+import SessionSummary from "@/features/session/SessionSummary";
+
+const SESSION_SCREENS = {
+  modes: ModePickerScreen,
+  params: ParamsScreen,
+  concepts: ConceptPickerScreen,
+  session: SessionScreen,
+  summary: SessionSummary,
+};
 
 function LoadingScreen() {
   return (
@@ -54,13 +67,17 @@ function ErrorScreen({ reason }) {
 
 export default function StudentApp({ token }) {
   const { status, data, error } = useStudentPortal(token);
-  const setState = useAppStore((s) => s.setState);
+  const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
 
   if (status === "loading") return <LoadingScreen />;
   if (status === "error") return <ErrorScreen reason={error} />;
 
-  const { student, activeTask, assignedTopics } = data;
+  // When a session is active, render the corresponding session screen
+  const SessionScreenComp = SESSION_SCREENS[screen];
+  if (SessionScreenComp) return <SessionScreenComp />;
+
+  const { student, activeTask } = data;
 
   function handleStartSession({ topicId, modeId }) {
     useAppStore.setState({
@@ -75,7 +92,6 @@ export default function StudentApp({ token }) {
     <StudentHomeScreen
       student={student}
       activeTask={activeTask}
-      assignedTopics={assignedTopics}
       onStartSession={handleStartSession}
     />
   );
