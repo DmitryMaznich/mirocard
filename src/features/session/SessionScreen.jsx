@@ -190,10 +190,11 @@ export default function SessionScreen() {
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
 
   const isShoppingRenderer = topicRecord.meta.renderer === "shopping";
+  const isReadingRenderer  = topicRecord.meta.renderer === "reading";
 
   return (
     <div className="session-screen">
-      {!isShoppingRenderer && (
+      {!isShoppingRenderer && !isReadingRenderer && (
         <div className="session-topbar">
           <div className="session-topbar-controls">
             <StarBar
