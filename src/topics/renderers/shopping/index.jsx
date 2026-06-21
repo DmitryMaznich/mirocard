@@ -1012,6 +1012,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
           topicId={topicId}
           modeId={activeModeId}
           modeTitle="Список покупок"
+          planData={Object.keys(planned).length > 0 ? planned : undefined}
           onClose={() => setShowShare(false)}
         />
       )}

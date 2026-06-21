@@ -201,6 +201,11 @@ export function initDb(dbPath = DB_PATH) {
     db.exec("ALTER TABLE sessions ADD COLUMN card_events TEXT DEFAULT '[]'");
   }
 
+  const portalColumns = db.prepare("PRAGMA table_info(student_portals)").all();
+  if (!portalColumns.some((c) => c.name === "active_plan_data")) {
+    db.exec("ALTER TABLE student_portals ADD COLUMN active_plan_data TEXT");
+  }
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS analysis_cache (
       id              INTEGER PRIMARY KEY,

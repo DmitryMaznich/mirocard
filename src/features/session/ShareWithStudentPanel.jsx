@@ -4,7 +4,7 @@ import { api } from "@/core/api";
 import { getInitials, getTopicTitle } from "@/shared/utils/format";
 import Button from "@/shared/components/Button";
 
-export default function ShareWithStudentPanel({ topicId, modeId, modeTitle, onClose }) {
+export default function ShareWithStudentPanel({ topicId, modeId, modeTitle, planData, onClose }) {
   const students = useAppStore((s) => s.students);
   const [urlMap,  setUrlMap]  = useState({});   // { studentId: url }
   const [loading, setLoading] = useState(null); // studentId currently loading
@@ -14,7 +14,7 @@ export default function ShareWithStudentPanel({ topicId, modeId, modeTitle, onCl
     try {
       const { portals } = await api.get(`/students/${student.id}/portals`);
       await Promise.all(portals.map((p) => api.delete(`/students/${student.id}/portal/${p.id}`)));
-      const data = await api.post(`/students/${student.id}/portal`, { topicId, modeId });
+      const data = await api.post(`/students/${student.id}/portal`, { topicId, modeId, planData: planData ?? undefined });
       setUrlMap((prev) => ({ ...prev, [student.id]: data.url }));
     } catch { /* fail silently */ }
     setLoading(null);

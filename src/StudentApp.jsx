@@ -9,6 +9,7 @@ import { getDb } from "@/core/db";
 import { listTopicRecords, importTopic } from "@/topics/topicLoader";
 import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
 import { clearActiveSessionSnapshot as clearPersistedSessionSnapshot } from "@/features/session/activeSession";
+import { saveShoppingPlan } from "@/core/groupStore";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 
@@ -151,6 +152,11 @@ export default function StudentApp({ token }) {
         } catch {
           // Download failed — session screens will show "topic not found"
         }
+      }
+
+      // Apply shopping plan snapshot sent by the logopedist when creating the link
+      if (data.activeTask?.planData && data.activeTask?.topicId) {
+        await saveShoppingPlan(data.activeTask.topicId, data.activeTask.planData).catch(() => {});
       }
 
       if (!cancelled) setTopicsReady(true);
