@@ -27,12 +27,31 @@ function markIosStandalone() {
 markIosStandalone();
 
 // ── Student portal entry ──────────────────────────────────────────────────────
+// In standalone/PWA mode use localStorage so the token survives app restarts.
+// In regular browser use sessionStorage so closing the tab clears it — this
+// lets the logopedist test a link without getting locked out of their own app.
+const _isStandalone =
+  navigator.standalone === true ||
+  window.matchMedia?.("(display-mode: standalone)")?.matches ||
+  window.matchMedia?.("(display-mode: fullscreen)")?.matches;
+const _portalStorage = _isStandalone ? localStorage : sessionStorage;
+
 const _urlPortalMatch = window.location.pathname.match(/^\/s\/([A-Za-z0-9_-]+)$/);
 if (_urlPortalMatch) {
-  localStorage.setItem("student_portal_token", _urlPortalMatch[1]);
+  _portalStorage.setItem("student_portal_token", _urlPortalMatch[1]);
+  // Clean up any stale token in the other storage to avoid surprises.
+  (_isStandalone ? sessionStorage : localStorage).removeItem("student_portal_token");
   history.replaceState(null, "", "/");
 }
-const _portalToken = localStorage.getItem("student_portal_token");
+// Migration: tokens written by the old code always went to localStorage.
+// In non-standalone (browser tab) mode, remove them — the user can reopen
+// the /s/TOKEN link if needed. This immediately frees the logopedist who
+// tested a link and got stuck in student mode.
+if (!_isStandalone) {
+  localStorage.removeItem("student_portal_token");
+}
+
+const _portalToken = _portalStorage.getItem("student_portal_token");
 // ─────────────────────────────────────────────────────────────────────────────
 
 if ("serviceWorker" in navigator) {
