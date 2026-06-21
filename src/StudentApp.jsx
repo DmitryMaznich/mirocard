@@ -1,21 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAppStore } from "@/core/store";
 import { useStudentPortal } from "@/features/student/useStudentPortal";
 import { createApiClient } from "@/core/api";
 import StudentHomeScreen from "@/features/student/StudentHomeScreen";
-import ModePickerScreen from "@/features/home/ModePickerScreen";
-import ParamsScreen from "@/features/session/ParamsScreen";
-import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
 import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
 import { getDb } from "@/core/db";
 import { listTopicRecords, importTopic } from "@/topics/topicLoader";
 import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
+import { clearActiveSessionSnapshot as clearPersistedSessionSnapshot } from "@/features/session/activeSession";
+import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
 
 const SESSION_SCREENS = {
-  modes: ModePickerScreen,
-  params: ParamsScreen,
-  concepts: ConceptPickerScreen,
   session: SessionScreen,
   summary: SessionSummary,
 };
@@ -70,13 +67,36 @@ function ErrorScreen({ reason }) {
   );
 }
 
+function computeDefaultParams(topicRecord, mode) {
+  const renderer = topicRecord?.meta?.renderer;
+  if (renderer === "comparison") {
+    return { level: 2, question: "more", showEqual: false, wordsVerdict: false,
+             visualMode: "dots", examplesCount: 1, showLabels: true, style: "sign" };
+  }
+  const out = {};
+  for (const [key, def] of Object.entries(mode?.params ?? {})) {
+    if (def.type === "concept_selector" || def.type === "sentence_list") continue;
+    out[key] = def.default ?? (def.type === "number" ? def.min : (def.values?.[0] ?? null));
+  }
+  return out;
+}
+
 export default function StudentApp({ token }) {
   const { status, data, error } = useStudentPortal(token);
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
+  const sessionExitPromptOpen  = useAppStore((s) => s.sessionExitPromptOpen);
+  const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
+  const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
   const [topicsReady, setTopicsReady] = useState(false);
   const sessions = useAppStore((s) => s.sessions);
   const baselineSessionCount = useRef(null);
+
+  // Mark as student portal mode on mount
+  useEffect(() => {
+    useAppStore.setState({ isStudentPortal: true });
+    return () => { useAppStore.setState({ isStudentPortal: false }); };
+  }, []);
 
   // Once portal is ready, capture session baseline so we can detect new completions
   useEffect(() => {
@@ -139,22 +159,62 @@ export default function StudentApp({ token }) {
     return () => { cancelled = true; };
   }, [status, data]);
 
+  const handleExitSession = useCallback(async () => {
+    closeSessionExitPrompt();
+    clearActiveSessionSnapshot();
+    try {
+      const db = await getDb();
+      await clearPersistedSessionSnapshot(db);
+    } catch { /* best-effort */ }
+    setScreen("home");
+  }, [closeSessionExitPrompt, clearActiveSessionSnapshot, setScreen]);
+
   if (status === "loading" || (status === "ok" && !topicsReady)) return <LoadingScreen />;
   if (status === "error") return <ErrorScreen reason={error} />;
 
   // Route session screens
   const SessionScreenComp = SESSION_SCREENS[screen];
-  if (SessionScreenComp) return <SessionScreenComp />;
+  if (SessionScreenComp) {
+    return (
+      <>
+        <SessionScreenComp />
+        {sessionExitPromptOpen && screen === "session" && (
+          <Modal
+            title="Завершить занятие?"
+            onClose={closeSessionExitPrompt}
+            closeOnOverlay={false}
+            showCloseButton={false}
+            actions={
+              <>
+                <Button variant="secondary" onClick={closeSessionExitPrompt}>Остаться</Button>
+                <Button variant="danger" onClick={handleExitSession}>Завершить</Button>
+              </>
+            }
+          >
+            Текущий прогресс занятия не будет сохранён.
+          </Modal>
+        )}
+      </>
+    );
+  }
 
   const { student, activeTask } = data;
 
   function handleStartSession({ topicId, modeId }) {
+    const { topicRecords } = useAppStore.getState();
+    const topicRecord = topicRecords.find((r) => r.meta.id === topicId);
+    const mode = topicRecord?.modes.find((m) => m.id === modeId);
+
+    // Set default params in store so session engine can pick them up
+    const defaultParams = computeDefaultParams(topicRecord, mode);
+    useAppStore.getState().upsertStudentTopicLink(student.id, topicId, { params: defaultParams });
+
     useAppStore.setState({
       activeStudentId: student.id,
       activeTopicId: topicId,
       activeModeId: modeId ?? undefined,
     });
-    setScreen(modeId ? "params" : "modes");
+    setScreen("session");
   }
 
   return (

@@ -40,6 +40,7 @@ function speak(text) {
 
 export default function SessionSummary() {
   const setScreen         = useAppStore((s) => s.setScreen);
+  const isStudentPortal   = useAppStore((s) => s.isStudentPortal);
   const sessions          = useAppStore((s) => s.sessions);
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const students          = useAppStore((s) => s.students);
@@ -113,9 +114,13 @@ export default function SessionSummary() {
       {/* Actions */}
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("session")}>Ещё раз</Button>
-        <HoldButton className="summary-finish-btn" onAction={() => setScreen("home")} skipTaps>
-          <span className="summary-finish-btn__label">Завершить</span>
-        </HoldButton>
+        {isStudentPortal ? (
+          <Button onClick={() => setScreen("home")}>Завершить</Button>
+        ) : (
+          <HoldButton className="summary-finish-btn" onAction={() => setScreen("home")} skipTaps>
+            <span className="summary-finish-btn__label">Завершить</span>
+          </HoldButton>
+        )}
       </div>
 
       {/* Collapsible teacher stats */}

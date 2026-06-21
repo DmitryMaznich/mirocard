@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
 
-export function createStudentPortal(db, { accountId, studentId, tokenHash, label }) {
+export function createStudentPortal(db, { accountId, studentId, tokenHash, label, topicId, modeId }) {
   const id = randomUUID();
   const createdAt = new Date().toISOString();
   db.prepare(
-    `INSERT INTO student_portals (id, account_id, student_id, token_hash, label, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(id, accountId, studentId, tokenHash, label ?? null, createdAt);
+    `INSERT INTO student_portals (id, account_id, student_id, token_hash, label, active_topic_id, active_mode_id, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(id, accountId, studentId, tokenHash, label ?? null, topicId ?? null, modeId ?? null, createdAt);
   return id;
 }
 

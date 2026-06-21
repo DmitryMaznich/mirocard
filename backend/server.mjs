@@ -715,8 +715,10 @@ async function handleCreatePortal(req, res, studentId) {
   const body = await readJsonBody(req);
   const raw = randomUUID();
   const tokenHash = hashToken(raw);
-  const label = typeof body.label === "string" ? body.label.trim() || null : null;
-  const portalId = createStudentPortal(db, { accountId: account.id, studentId, tokenHash, label });
+  const label   = typeof body.label   === "string" ? body.label.trim()   || null : null;
+  const topicId = typeof body.topicId === "string" ? body.topicId.trim() || null : null;
+  const modeId  = typeof body.modeId  === "string" ? body.modeId.trim()  || null : null;
+  const portalId = createStudentPortal(db, { accountId: account.id, studentId, tokenHash, label, topicId, modeId });
   const origin = req.headers.origin ?? req.headers.host ?? "";
   const url = origin ? `${origin}/s/${raw}` : `/s/${raw}`;
   return writeJson(res, 201, { portalId, url, token: raw });

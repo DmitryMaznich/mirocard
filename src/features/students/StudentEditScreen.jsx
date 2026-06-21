@@ -137,6 +137,8 @@ export default function StudentEditScreen() {
   const [portals,         setPortals]         = useState(null);
   const [portalsLoading,  setPortalsLoading]  = useState(false);
   const [newPortalLabel,  setNewPortalLabel]  = useState("");
+  const [newPortalTopic,  setNewPortalTopic]  = useState("");
+  const [newPortalMode,   setNewPortalMode]   = useState("");
   const [portalUrlMap,    setPortalUrlMap]    = useState({});   // { [portalId]: url }
   const [confirmRevokeId, setConfirmRevokeId] = useState(null);
   const [activeTaskLocal, setActiveTaskLocal] = useState(null);
@@ -159,10 +161,17 @@ export default function StudentEditScreen() {
   }
 
   async function handleCreatePortal() {
+    if (!newPortalTopic || !newPortalMode) return;
     try {
-      const data = await api.post(`/students/${initial.id}/portal`, { label: newPortalLabel || null });
+      const data = await api.post(`/students/${initial.id}/portal`, {
+        label:   newPortalLabel || null,
+        topicId: newPortalTopic,
+        modeId:  newPortalMode,
+      });
       setPortalUrlMap((prev) => ({ ...prev, [data.portalId]: data.url }));
       setNewPortalLabel("");
+      setNewPortalTopic("");
+      setNewPortalMode("");
       loadPortals();
     } catch { /* show nothing — portal section stays visible */ }
   }
@@ -409,57 +418,126 @@ export default function StudentEditScreen() {
                 <div style={{ color: "#9ca3af", fontSize: 13, padding: "6px 0" }}>Загрузка…</div>
               )}
 
-              {portals.map((portal) => (
-                <div key={portal.id} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "6px 0", borderBottom: "1px solid #f3f4f6" }}>
-                  <div className="se-list-row" style={{ borderBottom: "none", paddingBottom: 0 }}>
-                    <span className="se-list-name">
-                      {portal.label || "Без названия"}
-                      {portal.last_used_at && (
-                        <span style={{ marginLeft: 8, fontSize: 11, color: "#9ca3af" }}>
-                          (был {new Date(portal.last_used_at).toLocaleDateString("ru")})
-                        </span>
+              {portals.map((portal) => {
+                const topicRec = portal.active_topic_id
+                  ? topicRecords.find((r) => r.meta?.id === portal.active_topic_id)
+                  : null;
+                const topicTitle = topicRec
+                  ? (topicRec.meta?.title?.ru ?? topicRec.meta?.title ?? portal.active_topic_id)
+                  : portal.active_topic_id ?? "—";
+                const modeRec = topicRec && portal.active_mode_id
+                  ? topicRec.modes?.find((m) => m.id === portal.active_mode_id)
+                  : null;
+                const modeTitle = modeRec
+                  ? (modeRec.ui?.title?.ru ?? modeRec.ui?.title ?? portal.active_mode_id)
+                  : portal.active_mode_id ?? "—";
+                return (
+                  <div key={portal.id} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "6px 0", borderBottom: "1px solid #f3f4f6" }}>
+                    <div className="se-list-row" style={{ borderBottom: "none", paddingBottom: 0 }}>
+                      <span className="se-list-name">
+                        <span style={{ fontWeight: 600 }}>{topicTitle}</span>
+                        {portal.active_mode_id && (
+                          <span style={{ color: "#6b7280" }}> · {modeTitle}</span>
+                        )}
+                        {portal.label && (
+                          <span style={{ marginLeft: 6, fontSize: 11, color: "#9ca3af" }}>({portal.label})</span>
+                        )}
+                        {portal.last_used_at && (
+                          <span style={{ marginLeft: 6, fontSize: 11, color: "#9ca3af" }}>
+                            · был {new Date(portal.last_used_at).toLocaleDateString("ru")}
+                          </span>
+                        )}
+                      </span>
+                      {confirmRevokeId === portal.id ? (
+                        <>
+                          <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓ Отозвать</button>
+                          <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
+                        </>
+                      ) : (
+                        <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
                       )}
-                    </span>
-                    {confirmRevokeId === portal.id ? (
-                      <>
-                        <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓ Отозвать</button>
-                        <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
-                      </>
-                    ) : (
-                      <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
+                    </div>
+                    {portalUrlMap[portal.id] && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 2 }}>
+                        <span style={{ fontSize: 11, color: "#6b7280", wordBreak: "break-all", flex: 1 }}>
+                          {portalUrlMap[portal.id]}
+                        </span>
+                        <button
+                          type="button"
+                          className="se-video-add-btn"
+                          style={{ fontSize: 12, padding: "4px 10px", flexShrink: 0 }}
+                          onClick={() => shareOrCopy(portalUrlMap[portal.id])}
+                        >
+                          {navigator.share ? "Поделиться" : "Скопировать"}
+                        </button>
+                      </div>
                     )}
                   </div>
-                  {portalUrlMap[portal.id] && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 2 }}>
-                      <span style={{ fontSize: 11, color: "#6b7280", wordBreak: "break-all", flex: 1 }}>
-                        {portalUrlMap[portal.id]}
-                      </span>
-                      <button
-                        type="button"
-                        className="se-video-add-btn"
-                        style={{ fontSize: 12, padding: "4px 10px", flexShrink: 0 }}
-                        onClick={() => shareOrCopy(portalUrlMap[portal.id])}
-                      >
-                        {navigator.share ? "Поделиться" : "Скопировать"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
 
               {portals.length === 0 && !portalsLoading && (
                 <div style={{ color: "#9ca3af", fontSize: 13, padding: "4px 0" }}>Нет активных ссылок</div>
               )}
 
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <input
+              {/* Create portal form */}
+              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>Новая ссылка</div>
+
+                {/* Topic picker */}
+                <select
                   className="se-video-input"
-                  placeholder="Название (необязательно)"
-                  value={newPortalLabel}
-                  onChange={(e) => setNewPortalLabel(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCreatePortal()}
-                />
-                <button type="button" className="se-video-add-btn" onClick={handleCreatePortal}>
+                  value={newPortalTopic}
+                  onChange={(e) => { setNewPortalTopic(e.target.value); setNewPortalMode(""); }}
+                  style={{ fontSize: 13 }}
+                >
+                  <option value="">Выберите тему…</option>
+                  {topicRecords.map((r) => (
+                    <option key={r.meta.id} value={r.meta.id}>
+                      {r.meta?.title?.ru ?? r.meta?.title ?? r.meta.id}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Mode picker — only shown after topic selected */}
+                {newPortalTopic && (() => {
+                  const topicRec = topicRecords.find((r) => r.meta.id === newPortalTopic);
+                  const modes = topicRec?.modes ?? [];
+                  return (
+                    <select
+                      className="se-video-input"
+                      value={newPortalMode}
+                      onChange={(e) => setNewPortalMode(e.target.value)}
+                      style={{ fontSize: 13 }}
+                    >
+                      <option value="">Выберите режим…</option>
+                      {modes.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.ui?.title?.ru ?? m.ui?.title ?? m.id}
+                        </option>
+                      ))}
+                    </select>
+                  );
+                })()}
+
+                {/* Optional label */}
+                {newPortalTopic && newPortalMode && (
+                  <input
+                    className="se-video-input"
+                    placeholder="Подпись (необязательно)"
+                    value={newPortalLabel}
+                    onChange={(e) => setNewPortalLabel(e.target.value)}
+                    style={{ fontSize: 13 }}
+                  />
+                )}
+
+                <button
+                  type="button"
+                  className="se-video-add-btn"
+                  onClick={handleCreatePortal}
+                  disabled={!newPortalTopic || !newPortalMode}
+                  style={{ alignSelf: "flex-start" }}
+                >
                   Создать ссылку
                 </button>
               </div>
