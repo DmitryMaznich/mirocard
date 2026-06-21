@@ -400,11 +400,11 @@ export default function StudentEditScreen() {
        </div>{/* /se-col right */}
       </div>{/* /se-body */}
 
-      {/* ── Доступ с устройства ученика ── */}
+      {/* ── Активные ссылки ученика ── */}
       {isEdit && (
         <div className="settings-section" style={{ margin: "0 16px 8px" }}>
           <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            Доступ с устройства ученика
+            Активные ссылки
             {portals === null && (
               <button type="button" className="se-add-row" style={{ fontSize: 12 }} onClick={loadPortals}>
                 Показать
@@ -432,165 +432,39 @@ export default function StudentEditScreen() {
                   ? (modeRec.ui?.title?.ru ?? modeRec.ui?.title ?? portal.active_mode_id)
                   : portal.active_mode_id ?? "—";
                 return (
-                  <div key={portal.id} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "6px 0", borderBottom: "1px solid #f3f4f6" }}>
-                    <div className="se-list-row" style={{ borderBottom: "none", paddingBottom: 0 }}>
-                      <span className="se-list-name">
-                        <span style={{ fontWeight: 600 }}>{topicTitle}</span>
-                        {portal.active_mode_id && (
-                          <span style={{ color: "#6b7280" }}> · {modeTitle}</span>
-                        )}
-                        {portal.label && (
-                          <span style={{ marginLeft: 6, fontSize: 11, color: "#9ca3af" }}>({portal.label})</span>
-                        )}
-                        {portal.last_used_at && (
-                          <span style={{ marginLeft: 6, fontSize: 11, color: "#9ca3af" }}>
-                            · был {new Date(portal.last_used_at).toLocaleDateString("ru")}
-                          </span>
-                        )}
-                      </span>
-                      {confirmRevokeId === portal.id ? (
-                        <>
-                          <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓ Отозвать</button>
-                          <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
-                        </>
-                      ) : (
-                        <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
+                  <div key={portal.id} className="se-list-row" style={{ borderBottom: "1px solid #f3f4f6", paddingBottom: 6 }}>
+                    <span className="se-list-name">
+                      <span style={{ fontWeight: 600 }}>{topicTitle}</span>
+                      {portal.active_mode_id && (
+                        <span style={{ color: "#6b7280" }}> · {modeTitle}</span>
                       )}
-                    </div>
-                    {portalUrlMap[portal.id] && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 2 }}>
-                        <span style={{ fontSize: 11, color: "#6b7280", wordBreak: "break-all", flex: 1 }}>
-                          {portalUrlMap[portal.id]}
+                      {portal.last_used_at && (
+                        <span style={{ marginLeft: 6, fontSize: 11, color: "#9ca3af" }}>
+                          · {new Date(portal.last_used_at).toLocaleDateString("ru")}
                         </span>
-                        <button
-                          type="button"
-                          className="se-video-add-btn"
-                          style={{ fontSize: 12, padding: "4px 10px", flexShrink: 0 }}
-                          onClick={() => shareOrCopy(portalUrlMap[portal.id])}
-                        >
-                          {navigator.share ? "Поделиться" : "Скопировать"}
-                        </button>
-                      </div>
+                      )}
+                    </span>
+                    {confirmRevokeId === portal.id ? (
+                      <>
+                        <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓</button>
+                        <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
+                      </>
+                    ) : (
+                      <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
                     )}
                   </div>
                 );
               })}
 
               {portals.length === 0 && !portalsLoading && (
-                <div style={{ color: "#9ca3af", fontSize: 13, padding: "4px 0" }}>Нет активных ссылок</div>
+                <div style={{ color: "#9ca3af", fontSize: 13, padding: "4px 0" }}>
+                  Нет активных ссылок. Создайте ссылку из режима темы (↗ Отправить ученику).
+                </div>
               )}
-
-              {/* Create portal form */}
-              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>Новая ссылка</div>
-
-                {/* Topic picker */}
-                <select
-                  className="se-video-input"
-                  value={newPortalTopic}
-                  onChange={(e) => { setNewPortalTopic(e.target.value); setNewPortalMode(""); }}
-                  style={{ fontSize: 13 }}
-                >
-                  <option value="">Выберите тему…</option>
-                  {topicRecords.map((r) => (
-                    <option key={r.meta.id} value={r.meta.id}>
-                      {r.meta?.title?.ru ?? r.meta?.title ?? r.meta.id}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Mode picker — only shown after topic selected */}
-                {newPortalTopic && (() => {
-                  const topicRec = topicRecords.find((r) => r.meta.id === newPortalTopic);
-                  const modes = topicRec?.modes ?? [];
-                  return (
-                    <select
-                      className="se-video-input"
-                      value={newPortalMode}
-                      onChange={(e) => setNewPortalMode(e.target.value)}
-                      style={{ fontSize: 13 }}
-                    >
-                      <option value="">Выберите режим…</option>
-                      {modes.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.ui?.title?.ru ?? m.ui?.title ?? m.id}
-                        </option>
-                      ))}
-                    </select>
-                  );
-                })()}
-
-                {/* Optional label */}
-                {newPortalTopic && newPortalMode && (
-                  <input
-                    className="se-video-input"
-                    placeholder="Подпись (необязательно)"
-                    value={newPortalLabel}
-                    onChange={(e) => setNewPortalLabel(e.target.value)}
-                    style={{ fontSize: 13 }}
-                  />
-                )}
-
-                <button
-                  type="button"
-                  className="se-video-add-btn"
-                  onClick={handleCreatePortal}
-                  disabled={!newPortalTopic || !newPortalMode}
-                  style={{ alignSelf: "flex-start" }}
-                >
-                  Создать ссылку
-                </button>
-              </div>
             </>
           )}
         </div>
       )}
-
-      {/* ── Активное задание ── */}
-      {isEdit && (() => {
-        const prefix = initial.id + "_";
-        const assignedTopicIds = Object.keys(studentTopicLinks)
-          .filter((k) => k.startsWith(prefix))
-          .map((k) => studentTopicLinks[k].topicId);
-        if (assignedTopicIds.length === 0) return null;
-        return (
-          <div className="settings-section" style={{ margin: "0 16px 8px" }}>
-            <div className="settings-section-title">Активное задание</div>
-            {assignedTopicIds.map((topicId) => {
-              const record = topicRecords.find((r) => r.meta?.id === topicId);
-              const title = record ? (record.meta?.title?.ru ?? topicId) : topicId;
-              const isActive = activeTaskLocal?.topicId === topicId;
-              return (
-                <div key={topicId} className="se-list-row">
-                  <span className="se-list-name">{title}</span>
-                  <button
-                    type="button"
-                    style={{
-                      fontSize: 11, padding: "4px 10px", borderRadius: 6, border: "none", cursor: "pointer",
-                      background: isActive ? "#dbeafe" : "#f3f4f6",
-                      color: isActive ? "#1d4ed8" : "#6b7280",
-                      fontWeight: 600, whiteSpace: "nowrap",
-                    }}
-                    onClick={() => handleSetActiveTask(topicId)}
-                  >
-                    {isActive ? "✓ Активно" : "Назначить"}
-                  </button>
-                </div>
-              );
-            })}
-            {activeTaskLocal && (
-              <button
-                type="button"
-                className="se-add-row"
-                style={{ marginTop: 4, color: "#9ca3af" }}
-                onClick={() => handleSetActiveTask(activeTaskLocal.topicId)}
-              >
-                Снять задание
-              </button>
-            )}
-          </div>
-        );
-      })()}
 
       {/* ── Удаление — мелко, внизу ── */}
       {isEdit && (

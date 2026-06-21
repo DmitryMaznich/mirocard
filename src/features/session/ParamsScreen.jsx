@@ -16,6 +16,7 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import ShoppingParamsContent from "@/features/session/ShoppingParamsContent";
+import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 
 function NumberStepper({ label, value, min, max, onChange }) {
   return (
@@ -418,6 +419,7 @@ export default function ParamsScreen() {
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
+  const [showShare,      setShowShare]       = useState(false);
 
   if (!topicRecord || !mode) {
     return (
@@ -624,6 +626,9 @@ export default function ParamsScreen() {
           )}
           <div className="params-info-start">
             <Button fullWidth onClick={openPinGate} disabled={sentenceListEmpty}>Начать занятие</Button>
+            <button className="params-share-btn" onClick={() => setShowShare(true)}>
+              ↗ Отправить ученику
+            </button>
           </div>
         </div>
 
@@ -683,6 +688,9 @@ export default function ParamsScreen() {
           {/* Start button — phone only, hidden on tablet via CSS */}
           <div className="params-start-phone">
             <Button fullWidth onClick={openPinGate} disabled={sentenceListEmpty}>Начать занятие</Button>
+            <button className="params-share-btn" onClick={() => setShowShare(true)}>
+              ↗ Отправить ученику
+            </button>
           </div>
         </div>
       </div>
@@ -699,6 +707,15 @@ export default function ParamsScreen() {
           onSuccess={launchSession}
           onSetPin={handleSetPin}
           onCancel={() => setShowPinGate(false)}
+        />
+      )}
+
+      {showShare && (
+        <ShareWithStudentPanel
+          topicId={activeTopicId}
+          modeId={activeModeId}
+          modeTitle={modeTitle}
+          onClose={() => setShowShare(false)}
         />
       )}
     </div>
