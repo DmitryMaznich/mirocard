@@ -562,8 +562,9 @@ function SortablePlanTile({ id, icon, name, count, editMode, onEdit, onDelete })
 // Uses the same shopping-* CSS classes as ShoppingListTask in reading renderer.
 
 function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
-  const adultPinHash = useAppStore((s) => s.settings.adultPinHash);
-  const patchSettings = useAppStore((s) => s.patchSettings);
+  const adultPinHash    = useAppStore((s) => s.settings.adultPinHash);
+  const patchSettings   = useAppStore((s) => s.patchSettings);
+  const isStudentPortal = useAppStore((s) => s.isStudentPortal);
 
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
@@ -990,7 +991,9 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
               {totalPlanned > 0 && (
                 <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить">🗑</button>
               )}
-              <button className="shopping-clear-btn" onClick={() => setShowPinGate(true)} aria-label="Редактировать категории">✏️</button>
+              {!isStudentPortal && (
+                <button className="shopping-clear-btn" onClick={() => setShowPinGate(true)} aria-label="Редактировать категории">✏️</button>
+              )}
               {onExit && (
                 <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
               )}
