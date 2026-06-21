@@ -14084,6 +14084,13 @@ kbd {
   transition: background .15s;
 }
 .params-share-btn:hover { background: #f0f4ff; }
+.params-share-btn-header {
+  font-size: 12px; padding: 5px 10px; border-radius: 8px;
+  border: 1.5px solid #667eea; background: #fff; color: #667eea;
+  font-weight: 600; cursor: pointer; white-space: nowrap; margin-left: auto;
+  transition: background .15s;
+}
+.params-share-btn-header:hover { background: #f0f4ff; }
 
 /* ─── Params screen ──────────────────────────────────────────────────────── */
 .params-layout {

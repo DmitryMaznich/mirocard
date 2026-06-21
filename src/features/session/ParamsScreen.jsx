@@ -345,13 +345,18 @@ export default function ParamsScreen() {
   const isComparison        = topicRecord?.meta.renderer === "comparison";
   const isPhraseMatch       = topicRecord?.meta.renderer === "phrase_match";
   const isReadingInstruction = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
+  const isShoppingPlan = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
+
+  const [showShare, setShowShare] = useState(false);
 
   if (isReadingInstruction) {
+    const earlyModeTitle = getTopicTitle(mode?.ui?.title) || mode?.id;
     return (
       <div className="screen">
         <div className="screen-header">
           <button className="back-btn" onClick={() => setScreen("texts")}>←</button>
           <h1 className="screen-title">{getTopicTitle(activeText.title)}</h1>
+          <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
         </div>
         <InstructionParamsContent
           topicId={activeTopicId}
@@ -363,26 +368,43 @@ export default function ParamsScreen() {
           kind={activeText.kind}
           fixedPortions={activeText.fixedPortions ?? null}
         />
+        {showShare && (
+          <ShareWithStudentPanel
+            topicId={activeTopicId}
+            modeId={activeModeId}
+            modeTitle={earlyModeTitle}
+            onClose={() => setShowShare(false)}
+          />
+        )}
       </div>
     );
   }
 
-  const isShoppingPlan = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
   if (isShoppingPlan) {
     const shoppingText = topicRecord?.texts?.[0];
+    const earlyModeTitle = getTopicTitle(mode?.ui?.title) || mode?.id;
     return (
       <div className="screen">
         <div className="screen-header">
           <button className="back-btn" onClick={() => setScreen("home")}>←</button>
-          <h1 className="screen-title">{getTopicTitle(mode?.ui?.title) || mode?.id}</h1>
+          <h1 className="screen-title">{earlyModeTitle}</h1>
+          <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
         </div>
         <ShoppingParamsContent
           topicId={activeTopicId}
           textId={shoppingText?.id}
           filePath={shoppingText?.file}
           topicTitle={getTopicTitle(topicRecord.meta.title)}
-          modeTitle={getTopicTitle(mode?.ui?.title) || mode?.id}
+          modeTitle={earlyModeTitle}
         />
+        {showShare && (
+          <ShareWithStudentPanel
+            topicId={activeTopicId}
+            modeId={activeModeId}
+            modeTitle={earlyModeTitle}
+            onClose={() => setShowShare(false)}
+          />
+        )}
       </div>
     );
   }
@@ -419,7 +441,6 @@ export default function ParamsScreen() {
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
-  const [showShare,      setShowShare]       = useState(false);
 
   if (!topicRecord || !mode) {
     return (
