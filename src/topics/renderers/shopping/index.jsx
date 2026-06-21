@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, Fragment } from "react";
 import { useAppStore } from "@/core/store";
+import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS as DndCSS } from "@dnd-kit/utilities";
@@ -565,6 +566,8 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   const adultPinHash    = useAppStore((s) => s.settings.adultPinHash);
   const patchSettings   = useAppStore((s) => s.patchSettings);
   const isStudentPortal = useAppStore((s) => s.isStudentPortal);
+  const activeModeId    = useAppStore((s) => s.activeModeId);
+  const [showShare, setShowShare] = useState(false);
 
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
@@ -973,14 +976,14 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
   return (
     <div className="session-body reading-body shopping-body">
       <div className="shopping-grid-header">
-        <span>{editMode ? "Редактор категорий" : (totalPlanned > 0 ? `Выбрано: ${totalPlanned}` : "Что нужно купить?")}</span>
+        <span>{editMode ? "Редактор категорий" : (totalPlanned > 0 ? `🛒 ${totalPlanned}` : "Что нужно купить?")}</span>
         <div className="shopping-grid-header-actions">
           {editMode ? (
             <button className="shopping-sort-done-btn" onClick={exitEditMode}>✓ Готово</button>
           ) : (
             <>
               <button className="shop-store-chip" onClick={onChangeStore} aria-label="Сменить магазин">
-                {store || "🛒"}
+                {store || "🏪"}
               </button>
               {history.length > 0 && (
                 <button className="shopping-clear-btn" onClick={() => setView("history")} aria-label="История">🕐</button>
@@ -992,7 +995,10 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
                 <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить">🗑</button>
               )}
               {!isStudentPortal && (
-                <button className="shopping-clear-btn" onClick={() => setShowPinGate(true)} aria-label="Редактировать категории">✏️</button>
+                <>
+                  <button className="shopping-clear-btn" onClick={() => setShowPinGate(true)} aria-label="Редактировать категории">✏️</button>
+                  <button className="shopping-clear-btn" onClick={() => setShowShare(true)} aria-label="Отправить ученику">↗</button>
+                </>
               )}
               {onExit && (
                 <button className="shopping-exit-btn" onClick={onExit} aria-label="Выйти">✕</button>
@@ -1001,6 +1007,14 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
           )}
         </div>
       </div>
+      {showShare && (
+        <ShareWithStudentPanel
+          topicId={topicId}
+          modeId={activeModeId}
+          modeTitle="Список покупок"
+          onClose={() => setShowShare(false)}
+        />
+      )}
       {editMode ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
