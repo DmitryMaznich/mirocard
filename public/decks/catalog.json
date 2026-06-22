@@ -27,6 +27,19 @@
       "url": "./decks/reading_dad_poems_v1.0.11.zip"
     },
     {
+      "id": "reading_dad_instructions",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Чтение. Инструкции",
+        "en": "Reading: Instructions"
+      },
+      "description": {
+        "ru": "Читаем предложение и выполняем задание. Каждый день — новый набор из 10 предложений.",
+        "en": "Read the sentence and follow the instruction. A new set of 10 sentences every day."
+      },
+      "url": "./decks/reading_dad_instructions_v1.0.0.zip"
+    },
+    {
       "id": "reading_dad_texts",
       "version": "1.122.0",
       "title": {
