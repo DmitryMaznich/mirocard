@@ -64,7 +64,11 @@
 .shs-task-icon { font-size: 44px; display: block; margin-bottom: 8px; }
 .shs-task-name {
   font-size: 22px; font-weight: 700; color: #1a1a2e;
-  margin-bottom: 16px; line-height: 1.2;
+  margin-bottom: 4px; line-height: 1.2;
+}
+.shs-task-mode {
+  font-size: 13px; color: #667eea; font-weight: 600;
+  margin-bottom: 16px;
 }
 .shs-start-btn {
   width: 100%;

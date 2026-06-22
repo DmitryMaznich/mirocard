@@ -1,18 +1,36 @@
+import { useAppStore } from "@/core/store";
+import { getTopicTitle } from "@/shared/utils/format";
 import "./StudentHomeScreen.css";
 
-const TOPIC_META = {
-  shopping_list:  { name: "Список покупок",     emoji: "🛒", sub: "Поход в магазин" },
-  opposites:      { name: "Противоположности",   emoji: "↔️",  sub: "Карточки" },
-  comparison:     { name: "Сравнение",            emoji: "⚖️",  sub: "Карточки" },
-  streak_tracker: { name: "5 из 5",               emoji: "⭐",  sub: "Серия ответов" },
+const RENDERER_EMOJI = {
+  shopping:       "🛒",
+  comparison:     "⚖️",
+  streak_tracker: "⭐",
+  reading:        "📖",
+  phrase_match:   "🔤",
 };
 
-function getTopicMeta(topicId) {
-  return TOPIC_META[topicId] ?? { name: topicId, emoji: "📚", sub: "Задание" };
-}
-
 export default function StudentHomeScreen({ student, activeTask, onStartSession }) {
-  const activeMeta = activeTask ? getTopicMeta(activeTask.topicId) : null;
+  const topicRecords = useAppStore((s) => s.topicRecords);
+
+  let topicName = null;
+  let modeName  = null;
+  let topicIcon = "📚";
+
+  if (activeTask) {
+    const topicRecord = topicRecords.find((r) => r.meta.id === activeTask.topicId);
+    const mode        = topicRecord?.modes?.find((m) => m.id === activeTask.modeId);
+
+    topicName = topicRecord
+      ? (getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id)
+      : activeTask.topicId;
+
+    modeName = mode
+      ? (getTopicTitle(mode.ui?.title) || mode.id)
+      : activeTask.modeId ?? null;
+
+    topicIcon = RENDERER_EMOJI[topicRecord?.meta?.renderer] ?? "📚";
+  }
 
   return (
     <div className="shs-root">
@@ -28,8 +46,9 @@ export default function StudentHomeScreen({ student, activeTask, onStartSession 
               <span className="shs-pulse" />
               Задание сейчас
             </div>
-            <span className="shs-task-icon">{activeMeta.emoji}</span>
-            <div className="shs-task-name">{activeMeta.name}</div>
+            <span className="shs-task-icon">{topicIcon}</span>
+            <div className="shs-task-name">{topicName}</div>
+            {modeName && <div className="shs-task-mode">{modeName}</div>}
             <button
               className="shs-start-btn"
               onClick={() => onStartSession({ topicId: activeTask.topicId, modeId: activeTask.modeId })}
