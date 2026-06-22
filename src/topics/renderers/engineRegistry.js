@@ -13,6 +13,7 @@ import { generateTasks as letterWritingEngine }        from "./letter_writing/en
 import { generateTasks as streakTrackerEngine }        from "./streak_tracker/engine";
 import { generateTasks as shoppingEngine }             from "./shopping/engine";
 import { generateTasks as phraseMatchEngine }           from "./phrase_match/engine";
+import { generateTasks as columnAdditionEngine }       from "./column_addition/engine.js";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -30,4 +31,5 @@ export const ENGINE_REGISTRY = {
   streak_tracker:        streakTrackerEngine,
   shopping:              shoppingEngine,
   phrase_match:          phraseMatchEngine,
+  column_addition:       columnAdditionEngine,
 };

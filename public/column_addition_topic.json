@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "id": "column_addition",
+    "renderer": "column_addition",
+    "version": "1.0.0",
+    "title": { "ru": "Сложение и вычитание в столбик" }
+  },
+  "cards": [
+    { "id": "col_add", "conceptId": "col_add", "renderer": "column_addition", "params": { "operation": "add" } },
+    { "id": "col_sub", "conceptId": "col_sub", "renderer": "column_addition", "params": { "operation": "subtract" } }
+  ]
+}
