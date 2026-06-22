@@ -85,11 +85,12 @@ function buildDailySentencesTasks(text, today = null) {
   const date = today ?? new Date().toISOString().slice(0, 10);
   const seed = `${text.id}_${date}`;
   const shuffled = seededShuffle(text.lines ?? [], seed);
-  return [{
+  const selected = shuffled.slice(0, dailySize);
+  return selected.map((line) => ({
     type: "read_text",
     textId: text.id,
-    text: { ...text, lines: shuffled.slice(0, dailySize) },
-  }];
+    text: { ...text, lines: [line] },
+  }));
 }
 
 export function generateTasks(mode, topicRecord, textId, sessionParams = null, textOverride = null) {

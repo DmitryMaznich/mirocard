@@ -85,10 +85,16 @@ describe("daily_sentences mode", () => {
     ],
   };
 
-  it("returns exactly dailySize lines", () => {
+  it("returns exactly dailySize tasks (one per sentence)", () => {
     const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].text.lines).toHaveLength(10);
+    expect(tasks).toHaveLength(10);
+  });
+
+  it("each task has exactly one line", () => {
+    const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    for (const task of tasks) {
+      expect(task.text.lines).toHaveLength(1);
+    }
   });
 
   it("task type is read_text", () => {
@@ -99,30 +105,30 @@ describe("daily_sentences mode", () => {
   it("all selected lines come from the original pool", () => {
     const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
     const poolIds = new Set(POOL_TOPIC.texts[0].lines.map((l) => l.id));
-    for (const line of tasks[0].text.lines) {
-      expect(poolIds.has(line.id)).toBe(true);
+    for (const task of tasks) {
+      expect(poolIds.has(task.text.lines[0].id)).toBe(true);
     }
   });
 
-  it("no duplicate lines in selection", () => {
+  it("no duplicate sentences in selection", () => {
     const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
-    const ids = tasks[0].text.lines.map((l) => l.id);
+    const ids = tasks.map((t) => t.text.lines[0].id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it("same date produces the same selection", () => {
     const tasks1 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
     const tasks2 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
-    expect(tasks1[0].text.lines.map((l) => l.id)).toEqual(
-      tasks2[0].text.lines.map((l) => l.id)
+    expect(tasks1.map((t) => t.text.lines[0].id)).toEqual(
+      tasks2.map((t) => t.text.lines[0].id)
     );
   });
 
   it("different dates produce different selections", () => {
     const tasks1 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
     const tasks2 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-02" });
-    expect(tasks1[0].text.lines.map((l) => l.id)).not.toEqual(
-      tasks2[0].text.lines.map((l) => l.id)
+    expect(tasks1.map((t) => t.text.lines[0].id)).not.toEqual(
+      tasks2.map((t) => t.text.lines[0].id)
     );
   });
 
