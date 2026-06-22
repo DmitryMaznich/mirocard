@@ -9,61 +9,63 @@ function getDigitAt(n, position) {
 }
 
 // ── Expression header ─────────────────────────────────────────────────────────
-// Each character gets its own 44px cell to match the notebook grid
 
 function Expression({ task }) {
   const sign = task.operation === "add" ? "+" : "−";
   const topChars = String(task.top).split("");
   const botChars = String(task.bottom).split("");
-
   return (
     <div className="col-expression">
-      {topChars.map((ch, i) => (
-        <span key={`t${i}`} className="col-expr-cell">{ch}</span>
-      ))}
+      {topChars.map((ch, i) => <span key={`t${i}`} className="col-expr-cell">{ch}</span>)}
       <span className="col-expr-cell col-expr-sign">{sign}</span>
-      {botChars.map((ch, i) => (
-        <span key={`b${i}`} className="col-expr-cell">{ch}</span>
-      ))}
+      {botChars.map((ch, i) => <span key={`b${i}`} className="col-expr-cell">{ch}</span>)}
       <span className="col-expr-cell col-expr-eq">=</span>
       <span className="col-expr-cell col-expr-unknown">?</span>
     </div>
   );
 }
 
-// ── Phase 1: source digit tiles from the numbers ──────────────────────────────
+// ── Toolbox (phase 1): 0-9 digits + signs + line ─────────────────────────────
 
-function SourceTileGroup({ task, row, placedPositions, onDragStart }) {
-  const sign = task.operation === "add" ? "+" : "−";
-  const number = row === "top" ? task.top : task.bottom;
-
-  // display left-to-right: most significant first
-  const items = POSITIONS.slice(0, task.digits)
-    .reverse()
-    .map((pos) => ({ position: pos, digit: getDigitAt(number, pos) }));
-
+function DigitToolbox({ onDragStart }) {
   return (
-    <div className="col-source-row">
-      <span className="col-source-sign">{row === "bottom" ? sign : " "}</span>
-      <div className="col-source-tiles">
-        {items.map(({ position, digit }) => {
-          const placed = placedPositions.has(position);
-          return (
-            <div
-              key={position}
-              className={`col-bank-tile${placed ? " col-bank-tile--placed" : ""}`}
-              onPointerDown={placed ? undefined : (e) => onDragStart(e, { sourceRow: row, sourcePosition: position, digit })}
-            >
-              {digit}
-            </div>
-          );
-        })}
+    <div className="col-toolbox">
+      <div className="col-toolbox-digits">
+        {Array.from({ length: 10 }, (_, i) => (
+          <div
+            key={i}
+            className="col-bank-tile"
+            onPointerDown={(e) => onDragStart(e, { type: "digit", digit: i })}
+          >
+            {i}
+          </div>
+        ))}
+      </div>
+      <div className="col-toolbox-extras">
+        <div
+          className="col-bank-tile col-sign-tile"
+          onPointerDown={(e) => onDragStart(e, { type: "sign", sign: "+" })}
+        >
+          +
+        </div>
+        <div
+          className="col-bank-tile col-sign-tile"
+          onPointerDown={(e) => onDragStart(e, { type: "sign", sign: "−" })}
+        >
+          −
+        </div>
+        <div
+          className="col-line-tile"
+          onPointerDown={(e) => onDragStart(e, { type: "line" })}
+        >
+          <div className="col-line-tile-bar" />
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Phase 2: 0–9 digit bank ───────────────────────────────────────────────────
+// ── Result digit bank (phase 2): 0-9 only ────────────────────────────────────
 
 function DigitBank({ onDragStart }) {
   return (
@@ -81,26 +83,28 @@ function DigitBank({ onDragStart }) {
   );
 }
 
-// ── Floating ghost digit ──────────────────────────────────────────────────────
+// ── Floating ghost element ────────────────────────────────────────────────────
 
-function FloatingDigit({ drag }) {
+function FloatingItem({ drag }) {
   if (!drag) return null;
+  const content = drag.type === "line"
+    ? <div className="col-line-tile-bar" style={{ width: 60 }} />
+    : (drag.type === "sign" ? drag.sign : drag.digit);
   return (
     <div className="col-floating-digit" style={{ left: drag.x, top: drag.y }}>
-      {drag.digit}
+      {content}
     </div>
   );
 }
 
-// ── Column grid (both phases) ─────────────────────────────────────────────────
+// ── Column grid ───────────────────────────────────────────────────────────────
 
-function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeStep, shakeCell }) {
+function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, shakeCell }) {
   const { digits, operation } = task;
   const totalCols = digits + 2;
-  const sign = operation === "add" ? "+" : "−";
   const cells = [];
 
-  // ── Carry / borrow aux row (phase 2, only when steps need it) ────────────
+  // ── Carry / borrow row (phase 2 only) ────────────────────────────────────
   if (phase === "solve") {
     const hasAux = task.steps.some((s) => s.cellType === "carry" || s.cellType === "borrow");
     if (hasAux) {
@@ -122,11 +126,10 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
             ].filter(Boolean).join(" ")}
             style={{ gridColumn: gridCol, gridRow: 1 }}
           >
-            {filled ? filledCells[key] : ""}
+            {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
           </div>
         );
       }
-      // effective top digit for subtraction borrow visualization
       if (operation === "subtract") {
         for (let i = 0; i < digits; i++) {
           const pos = POSITIONS[i];
@@ -185,13 +188,31 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
     }
   }
 
-  // ── Sign + bottom row ─────────────────────────────────────────────────────
-  cells.push(
-    <div key="sign" className="col-digit col-digit--sign" style={{ gridColumn: 1, gridRow: 3 }}>
-      {sign}
-    </div>
-  );
+  // ── Sign cell ─────────────────────────────────────────────────────────────
+  if (phase === "form") {
+    cells.push(
+      <div
+        key="sign"
+        data-cell-key="sign"
+        className={[
+          "col-sign-cell",
+          signFilled ? "col-sign-cell--filled" : "",
+          shakeCell === "sign" ? "col-form-cell--shake" : "",
+        ].filter(Boolean).join(" ")}
+        style={{ gridColumn: 1, gridRow: 3 }}
+      >
+        {signFilled ? <span className="col-slant">{signFilled}</span> : ""}
+      </div>
+    );
+  } else {
+    cells.push(
+      <div key="sign" className="col-digit col-digit--sign" style={{ gridColumn: 1, gridRow: 3 }}>
+        {signFilled || (operation === "add" ? "+" : "−")}
+      </div>
+    );
+  }
 
+  // ── Bottom row ────────────────────────────────────────────────────────────
   for (let i = 0; i < digits; i++) {
     const pos = POSITIONS[i];
     const gridCol = digits + 2 - i;
@@ -223,10 +244,25 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
     }
   }
 
-  // ── Horizontal line ───────────────────────────────────────────────────────
-  cells.push(
-    <div key="line" className="col-line" style={{ gridColumn: `1 / ${digits + 3}`, gridRow: 4 }} />
-  );
+  // ── Line row ──────────────────────────────────────────────────────────────
+  if (phase === "form") {
+    cells.push(
+      <div
+        key="line"
+        data-cell-key="line"
+        className={[
+          "col-line-placeholder",
+          lineFilled ? "col-line-placeholder--filled" : "",
+          shakeCell === "line" ? "col-form-cell--shake" : "",
+        ].filter(Boolean).join(" ")}
+        style={{ gridColumn: `1 / ${digits + 3}`, gridRow: 4 }}
+      />
+    );
+  } else {
+    cells.push(
+      <div key="line" className="col-line" style={{ gridColumn: `1 / ${digits + 3}`, gridRow: 4 }} />
+    );
+  }
 
   // ── Result row (phase 2 only) ─────────────────────────────────────────────
   if (phase === "solve") {
@@ -252,7 +288,6 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
         </div>
       );
     }
-    // overflow carry (e.g. 57 + 65 = 122: the leading 1)
     const lastCol = task.columns[digits - 1];
     if (operation === "add" && lastCol.carryOut > 0) {
       const key = "result:overflow";
@@ -281,9 +316,11 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
 
 function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
   const [phase, setPhase] = useState("form");
-  const [topFilled, setTopFilled] = useState({});     // { units: 4, tens: 1 }
-  const [bottomFilled, setBottomFilled] = useState({}); // { units: 4, tens: 2 }
-  const [filledCells, setFilledCells] = useState({});   // phase 2 result/carry
+  const [topFilled, setTopFilled] = useState({});
+  const [bottomFilled, setBottomFilled] = useState({});
+  const [signFilled, setSignFilled] = useState(null);
+  const [lineFilled, setLineFilled] = useState(false);
+  const [filledCells, setFilledCells] = useState({});
   const [stepIdx, setStepIdx] = useState(0);
   const [drag, setDrag] = useState(null);
   const [shakeCell, setShakeCell] = useState(null);
@@ -297,6 +334,8 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     setPhase("form");
     setTopFilled({});
     setBottomFilled({});
+    setSignFilled(null);
+    setLineFilled(false);
     setFilledCells({});
     setStepIdx(0);
     setDrag(null);
@@ -304,17 +343,19 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     dragRef.current = null;
   }, [task.cardId, task.top, task.bottom, task.operation]);
 
-  // advance to phase 2 when both rows are fully placed
+  // advance to phase 2 when column fully built
   useEffect(() => {
     if (
       phase === "form" &&
       Object.keys(topFilled).length === task.digits &&
-      Object.keys(bottomFilled).length === task.digits
+      Object.keys(bottomFilled).length === task.digits &&
+      signFilled !== null &&
+      lineFilled
     ) {
       const t = setTimeout(() => setPhase("solve"), 500);
       return () => clearTimeout(t);
     }
-  }, [phase, topFilled, bottomFilled, task.digits]);
+  }, [phase, topFilled, bottomFilled, signFilled, lineFilled, task.digits]);
 
   const triggerShake = useCallback((key) => {
     setShakeCell(key);
@@ -332,23 +373,22 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     return null;
   }, []);
 
-  // ── Phase 1 drag: place digits from expression into grid ─────────────────
+  // ── Universal drag start ──────────────────────────────────────────────────
 
-  const handleFormDragStart = useCallback((e, tileInfo) => {
-    // tileInfo = { sourceRow: "top"|"bottom", sourcePosition, digit }
+  const startDrag = useCallback((e, item) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
 
-    const state = { ...tileInfo, x: e.clientX, y: e.clientY };
-    dragRef.current = state;
-    setDrag({ digit: tileInfo.digit, x: e.clientX, y: e.clientY });
+    const displayDigit = item.type === "digit" ? item.digit : item.type === "sign" ? item.sign : null;
+    dragRef.current = { ...item, x: e.clientX, y: e.clientY };
+    setDrag({ ...item, digit: displayDigit, x: e.clientX, y: e.clientY });
 
     const el = e.currentTarget;
 
     const onMove = (ev) => {
       if (!dragRef.current) return;
       dragRef.current = { ...dragRef.current, x: ev.clientX, y: ev.clientY };
-      setDrag({ digit: dragRef.current.digit, x: ev.clientX, y: ev.clientY });
+      setDrag((prev) => prev ? { ...prev, x: ev.clientX, y: ev.clientY } : null);
     };
 
     const onUp = (ev) => {
@@ -361,19 +401,42 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
       const cellKey = findCellUnderPointer(ev.clientX, ev.clientY);
       if (!cellKey) return;
 
-      // cellKey: "top:units" | "bottom:tens" etc.
-      const [targetRow, targetPos] = cellKey.split(":");
-      if (targetRow !== info.sourceRow || targetPos !== info.sourcePosition) {
-        triggerShake(cellKey);
-        if (onWrong) onWrong();
-        return;
-      }
+      if (info.type === "digit") {
+        const parts = cellKey.split(":");
+        if (parts.length !== 2 || (parts[0] !== "top" && parts[0] !== "bottom")) {
+          triggerShake(cellKey);
+          return;
+        }
+        const [rowName, pos] = parts;
+        if (!POSITIONS.includes(pos)) { triggerShake(cellKey); return; }
+        const colData = task.columns[POS_INDEX[pos]];
+        const expected = rowName === "top" ? colData.topDigit : colData.bottomDigit;
+        if (info.digit !== expected) {
+          triggerShake(cellKey);
+          if (onWrong) onWrong();
+          return;
+        }
+        if (rowName === "top") {
+          if (topFilled[pos] !== undefined) return;
+          setTopFilled((prev) => ({ ...prev, [pos]: info.digit }));
+        } else {
+          if (bottomFilled[pos] !== undefined) return;
+          setBottomFilled((prev) => ({ ...prev, [pos]: info.digit }));
+        }
 
-      // correct placement
-      if (info.sourceRow === "top") {
-        setTopFilled((prev) => ({ ...prev, [info.sourcePosition]: info.digit }));
-      } else {
-        setBottomFilled((prev) => ({ ...prev, [info.sourcePosition]: info.digit }));
+      } else if (info.type === "sign") {
+        if (cellKey !== "sign") { triggerShake(cellKey); return; }
+        const expected = task.operation === "add" ? "+" : "−";
+        if (info.sign !== expected) {
+          triggerShake("sign");
+          if (onWrong) onWrong();
+          return;
+        }
+        setSignFilled(info.sign);
+
+      } else if (info.type === "line") {
+        if (cellKey !== "line") { triggerShake(cellKey); return; }
+        setLineFilled(true);
       }
     };
 
@@ -386,23 +449,23 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp, { once: true });
     el.addEventListener("pointercancel", onCancel, { once: true });
-  }, [findCellUnderPointer, triggerShake, onWrong]);
+  }, [task, topFilled, bottomFilled, findCellUnderPointer, triggerShake, onWrong]);
 
-  // ── Phase 2 drag: fill result / carry cells ───────────────────────────────
+  // ── Phase 2 solve drag ────────────────────────────────────────────────────
 
-  const handleSolveDragStart = useCallback((e, digit) => {
+  const handleSolveDrag = useCallback((e, digit) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
 
-    dragRef.current = { digit, x: e.clientX, y: e.clientY };
-    setDrag({ digit, x: e.clientX, y: e.clientY });
+    dragRef.current = { type: "digit", digit, x: e.clientX, y: e.clientY };
+    setDrag({ type: "digit", digit, x: e.clientX, y: e.clientY });
 
     const el = e.currentTarget;
 
     const onMove = (ev) => {
       if (!dragRef.current) return;
       dragRef.current = { ...dragRef.current, x: ev.clientX, y: ev.clientY };
-      setDrag({ digit: dragRef.current.digit, x: ev.clientX, y: ev.clientY });
+      setDrag((prev) => prev ? { ...prev, x: ev.clientX, y: ev.clientY } : null);
     };
 
     const onUp = (ev) => {
@@ -441,9 +504,6 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     el.addEventListener("pointercancel", onCancel, { once: true });
   }, [activeStep, stepIdx, task.steps, findCellUnderPointer, triggerShake, onCorrect, onWrong]);
 
-  const topPlaced = new Set(Object.keys(topFilled));
-  const bottomPlaced = new Set(Object.keys(bottomFilled));
-
   return (
     <div className="col-screen" ref={rootRef}>
       <Expression task={task} />
@@ -453,22 +513,19 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
         phase={phase}
         topFilled={topFilled}
         bottomFilled={bottomFilled}
+        signFilled={signFilled}
+        lineFilled={lineFilled}
         filledCells={filledCells}
         activeStep={activeStep}
         shakeCell={shakeCell}
       />
 
-      {phase === "form" ? (
-        <div className="col-source-area">
-          <p className="col-phase-hint">Выложи пример в столбик</p>
-          <SourceTileGroup task={task} row="top" placedPositions={topPlaced} onDragStart={handleFormDragStart} />
-          <SourceTileGroup task={task} row="bottom" placedPositions={bottomPlaced} onDragStart={handleFormDragStart} />
-        </div>
-      ) : (
-        <DigitBank onDragStart={handleSolveDragStart} />
-      )}
+      {phase === "form"
+        ? <DigitToolbox onDragStart={startDrag} />
+        : <DigitBank onDragStart={handleSolveDrag} />
+      }
 
-      <FloatingDigit drag={drag} />
+      <FloatingItem drag={drag} />
     </div>
   );
 }
