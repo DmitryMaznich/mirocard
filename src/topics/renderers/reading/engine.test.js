@@ -68,3 +68,66 @@ describe("shopping_list mode", () => {
     expect(tasks).toHaveLength(0);
   });
 });
+
+describe("daily_sentences mode", () => {
+  const POOL_TOPIC = {
+    meta: { id: "reading_test", renderer: "reading" },
+    texts: [
+      {
+        id: "pool",
+        kind: "sentence_pool",
+        dailySize: 10,
+        lines: Array.from({ length: 20 }, (_, i) => ({
+          id: `s${i + 1}`,
+          text: `Инструкция ${i + 1}.`,
+        })),
+      },
+    ],
+  };
+
+  it("returns exactly dailySize lines", () => {
+    const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].text.lines).toHaveLength(10);
+  });
+
+  it("task type is read_text", () => {
+    const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    expect(tasks[0].type).toBe("read_text");
+  });
+
+  it("all selected lines come from the original pool", () => {
+    const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    const poolIds = new Set(POOL_TOPIC.texts[0].lines.map((l) => l.id));
+    for (const line of tasks[0].text.lines) {
+      expect(poolIds.has(line.id)).toBe(true);
+    }
+  });
+
+  it("no duplicate lines in selection", () => {
+    const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    const ids = tasks[0].text.lines.map((l) => l.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("same date produces the same selection", () => {
+    const tasks1 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    const tasks2 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    expect(tasks1[0].text.lines.map((l) => l.id)).toEqual(
+      tasks2[0].text.lines.map((l) => l.id)
+    );
+  });
+
+  it("different dates produce different selections", () => {
+    const tasks1 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01" });
+    const tasks2 = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-02" });
+    expect(tasks1[0].text.lines.map((l) => l.id)).not.toEqual(
+      tasks2[0].text.lines.map((l) => l.id)
+    );
+  });
+
+  it("returns empty array for non-sentence_pool kind", () => {
+    const tasks = generateTasks({ type: "daily_sentences" }, TOPIC, "dad_best", { today: "2024-01-01" });
+    expect(tasks).toHaveLength(0);
+  });
+});

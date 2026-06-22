@@ -66,7 +66,33 @@ function buildShoppingListTask(text) {
   };
 }
 
-export function generateTasks(mode, topicRecord, textId, _sessionParams = null, textOverride = null) {
+function seededShuffle(arr, seedStr) {
+  let s = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    s = (Math.imul(31, s) + seedStr.charCodeAt(i)) | 0;
+  }
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    s = (Math.imul(s, 1664525) + 1013904223) | 0;
+    const j = Math.abs(s) % (i + 1);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function buildDailySentencesTasks(text, today = null) {
+  const dailySize = text.dailySize ?? 10;
+  const date = today ?? new Date().toISOString().slice(0, 10);
+  const seed = `${text.id}_${date}`;
+  const shuffled = seededShuffle(text.lines ?? [], seed);
+  return [{
+    type: "read_text",
+    textId: text.id,
+    text: { ...text, lines: shuffled.slice(0, dailySize) },
+  }];
+}
+
+export function generateTasks(mode, topicRecord, textId, sessionParams = null, textOverride = null) {
   const text = getReadingText(topicRecord, textId, textOverride);
   if (!text) return [];
 
@@ -83,6 +109,10 @@ export function generateTasks(mode, topicRecord, textId, _sessionParams = null, 
       const shoppingText = (topicRecord.texts ?? []).find((t) => t.kind === "shopping_list");
       return shoppingText ? [buildShoppingListTask(shoppingText)] : [];
     }
+    case "daily_sentences":
+      return text.kind === "sentence_pool"
+        ? buildDailySentencesTasks(text, sessionParams?.today ?? null)
+        : [];
     default:
       return [];
   }
