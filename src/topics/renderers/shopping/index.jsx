@@ -1282,17 +1282,21 @@ function ShopMode({ task, topicId, store, onGoToPlan, onExit }) {
 export default function ShoppingRenderer({ task, topicId, onExit }) {
   const [modeView, setModeView] = useState("loading"); // "loading" | "storePicker" | "plan" | "shop"
   const [stores, setStores] = useState(null); // { current: string|null, list: string[] }
+  const isStudentPortal = useAppStore((s) => s.isStudentPortal);
 
   useEffect(() => {
+    // Determine the target view from the task type; fall back to "plan"
+    const taskView = task?.type === "shop" ? "shop" : "plan";
     getShoppingStores(topicId).then((saved) => {
       const data = saved ?? { current: null, list: [...DEFAULT_STORES] };
       setStores(data);
-      setModeView(data.current !== null ? "plan" : "storePicker");
+      // Students skip the store picker and land directly on the assigned mode view
+      setModeView(isStudentPortal ? taskView : (data.current !== null ? taskView : "storePicker"));
     }).catch(() => {
       setStores({ current: null, list: [...DEFAULT_STORES] });
-      setModeView("storePicker");
+      setModeView(isStudentPortal ? taskView : "storePicker");
     });
-  }, [topicId]);
+  }, [topicId, isStudentPortal, task?.type]);
 
   function persistStores(next) {
     setStores(next);

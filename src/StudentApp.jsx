@@ -209,16 +209,17 @@ export default function StudentApp({ token }) {
   function handleStartSession({ topicId, modeId }) {
     const { topicRecords } = useAppStore.getState();
     const topicRecord = topicRecords.find((r) => r.meta.id === topicId);
-    const mode = topicRecord?.modes.find((m) => m.id === modeId);
+    // Fall back to the first mode if modeId is missing (e.g. old portal without modeId stored)
+    const resolvedModeId = modeId ?? topicRecord?.modes?.[0]?.id ?? null;
+    const mode = topicRecord?.modes.find((m) => m.id === resolvedModeId);
 
-    // Set default params in store so session engine can pick them up
     const defaultParams = computeDefaultParams(topicRecord, mode);
     useAppStore.getState().upsertStudentTopicLink(student.id, topicId, { params: defaultParams });
 
     useAppStore.setState({
       activeStudentId: student.id,
       activeTopicId: topicId,
-      activeModeId: modeId ?? undefined,
+      activeModeId: resolvedModeId ?? undefined,
     });
     setScreen("session");
   }
