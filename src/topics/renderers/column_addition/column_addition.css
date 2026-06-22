@@ -37,16 +37,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
+  font-size: 40px;
   font-family: 'Caveat', cursive;
   font-weight: 700;
   color: #1a1a2e;
+  line-height: 1;
   position: relative;
 }
 
 .col-digit--sign {
   color: #1a1a2e;
-  font-size: 28px;
+  font-size: 36px;
 }
 
 .col-digit--top-borrowed {
@@ -122,17 +123,18 @@
 /* ── Result empty cells ────────────────────── */
 
 .col-result-cell {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 2px dashed #94a3b8;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 700;
   font-family: 'Caveat', cursive;
   color: #1a1a2e;
+  line-height: 1;
   background: transparent;
 }
 
@@ -184,7 +186,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  font-size: 40px;
   font-weight: 700;
   font-family: 'Caveat', cursive;
   color: #1a1a2e;
@@ -250,16 +252,17 @@
 /* ── Form cells (phase 1 droppable targets) ─ */
 
 .col-form-cell {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 2px dashed #cbd5e1;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 700;
   font-family: 'Caveat', cursive;
+  line-height: 1;
   color: #1a1a2e;
   background: rgba(255, 255, 255, 0.5);
 }
@@ -289,17 +292,18 @@
 }
 
 .col-bank-tile {
-  width: 42px;
-  height: 50px;
+  width: 44px;
+  height: 52px;
   border: 2px solid #3b82f6;
   border-radius: 8px;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 40px;
   font-weight: 700;
   font-family: 'Caveat', cursive;
+  line-height: 1;
   color: #1e3a8a;
   cursor: grab;
   touch-action: none;
