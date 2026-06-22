@@ -164,7 +164,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
           ].filter(Boolean).join(" ")}
           style={{ gridColumn: gridCol, gridRow: 2 }}
         >
-          {filled ? topFilled[pos] : ""}
+          {filled ? <span className="col-slant">{topFilled[pos]}</span> : ""}
         </div>
       );
     } else {
@@ -211,7 +211,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
           ].filter(Boolean).join(" ")}
           style={{ gridColumn: gridCol, gridRow: 3 }}
         >
-          {filled ? bottomFilled[pos] : ""}
+          {filled ? <span className="col-slant">{bottomFilled[pos]}</span> : ""}
         </div>
       );
     } else {
@@ -248,7 +248,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
           ].filter(Boolean).join(" ")}
           style={{ gridColumn: gridCol, gridRow: 5 }}
         >
-          {filled ? filledCells[key] : ""}
+          {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
         </div>
       );
     }
@@ -264,7 +264,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, filledCells, activeS
           className={["col-result-cell", filled ? "col-result-cell--filled" : ""].filter(Boolean).join(" ")}
           style={{ gridColumn: 2, gridRow: 5 }}
         >
-          {filled ? filledCells[key] : lastCol.carryOut}
+          {filled ? <span className="col-slant">{filledCells[key]}</span> : lastCol.carryOut}
         </div>
       );
     }
