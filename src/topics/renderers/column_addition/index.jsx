@@ -9,16 +9,24 @@ function getDigitAt(n, position) {
 }
 
 // ── Expression header ─────────────────────────────────────────────────────────
+// Each character gets its own 44px cell to match the notebook grid
 
 function Expression({ task }) {
   const sign = task.operation === "add" ? "+" : "−";
+  const topChars = String(task.top).split("");
+  const botChars = String(task.bottom).split("");
+
   return (
     <div className="col-expression">
-      <span className="col-expr-num">{task.top}</span>
-      <span className="col-expr-sign">{sign}</span>
-      <span className="col-expr-num">{task.bottom}</span>
-      <span className="col-expr-eq">=</span>
-      <span className="col-expr-unknown">?</span>
+      {topChars.map((ch, i) => (
+        <span key={`t${i}`} className="col-expr-cell">{ch}</span>
+      ))}
+      <span className="col-expr-cell col-expr-sign">{sign}</span>
+      {botChars.map((ch, i) => (
+        <span key={`b${i}`} className="col-expr-cell">{ch}</span>
+      ))}
+      <span className="col-expr-cell col-expr-eq">=</span>
+      <span className="col-expr-cell col-expr-unknown">?</span>
     </div>
   );
 }

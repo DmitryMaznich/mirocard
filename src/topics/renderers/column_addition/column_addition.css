@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
+
 .col-screen {
   position: relative;
   width: 100%;
@@ -36,7 +38,7 @@
   align-items: center;
   justify-content: center;
   font-size: 30px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Caveat', cursive;
   font-weight: 700;
   color: #1a1a2e;
   position: relative;
@@ -67,7 +69,7 @@
   font-size: 13px;
   font-weight: 700;
   color: #2563eb;
-  font-family: 'Courier New', monospace;
+  font-family: 'Caveat', cursive;
 }
 
 /* ── Horizontal line ───────────────────────── */
@@ -94,7 +96,7 @@
   font-weight: 700;
   color: #92400e;
   background: transparent;
-  font-family: 'Courier New', monospace;
+  font-family: 'Caveat', cursive;
 }
 
 .col-carry-cell--active {
@@ -129,7 +131,7 @@
   justify-content: center;
   font-size: 30px;
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: 'Caveat', cursive;
   color: #1a1a2e;
   background: transparent;
 }
@@ -174,11 +176,19 @@
 .col-expression {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 38px;
+}
+
+.col-expr-cell {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
   font-weight: 700;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Caveat', cursive;
   color: #1a1a2e;
+  line-height: 1;
 }
 
 .col-expr-sign {
@@ -186,13 +196,11 @@
 }
 
 .col-expr-eq {
-  color: #6b7280;
+  color: #374151;
 }
 
 .col-expr-unknown {
   color: #d97706;
-  min-width: 36px;
-  text-align: center;
 }
 
 /* ── Phase 1 source tiles ──────────────────── */
@@ -220,7 +228,7 @@
 .col-source-sign {
   font-size: 26px;
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: 'Caveat', cursive;
   color: #2563eb;
   min-width: 22px;
   text-align: right;
@@ -251,7 +259,7 @@
   justify-content: center;
   font-size: 30px;
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: 'Caveat', cursive;
   color: #1a1a2e;
   background: rgba(255, 255, 255, 0.5);
 }
@@ -291,7 +299,7 @@
   justify-content: center;
   font-size: 26px;
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: 'Caveat', cursive;
   color: #1e3a8a;
   cursor: grab;
   touch-action: none;
@@ -322,7 +330,7 @@
   justify-content: center;
   font-size: 28px;
   font-weight: 700;
-  font-family: 'Courier New', monospace;
+  font-family: 'Caveat', cursive;
   color: #1e3a8a;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }
