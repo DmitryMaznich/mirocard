@@ -70,6 +70,12 @@ function JourneyStep({ state, number, label, value, onClick, avatar }) {
 
 function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
   if (!topicRecord) return { total: 0, mastered: 0 };
+  if (topicRecord.meta?.renderer === "chat_practice") {
+    const completed = sessions.filter(
+      (s) => s.studentId === studentId && s.topicId === topicId
+    ).length;
+    return { total: topicRecord.turns?.length ?? 0, mastered: completed };
+  }
   if (topicRecord.meta?.renderer === "reading") {
     const texts = topicRecord.texts ?? [];
     const completed = texts.filter((text) =>
@@ -173,7 +179,8 @@ export default function HomeScreen() {
 
   const student = students.find((s) => s.id === activeStudentId) ?? students[0];
   const topic = topicRecords.find((r) => r.meta.id === activeTopicId) ?? topicRecords[0];
-  const isReading = topic?.meta?.renderer === "reading";
+  const isReading      = topic?.meta?.renderer === "reading";
+  const isChatPractice = topic?.meta?.renderer === "chat_practice";
   const activeText = isReading
     ? (topic?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
@@ -197,15 +204,18 @@ export default function HomeScreen() {
   const { hasUpdate, applyUpdate } = useAppUpdate();
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (
-    !isReading ? !!mode :
-    !activeText ? false :
+    isChatPractice ? true :
+    !isReading     ? !!mode :
+    !activeText    ? false :
     activeText.kind === "instruction" ? true :
     !!mode
   );
 
   const s1 = stepState(!!student, true);
   const s2 = stepState(!!topic, !!student);
-  const s3 = stepState(isReading ? !!activeText : !!mode, !!student && !!topic);
+  const s3 = isChatPractice
+    ? "completed"
+    : stepState(isReading ? !!activeText : !!mode, !!student && !!topic);
 
   const topicLabel = topic
     ? `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`
@@ -217,6 +227,7 @@ export default function HomeScreen() {
     : "Не выбран";
 
   function startOrContinue() {
+    if (isChatPractice) { setScreen("chat_session"); return; }
     if (!isReading) { setScreen("params"); return; }
     if (!activeText) { setScreen("texts"); return; }
     setScreen("params");
