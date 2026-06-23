@@ -20,8 +20,10 @@ export function applyChoice(state, choice, turns) {
       ...state,
       score: { ...state.score, total: state.score.total + 1 },
       disabledChoices: new Set([...state.disabledChoices, choice.text]),
-      showHint: true,
+      showHint: false,
       isAdvancing: false,
+      pendingReaction: choice.reactionOnWrong ?? null,
+      lastChoiceText: choice.text,
     };
   }
 
@@ -36,7 +38,7 @@ export function applyChoice(state, choice, turns) {
     isComplete: nextIdx >= turns.length,
     pendingReaction: isAnyCorrect
       ? (currentTurn.reactionOnSend ?? null)
-      : (currentTurn.reactionOnCorrect ?? null),
+      : (choice.reactionOnCorrect ?? currentTurn.reactionOnCorrect ?? null),
     lastChoiceText: choice.text,
   };
 }
@@ -92,8 +94,21 @@ export function useConversation(script) {
     setScore(next.score);
 
     if (!next.isAdvancing) {
+      addMsg({ from: "child", text: next.lastChoiceText });
       setDisabledChoices(next.disabledChoices);
-      setShowHint(true);
+
+      if (next.pendingReaction) {
+        setAwaitingChoice(false);
+        setIsTyping(true);
+        timerRef.current = setTimeout(() => {
+          addMsg({ from: "contact", text: next.pendingReaction });
+          setIsTyping(false);
+          setShowHint(true);
+          setAwaitingChoice(true);
+        }, 850);
+      } else {
+        setShowHint(true);
+      }
       return;
     }
 

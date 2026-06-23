@@ -17,10 +17,9 @@ const turns = [
     choices: [
       { text: "Да", correct: true, next: "t3" },
       { text: "Нет", correct: true, next: "t3" },
-      { text: "Не знаю", correct: false },
+      { text: "Не знаю", correct: false, reactionOnWrong: "Скажи мне, хочешь ли ты есть." },
     ],
     reactionOnCorrect: "Мама: Хорошо!",
-    reactionOnWrong: null,
   },
   {
     id: "t3",
@@ -84,13 +83,26 @@ describe("applyChoice — correct/false turn", () => {
     expect(state.isAdvancing).toBe(true);
   });
 
-  it("wrong choice adds to disabledChoices and sets showHint", () => {
-    const state = applyChoice(stateAtT2, { text: "Не знаю", correct: false }, turns);
+  it("wrong choice adds to disabledChoices, does not set showHint yet", () => {
+    const choice = turns[1].choices[2]; // "Не знаю"
+    const state = applyChoice(stateAtT2, choice, turns);
     expect(state.score).toEqual({ correct: 0, total: 1 });
     expect(state.disabledChoices.has("Не знаю")).toBe(true);
-    expect(state.showHint).toBe(true);
-    expect(state.turnIndex).toBe(1);
+    expect(state.showHint).toBe(false);
     expect(state.isAdvancing).toBe(false);
+    expect(state.lastChoiceText).toBe("Не знаю");
+  });
+
+  it("wrong choice with reactionOnWrong returns pendingReaction", () => {
+    const choice = turns[1].choices[2]; // "Не знаю"
+    const state = applyChoice(stateAtT2, choice, turns);
+    expect(state.pendingReaction).toBe("Скажи мне, хочешь ли ты есть.");
+  });
+
+  it("wrong choice without reactionOnWrong returns null pendingReaction", () => {
+    const choice = { text: "Молчу", correct: false };
+    const state = applyChoice(stateAtT2, choice, turns);
+    expect(state.pendingReaction).toBeNull();
   });
 
   it("correct after wrong clears hint and disabled choices", () => {
