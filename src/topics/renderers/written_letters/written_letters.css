@@ -97,7 +97,9 @@
 .wl-zones {
   display: flex;
   gap: 12px;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 50%;  /* ~30 % shorter than occupying all remaining space */
 }
 
 .wl-zone {
@@ -135,14 +137,14 @@
 
 .wl-zone-chip {
   background: var(--zone-color);
-  border-radius: 8px;
-  width: clamp(30px, 8vw, 44px);
-  height: clamp(30px, 8vw, 44px);
+  border-radius: 10px;
+  width: clamp(60px, 16vw, 88px);
+  height: clamp(60px, 16vw, 88px);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Primo', cursive;
-  font-size: clamp(18px, 5vw, 26px);
+  font-size: clamp(36px, 10vw, 52px);
   color: #fff;
 }
 
@@ -161,7 +163,7 @@
 
 .wl-drag-card--floating {
   position: fixed;
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(0.65);  /* 160×240 × 0.65 ≈ 104×156 while dragging */
   cursor: grabbing;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   z-index: 1000;
