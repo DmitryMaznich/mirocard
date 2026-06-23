@@ -324,3 +324,58 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(record.modes.every((mode) => mode.ui?.icon)).toBe(true);
   });
 });
+
+// ─── chat_practice ────────────────────────────────────────────────────────────
+
+async function makeChatPracticeZip({ id = "morning_greeting", version = "1.0.0" } = {}) {
+  const zip = new JSZip();
+  const manifest = {
+    meta: { id, version, language: "ru", renderer: "chat_practice", title: "Утреннее приветствие" },
+    contact: { name: "Мама", avatar: "mom.png", color: "#25d366" },
+    turns: [
+      {
+        id: "t1",
+        from: "contact",
+        text: "Привет!",
+        anyIsCorrect: true,
+        choices: [{ text: "Привет!" }],
+        reactionOnSend: "Мама: Отлично!",
+      },
+    ],
+  };
+  zip.file("topic.json", JSON.stringify(manifest));
+  zip.file("mom.png", "fake-png-data");
+  return zip.generateAsync({ type: "arraybuffer" });
+}
+
+describe("importTopic — chat_practice", () => {
+  it("imports a chat_practice zip without errors", async () => {
+    const db = await freshDb();
+    const buf = await makeChatPracticeZip();
+    const record = await importTopic(db, buf);
+    expect(record.meta.renderer).toBe("chat_practice");
+    expect(record.turns).toHaveLength(1);
+    expect(record.contact.name).toBe("Мама");
+  });
+
+  it("throws when turns array is missing", async () => {
+    const db = await freshDb();
+    const zip = new JSZip();
+    zip.file("topic.json", JSON.stringify({
+      meta: { id: "bad", version: "1.0.0", renderer: "chat_practice", title: "Bad" },
+    }));
+    const buf = await zip.generateAsync({ type: "arraybuffer" });
+    await expect(importTopic(db, buf)).rejects.toBeInstanceOf(TopicImportError);
+  });
+
+  it("throws when turns array is empty", async () => {
+    const db = await freshDb();
+    const zip = new JSZip();
+    zip.file("topic.json", JSON.stringify({
+      meta: { id: "bad2", version: "1.0.0", renderer: "chat_practice", title: "Bad2" },
+      turns: [],
+    }));
+    const buf = await zip.generateAsync({ type: "arraybuffer" });
+    await expect(importTopic(db, buf)).rejects.toBeInstanceOf(TopicImportError);
+  });
+});

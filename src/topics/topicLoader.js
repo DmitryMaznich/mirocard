@@ -42,10 +42,15 @@ async function parseManifest(zip) {
 function validateManifest(manifest, appVersion) {
   if (!manifest.meta?.id) throw new TopicImportError("Отсутствует meta.id");
   if (!manifest.meta?.version) throw new TopicImportError("Отсутствует meta.version");
-  const isReading     = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
-  const isNarrative   = manifest.meta.renderer === "narrative";
-  const isPhraseMatch = manifest.meta.renderer === "phrase_match";
-  if (isReading) {
+  const isReading      = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
+  const isNarrative    = manifest.meta.renderer === "narrative";
+  const isPhraseMatch  = manifest.meta.renderer === "phrase_match";
+  const isChatPractice = manifest.meta.renderer === "chat_practice";
+  if (isChatPractice) {
+    if (!Array.isArray(manifest.turns) || manifest.turns.length === 0) {
+      throw new TopicImportError("Тема chat_practice не содержит ходов (turns)");
+    }
+  } else if (isReading) {
     if (!Array.isArray(manifest.texts) || manifest.texts.length === 0) {
       throw new TopicImportError("Тема чтения не содержит текстов");
     }
@@ -1368,6 +1373,8 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
     }),
     groups:    manifest.groups    ?? undefined,
     texts:     manifest.texts     ?? undefined,
+    turns:     manifest.turns     ?? undefined,
+    contact:   manifest.contact   ?? undefined,
     sentences: manifest.sentences?.length ? manifest.sentences : undefined,
     scenes:    (manifest.scenes ?? []).map((scene) => ({
       ...scene,
