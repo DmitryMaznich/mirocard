@@ -1,18 +1,19 @@
 // 4-line propis coordinate system (ratio 1:2:1):
-//  y= 6  L1  ──── верхняя зона top (заглавные / асцендеры)
-//  y=32  L2  ──── рабочая строка top (x-height)
-//  y=84  L3  ──── baseline
-//  y=110 L4  ──── нижняя зона (р, у, д, з, ф, ц, щ)
+//  y=16  L1  ──── верхняя зона top (заглавные / асцендеры)
+//  y=42  L2  ──── рабочая строка top (x-height)
+//  y=94  L3  ──── baseline
+//  y=120 L4  ──── нижняя зона (р, у, д, з, ф)
 //
+// 16px margin above L1 and 16px below L4 give a "strip of propis paper" look.
 // Letter paths extracted from ClassRoomCursive.ttf via fontTools.
 // vbW, vbH, vbMinY are per-letter (wide letters & ascenders have dynamic values).
 
 import { LETTER_PATHS } from './letterPaths.js';
 
-const L1 = 6;
-const L2 = 32;
-const L3 = 84;
-const L4 = 110;
+const L1 = 16;
+const L2 = 42;
+const L3 = 94;
+const L4 = 120;
 
 const C_BG    = "#fefef6";
 const C_ZONE  = "rgba(205,232,245,0.45)";
