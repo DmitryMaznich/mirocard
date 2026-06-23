@@ -74,6 +74,7 @@
 .col-digit--sign {
   color: #1a1a2e;
   font-size: 45px;
+  transform: translateY(-50%) skewX(-10deg);
 }
 
 .col-digit--top-borrowed {
@@ -291,10 +292,14 @@
   border-radius: 2px;
 }
 
-/* sign drop target (phase 1, row 3 col 1) */
+/* sign drop target (phase 1, row 3 col 1-2).
+   translateY(-50%) shifts it up by 22px so its visual center lands exactly
+   on the grid line between the top-number row and the bottom-number row.
+   Not spanning rows 2-4 avoids a 22px layout jump when the line is placed. */
 .col-sign-cell {
   width: 44px;
   height: 44px;
+  transform: translateY(-50%);
   border: 2px dashed #cbd5e1;
   border-radius: 4px;
   display: flex;

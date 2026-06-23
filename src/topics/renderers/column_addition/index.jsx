@@ -197,8 +197,9 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
   }
 
   // ── Sign cell ─────────────────────────────────────────────────────────────
-  // Spans cols 1-2, rows 2-3 → visual center falls exactly on the grid-line
-  // intersection between the top-number row and the bottom-number row.
+  // gridRow:3 (bottom-number row) + translateY(-50%) → visual center sits on
+  // the grid line between top and bottom rows without spanning into row 4.
+  // Spanning into row 4 caused a 22px layout jump when the line was placed.
   if (phase === "form") {
     cells.push(
       <div
@@ -209,14 +210,14 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           signFilled ? "col-sign-cell--filled" : "",
           shakeCell === "sign" ? "col-form-cell--shake" : "",
         ].filter(Boolean).join(" ")}
-        style={{ gridColumn: "1 / 3", gridRow: "2 / 4" }}
+        style={{ gridColumn: "1 / 3", gridRow: 3 }}
       >
         {signFilled ? <span className="col-slant">{signFilled}</span> : ""}
       </div>
     );
   } else {
     cells.push(
-      <div key="sign" className="col-digit col-digit--sign" style={{ gridColumn: "1 / 3", gridRow: "2 / 4" }}>
+      <div key="sign" className="col-digit col-digit--sign" style={{ gridColumn: "1 / 3", gridRow: 3 }}>
         {signFilled || (operation === "add" ? "+" : "−")}
       </div>
     );
