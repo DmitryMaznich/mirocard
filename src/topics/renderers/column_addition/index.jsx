@@ -198,6 +198,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         data-cell-key="sign"
         className={[
           "col-sign-cell",
+          operation === "add" ? "col-sign--plus" : "col-sign--minus",
           formActiveKey === "sign" && !signFilled ? "col-sign-cell--active" : "",
           signFilled ? "col-sign-cell--filled" : "",
           shakeCell === "sign" ? "col-form-cell--shake" : "",
@@ -209,7 +210,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
     );
   } else {
     cells.push(
-      <div key="sign" className="col-digit col-digit--sign" style={{ gridColumn: "1 / 3", gridRow: 3 }}>
+      <div key="sign" className={["col-digit col-digit--sign", operation === "add" ? "col-sign--plus" : "col-sign--minus"].join(" ")} style={{ gridColumn: "1 / 3", gridRow: 3 }}>
         {signFilled || (operation === "add" ? "+" : "−")}
       </div>
     );

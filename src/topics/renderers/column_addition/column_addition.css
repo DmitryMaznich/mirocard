@@ -85,6 +85,10 @@
   transform: translateY(-50%);
 }
 
+/* Fine-tune sign position per character (Primo font metrics) */
+.col-sign--plus  { margin-top: 0px; }
+.col-sign--minus { margin-top: 6px; }
+
 .col-digit--top-borrowed {
   text-decoration: line-through;
   text-decoration-color: #ef4444;
