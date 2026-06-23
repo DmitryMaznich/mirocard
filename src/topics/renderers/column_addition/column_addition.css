@@ -5,25 +5,37 @@
   width: 100%;
   height: 100%;
   background-color: #f8faff;
-  background-image:
-    linear-gradient(rgba(160, 200, 255, 0.45) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(160, 200, 255, 0.45) 1px, transparent 1px);
-  background-size: 44px 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 36px;
+  gap: 24px;
   touch-action: none;
   user-select: none;
   overflow: hidden;
+}
+
+/* The notebook tile — grid background starts at (0,0) of THIS element,
+   so every 44px cell inside it falls exactly on a grid line. */
+.col-notebook {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: #f0f6ff;
+  background-image:
+    linear-gradient(rgba(140, 190, 255, 0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 190, 255, 0.55) 1px, transparent 1px);
+  background-size: 44px 44px;
+  background-position: 0 0;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
 
 /* ── Problem grid ───────────────────────────── */
 
 .col-problem {
   display: grid;
-  grid-template-rows: 28px 52px 52px 6px 52px;
+  grid-template-rows: repeat(5, 44px); /* all rows 44px = perfect grid alignment */
   align-items: center;
   justify-items: center;
   gap: 0;
@@ -90,12 +102,21 @@
 
 /* ── Horizontal line ───────────────────────── */
 
+/* row 4 is 44px; line is a 3px bar centered within it */
 .col-line {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.col-line::after {
+  content: '';
+  display: block;
   height: 3px;
+  width: 100%;
   background: #1a1a2e;
   border-radius: 2px;
-  width: 100%;
-  align-self: center;
 }
 
 /* ── Carry / borrow aux cells ──────────────── */
@@ -293,22 +314,32 @@
   animation: col-ink-in 0.25s ease-out;
 }
 
-/* line drop zone (phase 1, row 4) */
+/* line drop zone (phase 1, row 4 = 44px tall) */
 .col-line-placeholder {
-  height: 20px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
   border: 2px dashed #cbd5e1;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.4);
-  align-self: center;
+  background: rgba(255, 255, 255, 0.3);
   transition: border-color 0.2s, background 0.2s;
 }
 
 .col-line-placeholder--filled {
-  border: none;
-  border-top: 3px solid #1a1a2e;
+  border: 2px solid transparent;
   border-radius: 0;
   background: transparent;
   animation: col-ink-in 0.25s ease-out;
+}
+
+.col-line-placeholder--filled::after {
+  content: '';
+  display: block;
+  height: 3px;
+  width: 100%;
+  background: #1a1a2e;
+  border-radius: 2px;
 }
 
 /* ── Form cells (phase 1 droppable targets) ─ */

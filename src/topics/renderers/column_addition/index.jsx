@@ -506,19 +506,20 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
 
   return (
     <div className="col-screen" ref={rootRef}>
-      <Expression task={task} />
-
-      <ColumnGrid
-        task={task}
-        phase={phase}
-        topFilled={topFilled}
-        bottomFilled={bottomFilled}
-        signFilled={signFilled}
-        lineFilled={lineFilled}
-        filledCells={filledCells}
-        activeStep={activeStep}
-        shakeCell={shakeCell}
-      />
+      <div className="col-notebook">
+        <Expression task={task} />
+        <ColumnGrid
+          task={task}
+          phase={phase}
+          topFilled={topFilled}
+          bottomFilled={bottomFilled}
+          signFilled={signFilled}
+          lineFilled={lineFilled}
+          filledCells={filledCells}
+          activeStep={activeStep}
+          shakeCell={shakeCell}
+        />
+      </div>
 
       {phase === "form"
         ? <DigitToolbox onDragStart={startDrag} />
