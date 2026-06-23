@@ -10,17 +10,23 @@ function getDigitAt(n, position) {
 
 // ── Expression header ─────────────────────────────────────────────────────────
 
-function Expression({ task }) {
+function Expression({ task, result }) {
   const sign = task.operation === "add" ? "+" : "−";
   const topChars = String(task.top).split("");
   const botChars = String(task.bottom).split("");
+  const resultChars = result !== null && result !== undefined ? String(result).split("") : null;
   return (
     <div className="col-expression">
       {topChars.map((ch, i) => <span key={`t${i}`} className="col-expr-cell">{ch}</span>)}
       <span className="col-expr-cell col-expr-sign">{sign}</span>
       {botChars.map((ch, i) => <span key={`b${i}`} className="col-expr-cell">{ch}</span>)}
       <span className="col-expr-cell col-expr-eq">=</span>
-      <span className="col-expr-cell col-expr-unknown">?</span>
+      {resultChars
+        ? resultChars.map((ch, i) => (
+            <span key={`r${i}`} className="col-expr-cell col-expr-result">{ch}</span>
+          ))
+        : <span className="col-expr-cell col-expr-unknown">?</span>
+      }
     </div>
   );
 }
@@ -326,6 +332,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
   const [stepIdx, setStepIdx] = useState(0);
   const [drag, setDrag] = useState(null);
   const [shakeCell, setShakeCell] = useState(null);
+  const [solved, setSolved] = useState(false);
 
   const rootRef = useRef(null);
   const dragRef = useRef(null);
@@ -342,6 +349,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     setStepIdx(0);
     setDrag(null);
     setShakeCell(null);
+    setSolved(false);
     dragRef.current = null;
   }, [task.cardId, task.top, task.bottom, task.operation]);
 
@@ -494,7 +502,8 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
       const next = stepIdx + 1;
       setStepIdx(next);
       if (next >= task.steps.length) {
-        setTimeout(() => onCorrect && onCorrect(), 300);
+        setSolved(true);
+        setTimeout(() => onCorrect && onCorrect(), 1200);
       }
     };
 
@@ -512,7 +521,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
   return (
     <div className="col-screen" ref={rootRef}>
       <div className="col-notebook">
-        <Expression task={task} />
+        <Expression task={task} result={solved ? task.result : null} />
         <ColumnGrid
           task={task}
           phase={phase}
