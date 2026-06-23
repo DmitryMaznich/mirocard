@@ -368,8 +368,11 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     if (!rootRef.current) return null;
     for (const el of rootRef.current.querySelectorAll("[data-cell-key]")) {
       const r = el.getBoundingClientRect();
-      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
-        return el.getAttribute("data-cell-key");
+      const key = el.getAttribute("data-cell-key");
+      // Line row is only 3px tall — expand hit area ±25px vertically
+      const vPad = key === "line" ? 25 : 0;
+      if (x >= r.left && x <= r.right && y >= r.top - vPad && y <= r.bottom + vPad) {
+        return key;
       }
     }
     return null;

@@ -35,7 +35,8 @@
 
 .col-problem {
   display: grid;
-  grid-template-rows: repeat(5, 44px); /* all rows 44px = perfect grid alignment */
+  /* rows: carry | top | bottom+sign | line (3px) | result */
+  grid-template-rows: 44px 44px 44px 3px 44px;
   align-items: center;
   justify-items: center;
   gap: 0;
@@ -102,21 +103,14 @@
 
 /* ── Horizontal line ───────────────────────── */
 
-/* row 4 is 44px; bar at the very top = sits on the grid line below row 3 */
+/* row 4 = 3px exactly — line fills it completely */
 .col-line {
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: flex-start;
-}
-
-.col-line::after {
-  content: '';
-  display: block;
   height: 3px;
-  width: 100%;
   background: #1a1a2e;
   border-radius: 2px;
+  align-self: stretch;
+  justify-self: stretch;
 }
 
 /* ── Carry / borrow aux cells ──────────────── */
@@ -314,27 +308,18 @@
   animation: col-ink-in 0.25s ease-out;
 }
 
-/* line drop zone (phase 1, row 4 = 44px tall)
-   Bar anchored to the TOP so it sits on the grid line below row 3. */
+/* line drop zone (phase 1, row 4 = 3px)
+   Visual: dashed line. Filled: solid line. Hit area expanded in JS (±25px). */
 .col-line-placeholder {
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: flex-start;
-  background: transparent;
-}
-
-/* Unfilled: dashed indicator at the top of the row */
-.col-line-placeholder::before {
-  content: '';
-  display: block;
   height: 3px;
-  width: 100%;
-  border-top: 2px dashed #cbd5e1;
+  border-top: 2px dashed #94a3b8;
+  align-self: stretch;
+  justify-self: stretch;
+  box-sizing: border-box;
 }
 
-/* Filled: replace dashed with solid bar */
-.col-line-placeholder--filled::before {
+.col-line-placeholder--filled {
   border-top: 3px solid #1a1a2e;
   animation: col-ink-in 0.25s ease-out;
 }
