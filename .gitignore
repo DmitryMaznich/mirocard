@@ -63,3 +63,8 @@ verify-*.cjs
 verify-*.mjs
 output/
 primo.ttf
+primo_glyphs.svg
+primo_test.html
+public/letter_A.svg
+public/letter_test.html
+content/topics/*.zip

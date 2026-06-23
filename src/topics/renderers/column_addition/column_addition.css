@@ -53,12 +53,11 @@
    Expression cells stay rectangular so they align cleanly with the grid. */
 .col-digit,
 .col-bank-tile {
-  transform: skewX(-10deg);
+  transform: none;
 }
 
 .col-slant {
   display: inline-block;
-  transform: skewX(-10deg);
 }
 
 /* ── Digit cells ───────────────────────────── */
@@ -80,7 +79,7 @@
 .col-digit--sign {
   color: #1a1a2e;
   font-size: 45px;
-  transform: translateY(-50%) skewX(-10deg);
+  transform: translateY(-50%);
 }
 
 .col-digit--top-borrowed {
@@ -225,7 +224,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  font-size: 50px;
   font-weight: 700;
   font-family: 'Primo', cursive;
   color: #1a1a2e;
