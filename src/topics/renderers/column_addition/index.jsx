@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import "./column_addition.css";
 
 const POSITIONS = ["units", "tens", "hundreds"];
@@ -335,9 +335,28 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
   const [solved, setSolved] = useState(false);
 
   const rootRef = useRef(null);
+  const notebookRef = useRef(null);
   const dragRef = useRef(null);
 
   const activeStep = phase === "solve" && stepIdx < task.steps.length ? task.steps[stepIdx] : null;
+
+  // Align the full-screen background grid with notebook cell boundaries.
+  // Measures notebook offset relative to screen and sets background-position.
+  useLayoutEffect(() => {
+    const alignGrid = () => {
+      const screen = rootRef.current;
+      const notebook = notebookRef.current;
+      if (!screen || !notebook) return;
+      const sr = screen.getBoundingClientRect();
+      const nr = notebook.getBoundingClientRect();
+      const offX = ((nr.left - sr.left) % 44 + 44) % 44;
+      const offY = ((nr.top - sr.top) % 44 + 44) % 44;
+      screen.style.backgroundPosition = `${offX}px ${offY}px`;
+    };
+    alignGrid();
+    window.addEventListener("resize", alignGrid);
+    return () => window.removeEventListener("resize", alignGrid);
+  }, [task.top, task.bottom, task.operation, solved]);
 
   useEffect(() => {
     setPhase("form");
@@ -520,7 +539,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
 
   return (
     <div className="col-screen" ref={rootRef}>
-      <div className="col-notebook">
+      <div className="col-notebook" ref={notebookRef}>
         <Expression task={task} result={solved ? task.result : null} />
         <ColumnGrid
           task={task}

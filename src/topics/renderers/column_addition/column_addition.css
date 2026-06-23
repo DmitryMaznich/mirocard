@@ -11,7 +11,7 @@
     linear-gradient(rgba(140, 190, 255, 0.55) 1px, transparent 1px),
     linear-gradient(90deg, rgba(140, 190, 255, 0.55) 1px, transparent 1px);
   background-size: 44px 44px;
-  background-position: center center;
+  /* background-position is set dynamically by JS to align with notebook cells */
   display: flex;
   flex-direction: column;
   align-items: center;
