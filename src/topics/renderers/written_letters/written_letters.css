@@ -1,0 +1,201 @@
+@font-face {
+  font-family: 'Primo';
+  src: url('/fonts/primo.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+/* ── Screen layout ── */
+.wl-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 12px;
+  gap: 12px;
+  box-sizing: border-box;
+  background: #f0f4f8;
+  user-select: none;
+}
+
+/* ── Handwritten letter ── */
+.wl-handwritten {
+  font-family: 'Primo', cursive;
+  color: #1d4ed8;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Printed letter ── */
+.wl-printed {
+  font-weight: 900;
+  color: #1e293b;
+  line-height: 1;
+  font-family: Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Letter card (notebook background) ── */
+.wl-letter-card {
+  background: #fefef6;
+  border-radius: 14px;
+  border: 2.5px solid #e2e8f0;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.09);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.wl-letter-card--lines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 17px,
+      #cde8f5 17px,
+      #cde8f5 18px
+    );
+  pointer-events: none;
+}
+
+/* ── Stimulus (top, large) ── */
+.wl-stimulus {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0;
+}
+
+/* ── Options grid 2×2 ── */
+.wl-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+}
+
+.wl-option {
+  border-radius: 14px;
+  border: 3px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  touch-action: manipulation;
+  padding: 8px;
+}
+
+.wl-option--correct  { border-color: #22c55e; background: #f0fdf4; }
+.wl-option--wrong    { border-color: #ef4444; background: #fef2f2; }
+.wl-option--disabled { pointer-events: none; }
+
+/* ── Sort zones (drag & drop) ── */
+.wl-zones {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.wl-zone {
+  flex: 1;
+  border-radius: 16px;
+  border: 3px solid var(--zone-color);
+  background: color-mix(in srgb, var(--zone-color) 7%, #fff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  gap: 8px;
+  transition: background 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+
+.wl-zone--active {
+  background: color-mix(in srgb, var(--zone-color) 18%, #fff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--zone-color) 35%, transparent);
+}
+
+.wl-zone-label {
+  font-weight: 800;
+  font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+  color: var(--zone-color);
+  text-align: center;
+}
+
+.wl-zone-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.wl-zone-chip {
+  background: var(--zone-color);
+  border-radius: 8px;
+  width: clamp(30px, 8vw, 44px);
+  height: clamp(30px, 8vw, 44px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Primo', cursive;
+  font-size: clamp(18px, 5vw, 26px);
+  color: #fff;
+}
+
+/* ── Draggable letter ── */
+.wl-drag-card {
+  width: clamp(100px, 25vw, 140px);
+  height: clamp(100px, 25vw, 140px);
+  border-radius: 16px;
+  background: #fefef6;
+  border: 3px solid #e2e8f0;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+}
+
+.wl-drag-card--floating {
+  position: fixed;
+  transform: translate(-50%, -50%) scale(1.1);
+  cursor: grabbing;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+.wl-drag-card--shake {
+  animation: wl-shake 0.45s ease;
+}
+
+@keyframes wl-shake {
+  0%   { transform: translateX(0); }
+  18%  { transform: translateX(-12px); }
+  36%  { transform: translateX(12px); }
+  54%  { transform: translateX(-8px); }
+  72%  { transform: translateX(8px); }
+  90%  { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+
+.wl-dock {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0 clamp(1rem, 4vh, 2rem);
+}
