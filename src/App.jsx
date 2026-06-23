@@ -26,6 +26,7 @@ import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
 import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
 import ChatSessionScreen from "@/features/chat/ChatSessionScreen";
+import ChatParamsScreen from "@/features/chat/ChatParamsScreen";
 import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
@@ -68,6 +69,7 @@ const SCREENS = {
   concepts: ConceptPickerScreen,
   session: SessionScreen,
   summary: SessionSummary,
+  chat_params: ChatParamsScreen,
   chat_session: ChatSessionScreen,
   history: StudentHistoryScreen,
   settings: SettingsScreen,

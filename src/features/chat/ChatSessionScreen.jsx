@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { useConversation } from "./useConversation";
+import { textToScript } from "./scriptFormat";
 import ChatView from "@/shared/components/chat/ChatView";
 import ChatSummary from "./ChatSummary";
 import "./chat.css";
@@ -31,13 +32,22 @@ export default function ChatSessionScreen() {
   const topicRecords    = useAppStore((s) => s.topicRecords);
   const students        = useAppStore((s) => s.students);
 
+  const chatScriptOverride   = useAppStore((s) => s.chatScriptOverride);
+  const clearChatScriptOverride = useAppStore((s) => s.clearChatScriptOverride);
+
   const student     = students.find((s) => s.id === activeStudentId);
   const studentName = student?.name ?? "";
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const rawScript   = topicRecord
     ? { turns: topicRecord.turns ?? [], contact: topicRecord.contact ?? null }
     : null;
-  const script = resolveScript(rawScript, studentName);
+
+  const effectiveRaw =
+    chatScriptOverride?.topicId === activeTopicId
+      ? textToScript(chatScriptOverride.text, rawScript?.contact)
+      : rawScript;
+
+  const script = resolveScript(effectiveRaw, studentName);
 
   const {
     messages, currentChoices, isTyping, sendChoice,
