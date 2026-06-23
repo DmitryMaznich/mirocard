@@ -114,7 +114,7 @@ export default function ModePickerScreen() {
 
   function pickMode(mode) {
     setActiveModeId(mode.id);
-    setScreen("params");
+    setScreen(topicRecord?.meta?.renderer === "chat_practice" ? "chat_params" : "params");
   }
 
   if (hasSingleMode) return null;

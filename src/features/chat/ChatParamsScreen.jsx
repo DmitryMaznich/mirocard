@@ -6,17 +6,23 @@ import "./chatParams.css";
 export default function ChatParamsScreen() {
   const setScreen             = useAppStore((s) => s.setScreen);
   const activeTopicId         = useAppStore((s) => s.activeTopicId);
+  const activeModeId          = useAppStore((s) => s.activeModeId);
   const topicRecords          = useAppStore((s) => s.topicRecords);
   const chatScriptOverride    = useAppStore((s) => s.chatScriptOverride);
   const setChatScriptOverride = useAppStore((s) => s.setChatScriptOverride);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const modeScript  = activeModeId ? topicRecord?.scripts?.[activeModeId] : null;
   const rawScript   = topicRecord
-    ? { turns: topicRecord.turns ?? [], contact: topicRecord.contact ?? null }
+    ? {
+        contact: modeScript?.contact ?? topicRecord.contact ?? null,
+        turns:   modeScript?.turns   ?? topicRecord.turns   ?? [],
+      }
     : null;
 
+  const overrideKey   = activeModeId ? `${activeTopicId}:${activeModeId}` : activeTopicId;
   const initialText =
-    chatScriptOverride?.topicId === activeTopicId
+    chatScriptOverride?.topicId === overrideKey
       ? chatScriptOverride.text
       : scriptToText(rawScript);
 
@@ -25,12 +31,12 @@ export default function ChatParamsScreen() {
 
   useEffect(() => {
     const next =
-      chatScriptOverride?.topicId === activeTopicId
+      chatScriptOverride?.topicId === overrideKey
         ? chatScriptOverride.text
         : scriptToText(rawScript);
     setText(next);
     setError(null);
-  }, [activeTopicId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTopicId, activeModeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleStart() {
     try {
@@ -39,7 +45,7 @@ export default function ChatParamsScreen() {
         setError("Нет ни одного хода. Добавь реплику Мамы и варианты ответа.");
         return;
       }
-      setChatScriptOverride(activeTopicId, text);
+      setChatScriptOverride(overrideKey, text);
       setScreen("chat_session");
     } catch (e) {
       setError(String(e));
@@ -58,8 +64,12 @@ export default function ChatParamsScreen() {
   return (
     <div className="chat-params-screen">
       <div className="chat-params-header">
-        <button className="chat-params-back" onClick={() => setScreen("home")}>←</button>
-        <span className="chat-params-title">{topicRecord.meta.title?.ru ?? topicRecord.meta.title}</span>
+        <button className="chat-params-back" onClick={() => setScreen(topicRecord.modes?.length > 0 ? "modes" : "home")}>←</button>
+        <span className="chat-params-title">
+          {activeModeId
+            ? (topicRecord.modes?.find((m) => m.id === activeModeId)?.ui?.title?.ru ?? activeModeId)
+            : (topicRecord.meta.title?.ru ?? topicRecord.meta.title)}
+        </span>
         <button className="chat-params-reset" onClick={handleReset} title="Сбросить к оригиналу">↺</button>
       </div>
 

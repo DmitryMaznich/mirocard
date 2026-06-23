@@ -32,18 +32,24 @@ export default function ChatSessionScreen() {
   const topicRecords    = useAppStore((s) => s.topicRecords);
   const students        = useAppStore((s) => s.students);
 
-  const chatScriptOverride   = useAppStore((s) => s.chatScriptOverride);
+  const activeModeId            = useAppStore((s) => s.activeModeId);
+  const chatScriptOverride      = useAppStore((s) => s.chatScriptOverride);
   const clearChatScriptOverride = useAppStore((s) => s.clearChatScriptOverride);
 
   const student     = students.find((s) => s.id === activeStudentId);
   const studentName = student?.name ?? "";
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const modeScript  = activeModeId ? topicRecord?.scripts?.[activeModeId] : null;
   const rawScript   = topicRecord
-    ? { turns: topicRecord.turns ?? [], contact: topicRecord.contact ?? null }
+    ? {
+        contact: modeScript?.contact ?? topicRecord.contact ?? null,
+        turns:   modeScript?.turns   ?? topicRecord.turns   ?? [],
+      }
     : null;
 
+  const overrideKey = activeModeId ? `${activeTopicId}:${activeModeId}` : activeTopicId;
   const effectiveRaw =
-    chatScriptOverride?.topicId === activeTopicId
+    chatScriptOverride?.topicId === overrideKey
       ? textToScript(chatScriptOverride.text, rawScript?.contact)
       : rawScript;
 

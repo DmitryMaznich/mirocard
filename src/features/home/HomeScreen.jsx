@@ -227,7 +227,7 @@ export default function HomeScreen() {
     : "Не выбран";
 
   function startOrContinue() {
-    if (isChatPractice) { setScreen("chat_params"); return; }
+    if (isChatPractice) { setScreen(topic?.modes?.length > 0 ? "modes" : "chat_params"); return; }
     if (!isReading) { setScreen("params"); return; }
     if (!activeText) { setScreen("texts"); return; }
     setScreen("params");

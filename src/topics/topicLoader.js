@@ -47,8 +47,12 @@ function validateManifest(manifest, appVersion) {
   const isPhraseMatch  = manifest.meta.renderer === "phrase_match";
   const isChatPractice = manifest.meta.renderer === "chat_practice";
   if (isChatPractice) {
-    if (!Array.isArray(manifest.turns) || manifest.turns.length === 0) {
-      throw new TopicImportError("Тема chat_practice не содержит ходов (turns)");
+    const hasLegacyTurns = Array.isArray(manifest.turns) && manifest.turns.length > 0;
+    const hasModesWithScripts =
+      Array.isArray(manifest.modes) && manifest.modes.length > 0 &&
+      manifest.scripts && typeof manifest.scripts === "object";
+    if (!hasLegacyTurns && !hasModesWithScripts) {
+      throw new TopicImportError("Тема chat_practice не содержит ходов (turns) или режимов (modes + scripts)");
     }
   } else if (isReading) {
     if (!Array.isArray(manifest.texts) || manifest.texts.length === 0) {
@@ -1375,6 +1379,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
     texts:     manifest.texts     ?? undefined,
     turns:     manifest.turns     ?? undefined,
     contact:   manifest.contact   ?? undefined,
+    scripts:   manifest.scripts   ?? undefined,
     sentences: manifest.sentences?.length ? manifest.sentences : undefined,
     scenes:    (manifest.scenes ?? []).map((scene) => ({
       ...scene,

@@ -1,0 +1,326 @@
+{
+  "meta": {
+    "id": "chat_with_mom",
+    "version": "1.0.0",
+    "schemaVersion": 2,
+    "title": { "ru": "Дома с Мамой" },
+    "renderer": "chat_practice",
+    "description": { "ru": "5 диалогов с мамой — учимся общаться в мессенджере в разных ситуациях дома" }
+  },
+  "contact": { "name": "Мама", "emoji": "👩" },
+  "modes": [
+    {
+      "id": "morning_greeting",
+      "ui": {
+        "title": { "ru": "Доброе утро 🌅" },
+        "instruction": { "ru": "Здороваемся с мамой утром" }
+      }
+    },
+    {
+      "id": "im_hungry",
+      "ui": {
+        "title": { "ru": "Я хочу есть 🍽️" },
+        "instruction": { "ru": "Просим маму дать поесть" }
+      }
+    },
+    {
+      "id": "feel_sick",
+      "ui": {
+        "title": { "ru": "Мне плохо 🤒" },
+        "instruction": { "ru": "Рассказываем маме что плохо себя чувствуем" }
+      }
+    },
+    {
+      "id": "can_i_watch_tv",
+      "ui": {
+        "title": { "ru": "Можно мультики? 📺" },
+        "instruction": { "ru": "Просим разрешения посмотреть телевизор" }
+      }
+    },
+    {
+      "id": "help_me",
+      "ui": {
+        "title": { "ru": "Помоги мне 🙏" },
+        "instruction": { "ru": "Просим маму о помощи" }
+      }
+    },
+    {
+      "id": "good_night",
+      "ui": {
+        "title": { "ru": "Спокойной ночи 🌙" },
+        "instruction": { "ru": "Вечерний ритуал перед сном" }
+      }
+    }
+  ],
+  "scripts": {
+    "morning_greeting": {
+      "turns": [
+        {
+          "id": "t1",
+          "text": "Доброе утро, {{name}}! 🌅",
+          "anyIsCorrect": true,
+          "reactionOnSend": "Доброе утро! 😊",
+          "choices": [
+            { "text": "Доброе утро, мама!" },
+            { "text": "Привет, мама!" },
+            { "text": "Доброе утро!" }
+          ]
+        },
+        {
+          "id": "t2",
+          "text": "Как ты себя чувствуешь?",
+          "reactionOnCorrect": "Хорошо! Идём завтракать.",
+          "choices": [
+            { "text": "Хорошо, спасибо!", "correct": true },
+            { "text": "Не знаю.", "correct": false },
+            { "text": "Нормально.", "correct": false }
+          ]
+        },
+        {
+          "id": "t3",
+          "text": "Завтрак готов! Что будешь — кашу или бутерброд?",
+          "anyIsCorrect": true,
+          "reactionOnSend": "Сейчас сделаю!",
+          "choices": [
+            { "text": "Кашу, пожалуйста." },
+            { "text": "Бутерброд, пожалуйста." },
+            { "text": "Всё равно, мама." }
+          ]
+        },
+        {
+          "id": "t4",
+          "text": "Кушай на здоровье! 🍳",
+          "anyIsCorrect": true,
+          "choices": [
+            { "text": "Спасибо, мама!" },
+            { "text": "Спасибо!" },
+            { "text": "Очень вкусно, спасибо!" }
+          ]
+        }
+      ]
+    },
+    "im_hungry": {
+      "turns": [
+        {
+          "id": "t1",
+          "text": "Привет! Как дела?",
+          "anyIsCorrect": true,
+          "reactionOnSend": "Хорошо!",
+          "choices": [
+            { "text": "Привет, мама!" },
+            { "text": "Привет! Всё хорошо." },
+            { "text": "Привет!" }
+          ]
+        },
+        {
+          "id": "t2",
+          "text": "Что-нибудь нужно?",
+          "reactionOnCorrect": "Сейчас сделаем!",
+          "choices": [
+            { "text": "Мама, я хочу есть.", "correct": true },
+            { "text": "Ничего.", "correct": false },
+            { "text": "Не знаю.", "correct": false }
+          ]
+        },
+        {
+          "id": "t3",
+          "text": "Что хочешь — кашу или бутерброд?",
+          "anyIsCorrect": true,
+          "reactionOnSend": "Сейчас сделаю!",
+          "choices": [
+            { "text": "Кашу, пожалуйста." },
+            { "text": "Бутерброд, пожалуйста." },
+            { "text": "Всё равно, мама." }
+          ]
+        },
+        {
+          "id": "t4",
+          "text": "Держи! Приятного аппетита 🍽️",
+          "anyIsCorrect": true,
+          "choices": [
+            { "text": "Спасибо, мама!" },
+            { "text": "Спасибо большое!" },
+            { "text": "Ура, спасибо!" }
+          ]
+        }
+      ]
+    },
+    "feel_sick": {
+      "turns": [
+        {
+          "id": "t1",
+          "text": "{{name}}, пора в школу! Как ты себя чувствуешь?",
+          "reactionOnCorrect": "Что случилось?",
+          "choices": [
+            { "text": "Мама, мне плохо.", "correct": true },
+            { "text": "Нормально.", "correct": false },
+            { "text": "Не знаю.", "correct": false }
+          ]
+        },
+        {
+          "id": "t2",
+          "text": "Где болит?",
+          "reactionOnCorrect": "Понятно. Сейчас принесу лекарство.",
+          "choices": [
+            { "text": "У меня болит голова.", "correct": true },
+            { "text": "Везде.", "correct": false },
+            { "text": "Не знаю.", "correct": false }
+          ]
+        },
+        {
+          "id": "t3",
+          "text": "Ляг отдохни. Тебе что-нибудь нужно?",
+          "reactionOnCorrect": "Сейчас принесу.",
+          "choices": [
+            { "text": "Можно воды, пожалуйста.", "correct": true },
+            { "text": "Уйди.", "correct": false },
+            { "text": "Ничего.", "correct": false }
+          ]
+        },
+        {
+          "id": "t4",
+          "text": "Вот вода. Отдыхай, я рядом 💛",
+          "anyIsCorrect": true,
+          "choices": [
+            { "text": "Спасибо, мама." },
+            { "text": "Спасибо!" },
+            { "text": "Хорошо." }
+          ]
+        }
+      ]
+    },
+    "can_i_watch_tv": {
+      "turns": [
+        {
+          "id": "t1",
+          "text": "{{name}}, ты сделал уроки?",
+          "reactionOnCorrect": "Молодец! Покажи тетрадь.",
+          "choices": [
+            { "text": "Да, мама, всё сделал.", "correct": true },
+            { "text": "Нет.", "correct": false },
+            { "text": "Потом.", "correct": false }
+          ]
+        },
+        {
+          "id": "t2",
+          "text": "Хорошо! Что хочешь делать?",
+          "reactionOnCorrect": "Конечно, можно. До 8 часов.",
+          "choices": [
+            { "text": "Мама, можно я посмотрю мультики?", "correct": true },
+            { "text": "Не знаю.", "correct": false },
+            { "text": "Ничего.", "correct": false }
+          ]
+        },
+        {
+          "id": "t3",
+          "text": "До 8 часов, договорились?",
+          "anyIsCorrect": true,
+          "choices": [
+            { "text": "Договорились, мама!" },
+            { "text": "Хорошо." },
+            { "text": "Ладно." }
+          ]
+        },
+        {
+          "id": "t4",
+          "text": "Не забудь потом убрать пульт 😊",
+          "anyIsCorrect": true,
+          "choices": [
+            { "text": "Хорошо, не забуду!" },
+            { "text": "Ладно, мама." },
+            { "text": "Хорошо!" }
+          ]
+        }
+      ]
+    },
+    "help_me": {
+      "turns": [
+        {
+          "id": "t1",
+          "text": "{{name}}, всё хорошо?",
+          "reactionOnCorrect": "Конечно! Что случилось?",
+          "choices": [
+            { "text": "Мама, помоги мне, пожалуйста.", "correct": true },
+            { "text": "Да.", "correct": false },
+            { "text": "Нет.", "correct": false }
+          ]
+        },
+        {
+          "id": "t2",
+          "text": "Что случилось?",
+          "reactionOnCorrect": "Сейчас посмотрим вместе!",
+          "choices": [
+            { "text": "Я не могу найти рюкзак.", "correct": true },
+            { "text": "Не знаю.", "correct": false },
+            { "text": "Всё плохо.", "correct": false }
+          ]
+        },
+        {
+          "id": "t3",
+          "text": "Посмотри в коридоре, на крючке. Нашёл?",
+          "reactionOnCorrect": "Отлично!",
+          "choices": [
+            { "text": "Да, нашёл! Спасибо, мама!", "correct": true },
+            { "text": "Нет, нету.", "correct": false },
+            { "text": "Не знаю.", "correct": false }
+          ]
+        },
+        {
+          "id": "t4",
+          "text": "Молодец, что попросил о помощи! Если ещё что-то — зови 😊",
+          "anyIsCorrect": true,
+          "choices": [
+            { "text": "Хорошо, мама. Спасибо!" },
+            { "text": "Спасибо!" },
+            { "text": "Ладно." }
+          ]
+        }
+      ]
+    },
+    "good_night": {
+      "turns": [
+        {
+          "id": "t1",
+          "text": "{{name}}, уже 9 вечера. Пора готовиться ко сну.",
+          "reactionOnCorrect": "Умница!",
+          "choices": [
+            { "text": "Хорошо, мама.", "correct": true },
+            { "text": "Ещё немного.", "correct": false },
+            { "text": "Не хочу.", "correct": false }
+          ]
+        },
+        {
+          "id": "t2",
+          "text": "Ты уже почистил зубы?",
+          "reactionOnCorrect": "Молодец!",
+          "choices": [
+            { "text": "Да, уже почистил.", "correct": true },
+            { "text": "Нет, сейчас пойду.", "correct": false },
+            { "text": "Забыл.", "correct": false }
+          ]
+        },
+        {
+          "id": "t3",
+          "text": "Отлично! Ложись. Хочешь, расскажу сказку?",
+          "anyIsCorrect": true,
+          "reactionOnSend": "Хорошо!",
+          "choices": [
+            { "text": "Да, пожалуйста, мама!" },
+            { "text": "Нет, я сам засну." },
+            { "text": "Да!" }
+          ]
+        },
+        {
+          "id": "t4",
+          "text": "Спокойной ночи, солнышко! Сладких снов 🌙",
+          "anyIsCorrect": true,
+          "choices": [
+            { "text": "Спокойной ночи, мама!" },
+            { "text": "Люблю тебя, мама!" },
+            { "text": "Спокойной ночи!" }
+          ]
+        }
+      ]
+    }
+  }
+}
