@@ -14,6 +14,7 @@ import { generateTasks as streakTrackerEngine }        from "./streak_tracker/en
 import { generateTasks as shoppingEngine }             from "./shopping/engine";
 import { generateTasks as phraseMatchEngine }           from "./phrase_match/engine";
 import { generateTasks as columnAdditionEngine }       from "./column_addition/engine.js";
+import { generateTasks as writtenLettersEngine }       from "./written_letters/engine.js";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -32,4 +33,5 @@ export const ENGINE_REGISTRY = {
   shopping:              shoppingEngine,
   phrase_match:          phraseMatchEngine,
   column_addition:       columnAdditionEngine,
+  written_letters:       writtenLettersEngine,
 };

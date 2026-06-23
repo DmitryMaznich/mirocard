@@ -122,7 +122,8 @@ function generateMatchPairTasks(cards) {
   return shuffle(tasks);
 }
 
-export function generateTasks(modeType, cards) {
+export function generateTasks(modeOrType, cards) {
+  const modeType = typeof modeOrType === "string" ? modeOrType : modeOrType?.type;
   switch (modeType) {
     case "sort_case":              return generateSortTasks(cards);
     case "match_print_to_written": return generateMatchPrintToWrittenTasks(cards);
