@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import "./column_addition.css";
 
 const POSITIONS = ["units", "tens", "hundreds"];
@@ -96,7 +96,7 @@ function FloatingItem({ drag }) {
 
 // ── Column grid ───────────────────────────────────────────────────────────────
 
-function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, shakeCell }) {
+function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, formActiveKey, shakeCell }) {
   const { digits, operation } = task;
   const totalCols = digits + 2;
   const cells = [];
@@ -159,6 +159,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           data-cell-key={key}
           className={[
             "col-form-cell",
+            formActiveKey === key && !filled ? "col-form-cell--active" : "",
             filled ? "col-form-cell--filled" : "",
             shakeCell === key ? "col-form-cell--shake" : "",
           ].filter(Boolean).join(" ")}
@@ -196,6 +197,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         data-cell-key="sign"
         className={[
           "col-sign-cell",
+          formActiveKey === "sign" && !signFilled ? "col-sign-cell--active" : "",
           signFilled ? "col-sign-cell--filled" : "",
           shakeCell === "sign" ? "col-form-cell--shake" : "",
         ].filter(Boolean).join(" ")}
@@ -227,6 +229,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           data-cell-key={key}
           className={[
             "col-form-cell",
+            formActiveKey === key && !filled ? "col-form-cell--active" : "",
             filled ? "col-form-cell--filled" : "",
             shakeCell === key ? "col-form-cell--shake" : "",
           ].filter(Boolean).join(" ")}
@@ -252,6 +255,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         data-cell-key="line"
         className={[
           "col-line-placeholder",
+          formActiveKey === "line" && !lineFilled ? "col-line-placeholder--active" : "",
           lineFilled ? "col-line-placeholder--filled" : "",
           shakeCell === "line" ? "col-form-cell--shake" : "",
         ].filter(Boolean).join(" ")}
@@ -322,6 +326,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
   const [lineFilled, setLineFilled] = useState(false);
   const [filledCells, setFilledCells] = useState({});
   const [stepIdx, setStepIdx] = useState(0);
+  const [formStepIdx, setFormStepIdx] = useState(0);
   const [drag, setDrag] = useState(null);
   const [shakeCell, setShakeCell] = useState(null);
   const [solved, setSolved] = useState(false);
@@ -329,8 +334,30 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
   const dragRef = useRef(null);
+  const formActiveRef = useRef(null);
+
+  // Sequential form-fill order: top left→right, sign, bottom left→right, line.
+  const formSteps = useMemo(() => {
+    const positions = POSITIONS.slice(0, task.digits).reverse();
+    const steps = [];
+    for (const pos of positions) {
+      steps.push({ cellKey: `top:${pos}`, value: task.columns[POS_INDEX[pos]].topDigit });
+    }
+    steps.push({ cellKey: "sign", value: task.operation === "add" ? "+" : "−" });
+    for (const pos of positions) {
+      steps.push({ cellKey: `bottom:${pos}`, value: task.columns[POS_INDEX[pos]].bottomDigit });
+    }
+    steps.push({ cellKey: "line", value: null });
+    return steps;
+  }, [task]);
+
+  const formActiveStep = phase === "form" && formStepIdx < formSteps.length ? formSteps[formStepIdx] : null;
+  const formActiveKey = formActiveStep?.cellKey ?? null;
 
   const activeStep = phase === "solve" && stepIdx < task.steps.length ? task.steps[stepIdx] : null;
+
+  // Keep ref in sync so startDrag closure always reads the current formActiveStep.
+  formActiveRef.current = formActiveStep;
 
   // Align the full-screen background grid with notebook cell boundaries.
   // Measures notebook offset relative to screen and sets background-position.
@@ -425,46 +452,43 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
       dragRef.current = null;
       setDrag(null);
 
+      const step = formActiveRef.current;
+      if (!step) return; // all form steps done, phase transitioning
+
+      const activeKey = step.cellKey;
       const cellKey = findCellUnderPointer(ev.clientX, ev.clientY);
-      if (!cellKey) return;
 
-      if (info.type === "digit") {
-        const parts = cellKey.split(":");
-        if (parts.length !== 2 || (parts[0] !== "top" && parts[0] !== "bottom")) {
-          triggerShake(cellKey);
-          return;
-        }
-        const [rowName, pos] = parts;
-        if (!POSITIONS.includes(pos)) { triggerShake(cellKey); return; }
-        const colData = task.columns[POS_INDEX[pos]];
-        const expected = rowName === "top" ? colData.topDigit : colData.bottomDigit;
-        if (info.digit !== expected) {
-          triggerShake(cellKey);
-          if (onWrong) onWrong();
-          return;
-        }
-        if (rowName === "top") {
-          if (topFilled[pos] !== undefined) return;
-          setTopFilled((prev) => ({ ...prev, [pos]: info.digit }));
-        } else {
-          if (bottomFilled[pos] !== undefined) return;
-          setBottomFilled((prev) => ({ ...prev, [pos]: info.digit }));
-        }
+      // Wrong cell or missed → shake active cell to guide
+      if (cellKey !== activeKey) {
+        triggerShake(activeKey);
+        if (onWrong) onWrong();
+        return;
+      }
 
-      } else if (info.type === "sign") {
-        if (cellKey !== "sign") { triggerShake(cellKey); return; }
-        const expected = task.operation === "add" ? "+" : "−";
-        if (info.sign !== expected) {
-          triggerShake("sign");
-          if (onWrong) onWrong();
-          return;
-        }
+      // Check value matches expected
+      const ok = activeKey === "line"
+        ? info.type === "line"
+        : activeKey === "sign"
+          ? info.type === "sign" && info.sign === step.value
+          : info.type === "digit" && info.digit === step.value;
+
+      if (!ok) {
+        triggerShake(activeKey);
+        if (onWrong) onWrong();
+        return;
+      }
+
+      // Apply fill
+      if (activeKey.startsWith("top:")) {
+        setTopFilled((prev) => ({ ...prev, [activeKey.split(":")[1]]: info.digit }));
+      } else if (activeKey.startsWith("bottom:")) {
+        setBottomFilled((prev) => ({ ...prev, [activeKey.split(":")[1]]: info.digit }));
+      } else if (activeKey === "sign") {
         setSignFilled(info.sign);
-
-      } else if (info.type === "line") {
-        if (cellKey !== "line") { triggerShake(cellKey); return; }
+      } else if (activeKey === "line") {
         setLineFilled(true);
       }
+      setFormStepIdx((prev) => prev + 1);
     };
 
     const onCancel = () => {
@@ -476,7 +500,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp, { once: true });
     el.addEventListener("pointercancel", onCancel, { once: true });
-  }, [task, topFilled, bottomFilled, findCellUnderPointer, triggerShake, onWrong]);
+  }, [findCellUnderPointer, triggerShake, onWrong]);
 
   // ── Phase 2 solve drag ────────────────────────────────────────────────────
 
@@ -545,6 +569,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
           lineFilled={lineFilled}
           filledCells={filledCells}
           activeStep={activeStep}
+          formActiveKey={formActiveKey}
           shakeCell={shakeCell}
         />
       </div>
