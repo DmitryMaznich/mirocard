@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Neucha&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
 
 .col-screen {
   position: relative;
@@ -43,8 +43,9 @@
    Applied to text-only containers directly.
    For cells with visible borders, text is wrapped in .col-slant span. */
 
+/* Skew applied only to column digits and tiles — NOT to expression cells.
+   Expression cells stay rectangular so they align cleanly with the grid. */
 .col-digit,
-.col-expr-cell,
 .col-bank-tile {
   transform: skewX(-10deg);
 }
@@ -63,7 +64,7 @@
   align-items: center;
   justify-content: center;
   font-size: 50px;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
   font-weight: 700;
   color: #1a1a2e;
   line-height: 1;
@@ -95,7 +96,7 @@
   font-size: 13px;
   font-weight: 700;
   color: #2563eb;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
 }
 
 /* ── Horizontal line ───────────────────────── */
@@ -124,7 +125,7 @@
   font-weight: 700;
   color: #92400e;
   background: transparent;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
 }
 
 .col-carry-cell--active {
@@ -159,7 +160,7 @@
   justify-content: center;
   font-size: 50px;
   font-weight: 700;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
   color: #1a1a2e;
   line-height: 1;
   background: transparent;
@@ -202,8 +203,12 @@
 
 /* ── Expression header ─────────────────────── */
 
+/* CSS Grid guarantees exact 44px per cell — no flex sub-pixel drift */
 .col-expression {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 44px;
+  height: 44px;
   align-items: center;
 }
 
@@ -215,7 +220,7 @@
   justify-content: center;
   font-size: 50px;
   font-weight: 700;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
   color: #1a1a2e;
   line-height: 1;
 }
@@ -296,7 +301,7 @@
   align-items: center;
   justify-content: center;
   font-size: 50px;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
   font-weight: 400;
   color: #2563eb;
   line-height: 1;
@@ -338,7 +343,7 @@
   justify-content: center;
   font-size: 50px;
   font-weight: 700;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
   line-height: 1;
   color: #1a1a2e;
   background: rgba(255, 255, 255, 0.5);
@@ -379,7 +384,7 @@
   justify-content: center;
   font-size: 50px;
   font-weight: 700;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
   line-height: 1;
   color: #1e3a8a;
   cursor: grab;
@@ -411,7 +416,7 @@
   justify-content: center;
   font-size: 28px;
   font-weight: 700;
-  font-family: 'Neucha', cursive;
+  font-family: 'Patrick Hand', cursive;
   color: #1e3a8a;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }

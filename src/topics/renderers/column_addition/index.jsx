@@ -15,17 +15,19 @@ function Expression({ task, result }) {
   const topChars = String(task.top).split("");
   const botChars = String(task.bottom).split("");
   const resultChars = result !== null && result !== undefined ? String(result).split("") : null;
+  // Cell skew lives on .col-slant (text only), not on the cell itself,
+  // so the 44px cell boundary stays rectangular = aligns with the grid.
   return (
     <div className="col-expression">
-      {topChars.map((ch, i) => <span key={`t${i}`} className="col-expr-cell">{ch}</span>)}
-      <span className="col-expr-cell col-expr-sign">{sign}</span>
-      {botChars.map((ch, i) => <span key={`b${i}`} className="col-expr-cell">{ch}</span>)}
-      <span className="col-expr-cell col-expr-eq">=</span>
+      {topChars.map((ch, i) => <span key={`t${i}`} className="col-expr-cell"><span className="col-slant">{ch}</span></span>)}
+      <span className="col-expr-cell col-expr-sign"><span className="col-slant">{sign}</span></span>
+      {botChars.map((ch, i) => <span key={`b${i}`} className="col-expr-cell"><span className="col-slant">{ch}</span></span>)}
+      <span className="col-expr-cell col-expr-eq"><span className="col-slant">=</span></span>
       {resultChars
         ? resultChars.map((ch, i) => (
-            <span key={`r${i}`} className="col-expr-cell col-expr-result">{ch}</span>
+            <span key={`r${i}`} className="col-expr-cell col-expr-result"><span className="col-slant">{ch}</span></span>
           ))
-        : <span className="col-expr-cell col-expr-unknown">?</span>
+        : <span className="col-expr-cell col-expr-unknown"><span className="col-slant">?</span></span>
       }
     </div>
   );
