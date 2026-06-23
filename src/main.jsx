@@ -41,6 +41,16 @@ if (_urlPortalMatch) {
   _portalStorage.setItem("student_portal_token", _urlPortalMatch[1]);
   // Clean up any stale token in the other storage to avoid surprises.
   (_isStandalone ? sessionStorage : localStorage).removeItem("student_portal_token");
+  // When the link is opened in a regular browser, save a short-lived handoff
+  // entry so an already-installed PWA can pick up the token on next launch.
+  if (!_isStandalone) {
+    try {
+      localStorage.setItem("student_portal_handoff", JSON.stringify({
+        token: _urlPortalMatch[1],
+        exp: Date.now() + 30 * 60 * 1000, // 30-minute window
+      }));
+    } catch {}
+  }
   history.replaceState(null, "", "/");
 }
 // Migration: tokens written by the old code always went to localStorage.
@@ -49,6 +59,17 @@ if (_urlPortalMatch) {
 // tested a link and got stuck in student mode.
 if (!_isStandalone) {
   localStorage.removeItem("student_portal_token");
+}
+
+// In standalone/PWA mode, consume any handoff token left by the browser.
+if (_isStandalone && !_urlPortalMatch) {
+  try {
+    const _handoff = JSON.parse(localStorage.getItem("student_portal_handoff") || "null");
+    if (_handoff?.token && Date.now() < (_handoff.exp ?? 0)) {
+      localStorage.setItem("student_portal_token", _handoff.token);
+    }
+    localStorage.removeItem("student_portal_handoff");
+  } catch {}
 }
 
 const _portalToken = _portalStorage.getItem("student_portal_token");
@@ -104,7 +125,7 @@ window.addEventListener("pageshow", (event) => {
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <TimerProvider>
-      {_portalToken ? <StudentApp token={_portalToken} /> : <App />}
+      {_portalToken ? <StudentApp token={_portalToken} isStandalone={_isStandalone} /> : <App />}
     </TimerProvider>
   </StrictMode>
 );

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getTopicTitle } from "@/shared/utils/format";
 import "./StudentHomeScreen.css";
@@ -10,7 +11,40 @@ const RENDERER_EMOJI = {
   phrase_match:   "🔤",
 };
 
-export default function StudentHomeScreen({ student, activeTask, onStartSession }) {
+const BANNER_DISMISSED_KEY = "shs_install_banner_dismissed";
+
+function InstallBanner() {
+  const [dismissed, setDismissed] = useState(
+    () => sessionStorage.getItem(BANNER_DISMISSED_KEY) === "1"
+  );
+  if (dismissed) return null;
+
+  function dismiss() {
+    sessionStorage.setItem(BANNER_DISMISSED_KEY, "1");
+    setDismissed(true);
+  }
+
+  // Detect iOS vs Android for platform-specific hint
+  const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  const hint = isIos
+    ? "Нажми «Поделиться» → «На экран Домой»"
+    : "Нажми «Установить» или «Добавить на главный экран» в браузере";
+
+  return (
+    <div className="shs-install-banner">
+      <span className="shs-install-icon">📱</span>
+      <div className="shs-install-text">
+        <strong>Занимайся без отвлечений</strong>
+        <span>{hint}</span>
+      </div>
+      <button className="shs-install-close" onClick={dismiss} aria-label="Закрыть">×</button>
+    </div>
+  );
+}
+
+export default function StudentHomeScreen({ student, activeTask, onStartSession, showInstallBanner = false }) {
   const topicRecords = useAppStore((s) => s.topicRecords);
 
   let topicName = null;
@@ -34,6 +68,8 @@ export default function StudentHomeScreen({ student, activeTask, onStartSession 
 
   return (
     <div className="shs-root">
+      {showInstallBanner && <InstallBanner />}
+
       <div className="shs-header">
         <div className="shs-greeting">Привет,</div>
         <div className="shs-name">{student.name} 👋</div>

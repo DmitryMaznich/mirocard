@@ -5,6 +5,27 @@
   background: #f7f8fc;
 }
 
+/* Install banner */
+.shs-install-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.shs-install-icon { font-size: 20px; flex-shrink: 0; }
+.shs-install-text { flex: 1; display: flex; flex-direction: column; gap: 2px; line-height: 1.3; }
+.shs-install-text strong { font-size: 13px; font-weight: 700; }
+.shs-install-text span { font-size: 11px; opacity: 0.75; }
+.shs-install-close {
+  background: none; border: none; color: #fff; font-size: 20px;
+  cursor: pointer; padding: 0 4px; opacity: 0.7; flex-shrink: 0;
+  line-height: 1;
+}
+
 /* Header */
 .shs-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

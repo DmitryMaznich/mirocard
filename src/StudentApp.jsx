@@ -82,7 +82,7 @@ function computeDefaultParams(topicRecord, mode) {
   return out;
 }
 
-export default function StudentApp({ token }) {
+export default function StudentApp({ token, isStandalone = false }) {
   const { status, data, error } = useStudentPortal(token);
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
@@ -229,6 +229,7 @@ export default function StudentApp({ token }) {
       student={student}
       activeTask={activeTask}
       onStartSession={handleStartSession}
+      showInstallBanner={!isStandalone}
     />
   );
 }
