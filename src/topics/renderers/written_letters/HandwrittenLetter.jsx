@@ -4,14 +4,16 @@
 //  y=BL (85) ─── baseline
 //  y=120          bottom (descender zone)
 //
-// FS=64 targets Primo's x-height ≈ BL-WT (x-height ≈ 55 % of em).
-// Tune FS / BL / WT if the letter doesn't fill the strip correctly.
+// FS=56: slightly smaller than 64 to avoid right-side clipping on wide cursive
+// glyphs (Ш, Щ, М, Ю, etc.).  TX shifts the anchor 4 units left of centre so
+// the rightward lean of Primo doesn't push strokes past the viewBox edge.
 
 const VB_W = 80;
 const VB_H = 120;
-const FS   = 64;   // font-size in SVG units
+const FS   = 56;   // font-size in SVG units (was 64; reduced to prevent clipping)
 const BL   = 85;   // baseline y
 const WT   = 50;   // top of рабочая строка
+const TX   = 36;   // text anchor x (centre-of-card shifted 4 units left for cursive lean)
 
 const C_BG   = "#fefef6";
 const C_ZONE = "rgba(205,232,245,0.45)";   // upper / lower zone tint
@@ -43,9 +45,9 @@ export default function HandwrittenLetter({ letter, size = 100, className = "" }
       {/* baseline */}
       <line x1={0} y1={BL} x2={VB_W} y2={BL} stroke={C_BASE} strokeWidth={1.8} />
 
-      {/* letter anchored on baseline */}
+      {/* letter anchored on baseline; TX shifted left so cursive lean stays within viewBox */}
       <text
-        x={VB_W / 2}
+        x={TX}
         y={BL}
         textAnchor="middle"
         fontFamily="Primo, cursive"
