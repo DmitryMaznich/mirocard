@@ -263,9 +263,9 @@
     },
     {
       "id": "morning_greeting",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "renderer": "chat_practice",
-      "url": "./decks/morning_greeting_v1.0.0.zip",
+      "url": "./decks/morning_greeting_v1.0.1.zip",
       "title": {
         "ru": "Утреннее приветствие"
       },

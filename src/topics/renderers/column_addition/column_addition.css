@@ -221,6 +221,9 @@
 .col-expr-cell {
   width: 44px;
   height: 44px;
+  box-sizing: border-box;
+  padding-top: 22px;
+  padding-right: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
