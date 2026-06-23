@@ -466,7 +466,7 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
-    if (mode?.requirePin === false) {
+    if (mode?.requirePin === false || mode?.type === "daily_sentences") {
       launchSession();
       return;
     }

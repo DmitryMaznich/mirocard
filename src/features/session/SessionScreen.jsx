@@ -199,12 +199,14 @@ export default function SessionScreen() {
       {!isShoppingRenderer && !isReadingRenderer && (
         <div className="session-topbar">
           <div className="session-topbar-controls">
+            {mode?.type !== "daily_sentences" && (
             <StarBar
               className="session-progress"
               streakCount={streakCount}
               available={rewardProgress?.available ?? false}
               answersPerStar={answersPerStar}
             />
+          )}
             <div className="session-topbar-right">
               {mode?.evaluation !== "instant" && total > 1 && (
                 <div className="session-counter">

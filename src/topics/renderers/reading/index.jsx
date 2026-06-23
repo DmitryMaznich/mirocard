@@ -88,11 +88,11 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   }
 
   return (
-    <div className="session-body reading-body" onClick={onAdvance}>
+    <div className="session-body reading-body" style={isPool ? { justifyContent: "center" } : undefined} onClick={onAdvance}>
       <div className="reading-poem-wrap">
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         <div className="reading-content">
-          <ReadingTextBlock lines={lines} />
+          <ReadingTextBlock lines={lines} large={isPool} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} />
