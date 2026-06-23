@@ -1,22 +1,34 @@
 {
   "meta": {
     "id": "good_night",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "schemaVersion": 2,
     "title": "Спокойной ночи",
     "renderer": "chat_practice",
     "description": "Вечерний ритуал — прощаемся перед сном"
   },
-  "contact": { "name": "Мама", "emoji": "👩" },
+  "contact": {
+    "name": "Мама",
+    "emoji": "👩"
+  },
   "turns": [
     {
       "id": "t1",
-      "text": "Дима, уже 9 вечера. Пора готовиться ко сну.",
+      "text": "{{name}}, уже 9 вечера. Пора готовиться ко сну.",
       "reactionOnCorrect": "Умница!",
       "choices": [
-        { "text": "Хорошо, мама.", "correct": true },
-        { "text": "Ещё немного.", "correct": false },
-        { "text": "Не хочу.", "correct": false }
+        {
+          "text": "Хорошо, мама.",
+          "correct": true
+        },
+        {
+          "text": "Ещё немного.",
+          "correct": false
+        },
+        {
+          "text": "Не хочу.",
+          "correct": false
+        }
       ]
     },
     {
@@ -24,9 +36,18 @@
       "text": "Ты уже почистил зубы?",
       "reactionOnCorrect": "Молодец!",
       "choices": [
-        { "text": "Да, уже почистил.", "correct": true },
-        { "text": "Нет, сейчас пойду.", "correct": false },
-        { "text": "Забыл.", "correct": false }
+        {
+          "text": "Да, уже почистил.",
+          "correct": true
+        },
+        {
+          "text": "Нет, сейчас пойду.",
+          "correct": false
+        },
+        {
+          "text": "Забыл.",
+          "correct": false
+        }
       ]
     },
     {
@@ -35,9 +56,15 @@
       "anyIsCorrect": true,
       "reactionOnSend": "Хорошо!",
       "choices": [
-        { "text": "Да, пожалуйста, мама!" },
-        { "text": "Нет, я сам засну." },
-        { "text": "Да!" }
+        {
+          "text": "Да, пожалуйста, мама!"
+        },
+        {
+          "text": "Нет, я сам засну."
+        },
+        {
+          "text": "Да!"
+        }
       ]
     },
     {
@@ -45,9 +72,15 @@
       "text": "Спокойной ночи, солнышко! Сладких снов 🌙",
       "anyIsCorrect": true,
       "choices": [
-        { "text": "Спокойной ночи, мама!" },
-        { "text": "Люблю тебя, мама!" },
-        { "text": "Спокойной ночи!" }
+        {
+          "text": "Спокойной ночи, мама!"
+        },
+        {
+          "text": "Люблю тебя, мама!"
+        },
+        {
+          "text": "Спокойной ночи!"
+        }
       ]
     }
   ]

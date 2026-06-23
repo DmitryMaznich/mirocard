@@ -5,17 +5,39 @@ import ChatView from "@/shared/components/chat/ChatView";
 import ChatSummary from "./ChatSummary";
 import "./chat.css";
 
+function resolveVars(str, name) {
+  return str?.replace(/\{\{name\}\}/g, name) ?? str;
+}
+
+function resolveScript(raw, name) {
+  if (!raw) return null;
+  return {
+    ...raw,
+    turns: raw.turns.map((turn) => ({
+      ...turn,
+      text:             resolveVars(turn.text, name),
+      reactionOnSend:   resolveVars(turn.reactionOnSend, name),
+      reactionOnCorrect: resolveVars(turn.reactionOnCorrect, name),
+      choices: turn.choices?.map((c) => ({ ...c, text: resolveVars(c.text, name) })),
+    })),
+  };
+}
+
 export default function ChatSessionScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
   const appendSession   = useAppStore((s) => s.appendSession);
   const activeTopicId   = useAppStore((s) => s.activeTopicId);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const topicRecords    = useAppStore((s) => s.topicRecords);
+  const students        = useAppStore((s) => s.students);
 
+  const student     = students.find((s) => s.id === activeStudentId);
+  const studentName = student?.name ?? "";
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
-  const script      = topicRecord
+  const rawScript   = topicRecord
     ? { turns: topicRecord.turns ?? [], contact: topicRecord.contact ?? null }
     : null;
+  const script = resolveScript(rawScript, studentName);
 
   const {
     messages, currentChoices, isTyping, sendChoice,

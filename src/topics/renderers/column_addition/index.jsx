@@ -76,6 +76,7 @@ function DigitBank({ onDragStart }) {
         <span className="col-slant">0</span>
       </div>
       <div className="col-kb-spacer" />
+      <div className="col-kb-line-tile" style={{ visibility: "hidden", pointerEvents: "none" }} />
     </div>
   );
 }

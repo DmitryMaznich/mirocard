@@ -65,6 +65,8 @@
 .col-digit {
   width: 44px;
   height: 44px;
+  box-sizing: border-box;
+  padding-top: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,6 +79,7 @@
 }
 
 .col-digit--sign {
+  padding-top: 0;
   color: #1a1a2e;
   font-size: 45px;
   transform: translateY(-50%);
