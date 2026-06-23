@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "id": "morning_greeting",
+    "schemaVersion": 2,
+    "title": "Утреннее приветствие",
+    "renderer": "chat_practice",
+    "description": "Учимся здороваться и узнавать как дела"
+  },
+  "contact": {
+    "name": "Даша",
+    "emoji": "👧"
+  },
+  "turns": [
+    {
+      "id": "t1",
+      "text": "Привет! 👋",
+      "anyIsCorrect": true,
+      "reactionOnSend": "Здорово! 😊",
+      "choices": [
+        { "text": "Привет!" },
+        { "text": "Привет, Даша!" },
+        { "text": "Пока" }
+      ]
+    },
+    {
+      "id": "t2",
+      "text": "Как ты сегодня?",
+      "choices": [
+        { "text": "Хорошо, спасибо!",  "correct": true,  "next": "t3" },
+        { "text": "Не знаю",           "correct": false },
+        { "text": "Уйди от меня",      "correct": false }
+      ]
+    },
+    {
+      "id": "t3",
+      "text": "Отлично! А я немного устала 😴. Ты что сегодня делал?",
+      "choices": [
+        { "text": "Я играл в игру!",       "correct": true },
+        { "text": "Молчать",               "correct": false },
+        { "text": "Не твоё дело",          "correct": false }
+      ]
+    },
+    {
+      "id": "t4",
+      "text": "Классно! Мне тоже нравятся игры 🎮. Увидимся завтра?",
+      "anyIsCorrect": true,
+      "choices": [
+        { "text": "Да, до завтра!" },
+        { "text": "Пока, Даша!" },
+        { "text": "Увидимся!" }
+      ]
+    }
+  ]
+}
