@@ -245,49 +245,79 @@
 
 /* ── Phase 1 toolbox ───────────────────────── */
 
-.col-toolbox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* ── Phone keyboard ─────────────────────────── */
+
+.col-keyboard {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
   gap: 8px;
+  padding: 10px;
+  background: rgba(240, 246, 255, 0.85);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(100, 130, 200, 0.18);
 }
 
-.col-toolbox-digits {
+.col-kb-tile {
+  width: 60px;
+  height: 60px;
   display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.col-toolbox-extras {
-  display: flex;
-  gap: 10px;
   align-items: center;
-}
-
-/* sign tiles are slightly wider for + − */
-.col-sign-tile {
-  color: #2563eb;
-}
-
-/* draggable line tile */
-.col-line-tile {
-  height: 44px;
-  width: 100px;
-  border: 2px solid #3b82f6;
-  border-radius: 8px;
+  justify-content: center;
   background: #fff;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
+  font-size: 40px;
+  font-weight: 700;
+  font-family: 'Patrick Hand', cursive;
+  color: #1a1a2e;
+  line-height: 1;
+  cursor: grab;
+  box-shadow: 0 3px 0 #c7d2fe;
+  touch-action: none;
+  user-select: none;
+}
+
+.col-kb-tile:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.col-kb-sign {
+  color: #2563eb;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  box-shadow: 0 3px 0 #a5b4fc;
+}
+
+.col-kb-spacer {
+  width: 60px;
+  height: 60px;
+}
+
+/* Line button spans all 3 columns */
+.col-kb-line-tile {
+  grid-column: 1 / 4;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #fff;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
   cursor: grab;
+  box-shadow: 0 3px 0 #c7d2fe;
   touch-action: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  user-select: none;
+}
+
+.col-kb-line-tile:active {
+  transform: translateY(2px);
+  box-shadow: none;
 }
 
 .col-line-tile-bar {
   height: 4px;
-  width: 80%;
+  width: 70%;
   background: #1a1a2e;
   border-radius: 2px;
 }

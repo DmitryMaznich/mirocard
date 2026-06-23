@@ -33,60 +33,49 @@ function Expression({ task, result }) {
   );
 }
 
-// ── Toolbox (phase 1): 0-9 digits + signs + line ─────────────────────────────
+// ── Toolbox (phase 1): phone-keyboard layout ─────────────────────────────────
+// Row 1: 1 2 3 | Row 2: 4 5 6 | Row 3: 7 8 9 | Row 4: + 0 − | Row 5: [line]
 
 function DigitToolbox({ onDragStart }) {
   return (
-    <div className="col-toolbox">
-      <div className="col-toolbox-digits">
-        {Array.from({ length: 10 }, (_, i) => (
-          <div
-            key={i}
-            className="col-bank-tile"
-            onPointerDown={(e) => onDragStart(e, { type: "digit", digit: i })}
-          >
-            {i}
-          </div>
-        ))}
+    <div className="col-keyboard">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+        <div key={d} className="col-kb-tile" onPointerDown={(e) => onDragStart(e, { type: "digit", digit: d })}>
+          <span className="col-slant">{d}</span>
+        </div>
+      ))}
+      <div className="col-kb-tile col-kb-sign" onPointerDown={(e) => onDragStart(e, { type: "sign", sign: "+" })}>
+        <span className="col-slant">+</span>
       </div>
-      <div className="col-toolbox-extras">
-        <div
-          className="col-bank-tile col-sign-tile"
-          onPointerDown={(e) => onDragStart(e, { type: "sign", sign: "+" })}
-        >
-          +
-        </div>
-        <div
-          className="col-bank-tile col-sign-tile"
-          onPointerDown={(e) => onDragStart(e, { type: "sign", sign: "−" })}
-        >
-          −
-        </div>
-        <div
-          className="col-line-tile"
-          onPointerDown={(e) => onDragStart(e, { type: "line" })}
-        >
-          <div className="col-line-tile-bar" />
-        </div>
+      <div className="col-kb-tile" onPointerDown={(e) => onDragStart(e, { type: "digit", digit: 0 })}>
+        <span className="col-slant">0</span>
+      </div>
+      <div className="col-kb-tile col-kb-sign" onPointerDown={(e) => onDragStart(e, { type: "sign", sign: "−" })}>
+        <span className="col-slant">−</span>
+      </div>
+      <div className="col-kb-line-tile" onPointerDown={(e) => onDragStart(e, { type: "line" })}>
+        <div className="col-line-tile-bar" />
       </div>
     </div>
   );
 }
 
-// ── Result digit bank (phase 2): 0-9 only ────────────────────────────────────
+// ── Result digit bank (phase 2): phone-keyboard digits only ──────────────────
+// Row 1: 1 2 3 | Row 2: 4 5 6 | Row 3: 7 8 9 | Row 4: _ 0 _
 
 function DigitBank({ onDragStart }) {
   return (
-    <div className="col-digit-bank">
-      {Array.from({ length: 10 }, (_, i) => (
-        <div
-          key={i}
-          className="col-bank-tile"
-          onPointerDown={(e) => onDragStart(e, i)}
-        >
-          {i}
+    <div className="col-keyboard">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+        <div key={d} className="col-kb-tile" onPointerDown={(e) => onDragStart(e, d)}>
+          <span className="col-slant">{d}</span>
         </div>
       ))}
+      <div className="col-kb-spacer" />
+      <div className="col-kb-tile" onPointerDown={(e) => onDragStart(e, 0)}>
+        <span className="col-slant">0</span>
+      </div>
+      <div className="col-kb-spacer" />
     </div>
   );
 }
