@@ -103,7 +103,7 @@ export default function ModePickerScreen() {
     );
   }
 
-  const hasSingleMode = !isReading && !!topicRecord && modes.length === 1;
+  const hasSingleMode = !!topicRecord && modes.length === 1;
 
   useEffect(() => {
     if (hasSingleMode) {

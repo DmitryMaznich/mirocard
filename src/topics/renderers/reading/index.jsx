@@ -51,12 +51,13 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   const layout = sessionParams?.layout ?? "full";
   const [lineIndex, setLineIndex] = useState(0);
   const activeLine = lines[lineIndex] ?? lines[0];
+  const isPool = task.text?.kind === "sentence_pool";
 
   if (layout === "line") {
     return (
       <div className="session-body reading-body">
         <div className="reading-poem-wrap">
-          <div className="reading-title">{getTopicTitle(task.text.title)}</div>
+          {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
           <div className="reading-content">
             <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} />
           </div>
@@ -89,7 +90,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   return (
     <div className="session-body reading-body" onClick={onAdvance}>
       <div className="reading-poem-wrap">
-        <div className="reading-title">{getTopicTitle(task.text.title)}</div>
+        {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         <div className="reading-content">
           <ReadingTextBlock lines={lines} />
         </div>
