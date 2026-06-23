@@ -1,25 +1,37 @@
-// Coordinate system (viewBox 80×120):
-//  y=0            top padding
-//  y=WT (50) ─── top of рабочая строка  (x-height line)
-//  y=BL (85) ─── baseline
-//  y=120          bottom (descender zone)
+// 4-line propis coordinate system (viewBox 90×120):
 //
-// FS=56: slightly smaller than 64 to avoid right-side clipping on wide cursive
-// glyphs (Ш, Щ, М, Ю, etc.).  TX shifts the anchor 4 units left of centre so
-// the rightward lean of Primo doesn't push strokes past the viewBox edge.
+//  y=L1  (6)  ──── верхняя зона top      (ascenders / capitals)
+//                  upper zone = 38 SVG units
+//  y=L2 (44)  ──── рабочая строка top    (x-height line)
+//                  рабочая строка = 38 SVG units  ← regular lowercase lives here
+//  y=L3 (82)  ──── baseline
+//                  lower zone = 30 SVG units
+//  y=L4 (112) ──── нижняя зона bottom    (р, у, ц, щ, з, д, ф)
+//
+// VB_W=90 gives extra horizontal room to prevent right-edge clipping on
+// wide cursive glyphs (Ш, Щ, Ю, М …).
+// TX=43 shifts text anchor 2 units left of centre (VB_W/2=45) to compensate
+// for Primo's rightward lean, so the letter looks centred in the card.
+//
+// If the letter top doesn't reach L2, increase FS. If it clips above L2, reduce it.
 
-const VB_W = 80;
+const VB_W = 90;
 const VB_H = 120;
-const FS   = 56;   // font-size in SVG units (was 64; reduced to prevent clipping)
-const BL   = 85;   // baseline y
-const WT   = 50;   // top of рабочая строка
-const TX   = 36;   // text anchor x (centre-of-card shifted 4 units left for cursive lean)
 
-const C_BG   = "#fefef6";
-const C_ZONE = "rgba(205,232,245,0.45)";   // upper / lower zone tint
-const C_TOP  = "#9ecde8";                   // x-height line colour
-const C_BASE = "#5bafd0";                   // baseline colour (darker)
-const C_FONT = "#1d4ed8";                   // letter colour
+const L1 = 6;    // upper zone top
+const L2 = 44;   // рабочая строка top  (x-height)
+const L3 = 82;   // baseline
+const L4 = 112;  // lower zone bottom
+
+const FS = 65;   // font-size — targets x-height ≈ L2–L3 = 38 SVG units
+const TX = 43;   // text anchor x
+
+const C_BG    = "#fefef6";
+const C_ZONE  = "rgba(205,232,245,0.45)";
+const C_OUTER = "#c5e2f2";  // L1 / L4  — outer zone lines (lighter)
+const C_L2    = "#9ecde8";  // L2       — x-height line
+const C_L3    = "#5bafd0";  // L3       — baseline (darkest)
+const C_FONT  = "#1d4ed8";
 
 export default function HandwrittenLetter({ letter, size = 100, className = "" }) {
   return (
@@ -31,24 +43,31 @@ export default function HandwrittenLetter({ letter, size = 100, className = "" }
       style={{ display: "block" }}
       aria-hidden="true"
     >
+      {/* cream background */}
       <rect x={0} y={0} width={VB_W} height={VB_H} fill={C_BG} />
 
-      {/* upper zone tint (ascenders / capitals) */}
-      <rect x={0} y={0} width={VB_W} height={WT} fill={C_ZONE} />
+      {/* upper zone tint: L1 → L2  (ascenders / capitals) */}
+      <rect x={0} y={L1} width={VB_W} height={L2 - L1} fill={C_ZONE} />
 
-      {/* lower zone tint (descenders) */}
-      <rect x={0} y={BL} width={VB_W} height={VB_H - BL} fill={C_ZONE} />
+      {/* lower zone tint: L3 → L4  (descenders) */}
+      <rect x={0} y={L3} width={VB_W} height={L4 - L3} fill={C_ZONE} />
 
-      {/* x-height line — top of рабочая строка */}
-      <line x1={0} y1={WT} x2={VB_W} y2={WT} stroke={C_TOP}  strokeWidth={1.2} />
+      {/* Line 1 — upper zone top */}
+      <line x1={0} y1={L1} x2={VB_W} y2={L1} stroke={C_OUTER} strokeWidth={1.0} />
 
-      {/* baseline */}
-      <line x1={0} y1={BL} x2={VB_W} y2={BL} stroke={C_BASE} strokeWidth={1.8} />
+      {/* Line 2 — рабочая строка top (x-height) */}
+      <line x1={0} y1={L2} x2={VB_W} y2={L2} stroke={C_L2}   strokeWidth={1.4} />
 
-      {/* letter anchored on baseline; TX shifted left so cursive lean stays within viewBox */}
+      {/* Line 3 — baseline */}
+      <line x1={0} y1={L3} x2={VB_W} y2={L3} stroke={C_L3}   strokeWidth={1.8} />
+
+      {/* Line 4 — lower zone bottom */}
+      <line x1={0} y1={L4} x2={VB_W} y2={L4} stroke={C_OUTER} strokeWidth={1.0} />
+
+      {/* letter anchored on baseline */}
       <text
         x={TX}
-        y={BL}
+        y={L3}
         textAnchor="middle"
         fontFamily="Primo, cursive"
         fontSize={FS}
