@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56px;
+  font-size: 50px;
   font-family: 'Neucha', cursive;
   font-weight: 700;
   color: #1a1a2e;
@@ -74,7 +74,7 @@
 
 .col-digit--sign {
   color: #1a1a2e;
-  font-size: 50px;
+  font-size: 45px;
 }
 
 .col-digit--top-borrowed {
@@ -102,12 +102,12 @@
 
 /* ── Horizontal line ───────────────────────── */
 
-/* row 4 is 44px; line is a 3px bar centered within it */
+/* row 4 is 44px; bar at the very top = sits on the grid line below row 3 */
 .col-line {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .col-line::after {
@@ -166,7 +166,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56px;
+  font-size: 50px;
   font-weight: 700;
   font-family: 'Neucha', cursive;
   color: #1a1a2e;
@@ -222,7 +222,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56px;
+  font-size: 50px;
   font-weight: 700;
   font-family: 'Neucha', cursive;
   color: #1a1a2e;
@@ -299,7 +299,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56px;
+  font-size: 50px;
   font-family: 'Neucha', cursive;
   font-weight: 400;
   color: #2563eb;
@@ -314,32 +314,29 @@
   animation: col-ink-in 0.25s ease-out;
 }
 
-/* line drop zone (phase 1, row 4 = 44px tall) */
+/* line drop zone (phase 1, row 4 = 44px tall)
+   Bar anchored to the TOP so it sits on the grid line below row 3. */
 .col-line-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
-  border: 2px dashed #cbd5e1;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.col-line-placeholder--filled {
-  border: 2px solid transparent;
-  border-radius: 0;
+  align-items: flex-start;
   background: transparent;
-  animation: col-ink-in 0.25s ease-out;
 }
 
-.col-line-placeholder--filled::after {
+/* Unfilled: dashed indicator at the top of the row */
+.col-line-placeholder::before {
   content: '';
   display: block;
   height: 3px;
   width: 100%;
-  background: #1a1a2e;
-  border-radius: 2px;
+  border-top: 2px dashed #cbd5e1;
+}
+
+/* Filled: replace dashed with solid bar */
+.col-line-placeholder--filled::before {
+  border-top: 3px solid #1a1a2e;
+  animation: col-ink-in 0.25s ease-out;
 }
 
 /* ── Form cells (phase 1 droppable targets) ─ */
@@ -352,7 +349,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56px;
+  font-size: 50px;
   font-weight: 700;
   font-family: 'Neucha', cursive;
   line-height: 1;
@@ -393,7 +390,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 56px;
+  font-size: 50px;
   font-weight: 700;
   font-family: 'Neucha', cursive;
   line-height: 1;
