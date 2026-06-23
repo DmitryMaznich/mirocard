@@ -85,14 +85,13 @@ export default function SortCaseView({ task, onAdvance, onCorrect, onMistake }) 
       onPointerCancel={handlePointerEnd}
     >
       <div className="wl-dock">
-        {!dragPos && (
-          <div
-            className={`wl-drag-card wl-letter-card wl-letter-card--lines${shaking ? " wl-drag-card--shake" : ""}`}
-            onPointerDown={handlePointerDown}
-          >
-            <HandwrittenLetter letter={letter} size={CARD_SIZE} />
-          </div>
-        )}
+        <div
+          className={`wl-drag-card wl-letter-card wl-letter-card--lines${shaking ? " wl-drag-card--shake" : ""}`}
+          style={{ visibility: dragPos ? "hidden" : "visible" }}
+          onPointerDown={handlePointerDown}
+        >
+          <HandwrittenLetter letter={letter} size={CARD_SIZE} />
+        </div>
       </div>
 
       <div className="wl-zones">
