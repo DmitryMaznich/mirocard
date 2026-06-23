@@ -1,6 +1,7 @@
 {
   "meta": {
     "id": "morning_greeting",
+    "version": "1.0.0",
     "schemaVersion": 2,
     "title": "Утреннее приветствие",
     "renderer": "chat_practice",
