@@ -2,8 +2,8 @@ import { useState, useCallback } from "react";
 import HandwrittenLetter from "./HandwrittenLetter";
 import PrintedLetter     from "./PrintedLetter";
 
-const STIMULUS_SIZE = 130;
-const OPTION_SIZE   = 80;
+const STIMULUS_SIZE = 100;
+const OPTION_SIZE   = 70;
 
 function Stimulus({ task }) {
   if (task.type === "match_print_to_written") {
@@ -34,13 +34,10 @@ function Option({ opt, state, onTap, taskType }) {
     state ? "wl-option--disabled" : "",
   ].filter(Boolean).join(" ");
 
-  // match_written_to_print → show printed options
-  // match_print_to_written / match_pair → show handwritten options
+  // match_written_to_print → printed options; others → handwritten (SVG has propis lines built-in)
   const inner = taskType === "match_written_to_print"
     ? <PrintedLetter letter={opt.printed} size={OPTION_SIZE} />
-    : <div className="wl-letter-card--lines" style={{ padding: "4px 8px", borderRadius: 8 }}>
-        <HandwrittenLetter letter={opt.letter} size={OPTION_SIZE} />
-      </div>;
+    : <HandwrittenLetter letter={opt.letter} size={OPTION_SIZE} />;
 
   return (
     <button className={cls} onClick={onTap} type="button">

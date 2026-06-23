@@ -39,7 +39,7 @@
   justify-content: center;
 }
 
-/* ── Letter card (notebook background) ── */
+/* ── Letter card ── */
 .wl-letter-card {
   background: #fefef6;
   border-radius: 14px;
@@ -49,23 +49,14 @@
   align-items: center;
   justify-content: center;
   padding: 8px 12px;
-  position: relative;
   overflow: hidden;
 }
 
-.wl-letter-card--lines::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0px,
-      transparent 17px,
-      #cde8f5 17px,
-      #cde8f5 18px
-    );
-  pointer-events: none;
+/* Lines are now drawn inside HandwrittenLetter SVG.
+   This modifier removes padding so the SVG fills the card edge-to-edge. */
+.wl-letter-card--lines {
+  padding: 0;
+  overflow: hidden;
 }
 
 /* ── Stimulus (top, large) ── */
@@ -157,10 +148,8 @@
 
 /* ── Draggable letter ── */
 .wl-drag-card {
-  width: clamp(100px, 25vw, 140px);
-  height: clamp(100px, 25vw, 140px);
+  /* width auto — sized by the SVG inside (ratio 2:3) */
   border-radius: 16px;
-  background: #fefef6;
   border: 3px solid #e2e8f0;
   box-shadow: 0 4px 14px rgba(0,0,0,0.1);
   display: flex;

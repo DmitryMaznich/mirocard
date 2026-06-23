@@ -6,7 +6,7 @@ const ZONE_DEFS = [
   { id: "lower", label: "Строчные",  color: "#0ea5e9" },
 ];
 
-const CARD_SIZE = 100;
+const CARD_SIZE = 80;
 
 let _chips = { key: null, list: [] };
 
