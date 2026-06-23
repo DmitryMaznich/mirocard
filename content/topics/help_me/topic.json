@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "id": "help_me",
+    "version": "1.0.0",
+    "schemaVersion": 2,
+    "title": "Помоги мне",
+    "renderer": "chat_practice",
+    "description": "Учимся просить маму о помощи"
+  },
+  "contact": { "name": "Мама", "emoji": "👩" },
+  "turns": [
+    {
+      "id": "t1",
+      "text": "Дима, всё хорошо?",
+      "reactionOnCorrect": "Конечно! Что случилось?",
+      "choices": [
+        { "text": "Мама, помоги мне, пожалуйста.", "correct": true },
+        { "text": "Да.", "correct": false },
+        { "text": "Нет.", "correct": false }
+      ]
+    },
+    {
+      "id": "t2",
+      "text": "Что случилось?",
+      "reactionOnCorrect": "Сейчас посмотрим вместе!",
+      "choices": [
+        { "text": "Я не могу найти рюкзак.", "correct": true },
+        { "text": "Не знаю.", "correct": false },
+        { "text": "Всё плохо.", "correct": false }
+      ]
+    },
+    {
+      "id": "t3",
+      "text": "Посмотри в коридоре, на крючке. Нашёл?",
+      "reactionOnCorrect": "Отлично!",
+      "choices": [
+        { "text": "Да, нашёл! Спасибо, мама!", "correct": true },
+        { "text": "Нет, нету.", "correct": false },
+        { "text": "Не знаю.", "correct": false }
+      ]
+    },
+    {
+      "id": "t4",
+      "text": "Молодец, что попросил о помощи! Если ещё что-то — зови 😊",
+      "anyIsCorrect": true,
+      "choices": [
+        { "text": "Хорошо, мама. Спасибо!" },
+        { "text": "Спасибо!" },
+        { "text": "Ладно." }
+      ]
+    }
+  ]
+}

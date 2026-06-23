@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "id": "can_i_watch_tv",
+    "version": "1.0.0",
+    "schemaVersion": 2,
+    "title": "Можно мультики?",
+    "renderer": "chat_practice",
+    "description": "Учимся просить разрешения посмотреть телевизор"
+  },
+  "contact": { "name": "Мама", "emoji": "👩" },
+  "turns": [
+    {
+      "id": "t1",
+      "text": "Дима, ты сделал уроки?",
+      "reactionOnCorrect": "Молодец! Покажи тетрадь.",
+      "choices": [
+        { "text": "Да, мама, всё сделал.", "correct": true },
+        { "text": "Нет.", "correct": false },
+        { "text": "Потом.", "correct": false }
+      ]
+    },
+    {
+      "id": "t2",
+      "text": "Хорошо! Что хочешь делать?",
+      "reactionOnCorrect": "Конечно, можно. До 8 часов.",
+      "choices": [
+        { "text": "Мама, можно я посмотрю мультики?", "correct": true },
+        { "text": "Не знаю.", "correct": false },
+        { "text": "Ничего.", "correct": false }
+      ]
+    },
+    {
+      "id": "t3",
+      "text": "До 8 часов, договорились?",
+      "anyIsCorrect": true,
+      "choices": [
+        { "text": "Договорились, мама!" },
+        { "text": "Хорошо." },
+        { "text": "Ладно." }
+      ]
+    },
+    {
+      "id": "t4",
+      "text": "Не забудь потом убрать пульт 😊",
+      "anyIsCorrect": true,
+      "choices": [
+        { "text": "Хорошо, не забуду!" },
+        { "text": "Ладно, мама." },
+        { "text": "Хорошо!" }
+      ]
+    }
+  ]
+}

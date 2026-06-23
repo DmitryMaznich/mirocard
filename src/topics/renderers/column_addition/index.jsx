@@ -378,7 +378,7 @@ function ColumnArithmeticTask({ task, onCorrect, onWrong }) {
   // Also depend on phase and lineFilled: when phase changes the toolbox
   // switches (DigitToolbox → DigitBank), changing total content height in the
   // flex-centered screen → notebook repositions → background must recalculate.
-  }, [task.top, task.bottom, task.operation, solved, phase, lineFilled]);
+  }, [task.top, task.bottom, task.operation, solved, phase]);
 
   useEffect(() => {
     setPhase("form");

@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "id": "feel_sick",
+    "version": "1.0.0",
+    "schemaVersion": 2,
+    "title": "Мне плохо",
+    "renderer": "chat_practice",
+    "description": "Учимся говорить маме, что плохо себя чувствуешь"
+  },
+  "contact": { "name": "Мама", "emoji": "👩" },
+  "turns": [
+    {
+      "id": "t1",
+      "text": "Дима, пора в школу! Как ты себя чувствуешь?",
+      "reactionOnCorrect": "Что случилось?",
+      "choices": [
+        { "text": "Мама, мне плохо.", "correct": true },
+        { "text": "Нормально.", "correct": false },
+        { "text": "Не знаю.", "correct": false }
+      ]
+    },
+    {
+      "id": "t2",
+      "text": "Где болит?",
+      "reactionOnCorrect": "Понятно. Сейчас принесу лекарство.",
+      "choices": [
+        { "text": "У меня болит голова.", "correct": true },
+        { "text": "Везде.", "correct": false },
+        { "text": "Не знаю.", "correct": false }
+      ]
+    },
+    {
+      "id": "t3",
+      "text": "Ляг отдохни. Тебе что-нибудь нужно?",
+      "reactionOnCorrect": "Сейчас принесу.",
+      "choices": [
+        { "text": "Можно воды, пожалуйста.", "correct": true },
+        { "text": "Уйди.", "correct": false },
+        { "text": "Ничего.", "correct": false }
+      ]
+    },
+    {
+      "id": "t4",
+      "text": "Вот вода. Отдыхай, я рядом 💛",
+      "anyIsCorrect": true,
+      "choices": [
+        { "text": "Спасибо, мама." },
+        { "text": "Спасибо!" },
+        { "text": "Хорошо." }
+      ]
+    }
+  ]
+}

@@ -266,12 +266,48 @@
       "version": "1.0.1",
       "renderer": "chat_practice",
       "url": "./decks/morning_greeting_v1.0.1.zip",
-      "title": {
-        "ru": "Утреннее приветствие"
-      },
-      "description": {
-        "ru": "Учимся здороваться и узнавать как дела. Диалог в стиле мессенджера."
-      }
+      "title": { "ru": "Утреннее приветствие" },
+      "description": { "ru": "Учимся здороваться и узнавать как дела. Диалог в стиле мессенджера." }
+    },
+    {
+      "id": "im_hungry",
+      "version": "1.0.0",
+      "renderer": "chat_practice",
+      "url": "./decks/im_hungry_v1.0.0.zip",
+      "title": { "ru": "Я хочу есть" },
+      "description": { "ru": "Просим маму дать поесть." }
+    },
+    {
+      "id": "feel_sick",
+      "version": "1.0.0",
+      "renderer": "chat_practice",
+      "url": "./decks/feel_sick_v1.0.0.zip",
+      "title": { "ru": "Мне плохо" },
+      "description": { "ru": "Учимся говорить маме, что плохо себя чувствуешь." }
+    },
+    {
+      "id": "can_i_watch_tv",
+      "version": "1.0.0",
+      "renderer": "chat_practice",
+      "url": "./decks/can_i_watch_tv_v1.0.0.zip",
+      "title": { "ru": "Можно мультики?" },
+      "description": { "ru": "Учимся просить разрешения посмотреть телевизор." }
+    },
+    {
+      "id": "help_me",
+      "version": "1.0.0",
+      "renderer": "chat_practice",
+      "url": "./decks/help_me_v1.0.0.zip",
+      "title": { "ru": "Помоги мне" },
+      "description": { "ru": "Учимся просить маму о помощи." }
+    },
+    {
+      "id": "good_night",
+      "version": "1.0.0",
+      "renderer": "chat_practice",
+      "url": "./decks/good_night_v1.0.0.zip",
+      "title": { "ru": "Спокойной ночи" },
+      "description": { "ru": "Вечерний ритуал — прощаемся перед сном." }
     }
   ]
 }

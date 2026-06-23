@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "id": "im_hungry",
+    "version": "1.0.0",
+    "schemaVersion": 2,
+    "title": "Я хочу есть",
+    "renderer": "chat_practice",
+    "description": "Просим маму дать поесть"
+  },
+  "contact": { "name": "Мама", "emoji": "👩" },
+  "turns": [
+    {
+      "id": "t1",
+      "text": "Привет! Как дела?",
+      "anyIsCorrect": true,
+      "reactionOnSend": "Хорошо!",
+      "choices": [
+        { "text": "Привет, мама!" },
+        { "text": "Привет! Всё хорошо." },
+        { "text": "Привет!" }
+      ]
+    },
+    {
+      "id": "t2",
+      "text": "Что-нибудь нужно?",
+      "reactionOnCorrect": "Сейчас сделаем!",
+      "choices": [
+        { "text": "Мама, я хочу есть.", "correct": true },
+        { "text": "Ничего.", "correct": false },
+        { "text": "Не знаю.", "correct": false }
+      ]
+    },
+    {
+      "id": "t3",
+      "text": "Что хочешь — кашу или бутерброд?",
+      "anyIsCorrect": true,
+      "reactionOnSend": "Сейчас сделаю!",
+      "choices": [
+        { "text": "Кашу, пожалуйста." },
+        { "text": "Бутерброд, пожалуйста." },
+        { "text": "Всё равно, мама." }
+      ]
+    },
+    {
+      "id": "t4",
+      "text": "Держи! Приятного аппетита 🍽️",
+      "anyIsCorrect": true,
+      "choices": [
+        { "text": "Спасибо, мама!" },
+        { "text": "Спасибо большое!" },
+        { "text": "Ура, спасибо!" }
+      ]
+    }
+  ]
+}
