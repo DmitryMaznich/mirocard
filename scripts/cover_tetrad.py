@@ -7,6 +7,15 @@ A4 landscape (297×210 мм):
   правая половина — бланк ТЕТРАДЬ
 
 Запуск: python scripts/cover_tetrad.py
+
+Структура прописей (из SortCaseView.jsx, SVG-пространство L1=10 L2=62 L3=88 L4=140 VBH=150):
+  - Узкая строка (рабочая зона): L2→L3 = 26 ед.  — сюда идёт текст
+  - Широкая строка (межстрочный интервал): L3→L4 = 52 ед. — пустое место
+  - Соотношение 1:2 (узкая:широкая)
+  - ROW_PITCH = 26 + 52 = 78 ед.
+  - Только 2 сплошные линии на строку: baseline (L3, тёмная) + top (L2, светлая)
+  - Никаких пунктиров
+  - Косые линии 65°, шаг 80/600 × ширину строки
 """
 
 from reportlab.lib.pagesizes import landscape, A4
@@ -41,19 +50,22 @@ for r_path, b_path in [
     except Exception:
         pass
 
-# ── Цвета прописей ────────────────────────────────────────────────────────────
-C_SOLID = (0.38, 0.52, 0.78)   # сплошные линии L1 / L4
-C_DASH  = (0.62, 0.74, 0.90)   # пунктирные  L2 / L3
-C_DIAG  = (0.74, 0.83, 0.94)   # косые линии
+# ── Цвета (из SortCaseView.jsx) ───────────────────────────────────────────────
+# C_LINE_BASE = "#2a82a0" — baseline (L3), тёмная
+# C_LINE_TOP  = "#6ab4cc" — верх рабочей зоны (L2), светлая
+# C_DIAG      = "#b8d8e8" — косые линии
+C_LINE_BASE = (0.165, 0.510, 0.627)
+C_LINE_TOP  = (0.416, 0.706, 0.800)
+C_DIAG      = (0.722, 0.847, 0.910)
 
-# ── Параметры строки прописей ─────────────────────────────────────────────────
-PITCH       = 10 * MM   # шаг: L1 → следующей L1
-ROW_H       = 8  * MM   # высота зоны L1 → L4
-Z_BOT       = 2  * MM   # L1 → L2  (нижняя зона)
-Z_MID       = 4  * MM   # L2 → L3  (основная зона)
-Z_TOP       = 2  * MM   # L3 → L4  (верхняя зона)
-DIAG_STEP   = 6  * MM   # шаг между косыми линиями
-DIAG_ANG    = 65        # угол косых от горизонтали (°)
+# ── Параметры прописей (1:2 — узкая:широкая) ─────────────────────────────────
+# SVG-пропорция: узкая = 26 ед., широкая = 52 ед., pitch = 78 ед.
+NARROW_H = 5  * MM   # узкая рабочая строка (узкая)
+WIDE_H   = 10 * MM   # межстрочный интервал (широкая)
+PITCH    = NARROW_H + WIDE_H  # = 15 мм
+
+DIAG_ANG  = 65         # угол косых от горизонтали (°), из кода
+# Шаг косых: в SVG = 80 из 600 (ширина 6 слотов) = 13.3% ширины строки
 
 # ── Поля левой страницы ───────────────────────────────────────────────────────
 L_X0 = 12 * MM
@@ -66,43 +78,46 @@ L_Y1 = PAGE_H - 12 * MM
 # Примитивы прописей
 # ═════════════════════════════════════════════════════════════════════════════
 
-def propis_rows(cv, x0, x1, y_top_l1, n_rows, pitch=None, row_h=None):
-    """Рисует n_rows строк прописей; y_top_l1 — L1 самой верхней строки."""
-    if pitch   is None: pitch   = PITCH
-    if row_h   is None: row_h   = ROW_H
-    zb = row_h * 0.25
-    zm = row_h * 0.50
-    zt = row_h * 0.25
+def propis_rows(cv, x0, x1, y_first_baseline, n_rows,
+                narrow_h=None, pitch=None):
+    """
+    Рисует n_rows строк правильных прописей.
+    y_first_baseline — baseline (L3) первой (верхней) строки.
+    Структура: только 2 линии на строку: baseline (тёмная) + top-of-zone (светлая).
+    Никаких пунктиров. Широкая строка между рядами — пустое место.
+    """
+    if narrow_h is None: narrow_h = NARROW_H
+    if pitch    is None: pitch    = PITCH
     for i in range(n_rows):
-        y1 = y_top_l1 - i * pitch          # L1 (baseline)
-        y2 = y1 + zb                        # L2
-        y3 = y2 + zm                        # L3
-        y4 = y3 + zt                        # L4
-        cv.setStrokeColorRGB(*C_SOLID); cv.setLineWidth(0.55)
-        cv.line(x0, y1, x1, y1)            # L1
-        cv.setStrokeColorRGB(*C_DASH); cv.setLineWidth(0.30)
-        cv.setDash([1.8, 1.8])
-        cv.line(x0, y2, x1, y2)            # L2 пунктир
-        cv.line(x0, y3, x1, y3)            # L3 пунктир
-        cv.setDash([])
-        cv.setStrokeColorRGB(*C_SOLID); cv.setLineWidth(0.55)
-        cv.line(x0, y4, x1, y4)            # L4
+        y_base = y_first_baseline - i * pitch   # L3 — baseline (нижняя линия)
+        y_top  = y_base + narrow_h              # L2 — верх рабочей зоны (верхняя линия)
+        # Baseline — тёмнее
+        cv.setStrokeColorRGB(*C_LINE_BASE)
+        cv.setLineWidth(0.65)
+        cv.line(x0, y_base, x1, y_base)
+        # Верх зоны — светлее
+        cv.setStrokeColorRGB(*C_LINE_TOP)
+        cv.setLineWidth(0.45)
+        cv.line(x0, y_top, x1, y_top)
 
 
-def diag_lines(cv, x0, x1, y0, y1):
-    """Рисует косые линии прописей внутри прямоугольника (x0,y0)–(x1,y1)."""
-    h  = y1 - y0
-    dx = h / math.tan(math.radians(DIAG_ANG))   # сдвиг по X при Δy = h
+def diag_lines(cv, x0, x1, y0, y1, step=None):
+    """Косые линии прописей 65°, clipped к прямоугольнику."""
+    h   = y1 - y0
+    dx  = h / math.tan(math.radians(DIAG_ANG))
+    if step is None:
+        # 80/600 × ширину — аналог SVG-шага
+        step = max(6 * MM, (x1 - x0) * 80 / 600)
     cv.saveState()
     p = cv.beginPath()
     p.rect(x0, y0, x1 - x0, h)
     cv.clipPath(p, stroke=0, fill=0)
     cv.setStrokeColorRGB(*C_DIAG)
-    cv.setLineWidth(0.25)
+    cv.setLineWidth(0.3)
     x = x0 - dx
     while x < x1:
         cv.line(x, y0, x + dx, y1)
-        x += DIAG_STEP
+        x += step
     cv.restoreState()
 
 
@@ -114,28 +129,28 @@ def left_page(cv):
     cv.setFillColorRGB(1, 1, 1)
     cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
 
-    # Первая строка: L4 совпадает с L_Y1, L1 = L_Y1 - ROW_H
-    y0 = L_Y1 - ROW_H
-    n  = int((y0 - L_Y0) / PITCH) + 1
+    # Первая строка: верх рабочей зоны (L2) совпадает с L_Y1
+    y_first = L_Y1 - NARROW_H   # baseline первой строки
+    n = int((y_first - L_Y0) / PITCH) + 1
 
     diag_lines(cv, L_X0, L_X1, L_Y0, L_Y1)
-    propis_rows(cv, L_X0, L_X1, y0, n)
+    propis_rows(cv, L_X0, L_X1, y_first, n)
 
     cx = (L_X0 + L_X1) / 2
 
     def ybase(row_idx):
-        """L2 (базовая линия письма) строки row_idx, 0 = самая верхняя."""
-        return y0 - row_idx * PITCH + Z_BOT
+        """Baseline (L3) строки row_idx; текст ставится здесь."""
+        return y_first - row_idx * PITCH
 
     # ── Стихотворение ────────────────────────────────────────────────────────
 
     # Заголовок
-    cv.setFont(CURSIVE, 24)
+    cv.setFont(CURSIVE, 22)
     cv.setFillColorRGB(0.05, 0.40, 0.08)
     cv.drawCentredString(cx, ybase(1), "Любимая мама")
 
     # Строфа
-    cv.setFont(CURSIVE, 22)
+    cv.setFont(CURSIVE, 20)
     cv.setFillColorRGB(0.04, 0.08, 0.30)
     poem = [
         "Маму очень я люблю!",
@@ -147,9 +162,9 @@ def left_page(cv):
         cv.drawCentredString(cx, ybase(3 + j), line)
 
     # Подпись автора
-    cv.setFont(CURSIVE, 18)
+    cv.setFont(CURSIVE, 16)
     cv.setFillColorRGB(0.18, 0.38, 0.18)
-    cv.drawCentredString(cx, ybase(n - 3), "Екатерина Каплиева")
+    cv.drawCentredString(cx, ybase(n - 2), "Екатерина Каплиева")
 
     # URL
     cv.setFont(REG, 7)
@@ -211,11 +226,11 @@ def right_page(cv):
     th_y1 = th_y0 + th_h
 
     th_pitch  = th_h / 5
-    th_row_h  = th_pitch * 0.78
-    th_y_top  = th_y1 - th_row_h
+    th_narrow  = th_pitch / 3        # 1:2 ratio
+    th_y_first = th_y1 - th_narrow   # baseline первой строки миниатюры
 
     diag_lines(cv, th_x0, th_x1, th_y0, th_y1)
-    propis_rows(cv, th_x0, th_x1, th_y_top, 5, pitch=th_pitch, row_h=th_row_h)
+    propis_rows(cv, th_x0, th_x1, th_y_first, 5, narrow_h=th_narrow, pitch=th_pitch)
     cv.setStrokeColorRGB(0.45, 0.55, 0.72)
     cv.setLineWidth(0.5)
     cv.rect(th_x0, th_y0, th_w, th_h, fill=0, stroke=1)
