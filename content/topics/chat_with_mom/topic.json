@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "chat_with_mom",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "schemaVersion": 2,
-    "title": { "ru": "Дома с Мамой" },
+    "title": { "ru": "Учебный чат" },
     "renderer": "chat_practice",
     "description": { "ru": "5 диалогов с мамой — учимся общаться в мессенджере в разных ситуациях дома" }
   },
