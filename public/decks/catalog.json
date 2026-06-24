@@ -263,9 +263,9 @@
     },
     {
       "id": "chat_with_mom",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "renderer": "chat_practice",
-      "url": "./decks/chat_with_mom_v1.0.1.zip",
+      "url": "./decks/chat_with_mom_v1.0.2.zip",
       "title": { "ru": "Учебный чат" },
       "description": { "ru": "6 диалогов с мамой: утро, еда, болезнь, мультики, помощь, спокойной ночи." }
     }

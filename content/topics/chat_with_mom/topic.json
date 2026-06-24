@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "chat_with_mom",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "schemaVersion": 2,
     "title": { "ru": "Учебный чат" },
     "renderer": "chat_practice",
