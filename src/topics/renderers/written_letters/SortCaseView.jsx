@@ -25,6 +25,10 @@ const INIT_ROWS = 2;                    // always show at least 2 empty rows
 // Row-to-row pitch: L4 of row N = L1 of row N+1 (shared line)
 const ROW_PITCH = L4 - L1;            // 130 SVG units
 
+// Diagonal slant lines (косые линейки) — standard Russian cursive 65° angle
+const SLANT_TAN     = Math.tan(65 * Math.PI / 180);  // ≈ 2.145
+const SLANT_SPACING = 56;  // horizontal gap between slant lines in SVG units
+
 // Wrap chips into rows based on letter advance widths
 function wrapChips(chips) {
   const rows = [];
@@ -46,9 +50,22 @@ function wrapChips(chips) {
 function ZonePaper({ chips, isActive, zoneRef, label, color }) {
   const rows = wrapChips(chips);
   const numRows = Math.max(INIT_ROWS, rows.length);
-  // totalH: top margin + N rows of pitch + bottom margin
-  // Each adjacent pair of rows shares the L4/L1 line, so pitch = L4-L1 = 130
+  // totalH: first row VBH + each additional row adds ROW_PITCH (shared boundary line)
   const totalH = VBH + (numRows - 1) * ROW_PITCH;
+  // Unique clipPath id per zone (label is unique: "Заглавные" / "Строчные")
+  const clipId = `wlzc-${label === "Заглавные" ? "up" : "lo"}`;
+
+  // Slant lines: from (x0, totalH) to (x0 + totalH/SLANT_TAN, 0), clipped to viewBox
+  const slantLines = [];
+  const xFirst = -Math.floor(totalH / SLANT_TAN) - SLANT_SPACING;
+  for (let x0 = xFirst; x0 <= ROW_W + SLANT_SPACING; x0 += SLANT_SPACING) {
+    slantLines.push(
+      <line key={x0}
+        x1={x0}                          y1={totalH}
+        x2={x0 + totalH / SLANT_TAN}    y2={0}
+        stroke={C_LINE_OUTER} strokeWidth={0.8} />
+    );
+  }
 
   return (
     <div
@@ -60,36 +77,44 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
       <svg
         viewBox={`0 0 ${ROW_W} ${totalH}`}
         width="100%"
-        style={{ display: "block", height: "auto" }}
+        style={{ display: "block", height: "auto", overflow: "hidden" }}
         aria-hidden="true"
       >
-        <rect x={0} y={0} width={ROW_W} height={totalH} fill={C_BG} />
-        {Array.from({ length: numRows }, (_, r) => {
-          const dy = r * ROW_PITCH;
-          return (
-            <g key={r}>
-              <line x1={0} y1={dy + L1} x2={ROW_W} y2={dy + L1} stroke={C_LINE_OUTER} strokeWidth={1.0} />
-              <line x1={0} y1={dy + L2} x2={ROW_W} y2={dy + L2} stroke={C_LINE_TOP}   strokeWidth={1.0} />
-              <line x1={0} y1={dy + L3} x2={ROW_W} y2={dy + L3} stroke={C_LINE_BASE}  strokeWidth={1.0} />
-              <line x1={0} y1={dy + L4} x2={ROW_W} y2={dy + L4} stroke={C_LINE_OUTER} strokeWidth={1.0} />
-            </g>
-          );
-        })}
-        {rows.map((row, r) =>
-          row.map(({ chip, x }) => {
-            const d = LETTER_PATHS[chip.letter];
-            if (!d) return null;
+        <defs>
+          <clipPath id={clipId}>
+            <rect x={0} y={0} width={ROW_W} height={totalH} />
+          </clipPath>
+        </defs>
+        <g clipPath={`url(#${clipId})`}>
+          <rect x={0} y={0} width={ROW_W} height={totalH} fill={C_BG} />
+          {slantLines}
+          {Array.from({ length: numRows }, (_, r) => {
+            const dy = r * ROW_PITCH;
             return (
-              <path
-                key={`${r}-${x}`}
-                d={d.path}
-                fill={C_FONT}
-                fillRule="nonzero"
-                transform={`translate(${x}, ${r * ROW_PITCH})`}
-              />
+              <g key={r}>
+                <line x1={0} y1={dy + L1} x2={ROW_W} y2={dy + L1} stroke={C_LINE_OUTER} strokeWidth={1.0} />
+                <line x1={0} y1={dy + L2} x2={ROW_W} y2={dy + L2} stroke={C_LINE_TOP}   strokeWidth={1.0} />
+                <line x1={0} y1={dy + L3} x2={ROW_W} y2={dy + L3} stroke={C_LINE_BASE}  strokeWidth={1.0} />
+                <line x1={0} y1={dy + L4} x2={ROW_W} y2={dy + L4} stroke={C_LINE_OUTER} strokeWidth={1.0} />
+              </g>
             );
-          })
-        )}
+          })}
+          {rows.map((row, r) =>
+            row.map(({ chip, x }) => {
+              const d = LETTER_PATHS[chip.letter];
+              if (!d) return null;
+              return (
+                <path
+                  key={`${r}-${x}`}
+                  d={d.path}
+                  fill={C_FONT}
+                  fillRule="nonzero"
+                  transform={`translate(${x}, ${r * ROW_PITCH})`}
+                />
+              );
+            })
+          )}
+        </g>
       </svg>
     </div>
   );
