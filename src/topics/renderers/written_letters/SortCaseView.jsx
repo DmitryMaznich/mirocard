@@ -18,10 +18,12 @@ const C_LINE_BASE  = "#2a82a0";
 const C_FONT       = "#1d4ed8";
 
 // Zone layout: 3 letter slots per row, each slot 100 SVG units wide
-const COLS     = 3;
-const SLOT_W   = 100;
-const ROW_W    = COLS * SLOT_W;   // 300 SVG units — fixed viewBox width
-const INIT_ROWS = 2;               // always show at least 2 empty rows
+const COLS      = 3;
+const SLOT_W    = 100;
+const ROW_W     = COLS * SLOT_W;       // 300 SVG units — fixed viewBox width
+const INIT_ROWS = 2;                    // always show at least 2 empty rows
+// Row-to-row pitch: L4 of row N = L1 of row N+1 (shared line)
+const ROW_PITCH = L4 - L1;            // 130 SVG units
 
 // Wrap chips into rows based on letter advance widths
 function wrapChips(chips) {
@@ -44,7 +46,9 @@ function wrapChips(chips) {
 function ZonePaper({ chips, isActive, zoneRef, label, color }) {
   const rows = wrapChips(chips);
   const numRows = Math.max(INIT_ROWS, rows.length);
-  const totalH = numRows * VBH;
+  // totalH: top margin + N rows of pitch + bottom margin
+  // Each adjacent pair of rows shares the L4/L1 line, so pitch = L4-L1 = 130
+  const totalH = VBH + (numRows - 1) * ROW_PITCH;
 
   return (
     <div
@@ -59,14 +63,14 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
         style={{ display: "block", height: "auto" }}
         aria-hidden="true"
       >
+        <rect x={0} y={0} width={ROW_W} height={totalH} fill={C_BG} />
         {Array.from({ length: numRows }, (_, r) => {
-          const dy = r * VBH;
+          const dy = r * ROW_PITCH;
           return (
             <g key={r}>
-              <rect x={0} y={dy} width={ROW_W} height={VBH} fill={C_BG} />
               <line x1={0} y1={dy + L1} x2={ROW_W} y2={dy + L1} stroke={C_LINE_OUTER} strokeWidth={1.0} />
-              <line x1={0} y1={dy + L2} x2={ROW_W} y2={dy + L2} stroke={C_LINE_TOP}   strokeWidth={1.5} />
-              <line x1={0} y1={dy + L3} x2={ROW_W} y2={dy + L3} stroke={C_LINE_BASE}  strokeWidth={2.5} />
+              <line x1={0} y1={dy + L2} x2={ROW_W} y2={dy + L2} stroke={C_LINE_TOP}   strokeWidth={1.0} />
+              <line x1={0} y1={dy + L3} x2={ROW_W} y2={dy + L3} stroke={C_LINE_BASE}  strokeWidth={1.0} />
               <line x1={0} y1={dy + L4} x2={ROW_W} y2={dy + L4} stroke={C_LINE_OUTER} strokeWidth={1.0} />
             </g>
           );
@@ -81,7 +85,7 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
                 d={d.path}
                 fill={C_FONT}
                 fillRule="nonzero"
-                transform={`translate(${x}, ${r * VBH})`}
+                transform={`translate(${x}, ${r * ROW_PITCH})`}
               />
             );
           })
