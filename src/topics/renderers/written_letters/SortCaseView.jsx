@@ -23,10 +23,14 @@ const COLS      = 6;
 const SLOT_W    = 100;
 const ROW_W     = COLS * SLOT_W;   // 600 SVG units — fixed viewBox width
 const MAX_ROWS  = 6;               // fixed row count
-// Row-to-row pitch: L4 of row N = L1 of row N+1 (shared line)
-const ROW_PITCH = L4 - L1;        // 130 SVG units
+
+// Correct propis row structure — only 2 lines per row:
+//   L2 (top of writing zone) and L3 (baseline)
+//   Between rows: ONE wide gap (L3 → next L2) = L4-L3 = 52 units
+//   ROW_PITCH = writing zone + wide gap = (L3-L2) + (L4-L3) = 26 + 52 = 78
+const ROW_PITCH = (L3 - L2) + (L4 - L3);  // 78 SVG units — NO mid-gap line
 // Fixed viewBox height — zone dimensions never change
-const ZONE_VBH  = VBH + (MAX_ROWS - 1) * ROW_PITCH;  // 150 + 5×130 = 800
+const ZONE_VBH  = VBH + (MAX_ROWS - 1) * ROW_PITCH;  // 150 + 5×78 = 540
 
 // Diagonal slant lines (косые линейки) — standard Russian cursive 65° angle
 const SLANT_TAN     = Math.tan(65 * Math.PI / 180);  // ≈ 2.145
@@ -92,10 +96,8 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
             const dy = r * ROW_PITCH;
             return (
               <g key={r}>
-                <line x1={0} y1={dy + L1} x2={ROW_W} y2={dy + L1} stroke={C_LINE_OUTER} strokeWidth={1.0} />
-                <line x1={0} y1={dy + L2} x2={ROW_W} y2={dy + L2} stroke={C_LINE_TOP}   strokeWidth={1.0} />
-                <line x1={0} y1={dy + L3} x2={ROW_W} y2={dy + L3} stroke={C_LINE_BASE}  strokeWidth={1.0} />
-                <line x1={0} y1={dy + L4} x2={ROW_W} y2={dy + L4} stroke={C_LINE_OUTER} strokeWidth={1.0} />
+                <line x1={0} y1={dy + L2} x2={ROW_W} y2={dy + L2} stroke={C_LINE_TOP}  strokeWidth={1.0} />
+                <line x1={0} y1={dy + L3} x2={ROW_W} y2={dy + L3} stroke={C_LINE_BASE} strokeWidth={1.0} />
               </g>
             );
           })}
