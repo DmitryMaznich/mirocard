@@ -47,11 +47,12 @@ export default function ChatSessionScreen() {
       }
     : null;
 
-  const overrideKey = activeModeId ? `${activeTopicId}:${activeModeId}` : activeTopicId;
-  const effectiveRaw =
-    chatScriptOverride?.topicId === overrideKey
-      ? textToScript(chatScriptOverride.text, rawScript?.contact)
-      : rawScript;
+  const overrideKey    = activeModeId ? `${activeTopicId}:${activeModeId}` : activeTopicId;
+  const activeOverride = chatScriptOverride?.topicId === overrideKey ? chatScriptOverride : null;
+  const effectiveRaw   = activeOverride
+    ? { ...textToScript(activeOverride.text, rawScript?.contact),
+        contact: activeOverride.contactOverride ?? rawScript?.contact ?? null }
+    : rawScript;
 
   const script = resolveScript(effectiveRaw, studentName);
 

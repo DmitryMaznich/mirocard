@@ -98,13 +98,13 @@ export const useAppStore = create((set) => ({
   activeTextId: null,
   activeText: null,
   activeModeId: null,
-  chatScriptOverride: null,   // { topicId, text } — отредактированный скрипт до запуска чата
+  chatScriptOverride: null,   // { topicId, text, contactOverride } — отредактированный скрипт до запуска чата
   setActiveStudentId:           (id) => set({ activeStudentId: id }),
   setActiveTopicId:             (id) => set({ activeTopicId: id, activeTextId: null, activeText: null, activeModeId: null }),
   setActiveTextId:              (id) => set({ activeTextId: id, activeModeId: null }),
   setActiveText:                (text) => set({ activeText: text, activeTextId: text?.id ?? null, activeModeId: null }),
   setActiveModeId:              (id) => set({ activeModeId: id }),
-  setChatScriptOverride:        (topicId, text) => set({ chatScriptOverride: { topicId, text } }),
+  setChatScriptOverride:        (topicId, text, contactOverride = null) => set({ chatScriptOverride: { topicId, text, contactOverride } }),
   clearChatScriptOverride:      () => set({ chatScriptOverride: null }),
 
   // ─── Student-topic links ───────────────────────────────────────────────────
