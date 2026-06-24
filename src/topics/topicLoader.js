@@ -874,7 +874,7 @@ const DEFAULT_MODES = {
     {
       id: "column_arithmetic",
       type: "column_arithmetic",
-      evaluation: "auto",
+      evaluation: "instant",
       ui: { title: "Столбик", instruction: "Перетащи цифры в нужные клетки", icon: "media/icons/operations_mode.svg" },
       params: {
         operation: {
