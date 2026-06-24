@@ -16,12 +16,35 @@ const C_LINE_OUTER = "#b8d8e8";
 const C_LINE_TOP   = "#6ab4cc";
 const C_LINE_BASE  = "#2a82a0";
 const C_FONT       = "#1d4ed8";
-const ZONE_H_PX    = 100;
-const INIT_SLOTS   = 3;
+
+// Zone layout: 3 letter slots per row, each slot 100 SVG units wide
+const COLS     = 3;
+const SLOT_W   = 100;
+const ROW_W    = COLS * SLOT_W;   // 300 SVG units — fixed viewBox width
+const INIT_ROWS = 2;               // always show at least 2 empty rows
+
+// Wrap chips into rows based on letter advance widths
+function wrapChips(chips) {
+  const rows = [];
+  let row = [], cumX = 0;
+  for (const chip of chips) {
+    const w = LETTER_PATHS[chip.letter]?.vbW ?? SLOT_W;
+    if (cumX + w > ROW_W && row.length > 0) {
+      rows.push(row);
+      row = [];
+      cumX = 0;
+    }
+    row.push({ chip, x: cumX });
+    cumX += w;
+  }
+  if (row.length > 0) rows.push(row);
+  return rows;
+}
 
 function ZonePaper({ chips, isActive, zoneRef, label, color }) {
-  const cumW = chips.reduce((s, c) => s + (LETTER_PATHS[c.letter]?.vbW ?? 100), 0);
-  const totalW = Math.max(INIT_SLOTS * 100, cumW + 60);
+  const rows = wrapChips(chips);
+  const numRows = Math.max(INIT_ROWS, rows.length);
+  const totalH = numRows * VBH;
 
   return (
     <div
@@ -31,33 +54,38 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
     >
       <span className="wl-zone-paper__label">{label}</span>
       <svg
-        viewBox={`0 0 ${totalW} ${VBH}`}
+        viewBox={`0 0 ${ROW_W} ${totalH}`}
         width="100%"
-        height={ZONE_H_PX}
-        preserveAspectRatio="xMinYMin meet"
-        style={{ display: "block" }}
+        style={{ display: "block", height: "auto" }}
         aria-hidden="true"
       >
-        <rect x={0} y={0} width={totalW} height={VBH} fill={C_BG} />
-        <line x1={0} y1={L1} x2={totalW} y2={L1} stroke={C_LINE_OUTER} strokeWidth={1.0} />
-        <line x1={0} y1={L2} x2={totalW} y2={L2} stroke={C_LINE_TOP}   strokeWidth={1.5} />
-        <line x1={0} y1={L3} x2={totalW} y2={L3} stroke={C_LINE_BASE}  strokeWidth={2.5} />
-        <line x1={0} y1={L4} x2={totalW} y2={L4} stroke={C_LINE_OUTER} strokeWidth={1.0} />
-        {chips.reduce((acc, chip) => {
-          const d = LETTER_PATHS[chip.letter];
-          if (!d) return acc;
-          acc.els.push(
-            <path
-              key={acc.els.length}
-              d={d.path}
-              fill={C_FONT}
-              fillRule="nonzero"
-              transform={`translate(${acc.x}, 0)`}
-            />
+        {Array.from({ length: numRows }, (_, r) => {
+          const dy = r * VBH;
+          return (
+            <g key={r}>
+              <rect x={0} y={dy} width={ROW_W} height={VBH} fill={C_BG} />
+              <line x1={0} y1={dy + L1} x2={ROW_W} y2={dy + L1} stroke={C_LINE_OUTER} strokeWidth={1.0} />
+              <line x1={0} y1={dy + L2} x2={ROW_W} y2={dy + L2} stroke={C_LINE_TOP}   strokeWidth={1.5} />
+              <line x1={0} y1={dy + L3} x2={ROW_W} y2={dy + L3} stroke={C_LINE_BASE}  strokeWidth={2.5} />
+              <line x1={0} y1={dy + L4} x2={ROW_W} y2={dy + L4} stroke={C_LINE_OUTER} strokeWidth={1.0} />
+            </g>
           );
-          acc.x += d.vbW;
-          return acc;
-        }, { els: [], x: 0 }).els}
+        })}
+        {rows.map((row, r) =>
+          row.map(({ chip, x }) => {
+            const d = LETTER_PATHS[chip.letter];
+            if (!d) return null;
+            return (
+              <path
+                key={`${r}-${x}`}
+                d={d.path}
+                fill={C_FONT}
+                fillRule="nonzero"
+                transform={`translate(${x}, ${r * VBH})`}
+              />
+            );
+          })
+        )}
       </svg>
     </div>
   );
