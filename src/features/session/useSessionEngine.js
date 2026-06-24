@@ -346,6 +346,7 @@ export function useSessionEngine() {
       return {
         ...s,
         incorrectCount: s.incorrectCount + 1,
+        streakCount: 0,
         mistakes: conceptId
           ? [...s.mistakes, { conceptId, cardId }]
           : s.mistakes,
