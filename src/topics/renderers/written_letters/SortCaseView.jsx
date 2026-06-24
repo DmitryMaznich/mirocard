@@ -17,19 +17,22 @@ const C_LINE_TOP   = "#6ab4cc";
 const C_LINE_BASE  = "#2a82a0";
 const C_FONT       = "#1d4ed8";
 
-// Zone layout: 3 letter slots per row, each slot 100 SVG units wide
-const COLS      = 3;
+// Zone layout — FIXED viewBox, never changes as letters accumulate
+// 6 cols × 6 rows = 36 slots: enough for 30 uppercase and 33 lowercase
+const COLS      = 6;
 const SLOT_W    = 100;
-const ROW_W     = COLS * SLOT_W;       // 300 SVG units — fixed viewBox width
-const INIT_ROWS = 2;                    // always show at least 2 empty rows
+const ROW_W     = COLS * SLOT_W;   // 600 SVG units — fixed viewBox width
+const MAX_ROWS  = 6;               // fixed row count
 // Row-to-row pitch: L4 of row N = L1 of row N+1 (shared line)
-const ROW_PITCH = L4 - L1;            // 130 SVG units
+const ROW_PITCH = L4 - L1;        // 130 SVG units
+// Fixed viewBox height — zone dimensions never change
+const ZONE_VBH  = VBH + (MAX_ROWS - 1) * ROW_PITCH;  // 150 + 5×130 = 800
 
 // Diagonal slant lines (косые линейки) — standard Russian cursive 65° angle
 const SLANT_TAN     = Math.tan(65 * Math.PI / 180);  // ≈ 2.145
-const SLANT_SPACING = 56;  // horizontal gap between slant lines in SVG units
+const SLANT_SPACING = 80;  // horizontal gap between slant lines in SVG units
 
-// Wrap chips into rows based on letter advance widths
+// Wrap chips into rows — positions within fixed grid, does NOT affect zone size
 function wrapChips(chips) {
   const rows = [];
   let row = [], cumX = 0;
@@ -49,20 +52,17 @@ function wrapChips(chips) {
 
 function ZonePaper({ chips, isActive, zoneRef, label, color }) {
   const rows = wrapChips(chips);
-  const numRows = Math.max(INIT_ROWS, rows.length);
-  // totalH: first row VBH + each additional row adds ROW_PITCH (shared boundary line)
-  const totalH = VBH + (numRows - 1) * ROW_PITCH;
   // Unique clipPath id per zone (label is unique: "Заглавные" / "Строчные")
   const clipId = `wlzc-${label === "Заглавные" ? "up" : "lo"}`;
 
-  // Slant lines: from (x0, totalH) to (x0 + totalH/SLANT_TAN, 0), clipped to viewBox
+  // Slant lines spanning fixed ZONE_VBH height, clipped to viewBox
   const slantLines = [];
-  const xFirst = -Math.floor(totalH / SLANT_TAN) - SLANT_SPACING;
+  const xFirst = -Math.floor(ZONE_VBH / SLANT_TAN) - SLANT_SPACING;
   for (let x0 = xFirst; x0 <= ROW_W + SLANT_SPACING; x0 += SLANT_SPACING) {
     slantLines.push(
       <line key={x0}
-        x1={x0}                          y1={totalH}
-        x2={x0 + totalH / SLANT_TAN}    y2={0}
+        x1={x0}                            y1={ZONE_VBH}
+        x2={x0 + ZONE_VBH / SLANT_TAN}    y2={0}
         stroke={C_LINE_OUTER} strokeWidth={0.8} />
     );
   }
@@ -75,20 +75,20 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
     >
       <span className="wl-zone-paper__label">{label}</span>
       <svg
-        viewBox={`0 0 ${ROW_W} ${totalH}`}
+        viewBox={`0 0 ${ROW_W} ${ZONE_VBH}`}
         width="100%"
         style={{ display: "block", height: "auto", overflow: "hidden" }}
         aria-hidden="true"
       >
         <defs>
           <clipPath id={clipId}>
-            <rect x={0} y={0} width={ROW_W} height={totalH} />
+            <rect x={0} y={0} width={ROW_W} height={ZONE_VBH} />
           </clipPath>
         </defs>
         <g clipPath={`url(#${clipId})`}>
-          <rect x={0} y={0} width={ROW_W} height={totalH} fill={C_BG} />
+          <rect x={0} y={0} width={ROW_W} height={ZONE_VBH} fill={C_BG} />
           {slantLines}
-          {Array.from({ length: numRows }, (_, r) => {
+          {Array.from({ length: MAX_ROWS }, (_, r) => {
             const dy = r * ROW_PITCH;
             return (
               <g key={r}>
