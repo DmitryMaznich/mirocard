@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import HandwrittenLetter from "./HandwrittenLetter";
+import { LETTER_PATHS } from "./letterPaths.js";
 
 const ZONE_DEFS = [
   { id: "upper", label: "Заглавные", color: "#6366f1" },
@@ -7,6 +8,60 @@ const ZONE_DEFS = [
 ];
 
 const CARD_SIZE = 160;
+
+// Propis constants — match HandwrittenLetter.jsx
+const L1 = 10, L2 = 62, L3 = 88, L4 = 140, VBH = 150;
+const C_BG         = "#fefef6";
+const C_LINE_OUTER = "#b8d8e8";
+const C_LINE_TOP   = "#6ab4cc";
+const C_LINE_BASE  = "#2a82a0";
+const C_FONT       = "#1d4ed8";
+const ZONE_H_PX    = 100;
+const INIT_SLOTS   = 3;
+
+function ZonePaper({ chips, isActive, zoneRef, label, color }) {
+  const cumW = chips.reduce((s, c) => s + (LETTER_PATHS[c.letter]?.vbW ?? 100), 0);
+  const totalW = Math.max(INIT_SLOTS * 100, cumW + 60);
+
+  return (
+    <div
+      className={`wl-zone-paper${isActive ? " wl-zone-paper--active" : ""}`}
+      ref={zoneRef}
+      style={{ "--zone-color": color }}
+    >
+      <span className="wl-zone-paper__label">{label}</span>
+      <svg
+        viewBox={`0 0 ${totalW} ${VBH}`}
+        width="100%"
+        height={ZONE_H_PX}
+        preserveAspectRatio="xMinYMin meet"
+        style={{ display: "block" }}
+        aria-hidden="true"
+      >
+        <rect x={0} y={0} width={totalW} height={VBH} fill={C_BG} />
+        <line x1={0} y1={L1} x2={totalW} y2={L1} stroke={C_LINE_OUTER} strokeWidth={1.0} />
+        <line x1={0} y1={L2} x2={totalW} y2={L2} stroke={C_LINE_TOP}   strokeWidth={1.5} />
+        <line x1={0} y1={L3} x2={totalW} y2={L3} stroke={C_LINE_BASE}  strokeWidth={2.5} />
+        <line x1={0} y1={L4} x2={totalW} y2={L4} stroke={C_LINE_OUTER} strokeWidth={1.0} />
+        {chips.reduce((acc, chip) => {
+          const d = LETTER_PATHS[chip.letter];
+          if (!d) return acc;
+          acc.els.push(
+            <path
+              key={acc.els.length}
+              d={d.path}
+              fill={C_FONT}
+              fillRule="nonzero"
+              transform={`translate(${acc.x}, 0)`}
+            />
+          );
+          acc.x += d.vbW;
+          return acc;
+        }, { els: [], x: 0 }).els}
+      </svg>
+    </div>
+  );
+}
 
 let _chips = { key: null, list: [] };
 
@@ -96,21 +151,14 @@ export default function SortCaseView({ task, onAdvance, onCorrect, onMistake }) 
 
       <div className="wl-zones">
         {ZONE_DEFS.map((zone) => (
-          <div
+          <ZonePaper
             key={zone.id}
-            ref={(el) => { zoneRefs.current[zone.id] = el; }}
-            className={`wl-zone${hovered === zone.id ? " wl-zone--active" : ""}`}
-            style={{ "--zone-color": zone.color }}
-          >
-            <span className="wl-zone-label">{zone.label}</span>
-            <div className="wl-zone-chips">
-              {chips
-                .filter((c) => c.zone === zone.id)
-                .map((c, i) => (
-                  <div key={i} className="wl-zone-chip">{c.letter}</div>
-                ))}
-            </div>
-          </div>
+            chips={chips.filter((c) => c.zone === zone.id)}
+            isActive={hovered === zone.id}
+            zoneRef={(el) => { zoneRefs.current[zone.id] = el; }}
+            label={zone.label}
+            color={zone.color}
+          />
         ))}
       </div>
 

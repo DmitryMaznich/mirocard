@@ -97,55 +97,31 @@
 .wl-zones {
   display: flex;
   gap: 12px;
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 50%;  /* ~30 % shorter than occupying all remaining space */
+  flex: 0 0 auto;
 }
 
-.wl-zone {
+.wl-zone-paper {
   flex: 1;
-  border-radius: 16px;
-  border: 3px solid var(--zone-color);
-  background: color-mix(in srgb, var(--zone-color) 7%, #fff);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 8px;
-  gap: 8px;
-  transition: background 0.15s, border-color 0.15s;
+  border-radius: 14px;
+  border: 2px solid #d1dce8;
+  background: #fefef6;
   overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.wl-zone--active {
-  background: color-mix(in srgb, var(--zone-color) 18%, #fff);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--zone-color) 35%, transparent);
+.wl-zone-paper--active {
+  border-color: var(--zone-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--zone-color) 28%, transparent);
 }
 
-.wl-zone-label {
+.wl-zone-paper__label {
+  display: block;
+  font-size: 0.72rem;
   font-weight: 800;
-  font-size: clamp(0.85rem, 2.5vw, 1.1rem);
   color: var(--zone-color);
   text-align: center;
-}
-
-.wl-zone-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: center;
-}
-
-.wl-zone-chip {
-  background: var(--zone-color);
-  border-radius: 10px;
-  width: clamp(60px, 16vw, 88px);
-  height: clamp(60px, 16vw, 88px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Primo', cursive;
-  font-size: clamp(36px, 10vw, 52px);
-  color: #fff;
+  padding: 5px 8px 2px;
+  letter-spacing: 0.02em;
 }
 
 /* ── Draggable letter ── */
@@ -184,9 +160,10 @@
 }
 
 .wl-dock {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px 0 clamp(1rem, 4vh, 2rem);
+  padding: 8px 0;
 }
