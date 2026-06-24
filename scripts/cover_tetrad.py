@@ -129,28 +129,56 @@ def left_page(cv):
     cv.setFillColorRGB(1, 1, 1)
     cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
 
-    # Первая строка: верх рабочей зоны (L2) совпадает с L_Y1
-    y_first = L_Y1 - NARROW_H   # baseline первой строки
-    n = int((y_first - L_Y0) / PITCH) + 1
+    # ── Размер шрифта: строчные заполняют узкую зону, заглавные — до середины широкой
+    # ClassRoomCursive: xHeight=285, capHeight=545 (unitsPerEm=1000)
+    # Строчные = NARROW_H (5mm), заглавные = NARROW_H + WIDE_H/2 (≈10mm)
+    X_RATIO     = 0.285   # xHeight/em
+    FONT_POEM   = round(NARROW_H / X_RATIO)   # = 50pt: строчные=5mm, заглавные≈9.6mm
+    FONT_AUTHOR = round(FONT_POEM * 0.77)      # = 38pt
 
-    diag_lines(cv, L_X0, L_X1, L_Y0, L_Y1)
-    propis_rows(cv, L_X0, L_X1, y_first, n)
+    # ── Геометрия вставки (insert) ────────────────────────────────────────────
+    # Строки 0-7: 0=пусто, 1=заголовок, 2-5=стихи, 6=подпись, 7=пусто
+    TOTAL_ROWS = 8
+    GRID_PAD   = 8 * MM
+
+    # Высота от верха строки 0 до baseline строки 7
+    content_h = NARROW_H + (TOTAL_ROWS - 1) * PITCH
+    grid_h    = content_h + 2 * GRID_PAD
+
+    # Вставка вертикально отцентрирована на странице
+    grid_y_top    = PAGE_H / 2 + grid_h / 2
+    grid_y_bottom = PAGE_H / 2 - grid_h / 2
+
+    # Baseline строки 0 (верх строки 0 = grid_y_top - GRID_PAD)
+    y_first = grid_y_top - GRID_PAD - NARROW_H
+
+    # ── Рисуем вставку ────────────────────────────────────────────────────────
+    # Фон — очень светло-голубой (как листок тетради)
+    cv.setFillColorRGB(0.970, 0.978, 1.000)
+    cv.rect(L_X0, grid_y_bottom, L_X1 - L_X0, grid_h, fill=1, stroke=0)
+
+    diag_lines(cv, L_X0, L_X1, grid_y_bottom, grid_y_top)
+    propis_rows(cv, L_X0, L_X1, y_first, TOTAL_ROWS)
+
+    # Тонкая рамка вставки
+    cv.setStrokeColorRGB(*C_LINE_TOP)
+    cv.setLineWidth(0.5)
+    cv.rect(L_X0, grid_y_bottom, L_X1 - L_X0, grid_h, fill=0, stroke=1)
 
     cx = (L_X0 + L_X1) / 2
 
     def ybase(row_idx):
-        """Baseline (L3) строки row_idx; текст ставится здесь."""
         return y_first - row_idx * PITCH
 
     # ── Стихотворение ────────────────────────────────────────────────────────
 
-    # Заголовок
-    cv.setFont(CURSIVE, 22)
+    # Строка 1: заголовок (по центру, зелёный)
+    cv.setFont(CURSIVE, FONT_POEM)
     cv.setFillColorRGB(0.05, 0.40, 0.08)
     cv.drawCentredString(cx, ybase(1), "Любимая мама")
 
-    # Строфа
-    cv.setFont(CURSIVE, 20)
+    # Строки 2-5: стихи (сразу после заголовка, без пустой строки)
+    cv.setFont(CURSIVE, FONT_POEM)
     cv.setFillColorRGB(0.04, 0.08, 0.30)
     poem = [
         "Маму очень я люблю!",
@@ -159,14 +187,14 @@ def left_page(cv):
         "И пятёрки получать!",
     ]
     for j, line in enumerate(poem):
-        cv.drawCentredString(cx, ybase(3 + j), line)
+        cv.drawCentredString(cx, ybase(2 + j), line)
 
-    # Подпись автора
-    cv.setFont(CURSIVE, 16)
+    # Строка 6: подпись — по правому краю, зелёная, чуть мельче
+    cv.setFont(CURSIVE, FONT_AUTHOR)
     cv.setFillColorRGB(0.18, 0.38, 0.18)
-    cv.drawCentredString(cx, ybase(n - 2), "Екатерина Каплиева")
+    cv.drawRightString(L_X1, ybase(6), "Екатерина Каплиева")
 
-    # URL
+    # URL под вставкой
     cv.setFont(REG, 7)
     cv.setFillColorRGB(0.45, 0.45, 0.52)
     cv.drawCentredString(HALF_W / 2, 8 * MM, "www.kaplieva.help")
