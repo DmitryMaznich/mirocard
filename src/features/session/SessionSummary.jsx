@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
-import { computeDisplayStars } from "./useStarProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
 import HoldButton from "@/shared/components/HoldButton";
@@ -19,59 +18,19 @@ const ASSESSMENT_LABELS = {
   easy: "Легко",
 };
 
-function getPraiseText(starCount, isReading) {
-  if (starCount === null) return isReading ? "Молодец, ты прочитал!" : "Молодец, ты справился!";
-  if (starCount === 5) return "Молодец! Пять звёзд!";
-  if (starCount === 4) return "Отлично! Четыре звезды!";
-  if (starCount === 3) return "Хорошо! Три звезды!";
-  if (starCount === 2) return "Хорошо! Две звезды!";
-  return "Старался! Одна звезда!";
-}
-
-function speak(text) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "ru-RU";
-  utter.rate = 0.85;
-  utter.pitch = 1.1;
-  window.speechSynthesis.speak(utter);
-}
-
 export default function SessionSummary() {
   const setScreen         = useAppStore((s) => s.setScreen);
   const isStudentPortal   = useAppStore((s) => s.isStudentPortal);
   const sessions          = useAppStore((s) => s.sessions);
   const topicRecords      = useAppStore((s) => s.topicRecords);
-  const students          = useAppStore((s) => s.students);
   const session = sessions[sessions.length - 1];
 
-  const topicRecord        = topicRecords.find((r) => r.meta.id === session?.topicId);
-  const sessionText        = topicRecord?.texts?.find((text) => text.id === session?.textId);
-  const sessionMode        = topicRecord?.modes?.find((mode) => mode.id === session?.modeId);
-  const isReading          = topicRecord?.meta.renderer === "reading";
-  const student            = students.find((s) => s.id === session?.studentId);
-  const isEvaluated = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
-  const rewardTotal = (session?.correctCount ?? 0) + (session?.incorrectCount ?? 0);
-  const starCount = isEvaluated && !isReading
-    ? computeDisplayStars({
-        correctCount:   session?.correctCount   ?? 0,
-        incorrectCount: session?.incorrectCount ?? 0,
-        total:          rewardTotal,
-      })
-    : null;
-  const praiseText = getPraiseText(starCount, isReading);
+  const topicRecord  = topicRecords.find((r) => r.meta.id === session?.topicId);
+  const sessionMode  = topicRecord?.modes?.find((mode) => mode.id === session?.modeId);
+  const isReading    = topicRecord?.meta.renderer === "reading";
+  const isEvaluated  = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
 
   const [detailsOpen, setDetailsOpen] = useState(false);
-
-  useEffect(() => {
-    if (!session) return;
-    const timer = setTimeout(() => speak(praiseText), 600);
-    return () => {
-      clearTimeout(timer);
-      window.speechSynthesis?.cancel();
-    };
-  }, [praiseText, session]);
 
   if (!session) {
     return (
@@ -85,31 +44,6 @@ export default function SessionSummary() {
 
   return (
     <div className="screen summary-screen">
-
-      {/* Celebration block */}
-      <div className="summary-celebration">
-        <div className="summary-topic-label">
-          {getTopicTitle(topicRecord?.meta.title) || session.topicId}
-          {sessionText ? ` · ${getTopicTitle(sessionText.title)}` : ""}
-        </div>
-
-        {starCount !== null ? (
-          <div className="summary-stars">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <span
-                key={i}
-                className={`summary-star summary-star--${i} ${i <= starCount ? "summary-star--lit" : "summary-star--dim"}`}
-              >
-                ⭐
-              </span>
-            ))}
-          </div>
-        ) : (
-          <div className="summary-check">✓</div>
-        )}
-
-        <div className="summary-praise">{praiseText}</div>
-      </div>
 
       {/* Actions */}
       <div className="summary-actions">
