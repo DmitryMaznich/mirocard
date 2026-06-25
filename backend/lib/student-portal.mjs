@@ -37,10 +37,18 @@ export function updatePortalLastUsed(db, tokenHash) {
   ).run(new Date().toISOString(), tokenHash);
 }
 
-export function setPortalActiveTask(db, { accountId, studentId, topicId, modeId }) {
-  db.prepare(
-    `UPDATE student_portals
-     SET active_topic_id = ?, active_mode_id = ?
-     WHERE account_id = ? AND student_id = ? AND revoked_at IS NULL`
-  ).run(topicId ?? null, modeId ?? null, accountId, studentId);
+export function setPortalActiveTask(db, { accountId, studentId, topicId, modeId, planData }) {
+  if (planData !== undefined) {
+    db.prepare(
+      `UPDATE student_portals
+       SET active_topic_id = ?, active_mode_id = ?, active_plan_data = ?
+       WHERE account_id = ? AND student_id = ? AND revoked_at IS NULL`
+    ).run(topicId ?? null, modeId ?? null, planData, accountId, studentId);
+  } else {
+    db.prepare(
+      `UPDATE student_portals
+       SET active_topic_id = ?, active_mode_id = ?
+       WHERE account_id = ? AND student_id = ? AND revoked_at IS NULL`
+    ).run(topicId ?? null, modeId ?? null, accountId, studentId);
+  }
 }

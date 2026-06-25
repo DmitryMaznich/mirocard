@@ -766,11 +766,15 @@ async function handleRevokePortal(req, res, studentId, portalId) {
 async function handleSetActiveTask(req, res, studentId) {
   const account = requireAuth(req);
   const body = await readJsonBody(req);
+  const planData = 'planData' in body
+    ? (body.planData != null ? JSON.stringify(body.planData) : null)
+    : undefined;
   setPortalActiveTask(db, {
     accountId: account.id,
     studentId,
     topicId: body.topicId ?? null,
     modeId: body.modeId ?? null,
+    planData,
   });
   return writeNoContent(res);
 }
