@@ -8,6 +8,7 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
+import "@/features/planner/planner.css";
 
 function SettingsIcon() {
   return (
@@ -325,6 +326,19 @@ export default function HomeScreen() {
           </Button>
         </div>
       </section>
+
+      {student && (
+        <div className="home-planner">
+          <div className="home-planner__label">Планировщик</div>
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => setScreen('planner_menu')}
+          >
+            Составить меню для {student.name} →
+          </Button>
+        </div>
+      )}
 
       <button
         type="button"

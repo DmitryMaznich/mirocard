@@ -33,7 +33,8 @@ import SettingsScreen from "@/features/settings/SettingsScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
 import InstallBanner from "@/shared/components/InstallBanner";
-
+import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
+import PlannerSummaryScreen from "@/features/planner/PlannerSummaryScreen";
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
@@ -75,6 +76,8 @@ const SCREENS = {
   chat_session: ChatSessionScreen,
   history: StudentHistoryScreen,
   settings: SettingsScreen,
+  planner_menu: PlannerMenuScreen,
+  planner_summary: PlannerSummaryScreen,
 };
 
 function OrientationGuard({ orientationLock }) {

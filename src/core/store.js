@@ -92,6 +92,10 @@ export const useAppStore = create((set) => ({
     return { ownedTopics: next };
   }),
 
+  // ─── Planner ───────────────────────────────────────────────────────────────
+  plannerStudentId: null,
+  setPlannerStudentId: (id) => set({ plannerStudentId: id }),
+
   // ─── Session setup ─────────────────────────────────────────────────────────
   activeStudentId: null,
   activeTopicId: null,
