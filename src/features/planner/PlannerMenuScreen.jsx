@@ -125,9 +125,14 @@ function RecipeGalleryCard({ recipe, isSelected, onView, onToggle }) {
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎' };
 
-function RecipeGallery({ initialMealType, selectedIds, mealCounts, allRecipes, loading, onToggle, onView, onBack }) {
+function RecipeGallery({ initialMealType, planDay, allRecipes, loading, onToggle, onView, onBack }) {
   const [mealType, setMealType] = useState(initialMealType);
   const filtered = allRecipes.filter((r) => r.tags.includes(mealType));
+
+  // Compute per-tab: selected IDs and counts — both from the CURRENT tab's meal type
+  const selectedIds = planDay?.meals[mealType] ?? [];
+  const mealCounts = {};
+  for (const mt of MEAL_TYPES) mealCounts[mt] = (planDay?.meals[mt] ?? []).length;
 
   return (
     <div className="screen planner-screen">
@@ -144,7 +149,7 @@ function RecipeGallery({ initialMealType, selectedIds, mealCounts, allRecipes, l
             onClick={() => setMealType(mt)}
           >
             {MEAL_ICONS[mt]} {mt}
-            {(mealCounts[mt] ?? 0) > 0 && (
+            {mealCounts[mt] > 0 && (
               <span className="gallery-meal-tab__count">{mealCounts[mt]}</span>
             )}
           </button>
@@ -157,15 +162,18 @@ function RecipeGallery({ initialMealType, selectedIds, mealCounts, allRecipes, l
         <div className="gallery-empty">Нет рецептов для «{mealType}»</div>
       ) : (
         <div className="recipe-gallery-grid">
-          {filtered.map((recipe) => (
-            <RecipeGalleryCard
-              key={`${recipe.topicId}_${recipe.text.id}`}
-              recipe={recipe}
-              isSelected={selectedIds.includes(recipe.text.id)}
-              onView={() => onView(recipe)}
-              onToggle={() => onToggle(recipe.text.id, selectedIds.includes(recipe.text.id))}
-            />
-          ))}
+          {filtered.map((recipe) => {
+            const isSelected = selectedIds.includes(recipe.text.id);
+            return (
+              <RecipeGalleryCard
+                key={`${recipe.topicId}_${recipe.text.id}`}
+                recipe={recipe}
+                isSelected={isSelected}
+                onView={() => onView(recipe, mealType)}
+                onToggle={() => onToggle(recipe.text.id, mealType, isSelected)}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -275,22 +283,13 @@ export default function PlannerMenuScreen() {
     return () => { cancelled = true; };
   }, [topicRecords]);
 
-  // IDs selected in the current gallery context meal slot
-  const gallerySelectedIds = useMemo(() => {
-    if (!plan || !galleryCtx) return [];
-    return plan.days[galleryCtx.dayIndex]?.meals[galleryCtx.mealType] ?? [];
+  // Which day is open in gallery (needed for detail view's isSelected check)
+  const galleryPlanDay = useMemo(() => {
+    if (!plan || !galleryCtx) return null;
+    return plan.days[galleryCtx.dayIndex] ?? null;
   }, [plan, galleryCtx]);
 
-  // Count of selected recipes per meal type for the current day
-  const galleryCounts = useMemo(() => {
-    if (!plan || !galleryCtx) return {};
-    const day = plan.days[galleryCtx.dayIndex];
-    const counts = {};
-    for (const mt of MEAL_TYPES) counts[mt] = (day?.meals[mt] ?? []).length;
-    return counts;
-  }, [plan, galleryCtx]);
-
-  // Whether the detail recipe is in the current gallery context
+  // Whether the detail recipe is selected in the current gallery context meal slot
   const detailIsSelected = useMemo(() => {
     if (!detailRecipe || !galleryCtx || !plan) return false;
     return (plan.days[galleryCtx.dayIndex]?.meals[galleryCtx.mealType] ?? [])
@@ -302,7 +301,9 @@ export default function PlannerMenuScreen() {
     setView('gallery');
   }
 
-  function openDetailFromGallery(recipe) {
+  // Gallery passes current mealType so detail opens in the right slot
+  function openDetailFromGallery(recipe, mealType) {
+    setGalleryCtx((prev) => ({ ...prev, mealType }));
     setDetailRecipe(recipe);
     setDetailPrev('gallery');
     setView('detail');
@@ -314,12 +315,13 @@ export default function PlannerMenuScreen() {
     setView('detail');
   }
 
-  function handleToggleInGallery(textId, isSelected) {
+  // Gallery passes current mealType so toggle operates on the right slot
+  function handleToggleInGallery(textId, mealType, isSelected) {
     if (!galleryCtx || !plan) return;
     if (isSelected) {
-      setPlan((p) => removeRecipeFromMeal(p, galleryCtx.dayIndex, galleryCtx.mealType, textId));
+      setPlan((p) => removeRecipeFromMeal(p, galleryCtx.dayIndex, mealType, textId));
     } else {
-      setPlan((p) => addRecipeToMeal(p, galleryCtx.dayIndex, galleryCtx.mealType, textId));
+      setPlan((p) => addRecipeToMeal(p, galleryCtx.dayIndex, mealType, textId));
     }
   }
 
@@ -343,8 +345,7 @@ export default function PlannerMenuScreen() {
     return (
       <RecipeGallery
         initialMealType={galleryCtx.mealType}
-        selectedIds={gallerySelectedIds}
-        mealCounts={galleryCounts}
+        planDay={galleryPlanDay}
         allRecipes={allRecipes}
         loading={loadingRecipes}
         onToggle={handleToggleInGallery}
