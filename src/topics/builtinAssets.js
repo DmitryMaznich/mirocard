@@ -262,6 +262,40 @@ const BUILTIN_ASSETS = {
   <rect x="36" y="88" width="22" height="20" rx="5" fill="#fff"/>
   <rect x="70" y="88" width="22" height="20" rx="5" fill="#fff"/>
 </svg>`,
+  "media/avatar_column_addition.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef3ff"/>
+  <rect x="18" y="14" width="92" height="100" rx="12" fill="#fff" stroke="#c3cff5" stroke-width="3"/>
+  <line x1="26" y1="52" x2="102" y2="52" stroke="#e8eeff" stroke-width="1"/>
+  <line x1="26" y1="76" x2="102" y2="76" stroke="#e8eeff" stroke-width="1"/>
+  <text x="73" y="47" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">4</text>
+  <text x="99" y="47" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">7</text>
+  <text x="28" y="71" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#4a9b8f">+</text>
+  <text x="73" y="71" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">3</text>
+  <text x="99" y="71" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">5</text>
+  <line x1="24" y1="79" x2="104" y2="79" stroke="#1a1a2e" stroke-width="3"/>
+  <text x="73" y="104" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#059669">8</text>
+  <text x="99" y="104" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#059669">2</text>
+</svg>`,
+  "media/icons/column_addition_mode.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef3ff"/>
+  <rect x="20" y="18" width="88" height="92" rx="12" fill="#fff" stroke="#c3cff5" stroke-width="3"/>
+  <rect x="52" y="26" width="24" height="24" rx="5" fill="#f0f4ff" stroke="#c3cff5" stroke-width="1.5"/>
+  <text x="64" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#1a1a2e">4</text>
+  <rect x="78" y="26" width="24" height="24" rx="5" fill="#f0f4ff" stroke="#c3cff5" stroke-width="1.5"/>
+  <text x="90" y="44" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#1a1a2e">7</text>
+  <text x="38" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#4a9b8f">+</text>
+  <rect x="52" y="50" width="24" height="24" rx="5" fill="#f0f4ff" stroke="#c3cff5" stroke-width="1.5"/>
+  <text x="64" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#1a1a2e">3</text>
+  <rect x="78" y="50" width="24" height="24" rx="5" fill="#f0f4ff" stroke="#c3cff5" stroke-width="1.5"/>
+  <text x="90" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#1a1a2e">5</text>
+  <line x1="28" y1="80" x2="108" y2="80" stroke="#1a1a2e" stroke-width="3"/>
+  <rect x="52" y="84" width="24" height="24" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+  <text x="64" y="102" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#059669">8</text>
+  <rect x="78" y="84" width="24" height="24" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+  <text x="90" y="102" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#059669">2</text>
+</svg>`,
   "media/avatar_operations.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#eefaf5"/>
@@ -358,6 +392,74 @@ const BUILTIN_ASSETS = {
   <rect x="31" y="88" width="26" height="18" rx="9" fill="#fff" stroke="#cbbca8" stroke-width="4"/>
   <rect x="65" y="88" width="32" height="18" rx="9" fill="#fff" stroke="#cbbca8" stroke-width="4"/>
 </svg>`,
+  "media/icons/sort_letters.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f0fdf4"/>
+  <rect x="8" y="48" width="52" height="68" rx="10" fill="#d1fae5" stroke="#10b981" stroke-width="2.5"/>
+  <rect x="68" y="48" width="52" height="68" rx="10" fill="#fee2e2" stroke="#ef4444" stroke-width="2.5"/>
+  <text x="34" y="96" text-anchor="middle" font-family="Arial,sans-serif" font-size="36" fill="#059669" font-weight="900">А</text>
+  <text x="94" y="96" text-anchor="middle" font-family="Arial,sans-serif" font-size="36" fill="#dc2626" font-weight="900">Б</text>
+  <rect x="44" y="8" width="40" height="32" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="64" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#374151" font-weight="900">В</text>
+  <path d="M64 42 L64 50 M59 47 L64 53 L69 47" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>`,
+  "media/icons/written_sort_case.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f0f4ff"/>
+  <rect x="8" y="52" width="52" height="64" rx="10" fill="#ede9fe" stroke="#6366f1" stroke-width="2.5"/>
+  <rect x="68" y="52" width="52" height="64" rx="10" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2.5"/>
+  <text x="34" y="99" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="38" fill="#4338ca" font-weight="bold">А</text>
+  <text x="94" y="104" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="28" fill="#0369a1">а</text>
+  <rect x="46" y="8" width="36" height="32" rx="7" fill="#fff" stroke="#b8d8e8" stroke-width="2"/>
+  <text x="64" y="30" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="20" fill="#1d4ed8">Б</text>
+  <path d="M64 42 L64 50 M59 47 L64 53 L69 47" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>`,
+  "media/icons/written_match_print.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f8faff"/>
+  <rect x="10" y="28" width="48" height="72" rx="10" fill="#fff" stroke="#94a3b8" stroke-width="2.5"/>
+  <line x1="16" y1="60" x2="52" y2="60" stroke="#6ab4cc" stroke-width="1"/>
+  <line x1="16" y1="73" x2="52" y2="73" stroke="#2a82a0" stroke-width="1.5"/>
+  <text x="34" y="73" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" fill="#1e293b" font-weight="900">А</text>
+  <path d="M62 64 L74 64 M70 59 L75 64 L70 69" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="78" y="18" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="104" y="18" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="78" y="50" width="22" height="24" rx="5" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <rect x="104" y="50" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="78" y="82" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="104" y="82" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <text x="89" y="66" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="14" fill="#15803d" font-weight="bold">А</text>
+</svg>`,
+  "media/icons/written_match_written.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f8faff"/>
+  <rect x="10" y="28" width="48" height="72" rx="10" fill="#fefef6" stroke="#b8d8e8" stroke-width="2.5"/>
+  <line x1="16" y1="60" x2="52" y2="60" stroke="#6ab4cc" stroke-width="1"/>
+  <line x1="16" y1="73" x2="52" y2="73" stroke="#2a82a0" stroke-width="1.5"/>
+  <text x="34" y="73" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="28" fill="#1d4ed8" font-weight="bold">А</text>
+  <path d="M62 64 L74 64 M70 59 L75 64 L70 69" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="78" y="18" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="104" y="18" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="78" y="50" width="22" height="24" rx="5" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <rect x="104" y="50" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="78" y="82" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <rect x="104" y="82" width="22" height="24" rx="5" fill="#f1f5f9"/>
+  <text x="89" y="66" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#15803d" font-weight="900">А</text>
+</svg>`,
+  "media/icons/written_match_pair.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff7ed"/>
+  <rect x="10" y="30" width="46" height="60" rx="10" fill="#fefef6" stroke="#b8d8e8" stroke-width="2"/>
+  <line x1="16" y1="60" x2="50" y2="60" stroke="#6ab4cc" stroke-width="1"/>
+  <line x1="16" y1="72" x2="50" y2="72" stroke="#2a82a0" stroke-width="1.5"/>
+  <text x="33" y="72" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="30" fill="#1d4ed8" font-weight="bold">А</text>
+  <rect x="72" y="30" width="46" height="60" rx="10" fill="#fefef6" stroke="#b8d8e8" stroke-width="2"/>
+  <line x1="78" y1="60" x2="112" y2="60" stroke="#6ab4cc" stroke-width="1"/>
+  <line x1="78" y1="72" x2="112" y2="72" stroke="#2a82a0" stroke-width="1.5"/>
+  <text x="95" y="72" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="22" fill="#1d4ed8">а</text>
+  <path d="M58 58 L70 58 M62 53 L56 58 L62 63" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M58 72 L70 72 M66 67 L72 72 L66 77" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>`,
   "media/icons/reading_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f5f0ff"/>
@@ -440,6 +542,20 @@ const TOPIC_AVATAR_VARIANTS = {
   <rect x="70" y="88" width="22" height="20" rx="5" fill="#fff"/>
   <circle cx="64" cy="45" r="13" fill="#fbbf24" stroke="#fff" stroke-width="4"/>
   <text x="64" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#422006">7</text>
+</svg>`,
+  written_letters: `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#dbeafe"/>
+  <rect x="16" y="12" width="96" height="104" rx="10" fill="#fefef6" stroke="#b8d8e8" stroke-width="2"/>
+  <line x1="32" y1="110" x2="58" y2="18" stroke="#cde8f0" stroke-width="1"/>
+  <line x1="54" y1="110" x2="80" y2="18" stroke="#cde8f0" stroke-width="1"/>
+  <line x1="76" y1="110" x2="102" y2="18" stroke="#cde8f0" stroke-width="1"/>
+  <line x1="24" y1="47" x2="104" y2="47" stroke="#6ab4cc" stroke-width="1.5"/>
+  <line x1="24" y1="61" x2="104" y2="61" stroke="#2a82a0" stroke-width="2.5"/>
+  <line x1="24" y1="76" x2="104" y2="76" stroke="#6ab4cc" stroke-width="1.5"/>
+  <line x1="24" y1="90" x2="104" y2="90" stroke="#2a82a0" stroke-width="2.5"/>
+  <text x="36" y="61" font-family="Georgia,serif" font-style="italic" font-size="24" fill="#1d4ed8" font-weight="bold">А</text>
+  <text x="68" y="90" font-family="Georgia,serif" font-style="italic" font-size="18" fill="#1d4ed8">а</text>
 </svg>`,
 };
 

@@ -32,7 +32,7 @@ export const BUILTIN_TOPICS = [
         ui: {
           title: { ru: "Строчная или заглавная?" },
           instruction: { ru: "Потяни букву в нужную группу" },
-          icon: "media/icons/sort_letters.svg",
+          icon: "media/icons/written_sort_case.svg",
         },
       },
       {
@@ -42,7 +42,7 @@ export const BUILTIN_TOPICS = [
         ui: {
           title: { ru: "Найди рукописную" },
           instruction: { ru: "Нажми на рукописную букву" },
-          icon: "media/icons/flashcards_find_n.svg",
+          icon: "media/icons/written_match_print.svg",
         },
       },
       {
@@ -52,7 +52,7 @@ export const BUILTIN_TOPICS = [
         ui: {
           title: { ru: "Найди печатную" },
           instruction: { ru: "Нажми на печатную букву" },
-          icon: "media/icons/flashcards_find_n.svg",
+          icon: "media/icons/written_match_written.svg",
         },
       },
       {
@@ -62,7 +62,7 @@ export const BUILTIN_TOPICS = [
         ui: {
           title: { ru: "Найди пару" },
           instruction: { ru: "Нажми на строчную пару заглавной буквы" },
-          icon: "media/icons/flashcards_find_n.svg",
+          icon: "media/icons/written_match_pair.svg",
         },
       },
     ],
