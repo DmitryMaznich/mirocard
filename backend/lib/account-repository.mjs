@@ -288,6 +288,8 @@ export function softDeleteStudent(db, studentId) {
 // ─── Sessions ─────────────────────────────────────────────────────────────────
 
 export function appendSession(db, accountId, session) {
+  const mistakesRaw   = session.mistakes;
+  const cardEventsRaw = session.cardEvents ?? session.card_events;
   db.prepare(`
     INSERT OR IGNORE INTO sessions
       (id, account_id, student_id, topic_id, topic_version, mode,
@@ -295,11 +297,19 @@ export function appendSession(db, accountId, session) {
        percent_correct, mistakes, card_events, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    session.id, accountId, session.studentId, session.topicId,
-    session.topicVersion, session.mode, session.startedAt, session.completedAt,
-    session.correctCount, session.incorrectCount, session.percentCorrect,
-    JSON.stringify(session.mistakes ?? []),
-    JSON.stringify(session.cardEvents ?? []),
+    session.id,
+    accountId,
+    session.studentId      ?? session.student_id,
+    session.topicId        ?? session.topic_id,
+    session.topicVersion   ?? session.topic_version,
+    session.mode,
+    session.startedAt      ?? session.started_at,
+    session.completedAt    ?? session.completed_at,
+    session.correctCount   ?? session.correct_count   ?? null,
+    session.incorrectCount ?? session.incorrect_count ?? null,
+    session.percentCorrect ?? session.percent_correct ?? null,
+    Array.isArray(mistakesRaw)   ? JSON.stringify(mistakesRaw)   : (mistakesRaw   ?? "[]"),
+    Array.isArray(cardEventsRaw) ? JSON.stringify(cardEventsRaw) : (cardEventsRaw ?? "[]"),
     now()
   );
 }

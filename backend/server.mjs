@@ -376,13 +376,35 @@ async function handleDeleteStudent(req, res) {
 
 // ─── Session handlers ──────────────────────────────────────────────────────────
 
+function sessionToApi(s) {
+  let mistakes, cardEvents;
+  try { mistakes   = JSON.parse(s.mistakes   ?? "[]"); } catch { mistakes   = []; }
+  try { cardEvents = JSON.parse(s.card_events ?? "[]"); } catch { cardEvents = []; }
+  return {
+    id:             s.id,
+    studentId:      s.student_id,
+    topicId:        s.topic_id,
+    topicVersion:   s.topic_version,
+    mode:           s.mode,
+    startedAt:      s.started_at,
+    completedAt:    s.completed_at,
+    correctCount:   s.correct_count,
+    incorrectCount: s.incorrect_count,
+    percentCorrect: s.percent_correct,
+    mistakes,
+    cardEvents,
+    createdAt:      s.created_at,
+  };
+}
+
 async function handleGetSessions(req, res) {
   const account = requireAuth(req);
   const url = new URL(req.url, "http://localhost");
   const studentId = url.searchParams.get("studentId");
   const limit = Math.min(200, Number(url.searchParams.get("limit") || 50));
   const before = url.searchParams.get("before") || null;
-  writeJson(res, 200, getSessions(db, account.id, { studentId, limit, before }));
+  const rows = getSessions(db, account.id, { studentId, limit, before });
+  writeJson(res, 200, rows.map(sessionToApi));
 }
 
 async function handleAppendSession(req, res) {
