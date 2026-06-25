@@ -39,4 +39,4 @@ export const BUILTIN_TOPICS = [
 
 export const BUILTIN_TOPIC_IDS = new Set(BUILTIN_TOPICS.map((t) => t.meta.id));
 
-export const FIRST_PARTY_DECK_IDS = new Set(["written_letters"]);
+export const FIRST_PARTY_DECK_IDS = new Set([]);

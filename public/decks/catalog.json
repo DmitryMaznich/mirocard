@@ -1,6 +1,16 @@
 {
   "decks": [
     {
+      "id": "written_letters",
+      "version": "1.0.0",
+      "title": { "ru": "Письменные буквы", "en": "Written Letters" },
+      "description": {
+        "ru": "33 буквы русского алфавита в рукописном написании. Четыре режима: строчная/заглавная, найди рукописную, найди печатную, найди пару.",
+        "en": "33 Russian alphabet letters in cursive. Four modes: uppercase/lowercase sort, find cursive, find print, find the pair."
+      },
+      "url": "./decks/written_letters_v1.0.0.zip"
+    },
+    {
       "id": "letter_writing",
       "version": "1.1.0",
       "title": {

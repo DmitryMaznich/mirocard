@@ -16,12 +16,10 @@ import {
   getImportErrorMessage,
   refreshInstalledCatalogTopics,
 } from "./catalogService";
-import { FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
 
 function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAnalytics, hasUpdate }) {
-  const isBuiltin    = Boolean(record.meta.builtin);
-  const isFirstParty = FIRST_PARTY_DECK_IDS.has(record.meta.id);
-  const isDeletable  = !isBuiltin && !isFirstParty;
+  const isBuiltin   = Boolean(record.meta.builtin);
+  const isDeletable = !isBuiltin;
   return (
     <li className={`topic-item ${isActive ? "topic-item--active" : ""}${isBuiltin ? " topic-item--builtin" : ""}`} onClick={() => onSelect(record)}>
       <TopicCover
