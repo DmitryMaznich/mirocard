@@ -874,8 +874,8 @@ const DEFAULT_MODES = {
     {
       id: "column_arithmetic",
       type: "column_arithmetic",
-      evaluation: "instant",
-      ui: { title: "Столбик", instruction: "Перетащи цифры в нужные клетки", icon: "media/icons/operations_mode.svg" },
+      evaluation: "auto",
+      ui: { title: "Столбик", instruction: "Перетащи цифры в нужные клетки", icon: "media/icons/column_addition_mode.svg" },
       params: {
         operation: {
           type: "enum",
@@ -975,7 +975,7 @@ const DEFAULT_META = {
     avatar: "media/avatar.svg",
   },
   column_addition: {
-    avatar: "media/avatar_operations.svg",
+    avatar: "media/avatar_column_addition.svg",
   },
   written_letters: {
     avatar: "media/avatar.svg",

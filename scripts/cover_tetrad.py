@@ -129,55 +129,43 @@ def left_page(cv):
     cv.setFillColorRGB(1, 1, 1)
     cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
 
-    # ── Размер шрифта: строчные заполняют узкую зону, заглавные — до середины широкой
-    # ClassRoomCursive: xHeight=285, capHeight=545 (unitsPerEm=1000)
-    # Строчные = NARROW_H (5mm), заглавные = NARROW_H + WIDE_H/2 (≈10mm)
-    X_RATIO     = 0.285   # xHeight/em
-    FONT_POEM   = round(NARROW_H / X_RATIO)   # = 50pt: строчные=5mm, заглавные≈9.6mm
-    FONT_AUTHOR = round(FONT_POEM * 0.77)      # = 38pt
+    # ── Масштаб блока: все вертикальные параметры × 0.8 ─────────────────────────
+    S           = 0.8
+    narrow_h    = NARROW_H * S      # 5mm → 4mm
+    pitch_l     = PITCH    * S      # 15mm → 12mm
+    X_RATIO     = 0.285             # xHeight/em (ClassRoomCursive)
+    FONT_POEM   = round(narrow_h / X_RATIO)   # 40pt
+    FONT_AUTHOR = round(FONT_POEM * 0.77)      # 31pt
 
-    # ── Геометрия вставки (insert) ────────────────────────────────────────────
-    # Строки 0-7: 0=пусто, 1=заголовок, 2-5=стихи, 6=подпись, 7=пусто
-    TOTAL_ROWS = 8
-    GRID_PAD   = 8 * MM
+    # ── Геометрия вставки ─────────────────────────────────────────────────────
+    TOTAL_ROWS = 6
+    GRID_PAD   = 5 * MM * S         # 4mm
 
-    # Высота от верха строки 0 до baseline строки 7
-    content_h = NARROW_H + (TOTAL_ROWS - 1) * PITCH
+    content_h = narrow_h + (TOTAL_ROWS - 1) * pitch_l
     grid_h    = content_h + 2 * GRID_PAD
 
-    # Вставка вертикально отцентрирована на странице
     grid_y_top    = PAGE_H / 2 + grid_h / 2
     grid_y_bottom = PAGE_H / 2 - grid_h / 2
-
-    # Baseline строки 0 (верх строки 0 = grid_y_top - GRID_PAD)
-    y_first = grid_y_top - GRID_PAD - NARROW_H
+    y_first = grid_y_top - GRID_PAD - narrow_h
 
     # ── Рисуем вставку ────────────────────────────────────────────────────────
-    # Фон — очень светло-голубой (как листок тетради)
-    cv.setFillColorRGB(0.970, 0.978, 1.000)
-    cv.rect(L_X0, grid_y_bottom, L_X1 - L_X0, grid_h, fill=1, stroke=0)
-
     diag_lines(cv, L_X0, L_X1, grid_y_bottom, grid_y_top)
-    propis_rows(cv, L_X0, L_X1, y_first, TOTAL_ROWS)
-
-    # Тонкая рамка вставки
-    cv.setStrokeColorRGB(*C_LINE_TOP)
-    cv.setLineWidth(0.5)
-    cv.rect(L_X0, grid_y_bottom, L_X1 - L_X0, grid_h, fill=0, stroke=1)
+    propis_rows(cv, L_X0, L_X1, y_first, TOTAL_ROWS,
+                narrow_h=narrow_h, pitch=pitch_l)
 
     cx = (L_X0 + L_X1) / 2
 
     def ybase(row_idx):
-        return y_first - row_idx * PITCH
+        return y_first - row_idx * pitch_l
 
     # ── Стихотворение ────────────────────────────────────────────────────────
 
-    # Строка 1: заголовок (по центру, зелёный)
+    # Строка 0: заголовок (по центру, зелёный)
     cv.setFont(CURSIVE, FONT_POEM)
     cv.setFillColorRGB(0.05, 0.40, 0.08)
-    cv.drawCentredString(cx, ybase(1), "Любимая мама")
+    cv.drawCentredString(cx, ybase(0), "Любимая мама")
 
-    # Строки 2-5: стихи (сразу после заголовка, без пустой строки)
+    # Строки 1-4: стихи
     cv.setFont(CURSIVE, FONT_POEM)
     cv.setFillColorRGB(0.04, 0.08, 0.30)
     poem = [
@@ -187,17 +175,28 @@ def left_page(cv):
         "И пятёрки получать!",
     ]
     for j, line in enumerate(poem):
-        cv.drawCentredString(cx, ybase(2 + j), line)
+        cv.drawCentredString(cx, ybase(1 + j), line)
 
-    # Строка 6: подпись — по правому краю, зелёная, чуть мельче
+    # Строка 5: подпись — по правому краю, зелёная, чуть мельче
     cv.setFont(CURSIVE, FONT_AUTHOR)
     cv.setFillColorRGB(0.18, 0.38, 0.18)
-    cv.drawRightString(L_X1, ybase(6), "Екатерина Каплиева")
+    cv.drawRightString(L_X1, ybase(5), "Екатерина Каплиева")
 
-    # URL под вставкой
-    cv.setFont(REG, 7)
-    cv.setFillColorRGB(0.45, 0.45, 0.52)
-    cv.drawCentredString(HALF_W / 2, 8 * MM, "www.kaplieva.help")
+    # Логотип + копирайт — левый нижний угол
+    logo_path = "C:/Users/dmazn/Projects/Kaplieva/kaplieva_icon.png"
+    lx = L_X0
+    ly = 9 * MM
+    ls = 15 * MM
+    try:
+        cv.drawImage(logo_path, lx, ly, width=ls, height=ls,
+                     preserveAspectRatio=True, mask="auto")
+        tx = lx + ls + 3 * MM
+    except Exception:
+        tx = lx
+    cv.setFont(REG, 7.5)
+    cv.setFillColorRGB(0.28, 0.28, 0.36)
+    cv.drawString(tx, ly + 9 * MM,   "www.kaplieva.help")
+    cv.drawString(tx, ly + 2.5 * MM, "© Kaplieva.help, 2026. Все права защищены.")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -208,76 +207,80 @@ def right_page(cv):
     cv.setFillColorRGB(1, 1, 1)
     cv.rect(HALF_W, 0, HALF_W, PAGE_H, fill=1, stroke=0)
 
-    rx0 = HALF_W + 15 * MM
-    rx1 = PAGE_W  - 12 * MM
-    rcx = (rx0 + rx1) / 2
+    # Поля, измеренные из оригинального PDF (rx0=HALF_W+30mm, rx1=PAGE_W-20mm)
+    rx0 = HALF_W + 30 * MM   # 506pt — совпадает с оригиналом
+    rx1 = PAGE_W  - 20 * MM  # 785pt — совпадает с оригиналом
+    rcx_tet = (HALF_W + PAGE_W) / 2  # 631pt — центр правой половины (для ТЕТРАДЬ)
 
     # ── ТЕТРАДЬ ──────────────────────────────────────────────────────────────
-    tetrad_y = PAGE_H * 0.58
-    cv.setFont(BOLD, 28)
+    tetrad_y = PAGE_H * 0.589   # 351pt — из оригинала
+    cv.setFont(BOLD, 20)
     cv.setFillColorRGB(0, 0, 0)
-    cv.drawCentredString(rcx, tetrad_y, "Т Е Т Р А Д Ь")
+    cv.drawCentredString(rcx_tet, tetrad_y, "Т Е Т Р А Д Ь")
 
-    # ── Бланк ────────────────────────────────────────────────────────────────
+    # Подзаголовок
+    cv.setFont(REG, 10)
+    cv.setFillColorRGB(0.25, 0.25, 0.25)
+    cv.drawCentredString(rcx_tet, tetrad_y - 19, "для прописей")
+
+    # ── Поля ─────────────────────────────────────────────────────────────────
     cv.setFont(REG, 11)
     cv.setFillColorRGB(0.12, 0.12, 0.12)
     cv.setStrokeColorRGB(0.15, 0.15, 0.15)
     cv.setLineWidth(0.55)
 
-    STEP = 14 * MM
+    GAP = 5   # отступ между концом метки и началом линии (pt)
 
-    y = tetrad_y - STEP
-    cv.drawString(rx0, y, "для")
-    cv.line(rx0 + 16 * MM, y, rx1, y)
+    def field(y, label):
+        lw = pdfmetrics.stringWidth(label, REG, 11)
+        cv.drawString(rx0, y, label)
+        cv.line(rx0 + lw + GAP, y, rx1, y)
 
-    y -= STEP
-    cv.drawString(rx0, y, "учени")
-    cv.line(rx0 + 25 * MM, y, rx0 + 62 * MM, y)
-    cv.drawString(rx0 + 64 * MM, y, "класса")
-    cv.line(rx0 + 88 * MM, y, rx1, y)
+    y = tetrad_y - 62     # Имя
+    field(y, "Имя")
 
-    y -= STEP
-    cv.line(rx0, y, rx0 + 38 * MM, y)
-    cv.drawString(rx0 + 40 * MM, y, "школы")
-    cv.line(rx0 + 60 * MM, y, rx1, y)
+    y -= 33               # Фамилия
+    field(y, "Фамилия")
 
-    for _ in range(2):
-        y -= STEP * 1.4
-        cv.line(rx0, y, rx1, y)
+    y -= 31               # Начата
+    field(y, "Начата")
 
-    # ── Миниатюра прописей (правый нижний угол) ───────────────────────────────
-    th_w = 42 * MM
-    th_h = 28 * MM
-    th_x0 = rx1 - th_w
-    th_y0 = 16 * MM
+    # ── Миниатюра прописей (правый нижний угол, половинный размер, скруглённые углы) ──
+    th_w = 21 * MM
+    th_h = 14 * MM
+    th_r = 2  * MM      # радиус скругления
     th_x1 = rx1
+    th_x0 = th_x1 - th_w
+    th_y0 = 16 * MM
     th_y1 = th_y0 + th_h
 
     th_pitch  = th_h / 5
-    th_narrow  = th_pitch / 3        # 1:2 ratio
-    th_y_first = th_y1 - th_narrow   # baseline первой строки миниатюры
+    th_narrow = th_pitch / 3
+    th_y_first = th_y1 - th_narrow
 
+    # Клип в форме скруглённого прямоугольника для содержимого
+    K = 0.5523  # bezier-аппроксимация четверти окружности
+    cv.saveState()
+    rp = cv.beginPath()
+    rp.moveTo(th_x0 + th_r, th_y0)
+    rp.lineTo(th_x1 - th_r, th_y0)
+    rp.curveTo(th_x1 - th_r*(1-K), th_y0,      th_x1, th_y0 + th_r*(1-K), th_x1, th_y0 + th_r)
+    rp.lineTo(th_x1, th_y1 - th_r)
+    rp.curveTo(th_x1, th_y1 - th_r*(1-K),      th_x1 - th_r*(1-K), th_y1, th_x1 - th_r, th_y1)
+    rp.lineTo(th_x0 + th_r, th_y1)
+    rp.curveTo(th_x0 + th_r*(1-K), th_y1,      th_x0, th_y1 - th_r*(1-K), th_x0, th_y1 - th_r)
+    rp.lineTo(th_x0, th_y0 + th_r)
+    rp.curveTo(th_x0, th_y0 + th_r*(1-K),      th_x0 + th_r*(1-K), th_y0, th_x0 + th_r, th_y0)
+    rp.close()
+    cv.clipPath(rp, stroke=0, fill=0)
     diag_lines(cv, th_x0, th_x1, th_y0, th_y1)
     propis_rows(cv, th_x0, th_x1, th_y_first, 5, narrow_h=th_narrow, pitch=th_pitch)
+    cv.restoreState()
+
+    # Скруглённая рамка поверх содержимого
     cv.setStrokeColorRGB(0.45, 0.55, 0.72)
     cv.setLineWidth(0.5)
-    cv.rect(th_x0, th_y0, th_w, th_h, fill=0, stroke=1)
-
-    # ── Логотип + копирайт ────────────────────────────────────────────────────
-    logo_path = "C:/Users/dmazn/Projects/Kaplieva/kaplieva_icon.png"
-    lx = HALF_W + 12 * MM
-    ly = 9  * MM
-    ls = 15 * MM
-    try:
-        cv.drawImage(logo_path, lx, ly, width=ls, height=ls,
-                     preserveAspectRatio=True, mask="auto")
-        tx = lx + ls + 3 * MM
-    except Exception:
-        tx = lx
-    cv.setFont(REG, 7.5)
-    cv.setFillColorRGB(0.28, 0.28, 0.36)
-    cv.drawString(tx, ly + 9 * MM,  "www.kaplieva.help")
-    cv.drawString(tx, ly + 2.5 * MM, "© Kaplieva.help, 2026. Все права защищены.")
+    cv.roundRect(th_x0, th_y0, th_w, th_h, th_r, fill=0, stroke=1)
 
 
 # ═════════════════════════════════════════════════════════════════════════════

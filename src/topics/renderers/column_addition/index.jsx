@@ -320,7 +320,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
 
 // ── Main task component ───────────────────────────────────────────────────────
 
-function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
+function ColumnArithmeticTask({ task, onCorrect }) {
   const [phase, setPhase] = useState("form");
   const [topFilled, setTopFilled] = useState({});
   const [bottomFilled, setBottomFilled] = useState({});
@@ -332,7 +332,6 @@ function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
   const [drag, setDrag] = useState(null);
   const [shakeCell, setShakeCell] = useState(null);
   const [solved, setSolved] = useState(false);
-  const hadErrorRef = useRef(false);
 
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
@@ -461,11 +460,11 @@ function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
       const activeKey = step.cellKey;
       const cellKey = findCellUnderPointer(ev.clientX, ev.clientY);
 
-      // Wrong cell or missed → shake active cell to guide
+      // Released in empty space — silent cancel, not an error
+      if (!cellKey) return;
+      // Wrong cell → shake to guide and count as error
       if (cellKey !== activeKey) {
         triggerShake(activeKey);
-        hadErrorRef.current = true;
-        if (onMistake) onMistake();
         return;
       }
 
@@ -478,8 +477,6 @@ function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
 
       if (!ok) {
         triggerShake(activeKey);
-        hadErrorRef.current = true;
-        if (onMistake) onMistake();
         return;
       }
 
@@ -505,7 +502,7 @@ function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp, { once: true });
     el.addEventListener("pointercancel", onCancel, { once: true });
-  }, [findCellUnderPointer, triggerShake, onMistake]);
+  }, [findCellUnderPointer, triggerShake]);
 
   // ── Phase 2 solve drag ────────────────────────────────────────────────────
 
@@ -547,9 +544,7 @@ function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
       setStepIdx(next);
       if (next >= task.steps.length) {
         setSolved(true);
-        setTimeout(() => {
-          if (hadErrorRef.current) { onIncorrect?.(); } else { onCorrect?.(); }
-        }, 1200);
+        setTimeout(() => onCorrect?.(), 1200);
       }
     };
 
@@ -562,7 +557,7 @@ function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp, { once: true });
     el.addEventListener("pointercancel", onCancel, { once: true });
-  }, [activeStep, stepIdx, task.steps, findCellUnderPointer, triggerShake, onCorrect, onIncorrect, onMistake]);
+  }, [activeStep, stepIdx, task.steps, findCellUnderPointer, triggerShake, onCorrect]);
 
   return (
     <div className="col-screen" ref={rootRef}>
@@ -594,7 +589,7 @@ function ColumnArithmeticTask({ task, onCorrect, onIncorrect, onMistake }) {
 
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
-export default function ColumnAdditionRenderer({ task, onCorrect, onIncorrect, onMistake }) {
+export default function ColumnAdditionRenderer({ task, onCorrect }) {
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;
   }
@@ -603,8 +598,6 @@ export default function ColumnAdditionRenderer({ task, onCorrect, onIncorrect, o
       key={`${task.cardId}-${task.top}-${task.bottom}-${task.operation}`}
       task={task}
       onCorrect={onCorrect}
-      onIncorrect={onIncorrect}
-      onMistake={onMistake}
     />
   );
 }
