@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { AnalyticsScreen } from "@/features/analytics/AnalyticsScreen";
 import { getDb } from "@/core/db";
@@ -157,7 +157,6 @@ export default function TopicLibraryScreen() {
   const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
 
-  const scrollBodyRef = useRef(null);
 
   const [catalog,           setCatalog]           = useState(null);
   const [analyticsTarget,   setAnalyticsTarget]   = useState(null);
@@ -182,7 +181,7 @@ export default function TopicLibraryScreen() {
 
   function handleSelectTopic(r) {
     setActiveTopicId(r.meta.id);
-    scrollBodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleDelete() {
@@ -202,7 +201,7 @@ export default function TopicLibraryScreen() {
         <h1 className="screen-title">Темы</h1>
       </div>
 
-      <div className="topics-screen-body" ref={scrollBodyRef}>
+      <div className="topics-screen-body">
         {/* Zone 1: Hero — active topic */}
         {activeRecord && (
           <TopicHeroCard record={activeRecord} onInfo={setInfoTopic} />
