@@ -3,7 +3,10 @@
     {
       "id": "written_letters",
       "version": "1.0.0",
-      "title": { "ru": "Письменные буквы", "en": "Written Letters" },
+      "title": {
+        "ru": "Письменные буквы",
+        "en": "Written Letters"
+      },
       "description": {
         "ru": "33 буквы русского алфавита в рукописном написании. Четыре режима: строчная/заглавная, найди рукописную, найди печатную, найди пару.",
         "en": "33 Russian alphabet letters in cursive. Four modes: uppercase/lowercase sort, find cursive, find print, find the pair."
@@ -276,8 +279,23 @@
       "version": "1.0.2",
       "renderer": "chat_practice",
       "url": "./decks/chat_with_mom_v1.0.2.zip",
-      "title": { "ru": "Учебный чат" },
-      "description": { "ru": "6 диалогов с мамой: утро, еда, болезнь, мультики, помощь, спокойной ночи." }
+      "title": {
+        "ru": "Учебный чат"
+      },
+      "description": {
+        "ru": "6 диалогов с мамой: утро, еда, болезнь, мультики, помощь, спокойной ночи."
+      }
+    },
+    {
+      "id": "print_materials",
+      "version": "1.0.1",
+      "title": {
+        "ru": "Печатные материалы"
+      },
+      "description": {
+        "ru": "Тетради и рабочие листы для печати"
+      },
+      "url": "./decks/print_materials_v1.0.1.zip"
     }
   ]
 }

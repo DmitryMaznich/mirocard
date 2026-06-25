@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "id": "print_materials",
+    "version": "1.0.1",
+    "renderer": "print_materials",
+    "title": {
+      "ru": "Печатные материалы"
+    },
+    "description": {
+      "ru": "Тетради и рабочие листы для печати"
+    }
+  },
+  "modes": [
+    {
+      "id": "browse",
+      "type": "browse",
+      "evaluation": "none",
+      "ui": {
+        "title": {
+          "ru": "Печатные материалы"
+        }
+      }
+    }
+  ],
+  "categories": [
+    {
+      "id": "notebooks",
+      "label": "Тетради для прописей"
+    },
+    {
+      "id": "worksheets",
+      "label": "Рабочие листы"
+    },
+    {
+      "id": "ready",
+      "label": "Готовые материалы"
+    }
+  ],
+  "items": [
+    {
+      "id": "notebook_standard",
+      "category": "notebooks",
+      "title": "Тетрадь — стандарт РФ",
+      "description": "Косая линейка 20мм, стандарт российских школ. 4 листа A4 = 8 страниц A5.",
+      "thumbnail": "thumbnails/notebook_standard.png",
+      "files": [
+        {
+          "label": "Обложка",
+          "path": "print/cover.pdf",
+          "filename": "тетрадь_обложка.pdf",
+          "hint": "1 лист, плотная бумага 180–250 г/м²"
+        },
+        {
+          "label": "Страницы",
+          "path": "print/стандарт_pages.pdf",
+          "filename": "тетрадь_стандарт_страницы.pdf",
+          "hint": "4 листа, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "notebook_плотная",
+      "category": "notebooks",
+      "title": "Тетрадь — плотная косая",
+      "description": "Частые косые линии 3мм. 4 листа A4 = 8 страниц A5.",
+      "thumbnail": "thumbnails/notebook_плотная.png",
+      "files": [
+        {
+          "label": "Обложка",
+          "path": "print/cover.pdf",
+          "filename": "тетрадь_обложка.pdf",
+          "hint": "1 лист, плотная бумага 180–250 г/м²"
+        },
+        {
+          "label": "Страницы",
+          "path": "print/плотная_pages.pdf",
+          "filename": "тетрадь_плотная_страницы.pdf",
+          "hint": "4 листа, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "notebook_точки",
+      "category": "notebooks",
+      "title": "Тетрадь — вспомогательные точки",
+      "description": "Точки вместо косых линий — помощь ученику. 4 листа A4 = 8 страниц A5.",
+      "thumbnail": "thumbnails/notebook_точки.png",
+      "files": [
+        {
+          "label": "Обложка",
+          "path": "print/cover.pdf",
+          "filename": "тетрадь_обложка.pdf",
+          "hint": "1 лист, плотная бумага 180–250 г/м²"
+        },
+        {
+          "label": "Страницы",
+          "path": "print/точки_pages.pdf",
+          "filename": "тетрадь_точки_страницы.pdf",
+          "hint": "4 листа, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    }
+  ]
+}

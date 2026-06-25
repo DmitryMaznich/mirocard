@@ -71,6 +71,9 @@ function buildGeneratedSessionState({
   } else if (renderer === "shopping") {
     const generateTasks = ENGINE_REGISTRY.shopping;
     tasks = generateTasks ? generateTasks(mode, topicRecord) : [];
+  } else if (renderer === "print_materials") {
+    const generateTasks = ENGINE_REGISTRY.print_materials;
+    tasks = generateTasks ? generateTasks(mode, topicRecord) : [];
   } else if (renderer === "phrase_match") {
     const generateTasks = ENGINE_REGISTRY.phrase_match;
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionParams) : [];

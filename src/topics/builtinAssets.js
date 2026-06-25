@@ -277,6 +277,33 @@ const BUILTIN_ASSETS = {
   <text x="73" y="104" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#059669">8</text>
   <text x="99" y="104" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#059669">2</text>
 </svg>`,
+  "media/icons/column_copy_mode.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef3ff"/>
+  <rect x="14" y="14" width="100" height="100" rx="10" fill="#fff" stroke="#c3cff5" stroke-width="3"/>
+  <line x1="66" y1="18" x2="66" y2="110" stroke="#e8eeff" stroke-width="1.5"/>
+  <line x1="18" y1="66" x2="110" y2="66" stroke="#e8eeff" stroke-width="1.5"/>
+  <text x="56" y="36" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">35</text>
+  <text x="22" y="48" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#4a9b8f">+</text>
+  <text x="56" y="48" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">12</text>
+  <line x1="22" y1="52" x2="58" y2="52" stroke="#1a1a2e" stroke-width="2"/>
+  <line x1="40" y1="60" x2="56" y2="60" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="104" y="36" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">47</text>
+  <text x="70" y="48" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#4a9b8f">+</text>
+  <text x="104" y="48" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">25</text>
+  <line x1="70" y1="52" x2="106" y2="52" stroke="#1a1a2e" stroke-width="2"/>
+  <line x1="88" y1="60" x2="104" y2="60" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="56" y="82" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">63</text>
+  <text x="22" y="94" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#ef4444">−</text>
+  <text x="56" y="94" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">31</text>
+  <line x1="22" y1="98" x2="58" y2="98" stroke="#1a1a2e" stroke-width="2"/>
+  <line x1="40" y1="106" x2="56" y2="106" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="104" y="82" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">78</text>
+  <text x="70" y="94" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#ef4444">−</text>
+  <text x="104" y="94" text-anchor="end" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1a1a2e">42</text>
+  <line x1="70" y1="98" x2="106" y2="98" stroke="#1a1a2e" stroke-width="2"/>
+  <line x1="88" y1="106" x2="104" y2="106" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+</svg>`,
   "media/icons/column_addition_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#eef3ff"/>

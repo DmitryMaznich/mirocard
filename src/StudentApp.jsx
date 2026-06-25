@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { useStudentPortal } from "@/features/student/useStudentPortal";
 import { createApiClient } from "@/core/api";
 import StudentHomeScreen from "@/features/student/StudentHomeScreen";
+import StudentLandingPage from "@/features/student/StudentLandingPage";
 import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
 import { getDb } from "@/core/db";
@@ -82,7 +83,8 @@ function computeDefaultParams(topicRecord, mode) {
   return out;
 }
 
-export default function StudentApp({ token, isStandalone = false }) {
+export default function StudentApp({ token, isStandalone = false, fromLink = false }) {
+  const [showLanding, setShowLanding] = useState(fromLink);
   const { status, data, error } = useStudentPortal(token);
   const screen = useAppStore((s) => s.screen);
   const setScreen = useAppStore((s) => s.setScreen);
@@ -175,6 +177,8 @@ export default function StudentApp({ token, isStandalone = false }) {
     setScreen("home");
   }, [closeSessionExitPrompt, clearActiveSessionSnapshot, setScreen]);
 
+  if (showLanding) return <StudentLandingPage onContinue={() => setShowLanding(false)} />;
+
   if (status === "loading" || (status === "ok" && !topicsReady)) return <LoadingScreen />;
   if (status === "error") return <ErrorScreen reason={error} />;
 
@@ -229,7 +233,6 @@ export default function StudentApp({ token, isStandalone = false }) {
       student={student}
       activeTask={activeTask}
       onStartSession={handleStartSession}
-      showInstallBanner={!isStandalone}
     />
   );
 }

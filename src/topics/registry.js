@@ -13,6 +13,7 @@ import ShoppingRenderer             from "./renderers/shopping/index.jsx";
 import PhraseMatchRenderer          from "./renderers/phrase_match/index.jsx";
 import ColumnAdditionRenderer       from "./renderers/column_addition/index.jsx";
 import WrittenLettersRenderer       from "./renderers/written_letters/index.jsx";
+import PrintMaterialsRenderer       from "./renderers/print_materials/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -30,4 +31,5 @@ export const RENDERER_REGISTRY = {
   phrase_match:          PhraseMatchRenderer,
   column_addition:       ColumnAdditionRenderer,
   written_letters:       WrittenLettersRenderer,
+  print_materials:       PrintMaterialsRenderer,
 };

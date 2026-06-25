@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
+import { generateExamples } from "./engine.js";
 import "./column_addition.css";
 
 const POSITIONS = ["units", "tens", "hundreds"];
@@ -587,9 +588,63 @@ function ColumnArithmeticTask({ task, onCorrect }) {
   );
 }
 
+// ── Copy mode (column_copy) ───────────────────────────────────────────────────
+
+function ColumnCopyView({ sessionParams }) {
+  const count = Number(sessionParams?.count ?? 6);
+  const screenRef = useRef(null);
+  const listRef   = useRef(null);
+
+  const [examples, setExamples] = useState(() =>
+    generateExamples(count, { operation: "mixed", carryMode: "mixed", digits: 2 })
+  );
+
+  // Align background grid with cell left edges
+  useLayoutEffect(() => {
+    const screen = screenRef.current;
+    const list   = listRef.current;
+    if (!screen || !list) return;
+    const sr = screen.getBoundingClientRect();
+    const lr = list.getBoundingClientRect();
+    const ox = (lr.left - sr.left) % 44;
+    const oy = (lr.top  - sr.top)  % 44;
+    screen.style.backgroundPosition = `${ox}px ${oy}px`;
+  }, [examples]);
+
+  function refresh() {
+    setExamples(generateExamples(count, { operation: "mixed", carryMode: "mixed", digits: 2 }));
+  }
+
+  return (
+    <div className="col-screen col-copy-screen" ref={screenRef}>
+      <div className="col-copy-list" ref={listRef}>
+        {examples.map((ex, i) => {
+          const sign = ex.operation === "add" ? "+" : "−";
+          return (
+            <div key={i} className="col-copy-expr-row">
+              {String(ex.top).split("").map((ch, j) => (
+                <span key={j} className="col-expr-cell"><span className="col-slant">{ch}</span></span>
+              ))}
+              <span className="col-expr-cell col-expr-sign"><span className="col-slant">{sign}</span></span>
+              {String(ex.bottom).split("").map((ch, j) => (
+                <span key={`b${j}`} className="col-expr-cell"><span className="col-slant">{ch}</span></span>
+              ))}
+              <span className="col-expr-cell col-expr-eq"><span className="col-slant">=</span></span>
+            </div>
+          );
+        })}
+      </div>
+      <button className="col-copy-refresh" onClick={refresh}>↻ Новые примеры</button>
+    </div>
+  );
+}
+
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
-export default function ColumnAdditionRenderer({ task, onCorrect }) {
+export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect }) {
+  if (mode?.type === "column_copy") {
+    return <ColumnCopyView sessionParams={sessionParams} />;
+  }
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;
   }

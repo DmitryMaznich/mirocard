@@ -142,6 +142,24 @@ function generateSubTask(carryMode, digits, card) {
   return null;
 }
 
+export function generateExamples(count, params) {
+  const operation = params?.operation ?? "add";
+  const carryMode = params?.carryMode ?? "none";
+  const digits = Number(params?.digits ?? 2);
+  const fakeCard = { id: "copy", conceptId: "copy" };
+  const results = [];
+  let attempts = 0;
+  while (results.length < count && attempts < count * 30) {
+    attempts++;
+    const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
+    const t = op === "add"
+      ? generateAddTask(carryMode, digits, fakeCard)
+      : generateSubTask(carryMode, digits, fakeCard);
+    if (t) results.push({ operation: t.operation, top: t.top, bottom: t.bottom });
+  }
+  return results;
+}
+
 export function generateTasks(mode, cards, countOrParams, maybeParams) {
   const count = typeof countOrParams === "number" ? countOrParams : 15;
   const params = (countOrParams && typeof countOrParams === "object") ? countOrParams

@@ -43,9 +43,10 @@ function validateManifest(manifest, appVersion) {
   if (!manifest.meta?.id) throw new TopicImportError("Отсутствует meta.id");
   if (!manifest.meta?.version) throw new TopicImportError("Отсутствует meta.version");
   const isReading      = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
-  const isNarrative    = manifest.meta.renderer === "narrative";
-  const isPhraseMatch  = manifest.meta.renderer === "phrase_match";
-  const isChatPractice = manifest.meta.renderer === "chat_practice";
+  const isNarrative      = manifest.meta.renderer === "narrative";
+  const isPhraseMatch    = manifest.meta.renderer === "phrase_match";
+  const isChatPractice   = manifest.meta.renderer === "chat_practice";
+  const isPrintMaterials = manifest.meta.renderer === "print_materials";
   if (isChatPractice) {
     const hasLegacyTurns = Array.isArray(manifest.turns) && manifest.turns.length > 0;
     const hasModesWithScripts =
@@ -62,7 +63,7 @@ function validateManifest(manifest, appVersion) {
     if (!Array.isArray(manifest.groups) || manifest.groups.length === 0) {
       throw new TopicImportError("Тема phrase_match не содержит групп");
     }
-  } else if (!isNarrative && (!Array.isArray(manifest.cards) || manifest.cards.length === 0)) {
+  } else if (!isNarrative && !isPrintMaterials && (!Array.isArray(manifest.cards) || manifest.cards.length === 0)) {
     throw new TopicImportError("Тема не содержит карточек");
   }
 
@@ -568,6 +569,20 @@ const DEFAULT_MODE_METHODOLOGY = {
         "Если ребёнок тянет цифру в неверную клетку, клетка вибрирует — не сердитесь, это подсказка.",
       ],
     },
+    column_copy: {
+      summary: "Перепиши примеры в тетрадь и реши.",
+      text: "На экране — набор примеров в столбик. Ребёнок переписывает их в тетрадь в клетку и решает самостоятельно. Нажмите «Новые примеры» для следующего листа.",
+      settings: [
+        "«Примеров на экране» — 6, 8 или 10 примеров на один лист.",
+        "«Операция» — сложение, вычитание или оба.",
+        "«Перенос / заём» — регулируйте сложность.",
+      ],
+      goal: "Ребёнок записывает пример в столбик правильно: знак слева от нижнего числа, цифры по разрядам, черта под числами.",
+      tips: [
+        "Проверяйте тетрадь: цифры должны стоять строго по разрядам (единицы под единицами, десятки под десятками).",
+        "Начинайте с 6 примеров без переноса, постепенно увеличивайте количество и сложность.",
+      ],
+    },
   },
   written_letters: {
     sort_case: {
@@ -897,6 +912,42 @@ const DEFAULT_MODES = {
           labels: { ru: { "2": "2-значные", "3": "3-значные" } },
           default: 2,
           label: { ru: "Разрядность" },
+        },
+      },
+    },
+    {
+      id: "column_copy",
+      type: "column_copy",
+      evaluation: "none",
+      ui: { title: "Перепиши", instruction: "Перепиши примеры в тетрадь и реши", icon: "media/icons/column_copy_mode.svg" },
+      params: {
+        operation: {
+          type: "enum",
+          values: ["add", "subtract", "mixed"],
+          labels: { ru: { add: "Только +", subtract: "Только −", mixed: "Микс" } },
+          default: "add",
+          label: { ru: "Операция" },
+        },
+        carryMode: {
+          type: "enum",
+          values: ["none", "carry", "mixed"],
+          labels: { ru: { none: "Без переноса / займа", carry: "С переносом / займом", mixed: "Микс" } },
+          default: "none",
+          label: { ru: "Перенос / заём" },
+        },
+        digits: {
+          type: "enum",
+          values: [2, 3],
+          labels: { ru: { "2": "2-значные", "3": "3-значные" } },
+          default: 2,
+          label: { ru: "Разрядность" },
+        },
+        count: {
+          type: "enum",
+          values: [6, 8, 10],
+          labels: { ru: { "6": "6", "8": "8", "10": "10" } },
+          default: 6,
+          label: { ru: "Примеров на экране" },
         },
       },
     },
@@ -1386,7 +1437,9 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
       image: sceneAssetUrls[scene.image] ?? scene.image,
       audio: sceneAssetUrls[scene.audio] ?? scene.audio,
     })),
-    scenarios: manifest.scenarios ?? undefined,
+    scenarios:  manifest.scenarios  ?? undefined,
+    categories: manifest.categories ?? undefined,
+    items:      manifest.items      ?? undefined,
     installedAt: new Date().toISOString(),
   };
 

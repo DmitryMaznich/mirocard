@@ -50,8 +50,12 @@ if (_urlPortalMatch) {
         exp: Date.now() + 30 * 60 * 1000, // 30-minute window
       }));
     } catch {}
+    // Keep /s/TOKEN visible in the address bar so Chrome on Android can
+    // recognise the PWA scope and offer "Open in app". The landing page
+    // calls history.replaceState("/") once the user chooses an action.
+  } else {
+    history.replaceState(null, "", "/");
   }
-  history.replaceState(null, "", "/");
 }
 // Migration: tokens written by the old code always went to localStorage.
 // In non-standalone (browser tab) mode, remove them — the user can reopen
@@ -125,7 +129,9 @@ window.addEventListener("pageshow", (event) => {
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <TimerProvider>
-      {_portalToken ? <StudentApp token={_portalToken} isStandalone={_isStandalone} /> : <App />}
+      {_portalToken
+        ? <StudentApp token={_portalToken} isStandalone={_isStandalone} fromLink={Boolean(_urlPortalMatch) && !_isStandalone} />
+        : <App />}
     </TimerProvider>
   </StrictMode>
 );
