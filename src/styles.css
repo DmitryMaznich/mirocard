@@ -20196,3 +20196,50 @@ body { background: #eef0ef; }
   right: 10px;
 }
 
+/* ── Topic Action Sheet ──────────────────────────────────── */
+.action-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: flex-end;
+  z-index: 200;
+}
+.action-sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 8px 0 max(env(safe-area-inset-bottom, 0px), 16px);
+  animation: action-sheet-up 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes action-sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+.action-sheet__title {
+  padding: 12px 20px 6px;
+  font-size: 0.78rem;
+  color: #8a9e9b;
+  font-weight: 600;
+}
+.action-sheet__item {
+  display: block;
+  width: 100%;
+  padding: 16px 20px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 1rem;
+  background: none;
+  border: none;
+  border-top: 1px solid #f0f5f4;
+  cursor: pointer;
+  color: #1a3a35;
+}
+.action-sheet__item:active { background: #f0f5f4; }
+.action-sheet__item--danger { color: #c0392b; }
+.action-sheet__item--cancel {
+  font-weight: 700;
+  color: #5a8a82;
+  border-top: 6px solid #f0f5f4;
+}
+
