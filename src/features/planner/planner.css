@@ -375,8 +375,8 @@
 .home-student-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: 14px;
+  padding: 13px 21px;
   background: #fff;
   border: none;
   border-bottom: 1px solid #e0d4c3;
@@ -390,14 +390,14 @@
   background: #f7f2ec;
 }
 
-/* Circle icon — same size/shape as journey-step__icon */
+/* Square avatar with rounded corners */
 .home-student-bar__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #e8e8e8;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #ddd;
   color: #888;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -415,7 +415,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 0;
 }
 
 /* Label + name column */
@@ -423,7 +423,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -432,22 +432,21 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #888;
+  color: #999;
 }
 
 .home-student-bar__value {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 700;
   color: #263131;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Arrow — same as journey-step__arrow */
-.home-student-bar__arrow {
-  font-size: 18px;
-  color: #aaa;
+/* Filled triangle chevron */
+.home-student-bar__chevron {
+  color: #c8bfb0;
   flex-shrink: 0;
 }
 

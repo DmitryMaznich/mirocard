@@ -45,6 +45,14 @@ function HomeHeader({ onSettings, onBrandTap }) {
 
 // ─── Student picker bar ────────────────────────────────────────────────────────
 
+function ChevronTriangle() {
+  return (
+    <svg className="home-student-bar__chevron" width="9" height="16" viewBox="0 0 9 16" aria-hidden>
+      <polygon points="0,0 9,8 0,16" fill="currentColor" />
+    </svg>
+  );
+}
+
 function StudentPickerBar({ student, onTap }) {
   return (
     <button className="home-student-bar" onClick={onTap}>
@@ -61,7 +69,7 @@ function StudentPickerBar({ student, onTap }) {
           {student?.name ?? 'Не выбран'}
         </span>
       </span>
-      <span className="home-student-bar__arrow">→</span>
+      <ChevronTriangle />
     </button>
   );
 }
