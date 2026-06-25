@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAppStore } from '@/core/store';
 import { getTopicTitle } from '@/shared/utils/format';
-import { getRawRecipeTxt } from '@/core/groupStore';
+import { getRawRecipeTxt, getShoppingCustomData, saveShoppingCustomData, getShoppingPlan, saveShoppingPlan } from '@/core/groupStore';
 import Button from '@/shared/components/Button';
 import { getPlanRecipes, MEAL_TYPES } from './plannerUtils.js';
 import { loadPlan, sendPlanToStudent, PANTRY_ITEMS } from './plannerApi.js';
@@ -89,6 +89,13 @@ export default function PlannerSummaryScreen() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState(null);
+  const [pushing, setPushing] = useState(false);
+  const [pushed, setPushed] = useState(false);
+
+  const shoppingTopicId = useMemo(() => {
+    const record = topicRecords.find((r) => r.meta?.renderer === 'shopping');
+    return record?.meta?.id ?? null;
+  }, [topicRecords]);
 
   useEffect(() => {
     if (!activeStudentId) return;
@@ -138,6 +145,51 @@ export default function PlannerSummaryScreen() {
     }
   }
 
+  async function handlePushToShopping() {
+    if (!shoppingList || !shoppingTopicId) return;
+    setPushing(true);
+    try {
+      const items = shoppingList
+        .filter((i) => i.include)
+        .map((i) => {
+          const qty = i.qty != null ? Math.round(i.qty * 10) / 10 : null;
+          return qty != null
+            ? `${i.product} ${qty}${i.unit ? ' ' + i.unit : ''}`
+            : i.product;
+        });
+
+      if (!items.length) return;
+
+      let customData = await getShoppingCustomData(shoppingTopicId);
+      if (!customData) customData = { categories: [] };
+
+      // Replace the planner category (keep all other custom categories)
+      const filtered = customData.categories.filter((c) => c.id !== 'planner_menu');
+      const plannerCat = {
+        id: 'planner_menu',
+        name: 'Из меню',
+        icon: '📋',
+        subgroups: [{ name: null, items }],
+      };
+      await saveShoppingCustomData(shoppingTopicId, {
+        ...customData,
+        categories: [plannerCat, ...filtered],
+      });
+
+      // Mark all planner items as planned
+      const savedPlan = await getShoppingPlan(shoppingTopicId);
+      const newPlan = { ...savedPlan };
+      items.forEach((_, ii) => { newPlan[`Из меню_${ii}`] = true; });
+      await saveShoppingPlan(shoppingTopicId, newPlan);
+
+      setPushed(true);
+    } catch (e) {
+      console.error('Shopping push error:', e);
+    } finally {
+      setPushing(false);
+    }
+  }
+
   if (!plan) return <div className="screen screen-center">Загрузка…</div>;
 
   return (
@@ -159,6 +211,22 @@ export default function PlannerSummaryScreen() {
       </div>
 
       <div className="planner-footer">
+        {/* Shopping push */}
+        {shoppingTopicId && (
+          pushed ? (
+            <div className="shopping-push-success">✓ Добавлено в «Список покупок»</div>
+          ) : (
+            <button
+              className="shopping-push-btn"
+              disabled={pushing || !shoppingList}
+              onClick={handlePushToShopping}
+            >
+              {pushing ? 'Отправляем…' : '🛒 Добавить в Список покупок'}
+            </button>
+          )
+        )}
+
+        {/* Send to student */}
         {sent ? (
           <div className="planner-sent">✓ Отправлено ученику</div>
         ) : (
@@ -172,6 +240,7 @@ export default function PlannerSummaryScreen() {
               fullWidth
               disabled={sending || !shoppingList}
               onClick={handleSend}
+              style={{ marginTop: 8 }}
             >
               {sending ? 'Отправляем…' : 'Отправить ученику →'}
             </Button>
