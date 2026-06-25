@@ -4,7 +4,7 @@ import { getDb } from "@/core/db";
 import { importTopic, TopicImportError } from "@/topics/topicLoader";
 import Button from "@/shared/components/Button";
 
-export default function TopicImport({ onImported }) {
+export default function TopicImport({ onImported, compact = false }) {
   const fileRef = useRef(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
@@ -48,13 +48,23 @@ export default function TopicImport({ onImported }) {
         onChange={handleFile}
         style={{ display: "none" }}
       />
-      <Button
-        variant="secondary"
-        onClick={() => fileRef.current?.click()}
-        disabled={status === "loading"}
-      >
-        {status === "loading" ? "Импортируем…" : "Импортировать ZIP"}
-      </Button>
+      {compact ? (
+        <button
+          className="topic-import-link"
+          onClick={() => fileRef.current?.click()}
+          disabled={status === "loading"}
+        >
+          {status === "loading" ? "Импортируем…" : "+ Импортировать ZIP"}
+        </button>
+      ) : (
+        <Button
+          variant="secondary"
+          onClick={() => fileRef.current?.click()}
+          disabled={status === "loading"}
+        >
+          {status === "loading" ? "Импортируем…" : "Импортировать ZIP"}
+        </Button>
+      )}
       {error && <div className="form-error">{error}</div>}
     </div>
   );

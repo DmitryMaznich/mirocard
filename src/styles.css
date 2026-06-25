@@ -20282,3 +20282,72 @@ body { background: #eef0ef; }
 }
 .catalog-preview__link:active { opacity: 0.7; }
 
+/* ── Catalog Preview Card ────────────────────────────────── */
+.catalog-preview-card {
+  margin: 12px 16px 4px;
+  border: 1.5px solid #c8e0db;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fafffe;
+}
+.catalog-preview-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f0f9f7;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+.catalog-preview-card__header:active { background: #e4f4f1; }
+.catalog-preview-card__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2a6b60;
+}
+.catalog-preview-card__open-btn {
+  background: #2a9d8f;
+  color: #fff;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.catalog-preview-card__body {
+  padding: 10px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.catalog-preview-card__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.catalog-preview-card__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8a9e9b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Topic Import compact link ───────────────────────────── */
+.topic-import-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  color: #9ab5b0;
+  cursor: pointer;
+  text-align: left;
+}
+.topic-import-link:active { color: #4a9b8f; }
+.topic-import-link:disabled { opacity: 0.5; pointer-events: none; }
+

@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { AnalyticsScreen } from "@/features/analytics/AnalyticsScreen";
 import { getDb } from "@/core/db";
@@ -101,44 +101,48 @@ function CatalogPreview({ catalog, topicRecords, onInstall, onOpenCatalog, disab
     .filter((e) => !topicRecords.find((r) => r.meta.id === e.id))
     .slice(0, 3);
 
-  if (updates.length === 0 && newTopics.length === 0) {
-    return (
-      <div className="catalog-preview">
-        <button className="catalog-preview__link" onClick={onOpenCatalog}>
-          Открыть каталог →
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="catalog-preview">
-      <div className="catalog-section-header">Из каталога</div>
-      <div className="catalog-preview__chips">
-        {updates.map((entry) => (
-          <PreviewChip
-            key={entry.id}
-            entry={entry}
-            topicRecords={topicRecords}
-            onInstall={onInstall}
-            disabled={disabled}
-            isUpdate
-          />
-        ))}
-        {newTopics.map((entry) => (
-          <PreviewChip
-            key={entry.id}
-            entry={entry}
-            topicRecords={topicRecords}
-            onInstall={onInstall}
-            disabled={disabled}
-            isUpdate={false}
-          />
-        ))}
-      </div>
-      <button className="catalog-preview__link" onClick={onOpenCatalog}>
-        Открыть каталог →
+    <div className="catalog-preview-card">
+      <button className="catalog-preview-card__header" onClick={onOpenCatalog}>
+        <span className="catalog-preview-card__title">Каталог тем</span>
+        <span className="catalog-preview-card__open-btn">Открыть →</span>
       </button>
+      {(updates.length > 0 || newTopics.length > 0) && (
+        <div className="catalog-preview-card__body">
+          {updates.length > 0 && (
+            <div className="catalog-preview-card__group">
+              <span className="catalog-preview-card__label">Доступны обновления</span>
+              <div className="catalog-preview__chips">
+                {updates.map((entry) => (
+                  <PreviewChip
+                    key={entry.id}
+                    entry={entry}
+                    onInstall={onInstall}
+                    disabled={disabled}
+                    isUpdate
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          {newTopics.length > 0 && (
+            <div className="catalog-preview-card__group">
+              <span className="catalog-preview-card__label">Новые темы — нажмите для установки</span>
+              <div className="catalog-preview__chips">
+                {newTopics.map((entry) => (
+                  <PreviewChip
+                    key={entry.id}
+                    entry={entry}
+                    onInstall={onInstall}
+                    disabled={disabled}
+                    isUpdate={false}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -152,6 +156,8 @@ export default function TopicLibraryScreen() {
   const activeTopicId     = useAppStore((s) => s.activeTopicId);
   const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
+
+  const scrollBodyRef = useRef(null);
 
   const [catalog,           setCatalog]           = useState(null);
   const [analyticsTarget,   setAnalyticsTarget]   = useState(null);
@@ -174,6 +180,11 @@ export default function TopicLibraryScreen() {
     return () => { cancelled = true; };
   }, [catalog]);
 
+  function handleSelectTopic(r) {
+    setActiveTopicId(r.meta.id);
+    scrollBodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleDelete() {
     const db = await getDb();
     await deleteTopicRecord(db, deleting.meta.id);
@@ -191,7 +202,7 @@ export default function TopicLibraryScreen() {
         <h1 className="screen-title">Темы</h1>
       </div>
 
-      <div className="topics-screen-body">
+      <div className="topics-screen-body" ref={scrollBodyRef}>
         {/* Zone 1: Hero — active topic */}
         {activeRecord && (
           <TopicHeroCard record={activeRecord} onInfo={setInfoTopic} />
@@ -209,15 +220,13 @@ export default function TopicLibraryScreen() {
               <InstalledTopicItem
                 key={record.meta.id}
                 record={record}
-                onSelect={(r) => setActiveTopicId(r.meta.id)}
+                onSelect={handleSelectTopic}
                 onMenu={setActionSheetRecord}
                 onInfo={setInfoTopic}
               />
             ))}
           </ul>
         )}
-
-        <TopicImport />
 
         {/* Zone 3: Catalog preview */}
         <CatalogPreview
@@ -227,6 +236,9 @@ export default function TopicLibraryScreen() {
           onOpenCatalog={() => setScreen("catalog")}
           disabled={false}
         />
+
+        {/* Import ZIP — редко используется, внизу */}
+        <TopicImport compact />
       </div>
 
       {/* Overlays */}
