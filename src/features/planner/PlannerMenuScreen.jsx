@@ -52,7 +52,7 @@ function RecipeStepView({ step, topicId }) {
 
 function RecipeDetail({ recipe, isSelected, onAdd, onBack }) {
   const { topicId, text, content } = recipe;
-  const coverUrl = useTopicFile(topicId, text.image);
+  const coverUrl = useTopicFile(topicId, text.photo);
   const steps = useMemo(() => parseRecipeTxt(content), [content]);
 
   return (
@@ -89,7 +89,7 @@ function RecipeDetail({ recipe, isSelected, onAdd, onBack }) {
 
 function RecipeGalleryCard({ recipe, isSelected, onView, onToggle }) {
   const { topicId, text, ingredients } = recipe;
-  const photoUrl = useTopicFile(topicId, text.image);
+  const photoUrl = useTopicFile(topicId, text.photo);
 
   const keyIngr = ingredients
     .filter((i) => i.product && !PANTRY_ITEMS.has(i.product))
