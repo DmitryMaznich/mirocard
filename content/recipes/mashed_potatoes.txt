@@ -1,10 +1,10 @@
 # photo: mashed_potatoes.webp
 # tags: обед, ужин
-# portions: 4
+# portions: 2
 # ingredients:
-#   картошка | |
+#   картошка | 4 | шт
+#   сливки 20% | 3 | ст.л
 #   масло сливочное | |
-#   сливки 20% | |
 #   соль | |
 Картофельное пюре
 [mashed_potatoes.webp]

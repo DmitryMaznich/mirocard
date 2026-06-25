@@ -1,11 +1,11 @@
 # photo: fried_potatoes.webp
 # status: final
 # tags: обед, ужин
-# portions: 3
+# portions: 1
 # ingredients:
-#   картошка | |
-#   лук | |
-#   чеснок | |
+#   картошка | 4 | шт
+#   лук | 1 | шт
+#   чеснок | 2 | зуб
 #   масло растительное | |
 #   соль | |
 #   специи | |

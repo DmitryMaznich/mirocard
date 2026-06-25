@@ -1,12 +1,12 @@
 # photo: ravioli.webp
 # status: draft
 # tags: обед, ужин
-# portions: 2
+# portions: 1
 # ingredients:
-#   пельмени | |
-#   соль | |
+#   равиоли | 12 | шт
+#   сыр твёрдый | 30 | гр
 #   масло сливочное | |
-#   сыры | |
+#   соль | |
 #   специи | |
 Равиоли
 [ravioli.webp]
