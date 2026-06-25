@@ -125,7 +125,7 @@ function RecipeGalleryCard({ recipe, isSelected, onView, onToggle }) {
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎' };
 
-function RecipeGallery({ initialMealType, selectedIds, allRecipes, loading, onToggle, onView, onBack }) {
+function RecipeGallery({ initialMealType, selectedIds, mealCounts, allRecipes, loading, onToggle, onView, onBack }) {
   const [mealType, setMealType] = useState(initialMealType);
   const filtered = allRecipes.filter((r) => r.tags.includes(mealType));
 
@@ -144,6 +144,9 @@ function RecipeGallery({ initialMealType, selectedIds, allRecipes, loading, onTo
             onClick={() => setMealType(mt)}
           >
             {MEAL_ICONS[mt]} {mt}
+            {(mealCounts[mt] ?? 0) > 0 && (
+              <span className="gallery-meal-tab__count">{mealCounts[mt]}</span>
+            )}
           </button>
         ))}
       </div>
@@ -278,6 +281,15 @@ export default function PlannerMenuScreen() {
     return plan.days[galleryCtx.dayIndex]?.meals[galleryCtx.mealType] ?? [];
   }, [plan, galleryCtx]);
 
+  // Count of selected recipes per meal type for the current day
+  const galleryCounts = useMemo(() => {
+    if (!plan || !galleryCtx) return {};
+    const day = plan.days[galleryCtx.dayIndex];
+    const counts = {};
+    for (const mt of MEAL_TYPES) counts[mt] = (day?.meals[mt] ?? []).length;
+    return counts;
+  }, [plan, galleryCtx]);
+
   // Whether the detail recipe is in the current gallery context
   const detailIsSelected = useMemo(() => {
     if (!detailRecipe || !galleryCtx || !plan) return false;
@@ -332,6 +344,7 @@ export default function PlannerMenuScreen() {
       <RecipeGallery
         initialMealType={galleryCtx.mealType}
         selectedIds={gallerySelectedIds}
+        mealCounts={galleryCounts}
         allRecipes={allRecipes}
         loading={loadingRecipes}
         onToggle={handleToggleInGallery}
