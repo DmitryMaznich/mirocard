@@ -16,9 +16,12 @@ import {
   getImportErrorMessage,
   refreshInstalledCatalogTopics,
 } from "./catalogService";
+import { FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
 
 function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAnalytics, hasUpdate }) {
-  const isBuiltin = Boolean(record.meta.builtin);
+  const isBuiltin    = Boolean(record.meta.builtin);
+  const isFirstParty = FIRST_PARTY_DECK_IDS.has(record.meta.id);
+  const isDeletable  = !isBuiltin && !isFirstParty;
   return (
     <li className={`topic-item ${isActive ? "topic-item--active" : ""}${isBuiltin ? " topic-item--builtin" : ""}`} onClick={() => onSelect(record)}>
       <TopicCover
@@ -36,7 +39,7 @@ function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAn
       </div>
       <button className="icon-btn icon-btn--info" onClick={(e) => { e.stopPropagation(); onInfo(record); }} title="О теме">i</button>
       {!isBuiltin && <button className="icon-btn" onClick={(e) => { e.stopPropagation(); onAnalytics(record); }} title="Аналитика">📊</button>}
-      {!isBuiltin && <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>}
+      {isDeletable && <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>}
     </li>
   );
 }

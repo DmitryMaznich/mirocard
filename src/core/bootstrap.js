@@ -144,14 +144,10 @@ export function normalizeBootstrap(raw = {}) {
     settings: raw.settings ?? null,
     students: Array.isArray(raw.students) ? raw.students : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
-    topicRecords: (() => {
-      const installed = Array.isArray(raw.topicRecords) ? raw.topicRecords : [];
-      const fpInstalledIds = new Set(installed.filter(r => FIRST_PARTY_DECK_IDS.has(r.meta?.id)).map(r => r.meta.id));
-      return [
-        ...BUILTIN_TOPICS.filter(t => !fpInstalledIds.has(t.meta.id)),
-        ...installed.filter(r => FIRST_PARTY_DECK_IDS.has(r.meta?.id) || !BUILTIN_TOPIC_IDS.has(r.meta?.id)),
-      ];
-    })(),
+    topicRecords: [
+      ...BUILTIN_TOPICS,
+      ...(Array.isArray(raw.topicRecords) ? raw.topicRecords.filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta?.id)) : []),
+    ],
     studentTopicLinks: indexStudentTopicLinks(raw.studentTopicLinks),
     conceptProgress: indexConceptProgress(raw.conceptProgress),
     sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-200) : [],
