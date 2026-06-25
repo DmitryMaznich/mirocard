@@ -500,43 +500,21 @@
 /* ── Copy mode (column_copy) ─────────────── */
 
 .col-copy-screen {
-  justify-content: flex-start;
-  padding-top: 12px;
-  padding-bottom: 0;
-  gap: 0;
+  justify-content: center;
+  gap: 16px;
 }
 
-.col-copy-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 8px;
-  padding: 0 10px 10px;
-  flex: 1;
-  overflow-y: auto;
-  justify-items: center;
-  align-items: start;
-}
-
-.col-copy-example {
+.col-copy-list {
   display: flex;
   flex-direction: column;
 }
 
-.col-copy-numrow {
+.col-copy-expr-row {
   display: flex;
-}
-
-/* Sign in copy mode is inline — no grid-position transform */
-.col-copy-sign {
-  transform: none;
-  padding-top: 20px;
-  color: #1a1a2e;
-  font-size: 45px;
 }
 
 .col-copy-refresh {
   flex-shrink: 0;
-  margin: 10px auto 10px;
   padding: 11px 32px;
   background: #fff;
   border: 2px solid #c3cff5;
