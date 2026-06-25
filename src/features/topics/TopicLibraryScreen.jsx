@@ -57,7 +57,7 @@ function InstalledTopicItem({ record, onSelect, onMenu, onInfo }) {
   );
 }
 
-function PreviewChip({ entry, topicRecords, onInstall, disabled, isUpdate }) {
+function PreviewChip({ entry, onInstall, disabled, isUpdate }) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState("");
   const label = loading   ? "…"
@@ -154,7 +154,6 @@ export default function TopicLibraryScreen() {
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
 
   const [catalog,           setCatalog]           = useState(null);
-  const [catalogLoading,    setCatalogLoading]    = useState(false);
   const [analyticsTarget,   setAnalyticsTarget]   = useState(null);
   const [deleting,          setDeleting]          = useState(null);
   const [infoTopic,         setInfoTopic]         = useState(null);
@@ -226,7 +225,7 @@ export default function TopicLibraryScreen() {
           topicRecords={topicRecords}
           onInstall={installCatalogEntry}
           onOpenCatalog={() => setScreen("catalog")}
-          disabled={catalogLoading}
+          disabled={false}
         />
       </div>
 
