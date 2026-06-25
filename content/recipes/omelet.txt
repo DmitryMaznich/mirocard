@@ -1,4 +1,11 @@
 # photo: omelet.webp
+# tags: завтрак
+# portions: 2
+# ingredients:
+#   яйца | |
+#   колбаса | |
+#   соль | |
+#   масло сливочное | |
 Омлет с колбасой
 [omelet.webp]
 

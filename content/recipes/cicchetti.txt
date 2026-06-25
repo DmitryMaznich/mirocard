@@ -1,5 +1,10 @@
 # photo: cicchetti.webp
 # status: draft
+# tags: перекус, обед
+# portions: 4
+# ingredients:
+#   багет | 1 | шт
+#   масло оливковое | |
 Чиккетти
 [cicchetti.webp]
 

@@ -1,5 +1,13 @@
 # photo: chicken_wings.webp
 # status: final
+# tags: ужин, перекус
+# portions: 3
+# ingredients:
+#   крылья | |
+#   чеснок | |
+#   масло оливковое | |
+#   соль | |
+#   специи | |
 Крылышки запечённые в духовке
 [chicken_wings.webp]
 

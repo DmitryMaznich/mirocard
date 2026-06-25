@@ -1,4 +1,10 @@
 # photo: fried_eggs.webp
+# tags: завтрак
+# portions: 1
+# ingredients:
+#   яйца | 2 | шт
+#   масло сливочное | |
+#   соль | |
 Яичница-глазунья
 [fried_eggs.webp]
 

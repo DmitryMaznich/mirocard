@@ -1,5 +1,14 @@
 # photo: fried_potatoes.webp
 # status: final
+# tags: обед, ужин
+# portions: 3
+# ingredients:
+#   картошка | |
+#   лук | |
+#   чеснок | |
+#   масло растительное | |
+#   соль | |
+#   специи | |
 Жареная картошка
 [fried_potatoes.webp]
 

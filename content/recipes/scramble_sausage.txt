@@ -1,5 +1,13 @@
 # photo: scramble_sausage.webp
 # status: final
+# tags: завтрак, перекус
+# portions: 2
+# ingredients:
+#   колбаса | |
+#   яйца | 3 | шт
+#   масло сливочное | | г
+#   соль | | 
+#   специи | |
 Скрамбл с колбасой
 [scramble_sausage.webp]
 

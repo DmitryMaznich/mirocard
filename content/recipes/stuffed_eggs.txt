@@ -1,4 +1,13 @@
 # photo: stuffed_eggs.webp
+# tags: перекус, завтрак
+# portions: 4
+# ingredients:
+#   яйца | 10 | шт
+#   сливочный сыр | |
+#   укроп | |
+#   соль | |
+#   специи | |
+#   чеснок | |
 Фаршированные яйца
 [stuffed_eggs.webp]
 

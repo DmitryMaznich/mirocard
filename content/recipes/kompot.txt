@@ -1,4 +1,9 @@
 # photo: kompot.webp
+# tags: перекус
+# portions: 2
+# ingredients:
+#   замороженные овощи | 1 | стакан
+#   сахар | 3 | ст.л
 Компот из ягод
 [kompot.webp]
 

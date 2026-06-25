@@ -1,5 +1,14 @@
 # photo: kislo_zelje.webp
 # status: draft
+# tags: обед, ужин
+# portions: 4
+# ingredients:
+#   кислая капуста | |
+#   колбаса | |
+#   лук | 1 | шт
+#   масло растительное | 2 | ст.л
+#   специи | |
+#   соль | |
 Кисло зелье
 [kislo_zelje.webp]
 

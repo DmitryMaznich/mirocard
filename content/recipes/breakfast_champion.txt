@@ -1,5 +1,17 @@
 # photo: breakfast_champion.webp
 # status: draft
+# tags: завтрак
+# portions: 4
+# ingredients:
+#   творог | 3 | шт
+#   сметана | 1 | шт
+#   йогурт обычный | 6 | шт
+#   сахар | 3 | ст.л
+#   клубника | | 
+#   малина | | 
+#   ежевика | | 
+#   мёд | | 
+#   специи | |
 Завтрак чемпиона
 [breakfast_champion.webp]
 

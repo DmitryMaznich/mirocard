@@ -1,5 +1,13 @@
 # photo: chicken_potato_oven.webp
 # status: draft
+# tags: обед, ужин
+# portions: 4
+# ingredients:
+#   бедра | | 
+#   картошка | | кг
+#   чеснок | 5 | зуб
+#   специи | |
+#   масло оливковое | |
 Запечённая курица с картошкой по-деревенски
 [chicken_potato_oven.webp]
 
