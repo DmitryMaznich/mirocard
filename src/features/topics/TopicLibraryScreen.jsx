@@ -42,6 +42,32 @@ function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAn
   );
 }
 
+const CATALOG_CATEGORIES = {
+  letter_writing:           "Чтение",
+  reading_dad_poems:        "Чтение",
+  reading_dad_instructions: "Чтение",
+  reading_dad_texts:        "Чтение",
+  sentence_puzzle:          "Чтение",
+  phrase_match_pilot:       "Чтение",
+  vowel_consonant_ru:       "Чтение",
+  magnetic_alphabet:        "Чтение",
+  comparison:               "Математика",
+  math_houses:              "Математика",
+  addition_subtraction:     "Математика",
+  column_addition:          "Математика",
+  emotions_v2:              "Словарный запас",
+  clothes_basic:            "Словарный запас",
+  verbs_v2:                 "Словарный запас",
+  transport_photo:          "Словарный запас",
+  opposites:                "Словарный запас",
+  tools_functions:          "Словарный запас",
+  first_then:               "Практика",
+  shopping_list:            "Практика",
+  coffee:                   "Практика",
+  chat_with_mom:            "Практика",
+};
+const CATEGORY_ORDER = ["Чтение", "Математика", "Словарный запас", "Практика"];
+
 function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) {
   const status = getTopicCatalogStatus(entry, topicRecords);
   const [loading, setLoading] = useState(false);
@@ -61,11 +87,14 @@ function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) 
     }
   }
 
-  const actionLabel = {
-    not_installed:    loading ? "Загружаем…" : "Скачать",
-    update_available: loading ? "Обновляем…" : `Обновить до v${entry.version}`,
-    installed:        loading ? "Обновляем…" : "Обновить с сервера",
-  }[status];
+  const chipVariant = status === "not_installed" ? "install"
+    : status === "update_available" ? "update"
+    : "sync";
+
+  const chipLabel = loading ? "…"
+    : status === "not_installed"    ? "↓ Скачать"
+    : status === "update_available" ? `↑ v${entry.version}`
+    : "↺ Синхр.";
 
   return (
     <li className="topic-item">
@@ -82,18 +111,15 @@ function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) 
           {status === "installed" && " · установлена"}
           {status === "update_available" && installedRecord?.meta?.version && ` · сейчас v${installedRecord.meta.version}`}
         </div>
-        {entry.description?.ru && (
-          <div className="topic-item__desc">{entry.description.ru}</div>
-        )}
         {error && <div className="form-error">{error}</div>}
       </div>
-      <Button
-        variant={status === "installed" ? "secondary" : "primary"}
+      <button
+        className={`topic-action-chip topic-action-chip--${chipVariant}`}
         disabled={disabled || loading}
         onClick={handleDownload}
       >
-        {actionLabel}
-      </Button>
+        {chipLabel}
+      </button>
     </li>
   );
 }
@@ -287,19 +313,40 @@ export default function TopicLibraryScreen() {
               <div className="empty-state__text">Загружаем каталог…</div>
             </div>
           )}
-          {catalog && (
-            <ul className="topic-list">
-              {catalog.decks.map((entry) => (
-                <CatalogTopicItem
-                  key={entry.id}
-                  entry={entry}
-                  topicRecords={topicRecords}
-                  onInstall={installCatalogEntry}
-                  disabled={refreshingDecks}
-                />
-              ))}
-            </ul>
-          )}
+          {catalog && (() => {
+            const grouped = CATEGORY_ORDER
+              .map((cat) => ({
+                label:   cat,
+                entries: catalog.decks.filter((e) => CATALOG_CATEGORIES[e.id] === cat),
+              }))
+              .filter((g) => g.entries.length > 0);
+            const uncategorized = catalog.decks.filter((e) => !CATALOG_CATEGORIES[e.id]);
+            const renderItem = (entry) => (
+              <CatalogTopicItem
+                key={entry.id}
+                entry={entry}
+                topicRecords={topicRecords}
+                onInstall={installCatalogEntry}
+                disabled={refreshingDecks}
+              />
+            );
+            return (
+              <>
+                {grouped.map((group) => (
+                  <div key={group.label} className="catalog-section">
+                    <div className="catalog-section-header">{group.label}</div>
+                    <ul className="topic-list">{group.entries.map(renderItem)}</ul>
+                  </div>
+                ))}
+                {uncategorized.length > 0 && (
+                  <div className="catalog-section">
+                    <div className="catalog-section-header">Другое</div>
+                    <ul className="topic-list">{uncategorized.map(renderItem)}</ul>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
