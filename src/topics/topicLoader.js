@@ -921,27 +921,6 @@ const DEFAULT_MODES = {
       evaluation: "none",
       ui: { title: "Перепиши", instruction: "Перепиши примеры в тетрадь и реши", icon: "media/icons/column_copy_mode.svg" },
       params: {
-        operation: {
-          type: "enum",
-          values: ["add", "subtract", "mixed"],
-          labels: { ru: { add: "Только +", subtract: "Только −", mixed: "Микс" } },
-          default: "add",
-          label: { ru: "Операция" },
-        },
-        carryMode: {
-          type: "enum",
-          values: ["none", "carry", "mixed"],
-          labels: { ru: { none: "Без переноса / займа", carry: "С переносом / займом", mixed: "Микс" } },
-          default: "none",
-          label: { ru: "Перенос / заём" },
-        },
-        digits: {
-          type: "enum",
-          values: [2, 3],
-          labels: { ru: { "2": "2-значные", "3": "3-значные" } },
-          default: 2,
-          label: { ru: "Разрядность" },
-        },
         count: {
           type: "enum",
           values: [6, 8, 10],
