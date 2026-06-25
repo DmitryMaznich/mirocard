@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "id": "written_letters",
+    "renderer": "written_letters",
+    "version": "1.0.0",
+    "title": { "ru": "Письменные буквы" },
+    "avatar": "media/avatar.svg",
+    "about": {
+      "description": "Тема тренирует распознавание рукописных букв русского алфавита: строчные и заглавные, соответствие печатной и письменной форм.",
+      "goals": [
+        "Научить ребёнка различать строчные и заглавные рукописные буквы.",
+        "Закрепить соответствие печатной и рукописной формы каждой буквы.",
+        "Научить находить пару: заглавная рукописная ↔ строчная рукописная."
+      ],
+      "finalGoal": "Ребёнок уверенно узнаёт любую букву алфавита в рукописном написании и соотносит её с печатным образцом.",
+      "flow": [
+        "Начинайте с режима «Строчная или заглавная?».",
+        "Переходите к «Найди рукописную» / «Найди печатную» для закрепления.",
+        "«Найди пару» — завершающий режим для автоматизации."
+      ]
+    }
+  },
+  "modes": [
+    {
+      "id": "sort_case",
+      "type": "sort_case",
+      "evaluation": "auto",
+      "ui": {
+        "title": { "ru": "Строчная или заглавная?" },
+        "instruction": { "ru": "Потяни букву в нужную группу" },
+        "icon": "media/icons/written_sort_case.svg"
+      }
+    },
+    {
+      "id": "match_print_to_written",
+      "type": "match_print_to_written",
+      "evaluation": "auto",
+      "ui": {
+        "title": { "ru": "Найди рукописную" },
+        "instruction": { "ru": "Нажми на рукописную букву" },
+        "icon": "media/icons/written_match_print.svg"
+      }
+    },
+    {
+      "id": "match_written_to_print",
+      "type": "match_written_to_print",
+      "evaluation": "auto",
+      "ui": {
+        "title": { "ru": "Найди печатную" },
+        "instruction": { "ru": "Нажми на печатную букву" },
+        "icon": "media/icons/written_match_written.svg"
+      }
+    },
+    {
+      "id": "match_pair",
+      "type": "match_pair",
+      "evaluation": "auto",
+      "ui": {
+        "title": { "ru": "Найди пару" },
+        "instruction": { "ru": "Нажми на строчную пару заглавной буквы" },
+        "icon": "media/icons/written_match_pair.svg"
+      }
+    }
+  ],
+  "cards": [
+    { "id": "letter_а", "conceptId": "letter_а", "primary": true, "params": { "printed_upper": "А", "printed_lower": "а", "has_upper": true, "tags": ["oval", "round"] } },
+    { "id": "letter_б", "conceptId": "letter_б", "primary": true, "params": { "printed_upper": "Б", "printed_lower": "б", "has_upper": true, "tags": ["arch", "shelf"] } },
+    { "id": "letter_в", "conceptId": "letter_в", "primary": true, "params": { "printed_upper": "В", "printed_lower": "в", "has_upper": true, "tags": ["oval", "double-arc"] } },
+    { "id": "letter_г", "conceptId": "letter_г", "primary": true, "params": { "printed_upper": "Г", "printed_lower": "г", "has_upper": true, "tags": ["arch", "hook"] } },
+    { "id": "letter_д", "conceptId": "letter_д", "primary": true, "params": { "printed_upper": "Д", "printed_lower": "д", "has_upper": true, "tags": ["oval", "descender"] } },
+    { "id": "letter_е", "conceptId": "letter_е", "primary": true, "params": { "printed_upper": "Е", "printed_lower": "е", "has_upper": true, "tags": ["arc", "bar"] } },
+    { "id": "letter_ё", "conceptId": "letter_ё", "primary": true, "params": { "printed_upper": "Ё", "printed_lower": "ё", "has_upper": true, "tags": ["arc", "bar"] } },
+    { "id": "letter_ж", "conceptId": "letter_ж", "primary": true, "params": { "printed_upper": "Ж", "printed_lower": "ж", "has_upper": true, "tags": ["arch", "star"] } },
+    { "id": "letter_з", "conceptId": "letter_з", "primary": true, "params": { "printed_upper": "З", "printed_lower": "з", "has_upper": true, "tags": ["arc", "open"] } },
+    { "id": "letter_и", "conceptId": "letter_и", "primary": true, "params": { "printed_upper": "И", "printed_lower": "и", "has_upper": true, "tags": ["arch", "wave"] } },
+    { "id": "letter_й", "conceptId": "letter_й", "primary": true, "params": { "printed_upper": "Й", "printed_lower": "й", "has_upper": true, "tags": ["arch", "wave", "breve"] } },
+    { "id": "letter_к", "conceptId": "letter_к", "primary": true, "params": { "printed_upper": "К", "printed_lower": "к", "has_upper": true, "tags": ["arch", "hook"] } },
+    { "id": "letter_л", "conceptId": "letter_л", "primary": true, "params": { "printed_upper": "Л", "printed_lower": "л", "has_upper": true, "tags": ["arch", "diagonal"] } },
+    { "id": "letter_м", "conceptId": "letter_м", "primary": true, "params": { "printed_upper": "М", "printed_lower": "м", "has_upper": true, "tags": ["arch", "peak"] } },
+    { "id": "letter_н", "conceptId": "letter_н", "primary": true, "params": { "printed_upper": "Н", "printed_lower": "н", "has_upper": true, "tags": ["arch", "bar"] } },
+    { "id": "letter_о", "conceptId": "letter_о", "primary": true, "params": { "printed_upper": "О", "printed_lower": "о", "has_upper": true, "tags": ["oval", "round"] } },
+    { "id": "letter_п", "conceptId": "letter_п", "primary": true, "params": { "printed_upper": "П", "printed_lower": "п", "has_upper": true, "tags": ["arch"] } },
+    { "id": "letter_р", "conceptId": "letter_р", "primary": true, "params": { "printed_upper": "Р", "printed_lower": "р", "has_upper": true, "tags": ["oval", "descender"] } },
+    { "id": "letter_с", "conceptId": "letter_с", "primary": true, "params": { "printed_upper": "С", "printed_lower": "с", "has_upper": true, "tags": ["arc", "open"] } },
+    { "id": "letter_т", "conceptId": "letter_т", "primary": true, "params": { "printed_upper": "Т", "printed_lower": "т", "has_upper": true, "tags": ["arch", "bar"] } },
+    { "id": "letter_у", "conceptId": "letter_у", "primary": true, "params": { "printed_upper": "У", "printed_lower": "у", "has_upper": true, "tags": ["arch", "descender"] } },
+    { "id": "letter_ф", "conceptId": "letter_ф", "primary": true, "params": { "printed_upper": "Ф", "printed_lower": "ф", "has_upper": true, "tags": ["oval", "stem"] } },
+    { "id": "letter_х", "conceptId": "letter_х", "primary": true, "params": { "printed_upper": "Х", "printed_lower": "х", "has_upper": true, "tags": ["arch", "cross"] } },
+    { "id": "letter_ц", "conceptId": "letter_ц", "primary": true, "params": { "printed_upper": "Ц", "printed_lower": "ц", "has_upper": true, "tags": ["arch", "tail"] } },
+    { "id": "letter_ч", "conceptId": "letter_ч", "primary": true, "params": { "printed_upper": "Ч", "printed_lower": "ч", "has_upper": true, "tags": ["arch", "hook"] } },
+    { "id": "letter_ш", "conceptId": "letter_ш", "primary": true, "params": { "printed_upper": "Ш", "printed_lower": "ш", "has_upper": true, "tags": ["arch", "triple"] } },
+    { "id": "letter_щ", "conceptId": "letter_щ", "primary": true, "params": { "printed_upper": "Щ", "printed_lower": "щ", "has_upper": true, "tags": ["arch", "triple", "tail"] } },
+    { "id": "letter_ъ", "conceptId": "letter_ъ", "primary": true, "params": { "printed_upper": null, "printed_lower": "ъ", "has_upper": false, "tags": ["arch", "shelf"] } },
+    { "id": "letter_ы", "conceptId": "letter_ы", "primary": true, "params": { "printed_upper": null, "printed_lower": "ы", "has_upper": false, "tags": ["arch", "oval"] } },
+    { "id": "letter_ь", "conceptId": "letter_ь", "primary": true, "params": { "printed_upper": null, "printed_lower": "ь", "has_upper": false, "tags": ["arch", "soft"] } },
+    { "id": "letter_э", "conceptId": "letter_э", "primary": true, "params": { "printed_upper": "Э", "printed_lower": "э", "has_upper": true, "tags": ["arc", "open", "bar"] } },
+    { "id": "letter_ю", "conceptId": "letter_ю", "primary": true, "params": { "printed_upper": "Ю", "printed_lower": "ю", "has_upper": true, "tags": ["oval", "bar"] } },
+    { "id": "letter_я", "conceptId": "letter_я", "primary": true, "params": { "printed_upper": "Я", "printed_lower": "я", "has_upper": true, "tags": ["oval", "hook"] } }
+  ]
+}

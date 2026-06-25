@@ -1506,6 +1506,20 @@ export async function listTopicRecords(db) {
   return records.filter(Boolean).map(migrateRecord);
 }
 
+export async function installFirstPartyDeckIfNeeded(db, topicId) {
+  const ids = await getInstalledTopicIds(db);
+  if (ids.includes(topicId)) return;
+  try {
+    const res = await fetch(`/decks/${topicId}/topic.json`);
+    if (!res.ok) return;
+    const manifest = await res.json();
+    await kv.set(db, `topic:${topicId}`, { ...manifest, installedAt: new Date().toISOString() });
+    await addToIndex(db, topicId);
+  } catch {
+    // Silently fail — builtin will be used as fallback
+  }
+}
+
 export async function deleteTopicRecord(db, topicId) {
   await topics.deleteTopic(db, topicId);
   await kv.del(db, `topic:${topicId}`);

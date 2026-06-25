@@ -1,8 +1,8 @@
 import { kv } from "@/core/db";
 import { useAppStore } from "@/core/store";
-import { listTopicRecords } from "@/topics/topicLoader";
+import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
-import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
+import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
 
 export function isDeletedStudent(student) {
   return Boolean(student?.deletedAt);
@@ -144,10 +144,14 @@ export function normalizeBootstrap(raw = {}) {
     settings: raw.settings ?? null,
     students: Array.isArray(raw.students) ? raw.students : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
-    topicRecords: [
-      ...BUILTIN_TOPICS,
-      ...(Array.isArray(raw.topicRecords) ? raw.topicRecords.filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta.id)) : []),
-    ],
+    topicRecords: (() => {
+      const installed = Array.isArray(raw.topicRecords) ? raw.topicRecords : [];
+      const fpInstalledIds = new Set(installed.filter(r => FIRST_PARTY_DECK_IDS.has(r.meta?.id)).map(r => r.meta.id));
+      return [
+        ...BUILTIN_TOPICS.filter(t => !fpInstalledIds.has(t.meta.id)),
+        ...installed.filter(r => FIRST_PARTY_DECK_IDS.has(r.meta?.id) || !BUILTIN_TOPIC_IDS.has(r.meta?.id)),
+      ];
+    })(),
     studentTopicLinks: indexStudentTopicLinks(raw.studentTopicLinks),
     conceptProgress: indexConceptProgress(raw.conceptProgress),
     sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-200) : [],
@@ -204,7 +208,10 @@ export async function loadLocalBootstrap(db) {
       kv.get(db, "sessions"),
       kv.get(db, "lastContext"),
       kv.get(db, "activeSession"),
-      listTopicRecords(db),
+      (async () => {
+        await Promise.all([...FIRST_PARTY_DECK_IDS].map((id) => installFirstPartyDeckIfNeeded(db, id)));
+        return listTopicRecords(db);
+      })(),
     ]);
 
   return normalizeBootstrap({

@@ -442,6 +442,9 @@ export default function ParamsScreen() {
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
 
+  const allModes = topicRecord?.modes ?? [];
+  const modeBackScreen = allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
+
   if (!topicRecord || !mode) {
     return (
       <div className="screen">
@@ -613,7 +616,7 @@ export default function ParamsScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("modes")}>←</button>
+        <button className="back-btn" onClick={() => setScreen(modeBackScreen)}>←</button>
         <h1 className="screen-title">{modeTitle}</h1>
         <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
       </div>
