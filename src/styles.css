@@ -20243,3 +20243,42 @@ body { background: #eef0ef; }
   border-top: 6px solid #f0f5f4;
 }
 
+/* ── Topics Screen Body ──────────────────────────────────── */
+.topics-screen-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 32px;
+}
+.topics-zone-list {
+  margin-top: 8px;
+}
+
+/* ── Catalog Preview (Zone 3) ────────────────────────────── */
+.catalog-preview {
+  padding: 8px 16px 4px;
+}
+.catalog-preview__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.catalog-preview__chip-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.catalog-preview__link {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #4a9b8f;
+  cursor: pointer;
+  display: block;
+  margin-top: 4px;
+}
+.catalog-preview__link:active { opacity: 0.7; }
+

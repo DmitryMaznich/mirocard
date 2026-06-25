@@ -3,25 +3,24 @@ import { useAppStore } from "@/core/store";
 import { AnalyticsScreen } from "@/features/analytics/AnalyticsScreen";
 import { getDb } from "@/core/db";
 import { deleteTopicRecord } from "@/topics/topicLoader";
-import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import TopicCover from "@/shared/components/TopicCover";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import TopicImport from "./TopicImport";
 import InfoModal from "@/shared/components/InfoModal";
-import { getTopicCatalogStatus, getTopicTitle } from "@/shared/utils/format";
+import TopicHeroCard from "./TopicHeroCard";
+import TopicActionSheet from "./TopicActionSheet";
+import { getTopicTitle } from "@/shared/utils/format";
 import {
   fetchCatalog,
   fetchCatalogTopic,
   getImportErrorMessage,
-  refreshInstalledCatalogTopics,
 } from "./catalogService";
 
-function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAnalytics, hasUpdate }) {
-  const isBuiltin   = Boolean(record.meta.builtin);
-  const isDeletable = !isBuiltin;
+function InstalledTopicItem({ record, onSelect, onMenu, onInfo }) {
+  const isBuiltin = Boolean(record.meta.builtin);
   return (
-    <li className={`topic-item ${isActive ? "topic-item--active" : ""}${isBuiltin ? " topic-item--builtin" : ""}`} onClick={() => onSelect(record)}>
+    <li className="topic-item" onClick={() => onSelect(record)}>
       <TopicCover
         topicId={record.meta.id}
         avatarPath={record.meta.avatar}
@@ -31,55 +30,45 @@ function InstalledTopicItem({ record, isActive, onSelect, onDelete, onInfo, onAn
       <div className="topic-item__info">
         <div className="topic-item__title">{getTopicTitle(record.meta.title)}</div>
         <div className="topic-item__meta">
-          {isBuiltin ? "встроенная" : `v${record.meta.version} · ${record.meta.conceptCount ?? record.cards.length} понятий`}
-          {hasUpdate && <span className="tab-badge" style={{ marginLeft: 6 }}>обновление</span>}
+          {isBuiltin
+            ? "встроенная"
+            : `v${record.meta.version} · ${record.meta.conceptCount ?? record.cards.length} понятий`}
         </div>
       </div>
-      <button className="icon-btn icon-btn--info" onClick={(e) => { e.stopPropagation(); onInfo(record); }} title="О теме">i</button>
-      {!isBuiltin && <button className="icon-btn" onClick={(e) => { e.stopPropagation(); onAnalytics(record); }} title="Аналитика">📊</button>}
-      {isDeletable && <button className="icon-btn icon-btn--danger" onClick={(e) => { e.stopPropagation(); onDelete(record); }}>✕</button>}
+      {isBuiltin
+        ? (
+          <button
+            className="icon-btn icon-btn--info"
+            onClick={(e) => { e.stopPropagation(); onInfo(record); }}
+            aria-label="О теме"
+          >
+            i
+          </button>
+        ) : (
+          <button
+            className="icon-btn"
+            onClick={(e) => { e.stopPropagation(); onMenu(record); }}
+            aria-label="Действия"
+          >
+            ⋯
+          </button>
+        )}
     </li>
   );
 }
 
-const CATALOG_CATEGORIES = {
-  letter_writing:           "Чтение",
-  reading_dad_poems:        "Чтение",
-  reading_dad_instructions: "Чтение",
-  reading_dad_texts:        "Чтение",
-  sentence_puzzle:          "Чтение",
-  phrase_match_pilot:       "Чтение",
-  vowel_consonant_ru:       "Чтение",
-  magnetic_alphabet:        "Чтение",
-  comparison:               "Математика",
-  math_houses:              "Математика",
-  addition_subtraction:     "Математика",
-  column_addition:          "Математика",
-  emotions_v2:              "Словарный запас",
-  clothes_basic:            "Словарный запас",
-  verbs_v2:                 "Словарный запас",
-  transport_photo:          "Словарный запас",
-  opposites:                "Словарный запас",
-  tools_functions:          "Словарный запас",
-  first_then:               "Практика",
-  shopping_list:            "Практика",
-  coffee:                   "Практика",
-  chat_with_mom:            "Практика",
-};
-const CATEGORY_ORDER = ["Чтение", "Математика", "Словарный запас", "Практика"];
-
-function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) {
-  const status = getTopicCatalogStatus(entry, topicRecords);
+function PreviewChip({ entry, topicRecords, onInstall, disabled, isUpdate }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
-  const installedRecord = topicRecords.find((record) => record.meta.id === entry.id);
-  const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(entry.id);
+  const [error,   setError]   = useState("");
+  const label = loading   ? "…"
+    : isUpdate            ? `↑ v${entry.version}`
+    : `↓ ${entry.title?.ru ?? entry.id}`;
 
-  async function handleDownload() {
+  async function handleClick() {
     setLoading(true);
     setError("");
     try {
-      await onInstall(entry, { force: status !== "not_installed" });
+      await onInstall(entry, { force: isUpdate });
     } catch (err) {
       setError(getImportErrorMessage(err));
     } finally {
@@ -87,94 +76,89 @@ function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) 
     }
   }
 
-  const chipVariant = status === "not_installed" ? "install"
-    : status === "update_available" ? "update"
-    : "sync";
+  return (
+    <span className="catalog-preview__chip-wrap">
+      <button
+        className={`topic-action-chip topic-action-chip--${isUpdate ? "update" : "install"}`}
+        disabled={disabled || loading}
+        onClick={handleClick}
+      >
+        {label}
+      </button>
+      {error && <div className="form-error">{error}</div>}
+    </span>
+  );
+}
 
-  const chipLabel = loading ? "…"
-    : status === "not_installed"    ? "↓ Скачать"
-    : status === "update_available" ? `↑ v${entry.version}`
-    : "↺ Синхр.";
+function CatalogPreview({ catalog, topicRecords, onInstall, onOpenCatalog, disabled }) {
+  if (!catalog) return null;
+
+  const updates = catalog.decks.filter((e) => {
+    const installed = topicRecords.find((r) => r.meta.id === e.id);
+    return installed && installed.meta.version !== e.version;
+  });
+  const newTopics = catalog.decks
+    .filter((e) => !topicRecords.find((r) => r.meta.id === e.id))
+    .slice(0, 3);
+
+  if (updates.length === 0 && newTopics.length === 0) {
+    return (
+      <div className="catalog-preview">
+        <button className="catalog-preview__link" onClick={onOpenCatalog}>
+          Открыть каталог →
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <li className="topic-item">
-      <TopicCover
-        topicId={entry.id}
-        avatarPath={avatarPath}
-        title={entry.title}
-        size="medium"
-      />
-      <div className="topic-item__info">
-        <div className="topic-item__title">{entry.title?.ru ?? entry.id}</div>
-        <div className="topic-item__meta">
-          v{entry.version}
-          {status === "installed" && " · установлена"}
-          {status === "update_available" && installedRecord?.meta?.version && ` · сейчас v${installedRecord.meta.version}`}
-        </div>
-        {error && <div className="form-error">{error}</div>}
+    <div className="catalog-preview">
+      <div className="catalog-section-header">Из каталога</div>
+      <div className="catalog-preview__chips">
+        {updates.map((entry) => (
+          <PreviewChip
+            key={entry.id}
+            entry={entry}
+            topicRecords={topicRecords}
+            onInstall={onInstall}
+            disabled={disabled}
+            isUpdate
+          />
+        ))}
+        {newTopics.map((entry) => (
+          <PreviewChip
+            key={entry.id}
+            entry={entry}
+            topicRecords={topicRecords}
+            onInstall={onInstall}
+            disabled={disabled}
+            isUpdate={false}
+          />
+        ))}
       </div>
-      <button
-        className={`topic-action-chip topic-action-chip--${chipVariant}`}
-        disabled={disabled || loading}
-        onClick={handleDownload}
-      >
-        {chipLabel}
+      <button className="catalog-preview__link" onClick={onOpenCatalog}>
+        Открыть каталог →
       </button>
-    </li>
+    </div>
   );
 }
 
 export default function TopicLibraryScreen() {
-  const setScreen          = useAppStore((s) => s.setScreen);
-  const topicRecords       = useAppStore((s) => s.topicRecords);
-  const setTopicRecords    = useAppStore((s) => s.setTopicRecords);
-  const upsertTopicRecord  = useAppStore((s) => s.upsertTopicRecord);
-  const buildInfo          = useAppStore((s) => s.buildInfo);
-  const activeTopicId      = useAppStore((s) => s.activeTopicId);
-  const setActiveTopicId   = useAppStore((s) => s.setActiveTopicId);
-  const activeStudentId    = useAppStore((s) => s.activeStudentId);
+  const setScreen         = useAppStore((s) => s.setScreen);
+  const topicRecords      = useAppStore((s) => s.topicRecords);
+  const setTopicRecords   = useAppStore((s) => s.setTopicRecords);
+  const upsertTopicRecord = useAppStore((s) => s.upsertTopicRecord);
+  const buildInfo         = useAppStore((s) => s.buildInfo);
+  const activeTopicId     = useAppStore((s) => s.activeTopicId);
+  const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
+  const activeStudentId   = useAppStore((s) => s.activeStudentId);
 
-  const [tab,        setTab]        = useState("mine");
-  const [analyticsTarget, setAnalyticsTarget] = useState(null);
-  const [catalog,    setCatalog]    = useState(null);
-  const [catalogLoading, setCatalogLoading] = useState(false);
-  const [catalogErr, setCatalogErr] = useState("");
-  const [catalogMessage, setCatalogMessage] = useState("");
-  const [refreshingDecks, setRefreshingDecks] = useState(false);
-  const [deleting,   setDeleting]   = useState(null);
-  const [infoTopic,  setInfoTopic]  = useState(null);
-
-  const loadCatalog = useCallback(async (force = false) => {
-    setCatalogLoading(true);
-    setCatalogErr("");
-    setCatalogMessage("");
-    try {
-      const nextCatalog = await fetchCatalog(force);
-      setCatalog(nextCatalog);
-      if (force) setCatalogMessage("Каталог обновлён");
-      return nextCatalog;
-    } catch {
-      setCatalogErr("Не удалось загрузить каталог");
-      return null;
-    } finally {
-      setCatalogLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (catalog !== null) return;
-    let cancelled = false;
-    fetchCatalog(false)
-      .then((nextCatalog) => {
-        if (!cancelled) setCatalog(nextCatalog);
-      })
-      .catch(() => {
-        if (!cancelled) setCatalogErr("Не удалось загрузить каталог");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [catalog]);
+  const [catalog,           setCatalog]           = useState(null);
+  const [catalogLoading,    setCatalogLoading]    = useState(false);
+  const [analyticsTarget,   setAnalyticsTarget]   = useState(null);
+  const [deleting,          setDeleting]          = useState(null);
+  const [infoTopic,         setInfoTopic]         = useState(null);
+  const [actionSheetRecord, setActionSheetRecord] = useState(null);
 
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
@@ -182,38 +166,14 @@ export default function TopicLibraryScreen() {
     return record;
   }, [buildInfo.version, upsertTopicRecord]);
 
-  async function handleRefreshInstalledDecks() {
-    setRefreshingDecks(true);
-    setCatalogErr("");
-    setCatalogMessage("");
-    try {
-      const result = await refreshInstalledCatalogTopics({
-        topicRecords,
-        appVersion: buildInfo.version,
-        force: true,
-      });
-      setCatalog(result.catalog);
-
-      if (result.updated.length === 0 && result.failed.length === 0) {
-        setCatalogMessage("Нет установленных тем для обновления");
-        return;
-      }
-
-      if (result.updated.length > 0) {
-        setTopicRecords(result.nextRecords);
-        const updated = result.updated.map(({ entry, record }) => `${entry.title?.ru ?? entry.id} v${record.meta.version}`);
-        setCatalogMessage(`Обновлено: ${updated.join(", ")}`);
-      }
-      if (result.failed.length > 0) {
-        const failed = result.failed.map(({ entry, error }) => `${entry.title?.ru ?? entry.id}: ${error}`);
-        setCatalogErr(`Не обновлено: ${failed.join("; ")}`);
-      }
-    } catch {
-      setCatalogErr("Не удалось обновить колоды с сервера");
-    } finally {
-      setRefreshingDecks(false);
-    }
-  }
+  useEffect(() => {
+    if (catalog !== null) return;
+    let cancelled = false;
+    fetchCatalog(false)
+      .then((c) => { if (!cancelled) setCatalog(c); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [catalog]);
 
   async function handleDelete() {
     const db = await getDb();
@@ -222,6 +182,9 @@ export default function TopicLibraryScreen() {
     setDeleting(null);
   }
 
+  const activeRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const otherRecords = topicRecords.filter((r) => r.meta.id !== activeTopicId);
+
   return (
     <div className="screen">
       <div className="screen-header">
@@ -229,125 +192,57 @@ export default function TopicLibraryScreen() {
         <h1 className="screen-title">Темы</h1>
       </div>
 
-      <div className="tab-bar">
-        <button
-          className={`tab-btn ${tab === "mine" ? "tab-btn--active" : ""}`}
-          onClick={() => setTab("mine")}
-        >
-          Мои темы ({topicRecords.length})
-        </button>
-        <button
-          className={`tab-btn ${tab === "catalog" ? "tab-btn--active" : ""}`}
-          onClick={() => setTab("catalog")}
-        >
-          Каталог
-          {catalog && (() => {
-            const n = topicRecords.filter((r) => {
-              const e = catalog.decks?.find((d) => d.id === r.meta.id);
-              return e && e.version !== r.meta.version;
-            }).length;
-            return n > 0 ? <span className="tab-badge" style={{ marginLeft: 6 }}>{n}</span> : null;
-          })()}
-        </button>
+      <div className="topics-screen-body">
+        {/* Zone 1: Hero — active topic */}
+        {activeRecord && (
+          <TopicHeroCard record={activeRecord} onInfo={setInfoTopic} />
+        )}
+        {!activeRecord && topicRecords.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state__text">Нет установленных тем</div>
+          </div>
+        )}
+
+        {/* Zone 2: All other topics */}
+        {otherRecords.length > 0 && (
+          <ul className="topic-list topics-zone-list">
+            {otherRecords.map((record) => (
+              <InstalledTopicItem
+                key={record.meta.id}
+                record={record}
+                onSelect={(r) => setActiveTopicId(r.meta.id)}
+                onMenu={setActionSheetRecord}
+                onInfo={setInfoTopic}
+              />
+            ))}
+          </ul>
+        )}
+
+        <TopicImport />
+
+        {/* Zone 3: Catalog preview */}
+        <CatalogPreview
+          catalog={catalog}
+          topicRecords={topicRecords}
+          onInstall={installCatalogEntry}
+          onOpenCatalog={() => setScreen("catalog")}
+          disabled={catalogLoading}
+        />
       </div>
 
-      {tab === "mine" && (
-        <div className="tab-content">
-          <TopicImport />
-          {topicRecords.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state__text">Нет установленных тем</div>
-              <Button variant="secondary" onClick={() => setTab("catalog")}>
-                Перейти в каталог
-              </Button>
-            </div>
-          ) : (
-            <ul className="topic-list">
-              {topicRecords.map((record) => {
-                const catalogEntry = catalog?.decks?.find((e) => e.id === record.meta.id);
-                const hasUpdate = !!catalogEntry && catalogEntry.version !== record.meta.version;
-                return (
-                  <InstalledTopicItem
-                    key={record.meta.id}
-                    record={record}
-                    isActive={record.meta.id === activeTopicId}
-                    onSelect={(r) => { setActiveTopicId(r.meta.id); setScreen("home"); }}
-                    onDelete={setDeleting}
-                    onInfo={setInfoTopic}
-                    onAnalytics={(r) => setAnalyticsTarget({
-                      studentId:  activeStudentId,
-                      topicId:    r.meta.id,
-                      topicTitle: getTopicTitle(r.meta.title),
-                    })}
-                    hasUpdate={hasUpdate}
-                  />
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {tab === "catalog" && (
-        <div className="tab-content">
-          <div className="catalog-actions">
-            <Button
-              variant="secondary"
-              onClick={() => loadCatalog(true)}
-              disabled={catalogLoading || refreshingDecks}
-            >
-              {catalogLoading ? "Проверяем…" : "Обновить каталог"}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleRefreshInstalledDecks}
-              disabled={catalogLoading || refreshingDecks || topicRecords.length === 0}
-            >
-              {refreshingDecks ? "Обновляем…" : "Обновить колоды с сервера"}
-            </Button>
-          </div>
-          {catalogMessage && <div className="form-success">{catalogMessage}</div>}
-          {catalogErr && <div className="form-error" style={{ margin: 16 }}>{catalogErr}</div>}
-          {!catalog && !catalogErr && (
-            <div className="empty-state">
-              <div className="empty-state__text">Загружаем каталог…</div>
-            </div>
-          )}
-          {catalog && (() => {
-            const grouped = CATEGORY_ORDER
-              .map((cat) => ({
-                label:   cat,
-                entries: catalog.decks.filter((e) => CATALOG_CATEGORIES[e.id] === cat),
-              }))
-              .filter((g) => g.entries.length > 0);
-            const uncategorized = catalog.decks.filter((e) => !CATALOG_CATEGORIES[e.id]);
-            const renderItem = (entry) => (
-              <CatalogTopicItem
-                key={entry.id}
-                entry={entry}
-                topicRecords={topicRecords}
-                onInstall={installCatalogEntry}
-                disabled={refreshingDecks}
-              />
-            );
-            return (
-              <>
-                {grouped.map((group) => (
-                  <div key={group.label} className="catalog-section">
-                    <div className="catalog-section-header">{group.label}</div>
-                    <ul className="topic-list">{group.entries.map(renderItem)}</ul>
-                  </div>
-                ))}
-                {uncategorized.length > 0 && (
-                  <div className="catalog-section">
-                    <div className="catalog-section-header">Другое</div>
-                    <ul className="topic-list">{uncategorized.map(renderItem)}</ul>
-                  </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
+      {/* Overlays */}
+      {actionSheetRecord && (
+        <TopicActionSheet
+          record={actionSheetRecord}
+          onClose={() => setActionSheetRecord(null)}
+          onInfo={(r) => { setInfoTopic(r); }}
+          onAnalytics={(r) => setAnalyticsTarget({
+            studentId:  activeStudentId,
+            topicId:    r.meta.id,
+            topicTitle: getTopicTitle(r.meta.title),
+          })}
+          onDelete={(r) => setDeleting(r)}
+        />
       )}
 
       {infoTopic && (
