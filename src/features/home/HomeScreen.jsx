@@ -8,7 +8,11 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
+import { loadPlan } from "@/features/planner/plannerApi";
+import { countPlanRecipes } from "@/features/planner/plannerUtils";
 import "@/features/planner/planner.css";
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
 
 function SettingsIcon() {
   return (
@@ -19,6 +23,8 @@ function SettingsIcon() {
     </svg>
   );
 }
+
+// ─── Header ───────────────────────────────────────────────────────────────────
 
 function HomeHeader({ onSettings, onBrandTap }) {
   return (
@@ -36,6 +42,55 @@ function HomeHeader({ onSettings, onBrandTap }) {
     </header>
   );
 }
+
+// ─── Student picker bar ────────────────────────────────────────────────────────
+
+function StudentPickerBar({ student, onTap }) {
+  return (
+    <button className="home-student-bar" onClick={onTap}>
+      {student ? (
+        <>
+          {student.photo ? (
+            <img className="home-student-bar__avatar" src={student.photo} alt="" />
+          ) : (
+            <div className="home-student-bar__avatar home-student-bar__avatar--initials">
+              {getInitials(student.name)}
+            </div>
+          )}
+          <span className="home-student-bar__name">{student.name}</span>
+          <span className="home-student-bar__chevron">▾</span>
+        </>
+      ) : (
+        <span className="home-student-bar__empty">+ Добавить ученика</span>
+      )}
+    </button>
+  );
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+
+function HomeTabs({ active, onChange }) {
+  return (
+    <div className="home-tabs" role="tablist">
+      <button
+        role="tab"
+        className={`home-tab${active === 'session' ? ' home-tab--active' : ''}`}
+        onClick={() => onChange('session')}
+      >
+        Занятие
+      </button>
+      <button
+        role="tab"
+        className={`home-tab${active === 'planner' ? ' home-tab--active' : ''}`}
+        onClick={() => onChange('planner')}
+      >
+        Планировщик
+      </button>
+    </div>
+  );
+}
+
+// ─── Journey step helpers ─────────────────────────────────────────────────────
 
 function RecipeAvatar({ topicId, imagePath }) {
   const url = useTopicFile(topicId, imagePath);
@@ -68,6 +123,120 @@ function JourneyStep({ state, number, label, value, onClick, avatar }) {
     </button>
   );
 }
+
+// ─── Session tab ──────────────────────────────────────────────────────────────
+
+function SessionTab({
+  student, topic, activeText, mode,
+  isReading, isChatPractice,
+  s2, s3, topicLabel, readingStepValue, modeTitle,
+  canStart, startOrContinue, setScreen,
+}) {
+  if (!student) {
+    return (
+      <div className="home-tab-empty">
+        <p>Выбери ученика выше</p>
+        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
+      </div>
+    );
+  }
+
+  return (
+    <section className="home-section">
+      <div className="home-section-header">
+        <span className="home-section-label">Собери занятие</span>
+      </div>
+      <div className="journey-steps">
+        <JourneyStep
+          state={s2}
+          number="1"
+          label="Тема"
+          value={topicLabel}
+          onClick={() => setScreen("topics")}
+          avatar={topic ? (
+            <TopicCover
+              topicId={topic.meta.id}
+              avatarPath={topic.meta.avatar}
+              title={topic.meta.title}
+              size="step"
+            />
+          ) : null}
+        />
+        <JourneyStep
+          state={s3}
+          number="2"
+          label={isReading ? "Текст и режим" : "Режим"}
+          value={isReading ? readingStepValue : modeTitle || "Не выбран"}
+          onClick={() => setScreen(
+            isReading && activeText?.kind !== "instruction" && activeText
+              ? "modes"
+              : isReading ? "texts" : "modes"
+          )}
+          avatar={
+            isReading && activeText?.kind === "instruction" && activeText?.image
+              ? <RecipeAvatar topicId={topic?.meta.id} imagePath={activeText.image} />
+              : mode?.ui?.icon
+                ? <ModeIcon topicId={topic?.meta.id} iconPath={mode.ui.icon} size="step" />
+                : null
+          }
+        />
+      </div>
+      <div className="home-actions home-actions--footer">
+        <Button fullWidth disabled={!canStart} onClick={startOrContinue}>
+          ▶ Начать занятие
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+// ─── Planner tab ──────────────────────────────────────────────────────────────
+
+function PlannerTab({ student, setScreen }) {
+  const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
+
+  useEffect(() => {
+    if (!student) { setExistingPlan(null); return; }
+    loadPlan(student.id).then(setExistingPlan);
+  }, [student?.id]);
+
+  if (!student) {
+    return (
+      <div className="home-tab-empty">
+        <p>Выбери ученика выше</p>
+        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
+      </div>
+    );
+  }
+
+  const hasRecipes = existingPlan && countPlanRecipes(existingPlan) > 0;
+
+  return (
+    <div className="home-planner-tab">
+      {existingPlan === undefined ? (
+        <div className="home-tab-loading">Загрузка…</div>
+      ) : hasRecipes ? (
+        <div className="plan-card">
+          <div className="plan-card__label">Текущий план</div>
+          <div className="plan-card__meta">
+            {existingPlan.days.length} дн. · {countPlanRecipes(existingPlan)} рец.
+          </div>
+          <div className="plan-card__actions">
+            <Button variant="secondary" onClick={() => setScreen('planner_summary')}>
+              Просмотреть список покупок
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <Button fullWidth onClick={() => setScreen('planner_menu')}>
+        {hasRecipes ? 'Редактировать меню' : 'Составить меню'}
+      </Button>
+    </div>
+  );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
   if (!topicRecord) return { total: 0, mastered: 0 };
@@ -132,6 +301,8 @@ function useAppUpdate() {
   return { hasUpdate, applyUpdate };
 }
 
+// ─── HomeScreen ───────────────────────────────────────────────────────────────
+
 export default function HomeScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const students = useAppStore((s) => s.students);
@@ -147,6 +318,8 @@ export default function HomeScreen() {
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+
+  const [activeTab, setActiveTab] = useState('session');
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
   const didAutoUpdateRef = useRef(false);
@@ -212,7 +385,6 @@ export default function HomeScreen() {
     !!mode
   );
 
-  const s1 = stepState(!!student, true);
   const s2 = stepState(!!topic, !!student);
   const s3 = isChatPractice
     ? "completed"
@@ -236,7 +408,6 @@ export default function HomeScreen() {
 
   async function refreshAppAndTopics() {
     if (refreshingAll) return;
-
     setRefreshingAll(true);
     setRefreshFailed(false);
     try {
@@ -246,12 +417,8 @@ export default function HomeScreen() {
           appVersion: buildInfo.version,
           force: true,
         });
-        if (result.updated.length > 0) {
-          setTopicRecords(result.nextRecords);
-        }
-        if (result.failed.length > 0) {
-          setRefreshFailed(true);
-        }
+        if (result.updated.length > 0) setTopicRecords(result.nextRecords);
+        if (result.failed.length > 0) setRefreshFailed(true);
       }
     } catch {
       setRefreshFailed(true);
@@ -271,74 +438,32 @@ export default function HomeScreen() {
     <div className="screen home-screen-v2">
       <HomeHeader onSettings={() => setScreen("settings")} onBrandTap={handleBrandTap} />
 
-      <section className="home-section">
-        <div className="home-section-header">
-          <span className="home-section-label">Собери занятие</span>
-        </div>
+      <StudentPickerBar student={student} onTap={() => setScreen("students")} />
 
-        <div className="journey-steps">
-          <JourneyStep
-            state={s1}
-            number="1"
-            label="Ученик"
-            value={student?.name ?? "Не выбран"}
-            onClick={() => setScreen("students")}
-            avatar={student ? (
-              student.photo
-                ? <img src={student.photo} className="journey-student-avatar journey-student-avatar--photo" alt="" />
-                : <div className="journey-student-avatar">{getInitials(student.name)}</div>
-            ) : null}
-          />
-          <JourneyStep
-            state={s2}
-            number="2"
-            label="Тема"
-            value={topicLabel}
-            onClick={() => setScreen("topics")}
-            avatar={topic ? (
-              <TopicCover
-                topicId={topic.meta.id}
-                avatarPath={topic.meta.avatar}
-                title={topic.meta.title}
-                size="step"
-              />
-            ) : null}
-          />
-          <JourneyStep
-            state={s3}
-            number="3"
-            label={isReading ? "Текст и режим" : "Режим"}
-            value={isReading ? readingStepValue : modeTitle || "Не выбран"}
-            onClick={() => setScreen(isReading && activeText?.kind !== "instruction" && activeText ? "modes" : isReading ? "texts" : "modes")}
-            avatar={
-              isReading && activeText?.kind === "instruction" && activeText?.image
-                ? <RecipeAvatar topicId={topic?.meta.id} imagePath={activeText.image} />
-                : mode?.ui?.icon
-                  ? <ModeIcon topicId={topic?.meta.id} iconPath={mode.ui.icon} size="step" />
-                  : null
-            }
-          />
-        </div>
+      <HomeTabs active={activeTab} onChange={setActiveTab} />
 
-        <div className="home-actions home-actions--footer">
-          <Button fullWidth disabled={!canStart} onClick={startOrContinue}>
-            ▶ Начать занятие
-          </Button>
-        </div>
-      </section>
-
-      {student && (
-        <div className="home-planner">
-          <div className="home-planner__label">Планировщик</div>
-          <Button
-            fullWidth
-            variant="secondary"
-            onClick={() => setScreen('planner_menu')}
-          >
-            Составить меню для {student.name} →
-          </Button>
-        </div>
-      )}
+      <div className="home-tab-content">
+        {activeTab === 'session' ? (
+          <SessionTab
+            student={student}
+            topic={topic}
+            activeText={activeText}
+            mode={mode}
+            isReading={isReading}
+            isChatPractice={isChatPractice}
+            s2={s2}
+            s3={s3}
+            topicLabel={topicLabel}
+            readingStepValue={readingStepValue}
+            modeTitle={modeTitle}
+            canStart={canStart}
+            startOrContinue={startOrContinue}
+            setScreen={setScreen}
+          />
+        ) : (
+          <PlannerTab student={student} setScreen={setScreen} />
+        )}
+      </div>
 
       <button
         type="button"
