@@ -48,21 +48,20 @@ function HomeHeader({ onSettings, onBrandTap }) {
 function StudentPickerBar({ student, onTap }) {
   return (
     <button className="home-student-bar" onClick={onTap}>
-      {student ? (
-        <>
-          {student.photo ? (
-            <img className="home-student-bar__avatar" src={student.photo} alt="" />
-          ) : (
-            <div className="home-student-bar__avatar home-student-bar__avatar--initials">
-              {getInitials(student.name)}
-            </div>
-          )}
-          <span className="home-student-bar__name">{student.name}</span>
-          <span className="home-student-bar__chevron">▾</span>
-        </>
-      ) : (
-        <span className="home-student-bar__empty">+ Добавить ученика</span>
-      )}
+      <span className={`home-student-bar__icon${student ? ' home-student-bar__icon--filled' : ''}`}>
+        {student ? (
+          student.photo
+            ? <img src={student.photo} alt="" />
+            : getInitials(student.name)
+        ) : '+'}
+      </span>
+      <span className="home-student-bar__copy">
+        <span className="home-student-bar__label">Ученик</span>
+        <span className="home-student-bar__value">
+          {student?.name ?? 'Не выбран'}
+        </span>
+      </span>
+      <span className="home-student-bar__arrow">→</span>
     </button>
   );
 }
