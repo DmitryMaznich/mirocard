@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.121.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.122.0.zip";
-const NEW_VERSION = "1.122.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.122.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.123.0.zip";
+const NEW_VERSION = "1.123.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -11,16 +11,18 @@ function countSteps(txt) {
   return txt.split("\n").filter(l => /^\d+\./.test(l)).length;
 }
 
+// Known # metadata prefixes — must NOT be treated as the Russian title
+const KNOWN_META_PREFIXES = ["en:", "photo:", "fixed_portions:", "status:", "tags:", "portions:", "ingredients:"];
+
 function extractMeta(txt) {
   const lines = txt.split("\n").map(l => l.trim()).filter(l => l.length > 0);
   let ru = "", en = "", photo = "", fixedPortions = null, status = null;
   for (const line of lines) {
-    if (line.startsWith("# en:"))                { en            = line.slice(5).trim(); }
-    else if (line.startsWith("# photo:"))         { photo         = line.slice(8).trim(); }
-    else if (line.startsWith("# fixed_portions:")){ fixedPortions = parseInt(line.slice(17).trim()) || null; }
-    else if (line.startsWith("# status:"))        { status        = line.slice(9).trim(); }
-    else if (line.startsWith("# ") && !ru)        { ru            = line.slice(2).trim(); }
-    else if (!line.startsWith("#") && !ru)         { ru            = line; }
+    if (line.startsWith("# en:"))                 { en            = line.slice(5).trim(); }
+    else if (line.startsWith("# photo:"))          { photo         = line.slice(8).trim(); }
+    else if (line.startsWith("# fixed_portions:")) { fixedPortions = parseInt(line.slice(17).trim()) || null; }
+    else if (line.startsWith("# status:"))         { status        = line.slice(9).trim(); }
+    else if (!line.startsWith("#") && !line.startsWith("[") && !ru) { ru = line; }
   }
   return { ru, en: en || ru, photo, fixedPortions, status };
 }
