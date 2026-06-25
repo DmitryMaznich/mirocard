@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { generateExamples } from "./engine.js";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import "./column_addition.css";
 
 const POSITIONS = ["units", "tens", "hundreds"];
@@ -590,38 +591,89 @@ function ColumnArithmeticTask({ task, onCorrect }) {
 
 // ── Copy mode (column_copy) ───────────────────────────────────────────────────
 
-function ColumnCopyView({ sessionParams }) {
-  const count = Number(sessionParams?.count ?? 6);
+function ColumnCopyView({ sessionParams, onCorrect, student }) {
+  const count     = Number(sessionParams?.count     ?? 6);
+  const operation = sessionParams?.operation ?? "mixed";
+  const carryMode = sessionParams?.carryMode ?? "none";
+  const digits    = Number(sessionParams?.digits    ?? 2);
+
   const screenRef = useRef(null);
   const listRef   = useRef(null);
+  const activeRef = useRef(null);
 
-  const [examples, setExamples] = useState(() =>
-    generateExamples(count, { operation: "mixed", carryMode: "mixed", digits: 2 })
-  );
+  const [examples,    setExamples]    = useState(() => generateExamples(count, { operation, carryMode, digits }));
+  const [activeIdx,   setActiveIdx]   = useState(0);
+  const [solved,      setSolved]      = useState({});
+  const [input,       setInput]       = useState([]);
+  const [shake,       setShake]       = useState(false);
+  const [showReward,  setShowReward]  = useState(false);
 
-  // Align background grid with cell left edges
+  // Align background grid with first cell left edge
   useLayoutEffect(() => {
     const screen = screenRef.current;
     const list   = listRef.current;
     if (!screen || !list) return;
     const sr = screen.getBoundingClientRect();
     const lr = list.getBoundingClientRect();
-    const ox = (lr.left - sr.left) % 44;
-    const oy = (lr.top  - sr.top)  % 44;
-    screen.style.backgroundPosition = `${ox}px ${oy}px`;
+    screen.style.backgroundPosition = `${(lr.left - sr.left) % 44}px ${(lr.top - sr.top) % 44}px`;
   }, [examples]);
 
+  // Scroll active row into view when it changes
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [activeIdx]);
+
+  const activeEx = examples[activeIdx] ?? null;
+  const correctResult = activeEx
+    ? (activeEx.operation === "add" ? activeEx.top + activeEx.bottom : activeEx.top - activeEx.bottom)
+    : null;
+  const resultStr = correctResult !== null ? String(correctResult) : "";
+
+  function handleDigit(d) {
+    if (!activeEx || shake) return;
+    const next = [...input, String(d)];
+    if (next.length < resultStr.length) { setInput(next); return; }
+    // Last digit — auto-check
+    if (Number(next.join("")) === correctResult) {
+      setSolved(prev => ({ ...prev, [activeIdx]: true }));
+      setInput([]);
+      if (activeIdx + 1 < examples.length) {
+        setActiveIdx(activeIdx + 1);
+      } else {
+        setTimeout(() => setShowReward(true), 400);
+      }
+    } else {
+      setShake(true);
+      setTimeout(() => { setShake(false); setInput([]); }, 500);
+    }
+  }
+
+  function handleDelete() {
+    if (shake) return;
+    setInput(prev => prev.slice(0, -1));
+  }
+
   function refresh() {
-    setExamples(generateExamples(count, { operation: "mixed", carryMode: "mixed", digits: 2 }));
+    setExamples(generateExamples(count, { operation, carryMode, digits }));
+    setActiveIdx(0);
+    setSolved({});
+    setInput([]);
+    setShake(false);
+    setShowReward(false);
   }
 
   return (
     <div className="col-screen col-copy-screen" ref={screenRef}>
       <div className="col-copy-list" ref={listRef}>
         {examples.map((ex, i) => {
-          const sign = ex.operation === "add" ? "+" : "−";
+          const res    = ex.operation === "add" ? ex.top + ex.bottom : ex.top - ex.bottom;
+          const resStr = String(res);
+          const sign   = ex.operation === "add" ? "+" : "−";
+          const isActive  = i === activeIdx;
+          const isSolved  = !!solved[i];
+
           return (
-            <div key={i} className="col-copy-expr-row">
+            <div key={i} ref={isActive ? activeRef : null} className="col-copy-expr-row">
               {String(ex.top).split("").map((ch, j) => (
                 <span key={j} className="col-expr-cell"><span className="col-slant">{ch}</span></span>
               ))}
@@ -630,20 +682,57 @@ function ColumnCopyView({ sessionParams }) {
                 <span key={`b${j}`} className="col-expr-cell"><span className="col-slant">{ch}</span></span>
               ))}
               <span className="col-expr-cell col-expr-eq"><span className="col-slant">=</span></span>
+              {isSolved ? (
+                resStr.split("").map((ch, j) => (
+                  <span key={`r${j}`} className="col-expr-cell col-copy-cell-ok">
+                    <span className="col-slant">{ch}</span>
+                  </span>
+                ))
+              ) : isActive ? (
+                resStr.split("").map((_, j) => (
+                  <span key={`inp${j}`} className={`col-expr-cell col-copy-cell-input${shake ? " col-copy-cell-shake" : ""}`}>
+                    {input[j] != null ? <span className="col-slant">{input[j]}</span> : null}
+                  </span>
+                ))
+              ) : (
+                resStr.split("").map((_, j) => (
+                  <span key={`w${j}`} className="col-expr-cell col-copy-cell-wait" />
+                ))
+              )}
             </div>
           );
         })}
       </div>
-      <button className="col-copy-refresh" onClick={refresh}>↻ Новые примеры</button>
+
+      {showReward && (
+        <RewardVideoModal
+          rewardVideos={student?.rewardVideos ?? []}
+          studentId={student?.id}
+          onDismiss={() => { setShowReward(false); onCorrect?.(); }}
+        />
+      )}
+
+      <div className="col-copy-keyboard">
+        {[1,2,3,4,5,6,7,8,9].map(d => (
+          <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
+            <span className="col-slant">{d}</span>
+          </button>
+        ))}
+        <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
+        <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
+          <span className="col-slant">0</span>
+        </button>
+        <button className="col-copy-kb-btn col-copy-kb-refresh" onClick={refresh}>↻</button>
+      </div>
     </div>
   );
 }
 
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
-export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect }) {
+export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, student }) {
   if (mode?.type === "column_copy") {
-    return <ColumnCopyView sessionParams={sessionParams} />;
+    return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
   }
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;
