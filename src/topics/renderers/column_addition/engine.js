@@ -182,7 +182,8 @@ export function generateExamples(count, params) {
   return results;
 }
 
-export function generateTasks(mode, cards, countOrParams, maybeParams) {
+export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
+  const mode = typeof modeOrObj === "string" ? modeOrObj : (modeOrObj?.type ?? modeOrObj?.id ?? "");
   const count = typeof countOrParams === "number" ? countOrParams : 15;
   const params = (countOrParams && typeof countOrParams === "object") ? countOrParams
     : (maybeParams && typeof maybeParams === "object") ? maybeParams : {};
