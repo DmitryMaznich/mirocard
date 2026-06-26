@@ -124,6 +124,52 @@ function SentenceListParam({ label, predefined, value, onChange }) {
   );
 }
 
+function SentencePoolSelector({ lines, value, onChange }) {
+  const allSelected = value === null || value === undefined;
+  const selectedSet = allSelected
+    ? new Set(lines.map((l) => l.id))
+    : new Set(value);
+  const count = selectedSet.size;
+
+  function toggle(id) {
+    const next = new Set(selectedSet);
+    if (next.has(id)) {
+      if (next.size <= 1) return;
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    onChange(next.size === lines.length ? null : [...next]);
+  }
+
+  return (
+    <div className="param-row param-row--block param-sentence-list">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <div className="param-label" style={{ margin: 0 }}>
+          Предложения
+          <span className="param-hint" style={{ fontWeight: "normal", marginLeft: 6 }}>{count} / {lines.length}</span>
+        </div>
+        {!allSelected && (
+          <button className="link-btn" onClick={() => onChange(null)}>Выбрать все</button>
+        )}
+      </div>
+      <div className="param-sentence-list__predefined" style={{ maxHeight: 300, overflowY: "auto" }}>
+        {lines.map((line) => (
+          <label key={line.id} className="param-sentence-list__item">
+            <input
+              type="checkbox"
+              className="param-checkbox"
+              checked={selectedSet.has(line.id)}
+              onChange={() => toggle(line.id)}
+            />
+            <span>{line.text}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function getModeTitle(mode) {
   return getTopicTitle(mode?.ui?.title) || mode?.id || "";
 }
@@ -411,6 +457,9 @@ export default function ParamsScreen() {
 
   function getInitialParams() {
     const saved = link.params ?? {};
+    if (isReading && activeText?.kind === "sentence_pool") {
+      return { selectedLineIds: saved.selectedLineIds ?? null };
+    }
     if (isComparison) {
       return {
         level:         saved.level         ?? 2,
@@ -492,13 +541,22 @@ export default function ParamsScreen() {
 
   const paramsContent = isReading ? (
     <>
-      <div className="param-row param-row--block">
-        <div className="param-label">Текст</div>
-        <div className="param-concept-col">
-          <div className="param-hint">{getTopicTitle(activeText?.title) || "Не выбран"}</div>
-          <button className="link-btn" onClick={() => setScreen("texts")}>Изменить</button>
+      {activeText?.kind !== "sentence_pool" && (
+        <div className="param-row param-row--block">
+          <div className="param-label">Текст</div>
+          <div className="param-concept-col">
+            <div className="param-hint">{getTopicTitle(activeText?.title) || "Не выбран"}</div>
+            <button className="link-btn" onClick={() => setScreen("texts")}>Изменить</button>
+          </div>
         </div>
-      </div>
+      )}
+      {activeText?.kind === "sentence_pool" && (
+        <SentencePoolSelector
+          lines={activeText.lines ?? []}
+          value={params.selectedLineIds ?? null}
+          onChange={(v) => setParams((p) => ({ ...p, selectedLineIds: v }))}
+        />
+      )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
         if (def.type === "enum") {
           return (
@@ -612,6 +670,8 @@ export default function ParamsScreen() {
 
   const hasSentenceListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "sentence_list");
   const sentenceListEmpty = hasSentenceListParam && (params.sentences ?? []).length === 0;
+  const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
+  const isStartDisabled = sentenceListEmpty || poolEmpty;
 
   return (
     <div className="screen">
@@ -649,7 +709,7 @@ export default function ParamsScreen() {
             </div>
           )}
           <div className="params-info-start">
-            <Button fullWidth onClick={openPinGate} disabled={sentenceListEmpty}>Начать занятие</Button>
+            <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>Начать занятие</Button>
             <button className="params-share-btn" onClick={() => setShowShare(true)}>
               ↗ Отправить ученику
             </button>
@@ -711,7 +771,7 @@ export default function ParamsScreen() {
 
           {/* Start button — phone only, hidden on tablet via CSS */}
           <div className="params-start-phone">
-            <Button fullWidth onClick={openPinGate} disabled={sentenceListEmpty}>Начать занятие</Button>
+            <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>Начать занятие</Button>
             <button className="params-share-btn" onClick={() => setShowShare(true)}>
               ↗ Отправить ученику
             </button>

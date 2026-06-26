@@ -136,4 +136,19 @@ describe("daily_sentences mode", () => {
     const tasks = generateTasks({ type: "daily_sentences" }, TOPIC, "dad_best", { today: "2024-01-01" });
     expect(tasks).toHaveLength(0);
   });
+
+  it("respects selectedLineIds — only selected sentences appear", () => {
+    const ids = ["s1", "s3", "s5"];
+    const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01", selectedLineIds: ids });
+    expect(tasks).toHaveLength(3);
+    for (const task of tasks) {
+      expect(ids).toContain(task.text.lines[0].id);
+    }
+  });
+
+  it("caps dailySize at pool size when selectedLineIds is small", () => {
+    const ids = ["s1", "s2"]; // 2 < dailySize(10)
+    const tasks = generateTasks({ type: "daily_sentences" }, POOL_TOPIC, "pool", { today: "2024-01-01", selectedLineIds: ids });
+    expect(tasks).toHaveLength(2);
+  });
 });
