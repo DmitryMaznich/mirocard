@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { generateExamples } from "./engine.js";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
+import FingersShowTask from "./FingersShowTask.jsx";
+import FingersCountTask from "./FingersCountTask.jsx";
 import "./column_addition.css";
 
 const POSITIONS = ["units", "tens", "hundreds"];
@@ -733,6 +735,12 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, student }) {
   if (mode?.type === "column_copy") {
     return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
+  }
+  if (task?.type === "fingers_show") {
+    return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} />;
+  }
+  if (task?.type === "fingers_count") {
+    return <FingersCountTask task={task} onCorrect={onCorrect} />;
   }
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;
