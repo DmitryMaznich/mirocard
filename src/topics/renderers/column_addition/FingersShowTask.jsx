@@ -15,8 +15,8 @@ export default function FingersShowTask({ task, sessionParams, onCorrect, onPrev
 
       {hint && (
         <div className="fng-show-hands">
-          <HandImg count={left}  side="left"  style={{ flex: 1, minWidth: 0, height: "100%" }} />
-          <HandImg count={right} side="right" style={{ flex: 1, minWidth: 0, height: "100%" }} />
+          <HandImg count={left}  side="right" style={{ flex: 1, minWidth: 0, height: "100%" }} />
+          <HandImg count={right} side="left"  style={{ flex: 1, minWidth: 0, height: "100%" }} />
         </div>
       )}
 

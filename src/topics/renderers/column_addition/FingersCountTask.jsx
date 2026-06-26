@@ -70,14 +70,14 @@ function AdditionTask({ task, onCorrect }) {
           <HandImg
             count={leftSolid}
             ghost={phase === "left" ? a - leftSolid : 0}
-            side="left"
+            side="right"
                      />
         </div>
         <div className={merging ? "fng-hand-merging-right" : ""}>
           <HandImg
             count={rightSolid}
             ghost={phase === "right" ? b - rightSolid : 0}
-            side="right"
+            side="left"
                      />
         </div>
       </div>
@@ -228,13 +228,13 @@ function SubtractionTask({ task, onCorrect }) {
           isRemovingLeft && !handRemoved ? "fng-hand--remove" :
           isRemovingLeft && handRemoved  ? "fng-hand--removed" : ""
         }>
-          <HandImg count={leftCount} side="left" animated />
+          <HandImg count={leftCount} side="right" animated />
         </div>
         <div className={
           isRemovingRight && !handRemoved ? "fng-hand--remove" :
           isRemovingRight && handRemoved  ? "fng-hand--removed" : ""
         }>
-          <HandImg count={rightCount} side="right" animated />
+          <HandImg count={rightCount} side="left" animated />
         </div>
       </div>
 

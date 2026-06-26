@@ -5,10 +5,6 @@ export default function HandImg({ count = 0, ghost = 0, side = "right", style })
   const targetCnt = Math.min(count + ghost, 5);
   const showGhost = ghost > 0 && targetCnt !== count;
 
-  // Fist images are compact/square so they visually appear larger than
-  // raised-finger images in the same container. Add padding to equalise.
-  const fistPad = count === 0 ? "12%" : "0%";
-
   return (
     <div style={{
       position: "relative",
@@ -16,7 +12,6 @@ export default function HandImg({ count = 0, ghost = 0, side = "right", style })
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
-      padding: fistPad,
       ...style,
     }}>
       <img
