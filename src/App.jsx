@@ -35,6 +35,7 @@ import { useTimer } from "@/features/timer/TimerContext";
 import InstallBanner from "@/shared/components/InstallBanner";
 import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
 import PlannerSummaryScreen from "@/features/planner/PlannerSummaryScreen";
+import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
@@ -78,6 +79,7 @@ const SCREENS = {
   settings: SettingsScreen,
   planner_menu: PlannerMenuScreen,
   planner_summary: PlannerSummaryScreen,
+  planner_shopping: PlannerShoppingScreen,
 };
 
 function OrientationGuard({ orientationLock }) {
