@@ -76,7 +76,7 @@ export default function SessionScreen() {
     completedRecord, rewardProgress, streakCount, answersPerStar,
     rewardPending, clearRewardPending,
     deckExhausted, handleRestartDeck, handleFinishDeck,
-    onCorrect, onIncorrect, onMistake, onAdvance, onQualityAnswer,
+    onCorrect, onPrevious, onIncorrect, onMistake, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
@@ -272,6 +272,7 @@ export default function SessionScreen() {
             playFeedback={playFeedback}
             playTopicFile={playTopicFile}
             onCorrect={isAdvanceGateActive ? noop : handleCorrect}
+            onPrevious={onPrevious}
             onIncorrect={isAdvanceGateActive ? noop : handleIncorrect}
             onMistake={isAdvanceGateActive ? noop : handleMistake}
             onAdvance={requestAdvance}

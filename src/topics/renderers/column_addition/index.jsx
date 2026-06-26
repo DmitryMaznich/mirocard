@@ -732,12 +732,12 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
-export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, student }) {
+export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, onPrevious, student }) {
   if (mode?.type === "column_copy") {
     return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
   }
   if (task?.type === "fingers_show") {
-    return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} />;
+    return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
   }
   if (task?.type === "fingers_count") {
     return <FingersCountTask task={task} onCorrect={onCorrect} />;

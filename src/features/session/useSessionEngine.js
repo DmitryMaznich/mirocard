@@ -294,6 +294,13 @@ export function useSessionEngine() {
 
   const clearRewardPending = useCallback(() => setRewardPending(false), []);
 
+  const onPrevious = useCallback(() => {
+    setSessionState(s => {
+      if (s.taskIndex <= 0) return s;
+      return { ...s, taskIndex: s.taskIndex - 1, status: "task_active" };
+    });
+  }, []);
+
   const onCorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
@@ -416,6 +423,7 @@ export function useSessionEngine() {
     handleRestartDeck,
     handleFinishDeck,
     onCorrect,
+    onPrevious,
     onIncorrect,
     onMistake,
     onAdvance,
