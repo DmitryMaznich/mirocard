@@ -4,22 +4,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
   height: 100%;
   background: #f0f6ff;
-  padding: 12px 8px 16px;
+  padding: 8px 8px 16px;
   box-sizing: border-box;
-  gap: 8px;
   overflow: hidden;
+}
+
+.fng-show-number-zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .fng-show-number {
   font-family: 'Primo', sans-serif;
-  font-size: clamp(64px, 18vw, 180px);
+  font-size: clamp(56px, 16vw, 160px);
   color: #1a2540;
   line-height: 1;
-  flex-shrink: 0;
 }
 
 .fng-show-hands {
@@ -27,7 +32,7 @@
   flex-direction: row;
   gap: 8px;
   width: 100%;
-  flex: 1;
+  flex: 3;
   min-height: 0;
   overflow: hidden;
 }

@@ -8,8 +8,10 @@ export default function FingersShowTask({ task, sessionParams, onCorrect, onPrev
   const { right, left } = getFingerConfig(task.n);
 
   return (
-    <div className="fng-screen fng-show-screen">
-      <div className="fng-show-number">{task.n}</div>
+    <div className="fng-show-screen">
+      <div className="fng-show-number-zone">
+        <div className="fng-show-number">{task.n}</div>
+      </div>
 
       {hint && (
         <div className="fng-show-hands">
