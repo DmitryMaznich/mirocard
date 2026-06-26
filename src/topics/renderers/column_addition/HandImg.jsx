@@ -6,12 +6,19 @@ export default function HandImg({ count = 0, ghost = 0, side = "right", style })
   const showGhost = ghost > 0 && targetCnt !== count;
 
   return (
-    <div style={{ position: "relative", display: "block", ...style }}>
+    <div style={{
+      position: "relative",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+      ...style,
+    }}>
       <img
         src={solidSrc}
         alt={`${count}`}
         draggable={false}
-        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" }}
       />
       {showGhost && (
         <img
@@ -20,8 +27,9 @@ export default function HandImg({ count = 0, ghost = 0, side = "right", style })
           aria-hidden="true"
           draggable={false}
           style={{
-            position: "absolute", top: 0, left: 0,
-            width: "100%", height: "100%", objectFit: "contain",
+            position: "absolute", inset: 0,
+            maxWidth: "100%", maxHeight: "100%",
+            objectFit: "contain",
             opacity: 0.28,
             pointerEvents: "none",
           }}
