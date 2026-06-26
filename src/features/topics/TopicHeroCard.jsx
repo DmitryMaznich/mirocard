@@ -16,18 +16,26 @@ export default function TopicHeroCard({ record, onInfo, onSelect }) {
         size="large"
       />
       <div className="topic-hero-card__body">
-        <div className="topic-hero-card__title">{getTopicTitle(record.meta.title)}</div>
+        <div className="topic-hero-card__title-row">
+          <div className="topic-hero-card__title">{getTopicTitle(record.meta.title)}</div>
+          <button
+            className="icon-btn icon-btn--info"
+            onClick={() => onInfo(record)}
+            aria-label="О теме"
+          >
+            i
+          </button>
+        </div>
         <div className="topic-hero-card__meta">{meta}</div>
-        <button className="topic-hero-card__select-btn" onClick={onSelect}>
-          ✓ Выбрать
-        </button>
+        <span className="topic-hero-card__badge">✓ Активна</span>
       </div>
       <button
-        className="icon-btn icon-btn--info topic-hero-card__info-btn"
-        onClick={() => onInfo(record)}
-        aria-label="О теме"
+        className="topic-hero-card__select-btn"
+        onClick={onSelect}
+        aria-label="Выбрать тему"
       >
-        i
+        <span className="topic-hero-card__select-arrow">→</span>
+        <span className="topic-hero-card__select-label">Взять</span>
       </button>
     </div>
   );
