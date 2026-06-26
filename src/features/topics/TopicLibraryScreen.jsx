@@ -204,7 +204,11 @@ export default function TopicLibraryScreen() {
       <div className="topics-screen-body">
         {/* Zone 1: Hero — active topic */}
         {activeRecord && (
-          <TopicHeroCard record={activeRecord} onInfo={setInfoTopic} />
+          <TopicHeroCard
+            record={activeRecord}
+            onInfo={setInfoTopic}
+            onSelect={() => setScreen("home")}
+          />
         )}
         {!activeRecord && topicRecords.length === 0 && (
           <div className="empty-state">

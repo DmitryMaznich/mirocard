@@ -20176,19 +20176,26 @@ body { background: #eef0ef; }
   font-size: 0.78rem;
   color: #5a8a82;
 }
-.topic-hero-card__badge {
+.topic-hero-card__select-btn {
   display: inline-flex;
   align-items: center;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 11px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
   background: #2a9d8f;
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   width: fit-content;
-  margin-top: 4px;
+  margin-top: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s;
+}
+.topic-hero-card__select-btn:active {
+  background: #218a7d;
+  transform: scale(0.96);
 }
 .topic-hero-card__info-btn {
   position: absolute;
