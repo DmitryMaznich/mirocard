@@ -132,3 +132,54 @@ describe("FingerSystem", () => {
     expect(getRemoveMode(7, 2)).toEqual({ removeMode: "fold" });
   });
 });
+
+const FINGER_CARDS = [
+  { id: "fshow_3",      conceptId: "fshow_3",      renderer: "column_addition", params: { mode: "fingers_show",  n: 3 } },
+  { id: "fshow_7",      conceptId: "fshow_7",      renderer: "column_addition", params: { mode: "fingers_show",  n: 7 } },
+  { id: "fcount_a_3_4", conceptId: "fcount_a_3_4", renderer: "column_addition", params: { mode: "fingers_count", op: "add", a: 3, b: 4 } },
+  { id: "fcount_s_7_3", conceptId: "fcount_s_7_3", renderer: "column_addition", params: { mode: "fingers_count", op: "sub", a: 7, b: 3 } },
+];
+
+describe("generateTasks – fingers_show", () => {
+  it("returns tasks of type fingers_show", () => {
+    const tasks = generateTasks("fingers_show", FINGER_CARDS, 4);
+    expect(tasks.every(t => t.type === "fingers_show")).toBe(true);
+  });
+
+  it("task.n matches card.params.n", () => {
+    const tasks = generateTasks("fingers_show", FINGER_CARDS, 2);
+    expect(tasks[0].n).toBeDefined();
+  });
+
+  it("arithmetic mode ignores finger cards", () => {
+    const mixed = [...CARDS, ...FINGER_CARDS];
+    const tasks = generateTasks("column_arithmetic", mixed, 10, { operation: "add", carryMode: "none", digits: 2 });
+    expect(tasks.every(t => t.type === "column_arithmetic")).toBe(true);
+  });
+});
+
+describe("generateTasks – fingers_count", () => {
+  it("returns tasks of type fingers_count", () => {
+    const tasks = generateTasks("fingers_count", FINGER_CARDS, 4);
+    expect(tasks.every(t => t.type === "fingers_count")).toBe(true);
+  });
+
+  it("add task: result = a + b", () => {
+    const tasks = generateTasks("fingers_count", FINGER_CARDS, 4);
+    const addTasks = tasks.filter(t => t.op === "add");
+    for (const t of addTasks) expect(t.result).toBe(t.a + t.b);
+  });
+
+  it("sub task: has removeMode", () => {
+    const tasks = generateTasks("fingers_count", FINGER_CARDS, 4);
+    const subTasks = tasks.filter(t => t.op === "sub");
+    for (const t of subTasks) expect(t.removeMode).toMatch(/^hand|fold$/);
+  });
+
+  it("sub task 7-3: removeMode hand, removeHand left", () => {
+    const tasks = generateTasks("fingers_count", FINGER_CARDS, 10);
+    const t = tasks.find(t => t.op === "sub" && t.a === 7 && t.b === 3);
+    expect(t?.removeMode).toBe("hand");
+    expect(t?.removeHand).toBe("left");
+  });
+});

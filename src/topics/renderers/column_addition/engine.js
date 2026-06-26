@@ -1,3 +1,5 @@
+import { getFingerConfig, getRemoveMode } from "./FingerSystem.js";
+
 const POSITIONS = ["units", "tens", "hundreds"];
 
 function randomInt(min, max) {
@@ -142,6 +144,26 @@ function generateSubTask(carryMode, digits, card) {
   return null;
 }
 
+export function generateFingersShow(card) {
+  const n = card.params?.n ?? 0;
+  return {
+    type: "fingers_show",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    n,
+  };
+}
+
+export function generateFingersCount(card) {
+  const op  = card.params?.op ?? "add";
+  const a   = card.params?.a ?? 0;
+  const b   = card.params?.b ?? 0;
+  const result = op === "add" ? a + b : a - b;
+  const base = { type: "fingers_count", cardId: card.id, conceptId: card.conceptId, op, a, b, result };
+  if (op === "sub") return { ...base, ...getRemoveMode(a, b) };
+  return base;
+}
+
 export function generateExamples(count, params) {
   const operation = params?.operation ?? "add";
   const carryMode = params?.carryMode ?? "none";
@@ -165,16 +187,46 @@ export function generateTasks(mode, cards, countOrParams, maybeParams) {
   const params = (countOrParams && typeof countOrParams === "object") ? countOrParams
     : (maybeParams && typeof maybeParams === "object") ? maybeParams : {};
 
-  const operation = params.operation ?? "add";
-  const carryMode = params.carryMode ?? "none";
-  const digits = Number(params.digits ?? 2);
-
   const allCards = cards.filter(c => c.renderer === "column_addition");
   if (!allCards.length) return [];
 
-  const filtered = operation === "mixed" ? allCards
-    : allCards.filter(c => (c.params?.operation ?? "add") === operation);
-  const activePool = filtered.length ? filtered : allCards;
+  const fingerShowCards  = allCards.filter(c => c.params?.mode === "fingers_show");
+  const fingerCountCards = allCards.filter(c => c.params?.mode === "fingers_count");
+
+  if (mode === "fingers_show") {
+    const pool = fingerShowCards.length ? fingerShowCards : [];
+    const tasks = [];
+    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
+      tasks.push(generateFingersShow(pool[i % pool.length]));
+    }
+    return tasks;
+  }
+
+  if (mode === "fingers_count") {
+    const opFilter = params.op;
+    let pool = fingerCountCards.length ? fingerCountCards : [];
+    if (opFilter && opFilter !== "mixed") {
+      pool = pool.filter(c => (c.params?.op ?? "add") === opFilter);
+    }
+    if (!pool.length) pool = fingerCountCards;
+    const tasks = [];
+    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
+      tasks.push(generateFingersCount(pool[i % pool.length]));
+    }
+    return tasks;
+  }
+
+  // Default: column_arithmetic — exclude finger cards
+  const arithmeticCards = allCards.filter(c => !c.params?.mode);
+  if (!arithmeticCards.length) return [];
+
+  const operation = params.operation ?? "add";
+  const carryMode = params.carryMode ?? "none";
+  const digits    = Number(params.digits ?? 2);
+
+  const filtered   = operation === "mixed" ? arithmeticCards
+    : arithmeticCards.filter(c => (c.params?.operation ?? "add") === operation);
+  const activePool = filtered.length ? filtered : arithmeticCards;
 
   const tasks = [];
   let idx = 0, attempts = 0;
@@ -182,7 +234,7 @@ export function generateTasks(mode, cards, countOrParams, maybeParams) {
   while (tasks.length < count && attempts < count * 20) {
     attempts++;
     const card = activePool[idx % activePool.length];
-    const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
+    const op   = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
     const task = op === "add"
       ? generateAddTask(carryMode, digits, card)
       : generateSubTask(carryMode, digits, card);
