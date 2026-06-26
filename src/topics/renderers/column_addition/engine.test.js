@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { generateTasks } from "./engine.js";
+import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 
 const CARDS = [
   { id: "col_add", conceptId: "col_add", renderer: "column_addition", params: { operation: "add" } },
@@ -86,5 +87,48 @@ describe("generateTasks – column_arithmetic", () => {
   it("sub: top > bottom always", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "mixed", digits: 2 });
     for (const t of tasks) expect(t.top).toBeGreaterThan(t.bottom);
+  });
+});
+
+describe("FingerSystem", () => {
+  it("FINGER_MAP has 11 entries 0..10", () => {
+    for (let i = 0; i <= 10; i++) expect(FINGER_MAP[i]).toBeDefined();
+  });
+
+  it("right >= left for all", () => {
+    for (let i = 0; i <= 10; i++) {
+      const { right, left } = FINGER_MAP[i];
+      expect(right).toBeGreaterThanOrEqual(left);
+    }
+  });
+
+  it("right - left is 0 or 1 for all", () => {
+    for (let i = 0; i <= 10; i++) {
+      const { right, left } = FINGER_MAP[i];
+      expect(right - left).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("right + left === n for all", () => {
+    for (let i = 0; i <= 10; i++) {
+      const { right, left } = FINGER_MAP[i];
+      expect(right + left).toBe(i);
+    }
+  });
+
+  it("getFingerConfig(7) returns {right:4, left:3}", () => {
+    expect(getFingerConfig(7)).toEqual({ right: 4, left: 3 });
+  });
+
+  it("getRemoveMode: b matches left → removeMode hand left", () => {
+    expect(getRemoveMode(7, 3)).toEqual({ removeMode: "hand", removeHand: "left" });
+  });
+
+  it("getRemoveMode: b matches right → removeMode hand right", () => {
+    expect(getRemoveMode(7, 4)).toEqual({ removeMode: "hand", removeHand: "right" });
+  });
+
+  it("getRemoveMode: b matches neither → fold", () => {
+    expect(getRemoveMode(7, 2)).toEqual({ removeMode: "fold" });
   });
 });
