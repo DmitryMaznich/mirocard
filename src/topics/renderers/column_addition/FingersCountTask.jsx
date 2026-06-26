@@ -69,14 +69,14 @@ function AdditionTask({ task, onCorrect }) {
         <div className={merging ? "fng-hand-merging-left" : ""}>
           <HandImg
             count={leftSolid}
-            ghost={phase === "left" ? a - leftSolid : 0}
+            ghost={phase === "left" && leftSolid > 0 ? a - leftSolid : 0}
             side="right"
                      />
         </div>
         <div className={merging ? "fng-hand-merging-right" : ""}>
           <HandImg
             count={rightSolid}
-            ghost={phase === "right" ? b - rightSolid : 0}
+            ghost={phase === "right" && rightSolid > 0 ? b - rightSolid : 0}
             side="left"
                      />
         </div>
