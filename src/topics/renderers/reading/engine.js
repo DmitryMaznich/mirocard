@@ -80,13 +80,17 @@ function seededShuffle(arr, seedStr) {
   return copy;
 }
 
-function buildDailySentencesTasks(text, today = null, selectedLineIds = null) {
+function buildDailySentencesTasks(text, today = null, selectedLineIds = null, group = null) {
+  const allLines = text.lines ?? [];
+  const groupFiltered = group
+    ? allLines.filter((l) => !l.group || l.group === group)
+    : allLines;
   const pool = selectedLineIds?.length
-    ? (text.lines ?? []).filter((l) => selectedLineIds.includes(l.id))
-    : (text.lines ?? []);
+    ? groupFiltered.filter((l) => selectedLineIds.includes(l.id))
+    : groupFiltered;
   const dailySize = Math.min(text.dailySize ?? 10, pool.length);
   const date = today ?? new Date().toISOString().slice(0, 10);
-  const seed = `${text.id}_${date}`;
+  const seed = `${text.id}_${date}_${group ?? "all"}`;
   const shuffled = seededShuffle(pool, seed);
   const selected = shuffled.slice(0, dailySize);
   return selected.map((line) => ({
@@ -115,7 +119,7 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
     }
     case "daily_sentences":
       return text.kind === "sentence_pool"
-        ? buildDailySentencesTasks(text, sessionParams?.today ?? null, sessionParams?.selectedLineIds ?? null)
+        ? buildDailySentencesTasks(text, sessionParams?.today ?? null, sessionParams?.selectedLineIds ?? null, sessionParams?.group ?? null)
         : [];
     default:
       return [];

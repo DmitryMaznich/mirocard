@@ -458,7 +458,7 @@ export default function ParamsScreen() {
   function getInitialParams() {
     const saved = link.params ?? {};
     if (isReading && activeText?.kind === "sentence_pool") {
-      return { selectedLineIds: saved.selectedLineIds ?? null };
+      return { selectedLineIds: saved.selectedLineIds ?? null, group: mode?.group ?? null };
     }
     if (isComparison) {
       return {
@@ -552,7 +552,7 @@ export default function ParamsScreen() {
       )}
       {activeText?.kind === "sentence_pool" && (
         <SentencePoolSelector
-          lines={activeText.lines ?? []}
+          lines={(activeText.lines ?? []).filter((l) => !mode?.group || l.group === mode.group)}
           value={params.selectedLineIds ?? null}
           onChange={(v) => setParams((p) => ({ ...p, selectedLineIds: v }))}
         />

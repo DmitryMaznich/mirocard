@@ -12,65 +12,71 @@ const avatarSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
   <circle cx="68" cy="60" r="10" fill="#f5c896"/>
 </svg>`;
 
+// group "basic"  — знакомые действия без право/лево
+// group "spatial" — пространственная ориентация (право/лево)
 const SENTENCES = [
-  // Движение — руки
-  "Подними правую руку вверх.",
-  "Подними левую руку вверх.",
-  "Подними обе руки вверх и потянись.",
-  "Хлопни в ладоши два раза.",
-  "Хлопни в ладоши три раза.",
-  "Хлопни в ладоши четыре раза.",
-  "Сожми руки в кулаки и медленно разожми.",
-  "Скрести руки на груди.",
-  "Положи обе руки на колени.",
+  // ── BASIC: Руки ──────────────────────────────────────────────
+  { group: "basic",   text: "Хлопни в ладоши два раза." },
+  { group: "basic",   text: "Хлопни в ладоши три раза." },
+  { group: "basic",   text: "Хлопни в ладоши четыре раза." },
+  { group: "basic",   text: "Подними обе руки вверх и потянись." },
+  { group: "basic",   text: "Скрести руки на груди." },
+  { group: "basic",   text: "Положи обе руки на колени." },
+  { group: "basic",   text: "Сожми руки в кулаки и медленно разожми." },
 
-  // Движение — тело
-  "Топни правой ногой два раза.",
-  "Топни левой ногой три раза.",
-  "Встань прямо и опусти руки вниз.",
-  "Встань со стула и попрыгай на месте.",
-  "Встань, хлопни один раз и сядь.",
-  "Сядь ровно и положи руки на стол.",
-  "Повернись на стуле направо.",
-  "Повернись на стуле налево.",
+  // ── BASIC: Тело ──────────────────────────────────────────────
+  { group: "basic",   text: "Встань прямо и опусти руки вниз." },
+  { group: "basic",   text: "Встань со стула и попрыгай на месте." },
+  { group: "basic",   text: "Встань, хлопни один раз и сядь." },
+  { group: "basic",   text: "Сядь ровно и положи руки на стол." },
 
-  // Голова
-  "Кивни головой три раза.",
-  "Покачай головой: нет-нет-нет.",
-  "Наклони голову вправо, потом влево.",
-  "Закрой глаза и посчитай до трёх.",
-  "Закрой рот и подержи так три секунды.",
+  // ── BASIC: Голова ────────────────────────────────────────────
+  { group: "basic",   text: "Кивни головой три раза." },
+  { group: "basic",   text: "Покачай головой: нет-нет-нет." },
+  { group: "basic",   text: "Закрой глаза и посчитай до трёх." },
+  { group: "basic",   text: "Закрой рот и подержи так три секунды." },
 
-  // Части тела — ориентация
-  "Дотронься правой рукой до левого уха.",
-  "Дотронься левой рукой до правого плеча.",
+  // ── BASIC: Общение ───────────────────────────────────────────
+  { group: "basic",   text: "Обними папу." },
+  { group: "basic",   text: "Дай пять." },
+  { group: "basic",   text: "Скажи «до свидания» и помаши рукой." },
+  { group: "basic",   text: "Попроси планшет." },
+  { group: "basic",   text: "Выпей стакан воды." },
 
-  // Общение
-  "Обними папу.",
-  "Дай пять.",
-  "Скажи «до свидания» и помаши рукой.",
-  "Попроси планшет.",
-  "Выпей стакан воды.",
+  // ── BASIC: Речь ──────────────────────────────────────────────
+  { group: "basic",   text: "Скажи своё имя громко." },
+  { group: "basic",   text: "Скажи своё имя тихо." },
+  { group: "basic",   text: "Назови три цвета." },
+  { group: "basic",   text: "Назови три животных." },
+  { group: "basic",   text: "Назови буквы, которые помнишь." },
 
-  // Речь
-  "Скажи своё имя громко.",
-  "Скажи своё имя тихо.",
-  "Назови три цвета.",
-  "Назови три животных.",
-  "Назови буквы, которые помнишь.",
+  // ── SPATIAL: Тело — сторона ──────────────────────────────────
+  { group: "spatial", text: "Подними правую руку вверх." },
+  { group: "spatial", text: "Подними левую руку вверх." },
+  { group: "spatial", text: "Топни правой ногой два раза." },
+  { group: "spatial", text: "Топни левой ногой три раза." },
+  { group: "spatial", text: "Повернись на стуле направо." },
+  { group: "spatial", text: "Повернись на стуле налево." },
+  { group: "spatial", text: "Наклони голову вправо, потом влево." },
 
-  // Пространственная ориентация
-  "Расскажи, что у тебя находится справа.",
-  "Расскажи, что у тебя находится слева.",
-  "Положи карандаш справа от коробки и скажи, где он лежит.",
-  "Положи карандаш слева от коробки и скажи, где он лежит.",
-  "Положи карандаш в коробку и скажи, где он лежит.",
+  // ── SPATIAL: Перекрёстная схема тела ─────────────────────────
+  { group: "spatial", text: "Дотронься правой рукой до левого уха." },
+  { group: "spatial", text: "Дотронься левой рукой до правого плеча." },
+
+  // ── SPATIAL: Что вокруг ──────────────────────────────────────
+  { group: "spatial", text: "Расскажи, что у тебя находится справа." },
+  { group: "spatial", text: "Расскажи, что у тебя находится слева." },
+
+  // ── SPATIAL: Предмет в пространстве ─────────────────────────
+  { group: "spatial", text: "Положи карандаш справа от коробки и скажи, где он лежит." },
+  { group: "spatial", text: "Положи карандаш слева от коробки и скажи, где он лежит." },
+  { group: "spatial", text: "Положи карандаш в коробку и скажи, где он лежит." },
 ];
 
 const manifest = {
   meta: {
     id: "reading_dad_instructions",
-    version: "1.0.1",
+    version: "1.0.2",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -95,9 +101,19 @@ const manifest = {
     {
       id: "daily_sentences",
       type: "daily_sentences",
+      group: "basic",
       ui: {
         title: { ru: "Читаем и выполняем", en: "Read and do" },
         instruction: { ru: "Прочитай предложение и выполни задание", en: "Read and follow the instruction" },
+      },
+    },
+    {
+      id: "daily_sentences_spatial",
+      type: "daily_sentences",
+      group: "spatial",
+      ui: {
+        title: { ru: "Право и лево", en: "Left and right" },
+        instruction: { ru: "Прочитай инструкцию и выполни — определи, где право и лево", en: "Read and follow the spatial instruction" },
       },
     },
   ],
@@ -108,7 +124,7 @@ const manifest = {
       kind: "sentence_pool",
       dailySize: 10,
       title: { ru: "Ежедневные инструкции", en: "Daily Instructions" },
-      lines: SENTENCES.map((text, i) => ({ id: `s${i + 1}`, text })),
+      lines: SENTENCES.map((s, i) => ({ id: `s${i + 1}`, group: s.group, text: s.text })),
     },
   ],
 };
@@ -117,5 +133,7 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/avatar.svg", avatarSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_instructions_v1.0.1.zip", buffer);
-console.log(`✓ reading_dad_instructions_v1.0.1.zip written (${buffer.length} bytes, ${SENTENCES.length} sentences)`);
+writeFileSync("public/decks/reading_dad_instructions_v1.0.2.zip", buffer);
+const basic = SENTENCES.filter((s) => s.group === "basic").length;
+const spatial = SENTENCES.filter((s) => s.group === "spatial").length;
+console.log(`✓ reading_dad_instructions_v1.0.2.zip (${buffer.length} bytes, ${basic} basic + ${spatial} spatial)`);
