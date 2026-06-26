@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import HandSVG from "./HandSVG.jsx";
+import HandImg from "./HandImg.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
 
@@ -67,20 +67,18 @@ function AdditionTask({ task, onCorrect }) {
 
       <div className={merging ? "fng-hands-merge" : "fng-hands-row"}>
         <div className={merging ? "fng-hand-merging-left" : ""}>
-          <HandSVG
+          <HandImg
             count={leftSolid}
             ghost={phase === "left" ? a - leftSolid : 0}
             side="left"
-            animated
-          />
+                     />
         </div>
         <div className={merging ? "fng-hand-merging-right" : ""}>
-          <HandSVG
+          <HandImg
             count={rightSolid}
             ghost={phase === "right" ? b - rightSolid : 0}
             side="right"
-            animated
-          />
+                     />
         </div>
       </div>
 
@@ -230,13 +228,13 @@ function SubtractionTask({ task, onCorrect }) {
           isRemovingLeft && !handRemoved ? "fng-hand--remove" :
           isRemovingLeft && handRemoved  ? "fng-hand--removed" : ""
         }>
-          <HandSVG count={leftCount} side="left" animated />
+          <HandImg count={leftCount} side="left" animated />
         </div>
         <div className={
           isRemovingRight && !handRemoved ? "fng-hand--remove" :
           isRemovingRight && handRemoved  ? "fng-hand--removed" : ""
         }>
-          <HandSVG count={rightCount} side="right" animated />
+          <HandImg count={rightCount} side="right" animated />
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import HandSVG from "./HandSVG.jsx";
+import HandImg from "./HandImg.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
 
@@ -13,8 +13,8 @@ export default function FingersShowTask({ task, sessionParams, onCorrect }) {
 
       {hint && (
         <div className="fng-hands-row">
-          <HandSVG count={left}  side="left"  animated={false} />
-          <HandSVG count={right} side="right" animated={false} />
+          <HandImg count={left}  side="left" />
+          <HandImg count={right} side="right" />
         </div>
       )}
 
