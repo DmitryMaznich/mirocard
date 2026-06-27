@@ -750,7 +750,7 @@ export default function ParamsScreen() {
             </div>
           )}
 
-          {hasVideos && mode.evaluation !== "none" && (
+          {hasVideos && (
             <div className="param-row param-row--block">
               <div className="param-label">Видео-награда</div>
               <div className="param-enum-section">
@@ -769,7 +769,11 @@ export default function ParamsScreen() {
                   </button>
                 </div>
                 <div className="param-hint">
-                  {videoReward ? "Видео показывается за серию правильных ответов" : "Видео-награда отключена"}
+                  {!videoReward
+                    ? "Видео-награда отключена"
+                    : mode.evaluation !== "none"
+                      ? "Видео показывается за серию правильных ответов"
+                      : "Награда доступна на экране завершения"}
                 </div>
               </div>
             </div>

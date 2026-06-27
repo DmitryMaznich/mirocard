@@ -1,6 +1,9 @@
+import { useState } from "react";
 import Button from "@/shared/components/Button";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
 
-export default function ChatSummary({ score, onRepeat, onHome }) {
+export default function ChatSummary({ score, onRepeat, onHome, rewardVideos = [], studentId, videoAvailable = false }) {
+  const [showReward, setShowReward] = useState(false);
   const percent = score.total > 0
     ? Math.round((score.correct / score.total) * 100)
     : 100;
@@ -22,8 +25,18 @@ export default function ChatSummary({ score, onRepeat, onHome }) {
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 320 }}>
         <Button fullWidth onClick={onRepeat}>Ещё раз</Button>
+        {videoAvailable && (
+          <Button fullWidth variant="secondary" onClick={() => setShowReward(true)}>🎬 Награда</Button>
+        )}
         <Button fullWidth variant="secondary" onClick={onHome}>На главную</Button>
       </div>
+      {showReward && (
+        <RewardVideoModal
+          rewardVideos={rewardVideos}
+          studentId={studentId}
+          onDismiss={() => setShowReward(false)}
+        />
+      )}
     </div>
   );
 }

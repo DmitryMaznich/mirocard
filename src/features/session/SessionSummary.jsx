@@ -5,6 +5,7 @@ import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
 import HoldButton from "@/shared/components/HoldButton";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -23,6 +24,8 @@ export default function SessionSummary() {
   const isStudentPortal   = useAppStore((s) => s.isStudentPortal);
   const sessions          = useAppStore((s) => s.sessions);
   const topicRecords      = useAppStore((s) => s.topicRecords);
+  const students          = useAppStore((s) => s.students);
+  const activeStudentId   = useAppStore((s) => s.activeStudentId);
   const session = sessions[sessions.length - 1];
 
   const topicRecord  = topicRecords.find((r) => r.meta.id === session?.topicId);
@@ -31,6 +34,10 @@ export default function SessionSummary() {
   const isEvaluated  = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
 
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [showReward,  setShowReward]  = useState(false);
+
+  const activeStudent  = students.find((s) => s.id === activeStudentId);
+  const canShowReward  = Boolean(session?.reward?.videoAvailable);
 
   if (!session) {
     return (
@@ -48,6 +55,9 @@ export default function SessionSummary() {
       {/* Actions */}
       <div className="summary-actions">
         <Button variant="secondary" onClick={() => setScreen("session")}>Ещё раз</Button>
+        {canShowReward && (
+          <Button variant="secondary" onClick={() => setShowReward(true)}>🎬 Награда</Button>
+        )}
         {isStudentPortal ? (
           <Button onClick={() => setScreen("home")}>Завершить</Button>
         ) : (
@@ -133,7 +143,13 @@ export default function SessionSummary() {
         )}
       </div>
 
-      {/* Video overlay */}
+      {showReward && activeStudent && (
+        <RewardVideoModal
+          rewardVideos={activeStudent.rewardVideos ?? []}
+          studentId={activeStudent.id}
+          onDismiss={() => setShowReward(false)}
+        />
+      )}
     </div>
   );
 }

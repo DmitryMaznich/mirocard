@@ -35,10 +35,14 @@ export default function ChatSessionScreen() {
   const activeModeId            = useAppStore((s) => s.activeModeId);
   const chatScriptOverride      = useAppStore((s) => s.chatScriptOverride);
   const clearChatScriptOverride = useAppStore((s) => s.clearChatScriptOverride);
+  const studentTopicLinks       = useAppStore((s) => s.studentTopicLinks);
 
-  const student     = students.find((s) => s.id === activeStudentId);
-  const studentName = student?.name ?? "";
-  const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const student       = students.find((s) => s.id === activeStudentId);
+  const studentName   = student?.name ?? "";
+  const topicRecord   = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const linkKey       = `${activeStudentId}_${activeTopicId}`;
+  const link          = studentTopicLinks[linkKey] ?? {};
+  const videoAvailable = (student?.rewardVideos?.length ?? 0) > 0 && (link.videoRewardEnabled ?? true);
   const modeScript  = activeModeId ? topicRecord?.scripts?.[activeModeId] : null;
   const rawScript   = topicRecord
     ? {
@@ -96,7 +100,16 @@ export default function ChatSessionScreen() {
   const handleHome   = useCallback(() => setScreen("home"), [setScreen]);
 
   if (showingSummary) {
-    return <ChatSummary score={finalScore} onRepeat={handleRepeat} onHome={handleHome} />;
+    return (
+      <ChatSummary
+        score={finalScore}
+        onRepeat={handleRepeat}
+        onHome={handleHome}
+        rewardVideos={student?.rewardVideos ?? []}
+        studentId={activeStudentId}
+        videoAvailable={videoAvailable}
+      />
+    );
   }
 
   if (!script) {

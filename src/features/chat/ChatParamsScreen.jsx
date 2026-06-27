@@ -4,6 +4,7 @@ import { scriptToText, textToScript } from "./scriptFormat";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import { getInitials } from "@/shared/utils/format";
+import { persistStudentTopicLink } from "@/core/linkUtils";
 import "./chatParams.css";
 
 export default function ChatParamsScreen() {
@@ -15,9 +16,13 @@ export default function ChatParamsScreen() {
   const setChatScriptOverride = useAppStore((s) => s.setChatScriptOverride);
   const activeStudentId       = useAppStore((s) => s.activeStudentId);
   const students              = useAppStore((s) => s.students);
+  const studentTopicLinks     = useAppStore((s) => s.studentTopicLinks);
 
-  const student    = students.find((s) => s.id === activeStudentId);
+  const student     = students.find((s) => s.id === activeStudentId);
   const closeAdults = student?.closeAdults ?? [];
+  const hasVideos   = (student?.rewardVideos?.length ?? 0) > 0;
+  const linkKey     = `${activeStudentId}_${activeTopicId}`;
+  const link        = studentTopicLinks[linkKey] ?? {};
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const modeScript  = activeModeId ? topicRecord?.scripts?.[activeModeId] : null;
@@ -35,6 +40,7 @@ export default function ChatParamsScreen() {
   const [editingScript,   setEditingScript]   = useState(false);
   const [scriptEdit,      setScriptEdit]      = useState("");
   const [selectedAdultId, setSelectedAdultId] = useState(savedOverride?.contactOverride?.id ?? null);
+  const [videoReward,     setVideoReward]     = useState(link.videoRewardEnabled ?? true);
   const [error,           setError]           = useState(null);
 
   useEffect(() => {
@@ -67,6 +73,7 @@ export default function ChatParamsScreen() {
       const contactOverride = selectedAdult
         ? { id: selectedAdult.id, name: selectedAdult.name, photo: selectedAdult.photo ?? null }
         : null;
+      persistStudentTopicLink(activeStudentId, activeTopicId, { videoRewardEnabled: videoReward }).catch(() => {});
       setChatScriptOverride(overrideKey, scriptText, contactOverride);
       setScreen("chat_session");
     } catch (e) {
@@ -151,6 +158,32 @@ export default function ChatParamsScreen() {
                       <span className="chat-contact-option__name">{adult.name}</span>
                     </button>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Видео-награда */}
+            {hasVideos && (
+              <div className="param-row param-row--block">
+                <div className="param-label">Видео-награда</div>
+                <div className="param-enum-section">
+                  <div className="param-enum-group">
+                    <button
+                      className={`enum-btn enum-btn--compact ${!videoReward ? "enum-btn--active" : ""}`}
+                      onClick={() => setVideoReward(false)}
+                    >
+                      Нет
+                    </button>
+                    <button
+                      className={`enum-btn enum-btn--compact ${videoReward ? "enum-btn--active" : ""}`}
+                      onClick={() => setVideoReward(true)}
+                    >
+                      Да
+                    </button>
+                  </div>
+                  <div className="param-hint">
+                    {videoReward ? "Награда доступна на экране завершения" : "Видео-награда отключена"}
+                  </div>
                 </div>
               </div>
             )}
