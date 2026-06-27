@@ -89,13 +89,17 @@ function AdditionTask({ task, onCorrect }) {
       </div>
 
       {phase === "answer" && (
-        <div className="fng-digit-keyboard">
+        <div className="col-copy-keyboard">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-            <button key={d} className="fng-kb-btn" onClick={() => handleDigit(d)}>{d}</button>
+            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
+              <span className="col-slant">{d}</span>
+            </button>
           ))}
-          <button className="fng-kb-btn fng-kb-del" onClick={handleDelete}>⌫</button>
-          <button className="fng-kb-btn" onClick={() => handleDigit(0)}>0</button>
-          <div className="fng-kb-empty" />
+          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
+          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
+            <span className="col-slant">0</span>
+          </button>
+          <div />
         </div>
       )}
     </div>

@@ -123,49 +123,7 @@
   overflow: hidden;
 }
 
-/* adaptive digit keyboard (answer phase) */
-.fng-digit-keyboard {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  width: 100%;
-  flex-shrink: 0;
-}
-
-.fng-kb-btn {
-  height: clamp(50px, 13vw, 72px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 2px solid #dbeafe;
-  border-radius: 12px;
-  font-size: clamp(22px, 7vw, 42px);
-  font-weight: 800;
-  font-family: 'Nunito', sans-serif;
-  color: #1a1a2e;
-  cursor: pointer;
-  box-shadow: 0 3px 0 #c7d2fe;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.fng-kb-btn:active {
-  transform: translateY(2px);
-  box-shadow: none;
-}
-
-.fng-kb-del {
-  font-size: clamp(16px, 5vw, 28px);
-  color: #ef4444;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-}
-
-.fng-kb-empty {
-  /* placeholder for the 12th grid cell */
-}
+/* digit keyboard reuses col-copy-keyboard / col-copy-kb-btn from column_addition.css */
 
 /* ── end FingersCount ────────────────────────────────────────────── */
 
