@@ -120,7 +120,25 @@
   width: 100%;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
+}
+
+/* bounce-merge animation for full-width hands */
+.fng-count-hands--merging .fng-count-hand-l {
+  animation: fng-merge-l 0.75s ease-in-out forwards;
+}
+.fng-count-hands--merging .fng-count-hand-r {
+  animation: fng-merge-r 0.75s ease-in-out forwards;
+}
+@keyframes fng-merge-l {
+  0%   { transform: translateX(0); }
+  55%  { transform: translateX(30vw); }
+  100% { transform: translateX(0); }
+}
+@keyframes fng-merge-r {
+  0%   { transform: translateX(0); }
+  55%  { transform: translateX(-30vw); }
+  100% { transform: translateX(0); }
 }
 
 /* keyboard override: 20% shorter buttons in fingers count mode */

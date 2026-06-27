@@ -6,52 +6,37 @@ import "./fingers.css";
 // ── Addition ──────────────────────────────────────────────────────────────────
 
 function AdditionTask({ task, onCorrect }) {
-  const [phase, setPhase]           = useState("left");
-  const [leftSolid, setLeftSolid]   = useState(0);
-  const [rightSolid, setRightSolid] = useState(0);
-  const [input, setInput]           = useState([]);
-  const [shake, setShake]           = useState(false);
+  const [phase, setPhase] = useState("show");
+  const [input, setInput] = useState([]);
+  const [shake, setShake] = useState(false);
 
   const { a, b, result } = task;
   const resultStr = String(result);
 
   useEffect(() => {
-    setPhase("left");
-    setLeftSolid(0);
-    setRightSolid(0);
+    setPhase("show");
     setInput([]);
     setShake(false);
   }, [task.cardId]);
 
-  // Auto-animate left hand — one finger every 450 ms; advance when done
+  // show → merge after 1400 ms
   useEffect(() => {
-    if (phase !== "left") return;
-    if (leftSolid >= a) {
-      const t = setTimeout(() => setPhase("right"), 600);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setLeftSolid(n => n + 1), 450);
+    if (phase !== "show") return;
+    const t = setTimeout(() => setPhase("merge"), 1400);
     return () => clearTimeout(t);
-  }, [phase, leftSolid, a]);
+  }, [phase]);
 
-  // Auto-animate right hand
+  // merge animation lasts 750 ms, then advance to answer
   useEffect(() => {
-    if (phase !== "right") return;
-    if (rightSolid >= b) {
-      const t = setTimeout(() => setPhase("answer"), 700);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setRightSolid(n => n + 1), 450);
+    if (phase !== "merge") return;
+    const t = setTimeout(() => setPhase("answer"), 900);
     return () => clearTimeout(t);
-  }, [phase, rightSolid, b]);
+  }, [phase]);
 
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
     const next = [...input, String(d)];
-    if (next.length < resultStr.length) {
-      setInput(next);
-      return;
-    }
+    if (next.length < resultStr.length) { setInput(next); return; }
     if (Number(next.join("")) === result) {
       setPhase("done");
       setTimeout(() => onCorrect(), 700);
@@ -65,9 +50,6 @@ function AdditionTask({ task, onCorrect }) {
     if (shake) return;
     setInput(p => p.slice(0, -1));
   }
-
-  const showLeft  = (phase === "answer" || phase === "done") ? a : leftSolid;
-  const showRight = (phase === "answer" || phase === "done") ? b : rightSolid;
 
   const answerPart = phase === "done"
     ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
@@ -83,9 +65,13 @@ function AdditionTask({ task, onCorrect }) {
         {a} + {b} = {answerPart}
       </div>
 
-      <div className="fng-count-hands">
-        <HandImg count={showLeft}  side="right" style={{ flex: 1, minWidth: 0, height: "100%" }} />
-        <HandImg count={showRight} side="left"  style={{ flex: 1, minWidth: 0, height: "100%" }} />
+      <div className={`fng-count-hands${phase === "merge" ? " fng-count-hands--merging" : ""}`}>
+        <div className="fng-count-hand-l" style={{ flex: 1, minWidth: 0, height: "100%" }}>
+          <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
+        </div>
+        <div className="fng-count-hand-r" style={{ flex: 1, minWidth: 0, height: "100%" }}>
+          <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
+        </div>
       </div>
 
       <div className="col-copy-keyboard"
