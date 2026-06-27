@@ -68,9 +68,9 @@
 
 /* ── end FingersShow ────────────────────────────────────────────── */
 
-/* ── FingersCount addition auto-play layout ─────────────────────── */
+/* ── FingersCount addition layout ───────────────────────────────── */
 
-.fng-count-screen {
+.fng-add-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -80,7 +80,7 @@
   padding: 12px 8px 16px;
   box-sizing: border-box;
   overflow: hidden;
-  gap: 10px;
+  gap: 8px;
 }
 
 .fng-count-expr {
@@ -92,65 +92,53 @@
   line-height: 1;
 }
 
-.fng-count-answer {
-  color: #3b82f6;
-  display: inline-block;
-  min-width: 0.6em;
+.fng-add-hint {
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(18px, 5vw, 26px);
+  font-weight: 700;
+  color: #4a5568;
+  flex-shrink: 0;
+  text-align: center;
+  line-height: 1.2;
 }
 
-.fng-count-answer--correct {
-  color: #22c55e;
-}
-
-.fng-count-answer--shake {
-  animation: fng-answer-shake 0.4s ease;
-  color: #ef4444;
-}
-
+.fng-count-answer { color: #3b82f6; display: inline-block; min-width: 0.6em; }
+.fng-count-answer--correct { color: #22c55e; }
+.fng-count-answer--shake { animation: fng-answer-shake 0.4s ease; color: #ef4444; }
 @keyframes fng-answer-shake {
   0%, 100% { transform: translateX(0); }
   25%       { transform: translateX(-6px); }
   75%       { transform: translateX(6px); }
 }
 
-.fng-count-hands {
+/* hands: flex:1 fills remaining space; gap closes during merge */
+.fng-add-hands {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  align-items: stretch;
+  gap: 40px;
   width: 100%;
   flex: 1;
   min-height: 0;
   overflow: visible;
+  transition: gap 0.75s ease;
+}
+.fng-add-hands--closing { gap: 2px; }
+
+/* keyboard slides in when first rendered during merge phase */
+.fng-add-kbd {
+  animation: fng-kbd-appear 0.4s ease;
+}
+@keyframes fng-kbd-appear {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* bounce-merge animation for full-width hands */
-.fng-count-hands--merging .fng-count-hand-l {
-  animation: fng-merge-l 0.75s ease-in-out forwards;
-}
-.fng-count-hands--merging .fng-count-hand-r {
-  animation: fng-merge-r 0.75s ease-in-out forwards;
-}
-@keyframes fng-merge-l {
-  0%   { transform: translateX(0); }
-  55%  { transform: translateX(30vw); }
-  100% { transform: translateX(0); }
-}
-@keyframes fng-merge-r {
-  0%   { transform: translateX(0); }
-  55%  { transform: translateX(-30vw); }
-  100% { transform: translateX(0); }
-}
+/* keyboard override: 20% shorter buttons */
+.fng-add-screen .col-copy-kb-btn { height: 48px; font-size: 32px; }
+.fng-add-screen .col-copy-kb-del { font-size: 20px; }
 
-/* keyboard override: 20% shorter buttons in fingers count mode */
-.fng-count-screen .col-copy-kb-btn {
-  height: 48px;
-  font-size: 32px;
-}
-.fng-count-screen .col-copy-kb-del {
-  font-size: 20px;
-}
-
-/* ── end FingersCount ────────────────────────────────────────────── */
+/* ── end FingersCount addition ───────────────────────────────────── */
 
 .fng-hand-wrap {
   display: flex;

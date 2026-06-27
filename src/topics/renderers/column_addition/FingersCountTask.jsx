@@ -4,6 +4,10 @@ import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
 
 // ── Addition ──────────────────────────────────────────────────────────────────
+// Flow: "show" (3s, "Сделай так", hands spread)
+//    → "merge" (0.9s, "Соедини руки", hands close + keyboard appears)
+//    → "answer" (hands gone, "Введи ответ", keyboard interactive)
+//    → "done"
 
 function AdditionTask({ task, onCorrect }) {
   const [phase, setPhase] = useState("show");
@@ -14,19 +18,15 @@ function AdditionTask({ task, onCorrect }) {
   const resultStr = String(result);
 
   useEffect(() => {
-    setPhase("show");
-    setInput([]);
-    setShake(false);
+    setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
 
-  // show → merge after 1400 ms
   useEffect(() => {
     if (phase !== "show") return;
-    const t = setTimeout(() => setPhase("merge"), 1400);
+    const t = setTimeout(() => setPhase("merge"), 3000);
     return () => clearTimeout(t);
   }, [phase]);
 
-  // merge animation lasts 750 ms, then advance to answer
   useEffect(() => {
     if (phase !== "merge") return;
     const t = setTimeout(() => setPhase("answer"), 900);
@@ -38,56 +38,62 @@ function AdditionTask({ task, onCorrect }) {
     const next = [...input, String(d)];
     if (next.length < resultStr.length) { setInput(next); return; }
     if (Number(next.join("")) === result) {
-      setPhase("done");
-      setTimeout(() => onCorrect(), 700);
+      setPhase("done"); setTimeout(() => onCorrect(), 700);
     } else {
-      setShake(true);
-      setTimeout(() => { setShake(false); setInput([]); }, 500);
+      setShake(true); setTimeout(() => { setShake(false); setInput([]); }, 500);
     }
   }
 
-  function handleDelete() {
-    if (shake) return;
-    setInput(p => p.slice(0, -1));
-  }
+  function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
+
+  const hint =
+    phase === "show"  ? "Сделай так" :
+    phase === "merge" ? "Соедини руки" :
+    "Введи ответ";
 
   const answerPart = phase === "done"
     ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
-    : phase === "answer"
+    : (phase === "answer" || phase === "done")
       ? <span className={`fng-count-answer${shake ? " fng-count-answer--shake" : ""}`}>
           {input.length > 0 ? input.join("") : "?"}
         </span>
       : "?";
 
+  const showHands = phase === "show" || phase === "merge";
+  const showKbd   = phase === "merge" || phase === "answer" || phase === "done";
+
   return (
-    <div className="fng-count-screen">
-      <div className="fng-count-expr">
-        {a} + {b} = {answerPart}
-      </div>
+    <div className="fng-add-screen">
+      <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
 
-      <div className={`fng-count-hands${phase === "merge" ? " fng-count-hands--merging" : ""}`}>
-        <div className="fng-count-hand-l" style={{ flex: 1, minWidth: 0, height: "100%" }}>
-          <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
-        </div>
-        <div className="fng-count-hand-r" style={{ flex: 1, minWidth: 0, height: "100%" }}>
-          <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
-        </div>
-      </div>
+      <div className="fng-add-hint">{hint}</div>
 
-      <div className="col-copy-keyboard"
-           style={{ visibility: phase === "answer" ? "visible" : "hidden",
-                    pointerEvents: phase === "answer" ? "auto" : "none" }}>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-          <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
-            <span className="col-slant">{d}</span>
+      {showHands && (
+        <div className={`fng-add-hands${phase === "merge" ? " fng-add-hands--closing" : ""}`}>
+          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
+            <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
+            <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
+          </div>
+        </div>
+      )}
+
+      {showKbd && (
+        <div className="col-copy-keyboard fng-add-kbd"
+             style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
+            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
+              <span className="col-slant">{d}</span>
+            </button>
+          ))}
+          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
+          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
+            <span className="col-slant">0</span>
           </button>
-        ))}
-        <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
-        <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
-          <span className="col-slant">0</span>
-        </button>
-        <div />
-      </div>
+          <div />
+        </div>
+      )}
     </div>
   );
 }
