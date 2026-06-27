@@ -20,6 +20,7 @@ const SENTENCES = [
   { group: "basic",   text: "Хлопни в ладоши три раза." },
   { group: "basic",   text: "Хлопни в ладоши четыре раза." },
   { group: "basic",   text: "Подними обе руки вверх и потянись." },
+  { group: "basic",   text: "Подними обе руки и посчитай до трёх." },
   { group: "basic",   text: "Скрести руки на груди." },
   { group: "basic",   text: "Положи обе руки на колени." },
   { group: "basic",   text: "Сожми руки в кулаки и медленно разожми." },
@@ -50,6 +51,13 @@ const SENTENCES = [
   { group: "basic",   text: "Назови три животных." },
   { group: "basic",   text: "Назови буквы, которые помнишь." },
 
+  // ── BASIC: Пространство вокруг (от логопеда) ─────────────────
+  { group: "basic",   text: "Расскажи, что у тебя находится справа." },
+  { group: "basic",   text: "Расскажи, что у тебя находится слева." },
+  { group: "basic",   text: "Положи карандаш справа от коробки и скажи, где он лежит." },
+  { group: "basic",   text: "Положи карандаш слева от коробки и скажи, где он лежит." },
+  { group: "basic",   text: "Положи карандаш в коробку и скажи, где он лежит." },
+
   // ── SPATIAL: Тело — сторона ──────────────────────────────────
   { group: "spatial", text: "Подними правую руку вверх." },
   { group: "spatial", text: "Подними левую руку вверх." },
@@ -62,21 +70,12 @@ const SENTENCES = [
   // ── SPATIAL: Перекрёстная схема тела ─────────────────────────
   { group: "spatial", text: "Дотронься правой рукой до левого уха." },
   { group: "spatial", text: "Дотронься левой рукой до правого плеча." },
-
-  // ── SPATIAL: Что вокруг ──────────────────────────────────────
-  { group: "spatial", text: "Расскажи, что у тебя находится справа." },
-  { group: "spatial", text: "Расскажи, что у тебя находится слева." },
-
-  // ── SPATIAL: Предмет в пространстве ─────────────────────────
-  { group: "spatial", text: "Положи карандаш справа от коробки и скажи, где он лежит." },
-  { group: "spatial", text: "Положи карандаш слева от коробки и скажи, где он лежит." },
-  { group: "spatial", text: "Положи карандаш в коробку и скажи, где он лежит." },
 ];
 
 const manifest = {
   meta: {
     id: "reading_dad_instructions",
-    version: "1.0.2",
+    version: "1.0.3",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -133,7 +132,7 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/avatar.svg", avatarSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_instructions_v1.0.2.zip", buffer);
+writeFileSync("public/decks/reading_dad_instructions_v1.0.3.zip", buffer);
 const basic = SENTENCES.filter((s) => s.group === "basic").length;
 const spatial = SENTENCES.filter((s) => s.group === "spatial").length;
-console.log(`✓ reading_dad_instructions_v1.0.2.zip (${buffer.length} bytes, ${basic} basic + ${spatial} spatial)`);
+console.log(`✓ reading_dad_instructions_v1.0.3.zip (${buffer.length} bytes, ${basic} basic + ${spatial} spatial)`);
