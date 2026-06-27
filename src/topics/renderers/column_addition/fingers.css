@@ -85,7 +85,7 @@
 
 .fng-count-expr {
   font-family: 'Primo', sans-serif;
-  font-size: clamp(32px, 9vw, 60px);
+  font-size: clamp(52px, 14vw, 90px);
   color: #1a2540;
   letter-spacing: 4px;
   flex-shrink: 0;
@@ -123,7 +123,14 @@
   overflow: hidden;
 }
 
-/* digit keyboard reuses col-copy-keyboard / col-copy-kb-btn from column_addition.css */
+/* keyboard override: 20% shorter buttons in fingers count mode */
+.fng-count-screen .col-copy-kb-btn {
+  height: 48px;
+  font-size: 32px;
+}
+.fng-count-screen .col-copy-kb-del {
+  font-size: 20px;
+}
 
 /* ── end FingersCount ────────────────────────────────────────────── */
 

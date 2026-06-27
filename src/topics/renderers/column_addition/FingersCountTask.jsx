@@ -88,20 +88,20 @@ function AdditionTask({ task, onCorrect }) {
         <HandImg count={showRight} side="left"  style={{ flex: 1, minWidth: 0, height: "100%" }} />
       </div>
 
-      {phase === "answer" && (
-        <div className="col-copy-keyboard">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
-              <span className="col-slant">{d}</span>
-            </button>
-          ))}
-          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
-          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
-            <span className="col-slant">0</span>
+      <div className="col-copy-keyboard"
+           style={{ visibility: phase === "answer" ? "visible" : "hidden",
+                    pointerEvents: phase === "answer" ? "auto" : "none" }}>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
+          <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
+            <span className="col-slant">{d}</span>
           </button>
-          <div />
-        </div>
-      )}
+        ))}
+        <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
+        <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
+          <span className="col-slant">0</span>
+        </button>
+        <div />
+      </div>
     </div>
   );
 }
