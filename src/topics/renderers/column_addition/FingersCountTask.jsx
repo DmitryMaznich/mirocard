@@ -6,133 +6,97 @@ import "./fingers.css";
 // ── Addition ──────────────────────────────────────────────────────────────────
 
 function AdditionTask({ task, onCorrect }) {
-  const [phase, setPhase]       = useState("left");
+  const [phase, setPhase]           = useState("left");
   const [leftSolid, setLeftSolid]   = useState(0);
   const [rightSolid, setRightSolid] = useState(0);
-  const [countIdx, setCountIdx] = useState(-1);
-  const [merging, setMerging]   = useState(false);
+  const [input, setInput]           = useState([]);
+  const [shake, setShake]           = useState(false);
 
   const { a, b, result } = task;
+  const resultStr = String(result);
 
   useEffect(() => {
     setPhase("left");
     setLeftSolid(0);
     setRightSolid(0);
-    setCountIdx(-1);
-    setMerging(false);
+    setInput([]);
+    setShake(false);
   }, [task.cardId]);
 
-  const handleTap = useCallback(() => {
-    if (phase === "left") {
-      const next = leftSolid + 1;
-      setLeftSolid(next);
-      if (next >= a) setPhase("right");
-    } else if (phase === "right") {
-      const next = rightSolid + 1;
-      setRightSolid(next);
-      if (next >= b) setPhase("merge");
-    }
-  }, [phase, leftSolid, rightSolid, a, b]);
-
-  const handleMerge = useCallback(() => {
-    setMerging(true);
-    setPhase("counting");
-    setTimeout(() => setCountIdx(0), 700);
-  }, []);
-
+  // Auto-animate left hand — one finger every 450 ms; advance when done
   useEffect(() => {
-    if (countIdx < 0 || countIdx >= result) return;
-    const t = setTimeout(() => {
-      const next = countIdx + 1;
-      setCountIdx(next);
-      if (next >= result) setPhase("done");
-    }, 400);
+    if (phase !== "left") return;
+    if (leftSolid >= a) {
+      const t = setTimeout(() => setPhase("right"), 600);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setLeftSolid(n => n + 1), 450);
     return () => clearTimeout(t);
-  }, [countIdx, result]);
+  }, [phase, leftSolid, a]);
 
-  const instruction =
-    phase === "left"    ? `Подними ${a} пальца${a === 1 ? "" : "х"} левой руки` :
-    phase === "right"   ? `Подними ${b} пальца${b === 1 ? "" : "х"} правой руки` :
-    phase === "merge"   ? "Соединяем руки!" :
-    phase === "counting"? "Посчитай все пальцы!" : "";
+  // Auto-animate right hand
+  useEffect(() => {
+    if (phase !== "right") return;
+    if (rightSolid >= b) {
+      const t = setTimeout(() => setPhase("answer"), 700);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setRightSolid(n => n + 1), 450);
+    return () => clearTimeout(t);
+  }, [phase, rightSolid, b]);
+
+  function handleDigit(d) {
+    if (phase !== "answer" || shake) return;
+    const next = [...input, String(d)];
+    if (next.length < resultStr.length) {
+      setInput(next);
+      return;
+    }
+    if (Number(next.join("")) === result) {
+      setPhase("done");
+      setTimeout(() => onCorrect(), 700);
+    } else {
+      setShake(true);
+      setTimeout(() => { setShake(false); setInput([]); }, 500);
+    }
+  }
+
+  function handleDelete() {
+    if (shake) return;
+    setInput(p => p.slice(0, -1));
+  }
+
+  const showLeft  = (phase === "answer" || phase === "done") ? a : leftSolid;
+  const showRight = (phase === "answer" || phase === "done") ? b : rightSolid;
+
+  const answerPart = phase === "done"
+    ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
+    : phase === "answer"
+      ? <span className={`fng-count-answer${shake ? " fng-count-answer--shake" : ""}`}>
+          {input.length > 0 ? input.join("") : "?"}
+        </span>
+      : "?";
 
   return (
-    <div className="fng-screen">
-      <div className="fng-expression">
-        {a} + {b} ={" "}
-        {phase === "done"
-          ? <span className="fng-result-number">{result}</span>
-          : "?"}
+    <div className="fng-count-screen">
+      <div className="fng-count-expr">
+        {a} + {b} = {answerPart}
       </div>
 
-      <div className={merging ? "fng-hands-merge" : "fng-hands-row"}>
-        <div className={merging ? "fng-hand-merging-left" : ""}>
-          <HandImg
-            count={leftSolid}
-            ghost={phase === "left" && leftSolid > 0 ? a - leftSolid : 0}
-            side="right"
-                     />
-        </div>
-        <div className={merging ? "fng-hand-merging-right" : ""}>
-          <HandImg
-            count={rightSolid}
-            ghost={phase === "right" && rightSolid > 0 ? b - rightSolid : 0}
-            side="left"
-                     />
-        </div>
+      <div className="fng-count-hands">
+        <HandImg count={showLeft}  side="right" style={{ flex: 1, minWidth: 0, height: "100%" }} />
+        <HandImg count={showRight} side="left"  style={{ flex: 1, minWidth: 0, height: "100%" }} />
       </div>
 
-      {(phase === "counting" || phase === "done") && result > 0 && (
-        <div className="fng-count-seq">
-          {Array.from({ length: result }, (_, i) => (
-            <span
-              key={i}
-              className={
-                i < countIdx ? "fng-count--done" :
-                i === countIdx ? "fng-count--active" : ""
-              }
-            >
-              {i + 1}
-            </span>
+      {phase === "answer" && (
+        <div className="fng-digit-keyboard">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
+            <button key={d} className="fng-kb-btn" onClick={() => handleDigit(d)}>{d}</button>
           ))}
+          <button className="fng-kb-btn fng-kb-del" onClick={handleDelete}>⌫</button>
+          <button className="fng-kb-btn" onClick={() => handleDigit(0)}>0</button>
+          <div className="fng-kb-empty" />
         </div>
-      )}
-
-      {phase !== "done" && (
-        <div className="fng-instruction">{instruction}</div>
-      )}
-
-      {(phase === "left" || phase === "right") && (
-        <div className="fng-count-dots">
-          {Array.from({ length: phase === "left" ? a : b }, (_, i) => (
-            <div
-              key={i}
-              className={`fng-dot ${
-                (phase === "left" && i < leftSolid) ||
-                (phase === "right" && i < rightSolid)
-                  ? "fng-dot--filled" : ""
-              }`}
-            />
-          ))}
-        </div>
-      )}
-
-      {phase === "merge" && (
-        <button className="fng-btn fng-btn--merge" onClick={handleMerge}>
-          Соединяем →
-        </button>
-      )}
-
-      {(phase === "left" || phase === "right") && (
-        <button className="fng-btn fng-btn--tap" onClick={handleTap}>
-          тап
-        </button>
-      )}
-
-      {phase === "done" && (
-        <button className="fng-btn fng-btn--next" onClick={onCorrect}>
-          → Следующая
-        </button>
       )}
     </div>
   );
@@ -185,13 +149,11 @@ function SubtractionTask({ task, onCorrect }) {
     return () => clearTimeout(t);
   }, [countIdx, result]);
 
-  // Compute displayed finger counts during remove phase
   let leftCount  = startConfig.left;
   let rightCount = startConfig.right;
 
   if (phase === "remove" || phase === "counting" || phase === "done") {
     if (removeMode === "fold") {
-      // Fold from the larger hand
       if (startConfig.right >= startConfig.left) {
         rightCount = Math.max(startConfig.right - foldsDone, 0);
       } else {
@@ -270,7 +232,7 @@ function SubtractionTask({ task, onCorrect }) {
 
       {phase === "remove" && removeMode === "fold" && foldsDone < b && (
         <button className="fng-btn fng-btn--tap" onClick={handleFold}>
-          тап
+          загнуть
         </button>
       )}
 

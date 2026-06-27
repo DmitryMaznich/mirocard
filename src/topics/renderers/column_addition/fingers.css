@@ -68,6 +68,107 @@
 
 /* ── end FingersShow ────────────────────────────────────────────── */
 
+/* ── FingersCount addition auto-play layout ─────────────────────── */
+
+.fng-count-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f0f6ff;
+  padding: 12px 8px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  gap: 10px;
+}
+
+.fng-count-expr {
+  font-family: 'Primo', sans-serif;
+  font-size: clamp(32px, 9vw, 60px);
+  color: #1a2540;
+  letter-spacing: 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.fng-count-answer {
+  color: #3b82f6;
+  display: inline-block;
+  min-width: 0.6em;
+}
+
+.fng-count-answer--correct {
+  color: #22c55e;
+}
+
+.fng-count-answer--shake {
+  animation: fng-answer-shake 0.4s ease;
+  color: #ef4444;
+}
+
+@keyframes fng-answer-shake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-6px); }
+  75%       { transform: translateX(6px); }
+}
+
+.fng-count-hands {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* adaptive digit keyboard (answer phase) */
+.fng-digit-keyboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.fng-kb-btn {
+  height: clamp(50px, 13vw, 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
+  font-size: clamp(22px, 7vw, 42px);
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  color: #1a1a2e;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #c7d2fe;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fng-kb-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.fng-kb-del {
+  font-size: clamp(16px, 5vw, 28px);
+  color: #ef4444;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+}
+
+.fng-kb-empty {
+  /* placeholder for the 12th grid cell */
+}
+
+/* ── end FingersCount ────────────────────────────────────────────── */
+
 .fng-hand-wrap {
   display: flex;
   flex-direction: column;
