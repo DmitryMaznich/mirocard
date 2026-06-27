@@ -4,10 +4,8 @@ import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
 
 // ── Addition ──────────────────────────────────────────────────────────────────
-// Flow: "show" (3s, "Сделай так", hands spread)
-//    → "merge" (0.9s, "Соедини руки", hands close + keyboard appears)
-//    → "answer" (hands gone, "Введи ответ", keyboard interactive)
-//    → "done"
+// Three fixed zones, always in DOM — only opacity changes so layout never shifts.
+// Flow: show (3s) → merge (0.9s, hands close + kbd fades in) → answer → done
 
 function AdditionTask({ task, onCorrect }) {
   const [phase, setPhase] = useState("show");
@@ -59,16 +57,19 @@ function AdditionTask({ task, onCorrect }) {
         </span>
       : "?";
 
-  const showHands = phase === "show" || phase === "merge";
-  const showKbd   = phase === "merge" || phase === "answer" || phase === "done";
+  const handsVisible = phase === "show" || phase === "merge";
+  const kbdVisible   = phase === "merge" || phase === "answer" || phase === "done";
 
   return (
     <div className="fng-add-screen">
-      <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
+      {/* Zone 1 — expression + instruction (fixed, flex-shrink: 0) */}
+      <div className="fng-add-top">
+        <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
+        <div className="fng-add-hint">{hint}</div>
+      </div>
 
-      <div className="fng-add-hint">{hint}</div>
-
-      {showHands && (
+      {/* Zone 2 — hands (flex: 1, always reserves space) */}
+      <div className="fng-add-hands-zone" style={{ opacity: handsVisible ? 1 : 0 }}>
         <div className={`fng-add-hands${phase === "merge" ? " fng-add-hands--closing" : ""}`}>
           <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
             <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
@@ -77,10 +78,11 @@ function AdditionTask({ task, onCorrect }) {
             <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
           </div>
         </div>
-      )}
+      </div>
 
-      {showKbd && (
-        <div className="col-copy-keyboard fng-add-kbd"
+      {/* Zone 3 — keyboard (flex-shrink: 0, always reserves space at bottom) */}
+      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
+        <div className="col-copy-keyboard"
              style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
             <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
@@ -93,7 +95,7 @@ function AdditionTask({ task, onCorrect }) {
           </button>
           <div />
         </div>
-      )}
+      </div>
     </div>
   );
 }

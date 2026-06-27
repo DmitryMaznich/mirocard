@@ -69,6 +69,13 @@
 /* ── end FingersShow ────────────────────────────────────────────── */
 
 /* ── FingersCount addition layout ───────────────────────────────── */
+/*
+ * Three fixed zones that never shift position:
+ *   fng-add-top   — expression + hint (flex-shrink: 0)
+ *   fng-add-hands-zone — hands (flex: 1, fills remaining space)
+ *   fng-add-kbd-zone   — keyboard (flex-shrink: 0, fixed at bottom)
+ * Visibility is controlled via opacity so layout stays frozen.
+ */
 
 .fng-add-screen {
   display: flex;
@@ -77,10 +84,18 @@
   width: 100%;
   height: 100%;
   background: #f0f6ff;
-  padding: 12px 8px 16px;
+  padding: 12px 8px 10px;
   box-sizing: border-box;
   overflow: hidden;
-  gap: 8px;
+}
+
+.fng-add-top {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 10px;
 }
 
 .fng-count-expr {
@@ -88,7 +103,6 @@
   font-size: clamp(52px, 14vw, 90px);
   color: #1a2540;
   letter-spacing: 4px;
-  flex-shrink: 0;
   line-height: 1;
 }
 
@@ -97,7 +111,6 @@
   font-size: clamp(18px, 5vw, 26px);
   font-weight: 700;
   color: #4a5568;
-  flex-shrink: 0;
   text-align: center;
   line-height: 1.2;
 }
@@ -111,27 +124,29 @@
   75%       { transform: translateX(6px); }
 }
 
-/* hands: flex:1 fills remaining space; gap closes during merge */
+/* Zone 2: hands — always in DOM, opacity controls visibility */
+.fng-add-hands-zone {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  transition: opacity 0.25s ease;
+}
 .fng-add-hands {
   display: flex;
   flex-direction: row;
   align-items: stretch;
   gap: 40px;
   width: 100%;
-  flex: 1;
-  min-height: 0;
+  height: 100%;
   overflow: visible;
   transition: gap 0.75s ease;
 }
 .fng-add-hands--closing { gap: 2px; }
 
-/* keyboard slides in when first rendered during merge phase */
-.fng-add-kbd {
-  animation: fng-kbd-appear 0.4s ease;
-}
-@keyframes fng-kbd-appear {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Zone 3: keyboard — always in DOM, opacity controls visibility */
+.fng-add-kbd-zone {
+  flex-shrink: 0;
+  transition: opacity 0.3s ease;
 }
 
 /* keyboard override: 20% shorter buttons */
