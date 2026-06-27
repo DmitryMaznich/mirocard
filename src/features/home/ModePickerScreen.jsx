@@ -122,7 +122,7 @@ export default function ModePickerScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen(isReading ? "texts" : "home")}>←</button>
+        <button className="back-btn" onClick={() => setScreen(isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home")}>←</button>
         <h1 className="screen-title">{isReading ? getTextTitle(activeText) : getTopicTitle(topicRecord.meta.title)}</h1>
         <button
           className="header-info-btn"
