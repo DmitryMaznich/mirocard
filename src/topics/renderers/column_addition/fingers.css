@@ -124,24 +124,34 @@
   75%       { transform: translateX(6px); }
 }
 
-/* Zone 2: hands — always in DOM, opacity controls visibility */
+/* Zone 2: hands — always in DOM, opacity controls visibility.
+ * Each hand is absolutely positioned at 40% width so it NEVER changes size.
+ * translateX slides them from spread (20% gap) to touching (0 gap):
+ *   left hand  translateX(+25%) = +10% of container
+ *   right hand translateX(-25%) = -10% of container
+ *   → both right/left edges reach 50% = hands touch at center.
+ */
 .fng-add-hands-zone {
+  position: relative;
   width: 100%;
   flex: 1;
   min-height: 0;
   transition: opacity 0.25s ease;
 }
-.fng-add-hands {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 40px;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  transition: gap 0.75s ease;
+
+.fng-add-hand-l,
+.fng-add-hand-r {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  transition: transform 0.75s ease;
 }
-.fng-add-hands--closing { gap: 2px; }
+.fng-add-hand-l { left: 0;  transform: translateX(0); }
+.fng-add-hand-r { right: 0; transform: translateX(0); }
+
+.fng-add-hand-l.fng-add-hand--merge { transform: translateX(25%); }
+.fng-add-hand-r.fng-add-hand--merge { transform: translateX(-25%); }
 
 /* Zone 3: keyboard — always in DOM, opacity controls visibility */
 .fng-add-kbd-zone {

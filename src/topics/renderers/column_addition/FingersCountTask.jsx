@@ -68,15 +68,13 @@ function AdditionTask({ task, onCorrect }) {
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      {/* Zone 2 — hands (flex: 1, always reserves space) */}
+      {/* Zone 2 — hands (flex: 1, always reserves space; absolute children slide on merge) */}
       <div className="fng-add-hands-zone" style={{ opacity: handsVisible ? 1 : 0 }}>
-        <div className={`fng-add-hands${phase === "merge" ? " fng-add-hands--closing" : ""}`}>
-          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
-            <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
-            <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
-          </div>
+        <div className={`fng-add-hand-l${phase === "merge" ? " fng-add-hand--merge" : ""}`}>
+          <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
+        </div>
+        <div className={`fng-add-hand-r${phase === "merge" ? " fng-add-hand--merge" : ""}`}>
+          <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
         </div>
       </div>
 
