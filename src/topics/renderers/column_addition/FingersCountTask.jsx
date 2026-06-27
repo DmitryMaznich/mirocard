@@ -57,8 +57,8 @@ function AdditionTask({ task, onCorrect }) {
         </span>
       : "?";
 
-  const handsVisible = phase === "show" || phase === "merge";
-  const kbdVisible   = phase === "merge" || phase === "answer" || phase === "done";
+  const kbdVisible  = phase === "merge" || phase === "answer" || phase === "done";
+  const handsMerged = phase !== "show";
 
   return (
     <div className="fng-add-screen">
@@ -68,12 +68,12 @@ function AdditionTask({ task, onCorrect }) {
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      {/* Zone 2 — hands (flex: 1, always reserves space; absolute children slide on merge) */}
-      <div className="fng-add-hands-zone" style={{ opacity: handsVisible ? 1 : 0 }}>
-        <div className={`fng-add-hand-l${phase === "merge" ? " fng-add-hand--merge" : ""}`}>
+      {/* Zone 2 — hands (always visible; merged position stays during answer) */}
+      <div className="fng-add-hands-zone">
+        <div className={`fng-add-hand-l${handsMerged ? " fng-add-hand--merge" : ""}`}>
           <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
         </div>
-        <div className={`fng-add-hand-r${phase === "merge" ? " fng-add-hand--merge" : ""}`}>
+        <div className={`fng-add-hand-r${handsMerged ? " fng-add-hand--merge" : ""}`}>
           <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
         </div>
       </div>
