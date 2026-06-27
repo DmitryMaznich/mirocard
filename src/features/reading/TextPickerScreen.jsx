@@ -59,6 +59,15 @@ export default function TextPickerScreen() {
 
   const texts = [...(topicRecord?.texts ?? []), ...userRecipes];
 
+  // single sentence_pool text — skip picker, go straight to mode selection
+  useEffect(() => {
+    const builtIn = topicRecord?.texts ?? [];
+    if (builtIn.length === 1 && builtIn[0].kind === "sentence_pool") {
+      setActiveText(builtIn[0]);
+      setScreen("modes");
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   function pickText(text) {
     setActiveText(text);
     if (text.kind === "instruction") {
