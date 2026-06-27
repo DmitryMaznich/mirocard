@@ -150,8 +150,8 @@
 .fng-add-hand-l { left: 0;  transform: translateX(0); }
 .fng-add-hand-r { right: 0; transform: translateX(0); }
 
-.fng-add-hand-l.fng-add-hand--merge { transform: translateX(25%); }
-.fng-add-hand-r.fng-add-hand--merge { transform: translateX(-25%); }
+.fng-add-hand-l.fng-add-hand--merge { transform: translateX(40%); }
+.fng-add-hand-r.fng-add-hand--merge { transform: translateX(-40%); }
 
 /* Zone 3: keyboard — always in DOM, opacity controls visibility */
 .fng-add-kbd-zone {
