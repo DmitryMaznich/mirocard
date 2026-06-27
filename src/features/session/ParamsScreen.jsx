@@ -149,9 +149,15 @@ function SentencePoolSelector({ lines, value, onChange }) {
           Предложения
           <span className="param-hint" style={{ fontWeight: "normal", marginLeft: 6 }}>{count} / {lines.length}</span>
         </div>
-        {!allSelected && (
-          <button className="link-btn" onClick={() => onChange(null)}>Выбрать все</button>
-        )}
+        <label className="param-sentence-list__item" style={{ margin: 0 }}>
+          <input
+            type="checkbox"
+            className="param-checkbox"
+            checked={allSelected}
+            onChange={(e) => onChange(e.target.checked ? null : [])}
+          />
+          <span>Выбрать все</span>
+        </label>
       </div>
       <div className="param-sentence-list__predefined" style={{ maxHeight: 300, overflowY: "auto" }}>
         {lines.map((line) => (
