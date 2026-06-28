@@ -71,7 +71,16 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
     const dz = dropRef.current;
     if (!dz) return false;
     const r = dz.getBoundingClientRect();
-    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    // Check if the dragged chip (CHIP_SIZE × CHIP_H, centered on pointer)
+    // overlaps the drop zone — not just the pointer point.
+    const hw = CHIP_SIZE / 2;
+    const hh = CHIP_H   / 2;
+    return (
+      x + hw > r.left  &&
+      x - hw < r.right &&
+      y + hh > r.top   &&
+      y - hh < r.bottom
+    );
   }
 
   const handlePointerDown = useCallback((e, opt) => {
