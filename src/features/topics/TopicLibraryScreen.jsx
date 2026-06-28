@@ -181,7 +181,7 @@ export default function TopicLibraryScreen() {
 
   function handleSelectTopic(r) {
     setActiveTopicId(r.meta.id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setScreen("home");
   }
 
   async function handleDelete() {
