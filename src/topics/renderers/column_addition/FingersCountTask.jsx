@@ -99,10 +99,8 @@ function AdditionTask({ task, onCorrect }) {
 }
 
 // ── Subtraction ───────────────────────────────────────────────────────────────
-// "было" → "стало" без анимации пальцев.
-// Fold mode: result пальцев solid + b пальцев ghost (HandImg ghost prop).
-// Hand mode: оставшаяся рука solid, убранная рука 28% opacity.
-// Flow: show (2.5s) → fold (1.5s, shows "стало") → answer → done
+// Three steps: "Было" (a fingers) → "Убираем" (b arrows ↓) → "Стало" (result fingers)
+// Flow: show (2.5s) → remove (2s) → result (1.2s) → answer → done
 
 function SubtractionTask({ task, onCorrect }) {
   const [phase, setPhase] = useState("show");
@@ -111,21 +109,28 @@ function SubtractionTask({ task, onCorrect }) {
 
   const { a, b, result } = task;
   const resultStr   = String(result);
-  const startConfig = getFingerConfig(a);
+  const startConfig  = getFingerConfig(a);
+  const resultConfig = getFingerConfig(result);
 
   useEffect(() => {
     setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
 
   useEffect(() => {
-    if (phase !== "show") return;
-    const t = setTimeout(() => setPhase("fold"), 2500);
+    if (phase !== "show")   return;
+    const t = setTimeout(() => setPhase("remove"), 2500);
     return () => clearTimeout(t);
   }, [phase]);
 
   useEffect(() => {
-    if (phase !== "fold") return;
-    const t = setTimeout(() => setPhase("answer"), 1500);
+    if (phase !== "remove") return;
+    const t = setTimeout(() => setPhase("result"), 2000);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "result") return;
+    const t = setTimeout(() => setPhase("answer"), 1200);
     return () => clearTimeout(t);
   }, [phase]);
 
@@ -142,28 +147,12 @@ function SubtractionTask({ task, onCorrect }) {
 
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
-  // ── Compute what to display on each hand ─────────────────────────
-  // Always fold mode: remove b fingers from the dominant (larger) hand.
-  let leftCount = startConfig.left, rightCount = startConfig.right;
-  let leftGhost = 0,                rightGhost = 0;
-
-  if (phase !== "show") {
-    if (startConfig.right >= startConfig.left) {
-      rightCount = startConfig.right - b;
-      rightGhost = b;
-    } else {
-      leftCount = startConfig.left - b;
-      leftGhost = b;
-    }
-  }
-
-  // ── Hints ────────────────────────────────────────────────────────
   const hint =
-    phase === "show" ? "Сделай так" :
-    phase === "fold" ? `Загнули ${b}` :
+    phase === "show"   ? "Было" :
+    phase === "remove" ? `Убираем ${b}` :
+    phase === "result" ? "Стало" :
     "Введи ответ";
 
-  // ── Answer display in expression ─────────────────────────────────
   const answerPart = phase === "done"
     ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
     : phase === "answer"
@@ -172,6 +161,10 @@ function SubtractionTask({ task, onCorrect }) {
         </span>
       : "?";
 
+  const showArrows = phase === "remove";
+  const showHands  = !showArrows;
+  const leftCount  = (phase === "show") ? startConfig.left  : resultConfig.left;
+  const rightCount = (phase === "show") ? startConfig.right : resultConfig.right;
   const kbdVisible = phase === "answer" || phase === "done";
 
   return (
@@ -182,18 +175,24 @@ function SubtractionTask({ task, onCorrect }) {
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      {/* Zone 2 — hands (flex, no merge animation for subtraction) */}
+      {/* Zone 2 — hands OR arrows */}
       <div className="fng-add-hands-zone">
-        <div className="fng-sub-hands">
-          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
-            <HandImg count={leftCount}  ghost={leftGhost}
-                     side="right" style={{ width: "100%", height: "100%" }} />
+        {showArrows ? (
+          <div className="fng-sub-arrows">
+            {Array.from({ length: b }, (_, i) => (
+              <span key={i} className="fng-sub-arrow">↓</span>
+            ))}
           </div>
-          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
-            <HandImg count={rightCount} ghost={rightGhost}
-                     side="left"  style={{ width: "100%", height: "100%" }} />
+        ) : (
+          <div className="fng-sub-hands">
+            <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
+              <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
+              <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Zone 3 — keyboard */}

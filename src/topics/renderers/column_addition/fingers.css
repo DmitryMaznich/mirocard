@@ -171,6 +171,26 @@
   gap: 8px;
 }
 
+/* Zone 2 inner — subtraction arrows (shown during "Убираем" phase) */
+.fng-sub-arrows {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.fng-sub-arrow {
+  font-size: clamp(52px, 15vw, 88px);
+  color: #ef4444;
+  line-height: 1;
+  user-select: none;
+}
+
 /* ── end FingersCount addition ───────────────────────────────────── */
 
 .fng-hand-wrap {
