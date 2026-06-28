@@ -161,11 +161,17 @@ function SubtractionTask({ task, onCorrect }) {
         </span>
       : "?";
 
-  const showArrows = phase === "remove";
-  const showHands  = !showArrows;
-  const leftCount  = (phase === "show") ? startConfig.left  : resultConfig.left;
-  const rightCount = (phase === "show") ? startConfig.right : resultConfig.right;
+  // dominant hand = the one losing b fingers
+  const dominantIsRight = startConfig.right >= startConfig.left;
+
+  // counts: "show" and "remove" phases → a fingers; "result"+ → result fingers
+  const leftCount  = (phase === "show" || phase === "remove") ? startConfig.left  : resultConfig.left;
+  const rightCount = (phase === "show" || phase === "remove") ? startConfig.right : resultConfig.right;
   const kbdVisible = phase === "answer" || phase === "done";
+
+  const arrows = Array.from({ length: b }, (_, i) => (
+    <span key={i} className="fng-sub-arrow">↓</span>
+  ));
 
   return (
     <div className="fng-add-screen">
@@ -175,24 +181,22 @@ function SubtractionTask({ task, onCorrect }) {
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      {/* Zone 2 — hands OR arrows */}
+      {/* Zone 2 — hands; during "remove" phase dominant hand gets arrow overlay */}
       <div className="fng-add-hands-zone">
-        {showArrows ? (
-          <div className="fng-sub-arrows">
-            {Array.from({ length: b }, (_, i) => (
-              <span key={i} className="fng-sub-arrow">↓</span>
-            ))}
+        <div className="fng-sub-hands">
+          <div className="fng-sub-hand-wrap">
+            {phase === "remove" && !dominantIsRight && (
+              <div className="fng-sub-remove-overlay">{arrows}</div>
+            )}
+            <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
           </div>
-        ) : (
-          <div className="fng-sub-hands">
-            <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
-              <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
-              <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
-            </div>
+          <div className="fng-sub-hand-wrap">
+            {phase === "remove" && dominantIsRight && (
+              <div className="fng-sub-remove-overlay">{arrows}</div>
+            )}
+            <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
           </div>
-        )}
+        </div>
       </div>
 
       {/* Zone 3 — keyboard */}
