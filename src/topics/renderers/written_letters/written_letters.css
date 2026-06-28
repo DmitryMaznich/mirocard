@@ -180,12 +180,15 @@
      to align exactly with the HandwrittenLetter SVG lines of the stimulus.
      gap between rows also set inline so chip baselines land on a propis line. */
   background-image:
+    /* Slant lines: Russian standard 65° from vertical (= 25° from horizontal).
+       CSS gradient angle 155° creates right-leaning "/" lines.
+       66px perpendicular spacing ← 20mm × sin(25°) / 12mm × 94px (PITCH_PX). */
     repeating-linear-gradient(
-      135deg,
+      155deg,
       transparent 0,
-      transparent 20px,
-      rgba(155, 200, 215, 0.18) 20px,
-      rgba(155, 200, 215, 0.18) 21.5px
+      transparent 66px,
+      rgba(155, 200, 215, 0.2) 66px,
+      rgba(155, 200, 215, 0.2) 67.5px
     ),
     linear-gradient(rgba(106, 180, 204, 0.32) 1.5px, transparent 1.5px),
     linear-gradient(rgba(42,  130, 160, 0.62) 1.5px, transparent 1.5px);
