@@ -101,7 +101,7 @@ const RECIPES = {
   chemex_s23: "chemex brewer with nearly empty filter, last drops of amber coffee dripping into glass flask below, 2-minute timer on phone, quiet morning",
   chemex_s24: "chemex with completely empty dry paper filter above, beautiful clear dark amber coffee fully collected in glass flask below, brew complete",
   chemex_s25: "removing used chemex paper filter with spent wet coffee grounds from brewer with both hands, lifting filter carefully, grounds inside",
-  chemex_s26: "pouring crystal clear light golden pour-over filter coffee from chemex glass brewer into a white ceramic mug, transparent clean coffee stream, not dark, not espresso, delicate amber color, morning light",
+  chemex_s26: "pouring medium amber-brown pour-over coffee from chemex glass brewer into a white ceramic mug, rich warm honey-brown coffee color like strong black tea, translucent but clearly coffee-colored, not pale, not espresso dark, steam rising, morning light",
 };
 
 // ── Gemini API ────────────────────────────────────────────────────────────────
