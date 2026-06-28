@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import HandImg from "./HandImg.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
@@ -99,144 +99,133 @@ function AdditionTask({ task, onCorrect }) {
 }
 
 // ── Subtraction ───────────────────────────────────────────────────────────────
+// "было" → "стало" без анимации пальцев.
+// Fold mode: result пальцев solid + b пальцев ghost (HandImg ghost prop).
+// Hand mode: оставшаяся рука solid, убранная рука 28% opacity.
+// Flow: show (2.5s) → fold (1.5s, shows "стало") → answer → done
 
 function SubtractionTask({ task, onCorrect }) {
-  const [phase, setPhase]       = useState("show");
-  const [foldsDone, setFolds]   = useState(0);
-  const [countIdx, setCountIdx] = useState(-1);
-  const [handRemoved, setHandRemoved] = useState(false);
+  const [phase, setPhase] = useState("show");
+  const [input, setInput] = useState([]);
+  const [shake, setShake] = useState(false);
 
   const { a, b, result, removeMode, removeHand } = task;
-  const startConfig  = getFingerConfig(a);
-  const resultConfig = getFingerConfig(result);
+  const resultStr   = String(result);
+  const startConfig = getFingerConfig(a);
 
   useEffect(() => {
-    setPhase("show");
-    setFolds(0);
-    setCountIdx(-1);
-    setHandRemoved(false);
+    setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
 
-  function startCounting() {
-    setPhase("counting");
-    setCountIdx(0);
-  }
-
-  const handleReady = () => setPhase("remove");
-
-  const handleRemoveHand = useCallback(() => {
-    setHandRemoved(true);
-    setTimeout(startCounting, 600);
-  }, []);
-
-  const handleFold = useCallback(() => {
-    const next = foldsDone + 1;
-    setFolds(next);
-    if (next >= b) setTimeout(startCounting, 300);
-  }, [foldsDone, b]);
+  useEffect(() => {
+    if (phase !== "show") return;
+    const t = setTimeout(() => setPhase("fold"), 2500);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   useEffect(() => {
-    if (countIdx < 0 || countIdx >= result) return;
-    const t = setTimeout(() => {
-      const next = countIdx + 1;
-      setCountIdx(next);
-      if (next >= result) setPhase("done");
-    }, 400);
+    if (phase !== "fold") return;
+    const t = setTimeout(() => setPhase("answer"), 1500);
     return () => clearTimeout(t);
-  }, [countIdx, result]);
+  }, [phase]);
 
-  let leftCount  = startConfig.left;
-  let rightCount = startConfig.right;
-
-  if (phase === "remove" || phase === "counting" || phase === "done") {
-    if (removeMode === "fold") {
-      if (startConfig.right >= startConfig.left) {
-        rightCount = Math.max(startConfig.right - foldsDone, 0);
-      } else {
-        leftCount = Math.max(startConfig.left - foldsDone, 0);
-      }
-    } else if (removeMode === "hand" && handRemoved) {
-      leftCount  = resultConfig.left;
-      rightCount = resultConfig.right;
+  function handleDigit(d) {
+    if (phase !== "answer" || shake) return;
+    const next = [...input, String(d)];
+    if (next.length < resultStr.length) { setInput(next); return; }
+    if (Number(next.join("")) === result) {
+      setPhase("done"); setTimeout(() => onCorrect(), 700);
+    } else {
+      setShake(true); setTimeout(() => { setShake(false); setInput([]); }, 500);
     }
   }
 
-  const isRemovingLeft  = phase === "remove" && removeMode === "hand" && removeHand === "left";
-  const isRemovingRight = phase === "remove" && removeMode === "hand" && removeHand === "right";
+  function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
-  const instruction =
-    phase === "show"  ? `Вот ${a} пальцев. Убираем ${b}.` :
-    phase === "remove" && removeMode === "hand"
-      ? `Убери ${removeHand === "left" ? "левую" : "правую"} руку!` :
-    phase === "remove" && removeMode === "fold"
-      ? `Загни ${b - foldsDone} палец${b - foldsDone === 1 ? "" : "а"}` :
-    phase === "counting" ? "Сколько осталось? Посчитай!" : "";
+  // ── Compute what to display on each hand ─────────────────────────
+  let leftCount = startConfig.left,  rightCount = startConfig.right;
+  let leftGhost = 0,                 rightGhost = 0;
+  let leftOpacity = 1,               rightOpacity = 1;
+
+  if (phase !== "show") {
+    if (removeMode === "fold") {
+      if (startConfig.right >= startConfig.left) {
+        // remove b fingers from the right (larger) hand
+        rightCount = startConfig.right - b;
+        rightGhost = b;
+      } else {
+        leftCount = startConfig.left - b;
+        leftGhost = b;
+      }
+    } else {
+      // hand mode: removed hand shown at 28% with original count
+      if (removeHand === "left") {
+        leftOpacity  = 0.28;
+        rightCount   = startConfig.right;   // remaining hand unchanged visually
+      } else {
+        rightOpacity = 0.28;
+        leftCount    = startConfig.left;
+      }
+    }
+  }
+
+  // ── Hints ────────────────────────────────────────────────────────
+  const hint =
+    phase === "show" ? "Сделай так" :
+    phase === "fold" ? (removeMode === "fold" ? `Загнули ${b}` : "Убрали руку") :
+    "Введи ответ";
+
+  // ── Answer display in expression ─────────────────────────────────
+  const answerPart = phase === "done"
+    ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
+    : phase === "answer"
+      ? <span className={`fng-count-answer${shake ? " fng-count-answer--shake" : ""}`}>
+          {input.length > 0 ? input.join("") : "?"}
+        </span>
+      : "?";
+
+  const kbdVisible = phase === "answer" || phase === "done";
 
   return (
-    <div className="fng-screen">
-      <div className="fng-expression">
-        {a} − {b} ={" "}
-        {phase === "done"
-          ? <span className="fng-result-number">{result}</span>
-          : "?"}
+    <div className="fng-add-screen">
+      {/* Zone 1 — expression + hint */}
+      <div className="fng-add-top">
+        <div className="fng-count-expr">{a} − {b} = {answerPart}</div>
+        <div className="fng-add-hint">{hint}</div>
       </div>
 
-      <div className="fng-hands-row">
-        <div className={
-          isRemovingLeft && !handRemoved ? "fng-hand--remove" :
-          isRemovingLeft && handRemoved  ? "fng-hand--removed" : ""
-        }>
-          <HandImg count={leftCount} side="right" animated />
-        </div>
-        <div className={
-          isRemovingRight && !handRemoved ? "fng-hand--remove" :
-          isRemovingRight && handRemoved  ? "fng-hand--removed" : ""
-        }>
-          <HandImg count={rightCount} side="left" animated />
+      {/* Zone 2 — hands (flex, no merge animation for subtraction) */}
+      <div className="fng-add-hands-zone">
+        <div className="fng-sub-hands">
+          <div style={{ flex: 1, minWidth: 0, height: "100%", opacity: leftOpacity,
+                        transition: "opacity 0.4s ease" }}>
+            <HandImg count={leftCount}  ghost={leftGhost}
+                     side="right" style={{ width: "100%", height: "100%" }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0, height: "100%", opacity: rightOpacity,
+                        transition: "opacity 0.4s ease" }}>
+            <HandImg count={rightCount} ghost={rightGhost}
+                     side="left"  style={{ width: "100%", height: "100%" }} />
+          </div>
         </div>
       </div>
 
-      {(phase === "counting" || phase === "done") && result > 0 && (
-        <div className="fng-count-seq">
-          {Array.from({ length: result }, (_, i) => (
-            <span
-              key={i}
-              className={
-                i < countIdx ? "fng-count--done" :
-                i === countIdx ? "fng-count--active" : ""
-              }
-            >
-              {i + 1}
-            </span>
+      {/* Zone 3 — keyboard */}
+      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
+        <div className="col-copy-keyboard"
+             style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
+            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
+              <span className="col-slant">{d}</span>
+            </button>
           ))}
+          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
+          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
+            <span className="col-slant">0</span>
+          </button>
+          <div />
         </div>
-      )}
-
-      {phase !== "done" && <div className="fng-instruction">{instruction}</div>}
-
-      {phase === "show" && (
-        <button className="fng-btn fng-btn--next" onClick={handleReady}>
-          Готов
-        </button>
-      )}
-
-      {phase === "remove" && removeMode === "hand" && !handRemoved && (
-        <button className="fng-btn fng-btn--tap" onClick={handleRemoveHand}>
-          убрать руку
-        </button>
-      )}
-
-      {phase === "remove" && removeMode === "fold" && foldsDone < b && (
-        <button className="fng-btn fng-btn--tap" onClick={handleFold}>
-          загнуть
-        </button>
-      )}
-
-      {phase === "done" && (
-        <button className="fng-btn fng-btn--next" onClick={onCorrect}>
-          → Следующая
-        </button>
-      )}
+      </div>
     </div>
   );
 }
