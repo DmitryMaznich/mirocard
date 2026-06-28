@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.124.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.125.0.zip";
-const NEW_VERSION = "1.125.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.125.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.127.0.zip";
+const NEW_VERSION = "1.127.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -43,9 +43,19 @@ const recipeFiles = readdirSync(RECIPES_DIR)
 const recipeIds = recipeFiles.map(f => f.replace(".txt", ""));
 console.log(`Найдено рецептов: ${recipeIds.length}`);
 
-// Copy extra inline media files (referenced inside recipe steps, not per-recipe SVG/photo)
-const EXTRA_MEDIA = ["oven_mode.jpg"];
-for (const fname of EXTRA_MEDIA) {
+// Collect all inline [filename.ext] references from recipe bodies
+const IMG_TAG_RE = /^[\[［]([^\]］]+\.\w+)[\]］]$/;
+const inlineMediaFiles = new Set(["oven_mode.jpg"]); // legacy hardcoded extras
+for (const id of recipeIds) {
+  const content = readFileSync(`${RECIPES_DIR}/${id}.txt`, "utf-8");
+  for (const line of content.split("\n")) {
+    const m = line.trim().match(IMG_TAG_RE);
+    if (m) inlineMediaFiles.add(m[1].trim());
+  }
+}
+
+// Copy extra inline media files
+for (const fname of inlineMediaFiles) {
   const localPath = `${MEDIA_DIR}/${fname}`;
   if (existsSync(localPath)) {
     newZip.file(`media/${fname}`, readFileSync(localPath));
