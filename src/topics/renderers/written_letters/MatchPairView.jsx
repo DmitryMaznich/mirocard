@@ -109,16 +109,13 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
     if (!onTarget) return;
     if (dragPos.opt.isTarget) {
       setDropped(dragPos.opt);
-      setFlash("correct");
       setDone(true);
-      onCorrect?.(task.stimulus?.letter, dragPos.opt.letter);
       if (task.secondStep) {
-        // Brief pause to show the green flash, then open confirm step
-        setTimeout(() => {
-          setFlash(null);
-          setPhase("confirm");
-        }, 600);
+        // Instant switch to confirm — no flash, onCorrect deferred to confirm step
+        setPhase("confirm");
       } else {
+        setFlash("correct");
+        onCorrect?.(task.stimulus?.letter, dragPos.opt.letter);
         setTimeout(() => onAdvance?.(), 800);
       }
     } else {
@@ -132,6 +129,7 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
     if (confirmFlash) return;
     if (opt.isTarget) {
       setConfirmFlash({ letter: opt.letter, state: "correct" });
+      onCorrect?.(task.stimulus?.letter, dropped?.letter);
       setTimeout(() => onAdvance?.(), 600);
     } else {
       setConfirmFlash({ letter: opt.letter, state: "wrong" });
