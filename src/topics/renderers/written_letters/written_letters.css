@@ -201,7 +201,8 @@
   align-items: center;
   justify-content: center;
   /* gap injected inline by MatchPairView for precise baseline alignment */
-  padding: 24px 16px;
+  /* No horizontal padding: 3 chips × 120px = 360px needs the full 375px width */
+  padding: 24px 0;
   touch-action: none;
   user-select: none;
   overflow: hidden;
@@ -252,13 +253,19 @@
   line-height: 1;
 }
 
-/* Chips row */
-.wl-pair-chips {
+/* Chip rows container — rows stacked with ROW_INNER_GAP set inline */
+.wl-pair-chip-section {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* One row of chips — each row baseline lands exactly on a propis line */
+.wl-pair-chip-row {
+  display: flex;
   justify-content: center;
-  /* horizontal gap scaled so chips sit with natural spacing on прописи */
-  gap: 8px 16px;
+  gap: 0;           /* letters touch side-by-side, propis lines continue through */
 }
 
 /* Bare chip — no card background, letter sits directly on прописи lines */
@@ -266,7 +273,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;     /* minimal touch-target extension */
   cursor: grab;
   touch-action: none;
   transition: opacity 0.15s, filter 0.1s;

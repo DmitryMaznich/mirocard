@@ -8,20 +8,31 @@ const L2  = 62;
 const L3  = 88;
 const L4  = 140;
 
-const STIM_SIZE  = 120;                                    // SVG width px
-const STIM_H     = Math.round(STIM_SIZE * VBH / VBW);     // 180px
-const L2_PX      = Math.round(L2 / VBH * STIM_H);         // 74px  (top working line in SVG)
-const L3_PX      = Math.round(L3 / VBH * STIM_H);         // 106px (baseline in SVG)
-const PITCH_PX   = Math.round((L4 - L2) / VBH * STIM_H); // 94px  (row height on screen)
+const STIM_SIZE = 120;
+const STIM_H    = Math.round(STIM_SIZE * VBH / VBW); // 180px
+const L2_PX     = Math.round(L2 / VBH * STIM_H);     // 74px  — top working line
+const L3_PX     = Math.round(L3 / VBH * STIM_H);     // 106px — baseline
+const PITCH_PX  = Math.round((L4 - L2) / VBH * STIM_H); // 94px — row height
 
-const CHIP_SIZE  = 64;
-const CHIP_H     = Math.round(CHIP_SIZE * VBH / VBW);     // 96px
-const CHIP_L3_PX = Math.round(L3 / VBH * CHIP_H);         // 56px
+// Chips at the same size so their writing zone aligns with the same propis lines
+const CHIP_SIZE    = STIM_SIZE;  // 120px
+const CHIP_H       = STIM_H;     // 180px
+const CHIP_L3_PX   = L3_PX;      // 106px
 
-// Gap between stimulus row bottom and chip row top so that
-// chip baselines fall exactly 3 propis rows below stimulus baseline.
-const CHIP_GAP_PX = Math.round(3 * PITCH_PX - (STIM_H - L3_PX) - CHIP_L3_PX);
-// = 3×94 − (180−106) − 56 = 282 − 74 − 56 = 152
+// Gap between the bottom of one block and the top of the next so that baselines
+// fall exactly N_ROWS propis-pitch rows apart.
+// gap = N×PITCH − (block_H − block_L3) − chip_L3
+const N_ROWS         = 2;
+const CHIP_GAP_PX    = Math.round(N_ROWS * PITCH_PX - (STIM_H - L3_PX) - CHIP_L3_PX); // 8
+const ROW_INNER_GAP  = CHIP_GAP_PX; // same size → same gap between chip rows
+
+const CHIPS_PER_ROW  = 3;
+
+function chunk(arr, n) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out;
+}
 
 export default function MatchPairView({ task, onAdvance, onCorrect, onMistake }) {
   const rootRef = useRef(null);
@@ -36,7 +47,7 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
   const [done,     setDone]     = useState(false);
 
   // Align horizontal propis lines with the stimulus SVG lines.
-  // Diagonal layer (layer 0) uses auto sizing — no position needed.
+  // Because chip rows are N_ROWS * PITCH_PX below, they automatically align too.
   useLayoutEffect(() => {
     const align = () => {
       const root = rootRef.current;
@@ -49,7 +60,6 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
       const l3Y = svgTopY + L3_PX;
       const l2Phase = ((l2Y % PITCH_PX) + PITCH_PX) % PITCH_PX;
       const l3Phase = ((l3Y % PITCH_PX) + PITCH_PX) % PITCH_PX;
-      // 3 layers: diagonal (auto), L2 guide, L3 baseline
       root.style.backgroundSize     = `auto, 100% ${PITCH_PX}px, 100% ${PITCH_PX}px`;
       root.style.backgroundPosition = `0 0, 0 ${l2Phase}px, 0 ${l3Phase}px`;
     };
@@ -106,6 +116,8 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
     flash === "wrong"   ? "wl-pair-dropzone--wrong"   : "",
   ].filter(Boolean).join(" ");
 
+  const chipRows = chunk(task.options ?? [], CHIPS_PER_ROW);
+
   return (
     <div
       ref={rootRef}
@@ -120,7 +132,6 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
         <div ref={stimRef}>
           <HandwrittenLetter letter={task.stimulus.letter} size={STIM_SIZE} bare />
         </div>
-
         <div ref={dropRef} className={dropCls} style={{ width: STIM_SIZE, height: STIM_H }}>
           {dropped
             ? <HandwrittenLetter letter={dropped.letter} size={STIM_SIZE} bare />
@@ -129,24 +140,28 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
         </div>
       </div>
 
-      {/* Bare chips — directly on the propis lines, no card */}
-      <div className="wl-pair-chips">
-        {(task.options ?? []).map((opt, i) => {
-          const isFloating = dragPos?.opt === opt;
-          return (
-            <div
-              key={(opt.id ?? opt.letter) + i}
-              className={[
-                "wl-pair-chip",
-                isFloating ? "wl-pair-chip--ghost" : "",
-                done && !isFloating ? "wl-pair-chip--done" : "",
-              ].filter(Boolean).join(" ")}
-              onPointerDown={(e) => handlePointerDown(e, opt)}
-            >
-              <HandwrittenLetter letter={opt.letter} size={CHIP_SIZE} bare />
-            </div>
-          );
-        })}
+      {/* Chip rows — each row baseline sits exactly N_ROWS propis-pitches below the previous */}
+      <div className="wl-pair-chip-section" style={{ gap: ROW_INNER_GAP }}>
+        {chipRows.map((row, ri) => (
+          <div key={ri} className="wl-pair-chip-row">
+            {row.map((opt, i) => {
+              const isFloating = dragPos?.opt === opt;
+              return (
+                <div
+                  key={(opt.id ?? opt.letter) + ri + i}
+                  className={[
+                    "wl-pair-chip",
+                    isFloating ? "wl-pair-chip--ghost" : "",
+                    done && !isFloating ? "wl-pair-chip--done" : "",
+                  ].filter(Boolean).join(" ")}
+                  onPointerDown={(e) => handlePointerDown(e, opt)}
+                >
+                  <HandwrittenLetter letter={opt.letter} size={CHIP_SIZE} bare />
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
 
       {/* Floating letter while dragging */}
