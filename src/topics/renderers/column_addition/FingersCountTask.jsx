@@ -109,7 +109,7 @@ function SubtractionTask({ task, onCorrect }) {
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
 
-  const { a, b, result, removeMode, removeHand } = task;
+  const { a, b, result } = task;
   const resultStr   = String(result);
   const startConfig = getFingerConfig(a);
 
@@ -143,36 +143,24 @@ function SubtractionTask({ task, onCorrect }) {
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
   // ── Compute what to display on each hand ─────────────────────────
-  let leftCount = startConfig.left,  rightCount = startConfig.right;
-  let leftGhost = 0,                 rightGhost = 0;
-  let leftOpacity = 1,               rightOpacity = 1;
+  // Always fold mode: remove b fingers from the dominant (larger) hand.
+  let leftCount = startConfig.left, rightCount = startConfig.right;
+  let leftGhost = 0,                rightGhost = 0;
 
   if (phase !== "show") {
-    if (removeMode === "fold") {
-      if (startConfig.right >= startConfig.left) {
-        // remove b fingers from the right (larger) hand
-        rightCount = startConfig.right - b;
-        rightGhost = b;
-      } else {
-        leftCount = startConfig.left - b;
-        leftGhost = b;
-      }
+    if (startConfig.right >= startConfig.left) {
+      rightCount = startConfig.right - b;
+      rightGhost = b;
     } else {
-      // hand mode: removed hand shown at 28% with original count
-      if (removeHand === "left") {
-        leftOpacity  = 0.28;
-        rightCount   = startConfig.right;   // remaining hand unchanged visually
-      } else {
-        rightOpacity = 0.28;
-        leftCount    = startConfig.left;
-      }
+      leftCount = startConfig.left - b;
+      leftGhost = b;
     }
   }
 
   // ── Hints ────────────────────────────────────────────────────────
   const hint =
     phase === "show" ? "Сделай так" :
-    phase === "fold" ? (removeMode === "fold" ? `Загнули ${b}` : "Убрали руку") :
+    phase === "fold" ? `Загнули ${b}` :
     "Введи ответ";
 
   // ── Answer display in expression ─────────────────────────────────
@@ -197,13 +185,11 @@ function SubtractionTask({ task, onCorrect }) {
       {/* Zone 2 — hands (flex, no merge animation for subtraction) */}
       <div className="fng-add-hands-zone">
         <div className="fng-sub-hands">
-          <div style={{ flex: 1, minWidth: 0, height: "100%", opacity: leftOpacity,
-                        transition: "opacity 0.4s ease" }}>
+          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
             <HandImg count={leftCount}  ghost={leftGhost}
                      side="right" style={{ width: "100%", height: "100%" }} />
           </div>
-          <div style={{ flex: 1, minWidth: 0, height: "100%", opacity: rightOpacity,
-                        transition: "opacity 0.4s ease" }}>
+          <div style={{ flex: 1, minWidth: 0, height: "100%" }}>
             <HandImg count={rightCount} ghost={rightGhost}
                      side="left"  style={{ width: "100%", height: "100%" }} />
           </div>
