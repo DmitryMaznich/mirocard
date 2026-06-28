@@ -2,7 +2,7 @@
   "meta": {
     "id": "written_letters",
     "renderer": "written_letters",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "title": { "ru": "Письменные буквы" },
     "avatar": "media/avatar.svg",
     "about": {
@@ -57,8 +57,17 @@
       "evaluation": "auto",
       "ui": {
         "title": { "ru": "Найди пару" },
-        "instruction": { "ru": "Нажми на строчную пару заглавной буквы" },
+        "instruction": { "ru": "Перетащи букву на её пару" },
         "icon": "media/icons/written_match_pair.svg"
+      },
+      "params": {
+        "show_case": {
+          "type": "enum",
+          "label": { "ru": "Что ищем" },
+          "values": ["upper", "lower", "mix"],
+          "labels": { "ru": { "upper": "Строчную по заглавной", "lower": "Заглавную по строчной", "mix": "Микс" } },
+          "default": "upper"
+        }
       }
     }
   ],

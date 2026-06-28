@@ -108,34 +108,44 @@ function generateMatchPairTasks(cards, params = {}) {
   const eligible = cards.filter((c) => c.params?.has_upper);
   const concepts = toConcepts(eligible);
   const tasks = [];
-  for (const card of eligible) {
+
+  function makeTask(card, stimCase) {
     const p   = card.params;
     const cid = card.conceptId ?? card.id;
-    const stimulusLetter = showCase === "upper" ? p.printed_upper : p.printed_lower;
-    const targetLetter   = showCase === "upper" ? p.printed_lower : p.printed_upper;
+    const stimulusLetter = stimCase === "upper" ? p.printed_upper : p.printed_lower;
+    const targetLetter   = stimCase === "upper" ? p.printed_lower : p.printed_upper;
     const distractorIds  = selectDistractorConceptIds(cid, concepts, distractorN, "medium");
     const distractors    = distractorIds.map((did) => {
       const dc     = eligible.find((c) => (c.conceptId ?? c.id) === did);
-      const letter = dc ? (showCase === "upper" ? dc.params.printed_lower : dc.params.printed_upper) : null;
+      const letter = dc ? (stimCase === "upper" ? dc.params.printed_lower : dc.params.printed_upper) : null;
       return letter ? { id: did, letter, isTarget: false } : null;
     }).filter(Boolean).slice(0, distractorN);
-    tasks.push({
+    return {
       type: "match_pair",
       stimulus: { letter: stimulusLetter, printed: stimulusLetter },
       options: shuffle([{ id: cid, letter: targetLetter, isTarget: true }, ...distractors]),
       conceptId: cid,
-    });
+    };
+  }
+
+  for (const card of eligible) {
+    if (showCase === "mix") {
+      tasks.push(makeTask(card, "upper"));
+      tasks.push(makeTask(card, "lower"));
+    } else {
+      tasks.push(makeTask(card, showCase));
+    }
   }
   return shuffle(tasks);
 }
 
-export function generateTasks(modeOrType, cards) {
+export function generateTasks(modeOrType, cards, _sessionSize, sessionParams = {}) {
   const modeType = typeof modeOrType === "string" ? modeOrType : modeOrType?.type;
   switch (modeType) {
     case "sort_case":              return generateSortTasks(cards);
     case "match_print_to_written": return generateMatchPrintToWrittenTasks(cards);
     case "match_written_to_print": return generateMatchWrittenToPrintTasks(cards);
-    case "match_pair":             return generateMatchPairTasks(cards, modeOrType?.params);
+    case "match_pair":             return generateMatchPairTasks(cards, sessionParams);
     default: return [];
   }
 }
