@@ -24,7 +24,7 @@ const C_LINE_TOP   = "#6ab4cc";   // L2 — top of writing zone
 const C_LINE_BASE  = "#2a82a0";   // L3 — baseline (most prominent)
 const C_FONT       = "#1d4ed8";
 
-export default function HandwrittenLetter({ letter, size = 100, className = "" }) {
+export default function HandwrittenLetter({ letter, size = 100, className = "", bare = false }) {
   const data = LETTER_PATHS[letter];
   if (!data) return null;
 
@@ -41,12 +41,11 @@ export default function HandwrittenLetter({ letter, size = 100, className = "" }
       style={{ display: "block" }}
       aria-hidden="true"
     >
-      <rect x={0} y={vbMinY} width={vbW} height={vbH} fill={C_BG} />
-
-      <line x1={0} y1={L1} x2={vbW} y2={L1} stroke={C_LINE_OUTER} strokeWidth={0.8} />
-      <line x1={0} y1={L2} x2={vbW} y2={L2} stroke={C_LINE_TOP}   strokeWidth={1.0} />
-      <line x1={0} y1={L3} x2={vbW} y2={L3} stroke={C_LINE_BASE}  strokeWidth={1.5} />
-      <line x1={0} y1={L4} x2={vbW} y2={L4} stroke={C_LINE_OUTER} strokeWidth={0.8} />
+      {!bare && <rect x={0} y={vbMinY} width={vbW} height={vbH} fill={C_BG} />}
+      {!bare && <line x1={0} y1={L1} x2={vbW} y2={L1} stroke={C_LINE_OUTER} strokeWidth={0.8} />}
+      {!bare && <line x1={0} y1={L2} x2={vbW} y2={L2} stroke={C_LINE_TOP}   strokeWidth={1.0} />}
+      {!bare && <line x1={0} y1={L3} x2={vbW} y2={L3} stroke={C_LINE_BASE}  strokeWidth={1.5} />}
+      {!bare && <line x1={0} y1={L4} x2={vbW} y2={L4} stroke={C_LINE_OUTER} strokeWidth={0.8} />}
 
       <path d={path} fill={C_FONT} fillRule="nonzero" />
     </svg>

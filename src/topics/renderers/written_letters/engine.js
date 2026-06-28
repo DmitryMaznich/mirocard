@@ -101,22 +101,29 @@ function generateMatchWrittenToPrintTasks(cards) {
   return shuffle(tasks);
 }
 
-function generateMatchPairTasks(cards) {
-  const withUpper  = cards.filter((c) => c.params?.has_upper);
-  const concepts   = toConcepts(withUpper);
+function generateMatchPairTasks(cards, params = {}) {
+  const showCase    = params.show_case       ?? "upper";
+  const distractorN = (params.distractor_count ?? 6) - 1;
+  // Both cases need a valid uppercase form for a pair to exist
+  const eligible = cards.filter((c) => c.params?.has_upper);
+  const concepts = toConcepts(eligible);
   const tasks = [];
-  for (const card of withUpper) {
+  for (const card of eligible) {
     const p   = card.params;
     const cid = card.conceptId ?? card.id;
-    const distractorIds = selectDistractorConceptIds(cid, concepts, 3, "medium");
-    const distractors   = distractorIds.map((did) => {
-      const dc = withUpper.find((c) => (c.conceptId ?? c.id) === did);
-      return dc ? { id: did, letter: dc.params.printed_lower, isTarget: false } : null;
-    }).filter(Boolean);
+    const stimulusLetter = showCase === "upper" ? p.printed_upper : p.printed_lower;
+    const targetLetter   = showCase === "upper" ? p.printed_lower : p.printed_upper;
+    const distractorIds  = selectDistractorConceptIds(cid, concepts, distractorN, "medium");
+    const distractors    = distractorIds.map((did) => {
+      const dc     = eligible.find((c) => (c.conceptId ?? c.id) === did);
+      const letter = dc ? (showCase === "upper" ? dc.params.printed_lower : dc.params.printed_upper) : null;
+      return letter ? { id: did, letter, isTarget: false } : null;
+    }).filter(Boolean).slice(0, distractorN);
     tasks.push({
       type: "match_pair",
-      stimulus: { letter: p.printed_upper, printed: p.printed_upper },
-      options: shuffle([{ id: cid, letter: p.printed_lower, isTarget: true }, ...distractors]),
+      stimulus: { letter: stimulusLetter, printed: stimulusLetter },
+      options: shuffle([{ id: cid, letter: targetLetter, isTarget: true }, ...distractors]),
+      conceptId: cid,
     });
   }
   return shuffle(tasks);
@@ -128,7 +135,7 @@ export function generateTasks(modeOrType, cards) {
     case "sort_case":              return generateSortTasks(cards);
     case "match_print_to_written": return generateMatchPrintToWrittenTasks(cards);
     case "match_written_to_print": return generateMatchWrittenToPrintTasks(cards);
-    case "match_pair":             return generateMatchPairTasks(cards);
+    case "match_pair":             return generateMatchPairTasks(cards, modeOrType?.params);
     default: return [];
   }
 }

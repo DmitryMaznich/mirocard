@@ -167,3 +167,117 @@
   align-items: center;
   padding: 8px 0;
 }
+
+/* ── MatchPairView ── */
+.wl-pair-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #fffef5;
+  /* Two horizontal lines per row: top working line + baseline.
+     background-size and background-position are set dynamically via JS
+     to align exactly with the propis SVG lines inside the stimulus. */
+  background-image:
+    linear-gradient(rgba(106, 180, 204, 0.35) 1.5px, transparent 1.5px),
+    linear-gradient(rgba(42,  130, 160, 0.65) 1.5px, transparent 1.5px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 24px 16px;
+  touch-action: none;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* Stimulus + drop zone on one baseline */
+.wl-pair-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.wl-pair-stimulus {
+  flex: 0 0 auto;
+}
+
+/* Drop zone: dashed border, same height as stimulus SVG */
+.wl-pair-dropzone {
+  flex: 0 0 auto;
+  border: 2.5px dashed rgba(42, 130, 160, 0.4);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 254, 245, 0.6);
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.wl-pair-dropzone--hover {
+  border-color: #2a82a0;
+  background: rgba(42, 130, 160, 0.08);
+  box-shadow: 0 0 0 3px rgba(42, 130, 160, 0.2);
+}
+
+.wl-pair-dropzone--correct {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.wl-pair-dropzone--wrong {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.wl-pair-dropzone__hint {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: rgba(42, 130, 160, 0.35);
+  line-height: 1;
+}
+
+/* Chips row */
+.wl-pair-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 480px;
+}
+
+.wl-pair-chip {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  cursor: grab;
+  touch-action: none;
+  transition: opacity 0.15s;
+}
+
+.wl-pair-chip--ghost {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.wl-pair-chip--done {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.wl-pair-chip--floating {
+  position: fixed;
+  transform: translate(-50%, -50%) scale(1.08);
+  cursor: grabbing;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  z-index: 1000;
+  pointer-events: none;
+  border-color: #94a3b8;
+}
