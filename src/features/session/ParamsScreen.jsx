@@ -168,7 +168,7 @@ function SentencePoolSelector({ lines, value, onChange }) {
               checked={selectedSet.has(line.id)}
               onChange={() => toggle(line.id)}
             />
-            <span>{line.text}</span>
+            <span>{line.text}{line.therapist && <span style={{ color: "var(--color-accent, #4a7fd4)", marginLeft: 4 }}>*</span>}</span>
           </label>
         ))}
       </div>
