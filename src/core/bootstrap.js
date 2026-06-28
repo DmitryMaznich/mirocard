@@ -48,8 +48,11 @@ export function mergeStudentRecords(local, server) {
     const winner = (student.updatedAt ?? "") >= (current.updatedAt ?? "") ? student : current;
     const loser  = winner === student ? current : student;
 
-    // Photos live only on-device and are never sent to the server, so we must
-    // rescue them from whichever side has them — winner's timestamp doesn't help.
+    // If either side has a local dataURL (not yet flushed to server), rescue it — it
+    // must not be discarded before being uploaded. Otherwise use winner's photo URL.
+    const localDataUrl = (student.photo?.startsWith("data:") ? student.photo : null)
+                      ?? (current.photo?.startsWith("data:") ? current.photo : null);
+
     // If winner has an empty adults list but loser has adults with photos, keep loser's list
     // (empty winner means the server simply hasn't received the pushOp yet).
     const winnerAdults = winner.closeAdults;
@@ -59,13 +62,17 @@ export function mergeStudentRecords(local, server) {
       : winnerAdults.length === 0 && loserAdults?.length > 0
         ? loserAdults
         : winnerAdults.map((adult) => {
-            const photo = adult.photo ?? (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
-            return photo === adult.photo ? adult : { ...adult, photo };
+            const winnerAdultPhoto = adult.photo;
+            const loserAdultPhoto  = (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
+            const adultLocalUrl    = (winnerAdultPhoto?.startsWith("data:") ? winnerAdultPhoto : null)
+                                  ?? (loserAdultPhoto?.startsWith("data:")  ? loserAdultPhoto  : null);
+            const resolvedPhoto    = adultLocalUrl ?? (winner === student ? winnerAdultPhoto : loserAdultPhoto) ?? winnerAdultPhoto ?? null;
+            return resolvedPhoto === adult.photo ? adult : { ...adult, photo: resolvedPhoto };
           });
 
     byId.set(student.id, {
       ...winner,
-      photo:       student.photo ?? current.photo ?? null,
+      photo:       localDataUrl ?? winner.photo ?? null,
       sex:         student.sex   ?? current.sex   ?? null,
       closeAdults: closeAdults,
     });

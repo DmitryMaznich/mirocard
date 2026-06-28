@@ -200,19 +200,20 @@ export default function App() {
     })();
   }, [setScreen]);
 
-  // Re-sync from server whenever the tab becomes visible (e.g. user switches back
-  // from another app/tab). Throttled to once per 30 s so it's cheap in normal use.
-  // This ensures Device B automatically picks up changes made on Device A.
+  // Re-sync from server whenever the tab becomes visible or every 60 s while active.
+  // This ensures Device B picks up changes made on Device A even if the tab never hides.
   useEffect(() => {
     let lastSyncAt = 0;
-    async function onVisible() {
-      if (document.hidden) return;
+    async function syncFromServer() {
       if (!useAppStore.getState().token) return;
       if (Date.now() - lastSyncAt < 30_000) return;
       lastSyncAt = Date.now();
       try {
         const db = await getDb();
-        const serverBootstrap = await api.get("/account/bootstrap");
+        const [serverBootstrap, sessionsRaw] = await Promise.all([
+          api.get("/account/bootstrap"),
+          api.get("/sessions?limit=200"),
+        ]);
         const localStudents = useAppStore.getState().students;
         const merged = mergeStudents(localStudents, serverBootstrap.students);
         const payload = {
@@ -221,14 +222,21 @@ export default function App() {
           ownedTopics: serverBootstrap.ownedTopics,
           studentTopicLinks: serverBootstrap.studentTopicLinks,
           conceptProgress: serverBootstrap.conceptProgress,
+          sessions: sessionsRaw,
+          kvStore: serverBootstrap.kvStore,
         };
         await persistBootstrap(db, payload);
         applyBootstrapToStore(payload);
       } catch {}
       flushQueue().catch(() => {});
     }
+    function onVisible() { if (!document.hidden) syncFromServer(); }
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    const interval = setInterval(syncFromServer, 60_000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(interval);
+    };
   }, []);
 
   const activeStudent = students?.find(s => s.id === activeStudentId);
