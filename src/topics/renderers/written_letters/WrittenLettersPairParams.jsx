@@ -1,9 +1,9 @@
 import HandwrittenLetter from "./HandwrittenLetter";
 
 const OPTIONS = [
-  { value: "upper", stim: "А", target: "а", arrow: "→", label: "Строчную по заглавной" },
-  { value: "lower", stim: "а", target: "А", arrow: "→", label: "Заглавную по строчной" },
-  { value: "mix",   stim: "А", target: "а", arrow: "⇄", label: "Оба направления" },
+  { value: "upper", stim: "А", target: "а", arrow: "→" },
+  { value: "lower", stim: "а", target: "А", arrow: "→" },
+  { value: "mix",   stim: "А", target: "а", arrow: "⇄" },
 ];
 
 const PREVIEW_SIZE = 44;
@@ -27,9 +27,8 @@ export default function WrittenLettersPairParams({ params, onChange }) {
               <div className="wl-pp-card__preview">
                 <HandwrittenLetter letter={opt.stim} size={PREVIEW_SIZE} bare />
                 <span className="wl-pp-card__arrow">{opt.arrow}</span>
-                <span className="wl-pp-card__printed">{opt.target}</span>
+                <HandwrittenLetter letter={opt.target} size={PREVIEW_SIZE} bare />
               </div>
-              <span className="wl-pp-card__label">{opt.label}</span>
               <div className="wl-pp-card__check" aria-hidden>
                 {active && <span className="wl-pp-card__check-icon">✓</span>}
               </div>
