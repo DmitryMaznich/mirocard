@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Background: warm cream for coffee -->
+  <circle cx="120" cy="120" r="116" fill="#fff8f0" stroke="#c8a06a" stroke-width="3"/>
+
+  <!-- Shadow under flask -->
+  <ellipse cx="121" cy="193" rx="40" ry="6" fill="#c8a06a" opacity="0.2"/>
+
+  <!-- Lower flask - brewed coffee inside -->
+  <path d="M 98 130 C 80 132 76 150 76 165 C 76 182 84 195 120 195 C 156 195 164 182 164 165 C 164 150 160 132 142 130 Z" fill="#5C3317"/>
+  <!-- Glass overlay on flask -->
+  <path d="M 98 130 C 80 132 76 150 76 165 C 76 182 84 195 120 195 C 156 195 164 182 164 165 C 164 150 160 132 142 130 Z" fill="#c8956c" opacity="0.15"/>
+  <!-- Glass shine -->
+  <path d="M 86 142 C 84 155 85 170 87 180" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.35" fill="none"/>
+  <!-- Flask outline -->
+  <path d="M 98 130 C 80 132 76 150 76 165 C 76 182 84 195 120 195 C 156 195 164 182 164 165 C 164 150 160 132 142 130 Z" fill="none" stroke="#9a6b40" stroke-width="2.5"/>
+
+  <!-- Wooden collar -->
+  <rect x="94" y="116" width="52" height="20" rx="5" fill="#8B5A20"/>
+  <rect x="94" y="116" width="52" height="9" rx="4" fill="#A87040"/>
+  <!-- Leather tie knot -->
+  <circle cx="96" cy="126" r="4" fill="#6B3A10"/>
+  <circle cx="96" cy="126" r="2" fill="#8B5A20"/>
+
+  <!-- Upper cone (filter area) -->
+  <path d="M 72 56 L 168 56 L 142 118 L 98 118 Z" fill="#ede0cc" opacity="0.5"/>
+  <!-- Filter paper -->
+  <path d="M 80 60 L 160 60 L 136 116 L 104 116 Z" fill="#f5ece0" opacity="0.7"/>
+  <!-- Coffee grounds in filter -->
+  <path d="M 94 80 L 146 80 L 132 114 L 108 114 Z" fill="#6B3A1A" opacity="0.8"/>
+  <!-- Cone outline -->
+  <path d="M 72 56 L 168 56 L 142 118 L 98 118 Z" fill="none" stroke="#9a6b40" stroke-width="2.5"/>
+  <!-- Cone glass shine -->
+  <path d="M 82 62 L 100 112" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+
+  <!-- Top rim -->
+  <ellipse cx="120" cy="56" rx="48" ry="6" fill="#b08040" opacity="0.6"/>
+  <ellipse cx="120" cy="54" rx="46" ry="5" fill="#c8a060" opacity="0.5"/>
+
+  <!-- Steam wisps -->
+  <path d="M 100 46 Q 96 36 100 26 Q 104 16 100 8" fill="none" stroke="#d4b896" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+  <path d="M 120 44 Q 116 34 120 24 Q 124 14 120 6" fill="none" stroke="#d4b896" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+  <path d="M 140 46 Q 136 36 140 26 Q 144 16 140 8" fill="none" stroke="#d4b896" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+</svg>
