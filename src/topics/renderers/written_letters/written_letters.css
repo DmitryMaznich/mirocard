@@ -288,6 +288,64 @@
   pointer-events: none;
 }
 
+/* ── Confirm step (second step: tap the printed letter) ── */
+.wl-pair-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 16px 16px 0;
+}
+
+.wl-pair-confirm__prompt {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(42, 130, 160, 0.7);
+}
+
+.wl-pair-confirm__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.wl-pair-confirm__btn {
+  background: #fffef5;
+  border: 2.5px solid rgba(42, 130, 160, 0.28);
+  border-radius: 18px;
+  font-size: 3.4rem;
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+  color: #1e293b;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.wl-pair-confirm__btn:active {
+  background: rgba(42, 130, 160, 0.08);
+}
+
+.wl-pair-confirm__btn--correct {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.wl-pair-confirm__btn--wrong {
+  border-color: #ef4444;
+  background: #fef2f2;
+  animation: wl-shake 0.45s ease;
+}
+
 /* Floating letter: drop-shadow follows the actual path shape */
 .wl-pair-chip--floating {
   position: fixed;

@@ -103,6 +103,7 @@ function generateMatchWrittenToPrintTasks(cards) {
 
 function generateMatchPairTasks(cards, params = {}) {
   const showCase    = params.show_case       ?? "upper";
+  const secondStep  = params.second_step     ?? false;
   const distractorN = (params.distractor_count ?? 6) - 1;
   // Both cases need a valid uppercase form for a pair to exist
   const eligible = cards.filter((c) => c.params?.has_upper);
@@ -122,6 +123,7 @@ function generateMatchPairTasks(cards, params = {}) {
     }).filter(Boolean).slice(0, distractorN);
     return {
       type: "match_pair",
+      secondStep,
       stimulus: { letter: stimulusLetter, printed: stimulusLetter },
       options: shuffle([{ id: cid, letter: targetLetter, isTarget: true }, ...distractors]),
       conceptId: cid,

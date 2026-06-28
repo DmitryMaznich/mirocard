@@ -2,7 +2,7 @@
   "meta": {
     "id": "written_letters",
     "renderer": "written_letters",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "title": { "ru": "Письменные буквы" },
     "avatar": "media/avatar.svg",
     "about": {
@@ -67,6 +67,12 @@
           "values": ["upper", "lower", "mix"],
           "labels": { "ru": { "upper": "Строчную по заглавной", "lower": "Заглавную по строчной", "mix": "Микс" } },
           "default": "upper"
+        },
+        "second_step": {
+          "type": "boolean",
+          "label": { "ru": "Второй шаг: найди печатную" },
+          "hint": { "ru": "После пары ребёнок выбирает печатный вариант буквы из 4 вариантов" },
+          "default": false
         }
       }
     }

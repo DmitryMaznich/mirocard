@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback, useLayoutEffect } from "react";
+import { useState, useRef, useCallback, useLayoutEffect, useMemo } from "react";
 import HandwrittenLetter from "./HandwrittenLetter";
+import { shuffle } from "@/shared/utils/shuffle";
 
 // Propis constants — mirror HandwrittenLetter.jsx
 const VBW = 100;
@@ -14,18 +15,14 @@ const L2_PX     = Math.round(L2 / VBH * STIM_H);     // 74px  — top working li
 const L3_PX     = Math.round(L3 / VBH * STIM_H);     // 106px — baseline
 const PITCH_PX  = Math.round((L4 - L2) / VBH * STIM_H); // 94px — row height
 
-// Chips at the same size so their writing zone aligns with the same propis lines
-const CHIP_SIZE    = STIM_SIZE;  // 120px
-const CHIP_H       = STIM_H;     // 180px
-const CHIP_L3_PX   = L3_PX;      // 106px
+const CHIP_SIZE    = STIM_SIZE;
+const CHIP_H       = STIM_H;
+const CHIP_L3_PX   = L3_PX;
 
-// Gap between the bottom of one block and the top of the next so that baselines
-// fall exactly N propis-pitch rows apart.
-// gap = N×PITCH − (above_H − above_L3) − below_L3
-const CHIP_GAP_PX   = Math.round(2 * PITCH_PX - (STIM_H  - L3_PX) - CHIP_L3_PX); //  8px: stimulus → chip row 1 (2 rows apart)
-const ROW_INNER_GAP = Math.round(1 * PITCH_PX - (CHIP_H  - L3_PX) - CHIP_L3_PX); // -86px: chip row 1 → chip row 2 (consecutive)
+const CHIP_GAP_PX   = Math.round(2 * PITCH_PX - (STIM_H - L3_PX) - CHIP_L3_PX); //  8px
+const ROW_INNER_GAP = Math.round(1 * PITCH_PX - (CHIP_H  - L3_PX) - CHIP_L3_PX); // -86px
 
-const CHIPS_PER_ROW  = 3;
+const CHIPS_PER_ROW = 3;
 
 function chunk(arr, n) {
   const out = [];
@@ -39,14 +36,22 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
   const dropRef = useRef(null);
   const ptrRef  = useRef(null);
 
-  const [dropped,  setDropped]  = useState(null);
-  const [flash,    setFlash]    = useState(null);
-  const [dragPos,  setDragPos]  = useState(null);
-  const [overZone, setOverZone] = useState(false);
-  const [done,     setDone]     = useState(false);
+  const [dropped,      setDropped]      = useState(null);
+  const [flash,        setFlash]        = useState(null);
+  const [dragPos,      setDragPos]      = useState(null);
+  const [overZone,     setOverZone]     = useState(false);
+  const [done,         setDone]         = useState(false);
+  const [phase,        setPhase]        = useState("pair");   // "pair" | "confirm"
+  const [confirmFlash, setConfirmFlash] = useState(null);     // { letter, state: "correct"|"wrong" }
+
+  // 4 options for the confirm step: correct target + 3 distractors, shuffled once per task
+  const confirmOpts = useMemo(() => {
+    const target = (task.options ?? []).find((o) => o.isTarget);
+    const others = (task.options ?? []).filter((o) => !o.isTarget).slice(0, 3);
+    return target ? shuffle([target, ...others]) : [];
+  }, [task]);
 
   // Align horizontal propis lines with the stimulus SVG lines.
-  // Because chip rows are N_ROWS * PITCH_PX below, they automatically align too.
   useLayoutEffect(() => {
     const align = () => {
       const root = rootRef.current;
@@ -71,8 +76,6 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
     const dz = dropRef.current;
     if (!dz) return false;
     const r = dz.getBoundingClientRect();
-    // Check if the dragged chip (CHIP_SIZE × CHIP_H, centered on pointer)
-    // overlaps the drop zone — not just the pointer point.
     const hw = CHIP_SIZE / 2;
     const hh = CHIP_H   / 2;
     return (
@@ -109,13 +112,32 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
       setFlash("correct");
       setDone(true);
       onCorrect?.(task.stimulus?.letter, dragPos.opt.letter);
-      setTimeout(() => onAdvance?.(), 800);
+      if (task.secondStep) {
+        // Brief pause to show the green flash, then open confirm step
+        setTimeout(() => {
+          setFlash(null);
+          setPhase("confirm");
+        }, 600);
+      } else {
+        setTimeout(() => onAdvance?.(), 800);
+      }
     } else {
       setFlash("wrong");
       onMistake?.(task.stimulus?.letter, dragPos.opt.letter);
       setTimeout(() => setFlash(null), 600);
     }
   }, [dragPos, task, onCorrect, onMistake, onAdvance]);
+
+  function handleConfirmTap(opt) {
+    if (confirmFlash) return;
+    if (opt.isTarget) {
+      setConfirmFlash({ letter: opt.letter, state: "correct" });
+      setTimeout(() => onAdvance?.(), 600);
+    } else {
+      setConfirmFlash({ letter: opt.letter, state: "wrong" });
+      setTimeout(() => setConfirmFlash(null), 500);
+    }
+  }
 
   const dropCls = [
     "wl-pair-dropzone",
@@ -135,7 +157,7 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
     >
-      {/* Stimulus + drop zone on the same propis baseline */}
+      {/* Stimulus + drop zone */}
       <div className="wl-pair-row">
         <div ref={stimRef}>
           <HandwrittenLetter letter={task.stimulus.letter} size={STIM_SIZE} bare />
@@ -148,32 +170,55 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
         </div>
       </div>
 
-      {/* Chip rows — stimulus→row1: 2 pitch rows apart; row1→row2: 1 pitch row (consecutive) */}
-      <div className="wl-pair-chip-section">
-        {chipRows.map((row, ri) => (
-          <div key={ri} className="wl-pair-chip-row" style={ri > 0 ? { marginTop: ROW_INNER_GAP } : undefined}>
-            {row.map((opt, i) => {
-              const isFloating = dragPos?.opt === opt;
+      {phase === "pair" ? (
+        /* ── Step 1: drag cursive chips ── */
+        <div className="wl-pair-chip-section">
+          {chipRows.map((row, ri) => (
+            <div key={ri} className="wl-pair-chip-row" style={ri > 0 ? { marginTop: ROW_INNER_GAP } : undefined}>
+              {row.map((opt, i) => {
+                const isFloating = dragPos?.opt === opt;
+                return (
+                  <div
+                    key={(opt.id ?? opt.letter) + ri + i}
+                    className={[
+                      "wl-pair-chip",
+                      isFloating ? "wl-pair-chip--ghost" : "",
+                      done && !isFloating ? "wl-pair-chip--done" : "",
+                    ].filter(Boolean).join(" ")}
+                    onPointerDown={(e) => handlePointerDown(e, opt)}
+                  >
+                    <HandwrittenLetter letter={opt.letter} size={CHIP_SIZE} bare />
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* ── Step 2: tap the printed letter ── */
+        <div className="wl-pair-confirm">
+          <div className="wl-pair-confirm__prompt">Найди в печатных</div>
+          <div className="wl-pair-confirm__grid">
+            {confirmOpts.map((opt, i) => {
+              const cls = [
+                "wl-pair-confirm__btn",
+                confirmFlash?.letter === opt.letter && confirmFlash.state === "correct"
+                  ? "wl-pair-confirm__btn--correct" : "",
+                confirmFlash?.letter === opt.letter && confirmFlash.state === "wrong"
+                  ? "wl-pair-confirm__btn--wrong" : "",
+              ].filter(Boolean).join(" ");
               return (
-                <div
-                  key={(opt.id ?? opt.letter) + ri + i}
-                  className={[
-                    "wl-pair-chip",
-                    isFloating ? "wl-pair-chip--ghost" : "",
-                    done && !isFloating ? "wl-pair-chip--done" : "",
-                  ].filter(Boolean).join(" ")}
-                  onPointerDown={(e) => handlePointerDown(e, opt)}
-                >
-                  <HandwrittenLetter letter={opt.letter} size={CHIP_SIZE} bare />
-                </div>
+                <button key={opt.letter + i} className={cls} onClick={() => handleConfirmTap(opt)}>
+                  {opt.letter}
+                </button>
               );
             })}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* Floating letter while dragging */}
-      {dragPos && (
+      {/* Floating letter (pair phase only) */}
+      {phase === "pair" && dragPos && (
         <div
           className="wl-pair-chip wl-pair-chip--floating"
           style={{ left: dragPos.x, top: dragPos.y }}
