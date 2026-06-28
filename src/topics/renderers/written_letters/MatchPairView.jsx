@@ -195,7 +195,7 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
       ) : (
         /* ── Step 2: tap the printed letter ── */
         <div className="wl-pair-confirm">
-          <div className="wl-pair-confirm__prompt">Найди в печатных</div>
+          <div className="wl-pair-confirm__prompt">Какая это буква?</div>
           <div className="wl-pair-confirm__grid">
             {confirmOpts.map((opt, i) => {
               const cls = [

@@ -16,6 +16,7 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import ShoppingParamsContent from "@/features/session/ShoppingParamsContent";
+import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 
 function NumberStepper({ label, value, min, max, onChange }) {
@@ -394,10 +395,11 @@ export default function ParamsScreen() {
   const student   = students.find((s) => s.id === activeStudentId);
   const hasVideos = (student?.rewardVideos?.length ?? 0) > 0;
 
-  const isComparison        = topicRecord?.meta.renderer === "comparison";
-  const isPhraseMatch       = topicRecord?.meta.renderer === "phrase_match";
-  const isReadingInstruction = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
-  const isShoppingPlan = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
+  const isComparison          = topicRecord?.meta.renderer === "comparison";
+  const isPhraseMatch         = topicRecord?.meta.renderer === "phrase_match";
+  const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
+  const isShoppingPlan        = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
+  const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
 
   const [showShare, setShowShare] = useState(false);
 
@@ -591,6 +593,8 @@ export default function ParamsScreen() {
         return null;
       })}
     </>
+  ) : isWrittenLettersPair ? (
+    <WrittenLettersPairParams params={params} onChange={setParams} />
   ) : isComparison ? (
     <ComparisonParams params={params} onChange={setParams} />
   ) : (
