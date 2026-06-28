@@ -37,7 +37,7 @@ export const useAppStore = create((set) => ({
     pushAppUpdates: true,
     pushTopicUpdates: true,
     pushReminders: false,
-    adultConfirmAdvance: true,
+    adultConfirmAdvance: false,
     tapToAdvance: true,
     autoAdvanceDelay: 3,
     physicalKeyboard: false,
