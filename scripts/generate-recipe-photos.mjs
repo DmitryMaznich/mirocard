@@ -83,9 +83,9 @@ const RECIPES = {
   coffee_chemex: "chemex pour-over coffee brewer filled with dark amber coffee, distinctive hourglass glass shape with wooden collar, steam rising, on a light wooden table, morning light, minimalist",
 
   // Chemex step-by-step illustrations
-  chemex_s06: "electric gooseneck coffee kettle being filled with water from a kitchen faucet, power button glowing red, clean white kitchen counter, morning light",
-  chemex_s07: "hand grinding roasted coffee beans in a manual coffee grinder, small kitchen scale showing 45 grams, wooden surface, close-up",
-  chemex_s08: "white chemex square paper filter being folded into a cone shape by hands on a wooden table, showing the folding technique, natural light",
+  chemex_s06: "pouring clear filtered water from a glass pitcher or glass carafe into a black electric gooseneck coffee kettle on a kitchen counter, clean white countertop, morning light, no tap or faucet visible",
+  chemex_s07: "manual hand coffee grinder with screwed-on catch cup placed on a digital kitchen scale showing 20 grams, wooden kitchen surface, morning light, close-up, no loose beans scattered around",
+  chemex_s08: "top-down view into a chemex glass brewer with a white paper filter cone inserted, clearly showing three paper layers on one side and one layer on the other side, the thick multi-layer side faces the spout, natural light, close-up overhead shot",
   chemex_s09: "placing a chemex paper filter cone into the top opening of a chemex glass brewer, filter fitting snugly, top-down close-up, soft light",
   chemex_s10: "pouring hot water from a thin gooseneck kettle spout over a white paper filter in chemex to rinse it, steam rising, chemex on wooden counter",
   chemex_s11: "tilting chemex glass brewer sideways to pour out rinse water, hand holding paper filter gently in place, water draining out",
@@ -93,15 +93,15 @@ const RECIPES = {
   chemex_s13: "gently shaking chemex coffee brewer with both hands to level coffee grounds flat inside the cone filter, close-up of even coffee bed",
   chemex_s14: "chemex pour-over glass brewer placed on a digital kitchen scale showing zero grams after taring, top-down view, clean counter",
   chemex_s15: "gooseneck electric kettle with steam rising, phone timer showing 1 minute on wooden counter, waiting for water to cool for brewing",
-  chemex_s16: "thin precise stream of water pouring from gooseneck kettle spout into center of coffee grounds in chemex, digital scale below showing 90 grams, bloom beginning",
-  chemex_s17: "close-up macro of coffee bloom in chemex filter, coffee grounds bubbling and expanding releasing CO2, dark brown dome rising, overhead view",
-  chemex_s18: "pouring water in slow spiral circles from gooseneck kettle over wet coffee grounds in chemex, kitchen scale showing 300 grams",
-  chemex_s20: "continuing spiral water pour from gooseneck kettle over chemex grounds, kitchen scale displaying 500 grams, amber coffee dripping into flask",
-  chemex_s22: "final water pour over chemex coffee in slow spiral, digital scale showing 720 grams, golden amber brew visible dripping into flask below",
+  chemex_s16: "thin precise stream of water pouring from black matte electric gooseneck kettle spout into center of coffee grounds in chemex glass brewer with wooden collar, black digital kitchen scale below showing 40 grams, bloom just beginning, wooden table, morning light",
+  chemex_s17: "close-up overhead macro of coffee bloom in chemex paper filter, coffee grounds bubbling and expanding releasing CO2, dark brown dome rising with foam bubbles, chemex wooden collar visible at edges, soft natural light",
+  chemex_s18: "pouring water in slow spiral from black matte electric gooseneck kettle over wet coffee grounds in chemex glass brewer with wooden collar, black digital kitchen scale showing 130 grams, amber coffee dripping into glass flask below, wooden table, morning light",
+  chemex_s20: "pouring water in slow spiral from black matte electric gooseneck kettle over chemex coffee grounds, chemex glass brewer with wooden collar on black digital kitchen scale displaying 220 grams, amber coffee dripping into flask below, wooden table, morning light",
+  chemex_s22: "final water pour in slow spiral from black matte electric gooseneck kettle over chemex coffee grounds, chemex glass brewer with wooden collar on black digital kitchen scale showing 320 grams, golden amber brew dripping into flask below, wooden table, morning light",
   chemex_s23: "chemex brewer with nearly empty filter, last drops of amber coffee dripping into glass flask below, 2-minute timer on phone, quiet morning",
   chemex_s24: "chemex with completely empty dry paper filter above, beautiful clear dark amber coffee fully collected in glass flask below, brew complete",
   chemex_s25: "removing used chemex paper filter with spent wet coffee grounds from brewer with both hands, lifting filter carefully, grounds inside",
-  chemex_s26: "pouring medium amber-brown pour-over coffee from chemex glass brewer into a white ceramic mug, rich warm honey-brown coffee color like strong black tea, translucent but clearly coffee-colored, not pale, not espresso dark, steam rising, morning light",
+  chemex_s26: "pouring medium amber-brown pour-over coffee from a chemex glass brewer with wooden collar but WITHOUT any paper filter inside, clean empty top opening visible, rich honey-brown coffee color, into a white ceramic mug, steam rising, morning light, wooden table",
 };
 
 // ── Gemini API ────────────────────────────────────────────────────────────────
