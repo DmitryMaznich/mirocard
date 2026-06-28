@@ -20,11 +20,10 @@ const CHIP_H       = STIM_H;     // 180px
 const CHIP_L3_PX   = L3_PX;      // 106px
 
 // Gap between the bottom of one block and the top of the next so that baselines
-// fall exactly N_ROWS propis-pitch rows apart.
-// gap = N×PITCH − (block_H − block_L3) − chip_L3
-const N_ROWS         = 2;
-const CHIP_GAP_PX    = Math.round(N_ROWS * PITCH_PX - (STIM_H - L3_PX) - CHIP_L3_PX); // 8
-const ROW_INNER_GAP  = CHIP_GAP_PX; // same size → same gap between chip rows
+// fall exactly N propis-pitch rows apart.
+// gap = N×PITCH − (above_H − above_L3) − below_L3
+const CHIP_GAP_PX   = Math.round(2 * PITCH_PX - (STIM_H  - L3_PX) - CHIP_L3_PX); //  8px: stimulus → chip row 1 (2 rows apart)
+const ROW_INNER_GAP = Math.round(1 * PITCH_PX - (CHIP_H  - L3_PX) - CHIP_L3_PX); // -86px: chip row 1 → chip row 2 (consecutive)
 
 const CHIPS_PER_ROW  = 3;
 
@@ -140,10 +139,10 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
         </div>
       </div>
 
-      {/* Chip rows — each row baseline sits exactly N_ROWS propis-pitches below the previous */}
-      <div className="wl-pair-chip-section" style={{ gap: ROW_INNER_GAP }}>
+      {/* Chip rows — stimulus→row1: 2 pitch rows apart; row1→row2: 1 pitch row (consecutive) */}
+      <div className="wl-pair-chip-section">
         {chipRows.map((row, ri) => (
-          <div key={ri} className="wl-pair-chip-row">
+          <div key={ri} className="wl-pair-chip-row" style={ri > 0 ? { marginTop: ROW_INNER_GAP } : undefined}>
             {row.map((opt, i) => {
               const isFloating = dragPos?.opt === opt;
               return (
