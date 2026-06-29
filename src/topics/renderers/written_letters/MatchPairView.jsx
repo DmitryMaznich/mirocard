@@ -172,7 +172,7 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
         /* ── Step 1: drag cursive chips ── */
         <div className="wl-pair-chip-section">
           {chipRows.map((row, ri) => (
-            <div key={ri} className="wl-pair-chip-row" style={ri > 0 ? { marginTop: ROW_INNER_GAP } : undefined}>
+            <div key={ri} className="wl-pair-chip-row" style={{ position: 'relative', zIndex: chipRows.length - ri, ...(ri > 0 && { marginTop: ROW_INNER_GAP }) }}>
               {row.map((opt, i) => {
                 const isFloating = dragPos?.opt === opt;
                 return (
