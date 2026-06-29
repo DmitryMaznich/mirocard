@@ -179,20 +179,25 @@
   height: 100%;
 }
 
-/* Arrows overlay — floats above the finger tips of the dominant hand */
-.fng-sub-remove-overlay {
+/*
+ * Overlay sized to match the hand image canvas (256×320).
+ * objectFit:contain is width-limited on portrait phones, so the image fills
+ * container width and the overlay (same aspect ratio) aligns with it exactly.
+ * Arrows use position:absolute + left:X% to sit above the correct finger.
+ */
+.fng-sub-finger-overlay {
   position: absolute;
-  top: 4%;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  gap: 4px;
+  width: 100%;
+  aspect-ratio: 256 / 320;
+  max-height: 100%;
   pointer-events: none;
+  z-index: 2;
 }
 
 .fng-sub-arrow {
+  position: absolute;
+  top: 3%;
+  transform: translateX(-50%);
   font-size: clamp(22px, 7vw, 38px);
   color: #ef4444;
   line-height: 1;

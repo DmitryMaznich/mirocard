@@ -102,6 +102,16 @@ function AdditionTask({ task, onCorrect }) {
 // Three steps: "Было" (a fingers) → "Убираем" (b arrows ↓) → "Стало" (result fingers)
 // Flow: show (2.5s) → remove (2s) → result (1.2s) → answer → done
 
+// X positions of each finger as fraction of image width (256px canvas).
+// Fingers are numbered 1..5 in counting order (1st raised → 5th raised).
+// hand_right images: thumb on LEFT → counting goes left-to-right (thumb first).
+// hand_left  images: mirror of right → thumb on RIGHT, positions reversed.
+// If the actual images use a different counting order, swap the array values.
+const FINGER_XS = {
+  right: [0.25, 0.36, 0.48, 0.60, 0.73], // [1st…5th], leftmost→rightmost
+  left:  [0.75, 0.64, 0.52, 0.40, 0.27], // mirrored: rightmost→leftmost
+};
+
 function SubtractionTask({ task, onCorrect }) {
   const [phase, setPhase] = useState("show");
   const [input, setInput] = useState([]);
@@ -161,17 +171,35 @@ function SubtractionTask({ task, onCorrect }) {
         </span>
       : "?";
 
-  // dominant hand = the one losing b fingers
-  const dominantIsRight = startConfig.right >= startConfig.left;
+  // Per-hand removal counts via startConfig vs resultConfig.
+  // This correctly places arrows on each hand that actually loses fingers
+  // (e.g. 4−2=2: each hand goes 2→1, one arrow per hand, not two on one).
+  const leftStart  = startConfig.left;
+  const leftEnd    = resultConfig.left;
+  const rightStart = startConfig.right;
+  const rightEnd   = resultConfig.right;
 
   // counts: "show" and "remove" phases → a fingers; "result"+ → result fingers
-  const leftCount  = (phase === "show" || phase === "remove") ? startConfig.left  : resultConfig.left;
-  const rightCount = (phase === "show" || phase === "remove") ? startConfig.right : resultConfig.right;
+  const leftCount  = (phase === "show" || phase === "remove") ? leftStart  : leftEnd;
+  const rightCount = (phase === "show" || phase === "remove") ? rightStart : rightEnd;
   const kbdVisible = phase === "answer" || phase === "done";
 
-  const arrows = Array.from({ length: b }, (_, i) => (
-    <span key={i} className="fng-sub-arrow">↓</span>
-  ));
+  // X positions of removed fingers per hand.
+  // Screen-left uses hand_right images (FINGER_XS.right); screen-right uses hand_left (FINGER_XS.left).
+  // slice(end, start) = the fingers with indices end..start-1 = those that disappear.
+  const leftArrowXs  = FINGER_XS.right.slice(leftEnd,  leftStart);
+  const rightArrowXs = FINGER_XS.left.slice(rightEnd, rightStart);
+
+  function makeOverlay(xs) {
+    if (!xs.length) return null;
+    return (
+      <div className="fng-sub-finger-overlay">
+        {xs.map((x, i) => (
+          <span key={i} className="fng-sub-arrow" style={{ left: `${x * 100}%` }}>↓</span>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="fng-add-screen">
@@ -181,19 +209,15 @@ function SubtractionTask({ task, onCorrect }) {
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      {/* Zone 2 — hands; during "remove" phase dominant hand gets arrow overlay */}
+      {/* Zone 2 — hands; each hand gets arrows only for fingers it loses */}
       <div className="fng-add-hands-zone">
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
-            {phase === "remove" && !dominantIsRight && (
-              <div className="fng-sub-remove-overlay">{arrows}</div>
-            )}
+            {phase === "remove" && makeOverlay(leftArrowXs)}
             <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
           </div>
           <div className="fng-sub-hand-wrap">
-            {phase === "remove" && dominantIsRight && (
-              <div className="fng-sub-remove-overlay">{arrows}</div>
-            )}
+            {phase === "remove" && makeOverlay(rightArrowXs)}
             <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
           </div>
         </div>
