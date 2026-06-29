@@ -381,15 +381,25 @@
   user-select: none;
 }
 
-.wl-alpha-grid {
-  display: grid;
-  justify-content: center;
-  align-items: start;
+.wl-alpha-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; /* row height = SVG height; rows don't stretch */
+  gap: 0;
 }
 
-.wl-alpha-pair {
+.wl-alpha-item {
   display: flex;
-  align-items: flex-start; /* top-aligned = same-height SVGs share baseline */
+  align-items: flex-end; /* bottom-align so comma margin-bottom lifts it to baseline */
+}
+
+.wl-alpha-comma {
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: rgba(42, 130, 160, 0.4);
+  line-height: 1;
+  margin-left: 1px;
+  margin-right: 10px;
 }
 
 /* ── WrittenLettersPairParams ── */

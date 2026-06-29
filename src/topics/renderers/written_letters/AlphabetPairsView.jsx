@@ -7,27 +7,29 @@ const L2  = 62;
 const L3  = 88;
 const L4  = 140;
 
-// Same pitch constant as MatchPairView
-const PITCH_PX = Math.round((L4 - L2) / VBH * Math.round(120 * VBH / VBW));  // 94px
+// Letter size chosen so SVG height ≈ one propis pitch (L4-L2 span of STIM_H).
+// STIM_H = round(120 * 150/100) = 180; PITCH_PX = round(78/150 * 180) = 94px.
+// We set SVG height = PITCH_PX exactly by using it as background-size period,
+// so every flex-wrap row lands on the same propis lines throughout the screen.
+const STIM_H   = Math.round(120 * VBH / VBW);                // 180px (canonical)
+const PITCH_PX = Math.round((L4 - L2) / VBH * STIM_H);       // 94px
 
-function letterSize(cols) {
-  if (cols === 1) return 100;
-  if (cols === 3) return 42;
-  return 63; // 2 cols: SVG height ≈ PITCH_PX so rows land on the same background lines
-}
+// Closest integer size giving SVG_H ≈ PITCH_PX
+const LETTER_SIZE = 63;
+const LETTER_H    = Math.round(LETTER_SIZE * VBH / VBW);      // 95px (≈ PITCH_PX)
 
-function pairLetterGap(cols) {
-  return cols === 1 ? 20 : cols === 3 ? 6 : 10;
-}
+// Background uses LETTER_H as its period so rows stay in phase across the screen.
+const BG_PITCH = LETTER_H;                                    // 95px
+
+const L2_PX = Math.round(L2 / VBH * LETTER_H);  // position of L2 guide inside SVG
+const L3_PX = Math.round(L3 / VBH * LETTER_H);  // position of L3 baseline inside SVG
+const COMMA_MB = LETTER_H - L3_PX;              // margin-bottom to sit comma on baseline
 
 export default function AlphabetPairsView({ task }) {
   const rootRef  = useRef(null);
   const firstRef = useRef(null);
 
-  const { pairs = [], columns = 2 } = task;
-  const cols  = Number(columns);
-  const size  = letterSize(cols);
-  const svgH  = Math.round(size * VBH / VBW);
+  const { pairs = [] } = task;
 
   useLayoutEffect(() => {
     const root  = rootRef.current;
@@ -37,36 +39,32 @@ export default function AlphabetPairsView({ task }) {
       const rr = root.getBoundingClientRect();
       const fr = first.getBoundingClientRect();
       const svgTopY = fr.top - rr.top;
-      const l2Y = svgTopY + Math.round(L2 / VBH * svgH);
-      const l3Y = svgTopY + Math.round(L3 / VBH * svgH);
-      const l2Phase = ((l2Y % PITCH_PX) + PITCH_PX) % PITCH_PX;
-      const l3Phase = ((l3Y % PITCH_PX) + PITCH_PX) % PITCH_PX;
-      root.style.backgroundSize     = `auto, 100% ${PITCH_PX}px, 100% ${PITCH_PX}px`;
+      const l2Phase = ((svgTopY + L2_PX) % BG_PITCH + BG_PITCH) % BG_PITCH;
+      const l3Phase = ((svgTopY + L3_PX) % BG_PITCH + BG_PITCH) % BG_PITCH;
+      root.style.backgroundSize     = `auto, 100% ${BG_PITCH}px, 100% ${BG_PITCH}px`;
       root.style.backgroundPosition = `0 0, 0 ${l2Phase}px, 0 ${l3Phase}px`;
     };
     align();
     window.addEventListener("resize", align);
     return () => window.removeEventListener("resize", align);
-  }, [task, svgH]);
+  }, [task]);
 
   return (
     <div ref={rootRef} className="wl-alpha-screen">
-      <div
-        className="wl-alpha-grid"
-        style={{
-          gridTemplateColumns: `repeat(${cols}, auto)`,
-          gap: `0 ${pairLetterGap(cols) * 3}px`,
-        }}
-      >
+      <div className="wl-alpha-flow">
         {pairs.map((pair, i) => (
           <div
             key={pair.upper + i}
             ref={i === 0 ? firstRef : undefined}
-            className="wl-alpha-pair"
-            style={{ gap: pairLetterGap(cols) }}
+            className="wl-alpha-item"
           >
-            <HandwrittenLetter letter={pair.upper} size={size} bare />
-            <HandwrittenLetter letter={pair.lower} size={size} bare />
+            <HandwrittenLetter letter={pair.upper} size={LETTER_SIZE} bare />
+            <HandwrittenLetter letter={pair.lower} size={LETTER_SIZE} bare />
+            {i < pairs.length - 1 && (
+              <span className="wl-alpha-comma" style={{ marginBottom: COMMA_MB }}>
+                ,
+              </span>
+            )}
           </div>
         ))}
       </div>
