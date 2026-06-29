@@ -145,9 +145,9 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.0",
-      "url": "./decks/word_formation_soup_v1.0.0.zip",
-      "zipUrl": "word_formation_soup_v1.0.0.zip",
+      "version": "1.0.1",
+      "url": "./decks/word_formation_soup_v1.0.1.zip",
+      "zipUrl": "word_formation_soup_v1.0.1.zip",
       "title": {
         "ru": "Суп: словообразование",
         "en": "Soup: word formation"
