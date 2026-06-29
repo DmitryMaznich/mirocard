@@ -47,6 +47,24 @@ const sisterSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
   <circle cx="196" cy="78" r="2" fill="#ff99cc" opacity="0.7"/>
   <circle cx="62" cy="170" r="2" fill="#ffd700" opacity="0.5"/>
   <circle cx="178" cy="170" r="2" fill="#ffd700" opacity="0.5"/>
+  <!-- Photo placeholder bottom-left -->
+  <rect x="7" y="168" width="54" height="46" rx="5" fill="white" fill-opacity="0.88" stroke="#c060a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="13" y="173" width="42" height="30" rx="2" fill="#fce8f4"/>
+  <line x1="13" y1="173" x2="55" y2="203" stroke="#c060a0" stroke-width="0.8" opacity="0.3"/>
+  <line x1="55" y1="173" x2="13" y2="203" stroke="#c060a0" stroke-width="0.8" opacity="0.3"/>
+  <rect x="29" y="184" width="12" height="9" rx="2" fill="none" stroke="#c060a0" stroke-width="1.2"/>
+  <circle cx="35" cy="188" r="2.5" fill="none" stroke="#c060a0" stroke-width="1.1"/>
+  <rect x="32" y="182" width="4" height="3" rx="1" fill="#c060a0"/>
+  <text x="34" y="210" text-anchor="middle" font-size="6" fill="#c060a0" font-family="sans-serif" font-weight="bold" letter-spacing="0.5">ФОТО</text>
+  <!-- Photo placeholder bottom-right -->
+  <rect x="179" y="168" width="54" height="46" rx="5" fill="white" fill-opacity="0.88" stroke="#c060a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <rect x="185" y="173" width="42" height="30" rx="2" fill="#fce8f4"/>
+  <line x1="185" y1="173" x2="227" y2="203" stroke="#c060a0" stroke-width="0.8" opacity="0.3"/>
+  <line x1="227" y1="173" x2="185" y2="203" stroke="#c060a0" stroke-width="0.8" opacity="0.3"/>
+  <rect x="201" y="184" width="12" height="9" rx="2" fill="none" stroke="#c060a0" stroke-width="1.2"/>
+  <circle cx="207" cy="188" r="2.5" fill="none" stroke="#c060a0" stroke-width="1.1"/>
+  <rect x="204" y="182" width="4" height="3" rx="1" fill="#c060a0"/>
+  <text x="206" y="210" text-anchor="middle" font-size="6" fill="#c060a0" font-family="sans-serif" font-weight="bold" letter-spacing="0.5">ФОТО</text>
 </svg>`;
 
 const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
@@ -79,7 +97,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.12",
+    version: "1.0.13",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -397,7 +415,7 @@ const manifest = {
     {
       id: "sister_love",
       kind: "poem",
-      title: { ru: "Моя сестра", en: "My Sister" },
+      title: { ru: "Моей сестре", en: "To My Sister" },
       image: "media/sister_love.svg",
       level: 1,
       lines: [
@@ -481,4 +499,4 @@ zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
 zip.file("media/sister_love.svg", sisterSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.12.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.13.zip", buffer);
