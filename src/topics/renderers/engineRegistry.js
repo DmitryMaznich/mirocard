@@ -16,6 +16,7 @@ import { generateTasks as phraseMatchEngine }           from "./phrase_match/eng
 import { generateTasks as columnAdditionEngine }       from "./column_addition/engine.js";
 import { generateTasks as writtenLettersEngine }       from "./written_letters/engine.js";
 import { generateTasks as printMaterialsEngine }       from "./print_materials/engine.js";
+import { generateTasks as wordFormationEngine }        from "./word_formation/engine";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -36,4 +37,5 @@ export const ENGINE_REGISTRY = {
   column_addition:       columnAdditionEngine,
   written_letters:       writtenLettersEngine,
   print_materials:       printMaterialsEngine,
+  word_formation:        wordFormationEngine,
 };
