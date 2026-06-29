@@ -1,3 +1,5 @@
+import { computeStarProgress } from "./useStarProgress";
+
 export function normalizeRewardThreshold(value, fallback = 90) {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;
@@ -40,10 +42,19 @@ export function buildRewardProgress({
     mode?.evaluation !== "none"
   );
   const target = available ? getRewardTargetCount(total, threshold) : null;
+  const correctCount = sessionState?.correctCount ?? completed;
+  const incorrectCount = sessionState?.incorrectCount ?? 0;
+  const { videoUnlocked } = computeStarProgress({
+    correctCount,
+    incorrectCount,
+    total,
+    rewardThreshold: threshold,
+    available,
+  });
 
   return {
     available,
-    earned: Boolean(available && target != null && completed >= target),
+    earned: videoUnlocked,
     threshold,
     target,
     completed,

@@ -1,9 +1,9 @@
-const CACHE = "mirocard2-v10";
+const CACHE = "mirocard2-v8";
 
 self.addEventListener("install", () => {
-  // Do not call skipWaiting here. A background SW activation fires
-  // controllerchange in the page, and the app intentionally reloads there only
-  // after the user applies an update from the home screen.
+  // Stay in the waiting phase until the app explicitly applies the update.
+  // Otherwise a background service-worker update can trigger controllerchange
+  // and reload the app while the user is navigating or inside a session.
 });
 
 self.addEventListener("message", (e) => {

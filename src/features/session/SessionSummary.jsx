@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
-import { formatDate, getTopicTitle } from "@/shared/utils/format";
+import {
+  formatDate, getTopicTitle,
+  computeRewardSeconds, formatRewardTime,
+} from "@/shared/utils/format";
+import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 import { computeProgressAfterSession } from "./useConceptProgress";
+import { computeStarProgress } from "./useStarProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
-import HoldButton from "@/shared/components/HoldButton";
-import RewardVideoModal from "@/shared/components/RewardVideoModal";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -19,25 +22,100 @@ const ASSESSMENT_LABELS = {
   easy: "Легко",
 };
 
+function getPraiseText(starCount, isReading) {
+  if (starCount === null) return isReading ? "Молодец, ты прочитал!" : "Молодец, ты справился!";
+  if (starCount === 5) return "Молодец! Пять звезд!";
+  if (starCount === 4) return "Отлично! Четыре звезды!";
+  if (starCount === 3) return "Хорошо! Три звезды!";
+  if (starCount === 2) return "Хорошо! Две звезды!";
+  if (starCount === 1) return "Старался! Одна звезда!";
+  return "Старался! Одна звезда!";
+}
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ru-RU";
+  utter.rate = 0.85;
+  utter.pitch = 1.1;
+  window.speechSynthesis.speak(utter);
+}
+
 export default function SessionSummary() {
   const setScreen         = useAppStore((s) => s.setScreen);
-  const isStudentPortal   = useAppStore((s) => s.isStudentPortal);
   const sessions          = useAppStore((s) => s.sessions);
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const students          = useAppStore((s) => s.students);
-  const activeStudentId   = useAppStore((s) => s.activeStudentId);
+  const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
+
   const session = sessions[sessions.length - 1];
 
-  const topicRecord  = topicRecords.find((r) => r.meta.id === session?.topicId);
-  const sessionMode  = topicRecord?.modes?.find((mode) => mode.id === session?.modeId);
-  const isReading    = topicRecord?.meta.renderer === "reading";
+  const topicRecord        = topicRecords.find((r) => r.meta.id === session?.topicId);
+  const sessionText        = topicRecord?.texts?.find((text) => text.id === session?.textId);
+  const sessionMode        = topicRecord?.modes?.find((mode) => mode.id === session?.modeId);
+  const isReading          = topicRecord?.meta.renderer === "reading";
+  const student            = students.find((s) => s.id === session?.studentId);
+  const link               = session ? (studentTopicLinks[`${session.studentId}_${session.topicId}`] ?? {}) : {};
+  const rewardVideos       = student?.rewardVideos ?? [];
+  const sessionReward      = session?.reward ?? null;
+  const videoRewardEnabled = sessionReward?.videoEnabled ?? link.videoRewardEnabled ?? true;
+  const rewardThreshold    = sessionReward?.threshold ?? link.rewardThreshold ?? 90;
+  const rewardTotal        = sessionReward?.total
+    ?? ((session?.correctCount ?? 0) + (session?.incorrectCount ?? 0));
+  const rewardAvailable    = Boolean(sessionReward?.videoAvailable ?? false);
+  const starProgress       = isReading
+    ? null
+    : computeStarProgress({
+      correctCount: session?.correctCount ?? 0,
+      incorrectCount: session?.incorrectCount ?? 0,
+      total: rewardTotal,
+      rewardThreshold,
+      available: rewardAvailable && videoRewardEnabled,
+    });
+  const rewardEarned       = Boolean(starProgress?.videoUnlocked);
+  const rewardSeconds      = rewardEarned && videoRewardEnabled
+    ? computeRewardSeconds(session.modeId, sessionReward?.total ?? topicRecord?.cards?.length ?? 10)
+    : 0;
+
   const isEvaluated  = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
+  const summaryStars = isEvaluated
+    ? (starProgress ?? computeStarProgress({
+    correctCount: session?.correctCount ?? 0,
+    incorrectCount: session?.incorrectCount ?? 0,
+    total: rewardTotal,
+    rewardThreshold,
+    available: true,
+  }))
+    : null;
+  const starCount    = summaryStars?.litStars ?? null;
+  const praiseText   = getPraiseText(starCount, isReading);
 
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [showReward,  setShowReward]  = useState(false);
+  const [videoOpen,       setVideoOpen]       = useState(false);
+  const [rewardConsumed,  setRewardConsumed]  = useState(false);
+  const [rewardRemaining, setRewardRemaining] = useState(0);
+  const [detailsOpen,     setDetailsOpen]     = useState(false);
+  const [rewardVideoUrl,  setRewardVideoUrl]  = useState(null);
 
-  const activeStudent  = students.find((s) => s.id === activeStudentId);
-  const canShowReward  = Boolean(session?.reward?.videoAvailable);
+  useEffect(() => {
+    if (!session) return;
+    const timer = setTimeout(() => speak(praiseText), 600);
+    return () => {
+      clearTimeout(timer);
+      window.speechSynthesis?.cancel();
+    };
+  }, [praiseText, session]);
+
+  useEffect(() => {
+    if (!videoOpen) return undefined;
+    const intervalId = window.setInterval(() => {
+      setRewardRemaining((prev) => {
+        if (prev <= 1) { window.clearInterval(intervalId); setVideoOpen(false); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [videoOpen, rewardSeconds]);
 
   if (!session) {
     return (
@@ -47,24 +125,72 @@ export default function SessionSummary() {
     );
   }
 
-  const progressAfter = computeProgressAfterSession(sessions, session);
+  const progressAfter    = computeProgressAfterSession(sessions, session);
+  const showRewardButton = !rewardConsumed && rewardSeconds > 0 && rewardVideos.length > 0;
+
+  function handleOpenVideo() {
+    const videoId = pickStoredRewardVideoId(rewardVideos, `student:${student?.id ?? "unknown"}`);
+    if (!videoId) return;
+    window.speechSynthesis?.cancel();
+    setRewardVideoUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&controls=0&rel=0&fs=0&disablekb=1&iv_load_policy=3&modestbranding=1`);
+    setRewardRemaining(rewardSeconds);
+    setRewardConsumed(true);
+    setVideoOpen(true);
+  }
+
+  function blockVideoRewardInteraction(event) {
+    if (event.target instanceof Element && event.target.closest(".video-reward-close")) {
+      return;
+    }
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+  }
 
   return (
     <div className="screen summary-screen">
 
+      {/* Celebration block */}
+      <div className="summary-celebration">
+        <div className="summary-topic-label">
+          {getTopicTitle(topicRecord?.meta.title) || session.topicId}
+          {sessionText ? ` · ${getTopicTitle(sessionText.title)}` : ""}
+        </div>
+
+        {starCount !== null ? (
+          <div className="summary-stars">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <span
+                key={i}
+                className={`summary-star summary-star--${i} ${i <= starCount ? "summary-star--lit" : "summary-star--dim"}`}
+              >
+                ⭐
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="summary-check">✓</div>
+        )}
+
+        <div className="summary-praise">{praiseText}</div>
+      </div>
+
+      {/* Video bonus button */}
+      {showRewardButton && (
+        <button className="reward-video-btn" onClick={handleOpenVideo}>
+          🎬 Смотреть мультик
+        </button>
+      )}
+
       {/* Actions */}
       <div className="summary-actions">
-        <Button variant="secondary" onClick={() => setScreen("session")}>Ещё раз</Button>
-        {canShowReward && (
-          <Button variant="secondary" onClick={() => setShowReward(true)}>🎬 Награда</Button>
-        )}
-        {isStudentPortal ? (
-          <Button onClick={() => setScreen("home")}>Завершить</Button>
-        ) : (
-          <HoldButton className="summary-finish-btn" onAction={() => setScreen("home")} skipTaps>
-            <span className="summary-finish-btn__label">Завершить</span>
-          </HoldButton>
-        )}
+        <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
+        <button
+          className="summary-finish-btn"
+          onClick={() => setScreen("home")}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <span className="summary-finish-btn__label">Завершить</span>
+        </button>
       </div>
 
       {/* Collapsible teacher stats */}
@@ -143,12 +269,43 @@ export default function SessionSummary() {
         )}
       </div>
 
-      {showReward && activeStudent && (
-        <RewardVideoModal
-          rewardVideos={activeStudent.rewardVideos ?? []}
-          studentId={activeStudent.id}
-          onDismiss={() => setShowReward(false)}
-        />
+      {/* Video overlay */}
+      {videoOpen && (
+        <div
+          className="video-reward-overlay"
+          onClickCapture={blockVideoRewardInteraction}
+          onContextMenu={blockVideoRewardInteraction}
+          onDoubleClick={blockVideoRewardInteraction}
+          onPointerDown={blockVideoRewardInteraction}
+          onPointerMove={blockVideoRewardInteraction}
+          onPointerUp={blockVideoRewardInteraction}
+          onTouchStart={blockVideoRewardInteraction}
+          onTouchMove={blockVideoRewardInteraction}
+          onTouchEnd={blockVideoRewardInteraction}
+          onWheel={blockVideoRewardInteraction}
+          onGestureStart={blockVideoRewardInteraction}
+          onGestureChange={blockVideoRewardInteraction}
+          onGestureEnd={blockVideoRewardInteraction}
+        >
+          <button className="video-reward-close" onClick={() => setVideoOpen(false)} aria-label="Закрыть">✕</button>
+          <div className="video-reward-frame">
+            <iframe
+              src={rewardVideoUrl}
+              allow="accelerometer; autoplay; encrypted-media"
+              frameBorder="0"
+              className="video-reward-iframe"
+              title="Reward video"
+            />
+            <div className="video-reward-blocker" aria-hidden="true" />
+          </div>
+          <div className="video-reward-progress">
+            <div
+              className="video-reward-progress__bar"
+              style={{ width: `${rewardSeconds > 0 ? (rewardRemaining / rewardSeconds) * 100 : 0}%` }}
+            />
+            <span className="video-reward-progress__label">{formatRewardTime(rewardRemaining)}</span>
+          </div>
+        </div>
       )}
     </div>
   );

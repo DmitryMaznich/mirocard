@@ -2,50 +2,67 @@ import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
 
-// Guard depth: how many history entries to keep above ROOT.
-// On Android, rapid hardware back presses are processed at native level and can
-// navigate through multiple history entries before any JS runs. A depth of 5
-// absorbs any realistic burst of rapid button presses while keeping history
-// size manageable.
-const GUARD_DEPTH = 5;
+// One entry is enough. With DEPTH=1 the rebound always goes root→#_guard
+// (different URLs), so Chrome Android never silently ignores the pushState.
+// DEPTH≥2 causes same-URL rebounds (#_guard→#_guard) which Chrome may drop.
+const GUARD_HASH = "#_guard";
 
-// Monotonically increasing sequence number assigned to each guard entry.
-// Used to detect direction: if the arriving sequence is higher than the last
-// observed, the user went forward (ignore); if lower or equal, they went back.
-let guardSeqTop = 0;
-let lastObservedSeq = 0;
+let guardSequence = 0;
+let guardTopSequence = 0;
+let lastObservedSequence = 0;
 let lastHandledBackAt = 0;
 
-function pushGuardEntries() {
-  for (let i = 0; i < GUARD_DEPTH; i++) {
-    guardSeqTop++;
-    window.history.pushState(
-      { mirocardBackGuard: true, guardSeq: guardSeqTop },
-      "",
-      window.location.href,
-    );
-  }
-  lastObservedSeq = guardSeqTop;
+function guardUrl() {
+  return window.location.href.replace(/#.*$/, "") + GUARD_HASH;
 }
 
-function installBackGuard() {
-  const current = window.history.state;
+function getGuardSequence(state) {
+  return state?.mirocardBackGuard && Number.isFinite(state.guardSequence)
+    ? state.guardSequence
+    : 0;
+}
 
-  if (current?.mirocardBackGuard) {
-    // Already on a guard entry — sync module counters and return.
-    const seq = current.guardSeq || 0;
-    guardSeqTop = Math.max(guardSeqTop, seq);
-    lastObservedSeq = guardSeqTop;
-    return;
-  }
+function rootStateFrom(state) {
+  const nextState = { ...(state ?? {}) };
+  delete nextState.mirocardBackGuard;
+  nextState.mirocardBackRoot = true;
+  nextState.guardSequence = 0;
+  return nextState;
+}
 
-  if (!current?.mirocardBackRoot) {
-    // Replace whatever is here with a ROOT marker so the entry is recognisable
-    // if the user ever navigates back to it.
-    window.history.replaceState({ mirocardBackRoot: true }, "", window.location.href);
-  }
+function installBackGuardStack() {
+  const currentState = window.history.state;
+  const rootUrl = window.location.href.replace(/#.*$/, "");
+  const currentSequence = getGuardSequence(currentState);
 
-  pushGuardEntries();
+  // Always normalize the current entry to the app root, then put a fresh guard
+  // on top. If the app reloads while the URL is already #_guard, relying on the
+  // existing entry leaves no guaranteed in-app entry behind Android's Back.
+  window.history.replaceState(rootStateFrom(currentState), "", rootUrl);
+
+  guardSequence = Math.max(guardSequence, currentSequence) + 1;
+  window.history.pushState(
+    { mirocardBackGuard: true, guardSequence },
+    "",
+    guardUrl(),
+  );
+  guardTopSequence = guardSequence;
+  lastObservedSequence = guardTopSequence;
+}
+
+function reboundToGuardTop(sequence) {
+  if (sequence >= guardTopSequence) return;
+  guardSequence += 1;
+  guardTopSequence = guardSequence;
+  lastObservedSequence = guardTopSequence;
+  // guardUrl() is computed fresh from window.location.href (current entry after
+  // the back press) → always baseUrl + #_guard, never same as the guard entry
+  // we just left, so Chrome will not drop this pushState.
+  window.history.pushState(
+    { mirocardBackGuard: true, guardSequence },
+    "",
+    guardUrl(),
+  );
 }
 
 export function useBackButtonGuard({
@@ -67,50 +84,44 @@ export function useBackButtonGuard({
     isSessionExitPromptOpenRef.current = isSessionExitPromptOpen;
     onCloseSessionExitPromptRef.current = onCloseSessionExitPrompt;
     onRequestSessionExitRef.current = onRequestSessionExit;
-  }, [isTimerOpen, onCloseTimer, isSessionExitPromptOpen, onCloseSessionExitPrompt, onRequestSessionExit]);
+  }, [
+    isTimerOpen,
+    onCloseTimer,
+    isSessionExitPromptOpen,
+    onCloseSessionExitPrompt,
+    onRequestSessionExit,
+  ]);
 
   useEffect(() => {
     if (!window.history?.pushState) return undefined;
 
-    installBackGuard();
+    installBackGuardStack();
 
     function handlePopState(event) {
-      const state = event.state;
-      const seq = state?.mirocardBackGuard ? (state.guardSeq || 0) : 0;
+      const sequence = getGuardSequence(event.state);
+      const isBackNavigation = sequence < lastObservedSequence;
+      lastObservedSequence = sequence;
+      reboundToGuardTop(sequence);
 
-      // Forward navigation (user pressed forward or guard was replenished
-      // with higher sequences) — update counter and ignore.
-      if (seq > lastObservedSeq) {
-        lastObservedSeq = seq;
-        return;
-      }
+      if (!isBackNavigation) return;
 
-      lastObservedSeq = seq;
-
-      // Re-establish the full guard depth synchronously before any React updates.
-      // pushState from the current position truncates the remaining old guard
-      // entries above it and adds GUARD_DEPTH new ones, so the stack never
-      // grows unboundedly in normal single-press usage.
-      pushGuardEntries();
-
-      // Debounce: suppress app-level action on rapid presses.
-      // Guard is already restored above, so no press can ever escape regardless.
       const now = Date.now();
       if (now - lastHandledBackAt < 180) return;
       lastHandledBackAt = now;
+
+      const state = useAppStore.getState();
 
       if (isTimerOpenRef.current) {
         onCloseTimerRef.current?.();
         return;
       }
 
-      if (isSessionExitPromptOpenRef.current) {
+      if (state.screen === "session" && isSessionExitPromptOpenRef.current) {
         onCloseSessionExitPromptRef.current?.();
         return;
       }
 
-      const appState = useAppStore.getState();
-      const target = getBackTarget(appState);
+      const target = getBackTarget(state);
 
       if (target === SESSION_EXIT_TARGET) {
         onRequestSessionExitRef.current?.();
@@ -118,34 +129,11 @@ export function useBackButtonGuard({
       }
 
       if (target) {
-        appState.setScreen(target);
+        state.setScreen(target);
       }
     }
 
-    function handleBeforeUnload(event) {
-      // Last-resort fallback if the guard is bypassed by an external navigation.
-      if (useAppStore.getState().screen !== "session") return;
-      event.preventDefault();
-      event.returnValue = "";
-    }
-
-    function ensureGuardAfterResume() {
-      if (document.visibilityState === "hidden") return;
-      installBackGuard();
-    }
-
     window.addEventListener("popstate", handlePopState);
-    window.addEventListener("pageshow", ensureGuardAfterResume);
-    window.addEventListener("focus", ensureGuardAfterResume);
-    document.addEventListener("visibilitychange", ensureGuardAfterResume);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-      window.removeEventListener("pageshow", ensureGuardAfterResume);
-      window.removeEventListener("focus", ensureGuardAfterResume);
-      document.removeEventListener("visibilitychange", ensureGuardAfterResume);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 }

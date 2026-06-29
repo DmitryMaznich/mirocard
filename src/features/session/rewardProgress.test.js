@@ -88,6 +88,26 @@ describe("reward progress", () => {
     expect(progress.earned).toBe(true);
   });
 
+  it("uses the star score when mistakes drop the child below the video threshold", () => {
+    const progress = buildRewardProgress({
+      sessionState: {
+        status: "completed",
+        tasks: TASKS,
+        taskIndex: 9,
+        correctCount: 10,
+        incorrectCount: 1,
+      },
+      mode: MODE,
+      videoRewardEnabled: true,
+      hasRewardVideos: true,
+      rewardThreshold: 90,
+    });
+
+    expect(progress.completed).toBe(10);
+    expect(progress.target).toBe(9);
+    expect(progress.earned).toBe(false);
+  });
+
   it("does not expose reward progress when videos are unavailable", () => {
     const progress = buildRewardProgress({
       sessionState: makeState({ taskIndex: 8 }),

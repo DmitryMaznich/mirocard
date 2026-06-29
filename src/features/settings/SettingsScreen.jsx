@@ -74,6 +74,7 @@ export default function SettingsScreen() {
   }
 
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [voicesOpen, setVoicesOpen] = useState(false);
 
   // Load all voices (Chrome on Android fires voiceschanged asynchronously)
   const [voices, setVoices] = useState([]);
@@ -261,12 +262,21 @@ export default function SettingsScreen() {
       </div>
 
       <div className="settings-section" style={{ borderTop: "1px dashed #ddd", marginTop: 8 }}>
-        <div className="settings-section-title" style={{ color: "#bbb" }}>Dev · голоса (raw)</div>
-        <div style={{ padding: "4px 12px 8px", fontSize: 11, color: "#888", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-          {voices.length === 0 ? "пусто" : voices.map((v, i) =>
-            `[${i}] uri="${v.voiceURI}" name="${v.name}" lang="${v.lang}"`
-          ).join("\n")}
+        <div
+          className="settings-section-title"
+          style={{ color: "#bbb", cursor: "pointer", userSelect: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          onClick={() => setVoicesOpen((v) => !v)}
+        >
+          <span>Dev · голоса (raw)</span>
+          <span style={{ fontSize: 12 }}>{voicesOpen ? "▲" : "▼"}</span>
         </div>
+        {voicesOpen && (
+          <div style={{ padding: "4px 12px 8px", fontSize: 11, color: "#888", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+            {voices.length === 0 ? "пусто" : voices.map((v, i) =>
+              `[${i}] uri="${v.voiceURI}" name="${v.name}" lang="${v.lang}"`
+            ).join("\n")}
+          </div>
+        )}
       </div>
 
       <div className="settings-section" style={{ borderTop: "1px dashed #ddd", marginTop: 8 }}>

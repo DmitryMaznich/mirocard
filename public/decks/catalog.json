@@ -1,70 +1,30 @@
 {
   "decks": [
     {
-      "id": "written_letters",
-      "version": "1.0.4",
-      "title": {
-        "ru": "Письменные буквы",
-        "en": "Written Letters"
-      },
-      "description": {
-        "ru": "33 буквы русского алфавита в рукописном написании. Четыре режима: строчная/заглавная, найди рукописную, найди печатную, найди пару.",
-        "en": "33 Russian alphabet letters in cursive. Four modes: uppercase/lowercase sort, find cursive, find print, find the pair."
-      },
-      "url": "./decks/written_letters_v1.0.4.zip",
-      "zipUrl": "written_letters_v1.0.4.zip"
-    },
-    {
-      "id": "letter_writing",
-      "version": "1.1.0",
-      "title": {
-        "ru": "Написание букв",
-        "en": "Letter Writing"
-      },
-      "description": {
-        "ru": "33 заглавных буквы русского алфавита. Рабочий лист: буквы на линейке, нажми — увидишь анимацию по штрихам.",
-        "en": "33 uppercase Russian letters. Worksheet: letters on lined paper, tap to see stroke-by-stroke animation."
-      },
-      "url": "./decks/letter_writing_v1.1.0.zip"
-    },
-    {
       "id": "reading_dad_poems",
-      "version": "1.0.13",
+      "version": "1.0.10",
       "title": {
         "ru": "Чтение: Стихи",
         "en": "Reading: Poems"
       },
       "description": {
-        "ru": "Четыре стихотворения: совместное чтение, иллюстрация, вопросы по смыслу и сборка стихотворения из слов.",
-        "en": "Four poems: shared reading, illustration, comprehension questions, and poem assembly."
+        "ru": "Два стихотворения: совместное чтение, иллюстрация, вопросы по смыслу и сборка стихотворения из слов.",
+        "en": "Two poems: shared reading, illustration, comprehension questions, and poem assembly."
       },
-      "url": "./decks/reading_dad_poems_v1.0.13.zip"
-    },
-    {
-      "id": "reading_dad_instructions",
-      "version": "1.0.4",
-      "title": {
-        "ru": "Чтение. Инструкции",
-        "en": "Reading: Instructions"
-      },
-      "description": {
-        "ru": "Читаем предложение и выполняем задание. Каждый день — новый набор из 10 предложений.",
-        "en": "Read the sentence and follow the instruction. A new set of 10 sentences every day."
-      },
-      "url": "./decks/reading_dad_instructions_v1.0.4.zip"
+      "url": "./decks/reading_dad_poems_v1.0.10.zip"
     },
     {
       "id": "reading_dad_texts",
-      "version": "1.131.0",
+      "version": "1.14.0",
       "title": {
-        "ru": "Инструкции — рецепты",
-        "en": "Instructions: Recipes"
+        "ru": "Чтение. Готовим еду",
+        "en": "Reading: Cooking"
       },
       "description": {
         "ru": "Пошаговые инструкции для самостоятельных действий.",
         "en": "Step-by-step instructions for independent tasks."
       },
-      "url": "./decks/reading_dad_texts_v1.131.0.zip"
+      "url": "./decks/reading_dad_texts_v1.14.0.zip"
     },
     {
       "id": "emotions_v2",
@@ -159,7 +119,7 @@
     },
     {
       "id": "sentence_puzzle",
-      "version": "1.10.0",
+      "version": "1.9.19",
       "title": {
         "ru": "Конструктор предложений",
         "en": "Sentence Builder"
@@ -168,37 +128,11 @@
         "ru": "Собираем пазл из слов и слушаем предложения. Цветовое кодирование ролей.",
         "en": "Assemble sentences from word cards. Color-coded roles. Listen-and-build mode."
       },
-      "url": "./decks/sentence_puzzle_v1.10.0.zip"
-    },
-    {
-      "id": "vowel_consonant_ru",
-      "version": "1.0.0",
-      "title": {
-        "ru": "Гласные и согласные",
-        "en": "Vowels and Consonants"
-      },
-      "description": {
-        "ru": "31 буква русского алфавита. Перетащи каждую букву в группу гласных или согласных.",
-        "en": "31 Russian letters. Drag each letter into the vowel or consonant group."
-      },
-      "url": "./decks/vowel_consonant_ru_v1.0.0.zip"
-    },
-    {
-      "id": "magnetic_alphabet",
-      "version": "1.7.1",
-      "title": {
-        "ru": "Магнитная азбука",
-        "en": "Magnetic Alphabet"
-      },
-      "description": {
-        "ru": "33 буквы русского алфавита на магнитной доске. Составляй слова и предложения из букв. Гласные — красные, согласные — синие.",
-        "en": "33 Russian letters on a magnetic board. Build words and sentences by dragging letters. Vowels in red, consonants in blue."
-      },
-      "url": "./decks/magnetic_alphabet_v1.7.1.zip"
+      "url": "./decks/sentence_puzzle_v1.9.19.zip"
     },
     {
       "id": "tools_functions",
-      "version": "1.4.6",
+      "version": "1.3.9",
       "title": {
         "ru": "Инструменты и их применение",
         "en": "Tools and their use"
@@ -207,96 +141,7 @@
         "ru": "12 инструментов: название, применение, сцены до и после",
         "en": "12 tools: names, functions, before-and-after scenes"
       },
-      "url": "./decks/tools_functions_v1.4.6.zip"
-    },
-    {
-      "id": "coffee",
-      "version": "1.0.0",
-      "title": {
-        "ru": "Приготовление кофе",
-        "en": "Coffee Making"
-      },
-      "description": {
-        "ru": "27 карточек в трёх сетах: Способы приготовления, Оборудование и инвентарь, Детали машины Vetrano 2B.",
-        "en": "27 cards in three sets: Brewing Methods, Equipment and Tools, Vetrano 2B Machine Parts."
-      },
-      "url": "./decks/coffee_v1.0.0.zip"
-    },
-    {
-      "id": "opposites",
-      "version": "2.5.1",
-      "title": {
-        "ru": "Противоположности"
-      },
-      "description": {
-        "ru": "9 пар признаков: большой/маленький, высокий/низкий, длинный/короткий, широкий/узкий, полный/пустой, чистый/грязный, горячий/холодный, новый/старый, мокрый/сухой. 6 режимов: знакомство, сравнение, выбор, сортировка, найди все, найди неприятеля."
-      },
-      "url": "./decks/opposites_v2.5.1.zip"
-    },
-    {
-      "id": "first_then",
-      "version": "1.1.9",
-      "title": {
-        "ru": "Сначала — потом"
-      },
-      "url": "./decks/first_then_v1.1.9.zip"
-    },
-    {
-      "id": "shopping_list",
-      "version": "1.0.5",
-      "url": "./decks/shopping_list_v1.0.5.zip",
-      "title": {
-        "ru": "Список покупок",
-        "en": "Shopping list"
-      },
-      "renderer": "shopping"
-    },
-    {
-      "id": "phrase_match_pilot",
-      "version": "2.1.0",
-      "renderer": "phrase_match",
-      "url": "./decks/phrase_match_pilot_v2.1.0.zip",
-      "title": {
-        "ru": "Точное чтение"
-      },
-      "description": {
-        "ru": "8 групп на глагольные приставки. Перетащи ответ к нужному вопросу."
-      }
-    },
-    {
-      "id": "column_addition",
-      "version": "1.1.0",
-      "renderer": "column_addition",
-      "url": "./decks/column_addition_v1.1.0.zip",
-      "title": {
-        "ru": "Сложение и вычитание в столбик"
-      },
-      "description": {
-        "ru": "Тренажёр письменного сложения и вычитания в столбик. Перетащи цифры в клетки — сначала единицы, затем перенос/заём, потом десятки. 2–3-значные числа, с переносом и без. Два новых режима: «Покажи» — канонические позы рук, «Считаем» — интерактивный счёт на пальцах."
-      }
-    },
-    {
-      "id": "chat_with_mom",
-      "version": "1.0.2",
-      "renderer": "chat_practice",
-      "url": "./decks/chat_with_mom_v1.0.2.zip",
-      "title": {
-        "ru": "Учебный чат"
-      },
-      "description": {
-        "ru": "6 диалогов с мамой: утро, еда, болезнь, мультики, помощь, спокойной ночи."
-      }
-    },
-    {
-      "id": "print_materials",
-      "version": "1.0.1",
-      "title": {
-        "ru": "Печатные материалы"
-      },
-      "description": {
-        "ru": "Тетради и рабочие листы для печати"
-      },
-      "url": "./decks/print_materials_v1.0.1.zip"
+      "url": "./decks/tools_functions_v1.3.9.zip"
     },
     {
       "id": "word_formation_soup",
