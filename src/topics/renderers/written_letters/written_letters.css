@@ -378,6 +378,7 @@
     ),
     linear-gradient(rgba(106, 180, 204, 0.32) 1.5px, transparent 1.5px),
     linear-gradient(rgba(42,  130, 160, 0.62) 1.5px, transparent 1.5px);
+  background-attachment: local, local, local;
   padding: 20px 12px 32px;
   user-select: none;
 }
@@ -395,11 +396,11 @@
 }
 
 .wl-alpha-comma {
-  font-size: 1.3rem;
-  font-weight: 400;
-  color: rgba(42, 130, 160, 0.4);
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: rgba(42, 130, 160, 0.75);
   line-height: 1;
-  margin-left: 1px;
+  margin-left: 2px;
   margin-right: 10px;
 }
 

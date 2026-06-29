@@ -39,8 +39,11 @@ export default function AlphabetPairsView({ task }) {
       const rr = root.getBoundingClientRect();
       const fr = first.getBoundingClientRect();
       const svgTopY = fr.top - rr.top;
-      const l2Phase = ((svgTopY + L2_PX) % BG_PITCH + BG_PITCH) % BG_PITCH;
-      const l3Phase = ((svgTopY + L3_PX) % BG_PITCH + BG_PITCH) % BG_PITCH;
+      // With background-attachment:local the background origin is content-area
+      // (after padding), so subtract padding-top before computing phase.
+      const pt = parseFloat(getComputedStyle(root).paddingTop) || 0;
+      const l2Phase = ((svgTopY - pt + L2_PX) % BG_PITCH + BG_PITCH) % BG_PITCH;
+      const l3Phase = ((svgTopY - pt + L3_PX) % BG_PITCH + BG_PITCH) % BG_PITCH;
       root.style.backgroundSize     = `auto, 100% ${BG_PITCH}px, 100% ${BG_PITCH}px`;
       root.style.backgroundPosition = `0 0, 0 ${l2Phase}px, 0 ${l3Phase}px`;
     };
