@@ -216,12 +216,16 @@ function SubtractionTask({ task, onCorrect }) {
       <div className="fng-add-hands-zone">
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
-            {phase === "remove" && makeOverlay(leftArrowXs)}
-            <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
+            <div className="fng-sub-hand-inner">
+              <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
+              {phase === "remove" && makeOverlay(leftArrowXs)}
+            </div>
           </div>
           <div className="fng-sub-hand-wrap">
-            {phase === "remove" && makeOverlay(rightArrowXs)}
-            <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
+            <div className="fng-sub-hand-inner">
+              <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
+              {phase === "remove" && makeOverlay(rightArrowXs)}
+            </div>
           </div>
         </div>
       </div>

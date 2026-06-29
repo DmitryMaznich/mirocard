@@ -171,32 +171,47 @@
   gap: 8px;
 }
 
-/* Wrapper that holds a hand + optional arrow overlay */
+/*
+ * Wrapper: flex cell that centres its content.
+ * Contains fng-sub-hand-inner which mirrors the exact displayed image size.
+ */
 .fng-sub-hand-wrap {
-  position: relative;
   flex: 1;
   min-width: 0;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /*
- * Overlay sized to match the hand image canvas (256×320).
- * objectFit:contain is width-limited on portrait phones, so the image fills
- * container width and the overlay (same aspect ratio) aligns with it exactly.
- * Arrows use position:absolute + left:X% to sit above the correct finger.
+ * Inner container that replicates objectFit:contain geometry.
+ * aspect-ratio matches the 256×320 image canvas; max-width/max-height keep
+ * it inside the wrapper whether the image is width-limited or height-limited
+ * (e.g. tablet landscape). The overlay and HandImg both live here so they
+ * are always in exact register.
+ */
+.fng-sub-hand-inner {
+  position: relative;
+  aspect-ratio: 256 / 320;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/*
+ * Overlay covers the inner container exactly (inset:0).
+ * Arrow left:X% now refers to the image canvas width directly.
  */
 .fng-sub-finger-overlay {
   position: absolute;
-  width: 100%;
-  aspect-ratio: 256 / 320;
-  max-height: 100%;
+  inset: 0;
   pointer-events: none;
   z-index: 2;
 }
 
 .fng-sub-arrow {
   position: absolute;
-  top: 3%;
+  top: 8%;          /* clears the transparent canvas padding (worst case ~6.5% for count=3) */
   transform: translateX(-50%);
   font-size: clamp(22px, 7vw, 38px);
   color: #ef4444;
