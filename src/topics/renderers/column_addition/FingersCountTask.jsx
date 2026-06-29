@@ -102,14 +102,17 @@ function AdditionTask({ task, onCorrect }) {
 // Three steps: "Было" (a fingers) → "Убираем" (b arrows ↓) → "Стало" (result fingers)
 // Flow: show (2.5s) → remove (2s) → result (1.2s) → answer → done
 
-// X positions of each finger as fraction of image width (256px canvas).
-// Fingers are numbered 1..5 in counting order (1st raised → 5th raised).
-// hand_right images: thumb on LEFT → counting goes left-to-right (thumb first).
-// hand_left  images: mirror of right → thumb on RIGHT, positions reversed.
-// If the actual images use a different counting order, swap the array values.
-const FINGER_XS = {
-  right: [0.25, 0.36, 0.48, 0.60, 0.73], // [1st…5th], leftmost→rightmost
-  left:  [0.75, 0.64, 0.52, 0.40, 0.27], // mirrored: rightmost→leftmost
+// Precise X positions (fraction of image width) of pixels that disappear
+// when hand_right_START.png transitions to hand_right_END.png.
+// Measured by alpha-channel diff analysis (scripts/analyze-finger-positions.mjs).
+// REMOVAL_XS_R[startCount][endCount] → sorted array of X positions for hand_right images.
+// For hand_left (mirrored): apply (1 - x) and reverse the array.
+const REMOVAL_XS_R = {
+  1: { 0: [0.366] },
+  2: { 0: [0.266, 0.524], 1: [0.512] },
+  3: { 0: [0.267, 0.508, 0.71], 1: [0.265, 0.591], 2: [0.685] },
+  4: { 0: [0.201, 0.42, 0.625, 0.81], 1: [0.227, 0.454, 0.68], 2: [0.199, 0.695], 3: [0.7] },
+  5: { 0: [0.137, 0.373, 0.55, 0.712, 0.854], 1: [0.178, 0.446, 0.683], 2: [0.183, 0.392, 0.739], 3: [0.288, 0.736], 4: [0.776] },
 };
 
 function SubtractionTask({ task, onCorrect }) {
@@ -184,11 +187,11 @@ function SubtractionTask({ task, onCorrect }) {
   const rightCount = (phase === "show" || phase === "remove") ? rightStart : rightEnd;
   const kbdVisible = phase === "answer" || phase === "done";
 
-  // X positions of removed fingers per hand.
-  // Screen-left uses hand_right images (FINGER_XS.right); screen-right uses hand_left (FINGER_XS.left).
-  // slice(end, start) = the fingers with indices end..start-1 = those that disappear.
-  const leftArrowXs  = FINGER_XS.right.slice(leftEnd,  leftStart);
-  const rightArrowXs = FINGER_XS.left.slice(rightEnd, rightStart);
+  // X positions of removed fingers from measured alpha-diff lookup.
+  // Screen-left uses hand_right images; screen-right uses hand_left (mirror: 1-x, reversed).
+  const leftArrowXs   = REMOVAL_XS_R[leftStart]?.[leftEnd]   ?? [];
+  const rightArrowXsR = REMOVAL_XS_R[rightStart]?.[rightEnd] ?? [];
+  const rightArrowXs  = [...rightArrowXsR].reverse().map(x => 1 - x);
 
   function makeOverlay(xs) {
     if (!xs.length) return null;
