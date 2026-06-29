@@ -115,14 +115,15 @@ const FINGER_TIPS_R = {
 };
 
 // Pedagogical fold order — indices into FINGER_TIPS_R[count].
-// 1-4 fingers: fold from pinky side (leftmost) inward.
-// 5 fingers: thumb first (natural for full hand), then pinky inward.
+// For 1-4 fingers (no thumb in image): fold from rightmost (pinky side) inward.
+//   index 0 = leftmost = index finger; index N-1 = rightmost = pinky.
+// For 5 fingers (thumb included): fold thumb first, then pinky inward.
 const FOLD_ORDER = {
   1: [0],
-  2: [0, 1],
-  3: [0, 1, 2],
-  4: [0, 1, 2, 3],
-  5: [4, 0, 1, 2, 3],
+  2: [1, 0],
+  3: [2, 1, 0],
+  4: [3, 2, 1, 0],
+  5: [0, 4, 3, 2, 1],
 };
 
 // Returns tips of fingers to mark for removal in hand_right image space.
