@@ -400,6 +400,7 @@ export default function ParamsScreen() {
   const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
   const isShoppingPlan        = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
+  const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
 
   const [showShare, setShowShare] = useState(false);
 
@@ -527,7 +528,7 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
-    if (mode?.requirePin === false || mode?.type === "daily_sentences") {
+    if (mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs) {
       launchSession();
       return;
     }
@@ -733,7 +734,7 @@ export default function ParamsScreen() {
             {paramsContent}
           </div>
 
-          {hasVideos && mode.evaluation !== "none" && (
+          {hasVideos && mode.evaluation !== "none" && !isAlphabetPairs && (
             <div className="param-row param-row--block">
               <div className="param-label">Сложность серии</div>
               <div className="param-enum-section">
@@ -755,7 +756,7 @@ export default function ParamsScreen() {
             </div>
           )}
 
-          {hasVideos && (
+          {hasVideos && !isAlphabetPairs && (
             <div className="param-row param-row--block">
               <div className="param-label">Видео-награда</div>
               <div className="param-enum-section">
