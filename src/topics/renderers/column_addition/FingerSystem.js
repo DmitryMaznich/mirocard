@@ -1,13 +1,15 @@
+// 5-structure: fill the right hand first (1-5), then overflow to the left (6-10 = 5 + 1-5).
+// This matches how people naturally count and makes subtraction within 1-5 a single-hand operation.
 export const FINGER_MAP = {
   0:  { right: 0, left: 0 },
   1:  { right: 1, left: 0 },
-  2:  { right: 1, left: 1 },
-  3:  { right: 2, left: 1 },
-  4:  { right: 2, left: 2 },
-  5:  { right: 3, left: 2 },
-  6:  { right: 3, left: 3 },
-  7:  { right: 4, left: 3 },
-  8:  { right: 4, left: 4 },
+  2:  { right: 2, left: 0 },
+  3:  { right: 3, left: 0 },
+  4:  { right: 4, left: 0 },
+  5:  { right: 5, left: 0 },
+  6:  { right: 5, left: 1 },
+  7:  { right: 5, left: 2 },
+  8:  { right: 5, left: 3 },
   9:  { right: 5, left: 4 },
   10: { right: 5, left: 5 },
 };
