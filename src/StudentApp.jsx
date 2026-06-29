@@ -210,7 +210,7 @@ export default function StudentApp({ token, isStandalone = false, fromLink = fal
 
   const { student, activeTask } = data;
 
-  function handleStartSession({ topicId, modeId }) {
+  function handleStartSession({ topicId, modeId, textId }) {
     const { topicRecords } = useAppStore.getState();
     const topicRecord = topicRecords.find((r) => r.meta.id === topicId);
     // Fall back to the first mode if modeId is missing (e.g. old portal without modeId stored)
@@ -224,6 +224,9 @@ export default function StudentApp({ token, isStandalone = false, fromLink = fal
       activeStudentId: student.id,
       activeTopicId: topicId,
       activeModeId: resolvedModeId ?? undefined,
+      // For reading topics the content is identified by textId, not modeId
+      activeTextId: textId ?? null,
+      activeText:   null,
     });
     setScreen("session");
   }

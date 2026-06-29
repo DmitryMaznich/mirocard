@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
 
-export function createStudentPortal(db, { accountId, studentId, tokenHash, label, topicId, modeId, planData }) {
+export function createStudentPortal(db, { accountId, studentId, tokenHash, label, topicId, modeId, textId, planData }) {
   const id = randomUUID();
   const createdAt = new Date().toISOString();
   db.prepare(
-    `INSERT INTO student_portals (id, account_id, student_id, token_hash, label, active_topic_id, active_mode_id, active_plan_data, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, accountId, studentId, tokenHash, label ?? null, topicId ?? null, modeId ?? null, planData ?? null, createdAt);
+    `INSERT INTO student_portals (id, account_id, student_id, token_hash, label, active_topic_id, active_mode_id, active_text_id, active_plan_data, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(id, accountId, studentId, tokenHash, label ?? null, topicId ?? null, modeId ?? null, textId ?? null, planData ?? null, createdAt);
   return id;
 }
 
@@ -37,18 +37,18 @@ export function updatePortalLastUsed(db, tokenHash) {
   ).run(new Date().toISOString(), tokenHash);
 }
 
-export function setPortalActiveTask(db, { accountId, studentId, topicId, modeId, planData }) {
+export function setPortalActiveTask(db, { accountId, studentId, topicId, modeId, textId, planData }) {
   if (planData !== undefined) {
     db.prepare(
       `UPDATE student_portals
-       SET active_topic_id = ?, active_mode_id = ?, active_plan_data = ?
+       SET active_topic_id = ?, active_mode_id = ?, active_text_id = ?, active_plan_data = ?
        WHERE account_id = ? AND student_id = ? AND revoked_at IS NULL`
-    ).run(topicId ?? null, modeId ?? null, planData, accountId, studentId);
+    ).run(topicId ?? null, modeId ?? null, textId ?? null, planData, accountId, studentId);
   } else {
     db.prepare(
       `UPDATE student_portals
-       SET active_topic_id = ?, active_mode_id = ?
+       SET active_topic_id = ?, active_mode_id = ?, active_text_id = ?
        WHERE account_id = ? AND student_id = ? AND revoked_at IS NULL`
-    ).run(topicId ?? null, modeId ?? null, accountId, studentId);
+    ).run(topicId ?? null, modeId ?? null, textId ?? null, accountId, studentId);
   }
 }

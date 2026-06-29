@@ -205,6 +205,9 @@ export function initDb(dbPath = DB_PATH) {
   if (!portalColumns.some((c) => c.name === "active_plan_data")) {
     db.exec("ALTER TABLE student_portals ADD COLUMN active_plan_data TEXT");
   }
+  if (!portalColumns.some((c) => c.name === "active_text_id")) {
+    db.exec("ALTER TABLE student_portals ADD COLUMN active_text_id TEXT");
+  }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS analysis_cache (

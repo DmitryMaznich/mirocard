@@ -426,6 +426,7 @@ export default function ParamsScreen() {
           <ShareWithStudentPanel
             topicId={activeTopicId}
             modeId={activeModeId}
+            textId={activeTextId}
             modeTitle={earlyModeTitle}
             onClose={() => setShowShare(false)}
           />
@@ -812,6 +813,7 @@ export default function ParamsScreen() {
         <ShareWithStudentPanel
           topicId={activeTopicId}
           modeId={activeModeId}
+          textId={isReading ? activeTextId : undefined}
           modeTitle={modeTitle}
           onClose={() => setShowShare(false)}
         />

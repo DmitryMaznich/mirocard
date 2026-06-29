@@ -53,15 +53,21 @@ export default function StudentHomeScreen({ student, activeTask, onStartSession,
 
   if (activeTask) {
     const topicRecord = topicRecords.find((r) => r.meta.id === activeTask.topicId);
-    const mode        = topicRecord?.modes?.find((m) => m.id === activeTask.modeId);
+    const mode = topicRecord?.modes?.find((m) => m.id === activeTask.modeId);
+    // For reading topics the content is a text, not a mode
+    const text = activeTask.textId && topicRecord?.texts
+      ? topicRecord.texts.find((t) => t.id === activeTask.textId)
+      : null;
 
     topicName = topicRecord
       ? (getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id)
       : activeTask.topicId;
 
-    modeName = mode
-      ? (getTopicTitle(mode.ui?.title) || mode.id)
-      : activeTask.modeId ?? null;
+    modeName = text
+      ? (getTopicTitle(text.title) || text.id)
+      : mode
+        ? (getTopicTitle(mode.ui?.title) || mode.id)
+        : activeTask.modeId ?? null;
 
     topicIcon = RENDERER_EMOJI[topicRecord?.meta?.renderer] ?? "📚";
   }
@@ -87,7 +93,7 @@ export default function StudentHomeScreen({ student, activeTask, onStartSession,
             {modeName && <div className="shs-task-mode">{modeName}</div>}
             <button
               className="shs-start-btn"
-              onClick={() => onStartSession({ topicId: activeTask.topicId, modeId: activeTask.modeId })}
+              onClick={() => onStartSession({ topicId: activeTask.topicId, modeId: activeTask.modeId, textId: activeTask.textId })}
             >
               Начать →
             </button>

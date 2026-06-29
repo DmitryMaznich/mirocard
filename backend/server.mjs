@@ -704,7 +704,8 @@ async function handleStudentMe(req, res) {
   const activeTask = portal.active_topic_id
     ? {
         topicId:  portal.active_topic_id,
-        modeId:   portal.active_mode_id,
+        modeId:   portal.active_mode_id ?? null,
+        textId:   portal.active_text_id ?? null,
         planData: portal.active_plan_data ? JSON.parse(portal.active_plan_data) : null,
       }
     : null;
@@ -744,8 +745,9 @@ async function handleCreatePortal(req, res, studentId) {
   const label    = typeof body.label   === "string" ? body.label.trim()   || null : null;
   const topicId  = typeof body.topicId === "string" ? body.topicId.trim() || null : null;
   const modeId   = typeof body.modeId  === "string" ? body.modeId.trim()  || null : null;
+  const textId   = typeof body.textId  === "string" ? body.textId.trim()  || null : null;
   const planData = body.planData && typeof body.planData === "object" ? JSON.stringify(body.planData) : null;
-  const portalId = createStudentPortal(db, { accountId: account.id, studentId, tokenHash, label, topicId, modeId, planData });
+  const portalId = createStudentPortal(db, { accountId: account.id, studentId, tokenHash, label, topicId, modeId, textId, planData });
   const origin = req.headers.origin ?? req.headers.host ?? "";
   const url = origin ? `${origin}/s/${raw}` : `/s/${raw}`;
   return writeJson(res, 201, { portalId, url, token: raw });
@@ -773,7 +775,8 @@ async function handleSetActiveTask(req, res, studentId) {
     accountId: account.id,
     studentId,
     topicId: body.topicId ?? null,
-    modeId: body.modeId ?? null,
+    modeId:  body.modeId  ?? null,
+    textId:  typeof body.textId === "string" ? body.textId || null : null,
     planData,
   });
   return writeNoContent(res);
