@@ -4,6 +4,51 @@ import { readFileSync, writeFileSync } from "node:fs";
 const dadBestImage = readFileSync(new URL("./assets/reading_dad_poems/dad_best.webp", import.meta.url));
 const momLoveImage = readFileSync(new URL("./assets/reading_dad_poems/mom_love.webp", import.meta.url));
 
+const sisterSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <circle cx="120" cy="120" r="116" fill="#fff0f8" stroke="#f0c8e0" stroke-width="3"/>
+  <ellipse cx="120" cy="202" rx="70" ry="10" fill="#c8e896" opacity="0.55"/>
+  <!-- Body (dress) -->
+  <path d="M 82 148 Q 80 200 90 205 L 150 205 Q 160 200 158 148 Q 140 158 120 158 Q 100 158 82 148 Z" fill="#e8609a"/>
+  <path d="M 85 148 L 88 180 L 155 180 L 158 148 Q 140 158 120 158 Q 100 158 85 148 Z" fill="#f090b8"/>
+  <!-- Sleeves -->
+  <ellipse cx="76" cy="153" rx="12" ry="8" fill="#e8609a" transform="rotate(-20 76 153)"/>
+  <ellipse cx="164" cy="153" rx="12" ry="8" fill="#e8609a" transform="rotate(20 164 153)"/>
+  <!-- Hands -->
+  <circle cx="68" cy="163" r="7" fill="#f5c8a0"/>
+  <circle cx="172" cy="163" r="7" fill="#f5c8a0"/>
+  <!-- Neck -->
+  <rect x="112" y="120" width="16" height="16" rx="4" fill="#f5c8a0"/>
+  <!-- Head -->
+  <circle cx="120" cy="106" r="28" fill="#f5c8a0"/>
+  <!-- Hair top -->
+  <path d="M 92 100 Q 96 72 120 68 Q 144 72 148 100 L 148 92 Q 144 62 120 58 Q 96 62 92 92 Z" fill="#8b1a5a"/>
+  <!-- Hair sides -->
+  <ellipse cx="93" cy="108" rx="8" ry="14" fill="#8b1a5a"/>
+  <ellipse cx="147" cy="108" rx="8" ry="14" fill="#8b1a5a"/>
+  <!-- Bow/ribbon -->
+  <path d="M 105 70 Q 110 62 120 66 Q 130 62 135 70 Q 128 75 120 72 Q 112 75 105 70 Z" fill="#ff3399"/>
+  <ellipse cx="105" cy="68" rx="8" ry="5" fill="#ff66bb" transform="rotate(-20 105 68)"/>
+  <ellipse cx="135" cy="68" rx="8" ry="5" fill="#ff66bb" transform="rotate(20 135 68)"/>
+  <circle cx="120" cy="68" r="4" fill="#ff3399"/>
+  <!-- Eyes -->
+  <ellipse cx="110" cy="106" rx="4" ry="5" fill="#4a2060"/>
+  <ellipse cx="130" cy="106" rx="4" ry="5" fill="#4a2060"/>
+  <circle cx="111" cy="104" r="1.5" fill="white"/>
+  <circle cx="131" cy="104" r="1.5" fill="white"/>
+  <!-- Smile -->
+  <path d="M 112 118 Q 120 125 128 118" stroke="#c06060" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Cheeks -->
+  <ellipse cx="103" cy="115" rx="6" ry="4" fill="#ffb0c0" opacity="0.5"/>
+  <ellipse cx="137" cy="115" rx="6" ry="4" fill="#ffb0c0" opacity="0.5"/>
+  <!-- Stars/sparkles -->
+  <circle cx="55" cy="55" r="3" fill="#ffd700" opacity="0.8"/>
+  <circle cx="185" cy="60" r="3" fill="#ffd700" opacity="0.8"/>
+  <circle cx="45" cy="78" r="2" fill="#ff99cc" opacity="0.7"/>
+  <circle cx="196" cy="78" r="2" fill="#ff99cc" opacity="0.7"/>
+  <circle cx="62" cy="170" r="2" fill="#ffd700" opacity="0.5"/>
+  <circle cx="178" cy="170" r="2" fill="#ffd700" opacity="0.5"/>
+</svg>`;
+
 const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
   <circle cx="120" cy="120" r="116" fill="#fef6f0" stroke="#f0d8c8" stroke-width="3"/>
   <ellipse cx="120" cy="202" rx="86" ry="12" fill="#b8dc90" opacity="0.55"/>
@@ -34,7 +79,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.11",
+    version: "1.0.12",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -52,7 +97,7 @@ const manifest = {
       ],
       en: ["Designed for therapist-led reading sessions."],
     },
-    conceptCount: 3,
+    conceptCount: 4,
     sessionConfig: { maxSize: 8 },
   },
   modes: [],
@@ -349,6 +394,83 @@ const manifest = {
         },
       ],
     },
+    {
+      id: "sister_love",
+      kind: "poem",
+      title: { ru: "Моя сестра", en: "My Sister" },
+      image: "media/sister_love.svg",
+      level: 1,
+      lines: [
+        { id: "l1", text: "Ты умница-красавица," },
+        { id: "l2", text: "Приветлива, добра." },
+        { id: "l3", text: "Мне очень-очень нравится," },
+        { id: "l4", text: "Что ты моя сестра." },
+        { id: "l5", text: "И много раз я повторю:" },
+        { id: "l6", text: "Я больше всех тебя люблю." },
+      ],
+      questions: [
+        {
+          id: "q_about",
+          prompt: "О ком это стихотворение?",
+          answer: ["сестра", "о сестре"],
+          supportLineIds: ["l4"],
+        },
+        {
+          id: "q_smart_beautiful",
+          prompt: "Кто умница-красавица?",
+          answer: ["сестра", "ты", "она"],
+          supportLineIds: ["l1", "l4"],
+        },
+        {
+          id: "q_character",
+          prompt: "Какая сестра в стихотворении?",
+          answer: ["умница", "красавица", "приветливая", "добрая"],
+          supportLineIds: ["l1", "l2"],
+        },
+        {
+          id: "q_kind_or_mean",
+          prompt: "Сестра добрая или злая?",
+          answer: ["добрая"],
+          supportLineIds: ["l2"],
+        },
+        {
+          id: "q_friendly",
+          prompt: "Сестра приветливая?",
+          answer: ["да", "приветливая"],
+          supportLineIds: ["l2"],
+        },
+        {
+          id: "q_what_like",
+          prompt: "Что нравится ребёнку?",
+          answer: ["что сестра", "что она сестра", "сестра"],
+          supportLineIds: ["l3", "l4"],
+        },
+        {
+          id: "q_relation",
+          prompt: "Кем приходится девочка ребёнку?",
+          answer: ["сестрой", "моей сестрой"],
+          supportLineIds: ["l4"],
+        },
+        {
+          id: "q_repeat",
+          prompt: "Что ребёнок повторит много раз?",
+          answer: ["что любит", "я люблю", "люблю тебя"],
+          supportLineIds: ["l5", "l6"],
+        },
+        {
+          id: "q_love_whom",
+          prompt: "Кого ребёнок любит больше всех?",
+          answer: ["сестру", "её", "тебя"],
+          supportLineIds: ["l6"],
+        },
+        {
+          id: "q_how_much_love",
+          prompt: "Как ребёнок любит сестру?",
+          answer: ["больше всех", "очень"],
+          supportLineIds: ["l6"],
+        },
+      ],
+    },
   ],
 };
 
@@ -357,5 +479,6 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/dad_best.webp", dadBestImage);
 zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
+zip.file("media/sister_love.svg", sisterSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.11.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.12.zip", buffer);
