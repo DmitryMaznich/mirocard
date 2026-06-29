@@ -2,7 +2,7 @@
   "meta": {
     "id": "written_letters",
     "renderer": "written_letters",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "title": { "ru": "Письменные буквы" },
     "avatar": "media/avatar.svg",
     "about": {
@@ -73,6 +73,24 @@
           "label": { "ru": "Второй шаг: найди печатную" },
           "hint": { "ru": "После пары ребёнок выбирает печатный вариант буквы из 4 вариантов" },
           "default": false
+        }
+      }
+    },
+    {
+      "id": "alphabet_pairs",
+      "type": "alphabet_pairs",
+      "evaluation": "auto",
+      "ui": {
+        "title": { "ru": "Мои буквы" },
+        "instruction": { "ru": "Буквы, которые ты уже знаешь" }
+      },
+      "params": {
+        "columns": {
+          "type": "enum",
+          "label": { "ru": "Столбцов" },
+          "values": ["1", "2", "3"],
+          "labels": { "ru": { "1": "1", "2": "2", "3": "3" } },
+          "default": "2"
         }
       }
     }

@@ -1,7 +1,8 @@
 import "./written_letters.css";
-import MatchView     from "./MatchView";
-import MatchPairView from "./MatchPairView";
-import SortCaseView  from "./SortCaseView";
+import MatchView          from "./MatchView";
+import MatchPairView      from "./MatchPairView";
+import SortCaseView       from "./SortCaseView";
+import AlphabetPairsView  from "./AlphabetPairsView";
 
 export default function WrittenLettersRenderer({ task, onAdvance, onCorrect, onMistake }) {
   if (!task) return null;
@@ -13,6 +14,8 @@ export default function WrittenLettersRenderer({ task, onAdvance, onCorrect, onM
       return <MatchView task={task} onAdvance={onAdvance} onCorrect={onCorrect} onMistake={onMistake} />;
     case "match_pair":
       return <MatchPairView key={task.stimulus?.letter} task={task} onAdvance={onAdvance} onCorrect={onCorrect} onMistake={onMistake} />;
+    case "alphabet_pairs":
+      return <AlphabetPairsView key="alphabet_pairs" task={task} />;
     default:
       return <div style={{ padding: 24, color: "#aaa" }}>Неизвестный тип: {task.type}</div>;
   }

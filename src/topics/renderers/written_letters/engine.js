@@ -141,6 +141,14 @@ function generateMatchPairTasks(cards, params = {}) {
   return shuffle(tasks);
 }
 
+function generateAlphabetPairsTasks(cards, params = {}) {
+  const columns = parseInt(params.columns ?? "2", 10);
+  const pairs = cards
+    .filter((c) => c.params?.has_upper)
+    .map((c) => ({ upper: c.params.printed_upper, lower: c.params.printed_lower }));
+  return [{ type: "alphabet_pairs", pairs, columns }];
+}
+
 export function generateTasks(modeOrType, cards, _sessionSize, sessionParams = {}) {
   const modeType = typeof modeOrType === "string" ? modeOrType : modeOrType?.type;
   switch (modeType) {
@@ -148,6 +156,7 @@ export function generateTasks(modeOrType, cards, _sessionSize, sessionParams = {
     case "match_print_to_written": return generateMatchPrintToWrittenTasks(cards);
     case "match_written_to_print": return generateMatchWrittenToPrintTasks(cards);
     case "match_pair":             return generateMatchPairTasks(cards, sessionParams);
+    case "alphabet_pairs":         return generateAlphabetPairsTasks(cards, sessionParams);
     default: return [];
   }
 }

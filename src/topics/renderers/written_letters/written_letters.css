@@ -356,6 +356,42 @@
   pointer-events: none;
 }
 
+/* ── AlphabetPairsView ── */
+.wl-alpha-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  background-color: #fffef5;
+  /* Same slant + horizontal lines as MatchPairView.
+     backgroundSize and backgroundPosition are set by JS to align
+     the first pair's baseline with the background lines. */
+  background-image:
+    repeating-linear-gradient(
+      108deg,
+      transparent 0,
+      transparent 76px,
+      rgba(155, 200, 215, 0.2) 76px,
+      rgba(155, 200, 215, 0.2) 77.5px
+    ),
+    linear-gradient(rgba(106, 180, 204, 0.32) 1.5px, transparent 1.5px),
+    linear-gradient(rgba(42,  130, 160, 0.62) 1.5px, transparent 1.5px);
+  padding: 20px 12px 32px;
+  user-select: none;
+}
+
+.wl-alpha-grid {
+  display: grid;
+  justify-content: center;
+  align-items: start;
+}
+
+.wl-alpha-pair {
+  display: flex;
+  align-items: flex-start; /* top-aligned = same-height SVGs share baseline */
+}
+
 /* ── WrittenLettersPairParams ── */
 .wl-pp {
   display: flex;
