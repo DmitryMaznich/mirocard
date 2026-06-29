@@ -102,18 +102,36 @@ function AdditionTask({ task, onCorrect }) {
 // Three steps: "Было" (a fingers) → "Убираем" (b arrows ↓) → "Стало" (result fingers)
 // Flow: show (2.5s) → remove (2s) → result (1.2s) → answer → done
 
-// Precise X positions (fraction of image width) of pixels that disappear
-// when hand_right_START.png transitions to hand_right_END.png.
-// Measured by alpha-channel diff analysis (scripts/analyze-finger-positions.mjs).
-// REMOVAL_XS_R[startCount][endCount] → sorted array of X positions for hand_right images.
-// For hand_left (mirrored): apply (1 - x) and reverse the array.
-const REMOVAL_XS_R = {
-  1: { 0: [0.366] },
-  2: { 0: [0.266, 0.524], 1: [0.512] },
-  3: { 0: [0.267, 0.508, 0.71], 1: [0.265, 0.591], 2: [0.685] },
-  4: { 0: [0.201, 0.42, 0.625, 0.81], 1: [0.227, 0.454, 0.68], 2: [0.199, 0.695], 3: [0.7] },
-  5: { 0: [0.137, 0.373, 0.55, 0.712, 0.854], 1: [0.178, 0.446, 0.683], 2: [0.183, 0.392, 0.739], 3: [0.288, 0.736], 4: [0.776] },
+// Precise (x, y) tip of each raised finger in hand_right_N.png, as fractions
+// of the 256×320 canvas. Measured by alpha-scan (scripts/find-finger-tips.mjs).
+// Sorted LEFT → RIGHT in image: index 0 = pinky, index 4 = thumb.
+// For hand_left (mirrored screen): x_L = 1 - x_R, array reversed.
+const FINGER_TIPS_R = {
+  1: [{ x: 0.369, y: 0.053 }],
+  2: [{ x: 0.273, y: 0.050 }, { x: 0.523, y: 0.006 }],
+  3: [{ x: 0.279, y: 0.109 }, { x: 0.500, y: 0.066 }, { x: 0.705, y: 0.116 }],
+  4: [{ x: 0.207, y: 0.069 }, { x: 0.424, y: 0.000 }, { x: 0.629, y: 0.050 }, { x: 0.799, y: 0.184 }],
+  5: [{ x: 0.158, y: 0.381 }, { x: 0.375, y: 0.075 }, { x: 0.547, y: 0.025 }, { x: 0.711, y: 0.069 }, { x: 0.846, y: 0.191 }],
 };
+
+// Pedagogical fold order — indices into FINGER_TIPS_R[count].
+// 1-4 fingers: fold from pinky side (leftmost) inward.
+// 5 fingers: thumb first (natural for full hand), then pinky inward.
+const FOLD_ORDER = {
+  1: [0],
+  2: [0, 1],
+  3: [0, 1, 2],
+  4: [0, 1, 2, 3],
+  5: [4, 0, 1, 2, 3],
+};
+
+// Returns tips of fingers to mark for removal in hand_right image space.
+function removalTips(startCount, endCount) {
+  const removeN = startCount - endCount;
+  const order   = FOLD_ORDER[startCount] ?? [];
+  const tips    = FINGER_TIPS_R[startCount] ?? [];
+  return order.slice(0, removeN).map(i => tips[i]).filter(Boolean);
+}
 
 function SubtractionTask({ task, onCorrect }) {
   const [phase, setPhase] = useState("show");
@@ -187,22 +205,40 @@ function SubtractionTask({ task, onCorrect }) {
   const rightCount = (phase === "show" || phase === "remove") ? rightStart : rightEnd;
   const kbdVisible = phase === "answer" || phase === "done";
 
-  // X positions of removed fingers from measured alpha-diff lookup.
-  // Screen-left uses hand_right images; screen-right uses hand_left (mirror: 1-x, reversed).
-  const leftArrowXs   = REMOVAL_XS_R[leftStart]?.[leftEnd]   ?? [];
-  const rightArrowXsR = REMOVAL_XS_R[rightStart]?.[rightEnd] ?? [];
-  const rightArrowXs  = [...rightArrowXsR].reverse().map(x => 1 - x);
+  // Removal tips: {x,y} for each finger that disappears.
+  // Left screen uses hand_right images directly; right screen is mirrored (x → 1-x, reversed).
+  const leftTips   = removalTips(leftStart, leftEnd);
+  const rightTipsR = removalTips(rightStart, rightEnd);
+  const rightTips  = [...rightTipsR].reverse().map(t => ({ x: 1 - t.x, y: t.y }));
 
-  function makeOverlay(xs) {
-    if (!xs.length) return null;
+  // Arrow overlay: SVG arrow grows from finger tip downward.
+  // viewBox 0 0 40 100: stem y2=2..68 (len=66), head 68..100.
+  function makeOverlay(tips) {
+    if (!tips.length) return null;
     return (
       <div className="fng-sub-finger-overlay">
-        {xs.map((x, i) => (
-          <span key={i} className="fng-sub-arrow" style={{ left: `${x * 100}%` }}>↓</span>
+        {tips.map((tip, i) => (
+          <svg key={i} viewBox="0 0 40 100"
+               className="fng-sub-arrow"
+               style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
+            {/* white border behind stem */}
+            <line x1="20" y1="2" x2="20" y2="68"
+                  stroke="white" strokeWidth="12" strokeLinecap="round"
+                  className="fng-stem-bg" />
+            {/* red stem draws itself top→bottom */}
+            <line x1="20" y1="2" x2="20" y2="68"
+                  stroke="#ef4444" strokeWidth="7" strokeLinecap="round"
+                  className="fng-stem" />
+            {/* white arrowhead border */}
+            <polygon points="20,100 0,63 40,63" fill="white" className="fng-head-bg" />
+            {/* red arrowhead */}
+            <polygon points="20,96 5,66 35,66" fill="#ef4444" className="fng-head" />
+          </svg>
         ))}
       </div>
     );
   }
+
 
   return (
     <div className="fng-add-screen">
@@ -218,13 +254,13 @@ function SubtractionTask({ task, onCorrect }) {
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
-              {phase === "remove" && makeOverlay(leftArrowXs)}
+              {phase === "remove" && makeOverlay(leftTips)}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
-              {phase === "remove" && makeOverlay(rightArrowXs)}
+              {phase === "remove" && makeOverlay(rightTips)}
             </div>
           </div>
         </div>

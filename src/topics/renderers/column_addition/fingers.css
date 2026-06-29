@@ -209,15 +209,46 @@
   z-index: 2;
 }
 
+/*
+ * SVG arrow: grows from finger tip downward.
+ * height: 17% of fng-sub-hand-inner (= image canvas height).
+ * viewBox 40×100 → width ≈ 6.8% of image height at any scale.
+ */
 .fng-sub-arrow {
   position: absolute;
-  top: 8%;          /* clears the transparent canvas padding (worst case ~6.5% for count=3) */
   transform: translateX(-50%);
-  font-size: clamp(22px, 7vw, 38px);
-  color: #ef4444;
-  line-height: 1;
+  height: 17%;
+  width: auto;
+  overflow: visible;
   user-select: none;
+  pointer-events: none;
 }
+
+/* Stem: drawn from top to bottom via stroke-dashoffset animation (len=66 in viewBox units) */
+.fng-stem-bg,
+.fng-stem {
+  stroke-dasharray: 66;
+  stroke-dashoffset: 66;
+  animation: fng-stem-draw 0.35s ease-out forwards;
+}
+
+/* Arrowhead: fades in after stem finishes */
+.fng-head-bg,
+.fng-head {
+  opacity: 0;
+  animation: fng-head-appear 0.2s ease-out 0.28s forwards;
+}
+
+@keyframes fng-stem-draw {
+  from { stroke-dashoffset: 66; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes fng-head-appear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 
 /* ── end FingersCount addition ───────────────────────────────────── */
 
