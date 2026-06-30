@@ -34,3 +34,21 @@ test("initDb enables WAL mode", () => {
   const row = db.prepare("PRAGMA journal_mode").get();
   assert.ok(["wal", "memory"].includes(row.journal_mode));
 });
+
+test("email_verification_tokens table exists", () => {
+  const db = initDb(":memory:");
+  const tables = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='email_verification_tokens'"
+  ).all();
+  assert.equal(tables.length, 1);
+});
+
+test("accounts has new columns", () => {
+  const db = initDb(":memory:");
+  const cols = db.prepare("PRAGMA table_info(accounts)").all().map(c => c.name);
+  assert.ok(cols.includes("first_name"));
+  assert.ok(cols.includes("last_name"));
+  assert.ok(cols.includes("role"));
+  assert.ok(cols.includes("referral_source"));
+  assert.ok(cols.includes("consent_personal_data_at"));
+});

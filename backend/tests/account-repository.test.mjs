@@ -54,6 +54,7 @@ test("findAccountByEmail returns null for unknown email", () => {
 test("updateAccount updates display_name", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "upd@example.com", passwordHash: "h" });
+  activateAccount(db, acc.id);
   updateAccount(db, acc.id, { displayName: "New Name" });
   const found = findAccountById(db, acc.id);
   assert.equal(found.display_name, "New Name");
@@ -62,6 +63,7 @@ test("updateAccount updates display_name", () => {
 test("storeAuthToken and findAccountByToken", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "tok@example.com", passwordHash: "h" });
+  activateAccount(db, acc.id);
   const expiresAt = new Date(Date.now() + 1000 * 60).toISOString();
   storeAuthToken(db, { tokenHash: "hash_abc", accountId: acc.id, expiresAt });
 
@@ -77,6 +79,7 @@ test("findAccountByToken returns null for unknown or expired token", () => {
 test("deleteAuthToken removes token", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "del@example.com", passwordHash: "h" });
+  activateAccount(db, acc.id);
   const expiresAt = new Date(Date.now() + 1000 * 60).toISOString();
   storeAuthToken(db, { tokenHash: "del_tok", accountId: acc.id, expiresAt });
   deleteAuthToken(db, "del_tok");
@@ -86,6 +89,7 @@ test("deleteAuthToken removes token", () => {
 test("createPasswordResetToken and consumePasswordResetToken", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "reset@example.com", passwordHash: "old" });
+  activateAccount(db, acc.id);
   createPasswordResetToken(db, { tokenHash: "reset_hash", accountId: acc.id });
   const accountId = consumePasswordResetToken(db, "reset_hash");
   assert.equal(accountId, acc.id);
@@ -191,4 +195,74 @@ test("upsertConceptProgress levels", () => {
   });
   const updated = getConceptProgress(db, "st1", "t1");
   assert.equal(updated[0].level, 3);
+});
+
+// ─── Extended registration & email verification ───────────────────────────────
+
+function makeFullAccount(db) {
+  return createAccount(db, {
+    email: `full${Date.now()}${Math.random()}@x.com`,
+    passwordHash: "h",
+    firstName: "Мария",
+    lastName: "Иванова",
+    role: "parent",
+    referralSource: "friend",
+    consentPersonalDataAt: "2026-06-30T10:00:00.000Z",
+  });
+}
+
+test("createAccount stores new fields and status=pending", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  assert.equal(acc.status, "pending");
+  assert.equal(acc.first_name, "Мария");
+  assert.equal(acc.last_name, "Иванова");
+  assert.equal(acc.role, "parent");
+  assert.equal(acc.referral_source, "friend");
+  assert.ok(acc.consent_personal_data_at);
+  assert.equal(acc.display_name, "Мария Иванова");
+});
+
+test("findAccountByEmail does NOT return pending account", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  const found = findAccountByEmail(db, acc.email);
+  assert.equal(found, null);
+});
+
+test("findAccountByEmailAny returns pending account", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  const found = findAccountByEmailAny(db, acc.email);
+  assert.ok(found);
+  assert.equal(found.status, "pending");
+});
+
+test("activateAccount sets status to active", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  assert.equal(acc.status, "pending");
+  activateAccount(db, acc.id);
+  const activated = findAccountByEmail(db, acc.email);
+  assert.ok(activated);
+  assert.equal(activated.status, "active");
+});
+
+test("createEmailVerificationToken and consumeEmailVerificationToken", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  createEmailVerificationToken(db, { tokenHash: "vhash1", accountId: acc.id });
+  const accountId = consumeEmailVerificationToken(db, "vhash1");
+  assert.equal(accountId, acc.id);
+  // Consumed — second call returns null
+  assert.equal(consumeEmailVerificationToken(db, "vhash1"), null);
+});
+
+test("consumeEmailVerificationToken returns null for expired token", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  db.prepare(
+    "INSERT INTO email_verification_tokens (token_hash, account_id, expires_at, created_at) VALUES (?, ?, ?, ?)"
+  ).run("expired_hash", acc.id, "2000-01-01T00:00:00.000Z", new Date().toISOString());
+  assert.equal(consumeEmailVerificationToken(db, "expired_hash"), null);
 });

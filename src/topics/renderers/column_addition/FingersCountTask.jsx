@@ -7,7 +7,7 @@ import "./fingers.css";
 // Three fixed zones, always in DOM — only opacity changes so layout never shifts.
 // Flow: show (3s) → merge (0.9s, hands close + kbd fades in) → answer → done
 
-function AdditionTask({ task, onCorrect }) {
+function AdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show");
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
@@ -39,6 +39,7 @@ function AdditionTask({ task, onCorrect }) {
       setPhase("done"); setTimeout(() => onCorrect(), 700);
     } else {
       setShake(true); setTimeout(() => { setShake(false); setInput([]); }, 500);
+      onMistake?.();
     }
   }
 
@@ -134,7 +135,7 @@ function removalTips(startCount, endCount) {
   return order.slice(0, removeN).map(i => tips[i]).filter(Boolean);
 }
 
-function SubtractionTask({ task, onCorrect }) {
+function SubtractionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show");
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
@@ -174,6 +175,7 @@ function SubtractionTask({ task, onCorrect }) {
       setPhase("done"); setTimeout(() => onCorrect(), 700);
     } else {
       setShake(true); setTimeout(() => { setShake(false); setInput([]); }, 500);
+      onMistake?.();
     }
   }
 
@@ -289,9 +291,9 @@ function SubtractionTask({ task, onCorrect }) {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-export default function FingersCountTask({ task, onCorrect }) {
+export default function FingersCountTask({ task, onCorrect, onMistake }) {
   if (task.op === "sub") {
-    return <SubtractionTask task={task} onCorrect={onCorrect} />;
+    return <SubtractionTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
   }
-  return <AdditionTask task={task} onCorrect={onCorrect} />;
+  return <AdditionTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
 }

@@ -158,6 +158,13 @@ export function initDb(dbPath = DB_PATH) {
       PRIMARY KEY (account_id, key)
     );
 
+    CREATE TABLE IF NOT EXISTS email_verification_tokens (
+      token_hash  TEXT PRIMARY KEY,
+      account_id  TEXT NOT NULL REFERENCES accounts(id),
+      expires_at  TEXT NOT NULL,
+      created_at  TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS student_portals (
       id              TEXT PRIMARY KEY,
       account_id      TEXT NOT NULL REFERENCES accounts(id),
@@ -199,6 +206,23 @@ export function initDb(dbPath = DB_PATH) {
   const sessionColumns = db.prepare("PRAGMA table_info(sessions)").all();
   if (!sessionColumns.some((c) => c.name === "card_events")) {
     db.exec("ALTER TABLE sessions ADD COLUMN card_events TEXT DEFAULT '[]'");
+  }
+
+  const accountColumns = db.prepare("PRAGMA table_info(accounts)").all().map(c => c.name);
+  if (!accountColumns.includes("first_name")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN first_name TEXT NOT NULL DEFAULT ''");
+  }
+  if (!accountColumns.includes("last_name")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN last_name TEXT NOT NULL DEFAULT ''");
+  }
+  if (!accountColumns.includes("role")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN role TEXT NOT NULL DEFAULT 'parent'");
+  }
+  if (!accountColumns.includes("referral_source")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN referral_source TEXT NOT NULL DEFAULT 'other'");
+  }
+  if (!accountColumns.includes("consent_personal_data_at")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN consent_personal_data_at TEXT NOT NULL DEFAULT ''");
   }
 
   const portalColumns = db.prepare("PRAGMA table_info(student_portals)").all();

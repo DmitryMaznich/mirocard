@@ -66,13 +66,31 @@ export function migratePhotoData(db) {
 
 // ─── Accounts ─────────────────────────────────────────────────────────────────
 
-export function createAccount(db, { email, passwordHash, displayName = "" }) {
+function findAccountByIdAny(db, id) {
+  return db.prepare("SELECT * FROM accounts WHERE id = ?").get(id) ?? null;
+}
+
+export function createAccount(db, {
+  email,
+  passwordHash,
+  displayName = "",
+  firstName = "",
+  lastName = "",
+  role = "parent",
+  referralSource = "other",
+  consentPersonalDataAt = "",
+}) {
   const id = randomUUID();
   const ts = now();
+  const computedDisplay = displayName || [firstName, lastName].filter(Boolean).join(" ") || email.split("@")[0];
+
   db.prepare(`
-    INSERT INTO accounts (id, email, password_hash, display_name, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(id, email.toLowerCase().trim(), passwordHash, displayName, ts, ts);
+    INSERT INTO accounts
+      (id, email, password_hash, display_name, first_name, last_name, role, referral_source,
+       consent_personal_data_at, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+  `).run(id, email.toLowerCase().trim(), passwordHash, computedDisplay,
+         firstName, lastName, role, referralSource, consentPersonalDataAt, ts, ts);
 
   db.prepare(`
     INSERT INTO account_settings (account_id, updated_at) VALUES (?, ?)
@@ -82,12 +100,18 @@ export function createAccount(db, { email, passwordHash, displayName = "" }) {
     INSERT OR IGNORE INTO sync_revision (account_id, revision) VALUES (?, 0)
   `).run(id);
 
-  return findAccountById(db, id);
+  return findAccountByIdAny(db, id);
 }
 
 export function findAccountByEmail(db, email) {
   return db.prepare(
     "SELECT * FROM accounts WHERE email = ? AND status = 'active'"
+  ).get(email.toLowerCase().trim()) ?? null;
+}
+
+export function findAccountByEmailAny(db, email) {
+  return db.prepare(
+    "SELECT * FROM accounts WHERE email = ?"
   ).get(email.toLowerCase().trim()) ?? null;
 }
 
@@ -112,6 +136,12 @@ export function updateAccountPasswordHash(db, id, passwordHash) {
 export function deleteAccount(db, id) {
   const ts = now();
   db.prepare("UPDATE accounts SET status = 'deleted', updated_at = ? WHERE id = ?").run(ts, id);
+}
+
+export function activateAccount(db, id) {
+  db.prepare(
+    "UPDATE accounts SET status = 'active', updated_at = ? WHERE id = ?"
+  ).run(now(), id);
 }
 
 // ─── Account settings ─────────────────────────────────────────────────────────
@@ -183,6 +213,34 @@ export function consumePasswordResetToken(db, tokenHash) {
   ).run(now(), tokenHash);
 
   return row.account_id;
+}
+
+// ─── Email verification tokens ────────────────────────────────────────────────
+
+const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+export function createEmailVerificationToken(db, { tokenHash, accountId }) {
+  const expiresAt = new Date(Date.now() + VERIFICATION_TTL_MS).toISOString();
+  db.prepare(`
+    INSERT OR REPLACE INTO email_verification_tokens (token_hash, account_id, expires_at, created_at)
+    VALUES (?, ?, ?, ?)
+  `).run(tokenHash, accountId, expiresAt, now());
+}
+
+export function consumeEmailVerificationToken(db, tokenHash) {
+  const row = db.prepare(`
+    SELECT account_id FROM email_verification_tokens
+    WHERE token_hash = ? AND expires_at > ?
+  `).get(tokenHash, now());
+
+  if (!row) return null;
+
+  db.prepare("DELETE FROM email_verification_tokens WHERE token_hash = ?").run(tokenHash);
+  return row.account_id;
+}
+
+export function deleteEmailVerificationTokensForAccount(db, accountId) {
+  db.prepare("DELETE FROM email_verification_tokens WHERE account_id = ?").run(accountId);
 }
 
 // ─── Account KV ───────────────────────────────────────────────────────────────

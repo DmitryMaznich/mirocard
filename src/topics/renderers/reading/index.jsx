@@ -37,6 +37,7 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null }) {
 
 function ReadingIllustration({ topicId, text }) {
   const url = useTopicFile(topicId, text?.image);
+
   if (!text?.image || !url) return null;
 
   return (

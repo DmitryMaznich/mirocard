@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
-import { api, setApiToken } from "@/core/api";
-import { getDb } from "@/core/db";
-import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
+import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 
 export default function RegisterScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
+  const setPendingVerificationEmail = useAppStore((s) => s.setPendingVerificationEmail);
 
-  const [email,       setEmail]       = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [password,    setPassword]    = useState("");
-  const [showPass,    setShowPass]    = useState(false);
-  const [error,       setError]       = useState("");
-  const [loading,     setLoading]     = useState(false);
+  const [email,         setEmail]         = useState("");
+  const [firstName,     setFirstName]     = useState("");
+  const [lastName,      setLastName]      = useState("");
+  const [role,          setRole]          = useState("");
+  const [referralSource, setReferralSource] = useState("");
+  const [password,      setPassword]      = useState("");
+  const [showPass,      setShowPass]      = useState(false);
+  const [consent,       setConsent]       = useState(false);
+  const [error,         setError]         = useState("");
+  const [loading,       setLoading]       = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -21,36 +24,30 @@ export default function RegisterScreen() {
       setError("Пароль должен содержать минимум 8 символов");
       return;
     }
+    if (!consent) {
+      setError("Необходимо согласие на обработку персональных данных");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
-      const body = { email, password };
-      if (displayName.trim()) body.displayName = displayName.trim();
-      const { account, token } = await api.post("/auth/register", body);
-      setApiToken(token);
-
-      const [bootstrap, sessionsRaw] = await Promise.all([
-        api.get("/account/bootstrap"),
-        api.get("/sessions?limit=200"),
-      ]);
-
-      const payload = {
-        token,
-        account,
-        settings: bootstrap.settings,
-        students: bootstrap.students,
-        ownedTopics: bootstrap.ownedTopics,
-        studentTopicLinks: bootstrap.studentTopicLinks,
-        conceptProgress: bootstrap.conceptProgress,
-        sessions: sessionsRaw,
-      };
-
-      const db = await getDb();
-      await persistBootstrap(db, payload);
-      applyBootstrapToStore(payload);
-      setScreen("home");
+      await api.post("/auth/register", {
+        email,
+        password,
+        firstName,
+        lastName,
+        role,
+        referralSource,
+        consentPersonalData: true,
+      });
+      setPendingVerificationEmail(email);
+      setScreen("verify_email_sent");
     } catch (err) {
-      setError(err.message || "Ошибка регистрации. Попробуйте ещё раз.");
+      if (err.status === 409) {
+        setError("Этот email уже зарегистрирован");
+      } else {
+        setError(err.message || "Ошибка регистрации. Попробуйте ещё раз.");
+      }
     } finally {
       setLoading(false);
     }
@@ -73,18 +70,48 @@ export default function RegisterScreen() {
         <input
           className="auth-input"
           type="text"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="Имя (необязательно)"
-          autoComplete="name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          placeholder="Имя *"
+          required
+          autoComplete="given-name"
         />
+        <input
+          className="auth-input"
+          type="text"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          placeholder="Фамилия (необязательно)"
+          autoComplete="family-name"
+        />
+        <select
+          className="auth-input"
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          required
+        >
+          <option value="" disabled>Кто вы? *</option>
+          <option value="parent">Родитель</option>
+          <option value="specialist">Специалист</option>
+        </select>
+        <select
+          className="auth-input"
+          value={referralSource}
+          onChange={(e) => setReferralSource(e.target.value)}
+          required
+        >
+          <option value="" disabled>Как узнали о Mirocard? *</option>
+          <option value="friend">Рекомендация друзей</option>
+          <option value="developer">Приглашение разработчика</option>
+          <option value="other">Другое</option>
+        </select>
         <div className="auth-password-wrap">
           <input
             className="auth-input"
             type={showPass ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Пароль (минимум 8 символов)"
+            placeholder="Пароль (минимум 8 символов) *"
             required
             autoComplete="new-password"
           />
@@ -98,6 +125,15 @@ export default function RegisterScreen() {
             {showPass ? "🙈" : "👁"}
           </button>
         </div>
+        <label className="auth-consent">
+          <input
+            type="checkbox"
+            checked={consent}
+            onChange={(e) => setConsent(e.target.checked)}
+            required
+          />
+          <span>Согласен(а) на обработку персональных данных</span>
+        </label>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
           {loading ? "Создаём аккаунт…" : "Создать аккаунт"}

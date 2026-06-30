@@ -11,12 +11,14 @@ import {
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
-  createAccount, findAccountByEmail, findAccountById,
-  updateAccount, updateAccountPasswordHash, deleteAccount,
+  createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
+  updateAccount, updateAccountPasswordHash, deleteAccount, activateAccount,
   storeAuthToken, findAccountByToken, deleteAuthToken,
   getAccountSettings, updateAccountSettings,
   getRevision,
   createPasswordResetToken, consumePasswordResetToken,
+  createEmailVerificationToken, consumeEmailVerificationToken,
+  deleteEmailVerificationTokensForAccount,
   upsertStudent, getStudents, softDeleteStudent,
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
@@ -30,7 +32,7 @@ import {
   createPasswordHash, verifyPasswordHash,
 } from "./lib/security.mjs";
 import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken } from "./lib/http.mjs";
-import { sendPasswordResetEmail } from "./lib/mailer.mjs";
+import { sendPasswordResetEmail, sendEmailVerificationEmail } from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
@@ -73,6 +75,22 @@ function requireAuth(req) {
   const account = findAccountByToken(db, hashToken(raw));
   if (!account) throw { status: 401, message: "Invalid or expired token" };
   return account;
+}
+
+// ─── Resend verification rate limit ─────────────────────────────────────────
+// Simple in-memory: max 3 resends per email per hour
+const _resendLimiter = new Map();
+
+function checkResendLimit(email) {
+  const now = Date.now();
+  const entry = _resendLimiter.get(email);
+  if (!entry || now - entry.windowStart > 60 * 60 * 1000) {
+    _resendLimiter.set(email, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= 3) return false;
+  entry.count++;
+  return true;
 }
 
 function requireDeployToken(req) {
@@ -159,25 +177,35 @@ async function handleRegister(req, res) {
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
-  const displayName = String(body?.displayName || "").trim();
+  const firstName = String(body?.firstName || "").trim();
+  const lastName = String(body?.lastName || "").trim();
+  const role = String(body?.role || "");
+  const referralSource = String(body?.referralSource || "");
+  const consentPersonalData = body?.consentPersonalData === true;
 
   if (!email || !email.includes("@")) return writeJson(res, 400, { error: "Invalid email" });
   if (password.length < 8) return writeJson(res, 400, { error: "Password must be at least 8 characters" });
-  if (findAccountByEmail(db, email)) return writeJson(res, 409, { error: "Email already registered" });
+  if (!firstName) return writeJson(res, 400, { error: "First name is required" });
+  if (!["parent", "specialist"].includes(role)) return writeJson(res, 400, { error: "Invalid role" });
+  if (!["friend", "developer", "other"].includes(referralSource)) return writeJson(res, 400, { error: "Invalid referral source" });
+  if (!consentPersonalData) return writeJson(res, 400, { error: "Consent to personal data processing is required" });
+  if (findAccountByEmailAny(db, email)) return writeJson(res, 409, { error: "Email already registered" });
 
   const account = createAccount(db, {
     email,
     passwordHash: createPasswordHash(password),
-    displayName: displayName || email.split("@")[0],
+    firstName,
+    lastName,
+    role,
+    referralSource,
+    consentPersonalDataAt: new Date().toISOString(),
   });
-  const token = makeToken(account.id);
-  const settings = getAccountSettings(db, account.id);
 
-  writeJson(res, 201, {
-    account: { id: account.id, email: account.email, displayName: account.display_name },
-    settings,
-    token,
-  });
+  const rawToken = randomUUID();
+  createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
+  await sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
+
+  writeJson(res, 201, { message: "Check your email" });
 }
 
 async function handleLogin(req, res) {
@@ -185,7 +213,13 @@ async function handleLogin(req, res) {
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
 
-  const account = findAccountByEmail(db, email);
+  const anyAccount = email ? findAccountByEmailAny(db, email) : null;
+
+  if (anyAccount?.status === "pending") {
+    return writeJson(res, 403, { error: "email_not_verified" });
+  }
+
+  const account = anyAccount?.status === "active" ? anyAccount : null;
   let passwordMatches = account && verifyPasswordHash(password, account.password_hash);
   let matchedLegacyPassword = false;
 
@@ -257,6 +291,46 @@ async function handleResetPassword(req, res) {
     settings,
     token,
   });
+}
+
+async function handleVerifyEmail(req, res) {
+  const url = new URL(req.url, "http://localhost");
+  const rawToken = url.searchParams.get("token") || "";
+
+  if (!rawToken) return writeJson(res, 400, { error: "Missing token" });
+
+  const accountId = consumeEmailVerificationToken(db, hashToken(rawToken));
+  if (!accountId) return writeJson(res, 400, { error: "invalid_or_expired_token" });
+
+  activateAccount(db, accountId);
+  const account = findAccountById(db, accountId);
+  const token = makeToken(account.id);
+  const settings = getAccountSettings(db, account.id);
+
+  writeJson(res, 200, {
+    account: { id: account.id, email: account.email, displayName: account.display_name },
+    settings,
+    token,
+  });
+}
+
+async function handleResendVerification(req, res) {
+  const body = await readJsonBody(req);
+  const email = sanitizeEmail(body?.email);
+
+  if (!email || !checkResendLimit(email)) {
+    return writeJson(res, 200, { message: "ok" });
+  }
+
+  const account = findAccountByEmailAny(db, email);
+  if (account?.status === "pending") {
+    deleteEmailVerificationTokensForAccount(db, account.id);
+    const rawToken = randomUUID();
+    createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
+    await sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
+  }
+
+  writeJson(res, 200, { message: "ok" });
 }
 
 // ─── Account handlers ──────────────────────────────────────────────────────────
@@ -798,6 +872,8 @@ async function router(req, res) {
     if (method === "POST"   && p === "/auth/logout")              return await handleLogout(req, res);
     if (method === "POST"   && p === "/auth/forgot-password")     return await handleForgotPassword(req, res);
     if (method === "POST"   && p === "/auth/reset-password")      return await handleResetPassword(req, res);
+    if (method === "GET"    && p === "/auth/verify-email")        return await handleVerifyEmail(req, res);
+    if (method === "POST"   && p === "/auth/resend-verification") return await handleResendVerification(req, res);
 
     // Account
     if (method === "GET"    && p === "/account/bootstrap")        return await handleBootstrap(req, res);

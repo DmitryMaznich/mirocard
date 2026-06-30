@@ -14,6 +14,8 @@ import HoldButton from "@/shared/components/HoldButton";
 
 import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
+import VerifyEmailSentScreen from "@/features/account/VerifyEmailSentScreen";
+import VerifyEmailScreen from "@/features/account/VerifyEmailScreen";
 import HomeScreen from "@/features/home/HomeScreen";
 import StudentsScreen from "@/features/students/StudentsScreen";
 import StudentEditScreen from "@/features/students/StudentEditScreen";
@@ -61,6 +63,8 @@ const SCREENS = {
   boot: BootScreen,
   login: LoginScreen,
   register: RegisterScreen,
+  verify_email_sent: VerifyEmailSentScreen,
+  verify_email: VerifyEmailScreen,
   home: HomeScreen,
   students: StudentsScreen,
   student_edit: StudentEditScreen,
@@ -114,6 +118,7 @@ export default function App() {
   const openSessionExitPrompt  = useAppStore((s) => s.openSessionExitPrompt);
   const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
+  const setVerifyEmailToken = useAppStore((s) => s.setVerifyEmailToken);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   useEffect(() => {
@@ -146,6 +151,16 @@ export default function App() {
   });
 
   useEffect(() => {
+    // Handle /verify-email?token= deep links before normal boot
+    const urlParams = new URLSearchParams(window.location.search);
+    const verifyToken = urlParams.get("token");
+    if (window.location.pathname === "/verify-email" && verifyToken) {
+      setVerifyEmailToken(verifyToken);
+      window.history.replaceState({}, "", "/");
+      setScreen("verify_email");
+      return;
+    }
+
     (async () => {
       try {
         const _t0 = performance.now();
@@ -198,7 +213,7 @@ export default function App() {
         setScreen("login");
       }
     })();
-  }, [setScreen]);
+  }, [setScreen, setVerifyEmailToken]);
 
   // Re-sync from server whenever the tab becomes visible or every 60 s while active.
   // This ensures Device B picks up changes made on Device A even if the tab never hides.

@@ -15,6 +15,12 @@ export const useAppStore = create((set) => ({
   // ─── Student portal mode ───────────────────────────────────────────────────
   isStudentPortal: false,
 
+  // ─── Email verification ────────────────────────────────────────────────────
+  pendingVerificationEmail: null,
+  setPendingVerificationEmail: (email) => set({ pendingVerificationEmail: email }),
+  verifyEmailToken: null,
+  setVerifyEmailToken: (token) => set({ verifyEmailToken: token }),
+
   // ─── Auth ──────────────────────────────────────────────────────────────────
   account: null,
   token: null,

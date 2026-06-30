@@ -49,6 +49,8 @@ __pycache__/
 
 # Misc temp files
 chemex_review.html
+mockup-pair-intro.html
+scripts/_test_*.mjs
 
 # Binary / document assets (not tracked in git)
 *.webp
