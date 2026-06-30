@@ -4,14 +4,18 @@ import { initDb } from "../lib/db.mjs";
 import {
   createAccount,
   findAccountByEmail,
+  findAccountByEmailAny,
   findAccountById,
   updateAccount,
   deleteAccount,
+  activateAccount,
   storeAuthToken,
   findAccountByToken,
   deleteAuthToken,
   createPasswordResetToken,
   consumePasswordResetToken,
+  createEmailVerificationToken,
+  consumeEmailVerificationToken,
 } from "../lib/account-repository.mjs";
 
 function makeDb() { return initDb(":memory:"); }
@@ -25,8 +29,10 @@ test("createAccount and findAccountByEmail", () => {
   });
   assert.ok(acc.id);
   assert.equal(acc.email, "test@example.com");
+  assert.equal(acc.status, "pending"); // new accounts start as pending
 
-  const found = findAccountByEmail(db, "test@example.com");
+  // findAccountByEmail only returns active — use findAccountByEmailAny for pending
+  const found = findAccountByEmailAny(db, "test@example.com");
   assert.equal(found.id, acc.id);
   assert.equal(found.display_name, "Tester");
 });
@@ -104,7 +110,9 @@ import {
 } from "../lib/account-repository.mjs";
 
 function makeAccount(db) {
-  return createAccount(db, { email: `u${Date.now()}${Math.random()}@x.com`, passwordHash: "h" });
+  const acc = createAccount(db, { email: `u${Date.now()}${Math.random()}@x.com`, passwordHash: "h" });
+  activateAccount(db, acc.id);
+  return db.prepare("SELECT * FROM accounts WHERE id = ?").get(acc.id);
 }
 
 test("upsertStudent creates and getStudents returns it", () => {
