@@ -36,7 +36,32 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null }) {
 }
 
 function ReadingIllustration({ topicId, text }) {
-  const url = useTopicFile(topicId, text?.image);
+  const cornerPhotos = text?.cornerPhotos;
+  const leftEntry  = cornerPhotos?.find((p) => p.position === "bottom-left");
+  const rightEntry = cornerPhotos?.find((p) => p.position === "bottom-right");
+  const leftUrl  = useTopicFile(topicId, leftEntry?.file);
+  const rightUrl = useTopicFile(topicId, rightEntry?.file);
+  const url = useTopicFile(topicId, cornerPhotos ? undefined : text?.image);
+
+  if (cornerPhotos) {
+    if (!leftUrl && !rightUrl) return null;
+    return (
+      <div className="reading-illustration reading-illustration--corners">
+        {leftUrl && (
+          <div className="reading-corner-photo reading-corner-photo--bottom-left">
+            <img src={leftUrl} alt="" draggable={false} />
+            {leftEntry.name && <span className="reading-corner-photo-name">{leftEntry.name}</span>}
+          </div>
+        )}
+        {rightUrl && (
+          <div className="reading-corner-photo reading-corner-photo--bottom-right">
+            <img src={rightUrl} alt="" draggable={false} />
+            {rightEntry.name && <span className="reading-corner-photo-name">{rightEntry.name}</span>}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (!text?.image || !url) return null;
 

@@ -9,47 +9,17 @@ const momLoveImage = readFileSync(new URL("./assets/reading_dad_poems/mom_love.w
 const alinaPath = fileURLToPath(new URL("../Alina.png", import.meta.url));
 const polinaPath = fileURLToPath(new URL("../Polina.png", import.meta.url));
 
-async function buildSisterIllustration() {
-  // Two separate photos in opposite bottom corners, plain background —
-  // no shared frame, no center seam. Crop close to the source ratio
-  // (896x1195 ≈ 0.75) and bias to the top so faces never get cut off.
-  const W = 480, H = 520;
-  const PHOTO_W = 196, PHOTO_H = 248;
-  const MARGIN = 22;
-
-  const photoMaskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PHOTO_W}" height="${PHOTO_H}"><rect width="${PHOTO_W}" height="${PHOTO_H}" rx="16" fill="white"/></svg>`;
-  const photoMask = await sharp(Buffer.from(photoMaskSvg)).png().toBuffer();
-
-  const mkPhoto = (path) =>
-    sharp(path)
-      .resize(PHOTO_W, PHOTO_H, { fit: "cover", position: "top" })
-      .composite([{ input: photoMask, blend: "dest-in" }])
-      .png()
-      .toBuffer();
-
-  const [alina, polina] = await Promise.all([mkPhoto(alinaPath), mkPhoto(polinaPath)]);
-
-  const leftX = MARGIN;
-  const rightX = W - MARGIN - PHOTO_W;
-  const photoY = H - MARGIN - PHOTO_H;
-
-  const namesSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-    <text x="${leftX + PHOTO_W / 2}" y="${photoY - 12}" text-anchor="middle" font-size="19" font-family="Georgia,serif" fill="#7a4060">&#x0410;&#x043b;&#x0438;&#x043d;&#x0430;</text>
-    <text x="${rightX + PHOTO_W / 2}" y="${photoY - 12}" text-anchor="middle" font-size="19" font-family="Georgia,serif" fill="#7a4060">&#x041f;&#x043e;&#x043b;&#x0438;&#x043d;&#x0430;</text>
-  </svg>`;
-  const names = await sharp(Buffer.from(namesSvg)).png().toBuffer();
-
-  return sharp({ create: { width: W, height: H, channels: 4, background: "#fdfaf9" } })
-    .composite([
-      { input: names,  left: 0,      top: 0 },
-      { input: alina,  left: leftX,  top: photoY },
-      { input: polina, left: rightX, top: photoY },
-    ])
-    .webp({ quality: 92 })
+// Standalone photo crops — no shared canvas/background. Positioning into
+// screen corners happens in CSS (.reading-corner-photo), using the full
+// available illustration width instead of a fixed-size composed image.
+async function buildSisterPhoto(path) {
+  return sharp(path)
+    .resize(280, 360, { fit: "cover", position: "top" })
+    .webp({ quality: 90 })
     .toBuffer();
 }
 
-const sisterIllustration = await buildSisterIllustration();
+const [alinaPhoto, polinaPhoto] = await Promise.all([buildSisterPhoto(alinaPath), buildSisterPhoto(polinaPath)]);
 
 const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
   <circle cx="120" cy="120" r="116" fill="#fef6f0" stroke="#f0d8c8" stroke-width="3"/>
@@ -81,7 +51,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.19",
+    version: "1.0.20",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -405,7 +375,10 @@ const manifest = {
       id: "sister_love",
       kind: "poem",
       title: { ru: "Моей сестре", en: "To My Sister" },
-      image: "media/sister_love.webp",
+      cornerPhotos: [
+        { file: "media/sister_alina.webp", position: "bottom-left", name: "Алина" },
+        { file: "media/sister_polina.webp", position: "bottom-right", name: "Полина" },
+      ],
       level: 1,
       lines: [
         { id: "l1", text: "Ты умница-красавица," },
@@ -486,6 +459,7 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/dad_best.webp", dadBestImage);
 zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
-zip.file("media/sister_love.webp", sisterIllustration);
+zip.file("media/sister_alina.webp", alinaPhoto);
+zip.file("media/sister_polina.webp", polinaPhoto);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.19.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.20.zip", buffer);
