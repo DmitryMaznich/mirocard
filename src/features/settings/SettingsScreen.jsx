@@ -1,40 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import PinGateModal from "@/shared/components/PinGateModal";
-import { getVoiceEngineId, getEngineLabel } from "@/shared/hooks/useSpeech";
 import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
-
-function fakeSession(pct, studentId, topicId) {
-  const total = 10;
-  const correct = Math.round(total * pct / 100);
-  return {
-    id: "dev_" + Date.now(),
-    studentId: studentId ?? "dev",
-    topicId:   topicId   ?? "dev",
-    topicVersion: "1.0.0",
-    modeId:    "yes_no",
-    conceptIds: [],
-    startedAt:   new Date().toISOString(),
-    completedAt: new Date().toISOString(),
-    correctCount:   correct,
-    incorrectCount: total - correct,
-    percentCorrect: pct,
-    mistakes: [],
-  };
-}
 
 export default function SettingsScreen() {
   const setScreen        = useAppStore((s) => s.setScreen);
   const buildInfo        = useAppStore((s) => s.buildInfo);
   const logout           = useAppStore((s) => s.logout);
-  const appendSession    = useAppStore((s) => s.appendSession);
-  const activeStudentId  = useAppStore((s) => s.activeStudentId);
-  const activeTopicId    = useAppStore((s) => s.activeTopicId);
   const settings         = useAppStore((s) => s.settings);
   const patchSettings    = useAppStore((s) => s.patchSettings);
 
@@ -70,55 +47,8 @@ export default function SettingsScreen() {
     setPinResetMode(null);
   }
 
-  function testSummary(pct) {
-    appendSession(fakeSession(pct, activeStudentId, activeTopicId));
-    setScreen("summary");
-  }
-
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [voicesOpen, setVoicesOpen] = useState(false);
-
-  // Load all voices (Chrome on Android fires voiceschanged asynchronously)
-  const [voices, setVoices] = useState([]);
-  useEffect(() => {
-    function load() {
-      const list = window.speechSynthesis?.getVoices() ?? [];
-      if (list.length > 0) setVoices(Array.from(list));
-    }
-    load();
-    window.speechSynthesis?.addEventListener("voiceschanged", load);
-    return () => window.speechSynthesis?.removeEventListener("voiceschanged", load);
-  }, []);
-
-  // Group voices by engine, keep only unique engines
-  const engines = useMemo(() => {
-    const seen = new Map(); // engineId → label
-    for (const v of voices) {
-      const id = getVoiceEngineId(v);
-      if (!seen.has(id)) seen.set(id, getEngineLabel(id));
-    }
-    return Array.from(seen.entries()).map(([id, label]) => ({ id, label }));
-  }, [voices]);
-
-  function testEngine() {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-    synth.cancel();
-    const utt = new SpeechSynthesisUtterance("Привет! Это тестовое сообщение.");
-    utt.rate = 0.88;
-    const engineId = settings.ttsEngine ?? "";
-    if (engineId) {
-      const v = voices.find((v) => getVoiceEngineId(v) === engineId && v.lang.startsWith("ru"))
-             ?? voices.find((v) => getVoiceEngineId(v) === engineId);
-      if (v) { utt.voice = v; utt.lang = v.lang; }
-    } else {
-      utt.lang = "ru-RU";
-      const ru = voices.find((v) => v.lang.startsWith("ru"));
-      if (ru) utt.voice = ru;
-    }
-    synth.speak(utt);
-  }
 
   async function handleLogout() {
     try { await api.post("/auth/logout"); } catch {
@@ -238,69 +168,9 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        <div className="settings-section">
-          <div className="settings-section-title">Синтез речи (TTS)</div>
-          <div className="settings-row settings-row--col">
-            <span className="settings-row__label">Движок</span>
-            <div className="settings-voice-row">
-              <select
-                className="settings-voice-select"
-                value={settings.ttsEngine ?? ""}
-                onChange={(e) => handlePatchSettings({ ttsEngine: e.target.value })}
-              >
-                <option value="">По умолчанию (устройство)</option>
-                {engines.map(({ id, label }) => (
-                  <option key={id} value={id}>{label}</option>
-                ))}
-              </select>
-              <button className="settings-voice-test-btn" onClick={testEngine} title="Проверить">
-                ▶
-              </button>
-            </div>
-            {voices.length === 0 && (
-              <span className="settings-voice-hint">Голоса не обнаружены или загружаются…</span>
-            )}
-          </div>
-        </div>
       </div>
 
       <DangerZone />
-
-      <div className="settings-section" style={{ borderTop: "1px dashed #ddd", marginTop: 8 }}>
-        <div
-          className="settings-section-title"
-          style={{ color: "#bbb", cursor: "pointer", userSelect: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-          onClick={() => setVoicesOpen((v) => !v)}
-        >
-          <span>Dev · голоса (raw)</span>
-          <span style={{ fontSize: 12 }}>{voicesOpen ? "▲" : "▼"}</span>
-        </div>
-        {voicesOpen && (
-          <div style={{ padding: "4px 12px 8px", fontSize: 11, color: "#888", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-            {voices.length === 0 ? "пусто" : voices.map((v, i) =>
-              `[${i}] uri="${v.voiceURI}" name="${v.name}" lang="${v.lang}"`
-            ).join("\n")}
-          </div>
-        )}
-      </div>
-
-      <div className="settings-section" style={{ borderTop: "1px dashed #ddd", marginTop: 8 }}>
-        <div className="settings-section-title" style={{ color: "#bbb" }}>Dev · тест экрана завершения</div>
-        <div style={{ display: "flex", gap: 8, padding: "8px 12px", flexWrap: "wrap" }}>
-          {[100, 90, 75, 50, 30].map((pct) => (
-            <button
-              key={pct}
-              onClick={() => testSummary(pct)}
-              style={{
-                padding: "6px 14px", borderRadius: 10, border: "1px solid #ddd",
-                background: "#f5f5f5", fontSize: 14, cursor: "pointer",
-              }}
-            >
-              {pct}%
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="settings-build-info">
         v{buildInfo.version} · {buildInfo.gitSha}
