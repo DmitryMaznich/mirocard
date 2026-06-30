@@ -2,7 +2,7 @@
   "decks": [
     {
       "id": "reading_dad_poems",
-      "version": "1.0.15",
+      "version": "1.0.16",
       "title": {
         "ru": "Чтение: Стихи",
         "en": "Reading: Poems"
@@ -11,7 +11,7 @@
         "ru": "Четыре стихотворения: совместное чтение, иллюстрация, вопросы по смыслу и сборка стихотворения из слов.",
         "en": "Four poems: shared reading, illustration, comprehension questions, and poem assembly."
       },
-      "url": "./decks/reading_dad_poems_v1.0.15.zip"
+      "url": "./decks/reading_dad_poems_v1.0.16.zip"
     },
     {
       "id": "reading_dad_texts",
