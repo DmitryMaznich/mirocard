@@ -39,6 +39,41 @@ npm run deploy:verify
 
 `npm run deploy:verify` does not upload. It checks the currently deployed runtime.
 
+## Backend Deploy (NOT covered by `npm run deploy:prod`)
+
+`npm run deploy:prod` only uploads `dist/` (frontend). It never touches `backend/`.
+
+The remote `C:/Users/dmazn/Projects/Mirocard2` on the runtime host is **not a git repository** — it's a plain file copy. Backend source changes must be copied manually via SFTP, then the process restarted:
+
+```python
+import paramiko, time
+
+client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+client.connect('192.168.1.163', port=22, username='dmazn', password='241078diMA', timeout=15)
+
+sftp = client.open_sftp()
+for f in ['server.mjs', 'lib/db.mjs', 'lib/account-repository.mjs', 'lib/mailer.mjs']:  # whichever changed
+    sftp.put(f'C:/Users/dmazn/Projects/Mirocard2/backend/{f}', f'C:/Users/dmazn/Projects/Mirocard2/backend/{f}')
+sftp.close()
+
+# Kill whatever currently listens on 3012, then restart via the scheduled task
+stdin, stdout, stderr = client.exec_command('netstat -ano | findstr :3012')
+for line in stdout.read().decode().splitlines():
+    if 'LISTENING' in line:
+        pid = line.strip().split()[-1]
+        client.exec_command(f'taskkill /PID {pid} /F')
+time.sleep(2)
+client.exec_command('schtasks /run /tn "MirocardBackend2"')
+client.close()
+```
+
+Use the **`MirocardBackend2`** scheduled task to restart (`Logon Mode: Interactive/Background`) — not `MirocardBackend` (`Logon Mode: Interactive only`, silently fails to spawn a visible process over a non-interactive SSH session and gets stuck in `Status: Running` forever). Both tasks exist on the host; only `MirocardBackend2` is reliable for unattended restarts.
+
+After restart, verify the new code actually loaded — `/api/version` only reflects `dist/version.json` (frontend build info), not the backend git SHA, so it will report success even if the backend process is still running stale code. Confirm by hitting an endpoint whose behavior changed.
+
+Backend `.env` lives at `C:/Users/dmazn/Projects/Mirocard2/backend/.env` on the host (not in git). It currently holds `ANTHROPIC_API_KEY` plus `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_FROM` (mail.kaplieva.help, shared with the Kaplieva project) and `APP_BASE_URL=https://mirocard.kaplieva.help`.
+
 ## Required Local Secrets
 
 Set these outside git, for example in the agent environment:
