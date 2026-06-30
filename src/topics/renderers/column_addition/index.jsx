@@ -324,7 +324,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
 
 // ── Main task component ───────────────────────────────────────────────────────
 
-function ColumnArithmeticTask({ task, onCorrect }) {
+function ColumnArithmeticTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("form");
   const [topFilled, setTopFilled] = useState({});
   const [bottomFilled, setBottomFilled] = useState({});
@@ -469,6 +469,7 @@ function ColumnArithmeticTask({ task, onCorrect }) {
       // Wrong cell → shake to guide and count as error
       if (cellKey !== activeKey) {
         triggerShake(activeKey);
+        onMistake?.();
         return;
       }
 
@@ -481,6 +482,7 @@ function ColumnArithmeticTask({ task, onCorrect }) {
 
       if (!ok) {
         triggerShake(activeKey);
+        onMistake?.();
         return;
       }
 
@@ -538,8 +540,7 @@ function ColumnArithmeticTask({ task, onCorrect }) {
       const expectedKey = `${activeStep.cellType}:${activeStep.position}`;
       if (cellKey !== expectedKey || droppedDigit !== activeStep.digit) {
         triggerShake(expectedKey);
-        hadErrorRef.current = true;
-        if (onMistake) onMistake();
+        onMistake?.();
         return;
       }
 
@@ -732,7 +733,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
-export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, onPrevious, student }) {
+export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, onPrevious, student, onMistake }) {
   if (mode?.type === "column_copy") {
     return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
   }
@@ -745,11 +746,13 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;
   }
+  const strictMistake = sessionParams?.strictStars ? onMistake : undefined;
   return (
     <ColumnArithmeticTask
       key={`${task.cardId}-${task.top}-${task.bottom}-${task.operation}`}
       task={task}
       onCorrect={onCorrect}
+      onMistake={strictMistake}
     />
   );
 }

@@ -498,6 +498,7 @@ export default function ParamsScreen() {
   const [params,         setParams]        = useState(getInitialParams);
   const [videoReward,   setVideoReward]   = useState(link.videoRewardEnabled ?? true);
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
+  const [strictStars,   setStrictStars]   = useState(link.strictStars ?? false);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
 
@@ -538,7 +539,7 @@ export default function ParamsScreen() {
   function launchSession() {
     setShowPinGate(false);
     markSessionStart();
-    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, answersPerStar });
+    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, answersPerStar, strictStars });
     setScreen("session");
   }
 
@@ -751,6 +752,33 @@ export default function ParamsScreen() {
                 </div>
                 <div className="param-hint">
                   Бонус каждые {5 * answersPerStar} правильных ответов подряд
+                </div>
+              </div>
+            </div>
+          )}
+
+          {hasVideos && mode.evaluation !== "none" && !isAlphabetPairs && (
+            <div className="param-row param-row--block">
+              <div className="param-label">Подсчёт звёзд</div>
+              <div className="param-enum-section">
+                <div className="param-enum-group">
+                  <button
+                    className={`enum-btn enum-btn--compact ${!strictStars ? "enum-btn--active" : ""}`}
+                    onClick={() => setStrictStars(false)}
+                  >
+                    Мягко
+                  </button>
+                  <button
+                    className={`enum-btn enum-btn--compact ${strictStars ? "enum-btn--active" : ""}`}
+                    onClick={() => setStrictStars(true)}
+                  >
+                    Строго
+                  </button>
+                </div>
+                <div className="param-hint">
+                  {strictStars
+                    ? "Любая ошибка сбрасывает серию"
+                    : "Ошибки не сбрасывают серию"}
                 </div>
               </div>
             </div>
