@@ -2,17 +2,20 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api, setApiToken } from "@/core/api";
 import { getDb, kv } from "@/core/db";
+import { ApiError } from "@/core/api";
 import { persistBootstrap, applyBootstrapToStore, indexStudentTopicLinks, mergeStudents } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
 
 export default function LoginScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
+  const setPendingVerificationEmail = useAppStore((s) => s.setPendingVerificationEmail);
 
-  const [email,       setEmail]       = useState("");
-  const [password,    setPassword]    = useState("");
-  const [showPass,    setShowPass]    = useState(false);
-  const [error,       setError]       = useState("");
-  const [loading,     setLoading]     = useState(false);
+  const [email,          setEmail]          = useState("");
+  const [password,       setPassword]       = useState("");
+  const [showPass,       setShowPass]       = useState(false);
+  const [error,          setError]          = useState("");
+  const [loading,        setLoading]        = useState(false);
+  const [showResendHint, setShowResendHint] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -86,7 +89,13 @@ export default function LoginScreen() {
       applyBootstrapToStore(payload);
       setScreen("home");
     } catch (err) {
-      setError(err.message || "Ошибка входа. Проверьте email и пароль.");
+      if (err instanceof ApiError && err.status === 403 && err.message === "email_not_verified") {
+        setPendingVerificationEmail(email);
+        setShowResendHint(true);
+        setError("Email не подтверждён. Проверьте почту или запросите новое письмо.");
+      } else {
+        setError(err.message || "Ошибка входа. Проверьте email и пароль.");
+      }
     } finally {
       setLoading(false);
     }
@@ -136,6 +145,15 @@ export default function LoginScreen() {
           </button>
         </div>
         {error && <div className="form-error">{error}</div>}
+        {showResendHint && (
+          <button
+            type="button"
+            className="auth-link"
+            onClick={() => setScreen("verify_email_sent")}
+          >
+            Открыть страницу подтверждения
+          </button>
+        )}
         <Button type="submit" disabled={loading} fullWidth>
           {loading ? "Входим…" : "Войти"}
         </Button>
