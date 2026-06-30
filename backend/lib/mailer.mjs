@@ -29,3 +29,20 @@ export async function sendPasswordResetEmail(email, resetToken) {
     console.log("[mailer] Password reset email (dev):", JSON.parse(info.message).subject, "→", resetUrl);
   }
 }
+
+export async function sendEmailVerificationEmail(email, rawToken) {
+  const transport = getTransport();
+  const verifyUrl = `${APP_BASE_URL}/verify-email?token=${rawToken}`;
+
+  const info = await transport.sendMail({
+    from: SMTP_FROM,
+    to: email,
+    subject: "Подтвердите email — Mirocard",
+    text: `Добро пожаловать в Mirocard!\n\nДля подтверждения email перейдите по ссылке (действует 24 часа):\n\n${verifyUrl}\n\nЕсли вы не регистрировались — проигнорируйте это письмо.`,
+    html: `<p>Добро пожаловать в Mirocard!</p><p>Для подтверждения email нажмите <a href="${verifyUrl}">эту ссылку</a> (действует 24 часа).</p><p>Если вы не регистрировались — проигнорируйте это письмо.</p>`,
+  });
+
+  if (!SMTP_HOST) {
+    console.log("[mailer] Verification email (dev):", JSON.parse(info.message).subject, "→", verifyUrl);
+  }
+}
