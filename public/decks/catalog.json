@@ -2,7 +2,7 @@
   "decks": [
     {
       "id": "reading_dad_poems",
-      "version": "1.0.16",
+      "version": "1.0.17",
       "title": {
         "ru": "Чтение: Стихи",
         "en": "Reading: Poems"
@@ -11,7 +11,7 @@
         "ru": "Четыре стихотворения: совместное чтение, иллюстрация, вопросы по смыслу и сборка стихотворения из слов.",
         "en": "Four poems: shared reading, illustration, comprehension questions, and poem assembly."
       },
-      "url": "./decks/reading_dad_poems_v1.0.16.zip"
+      "url": "./decks/reading_dad_poems_v1.0.17.zip"
     },
     {
       "id": "reading_dad_texts",
@@ -144,23 +144,23 @@
       "url": "./decks/tools_functions_v1.3.9.zip"
     },
     {
-      "id": "word_formation_soup",
-      "version": "1.0.1",
-      "url": "./decks/word_formation_soup_v1.0.1.zip",
-      "zipUrl": "word_formation_soup_v1.0.1.zip",
-      "title": {
-        "ru": "Суп: словообразование",
-        "en": "Soup: word formation"
-      },
-      "renderer": "word_formation"
-    },
-    {
       "id": "column_addition",
       "version": "1.2.0",
       "url": "./decks/column_addition_v1.2.0.zip",
       "title": {
         "ru": "Сложение и вычитание в столбик"
       }
+    },
+    {
+      "id": "word_formation_soup",
+      "version": "1.0.2",
+      "url": "./decks/word_formation_soup_v1.0.2.zip",
+      "zipUrl": "word_formation_soup_v1.0.2.zip",
+      "title": {
+        "ru": "Суп: словообразование",
+        "en": "Soup: word formation"
+      },
+      "renderer": "word_formation"
     }
   ]
 }

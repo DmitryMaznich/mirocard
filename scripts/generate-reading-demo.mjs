@@ -111,7 +111,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.16",
+    version: "1.0.17",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -132,7 +132,12 @@ const manifest = {
     conceptCount: 4,
     sessionConfig: { maxSize: 8 },
   },
-  modes: [],
+  modes: [
+    { id: "read_text", requirePin: false },
+    { id: "understand_text", requirePin: false },
+    { id: "assemble_text", requirePin: false },
+    { id: "follow_instruction", requirePin: false },
+  ],
   cards: [],
   texts: [
     {
@@ -513,4 +518,4 @@ zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
 zip.file("media/sister_love.webp", sisterIllustration);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.16.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.17.zip", buffer);

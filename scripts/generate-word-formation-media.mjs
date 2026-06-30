@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.1";
+const VERSION   = "1.0.2";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
@@ -29,27 +29,40 @@ const TTS_SA_PATH = "c:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials
 const TTS_VOICE   = "ru-RU-Wavenet-D";
 const TTS_RATE    = 0.9;
 
+const QUESTION_TEXT = "Какой суп получится?";
+const POT_PROMPT = "a large stainless steel cooking pot on a gas stove with blue flame burning underneath, steam rising from the pot, kitchen setting, warm natural lighting, top-down 3/4 view, clean white background, square composition, no text, no watermark, photorealistic educational photo";
+
 const CONCEPTS = [
   { id: "ryba",    noun: "рыба",    nounPhrase: "суп из рыбы",    adjPhrase: "рыбный суп",    difficulty: "easy",   color: "#2196F3",
-    imgPrompt: "a steaming bowl of fish soup, clear broth with pieces of white fish and vegetables, rustic wooden table, warm natural lighting, appetizing, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of fish soup, clear broth with pieces of white fish and vegetables, rustic wooden table, warm natural lighting, appetizing, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a fresh whole raw fish, lying on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "myaso",   noun: "мясо",    nounPhrase: "суп из мяса",    adjPhrase: "мясной суп",    difficulty: "easy",   color: "#F44336",
-    imgPrompt: "a steaming bowl of meat soup, rich broth with chunks of tender beef, carrots, potatoes, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of meat soup, rich broth with chunks of tender beef, carrots, potatoes, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a piece of fresh raw beef meat, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "grib",    noun: "гриб",    nounPhrase: "суп из грибов",  adjPhrase: "грибной суп",   difficulty: "easy",   color: "#795548",
-    imgPrompt: "a steaming bowl of mushroom soup, creamy or clear broth with sliced mushrooms and herbs, rustic wooden bowl, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of mushroom soup, creamy or clear broth with sliced mushrooms and herbs, rustic wooden bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of fresh whole champignon mushrooms, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "kapusta", noun: "капуста", nounPhrase: "суп из капусты", adjPhrase: "капустный суп", difficulty: "easy",   color: "#4CAF50",
-    imgPrompt: "a steaming bowl of cabbage soup, clear broth with shredded cabbage and vegetables, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of cabbage soup, clear broth with shredded cabbage and vegetables, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a whole fresh white cabbage head, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "kuritsa", noun: "курица",  nounPhrase: "суп из курицы",  adjPhrase: "куриный суп",   difficulty: "medium", color: "#FF9800",
-    imgPrompt: "a steaming bowl of chicken soup, golden clear broth with chicken pieces, carrots, noodles, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of chicken soup, golden clear broth with chicken pieces, carrots, noodles, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a whole fresh raw chicken, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "goroh",   noun: "горох",   nounPhrase: "суп из гороха",  adjPhrase: "гороховый суп", difficulty: "medium", color: "#8BC34A",
-    imgPrompt: "a steaming bowl of pea soup, thick creamy green soup with split peas, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of pea soup, thick creamy green soup with split peas, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "fresh green peas in pods, a small pile, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "luk",     noun: "лук",     nounPhrase: "суп из лука",    adjPhrase: "луковый суп",   difficulty: "medium", color: "#9C27B0",
-    imgPrompt: "a steaming bowl of French onion soup, rich brown broth with caramelized onions and melted cheese crouton on top, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of French onion soup, rich brown broth with caramelized onions and melted cheese crouton on top, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a few whole onions, one peeled, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "ovoschi", noun: "овощи",   nounPhrase: "суп из овощей",  adjPhrase: "овощной суп",   difficulty: "medium", color: "#009688",
-    imgPrompt: "a steaming bowl of vegetable soup, colorful clear broth with carrots, peas, zucchini, tomatoes, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of vegetable soup, colorful clear broth with carrots, peas, zucchini, tomatoes, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a colorful mix of fresh vegetables: carrot, zucchini, tomato, bell pepper, arranged together on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "fasolj",  noun: "фасоль",  nounPhrase: "суп из фасоли",  adjPhrase: "фасолевый суп", difficulty: "hard",   color: "#E91E63",
-    imgPrompt: "a steaming bowl of bean soup, thick soup with red and white beans, tomatoes and herbs, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of bean soup, thick soup with red and white beans, tomatoes and herbs, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of dry red and white beans, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
   { id: "tomat",   noun: "томат",   nounPhrase: "суп из томата",  adjPhrase: "томатный суп",  difficulty: "hard",   color: "#FF5722",
-    imgPrompt: "a steaming bowl of tomato soup, smooth bright red tomato bisque, rustic ceramic bowl with fresh basil leaf, warm natural lighting, top-down view, square composition, no text, no watermark" },
+    imgPrompt: "a steaming bowl of tomato soup, smooth bright red tomato bisque, rustic ceramic bowl with fresh basil leaf, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a few fresh ripe red tomatoes, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
 ];
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -64,14 +77,13 @@ function isCached(name) { return existsSync(cached(name)); }
 
 // ─── Gemini Imagen ───────────────────────────────────────────────────────────
 
-async function generateImage(concept) {
-  const filename = `${concept.id}.webp`;
+async function generateImageFromPrompt(filename, prompt, label) {
   if (isCached(filename)) {
-    console.log(`  [cache] image ${concept.id}`);
+    console.log(`  [cache] image ${filename}`);
     return readFileSync(cached(filename));
   }
 
-  process.stdout.write(`  [img]  ${concept.id}: generating ... `);
+  process.stdout.write(`  [img]  ${label}: generating ... `);
 
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
@@ -79,7 +91,7 @@ async function generateImage(concept) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: concept.imgPrompt }] }],
+        contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { imageConfig: { aspectRatio: "1:1", imageSize: "1K" } },
       }),
     }
@@ -91,7 +103,7 @@ async function generateImage(concept) {
   const parts = body.candidates?.[0]?.content?.parts ?? [];
   const imgPart = parts.find(p => p.inlineData || p.inline_data);
   const inlineData = imgPart?.inlineData || imgPart?.inline_data;
-  if (!inlineData?.data) throw new Error(`No image in response for ${concept.id}`);
+  if (!inlineData?.data) throw new Error(`No image in response for ${label}`);
 
   const raw = Buffer.from(inlineData.data, "base64");
   const webp = await sharp(raw).resize(512, 512, { fit: "cover", position: "centre" }).webp({ quality: 82 }).toBuffer();
@@ -100,6 +112,18 @@ async function generateImage(concept) {
   console.log(`OK (${Math.round(webp.length / 1024)} KB)`);
   await sleep(500);
   return webp;
+}
+
+function generateSoupImage(concept) {
+  return generateImageFromPrompt(`${concept.id}.webp`, concept.imgPrompt, concept.id);
+}
+
+function generateIngredientImage(concept) {
+  return generateImageFromPrompt(`${concept.id}_ingredient.webp`, concept.ingredientPrompt, `${concept.id} (ingredient)`);
+}
+
+function generatePotImage() {
+  return generateImageFromPrompt("pot.webp", POT_PROMPT, "pot");
 }
 
 // ─── Google Cloud TTS ────────────────────────────────────────────────────────
@@ -151,8 +175,8 @@ async function tts(sa, text) {
 }
 
 async function generateAudio(sa, concept, kind) {
-  // kind: "noun" | "adj"
-  const text    = kind === "noun" ? concept.nounPhrase : concept.adjPhrase;
+  // kind: "prep" (Готовим суп из X) | "adj" (Рыбный суп)
+  const text     = kind === "prep" ? `Готовим ${concept.nounPhrase}` : concept.adjPhrase;
   const filename = `${concept.id}_${kind}.mp3`;
   if (isCached(filename)) {
     console.log(`  [cache] audio ${filename}`);
@@ -166,25 +190,43 @@ async function generateAudio(sa, concept, kind) {
   return buf;
 }
 
+async function generateQuestionAudio(sa) {
+  const filename = "question.mp3";
+  if (isCached(filename)) {
+    console.log(`  [cache] audio ${filename}`);
+    return readFileSync(cached(filename));
+  }
+  process.stdout.write(`  [tts]  ${filename}: "${QUESTION_TEXT}" ... `);
+  const buf = await tts(sa, QUESTION_TEXT);
+  writeFileSync(cached(filename), buf);
+  console.log(`OK (${Math.round(buf.length / 1024)} KB)`);
+  await sleep(200);
+  return buf;
+}
+
 // ─── Build topic.json ────────────────────────────────────────────────────────
 
 function buildTopic() {
   const cards = CONCEPTS.map(c => ({
-    id:              c.id,
-    noun:            c.noun,
-    nounPhrase:      c.nounPhrase,
-    adjPhrase:       c.adjPhrase,
-    difficulty:      c.difficulty,
-    color:           c.color,
-    image:           `media/${c.id}.webp`,
-    audioNounPhrase: `audio/${c.id}_noun.mp3`,
-    audioAdjPhrase:  `audio/${c.id}_adj.mp3`,
+    id:               c.id,
+    noun:             c.noun,
+    nounPhrase:       c.nounPhrase,
+    adjPhrase:        c.adjPhrase,
+    difficulty:       c.difficulty,
+    color:            c.color,
+    image:            `media/${c.id}.webp`,
+    ingredientImage:  `media/${c.id}_ingredient.webp`,
+    audioPrepPhrase:  `audio/${c.id}_prep.mp3`,
+    audioAdjPhrase:   `audio/${c.id}_adj.mp3`,
   }));
 
   return {
     meta: {
       id: TOPIC_ID, renderer: "word_formation", version: VERSION,
       title: { ru: "Суп: словообразование", en: "Soup: word formation" }, language: "ru",
+      potImage:      "media/pot.webp",
+      questionAudio: "audio/question.mp3",
+      questionText:  QUESTION_TEXT,
     },
     modes: [
       { id: "pair_intro",   type: "pair_intro",   evaluation: "none", requirePin: false,
@@ -216,25 +258,32 @@ async function main() {
   const sa = JSON.parse(readFileSync(TTS_SA_PATH, "utf8"));
 
   console.log("\n=== Генерация изображений ===");
-  const images = {};
+  const potImage = await generatePotImage();
+  const soupImages = {};
+  const ingredientImages = {};
   for (const concept of CONCEPTS) {
-    images[concept.id] = await generateImage(concept);
+    soupImages[concept.id]       = await generateSoupImage(concept);
+    ingredientImages[concept.id] = await generateIngredientImage(concept);
   }
 
   console.log("\n=== Генерация аудио ===");
+  const questionAudio = await generateQuestionAudio(sa);
   const audio = {};
   for (const concept of CONCEPTS) {
-    audio[`${concept.id}_noun`] = await generateAudio(sa, concept, "noun");
-    audio[`${concept.id}_adj`]  = await generateAudio(sa, concept, "adj");
+    audio[`${concept.id}_prep`] = await generateAudio(sa, concept, "prep");
+    audio[`${concept.id}_adj`] = await generateAudio(sa, concept, "adj");
   }
 
   console.log("\n=== Упаковка ZIP ===");
   const topic = buildTopic();
   const zip = new JSZip();
   zip.file("topic.json", JSON.stringify(topic, null, 2));
+  zip.file("media/pot.webp", potImage);
+  zip.file("audio/question.mp3", questionAudio);
   for (const concept of CONCEPTS) {
-    zip.file(`media/${concept.id}.webp`, images[concept.id]);
-    zip.file(`audio/${concept.id}_noun.mp3`, audio[`${concept.id}_noun`]);
+    zip.file(`media/${concept.id}.webp`, soupImages[concept.id]);
+    zip.file(`media/${concept.id}_ingredient.webp`, ingredientImages[concept.id]);
+    zip.file(`audio/${concept.id}_prep.mp3`, audio[`${concept.id}_prep`]);
     zip.file(`audio/${concept.id}_adj.mp3`,  audio[`${concept.id}_adj`]);
   }
 

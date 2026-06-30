@@ -18,48 +18,106 @@
 /* ── pair_intro ─────────────────────────────────────── */
 .wf-pair {
   display: flex; flex-direction: column;
-  height: 100%; padding: 16px; gap: 16px;
+  height: 100%; padding: 16px; gap: 14px;
   box-sizing: border-box;
+  overflow-y: auto;
 }
-.wf-pair__content {
-  flex: 1; display: flex; align-items: center;
-  justify-content: center; gap: 12px;
+
+/* visuals: ingredient + plus + pot */
+.wf-pair__visuals {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px;
 }
-.wf-pair__side {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  flex: 1; transition: opacity 0.3s;
+.wf-pair__visual-img {
+  width: min(130px, 32vw); height: min(130px, 32vw);
+  object-fit: cover; border-radius: 20px;
+  background: #f5f5f3;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  flex: 1; max-width: 150px;
 }
-.wf-pair__side--hidden { opacity: 0; pointer-events: none; }
-.wf-pair__img {
-  width: min(180px, 40vw); height: min(180px, 40vw);
-  object-fit: contain; border-radius: 16px;
-  background: #f5f5f5;
-}
-.wf-pair__img--loading {
+.wf-pair__visual-img--loading {
   background: #e0e0e0; animation: wf-pulse 1.2s ease-in-out infinite;
 }
-.wf-pair__phrase {
-  font-size: clamp(1rem, 4vw, 1.5rem);
-  font-weight: 600; text-align: center;
-  line-height: 1.3;
+.wf-pair__plus {
+  font-size: 1.8rem; font-weight: 300; color: #bdbdbd;
+  width: 32px; text-align: center; flex-shrink: 0;
 }
-.wf-pair__phrase--noun { color: #555; }
-.wf-pair__phrase--adj  { color: #1565c0; }
-.wf-pair__adj-box {
-  background: #e3f2fd; border-radius: 16px;
-  padding: 20px 28px;
+
+/* combined prompt card */
+.wf-pair__prompt {
+  background: #fff8e7; border: 1.5px solid #ffe082;
+  border-radius: 20px; padding: 16px 20px 18px;
+  display: flex; flex-direction: column; gap: 12px;
+  text-align: center;
 }
-.wf-pair__arrow {
-  font-size: 2.5rem; color: #bbb;
-  opacity: 0; transition: opacity 0.4s, color 0.4s;
-  flex-shrink: 0;
+.wf-pair__prompt-statement {
+  font-size: clamp(1.1rem, 4.5vw, 1.4rem);
+  font-weight: 700; color: #3e2723; line-height: 1.3;
 }
-.wf-pair__arrow--visible { opacity: 1; color: #4caf50; }
+.wf-pair__prompt-statement em {
+  font-style: normal; color: #e65100;
+}
+.wf-pair__prompt-divider {
+  height: 1px; background: #ffe082; margin: 0 8px;
+}
+.wf-pair__prompt-question {
+  font-size: clamp(0.95rem, 3.8vw, 1.1rem);
+  font-weight: 600; color: #795548; line-height: 1.4;
+}
+
+/* answer (tap or auto-reveal) */
+.wf-pair__answer-wrap {
+  display: block; width: 100%;
+  border: none; padding: 0; background: none;
+  cursor: pointer; flex: 1;
+  font: inherit; text-align: inherit;
+}
+.wf-pair__answer-wrap:disabled { cursor: default; }
+.wf-pair__answer-placeholder {
+  height: 100%; min-height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  background: #f0f0ee; border: 1.5px dashed #d6d6d4;
+  border-radius: 20px;
+  color: #9e9e9e; font-size: 0.95rem; font-weight: 600;
+}
+.wf-pair__answer-card {
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  border-radius: 20px 20px 0 0;
+  padding: 16px 20px 12px;
+  text-align: center;
+}
+.wf-pair__answer-text {
+  font-size: clamp(1.3rem, 5.5vw, 1.7rem);
+  font-weight: 800; color: #fff; letter-spacing: -0.3px;
+}
+.wf-pair__answer-text em {
+  font-style: normal; background: rgba(255,255,255,0.18);
+  padding: 0 4px; border-radius: 4px;
+}
+.wf-pair__answer-result {
+  border-radius: 0 0 20px 20px; overflow: hidden;
+  box-shadow: 0 8px 20px rgba(21,101,192,0.18);
+}
+.wf-pair__answer-result-img {
+  width: 100%; height: min(140px, 30vw);
+  object-fit: cover; display: block;
+}
+
+/* nav */
 .wf-pair__nav {
   display: flex; align-items: center;
-  justify-content: space-between; padding: 0 8px;
+  justify-content: space-between; padding: 0 4px;
 }
-.wf-pair__progress { font-size: 0.9rem; color: #888; }
+.wf-pair__dots {
+  display: flex; gap: 5px; align-items: center;
+}
+.wf-pair__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #e0e0e0; transition: all 0.2s;
+}
+.wf-pair__dot--active {
+  width: 16px; border-radius: 3px; background: #4caf50;
+}
 
 /* ── form_it ────────────────────────────────────────── */
 .wf-form {
