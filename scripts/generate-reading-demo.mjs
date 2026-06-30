@@ -8,103 +8,61 @@ const momLoveImage = readFileSync(new URL("./assets/reading_dad_poems/mom_love.w
 
 const alinaPath = fileURLToPath(new URL("../Alina.png", import.meta.url));
 const polinaPath = fileURLToPath(new URL("../Polina.png", import.meta.url));
-const alinaWebp = await sharp(alinaPath).resize(200, 200, { fit: "cover", position: "center" }).webp({ quality: 85 }).toBuffer();
-const polinaWebp = await sharp(polinaPath).resize(200, 200, { fit: "cover", position: "center" }).webp({ quality: 85 }).toBuffer();
-const alinaUri = `data:image/webp;base64,${alinaWebp.toString("base64")}`;
-const polinaUri = `data:image/webp;base64,${polinaWebp.toString("base64")}`;
 
-function buildSisterSvg(aUri, pUri) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
-  <defs>
-    <radialGradient id="sis-bg" cx="50%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#fffbfe"/>
-      <stop offset="100%" stop-color="#f4d8ec"/>
-    </radialGradient>
-    <clipPath id="alina-clip"><circle cx="38" cy="180" r="24"/></clipPath>
-    <clipPath id="polina-clip"><circle cx="202" cy="180" r="24"/></clipPath>
-  </defs>
-  <circle cx="120" cy="120" r="116" fill="url(#sis-bg)" stroke="#cc84b4" stroke-width="2.5"/>
-  <circle cx="120" cy="120" r="111" fill="none" stroke="#e4b8d4" stroke-width="0.8" stroke-dasharray="2,6"/>
-  <ellipse cx="120" cy="203" rx="62" ry="8" fill="#b8dc88" opacity="0.4"/>
-  <!-- Dress -->
-  <path d="M 84 148 Q 82 200 91 204 L 149 204 Q 158 200 156 148 Q 140 157 120 157 Q 100 157 84 148 Z" fill="#d84080"/>
-  <path d="M 86 148 L 89 178 L 151 178 L 154 148 Q 138 157 120 157 Q 102 157 86 148 Z" fill="#e87098"/>
-  <path d="M 84 186 Q 88 190 92 186 Q 96 190 100 186 Q 104 190 108 186 Q 112 190 116 186 Q 120 190 124 186 Q 128 190 132 186 Q 136 190 140 186 Q 144 190 148 186 Q 152 190 156 186" fill="none" stroke="#f4b0cc" stroke-width="1.5"/>
-  <!-- Sleeves and hands -->
-  <ellipse cx="77" cy="153" rx="11" ry="8" fill="#d84080" transform="rotate(-18 77 153)"/>
-  <ellipse cx="163" cy="153" rx="11" ry="8" fill="#d84080" transform="rotate(18 163 153)"/>
-  <circle cx="69" cy="162" r="7" fill="#f4c49c"/>
-  <circle cx="171" cy="162" r="7" fill="#f4c49c"/>
-  <!-- Neck and head -->
-  <rect x="112" y="120" width="16" height="16" rx="4" fill="#f4c49c"/>
-  <circle cx="120" cy="106" r="27" fill="#f4c49c"/>
-  <!-- Hair -->
-  <path d="M 93 98 Q 97 70 120 66 Q 143 70 147 98 L 147 90 Q 143 60 120 56 Q 97 60 93 90 Z" fill="#7a1048"/>
-  <ellipse cx="93" cy="106" rx="8" ry="13" fill="#7a1048"/>
-  <ellipse cx="147" cy="106" rx="8" ry="13" fill="#7a1048"/>
-  <!-- Bow -->
-  <ellipse cx="106" cy="68" rx="9" ry="5.5" fill="#ff2288" transform="rotate(-25 106 68)"/>
-  <ellipse cx="134" cy="68" rx="9" ry="5.5" fill="#ff2288" transform="rotate(25 134 68)"/>
-  <circle cx="120" cy="66" r="5" fill="#ff2288"/>
-  <circle cx="120" cy="66" r="3" fill="#ff88bb"/>
-  <!-- Eyes -->
-  <ellipse cx="111" cy="105" rx="4" ry="5" fill="#3a1050"/>
-  <ellipse cx="129" cy="105" rx="4" ry="5" fill="#3a1050"/>
-  <circle cx="112" cy="103" r="1.5" fill="white"/>
-  <circle cx="130" cy="103" r="1.5" fill="white"/>
-  <!-- Smile and cheeks -->
-  <path d="M 113 117 Q 120 124 127 117" stroke="#b84040" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-  <ellipse cx="104" cy="114" rx="6" ry="4" fill="#ffaabb" opacity="0.45"/>
-  <ellipse cx="136" cy="114" rx="6" ry="4" fill="#ffaabb" opacity="0.45"/>
-  <path d="M 112 136 L 120 142 L 128 136" fill="none" stroke="#f4b0cc" stroke-width="1.2"/>
-  <!-- Connecting arcs with hearts -->
-  <path d="M 63 173 Q 78 168 88 168" stroke="#e890b8" stroke-width="1" fill="none" stroke-dasharray="2,3" opacity="0.7"/>
-  <path d="M 177 173 Q 162 168 152 168" stroke="#e890b8" stroke-width="1" fill="none" stroke-dasharray="2,3" opacity="0.7"/>
-  <text x="75" y="166" text-anchor="middle" font-size="7" fill="#e060a0">&#x2665;</text>
-  <text x="163" y="166" text-anchor="middle" font-size="7" fill="#e060a0">&#x2665;</text>
-  <!-- Alina photo frame -->
-  <circle cx="39" cy="181" r="26" fill="black" fill-opacity="0.07"/>
-  <circle cx="38" cy="180" r="26" fill="white"/>
-  <image href="${aUri}" x="14" y="156" width="48" height="48" clip-path="url(#alina-clip)" preserveAspectRatio="xMidYMid slice"/>
-  <circle cx="38" cy="180" r="26" fill="none" stroke="#b86098" stroke-width="2.2"/>
-  <circle cx="38" cy="180" r="22.5" fill="none" stroke="#e8a8cc" stroke-width="0.7" stroke-dasharray="1.5,2.5"/>
-  <circle cx="65.5" cy="180" r="2" fill="#b86098"/>
-  <circle cx="57.5" cy="199.5" r="2" fill="#b86098"/>
-  <circle cx="38" cy="207.5" r="2" fill="#b86098"/>
-  <circle cx="18.5" cy="199.5" r="2" fill="#b86098"/>
-  <circle cx="10.5" cy="180" r="2" fill="#b86098"/>
-  <circle cx="18.5" cy="160.5" r="2" fill="#b86098"/>
-  <circle cx="38" cy="152.5" r="2" fill="#b86098"/>
-  <circle cx="57.5" cy="160.5" r="2" fill="#b86098"/>
-  <text x="38" y="152" text-anchor="middle" font-size="8" fill="#d04880">&#x2665;</text>
-  <text x="38" y="215" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="9" fill="#a84090">Алина</text>
-  <!-- Polina photo frame -->
-  <circle cx="203" cy="181" r="26" fill="black" fill-opacity="0.07"/>
-  <circle cx="202" cy="180" r="26" fill="white"/>
-  <image href="${pUri}" x="178" y="156" width="48" height="48" clip-path="url(#polina-clip)" preserveAspectRatio="xMidYMid slice"/>
-  <circle cx="202" cy="180" r="26" fill="none" stroke="#b86098" stroke-width="2.2"/>
-  <circle cx="202" cy="180" r="22.5" fill="none" stroke="#e8a8cc" stroke-width="0.7" stroke-dasharray="1.5,2.5"/>
-  <circle cx="229.5" cy="180" r="2" fill="#b86098"/>
-  <circle cx="221.5" cy="199.5" r="2" fill="#b86098"/>
-  <circle cx="202" cy="207.5" r="2" fill="#b86098"/>
-  <circle cx="182.5" cy="199.5" r="2" fill="#b86098"/>
-  <circle cx="174.5" cy="180" r="2" fill="#b86098"/>
-  <circle cx="182.5" cy="160.5" r="2" fill="#b86098"/>
-  <circle cx="202" cy="152.5" r="2" fill="#b86098"/>
-  <circle cx="221.5" cy="160.5" r="2" fill="#b86098"/>
-  <text x="202" y="152" text-anchor="middle" font-size="8" fill="#d04880">&#x2665;</text>
-  <text x="202" y="215" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="9" fill="#a84090">Полина</text>
-  <!-- Sparkles -->
-  <circle cx="58" cy="52" r="3" fill="#ffd700" opacity="0.7"/>
-  <circle cx="182" cy="57" r="3" fill="#ffd700" opacity="0.7"/>
-  <circle cx="46" cy="75" r="2" fill="#ffb0d8" opacity="0.65"/>
-  <circle cx="194" cy="75" r="2" fill="#ffb0d8" opacity="0.65"/>
-  <circle cx="50" cy="96" r="1.5" fill="#ffd700" opacity="0.5"/>
-  <circle cx="190" cy="96" r="1.5" fill="#ffd700" opacity="0.5"/>
-  <circle cx="120" cy="10" r="2.5" fill="#ffd700" opacity="0.5"/>
-</svg>`;
+async function buildSisterIllustration() {
+  const W = 480, H = 480, D = 180;
+
+  const bgSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+        <stop offset="0%" stop-color="#fff8fc"/>
+        <stop offset="100%" stop-color="#f0d0e8"/>
+      </radialGradient>
+    </defs>
+    <rect width="${W}" height="${H}" rx="24" fill="url(#bg)"/>
+    <circle cx="${W / 2}" cy="${H / 2}" r="${W / 2 - 10}" fill="none" stroke="#e8b0d4" stroke-width="1.5" stroke-dasharray="4,9"/>
+    <text x="${W / 2}" y="${H / 2 + 14}" text-anchor="middle" font-size="42" fill="#e060a0" opacity="0.3">&#x2665;</text>
+    <text x="${W / 4}" y="${Math.round(H * 0.84)}" text-anchor="middle" font-size="24" fill="#903070" font-family="Georgia,serif" font-style="italic">&#x0410;&#x043b;&#x0438;&#x043d;&#x0430;</text>
+    <text x="${Math.round(W * 3 / 4)}" y="${Math.round(H * 0.84)}" text-anchor="middle" font-size="24" fill="#903070" font-family="Georgia,serif" font-style="italic">&#x041f;&#x043e;&#x043b;&#x0438;&#x043d;&#x0430;</text>
+  </svg>`;
+
+  const bgPng = await sharp(Buffer.from(bgSvg)).png().toBuffer();
+
+  const maskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${D}" height="${D}"><circle cx="${D / 2}" cy="${D / 2}" r="${D / 2}" fill="white"/></svg>`;
+  const mask = await sharp(Buffer.from(maskSvg)).resize(D, D).png().toBuffer();
+
+  const mkCircle = (path) =>
+    sharp(path)
+      .resize(D, D, { fit: "cover", position: "center" })
+      .composite([{ input: mask, blend: "dest-in" }])
+      .png()
+      .toBuffer();
+
+  const [alinaCircle, polinaCircle] = await Promise.all([mkCircle(alinaPath), mkCircle(polinaPath)]);
+
+  const ringD = D + 16;
+  const ringSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ringD}" height="${ringD}">
+    <circle cx="${ringD / 2}" cy="${ringD / 2}" r="${D / 2 + 3}" fill="none" stroke="#c070a8" stroke-width="3.5"/>
+    <circle cx="${ringD / 2}" cy="${ringD / 2}" r="${D / 2 + 7}" fill="none" stroke="#e8b0d4" stroke-width="1.2"/>
+  </svg>`;
+  const ring = await sharp(Buffer.from(ringSvg)).resize(ringD, ringD).png().toBuffer();
+
+  const lx = Math.round(W / 4 - D / 2);
+  const rx = Math.round((W * 3) / 4 - D / 2);
+  const py = Math.round(H / 2 - D / 2 - 20);
+
+  return sharp(bgPng)
+    .composite([
+      { input: alinaCircle,  left: lx,      top: py },
+      { input: ring,         left: lx - 8,  top: py - 8 },
+      { input: polinaCircle, left: rx,       top: py },
+      { input: ring,         left: rx - 8,   top: py - 8 },
+    ])
+    .webp({ quality: 92 })
+    .toBuffer();
 }
-const sisterSvg = buildSisterSvg(alinaUri, polinaUri);
+
+const sisterIllustration = await buildSisterIllustration();
 
 const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
   <circle cx="120" cy="120" r="116" fill="#fef6f0" stroke="#f0d8c8" stroke-width="3"/>
@@ -136,7 +94,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.14",
+    version: "1.0.15",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -455,7 +413,7 @@ const manifest = {
       id: "sister_love",
       kind: "poem",
       title: { ru: "Моей сестре", en: "To My Sister" },
-      image: "media/sister_love.svg",
+      image: "media/sister_love.webp",
       level: 1,
       lines: [
         { id: "l1", text: "Ты умница-красавица," },
@@ -536,6 +494,6 @@ zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/dad_best.webp", dadBestImage);
 zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
-zip.file("media/sister_love.svg", sisterSvg);
+zip.file("media/sister_love.webp", sisterIllustration);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.14.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.15.zip", buffer);
