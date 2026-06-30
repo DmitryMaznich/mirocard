@@ -16503,6 +16503,14 @@ button.operation-dot {
   color: #5b6b68;
   word-break: break-all;
 }
+.account-card__email--static {
+  margin-top: 0;
+  margin-bottom: 2px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(28, 54, 52, 0.04);
+  border: 1px dashed rgba(28, 54, 52, 0.12);
+}
 .account-card__since {
   margin-top: 4px;
   font-size: 0.76rem;

@@ -93,6 +93,7 @@ export default function AccountCard() {
         </div>
       ) : (
         <div className="account-card__body account-card__body--edit">
+          <div className="account-card__email account-card__email--static">{account?.email ?? "—"}</div>
           <input
             className="account-card__input"
             value={firstName}
