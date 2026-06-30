@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useAudio } from "@/shared/hooks/useAudio";
 
@@ -19,6 +19,21 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
   const { playTopicFile } = useAudio();
   const timersRef   = useRef([]);
   const revealedRef = useRef(false);
+  const visualsRef  = useRef();
+  const promptRef   = useRef();
+
+  useLayoutEffect(() => {
+    const visuals = visualsRef.current;
+    const prompt  = promptRef.current;
+    if (!visuals || !prompt) return;
+    prompt.style.fontSize = "";
+    const targetW = visuals.offsetWidth;
+    const textW   = prompt.scrollWidth;
+    if (textW > 0) {
+      prompt.style.fontSize =
+        (parseFloat(getComputedStyle(prompt).fontSize) * targetW / textW) + "px";
+    }
+  }, [index, card?.id]);
 
   const card   = cards[index];
   const isLast = index === cards.length - 1;
@@ -70,14 +85,14 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
       className={`wf-pair${revealed ? " wf-pair--revealed" : ""}`}
       onClick={!revealed ? reveal : undefined}
     >
-      <div className="wf-pair__visuals">
+      <div className="wf-pair__visuals" ref={visualsRef}>
         <VisualImage topicId={topicId} path={card.ingredientImage} className="wf-pair__visual-img" />
         <div className="wf-pair__plus">+</div>
         <VisualImage topicId={topicId} path="media/pot.webp" className="wf-pair__visual-img" />
       </div>
 
       <div className="wf-pair__prompt">
-        <div className="wf-pair__prompt-line">
+        <div className="wf-pair__prompt-line" ref={promptRef}>
           Готовим {card.nounPhrase}. Какой суп получится?
         </div>
       </div>
