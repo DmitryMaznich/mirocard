@@ -16,6 +16,7 @@ import {
   consumePasswordResetToken,
   createEmailVerificationToken,
   consumeEmailVerificationToken,
+  serializeAccount,
 } from "../lib/account-repository.mjs";
 
 function makeDb() { return initDb(":memory:"); }
@@ -51,13 +52,25 @@ test("findAccountByEmail returns null for unknown email", () => {
   assert.equal(findAccountByEmail(db, "nope@example.com"), null);
 });
 
-test("updateAccount updates display_name", () => {
+test("updateAccount recomputes display_name from first/last name", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "upd@example.com", passwordHash: "h" });
   activateAccount(db, acc.id);
-  updateAccount(db, acc.id, { displayName: "New Name" });
+  updateAccount(db, acc.id, { firstName: "Анна", lastName: "Петрова" });
   const found = findAccountById(db, acc.id);
-  assert.equal(found.display_name, "New Name");
+  assert.equal(found.first_name, "Анна");
+  assert.equal(found.last_name, "Петрова");
+  assert.equal(found.display_name, "Анна Петрова");
+});
+
+test("updateAccount updates role and preserves untouched fields", () => {
+  const db = makeDb();
+  const acc = createAccount(db, { email: "role@example.com", passwordHash: "h", firstName: "Олег" });
+  activateAccount(db, acc.id);
+  updateAccount(db, acc.id, { role: "specialist" });
+  const found = findAccountById(db, acc.id);
+  assert.equal(found.role, "specialist");
+  assert.equal(found.first_name, "Олег"); // untouched field preserved
 });
 
 test("storeAuthToken and findAccountByToken", () => {
@@ -265,4 +278,22 @@ test("consumeEmailVerificationToken returns null for expired token", () => {
     "INSERT INTO email_verification_tokens (token_hash, account_id, expires_at, created_at) VALUES (?, ?, ?, ?)"
   ).run("expired_hash", acc.id, "2000-01-01T00:00:00.000Z", new Date().toISOString());
   assert.equal(consumeEmailVerificationToken(db, "expired_hash"), null);
+});
+
+test("serializeAccount exposes camelCase fields and hides password_hash", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  const serialized = serializeAccount(acc);
+  assert.equal(serialized.id, acc.id);
+  assert.equal(serialized.email, acc.email);
+  assert.equal(serialized.firstName, "Мария");
+  assert.equal(serialized.lastName, "Иванова");
+  assert.equal(serialized.role, "parent");
+  assert.ok(serialized.createdAt);
+  assert.equal(serialized.password_hash, undefined);
+  assert.equal(serialized.passwordHash, undefined);
+});
+
+test("serializeAccount returns null for null input", () => {
+  assert.equal(serializeAccount(null), null);
 });

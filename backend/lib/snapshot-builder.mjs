@@ -2,7 +2,7 @@ import {
   findAccountById, getAccountSettings, getRevision,
   getStudents, getAccountTopics,
   getStudentTopicLinks, getAllConceptProgress,
-  getAllAccountKv,
+  getAllAccountKv, serializeAccount,
 } from "./account-repository.mjs";
 
 function safeJson(value, fallback) {
@@ -22,11 +22,7 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
   const kvStore           = getAllAccountKv(db, accountId);
 
   return {
-    account: {
-      id:          account.id,
-      email:       account.email,
-      displayName: account.display_name,
-    },
+    account: serializeAccount(account),
     settings: {
       uiLanguage:       settings?.ui_language ?? "ru",
       cardLanguage:     settings?.card_language ?? "ru",

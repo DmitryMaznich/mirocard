@@ -13,6 +13,7 @@ import { getDb } from "./lib/db.mjs";
 import {
   createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
   updateAccount, updateAccountPasswordHash, deleteAccount, activateAccount,
+  serializeAccount,
   storeAuthToken, findAccountByToken, deleteAuthToken,
   getAccountSettings, updateAccountSettings,
   getRevision,
@@ -243,7 +244,7 @@ async function handleLogin(req, res) {
   const settings = getAccountSettings(db, account.id);
 
   writeJson(res, 200, {
-    account: { id: account.id, email: account.email, displayName: account.display_name },
+    account: serializeAccount(account),
     settings,
     token,
   });
@@ -287,7 +288,7 @@ async function handleResetPassword(req, res) {
   const settings = getAccountSettings(db, account.id);
 
   writeJson(res, 200, {
-    account: { id: account.id, email: account.email, displayName: account.display_name },
+    account: serializeAccount(account),
     settings,
     token,
   });
@@ -308,7 +309,7 @@ async function handleVerifyEmail(req, res) {
   const settings = getAccountSettings(db, account.id);
 
   writeJson(res, 200, {
-    account: { id: account.id, email: account.email, displayName: account.display_name },
+    account: serializeAccount(account),
     settings,
     token,
   });
@@ -338,10 +339,19 @@ async function handleResendVerification(req, res) {
 async function handlePatchAccount(req, res) {
   const account = requireAuth(req);
   const body = await readJsonBody(req);
-  const displayName = String(body?.displayName ?? "").trim();
-  if (displayName) updateAccount(db, account.id, { displayName });
+
+  const firstName = body?.firstName !== undefined ? String(body.firstName).trim() : undefined;
+  const lastName = body?.lastName !== undefined ? String(body.lastName).trim() : undefined;
+  const role = body?.role !== undefined ? String(body.role) : undefined;
+
+  if (firstName === "") return writeJson(res, 400, { error: "First name is required" });
+  if (role !== undefined && !["parent", "specialist"].includes(role)) {
+    return writeJson(res, 400, { error: "Invalid role" });
+  }
+
+  updateAccount(db, account.id, { firstName, lastName, role });
   const updated = findAccountById(db, account.id);
-  writeJson(res, 200, { id: updated.id, email: updated.email, displayName: updated.display_name });
+  writeJson(res, 200, serializeAccount(updated));
 }
 
 async function handleChangePassword(req, res) {

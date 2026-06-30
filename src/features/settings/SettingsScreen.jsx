@@ -5,6 +5,9 @@ import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import PinGateModal from "@/shared/components/PinGateModal";
 import { getVoiceEngineId, getEngineLabel } from "@/shared/hooks/useSpeech";
+import AccountCard from "./AccountCard";
+import ChangePasswordModal from "./ChangePasswordModal";
+import DangerZone from "./DangerZone";
 
 function fakeSession(pct, studentId, topicId) {
   const total = 10;
@@ -27,7 +30,6 @@ function fakeSession(pct, studentId, topicId) {
 
 export default function SettingsScreen() {
   const setScreen        = useAppStore((s) => s.setScreen);
-  const account          = useAppStore((s) => s.account);
   const buildInfo        = useAppStore((s) => s.buildInfo);
   const logout           = useAppStore((s) => s.logout);
   const appendSession    = useAppStore((s) => s.appendSession);
@@ -74,6 +76,7 @@ export default function SettingsScreen() {
   }
 
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [voicesOpen, setVoicesOpen] = useState(false);
 
   // Load all voices (Chrome on Android fires voiceschanged asynchronously)
@@ -135,15 +138,15 @@ export default function SettingsScreen() {
       </div>
 
       <div className="settings-body">
+        <AccountCard />
+
         <div className="settings-section">
-          <div className="settings-section-title">Аккаунт</div>
+          <div className="settings-section-title">Безопасность</div>
           <div className="settings-row">
-            <div className="settings-row__label">Email</div>
-            <div className="settings-row__value">{account?.email ?? "—"}</div>
-          </div>
-          <div className="settings-row">
-            <div className="settings-row__label">Имя</div>
-            <div className="settings-row__value">{account?.displayName ?? "—"}</div>
+            <span className="settings-row__label">Пароль</span>
+            <button className="link-btn" onClick={() => setChangePasswordOpen(true)}>
+              Сменить пароль
+            </button>
           </div>
         </div>
 
@@ -261,6 +264,8 @@ export default function SettingsScreen() {
         </div>
       </div>
 
+      <DangerZone />
+
       <div className="settings-section" style={{ borderTop: "1px dashed #ddd", marginTop: 8 }}>
         <div
           className="settings-section-title"
@@ -316,6 +321,9 @@ export default function SettingsScreen() {
           onSetPin={handleSetNewPin}
           onCancel={() => setPinResetMode(null)}
         />
+      )}
+      {changePasswordOpen && (
+        <ChangePasswordModal onClose={() => setChangePasswordOpen(false)} />
       )}
     </div>
   );

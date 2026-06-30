@@ -121,10 +121,29 @@ export function findAccountById(db, id) {
   ).get(id) ?? null;
 }
 
-export function updateAccount(db, id, { displayName }) {
+export function serializeAccount(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    email: row.email,
+    displayName: row.display_name,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    role: row.role,
+    createdAt: row.created_at,
+  };
+}
+
+export function updateAccount(db, id, { firstName, lastName, role }) {
+  const current = findAccountByIdAny(db, id);
+  const nextFirstName = firstName ?? current.first_name;
+  const nextLastName = lastName ?? current.last_name;
+  const nextRole = role ?? current.role;
+  const displayName = [nextFirstName, nextLastName].filter(Boolean).join(" ") || current.email.split("@")[0];
+
   db.prepare(`
-    UPDATE accounts SET display_name = ?, updated_at = ? WHERE id = ?
-  `).run(displayName, now(), id);
+    UPDATE accounts SET first_name = ?, last_name = ?, role = ?, display_name = ?, updated_at = ? WHERE id = ?
+  `).run(nextFirstName, nextLastName, nextRole, displayName, now(), id);
 }
 
 export function updateAccountPasswordHash(db, id, passwordHash) {
