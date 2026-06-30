@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { initDb } from "../lib/db.mjs";
-import { createAccount, upsertStudent, appendSession, upsertAccountTopic, upsertConceptProgress } from "../lib/account-repository.mjs";
+import { createAccount, activateAccount, upsertStudent, appendSession, upsertAccountTopic, upsertConceptProgress } from "../lib/account-repository.mjs";
 import { buildBootstrap } from "../lib/snapshot-builder.mjs";
 
 function makeDb() { return initDb(":memory:"); }
@@ -9,6 +9,7 @@ function makeDb() { return initDb(":memory:"); }
 test("buildBootstrap returns expected shape", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "b@test.com", passwordHash: "hash" });
+  activateAccount(db, acc.id);
   upsertStudent(db, acc.id, { id: "s1", name: "Маша", rewardVideos: ["https://youtu.be/example1"] });
   appendSession(db, acc.id, {
     id: "sess1", studentId: "s1", topicId: "clothes", topicVersion: "2.0.0",
@@ -40,6 +41,7 @@ test("buildBootstrap returns expected shape", () => {
 test("buildBootstrap with empty account returns valid shape", () => {
   const db = makeDb();
   const acc = createAccount(db, { email: "c@test.com", passwordHash: "h" });
+  activateAccount(db, acc.id);
   const snap = buildBootstrap(db, acc.id, 0);
   assert.ok(typeof snap.revision === "number");
   assert.ok(Array.isArray(snap.students));
