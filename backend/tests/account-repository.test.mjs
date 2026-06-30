@@ -120,6 +120,10 @@ import {
   getAllSessions,
   upsertAccountTopic,
   getAccountTopics,
+  getAccountTopicByTopicId,
+  claimAccountTopic,
+  grantAccountTopic,
+  setAccountFeatureFlags,
   upsertStudentTopicLink,
   getStudentTopicLinks,
   upsertConceptProgress,
@@ -296,4 +300,57 @@ test("serializeAccount exposes camelCase fields and hides password_hash", () => 
 
 test("serializeAccount returns null for null input", () => {
   assert.equal(serializeAccount(null), null);
+});
+
+test("serializeAccount includes featureFlags", () => {
+  const db = makeDb();
+  const acc = makeFullAccount(db);
+  activateAccount(db, acc.id);
+  setAccountFeatureFlags(db, acc.id, ["beta"]);
+  const row = db.prepare("SELECT * FROM accounts WHERE id = ?").get(acc.id);
+  const s = serializeAccount(row);
+  assert.deepEqual(s.featureFlags, ["beta"]);
+});
+
+test("claimAccountTopic creates row for free deck", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  const row = claimAccountTopic(db, acc.id, { topicId: "deck_a", topicVersion: "1.0.0", source: "free" });
+  assert.equal(row.topic_id, "deck_a");
+  assert.equal(row.source, "free");
+});
+
+test("claimAccountTopic is idempotent — returns existing row", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  const r1 = claimAccountTopic(db, acc.id, { topicId: "deck_b", topicVersion: "1.0.0", source: "free" });
+  const r2 = claimAccountTopic(db, acc.id, { topicId: "deck_b", topicVersion: "1.1.0", source: "free" });
+  assert.equal(r1.id, r2.id);
+  assert.equal(r2.topic_version, "1.0.0"); // version not changed by second call
+});
+
+test("grantAccountTopic upgrades request to grant", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  claimAccountTopic(db, acc.id, { topicId: "deck_c", topicVersion: "1.0.0", source: "request" });
+  grantAccountTopic(db, acc.id, { topicId: "deck_c", topicVersion: "1.0.0" });
+  const row = getAccountTopicByTopicId(db, acc.id, "deck_c");
+  assert.equal(row.source, "grant");
+});
+
+test("grantAccountTopic creates new row if none exists", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  grantAccountTopic(db, acc.id, { topicId: "deck_d", topicVersion: "2.0.0" });
+  const row = getAccountTopicByTopicId(db, acc.id, "deck_d");
+  assert.ok(row);
+  assert.equal(row.source, "grant");
+});
+
+test("setAccountFeatureFlags updates account flags", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  setAccountFeatureFlags(db, acc.id, ["beta", "experimental"]);
+  const row = db.prepare("SELECT feature_flags FROM accounts WHERE id = ?").get(acc.id);
+  assert.deepEqual(JSON.parse(row.feature_flags), ["beta", "experimental"]);
 });

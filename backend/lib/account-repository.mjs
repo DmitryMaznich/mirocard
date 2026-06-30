@@ -130,6 +130,7 @@ export function serializeAccount(row) {
     firstName: row.first_name,
     lastName: row.last_name,
     role: row.role,
+    featureFlags: safeJson(row.feature_flags, []),
     createdAt: row.created_at,
   };
 }
@@ -433,6 +434,40 @@ export function softDeleteAccountTopic(db, id) {
   db.prepare(
     "UPDATE account_topics SET deleted_at = ? WHERE id = ?"
   ).run(now(), id);
+}
+
+export function getAccountTopicByTopicId(db, accountId, topicId) {
+  return db.prepare(
+    "SELECT * FROM account_topics WHERE account_id = ? AND topic_id = ? AND deleted_at IS NULL ORDER BY acquired_at DESC LIMIT 1"
+  ).get(accountId, topicId) ?? null;
+}
+
+export function claimAccountTopic(db, accountId, { topicId, topicVersion, source }) {
+  const existing = getAccountTopicByTopicId(db, accountId, topicId);
+  if (existing) return existing;
+  const ts = now();
+  const id = randomUUID();
+  db.prepare(
+    "INSERT INTO account_topics (id, account_id, topic_id, topic_version, acquired_at, source) VALUES (?, ?, ?, ?, ?, ?)"
+  ).run(id, accountId, topicId, topicVersion, ts, source);
+  return getAccountTopicByTopicId(db, accountId, topicId);
+}
+
+export function grantAccountTopic(db, accountId, { topicId, topicVersion }) {
+  const existing = getAccountTopicByTopicId(db, accountId, topicId);
+  if (existing) {
+    db.prepare("UPDATE account_topics SET source = 'grant', topic_version = ? WHERE id = ?")
+      .run(topicVersion, existing.id);
+  } else {
+    db.prepare(
+      "INSERT INTO account_topics (id, account_id, topic_id, topic_version, acquired_at, source) VALUES (?, ?, ?, ?, ?, 'grant')"
+    ).run(randomUUID(), accountId, topicId, topicVersion, now());
+  }
+}
+
+export function setAccountFeatureFlags(db, accountId, flags) {
+  db.prepare("UPDATE accounts SET feature_flags = ? WHERE id = ?")
+    .run(JSON.stringify(flags), accountId);
 }
 
 // ─── Student topic links ──────────────────────────────────────────────────────

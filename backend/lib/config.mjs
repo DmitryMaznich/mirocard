@@ -36,6 +36,9 @@ export const SMTP_PASS    = readEnv("SMTP_PASS");
 export const SMTP_FROM    = readEnv("SMTP_FROM") || "Mirocard <noreply@mirocard.app>";
 export const APP_BASE_URL = readEnv("APP_BASE_URL") || "http://localhost:5174";
 
+// Admin
+export const ADMIN_TOKEN = readEnv("MIROCARD_ADMIN_TOKEN") || "dev-admin-token-change-me";
+
 // Anthropic
 export const ANTHROPIC_API_KEY = readEnv("ANTHROPIC_API_KEY");
 

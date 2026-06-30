@@ -12345,6 +12345,40 @@ button {
   color: #6b8380;
   background: #f5f7f7;
 }
+.topic-action-chip--request {
+  border-color: #4a9b8f;
+  color: #2a6b60;
+  background: #e6f5f3;
+}
+.topic-action-chip--pending {
+  border-color: #c8d4d2;
+  color: #9aa6a3;
+  background: #f5f7f7;
+  font-style: italic;
+}
+
+/* ─── Catalog status badges ──────────────────────────────────────────────── */
+.catalog-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+.catalog-badge--beta {
+  background: #e8f0fe;
+  color: #3a5fc8;
+  border: 1px solid #b8cbf8;
+}
+.catalog-badge--experimental {
+  background: #fef0e6;
+  color: #b05a10;
+  border: 1px solid #f8cfaa;
+}
 
 /* ─── Catalog section headers ────────────────────────────────────────────── */
 .catalog-section { margin-bottom: 4px; }

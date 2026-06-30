@@ -1,30 +1,32 @@
 import { getDb } from "@/core/db";
 import { importTopic, TopicImportError } from "@/topics/topicLoader";
 import { clearRendererCache } from "@/topics/rendererLoader";
+import { api, getApiToken } from "@/core/api";
 
-export const CATALOG_URL = "./decks/catalog.json";
+export function getImportErrorMessage(err) {
+  if (err instanceof TopicImportError) return err.message;
+  return `Ошибка загрузки: ${err?.message ?? err}`;
+}
 
-export function buildServerUrl(resourceUrl, force = false) {
-  const url = new URL(resourceUrl, window.location.href);
-  if (force) {
-    url.searchParams.set("_refresh", `${Date.now()}_${Math.random().toString(36).slice(2)}`);
+export async function fetchCatalog() {
+  return api.get("/decks/catalog");
+}
+
+export async function claimDeck(topicId) {
+  return api.post(`/decks/${topicId}/claim`, {});
+}
+
+export async function fetchCatalogTopic(entry, appVersion) {
+  const token = getApiToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const res = await fetch(`/api/decks/${entry.id}/download`, { headers });
+  if (!res.ok) {
+    let message = res.statusText;
+    try { message = (await res.json()).error || message; } catch (e) { void e; }
+    throw new Error(message);
   }
-  return url.href;
-}
 
-export async function fetchCatalog(force = false) {
-  const res = await fetch(buildServerUrl(CATALOG_URL, force), {
-    cache: force ? "reload" : "no-store",
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-export async function fetchCatalogTopic(entry, appVersion, force = false) {
-  const res = await fetch(buildServerUrl(entry.url, force), {
-    cache: force ? "reload" : "default",
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const buf = await res.arrayBuffer();
   const db = await getDb();
   const record = await importTopic(db, buf, appVersion);
@@ -32,14 +34,9 @@ export async function fetchCatalogTopic(entry, appVersion, force = false) {
   return record;
 }
 
-export function getImportErrorMessage(err) {
-  if (err instanceof TopicImportError) return err.message;
-  return `Ошибка загрузки: ${err?.message ?? err}`;
-}
-
 export async function silentUpdateOutdatedTopics({ topicRecords, appVersion }) {
   try {
-    const catalog = await fetchCatalog(false);
+    const catalog = await fetchCatalog();
     const installedById = Object.fromEntries(topicRecords.map((r) => [r.meta.id, r]));
     const outdated = (catalog.decks ?? []).filter((entry) => {
       const installed = installedById[entry.id];
@@ -51,13 +48,11 @@ export async function silentUpdateOutdatedTopics({ topicRecords, appVersion }) {
     const updated = [];
     for (const entry of outdated) {
       try {
-        const record = await fetchCatalogTopic(entry, appVersion, false);
+        const record = await fetchCatalogTopic(entry, appVersion);
         const idx = nextRecords.findIndex((r) => r.meta.id === record.meta.id);
         if (idx >= 0) nextRecords[idx] = record;
         updated.push(record);
-      } catch {
-        // ignore per-topic errors silently
-      }
+      } catch (e) { void e; }
     }
     return { nextRecords, updated };
   } catch {
@@ -65,12 +60,8 @@ export async function silentUpdateOutdatedTopics({ topicRecords, appVersion }) {
   }
 }
 
-export async function refreshInstalledCatalogTopics({
-  topicRecords,
-  appVersion,
-  force = true,
-}) {
-  const catalog = await fetchCatalog(force);
+export async function refreshInstalledCatalogTopics({ topicRecords, appVersion }) {
+  const catalog = await fetchCatalog();
   const installedIds = new Set(topicRecords.map((record) => record.meta.id));
   const entries = (catalog.decks ?? []).filter((entry) => installedIds.has(entry.id));
 
@@ -80,7 +71,7 @@ export async function refreshInstalledCatalogTopics({
 
   for (const entry of entries) {
     try {
-      const record = await fetchCatalogTopic(entry, appVersion, force);
+      const record = await fetchCatalogTopic(entry, appVersion);
       const index = nextRecords.findIndex((item) => item.meta.id === record.meta.id);
       if (index >= 0) nextRecords[index] = record;
       else nextRecords.push(record);
@@ -90,11 +81,5 @@ export async function refreshInstalledCatalogTopics({
     }
   }
 
-  return {
-    catalog,
-    nextRecords,
-    updated,
-    failed,
-    skipped: topicRecords.length - entries.length,
-  };
+  return { catalog, nextRecords, updated, failed, skipped: topicRecords.length - entries.length };
 }

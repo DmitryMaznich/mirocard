@@ -1,11 +1,11 @@
 import { createServer } from "node:http";
 import { randomUUID, createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, createReadStream, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
-  DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR,
+  DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT,
 } from "./lib/config.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
@@ -23,6 +23,7 @@ import {
   upsertStudent, getStudents, softDeleteStudent,
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
+  getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
@@ -76,6 +77,28 @@ function requireAuth(req) {
   const account = findAccountByToken(db, hashToken(raw));
   if (!account) throw { status: 401, message: "Invalid or expired token" };
   return account;
+}
+
+function requireAdmin(req) {
+  const raw = getBearerToken(req);
+  if (!raw || raw !== ADMIN_TOKEN) throw { status: 403, message: "Admin access required" };
+}
+
+// ─── Catalog helpers ─────────────────────────────────────────────────────────
+
+const DECKS_DIR = path.join(DEPLOY_FRONTEND_DIR, "decks");
+
+function loadCatalog() {
+  return JSON.parse(readFileSync(path.join(DECKS_DIR, "catalog.json"), "utf8"));
+}
+
+function getCatalogEntry(topicId) {
+  const catalog = loadCatalog();
+  return (catalog.decks ?? []).find((d) => d.id === topicId) ?? null;
+}
+
+function isGranted(source) {
+  return ["free", "grant", "paid"].includes(source);
 }
 
 // ─── Resend verification rate limit ─────────────────────────────────────────
@@ -564,6 +587,106 @@ async function handleDeleteTopic(req, res) {
   writeNoContent(res);
 }
 
+// ─── Decks catalog + claim + download ────────────────────────────────────────
+
+async function handleGetDecksCatalog(req, res) {
+  const account = requireAuth(req);
+  const flags = new Set(JSON.parse(account.feature_flags ?? "[]"));
+  const catalog = loadCatalog();
+  const decks = (catalog.decks ?? []).filter((d) => {
+    const status = d.status ?? "release";
+    if (status === "release") return true;
+    return flags.has(status);
+  });
+  writeJson(res, 200, { ...catalog, decks });
+}
+
+async function handleClaimDeck(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const topicId = url.pathname.split("/")[2];
+
+  const entry = getCatalogEntry(topicId);
+  if (!entry) return writeJson(res, 404, { error: "Deck not found in catalog" });
+
+  const access = entry.access ?? "free";
+  const existing = getAccountTopicByTopicId(db, account.id, topicId);
+
+  if (existing && isGranted(existing.source)) {
+    return writeJson(res, 200, { status: "granted", topicId });
+  }
+  if (existing && existing.source === "request") {
+    return writeJson(res, 200, { status: "pending", topicId });
+  }
+
+  if (access === "free") {
+    claimAccountTopic(db, account.id, { topicId, topicVersion: entry.version, source: "free" });
+    return writeJson(res, 200, { status: "granted", topicId });
+  }
+
+  // paid — create pending request
+  claimAccountTopic(db, account.id, { topicId, topicVersion: entry.version, source: "request" });
+  return writeJson(res, 200, { status: "pending", topicId });
+}
+
+async function handleDownloadDeck(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const topicId = url.pathname.split("/")[2];
+
+  const entry = getCatalogEntry(topicId);
+  if (!entry) return writeJson(res, 404, { error: "Deck not found" });
+
+  const row = getAccountTopicByTopicId(db, account.id, topicId);
+  if (!row || !isGranted(row.source)) {
+    return writeJson(res, 403, { error: "No access to this deck" });
+  }
+
+  // entry.url is like "./decks/foo_v1.0.zip" — resolve relative to DECKS_DIR parent
+  const zipRelPath = entry.url.replace(/^\.\/decks\//, "");
+  const zipPath = path.join(DECKS_DIR, zipRelPath);
+
+  if (!existsSync(zipPath)) return writeJson(res, 404, { error: "Deck file not found" });
+
+  const stat = statSync(zipPath);
+  res.writeHead(200, {
+    "Content-Type": "application/zip",
+    "Content-Length": stat.size,
+    "Content-Disposition": `attachment; filename="${path.basename(zipPath)}"`,
+    "Cache-Control": "private, max-age=3600",
+  });
+  createReadStream(zipPath).pipe(res);
+}
+
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
+async function handleAdminSetFlags(req, res) {
+  requireAdmin(req);
+  const body = await readJsonBody(req);
+  if (!body?.email || !Array.isArray(body.flags)) {
+    return writeJson(res, 400, { error: "email and flags[] required" });
+  }
+  const account = findAccountByEmailAny(db, body.email);
+  if (!account) return writeJson(res, 404, { error: "Account not found" });
+  setAccountFeatureFlags(db, account.id, body.flags);
+  writeJson(res, 200, { ok: true, email: account.email, flags: body.flags });
+}
+
+async function handleAdminGrant(req, res) {
+  requireAdmin(req);
+  const body = await readJsonBody(req);
+  if (!body?.email || !body?.topicId) {
+    return writeJson(res, 400, { error: "email and topicId required" });
+  }
+  const account = findAccountByEmailAny(db, body.email);
+  if (!account) return writeJson(res, 404, { error: "Account not found" });
+
+  const entry = getCatalogEntry(body.topicId);
+  const version = entry?.version ?? "unknown";
+  grantAccountTopic(db, account.id, { topicId: body.topicId, topicVersion: version });
+  writeJson(res, 200, { ok: true, email: account.email, topicId: body.topicId });
+}
+
 // ─── Student topic links + concept progress ────────────────────────────────────
 
 async function handleGetStudentTopicLinks(req, res) {
@@ -911,6 +1034,12 @@ async function router(req, res) {
     if (method === "GET"    && p === "/account-topics")           return await handleGetTopics(req, res);
     if (method === "POST"   && p === "/account-topics")           return await handleAcquireTopic(req, res);
     if (method === "DELETE" && /^\/account-topics\/[^/]+$/.test(p)) return await handleDeleteTopic(req, res);
+
+    if (method === "GET"    && p === "/decks/catalog")                             return await handleGetDecksCatalog(req, res);
+    if (method === "POST"   && /^\/decks\/[^/]+\/claim$/.test(p))                 return await handleClaimDeck(req, res);
+    if (method === "GET"    && /^\/decks\/[^/]+\/download$/.test(p))              return await handleDownloadDeck(req, res);
+    if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
+    if (method === "POST"   && p === "/admin/grant")                               return await handleAdminGrant(req, res);
 
     // Student topic links + concept progress
     if (method === "GET"    && p === "/student-topic-links")      return await handleGetStudentTopicLinks(req, res);

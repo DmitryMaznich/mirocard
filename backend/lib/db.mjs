@@ -224,6 +224,9 @@ export function initDb(dbPath = DB_PATH) {
   if (!accountColumns.includes("consent_personal_data_at")) {
     db.exec("ALTER TABLE accounts ADD COLUMN consent_personal_data_at TEXT NOT NULL DEFAULT ''");
   }
+  if (!accountColumns.includes("feature_flags")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN feature_flags TEXT NOT NULL DEFAULT '[]'");
+  }
 
   const portalColumns = db.prepare("PRAGMA table_info(student_portals)").all();
   if (!portalColumns.some((c) => c.name === "active_plan_data")) {

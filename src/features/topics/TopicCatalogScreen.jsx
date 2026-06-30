@@ -7,6 +7,7 @@ import { getTopicCatalogStatus } from "@/shared/utils/format";
 import {
   fetchCatalog,
   fetchCatalogTopic,
+  claimDeck,
   getImportErrorMessage,
   refreshInstalledCatalogTopics,
 } from "./catalogService";
@@ -37,18 +38,33 @@ const CATALOG_CATEGORIES = {
 };
 const CATEGORY_ORDER = ["Чтение", "Математика", "Словарный запас", "Практика"];
 
-function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) {
-  const status          = getTopicCatalogStatus(entry, topicRecords);
+const STATUS_BADGES = {
+  beta:         { label: "БЕТА",  className: "catalog-badge--beta" },
+  experimental: { label: "ЭКСП.", className: "catalog-badge--experimental" },
+};
+
+function CatalogTopicItem({ entry, topicRecords, ownedTopic, onInstall, onClaim, disabled = false }) {
+  const installStatus = getTopicCatalogStatus(entry, topicRecords);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState("");
+
   const installedRecord = topicRecords.find((r) => r.meta.id === entry.id);
   const avatarPath      = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(entry.id);
 
-  async function handleDownload() {
+  const access = entry.access ?? "free";
+  const claimSource = ownedTopic?.source ?? null;
+  const isPending = claimSource === "request";
+  const isGranted = claimSource && claimSource !== "request";
+
+  async function handleAction() {
     setLoading(true);
     setError("");
     try {
-      await onInstall(entry, { force: status !== "not_installed" });
+      if (!isGranted) {
+        const result = await onClaim(entry.id);
+        if (result.status === "pending") return; // UI will update via store
+      }
+      await onInstall(entry);
     } catch (err) {
       setError(getImportErrorMessage(err));
     } finally {
@@ -56,31 +72,46 @@ function CatalogTopicItem({ entry, topicRecords, onInstall, disabled = false }) 
     }
   }
 
-  const chipVariant = status === "not_installed"    ? "install"
-    : status === "update_available"                 ? "update"
-    : "sync";
+  // Button config
+  let chipVariant, chipLabel;
+  if (isPending) {
+    chipVariant = "pending";
+    chipLabel   = "Запрос отправлен";
+  } else if (!isGranted && access === "paid") {
+    chipVariant = "request";
+    chipLabel   = loading ? "…" : "Запросить доступ";
+  } else if (installStatus === "not_installed") {
+    chipVariant = "install";
+    chipLabel   = loading ? "…" : "↓ Установить";
+  } else if (installStatus === "update_available") {
+    chipVariant = "update";
+    chipLabel   = loading ? "…" : `↑ v${entry.version}`;
+  } else {
+    chipVariant = "sync";
+    chipLabel   = loading ? "…" : "↺ Синхр.";
+  }
 
-  const chipLabel = loading                         ? "…"
-    : status === "not_installed"                    ? "↓ Скачать"
-    : status === "update_available"                 ? `↑ v${entry.version}`
-    : "↺ Синхр.";
+  const badge = STATUS_BADGES[entry.status];
 
   return (
     <li className="topic-item">
       <TopicCover topicId={entry.id} avatarPath={avatarPath} title={entry.title} size="medium" />
       <div className="topic-item__info">
-        <div className="topic-item__title">{entry.title?.ru ?? entry.id}</div>
+        <div className="topic-item__title">
+          {entry.title?.ru ?? entry.id}
+          {badge && <span className={`catalog-badge ${badge.className}`}>{badge.label}</span>}
+        </div>
         <div className="topic-item__meta">
           v{entry.version}
-          {status === "installed"        && " · установлена"}
-          {status === "update_available" && installedRecord?.meta?.version && ` · сейчас v${installedRecord.meta.version}`}
+          {installStatus === "installed"        && " · установлена"}
+          {installStatus === "update_available" && installedRecord?.meta?.version && ` · сейчас v${installedRecord.meta.version}`}
         </div>
         {error && <div className="form-error">{error}</div>}
       </div>
       <button
         className={`topic-action-chip topic-action-chip--${chipVariant}`}
-        disabled={disabled || loading}
-        onClick={handleDownload}
+        disabled={disabled || loading || isPending}
+        onClick={handleAction}
       >
         {chipLabel}
       </button>
@@ -93,6 +124,8 @@ export default function TopicCatalogScreen() {
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const setTopicRecords   = useAppStore((s) => s.setTopicRecords);
   const upsertTopicRecord = useAppStore((s) => s.upsertTopicRecord);
+  const upsertOwnedTopic  = useAppStore((s) => s.upsertOwnedTopic);
+  const ownedTopics       = useAppStore((s) => s.ownedTopics);
   const buildInfo         = useAppStore((s) => s.buildInfo);
 
   const [catalog,         setCatalog]         = useState(null);
@@ -101,14 +134,13 @@ export default function TopicCatalogScreen() {
   const [catalogMessage,  setCatalogMessage]  = useState("");
   const [refreshingDecks, setRefreshingDecks] = useState(false);
 
-  const loadCatalog = useCallback(async (force = false) => {
+  const loadCatalog = useCallback(async () => {
     setCatalogLoading(true);
     setCatalogErr("");
     setCatalogMessage("");
     try {
-      const nextCatalog = await fetchCatalog(force);
+      const nextCatalog = await fetchCatalog();
       setCatalog(nextCatalog);
-      if (force) setCatalogMessage("Каталог обновлён");
       return nextCatalog;
     } catch {
       setCatalogErr("Не удалось загрузить каталог");
@@ -121,14 +153,21 @@ export default function TopicCatalogScreen() {
   useEffect(() => {
     if (catalog !== null) return;
     let cancelled = false;
-    fetchCatalog(false)
+    fetchCatalog()
       .then((c) => { if (!cancelled) setCatalog(c); })
       .catch(() => { if (!cancelled) setCatalogErr("Не удалось загрузить каталог"); });
     return () => { cancelled = true; };
   }, [catalog]);
 
-  const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
-    const record = await fetchCatalogTopic(entry, buildInfo.version, force);
+  const handleClaim = useCallback(async (topicId) => {
+    const result = await claimDeck(topicId);
+    // Update ownedTopics in store so button reflects new status immediately
+    upsertOwnedTopic({ topicId, source: result.status === "granted" ? "free" : "request" });
+    return result;
+  }, [upsertOwnedTopic]);
+
+  const installCatalogEntry = useCallback(async (entry) => {
+    const record = await fetchCatalogTopic(entry, buildInfo.version);
     upsertTopicRecord(record);
     return record;
   }, [buildInfo.version, upsertTopicRecord]);
@@ -141,7 +180,6 @@ export default function TopicCatalogScreen() {
       const result = await refreshInstalledCatalogTopics({
         topicRecords,
         appVersion: buildInfo.version,
-        force: true,
       });
       setCatalog(result.catalog);
       if (result.updated.length === 0 && result.failed.length === 0) {
@@ -164,12 +202,28 @@ export default function TopicCatalogScreen() {
     }
   }
 
+  const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
+
   const grouped = catalog
     ? CATEGORY_ORDER
         .map((cat) => ({ label: cat, entries: catalog.decks.filter((e) => CATALOG_CATEGORIES[e.id] === cat) }))
         .filter((g) => g.entries.length > 0)
     : [];
   const uncategorized = catalog ? catalog.decks.filter((e) => !CATALOG_CATEGORIES[e.id]) : [];
+
+  function renderEntry(entry) {
+    return (
+      <CatalogTopicItem
+        key={entry.id}
+        entry={entry}
+        topicRecords={topicRecords}
+        ownedTopic={ownedById[entry.id] ?? null}
+        onInstall={installCatalogEntry}
+        onClaim={handleClaim}
+        disabled={refreshingDecks}
+      />
+    );
+  }
 
   return (
     <div className="screen">
@@ -181,7 +235,7 @@ export default function TopicCatalogScreen() {
         <div className="catalog-actions">
           <Button
             variant="secondary"
-            onClick={() => loadCatalog(true)}
+            onClick={loadCatalog}
             disabled={catalogLoading || refreshingDecks}
           >
             {catalogLoading ? "Проверяем…" : "Обновить каталог"}
@@ -202,33 +256,13 @@ export default function TopicCatalogScreen() {
         {grouped.map((group) => (
           <div key={group.label} className="catalog-section">
             <div className="catalog-section-header">{group.label}</div>
-            <ul className="topic-list">
-              {group.entries.map((entry) => (
-                <CatalogTopicItem
-                  key={entry.id}
-                  entry={entry}
-                  topicRecords={topicRecords}
-                  onInstall={installCatalogEntry}
-                  disabled={refreshingDecks}
-                />
-              ))}
-            </ul>
+            <ul className="topic-list">{group.entries.map(renderEntry)}</ul>
           </div>
         ))}
         {uncategorized.length > 0 && (
           <div className="catalog-section">
             <div className="catalog-section-header">Другое</div>
-            <ul className="topic-list">
-              {uncategorized.map((entry) => (
-                <CatalogTopicItem
-                  key={entry.id}
-                  entry={entry}
-                  topicRecords={topicRecords}
-                  onInstall={installCatalogEntry}
-                  disabled={refreshingDecks}
-                />
-              ))}
-            </ul>
+            <ul className="topic-list">{uncategorized.map(renderEntry)}</ul>
           </div>
         )}
       </div>
