@@ -22,10 +22,11 @@ function memberSince(account) {
   }
 }
 
-export default function AccountCard() {
+export default function AccountCard({ onLogout }) {
   const account = useAppStore((s) => s.account);
   const setAccount = useAppStore((s) => s.setAccount);
 
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState(account?.firstName ?? "");
   const [lastName, setLastName] = useState(account?.lastName ?? "");
@@ -71,6 +72,17 @@ export default function AccountCard() {
   return (
     <div className="account-card">
       <div className="account-card__glow" aria-hidden="true" />
+
+      {!confirmLogout ? (
+        <button className="account-card__logout-btn" onClick={() => setConfirmLogout(true)}>
+          Выйти
+        </button>
+      ) : (
+        <div className="account-card__logout-confirm">
+          <button className="account-card__logout-no" onClick={() => setConfirmLogout(false)}>Нет</button>
+          <button className="account-card__logout-yes" onClick={onLogout}>Выйти</button>
+        </div>
+      )}
 
       <div className="account-card__avatar">{initialsOf(account)}</div>
 

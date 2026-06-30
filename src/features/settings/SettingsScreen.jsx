@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
-import Button from "@/shared/components/Button";
 import PinGateModal from "@/shared/components/PinGateModal";
 import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
@@ -47,7 +46,6 @@ export default function SettingsScreen() {
     setPinResetMode(null);
   }
 
-  const [confirmLogout, setConfirmLogout] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   async function handleLogout() {
@@ -68,7 +66,7 @@ export default function SettingsScreen() {
       </div>
 
       <div className="settings-body">
-        <AccountCard />
+        <AccountCard onLogout={handleLogout} />
 
         <div className="settings-section">
           <div className="settings-section-title">Безопасность</div>
@@ -78,19 +76,6 @@ export default function SettingsScreen() {
               Сменить пароль
             </button>
           </div>
-        </div>
-
-        <div className="settings-section">
-          {!confirmLogout ? (
-            <button className="settings-danger-btn" onClick={() => setConfirmLogout(true)}>
-              Выйти из аккаунта
-            </button>
-          ) : (
-            <div style={{ display: "flex", gap: 8, padding: 12 }}>
-              <Button variant="secondary" onClick={() => setConfirmLogout(false)}>Отмена</Button>
-              <Button variant="danger" onClick={handleLogout}>Выйти</Button>
-            </div>
-          )}
         </div>
 
         <div className="settings-section">
