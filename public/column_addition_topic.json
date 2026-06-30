@@ -2,7 +2,7 @@
   "meta": {
     "id": "column_addition",
     "renderer": "column_addition",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "title": { "ru": "Сложение и вычитание в столбик" }
   },
   "cards": [
@@ -40,6 +40,27 @@
     { "id": "fcount_a_5_4", "conceptId": "fcount_a_5_4", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 5, "b": 4 } },
     { "id": "fcount_a_5_5", "conceptId": "fcount_a_5_5", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 5, "b": 5 } },
 
+    { "id": "fcount_a_1_6", "conceptId": "fcount_a_1_6", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 1, "b": 6 } },
+    { "id": "fcount_a_1_7", "conceptId": "fcount_a_1_7", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 1, "b": 7 } },
+    { "id": "fcount_a_1_8", "conceptId": "fcount_a_1_8", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 1, "b": 8 } },
+    { "id": "fcount_a_1_9", "conceptId": "fcount_a_1_9", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 1, "b": 9 } },
+    { "id": "fcount_a_2_6", "conceptId": "fcount_a_2_6", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 2, "b": 6 } },
+    { "id": "fcount_a_2_7", "conceptId": "fcount_a_2_7", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 2, "b": 7 } },
+    { "id": "fcount_a_2_8", "conceptId": "fcount_a_2_8", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 2, "b": 8 } },
+    { "id": "fcount_a_3_6", "conceptId": "fcount_a_3_6", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 3, "b": 6 } },
+    { "id": "fcount_a_3_7", "conceptId": "fcount_a_3_7", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 3, "b": 7 } },
+    { "id": "fcount_a_4_6", "conceptId": "fcount_a_4_6", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 4, "b": 6 } },
+    { "id": "fcount_a_6_1", "conceptId": "fcount_a_6_1", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 6, "b": 1 } },
+    { "id": "fcount_a_6_2", "conceptId": "fcount_a_6_2", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 6, "b": 2 } },
+    { "id": "fcount_a_6_3", "conceptId": "fcount_a_6_3", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 6, "b": 3 } },
+    { "id": "fcount_a_6_4", "conceptId": "fcount_a_6_4", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 6, "b": 4 } },
+    { "id": "fcount_a_7_1", "conceptId": "fcount_a_7_1", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 7, "b": 1 } },
+    { "id": "fcount_a_7_2", "conceptId": "fcount_a_7_2", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 7, "b": 2 } },
+    { "id": "fcount_a_7_3", "conceptId": "fcount_a_7_3", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 7, "b": 3 } },
+    { "id": "fcount_a_8_1", "conceptId": "fcount_a_8_1", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 8, "b": 1 } },
+    { "id": "fcount_a_8_2", "conceptId": "fcount_a_8_2", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 8, "b": 2 } },
+    { "id": "fcount_a_9_1", "conceptId": "fcount_a_9_1", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "add", "a": 9, "b": 1 } },
+
     { "id": "fcount_s_2_1",  "conceptId": "fcount_s_2_1",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 2,  "b": 1 } },
     { "id": "fcount_s_3_1",  "conceptId": "fcount_s_3_1",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 3,  "b": 1 } },
     { "id": "fcount_s_3_2",  "conceptId": "fcount_s_3_2",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 3,  "b": 2 } },
@@ -61,6 +82,19 @@
     { "id": "fcount_s_9_4",  "conceptId": "fcount_s_9_4",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 9,  "b": 4 } },
     { "id": "fcount_s_9_5",  "conceptId": "fcount_s_9_5",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 9,  "b": 5 } },
     { "id": "fcount_s_10_4", "conceptId": "fcount_s_10_4", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 10, "b": 4 } },
-    { "id": "fcount_s_10_5", "conceptId": "fcount_s_10_5", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 10, "b": 5 } }
+    { "id": "fcount_s_10_5", "conceptId": "fcount_s_10_5", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 10, "b": 5 } },
+
+    { "id": "fcount_s_7_5",  "conceptId": "fcount_s_7_5",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 7,  "b": 5 } },
+    { "id": "fcount_s_7_6",  "conceptId": "fcount_s_7_6",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 7,  "b": 6 } },
+    { "id": "fcount_s_8_5",  "conceptId": "fcount_s_8_5",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 8,  "b": 5 } },
+    { "id": "fcount_s_8_6",  "conceptId": "fcount_s_8_6",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 8,  "b": 6 } },
+    { "id": "fcount_s_8_7",  "conceptId": "fcount_s_8_7",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 8,  "b": 7 } },
+    { "id": "fcount_s_9_6",  "conceptId": "fcount_s_9_6",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 9,  "b": 6 } },
+    { "id": "fcount_s_9_7",  "conceptId": "fcount_s_9_7",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 9,  "b": 7 } },
+    { "id": "fcount_s_9_8",  "conceptId": "fcount_s_9_8",  "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 9,  "b": 8 } },
+    { "id": "fcount_s_10_6", "conceptId": "fcount_s_10_6", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 10, "b": 6 } },
+    { "id": "fcount_s_10_7", "conceptId": "fcount_s_10_7", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 10, "b": 7 } },
+    { "id": "fcount_s_10_8", "conceptId": "fcount_s_10_8", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 10, "b": 8 } },
+    { "id": "fcount_s_10_9", "conceptId": "fcount_s_10_9", "renderer": "column_addition", "params": { "mode": "fingers_count", "op": "sub", "a": 10, "b": 9 } }
   ]
 }
