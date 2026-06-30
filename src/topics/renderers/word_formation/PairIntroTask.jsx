@@ -97,16 +97,14 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
         disabled={revealed}
       >
         {revealed ? (
-          <>
-            <div className="wf-pair__answer-card">
-              <div className="wf-pair__answer-text">
-                <em>{adj.rest}</em> {adj.last}
-              </div>
+          <div className="wf-pair__answer-card">
+            <div className="wf-pair__answer-text">
+              <em>{adj.rest}</em> {adj.last}
             </div>
             <div className="wf-pair__answer-result">
               <VisualImage topicId={topicId} path={card.image} className="wf-pair__answer-result-img" />
             </div>
-          </>
+          </div>
         ) : (
           <div className="wf-pair__answer-placeholder">Нажми, чтобы узнать ответ</div>
         )}
