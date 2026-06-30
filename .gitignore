@@ -44,6 +44,12 @@ codex-deploy-backfix*/
 __pycache__/
 *.pyc
 
+# Cache
+.cache/
+
+# Misc temp files
+chemex_review.html
+
 # Binary / document assets (not tracked in git)
 *.webp
 *.jpeg
