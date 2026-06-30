@@ -153,6 +153,14 @@
         "en": "Soup: word formation"
       },
       "renderer": "word_formation"
+    },
+    {
+      "id": "column_addition",
+      "version": "1.2.0",
+      "url": "./decks/column_addition_v1.2.0.zip",
+      "title": {
+        "ru": "Сложение и вычитание в столбик"
+      }
     }
   ]
 }
