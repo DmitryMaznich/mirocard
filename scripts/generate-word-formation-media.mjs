@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.3";
+const VERSION   = "1.0.4";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
@@ -29,40 +29,81 @@ const TTS_SA_PATH = "c:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials
 const TTS_VOICE   = "ru-RU-Wavenet-D";
 const TTS_RATE    = 0.9;
 
-const QUESTION_TEXT = "Какой суп получится?";
-const POT_PROMPT = "a large stainless steel cooking pot on a gas stove with blue flame burning underneath, steam rising from the pot, kitchen setting, warm natural lighting, top-down 3/4 view, clean white background, square composition, no text, no watermark, photorealistic educational photo";
+const Q_SOUP  = "Какой суп получится?";
+const Q_JUICE = "Какой сок получится?";
+const Q_JAM   = "Какое варенье получится?";
 
+const POT_PROMPT    = "a large stainless steel cooking pot on a gas stove with blue flame burning underneath, steam rising from the pot, kitchen setting, warm natural lighting, top-down 3/4 view, clean white background, square composition, no text, no watermark, photorealistic educational photo";
+const JUICER_PROMPT = "a modern electric centrifugal juicer on a clean kitchen counter, white and stainless steel design, simple and compact, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo";
+const BASIN_PROMPT  = "a wide traditional enamel basin or preserving pan filled with boiling red berry jam, foam and bubbles on the surface, steam rising, classic Russian jam-making style, warm kitchen lighting, top-down 3/4 view, square composition, no text, no watermark, child-friendly educational photo";
+
+// each concept must have: category, vesselImage, questionText, audioQuestion
 const CONCEPTS = [
-  { id: "ryba",    noun: "рыба",    nounPhrase: "суп из рыбы",    adjPhrase: "рыбный суп",    difficulty: "easy",   color: "#2196F3",
-    imgPrompt: "a steaming bowl of fish soup, clear broth with pieces of white fish and vegetables, rustic wooden table, warm natural lighting, appetizing, top-down view, square composition, no text, no watermark",
+  // ── супы ────────────────────────────────────────────────────────────────────
+  { id: "ryba",     noun: "рыба",     nounPhrase: "суп из рыбы",          adjPhrase: "рыбный суп",          difficulty: "easy",   color: "#2196F3", category: "soup",
+    imgPrompt: "a steaming bowl of fish soup, clear broth with pieces of white fish and vegetables, rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a fresh whole raw fish, lying on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "myaso",   noun: "мясо",    nounPhrase: "суп из мяса",    adjPhrase: "мясной суп",    difficulty: "easy",   color: "#F44336",
+  { id: "myaso",    noun: "мясо",     nounPhrase: "суп из мяса",          adjPhrase: "мясной суп",          difficulty: "easy",   color: "#F44336", category: "soup",
     imgPrompt: "a steaming bowl of meat soup, rich broth with chunks of tender beef, carrots, potatoes, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a piece of fresh raw beef meat, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "grib",    noun: "гриб",    nounPhrase: "суп из грибов",  adjPhrase: "грибной суп",   difficulty: "easy",   color: "#795548",
+  { id: "grib",     noun: "гриб",     nounPhrase: "суп из грибов",        adjPhrase: "грибной суп",         difficulty: "easy",   color: "#795548", category: "soup",
     imgPrompt: "a steaming bowl of mushroom soup, creamy or clear broth with sliced mushrooms and herbs, rustic wooden bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of fresh whole champignon mushrooms, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "kapusta", noun: "капуста", nounPhrase: "суп из капусты", adjPhrase: "капустный суп", difficulty: "easy",   color: "#4CAF50",
+  { id: "kapusta",  noun: "капуста",  nounPhrase: "суп из капусты",       adjPhrase: "капустный суп",       difficulty: "easy",   color: "#4CAF50", category: "soup",
     imgPrompt: "a steaming bowl of cabbage soup, clear broth with shredded cabbage and vegetables, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a whole fresh white cabbage head, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "kuritsa", noun: "курица",  nounPhrase: "суп из курицы",  adjPhrase: "куриный суп",   difficulty: "medium", color: "#FF9800",
+  { id: "kuritsa",  noun: "курица",   nounPhrase: "суп из курицы",        adjPhrase: "куриный суп",         difficulty: "medium", color: "#FF9800", category: "soup",
     imgPrompt: "a steaming bowl of chicken soup, golden clear broth with chicken pieces, carrots, noodles, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a whole fresh raw chicken, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "goroh",   noun: "горох",   nounPhrase: "суп из гороха",  adjPhrase: "гороховый суп", difficulty: "medium", color: "#8BC34A",
+  { id: "goroh",    noun: "горох",    nounPhrase: "суп из гороха",        adjPhrase: "гороховый суп",       difficulty: "medium", color: "#8BC34A", category: "soup",
     imgPrompt: "a steaming bowl of pea soup, thick creamy green soup with split peas, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "fresh green peas in pods, a small pile, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "luk",     noun: "лук",     nounPhrase: "суп из лука",    adjPhrase: "луковый суп",   difficulty: "medium", color: "#9C27B0",
+  { id: "luk",      noun: "лук",      nounPhrase: "суп из лука",          adjPhrase: "луковый суп",         difficulty: "medium", color: "#9C27B0", category: "soup",
     imgPrompt: "a steaming bowl of French onion soup, rich brown broth with caramelized onions and melted cheese crouton on top, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a few whole onions, one peeled, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "ovoschi", noun: "овощи",   nounPhrase: "суп из овощей",  adjPhrase: "овощной суп",   difficulty: "medium", color: "#009688",
+  { id: "ovoschi",  noun: "овощи",    nounPhrase: "суп из овощей",        adjPhrase: "овощной суп",         difficulty: "medium", color: "#009688", category: "soup",
     imgPrompt: "a steaming bowl of vegetable soup, colorful clear broth with carrots, peas, zucchini, tomatoes, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a colorful mix of fresh vegetables: carrot, zucchini, tomato, bell pepper, arranged together on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "fasolj",  noun: "фасоль",  nounPhrase: "суп из фасоли",  adjPhrase: "фасолевый суп", difficulty: "hard",   color: "#E91E63",
+  { id: "fasolj",   noun: "фасоль",   nounPhrase: "суп из фасоли",        adjPhrase: "фасолевый суп",       difficulty: "hard",   color: "#E91E63", category: "soup",
     imgPrompt: "a steaming bowl of bean soup, thick soup with red and white beans, tomatoes and herbs, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of dry red and white beans, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "tikva",   noun: "тыква",   nounPhrase: "суп из тыквы",   adjPhrase: "тыквенный суп", difficulty: "hard",   color: "#FF9800",
+  { id: "tikva",    noun: "тыква",    nounPhrase: "суп из тыквы",         adjPhrase: "тыквенный суп",       difficulty: "hard",   color: "#FF6F00", category: "soup",
     imgPrompt: "a steaming bowl of pumpkin soup, smooth bright orange creamy soup, rustic ceramic bowl with a swirl of cream and pumpkin seeds on top, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a small bright orange pumpkin and a slice showing the orange flesh, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+
+  // ── соки ────────────────────────────────────────────────────────────────────
+  { id: "yabloko",  noun: "яблоко",   nounPhrase: "сок из яблок",         adjPhrase: "яблочный сок",        difficulty: "easy",   color: "#8BC34A", category: "juice",
+    imgPrompt: "a tall clear glass of fresh apple juice, bright golden-yellow juice, a whole green apple beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "two fresh whole green apples, one whole and one cut in half showing the white flesh, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "morkov",   noun: "морковь",  nounPhrase: "сок из моркови",       adjPhrase: "морковный сок",       difficulty: "easy",   color: "#FF9800", category: "juice",
+    imgPrompt: "a tall clear glass of fresh carrot juice, bright orange juice, a whole carrot beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "two fresh whole bright orange carrots with green tops, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "vinograd", noun: "виноград", nounPhrase: "сок из винограда",     adjPhrase: "виноградный сок",     difficulty: "medium", color: "#9C27B0", category: "juice",
+    imgPrompt: "a tall clear glass of fresh grape juice, deep purple juice, a small bunch of dark purple grapes beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "a small bunch of dark purple grapes, glistening with freshness, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "apelsin",  noun: "апельсин", nounPhrase: "сок из апельсинов",    adjPhrase: "апельсиновый сок",    difficulty: "medium", color: "#FF5722", category: "juice",
+    imgPrompt: "a tall clear glass of fresh orange juice, bright vivid orange juice with pulp, a whole orange and a halved orange beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "two fresh whole oranges and one halved orange showing the bright orange flesh, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "vishnya",  noun: "вишня",    nounPhrase: "сок из вишни",         adjPhrase: "вишнёвый сок",        difficulty: "hard",   color: "#E91E63", category: "juice",
+    imgPrompt: "a tall clear glass of fresh cherry juice, deep red cherry juice, a handful of dark red cherries with stems beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of fresh dark red cherries with green stems, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+
+  // ── варенье ─────────────────────────────────────────────────────────────────
+  { id: "klubnika", noun: "клубника", nounPhrase: "варенье из клубники",  adjPhrase: "клубничное варенье",  difficulty: "easy",   color: "#E91E63", category: "jam",
+    imgPrompt: "a glass jar of homemade strawberry jam, bright red jam with whole strawberry pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of fresh ripe red strawberries, glistening and juicy, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "malina",   noun: "малина",   nounPhrase: "варенье из малины",    adjPhrase: "малиновое варенье",   difficulty: "easy",   color: "#F06292", category: "jam",
+    imgPrompt: "a glass jar of homemade raspberry jam, deep red-pink jam with raspberry pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of fresh ripe red raspberries, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sliva",    noun: "слива",    nounPhrase: "варенье из слив",      adjPhrase: "сливовое варенье",    difficulty: "medium", color: "#7B1FA2", category: "jam",
+    imgPrompt: "a glass jar of homemade plum jam, deep dark purple jam with plum pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "a few fresh whole dark purple plums, one cut in half showing the yellow flesh and stone, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "abrikos",  noun: "абрикос",  nounPhrase: "варенье из абрикосов", adjPhrase: "абрикосовое варенье", difficulty: "medium", color: "#FF9800", category: "jam",
+    imgPrompt: "a glass jar of homemade apricot jam, bright golden-orange jam with apricot pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "a few fresh whole ripe orange apricots, one cut in half showing the stone, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "chernika", noun: "черника",  nounPhrase: "варенье из черники",   adjPhrase: "черничное варенье",   difficulty: "hard",   color: "#3F51B5", category: "jam",
+    imgPrompt: "a glass jar of homemade blueberry jam, deep dark blue-purple jam, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of fresh dark blue blueberries, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
 ];
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -190,45 +231,48 @@ async function generateAudio(sa, concept, kind) {
   return buf;
 }
 
-async function generateQuestionAudio(sa) {
-  const filename = "question.mp3";
+async function generateQuestionAudio(sa, text, filename) {
   if (isCached(filename)) {
     console.log(`  [cache] audio ${filename}`);
     return readFileSync(cached(filename));
   }
-  process.stdout.write(`  [tts]  ${filename}: "${QUESTION_TEXT}" ... `);
-  const buf = await tts(sa, QUESTION_TEXT);
+  process.stdout.write(`  [tts]  ${filename}: "${text}" ... `);
+  const buf = await tts(sa, text);
   writeFileSync(cached(filename), buf);
   console.log(`OK (${Math.round(buf.length / 1024)} KB)`);
   await sleep(200);
   return buf;
 }
 
+const VESSEL = {
+  soup:  { image: "media/pot.webp",    question: Q_SOUP,  audio: "audio/question_soup.mp3"  },
+  juice: { image: "media/juicer.webp", question: Q_JUICE, audio: "audio/question_juice.mp3" },
+  jam:   { image: "media/basin.webp",  question: Q_JAM,   audio: "audio/question_jam.mp3"   },
+};
+
 // ─── Build topic.json ────────────────────────────────────────────────────────
 
 function buildTopic() {
   const cards = CONCEPTS.map(c => ({
-    id:               c.id,
-    noun:             c.noun,
-    nounPhrase:       c.nounPhrase,
-    adjPhrase:        c.adjPhrase,
-    difficulty:       c.difficulty,
-    color:            c.color,
-    image:            `media/${c.id}.webp`,
-    ingredientImage:  `media/${c.id}_ingredient.webp`,
-    audioPrepPhrase:  `audio/${c.id}_prep.mp3`,
-    audioAdjPhrase:   `audio/${c.id}_adj.mp3`,
-    vesselImage:      "media/pot.webp",
-    questionText:     QUESTION_TEXT,
+    id:              c.id,
+    noun:            c.noun,
+    nounPhrase:      c.nounPhrase,
+    adjPhrase:       c.adjPhrase,
+    difficulty:      c.difficulty,
+    color:           c.color,
+    image:           `media/${c.id}.webp`,
+    ingredientImage: `media/${c.id}_ingredient.webp`,
+    audioPrepPhrase: `audio/${c.id}_prep.mp3`,
+    audioAdjPhrase:  `audio/${c.id}_adj.mp3`,
+    vesselImage:     VESSEL[c.category].image,
+    questionText:    VESSEL[c.category].question,
+    audioQuestion:   VESSEL[c.category].audio,
   }));
 
   return {
     meta: {
       id: TOPIC_ID, renderer: "word_formation", version: VERSION,
-      title: { ru: "Суп: словообразование", en: "Soup: word formation" }, language: "ru",
-      potImage:      "media/pot.webp",
-      questionAudio: "audio/question.mp3",
-      questionText:  QUESTION_TEXT,
+      title: { ru: "Словообразование: суп, сок, варенье" }, language: "ru",
     },
     modes: [
       { id: "pair_intro",   type: "pair_intro",   evaluation: "none", requirePin: false,
@@ -260,33 +304,41 @@ async function main() {
   const sa = JSON.parse(readFileSync(TTS_SA_PATH, "utf8"));
 
   console.log("\n=== Генерация изображений ===");
-  const potImage = await generatePotImage();
-  const soupImages = {};
+  const vessels = {
+    "media/pot.webp":    await generateImageFromPrompt("pot.webp",    POT_PROMPT,    "pot"),
+    "media/juicer.webp": await generateImageFromPrompt("juicer.webp", JUICER_PROMPT, "juicer"),
+    "media/basin.webp":  await generateImageFromPrompt("basin.webp",  BASIN_PROMPT,  "basin"),
+  };
+  const resultImages = {};
   const ingredientImages = {};
-  for (const concept of CONCEPTS) {
-    soupImages[concept.id]       = await generateSoupImage(concept);
-    ingredientImages[concept.id] = await generateIngredientImage(concept);
+  for (const c of CONCEPTS) {
+    resultImages[c.id]     = await generateImageFromPrompt(`${c.id}.webp`,            c.imgPrompt,        c.id);
+    ingredientImages[c.id] = await generateImageFromPrompt(`${c.id}_ingredient.webp`, c.ingredientPrompt, `${c.id} (ingredient)`);
   }
 
   console.log("\n=== Генерация аудио ===");
-  const questionAudio = await generateQuestionAudio(sa);
+  const questionAudios = {
+    "audio/question_soup.mp3":  await generateQuestionAudio(sa, Q_SOUP,  "question_soup.mp3"),
+    "audio/question_juice.mp3": await generateQuestionAudio(sa, Q_JUICE, "question_juice.mp3"),
+    "audio/question_jam.mp3":   await generateQuestionAudio(sa, Q_JAM,   "question_jam.mp3"),
+  };
   const audio = {};
-  for (const concept of CONCEPTS) {
-    audio[`${concept.id}_prep`] = await generateAudio(sa, concept, "prep");
-    audio[`${concept.id}_adj`] = await generateAudio(sa, concept, "adj");
+  for (const c of CONCEPTS) {
+    audio[`${c.id}_prep`] = await generateAudio(sa, c, "prep");
+    audio[`${c.id}_adj`]  = await generateAudio(sa, c, "adj");
   }
 
   console.log("\n=== Упаковка ZIP ===");
   const topic = buildTopic();
   const zip = new JSZip();
   zip.file("topic.json", JSON.stringify(topic, null, 2));
-  zip.file("media/pot.webp", potImage);
-  zip.file("audio/question.mp3", questionAudio);
-  for (const concept of CONCEPTS) {
-    zip.file(`media/${concept.id}.webp`, soupImages[concept.id]);
-    zip.file(`media/${concept.id}_ingredient.webp`, ingredientImages[concept.id]);
-    zip.file(`audio/${concept.id}_prep.mp3`, audio[`${concept.id}_prep`]);
-    zip.file(`audio/${concept.id}_adj.mp3`,  audio[`${concept.id}_adj`]);
+  for (const [path, buf] of Object.entries(vessels))       zip.file(path, buf);
+  for (const [path, buf] of Object.entries(questionAudios)) zip.file(path, buf);
+  for (const c of CONCEPTS) {
+    zip.file(`media/${c.id}.webp`,            resultImages[c.id]);
+    zip.file(`media/${c.id}_ingredient.webp`, ingredientImages[c.id]);
+    zip.file(`audio/${c.id}_prep.mp3`,        audio[`${c.id}_prep`]);
+    zip.file(`audio/${c.id}_adj.mp3`,         audio[`${c.id}_adj`]);
   }
 
   const buf = await zip.generateAsync({ type: "nodebuffer" });
@@ -295,13 +347,15 @@ async function main() {
 
   const catalogPath = path.join(ROOT, "public", "decks", "catalog.json");
   const catalog = JSON.parse(readFileSync(catalogPath, "utf8"));
-  // Remove old versions of this deck
-  catalog.decks = catalog.decks.filter(d => d.id !== TOPIC_ID);
+  // Remove old versions of this deck AND the separate juice/jam decks
+  catalog.decks = catalog.decks.filter(
+    d => d.id !== TOPIC_ID && d.id !== "word_formation_juice" && d.id !== "word_formation_jam"
+  );
   catalog.decks.push({
     id: TOPIC_ID, version: VERSION,
     url: `./decks/${TOPIC_ID}_v${VERSION}.zip`,
     zipUrl: `${TOPIC_ID}_v${VERSION}.zip`,
-    title: { ru: "Суп: словообразование", en: "Soup: word formation" },
+    title: { ru: "Словообразование: суп, сок, варенье" },
     renderer: "word_formation",
   });
   writeFileSync(catalogPath, JSON.stringify(catalog, null, 2));

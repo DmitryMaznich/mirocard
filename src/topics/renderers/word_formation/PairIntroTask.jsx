@@ -52,7 +52,7 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
     playTopicFile(topicId, card.audioPrepPhrase);
 
     timersRef.current.push(
-      setTimeout(() => playTopicFile(topicId, "audio/question.mp3"), QUESTION_DELAY_MS)
+      setTimeout(() => playTopicFile(topicId, card.audioQuestion ?? "audio/question.mp3"), QUESTION_DELAY_MS)
     );
     timersRef.current.push(
       setTimeout(reveal, AUTO_REVEAL_DELAY_MS)

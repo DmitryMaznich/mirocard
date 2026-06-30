@@ -190,42 +190,13 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.3",
-      "url": "./decks/word_formation_soup_v1.0.3.zip",
-      "zipUrl": "word_formation_soup_v1.0.3.zip",
+      "version": "1.0.4",
+      "url": "./decks/word_formation_soup_v1.0.4.zip",
+      "zipUrl": "word_formation_soup_v1.0.4.zip",
       "title": {
-        "ru": "Суп: словообразование",
-        "en": "Soup: word formation"
+        "ru": "Словообразование: суп, сок, варенье"
       },
-      "renderer": "word_formation",
-      "status": "release",
-      "access": "free"
-    },
-    {
-      "id": "word_formation_juice",
-      "version": "1.0.0",
-      "url": "./decks/word_formation_juice_v1.0.0.zip",
-      "zipUrl": "word_formation_juice_v1.0.0.zip",
-      "title": {
-        "ru": "Сок: словообразование",
-        "en": "Juice: word formation"
-      },
-      "renderer": "word_formation",
-      "status": "release",
-      "access": "free"
-    },
-    {
-      "id": "word_formation_jam",
-      "version": "1.0.0",
-      "url": "./decks/word_formation_jam_v1.0.0.zip",
-      "zipUrl": "word_formation_jam_v1.0.0.zip",
-      "title": {
-        "ru": "Варенье: словообразование",
-        "en": "Jam: word formation"
-      },
-      "renderer": "word_formation",
-      "status": "release",
-      "access": "free"
+      "renderer": "word_formation"
     }
   ]
 }
