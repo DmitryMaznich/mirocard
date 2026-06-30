@@ -85,11 +85,11 @@
 }
 .wf-pair__answer-text {
   flex: 1; text-align: left;
-  font-size: clamp(5.2rem, 22vw, 6.8rem);
+  font-size: clamp(2.6rem, 11vw, 3.4rem);
   font-weight: 800; color: #000; letter-spacing: -0.3px;
 }
 .wf-pair__answer-text em {
-  font-style: normal;
+  font-style: normal; display: block;
 }
 .wf-pair__answer-result {
   flex-shrink: 0;
