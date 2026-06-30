@@ -16564,9 +16564,15 @@ button.operation-dot {
   color: #9aa6a3;
   font-style: italic;
 }
+.account-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
 .account-card__edit-btn {
   align-self: flex-start;
-  margin-top: 14px;
+  margin-top: 0;
   padding: 7px 14px;
   border-radius: 10px;
   border: 1.5px solid rgba(74, 155, 143, 0.35);
@@ -16580,6 +16586,23 @@ button.operation-dot {
 }
 .account-card__edit-btn:hover {
   background: #fff;
+  border-color: #4a9b8f;
+}
+.account-card__students-btn {
+  align-self: flex-start;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(74, 155, 143, 0.35);
+  background: rgba(74, 155, 143, 0.1);
+  color: #2a6b60;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.account-card__students-btn:hover {
+  background: rgba(74, 155, 143, 0.2);
   border-color: #4a9b8f;
 }
 .account-card__body--edit {

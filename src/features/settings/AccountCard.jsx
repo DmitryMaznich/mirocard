@@ -25,6 +25,7 @@ function memberSince(account) {
 export default function AccountCard({ onLogout }) {
   const account = useAppStore((s) => s.account);
   const setAccount = useAppStore((s) => s.setAccount);
+  const setScreen = useAppStore((s) => s.setScreen);
 
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -99,9 +100,14 @@ export default function AccountCard({ onLogout }) {
           <div className="account-card__email">{account?.email ?? "—"}</div>
           {sinceLabel && <div className="account-card__since">С нами с {sinceLabel}</div>}
 
-          <button className="account-card__edit-btn" onClick={startEdit} aria-label="Редактировать профиль">
-            ✎ Изменить
-          </button>
+          <div className="account-card__actions">
+            <button className="account-card__edit-btn" onClick={startEdit} aria-label="Редактировать профиль">
+              ✎ Изменить
+            </button>
+            <button className="account-card__students-btn" onClick={() => setScreen("students")}>
+              Ученики →
+            </button>
+          </div>
         </div>
       ) : (
         <div className="account-card__body account-card__body--edit">
