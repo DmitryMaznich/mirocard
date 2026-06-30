@@ -66,7 +66,7 @@
 
 /* answer (tap or auto-reveal) */
 .wf-pair__answer-wrap {
-  display: block; width: 100%; max-width: 420px;
+  display: block; width: 100%; max-width: 100%;
   margin: 0 auto;
   border: none; padding: 0; background: none;
   cursor: pointer;
@@ -85,7 +85,7 @@
 }
 .wf-pair__answer-text {
   flex: 1; text-align: left;
-  font-size: clamp(1.3rem, 5.5vw, 1.7rem);
+  font-size: clamp(5.2rem, 22vw, 6.8rem);
   font-weight: 800; color: #000; letter-spacing: -0.3px;
 }
 .wf-pair__answer-text em {
@@ -93,7 +93,7 @@
 }
 .wf-pair__answer-result {
   flex-shrink: 0;
-  width: min(110px, 26vw); height: min(110px, 26vw);
+  width: min(260px, 32vw); height: min(260px, 32vw);
   border-radius: 16px; overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
