@@ -734,6 +734,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
 export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, onPrevious, student, onMistake }) {
+  const strictMistake = sessionParams?.strictStars ? onMistake : undefined;
   if (mode?.type === "column_copy") {
     return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
   }
@@ -741,12 +742,11 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
     return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
   }
   if (task?.type === "fingers_count") {
-    return <FingersCountTask task={task} onCorrect={onCorrect} />;
+    return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={strictMistake} />;
   }
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;
   }
-  const strictMistake = sessionParams?.strictStars ? onMistake : undefined;
   return (
     <ColumnArithmeticTask
       key={`${task.cardId}-${task.top}-${task.bottom}-${task.operation}`}
