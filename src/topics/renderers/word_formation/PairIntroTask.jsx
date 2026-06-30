@@ -12,12 +12,6 @@ function VisualImage({ topicId, path, className }) {
     : <div className={`${className} wf-pair__visual-img--loading`} />;
 }
 
-function splitLastWord(text) {
-  const words = text.trim().split(" ");
-  const last = words.pop();
-  return { rest: words.join(" "), last };
-}
-
 export default function PairIntroTask({ task, topicId, onAdvance }) {
   const { cards } = task;
   const [index, setIndex]       = useState(0);
@@ -71,11 +65,11 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
 
   if (!card) return null;
 
-  const prep = splitLastWord(`Готовим ${card.nounPhrase}`);
-  const adj  = splitLastWord(card.adjPhrase);
-
   return (
-    <div className="wf-pair">
+    <div
+      className={`wf-pair${revealed ? " wf-pair--revealed" : ""}`}
+      onClick={!revealed ? reveal : undefined}
+    >
       <div className="wf-pair__visuals">
         <VisualImage topicId={topicId} path={card.ingredientImage} className="wf-pair__visual-img" />
         <div className="wf-pair__plus">+</div>
@@ -83,34 +77,21 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
       </div>
 
       <div className="wf-pair__prompt">
-        <div className="wf-pair__prompt-statement">
-          {prep.rest} <em>{prep.last}</em>
+        <div className="wf-pair__prompt-line">
+          Готовим {card.nounPhrase}. Какой суп получится?
         </div>
-        <div className="wf-pair__prompt-divider" />
-        <div className="wf-pair__prompt-question">Какой суп получится?</div>
       </div>
 
-      <button
-        type="button"
-        className="wf-pair__answer-wrap"
-        onClick={reveal}
-        disabled={revealed}
-      >
-        {revealed ? (
-          <div className="wf-pair__answer-card">
-            <div className="wf-pair__answer-text">
-              <em>{adj.rest}</em> {adj.last}
-            </div>
-            <div className="wf-pair__answer-result">
-              <VisualImage topicId={topicId} path={card.image} className="wf-pair__answer-result-img" />
-            </div>
+      {revealed && (
+        <div className="wf-pair__answer">
+          <div className="wf-pair__answer-text">{card.adjPhrase}</div>
+          <div className="wf-pair__answer-result">
+            <VisualImage topicId={topicId} path={card.image} className="wf-pair__answer-result-img" />
           </div>
-        ) : (
-          <div className="wf-pair__answer-placeholder">Нажми, чтобы узнать ответ</div>
-        )}
-      </button>
+        </div>
+      )}
 
-      <div className="wf-pair__nav">
+      <div className="wf-pair__nav" onClick={e => e.stopPropagation()}>
         <button className="wf-nav-btn" onClick={handlePrev} disabled={index === 0}>←</button>
         <div className="wf-pair__dots">
           {cards.map((c, i) => (
