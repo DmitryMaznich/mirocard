@@ -15,7 +15,7 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 
 const version = manifest.meta.version;
-const outFile = resolve(root, `public/column_addition_v${version}.zip`);
+const outFile = resolve(root, `public/decks/column_addition_v${version}.zip`);
 
 zip
   .generateNodeStream({ type: "nodebuffer", streamFiles: true })
