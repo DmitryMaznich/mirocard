@@ -161,7 +161,8 @@ html.app-ios-standalone {
   user-select: none;
 }
 
-.reading-illustration img {
+.reading-illustration img,
+.reading-illustration-svg svg {
   max-height: 100%;
   width: auto;
   max-width: clamp(480px, 104vw, 800px);
@@ -1327,7 +1328,8 @@ html.app-ios-standalone {
 }
 
 @media (min-width: 900px) {
-  .reading-illustration img {
+  .reading-illustration img,
+  .reading-illustration-svg svg {
     max-width: clamp(800px, 80vw, 1280px);
   }
 }

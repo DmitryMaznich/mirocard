@@ -37,11 +37,24 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null }) {
 
 function ReadingIllustration({ topicId, text }) {
   const url = useTopicFile(topicId, text?.image);
+  const isSvg = text?.image?.toLowerCase().endsWith(".svg");
+  const [svgHtml, setSvgHtml] = useState(null);
+
+  useEffect(() => {
+    if (!isSvg || !url) { setSvgHtml(null); return; }
+    let cancelled = false;
+    fetch(url).then((r) => r.text()).then((t) => { if (!cancelled) setSvgHtml(t); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [url, isSvg]);
+
   if (!text?.image || !url) return null;
 
   return (
     <div className="reading-illustration">
-      <img src={url} alt="" draggable={false} />
+      {isSvg
+        ? <div className="reading-illustration-svg" dangerouslySetInnerHTML={{ __html: svgHtml ?? "" }} />
+        : <img src={url} alt="" draggable={false} />
+      }
     </div>
   );
 }
