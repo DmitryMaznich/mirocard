@@ -14,12 +14,6 @@ spacing_diagonal = 20    # мм - стандарт российских школ
 angle_from_vertical = 65 # градусов
 margin = 15              # мм - поля
 
-# Поля для имени и даты
-name_label = "Имя:"
-date_label = "Дата:"
-field_height = 6         # мм
-field_margin_top = 0.5   # мм от верхнего края
-
 output_file = 'lined_paper_A4_landscape_standard.pdf'
 # ============================================================
 
@@ -40,30 +34,6 @@ c.setCreator("Kaplieva Center TEAM")
 # Фон
 c.setFillColorRGB(1, 1, 1)
 c.rect(0, 0, page_width, page_height, fill=1, stroke=0)
-
-# 1. Поля для имени и даты
-field_top_y = page_height - field_margin_top * mm
-name_label_x = 15 * mm
-name_field_x = name_label_x + 18 * mm
-name_field_y = field_top_y - 7 * mm
-name_field_width = 50 * mm
-
-date_label_x = name_field_x + name_field_width + 8 * mm
-date_field_x = date_label_x + 13 * mm
-date_field_y = name_field_y
-date_field_width = 35 * mm
-
-c.setStrokeColorRGB(0.55, 0.62, 0.72)
-c.setLineWidth(0.5)
-c.roundRect(name_field_x, name_field_y, name_field_width, field_height * mm,
-            radius=1.5*mm, fill=0, stroke=1)
-c.roundRect(date_field_x, date_field_y, date_field_width, field_height * mm,
-            radius=1.5*mm, fill=0, stroke=1)
-
-c.setFillColorRGB(0.4, 0.4, 0.4)
-c.setFont("Helvetica", 7)
-c.drawString(name_label_x, field_top_y - 2*mm, name_label)
-c.drawString(date_label_x, field_top_y - 2*mm, date_label)
 
 # 2. Горизонтальные линии
 c.setStrokeColorRGB(0.55, 0.62, 0.72)
