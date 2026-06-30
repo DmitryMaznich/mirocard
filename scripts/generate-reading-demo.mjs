@@ -10,38 +10,40 @@ const alinaPath = fileURLToPath(new URL("../Alina.png", import.meta.url));
 const polinaPath = fileURLToPath(new URL("../Polina.png", import.meta.url));
 
 async function buildSisterIllustration() {
-  // Full-bleed split portrait, matching the plain real-photo look of
-  // dad_best.webp / mom_love.webp: no background color, no frame, no mat.
-  const W = 480, H = 600, HALF = W / 2;
-  const DIVIDER = 4;
+  // Two separate photos in opposite bottom corners, plain background —
+  // no shared frame, no center seam. Crop close to the source ratio
+  // (896x1195 ≈ 0.75) and bias to the top so faces never get cut off.
+  const W = 480, H = 520;
+  const PHOTO_W = 196, PHOTO_H = 248;
+  const MARGIN = 22;
 
-  const mkHalf = (path, side) =>
+  const photoMaskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PHOTO_W}" height="${PHOTO_H}"><rect width="${PHOTO_W}" height="${PHOTO_H}" rx="16" fill="white"/></svg>`;
+  const photoMask = await sharp(Buffer.from(photoMaskSvg)).png().toBuffer();
+
+  const mkPhoto = (path) =>
     sharp(path)
-      .resize(HALF - DIVIDER / 2, H, { fit: "cover", position: "center" })
+      .resize(PHOTO_W, PHOTO_H, { fit: "cover", position: "top" })
+      .composite([{ input: photoMask, blend: "dest-in" }])
+      .png()
       .toBuffer();
 
-  const [alina, polina] = await Promise.all([mkHalf(alinaPath, "l"), mkHalf(polinaPath, "r")]);
+  const [alina, polina] = await Promise.all([mkPhoto(alinaPath), mkPhoto(polinaPath)]);
 
-  // Bottom name labels with a soft dark scrim for legibility over any photo
+  const leftX = MARGIN;
+  const rightX = W - MARGIN - PHOTO_W;
+  const photoY = H - MARGIN - PHOTO_H;
+
   const namesSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-    <defs>
-      <linearGradient id="scrim" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#000" stop-opacity="0"/>
-        <stop offset="100%" stop-color="#000" stop-opacity="0.45"/>
-      </linearGradient>
-    </defs>
-    <rect x="0" y="${H - 90}" width="${HALF - DIVIDER / 2}" height="90" fill="url(#scrim)"/>
-    <rect x="${HALF + DIVIDER / 2}" y="${H - 90}" width="${HALF - DIVIDER / 2}" height="90" fill="url(#scrim)"/>
-    <text x="${HALF / 2}" y="${H - 26}" text-anchor="middle" font-size="22" font-family="Georgia,serif" fill="#ffffff">&#x0410;&#x043b;&#x0438;&#x043d;&#x0430;</text>
-    <text x="${HALF + HALF / 2}" y="${H - 26}" text-anchor="middle" font-size="22" font-family="Georgia,serif" fill="#ffffff">&#x041f;&#x043e;&#x043b;&#x0438;&#x043d;&#x0430;</text>
+    <text x="${leftX + PHOTO_W / 2}" y="${photoY - 12}" text-anchor="middle" font-size="19" font-family="Georgia,serif" fill="#7a4060">&#x0410;&#x043b;&#x0438;&#x043d;&#x0430;</text>
+    <text x="${rightX + PHOTO_W / 2}" y="${photoY - 12}" text-anchor="middle" font-size="19" font-family="Georgia,serif" fill="#7a4060">&#x041f;&#x043e;&#x043b;&#x0438;&#x043d;&#x0430;</text>
   </svg>`;
   const names = await sharp(Buffer.from(namesSvg)).png().toBuffer();
 
-  return sharp({ create: { width: W, height: H, channels: 4, background: "#ffffff" } })
+  return sharp({ create: { width: W, height: H, channels: 4, background: "#fdfaf9" } })
     .composite([
-      { input: alina,  left: 0,                          top: 0 },
-      { input: polina, left: Math.round(HALF + DIVIDER / 2), top: 0 },
-      { input: names,  left: 0,                          top: 0 },
+      { input: names,  left: 0,      top: 0 },
+      { input: alina,  left: leftX,  top: photoY },
+      { input: polina, left: rightX, top: photoY },
     ])
     .webp({ quality: 92 })
     .toBuffer();
@@ -79,7 +81,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.18",
+    version: "1.0.19",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -486,4 +488,4 @@ zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
 zip.file("media/sister_love.webp", sisterIllustration);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.18.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.19.zip", buffer);
