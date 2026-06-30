@@ -152,17 +152,6 @@
       }
     },
     {
-      "id": "word_formation_soup",
-      "version": "1.0.2",
-      "url": "./decks/word_formation_soup_v1.0.2.zip",
-      "zipUrl": "word_formation_soup_v1.0.2.zip",
-      "title": {
-        "ru": "Суп: словообразование",
-        "en": "Soup: word formation"
-      },
-      "renderer": "word_formation"
-    },
-    {
       "id": "print_materials",
       "version": "1.0.2",
       "title": {
@@ -172,6 +161,39 @@
         "ru": "Тетради и рабочие листы для печати"
       },
       "url": "./decks/print_materials_v1.0.2.zip"
+    },
+    {
+      "id": "word_formation_soup",
+      "version": "1.0.3",
+      "url": "./decks/word_formation_soup_v1.0.3.zip",
+      "zipUrl": "word_formation_soup_v1.0.3.zip",
+      "title": {
+        "ru": "Суп: словообразование",
+        "en": "Soup: word formation"
+      },
+      "renderer": "word_formation"
+    },
+    {
+      "id": "word_formation_juice",
+      "version": "1.0.0",
+      "url": "./decks/word_formation_juice_v1.0.0.zip",
+      "zipUrl": "word_formation_juice_v1.0.0.zip",
+      "title": {
+        "ru": "Сок: словообразование",
+        "en": "Juice: word formation"
+      },
+      "renderer": "word_formation"
+    },
+    {
+      "id": "word_formation_jam",
+      "version": "1.0.0",
+      "url": "./decks/word_formation_jam_v1.0.0.zip",
+      "zipUrl": "word_formation_jam_v1.0.0.zip",
+      "title": {
+        "ru": "Варенье: словообразование",
+        "en": "Jam: word formation"
+      },
+      "renderer": "word_formation"
     }
   ]
 }

@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.2";
+const VERSION   = "1.0.3";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
@@ -60,9 +60,9 @@ const CONCEPTS = [
   { id: "fasolj",  noun: "фасоль",  nounPhrase: "суп из фасоли",  adjPhrase: "фасолевый суп", difficulty: "hard",   color: "#E91E63",
     imgPrompt: "a steaming bowl of bean soup, thick soup with red and white beans, tomatoes and herbs, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of dry red and white beans, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "tomat",   noun: "томат",   nounPhrase: "суп из томата",  adjPhrase: "томатный суп",  difficulty: "hard",   color: "#FF5722",
-    imgPrompt: "a steaming bowl of tomato soup, smooth bright red tomato bisque, rustic ceramic bowl with fresh basil leaf, warm natural lighting, top-down view, square composition, no text, no watermark",
-    ingredientPrompt: "a few fresh ripe red tomatoes, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "tikva",   noun: "тыква",   nounPhrase: "суп из тыквы",   adjPhrase: "тыквенный суп", difficulty: "hard",   color: "#FF9800",
+    imgPrompt: "a steaming bowl of pumpkin soup, smooth bright orange creamy soup, rustic ceramic bowl with a swirl of cream and pumpkin seeds on top, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small bright orange pumpkin and a slice showing the orange flesh, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
 ];
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -218,6 +218,8 @@ function buildTopic() {
     ingredientImage:  `media/${c.id}_ingredient.webp`,
     audioPrepPhrase:  `audio/${c.id}_prep.mp3`,
     audioAdjPhrase:   `audio/${c.id}_adj.mp3`,
+    vesselImage:      "media/pot.webp",
+    questionText:     QUESTION_TEXT,
   }));
 
   return {

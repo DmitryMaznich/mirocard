@@ -13,7 +13,12 @@ function pickDistractors(targetId, cards, count) {
 }
 
 function generatePairIntroTasks(cards) {
-  return [{ type: "pair_intro", cards: sortByDifficulty(cards) }];
+  return [{
+    type:         "pair_intro",
+    cards:        sortByDifficulty(cards),
+    vesselImage:  cards[0]?.vesselImage  ?? "media/pot.webp",
+    questionText: cards[0]?.questionText ?? "Какой суп получится?",
+  }];
 }
 
 function generateFormItTasks(cards, params) {

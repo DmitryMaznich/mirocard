@@ -89,12 +89,12 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
         <div className="wf-pair__visuals" ref={visualsRef}>
           <VisualImage topicId={topicId} path={card.ingredientImage} className="wf-pair__visual-img" />
           <div className="wf-pair__plus">+</div>
-          <VisualImage topicId={topicId} path="media/pot.webp" className="wf-pair__visual-img" />
+          <VisualImage topicId={topicId} path={task.vesselImage ?? "media/pot.webp"} className="wf-pair__visual-img" />
         </div>
 
         <div className="wf-pair__prompt">
           <div className="wf-pair__prompt-line" ref={promptRef}>
-            Готовим {card.nounPhrase}. Какой суп получится?
+            Готовим {card.nounPhrase}. {task.questionText ?? "Какой суп получится?"}
           </div>
         </div>
 
