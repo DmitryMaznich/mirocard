@@ -22,6 +22,9 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
   const visualsRef  = useRef();
   const promptRef   = useRef();
 
+  const card   = cards[index];
+  const isLast = index === cards.length - 1;
+
   useLayoutEffect(() => {
     const visuals = visualsRef.current;
     const prompt  = promptRef.current;
@@ -34,9 +37,6 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
         (parseFloat(getComputedStyle(prompt).fontSize) * targetW / textW) + "px";
     }
   }, [index, card?.id]);
-
-  const card   = cards[index];
-  const isLast = index === cards.length - 1;
 
   function clearTimers() {
     timersRef.current.forEach(clearTimeout);
