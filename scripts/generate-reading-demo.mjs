@@ -10,70 +10,38 @@ const alinaPath = fileURLToPath(new URL("../Alina.png", import.meta.url));
 const polinaPath = fileURLToPath(new URL("../Polina.png", import.meta.url));
 
 async function buildSisterIllustration() {
-  const W = 480, H = 480;
-  const PHOTO = 140;       // photo square size
-  const BORDER = 8;        // white mat border around photo
-  const MAT = PHOTO + BORDER * 2;
-  const SIDE_MARGIN = 16;  // mat edge to canvas edge
-  const PAD = 30;          // shadow blur padding
+  // Full-bleed split portrait, matching the plain real-photo look of
+  // dad_best.webp / mom_love.webp: no background color, no frame, no mat.
+  const W = 480, H = 600, HALF = W / 2;
+  const DIVIDER = 4;
 
-  const photoY = 280;
-  const leftX = SIDE_MARGIN + BORDER;
-  const rightX = W - SIDE_MARGIN - BORDER - PHOTO;
-  const matLeftX = leftX - BORDER;
-  const matRightX = rightX - BORDER;
-  const matY = photoY - BORDER;
+  const mkHalf = (path, side) =>
+    sharp(path)
+      .resize(HALF - DIVIDER / 2, H, { fit: "cover", position: "center" })
+      .toBuffer();
 
-  // Plain soft gradient background, no decoration
-  const bgSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+  const [alina, polina] = await Promise.all([mkHalf(alinaPath, "l"), mkHalf(polinaPath, "r")]);
+
+  // Bottom name labels with a soft dark scrim for legibility over any photo
+  const namesSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
     <defs>
-      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#fdf4f7"/>
-        <stop offset="100%" stop-color="#f6e3ec"/>
+      <linearGradient id="scrim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#000" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0.45"/>
       </linearGradient>
     </defs>
-    <rect width="${W}" height="${H}" fill="url(#bg)"/>
-  </svg>`;
-  const bgPng = await sharp(Buffer.from(bgSvg)).png().toBuffer();
-
-  // Rounded photo mask
-  const photoMaskSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PHOTO}" height="${PHOTO}"><rect width="${PHOTO}" height="${PHOTO}" rx="18" fill="white"/></svg>`;
-  const photoMask = await sharp(Buffer.from(photoMaskSvg)).resize(PHOTO, PHOTO).png().toBuffer();
-  const mkPhoto = (path) =>
-    sharp(path)
-      .resize(PHOTO, PHOTO, { fit: "cover", position: "center" })
-      .composite([{ input: photoMask, blend: "dest-in" }])
-      .png()
-      .toBuffer();
-  const [alina, polina] = await Promise.all([mkPhoto(alinaPath), mkPhoto(polinaPath)]);
-
-  // White mat behind each photo
-  const matSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${MAT}" height="${MAT}"><rect width="${MAT}" height="${MAT}" rx="22" fill="white"/></svg>`;
-  const mat = await sharp(Buffer.from(matSvg)).resize(MAT, MAT).png().toBuffer();
-
-  // Soft drop shadow, blurred
-  const shadowCanvas = MAT + PAD * 2;
-  const shadowSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${shadowCanvas}" height="${shadowCanvas}">
-    <rect x="${PAD}" y="${PAD}" width="${MAT}" height="${MAT}" rx="22" fill="#7a3a5c" fill-opacity="0.28"/>
-  </svg>`;
-  const shadow = await sharp(Buffer.from(shadowSvg)).resize(shadowCanvas, shadowCanvas).blur(9).png().toBuffer();
-
-  // Simple, clean name labels (no cursive, no clutter)
-  const namesSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-    <text x="${matLeftX + MAT / 2}" y="${matY + MAT + 26}" text-anchor="middle" font-size="17" font-family="Georgia,serif" fill="#8c4868">&#x0410;&#x043b;&#x0438;&#x043d;&#x0430;</text>
-    <text x="${matRightX + MAT / 2}" y="${matY + MAT + 26}" text-anchor="middle" font-size="17" font-family="Georgia,serif" fill="#8c4868">&#x041f;&#x043e;&#x043b;&#x0438;&#x043d;&#x0430;</text>
+    <rect x="0" y="${H - 90}" width="${HALF - DIVIDER / 2}" height="90" fill="url(#scrim)"/>
+    <rect x="${HALF + DIVIDER / 2}" y="${H - 90}" width="${HALF - DIVIDER / 2}" height="90" fill="url(#scrim)"/>
+    <text x="${HALF / 2}" y="${H - 26}" text-anchor="middle" font-size="22" font-family="Georgia,serif" fill="#ffffff">&#x0410;&#x043b;&#x0438;&#x043d;&#x0430;</text>
+    <text x="${HALF + HALF / 2}" y="${H - 26}" text-anchor="middle" font-size="22" font-family="Georgia,serif" fill="#ffffff">&#x041f;&#x043e;&#x043b;&#x0438;&#x043d;&#x0430;</text>
   </svg>`;
   const names = await sharp(Buffer.from(namesSvg)).png().toBuffer();
 
-  return sharp(bgPng)
+  return sharp({ create: { width: W, height: H, channels: 4, background: "#ffffff" } })
     .composite([
-      { input: shadow, left: matLeftX - PAD,  top: matY - PAD + 6 },
-      { input: mat,     left: matLeftX,        top: matY },
-      { input: alina,   left: leftX,           top: photoY },
-      { input: shadow,  left: matRightX - PAD, top: matY - PAD + 6 },
-      { input: mat,     left: matRightX,       top: matY },
-      { input: polina,  left: rightX,          top: photoY },
-      { input: names,   left: 0,               top: 0 },
+      { input: alina,  left: 0,                          top: 0 },
+      { input: polina, left: Math.round(HALF + DIVIDER / 2), top: 0 },
+      { input: names,  left: 0,                          top: 0 },
     ])
     .webp({ quality: 92 })
     .toBuffer();
@@ -111,7 +79,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.17",
+    version: "1.0.18",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -518,4 +486,4 @@ zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
 zip.file("media/sister_love.webp", sisterIllustration);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.17.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.18.zip", buffer);
