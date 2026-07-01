@@ -201,6 +201,17 @@ function SessionTab({
 
 // ─── Planner tab ──────────────────────────────────────────────────────────────
 
+function DayStrip({ days }) {
+  return (
+    <span className="hub-card__daystrip">
+      {days.map((day, i) => {
+        const filled = Object.values(day.meals).some((ids) => ids.length > 0);
+        return <span key={i} className={`daydot${filled ? ' daydot--filled' : ''}`} />;
+      })}
+    </span>
+  );
+}
+
 function PlannerTab({ student, setScreen }) {
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
 
@@ -220,47 +231,67 @@ function PlannerTab({ student, setScreen }) {
 
   if (existingPlan === undefined) {
     return (
-      <div className="home-planner-tab">
+      <div className="planner-hub">
         <div className="home-tab-loading">Загрузка…</div>
       </div>
     );
   }
 
   const hasRecipes = !!existingPlan && countPlanRecipes(existingPlan) > 0;
-
-  const menuState = hasRecipes ? "done" : "active";
-  const menuValue = hasRecipes
-    ? `${existingPlan.days.length} дн. · ${countPlanRecipes(existingPlan)} рец.`
-    : "Собери меню из рецептов";
-
-  const shoppingState = hasRecipes ? "active" : "disabled";
-  const shoppingValue = hasRecipes
-    ? "Список готов — открой и отметь"
-    : "Сначала выбери рецепты";
+  const dayCount = hasRecipes ? existingPlan.days.length : 0;
+  const recipeCount = hasRecipes ? countPlanRecipes(existingPlan) : 0;
 
   return (
-    <div className="home-planner-tab">
-      <div className="journey-steps">
-        <JourneyStep
-          state={menuState}
-          number="1"
-          label="Меню"
-          value={menuValue}
+    <div className="planner-hub">
+      <div className="planner-hub__intro">
+        <span className="planner-hub__kicker">Планировщик · неделя</span>
+        <p className="planner-hub__headline">
+          {hasRecipes ? 'Меню готово' : 'Собери меню на неделю'}
+        </p>
+      </div>
+
+      <div className="planner-hub__rail">
+        <button
+          type="button"
+          className={`hub-card hub-card--hero${hasRecipes ? ' hub-card--done' : ' hub-card--active'}`}
           onClick={() => setScreen('planner_menu')}
-        />
-        <JourneyStep
-          state={shoppingState}
-          number="2"
-          label="Список покупок"
-          value={shoppingValue}
-          onClick={() => setScreen('planner_summary')}
-        />
-        <JourneyStep
-          state="disabled"
-          number="3"
-          label="Раскладка"
-          value="Появится, когда список покупок будет закрыт"
-        />
+        >
+          <span className="hub-card__badge">🍽️</span>
+          <span className="hub-card__body">
+            <span className="hub-card__num">Шаг 1</span>
+            <span className="hub-card__title">Меню</span>
+            <span className="hub-card__value">
+              {hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Выбери рецепты для готовки'}
+            </span>
+            {hasRecipes && <DayStrip days={existingPlan.days} />}
+          </span>
+          <span className="hub-card__arrow">{hasRecipes ? '✓' : '→'}</span>
+        </button>
+
+        <div className="planner-hub__row">
+          <button
+            type="button"
+            className={`hub-card${hasRecipes ? ' hub-card--active' : ' hub-card--locked'}`}
+            onClick={() => setScreen('planner_summary')}
+            disabled={!hasRecipes}
+          >
+            <span className="hub-card__badge">🛒</span>
+            <span className="hub-card__body">
+              <span className="hub-card__num">Шаг 2</span>
+              <span className="hub-card__title">Покупки</span>
+              <span className="hub-card__value">{hasRecipes ? 'Список готов' : 'Сначала меню'}</span>
+            </span>
+          </button>
+
+          <button type="button" className="hub-card hub-card--locked" disabled>
+            <span className="hub-card__badge">📦</span>
+            <span className="hub-card__body">
+              <span className="hub-card__num">Шаг 3</span>
+              <span className="hub-card__title">Раскладка</span>
+              <span className="hub-card__value">После покупок</span>
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
