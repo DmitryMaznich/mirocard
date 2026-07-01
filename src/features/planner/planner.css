@@ -724,30 +724,3 @@
   gap: 12px;
 }
 
-.plan-card {
-  background: var(--color-surface, #fff);
-  border-radius: 14px;
-  padding: 14px 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.plan-card__label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-secondary, #888);
-}
-
-.plan-card__meta {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text, #222);
-}
-
-.plan-card__actions {
-  margin-top: 4px;
-}

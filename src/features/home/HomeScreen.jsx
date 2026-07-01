@@ -218,30 +218,41 @@ function PlannerTab({ student, setScreen }) {
     );
   }
 
+  if (existingPlan === undefined) {
+    return <div className="home-tab-loading">Загрузка…</div>;
+  }
+
   const hasRecipes = existingPlan && countPlanRecipes(existingPlan) > 0;
+  const menuValue = hasRecipes
+    ? `${existingPlan.days.length} дн. · ${countPlanRecipes(existingPlan)} рец.`
+    : "Собери меню из рецептов";
 
   return (
-    <div className="home-planner-tab">
-      {existingPlan === undefined ? (
-        <div className="home-tab-loading">Загрузка…</div>
-      ) : hasRecipes ? (
-        <div className="plan-card">
-          <div className="plan-card__label">Текущий план</div>
-          <div className="plan-card__meta">
-            {existingPlan.days.length} дн. · {countPlanRecipes(existingPlan)} рец.
-          </div>
-          <div className="plan-card__actions">
-            <Button variant="secondary" onClick={() => setScreen('planner_summary')}>
-              Просмотреть список покупок
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
-      <Button fullWidth onClick={() => setScreen('planner_menu')}>
-        {hasRecipes ? 'Редактировать меню' : 'Составить меню'}
-      </Button>
-    </div>
+    <section className="home-section">
+      <div className="journey-steps">
+        <JourneyStep
+          state={hasRecipes ? "done" : "active"}
+          number="1"
+          label="Меню"
+          value={menuValue}
+          onClick={() => setScreen("planner_menu")}
+        />
+        <JourneyStep
+          state={hasRecipes ? "active" : "disabled"}
+          number="2"
+          label="Список покупок"
+          value={hasRecipes ? "Список готов — открой и отметь" : "Сначала выбери рецепты"}
+          onClick={() => setScreen("planner_summary")}
+        />
+        <JourneyStep
+          state="disabled"
+          number="3"
+          label="Раскладка"
+          value="Появится, когда список покупок будет закрыт"
+          onClick={undefined}
+        />
+      </div>
+    </section>
   );
 }
 
