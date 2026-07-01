@@ -135,6 +135,17 @@ function removalTips(startCount, endCount) {
   return order.slice(0, removeN).map(i => tips[i]).filter(Boolean);
 }
 
+// Returns tips of fingers to mark for ADDITION in hand_right image space.
+// Uses final-count image positions (where fingers WILL appear).
+// Raise order = reverse of fold order: last-to-fold = first-raised.
+function additionTips(startCount, endCount) {
+  if (startCount >= endCount || endCount > 5) return [];
+  const order      = FOLD_ORDER[endCount] ?? [];
+  const tips       = FINGER_TIPS_R[endCount] ?? [];
+  const raiseOrder = [...order].reverse();
+  return raiseOrder.slice(startCount, endCount).map(i => tips[i]).filter(Boolean);
+}
+
 function SubtractionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show");
   const [input, setInput] = useState([]);
@@ -289,11 +300,163 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   );
 }
 
+// ── Large Addition (a > 5 or b > 5) ──────────────────────────────────────────
+// Shows `a` on two hands, then green UP arrows on fingers being raised, then result.
+// Flow: show (2.5s) → add (2s) → result (1.2s) → answer → done
+
+function LargeAdditionTask({ task, onCorrect, onMistake }) {
+  const [phase, setPhase] = useState("show");
+  const [input, setInput] = useState([]);
+  const [shake, setShake] = useState(false);
+
+  const { a, b, result } = task;
+  const resultStr = String(result);
+  const aConfig   = getFingerConfig(a);
+  const resConfig = getFingerConfig(result);
+
+  useEffect(() => {
+    setPhase("show"); setInput([]); setShake(false);
+  }, [task.cardId]);
+
+  useEffect(() => {
+    if (phase !== "show")   return;
+    const t = setTimeout(() => setPhase("add"), 2500);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "add") return;
+    const t = setTimeout(() => setPhase("result"), 2000);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "result") return;
+    const t = setTimeout(() => setPhase("answer"), 1200);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  function handleDigit(d) {
+    if (phase !== "answer" || shake) return;
+    const next = [...input, String(d)];
+    if (next.length < resultStr.length) { setInput(next); return; }
+    if (Number(next.join("")) === result) {
+      setPhase("done"); setTimeout(() => onCorrect(), 700);
+    } else {
+      setShake(true); setTimeout(() => { setShake(false); setInput([]); }, 500);
+      onMistake?.();
+    }
+  }
+
+  function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
+
+  const hint =
+    phase === "show"   ? `Было ${a}` :
+    phase === "add"    ? `Добавляем ${b}` :
+    phase === "result" ? "Стало" :
+    "Введи ответ";
+
+  const answerPart = phase === "done"
+    ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
+    : phase === "answer"
+      ? <span className={`fng-count-answer${shake ? " fng-count-answer--shake" : ""}`}>
+          {input.length > 0 ? input.join("") : "?"}
+        </span>
+      : "?";
+
+  // left/right here matches FINGER_MAP semantics: .left = left-screen zone (side="right"),
+  // .right = right-screen zone (side="left").
+  const leftStart  = aConfig.left;
+  const leftEnd    = resConfig.left;
+  const rightStart = aConfig.right;
+  const rightEnd   = resConfig.right;
+
+  const leftCount  = (phase === "show" || phase === "add") ? leftStart  : leftEnd;
+  const rightCount = (phase === "show" || phase === "add") ? rightStart : rightEnd;
+  const kbdVisible = phase === "answer" || phase === "done";
+
+  // UP-arrow tips: fingers being raised on each hand.
+  // Left screen (side="right"): direct FINGER_TIPS_R coords.
+  // Right screen (side="left"): mirrored (x → 1-x, array reversed).
+  const leftTips   = additionTips(leftStart, leftEnd);
+  const rightTipsR = additionTips(rightStart, rightEnd);
+  const rightTips  = [...rightTipsR].reverse().map(t => ({ x: 1 - t.x, y: t.y }));
+
+  function makeAddOverlay(tips) {
+    if (!tips.length) return null;
+    return (
+      <div className="fng-sub-finger-overlay">
+        {tips.map((tip, i) => (
+          <svg key={i} viewBox="0 0 40 100"
+               className="fng-add-arrow"
+               style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
+            {/* white arrowhead border — tip at y=0, base at y=37 */}
+            <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
+            <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
+            {/* green stem grows from bottom (y=98) upward to y=32, length=66 */}
+            <line x1="20" y1="98" x2="20" y2="32"
+                  stroke="white" strokeWidth="12" strokeLinecap="round"
+                  className="fng-stem-bg" />
+            <line x1="20" y1="98" x2="20" y2="32"
+                  stroke="#22c55e" strokeWidth="7" strokeLinecap="round"
+                  className="fng-stem" />
+          </svg>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fng-add-screen">
+      <div className="fng-add-top">
+        <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
+        <div className="fng-add-hint">{hint}</div>
+      </div>
+
+      <div className="fng-add-hands-zone">
+        <div className="fng-sub-hands">
+          <div className="fng-sub-hand-wrap">
+            <div className="fng-sub-hand-inner">
+              <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
+              {phase === "add" && makeAddOverlay(leftTips)}
+            </div>
+          </div>
+          <div className="fng-sub-hand-wrap">
+            <div className="fng-sub-hand-inner">
+              <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
+              {phase === "add" && makeAddOverlay(rightTips)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
+        <div className="col-copy-keyboard"
+             style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
+            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
+              <span className="col-slant">{d}</span>
+            </button>
+          ))}
+          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
+          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
+            <span className="col-slant">0</span>
+          </button>
+          <div />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 export default function FingersCountTask({ task, onCorrect, onMistake }) {
   if (task.op === "sub") {
     return <SubtractionTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
+  }
+  if (task.op === "add" && (task.a > 5 || task.b > 5)) {
+    return <LargeAdditionTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
   }
   return <AdditionTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
 }

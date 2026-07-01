@@ -224,6 +224,17 @@
   pointer-events: none;
 }
 
+/* UP arrow for addition: same size/positioning as fng-sub-arrow */
+.fng-add-arrow {
+  position: absolute;
+  transform: translateX(-50%);
+  height: 17%;
+  width: auto;
+  overflow: visible;
+  user-select: none;
+  pointer-events: none;
+}
+
 /* Stem: drawn from top to bottom via stroke-dashoffset animation (len=66 in viewBox units) */
 .fng-stem-bg,
 .fng-stem {
