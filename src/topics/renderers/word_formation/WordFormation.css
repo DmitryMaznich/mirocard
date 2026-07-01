@@ -73,6 +73,9 @@
   align-items: center; gap: clamp(8px, 2vmin, 14px);
   flex-shrink: 0;
 }
+@media (orientation: portrait) {
+  .wf-pair__answer { margin-top: 2em; }
+}
 .wf-pair__answer-text {
   font-size: clamp(1.4rem, 7vmin, 3.4rem);
   font-weight: 800; color: #000; text-align: center;
