@@ -38,6 +38,7 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
       primaryLanguage: s.primary_language,
       sex:             s.sex ?? null,
       photo:           s.photo ?? null,
+      photoUpdatedAt:  s.photo_updated_at ?? null,
       rewardVideos:    safeJson(s.reward_videos, []),
       closeAdults:     safeJson(s.close_adults, []),
       createdAt:       s.created_at,
