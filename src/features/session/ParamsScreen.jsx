@@ -519,6 +519,29 @@ export default function ParamsScreen() {
 
   const allConcepts        = deriveConcepts(topicRecord.cards);
   const selectedConceptIds = link.selectedConceptIds?.length ? link.selectedConceptIds : allConcepts.map((c) => c.conceptId);
+
+  // Concept range filter — only for column_addition topics with fingers_count cards
+  const fcountCards    = topicRecord?.meta.renderer === "column_addition"
+    ? (topicRecord.cards ?? []).filter(c => c.params?.mode === "fingers_count")
+    : [];
+  const le5ConceptIds  = fcountCards.filter(c => c.params.a <= 5 && c.params.b <= 5).map(c => c.conceptId);
+  const gt5ConceptIds  = fcountCards.filter(c => c.params.a > 5  || c.params.b > 5).map(c => c.conceptId);
+  const showRangeFilter = fcountCards.length > 0 && le5ConceptIds.length > 0 && gt5ConceptIds.length > 0;
+
+  const activeCFilter = (() => {
+    const sel = link.selectedConceptIds;
+    if (!sel || sel.length === 0) return "all";
+    const selStr = [...sel].sort().join(",");
+    if (selStr === allConcepts.map(c => c.conceptId).sort().join(",")) return "all";
+    if (selStr === [...le5ConceptIds].sort().join(",")) return "le5";
+    if (selStr === [...gt5ConceptIds].sort().join(",")) return "gt5";
+    return null;
+  })();
+
+  function applyConceptFilter(filter) {
+    const ids = filter === "all" ? null : filter === "le5" ? le5ConceptIds : gt5ConceptIds;
+    persistStudentTopicLink(activeStudentId, activeTopicId, { selectedConceptIds: ids });
+  }
   const modeTitle          = getModeTitle(mode);
   const modeInstruction    = getModeInstruction(mode);
   const modeGoal           = getModeGoal(mode);
@@ -615,6 +638,17 @@ export default function ParamsScreen() {
                 />
               ))}
             </div>
+            {showRangeFilter && (
+              <div className="param-enum-group" style={{ marginTop: 4 }}>
+                {[{ key: "all", label: "Все" }, { key: "le5", label: "≤5" }, { key: "gt5", label: ">5" }].map(({ key, label }) => (
+                  <button key={key}
+                    className={`enum-btn enum-btn--compact ${activeCFilter === key ? "enum-btn--active" : ""}`}
+                    onClick={() => applyConceptFilter(key)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="param-concept-row">
               <span className="param-hint">{selectedConceptIds.length} из {allConcepts.length} выбрано</span>
               <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
