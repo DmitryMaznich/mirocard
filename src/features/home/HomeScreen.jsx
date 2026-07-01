@@ -219,40 +219,50 @@ function PlannerTab({ student, setScreen }) {
   }
 
   if (existingPlan === undefined) {
-    return <div className="home-tab-loading">Загрузка…</div>;
+    return (
+      <div className="home-planner-tab">
+        <div className="home-tab-loading">Загрузка…</div>
+      </div>
+    );
   }
 
-  const hasRecipes = existingPlan && countPlanRecipes(existingPlan) > 0;
+  const hasRecipes = !!existingPlan && countPlanRecipes(existingPlan) > 0;
+
+  const menuState = hasRecipes ? "done" : "active";
   const menuValue = hasRecipes
     ? `${existingPlan.days.length} дн. · ${countPlanRecipes(existingPlan)} рец.`
     : "Собери меню из рецептов";
 
+  const shoppingState = hasRecipes ? "active" : "disabled";
+  const shoppingValue = hasRecipes
+    ? "Список готов — открой и отметь"
+    : "Сначала выбери рецепты";
+
   return (
-    <section className="home-section">
+    <div className="home-planner-tab">
       <div className="journey-steps">
         <JourneyStep
-          state={hasRecipes ? "done" : "active"}
+          state={menuState}
           number="1"
           label="Меню"
           value={menuValue}
-          onClick={() => setScreen("planner_menu")}
+          onClick={() => setScreen('planner_menu')}
         />
         <JourneyStep
-          state={hasRecipes ? "active" : "disabled"}
+          state={shoppingState}
           number="2"
           label="Список покупок"
-          value={hasRecipes ? "Список готов — открой и отметь" : "Сначала выбери рецепты"}
-          onClick={() => setScreen("planner_summary")}
+          value={shoppingValue}
+          onClick={() => setScreen('planner_summary')}
         />
         <JourneyStep
           state="disabled"
           number="3"
           label="Раскладка"
           value="Появится, когда список покупок будет закрыт"
-          onClick={undefined}
         />
       </div>
-    </section>
+    </div>
   );
 }
 
