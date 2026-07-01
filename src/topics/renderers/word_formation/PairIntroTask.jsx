@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useAudio } from "@/shared/hooks/useAudio";
+import { useAppStore } from "@/core/store";
 
 const QUESTION_DELAY_MS = 1800;
 const AUTO_REVEAL_DELAY_MS = 4500;
@@ -17,6 +18,11 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
   const [index, setIndex]       = useState(0);
   const [revealed, setRevealed] = useState(false);
   const { playTopicFile } = useAudio();
+  const audioEnabled = useAppStore((s) => (s.settings?.exerciseAudio ?? true));
+
+  function playIfEnabled(topicId, path) {
+    if (audioEnabled) playTopicFile(topicId, path);
+  }
   const timersRef   = useRef([]);
   const revealedRef = useRef(false);
   const visualsRef  = useRef();
@@ -53,10 +59,10 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
     clearTimers();
     if (!card) return;
 
-    playTopicFile(topicId, card.audioPrepPhrase);
+    playIfEnabled(topicId, card.audioPrepPhrase);
 
     timersRef.current.push(
-      setTimeout(() => playTopicFile(topicId, card.audioQuestion ?? "audio/question.mp3"), QUESTION_DELAY_MS)
+      setTimeout(() => playIfEnabled(topicId, card.audioQuestion ?? "audio/question.mp3"), QUESTION_DELAY_MS)
     );
     timersRef.current.push(
       setTimeout(reveal, AUTO_REVEAL_DELAY_MS)
@@ -69,7 +75,7 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
     if (revealedRef.current) return;
     revealedRef.current = true;
     clearTimers();
-    playTopicFile(topicId, card.audioAdjPhrase);
+    playIfEnabled(topicId, card.audioAdjPhrase);
     setRevealed(true);
   }
 
