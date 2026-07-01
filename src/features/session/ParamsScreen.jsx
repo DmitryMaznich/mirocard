@@ -520,8 +520,8 @@ export default function ParamsScreen() {
   const allConcepts        = deriveConcepts(topicRecord.cards);
   const selectedConceptIds = link.selectedConceptIds?.length ? link.selectedConceptIds : allConcepts.map((c) => c.conceptId);
 
-  // Concept range filter — only for column_addition topics with fingers_count cards
-  const fcountCards    = topicRecord?.meta.renderer === "column_addition"
+  // Concept range filter — only in "Считаем на пальцах" mode
+  const fcountCards    = activeModeId === "fingers_count"
     ? (topicRecord.cards ?? []).filter(c => c.params?.mode === "fingers_count")
     : [];
   const le5ConceptIds  = fcountCards.filter(c => c.params.a <= 5 && c.params.b <= 5).map(c => c.conceptId);
