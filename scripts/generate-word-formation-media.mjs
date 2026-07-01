@@ -19,8 +19,9 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.6";
+const VERSION   = "1.0.7";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
+// Old ZIP cleaned up automatically in catalog update below
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
 const GEMINI_MODEL = "gemini-2.5-flash-image";
@@ -276,10 +277,19 @@ function buildTopic() {
       title: { ru: "Словообразование: суп, сок, варенье" }, language: "ru",
     },
     modes: [
-      { id: "pair_intro",   type: "pair_intro",   evaluation: "none", requirePin: false,
-        ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" } } },
-      { id: "pick_form",    type: "pick_form",    evaluation: "auto", requirePin: false,
-        ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" } } },
+      { id: "pair_intro", type: "pair_intro", evaluation: "none", requirePin: false,
+        ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" } },
+        params: {
+          exerciseAudio: { type: "boolean", label: { ru: "Проговаривать слова" }, default: true },
+        },
+      },
+      { id: "pick_form", type: "pick_form", evaluation: "auto", requirePin: false,
+        ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" } },
+        params: {
+          exerciseAudio: { type: "boolean", label: { ru: "Проговаривать слова" }, default: true },
+          difficulty:    { type: "enum",    label: { ru: "Сложность дистракторов" }, values: ["easy", "hard"], labels: { ru: { easy: "Лёгкий: слова из разных пар", hard: "Сложный: похожие формы одного корня" } }, default: "easy" },
+        },
+      },
       { id: "form_it",      type: "form_it",      evaluation: "auto", requirePin: false,
         ui: { title: { ru: "Образуй прилагательное" }, instruction: { ru: "Нажми на правильное слово" } },
         params: {
