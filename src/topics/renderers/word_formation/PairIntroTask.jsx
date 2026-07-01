@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useAudio } from "@/shared/hooks/useAudio";
-import { useAppStore } from "@/core/store";
 
 const QUESTION_DELAY_MS = 1800;
 const AUTO_REVEAL_DELAY_MS = 4500;
@@ -15,10 +14,10 @@ function VisualImage({ topicId, path, className }) {
 
 export default function PairIntroTask({ task, topicId, onAdvance }) {
   const { cards } = task;
+  const audioEnabled = task.params?.exerciseAudio ?? true;
   const [index, setIndex]       = useState(0);
   const [revealed, setRevealed] = useState(false);
   const { playTopicFile } = useAudio();
-  const audioEnabled = useAppStore((s) => (s.settings?.exerciseAudio ?? true));
 
   function playIfEnabled(topicId, path) {
     if (audioEnabled) playTopicFile(topicId, path);

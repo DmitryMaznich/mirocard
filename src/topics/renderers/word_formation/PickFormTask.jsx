@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, useMemo } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useAudio } from "@/shared/hooks/useAudio";
-import { useAppStore } from "@/core/store";
 import { shuffle } from "@/shared/utils/shuffle";
 
 const OPTION_COUNT = 4;
@@ -45,12 +44,12 @@ function buildOptions(card, allCards, difficulty) {
 
 export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIncorrect }) {
   const { cards } = task;
+  const audioEnabled  = task.params?.exerciseAudio ?? true;
+  const difficulty    = task.params?.difficulty ?? "easy";
   const [index, setIndex]     = useState(0);
   const [picked, setPicked]   = useState(null);   // null | "correct" | "wrong"
   const [wrongIdx, setWrongIdx] = useState(null);
   const { playTopicFile, playFeedback } = useAudio();
-  const audioEnabled  = useAppStore((s) => s.settings?.exerciseAudio ?? true);
-  const difficulty    = useAppStore((s) => s.settings?.wordFormationLevel ?? "easy");
   const timersRef     = useRef([]);
   const visualsRef    = useRef();
   const promptRef1    = useRef();

@@ -12,12 +12,13 @@ function pickDistractors(targetId, cards, count) {
   return shuffle(cards.filter(c => c.id !== targetId)).slice(0, count);
 }
 
-function generatePairIntroTasks(cards) {
+function generatePairIntroTasks(cards, params) {
   return [{
     type:         "pair_intro",
     cards:        sortByDifficulty(cards),
     vesselImage:  cards[0]?.vesselImage  ?? "media/pot.webp",
     questionText: cards[0]?.questionText ?? "Какой суп получится?",
+    params,
   }];
 }
 
@@ -95,17 +96,18 @@ function generateQuestionAskTasks(cards) {
   }));
 }
 
-function generatePickFormTasks(cards) {
+function generatePickFormTasks(cards, params) {
   return [{
-    type:  "pick_form",
-    cards: sortByDifficulty(cards),
+    type:   "pick_form",
+    cards:  sortByDifficulty(cards),
+    params,
   }];
 }
 
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   switch (mode.type) {
-    case "pair_intro":   return generatePairIntroTasks(cards);
-    case "pick_form":    return generatePickFormTasks(cards);
+    case "pair_intro":   return generatePairIntroTasks(cards, params);
+    case "pick_form":    return generatePickFormTasks(cards, params);
     case "form_it":      return generateFormItTasks(cards, params);
     case "yes_no":       return generateYesNoTasks(cards, params);
     case "question_ask": return generateQuestionAskTasks(cards);

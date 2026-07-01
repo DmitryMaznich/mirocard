@@ -22,8 +22,7 @@ export default function SettingsScreen() {
   const tapToAdvance     = settings.tapToAdvance ?? true;
   const requiresTapToAdvance = adultConfirmAdvance || tapToAdvance;
   const autoAdvanceDelay = settings.autoAdvanceDelay ?? 3;
-  const exerciseAudio        = settings.exerciseAudio ?? true;
-  const wordFormationLevel   = settings.wordFormationLevel ?? "easy";
+
 
   async function handlePatchSettings(patch) {
     patchSettings(patch);
@@ -135,42 +134,6 @@ export default function SettingsScreen() {
             <button className="link-btn" onClick={startPinReset}>
               {adultPinHash ? "Изменить PIN" : "Задать PIN"}
             </button>
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <div className="settings-section-title">Озвучивание</div>
-          <div
-            className="settings-row"
-            style={{ cursor: "pointer" }}
-            onClick={() => handlePatchSettings({ exerciseAudio: !exerciseAudio })}
-          >
-            <span className="settings-row__label">Проговаривать слова в упражнениях</span>
-            <input
-              type="checkbox"
-              checked={exerciseAudio}
-              readOnly
-              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
-            />
-          </div>
-        </div>
-
-        <div className="settings-section">
-          <div className="settings-section-title">Словообразование</div>
-          <div
-            className="settings-row"
-            style={{ cursor: "pointer" }}
-            onClick={() => handlePatchSettings({ wordFormationLevel: wordFormationLevel === "easy" ? "hard" : "easy" })}
-          >
-            <span className="settings-row__label">
-              {wordFormationLevel === "easy" ? "Лёгкий: слова из разных пар" : "Сложный: похожие формы одного корня"}
-            </span>
-            <input
-              type="checkbox"
-              checked={wordFormationLevel === "hard"}
-              readOnly
-              style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
-            />
           </div>
         </div>
 

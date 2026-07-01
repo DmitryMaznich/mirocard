@@ -185,6 +185,12 @@ function getModeInstruction(mode) {
   return getTopicTitle(mode?.ui?.instruction);
 }
 
+const FINGERS_FILTERS = [
+  { id: "all",   label: "Все" },
+  { id: "small", label: "≤5"  },
+  { id: "big",   label: ">5"  },
+];
+
 const LEVEL_DESCRIPTIONS = {
   1: "Начальный — числа до 10, разница не менее 5",
   2: "Базовый — числа до 10, любая разница",
@@ -401,6 +407,7 @@ export default function ParamsScreen() {
   const isShoppingPlan        = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
+  const isFingersCount        = activeModeId === "fingers_count";
 
   const [showShare, setShowShare] = useState(false);
 
@@ -519,6 +526,22 @@ export default function ParamsScreen() {
 
   const allConcepts        = deriveConcepts(topicRecord.cards);
   const selectedConceptIds = link.selectedConceptIds?.length ? link.selectedConceptIds : allConcepts.map((c) => c.conceptId);
+
+  const fingerCards = isFingersCount ? topicRecord.cards.filter((c) => c.params?.mode === "fingers_count") : [];
+  let activeConceptFilter = null;
+  if (isFingersCount) {
+    const savedIds = link.selectedConceptIds;
+    if (!savedIds?.length) {
+      activeConceptFilter = "all";
+    } else {
+      const smallSet = new Set(fingerCards.filter((c) => c.params.a <= 5 && c.params.b <= 5).map((c) => c.conceptId));
+      const bigSet   = new Set(fingerCards.filter((c) => c.params.a > 5  || c.params.b > 5 ).map((c) => c.conceptId));
+      const selSet   = new Set(savedIds);
+      if (savedIds.length === smallSet.size && [...smallSet].every((id) => selSet.has(id))) activeConceptFilter = "small";
+      else if (savedIds.length === bigSet.size && [...bigSet].every((id) => selSet.has(id))) activeConceptFilter = "big";
+    }
+  }
+
   const modeTitle          = getModeTitle(mode);
   const modeInstruction    = getModeInstruction(mode);
   const modeGoal           = getModeGoal(mode);
@@ -541,6 +564,15 @@ export default function ParamsScreen() {
     markSessionStart();
     persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, answersPerStar, strictStars });
     setScreen("session");
+  }
+
+  function applyConceptFilter(filter) {
+    const cards = topicRecord.cards.filter((c) => c.params?.mode === "fingers_count");
+    let ids;
+    if (filter === "all")        ids = [];
+    else if (filter === "small") ids = cards.filter((c) => c.params.a <= 5 && c.params.b <= 5).map((c) => c.conceptId);
+    else                         ids = cards.filter((c) => c.params.a > 5  || c.params.b > 5 ).map((c) => c.conceptId);
+    persistStudentTopicLink(activeStudentId, activeTopicId, { selectedConceptIds: ids });
   }
 
   async function handleSetPin(hash) {
@@ -606,6 +638,26 @@ export default function ParamsScreen() {
         <div className="param-row param-row--block">
           <div className="param-label">Понятия</div>
           <div className="param-concept-col">
+            {isFingersCount && (
+              <div className="param-enum-section" style={{ marginBottom: 8 }}>
+                <div className="param-enum-group">
+                  {FINGERS_FILTERS.map((f) => (
+                    <button
+                      key={f.id}
+                      className={`enum-btn enum-btn--compact ${activeConceptFilter === f.id ? "enum-btn--active" : ""}`}
+                      onClick={() => applyConceptFilter(f.id)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="param-hint">
+                  {activeConceptFilter === "small" ? "Оба числа ≤ 5"
+                   : activeConceptFilter === "big"  ? "Хотя бы одно число > 5"
+                   : "Все примеры"}
+                </div>
+              </div>
+            )}
             <div className="param-concept-dots">
               {allConcepts.map((c) => (
                 <ConceptDot
