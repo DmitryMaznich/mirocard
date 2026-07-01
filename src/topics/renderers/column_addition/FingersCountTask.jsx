@@ -3,9 +3,8 @@ import HandImg from "./HandImg.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
 
-// ── Addition ──────────────────────────────────────────────────────────────────
-// Three fixed zones, always in DOM — only opacity changes so layout never shifts.
-// Flow: show (3s) → merge (0.9s, hands close + kbd fades in) → answer → done
+// ── Addition (a ≤ 5 and b ≤ 5) ───────────────────────────────────────────────
+// Flow: show → [tap] → answer (merge animation plays)
 
 function AdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show");
@@ -19,17 +18,9 @@ function AdditionTask({ task, onCorrect, onMistake }) {
     setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
 
-  useEffect(() => {
-    if (phase !== "show") return;
-    const t = setTimeout(() => setPhase("merge"), 3000);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "merge") return;
-    const t = setTimeout(() => setPhase("answer"), 900);
-    return () => clearTimeout(t);
-  }, [phase]);
+  function advance() {
+    if (phase === "show") setPhase("answer");
+  }
 
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
@@ -46,31 +37,30 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
   const hint =
-    phase === "show"  ? "Сделай так" :
-    phase === "merge" ? "Соедини руки" :
+    phase === "show"    ? "Сделай так →" :
     "Введи ответ";
 
   const answerPart = phase === "done"
     ? <span className="fng-count-answer fng-count-answer--correct">{result}</span>
-    : (phase === "answer" || phase === "done")
+    : phase === "answer"
       ? <span className={`fng-count-answer${shake ? " fng-count-answer--shake" : ""}`}>
           {input.length > 0 ? input.join("") : "?"}
         </span>
       : "?";
 
-  const kbdVisible  = phase === "merge" || phase === "answer" || phase === "done";
+  const kbdVisible  = phase === "answer" || phase === "done";
   const handsMerged = phase !== "show";
+  const tappable    = phase === "show";
 
   return (
     <div className="fng-add-screen">
-      {/* Zone 1 — expression + instruction (fixed, flex-shrink: 0) */}
-      <div className="fng-add-top">
+      <div className="fng-add-top" onClick={advance} style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      {/* Zone 2 — hands (always visible; merged position stays during answer) */}
-      <div className="fng-add-hands-zone">
+      <div className="fng-add-hands-zone" onClick={advance}
+           style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className={`fng-add-hand-l${handsMerged ? " fng-add-hand--merge" : ""}`}>
           <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
         </div>
@@ -79,7 +69,6 @@ function AdditionTask({ task, onCorrect, onMistake }) {
         </div>
       </div>
 
-      {/* Zone 3 — keyboard (flex-shrink: 0, always reserves space at bottom) */}
       <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
         <div className="col-copy-keyboard"
              style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
@@ -100,13 +89,8 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 }
 
 // ── Subtraction ───────────────────────────────────────────────────────────────
-// Three steps: "Было" (a fingers) → "Убираем" (b arrows ↓) → "Стало" (result fingers)
-// Flow: show (2.5s) → remove (2s) → result (1.2s) → answer → done
+// Flow: show → [tap] → remove (arrows) → [tap] → result → [tap] → answer
 
-// Precise (x, y) tip of each raised finger in hand_right_N.png, as fractions
-// of the 256×320 canvas. Measured by alpha-scan (scripts/find-finger-tips.mjs).
-// Sorted LEFT → RIGHT in image: index 0 = pinky, index 4 = thumb.
-// For hand_left (mirrored screen): x_L = 1 - x_R, array reversed.
 const FINGER_TIPS_R = {
   1: [{ x: 0.369, y: 0.053 }],
   2: [{ x: 0.273, y: 0.050 }, { x: 0.523, y: 0.006 }],
@@ -115,10 +99,6 @@ const FINGER_TIPS_R = {
   5: [{ x: 0.158, y: 0.381 }, { x: 0.375, y: 0.075 }, { x: 0.547, y: 0.025 }, { x: 0.711, y: 0.069 }, { x: 0.846, y: 0.191 }],
 };
 
-// Pedagogical fold order — indices into FINGER_TIPS_R[count].
-// For 1-4 fingers (no thumb in image): fold from rightmost (pinky side) inward.
-//   index 0 = leftmost = index finger; index N-1 = rightmost = pinky.
-// For 5 fingers (thumb included): fold thumb first, then pinky inward.
 const FOLD_ORDER = {
   1: [0],
   2: [1, 0],
@@ -127,7 +107,6 @@ const FOLD_ORDER = {
   5: [0, 4, 3, 2, 1],
 };
 
-// Returns tips of fingers to mark for removal in hand_right image space.
 function removalTips(startCount, endCount) {
   const removeN = startCount - endCount;
   const order   = FOLD_ORDER[startCount] ?? [];
@@ -135,9 +114,6 @@ function removalTips(startCount, endCount) {
   return order.slice(0, removeN).map(i => tips[i]).filter(Boolean);
 }
 
-// Returns tips of fingers to mark for ADDITION in hand_right image space.
-// Uses final-count image positions (where fingers WILL appear).
-// Raise order = reverse of fold order: last-to-fold = first-raised.
 function additionTips(startCount, endCount) {
   if (startCount >= endCount || endCount > 5) return [];
   const order      = FOLD_ORDER[endCount] ?? [];
@@ -160,23 +136,11 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
     setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
 
-  useEffect(() => {
-    if (phase !== "show")   return;
-    const t = setTimeout(() => setPhase("remove"), 2500);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "remove") return;
-    const t = setTimeout(() => setPhase("result"), 2000);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "result") return;
-    const t = setTimeout(() => setPhase("answer"), 1200);
-    return () => clearTimeout(t);
-  }, [phase]);
+  function advance() {
+    if (phase === "show")   { setPhase("remove"); return; }
+    if (phase === "remove") { setPhase("result"); return; }
+    if (phase === "result") { setPhase("answer"); return; }
+  }
 
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
@@ -193,9 +157,9 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
   const hint =
-    phase === "show"   ? "Было" :
-    phase === "remove" ? `Убираем ${b}` :
-    phase === "result" ? "Стало" :
+    phase === "show"   ? "Было →" :
+    phase === "remove" ? `Убираем ${b} →` :
+    phase === "result" ? "Стало →" :
     "Введи ответ";
 
   const answerPart = phase === "done"
@@ -206,46 +170,30 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
         </span>
       : "?";
 
-  // Per-hand removal counts via startConfig vs resultConfig.
-  // This correctly places arrows on each hand that actually loses fingers
-  // (e.g. 4−2=2: each hand goes 2→1, one arrow per hand, not two on one).
   const leftStart  = startConfig.left;
   const leftEnd    = resultConfig.left;
   const rightStart = startConfig.right;
   const rightEnd   = resultConfig.right;
 
-  // counts: "show" and "remove" phases → a fingers; "result"+ → result fingers
   const leftCount  = (phase === "show" || phase === "remove") ? leftStart  : leftEnd;
   const rightCount = (phase === "show" || phase === "remove") ? rightStart : rightEnd;
   const kbdVisible = phase === "answer" || phase === "done";
+  const tappable   = phase !== "answer" && phase !== "done";
 
-  // Removal tips: {x,y} for each finger that disappears.
-  // Left screen uses hand_right images directly; right screen is mirrored (x → 1-x, reversed).
   const leftTips   = removalTips(leftStart, leftEnd);
   const rightTipsR = removalTips(rightStart, rightEnd);
   const rightTips  = [...rightTipsR].reverse().map(t => ({ x: 1 - t.x, y: t.y }));
 
-  // Arrow overlay: SVG arrow grows from finger tip downward.
-  // viewBox 0 0 40 100: stem y2=2..68 (len=66), head 68..100.
   function makeOverlay(tips) {
     if (!tips.length) return null;
     return (
       <div className="fng-sub-finger-overlay">
         {tips.map((tip, i) => (
-          <svg key={i} viewBox="0 0 40 100"
-               className="fng-sub-arrow"
+          <svg key={i} viewBox="0 0 40 100" className="fng-sub-arrow"
                style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
-            {/* white border behind stem */}
-            <line x1="20" y1="2" x2="20" y2="68"
-                  stroke="white" strokeWidth="12" strokeLinecap="round"
-                  className="fng-stem-bg" />
-            {/* red stem draws itself top→bottom */}
-            <line x1="20" y1="2" x2="20" y2="68"
-                  stroke="#ef4444" strokeWidth="7" strokeLinecap="round"
-                  className="fng-stem" />
-            {/* white arrowhead border */}
+            <line x1="20" y1="2" x2="20" y2="68" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
+            <line x1="20" y1="2" x2="20" y2="68" stroke="#ef4444" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
             <polygon points="20,100 0,63 40,63" fill="white" className="fng-head-bg" />
-            {/* red arrowhead */}
             <polygon points="20,96 5,66 35,66" fill="#ef4444" className="fng-head" />
           </svg>
         ))}
@@ -253,17 +201,15 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
     );
   }
 
-
   return (
     <div className="fng-add-screen">
-      {/* Zone 1 — expression + hint */}
-      <div className="fng-add-top">
+      <div className="fng-add-top" onClick={advance} style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-count-expr">{a} − {b} = {answerPart}</div>
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      {/* Zone 2 — hands; each hand gets arrows only for fingers it loses */}
-      <div className="fng-add-hands-zone">
+      <div className="fng-add-hands-zone" onClick={advance}
+           style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
@@ -280,7 +226,6 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
         </div>
       </div>
 
-      {/* Zone 3 — keyboard */}
       <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
         <div className="col-copy-keyboard"
              style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
@@ -301,8 +246,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 }
 
 // ── Large Addition (a > 5 or b > 5) ──────────────────────────────────────────
-// Shows `a` on two hands, then green UP arrows on fingers being raised, then result.
-// Flow: show (2.5s) → add (2s) → result (1.2s) → answer → done
+// Flow: show → [tap] → add (arrows) → [tap] → result → [tap] → answer
 
 function LargeAdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show");
@@ -318,23 +262,11 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
     setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
 
-  useEffect(() => {
-    if (phase !== "show")   return;
-    const t = setTimeout(() => setPhase("add"), 2500);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "add") return;
-    const t = setTimeout(() => setPhase("result"), 2000);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "result") return;
-    const t = setTimeout(() => setPhase("answer"), 1200);
-    return () => clearTimeout(t);
-  }, [phase]);
+  function advance() {
+    if (phase === "show")   { setPhase("add");    return; }
+    if (phase === "add")    { setPhase("result"); return; }
+    if (phase === "result") { setPhase("answer"); return; }
+  }
 
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
@@ -351,9 +283,9 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
   const hint =
-    phase === "show"   ? `Было ${a}` :
-    phase === "add"    ? `Добавляем ${b}` :
-    phase === "result" ? "Стало" :
+    phase === "show"   ? `Было ${a} →` :
+    phase === "add"    ? `Добавляем ${b} →` :
+    phase === "result" ? "Стало →" :
     "Введи ответ";
 
   const answerPart = phase === "done"
@@ -364,8 +296,6 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
         </span>
       : "?";
 
-  // left/right here matches FINGER_MAP semantics: .left = left-screen zone (side="right"),
-  // .right = right-screen zone (side="left").
   const leftStart  = aConfig.left;
   const leftEnd    = resConfig.left;
   const rightStart = aConfig.right;
@@ -374,10 +304,8 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
   const leftCount  = (phase === "show" || phase === "add") ? leftStart  : leftEnd;
   const rightCount = (phase === "show" || phase === "add") ? rightStart : rightEnd;
   const kbdVisible = phase === "answer" || phase === "done";
+  const tappable   = phase !== "answer" && phase !== "done";
 
-  // UP-arrow tips: fingers being raised on each hand.
-  // Left screen (side="right"): direct FINGER_TIPS_R coords.
-  // Right screen (side="left"): mirrored (x → 1-x, array reversed).
   const leftTips   = additionTips(leftStart, leftEnd);
   const rightTipsR = additionTips(rightStart, rightEnd);
   const rightTips  = [...rightTipsR].reverse().map(t => ({ x: 1 - t.x, y: t.y }));
@@ -387,19 +315,12 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
     return (
       <div className="fng-sub-finger-overlay">
         {tips.map((tip, i) => (
-          <svg key={i} viewBox="0 0 40 100"
-               className="fng-add-arrow"
+          <svg key={i} viewBox="0 0 40 100" className="fng-add-arrow"
                style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
-            {/* white arrowhead border — tip at y=0, base at y=37 */}
             <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
             <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
-            {/* green stem grows from bottom (y=98) upward to y=32, length=66 */}
-            <line x1="20" y1="98" x2="20" y2="32"
-                  stroke="white" strokeWidth="12" strokeLinecap="round"
-                  className="fng-stem-bg" />
-            <line x1="20" y1="98" x2="20" y2="32"
-                  stroke="#22c55e" strokeWidth="7" strokeLinecap="round"
-                  className="fng-stem" />
+            <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
+            <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
           </svg>
         ))}
       </div>
@@ -408,12 +329,13 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
 
   return (
     <div className="fng-add-screen">
-      <div className="fng-add-top">
+      <div className="fng-add-top" onClick={advance} style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      <div className="fng-add-hands-zone">
+      <div className="fng-add-hands-zone" onClick={advance}
+           style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
