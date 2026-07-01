@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.4";
+const VERSION   = "1.0.5";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
@@ -34,7 +34,7 @@ const Q_JUICE = "Какой сок получится?";
 const Q_JAM   = "Какое варенье получится?";
 
 const POT_PROMPT    = "a large stainless steel cooking pot on a gas stove with blue flame burning underneath, steam rising from the pot, kitchen setting, warm natural lighting, top-down 3/4 view, clean white background, square composition, no text, no watermark, photorealistic educational photo";
-const JUICER_PROMPT = "a modern electric centrifugal juicer on a clean kitchen counter, white and stainless steel design, simple and compact, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo";
+const JUICER_PROMPT = "a modern electric centrifugal juicer machine alone on a clean kitchen counter, NO glass of juice and NO fruit nearby, just the appliance by itself, white and stainless steel, bright natural lighting, square 1:1 composition, no text, no watermark, child-friendly educational photo";
 const BASIN_PROMPT  = "a wide traditional enamel basin or preserving pan filled with boiling red berry jam, foam and bubbles on the surface, steam rising, classic Russian jam-making style, warm kitchen lighting, top-down 3/4 view, square composition, no text, no watermark, child-friendly educational photo";
 
 // each concept must have: category, vesselImage, questionText, audioQuestion
