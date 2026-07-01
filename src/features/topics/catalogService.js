@@ -9,7 +9,14 @@ export function getImportErrorMessage(err) {
 }
 
 export async function fetchCatalog() {
-  return api.get("/decks/catalog");
+  try {
+    return await api.get("/decks/catalog");
+  } catch {
+    // Fallback: fetch the static catalog.json (works without auth for free/local installs)
+    const res = await fetch("/decks/catalog.json");
+    if (!res.ok) throw new Error("Не удалось загрузить каталог");
+    return res.json();
+  }
 }
 
 export async function claimDeck(topicId) {
@@ -17,15 +24,29 @@ export async function claimDeck(topicId) {
 }
 
 export async function fetchCatalogTopic(entry, appVersion) {
+  const access = entry.access ?? "free";
   const token = getApiToken();
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-  let res = await fetch(`/api/decks/${entry.id}/download`, { headers });
-
-  // Fallback: download directly from the static ZIP URL (for free decks or when API fails)
-  if (!res.ok && entry.url) {
+  let res;
+  if (access === "free" && entry.url) {
+    // Free decks: download directly from static URL — no auth needed, fast, no API dependency
     const directUrl = entry.url.replace(/^\.\//, "/");
     res = await fetch(directUrl);
+    // Fallback to API if static fails (e.g., deck not in dist)
+    if (!res.ok && token) {
+      res = await fetch(`/api/decks/${entry.id}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+  } else {
+    // Paid/restricted decks: must go through API (auth + access check)
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    res = await fetch(`/api/decks/${entry.id}/download`, { headers });
+    // Fallback to static if API fails
+    if (!res.ok && entry.url) {
+      const directUrl = entry.url.replace(/^\.\//, "/");
+      res = await fetch(directUrl);
+    }
   }
 
   if (!res.ok) {
