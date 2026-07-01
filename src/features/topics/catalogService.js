@@ -20,7 +20,14 @@ export async function fetchCatalogTopic(entry, appVersion) {
   const token = getApiToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-  const res = await fetch(`/api/decks/${entry.id}/download`, { headers });
+  let res = await fetch(`/api/decks/${entry.id}/download`, { headers });
+
+  // Fallback: download directly from the static ZIP URL (for free decks or when API fails)
+  if (!res.ok && entry.url) {
+    const directUrl = entry.url.replace(/^\.\//, "/");
+    res = await fetch(directUrl);
+  }
+
   if (!res.ok) {
     let message = res.statusText;
     try { message = (await res.json()).error || message; } catch (e) { void e; }

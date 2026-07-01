@@ -35,6 +35,7 @@ const CATALOG_CATEGORIES = {
   shopping_list:            "Практика",
   coffee:                   "Практика",
   chat_with_mom:            "Практика",
+  word_formation_soup:      "Словарный запас",
 };
 const CATEGORY_ORDER = ["Чтение", "Математика", "Словарный запас", "Практика"];
 
