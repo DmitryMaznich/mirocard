@@ -215,13 +215,16 @@ export default function App() {
     })();
   }, [setScreen, setVerifyEmailToken]);
 
-  // Re-sync from server whenever the tab becomes visible or every 60 s while active.
+  // Re-sync from server whenever the tab becomes visible or every 20 s while active.
   // This ensures Device B picks up changes made on Device A even if the tab never hides.
   useEffect(() => {
     let lastSyncAt = 0;
-    async function syncFromServer() {
+    let syncing = false;
+    async function syncFromServer({ force = false } = {}) {
       if (!useAppStore.getState().token) return;
-      if (Date.now() - lastSyncAt < 30_000) return;
+      if (syncing) return;
+      if (!force && Date.now() - lastSyncAt < 15_000) return;
+      syncing = true;
       lastSyncAt = Date.now();
       try {
         const db = await getDb();
@@ -244,11 +247,13 @@ export default function App() {
         await persistBootstrap(db, payload);
         applyBootstrapToStore(payload);
       } catch {}
+      syncing = false;
       flushQueue().catch(() => {});
     }
-    function onVisible() { if (!document.hidden) syncFromServer(); }
+    // Visibility change always syncs immediately — user explicitly switched to this device.
+    function onVisible() { if (!document.hidden) syncFromServer({ force: true }); }
     document.addEventListener("visibilitychange", onVisible);
-    const interval = setInterval(syncFromServer, 60_000);
+    const interval = setInterval(syncFromServer, 20_000);
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
       clearInterval(interval);
