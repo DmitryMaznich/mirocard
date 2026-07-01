@@ -20,22 +20,26 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
   const timersRef   = useRef([]);
   const revealedRef = useRef(false);
   const visualsRef  = useRef();
-  const promptRef   = useRef();
+  const promptRef1  = useRef();
+  const promptRef2  = useRef();
 
   const card   = cards[index];
   const isLast = index === cards.length - 1;
 
   useLayoutEffect(() => {
     const visuals = visualsRef.current;
-    const prompt  = promptRef.current;
-    if (!visuals || !prompt) return;
-    prompt.style.fontSize = "";
+    if (!visuals) return;
     const targetW = visuals.offsetWidth;
-    const textW   = prompt.scrollWidth;
-    if (textW > 0) {
-      prompt.style.fontSize =
-        (parseFloat(getComputedStyle(prompt).fontSize) * targetW / textW) + "px";
-    }
+    [promptRef1, promptRef2].forEach(ref => {
+      const el = ref.current;
+      if (!el) return;
+      el.style.fontSize = "";
+      const textW = el.scrollWidth;
+      if (textW > 0) {
+        el.style.fontSize =
+          (parseFloat(getComputedStyle(el).fontSize) * targetW / textW) + "px";
+      }
+    });
   }, [index, card?.id]);
 
   function clearTimers() {
@@ -93,8 +97,11 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
         </div>
 
         <div className="wf-pair__prompt">
-          <div className="wf-pair__prompt-line" ref={promptRef}>
-            Готовим {card.nounPhrase}. {card.questionText ?? "Какой суп получится?"}
+          <div className="wf-pair__prompt-line" ref={promptRef1}>
+            Готовим {card.nounPhrase}
+          </div>
+          <div className="wf-pair__prompt-line wf-pair__prompt-line--question" ref={promptRef2}>
+            {card.questionText ?? "Какой суп получится?"}
           </div>
         </div>
 
