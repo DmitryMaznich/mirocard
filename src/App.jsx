@@ -189,7 +189,7 @@ export default function App() {
               const merged = mergeStudents(localStudents, serverBootstrap.students);
               const payload = {
                 token: bootstrap.token,
-                account: bootstrap.account,
+                account: serverBootstrap.account,
                 settings: serverBootstrap.settings,
                 students: merged,
                 ownedTopics: serverBootstrap.ownedTopics,
@@ -232,6 +232,7 @@ export default function App() {
         const localStudents = useAppStore.getState().students;
         const merged = mergeStudents(localStudents, serverBootstrap.students);
         const payload = {
+          account: serverBootstrap.account,
           settings: serverBootstrap.settings,
           students: merged,
           ownedTopics: serverBootstrap.ownedTopics,
