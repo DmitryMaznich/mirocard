@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.5";
+const VERSION   = "1.0.6";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
@@ -40,68 +40,68 @@ const BASIN_PROMPT  = "a wide traditional enamel basin or preserving pan filled 
 // each concept must have: category, vesselImage, questionText, audioQuestion
 const CONCEPTS = [
   // ── супы ────────────────────────────────────────────────────────────────────
-  { id: "ryba",     noun: "рыба",     nounPhrase: "суп из рыбы",          adjPhrase: "рыбный суп",          difficulty: "easy",   color: "#2196F3", category: "soup",
+  { id: "ryba",     noun: "рыба",     nounPhrase: "суп из рыбы",          adjPhrase: "рыбный суп",          difficulty: "easy",   color: "#2196F3", category: "soup", wrongForms: ["рыбовый суп", "рыбяной суп", "рыбский суп"],
     imgPrompt: "a steaming bowl of fish soup, clear broth with pieces of white fish and vegetables, rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a fresh whole raw fish, lying on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "myaso",    noun: "мясо",     nounPhrase: "суп из мяса",          adjPhrase: "мясной суп",          difficulty: "easy",   color: "#F44336", category: "soup",
+  { id: "myaso",    noun: "мясо",     nounPhrase: "суп из мяса",          adjPhrase: "мясной суп",          difficulty: "easy",   color: "#F44336", category: "soup", wrongForms: ["мясовый суп", "мяский суп", "мясяной суп"],
     imgPrompt: "a steaming bowl of meat soup, rich broth with chunks of tender beef, carrots, potatoes, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a piece of fresh raw beef meat, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "grib",     noun: "гриб",     nounPhrase: "суп из грибов",        adjPhrase: "грибной суп",         difficulty: "easy",   color: "#795548", category: "soup",
+  { id: "grib",     noun: "гриб",     nounPhrase: "суп из грибов",        adjPhrase: "грибной суп",         difficulty: "easy",   color: "#795548", category: "soup", wrongForms: ["грибовый суп", "грибовной суп", "грибяной суп"],
     imgPrompt: "a steaming bowl of mushroom soup, creamy or clear broth with sliced mushrooms and herbs, rustic wooden bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of fresh whole champignon mushrooms, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "kapusta",  noun: "капуста",  nounPhrase: "суп из капусты",       adjPhrase: "капустный суп",       difficulty: "easy",   color: "#4CAF50", category: "soup",
+  { id: "kapusta",  noun: "капуста",  nounPhrase: "суп из капусты",       adjPhrase: "капустный суп",       difficulty: "easy",   color: "#4CAF50", category: "soup", wrongForms: ["капустовый суп", "капустяной суп", "капустинный суп"],
     imgPrompt: "a steaming bowl of cabbage soup, clear broth with shredded cabbage and vegetables, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a whole fresh white cabbage head, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "kuritsa",  noun: "курица",   nounPhrase: "суп из курицы",        adjPhrase: "куриный суп",         difficulty: "medium", color: "#FF9800", category: "soup",
+  { id: "kuritsa",  noun: "курица",   nounPhrase: "суп из курицы",        adjPhrase: "куриный суп",         difficulty: "medium", color: "#FF9800", category: "soup", wrongForms: ["курочный суп", "курицовый суп", "куриской суп"],
     imgPrompt: "a steaming bowl of chicken soup, golden clear broth with chicken pieces, carrots, noodles, rustic setting, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a whole fresh raw chicken, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "goroh",    noun: "горох",    nounPhrase: "суп из гороха",        adjPhrase: "гороховый суп",       difficulty: "medium", color: "#8BC34A", category: "soup",
+  { id: "goroh",    noun: "горох",    nounPhrase: "суп из гороха",        adjPhrase: "гороховый суп",       difficulty: "medium", color: "#8BC34A", category: "soup", wrongForms: ["горохный суп", "горошный суп", "горохистый суп"],
     imgPrompt: "a steaming bowl of pea soup, thick creamy green soup with split peas, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "fresh green peas in pods, a small pile, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "luk",      noun: "лук",      nounPhrase: "суп из лука",          adjPhrase: "луковый суп",         difficulty: "medium", color: "#9C27B0", category: "soup",
+  { id: "luk",      noun: "лук",      nounPhrase: "суп из лука",          adjPhrase: "луковый суп",         difficulty: "medium", color: "#9C27B0", category: "soup", wrongForms: ["лучный суп", "луковной суп", "луковист��й суп"],
     imgPrompt: "a steaming bowl of French onion soup, rich brown broth with caramelized onions and melted cheese crouton on top, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a few whole onions, one peeled, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "ovoschi",  noun: "овощи",    nounPhrase: "суп из овощей",        adjPhrase: "овощной суп",         difficulty: "medium", color: "#009688", category: "soup",
+  { id: "ovoschi",  noun: "овощи",    nounPhrase: "суп из овощей",        adjPhrase: "овощной суп",         difficulty: "medium", color: "#009688", category: "soup", wrongForms: ["овощевый суп", "овощинный суп", "овощеской суп"],
     imgPrompt: "a steaming bowl of vegetable soup, colorful clear broth with carrots, peas, zucchini, tomatoes, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a colorful mix of fresh vegetables: carrot, zucchini, tomato, bell pepper, arranged together on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "fasolj",   noun: "фасоль",   nounPhrase: "суп из фасоли",        adjPhrase: "фасолевый суп",       difficulty: "hard",   color: "#E91E63", category: "soup",
+  { id: "fasolj",   noun: "фасоль",   nounPhrase: "суп из фасоли",        adjPhrase: "фасолевый суп",       difficulty: "hard",   color: "#E91E63", category: "soup", wrongForms: ["фасольный суп", "фасолинный суп", "фасоляной суп"],
     imgPrompt: "a steaming bowl of bean soup, thick soup with red and white beans, tomatoes and herbs, rustic ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of dry red and white beans, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "tikva",    noun: "тыква",    nounPhrase: "суп из тыквы",         adjPhrase: "тыквенный суп",       difficulty: "hard",   color: "#FF6F00", category: "soup",
+  { id: "tikva",    noun: "тыква",    nounPhrase: "суп из тыквы",         adjPhrase: "тыквенный суп",       difficulty: "hard",   color: "#FF6F00", category: "soup", wrongForms: ["тыквовый суп", "тыквяной суп", "тыквиный суп"],
     imgPrompt: "a steaming bowl of pumpkin soup, smooth bright orange creamy soup, rustic ceramic bowl with a swirl of cream and pumpkin seeds on top, warm natural lighting, top-down view, square composition, no text, no watermark",
     ingredientPrompt: "a small bright orange pumpkin and a slice showing the orange flesh, on a rustic wooden table, warm natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
 
   // ── соки ────────────────────────────────────────────────────────────────────
-  { id: "yabloko",  noun: "яблоко",   nounPhrase: "сок из яблок",         adjPhrase: "яблочный сок",        difficulty: "easy",   color: "#8BC34A", category: "juice",
+  { id: "yabloko",  noun: "яблоко",   nounPhrase: "сок из яблок",         adjPhrase: "яблочный сок",        difficulty: "easy",   color: "#8BC34A", category: "juice", wrongForms: ["яблоковый сок", "яблоньный сок", "яблочаный сок"],
     imgPrompt: "a tall clear glass of fresh apple juice, bright golden-yellow juice, a whole green apple beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "two fresh whole green apples, one whole and one cut in half showing the white flesh, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "morkov",   noun: "морковь",  nounPhrase: "сок из моркови",       adjPhrase: "морковный сок",       difficulty: "easy",   color: "#FF9800", category: "juice",
+  { id: "morkov",   noun: "морковь",  nounPhrase: "сок из моркови",       adjPhrase: "морковный сок",       difficulty: "easy",   color: "#FF9800", category: "juice", wrongForms: ["морковочный сок", "морковистый сок", "морковяной сок"],
     imgPrompt: "a tall clear glass of fresh carrot juice, bright orange juice, a whole carrot beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "two fresh whole bright orange carrots with green tops, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "vinograd", noun: "виноград", nounPhrase: "сок из винограда",     adjPhrase: "виноградный сок",     difficulty: "medium", color: "#9C27B0", category: "juice",
+  { id: "vinograd", noun: "виноград", nounPhrase: "сок из винограда",     adjPhrase: "виноградный сок",     difficulty: "medium", color: "#9C27B0", category: "juice", wrongForms: ["виноградовый сок", "виноградинный сок", "виноградской сок"],
     imgPrompt: "a tall clear glass of fresh grape juice, deep purple juice, a small bunch of dark purple grapes beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a small bunch of dark purple grapes, glistening with freshness, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "apelsin",  noun: "апельсин", nounPhrase: "сок из апельсинов",    adjPhrase: "апельсиновый сок",    difficulty: "medium", color: "#FF5722", category: "juice",
+  { id: "apelsin",  noun: "апельсин", nounPhrase: "сок из апельсинов",    adjPhrase: "апельсиновый сок",    difficulty: "medium", color: "#FF5722", category: "juice", wrongForms: ["апельсинный сок", "апельсинской сок", "апельсинёный сок"],
     imgPrompt: "a tall clear glass of fresh orange juice, bright vivid orange juice with pulp, a whole orange and a halved orange beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "two fresh whole oranges and one halved orange showing the bright orange flesh, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "vishnya",  noun: "вишня",    nounPhrase: "сок из вишни",         adjPhrase: "вишнёвый сок",        difficulty: "hard",   color: "#E91E63", category: "juice",
+  { id: "vishnya",  noun: "вишня",    nounPhrase: "сок из вишни",         adjPhrase: "вишнёвый сок",        difficulty: "hard",   color: "#E91E63", category: "juice", wrongForms: ["вишняной сок", "вишнинный сок", "вишневской сок"],
     imgPrompt: "a tall clear glass of fresh cherry juice, deep red cherry juice, a handful of dark red cherries with stems beside the glass, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of fresh dark red cherries with green stems, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
 
   // ── варенье ─────────────────────────────────────────────────────────────────
-  { id: "klubnika", noun: "клубника", nounPhrase: "варенье из клубники",  adjPhrase: "клубничное варенье",  difficulty: "easy",   color: "#E91E63", category: "jam",
+  { id: "klubnika", noun: "клубника", nounPhrase: "варенье из клубники",  adjPhrase: "клубничное варенье",  difficulty: "easy",   color: "#E91E63", category: "jam", wrongForms: ["клубниковое варенье", "клубничаное варенье", "клубничковое варенье"],
     imgPrompt: "a glass jar of homemade strawberry jam, bright red jam with whole strawberry pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of fresh ripe red strawberries, glistening and juicy, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "malina",   noun: "малина",   nounPhrase: "варенье из малины",    adjPhrase: "малиновое варенье",   difficulty: "easy",   color: "#F06292", category: "jam",
+  { id: "malina",   noun: "малина",   nounPhrase: "варенье из малины",    adjPhrase: "малиновое варенье",   difficulty: "easy",   color: "#F06292", category: "jam", wrongForms: ["м��линное варенье", "малиновное варенье", "малинистое варенье"],
     imgPrompt: "a glass jar of homemade raspberry jam, deep red-pink jam with raspberry pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of fresh ripe red raspberries, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "sliva",    noun: "слива",    nounPhrase: "варенье из слив",      adjPhrase: "сливовое варенье",    difficulty: "medium", color: "#7B1FA2", category: "jam",
+  { id: "sliva",    noun: "слива",    nounPhrase: "варенье из слив",      adjPhrase: "сливовое варенье",    difficulty: "medium", color: "#7B1FA2", category: "jam", wrongForms: ["сливное варенье", "сливяное варенье", "сливиновое варенье"],
     imgPrompt: "a glass jar of homemade plum jam, deep dark purple jam with plum pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a few fresh whole dark purple plums, one cut in half showing the yellow flesh and stone, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "abrikos",  noun: "абрикос",  nounPhrase: "варенье из абрикосов", adjPhrase: "абрикосовое варенье", difficulty: "medium", color: "#FF9800", category: "jam",
+  { id: "abrikos",  noun: "абрикос",  nounPhrase: "варенье из абрикосов", adjPhrase: "абрикосовое варенье", difficulty: "medium", color: "#FF9800", category: "jam", wrongForms: ["абрикосное варенье", "абрикосяное варенье", "абрикосинное варенье"],
     imgPrompt: "a glass jar of homemade apricot jam, bright golden-orange jam with apricot pieces, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a few fresh whole ripe orange apricots, one cut in half showing the stone, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
-  { id: "chernika", noun: "черника",  nounPhrase: "варенье из черники",   adjPhrase: "черничное варенье",   difficulty: "hard",   color: "#3F51B5", category: "jam",
+  { id: "chernika", noun: "черника",  nounPhrase: "варенье из черники",   adjPhrase: "черничное варенье",   difficulty: "hard",   color: "#3F51B5", category: "jam", wrongForms: ["черниковое варенье", "черничаное варенье", "черничковое варенье"],
     imgPrompt: "a glass jar of homemade blueberry jam, deep dark blue-purple jam, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of fresh dark blue blueberries, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
 ];
@@ -267,6 +267,7 @@ function buildTopic() {
     vesselImage:     VESSEL[c.category].image,
     questionText:    VESSEL[c.category].question,
     audioQuestion:   VESSEL[c.category].audio,
+    wrongForms:      c.wrongForms ?? [],
   }));
 
   return {
@@ -277,6 +278,8 @@ function buildTopic() {
     modes: [
       { id: "pair_intro",   type: "pair_intro",   evaluation: "none", requirePin: false,
         ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" } } },
+      { id: "pick_form",    type: "pick_form",    evaluation: "auto", requirePin: false,
+        ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" } } },
       { id: "form_it",      type: "form_it",      evaluation: "auto", requirePin: false,
         ui: { title: { ru: "Образуй прилагательное" }, instruction: { ru: "Нажми на правильное слово" } },
         params: {

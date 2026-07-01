@@ -95,9 +95,17 @@ function generateQuestionAskTasks(cards) {
   }));
 }
 
+function generatePickFormTasks(cards) {
+  return [{
+    type:  "pick_form",
+    cards: sortByDifficulty(cards),
+  }];
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   switch (mode.type) {
     case "pair_intro":   return generatePairIntroTasks(cards);
+    case "pick_form":    return generatePickFormTasks(cards);
     case "form_it":      return generateFormItTasks(cards, params);
     case "yes_no":       return generateYesNoTasks(cards, params);
     case "question_ask": return generateQuestionAskTasks(cards);

@@ -195,6 +195,11 @@ export function initDb(dbPath = DB_PATH) {
   if (!studentColumns.some((column) => column.name === "photo")) {
     db.exec("ALTER TABLE students ADD COLUMN photo TEXT");
   }
+  if (!studentColumns.some((column) => column.name === "photo_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN photo_updated_at TEXT");
+    // Backfill: give existing photos a timestamp so they don't get overwritten by null
+    db.exec("UPDATE students SET photo_updated_at = updated_at WHERE photo IS NOT NULL");
+  }
 
   const linkColumns = db.prepare("PRAGMA table_info(student_topic_links)").all();
   if (!linkColumns.some((c) => c.name === "params")) {
