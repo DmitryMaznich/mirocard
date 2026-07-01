@@ -72,6 +72,9 @@
   display: grid; grid-template-columns: 1fr 1fr;
   gap: clamp(8px, 2vmin, 14px); width: 100%; flex-shrink: 0;
 }
+@media (orientation: portrait) {
+  .wf-pick__options { margin-top: 2em; }
+}
 .wf-pick__option {
   padding: clamp(12px, 3vmin, 20px) clamp(8px, 2vmin, 16px);
   border-radius: 16px; border: 2px solid #e0e0e0;
