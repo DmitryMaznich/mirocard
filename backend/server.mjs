@@ -24,6 +24,7 @@ import {
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
   getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
+  listAllAccounts, revokeAccountTopic,
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
@@ -687,6 +688,23 @@ async function handleAdminGrant(req, res) {
   writeJson(res, 200, { ok: true, email: account.email, topicId: body.topicId });
 }
 
+async function handleAdminListAccounts(req, res) {
+  requireAdmin(req);
+  writeJson(res, 200, listAllAccounts(db));
+}
+
+async function handleAdminRevoke(req, res) {
+  requireAdmin(req);
+  const body = await readJsonBody(req);
+  if (!body?.email || !body?.topicId) {
+    return writeJson(res, 400, { error: "email and topicId required" });
+  }
+  const account = findAccountByEmailAny(db, body.email);
+  if (!account) return writeJson(res, 404, { error: "Account not found" });
+  revokeAccountTopic(db, account.id, body.topicId);
+  writeJson(res, 200, { ok: true });
+}
+
 // ─── Student topic links + concept progress ────────────────────────────────────
 
 async function handleGetStudentTopicLinks(req, res) {
@@ -1038,8 +1056,10 @@ async function router(req, res) {
     if (method === "GET"    && p === "/decks/catalog")                             return await handleGetDecksCatalog(req, res);
     if (method === "POST"   && /^\/decks\/[^/]+\/claim$/.test(p))                 return await handleClaimDeck(req, res);
     if (method === "GET"    && /^\/decks\/[^/]+\/download$/.test(p))              return await handleDownloadDeck(req, res);
+    if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
     if (method === "POST"   && p === "/admin/grant")                               return await handleAdminGrant(req, res);
+    if (method === "POST"   && p === "/admin/revoke")                              return await handleAdminRevoke(req, res);
 
     // Student topic links + concept progress
     if (method === "GET"    && p === "/student-topic-links")      return await handleGetStudentTopicLinks(req, res);

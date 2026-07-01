@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mirocard Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── Auth ── */
+    #auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .auth-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 36px 40px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.10);
+      width: 320px;
+    }
+    .auth-card h1 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+    .auth-card input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .auth-card input:focus { border-color: #6c63ff; }
+
+    /* ── Panel ── */
+    #panel { display: none; }
+    .panel-header {
+      background: #fff;
+      border-bottom: 1px solid #e8eaed;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .panel-header h1 { font-size: 16px; font-weight: 700; flex: 1; }
+    .panel-body { padding: 20px 24px; max-width: 900px; margin: 0 auto; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn--primary { background: #6c63ff; color: #fff; }
+    .btn--secondary { background: #e8eaed; color: #333; }
+    .btn--danger { background: #ff4d4f; color: #fff; }
+    .btn--sm { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
+
+    /* ── User cards ── */
+    .user-list { display: flex; flex-direction: column; gap: 14px; }
+    .user-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      overflow: hidden;
+    }
+    .user-card__head {
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .user-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #6c63ff;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-info__name { font-weight: 600; font-size: 14px; }
+    .user-info__email { color: #666; font-size: 12px; margin-top: 2px; }
+    .user-info__meta { color: #aaa; font-size: 11px; margin-top: 3px; }
+    .user-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .user-status--active { background: #e6f9f0; color: #1a9e60; }
+    .user-status--pending { background: #fff7e6; color: #d48800; }
+    .user-status--deleted { background: #fff1f0; color: #cf1322; }
+
+    .user-card__body { padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* ── Flags ── */
+    .section-label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+    .flags-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .flag-toggle { display: flex; align-items: center; gap: 7px; cursor: pointer; user-select: none; }
+    .flag-toggle input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: #6c63ff; }
+    .flag-toggle span { font-size: 13px; }
+
+    /* ── Topics ── */
+    .topics-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .topic-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: #e8f4ff;
+      color: #0070cc;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .topic-chip--request { background: #fff7e6; color: #d48800; }
+    .topic-chip__remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: inherit;
+      opacity: .6;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .topic-chip__remove:hover { opacity: 1; }
+
+    .grant-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .grant-form select {
+      padding: 5px 8px;
+      border: 1.5px solid #ddd;
+      border-radius: 7px;
+      font-size: 12px;
+      outline: none;
+      max-width: 240px;
+    }
+    .grant-form select:focus { border-color: #6c63ff; }
+
+    /* ── Empty / Loading / Error ── */
+    .state-msg { text-align: center; padding: 40px; color: #999; }
+    .error-msg { background: #fff1f0; color: #cf1322; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+
+    /* ── Spinner ── */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #6c63ff; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .search-box {
+      padding: 7px 12px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      width: 220px;
+    }
+    .search-box:focus { border-color: #6c63ff; }
+  </style>
+</head>
+<body>
+
+<!-- Auth screen -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>Mirocard Admin</h1>
+    <input type="password" id="token-input" placeholder="Admin token" autocomplete="current-password">
+    <div id="auth-error" class="error-msg" style="display:none"></div>
+    <button class="btn btn--primary" style="width:100%" onclick="login()">Войти</button>
+  </div>
+</div>
+
+<!-- Main panel -->
+<div id="panel">
+  <div class="panel-header">
+    <h1>Пользователи</h1>
+    <input class="search-box" type="search" id="search" placeholder="Поиск по email / имени…" oninput="renderAccounts()">
+    <button class="btn btn--secondary" onclick="loadData()"><span id="refresh-icon">↺</span> Обновить</button>
+    <button class="btn btn--secondary btn--sm" onclick="logout()">Выйти</button>
+  </div>
+  <div class="panel-body">
+    <div id="error-banner" class="error-msg" style="display:none"></div>
+    <div id="accounts-container"><div class="state-msg"><div class="spinner"></div></div></div>
+  </div>
+</div>
+
+<script>
+  // ── State ─────────────────────────────────────────────────────────────────────
+  let TOKEN = sessionStorage.getItem('mrc_admin_token') || '';
+  let allAccounts = [];
+  let catalog = [];
+
+  const KNOWN_FLAGS = [
+    { key: 'planner',      label: 'Планировщик' },
+    { key: 'beta',         label: 'Видеть beta-темы' },
+    { key: 'experimental', label: 'Видеть experimental-темы' },
+  ];
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
+  if (TOKEN) showPanel();
+
+  document.getElementById('token-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+  });
+
+  // ── Auth ──────────────────────────────────────────────────────────────────────
+  async function login() {
+    const t = document.getElementById('token-input').value.trim();
+    if (!t) return;
+    TOKEN = t;
+    const err = document.getElementById('auth-error');
+    try {
+      const res = await apiFetch('/api/admin/accounts');
+      if (!res.ok) throw new Error('Неверный токен');
+      sessionStorage.setItem('mrc_admin_token', TOKEN);
+      showPanel();
+    } catch (e) {
+      err.textContent = e.message;
+      err.style.display = '';
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('mrc_admin_token');
+    TOKEN = '';
+    document.getElementById('panel').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('token-input').value = '';
+  }
+
+  function showPanel() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('panel').style.display = '';
+    loadData();
+  }
+
+  // ── Data ──────────────────────────────────────────────────────────────────────
+  async function loadData() {
+    const icon = document.getElementById('refresh-icon');
+    icon.className = 'spinner';
+    showError('');
+    try {
+      const [accRes, catRes] = await Promise.all([
+        apiFetch('/api/admin/accounts'),
+        fetch('/decks/catalog.json'),
+      ]);
+      if (!accRes.ok) throw new Error('Ошибка загрузки аккаунтов');
+      allAccounts = await accRes.json();
+      catalog = catRes.ok ? (await catRes.json()).decks ?? [] : [];
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      icon.className = '';
+      icon.textContent = '↺';
+    }
+    renderAccounts();
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────────
+  function renderAccounts() {
+    const q = (document.getElementById('search')?.value ?? '').toLowerCase();
+    const list = q
+      ? allAccounts.filter(a =>
+          (a.email ?? '').toLowerCase().includes(q) ||
+          (a.displayName ?? '').toLowerCase().includes(q))
+      : allAccounts;
+
+    const container = document.getElementById('accounts-container');
+    if (!list.length) {
+      container.innerHTML = '<div class="state-msg">Пользователи не найдены</div>';
+      return;
+    }
+    container.innerHTML = '';
+    const ul = document.createElement('div');
+    ul.className = 'user-list';
+    list.forEach(acc => ul.appendChild(buildCard(acc)));
+    container.appendChild(ul);
+  }
+
+  function buildCard(acc) {
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.dataset.accountId = acc.id;
+
+    const initials = (acc.displayName || acc.email || '?')
+      .split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const date = acc.createdAt ? new Date(acc.createdAt).toLocaleDateString('ru') : '—';
+    const statusClass = { active: 'active', pending: 'pending', deleted: 'deleted' }[acc.status] ?? 'pending';
+    const statusLabel = { active: 'активен', pending: 'не верифицирован', deleted: 'удалён' }[acc.status] ?? acc.status;
+
+    card.innerHTML = `
+      <div class="user-card__head">
+        <div class="user-avatar">${initials}</div>
+        <div class="user-info">
+          <div class="user-info__name">${esc(acc.displayName || '—')}</div>
+          <div class="user-info__email">${esc(acc.email)}</div>
+          <div class="user-info__meta">Зарегистрирован: ${date}</div>
+        </div>
+        <span class="user-status user-status--${statusClass}">${statusLabel}</span>
+      </div>
+      <div class="user-card__body">
+        <div class="flags-section">
+          <div class="section-label">Функции</div>
+          <div class="flags-row">${buildFlags(acc)}</div>
+        </div>
+        <div class="topics-section">
+          <div class="section-label">Доступ к темам</div>
+          <div class="topics-row" id="topics-${acc.id}">${buildTopics(acc)}</div>
+          <div class="grant-form" style="margin-top:8px">
+            <select id="select-${acc.id}">
+              <option value="">Выбрать тему…</option>
+              ${catalog.map(d => `<option value="${esc(d.id)}">${esc(d.title?.ru ?? d.id)} (${esc(d.id)})</option>`).join('')}
+            </select>
+            <button class="btn btn--primary btn--sm" onclick="grantTopic('${acc.id}','${esc(acc.email)}')">Выдать</button>
+          </div>
+        </div>
+      </div>`;
+    return card;
+  }
+
+  function buildFlags(acc) {
+    const flags = acc.featureFlags ?? [];
+    return KNOWN_FLAGS.map(f => `
+      <label class="flag-toggle">
+        <input type="checkbox" ${flags.includes(f.key) ? 'checked' : ''}
+          onchange="toggleFlag('${acc.id}','${esc(acc.email)}','${f.key}',this.checked)">
+        <span>${f.label}</span>
+      </label>`).join('');
+  }
+
+  function buildTopics(acc) {
+    const owned = acc.ownedTopics ?? [];
+    if (!owned.length) return '<span style="color:#aaa;font-size:12px">Нет доступа ни к одной теме</span>';
+    return owned.map(t => {
+      const entry = catalog.find(d => d.id === t.topicId);
+      const label = entry?.title?.ru ?? t.topicId;
+      const cls = t.source === 'request' ? 'topic-chip--request' : '';
+      return `<span class="topic-chip ${cls}">${esc(label)}
+        <button class="topic-chip__remove" title="Отозвать" onclick="revokeTopic('${acc.id}','${esc(acc.email)}','${t.topicId}')">×</button>
+      </span>`;
+    }).join('');
+  }
+
+  // ── Actions ───────────────────────────────────────────────────────────────────
+  async function toggleFlag(accountId, email, flagKey, checked) {
+    const acc = allAccounts.find(a => a.id === accountId);
+    if (!acc) return;
+    const current = acc.featureFlags ?? [];
+    const next = checked ? [...new Set([...current, flagKey])] : current.filter(f => f !== flagKey);
+    try {
+      const res = await apiFetch('/api/admin/account/flags', {
+        method: 'POST',
+        body: JSON.stringify({ email, flags: next }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Ошибка');
+      acc.featureFlags = next;
+    } catch (e) {
+      showError(e.message);
+      // Revert checkbox
+      const card = document.querySelector(`[data-account-id="${accountId}"]`);
+      if (card) card.querySelector('.flags-row').innerHTML = buildFlags(acc);
+    }
+  }
+
+  async function grantTopic(accountId, email) {
+    const sel = document.getElementById(`select-${accountId}`);
+    const topicId = sel.value;
+    if (!topicId) return;
+    try {
+      const res = await apiFetch('/api/admin/grant', {
+        method: 'POST',
+        body: JSON.stringify({ email, topicId }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Ошибка');
+      const acc = allAccounts.find(a => a.id === accountId);
+      if (acc) {
+        const exists = acc.ownedTopics.find(t => t.topicId === topicId);
+        if (!exists) acc.ownedTopics.push({ topicId, source: 'grant', acquiredAt: new Date().toISOString() });
+        else exists.source = 'grant';
+        document.getElementById(`topics-${accountId}`).innerHTML = buildTopics(acc);
+        sel.value = '';
+      }
+    } catch (e) {
+      showError(e.message);
+    }
+  }
+
+  async function revokeTopic(accountId, email, topicId) {
+    try {
+      const res = await apiFetch('/api/admin/revoke', {
+        method: 'POST',
+        body: JSON.stringify({ email, topicId }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Ошибка');
+      const acc = allAccounts.find(a => a.id === accountId);
+      if (acc) {
+        acc.ownedTopics = acc.ownedTopics.filter(t => t.topicId !== topicId);
+        document.getElementById(`topics-${accountId}`).innerHTML = buildTopics(acc);
+      }
+    } catch (e) {
+      showError(e.message);
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+  function apiFetch(url, opts = {}) {
+    return fetch(url, {
+      ...opts,
+      headers: {
+        'Authorization': `Bearer ${TOKEN}`,
+        'Content-Type': 'application/json',
+        ...(opts.headers ?? {}),
+      },
+    });
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-banner');
+    el.textContent = msg;
+    el.style.display = msg ? '' : 'none';
+  }
+
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

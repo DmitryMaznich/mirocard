@@ -487,6 +487,24 @@ export function setAccountFeatureFlags(db, accountId, flags) {
     .run(JSON.stringify(flags), accountId);
 }
 
+export function listAllAccounts(db) {
+  const accounts = db.prepare("SELECT * FROM accounts ORDER BY created_at DESC").all();
+  return accounts.map((a) => ({
+    ...serializeAccount(a),
+    status: a.status,
+    createdAt: a.created_at,
+    ownedTopics: db.prepare(
+      "SELECT topic_id, source, acquired_at FROM account_topics WHERE account_id = ? AND deleted_at IS NULL"
+    ).all(a.id).map((t) => ({ topicId: t.topic_id, source: t.source, acquiredAt: t.acquired_at })),
+  }));
+}
+
+export function revokeAccountTopic(db, accountId, topicId) {
+  db.prepare(
+    "UPDATE account_topics SET deleted_at = ? WHERE account_id = ? AND topic_id = ? AND deleted_at IS NULL"
+  ).run(now(), accountId, topicId);
+}
+
 // ─── Student topic links ──────────────────────────────────────────────────────
 
 export function upsertStudentTopicLink(db, accountId, {

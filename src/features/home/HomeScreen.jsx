@@ -76,7 +76,7 @@ function StudentPickerBar({ student, onTap }) {
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
-function HomeTabs({ active, onChange }) {
+function HomeTabs({ active, onChange, showPlanner }) {
   return (
     <div className="home-tabs" role="tablist">
       <button
@@ -86,13 +86,15 @@ function HomeTabs({ active, onChange }) {
       >
         Занятие
       </button>
-      <button
-        role="tab"
-        className={`home-tab${active === 'planner' ? ' home-tab--active' : ''}`}
-        onClick={() => onChange('planner')}
-      >
-        Планировщик
-      </button>
+      {showPlanner && (
+        <button
+          role="tab"
+          className={`home-tab${active === 'planner' ? ' home-tab--active' : ''}`}
+          onClick={() => onChange('planner')}
+        >
+          Планировщик
+        </button>
+      )}
     </div>
   );
 }
@@ -312,6 +314,7 @@ function useAppUpdate() {
 
 export default function HomeScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
+  const account = useAppStore((s) => s.account);
   const students = useAppStore((s) => s.students);
   const topicRecords = useAppStore((s) => s.topicRecords);
   const setTopicRecords = useAppStore((s) => s.setTopicRecords);
@@ -384,6 +387,7 @@ export default function HomeScreen() {
   }, [mode?.id]);
 
   const { hasUpdate, applyUpdate } = useAppUpdate();
+  const hasPlannerAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("planner");
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (
     isChatPractice ? true :
@@ -448,10 +452,12 @@ export default function HomeScreen() {
 
       <StudentPickerBar student={student} onTap={() => setScreen("students")} />
 
-      <HomeTabs active={activeTab} onChange={setActiveTab} />
+      <HomeTabs active={activeTab} onChange={setActiveTab} showPlanner={hasPlannerAccess} />
 
       <div className="home-tab-content">
-        {activeTab === 'session' ? (
+        {activeTab === 'planner' && hasPlannerAccess ? (
+          <PlannerTab student={student} setScreen={setScreen} />
+        ) : (
           <SessionTab
             student={student}
             topic={topic}
@@ -468,8 +474,6 @@ export default function HomeScreen() {
             startOrContinue={startOrContinue}
             setScreen={setScreen}
           />
-        ) : (
-          <PlannerTab student={student} setScreen={setScreen} />
         )}
       </div>
 
