@@ -3,6 +3,23 @@ import HandImg from "./HandImg.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
 
+// Shows count fingers on one or two HandImg components.
+// side = dominant side for the zone ("right" for left zone, "left" for right zone).
+// For count ≤ 5: single hand. For count > 5: two hands (overflow | main).
+function HandGroup({ count, side, style }) {
+  const config = getFingerConfig(count);
+  if (config.left === 0) {
+    return <HandImg count={count} side={side} style={style} />;
+  }
+  // Show overflow hand + full hand side-by-side within the zone.
+  return (
+    <div style={{ display: "flex", width: "100%", height: "100%", gap: 4, alignItems: "center" }}>
+      <HandImg count={config.left} side={side} style={{ flex: 1, height: "100%" }} />
+      <HandImg count={config.right} side={side} style={{ flex: 1, height: "100%" }} />
+    </div>
+  );
+}
+
 // ── Addition ──────────────────────────────────────────────────────────────────
 // Three fixed zones, always in DOM — only opacity changes so layout never shifts.
 // Flow: show (3s) → merge (0.9s, hands close + kbd fades in) → answer → done
@@ -72,10 +89,10 @@ function AdditionTask({ task, onCorrect, onMistake }) {
       {/* Zone 2 — hands (always visible; merged position stays during answer) */}
       <div className="fng-add-hands-zone">
         <div className={`fng-add-hand-l${handsMerged ? " fng-add-hand--merge" : ""}`}>
-          <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
+          <HandGroup count={a} side="right" style={{ width: "100%", height: "100%" }} />
         </div>
         <div className={`fng-add-hand-r${handsMerged ? " fng-add-hand--merge" : ""}`}>
-          <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
+          <HandGroup count={b} side="left"  style={{ width: "100%", height: "100%" }} />
         </div>
       </div>
 
