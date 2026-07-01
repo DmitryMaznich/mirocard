@@ -329,17 +329,18 @@ export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState('session');
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
-  const didAutoUpdateRef = useRef(false);
+  const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   useEffect(() => {
-    if (!topicRecords.length || didAutoUpdateRef.current) return;
-    didAutoUpdateRef.current = true;
+    if (!topicRecords.length) return;
+    if (didAutoUpdateRef.current === buildInfo.version) return;
+    didAutoUpdateRef.current = buildInfo.version;
     silentUpdateOutdatedTopics({ topicRecords, appVersion: buildInfo.version })
       .then(({ nextRecords, updated }) => {
         if (updated.length > 0) setTopicRecords(nextRecords);
       })
       .catch(() => {});
-  }, [topicRecords.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [topicRecords.length > 0, buildInfo.version]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const streakTapCountRef = useRef(0);
   const streakTapTimerRef = useRef(null);
