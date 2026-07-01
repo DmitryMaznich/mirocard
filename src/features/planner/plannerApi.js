@@ -1,6 +1,7 @@
 import { getDb, kv } from '@/core/db';
 import { pushOp } from '@/core/syncApi';
 import { api } from '@/core/api';
+import { normalizePlan } from './plannerUtils.js';
 
 const planKey = (studentId) => `planner:plan:${studentId}`;
 
@@ -29,7 +30,8 @@ export async function savePlan(plan) {
 
 export async function loadPlan(studentId) {
   const db = await getDb();
-  return (await kv.get(db, planKey(studentId))) ?? null;
+  const raw = await kv.get(db, planKey(studentId));
+  return raw ? normalizePlan(raw) : null;
 }
 
 export async function sendPlanToStudent(studentId, plan) {

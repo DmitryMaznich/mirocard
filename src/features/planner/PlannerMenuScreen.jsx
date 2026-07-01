@@ -3,14 +3,16 @@ import { useAppStore } from '@/core/store';
 import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
 import { getRawRecipeTxt } from '@/core/groupStore';
-import Button from '@/shared/components/Button';
 import { parseRecipeMetadata } from './recipeParser.js';
 import { parseRecipeTxt } from '@/topics/renderers/reading/parseRecipeTxt.js';
 import {
-  createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal, countPlanRecipes, MEAL_TYPES,
+  createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal, countPlanRecipes,
+  findRecipePlacements, MEAL_TYPES,
 } from './plannerUtils.js';
 import { loadPlan, savePlan, PANTRY_ITEMS } from './plannerApi.js';
 import './planner.css';
+
+const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
 // ─── Step image ───────────────────────────────────────────────────────────────
 
@@ -50,10 +52,11 @@ function RecipeStepView({ step, topicId }) {
 
 // ─── Recipe detail (inline viewer) ───────────────────────────────────────────
 
-function RecipeDetail({ recipe, isSelected, onAdd, onBack }) {
+function RecipeDetail({ recipe, plan, onOpenAddSheet, onBack }) {
   const { topicId, text, content } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
   const steps = useMemo(() => parseRecipeTxt(content), [content]);
+  const placements = findRecipePlacements(plan, text.id);
 
   return (
     <div className="screen planner-screen">
@@ -64,6 +67,17 @@ function RecipeDetail({ recipe, isSelected, onAdd, onBack }) {
 
       <div className="recipe-detail-body">
         {coverUrl && <img src={coverUrl} alt="" className="recipe-detail-cover" />}
+        {placements.length > 0 && (
+          <div className="recipe-detail-placements">
+            <span className="recipe-detail-placements__label">Уже в плане</span>
+            {placements.map((p, i) => (
+              <span key={i} className="recipe-detail-placements__chip">
+                {MEAL_ICONS[p.mealType]} День {p.dayIndex + 1} · {p.mealType}
+                {p.portions > 1 ? ` ×${p.portions}` : ''}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="recipe-detail-steps">
           {steps.map((step, i) => (
             <RecipeStepView key={step.id || i} step={step} topicId={topicId} />
@@ -71,23 +85,18 @@ function RecipeDetail({ recipe, isSelected, onAdd, onBack }) {
         </div>
       </div>
 
-      {onAdd && (
-        <div className="planner-footer">
-          <button
-            className={`recipe-detail-add${isSelected ? ' recipe-detail-add--done' : ''}`}
-            onClick={onAdd}
-          >
-            {isSelected ? '✓ Уже в плане' : '+ Добавить в план'}
-          </button>
-        </div>
-      )}
+      <div className="planner-footer">
+        <button className="recipe-detail-add" onClick={onOpenAddSheet}>
+          + Добавить в план
+        </button>
+      </div>
     </div>
   );
 }
 
-// ─── Gallery card ─────────────────────────────────────────────────────────────
+// ─── Recipe card (browse-only, tap to view) ──────────────────────────────────
 
-function RecipeGalleryCard({ recipe, isSelected, onView, onToggle }) {
+function RecipeCard({ recipe, placementCount, onView }) {
   const { topicId, text, ingredients } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
 
@@ -98,47 +107,38 @@ function RecipeGalleryCard({ recipe, isSelected, onView, onToggle }) {
     .join(', ');
 
   return (
-    <div className={`recipe-gallery-card${isSelected ? ' recipe-gallery-card--selected' : ''}`}>
-      <button className="recipe-gallery-card__photo-btn" onClick={onView} aria-label="Посмотреть рецепт">
+    <button className="recipe-gallery-card" onClick={onView}>
+      <span className="recipe-gallery-card__photo-btn">
         {photoUrl
           ? <img src={photoUrl} alt="" className="recipe-gallery-card__photo" />
-          : <div className="recipe-gallery-card__photo-placeholder" />
+          : <span className="recipe-gallery-card__photo-placeholder" />
         }
-        {isSelected && <span className="recipe-gallery-card__badge">✓</span>}
-      </button>
-      <div className="recipe-gallery-card__info">
+        {placementCount > 0 && (
+          <span className="recipe-gallery-card__badge">{placementCount}</span>
+        )}
+      </span>
+      <span className="recipe-gallery-card__info">
         <span className="recipe-gallery-card__title">{getTopicTitle(text.title)}</span>
         {keyIngr && <span className="recipe-gallery-card__ingr">{keyIngr}</span>}
-      </div>
-      <button
-        className={`recipe-gallery-card__add${isSelected ? ' recipe-gallery-card__add--done' : ''}`}
-        onClick={onToggle}
-        aria-label={isSelected ? 'Убрать из плана' : 'Добавить в план'}
-      >
-        {isSelected ? '✓' : '+'}
-      </button>
-    </div>
+      </span>
+    </button>
   );
 }
 
-// ─── Recipe gallery (full-screen grid) ───────────────────────────────────────
+// ─── Recipe browser (category tabs + grid) ───────────────────────────────────
 
-const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎' };
-
-function RecipeGallery({ initialMealType, planDay, allRecipes, loading, onToggle, onView, onBack }) {
-  const [mealType, setMealType] = useState(initialMealType);
+function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onOpenPlan, onBack }) {
+  const [mealType, setMealType] = useState(MEAL_TYPES[0]);
   const filtered = allRecipes.filter((r) => r.tags.includes(mealType));
-
-  // Compute per-tab: selected IDs and counts — both from the CURRENT tab's meal type
-  const selectedIds = planDay?.meals[mealType] ?? [];
-  const mealCounts = {};
-  for (const mt of MEAL_TYPES) mealCounts[mt] = (planDay?.meals[mt] ?? []).length;
 
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
         <button className="planner-header__back" onClick={onBack}>←</button>
-        <h1 className="planner-header__title">Выбрать блюдо</h1>
+        <h1 className="planner-header__title">Рецепты</h1>
+        <button className="planner-plan-pill" onClick={onOpenPlan}>
+          Мой план{planRecipeCount > 0 ? ` · ${planRecipeCount}` : ''}
+        </button>
       </div>
 
       <div className="gallery-meal-tabs">
@@ -149,9 +149,6 @@ function RecipeGallery({ initialMealType, planDay, allRecipes, loading, onToggle
             onClick={() => setMealType(mt)}
           >
             {MEAL_ICONS[mt]} {mt}
-            {mealCounts[mt] > 0 && (
-              <span className="gallery-meal-tab__count">{mealCounts[mt]}</span>
-            )}
           </button>
         ))}
       </div>
@@ -162,72 +159,173 @@ function RecipeGallery({ initialMealType, planDay, allRecipes, loading, onToggle
         <div className="gallery-empty">Нет рецептов для «{mealType}»</div>
       ) : (
         <div className="recipe-gallery-grid">
-          {filtered.map((recipe) => {
-            const isSelected = selectedIds.includes(recipe.text.id);
-            return (
-              <RecipeGalleryCard
-                key={`${recipe.topicId}_${recipe.text.id}`}
-                recipe={recipe}
-                isSelected={isSelected}
-                onView={() => onView(recipe, mealType)}
-                onToggle={() => onToggle(recipe.text.id, mealType, isSelected)}
-              />
-            );
-          })}
+          {filtered.map((recipe) => (
+            <RecipeCard
+              key={`${recipe.topicId}_${recipe.text.id}`}
+              recipe={recipe}
+              placementCount={findRecipePlacements(plan, recipe.text.id).length}
+              onView={() => onView(recipe)}
+            />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-// ─── Day card ─────────────────────────────────────────────────────────────────
+// ─── Add-to-plan sheet ────────────────────────────────────────────────────────
 
-function DayCard({ day, allRecipes, onOpenGallery, onRemove, onViewRecipe }) {
+function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
+  const [dayIndex, setDayIndex] = useState(0);
+  const [mealType, setMealType] = useState(null);
+  const [portions, setPortions] = useState(recipe.portions || 1);
+
+  function handleAddDay() {
+    const newIndex = plan.days.length;
+    onAddDay();
+    setDayIndex(newIndex);
+  }
+
+  return (
+    <div className="add-sheet-backdrop" onClick={onClose}>
+      <div className="add-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="add-sheet__handle" />
+        <h2 className="add-sheet__title">{getTopicTitle(recipe.text.title)}</h2>
+
+        <div className="add-sheet__section">
+          <span className="add-sheet__label">День</span>
+          <div className="add-sheet__chips">
+            {plan.days.map((day) => (
+              <button
+                key={day.dayIndex}
+                type="button"
+                className={`add-sheet__chip${dayIndex === day.dayIndex ? ' add-sheet__chip--active' : ''}`}
+                onClick={() => setDayIndex(day.dayIndex)}
+              >
+                День {day.dayIndex + 1}
+              </button>
+            ))}
+            {plan.days.length < 7 && (
+              <button type="button" className="add-sheet__chip add-sheet__chip--add" onClick={handleAddDay}>
+                + День
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="add-sheet__section">
+          <span className="add-sheet__label">Приём пищи</span>
+          <div className="add-sheet__meals">
+            {MEAL_TYPES.map((mt) => (
+              <button
+                key={mt}
+                type="button"
+                className={`add-sheet__meal${mealType === mt ? ' add-sheet__meal--active' : ''}`}
+                onClick={() => setMealType(mt)}
+              >
+                <span className="add-sheet__meal-icon">{MEAL_ICONS[mt]}</span>
+                <span className="add-sheet__meal-label">{mt}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="add-sheet__section add-sheet__section--row">
+          <span className="add-sheet__label">Порций</span>
+          <div className="add-sheet__stepper">
+            <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
+            <span className="add-sheet__stepper-value">{portions}</span>
+            <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="add-sheet__confirm"
+          disabled={mealType === null}
+          onClick={() => onConfirm(dayIndex, mealType, portions)}
+        >
+          Добавить в план
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Plan view (day-by-day review) ───────────────────────────────────────────
+
+function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe }) {
   function getRecipeObj(textId) {
     return allRecipes.find((r) => r.text.id === textId) ?? null;
   }
 
+  const filledMeals = MEAL_TYPES.filter((mt) => (day.meals[mt] ?? []).length > 0);
+
   return (
     <div className="planner-day-card">
       <div className="planner-day-title">День {day.dayIndex + 1}</div>
-      {MEAL_TYPES.map((mealType) => {
-        const ids = day.meals[mealType] ?? [];
-        return (
+      {filledMeals.length === 0 ? (
+        <div className="planner-day-card__empty">Пока пусто</div>
+      ) : (
+        filledMeals.map((mealType) => (
           <div key={mealType} className="planner-meal-section">
             <div className="planner-meal-header">
-              <span className="planner-meal-type">{mealType}</span>
-              <button className="planner-add-btn" onClick={() => onOpenGallery(mealType)}>
-                + добавить
-              </button>
+              <span className="planner-meal-type">{MEAL_ICONS[mealType]} {mealType}</span>
             </div>
-            {ids.length > 0 && (
-              <div className="planner-recipe-chips">
-                {ids.map((textId) => {
-                  const r = getRecipeObj(textId);
-                  const title = r ? getTopicTitle(r.text.title) : textId;
-                  return (
-                    <span key={textId} className="planner-recipe-chip">
-                      <button
-                        className="planner-recipe-chip__name"
-                        onClick={() => r && onViewRecipe(r)}
-                        disabled={!r}
-                      >
-                        {title}
-                      </button>
-                      <button
-                        className="planner-recipe-chip__remove"
-                        onClick={() => onRemove(day.dayIndex, mealType, textId)}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
+            <div className="planner-recipe-chips">
+              {day.meals[mealType].map(({ textId, portions }) => {
+                const r = getRecipeObj(textId);
+                const title = r ? getTopicTitle(r.text.title) : textId;
+                return (
+                  <span key={textId} className="planner-recipe-chip">
+                    <button
+                      className="planner-recipe-chip__name"
+                      onClick={() => r && onViewRecipe(r)}
+                      disabled={!r}
+                    >
+                      {title}{portions > 1 ? ` ×${portions}` : ''}
+                    </button>
+                    <button
+                      className="planner-recipe-chip__remove"
+                      onClick={() => onRemove(day.dayIndex, mealType, textId)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
           </div>
-        );
-      })}
+        ))
+      )}
+    </div>
+  );
+}
+
+function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onBack }) {
+  return (
+    <div className="screen planner-screen">
+      <div className="planner-header">
+        <button className="planner-header__back" onClick={onBack}>←</button>
+        <h1 className="planner-header__title">Мой план</h1>
+      </div>
+
+      <div className="planner-body">
+        {plan.days.map((day) => (
+          <PlanDayCard
+            key={day.dayIndex}
+            day={day}
+            allRecipes={allRecipes}
+            onRemove={onRemove}
+            onViewRecipe={onViewRecipe}
+          />
+        ))}
+        {plan.days.length < 7 && (
+          <button className="planner-add-day" onClick={onAddDay}>
+            + Добавить день
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -236,21 +334,18 @@ function DayCard({ day, allRecipes, onOpenGallery, onRemove, onViewRecipe }) {
 
 export default function PlannerMenuScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
-  const students = useAppStore((s) => s.students);
-  const topicRecords = useAppStore((s) => s.topicRecords);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
-  const student = students.find((s) => s.id === activeStudentId);
+  const topicRecords = useAppStore((s) => s.topicRecords);
 
   const [plan, setPlan] = useState(null);
-  const [saving, setSaving] = useState(false);
   const [allRecipes, setAllRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
 
-  // view: 'plan' | 'gallery' | 'detail'
-  const [view, setView] = useState('plan');
-  const [galleryCtx, setGalleryCtx] = useState(null); // { dayIndex, mealType }
+  // view: 'recipes' | 'plan' | 'detail'
+  const [view, setView] = useState('recipes');
   const [detailRecipe, setDetailRecipe] = useState(null);
-  const [detailPrev, setDetailPrev] = useState('plan'); // where to go back from detail
+  const [detailPrev, setDetailPrev] = useState('recipes');
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
 
   // Load saved plan
   useEffect(() => {
@@ -259,6 +354,11 @@ export default function PlannerMenuScreen() {
       setPlan(saved ?? createPlan(activeStudentId));
     });
   }, [activeStudentId]);
+
+  // Persist on every change (skips the initial null -> plan transition's redundant write only in that it's harmless either way)
+  useEffect(() => {
+    if (plan) savePlan(plan);
+  }, [plan]);
 
   // Load all recipes with metadata once
   useEffect(() => {
@@ -273,8 +373,8 @@ export default function PlannerMenuScreen() {
           if (text.kind !== 'instruction' || !text.file) continue;
           const content = await getRawRecipeTxt(record.meta.id, text.file);
           if (!content) continue;
-          const { tags, ingredients } = parseRecipeMetadata(content);
-          all.push({ topicId: record.meta.id, text, tags, ingredients, content });
+          const { tags, ingredients, portions } = parseRecipeMetadata(content);
+          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, content });
         }
       }
       if (!cancelled) { setAllRecipes(all); setLoadingRecipes(false); }
@@ -283,129 +383,65 @@ export default function PlannerMenuScreen() {
     return () => { cancelled = true; };
   }, [topicRecords]);
 
-  // Which day is open in gallery (needed for detail view's isSelected check)
-  const galleryPlanDay = useMemo(() => {
-    if (!plan || !galleryCtx) return null;
-    return plan.days[galleryCtx.dayIndex] ?? null;
-  }, [plan, galleryCtx]);
-
-  // Whether the detail recipe is selected in the current gallery context meal slot
-  const detailIsSelected = useMemo(() => {
-    if (!detailRecipe || !galleryCtx || !plan) return false;
-    return (plan.days[galleryCtx.dayIndex]?.meals[galleryCtx.mealType] ?? [])
-      .includes(detailRecipe.text.id);
-  }, [detailRecipe, galleryCtx, plan]);
-
-  function openGallery(dayIndex, mealType) {
-    setGalleryCtx({ dayIndex, mealType });
-    setView('gallery');
-  }
-
-  // Gallery passes current mealType so detail opens in the right slot
-  function openDetailFromGallery(recipe, mealType) {
-    setGalleryCtx((prev) => ({ ...prev, mealType }));
+  function openDetail(recipe, from) {
     setDetailRecipe(recipe);
-    setDetailPrev('gallery');
+    setDetailPrev(from);
     setView('detail');
   }
 
-  function openDetailFromPlan(recipe) {
-    setDetailRecipe(recipe);
-    setDetailPrev('plan');
-    setView('detail');
-  }
-
-  // Gallery passes current mealType so toggle operates on the right slot
-  function handleToggleInGallery(textId, mealType, isSelected) {
-    if (!galleryCtx || !plan) return;
-    if (isSelected) {
-      setPlan((p) => removeRecipeFromMeal(p, galleryCtx.dayIndex, mealType, textId));
-    } else {
-      setPlan((p) => addRecipeToMeal(p, galleryCtx.dayIndex, mealType, textId));
-    }
-  }
-
-  function handleAddFromDetail() {
-    if (!galleryCtx || !detailRecipe) return;
-    setPlan((p) => addRecipeToMeal(p, galleryCtx.dayIndex, galleryCtx.mealType, detailRecipe.text.id));
-    setView('gallery');
-  }
-
-  async function handleNext() {
-    setSaving(true);
-    await savePlan(plan);
-    setSaving(false);
-    setScreen('planner_summary');
+  function handleConfirmAdd(dayIndex, mealType, portions) {
+    setPlan((p) => addRecipeToMeal(p, dayIndex, mealType, detailRecipe.text.id, portions));
+    setAddSheetOpen(false);
   }
 
   if (!plan) return <div className="screen screen-center">Загрузка…</div>;
 
-  // ── Gallery ────────────────────────────────────────────────────────────────
-  if (view === 'gallery') {
-    return (
-      <RecipeGallery
-        initialMealType={galleryCtx.mealType}
-        planDay={galleryPlanDay}
-        allRecipes={allRecipes}
-        loading={loadingRecipes}
-        onToggle={handleToggleInGallery}
-        onView={openDetailFromGallery}
-        onBack={() => setView('plan')}
-      />
-    );
-  }
-
-  // ── Detail ─────────────────────────────────────────────────────────────────
   if (view === 'detail' && detailRecipe) {
     return (
-      <RecipeDetail
-        recipe={detailRecipe}
-        isSelected={detailIsSelected}
-        onAdd={galleryCtx && !detailIsSelected ? handleAddFromDetail : detailIsSelected ? () => setView(detailPrev) : null}
-        onBack={() => setView(detailPrev)}
+      <>
+        <RecipeDetail
+          recipe={detailRecipe}
+          plan={plan}
+          onOpenAddSheet={() => setAddSheetOpen(true)}
+          onBack={() => setView(detailPrev)}
+        />
+        {addSheetOpen && (
+          <AddToPlanSheet
+            recipe={detailRecipe}
+            plan={plan}
+            onAddDay={() => setPlan((p) => addDay(p))}
+            onConfirm={handleConfirmAdd}
+            onClose={() => setAddSheetOpen(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  if (view === 'plan') {
+    return (
+      <PlanView
+        plan={plan}
+        allRecipes={allRecipes}
+        onAddDay={() => setPlan((p) => addDay(p))}
+        onRemove={(dayIndex, mealType, textId) =>
+          setPlan((p) => removeRecipeFromMeal(p, dayIndex, mealType, textId))
+        }
+        onViewRecipe={(recipe) => openDetail(recipe, 'plan')}
+        onBack={() => setView('recipes')}
       />
     );
   }
 
-  // ── Plan ───────────────────────────────────────────────────────────────────
   return (
-    <div className="screen planner-screen">
-      <div className="planner-header">
-        <button className="planner-header__back" onClick={() => setScreen('home')}>←</button>
-        <h1 className="planner-header__title">
-          Меню{student ? ` для ${student.name}` : ''}
-        </h1>
-      </div>
-
-      <div className="planner-body">
-        {plan.days.map((day) => (
-          <DayCard
-            key={day.dayIndex}
-            day={day}
-            allRecipes={allRecipes}
-            onOpenGallery={(mealType) => openGallery(day.dayIndex, mealType)}
-            onRemove={(dayIndex, mealType, textId) =>
-              setPlan((p) => removeRecipeFromMeal(p, dayIndex, mealType, textId))
-            }
-            onViewRecipe={openDetailFromPlan}
-          />
-        ))}
-        {plan.days.length < 7 && (
-          <button className="planner-add-day" onClick={() => setPlan((p) => addDay(p))}>
-            + Добавить день
-          </button>
-        )}
-      </div>
-
-      <div className="planner-footer">
-        <Button
-          fullWidth
-          disabled={countPlanRecipes(plan) === 0 || saving}
-          onClick={handleNext}
-        >
-          {saving ? 'Сохраняем…' : 'Далее →'}
-        </Button>
-      </div>
-    </div>
+    <RecipeBrowser
+      plan={plan}
+      allRecipes={allRecipes}
+      loading={loadingRecipes}
+      planRecipeCount={countPlanRecipes(plan)}
+      onView={(recipe) => openDetail(recipe, 'recipes')}
+      onOpenPlan={() => setView('plan')}
+      onBack={() => setScreen('home')}
+    />
   );
 }

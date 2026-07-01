@@ -8,29 +8,25 @@ import {
   removeRecipeFromMeal,
   getPlanRecipes,
   countPlanRecipes,
+  findRecipePlacements,
+  normalizePlan,
 } from './plannerUtils.js';
 
 describe('MEAL_TYPES', () => {
-  it('contains all four meal types', () => {
-    expect(MEAL_TYPES).toEqual(['завтрак', 'обед', 'ужин', 'перекус']);
+  it('contains all five meal types including напитки', () => {
+    expect(MEAL_TYPES).toEqual(['завтрак', 'обед', 'ужин', 'перекус', 'напитки']);
   });
 });
 
 describe('createPlan', () => {
   it('creates a plan with one day and correct defaults', () => {
-    const plan = createPlan('student1', 2);
+    const plan = createPlan('student1');
     expect(plan.studentId).toBe('student1');
-    expect(plan.portionMultiplier).toBe(2);
     expect(plan.status).toBe('draft');
     expect(plan.days).toHaveLength(1);
     expect(plan.days[0].dayIndex).toBe(0);
     expect(typeof plan.id).toBe('string');
     expect(plan.id.length).toBeGreaterThan(0);
-  });
-
-  it('defaults portionMultiplier to 1', () => {
-    const plan = createPlan('s1');
-    expect(plan.portionMultiplier).toBe(1);
   });
 
   it('starts all meals empty', () => {
@@ -73,17 +69,23 @@ describe('addDay', () => {
 });
 
 describe('addRecipeToMeal', () => {
-  it('adds recipe to the correct meal on the correct day', () => {
+  it('adds recipe to the correct meal on the correct day with its portions', () => {
     const plan = createPlan('s1');
-    const updated = addRecipeToMeal(plan, 0, 'обед', 'soup_01');
-    expect(updated.days[0].meals['обед']).toContain('soup_01');
+    const updated = addRecipeToMeal(plan, 0, 'обед', 'soup_01', 2);
+    expect(updated.days[0].meals['обед']).toEqual([{ textId: 'soup_01', portions: 2 }]);
   });
 
-  it('does not add a recipe that is already present', () => {
+  it('defaults portions to 1 when not given', () => {
     const plan = createPlan('s1');
-    const p1 = addRecipeToMeal(plan, 0, 'обед', 'soup_01');
-    const p2 = addRecipeToMeal(p1, 0, 'обед', 'soup_01');
-    expect(p2.days[0].meals['обед']).toHaveLength(1);
+    const updated = addRecipeToMeal(plan, 0, 'обед', 'soup_01');
+    expect(updated.days[0].meals['обед']).toEqual([{ textId: 'soup_01', portions: 1 }]);
+  });
+
+  it('updates portions in place when the same recipe is re-added to the same slot', () => {
+    const plan = createPlan('s1');
+    const p1 = addRecipeToMeal(plan, 0, 'обед', 'soup_01', 2);
+    const p2 = addRecipeToMeal(p1, 0, 'обед', 'soup_01', 4);
+    expect(p2.days[0].meals['обед']).toEqual([{ textId: 'soup_01', portions: 4 }]);
   });
 
   it('does not affect other meal types on the same day', () => {
@@ -115,10 +117,10 @@ describe('removeRecipeFromMeal', () => {
 
   it('keeps other recipes in the same meal', () => {
     const plan = createPlan('s1');
-    const p1 = addRecipeToMeal(plan, 0, 'ужин', 'chicken_01');
-    const p2 = addRecipeToMeal(p1, 0, 'ужин', 'salad_01');
+    const p1 = addRecipeToMeal(plan, 0, 'ужин', 'chicken_01', 2);
+    const p2 = addRecipeToMeal(p1, 0, 'ужин', 'salad_01', 1);
     const p3 = removeRecipeFromMeal(p2, 0, 'ужин', 'chicken_01');
-    expect(p3.days[0].meals['ужин']).toEqual(['salad_01']);
+    expect(p3.days[0].meals['ужин']).toEqual([{ textId: 'salad_01', portions: 1 }]);
   });
 
   it('is a no-op when recipe is not present', () => {
@@ -129,21 +131,24 @@ describe('removeRecipeFromMeal', () => {
 });
 
 describe('getPlanRecipes', () => {
-  it('returns all unique recipes with portionMultiplier', () => {
-    const plan = createPlan('s1', 3);
-    const p1 = addRecipeToMeal(plan, 0, 'завтрак', 'oatmeal_01');
-    const p2 = addRecipeToMeal(p1, 0, 'обед', 'soup_01');
+  it('returns one entry per placement with its own portions', () => {
+    const plan = createPlan('s1');
+    const p1 = addRecipeToMeal(plan, 0, 'завтрак', 'oatmeal_01', 2);
+    const p2 = addRecipeToMeal(p1, 0, 'обед', 'soup_01', 3);
     const recipes = getPlanRecipes(p2);
     expect(recipes).toHaveLength(2);
-    expect(recipes[0]).toEqual({ textId: 'oatmeal_01', portionMultiplier: 3 });
-    expect(recipes[1]).toEqual({ textId: 'soup_01', portionMultiplier: 3 });
+    expect(recipes).toContainEqual({ textId: 'oatmeal_01', portionMultiplier: 2 });
+    expect(recipes).toContainEqual({ textId: 'soup_01', portionMultiplier: 3 });
   });
 
-  it('deduplicates the same recipe across multiple days', () => {
+  it('does not deduplicate the same recipe placed on multiple days — each keeps its own portions', () => {
     const plan = createPlan('s1');
-    const p1 = addRecipeToMeal(plan, 0, 'обед', 'soup_01');
-    const p2 = addRecipeToMeal(addDay(p1), 1, 'обед', 'soup_01');
-    expect(getPlanRecipes(p2)).toHaveLength(1);
+    const p1 = addRecipeToMeal(plan, 0, 'обед', 'soup_01', 2);
+    const p2 = addRecipeToMeal(addDay(p1), 1, 'обед', 'soup_01', 5);
+    const recipes = getPlanRecipes(p2);
+    expect(recipes).toHaveLength(2);
+    expect(recipes).toContainEqual({ textId: 'soup_01', portionMultiplier: 2 });
+    expect(recipes).toContainEqual({ textId: 'soup_01', portionMultiplier: 5 });
   });
 
   it('returns empty array for a plan with no recipes', () => {
@@ -162,5 +167,55 @@ describe('countPlanRecipes', () => {
 
   it('returns 0 for an empty plan', () => {
     expect(countPlanRecipes(createPlan('s1'))).toBe(0);
+  });
+});
+
+describe('findRecipePlacements', () => {
+  it('finds every day/meal slot a recipe is placed in', () => {
+    const plan = createPlan('s1');
+    const p1 = addRecipeToMeal(plan, 0, 'завтрак', 'soup_01', 2);
+    const p2 = addRecipeToMeal(addDay(p1), 1, 'ужин', 'soup_01', 5);
+    const placements = findRecipePlacements(p2, 'soup_01');
+    expect(placements).toHaveLength(2);
+    expect(placements).toContainEqual({ dayIndex: 0, mealType: 'завтрак', portions: 2 });
+    expect(placements).toContainEqual({ dayIndex: 1, mealType: 'ужин', portions: 5 });
+  });
+
+  it('returns an empty array when the recipe is not placed anywhere', () => {
+    expect(findRecipePlacements(createPlan('s1'), 'nope')).toEqual([]);
+  });
+});
+
+describe('normalizePlan', () => {
+  it('upgrades legacy string-array meals to {textId, portions} objects', () => {
+    const legacy = {
+      id: 'p1',
+      studentId: 's1',
+      portionMultiplier: 3,
+      status: 'draft',
+      days: [{ dayIndex: 0, meals: { завтрак: ['oatmeal_01'], обед: [], ужин: [], перекус: [] } }],
+    };
+    const normalized = normalizePlan(legacy);
+    expect(normalized.days[0].meals['завтрак']).toEqual([{ textId: 'oatmeal_01', portions: 3 }]);
+  });
+
+  it('fills in a missing напитки key for legacy days', () => {
+    const legacy = {
+      id: 'p1',
+      studentId: 's1',
+      days: [{ dayIndex: 0, meals: { завтрак: [], обед: [], ужин: [], перекус: [] } }],
+    };
+    const normalized = normalizePlan(legacy);
+    expect(normalized.days[0].meals['напитки']).toEqual([]);
+  });
+
+  it('leaves already-normalized plans unchanged', () => {
+    const plan = addRecipeToMeal(createPlan('s1'), 0, 'обед', 'soup_01', 2);
+    const normalized = normalizePlan(plan);
+    expect(normalized.days[0].meals['обед']).toEqual([{ textId: 'soup_01', portions: 2 }]);
+  });
+
+  it('returns null/undefined as-is', () => {
+    expect(normalizePlan(null)).toBeNull();
   });
 });

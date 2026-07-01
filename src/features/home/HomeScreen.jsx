@@ -259,9 +259,9 @@ function PlannerTab({ student, setScreen }) {
           <span className="hub-card__badge">🍽️</span>
           <span className="hub-card__body">
             <span className="hub-card__num">Шаг 1</span>
-            <span className="hub-card__title">Меню</span>
+            <span className="hub-card__title">Рецепты</span>
             <span className="hub-card__value">
-              {hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Выбери рецепты для готовки'}
+              {hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Смотри рецепты и добавляй в план'}
             </span>
             {hasRecipes && <DayStrip days={existingPlan.days} />}
           </span>

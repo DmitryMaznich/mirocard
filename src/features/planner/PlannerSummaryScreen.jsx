@@ -70,9 +70,9 @@ export default function PlannerSummaryScreen() {
                 {filled.map((mealType) => (
                   <div key={mealType} className="plan-meal-row">
                     <span className="plan-meal-row__type">{mealType}:</span>
-                    {day.meals[mealType].map((textId) => (
+                    {day.meals[mealType].map(({ textId, portions }) => (
                       <span key={textId} className="plan-meal-row__recipe">
-                        {getTitle(textId)}
+                        {getTitle(textId)}{portions > 1 ? ` ×${portions}` : ''}
                       </span>
                     ))}
                   </div>
