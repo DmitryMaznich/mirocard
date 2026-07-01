@@ -97,11 +97,14 @@ function generateQuestionAskTasks(cards) {
 }
 
 function generatePickFormTasks(cards, params) {
-  return [{
-    type:   "pick_form",
-    cards:  sortByDifficulty(cards),
+  // One task per card — session engine handles advancement between cards.
+  // allCards is passed for distractor building.
+  return shuffle(sortByDifficulty(cards).map((card) => ({
+    type:     "pick_form",
+    card,
+    allCards: cards,
     params,
-  }];
+  })));
 }
 
 export function generateTasks(mode, cards, _sessionSize, params = {}) {

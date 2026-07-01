@@ -21,14 +21,13 @@ function stripNoun(phrase) {
 
 function buildOptions(card, allCards, difficulty) {
   if (difficulty === "hard" && card.wrongForms?.length >= 3) {
-    // Hard: same-root wrong forms, full phrase with category noun
     return shuffle([
       { text: card.adjPhrase, isTarget: true },
       ...card.wrongForms.slice(0, OPTION_COUNT - 1).map(text => ({ text, isTarget: false })),
     ]);
   }
 
-  // Easy: same-category cards only (grouped by questionText), adjective only (no "суп/сок/варенье")
+  // Easy: same-category cards (same questionText), adjective only (no noun)
   const sameCategory = allCards.filter(
     c => c.id !== card.id && c.questionText === card.questionText
   );
@@ -42,24 +41,23 @@ function buildOptions(card, allCards, difficulty) {
   ]);
 }
 
-export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIncorrect }) {
-  const { cards } = task;
-  const audioEnabled  = task.params?.exerciseAudio ?? true;
-  const difficulty    = task.params?.difficulty ?? "easy";
-  const [index, setIndex]     = useState(0);
-  const [picked, setPicked]   = useState(null);   // null | "correct" | "wrong"
-  const [wrongIdx, setWrongIdx] = useState(null);
-  const { playTopicFile, playFeedback } = useAudio();
-  const timersRef     = useRef([]);
-  const visualsRef    = useRef();
-  const promptRef1    = useRef();
-  const promptRef2    = useRef();
+// Each task now represents a single card.
+// Session engine handles card-to-card navigation via onAdvance / onCorrect / onIncorrect.
+export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) {
+  const { card, allCards } = task;
+  const audioEnabled = task.params?.exerciseAudio ?? true;
+  const difficulty   = task.params?.difficulty ?? "easy";
 
-  const card   = cards[index];
-  const isLast = index === cards.length - 1;
+  const [picked, setPicked]     = useState(null);   // null | "correct" | "wrong"
+  const [wrongIdx, setWrongIdx] = useState(null);
+  const { playTopicFile } = useAudio();
+  const timersRef  = useRef([]);
+  const visualsRef = useRef();
+  const promptRef1 = useRef();
+  const promptRef2 = useRef();
 
   const options = useMemo(
-    () => card ? buildOptions(card, cards, difficulty) : [],
+    () => card ? buildOptions(card, allCards ?? [], difficulty) : [],
     [card?.id, difficulty] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
@@ -80,7 +78,7 @@ export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIn
       );
     }
     return clearTimers;
-  }, [index, card?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [card?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useLayoutEffect(() => {
     const visuals = visualsRef.current;
@@ -96,7 +94,7 @@ export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIn
           (parseFloat(getComputedStyle(el).fontSize) * targetW / textW) + "px";
       }
     });
-  }, [index, card?.id]);
+  }, [card?.id]);
 
   function handleOption(optionIdx) {
     if (picked) return;
@@ -104,23 +102,14 @@ export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIn
     if (opt.isTarget) {
       setPicked("correct");
       if (audioEnabled) playTopicFile(topicId, card.audioAdjPhrase);
-      playFeedback("correct");
+      // playFeedback is handled by SessionScreen's handleCorrect wrapper
       onCorrect?.();
     } else {
       setWrongIdx(optionIdx);
       setPicked("wrong");
-      playFeedback("incorrect");
+      // playFeedback is handled by SessionScreen's handleIncorrect wrapper
       onIncorrect?.();
     }
-  }
-
-  function handleNext() {
-    if (!isLast) setIndex(i => i + 1);
-    else onAdvance();
-  }
-
-  function handlePrev() {
-    if (index > 0) setIndex(i => i - 1);
   }
 
   if (!card) return null;
@@ -146,9 +135,9 @@ export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIn
         <div className="wf-pick__options">
           {options.map((opt, i) => {
             let mod = "";
-            if (picked === "correct" && opt.isTarget)  mod = "wf-pick__option--correct";
-            if (picked === "wrong"   && i === wrongIdx) mod = "wf-pick__option--wrong";
-            if (picked === "correct" && !opt.isTarget)  mod = "wf-pick__option--dim";
+            if (picked === "correct" && opt.isTarget)   mod = "wf-pick__option--correct";
+            if (picked === "wrong"   && i === wrongIdx)  mod = "wf-pick__option--wrong";
+            if (picked === "correct" && !opt.isTarget)   mod = "wf-pick__option--dim";
             return (
               <button
                 key={i}
@@ -163,21 +152,6 @@ export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIn
         </div>
       </div>
 
-      <div className="wf-pair__nav">
-        <button className="wf-nav-btn" onClick={handlePrev} disabled={index === 0}>←</button>
-        <div className="wf-pair__dots">
-          {cards.map((c, i) => (
-            <span key={c.id} className={`wf-pair__dot${i === index ? " wf-pair__dot--active" : ""}`} />
-          ))}
-        </div>
-        <button
-          className="wf-nav-btn wf-nav-btn--next"
-          onClick={handleNext}
-          disabled={!picked}
-        >
-          {isLast ? "Готово" : "→"}
-        </button>
-      </div>
     </div>
   );
 }
