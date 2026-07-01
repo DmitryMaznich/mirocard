@@ -212,26 +212,43 @@ export default function StudentEditScreen() {
   async function handleSave() {
     if (!name.trim()) { setNameError("Введите имя ученика"); return; }
     setSaving(true);
+    const ts = new Date().toISOString();
+    const photoChanged = photo !== (initial?.photo ?? null);
     const data = {
       name: name.trim(), comment: comment.trim(),
       primaryLanguage: lang || null,
       sex: sex || null,
-      photo: photo ?? null,
       rewardVideos: videos, closeAdults: adults,
     };
     const db = await getDb();
     if (isEdit) {
-      const updated = { ...initial, ...data, updatedAt: new Date().toISOString() };
+      const photoUpdatedAt = photoChanged ? ts : (initial.photoUpdatedAt ?? null);
+      const updated = { ...initial, ...data, photo: photo ?? null, photoUpdatedAt, updatedAt: ts };
       const next = students.map((s) => (s.id === initial.id ? updated : s));
       await kv.set(db, "students", next);
       setStudents(next);
-      pushOp("student.upsert", updated);
+      // student.upsert covers all fields except photo
+      pushOp("student.upsert", { ...updated, photo: undefined });
+      // photo is synced independently so one device's unrelated edit can't erase another's photo
+      if (photoChanged) {
+        pushOp("student.photo.upsert", { studentId: initial.id, photo: photo ?? null, photoUpdatedAt: ts });
+      }
     } else {
-      const student = { id: generateStudentId(), ...data, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const photoUpdatedAt = photo ? ts : null;
+      const student = {
+        id: generateStudentId(), ...data,
+        photo: photo ?? null, photoUpdatedAt,
+        createdAt: ts, updatedAt: ts,
+      };
       const next = [...students, student];
       await kv.set(db, "students", next);
       setStudents(next);
+      // For new students, upsert includes photo (server INSERT uses it)
       pushOp("student.upsert", student);
+      // Also push photo op to ensure photo_updated_at is set correctly on the server
+      if (photo) {
+        pushOp("student.photo.upsert", { studentId: student.id, photo, photoUpdatedAt: ts });
+      }
     }
     goBack();
   }

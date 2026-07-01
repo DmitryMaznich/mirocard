@@ -48,10 +48,17 @@ export function mergeStudentRecords(local, server) {
     const winner = (student.updatedAt ?? "") >= (current.updatedAt ?? "") ? student : current;
     const loser  = winner === student ? current : student;
 
-    // If either side has a local dataURL (not yet flushed to server), rescue it — it
-    // must not be discarded before being uploaded. Otherwise use winner's photo URL.
+    // Photo is tracked with its own timestamp (photoUpdatedAt) so it merges independently
+    // of the rest of the student fields. This prevents an unrelated edit on Device B from
+    // silently erasing a photo set by Device A.
+    const photoWinner = (student.photoUpdatedAt ?? "") >= (current.photoUpdatedAt ?? "")
+      ? student : current;
+    // Prefer a local data: URL (not yet flushed to server) over any stored URL.
     const localDataUrl = (student.photo?.startsWith("data:") ? student.photo : null)
                       ?? (current.photo?.startsWith("data:") ? current.photo : null);
+    const resolvedPhoto      = localDataUrl ?? photoWinner.photo ?? null;
+    const resolvedPhotoTs    = localDataUrl ? (student.photo?.startsWith("data:") ? student.photoUpdatedAt : current.photoUpdatedAt)
+                                            : photoWinner.photoUpdatedAt ?? null;
 
     // If winner has an empty adults list but loser has adults with photos, keep loser's list
     // (empty winner means the server simply hasn't received the pushOp yet).
@@ -66,15 +73,16 @@ export function mergeStudentRecords(local, server) {
             const loserAdultPhoto  = (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
             const adultLocalUrl    = (winnerAdultPhoto?.startsWith("data:") ? winnerAdultPhoto : null)
                                   ?? (loserAdultPhoto?.startsWith("data:")  ? loserAdultPhoto  : null);
-            const resolvedPhoto    = adultLocalUrl ?? (winner === student ? winnerAdultPhoto : loserAdultPhoto) ?? winnerAdultPhoto ?? null;
-            return resolvedPhoto === adult.photo ? adult : { ...adult, photo: resolvedPhoto };
+            const resolvedAdultPhoto = adultLocalUrl ?? (winner === student ? winnerAdultPhoto : loserAdultPhoto) ?? winnerAdultPhoto ?? null;
+            return resolvedAdultPhoto === adult.photo ? adult : { ...adult, photo: resolvedAdultPhoto };
           });
 
     byId.set(student.id, {
       ...winner,
-      photo:       localDataUrl ?? winner.photo ?? null,
-      sex:         student.sex   ?? current.sex   ?? null,
-      closeAdults: closeAdults,
+      photo:          resolvedPhoto,
+      photoUpdatedAt: resolvedPhotoTs,
+      sex:            student.sex   ?? current.sex   ?? null,
+      closeAdults:    closeAdults,
     });
   }
 
