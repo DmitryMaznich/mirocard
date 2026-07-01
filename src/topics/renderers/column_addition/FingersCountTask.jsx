@@ -107,6 +107,17 @@ const FOLD_ORDER = {
   5: [0, 4, 3, 2, 1],
 };
 
+// Base (knuckle) positions of folded fingers when hand shows N raised fingers.
+// Indexed as [thumb=0, index=1, middle=2, ring=3, pinky=4] matching FINGER_TIPS_R[5].
+// null = that finger is already raised (not folded) at this count.
+const FINGER_BASES_R = {
+  0: [{ x: 0.494, y: 0.530 }, { x: 0.394, y: 0.550 }, { x: 0.431, y: 0.460 }, { x: 0.725, y: 0.540 }, { x: 0.619, y: 0.535 }],
+  1: [{ x: 0.619, y: 0.542 }, null,                   { x: 0.719, y: 0.552 }, { x: 0.594, y: 0.462 }, { x: 0.513, y: 0.552 }],
+  2: [{ x: 0.625, y: 0.484 }, null,                   null,                   { x: 0.594, y: 0.539 }, { x: 0.669, y: 0.594 }],
+  3: [{ x: 0.606, y: 0.511 }, null,                   null,                   null,                   { x: 0.688, y: 0.531 }],
+  4: [{ x: 0.488, y: 0.477 }, null,                   null,                   null,                   null                  ],
+};
+
 function removalTips(startCount, endCount) {
   const removeN = startCount - endCount;
   const order   = FOLD_ORDER[startCount] ?? [];
@@ -120,6 +131,22 @@ function additionTips(startCount, endCount) {
   const tips       = FINGER_TIPS_R[endCount] ?? [];
   const raiseOrder = [...order].reverse();
   return raiseOrder.slice(startCount, endCount).map(i => tips[i]).filter(Boolean);
+}
+
+// Returns base positions (arrow start) for fingers being raised from startCount to endCount.
+// FINGER_TIPS_R[1..4] uses indices 0..N-1 = index..pinky (no thumb).
+// FINGER_TIPS_R[5] uses indices 0..4 = thumb,index,middle,ring,pinky.
+// FINGER_BASES_R always uses 0..4 = thumb,index,middle,ring,pinky.
+// So for endCount<5 we shift the index by +1 to skip thumb slot.
+function additionBases(startCount, endCount) {
+  if (startCount >= endCount || endCount > 5) return [];
+  const order      = FOLD_ORDER[endCount] ?? [];
+  const raiseOrder = [...order].reverse();
+  const bases      = FINGER_BASES_R[startCount] ?? [];
+  return raiseOrder.slice(startCount, endCount).map(i => {
+    const baseIdx = endCount === 5 ? i : i + 1;
+    return bases[baseIdx] ?? null;
+  }).filter(Boolean);
 }
 
 function SubtractionTask({ task, onCorrect, onMistake }) {
@@ -306,23 +333,37 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
   const kbdVisible = phase === "answer" || phase === "done";
   const tappable   = phase !== "answer" && phase !== "done";
 
-  const leftTips   = additionTips(leftStart, leftEnd);
-  const rightTipsR = additionTips(rightStart, rightEnd);
-  const rightTips  = [...rightTipsR].reverse().map(t => ({ x: 1 - t.x, y: t.y }));
+  const leftTipsArr   = additionTips(leftStart, leftEnd);
+  const leftBasesArr  = additionBases(leftStart, leftEnd);
+  const leftPairs     = leftTipsArr.map((tip, i) => ({ tip, base: leftBasesArr[i] })).filter(p => p.base);
 
-  function makeAddOverlay(tips) {
-    if (!tips.length) return null;
+  const rightTipsArrR  = additionTips(rightStart, rightEnd);
+  const rightBasesArrR = additionBases(rightStart, rightEnd);
+  const rightPairs     = [...Array(rightTipsArrR.length).keys()]
+    .reverse()
+    .map(origIdx => ({
+      tip:  { x: 1 - rightTipsArrR[origIdx].x, y: rightTipsArrR[origIdx].y },
+      base: rightBasesArrR[origIdx] ? { x: 1 - rightBasesArrR[origIdx].x, y: rightBasesArrR[origIdx].y } : null,
+    }))
+    .filter(p => p.base);
+
+  function makeAddOverlay(pairs) {
+    if (!pairs.length) return null;
     return (
       <div className="fng-sub-finger-overlay">
-        {tips.map((tip, i) => (
-          <svg key={i} viewBox="0 0 40 100" className="fng-add-arrow"
-               style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
-            <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
-            <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
-            <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
-            <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
-          </svg>
-        ))}
+        {pairs.map(({ tip, base }, i) => {
+          const h = (base.y - tip.y) * 100;
+          if (h <= 0) return null;
+          return (
+            <svg key={i} viewBox="0 0 40 100" className="fng-add-arrow"
+                 style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, height: `${h}%` }}>
+              <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
+              <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
+              <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
+              <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
+            </svg>
+          );
+        })}
       </div>
     );
   }
@@ -340,13 +381,13 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
-              {phase === "add" && makeAddOverlay(leftTips)}
+              {phase === "add" && makeAddOverlay(leftPairs)}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
-              {phase === "add" && makeAddOverlay(rightTips)}
+              {phase === "add" && makeAddOverlay(rightPairs)}
             </div>
           </div>
         </div>

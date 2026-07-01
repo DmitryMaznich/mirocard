@@ -224,11 +224,10 @@
   pointer-events: none;
 }
 
-/* UP arrow for addition: same size/positioning as fng-sub-arrow */
+/* UP arrow for addition: height is set dynamically via style (base.y − tip.y) */
 .fng-add-arrow {
   position: absolute;
   transform: translateX(-50%);
-  height: 17%;
   width: auto;
   overflow: visible;
   user-select: none;
