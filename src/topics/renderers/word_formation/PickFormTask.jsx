@@ -14,19 +14,33 @@ function VisualImage({ topicId, path, className }) {
     : <div className={`${className} wf-pair__visual-img--loading`} />;
 }
 
-function buildOptions(card, allCards, difficulty) {
-  const correct = { text: card.adjPhrase, isTarget: true };
+// "рыбный суп" → "рыбный"
+function stripNoun(phrase) {
+  const words = phrase.trim().split(" ");
+  return words.length > 1 ? words.slice(0, -1).join(" ") : phrase;
+}
 
-  let wrongTexts;
+function buildOptions(card, allCards, difficulty) {
   if (difficulty === "hard" && card.wrongForms?.length >= 3) {
-    wrongTexts = card.wrongForms.slice(0, OPTION_COUNT - 1);
-  } else {
-    wrongTexts = shuffle(allCards.filter(c => c.id !== card.id))
-      .slice(0, OPTION_COUNT - 1)
-      .map(c => c.adjPhrase);
+    // Hard: same-root wrong forms, full phrase with category noun
+    return shuffle([
+      { text: card.adjPhrase, isTarget: true },
+      ...card.wrongForms.slice(0, OPTION_COUNT - 1).map(text => ({ text, isTarget: false })),
+    ]);
   }
 
-  return shuffle([correct, ...wrongTexts.map(text => ({ text, isTarget: false }))]);
+  // Easy: same-category cards only (grouped by questionText), adjective only (no "суп/сок/варенье")
+  const sameCategory = allCards.filter(
+    c => c.id !== card.id && c.questionText === card.questionText
+  );
+  const wrongTexts = shuffle(sameCategory)
+    .slice(0, OPTION_COUNT - 1)
+    .map(c => stripNoun(c.adjPhrase));
+
+  return shuffle([
+    { text: stripNoun(card.adjPhrase), isTarget: true },
+    ...wrongTexts.map(text => ({ text, isTarget: false })),
+  ]);
 }
 
 export default function PickFormTask({ task, topicId, onAdvance, onCorrect, onIncorrect }) {
