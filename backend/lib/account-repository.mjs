@@ -322,8 +322,15 @@ export function upsertStudent(db, accountId, {
   const serverNow = now();
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
-  const photoRef = photo ? extractAndStorePhoto(db, photo) : null;
+  const incomingPhotoRef = photo ? extractAndStorePhoto(db, photo) : null;
   const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
+
+  // Resolve photo: if the incoming payload carries no photo (client didn't have one at save time),
+  // preserve whatever the server already stores so a stale write from one device
+  // can't silently erase a photo written by another device.
+  const existing = db.prepare("SELECT photo FROM students WHERE id = ?").get(id);
+  const photoRef = incomingPhotoRef ?? (existing?.photo ?? null);
+
   db.prepare(`
     INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, reward_videos, close_adults, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

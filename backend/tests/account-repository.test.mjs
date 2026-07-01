@@ -149,6 +149,22 @@ test("upsertStudent creates and getStudents returns it", () => {
   assert.equal(students[0].reward_videos, JSON.stringify(["https://youtu.be/example1", "https://youtu.be/example2"]));
 });
 
+test("upsertStudent preserves existing photo when incoming photo is null", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  // First write with a photo
+  upsertStudent(db, acc.id, { id: "s_photo", name: "Аня", photo: "data:image/jpeg;base64,/9j/test123==" });
+  const after1 = getStudents(db, acc.id).find((s) => s.id === "s_photo");
+  assert.ok(after1.photo?.startsWith("/api/photos/"), "photo should be stored as /api/photos/...");
+  const savedPhotoUrl = after1.photo;
+
+  // Second write without photo (simulates stale client write that didn't know about the photo)
+  upsertStudent(db, acc.id, { id: "s_photo", name: "Аня Новая", photo: null });
+  const after2 = getStudents(db, acc.id).find((s) => s.id === "s_photo");
+  assert.equal(after2.name, "Аня Новая");
+  assert.equal(after2.photo, savedPhotoUrl, "photo must NOT be overwritten by null");
+});
+
 test("softDeleteStudent marks deleted_at", () => {
   const db = makeDb();
   const acc = makeAccount(db);
