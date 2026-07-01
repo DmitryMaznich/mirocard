@@ -17,6 +17,15 @@ import {
 
 const INCORRECT_FEEDBACK_MS = 1500;
 
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function buildGeneratedSessionState({
   topicRecord,
   mode,
@@ -45,7 +54,7 @@ function buildGeneratedSessionState({
     const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
     const deckPos = link.deckPosition ?? 0;
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
-    const concepts = safeStart === 0 ? selected : selected.slice(safeStart);
+    const concepts = shuffle(safeStart === 0 ? selected : selected.slice(safeStart));
     const generateTasks = ENGINE_REGISTRY.flashcards;
     tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
     isDeckMode = true;
@@ -54,7 +63,7 @@ function buildGeneratedSessionState({
     const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
     const deckPos = link.deckPosition ?? 0;
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
-    const concepts = safeStart === 0 ? selected : selected.slice(safeStart);
+    const concepts = shuffle(safeStart === 0 ? selected : selected.slice(safeStart));
     const generateTasks = ENGINE_REGISTRY.function_cards;
     tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
     isDeckMode = true;
@@ -80,7 +89,7 @@ function buildGeneratedSessionState({
   } else {
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
-    const selectedCards = topicRecord.cards.filter((card) => selectedConceptIds.includes(card.conceptId));
+    const selectedCards = shuffle(topicRecord.cards.filter((card) => selectedConceptIds.includes(card.conceptId)));
     tasks = generateTasks
       ? generateTasks(mode, selectedCards.length ? selectedCards : topicRecord.cards, sessionSize, sessionParams)
       : [];
