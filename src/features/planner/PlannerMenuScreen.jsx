@@ -127,7 +127,7 @@ function RecipeCard({ recipe, plan, mealType, onView, onToggleDay, onAddDay }) {
         </span>
         <span className="recipe-gallery-card__info">
           <span className="recipe-gallery-card__title">{getTopicTitle(text.title)}</span>
-          {keyIngr && <span className="recipe-gallery-card__ingr">{keyIngr}</span>}
+          <span className="recipe-gallery-card__ingr">{keyIngr}</span>
         </span>
       </button>
 
