@@ -194,6 +194,7 @@
   gap: 12px;
   padding: 12px;
   align-content: start;
+  align-items: start;
 }
 
 .gallery-empty {
@@ -207,21 +208,29 @@
 }
 
 .recipe-gallery-card {
+  position: relative;
   background: rgba(250, 247, 242, 0.96);
   border: 1px solid #e7dccf;
   border-radius: 16px;
-  overflow: hidden;
   box-shadow: 0 4px 14px rgba(71, 61, 48, 0.05);
   display: flex;
   flex-direction: column;
+}
+
+.recipe-gallery-card__view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   padding: 0;
+  border: none;
+  background: none;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: box-shadow 0.15s, transform 0.12s;
+  transition: transform 0.12s ease;
 }
 
-.recipe-gallery-card:active {
+.recipe-gallery-card__view:active {
   transform: scale(0.98);
 }
 
@@ -231,6 +240,7 @@
   aspect-ratio: 1;
   display: block;
   overflow: hidden;
+  border-radius: 16px 16px 0 0;
 }
 
 .recipe-gallery-card__photo {
@@ -265,11 +275,10 @@
 }
 
 .recipe-gallery-card__info {
-  padding: 8px 10px 10px;
+  padding: 8px 10px 6px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  flex: 1;
 }
 
 .recipe-gallery-card__title {
@@ -290,6 +299,129 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── Quick-add row + popover ──────────────────────────────────── */
+.recipe-gallery-card__add-row {
+  padding: 0 10px 10px;
+}
+
+.recipe-gallery-card__add-btn {
+  width: 100%;
+  border: 1.5px solid #4a9b8f;
+  border-radius: 10px;
+  background: none;
+  color: #2f5b57;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 4px;
+  cursor: pointer;
+}
+
+.recipe-gallery-card__add-btn--active {
+  background: #4a9b8f;
+  color: #fff;
+}
+
+.card-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 5;
+}
+
+.card-popover {
+  position: relative;
+  z-index: 6;
+  margin: 0 10px 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f4eee3;
+  border: 1px solid #e7dccf;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-popover__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-popover__label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #7a8c88;
+}
+
+.card-popover__stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-popover__stepper button {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid #4a9b8f;
+  background: #fff;
+  color: #2f5b57;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.card-popover__stepper span {
+  font-size: 13px;
+  font-weight: 800;
+  color: #263131;
+  min-width: 14px;
+  text-align: center;
+}
+
+.card-popover__days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-popover__day {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1.5px solid #e0d4c3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #263131;
+  cursor: pointer;
+}
+
+.card-popover__day:has(input:checked) {
+  border-color: #4a9b8f;
+  background: rgba(74, 155, 143, 0.14);
+  color: #2f5b57;
+}
+
+.card-popover__day input {
+  width: 13px;
+  height: 13px;
+  accent-color: #4a9b8f;
+  margin: 0;
+}
+
+.card-popover__day--add {
+  border-style: dashed;
+  color: #4a9b8f;
 }
 
 /* ── Recipe detail (inline) ─────────────────────────────────── */

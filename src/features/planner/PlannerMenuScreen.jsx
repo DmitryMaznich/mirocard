@@ -94,11 +94,18 @@ function RecipeDetail({ recipe, plan, onOpenAddSheet, onBack }) {
   );
 }
 
-// ─── Recipe card (browse-only, tap to view) ──────────────────────────────────
+// ─── Recipe card (tap to view, or add straight from the grid) ────────────────
 
-function RecipeCard({ recipe, placementCount, onView }) {
+function RecipeCard({ recipe, plan, mealType, onView, onToggleDay, onAddDay }) {
   const { topicId, text, ingredients } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
+  const [portions, setPortions] = useState(recipe.portions || 1);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  const placements = findRecipePlacements(plan, text.id);
+  const placedInTab = new Set(
+    placements.filter((p) => p.mealType === mealType).map((p) => p.dayIndex)
+  );
 
   const keyIngr = ingredients
     .filter((i) => i.product && !PANTRY_ITEMS.has(i.product))
@@ -107,27 +114,72 @@ function RecipeCard({ recipe, placementCount, onView }) {
     .join(', ');
 
   return (
-    <button className="recipe-gallery-card" onClick={onView}>
-      <span className="recipe-gallery-card__photo-btn">
-        {photoUrl
-          ? <img src={photoUrl} alt="" className="recipe-gallery-card__photo" />
-          : <span className="recipe-gallery-card__photo-placeholder" />
-        }
-        {placementCount > 0 && (
-          <span className="recipe-gallery-card__badge">{placementCount}</span>
-        )}
-      </span>
-      <span className="recipe-gallery-card__info">
-        <span className="recipe-gallery-card__title">{getTopicTitle(text.title)}</span>
-        {keyIngr && <span className="recipe-gallery-card__ingr">{keyIngr}</span>}
-      </span>
-    </button>
+    <div className="recipe-gallery-card">
+      <button className="recipe-gallery-card__view" onClick={onView}>
+        <span className="recipe-gallery-card__photo-btn">
+          {photoUrl
+            ? <img src={photoUrl} alt="" className="recipe-gallery-card__photo" />
+            : <span className="recipe-gallery-card__photo-placeholder" />
+          }
+          {placements.length > 0 && (
+            <span className="recipe-gallery-card__badge">{placements.length}</span>
+          )}
+        </span>
+        <span className="recipe-gallery-card__info">
+          <span className="recipe-gallery-card__title">{getTopicTitle(text.title)}</span>
+          {keyIngr && <span className="recipe-gallery-card__ingr">{keyIngr}</span>}
+        </span>
+      </button>
+
+      <div className="recipe-gallery-card__add-row">
+        <button
+          type="button"
+          className={`recipe-gallery-card__add-btn${placedInTab.size > 0 ? ' recipe-gallery-card__add-btn--active' : ''}`}
+          onClick={() => setPopoverOpen((o) => !o)}
+        >
+          {placedInTab.size > 0 ? `В плане · ${placedInTab.size}` : '+ Добавить'}
+        </button>
+      </div>
+
+      {popoverOpen && (
+        <>
+          <div className="card-popover-backdrop" onClick={() => setPopoverOpen(false)} />
+          <div className="card-popover">
+            <div className="card-popover__row">
+              <span className="card-popover__label">Порций</span>
+              <div className="card-popover__stepper">
+                <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
+                <span>{portions}</span>
+                <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
+              </div>
+            </div>
+            <div className="card-popover__days">
+              {plan.days.map((day) => (
+                <label key={day.dayIndex} className="card-popover__day">
+                  <input
+                    type="checkbox"
+                    checked={placedInTab.has(day.dayIndex)}
+                    onChange={() => onToggleDay(recipe, day.dayIndex, mealType, placedInTab.has(day.dayIndex), portions)}
+                  />
+                  <span>День {day.dayIndex + 1}</span>
+                </label>
+              ))}
+              {plan.days.length < 7 && (
+                <button type="button" className="card-popover__day card-popover__day--add" onClick={onAddDay}>
+                  + День
+                </button>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
 // ─── Recipe browser (category tabs + grid) ───────────────────────────────────
 
-function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onOpenPlan, onBack }) {
+function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onOpenPlan, onBack, onToggleDay, onAddDay }) {
   const [mealType, setMealType] = useState(MEAL_TYPES[0]);
   const filtered = allRecipes.filter((r) => r.tags.includes(mealType));
 
@@ -163,8 +215,11 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onO
             <RecipeCard
               key={`${recipe.topicId}_${recipe.text.id}`}
               recipe={recipe}
-              placementCount={findRecipePlacements(plan, recipe.text.id).length}
+              plan={plan}
+              mealType={mealType}
               onView={() => onView(recipe)}
+              onToggleDay={onToggleDay}
+              onAddDay={onAddDay}
             />
           ))}
         </div>
@@ -394,6 +449,14 @@ export default function PlannerMenuScreen() {
     setAddSheetOpen(false);
   }
 
+  function handleToggleDay(recipe, dayIndex, mealType, currentlyPlaced, portions) {
+    setPlan((p) =>
+      currentlyPlaced
+        ? removeRecipeFromMeal(p, dayIndex, mealType, recipe.text.id)
+        : addRecipeToMeal(p, dayIndex, mealType, recipe.text.id, portions)
+    );
+  }
+
   if (!plan) return <div className="screen screen-center">Загрузка…</div>;
 
   if (view === 'detail' && detailRecipe) {
@@ -442,6 +505,8 @@ export default function PlannerMenuScreen() {
       onView={(recipe) => openDetail(recipe, 'recipes')}
       onOpenPlan={() => setView('plan')}
       onBack={() => setScreen('home')}
+      onToggleDay={handleToggleDay}
+      onAddDay={() => setPlan((p) => addDay(p))}
     />
   );
 }
