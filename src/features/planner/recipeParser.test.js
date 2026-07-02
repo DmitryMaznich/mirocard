@@ -25,6 +25,17 @@ describe('parseRecipeMetadata', () => {
     expect(portions).toBe(1);
   });
 
+  it('extracts fixed_portions as integer', () => {
+    const content = '# portions: 6\n# fixed_portions: 6\nТест\n';
+    const { fixedPortions } = parseRecipeMetadata(content);
+    expect(fixedPortions).toBe(6);
+  });
+
+  it('defaults fixedPortions to null when absent', () => {
+    const { fixedPortions } = parseRecipeMetadata('# portions: 2\nТест\n');
+    expect(fixedPortions).toBeNull();
+  });
+
   it('extracts ingredient with qty and unit', () => {
     const content = '# ingredients:\n#   яйца | 3 | шт\nТест\n';
     const { ingredients } = parseRecipeMetadata(content);

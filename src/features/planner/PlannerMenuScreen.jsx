@@ -97,9 +97,9 @@ function RecipeDetail({ recipe, plan, onOpenAddSheet, onBack }) {
 // ─── Recipe card (tap to view, or add straight from the grid) ────────────────
 
 function RecipeCard({ recipe, plan, mealType, onView, onToggleDay, onAddDay }) {
-  const { topicId, text, ingredients } = recipe;
+  const { topicId, text, ingredients, fixedPortions } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
-  const [portions, setPortions] = useState(recipe.portions || 1);
+  const [portions, setPortions] = useState(fixedPortions || recipe.portions || 1);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const placements = findRecipePlacements(plan, text.id);
@@ -147,11 +147,15 @@ function RecipeCard({ recipe, plan, mealType, onView, onToggleDay, onAddDay }) {
           <div className="card-popover">
             <div className="card-popover__row">
               <span className="card-popover__label">Порций</span>
-              <div className="card-popover__stepper">
-                <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
-                <span>{portions}</span>
-                <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
-              </div>
+              {fixedPortions ? (
+                <span className="card-popover__fixed">🔒 всегда {fixedPortions}</span>
+              ) : (
+                <div className="card-popover__stepper">
+                  <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
+                  <span>{portions}</span>
+                  <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
+                </div>
+              )}
             </div>
             <div className="card-popover__days">
               {plan.days.map((day) => (
@@ -231,9 +235,10 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onO
 // ─── Add-to-plan sheet ────────────────────────────────────────────────────────
 
 function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
+  const { fixedPortions } = recipe;
   const [dayIndex, setDayIndex] = useState(0);
   const [mealType, setMealType] = useState(null);
-  const [portions, setPortions] = useState(recipe.portions || 1);
+  const [portions, setPortions] = useState(fixedPortions || recipe.portions || 1);
 
   function handleAddDay() {
     const newIndex = plan.days.length;
@@ -287,11 +292,15 @@ function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
 
         <div className="add-sheet__section add-sheet__section--row">
           <span className="add-sheet__label">Порций</span>
-          <div className="add-sheet__stepper">
-            <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
-            <span className="add-sheet__stepper-value">{portions}</span>
-            <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
-          </div>
+          {fixedPortions ? (
+            <span className="add-sheet__fixed">🔒 всегда {fixedPortions} — блюдо готовится целиком</span>
+          ) : (
+            <div className="add-sheet__stepper">
+              <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
+              <span className="add-sheet__stepper-value">{portions}</span>
+              <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
+            </div>
+          )}
         </div>
 
         <button
@@ -428,8 +437,8 @@ export default function PlannerMenuScreen() {
           if (text.kind !== 'instruction' || !text.file) continue;
           const content = await getRawRecipeTxt(record.meta.id, text.file);
           if (!content) continue;
-          const { tags, ingredients, portions } = parseRecipeMetadata(content);
-          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, content });
+          const { tags, ingredients, portions, fixedPortions } = parseRecipeMetadata(content);
+          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, content });
         }
       }
       if (!cancelled) { setAllRecipes(all); setLoadingRecipes(false); }

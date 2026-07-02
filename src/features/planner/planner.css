@@ -361,6 +361,12 @@
   color: #7a8c88;
 }
 
+.card-popover__fixed {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7d8f8a;
+}
+
 .card-popover__stepper {
   display: flex;
   align-items: center;
@@ -634,6 +640,14 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #7a8c88;
+}
+
+.add-sheet__fixed {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7d8f8a;
+  text-align: right;
+  max-width: 60%;
 }
 
 .add-sheet__chips {

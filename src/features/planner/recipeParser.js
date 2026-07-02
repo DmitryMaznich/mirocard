@@ -6,9 +6,13 @@
  *   # status: final
  *   # tags: завтрак, обед
  *   # portions: 4
+ *   # fixed_portions: 4
  *   # ingredients:
  *   #   продукт | количество | единица
  *   #   соль | |
+ *
+ * fixed_portions marks recipes that are cooked as one inherent batch
+ * (e.g. a pot of soup) — ingredient quantities can't be scaled below it.
  *
  * Ingredient block ends at the first # line that is NOT indented,
  * or at the first non-# line.
@@ -17,6 +21,7 @@ export function parseRecipeMetadata(content) {
   const lines = content.split('\n');
   const tags = [];
   let portions = 1;
+  let fixedPortions = null;
   const ingredients = [];
   let inIngredients = false;
 
@@ -50,6 +55,8 @@ export function parseRecipeMetadata(content) {
     if (kv.startsWith('tags:')) {
       const raw = kv.slice(5).trim();
       tags.push(...raw.split(',').map((t) => t.trim()).filter(Boolean));
+    } else if (kv.startsWith('fixed_portions:')) {
+      fixedPortions = parseInt(kv.slice(15).trim(), 10) || null;
     } else if (kv.startsWith('portions:')) {
       portions = parseInt(kv.slice(9).trim(), 10) || 1;
     } else if (kv === 'ingredients:') {
@@ -57,5 +64,5 @@ export function parseRecipeMetadata(content) {
     }
   }
 
-  return { tags, portions, ingredients };
+  return { tags, portions, fixedPortions, ingredients };
 }
