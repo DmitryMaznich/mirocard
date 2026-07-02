@@ -194,7 +194,10 @@
   gap: 12px;
   padding: 12px;
   align-content: start;
-  align-items: start;
+  /* Default (stretch): cards fill their row's height, guaranteeing both
+     columns match even if some other content difference slips through —
+     safe now that the add-popover is position: absolute and no longer
+     grows the card itself (see .card-popover). */
 }
 
 .gallery-empty {
@@ -286,19 +289,24 @@
   font-weight: 700;
   color: #263131;
   line-height: 1.3;
-  min-height: 2.6em;
+  /* Fixed height (not min-height) — some mobile browsers don't reliably
+     apply min-height against a -webkit-box's own content-based sizing,
+     which let short single-line titles collapse the row shorter than
+     two-line ones despite the min-height. A hard height + overflow
+     forces the box to the same size regardless of line-clamp support. */
+  height: 34px;
+  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .recipe-gallery-card__ingr {
   display: block;
+  height: 14px;
   font-size: 11px;
   color: #7d8f8a;
   line-height: 1.3;
-  min-height: 1.3em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
