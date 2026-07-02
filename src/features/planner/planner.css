@@ -334,14 +334,21 @@
   z-index: 5;
 }
 
+/* Absolutely positioned so it overlays rather than growing the card —
+   opening it must never change the card's height, or its row sibling
+   (which doesn't stretch, see .recipe-gallery-grid) ends up mismatched. */
 .card-popover {
-  position: relative;
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 100%;
+  margin-top: 6px;
   z-index: 6;
-  margin: 0 10px 10px;
   padding: 10px;
   border-radius: 12px;
   background: #f4eee3;
   border: 1px solid #e7dccf;
+  box-shadow: 0 10px 24px rgba(71, 61, 48, 0.18);
   display: flex;
   flex-direction: column;
   gap: 10px;
