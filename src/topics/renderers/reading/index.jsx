@@ -393,6 +393,8 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const activeStudentId         = useAppStore((s) => s.activeStudentId);
   const students                = useAppStore((s) => s.students);
   const adultConfirmAdvance     = useAppStore((s) => s.settings?.adultConfirmAdvance ?? true);
+  const sessionPortionsOverride    = useAppStore((s) => s.sessionPortionsOverride);
+  const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const [portions,   setPortions]   = useState(1);
@@ -425,10 +427,11 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       const annotated    = applyGroupToSteps(parsedSteps, grpList);
       setGroup(grpList);
       setSteps(annotated);
-      setPortions(task.text?.fixedPortions ?? settings.portions ?? 1);
+      setPortions(task.text?.fixedPortions ?? sessionPortionsOverride ?? settings.portions ?? 1);
+      if (sessionPortionsOverride != null) setSessionPortionsOverride(null);
     }
     load();
-  }, [topicId, task.text?.id, task.text?.file]);
+  }, [topicId, task.text?.id, task.text?.file]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const step = steps[stepIndex];
   const imageUrl = useTopicFile(topicId,

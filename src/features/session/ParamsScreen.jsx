@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTimer } from "@/features/timer/TimerContext";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -7,6 +7,7 @@ import Modal from "@/shared/components/Modal";
 import PinGateModal from "@/shared/components/PinGateModal";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
+import { getRecipeSettings, saveRecipeSettings } from "@/core/groupStore";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -18,6 +19,70 @@ import InstructionParamsContent from "@/features/reading/InstructionParamsConten
 import ShoppingParamsContent from "@/features/session/ShoppingParamsContent";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
+
+// ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
+
+function RecipeStartParams({ topicId, activeText, student }) {
+  const setScreen = useAppStore((s) => s.setScreen);
+  const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
+  const { markSessionStart } = useTimer();
+  const fixedPortions = activeText.fixedPortions ?? null;
+  const [portions, setPortions] = useState(1);
+
+  useEffect(() => {
+    let cancelled = false;
+    getRecipeSettings(topicId).then((s) => { if (!cancelled) setPortions(s.portions ?? 1); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [topicId]);
+
+  function startSession() {
+    const finalPortions = fixedPortions || portions;
+    setSessionPortionsOverride(finalPortions);
+    saveRecipeSettings(topicId, { portions: finalPortions }).catch(() => {});
+    markSessionStart();
+    setScreen("session");
+  }
+
+  return (
+    <div className="params-layout">
+      <div className="params-info-col">
+        {student && (
+          <div className="params-info-student">
+            <div className="params-info-student__avatar">
+              {student.photoDataUrl
+                ? <img src={student.photoDataUrl} alt={student.name} />
+                : getInitials(student.name)
+              }
+            </div>
+            <div className="params-info-student__name">{student.name}</div>
+          </div>
+        )}
+        <div className="params-info-start">
+          <Button fullWidth onClick={startSession}>Начать готовить</Button>
+        </div>
+      </div>
+
+      <div className="params-settings-col">
+        <div className="params-body">
+          <div className="param-row">
+            <div className="param-label">Порций</div>
+            {fixedPortions
+              ? <span className="all-texts-portions-fixed">готовим {fixedPortions}</span>
+              : <div className="all-texts-portions">
+                  <button className="all-texts-portions-btn" onClick={() => setPortions((p) => Math.max(1, p - 1))} disabled={portions <= 1}>−</button>
+                  <span className="all-texts-portions-value">{portions}</span>
+                  <button className="all-texts-portions-btn" onClick={() => setPortions((p) => Math.min(20, p + 1))} disabled={portions >= 20}>+</button>
+                </div>
+            }
+          </div>
+        </div>
+        <div className="params-start-phone">
+          <Button fullWidth onClick={startSession}>Начать готовить</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function NumberStepper({ label, value, min, max, onChange }) {
   return (
@@ -421,16 +486,19 @@ export default function ParamsScreen() {
           <h1 className="screen-title">{getTopicTitle(activeText.title)}</h1>
           <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
         </div>
-        <InstructionParamsContent
-          topicId={activeTopicId}
-          textId={activeTextId}
-          filePath={activeText.file}
-          topicTitle={getTopicTitle(topicRecord.meta.title)}
-          textTitle={getTopicTitle(activeText.title)}
-          student={student}
-          kind={activeText.kind}
-          fixedPortions={activeText.fixedPortions ?? null}
-        />
+        {activeText.kind === "instruction"
+          ? <RecipeStartParams topicId={activeTopicId} activeText={activeText} student={student} />
+          : <InstructionParamsContent
+              topicId={activeTopicId}
+              textId={activeTextId}
+              filePath={activeText.file}
+              topicTitle={getTopicTitle(topicRecord.meta.title)}
+              textTitle={getTopicTitle(activeText.title)}
+              student={student}
+              kind={activeText.kind}
+              fixedPortions={activeText.fixedPortions ?? null}
+            />
+        }
         {showShare && (
           <ShareWithStudentPanel
             topicId={activeTopicId}

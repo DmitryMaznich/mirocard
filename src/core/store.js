@@ -10,6 +10,12 @@ export const useAppStore = create((set) => ({
   // screen. Null means "use the default flow".
   sessionReturnScreen: null,
   setSessionReturnScreen: (sessionReturnScreen) => set({ sessionReturnScreen }),
+  // In-memory portions choice for the recipe session about to start.
+  // Bypasses the persisted settings round-trip (IndexedDB + server pull),
+  // which can race and clobber a value just saved via saveRecipeSettings.
+  // The reading renderer reads it once on mount, then it's cleared.
+  sessionPortionsOverride: null,
+  setSessionPortionsOverride: (sessionPortionsOverride) => set({ sessionPortionsOverride }),
   sessionExitPromptOpen: false,
   openSessionExitPrompt:  () => set({ sessionExitPromptOpen: true }),
   closeSessionExitPrompt: () => set({ sessionExitPromptOpen: false }),

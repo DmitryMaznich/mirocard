@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
-import { useTimer } from '@/features/timer/TimerContext';
 import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
-import { getRawRecipeTxt, saveRecipeSettings } from '@/core/groupStore';
+import { getRawRecipeTxt } from '@/core/groupStore';
 import { parseRecipeMetadata } from './recipeParser.js';
 import {
   createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal, countPlanRecipes,
@@ -232,34 +231,6 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
   );
 }
 
-// ─── Cook portions sheet (asked before launching the step-by-step session) ───
-
-function CookPortionsSheet({ recipe, onConfirm, onClose }) {
-  const [portions, setPortions] = useState(recipe.portions || 1);
-
-  return (
-    <div className="add-sheet-backdrop" onClick={onClose}>
-      <div className="add-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="add-sheet__handle" />
-        <h2 className="add-sheet__title">На сколько человек готовим?</h2>
-
-        <div className="add-sheet__section add-sheet__section--row">
-          <span className="add-sheet__label">Порций</span>
-          <div className="add-sheet__stepper">
-            <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
-            <span className="add-sheet__stepper-value">{portions}</span>
-            <button type="button" onClick={() => setPortions((p) => Math.min(20, p + 1))} aria-label="Больше порций">+</button>
-          </div>
-        </div>
-
-        <button type="button" className="add-sheet__confirm" onClick={() => onConfirm(portions)}>
-          Готовить →
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ─── Add-to-plan sheet ────────────────────────────────────────────────────────
 
 function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
@@ -432,7 +403,6 @@ export default function PlannerMenuScreen() {
   const setActiveText = useAppStore((s) => s.setActiveText);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
-  const { markSessionStart } = useTimer();
 
   const [plan, setPlan] = useState(null);
   const [allRecipes, setAllRecipes] = useState([]);
@@ -443,7 +413,6 @@ export default function PlannerMenuScreen() {
   const [detailRecipe, setDetailRecipe] = useState(null);
   const [detailPrev, setDetailPrev] = useState('recipes');
   const [addSheetOpen, setAddSheetOpen] = useState(false);
-  const [cookRecipe, setCookRecipe] = useState(null);
 
   // Load saved plan
   useEffect(() => {
@@ -501,22 +470,11 @@ export default function PlannerMenuScreen() {
   }
 
   function handleCook(recipe) {
-    if (recipe.fixedPortions) {
-      launchSession(recipe, recipe.fixedPortions);
-    } else {
-      setCookRecipe(recipe);
-    }
-  }
-
-  async function launchSession(recipe, portions) {
-    await saveRecipeSettings(recipe.topicId, { portions }).catch(() => {});
     setActiveTopicId(recipe.topicId);
     setActiveText(recipe.text);
     setActiveModeId('follow_instruction');
     setSessionReturnScreen('planner_menu');
-    markSessionStart();
-    setCookRecipe(null);
-    setScreen('session');
+    setScreen('params');
   }
 
   if (!plan) return <div className="screen screen-center">Загрузка…</div>;
@@ -559,26 +517,17 @@ export default function PlannerMenuScreen() {
   }
 
   return (
-    <>
-      <RecipeBrowser
-        plan={plan}
-        allRecipes={allRecipes}
-        loading={loadingRecipes}
-        planRecipeCount={countPlanRecipes(plan)}
-        onView={(recipe) => openDetail(recipe, 'recipes')}
-        onCook={handleCook}
-        onOpenPlan={() => setView('plan')}
-        onBack={() => setScreen('home')}
-        onToggleDay={handleToggleDay}
-        onAddDay={() => setPlan((p) => addDay(p))}
-      />
-      {cookRecipe && (
-        <CookPortionsSheet
-          recipe={cookRecipe}
-          onConfirm={(portions) => launchSession(cookRecipe, portions)}
-          onClose={() => setCookRecipe(null)}
-        />
-      )}
-    </>
+    <RecipeBrowser
+      plan={plan}
+      allRecipes={allRecipes}
+      loading={loadingRecipes}
+      planRecipeCount={countPlanRecipes(plan)}
+      onView={(recipe) => openDetail(recipe, 'recipes')}
+      onCook={handleCook}
+      onOpenPlan={() => setView('plan')}
+      onBack={() => setScreen('home')}
+      onToggleDay={handleToggleDay}
+      onAddDay={() => setPlan((p) => addDay(p))}
+    />
   );
 }
