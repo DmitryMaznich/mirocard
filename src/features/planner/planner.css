@@ -474,68 +474,60 @@
   display: block;
 }
 
-.recipe-detail-steps {
-  padding: 10px 12px;
+/* ── Ingredients list (recipe card / plan chip tap target) ─────── */
+.recipe-ingredients {
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
-.recipe-step {
-  padding: 9px 12px;
-  background: rgba(250, 247, 242, 0.96);
-  border: 1px solid #e7dccf;
-  border-radius: 10px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: #263131;
-  box-shadow: 0 1px 3px rgba(71, 61, 48, 0.04);
-}
-
-.recipe-step--heading {
-  background: none;
-  border: none;
-  box-shadow: none;
+.recipe-ingredients__meta {
+  font-size: 12px;
   font-weight: 800;
-  font-size: 13px;
-  color: #7d8f8a;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 10px 12px 2px;
+  letter-spacing: 0.06em;
+  color: #7a8c88;
 }
 
-.recipe-step--warning {
-  background: #fff8e1;
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.recipe-step__warn-icon {
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.recipe-step__items {
+.recipe-ingredients__list {
   list-style: none;
+  margin: 0;
   padding: 0;
-  margin: 6px 0 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e7dccf;
 }
 
-.recipe-step__items li::before {
-  content: '—';
-  margin-right: 6px;
-  color: #aaa;
+.recipe-ingredients__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  background: rgba(250, 247, 242, 0.96);
+  border-bottom: 1px solid #e7dccf;
 }
 
-.recipe-step-img {
-  width: 100%;
-  border-radius: 10px;
-  margin-top: 6px;
-  display: block;
+.recipe-ingredients__item:last-child {
+  border-bottom: none;
+}
+
+.recipe-ingredients__product {
+  font-size: 15px;
+  font-weight: 700;
+  color: #263131;
+}
+
+.recipe-ingredients__qty {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a9b8f;
+  white-space: nowrap;
 }
 
 .recipe-detail-add {

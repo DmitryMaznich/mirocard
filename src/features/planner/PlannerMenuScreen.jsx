@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
 import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
 import { getRawRecipeTxt } from '@/core/groupStore';
 import { parseRecipeMetadata } from './recipeParser.js';
-import { parseRecipeTxt } from '@/topics/renderers/reading/parseRecipeTxt.js';
 import {
   createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal, countPlanRecipes,
   findRecipePlacements, MEAL_TYPES,
@@ -14,49 +13,21 @@ import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
-// ─── Step image ───────────────────────────────────────────────────────────────
-
-function StepImage({ topicId, filePath }) {
-  const url = useTopicFile(topicId, filePath);
-  if (!url) return null;
-  return <img src={url} alt="" className="recipe-step-img" />;
+function pluralizePortions(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'порция';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'порции';
+  return 'порций';
 }
 
-// ─── Recipe step ──────────────────────────────────────────────────────────────
+// ─── Recipe ingredients (what you need, no step-by-step) ─────────────────────
 
-function RecipeStepView({ step, topicId }) {
-  if (step.type === 'image') return <StepImage topicId={topicId} filePath={step.file} />;
-  if (step.type === 'heading') {
-    return <div className="recipe-step recipe-step--heading">{step.text}</div>;
-  }
-  if (step.type === 'warning') {
-    return (
-      <div className="recipe-step recipe-step--warning">
-        <span className="recipe-step__warn-icon">⚠</span>
-        <span>{step.text}</span>
-      </div>
-    );
-  }
-  return (
-    <div className="recipe-step">
-      <span className="recipe-step__text">{step.text}</span>
-      {step.image && <StepImage topicId={topicId} filePath={step.image} />}
-      {step.items && (
-        <ul className="recipe-step__items">
-          {step.items.map((item, i) => <li key={i}>{item}</li>)}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-// ─── Recipe detail (inline viewer) ───────────────────────────────────────────
-
-function RecipeDetail({ recipe, plan, onOpenAddSheet, onBack }) {
-  const { topicId, text, content } = recipe;
+function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
+  const { topicId, text, ingredients, portions, fixedPortions } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
-  const steps = useMemo(() => parseRecipeTxt(content), [content]);
   const placements = findRecipePlacements(plan, text.id);
+  const basePortions = fixedPortions || portions || 1;
 
   return (
     <div className="screen planner-screen">
@@ -78,10 +49,21 @@ function RecipeDetail({ recipe, plan, onOpenAddSheet, onBack }) {
             ))}
           </div>
         )}
-        <div className="recipe-detail-steps">
-          {steps.map((step, i) => (
-            <RecipeStepView key={step.id || i} step={step} topicId={topicId} />
-          ))}
+        <div className="recipe-ingredients">
+          <span className="recipe-ingredients__meta">
+            {fixedPortions ? '🔒 готовится сразу на ' : 'На '}
+            {basePortions} {pluralizePortions(basePortions)}
+          </span>
+          <ul className="recipe-ingredients__list">
+            {ingredients.map((ing, i) => (
+              <li key={i} className="recipe-ingredients__item">
+                <span className="recipe-ingredients__product">{ing.product}</span>
+                <span className="recipe-ingredients__qty">
+                  {ing.qty != null ? `${ing.qty} ${ing.unit ?? ''}`.trim() : 'по вкусу'}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
@@ -459,7 +441,7 @@ export default function PlannerMenuScreen() {
           const content = await getRawRecipeTxt(record.meta.id, text.file);
           if (!content) continue;
           const { tags, ingredients, portions, fixedPortions } = parseRecipeMetadata(content);
-          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, content });
+          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions });
         }
       }
       if (!cancelled) { setAllRecipes(all); setLoadingRecipes(false); }
@@ -500,7 +482,7 @@ export default function PlannerMenuScreen() {
   if (view === 'detail' && detailRecipe) {
     return (
       <>
-        <RecipeDetail
+        <RecipeIngredients
           recipe={detailRecipe}
           plan={plan}
           onOpenAddSheet={() => setAddSheetOpen(true)}
