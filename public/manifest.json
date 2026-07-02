@@ -1,12 +1,17 @@
 {
   "name": "Mirocard",
   "short_name": "Mirocard",
+  "id": "/",
+  "description": "Занятия и карточки Mirocard",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080f20",
   "theme_color": "#080f20",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
