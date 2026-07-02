@@ -181,9 +181,11 @@ function RecipeCard({ recipe, plan, mealType, onView, onCook, onToggleDay, onAdd
 
 // ─── Recipe browser (category tabs + grid) ───────────────────────────────────
 
+const TAB_ALL = 'all';
+
 function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onCook, onOpenPlan, onBack, onToggleDay, onAddDay }) {
-  const [mealType, setMealType] = useState(MEAL_TYPES[0]);
-  const filtered = allRecipes.filter((r) => r.tags.includes(mealType));
+  const [mealType, setMealType] = useState(TAB_ALL);
+  const filtered = mealType === TAB_ALL ? allRecipes : allRecipes.filter((r) => r.tags.includes(mealType));
 
   return (
     <div className="screen planner-screen">
@@ -196,6 +198,12 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
       </div>
 
       <div className="gallery-meal-tabs">
+        <button
+          className={`gallery-meal-tab${mealType === TAB_ALL ? ' gallery-meal-tab--active' : ''}`}
+          onClick={() => setMealType(TAB_ALL)}
+        >
+          Все
+        </button>
         {MEAL_TYPES.map((mt) => (
           <button
             key={mt}
@@ -210,7 +218,9 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
       {loading ? (
         <div className="planner-loading">Загружаем рецепты…</div>
       ) : filtered.length === 0 ? (
-        <div className="gallery-empty">Нет рецептов для «{mealType}»</div>
+        <div className="gallery-empty">
+          {mealType === TAB_ALL ? 'Рецептов пока нет' : `Нет рецептов для «${mealType}»`}
+        </div>
       ) : (
         <div className="recipe-gallery-grid">
           {filtered.map((recipe) => (
@@ -218,7 +228,7 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
               key={`${recipe.topicId}_${recipe.text.id}`}
               recipe={recipe}
               plan={plan}
-              mealType={mealType}
+              mealType={mealType === TAB_ALL ? (recipe.tags[0] ?? MEAL_TYPES[0]) : mealType}
               onView={() => onView(recipe)}
               onCook={onCook}
               onToggleDay={onToggleDay}

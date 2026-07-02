@@ -158,24 +158,34 @@
 /* ── Recipe gallery (grid) ──────────────────────────────────── */
 .gallery-meal-tabs {
   display: flex;
+  gap: 4px;
   background: rgba(250, 247, 242, 0.96);
   border-bottom: 1px solid #e7dccf;
   flex-shrink: 0;
   overflow-x: auto;
+  padding: 0 8px;
+  /* Tabs keep their natural width and the row scrolls — six labels
+     forced into one flex row (flex: 1 each) squeezed the font down
+     to near-illegible. */
+  scrollbar-width: none;
+}
+
+.gallery-meal-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .gallery-meal-tab {
-  flex: 1;
-  padding: 10px 6px;
-  font-size: 13px;
-  font-weight: 600;
+  flex: 0 0 auto;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-weight: 700;
   font-family: inherit;
   border: none;
   background: none;
   cursor: pointer;
   color: #a8978a;
   white-space: nowrap;
-  border-bottom: 2.5px solid transparent;
+  border-bottom: 3px solid transparent;
   margin-bottom: -1px;
   transition: color 0.15s, border-color 0.15s;
 }
