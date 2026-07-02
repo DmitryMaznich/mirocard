@@ -1001,19 +1001,7 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-}
-
-.hub-card__num {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #a8978a;
-}
-
-.hub-card--active .hub-card__num,
-.hub-card--done .hub-card__num {
-  color: #4a9b8f;
+  justify-content: center;
 }
 
 .hub-card__title {
@@ -1068,13 +1056,11 @@
 }
 
 .hub-card__stub-icon {
-  font-size: 20px;
-  font-weight: 800;
+  display: flex;
   color: #4a9b8f;
 }
 
 .hub-card--locked .hub-card__stub-icon {
-  font-size: 16px;
   color: #c2b6a4;
 }
 

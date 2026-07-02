@@ -247,10 +247,8 @@ function PlannerTab({ student, setScreen }) {
         <HubCard
           state={hasRecipes ? 'done' : 'active'}
           icon="🍽️"
-          num="Шаг 1"
           title="Рецепты"
           value={hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Смотри рецепты и добавляй в план'}
-          stubIcon={hasRecipes ? '✓' : '→'}
           onClick={() => setScreen('planner_menu')}
         >
           {hasRecipes && <DayStrip days={existingPlan.days} />}
@@ -259,10 +257,8 @@ function PlannerTab({ student, setScreen }) {
         <HubCard
           state={hasRecipes ? 'active' : 'locked'}
           icon="🛒"
-          num="Шаг 2"
           title="Покупки"
           value={hasRecipes ? 'Список готов' : 'Сначала меню'}
-          stubIcon={hasRecipes ? '→' : '🔒'}
           onClick={() => setScreen('planner_summary')}
           disabled={!hasRecipes}
         />
@@ -270,10 +266,8 @@ function PlannerTab({ student, setScreen }) {
         <HubCard
           state="locked"
           icon="📦"
-          num="Шаг 3"
           title="Раскладка"
           value="После покупок"
-          stubIcon="🔒"
           disabled
         />
       </div>
@@ -283,7 +277,30 @@ function PlannerTab({ student, setScreen }) {
 
 // ─── Hub card (ticket-stub tile) ───────────────────────────────────────────────
 
-function HubCard({ state, icon, num, title, value, stubIcon, onClick, disabled, children }) {
+function StubGlyph({ state }) {
+  if (state === 'done') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <path d="M4.5 10.3l3.6 3.6L15.5 6.3" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (state === 'locked') {
+    return (
+      <svg width="17" height="18" viewBox="0 0 17 18" fill="none" aria-hidden>
+        <rect x="2.5" y="8" width="12" height="8.5" rx="2.4" stroke="currentColor" strokeWidth="1.7" />
+        <path d="M5.2 8V5.6a3.3 3.3 0 0 1 6.6 0V8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M6.5 4l6.5 6-6.5 6" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function HubCard({ state, icon, title, value, onClick, disabled, children }) {
   return (
     <button
       type="button"
@@ -294,14 +311,13 @@ function HubCard({ state, icon, num, title, value, stubIcon, onClick, disabled, 
       <span className="hub-card__main">
         <span className="hub-card__badge">{icon}</span>
         <span className="hub-card__body">
-          <span className="hub-card__num">{num}</span>
           <span className="hub-card__title">{title}</span>
           <span className="hub-card__value">{value}</span>
           {children}
         </span>
       </span>
       <span className="hub-card__stub">
-        <span className="hub-card__stub-icon">{stubIcon}</span>
+        <span className="hub-card__stub-icon"><StubGlyph state={state} /></span>
       </span>
     </button>
   );
