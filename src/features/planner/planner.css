@@ -897,70 +897,31 @@
 }
 
 /* ── Planner hub (tab landing view) ────────────────────────────
-   Dashboard-style entry point: hero step card + two secondary
-   tiles, threaded by a dashed timeline. Reuses the app's warm
-   cream/teal tokens (see .home-section, .journey-step). ── */
+   Dashboard-style entry point: three equal-size tiles, one per
+   flow stage. 1 column on phone, 2 on tablet+. Reuses the app's
+   warm cream/teal tokens (see .home-section, .journey-step). ── */
 .planner-hub {
   padding: 18px 14px 8px;
-  display: flex;
-  flex-direction: column;
 }
 
-.planner-hub__intro {
-  padding: 0 4px 16px;
-  animation: hub-rise 0.5s ease both;
-}
-
-.planner-hub__kicker {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #7a8c88;
-  margin-bottom: 4px;
-}
-
-.planner-hub__headline {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 26px;
-  color: #2f5b57;
-  line-height: 1.15;
-  margin: 0;
-}
-
-.planner-hub__rail {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+.planner-hub__grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 14px;
 }
 
-/* Dashed timeline connecting the hero badge down to the tile row */
-.planner-hub__rail::before {
-  content: "";
-  position: absolute;
-  left: 34px;
-  top: 38px;
-  bottom: 38px;
-  width: 2px;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(74, 155, 143, 0.35) 0 6px,
-    transparent 6px 12px
-  );
-  z-index: 0;
+@media (min-width: 768px) {
+  .planner-hub__grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .hub-card {
-  position: relative;
-  z-index: 1;
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px;
   border-radius: 22px;
   border: 1px solid #e7dccf;
   background: rgba(250, 247, 242, 0.96);
@@ -973,13 +934,11 @@
   width: 100%;
 }
 
+.hub-card:nth-child(2) { animation-delay: 0.06s; }
+.hub-card:nth-child(3) { animation-delay: 0.12s; }
+
 .hub-card:active:not(:disabled) {
   transform: scale(0.98);
-}
-
-.hub-card--hero {
-  padding: 18px;
-  animation-delay: 0.05s;
 }
 
 .hub-card--active {
@@ -1002,13 +961,13 @@
 
 .hub-card__badge {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 24px;
   background: #ede5d8;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
@@ -1026,8 +985,6 @@
 }
 
 .hub-card__body {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1047,7 +1004,7 @@
 }
 
 .hub-card__title {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   color: #263131;
 }
@@ -1062,23 +1019,10 @@
   color: #a8978a;
 }
 
-.hub-card__arrow {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(74, 155, 143, 0.12);
-  color: #4a9b8f;
-  font-size: 16px;
-}
-
 .hub-card__daystrip {
   display: flex;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 .daydot {
@@ -1090,44 +1034,6 @@
 
 .daydot--filled {
   background: #4a9b8f;
-}
-
-/* Secondary row: shopping + storage side by side */
-.planner-hub__row {
-  display: flex;
-  gap: 14px;
-}
-
-.planner-hub__row .hub-card {
-  flex: 1;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 16px 14px;
-  animation-delay: 0.12s;
-}
-
-.planner-hub__row .hub-card + .hub-card {
-  animation-delay: 0.18s;
-}
-
-.planner-hub__row .hub-card__badge {
-  width: 48px;
-  height: 48px;
-  font-size: 22px;
-  border-radius: 16px;
-}
-
-.planner-hub__row .hub-card__body {
-  gap: 1px;
-}
-
-.planner-hub__row .hub-card__title {
-  font-size: 15px;
-}
-
-.planner-hub__row .hub-card__value {
-  font-size: 12px;
 }
 
 @keyframes hub-rise {
