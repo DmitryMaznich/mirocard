@@ -5,6 +5,11 @@ export const useAppStore = create((set) => ({
   // ─── Navigation ────────────────────────────────────────────────────────────
   screen: "boot",
   setScreen: (screen) => set({ screen }),
+  // Where a session launched from a non-standard entry point (e.g. the
+  // Planner's recipe list) should return to instead of the usual "texts"
+  // screen. Null means "use the default flow".
+  sessionReturnScreen: null,
+  setSessionReturnScreen: (sessionReturnScreen) => set({ sessionReturnScreen }),
   sessionExitPromptOpen: false,
   openSessionExitPrompt:  () => set({ sessionExitPromptOpen: true }),
   closeSessionExitPrompt: () => set({ sessionExitPromptOpen: false }),

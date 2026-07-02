@@ -96,7 +96,15 @@ function RecipeDetail({ recipe, plan, onOpenAddSheet, onBack }) {
 
 // ─── Recipe card (tap to view, or add straight from the grid) ────────────────
 
-function RecipeCard({ recipe, plan, mealType, onView, onToggleDay, onAddDay }) {
+function PlayIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M4.5 3.2v9.6c0 .7.76 1.13 1.36.76l7.5-4.8a.9.9 0 0 0 0-1.52l-7.5-4.8c-.6-.37-1.36.06-1.36.76Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function RecipeCard({ recipe, plan, mealType, onView, onCook, onToggleDay, onAddDay }) {
   const { topicId, text, ingredients, fixedPortions } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
   const [portions, setPortions] = useState(fixedPortions || recipe.portions || 1);
@@ -132,6 +140,14 @@ function RecipeCard({ recipe, plan, mealType, onView, onToggleDay, onAddDay }) {
       </button>
 
       <div className="recipe-gallery-card__add-row">
+        <button
+          type="button"
+          className="recipe-gallery-card__cook-btn"
+          onClick={() => onCook(recipe)}
+          aria-label="Готовить по шагам"
+        >
+          <PlayIcon />
+        </button>
         <button
           type="button"
           className={`recipe-gallery-card__add-btn${placedInTab.size > 0 ? ' recipe-gallery-card__add-btn--active' : ''}`}
@@ -183,7 +199,7 @@ function RecipeCard({ recipe, plan, mealType, onView, onToggleDay, onAddDay }) {
 
 // ─── Recipe browser (category tabs + grid) ───────────────────────────────────
 
-function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onOpenPlan, onBack, onToggleDay, onAddDay }) {
+function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onCook, onOpenPlan, onBack, onToggleDay, onAddDay }) {
   const [mealType, setMealType] = useState(MEAL_TYPES[0]);
   const filtered = allRecipes.filter((r) => r.tags.includes(mealType));
 
@@ -222,6 +238,7 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onO
               plan={plan}
               mealType={mealType}
               onView={() => onView(recipe)}
+              onCook={onCook}
               onToggleDay={onToggleDay}
               onAddDay={onAddDay}
             />
@@ -400,6 +417,10 @@ export default function PlannerMenuScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const topicRecords = useAppStore((s) => s.topicRecords);
+  const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
+  const setActiveText = useAppStore((s) => s.setActiveText);
+  const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+  const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
 
   const [plan, setPlan] = useState(null);
   const [allRecipes, setAllRecipes] = useState([]);
@@ -466,6 +487,14 @@ export default function PlannerMenuScreen() {
     );
   }
 
+  function handleCook(recipe) {
+    setActiveTopicId(recipe.topicId);
+    setActiveText(recipe.text);
+    setActiveModeId('follow_instruction');
+    setSessionReturnScreen('planner_menu');
+    setScreen('params');
+  }
+
   if (!plan) return <div className="screen screen-center">Загрузка…</div>;
 
   if (view === 'detail' && detailRecipe) {
@@ -512,6 +541,7 @@ export default function PlannerMenuScreen() {
       loading={loadingRecipes}
       planRecipeCount={countPlanRecipes(plan)}
       onView={(recipe) => openDetail(recipe, 'recipes')}
+      onCook={handleCook}
       onOpenPlan={() => setView('plan')}
       onBack={() => setScreen('home')}
       onToggleDay={handleToggleDay}

@@ -369,6 +369,8 @@ function ComparisonParams({ params, onChange }) {
 
 export default function ParamsScreen() {
   const setScreen              = useAppStore((s) => s.setScreen);
+  const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
+  const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
   const activeTopicId          = useAppStore((s) => s.activeTopicId);
   const activeStudentId        = useAppStore((s) => s.activeStudentId);
   const activeTextId           = useAppStore((s) => s.activeTextId);
@@ -409,7 +411,13 @@ export default function ParamsScreen() {
     return (
       <div className="screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("texts")}>←</button>
+          <button
+            className="back-btn"
+            onClick={() => {
+              setScreen(sessionReturnScreen ?? "texts");
+              setSessionReturnScreen(null);
+            }}
+          >←</button>
           <h1 className="screen-title">{getTopicTitle(activeText.title)}</h1>
           <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
         </div>

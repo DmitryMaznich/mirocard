@@ -23,6 +23,8 @@ function isEditableTarget(target) {
 
 export default function SessionScreen() {
   const setScreen             = useAppStore((s) => s.setScreen);
+  const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
+  const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
   const openSessionExitPrompt = useAppStore((s) => s.openSessionExitPrompt);
   const students              = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
@@ -87,8 +89,13 @@ export default function SessionScreen() {
     if (!completedRecord) return;
     const skipSummary = topicRecord?.meta.renderer === "reading" && (mode?.type === "read_text" || mode?.type === "daily_sentences");
     const isInstruction = mode?.type === "follow_instruction" || mode?.type === "shopping_list";
+    if (isInstruction && sessionReturnScreen) {
+      setScreen(sessionReturnScreen);
+      setSessionReturnScreen(null);
+      return;
+    }
     setScreen(isInstruction ? "texts" : skipSummary ? "modes" : "summary");
-  }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer]);
+  }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer, sessionReturnScreen, setSessionReturnScreen]);
 
   const ownsFeedback = currentTask?.type === "choose_action" || currentTask?.type === "scene_function";
 

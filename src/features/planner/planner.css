@@ -304,13 +304,31 @@
   text-overflow: ellipsis;
 }
 
-/* ── Quick-add row + popover ──────────────────────────────────── */
+/* ── Cook + quick-add row, and its popover ─────────────────────── */
 .recipe-gallery-card__add-row {
+  display: flex;
+  gap: 6px;
   padding: 0 10px 10px;
 }
 
+.recipe-gallery-card__cook-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(150deg, #5cb0a3, #276b62);
+  box-shadow: 0 4px 10px rgba(39, 107, 98, 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 .recipe-gallery-card__add-btn {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: 1.5px solid #4a9b8f;
   border-radius: 10px;
   background: none;
@@ -320,6 +338,9 @@
   font-weight: 800;
   padding: 7px 4px;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .recipe-gallery-card__add-btn--active {
