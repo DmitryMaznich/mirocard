@@ -13,6 +13,7 @@ export function normalizeActiveSessionSnapshot(raw) {
   if (!context || typeof context !== "object") return null;
   if (!context.studentId || !context.topicId || !context.modeId) return null;
   if (sessionState.status === "completed") return null;
+  if (Array.isArray(sessionState.tasks) && sessionState.tasks.length === 0) return null;
 
   return {
     schemaVersion: Number(raw.schemaVersion) || ACTIVE_SESSION_SCHEMA_VERSION,

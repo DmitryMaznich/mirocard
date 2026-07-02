@@ -93,6 +93,11 @@ function buildGeneratedSessionState({
     tasks = generateTasks
       ? generateTasks(mode, selectedCards.length ? selectedCards : topicRecord.cards, sessionSize, sessionParams)
       : [];
+    // If the concept filter excluded cards required for this mode (e.g. only finger cards
+    // selected but mode needs arithmetic cards), fall back to all cards so the session starts.
+    if (!tasks.length && selectedCards.length && generateTasks) {
+      tasks = generateTasks(mode, topicRecord.cards, sessionSize, sessionParams);
+    }
   }
 
   const baseState = createSessionState(

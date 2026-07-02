@@ -14757,6 +14757,7 @@ kbd {
   padding: 0;
   align-content: start;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 .concept-card {

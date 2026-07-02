@@ -95,7 +95,7 @@ export default function ConceptPickerScreen() {
   }
 
   return (
-    <div className="screen">
+    <div className="screen" style={{ height: "100dvh", overflow: "hidden" }}>
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("params")}>←</button>
         <h1 className="screen-title">Понятия ({selected.size})</h1>
