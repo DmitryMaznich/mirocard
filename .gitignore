@@ -86,3 +86,12 @@ propisi-regular.otf
 propisi_preview.html
 nul
 classroomcursive_preview.html
+# Backup artifacts
+backups/
+MirocardBackups/
+*.bundle
+*.sha256
+mirocard-project-*.zip
+mirocard-db-*.db
+mirocard-db-*.db-shm
+mirocard-db-*.db-wal

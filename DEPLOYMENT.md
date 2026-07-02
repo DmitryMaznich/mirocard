@@ -46,11 +46,11 @@ npm run deploy:verify
 The remote `C:/Users/dmazn/Projects/Mirocard2` on the runtime host is **not a git repository** — it's a plain file copy. Backend source changes must be copied manually via SFTP, then the process restarted:
 
 ```python
-import paramiko, time
+import os, paramiko, time
 
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.connect('192.168.1.163', port=22, username='dmazn', password='241078diMA', timeout=15)
+client.connect('192.168.1.163', port=22, username='dmazn', password=os.environ['MIROCARD_DEPLOY_PASSWORD'], timeout=15)
 
 sftp = client.open_sftp()
 for f in ['server.mjs', 'lib/db.mjs', 'lib/account-repository.mjs', 'lib/mailer.mjs']:  # whichever changed
