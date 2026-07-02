@@ -244,46 +244,66 @@ function PlannerTab({ student, setScreen }) {
   return (
     <div className="planner-hub">
       <div className="planner-hub__grid">
-        <button
-          type="button"
-          className={`hub-card${hasRecipes ? ' hub-card--done' : ' hub-card--active'}`}
+        <HubCard
+          state={hasRecipes ? 'done' : 'active'}
+          icon="🍽️"
+          num="Шаг 1"
+          title="Рецепты"
+          value={hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Смотри рецепты и добавляй в план'}
+          stubIcon={hasRecipes ? '✓' : '→'}
           onClick={() => setScreen('planner_menu')}
         >
-          <span className="hub-card__badge">🍽️</span>
-          <span className="hub-card__body">
-            <span className="hub-card__num">Шаг 1</span>
-            <span className="hub-card__title">Рецепты</span>
-            <span className="hub-card__value">
-              {hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Смотри рецепты и добавляй в план'}
-            </span>
-            {hasRecipes && <DayStrip days={existingPlan.days} />}
-          </span>
-        </button>
+          {hasRecipes && <DayStrip days={existingPlan.days} />}
+        </HubCard>
 
-        <button
-          type="button"
-          className={`hub-card${hasRecipes ? ' hub-card--active' : ' hub-card--locked'}`}
+        <HubCard
+          state={hasRecipes ? 'active' : 'locked'}
+          icon="🛒"
+          num="Шаг 2"
+          title="Покупки"
+          value={hasRecipes ? 'Список готов' : 'Сначала меню'}
+          stubIcon={hasRecipes ? '→' : '🔒'}
           onClick={() => setScreen('planner_summary')}
           disabled={!hasRecipes}
-        >
-          <span className="hub-card__badge">🛒</span>
-          <span className="hub-card__body">
-            <span className="hub-card__num">Шаг 2</span>
-            <span className="hub-card__title">Покупки</span>
-            <span className="hub-card__value">{hasRecipes ? 'Список готов' : 'Сначала меню'}</span>
-          </span>
-        </button>
+        />
 
-        <button type="button" className="hub-card hub-card--locked" disabled>
-          <span className="hub-card__badge">📦</span>
-          <span className="hub-card__body">
-            <span className="hub-card__num">Шаг 3</span>
-            <span className="hub-card__title">Раскладка</span>
-            <span className="hub-card__value">После покупок</span>
-          </span>
-        </button>
+        <HubCard
+          state="locked"
+          icon="📦"
+          num="Шаг 3"
+          title="Раскладка"
+          value="После покупок"
+          stubIcon="🔒"
+          disabled
+        />
       </div>
     </div>
+  );
+}
+
+// ─── Hub card (ticket-stub tile) ───────────────────────────────────────────────
+
+function HubCard({ state, icon, num, title, value, stubIcon, onClick, disabled, children }) {
+  return (
+    <button
+      type="button"
+      className={`hub-card hub-card--${state}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <span className="hub-card__main">
+        <span className="hub-card__badge">{icon}</span>
+        <span className="hub-card__body">
+          <span className="hub-card__num">{num}</span>
+          <span className="hub-card__title">{title}</span>
+          <span className="hub-card__value">{value}</span>
+          {children}
+        </span>
+      </span>
+      <span className="hub-card__stub">
+        <span className="hub-card__stub-icon">{stubIcon}</span>
+      </span>
+    </button>
   );
 }
 
