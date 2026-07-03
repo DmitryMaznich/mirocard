@@ -3,7 +3,7 @@ import { useAppStore } from '@/core/store';
 import { getRawRecipeTxt, getPlannerShopPlan, savePlannerShopPlan, getPlannerShopCustomData, savePlannerShopCustomData } from '@/core/groupStore';
 import { loadPlan, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes } from './plannerUtils.js';
-import { generateShoppingList } from './shoppingListGenerator.js';
+import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps } from './plannerShoppingUtils.js';
 import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
@@ -289,7 +289,10 @@ export default function PlannerShoppingScreen() {
       })
     );
 
-    const items = generateShoppingList(recipesWithContent.filter(Boolean), PANTRY_ITEMS);
+    const items = applyIngredientDecisions(
+      generateShoppingList(recipesWithContent.filter(Boolean), PANTRY_ITEMS),
+      plan.ingredientDecisions
+    );
     const { customData, plan: newPlan } = buildPlannerShoppingData(items);
 
     await savePlannerShopCustomData(studentId, customData);

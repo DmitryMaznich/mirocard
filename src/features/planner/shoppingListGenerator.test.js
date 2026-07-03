@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateShoppingList } from './shoppingListGenerator.js';
+import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 
 function recipe(textId, ingredients, portions = 1, portionMultiplier = 1) {
   const lines = [
@@ -68,5 +68,42 @@ describe('generateShoppingList', () => {
 
   it('returns empty list for empty recipes', () => {
     expect(generateShoppingList([])).toEqual([]);
+  });
+});
+
+describe('applyIngredientDecisions', () => {
+  it('excludes an item decided "have" even if it would normally be included', () => {
+    const items = [{ product: 'Картошка', include: true }];
+    const result = applyIngredientDecisions(items, { 'картошка': 'have' });
+    expect(result[0].include).toBe(false);
+  });
+
+  it('includes an item decided "buy" even if it would normally be excluded (pantry item)', () => {
+    const items = [{ product: 'Соль', include: false }];
+    const result = applyIngredientDecisions(items, { 'соль': 'buy' });
+    expect(result[0].include).toBe(true);
+  });
+
+  it('leaves an item with no decision unchanged', () => {
+    const items = [{ product: 'Лук', include: true }];
+    const result = applyIngredientDecisions(items, {});
+    expect(result[0].include).toBe(true);
+  });
+
+  it('matches the decision key case-insensitively against the product name', () => {
+    const items = [{ product: 'КАРТОШКА', include: true }];
+    const result = applyIngredientDecisions(items, { 'картошка': 'have' });
+    expect(result[0].include).toBe(false);
+  });
+
+  it('does not mutate the input items', () => {
+    const items = [{ product: 'Лук', include: true }];
+    applyIngredientDecisions(items, { 'лук': 'have' });
+    expect(items[0].include).toBe(true);
+  });
+
+  it('defaults to an empty decisions map when omitted', () => {
+    const items = [{ product: 'Лук', include: true }];
+    expect(applyIngredientDecisions(items)).toEqual(items);
   });
 });
