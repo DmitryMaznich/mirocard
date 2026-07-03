@@ -56,7 +56,6 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
   const timersRef  = useRef([]);
   const visualsRef = useRef();
   const promptRef1 = useRef();
-  const promptRef2 = useRef();
 
   const options = useMemo(
     () => card ? buildOptions(card, allCards ?? [], difficulty) : [],
@@ -86,16 +85,14 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
     const visuals = visualsRef.current;
     if (!visuals) return;
     const targetW = visuals.offsetWidth;
-    [promptRef1, promptRef2].forEach(ref => {
-      const el = ref.current;
-      if (!el) return;
-      el.style.fontSize = "";
-      const textW = el.scrollWidth;
-      if (textW > 0) {
-        el.style.fontSize =
-          (parseFloat(getComputedStyle(el).fontSize) * targetW / textW) + "px";
-      }
-    });
+    const el = promptRef1.current;
+    if (!el) return;
+    el.style.fontSize = "";
+    const textW = el.scrollWidth;
+    if (textW > 0) {
+      el.style.fontSize =
+        (parseFloat(getComputedStyle(el).fontSize) * targetW / textW) + "px";
+    }
   }, [card?.id]);
 
   function handleOption(optionIdx) {
@@ -126,11 +123,8 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
         </div>
 
         <div className="wf-pair__prompt">
-          <div className="wf-pair__prompt-line" ref={promptRef1}>
-            {cap(card.nounPhrase)}
-          </div>
-          <div className="wf-pair__prompt-line wf-pair__prompt-line--question" ref={promptRef2}>
-            {card.questionText ?? "Какой?"}
+          <div className="wf-pair__prompt-line wf-pair__prompt-line--question" ref={promptRef1}>
+            {cap(card.nounPhrase)} ({card.questionText ?? "какой?"})
           </div>
         </div>
 

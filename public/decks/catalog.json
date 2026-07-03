@@ -190,11 +190,11 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.9",
-      "url": "./decks/word_formation_soup_v1.0.9.zip",
-      "zipUrl": "word_formation_soup_v1.0.9.zip",
+      "version": "1.0.10",
+      "url": "./decks/word_formation_soup_v1.0.10.zip",
+      "zipUrl": "word_formation_soup_v1.0.10.zip",
       "title": {
-        "ru": "Словообразование: суп, сок, варенье"
+        "ru": "Словообразование"
       },
       "renderer": "word_formation"
     }
