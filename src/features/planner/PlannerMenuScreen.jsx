@@ -6,8 +6,8 @@ import { getRawRecipeTxt } from '@/core/groupStore';
 import { parseRecipeMetadata } from './recipeParser.js';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import {
-  createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal,
-  findRecipePlacements, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
+  createPlan, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
+  toggleMealAssignment, setSelectedPortions,
   setIngredientDecision, buildSelectedIngredientsSummary,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
@@ -34,10 +34,9 @@ function keyIngredients(ingredients) {
 
 // ─── Recipe ingredients (what you need, no step-by-step) ─────────────────────
 
-function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
+function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
   const { topicId, text, ingredients, portions, fixedPortions } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
-  const placements = findRecipePlacements(plan, text.id);
   const selected = isRecipeSelected(plan, text.id);
   const basePortions = fixedPortions || portions || 1;
 
@@ -50,21 +49,9 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
 
       <div className="recipe-detail-body">
         {coverUrl && <img src={coverUrl} alt="" className="recipe-detail-cover" />}
-        {placements.length > 0 ? (
-          <div className="recipe-detail-placements">
-            <span className="recipe-detail-placements__label">Уже в меню</span>
-            {placements.map((p, i) => (
-              <span key={i} className="recipe-detail-placements__chip">
-                {MEAL_ICONS[p.mealType]} День {p.dayIndex + 1} · {p.mealType}
-                {p.portions > 1 ? ` ×${p.portions}` : ''}
-              </span>
-            ))}
-          </div>
-        ) : selected ? (
-          <div className="recipe-detail-placements">
-            <span className="recipe-detail-placements__hint">Отобрано, пока без дня</span>
-          </div>
-        ) : null}
+        {selected && (
+          <div className="recipe-detail-hint">Отобрано в меню</div>
+        )}
         <div className="recipe-ingredients">
           <span className="recipe-ingredients__meta">
             {fixedPortions ? '🔒 готовится сразу на ' : 'На '}
@@ -84,8 +71,8 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
       </div>
 
       <div className="planner-footer">
-        <button className="recipe-detail-add" onClick={onOpenAddSheet}>
-          + Добавить в меню
+        <button className="recipe-detail-add" onClick={() => onToggleSelect(recipe)}>
+          {selected ? '✓ Убрать из меню' : '+ Добавить в меню'}
         </button>
       </div>
     </div>
