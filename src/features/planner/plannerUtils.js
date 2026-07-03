@@ -7,6 +7,7 @@ export function createPlan(studentId) {
     studentId,
     status: 'draft',
     selectedRecipes: [],
+    ingredientDecisions: {},
     days: [createDay(0)],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -138,6 +139,66 @@ export function resetPlan(studentId) {
 }
 
 /**
+ * Sets (or clears, when decision is null) a per-product shopping decision:
+ * 'have' ("есть дома") or 'buy' ("надо купить"). Keyed by lowercase product
+ * name to match the aggregation key used everywhere else (shoppingListGenerator,
+ * buildSelectedIngredientsSummary), so a decision made here carries over to
+ * the Покупки screen regardless of which recipe(s) the product came from.
+ */
+export function setIngredientDecision(plan, productKey, decision) {
+  const key = productKey.toLowerCase();
+  const next = { ...(plan.ingredientDecisions ?? {}) };
+  if (decision) next[key] = decision;
+  else delete next[key];
+  return { ...plan, ingredientDecisions: next, updatedAt: new Date().toISOString() };
+}
+
+/**
+ * Aggregates ingredients across every recipe in the selection pool
+ * (plan.selectedRecipes), not just ones already placed on a day/meal — a
+ * recipe with no placement yet still contributes one batch at its own base
+ * portions, so the summary reflects "everything I want to cook", matching
+ * the pool's own meaning. A recipe placed on multiple days/meals contributes
+ * once per placement, scaled to that placement's own portions (same
+ * aggregation shape as shoppingListGenerator.generateShoppingList).
+ *
+ * @param {object} plan
+ * @param {Array<{text: {id: string}, portions: number, fixedPortions: number|null, ingredients: Array}>} allRecipes
+ * @returns {Array<{product: string, qty: number|null, unit: string|null}>}
+ */
+export function buildSelectedIngredientsSummary(plan, allRecipes) {
+  const map = new Map();
+
+  for (const textId of plan.selectedRecipes) {
+    const recipe = allRecipes.find((r) => r.text.id === textId);
+    if (!recipe) continue;
+
+    const basePortions = recipe.portions || 1;
+    const placements = findRecipePlacements(plan, textId);
+    const portionsList = placements.length > 0
+      ? placements.map((p) => p.portions)
+      : [recipe.fixedPortions || recipe.portions || 1];
+
+    for (const chosenPortions of portionsList) {
+      const scale = chosenPortions / basePortions;
+      for (const ing of recipe.ingredients) {
+        const key = ing.product.toLowerCase();
+        const scaledQty = ing.qty != null ? ing.qty * scale : null;
+        if (map.has(key)) {
+          const existing = map.get(key);
+          if (existing.qty != null && scaledQty != null) existing.qty += scaledQty;
+          else existing.qty = null;
+        } else {
+          map.set(key, { product: ing.product, qty: scaledQty, unit: ing.unit });
+        }
+      }
+    }
+  }
+
+  return Array.from(map.values());
+}
+
+/**
  * Upgrades a plan saved in an old format so old saved plans keep loading
  * correctly:
  * - day.meals[type] entries that are bare strings become {textId, portions}.
@@ -180,5 +241,7 @@ export function normalizePlan(plan) {
     selectedRecipes = [...seen];
   }
 
-  return { ...plan, days, selectedRecipes };
+  const ingredientDecisions = plan.ingredientDecisions ?? {};
+
+  return { ...plan, days, selectedRecipes, ingredientDecisions };
 }

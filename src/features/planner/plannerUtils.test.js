@@ -15,6 +15,8 @@ import {
   deselectRecipe,
   resetPlan,
   normalizePlan,
+  setIngredientDecision,
+  buildSelectedIngredientsSummary,
 } from './plannerUtils.js';
 
 describe('MEAL_TYPES', () => {
@@ -50,6 +52,11 @@ describe('createPlan', () => {
   it('starts with an empty selectedRecipes pool', () => {
     const plan = createPlan('s1');
     expect(plan.selectedRecipes).toEqual([]);
+  });
+
+  it('starts with no ingredient decisions', () => {
+    const plan = createPlan('s1');
+    expect(plan.ingredientDecisions).toEqual({});
   });
 });
 
@@ -268,6 +275,112 @@ describe('deselectRecipe', () => {
   });
 });
 
+describe('setIngredientDecision', () => {
+  it('sets a decision for a product, keyed lowercase', () => {
+    const plan = setIngredientDecision(createPlan('s1'), 'Картошка', 'have');
+    expect(plan.ingredientDecisions).toEqual({ 'картошка': 'have' });
+  });
+
+  it('overwrites an existing decision for the same product', () => {
+    let plan = setIngredientDecision(createPlan('s1'), 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'картошка', 'buy');
+    expect(plan.ingredientDecisions).toEqual({ 'картошка': 'buy' });
+  });
+
+  it('clears the decision (back to neutral) when passed null', () => {
+    let plan = setIngredientDecision(createPlan('s1'), 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'картошка', null);
+    expect(plan.ingredientDecisions).toEqual({});
+  });
+
+  it('does not affect decisions for other products', () => {
+    let plan = setIngredientDecision(createPlan('s1'), 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'лук', 'buy');
+    expect(plan.ingredientDecisions).toEqual({ 'картошка': 'have', 'лук': 'buy' });
+  });
+
+  it('does not mutate the original plan', () => {
+    const plan = createPlan('s1');
+    setIngredientDecision(plan, 'картошка', 'have');
+    expect(plan.ingredientDecisions).toEqual({});
+  });
+});
+
+describe('buildSelectedIngredientsSummary', () => {
+  const soup = {
+    text: { id: 'soup_01' },
+    portions: 4,
+    fixedPortions: null,
+    ingredients: [
+      { product: 'картошка', qty: 4, unit: 'шт' },
+      { product: 'соль', qty: null, unit: null },
+    ],
+  };
+  const kompot = {
+    text: { id: 'kompot_01' },
+    portions: 2,
+    fixedPortions: null,
+    ingredients: [
+      { product: 'ягоды', qty: 1, unit: 'стакан' },
+    ],
+  };
+
+  it('uses the recipe\'s own base portions for a selected recipe with no placement', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    const summary = buildSelectedIngredientsSummary(plan, [soup]);
+    expect(summary).toContainEqual({ product: 'картошка', qty: 4, unit: 'шт' });
+    expect(summary).toContainEqual({ product: 'соль', qty: null, unit: null });
+  });
+
+  it('scales by the placement\'s portions when the recipe has one', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = addRecipeToMeal(plan, 0, 'обед', 'soup_01', 8); // double the base of 4
+    const summary = buildSelectedIngredientsSummary(plan, [soup]);
+    expect(summary).toContainEqual({ product: 'картошка', qty: 8, unit: 'шт' });
+  });
+
+  it('sums a recipe placed on multiple days into one product total', () => {
+    let plan = selectRecipe(createPlan('s1'), 'kompot_01');
+    plan = addRecipeToMeal(plan, 0, 'перекус', 'kompot_01', 2); // base
+    plan = addDay(plan);
+    plan = addRecipeToMeal(plan, 1, 'перекус', 'kompot_01', 4); // double
+    const summary = buildSelectedIngredientsSummary(plan, [kompot]);
+    expect(summary).toContainEqual({ product: 'ягоды', qty: 3, unit: 'стакан' });
+  });
+
+  it('merges the same ingredient across different selected recipes', () => {
+    const potatoDish = {
+      text: { id: 'potato_01' },
+      portions: 2,
+      fixedPortions: null,
+      ingredients: [{ product: 'картошка', qty: 2, unit: 'шт' }],
+    };
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = selectRecipe(plan, 'potato_01');
+    const summary = buildSelectedIngredientsSummary(plan, [soup, potatoDish]);
+    expect(summary).toContainEqual({ product: 'картошка', qty: 6, unit: 'шт' });
+  });
+
+  it('ignores recipes not in the selection pool even if placed', () => {
+    // Defensive: a recipe should never be placed without being selected
+    // (selectRecipe/deselectRecipe enforce this), but the summary must not
+    // crash or double-count if it somehow happens.
+    const plan = addRecipeToMeal(createPlan('s1'), 0, 'обед', 'soup_01', 4);
+    const summary = buildSelectedIngredientsSummary(plan, [soup]);
+    expect(summary).toEqual([]);
+  });
+
+  it('skips a selected recipe missing from allRecipes without crashing', () => {
+    const plan = selectRecipe(createPlan('s1'), 'unknown_recipe');
+    expect(() => buildSelectedIngredientsSummary(plan, [soup])).not.toThrow();
+    expect(buildSelectedIngredientsSummary(plan, [soup])).toEqual([]);
+  });
+
+  it('returns an empty array for an empty pool', () => {
+    expect(buildSelectedIngredientsSummary(createPlan('s1'), [soup])).toEqual([]);
+  });
+});
+
 describe('resetPlan', () => {
   it('returns a fresh plan for the same student', () => {
     const fresh = resetPlan('student1');
@@ -337,6 +450,22 @@ describe('normalizePlan', () => {
     const plan = selectRecipe(createPlan('s1'), 'soup_01');
     const normalized = normalizePlan(plan);
     expect(normalized.selectedRecipes).toEqual(['soup_01']);
+  });
+
+  it('backfills ingredientDecisions to an empty object when absent', () => {
+    const legacy = {
+      id: 'p1',
+      studentId: 's1',
+      days: [{ dayIndex: 0, meals: { завтрак: [], обед: [], ужин: [], перекус: [] } }],
+    };
+    const normalized = normalizePlan(legacy);
+    expect(normalized.ingredientDecisions).toEqual({});
+  });
+
+  it('leaves existing ingredientDecisions untouched', () => {
+    const plan = setIngredientDecision(createPlan('s1'), 'картошка', 'buy');
+    const normalized = normalizePlan(plan);
+    expect(normalized.ingredientDecisions).toEqual({ 'картошка': 'buy' });
   });
 
   it('leaves already-normalized plans unchanged', () => {
