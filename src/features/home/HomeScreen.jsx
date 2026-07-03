@@ -213,6 +213,7 @@ function DayStrip({ days }) {
 }
 
 function PlannerTab({ student, setScreen }) {
+  const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
 
   useEffect(() => {

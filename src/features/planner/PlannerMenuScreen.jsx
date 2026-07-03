@@ -40,7 +40,7 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
         {coverUrl && <img src={coverUrl} alt="" className="recipe-detail-cover" />}
         {placements.length > 0 && (
           <div className="recipe-detail-placements">
-            <span className="recipe-detail-placements__label">Уже в плане</span>
+            <span className="recipe-detail-placements__label">Уже в меню</span>
             {placements.map((p, i) => (
               <span key={i} className="recipe-detail-placements__chip">
                 {MEAL_ICONS[p.mealType]} День {p.dayIndex + 1} · {p.mealType}
@@ -69,7 +69,7 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
 
       <div className="planner-footer">
         <button className="recipe-detail-add" onClick={onOpenAddSheet}>
-          + Добавить в план
+          + Добавить в меню
         </button>
       </div>
     </div>
@@ -135,7 +135,7 @@ function RecipeCard({ recipe, plan, mealType, onView, onCook, onToggleDay, onAdd
           className={`recipe-gallery-card__add-btn${placedInTab.size > 0 ? ' recipe-gallery-card__add-btn--active' : ''}`}
           onClick={() => setPopoverOpen((o) => !o)}
         >
-          {placedInTab.size > 0 ? `В плане · ${placedInTab.size}` : '+ Добавить'}
+          {placedInTab.size > 0 ? `В меню · ${placedInTab.size}` : '+ Добавить'}
         </button>
       </div>
 
@@ -193,7 +193,7 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
         <button className="planner-header__back" onClick={onBack}>←</button>
         <h1 className="planner-header__title">Рецепты</h1>
         <button className="planner-plan-pill" onClick={onOpenPlan}>
-          Мой план{planRecipeCount > 0 ? ` · ${planRecipeCount}` : ''}
+          Меню{planRecipeCount > 0 ? ` · ${planRecipeCount}` : ''}
         </button>
       </div>
 
@@ -318,7 +318,7 @@ function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
           disabled={mealType === null}
           onClick={() => onConfirm(dayIndex, mealType, portions)}
         >
-          Добавить в план
+          Добавить в меню
         </button>
       </div>
     </div>
@@ -327,7 +327,7 @@ function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
 
 // ─── Plan view (day-by-day review) ───────────────────────────────────────────
 
-function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe }) {
+function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe, onCook }) {
   function getRecipeObj(textId) {
     return allRecipes.find((r) => r.text.id === textId) ?? null;
   }
@@ -351,6 +351,15 @@ function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe }) {
                 const title = r ? getTopicTitle(r.text.title) : textId;
                 return (
                   <span key={textId} className="planner-recipe-chip">
+                    {r && (
+                      <button
+                        className="planner-recipe-chip__cook"
+                        onClick={() => onCook(r)}
+                        aria-label="Готовить по шагам"
+                      >
+                        <PlayIcon />
+                      </button>
+                    )}
                     <button
                       className="planner-recipe-chip__name"
                       onClick={() => r && onViewRecipe(r)}
@@ -375,12 +384,12 @@ function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe }) {
   );
 }
 
-function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onBack }) {
+function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, onBack }) {
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
         <button className="planner-header__back" onClick={onBack}>←</button>
-        <h1 className="planner-header__title">Мой план</h1>
+        <h1 className="planner-header__title">Меню</h1>
       </div>
 
       <div className="planner-body">
@@ -391,6 +400,7 @@ function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onBack }
             allRecipes={allRecipes}
             onRemove={onRemove}
             onViewRecipe={onViewRecipe}
+            onCook={onCook}
           />
         ))}
         {plan.days.length < 7 && (
@@ -413,16 +423,24 @@ export default function PlannerMenuScreen() {
   const setActiveText = useAppStore((s) => s.setActiveText);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
+  const plannerInitialView = useAppStore((s) => s.plannerInitialView);
+  const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
 
   const [plan, setPlan] = useState(null);
   const [allRecipes, setAllRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
 
   // view: 'recipes' | 'plan' | 'detail'
-  const [view, setView] = useState('recipes');
+  const [view, setView] = useState(() => plannerInitialView ?? 'recipes');
   const [detailRecipe, setDetailRecipe] = useState(null);
   const [detailPrev, setDetailPrev] = useState('recipes');
   const [addSheetOpen, setAddSheetOpen] = useState(false);
+
+  // Consume the hub's requested initial view once, so a later visit
+  // (without the hub setting it again) defaults back to 'recipes'.
+  useEffect(() => {
+    if (plannerInitialView) setPlannerInitialView(null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load saved plan
   useEffect(() => {
@@ -521,6 +539,7 @@ export default function PlannerMenuScreen() {
           setPlan((p) => removeRecipeFromMeal(p, dayIndex, mealType, textId))
         }
         onViewRecipe={(recipe) => openDetail(recipe, 'plan')}
+        onCook={handleCook}
         onBack={() => setView('recipes')}
       />
     );
