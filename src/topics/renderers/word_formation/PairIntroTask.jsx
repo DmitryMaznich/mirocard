@@ -6,6 +6,12 @@ import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons"
 const QUESTION_DELAY_MS = 1800;
 const AUTO_REVEAL_DELAY_MS = 4500;
 
+// "рыбный суп" → "рыбный"
+function stripNoun(phrase) {
+  const words = phrase.trim().split(" ");
+  return words.length > 1 ? words.slice(0, -1).join(" ") : phrase;
+}
+
 function VisualImage({ topicId, path, className }) {
   const url = useTopicFile(topicId, path);
   return url
@@ -113,7 +119,7 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
 
         {revealed && (
           <div className="wf-pair__answer">
-            <div className="wf-pair__answer-text">{card.adjPhrase}</div>
+            <div className="wf-pair__answer-text">{stripNoun(card.adjPhrase)}</div>
             <div className="wf-pair__answer-result">
               <VisualImage topicId={topicId} path={card.image} className="wf-pair__answer-result-img" />
             </div>
