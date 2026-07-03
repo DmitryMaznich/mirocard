@@ -994,7 +994,7 @@ const DEFAULT_MODES = {
       id: "fingers_count",
       type: "fingers_count",
       evaluation: "instant",
-      ui: { title: "Считаем на пальцах", instruction: "Поднимай пальцы и считай", icon: "media/icons/column_addition_mode.svg" },
+      ui: { title: "Считаем на пальцах", instruction: "Поднимай пальцы и считай", icon: "media/icons/fingers_count_mode.svg" },
       params: {
         op: {
           type: "enum",
