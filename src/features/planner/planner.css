@@ -292,6 +292,104 @@
   font-family: inherit;
 }
 
+/* ── Ingredients summary (all selected recipes, merged) ─────────── */
+.menu-ingredients {
+  background: rgba(250, 247, 242, 0.96);
+  border: 1px solid #e7dccf;
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 14px rgba(71, 61, 48, 0.05);
+}
+
+.menu-ingredients__title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #2f5b57;
+}
+
+.menu-ingredients__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-ingr-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid #e7dccf;
+}
+
+.menu-ingr-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.menu-ingr-row__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.menu-ingr-row__product {
+  font-size: 15px;
+  font-weight: 700;
+  color: #263131;
+}
+
+.menu-ingr-row__qty {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a9b8f;
+  white-space: nowrap;
+}
+
+.ingr-toggle {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid #e0d4c3;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ingr-toggle__btn {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7d8f8a;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ingr-toggle__mid {
+  width: 1.5px;
+  flex-shrink: 0;
+  background: #e0d4c3;
+}
+
+.ingr-toggle__btn--have.ingr-toggle__btn--active {
+  background: rgba(74, 155, 143, 0.16);
+  color: #2f5b57;
+}
+
+.ingr-toggle__btn--buy.ingr-toggle__btn--active {
+  background: rgba(214, 137, 16, 0.16);
+  color: #a5680f;
+}
+
 /* ── Menu reset (start over) ───────────────────────────────────── */
 .menu-reset-link {
   background: none;

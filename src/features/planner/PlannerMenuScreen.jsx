@@ -8,6 +8,7 @@ import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import {
   createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal,
   findRecipePlacements, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
+  setIngredientDecision, buildSelectedIngredientsSummary,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
 import { loadPlan, savePlan, PANTRY_ITEMS } from './plannerApi.js';
@@ -330,6 +331,65 @@ function SelectedPool({ plan, allRecipes, onDistribute, onDeselect, onViewRecipe
   );
 }
 
+// ─── Ingredients summary (all selected recipes, merged) ──────────────────────
+
+function IngredientTriToggle({ value, onChange }) {
+  return (
+    <div className="ingr-toggle">
+      <button
+        type="button"
+        className={`ingr-toggle__btn ingr-toggle__btn--have${value === 'have' ? ' ingr-toggle__btn--active' : ''}`}
+        onClick={() => onChange(value === 'have' ? null : 'have')}
+      >
+        Есть дома
+      </button>
+      <span className="ingr-toggle__mid" aria-hidden="true" />
+      <button
+        type="button"
+        className={`ingr-toggle__btn ingr-toggle__btn--buy${value === 'buy' ? ' ingr-toggle__btn--active' : ''}`}
+        onClick={() => onChange(value === 'buy' ? null : 'buy')}
+      >
+        Надо купить
+      </button>
+    </div>
+  );
+}
+
+function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
+  if (plan.selectedRecipes.length === 0) return null;
+
+  const items = buildSelectedIngredientsSummary(plan, allRecipes)
+    .slice()
+    .sort((a, b) => a.product.localeCompare(b.product, 'ru'));
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="menu-ingredients">
+      <h2 className="menu-ingredients__title">Ингредиенты</h2>
+      <div className="menu-ingredients__list">
+        {items.map((item) => {
+          const key = item.product.toLowerCase();
+          return (
+            <div key={key} className="menu-ingr-row">
+              <div className="menu-ingr-row__top">
+                <span className="menu-ingr-row__product">{item.product}</span>
+                <span className="menu-ingr-row__qty">
+                  {item.qty != null ? `${Math.round(item.qty * 10) / 10} ${item.unit ?? ''}`.trim() : 'по вкусу'}
+                </span>
+              </div>
+              <IngredientTriToggle
+                value={plan.ingredientDecisions[key] ?? null}
+                onChange={(decision) => onSetDecision(item.product, decision)}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Plan view (day-by-day review) ───────────────────────────────────────────
 
 function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe, onCook, onMove }) {
@@ -398,7 +458,7 @@ function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe, onCook, onMove }
   );
 }
 
-function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, onMove, onDistribute, onDeselect, onReset, onBack }) {
+function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, onMove, onDistribute, onDeselect, onSetIngredientDecision, onReset, onBack }) {
   const [confirmReset, setConfirmReset] = useState(false);
 
   return (
@@ -415,6 +475,11 @@ function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, 
           onDistribute={onDistribute}
           onDeselect={onDeselect}
           onViewRecipe={onViewRecipe}
+        />
+        <MenuIngredientsSummary
+          plan={plan}
+          allRecipes={allRecipes}
+          onSetDecision={onSetIngredientDecision}
         />
         {plan.days.map((day) => (
           <PlanDayCard
@@ -584,6 +649,9 @@ export default function PlannerMenuScreen() {
         }
         onDistribute={(recipe) => openAddSheet(recipe)}
         onDeselect={(textId) => setPlan((p) => deselectRecipe(p, textId))}
+        onSetIngredientDecision={(product, decision) =>
+          setPlan((p) => setIngredientDecision(p, product, decision))
+        }
         onReset={() => setPlan(resetPlan(activeStudentId))}
         onBack={() => setView('recipes')}
       />
