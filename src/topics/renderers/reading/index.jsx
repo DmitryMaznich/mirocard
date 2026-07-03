@@ -577,6 +577,9 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
         <div className="instruction-main">
           <div className="instruction-header">
             <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
+            <button type="button" className="instruction-close-btn" onClick={exitInstruction}>
+              Закрыть рецепт
+            </button>
           </div>
 
           <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}${step.type === "warning" ? " instruction-step--warning" : ""}`}>
