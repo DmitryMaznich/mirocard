@@ -1,7 +1,8 @@
 # photo: coffee_chemex.webp
 # status: draft
-# tags: напиток, завтрак
+# tags: напитки, завтрак
 # portions: 1
+# fixed_portions: 1
 # ingredients:
 #   кофейные зёрна | 20 | гр
 #   вода | 320 | мл
