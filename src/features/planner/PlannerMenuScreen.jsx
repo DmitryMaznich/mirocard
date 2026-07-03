@@ -6,8 +6,9 @@ import { getRawRecipeTxt } from '@/core/groupStore';
 import { parseRecipeMetadata } from './recipeParser.js';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import {
-  createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal, countPlanRecipes,
-  findRecipePlacements, MEAL_TYPES,
+  createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal,
+  findRecipePlacements, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
+  MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
 import { loadPlan, savePlan, PANTRY_ITEMS } from './plannerApi.js';
 import './planner.css';
@@ -22,12 +23,21 @@ function pluralizePortions(n) {
   return 'порций';
 }
 
+function keyIngredients(ingredients) {
+  return ingredients
+    .filter((i) => i.product && !PANTRY_ITEMS.has(i.product))
+    .slice(0, 3)
+    .map((i) => i.product)
+    .join(', ');
+}
+
 // ─── Recipe ingredients (what you need, no step-by-step) ─────────────────────
 
 function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
   const { topicId, text, ingredients, portions, fixedPortions } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
   const placements = findRecipePlacements(plan, text.id);
+  const selected = isRecipeSelected(plan, text.id);
   const basePortions = fixedPortions || portions || 1;
 
   return (
@@ -39,7 +49,7 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
 
       <div className="recipe-detail-body">
         {coverUrl && <img src={coverUrl} alt="" className="recipe-detail-cover" />}
-        {placements.length > 0 && (
+        {placements.length > 0 ? (
           <div className="recipe-detail-placements">
             <span className="recipe-detail-placements__label">Уже в меню</span>
             {placements.map((p, i) => (
@@ -49,7 +59,11 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
               </span>
             ))}
           </div>
-        )}
+        ) : selected ? (
+          <div className="recipe-detail-placements">
+            <span className="recipe-detail-placements__hint">Отобрано, пока без дня</span>
+          </div>
+        ) : null}
         <div className="recipe-ingredients">
           <span className="recipe-ingredients__meta">
             {fixedPortions ? '🔒 готовится сразу на ' : 'На '}
@@ -77,7 +91,7 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
   );
 }
 
-// ─── Recipe card (tap to view, or add straight from the grid) ────────────────
+// ─── Recipe card (tap to view, or select for the menu pool) ──────────────────
 
 function PlayIcon() {
   return (
@@ -87,22 +101,9 @@ function PlayIcon() {
   );
 }
 
-function RecipeCard({ recipe, plan, mealType, onView, onCook, onToggleDay, onAddDay }) {
-  const { topicId, text, ingredients, fixedPortions } = recipe;
+function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
+  const { topicId, text, ingredients } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
-  const [portions, setPortions] = useState(fixedPortions || recipe.portions || 1);
-  const [popoverOpen, setPopoverOpen] = useState(false);
-
-  const placements = findRecipePlacements(plan, text.id);
-  const placedInTab = new Set(
-    placements.filter((p) => p.mealType === mealType).map((p) => p.dayIndex)
-  );
-
-  const keyIngr = ingredients
-    .filter((i) => i.product && !PANTRY_ITEMS.has(i.product))
-    .slice(0, 3)
-    .map((i) => i.product)
-    .join(', ');
 
   return (
     <div className="recipe-gallery-card">
@@ -112,13 +113,11 @@ function RecipeCard({ recipe, plan, mealType, onView, onCook, onToggleDay, onAdd
             ? <img src={photoUrl} alt="" className="recipe-gallery-card__photo" />
             : <span className="recipe-gallery-card__photo-placeholder" />
           }
-          {placements.length > 0 && (
-            <span className="recipe-gallery-card__badge">{placements.length}</span>
-          )}
+          {selected && <span className="recipe-gallery-card__badge">✓</span>}
         </span>
         <span className="recipe-gallery-card__info">
           <span className="recipe-gallery-card__title">{getTopicTitle(text.title)}</span>
-          <span className="recipe-gallery-card__ingr">{keyIngr}</span>
+          <span className="recipe-gallery-card__ingr">{keyIngredients(ingredients)}</span>
         </span>
       </button>
 
@@ -133,49 +132,12 @@ function RecipeCard({ recipe, plan, mealType, onView, onCook, onToggleDay, onAdd
         </button>
         <button
           type="button"
-          className={`recipe-gallery-card__add-btn${placedInTab.size > 0 ? ' recipe-gallery-card__add-btn--active' : ''}`}
-          onClick={() => setPopoverOpen((o) => !o)}
+          className={`recipe-gallery-card__add-btn${selected ? ' recipe-gallery-card__add-btn--active' : ''}`}
+          onClick={() => onToggleSelect(recipe)}
         >
-          {placedInTab.size > 0 ? `В меню · ${placedInTab.size}` : '+ Добавить'}
+          {selected ? '✓ В меню' : '+ Добавить'}
         </button>
       </div>
-
-      {popoverOpen && (
-        <>
-          <div className="card-popover-backdrop" onClick={() => setPopoverOpen(false)} />
-          <div className="card-popover">
-            <div className="card-popover__row">
-              <span className="card-popover__label">Порций</span>
-              {fixedPortions ? (
-                <span className="card-popover__fixed">🔒 всегда {fixedPortions}</span>
-              ) : (
-                <div className="card-popover__stepper">
-                  <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
-                  <span>{portions}</span>
-                  <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
-                </div>
-              )}
-            </div>
-            <div className="card-popover__days">
-              {plan.days.map((day) => (
-                <label key={day.dayIndex} className="card-popover__day">
-                  <input
-                    type="checkbox"
-                    checked={placedInTab.has(day.dayIndex)}
-                    onChange={() => onToggleDay(recipe, day.dayIndex, mealType, placedInTab.has(day.dayIndex), portions)}
-                  />
-                  <span>День {day.dayIndex + 1}</span>
-                </label>
-              ))}
-              {plan.days.length < 7 && (
-                <button type="button" className="card-popover__day card-popover__day--add" onClick={onAddDay}>
-                  + День
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }
@@ -184,7 +146,7 @@ function RecipeCard({ recipe, plan, mealType, onView, onCook, onToggleDay, onAdd
 
 const TAB_ALL = 'all';
 
-function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onCook, onOpenPlan, onBack, onToggleDay, onAddDay }) {
+function RecipeBrowser({ plan, allRecipes, loading, selectedCount, onView, onCook, onOpenPlan, onBack, onToggleSelect }) {
   const [mealType, setMealType] = useState(TAB_ALL);
   const filtered = mealType === TAB_ALL ? allRecipes : allRecipes.filter((r) => r.tags.includes(mealType));
 
@@ -194,7 +156,7 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
         <button className="planner-header__back" onClick={onBack}><BackArrowIcon size={22} /></button>
         <h1 className="planner-header__title">Рецепты</h1>
         <button className="planner-plan-pill" onClick={onOpenPlan}>
-          Меню{planRecipeCount > 0 ? ` · ${planRecipeCount}` : ''}
+          Меню{selectedCount > 0 ? ` · ${selectedCount}` : ''}
         </button>
       </div>
 
@@ -205,7 +167,7 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
         >
           Все
         </button>
-        {MEAL_TYPES.map((mt) => (
+        {RECIPE_TAGS.map((mt) => (
           <button
             key={mt}
             className={`gallery-meal-tab${mealType === mt ? ' gallery-meal-tab--active' : ''}`}
@@ -228,12 +190,10 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
             <RecipeCard
               key={`${recipe.topicId}_${recipe.text.id}`}
               recipe={recipe}
-              plan={plan}
-              mealType={mealType === TAB_ALL ? (recipe.tags[0] ?? MEAL_TYPES[0]) : mealType}
+              selected={isRecipeSelected(plan, recipe.text.id)}
               onView={() => onView(recipe)}
               onCook={onCook}
-              onToggleDay={onToggleDay}
-              onAddDay={onAddDay}
+              onToggleSelect={onToggleSelect}
             />
           ))}
         </div>
@@ -242,13 +202,13 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
   );
 }
 
-// ─── Add-to-plan sheet ────────────────────────────────────────────────────────
+// ─── Add-to-plan sheet (distribute a pool recipe, or move a placement) ───────
 
-function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
+function AddToPlanSheet({ recipe, plan, initialDayIndex = 0, initialMealType = null, initialPortions = null, onAddDay, onConfirm, onClose }) {
   const { fixedPortions } = recipe;
-  const [dayIndex, setDayIndex] = useState(0);
-  const [mealType, setMealType] = useState(null);
-  const [portions, setPortions] = useState(fixedPortions || recipe.portions || 1);
+  const [dayIndex, setDayIndex] = useState(initialDayIndex);
+  const [mealType, setMealType] = useState(initialMealType);
+  const [portions, setPortions] = useState(initialPortions ?? (fixedPortions || recipe.portions || 1));
 
   function handleAddDay() {
     const newIndex = plan.days.length;
@@ -326,9 +286,45 @@ function AddToPlanSheet({ recipe, plan, onAddDay, onConfirm, onClose }) {
   );
 }
 
+// ─── Selected pool (Отобрано) ─────────────────────────────────────────────────
+
+function SelectedPool({ plan, allRecipes, onDistribute, onDeselect, onViewRecipe }) {
+  if (plan.selectedRecipes.length === 0) return null;
+
+  return (
+    <div className="menu-pool">
+      <h2 className="menu-pool__title">Отобрано</h2>
+      <div className="menu-pool__list">
+        {plan.selectedRecipes.map((textId) => {
+          const recipe = allRecipes.find((r) => r.text.id === textId);
+          if (!recipe) return null;
+          const placements = findRecipePlacements(plan, textId);
+          return (
+            <div key={textId} className="menu-pool__row">
+              <button className="menu-pool__name" onClick={() => onViewRecipe(recipe)}>
+                <span className="menu-pool__title-text">{getTopicTitle(recipe.text.title)}</span>
+                <span className="menu-pool__ingr">{keyIngredients(recipe.ingredients)}</span>
+              </button>
+              {placements.length > 0 && (
+                <span className="menu-pool__badge">×{placements.length}</span>
+              )}
+              <button type="button" className="menu-pool__distribute" onClick={() => onDistribute(recipe)}>
+                Распределить
+              </button>
+              <button type="button" className="menu-pool__remove" onClick={() => onDeselect(textId)}>
+                Убрать
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Plan view (day-by-day review) ───────────────────────────────────────────
 
-function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe, onCook }) {
+function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe, onCook, onMove }) {
   function getRecipeObj(textId) {
     return allRecipes.find((r) => r.text.id === textId) ?? null;
   }
@@ -368,6 +364,15 @@ function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe, onCook }) {
                     >
                       {title}{portions > 1 ? ` ×${portions}` : ''}
                     </button>
+                    {r && (
+                      <button
+                        className="planner-recipe-chip__move"
+                        onClick={() => onMove(r, day.dayIndex, mealType, portions)}
+                        aria-label="Перенести на другой день или приём пищи"
+                      >
+                        ↻
+                      </button>
+                    )}
                     <button
                       className="planner-recipe-chip__remove"
                       onClick={() => onRemove(day.dayIndex, mealType, textId)}
@@ -385,7 +390,9 @@ function PlanDayCard({ day, allRecipes, onRemove, onViewRecipe, onCook }) {
   );
 }
 
-function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, onBack }) {
+function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, onMove, onDistribute, onDeselect, onReset, onBack }) {
+  const [confirmReset, setConfirmReset] = useState(false);
+
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
@@ -394,6 +401,13 @@ function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, 
       </div>
 
       <div className="planner-body">
+        <SelectedPool
+          plan={plan}
+          allRecipes={allRecipes}
+          onDistribute={onDistribute}
+          onDeselect={onDeselect}
+          onViewRecipe={onViewRecipe}
+        />
         {plan.days.map((day) => (
           <PlanDayCard
             key={day.dayIndex}
@@ -402,6 +416,7 @@ function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, 
             onRemove={onRemove}
             onViewRecipe={onViewRecipe}
             onCook={onCook}
+            onMove={onMove}
           />
         ))}
         {plan.days.length < 7 && (
@@ -409,7 +424,20 @@ function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, 
             + Добавить день
           </button>
         )}
+        <button type="button" className="menu-reset-link" onClick={() => setConfirmReset(true)}>
+          Начать меню заново
+        </button>
       </div>
+
+      {confirmReset && (
+        <div className="menu-reset-bar">
+          <span className="menu-reset-bar__text">Точно начать заново? Всё меню будет удалено.</span>
+          <div className="menu-reset-bar__actions">
+            <button type="button" className="menu-reset-bar__cancel" onClick={() => setConfirmReset(false)}>Нет</button>
+            <button type="button" className="menu-reset-bar__ok" onClick={() => { setConfirmReset(false); onReset(); }}>Да</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -435,7 +463,10 @@ export default function PlannerMenuScreen() {
   const [view, setView] = useState(() => plannerInitialView ?? 'recipes');
   const [detailRecipe, setDetailRecipe] = useState(null);
   const [detailPrev, setDetailPrev] = useState('recipes');
-  const [addSheetOpen, setAddSheetOpen] = useState(false);
+  // Shared by three entry points: the detail screen's "+ Добавить в меню",
+  // Меню's "Распределить" (adds a placement), and "↻" move (replaces one
+  // placement) — moveFrom distinguishes add vs. replace on confirm.
+  const [addSheet, setAddSheet] = useState(null); // { recipe, moveFrom: {dayIndex, mealType, portions} | null } | null
 
   // Consume the hub's requested initial view once, so a later visit
   // (without the hub setting it again) defaults back to 'recipes'.
@@ -485,16 +516,27 @@ export default function PlannerMenuScreen() {
     setView('detail');
   }
 
-  function handleConfirmAdd(dayIndex, mealType, portions) {
-    setPlan((p) => addRecipeToMeal(p, dayIndex, mealType, detailRecipe.text.id, portions));
-    setAddSheetOpen(false);
+  function openAddSheet(recipe, moveFrom = null) {
+    setAddSheet({ recipe, moveFrom });
   }
 
-  function handleToggleDay(recipe, dayIndex, mealType, currentlyPlaced, portions) {
+  function handleConfirmAddSheet(dayIndex, mealType, portions) {
+    const { recipe, moveFrom } = addSheet;
+    setPlan((p) => {
+      let next = selectRecipe(p, recipe.text.id);
+      if (moveFrom) {
+        next = removeRecipeFromMeal(next, moveFrom.dayIndex, moveFrom.mealType, recipe.text.id);
+      }
+      return addRecipeToMeal(next, dayIndex, mealType, recipe.text.id, portions);
+    });
+    setAddSheet(null);
+  }
+
+  function handleToggleSelect(recipe) {
     setPlan((p) =>
-      currentlyPlaced
-        ? removeRecipeFromMeal(p, dayIndex, mealType, recipe.text.id)
-        : addRecipeToMeal(p, dayIndex, mealType, recipe.text.id, portions)
+      isRecipeSelected(p, recipe.text.id)
+        ? deselectRecipe(p, recipe.text.id)
+        : selectRecipe(p, recipe.text.id)
     );
   }
 
@@ -508,30 +550,18 @@ export default function PlannerMenuScreen() {
 
   if (!plan) return <div className="screen screen-center">Загрузка…</div>;
 
+  let content;
   if (view === 'detail' && detailRecipe) {
-    return (
-      <>
-        <RecipeIngredients
-          recipe={detailRecipe}
-          plan={plan}
-          onOpenAddSheet={() => setAddSheetOpen(true)}
-          onBack={() => setView(detailPrev)}
-        />
-        {addSheetOpen && (
-          <AddToPlanSheet
-            recipe={detailRecipe}
-            plan={plan}
-            onAddDay={() => setPlan((p) => addDay(p))}
-            onConfirm={handleConfirmAdd}
-            onClose={() => setAddSheetOpen(false)}
-          />
-        )}
-      </>
+    content = (
+      <RecipeIngredients
+        recipe={detailRecipe}
+        plan={plan}
+        onOpenAddSheet={() => openAddSheet(detailRecipe)}
+        onBack={() => setView(detailPrev)}
+      />
     );
-  }
-
-  if (view === 'plan') {
-    return (
+  } else if (view === 'plan') {
+    content = (
       <PlanView
         plan={plan}
         allRecipes={allRecipes}
@@ -541,23 +571,46 @@ export default function PlannerMenuScreen() {
         }
         onViewRecipe={(recipe) => openDetail(recipe, 'plan')}
         onCook={handleCook}
+        onMove={(recipe, dayIndex, mealType, portions) =>
+          openAddSheet(recipe, { dayIndex, mealType, portions })
+        }
+        onDistribute={(recipe) => openAddSheet(recipe)}
+        onDeselect={(textId) => setPlan((p) => deselectRecipe(p, textId))}
+        onReset={() => setPlan(resetPlan(activeStudentId))}
         onBack={() => setView('recipes')}
+      />
+    );
+  } else {
+    content = (
+      <RecipeBrowser
+        plan={plan}
+        allRecipes={allRecipes}
+        loading={loadingRecipes}
+        selectedCount={plan.selectedRecipes.length}
+        onView={(recipe) => openDetail(recipe, 'recipes')}
+        onCook={handleCook}
+        onOpenPlan={() => setView('plan')}
+        onBack={() => setScreen('home')}
+        onToggleSelect={handleToggleSelect}
       />
     );
   }
 
   return (
-    <RecipeBrowser
-      plan={plan}
-      allRecipes={allRecipes}
-      loading={loadingRecipes}
-      planRecipeCount={countPlanRecipes(plan)}
-      onView={(recipe) => openDetail(recipe, 'recipes')}
-      onCook={handleCook}
-      onOpenPlan={() => setView('plan')}
-      onBack={() => setScreen('home')}
-      onToggleDay={handleToggleDay}
-      onAddDay={() => setPlan((p) => addDay(p))}
-    />
+    <>
+      {content}
+      {addSheet && (
+        <AddToPlanSheet
+          recipe={addSheet.recipe}
+          plan={plan}
+          initialDayIndex={addSheet.moveFrom?.dayIndex ?? 0}
+          initialMealType={addSheet.moveFrom?.mealType ?? null}
+          initialPortions={addSheet.moveFrom?.portions ?? null}
+          onAddDay={() => setPlan((p) => addDay(p))}
+          onConfirm={handleConfirmAddSheet}
+          onClose={() => setAddSheet(null)}
+        />
+      )}
+    </>
   );
 }

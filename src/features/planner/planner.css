@@ -158,6 +158,17 @@
   flex-shrink: 0;
 }
 
+.planner-recipe-chip__move {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 13px;
+  line-height: 1;
+  color: #4a9b8f;
+  flex-shrink: 0;
+}
+
 /* ── Add day button ─────────────────────────────────────────── */
 .planner-add-day {
   background: none;
@@ -174,6 +185,168 @@
 
 .planner-add-day:hover {
   background: rgba(74, 155, 143, 0.08);
+}
+
+/* ── Selected pool (Отобрано) ──────────────────────────────────── */
+.menu-pool {
+  background: rgba(250, 247, 242, 0.96);
+  border: 1px solid #e7dccf;
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 14px rgba(71, 61, 48, 0.05);
+}
+
+.menu-pool__title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #2f5b57;
+}
+
+.menu-pool__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-pool__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid #e7dccf;
+}
+
+.menu-pool__row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.menu-pool__name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.menu-pool__title-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #263131;
+}
+
+.menu-pool__ingr {
+  font-size: 11px;
+  color: #7d8f8a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-pool__badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2f5b57;
+  background: rgba(74, 155, 143, 0.1);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.menu-pool__distribute {
+  flex-shrink: 0;
+  border: 1.5px solid #4a9b8f;
+  border-radius: 10px;
+  background: none;
+  color: #2f5b57;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.menu-pool__remove {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 2px;
+  font-size: 12px;
+  color: #a8978a;
+  font-family: inherit;
+}
+
+/* ── Menu reset (start over) ───────────────────────────────────── */
+.menu-reset-link {
+  background: none;
+  border: none;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #a8978a;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+  font-family: inherit;
+  align-self: center;
+}
+
+.menu-reset-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #fff5f5;
+  border-top: 1px solid #fdd;
+  flex-shrink: 0;
+}
+
+.menu-reset-bar__text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c0392b;
+}
+
+.menu-reset-bar__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.menu-reset-bar__cancel {
+  background: none;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.menu-reset-bar__ok {
+  background: #e53935;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 /* ── Recipe gallery (grid) ──────────────────────────────────── */
@@ -392,119 +565,6 @@
   color: #fff;
 }
 
-.card-popover-backdrop {
-  position: fixed;
-  inset: 0;
-  background: transparent;
-  z-index: 5;
-}
-
-/* Absolutely positioned so it overlays rather than growing the card —
-   opening it must never change the card's height, or its row sibling
-   (which doesn't stretch, see .recipe-gallery-grid) ends up mismatched. */
-.card-popover {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  top: 100%;
-  margin-top: 6px;
-  z-index: 6;
-  padding: 10px;
-  border-radius: 12px;
-  background: #f4eee3;
-  border: 1px solid #e7dccf;
-  box-shadow: 0 10px 24px rgba(71, 61, 48, 0.18);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.card-popover__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-popover__label {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #7a8c88;
-}
-
-.card-popover__fixed {
-  font-size: 12px;
-  font-weight: 700;
-  color: #7d8f8a;
-}
-
-.card-popover__stepper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-popover__stepper button {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1.5px solid #4a9b8f;
-  background: #fff;
-  color: #2f5b57;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.card-popover__stepper span {
-  font-size: 13px;
-  font-weight: 800;
-  color: #263131;
-  min-width: 14px;
-  text-align: center;
-}
-
-.card-popover__days {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.card-popover__day {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border: 1.5px solid #e0d4c3;
-  background: #fff;
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #263131;
-  cursor: pointer;
-}
-
-.card-popover__day:has(input:checked) {
-  border-color: #4a9b8f;
-  background: rgba(74, 155, 143, 0.14);
-  color: #2f5b57;
-}
-
-.card-popover__day input {
-  width: 13px;
-  height: 13px;
-  accent-color: #4a9b8f;
-  margin: 0;
-}
-
-.card-popover__day--add {
-  border-style: dashed;
-  color: #4a9b8f;
-}
-
 /* ── Recipe detail (inline) ─────────────────────────────────── */
 .recipe-detail-body {
   flex: 1;
@@ -613,6 +673,13 @@
   background: rgba(74, 155, 143, 0.1);
   border-radius: 999px;
   padding: 4px 10px;
+}
+
+.recipe-detail-placements__hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a8978a;
+  font-style: italic;
 }
 
 /* ── Chip with clickable name ───────────────────────────────── */
@@ -745,7 +812,7 @@
 
 .add-sheet__meals {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
 
