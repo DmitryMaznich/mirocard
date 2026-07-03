@@ -112,6 +112,11 @@ export const useAppStore = create((set) => ({
   // ─── Planner ───────────────────────────────────────────────────────────────
   plannerStudentId: null,
   setPlannerStudentId: (id) => set({ plannerStudentId: id }),
+  // Which sub-view PlannerMenuScreen should open on next mount (e.g. the
+  // hub's "Меню" card wants the day-by-day view, not the recipe browser
+  // default). Read once on mount, then cleared.
+  plannerInitialView: null,
+  setPlannerInitialView: (plannerInitialView) => set({ plannerInitialView }),
 
   // ─── Session setup ─────────────────────────────────────────────────────────
   activeStudentId: null,

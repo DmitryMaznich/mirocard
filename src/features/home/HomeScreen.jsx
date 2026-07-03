@@ -248,11 +248,23 @@ function PlannerTab({ student, setScreen }) {
           state={hasRecipes ? 'done' : 'active'}
           icon="🍽️"
           title="Рецепты"
-          value={hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Смотри рецепты и добавляй в план'}
+          value={hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Смотри рецепты и добавляй в меню'}
           onClick={() => setScreen('planner_menu')}
         >
           {hasRecipes && <DayStrip days={existingPlan.days} />}
         </HubCard>
+
+        <HubCard
+          state={hasRecipes ? 'active' : 'locked'}
+          icon="📋"
+          title="Меню"
+          value={hasRecipes ? 'Открой и отредактируй' : 'Сначала рецепты'}
+          onClick={() => {
+            setPlannerInitialView('plan');
+            setScreen('planner_menu');
+          }}
+          disabled={!hasRecipes}
+        />
 
         <HubCard
           state={hasRecipes ? 'active' : 'locked'}
