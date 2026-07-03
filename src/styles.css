@@ -14425,8 +14425,8 @@ kbd {
 }
 
 .home-header__logo {
-  width: 42px;
-  height: 40px;
+  width: 56px;
+  height: 53px;
   object-fit: contain;
   flex-shrink: 0;
 }
