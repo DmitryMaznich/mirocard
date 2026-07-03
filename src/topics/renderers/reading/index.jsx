@@ -483,16 +483,13 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     handleNext();
   }, [step, checked, stepIndex, toggleItem, handleNext]);
 
-  // Exits the recipe. If we were launched from a non-standard entry point
-  // (e.g. the Planner's Рецепты list), return there instead of the
-  // standalone recipe topic's params screen.
+  // Exits the recipe. Always lands in the Planner — recipes now live there
+  // exclusively (the standalone "Инструкции" topic this renderer also still
+  // serves is being retired), so there's no scenario where returning to its
+  // own params/mode-picker screen is the right destination anymore.
   const exitInstruction = useCallback(() => {
-    if (sessionReturnScreen) {
-      setScreen(sessionReturnScreen);
-      setSessionReturnScreen(null);
-    } else {
-      setScreen("params");
-    }
+    setScreen(sessionReturnScreen ?? "planner_menu");
+    setSessionReturnScreen(null);
   }, [setScreen, sessionReturnScreen, setSessionReturnScreen]);
 
   const goBack = useCallback(() => {
