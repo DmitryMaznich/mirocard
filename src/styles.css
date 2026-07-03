@@ -14425,8 +14425,8 @@ kbd {
 }
 
 .home-header__logo {
-  width: 38px;
-  height: 36px;
+  width: 42px;
+  height: 40px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -14447,11 +14447,10 @@ kbd {
 }
 
 .home-header__tagline {
-  font-size: 11px;
-  font-weight: 800;
-  color: #7a8c88;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a9e9a;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -14470,8 +14469,13 @@ kbd {
   justify-content: center;
   padding: 0;
   box-shadow: 0 10px 24px rgba(71, 61, 48, 0.08);
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
   cursor: pointer;
+}
+.home-header__settings-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(71, 61, 48, 0.12);
 }
 .home-header__settings-btn:active {
   transform: translateY(1px);
@@ -17589,7 +17593,7 @@ body { background: #eef0ef; }
     margin: 8px 10px 0;
     padding: 7px 12px;
   }
-  .home-header__logo  { width: 28px; height: 26px; }
+  .home-header__logo  { width: 30px; height: 28px; }
   .home-header__tagline { display: none; }
 
   /* ── Home: tighten container gaps ── */

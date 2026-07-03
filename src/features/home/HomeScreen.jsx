@@ -14,12 +14,12 @@ import "@/features/planner/planner.css";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
-function SettingsIcon() {
+function AccountIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-      <circle cx="11" cy="11" r="3.2" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M11 2v2.2M11 17.8V20M2 11h2.2M17.8 11H20M4.64 4.64l1.56 1.56M15.8 15.8l1.56 1.56M4.64 17.36l1.56-1.56M15.8 6.2l1.56-1.56"
-        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="11" cy="7.5" r="3.5" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M3.5 19C3.5 15.13 6.91 12 11 12C15.09 12 18.5 15.13 18.5 19"
+        stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
     </svg>
   );
 }
@@ -37,7 +37,7 @@ function HomeHeader({ onSettings, onBrandTap }) {
         </div>
       </div>
       <button className="home-header__settings-btn" onClick={onSettings} aria-label="Настройки">
-        <SettingsIcon />
+        <AccountIcon />
       </button>
     </header>
   );
