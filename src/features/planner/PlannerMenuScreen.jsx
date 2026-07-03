@@ -208,7 +208,7 @@ function RecipeBrowser({ plan, allRecipes, loading, selectedCount, onView, onCoo
 // ─── Add-to-plan sheet (distribute a pool recipe, or move a placement) ───────
 
 function AddToPlanSheet({ recipe, plan, initialDayIndex = 0, initialMealType = null, initialPortions = null, onAddDay, onConfirm, onClose }) {
-  const { fixedPortions } = recipe;
+  const { fixedPortions, maxPortions } = recipe;
   const [dayIndex, setDayIndex] = useState(initialDayIndex);
   const [mealType, setMealType] = useState(initialMealType);
   const [portions, setPortions] = useState(initialPortions ?? (fixedPortions || recipe.portions || 1));
@@ -271,7 +271,7 @@ function AddToPlanSheet({ recipe, plan, initialDayIndex = 0, initialMealType = n
             <div className="add-sheet__stepper">
               <button type="button" onClick={() => setPortions((p) => Math.max(1, p - 1))} aria-label="Меньше порций">−</button>
               <span className="add-sheet__stepper-value">{portions}</span>
-              <button type="button" onClick={() => setPortions((p) => p + 1)} aria-label="Больше порций">+</button>
+              <button type="button" onClick={() => setPortions((p) => Math.min(maxPortions, p + 1))} aria-label="Больше порций">+</button>
             </div>
           )}
         </div>
@@ -508,8 +508,8 @@ export default function PlannerMenuScreen() {
           if (text.kind !== 'instruction' || !text.file) continue;
           const content = await getRawRecipeTxt(record.meta.id, text.file);
           if (!content) continue;
-          const { tags, ingredients, portions, fixedPortions, status } = parseRecipeMetadata(content);
-          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, status });
+          const { tags, ingredients, portions, fixedPortions, maxPortions, status } = parseRecipeMetadata(content);
+          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, maxPortions, status });
         }
       }
       if (!cancelled) { setAllRecipes(all); setLoadingRecipes(false); }
