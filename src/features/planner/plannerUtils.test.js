@@ -276,12 +276,13 @@ describe('resetPlan', () => {
     expect(fresh.days).toHaveLength(1);
   });
 
-  it('is independent of any prior in-progress plan', () => {
+  it('does not mutate or depend on any existing in-progress plan', () => {
     let plan = selectRecipe(createPlan('student1'), 'soup_01');
     plan = addRecipeToMeal(plan, 0, 'обед', 'soup_01');
     const fresh = resetPlan('student1');
     expect(fresh.selectedRecipes).toEqual([]);
     expect(fresh.days[0].meals['обед']).toEqual([]);
+    expect(plan.selectedRecipes).toEqual(['soup_01']);
   });
 });
 

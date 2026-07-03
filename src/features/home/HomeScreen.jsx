@@ -239,33 +239,35 @@ function PlannerTab({ student, setScreen }) {
     );
   }
 
+  const hasSelection = !!existingPlan && existingPlan.selectedRecipes.length > 0;
   const hasRecipes = !!existingPlan && countPlanRecipes(existingPlan) > 0;
   const dayCount = hasRecipes ? existingPlan.days.length : 0;
   const recipeCount = hasRecipes ? countPlanRecipes(existingPlan) : 0;
+  const selectedCount = hasSelection ? existingPlan.selectedRecipes.length : 0;
 
   return (
     <div className="planner-hub">
       <div className="planner-hub__grid">
         <HubCard
-          state={hasRecipes ? 'done' : 'active'}
+          state={hasSelection ? 'done' : 'active'}
           icon="🍽️"
           title="Рецепты"
-          value={hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : 'Смотри рецепты и добавляй в меню'}
+          value={hasSelection ? `${selectedCount} отобрано` : 'Смотри рецепты и добавляй в меню'}
           onClick={() => setScreen('planner_menu')}
         >
           {hasRecipes && <DayStrip days={existingPlan.days} />}
         </HubCard>
 
         <HubCard
-          state={hasRecipes ? 'active' : 'locked'}
+          state={hasSelection ? 'active' : 'locked'}
           icon="📋"
           title="Меню"
-          value={hasRecipes ? 'Открой и отредактируй' : 'Сначала рецепты'}
+          value={hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : hasSelection ? 'Пока пусто' : 'Сначала рецепты'}
           onClick={() => {
             setPlannerInitialView('plan');
             setScreen('planner_menu');
           }}
-          disabled={!hasRecipes}
+          disabled={!hasSelection}
         />
 
         <HubCard
