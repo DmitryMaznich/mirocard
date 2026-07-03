@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.11";
+const VERSION   = "1.0.12";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 // Old ZIP cleaned up automatically in catalog update below
 
@@ -37,6 +37,10 @@ const Q_JAM   = "какое?";
 const POT_PROMPT    = "a large stainless steel cooking pot on a gas stove with blue flame burning underneath, steam rising from the pot, kitchen setting, warm natural lighting, top-down 3/4 view, clean white background, square composition, no text, no watermark, photorealistic educational photo";
 const JUICER_PROMPT = "a modern electric centrifugal juicer machine alone on a clean kitchen counter, NO glass of juice and NO fruit nearby, just the appliance by itself, white and stainless steel, bright natural lighting, square 1:1 composition, no text, no watermark, child-friendly educational photo";
 const BASIN_PROMPT  = "a wide traditional enamel basin or preserving pan filled with boiling red berry jam, foam and bubbles on the surface, steam rising, classic Russian jam-making style, warm kitchen lighting, top-down 3/4 view, square composition, no text, no watermark, child-friendly educational photo";
+
+const AVATAR_TOPIC_PROMPT      = "a simple flat cartoon icon: a whole fish on the left, a bold arrow pointing right, a steaming bowl of soup on the right, bright cheerful colors, thick outlines, white background, square 1:1 composition, no text, no letters, child-friendly educational icon";
+const AVATAR_PAIR_INTRO_PROMPT = "a simple flat cartoon icon: two square flashcards side by side, left card shows a fish illustration, right card shows bold text-like marks suggesting a word, a small arrow pointing from left to right between them, bright cheerful colors, thick outlines, white background, square 1:1 composition, no text, no letters";
+const AVATAR_PICK_FORM_PROMPT  = "a simple flat cartoon icon: a fish illustration at the top, below it four rounded rectangular buttons in a 2x2 grid, one button highlighted in green, the others in light grey, bright cheerful colors, thick outlines, white background, square 1:1 composition, no text, no letters, child-friendly";
 
 // each concept must have: category, vesselImage, questionText, audioQuestion
 const CONCEPTS = [
@@ -276,36 +280,23 @@ function buildTopic() {
     meta: {
       id: TOPIC_ID, renderer: "word_formation", version: VERSION,
       title: { ru: "Словообразование" }, language: "ru",
+      avatar: "media/avatar_topic.webp",
     },
     modes: [
       { id: "pair_intro", type: "pair_intro", evaluation: "none", requirePin: false,
-        ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" } },
+        ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" }, icon: "media/avatar_pair_intro.webp" },
         params: {
           category:      { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
           exerciseAudio: { type: "boolean", label: { ru: "Проговаривать слова" }, default: true },
         },
       },
       { id: "pick_form", type: "pick_form", evaluation: "auto", requirePin: false,
-        ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" } },
+        ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" }, icon: "media/avatar_pick_form.webp" },
         params: {
           category:      { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
           exerciseAudio: { type: "boolean", label: { ru: "Проговаривать слова" }, default: true },
           difficulty:    { type: "enum",    label: { ru: "Сложность дистракторов" }, values: ["easy", "hard"], labels: { ru: { easy: "Лёгкий: слова из разных пар", hard: "Сложный: похожие формы одного корня" } }, default: "easy" },
         },
-      },
-      { id: "form_it",      type: "form_it",      evaluation: "auto", requirePin: false,
-        ui: { title: { ru: "Образуй прилагательное" }, instruction: { ru: "Нажми на правильное слово" } },
-        params: {
-          stimulus:    { type: "enum",   label: { ru: "Стимул" },     values: ["phrase","image","mixed"], default: "mixed" },
-          optionCount: { type: "enum",   label: { ru: "Вариантов" },  values: [2,3,4], default: 4 },
-        },
-      },
-      { id: "yes_no",       type: "yes_no",       evaluation: "auto", requirePin: false,
-        ui: { title: { ru: "Правильно / Нет?" }, instruction: { ru: "Это правильное словосочетание?" } },
-        params: { repsPerConcept: { type: "number", label: { ru: "Повторений" }, default: 1, min: 1, max: 5 } },
-      },
-      { id: "question_ask", type: "question_ask", evaluation: "none", requirePin: true,
-        ui: { title: { ru: "Назови суп" }, instruction: { ru: "Логопед задаёт вопрос устно" } },
       },
     ],
     cards,
@@ -318,6 +309,11 @@ async function main() {
   ensureDir(CACHE_DIR);
 
   const sa = JSON.parse(readFileSync(TTS_SA_PATH, "utf8"));
+
+  console.log("\n=== Генерация аватарок ===");
+  const avatarTopic     = await generateImageFromPrompt("avatar_topic.webp",      AVATAR_TOPIC_PROMPT,      "avatar_topic");
+  const avatarPairIntro = await generateImageFromPrompt("avatar_pair_intro.webp", AVATAR_PAIR_INTRO_PROMPT, "avatar_pair_intro");
+  const avatarPickForm  = await generateImageFromPrompt("avatar_pick_form.webp",  AVATAR_PICK_FORM_PROMPT,  "avatar_pick_form");
 
   console.log("\n=== Генерация изображений ===");
   const vessels = {
@@ -348,6 +344,9 @@ async function main() {
   const topic = buildTopic();
   const zip = new JSZip();
   zip.file("topic.json", JSON.stringify(topic, null, 2));
+  zip.file("media/avatar_topic.webp",      avatarTopic);
+  zip.file("media/avatar_pair_intro.webp", avatarPairIntro);
+  zip.file("media/avatar_pick_form.webp",  avatarPickForm);
   for (const [path, buf] of Object.entries(vessels))       zip.file(path, buf);
   for (const [path, buf] of Object.entries(questionAudios)) zip.file(path, buf);
   for (const c of CONCEPTS) {
