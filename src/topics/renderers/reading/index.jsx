@@ -396,6 +396,8 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const adultConfirmAdvance     = useAppStore((s) => s.settings?.adultConfirmAdvance ?? true);
   const sessionPortionsOverride    = useAppStore((s) => s.sessionPortionsOverride);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
+  const sessionReturnScreen        = useAppStore((s) => s.sessionReturnScreen);
+  const setSessionReturnScreen     = useAppStore((s) => s.setSessionReturnScreen);
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const [portions,   setPortions]   = useState(1);
@@ -479,10 +481,22 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     handleNext();
   }, [step, checked, stepIndex, toggleItem, handleNext]);
 
+  // Exits the recipe. If we were launched from a non-standard entry point
+  // (e.g. the Planner's Рецепты list), return there instead of the
+  // standalone recipe topic's params screen.
+  const exitInstruction = useCallback(() => {
+    if (sessionReturnScreen) {
+      setScreen(sessionReturnScreen);
+      setSessionReturnScreen(null);
+    } else {
+      setScreen("params");
+    }
+  }, [setScreen, sessionReturnScreen, setSessionReturnScreen]);
+
   const goBack = useCallback(() => {
     if (stepIndex > 0) setStepIndex((n) => n - 1);
-    else setScreen("params");
-  }, [stepIndex, setScreen]);
+    else exitInstruction();
+  }, [stepIndex, exitInstruction]);
 
   useEffect(() => {
     function onKey(e) {
@@ -491,12 +505,12 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
         case "ArrowRight": case "Enter": e.preventDefault(); handleNext(); break;
         case " ":          e.preventDefault(); handleSpace(); break;
         case "ArrowLeft":  case "Backspace": e.preventDefault(); goBack(); break;
-        case "Escape": e.preventDefault(); setScreen("params"); break;
+        case "Escape": e.preventDefault(); exitInstruction(); break;
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleNext, handleSpace, goBack]);
+  }, [handleNext, handleSpace, goBack, exitInstruction]);
 
   if (!step) return null;
 
