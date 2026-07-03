@@ -68,6 +68,7 @@ scripts/_test_*.mjs
 # Allow tracked media assets
 !content/media/*.webp
 !content/media/*.jpg
+!public/hands/*.webp
 
 # Verification scripts and output
 verify-*.cjs

@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function HandImg({ count = 0, ghost = 0, side = "right", style }) {
-  const solidSrc  = `/hands/hand_${side}_${Math.min(count, 5)}.png`;
+  const solidSrc  = `/hands/hand_${side}_${Math.min(count, 5)}.webp`;
   const targetCnt = Math.min(count + ghost, 5);
   const showGhost = ghost > 0 && targetCnt !== count;
 
@@ -22,7 +22,7 @@ export default function HandImg({ count = 0, ghost = 0, side = "right", style })
       />
       {showGhost && (
         <img
-          src={`/hands/hand_${side}_${targetCnt}.png`}
+          src={`/hands/hand_${side}_${targetCnt}.webp`}
           alt=""
           aria-hidden="true"
           draggable={false}
