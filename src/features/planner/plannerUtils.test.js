@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   MEAL_TYPES,
+  RECIPE_TAGS,
   createPlan,
   createDay,
   addDay,
@@ -9,12 +10,22 @@ import {
   getPlanRecipes,
   countPlanRecipes,
   findRecipePlacements,
+  isRecipeSelected,
+  selectRecipe,
+  deselectRecipe,
+  resetPlan,
   normalizePlan,
 } from './plannerUtils.js';
 
 describe('MEAL_TYPES', () => {
-  it('contains all five meal types including напитки', () => {
-    expect(MEAL_TYPES).toEqual(['завтрак', 'обед', 'ужин', 'перекус', 'напитки']);
+  it('contains the four schedulable meal types', () => {
+    expect(MEAL_TYPES).toEqual(['завтрак', 'обед', 'ужин', 'перекус']);
+  });
+});
+
+describe('RECIPE_TAGS', () => {
+  it('extends MEAL_TYPES with напитки as a browsing-only tag', () => {
+    expect(RECIPE_TAGS).toEqual(['завтрак', 'обед', 'ужин', 'перекус', 'напитки']);
   });
 });
 
@@ -34,6 +45,11 @@ describe('createPlan', () => {
     for (const type of MEAL_TYPES) {
       expect(plan.days[0].meals[type]).toEqual([]);
     }
+  });
+
+  it('starts with an empty selectedRecipes pool', () => {
+    const plan = createPlan('s1');
+    expect(plan.selectedRecipes).toEqual([]);
   });
 });
 
@@ -186,6 +202,89 @@ describe('findRecipePlacements', () => {
   });
 });
 
+describe('isRecipeSelected', () => {
+  it('returns false for a recipe not in the pool', () => {
+    const plan = createPlan('s1');
+    expect(isRecipeSelected(plan, 'soup_01')).toBe(false);
+  });
+
+  it('returns true once the recipe has been selected', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    expect(isRecipeSelected(plan, 'soup_01')).toBe(true);
+  });
+});
+
+describe('selectRecipe', () => {
+  it('adds the recipe to selectedRecipes', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    expect(plan.selectedRecipes).toEqual(['soup_01']);
+  });
+
+  it('is idempotent when the recipe is already selected', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    const again = selectRecipe(plan, 'soup_01');
+    expect(again.selectedRecipes).toEqual(['soup_01']);
+  });
+
+  it('does not mutate the original plan', () => {
+    const plan = createPlan('s1');
+    selectRecipe(plan, 'soup_01');
+    expect(plan.selectedRecipes).toEqual([]);
+  });
+});
+
+describe('deselectRecipe', () => {
+  it('removes the recipe from selectedRecipes', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    const updated = deselectRecipe(plan, 'soup_01');
+    expect(updated.selectedRecipes).toEqual([]);
+  });
+
+  it('cascades: removes every placement of that recipe from every day', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = addRecipeToMeal(plan, 0, 'обед', 'soup_01', 2);
+    plan = addDay(plan);
+    plan = addRecipeToMeal(plan, 1, 'ужин', 'soup_01', 1);
+
+    const updated = deselectRecipe(plan, 'soup_01');
+    expect(findRecipePlacements(updated, 'soup_01')).toEqual([]);
+  });
+
+  it('leaves other recipes and their placements untouched', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = selectRecipe(plan, 'salad_01');
+    plan = addRecipeToMeal(plan, 0, 'обед', 'soup_01');
+    plan = addRecipeToMeal(plan, 0, 'обед', 'salad_01');
+
+    const updated = deselectRecipe(plan, 'soup_01');
+    expect(updated.selectedRecipes).toEqual(['salad_01']);
+    expect(updated.days[0].meals['обед']).toEqual([{ textId: 'salad_01', portions: 1 }]);
+  });
+
+  it('is a no-op when the recipe was never selected', () => {
+    const plan = createPlan('s1');
+    const updated = deselectRecipe(plan, 'nonexistent');
+    expect(updated.selectedRecipes).toEqual([]);
+  });
+});
+
+describe('resetPlan', () => {
+  it('returns a fresh plan for the same student', () => {
+    const fresh = resetPlan('student1');
+    expect(fresh.studentId).toBe('student1');
+    expect(fresh.selectedRecipes).toEqual([]);
+    expect(fresh.days).toHaveLength(1);
+  });
+
+  it('is independent of any prior in-progress plan', () => {
+    let plan = selectRecipe(createPlan('student1'), 'soup_01');
+    plan = addRecipeToMeal(plan, 0, 'обед', 'soup_01');
+    const fresh = resetPlan('student1');
+    expect(fresh.selectedRecipes).toEqual([]);
+    expect(fresh.days[0].meals['обед']).toEqual([]);
+  });
+});
+
 describe('normalizePlan', () => {
   it('upgrades legacy string-array meals to {textId, portions} objects', () => {
     const legacy = {
@@ -199,14 +298,44 @@ describe('normalizePlan', () => {
     expect(normalized.days[0].meals['завтрак']).toEqual([{ textId: 'oatmeal_01', portions: 3 }]);
   });
 
-  it('fills in a missing напитки key for legacy days', () => {
+  it('migrates a legacy напитки slot into перекус and drops the напитки key', () => {
     const legacy = {
       id: 'p1',
       studentId: 's1',
-      days: [{ dayIndex: 0, meals: { завтрак: [], обед: [], ужин: [], перекус: [] } }],
+      days: [{
+        dayIndex: 0,
+        meals: {
+          завтрак: [], обед: [], ужин: [],
+          перекус: [{ textId: 'apple_01', portions: 1 }],
+          напитки: [{ textId: 'kompot_01', portions: 2 }],
+        },
+      }],
     };
     const normalized = normalizePlan(legacy);
-    expect(normalized.days[0].meals['напитки']).toEqual([]);
+    expect(normalized.days[0].meals['перекус']).toEqual([
+      { textId: 'apple_01', portions: 1 },
+      { textId: 'kompot_01', portions: 2 },
+    ]);
+    expect(normalized.days[0].meals['напитки']).toBeUndefined();
+  });
+
+  it('backfills selectedRecipes from existing placements when absent', () => {
+    const legacy = {
+      id: 'p1',
+      studentId: 's1',
+      days: [
+        { dayIndex: 0, meals: { завтрак: [{ textId: 'oatmeal_01', portions: 1 }], обед: [], ужин: [], перекус: [] } },
+        { dayIndex: 1, meals: { завтрак: [], обед: [{ textId: 'oatmeal_01', portions: 2 }], ужин: [], перекус: [] } },
+      ],
+    };
+    const normalized = normalizePlan(legacy);
+    expect(normalized.selectedRecipes).toEqual(['oatmeal_01']);
+  });
+
+  it('leaves an existing selectedRecipes array untouched', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    const normalized = normalizePlan(plan);
+    expect(normalized.selectedRecipes).toEqual(['soup_01']);
   });
 
   it('leaves already-normalized plans unchanged', () => {

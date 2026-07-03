@@ -1,10 +1,12 @@
-export const MEAL_TYPES = ['завтрак', 'обед', 'ужин', 'перекус', 'напитки'];
+export const MEAL_TYPES = ['завтрак', 'обед', 'ужин', 'перекус'];
+export const RECIPE_TAGS = [...MEAL_TYPES, 'напитки'];
 
 export function createPlan(studentId) {
   return {
     id: crypto.randomUUID(),
     studentId,
     status: 'draft',
+    selectedRecipes: [],
     days: [createDay(0)],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -105,25 +107,78 @@ export function countPlanRecipes(plan) {
   return seen.size;
 }
 
+export function isRecipeSelected(plan, textId) {
+  return plan.selectedRecipes.includes(textId);
+}
+
+export function selectRecipe(plan, textId) {
+  if (plan.selectedRecipes.includes(textId)) return plan;
+  return {
+    ...plan,
+    selectedRecipes: [...plan.selectedRecipes, textId],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+// Cascades: strips every placement of textId from every day, via the same
+// removeRecipeFromMeal used everywhere else, so there's one code path for
+// "a recipe leaves the schedule".
+export function deselectRecipe(plan, textId) {
+  let next = { ...plan, selectedRecipes: plan.selectedRecipes.filter((id) => id !== textId) };
+  for (const day of plan.days) {
+    for (const mealType of MEAL_TYPES) {
+      next = removeRecipeFromMeal(next, day.dayIndex, mealType, textId);
+    }
+  }
+  return next;
+}
+
+export function resetPlan(studentId) {
+  return createPlan(studentId);
+}
+
 /**
- * Upgrades a plan saved in the old format (day.meals[type] as an array of
- * bare recipe-text-id strings) to the current format (array of
- * {textId, portions} objects), so old saved plans keep loading correctly.
+ * Upgrades a plan saved in an old format so old saved plans keep loading
+ * correctly:
+ * - day.meals[type] entries that are bare strings become {textId, portions}.
+ * - a legacy напитки slot (no longer a valid day.meals key — it's a
+ *   browsing-only tag, see RECIPE_TAGS) is folded into перекус, the
+ *   least-wrong default for a drink with no real meal assignment.
+ * - a missing selectedRecipes pool is backfilled from existing placements,
+ *   so an in-progress menu doesn't lose its pool view.
  */
 export function normalizePlan(plan) {
   if (!plan) return plan;
   const legacyMultiplier = plan.portionMultiplier ?? 1;
-  return {
-    ...plan,
-    days: plan.days.map((day) => {
-      const meals = {};
-      for (const type of MEAL_TYPES) {
-        const raw = day.meals[type] ?? [];
-        meals[type] = raw.map((entry) =>
-          typeof entry === 'string' ? { textId: entry, portions: legacyMultiplier } : entry
-        );
+
+  const days = plan.days.map((day) => {
+    const meals = {};
+    for (const type of MEAL_TYPES) {
+      const raw = day.meals[type] ?? [];
+      meals[type] = raw.map((entry) =>
+        typeof entry === 'string' ? { textId: entry, portions: legacyMultiplier } : entry
+      );
+    }
+    const legacyDrinks = day.meals['напитки'];
+    if (Array.isArray(legacyDrinks) && legacyDrinks.length > 0) {
+      const normalizedDrinks = legacyDrinks.map((entry) =>
+        typeof entry === 'string' ? { textId: entry, portions: legacyMultiplier } : entry
+      );
+      meals['перекус'] = [...meals['перекус'], ...normalizedDrinks];
+    }
+    return { ...day, meals };
+  });
+
+  let selectedRecipes = plan.selectedRecipes;
+  if (!selectedRecipes) {
+    const seen = new Set();
+    for (const day of days) {
+      for (const entries of Object.values(day.meals)) {
+        entries.forEach((entry) => seen.add(entry.textId));
       }
-      return { ...day, meals };
-    }),
-  };
+    }
+    selectedRecipes = [...seen];
+  }
+
+  return { ...plan, days, selectedRecipes };
 }
