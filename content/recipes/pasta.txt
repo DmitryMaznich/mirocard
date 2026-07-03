@@ -1,6 +1,7 @@
 # photo: pasta.webp
 # tags: обед, ужин
 # portions: 2
+# max_portions: 6
 # ingredients:
 #   макароны | 2 | стакана
 #   сыр твёрдый | 60 | гр

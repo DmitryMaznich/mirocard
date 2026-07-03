@@ -2,6 +2,7 @@
 # status: draft
 # tags: перекус, обед
 # portions: 4
+# max_portions: 8
 # ingredients:
 #   багет | 1 | шт
 #   масло оливковое | |

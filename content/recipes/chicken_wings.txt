@@ -2,6 +2,7 @@
 # status: final
 # tags: ужин, перекус
 # portions: 1
+# max_portions: 4
 # ingredients:
 #   куриные крылья | 6 | шт
 #   чеснок | 2 | зуб

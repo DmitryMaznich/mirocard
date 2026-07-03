@@ -1,6 +1,7 @@
 # photo: cocoa.webp
 # tags: завтрак, перекус
 # portions: 1
+# max_portions: 4
 # ingredients:
 #   молоко | 1 | стакан
 #   какао | 2 | ч.л

@@ -2,6 +2,7 @@
 # Холодный чай
 # tags: перекус
 # portions: 1
+# max_portions: 4
 # ingredients:
 #   чай | 1 | шт
 #   лимон | 0.5 | шт

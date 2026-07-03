@@ -1,6 +1,7 @@
 # photo: omelet.webp
 # tags: завтрак
 # portions: 1
+# max_portions: 4
 # ingredients:
 #   яйца | 3 | шт
 #   колбаса | 80 | гр

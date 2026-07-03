@@ -2,6 +2,7 @@
 # status: draft
 # tags: обед, ужин
 # portions: 4
+# max_portions: 8
 # ingredients:
 #   куриные бёдра | 4 | шт
 #   картошка | 6 | шт

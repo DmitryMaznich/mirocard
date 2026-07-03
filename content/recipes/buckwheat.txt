@@ -2,6 +2,7 @@
 # status: final
 # tags: завтрак
 # portions: 4
+# max_portions: 8
 # ingredients:
 #   гречка | 2 | стакана
 #   молоко | 2 | стакана

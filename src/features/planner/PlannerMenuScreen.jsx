@@ -142,6 +142,50 @@ function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
   );
 }
 
+// ─── Portions prompt (asked once, when a recipe is first added) ─────────────
+
+function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
+  const { portions: basePortions, maxPortions } = recipe;
+  const [portions, setPortions] = useState(basePortions || 1);
+
+  return (
+    <div className="portions-sheet-backdrop" onClick={onClose}>
+      <div className="portions-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="portions-sheet__handle" />
+        <h2 className="portions-sheet__title">{getTopicTitle(recipe.text.title)}</h2>
+        <p className="portions-sheet__label">Сколько порций планируете?</p>
+        <div className="portions-sheet__stepper">
+          <button
+            type="button"
+            disabled={portions <= 1}
+            onClick={() => setPortions((p) => Math.max(1, p - 1))}
+            aria-label="Меньше порций"
+          >
+            −
+          </button>
+          <span className="portions-sheet__value">{portions} {pluralizePortions(portions)}</span>
+          <button
+            type="button"
+            disabled={portions >= maxPortions}
+            onClick={() => setPortions((p) => Math.min(maxPortions, p + 1))}
+            aria-label="Больше порций"
+          >
+            +
+          </button>
+        </div>
+        <div className="portions-sheet__actions">
+          <button type="button" className="portions-sheet__cancel" onClick={onClose}>
+            Отменить
+          </button>
+          <button type="button" className="portions-sheet__confirm" onClick={() => onConfirm(portions)}>
+            Добавить в меню
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Recipe browser (category tabs + grid) ───────────────────────────────────
 
 const TAB_ALL = 'all';
@@ -396,6 +440,10 @@ export default function PlannerMenuScreen() {
   const [view, setView] = useState(() => plannerInitialView ?? 'recipes');
   const [detailRecipe, setDetailRecipe] = useState(null);
   const [detailPrev, setDetailPrev] = useState('recipes');
+  // Recipe currently awaiting a portions choice before it's added to the
+  // pool — set only when adding (never when removing) and only for
+  // recipes where portions is an actual choice (not fixed_portions).
+  const [portionsPrompt, setPortionsPrompt] = useState(null);
 
   // Consume the hub's requested initial view once, so a later visit
   // (without the hub setting it again) defaults back to 'recipes'.
@@ -445,12 +493,27 @@ export default function PlannerMenuScreen() {
     setView('detail');
   }
 
+  // Removing needs no prompt. Adding a fixed_portions recipe has nothing
+  // to choose (the batch size is inherent to the dish), so it's added
+  // immediately too. Everything else asks for portions first, so the
+  // count is always something the user actually chose — never a silent
+  // default that happens to equal the recipe's own base serving size.
   function handleToggleSelect(recipe) {
-    setPlan((p) =>
-      isRecipeSelected(p, recipe.text.id)
-        ? deselectRecipe(p, recipe.text.id)
-        : selectRecipe(p, recipe.text.id)
-    );
+    if (isRecipeSelected(plan, recipe.text.id)) {
+      setPlan((p) => deselectRecipe(p, recipe.text.id));
+      return;
+    }
+    if (recipe.fixedPortions) {
+      setPlan((p) => selectRecipe(p, recipe.text.id));
+      return;
+    }
+    setPortionsPrompt(recipe);
+  }
+
+  function handleConfirmPortions(portions) {
+    const recipe = portionsPrompt;
+    setPlan((p) => setSelectedPortions(selectRecipe(p, recipe.text.id), recipe.text.id, portions));
+    setPortionsPrompt(null);
   }
 
   function handleCook(recipe) {
@@ -509,5 +572,16 @@ export default function PlannerMenuScreen() {
     );
   }
 
-  return content;
+  return (
+    <>
+      {content}
+      {portionsPrompt && (
+        <PortionsPromptSheet
+          recipe={portionsPrompt}
+          onConfirm={handleConfirmPortions}
+          onClose={() => setPortionsPrompt(null)}
+        />
+      )}
+    </>
+  );
 }

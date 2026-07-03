@@ -2,6 +2,7 @@
 # status: draft
 # tags: обед, ужин
 # portions: 1
+# max_portions: 4
 # ingredients:
 #   равиоли | 12 | шт
 #   сыр твёрдый | 30 | гр

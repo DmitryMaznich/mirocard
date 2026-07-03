@@ -1,6 +1,7 @@
 # photo: salad.webp
 # tags: обед, ужин, перекус
 # portions: 1
+# max_portions: 6
 # ingredients:
 #   помидоры | 1 | шт
 #   огурцы | 1 | шт

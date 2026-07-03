@@ -2,6 +2,7 @@
 # status: final
 # tags: обед, ужин
 # portions: 1
+# max_portions: 4
 # ingredients:
 #   куриная грудка | 1 | шт
 #   лук | 1 | шт
