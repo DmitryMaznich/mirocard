@@ -430,7 +430,9 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       const annotated    = applyGroupToSteps(parsedSteps, grpList);
       setGroup(grpList);
       setSteps(annotated);
-      setPortions(task.text?.fixedPortions ?? sessionPortionsOverride ?? settings.portions ?? 1);
+      const basePortions = task.text?.portions ?? 1;
+      const chosenAbsolute = task.text?.fixedPortions ?? sessionPortionsOverride ?? settings.portions ?? basePortions;
+      setPortions(task.text?.fixedPortions ? chosenAbsolute : chosenAbsolute / basePortions);
       if (sessionPortionsOverride != null) setSessionPortionsOverride(null);
     }
     load();
