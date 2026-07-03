@@ -264,18 +264,25 @@ const BUILTIN_ASSETS = {
 </svg>`,
   "media/avatar_column_addition.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eef3ff"/>
-  <rect x="18" y="14" width="92" height="100" rx="12" fill="#fff" stroke="#c3cff5" stroke-width="3"/>
-  <line x1="26" y1="52" x2="102" y2="52" stroke="#e8eeff" stroke-width="1"/>
-  <line x1="26" y1="76" x2="102" y2="76" stroke="#e8eeff" stroke-width="1"/>
-  <text x="73" y="47" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">4</text>
-  <text x="99" y="47" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">7</text>
-  <text x="28" y="71" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#4a9b8f">+</text>
-  <text x="73" y="71" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">3</text>
-  <text x="99" y="71" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#1a1a2e">5</text>
-  <line x1="24" y1="79" x2="104" y2="79" stroke="#1a1a2e" stroke-width="3"/>
-  <text x="73" y="104" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#059669">8</text>
-  <text x="99" y="104" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" fill="#059669">2</text>
+  <rect width="128" height="128" rx="24" fill="#f0f6ff"/>
+  <!-- LEFT: right-hand image (thumb on left, index→pinky left→right) -->
+  <rect x="8"  y="64" width="50" height="50" rx="11" fill="#FEB16B"/>
+  <rect x="13" y="24" width="11" height="46" rx="5.5" fill="#FEB16B"/>
+  <rect x="26" y="14" width="11" height="56" rx="5.5" fill="#FEB16B"/>
+  <rect x="39" y="18" width="11" height="52" rx="5.5" fill="#FEB16B"/>
+  <rect x="52" y="28" width="10" height="42" rx="5"   fill="#FEB16B"/>
+  <rect x="2"  y="68" width="12" height="28" rx="6"   fill="#FEB16B" transform="rotate(-22 8 82)"/>
+  <!-- palm line -->
+  <path d="M14 86 Q33 90 56 82" stroke="#E09055" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- RIGHT: left-hand image (mirror — thumb on right, pinky→index left→right) -->
+  <rect x="70" y="64" width="50" height="50" rx="11" fill="#FEB16B"/>
+  <rect x="104" y="24" width="11" height="46" rx="5.5" fill="#FEB16B"/>
+  <rect x="91"  y="14" width="11" height="56" rx="5.5" fill="#FEB16B"/>
+  <rect x="78"  y="18" width="11" height="52" rx="5.5" fill="#FEB16B"/>
+  <rect x="66"  y="28" width="10" height="42" rx="5"   fill="#FEB16B"/>
+  <rect x="114" y="68" width="12" height="28" rx="6"   fill="#FEB16B" transform="rotate(22 120 82)"/>
+  <!-- palm line -->
+  <path d="M114 86 Q95 90 72 82" stroke="#E09055" stroke-width="1.2" fill="none" stroke-linecap="round"/>
 </svg>`,
   "media/icons/column_copy_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
