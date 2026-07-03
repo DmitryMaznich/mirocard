@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.8";
+const VERSION   = "1.0.9";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 // Old ZIP cleaned up automatically in catalog update below
 
@@ -30,9 +30,9 @@ const TTS_SA_PATH = "c:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials
 const TTS_VOICE   = "ru-RU-Wavenet-D";
 const TTS_RATE    = 0.9;
 
-const Q_SOUP  = "Какой суп?";
-const Q_JUICE = "Какой сок?";
-const Q_JAM   = "Какое варенье?";
+const Q_SOUP  = "Какой?";
+const Q_JUICE = "Какой?";
+const Q_JAM   = "Какое?";
 
 const POT_PROMPT    = "a large stainless steel cooking pot on a gas stove with blue flame burning underneath, steam rising from the pot, kitchen setting, warm natural lighting, top-down 3/4 view, clean white background, square composition, no text, no watermark, photorealistic educational photo";
 const JUICER_PROMPT = "a modern electric centrifugal juicer machine alone on a clean kitchen counter, NO glass of juice and NO fruit nearby, just the appliance by itself, white and stainless steel, bright natural lighting, square 1:1 composition, no text, no watermark, child-friendly educational photo";

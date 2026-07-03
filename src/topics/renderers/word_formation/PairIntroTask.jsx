@@ -6,6 +6,8 @@ import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons"
 const QUESTION_DELAY_MS = 1800;
 const AUTO_REVEAL_DELAY_MS = 4500;
 
+const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
+
 // "рыбный суп" → "рыбный"
 function stripNoun(phrase) {
   const words = phrase.trim().split(" ");
@@ -106,8 +108,11 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
         </div>
 
         <div className="wf-pair__prompt">
-          <div className="wf-pair__prompt-line wf-pair__prompt-line--question" ref={promptRef1}>
-            {card.questionText ?? "Какой суп?"}
+          <div className="wf-pair__prompt-line" ref={promptRef1}>
+            {cap(card.nounPhrase)}
+          </div>
+          <div className="wf-pair__prompt-line wf-pair__prompt-line--question">
+            {card.questionText ?? "Какой?"}
           </div>
         </div>
 
