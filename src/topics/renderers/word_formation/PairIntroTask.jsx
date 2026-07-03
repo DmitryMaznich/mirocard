@@ -116,9 +116,6 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
         {revealed && (
           <div className="wf-pair__answer">
             <div className="wf-pair__answer-text">{stripNoun(card.adjPhrase)}</div>
-            <div className="wf-pair__answer-result">
-              <VisualImage topicId={topicId} path={card.image} className="wf-pair__answer-result-img" />
-            </div>
           </div>
         )}
       </div>
