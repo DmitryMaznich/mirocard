@@ -12,19 +12,21 @@ function countSteps(txt) {
 }
 
 // Known # metadata prefixes — must NOT be treated as the Russian title
-const KNOWN_META_PREFIXES = ["en:", "photo:", "fixed_portions:", "status:", "tags:", "portions:", "ingredients:"];
+const KNOWN_META_PREFIXES = ["en:", "photo:", "fixed_portions:", "max_portions:", "status:", "tags:", "portions:", "ingredients:"];
 
 function extractMeta(txt) {
   const lines = txt.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-  let ru = "", en = "", photo = "", fixedPortions = null, status = null;
+  let ru = "", en = "", photo = "", portions = 1, fixedPortions = null, maxPortions = null, status = null;
   for (const line of lines) {
     if (line.startsWith("# en:"))                 { en            = line.slice(5).trim(); }
     else if (line.startsWith("# photo:"))          { photo         = line.slice(8).trim(); }
     else if (line.startsWith("# fixed_portions:")) { fixedPortions = parseInt(line.slice(17).trim()) || null; }
+    else if (line.startsWith("# max_portions:"))   { maxPortions   = parseInt(line.slice(15).trim()) || null; }
+    else if (line.startsWith("# portions:"))       { portions      = parseInt(line.slice(11).trim()) || 1; }
     else if (line.startsWith("# status:"))         { status        = line.slice(9).trim(); }
     else if (!line.startsWith("#") && !line.startsWith("[") && !ru) { ru = line; }
   }
-  return { ru, en: en || ru, photo, fixedPortions, status };
+  return { ru, en: en || ru, photo, portions, fixedPortions, maxPortions, status };
 }
 
 // Load old zip to copy over SVGs that aren't available locally
@@ -92,9 +94,14 @@ for (const id of recipeIds) {
   const txtPath = `${RECIPES_DIR}/${id}.txt`;
   const content = readFileSync(txtPath, "utf-8");
   const steps = countSteps(content);
-  const { ru, en, photo, fixedPortions, status } = extractMeta(content);
+  const { ru, en, photo, portions, fixedPortions, maxPortions, status } = extractMeta(content);
   const title = { ru, en: en || ru };
   const hasSvg = existsSync(`${MEDIA_DIR}/${id}.svg`) || !!oldZip.file(`media/${id}.svg`);
+
+  const effectiveMax = maxPortions ?? 4;
+  if (!fixedPortions && effectiveMax < portions) {
+    console.warn(`⚠️  ${id}: max_portions (${effectiveMax}) < portions (${portions}) — stepper would be locked at one value. Add "# max_portions: N" above ${portions} in ${id}.txt.`);
+  }
 
   // Include photo if specified and file exists locally
   let photoPath = null;
@@ -122,7 +129,9 @@ for (const id of recipeIds) {
     title,
     ...(hasSvg         ? { image: `media/${id}.svg` } : {}),
     ...(photoPath      ? { photo: photoPath }          : {}),
+    portions,
     ...(fixedPortions  ? { fixedPortions }              : {}),
+    ...(maxPortions    ? { maxPortions }                : {}),
     ...(status         ? { status }                     : {}),
     file: `recipes/${id}.txt`,
     stepCount: steps,
