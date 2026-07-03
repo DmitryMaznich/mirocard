@@ -14394,13 +14394,17 @@ kbd {
 .home-screen-v2 {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 0 0 24px;
-  /* Fill the viewport exactly so there's no raw grey body below the content */
   height: 100dvh;
   overflow-y: auto;
-  /* Vertically center content — makes the layout feel balanced on tall phones */
+}
+
+.home-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
+  gap: 14px;
+  padding: 14px 0 24px;
 }
 
 /* ── Header ──────────────────────────────────────────────────────── */
@@ -14409,13 +14413,13 @@ kbd {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 12px 14px;
-  margin: 12px 14px 0;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  padding: max(14px, env(safe-area-inset-top)) 18px 14px;
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: #2f5b57;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 28px rgba(20, 42, 40, 0.28);
+  box-shadow: 0 2px 16px rgba(20, 42, 40, 0.22);
 }
 
 .home-header__brand {
@@ -17588,10 +17592,9 @@ body { background: #eef0ef; }
   /* ── Shared: smaller action buttons ── */
   .btn { height: 44px; font-size: 0.93rem; }
 
-  /* ── Home: compact header card ── */
+  /* ── Home: compact header strip ── */
   .home-header {
-    margin: 8px 10px 0;
-    padding: 7px 12px;
+    padding: max(10px, env(safe-area-inset-top)) 14px 10px;
   }
   .home-header__logo  { width: 30px; height: 28px; }
   .home-header__tagline { display: none; }

@@ -541,43 +541,45 @@ export default function HomeScreen() {
     <div className="screen home-screen-v2">
       <HomeHeader onSettings={() => setScreen("settings")} onBrandTap={handleBrandTap} />
 
-      <StudentPickerBar student={student} onTap={() => setScreen("students")} />
+      <div className="home-main">
+        <StudentPickerBar student={student} onTap={() => setScreen("students")} />
 
-      <HomeTabs active={activeTab} onChange={setActiveTab} showPlanner={hasPlannerAccess} />
+        <HomeTabs active={activeTab} onChange={setActiveTab} showPlanner={hasPlannerAccess} />
 
-      <div className="home-tab-content">
-        {activeTab === 'planner' && hasPlannerAccess ? (
-          <PlannerTab student={student} setScreen={setScreen} />
-        ) : (
-          <SessionTab
-            student={student}
-            topic={topic}
-            activeText={activeText}
-            mode={mode}
-            isReading={isReading}
-            isChatPractice={isChatPractice}
-            s2={s2}
-            s3={s3}
-            topicLabel={topicLabel}
-            readingStepValue={readingStepValue}
-            modeTitle={modeTitle}
-            canStart={canStart}
-            startOrContinue={startOrContinue}
-            setScreen={setScreen}
-          />
-        )}
+        <div className="home-tab-content">
+          {activeTab === 'planner' && hasPlannerAccess ? (
+            <PlannerTab student={student} setScreen={setScreen} />
+          ) : (
+            <SessionTab
+              student={student}
+              topic={topic}
+              activeText={activeText}
+              mode={mode}
+              isReading={isReading}
+              isChatPractice={isChatPractice}
+              s2={s2}
+              s3={s3}
+              topicLabel={topicLabel}
+              readingStepValue={readingStepValue}
+              modeTitle={modeTitle}
+              canStart={canStart}
+              startOrContinue={startOrContinue}
+              setScreen={setScreen}
+            />
+          )}
+        </div>
+
+        <button
+          type="button"
+          className={`home-version${hasUpdate || refreshingAll || refreshFailed ? " home-version--update" : ""}${refreshingAll ? " home-version--refreshing" : ""}${refreshFailed ? " home-version--error" : ""}`}
+          onClick={refreshAppAndTopics}
+          title={versionTitle}
+          disabled={refreshingAll}
+        >
+          v{buildInfo.version}
+          {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-version__dot" />}
+        </button>
       </div>
-
-      <button
-        type="button"
-        className={`home-version${hasUpdate || refreshingAll || refreshFailed ? " home-version--update" : ""}${refreshingAll ? " home-version--refreshing" : ""}${refreshFailed ? " home-version--error" : ""}`}
-        onClick={refreshAppAndTopics}
-        title={versionTitle}
-        disabled={refreshingAll}
-      >
-        v{buildInfo.version}
-        {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-version__dot" />}
-      </button>
     </div>
   );
 }
