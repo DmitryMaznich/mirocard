@@ -250,10 +250,8 @@ function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselec
                       type="button"
                       className={`menu-pool__meal-btn${assignedMeals.includes(mt) ? ' menu-pool__meal-btn--active' : ''}`}
                       onClick={() => onToggleMeal(textId, mt)}
-                      aria-label={mt}
-                      title={mt}
                     >
-                      {MEAL_ICONS[mt]}
+                      {mt}
                     </button>
                   ))}
                 </div>

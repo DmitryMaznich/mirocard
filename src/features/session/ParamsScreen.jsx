@@ -100,20 +100,24 @@ function NumberStepper({ label, value, min, max, onChange }) {
   );
 }
 
-function EnumParam({ label, options, labels, value, onChange }) {
+function EnumParam({ label, options, labels, value, onChange, disabledValues }) {
   return (
     <div className="param-row">
       <div className="param-label">{label}</div>
       <div className="param-enum-group">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            className={`enum-btn ${value === opt ? "enum-btn--active" : ""}`}
-            onClick={() => onChange(opt)}
-          >
-            {labels?.[opt] ?? opt}
-          </button>
-        ))}
+        {options.map((opt) => {
+          const isDisabled = disabledValues?.includes(opt) ?? false;
+          return (
+            <button
+              key={opt}
+              className={`enum-btn ${value === opt ? "enum-btn--active" : ""}`}
+              onClick={() => onChange(opt)}
+              disabled={isDisabled}
+            >
+              {labels?.[opt] ?? opt}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -680,6 +684,7 @@ export default function ParamsScreen() {
               labels={def.labels?.ru}
               value={params[key] ?? def.default}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              disabledValues={def.disabledValues}
             />
           );
         }
@@ -762,6 +767,7 @@ export default function ParamsScreen() {
               labels={def.labels?.ru}
               value={params[key] ?? def.default}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              disabledValues={def.disabledValues}
             />
           );
         }

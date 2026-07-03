@@ -8,8 +8,6 @@ import { loadPlan, sendPlanToStudent } from './plannerApi.js';
 import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
-const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎' };
-
 export default function PlannerSummaryScreen() {
   const setScreen        = useAppStore((s) => s.setScreen);
   const students         = useAppStore((s) => s.students);
@@ -89,7 +87,7 @@ export default function PlannerSummaryScreen() {
               <div key={textId} className="plan-recipe-summary-row">
                 <span className="plan-recipe-summary-row__title">{meta?.title ?? textId}</span>
                 <span className="plan-recipe-summary-row__meta">
-                  {tags.length > 0 ? tags.map((t) => MEAL_ICONS[t]).join(' ') : '—'}
+                  {tags.length > 0 ? tags.join(', ') : '—'}
                   {portions != null ? ` · ${portions} порц.` : ''}
                 </span>
               </div>

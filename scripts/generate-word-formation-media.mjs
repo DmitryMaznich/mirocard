@@ -18,7 +18,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.13";
+const VERSION   = "1.0.14";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 // Old ZIP cleaned up automatically in catalog update below
 
@@ -202,13 +202,13 @@ function buildTopic() {
       { id: "pair_intro", type: "pair_intro", evaluation: "none", requirePin: false,
         ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" }, icon: "media/avatar_pair_intro.webp" },
         params: {
-          category: { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
+          category: { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all", "kasha", "materials", "weather", "seasons"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все", kasha: "Каша", materials: "Материалы", weather: "Погода", seasons: "Времена года" } }, disabledValues: ["kasha", "materials", "weather", "seasons"], default: "soup" },
         },
       },
       { id: "pick_form", type: "pick_form", evaluation: "auto", requirePin: false,
         ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" }, icon: "media/avatar_pick_form.webp" },
         params: {
-          category:   { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
+          category:   { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all", "kasha", "materials", "weather", "seasons"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все", kasha: "Каша", materials: "Материалы", weather: "Погода", seasons: "Времена года" } }, disabledValues: ["kasha", "materials", "weather", "seasons"], default: "soup" },
           difficulty: { type: "enum", label: { ru: "Сложность дистракторов" }, values: ["easy", "hard"], labels: { ru: { easy: "Лёгкий: слова из разных пар", hard: "Сложный: похожие формы одного корня" } }, default: "easy" },
         },
       },
