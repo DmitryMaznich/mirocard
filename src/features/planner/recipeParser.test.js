@@ -36,6 +36,21 @@ describe('parseRecipeMetadata', () => {
     expect(fixedPortions).toBeNull();
   });
 
+  it('extracts max_portions as integer', () => {
+    const { maxPortions } = parseRecipeMetadata('# max_portions: 8\nТест\n');
+    expect(maxPortions).toBe(8);
+  });
+
+  it('defaults maxPortions to 4 when absent', () => {
+    const { maxPortions } = parseRecipeMetadata('# portions: 4\nТест\n');
+    expect(maxPortions).toBe(4);
+  });
+
+  it('defaults maxPortions to 4 when the value is not a number', () => {
+    const { maxPortions } = parseRecipeMetadata('# max_portions: many\nТест\n');
+    expect(maxPortions).toBe(4);
+  });
+
   it('extracts ingredient with qty and unit', () => {
     const content = '# ingredients:\n#   яйца | 3 | шт\nТест\n';
     const { ingredients } = parseRecipeMetadata(content);
@@ -111,6 +126,7 @@ describe('parseRecipeMetadata', () => {
     expect(result.tags).toEqual(['завтрак']);
     expect(result.portions).toBe(2);
     expect(result.status).toBe('final');
+    expect(result.maxPortions).toBe(4);
     expect(result.ingredients).toHaveLength(4);
     expect(result.ingredients[0]).toEqual({ product: 'колбаса', qty: 200, unit: 'г' });
     expect(result.ingredients[3]).toEqual({ product: 'соль', qty: null, unit: null });

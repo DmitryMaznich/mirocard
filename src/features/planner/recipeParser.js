@@ -14,6 +14,10 @@
  * fixed_portions marks recipes that are cooked as one inherent batch
  * (e.g. a pot of soup) — ingredient quantities can't be scaled below it.
  *
+ * max_portions caps how far the portions stepper can go for this dish
+ * (e.g. a single-pan dish shouldn't scale to 20 servings). Defaults to 4
+ * when absent.
+ *
  * status is 'final' or 'draft' — anything else (including missing) is
  * treated as 'draft', so an unmarked recipe is flagged rather than
  * silently assumed ready.
@@ -26,6 +30,7 @@ export function parseRecipeMetadata(content) {
   const tags = [];
   let portions = 1;
   let fixedPortions = null;
+  let maxPortions = 4;
   let status = 'draft';
   const ingredients = [];
   let inIngredients = false;
@@ -62,6 +67,8 @@ export function parseRecipeMetadata(content) {
       tags.push(...raw.split(',').map((t) => t.trim()).filter(Boolean));
     } else if (kv.startsWith('fixed_portions:')) {
       fixedPortions = parseInt(kv.slice(15).trim(), 10) || null;
+    } else if (kv.startsWith('max_portions:')) {
+      maxPortions = parseInt(kv.slice(13).trim(), 10) || 4;
     } else if (kv.startsWith('portions:')) {
       portions = parseInt(kv.slice(9).trim(), 10) || 1;
     } else if (kv.startsWith('status:')) {
@@ -71,5 +78,5 @@ export function parseRecipeMetadata(content) {
     }
   }
 
-  return { tags, portions, fixedPortions, status, ingredients };
+  return { tags, portions, fixedPortions, maxPortions, status, ingredients };
 }
