@@ -102,7 +102,7 @@ function PlayIcon() {
 }
 
 function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
-  const { topicId, text, ingredients } = recipe;
+  const { topicId, text, ingredients, status } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
 
   return (
@@ -113,6 +113,9 @@ function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
             ? <img src={photoUrl} alt="" className="recipe-gallery-card__photo" />
             : <span className="recipe-gallery-card__photo-placeholder" />
           }
+          <span className={`recipe-gallery-card__status recipe-gallery-card__status--${status}`}>
+            {status === 'final' ? 'Финал' : 'Черновик'}
+          </span>
           {selected && <span className="recipe-gallery-card__badge">✓</span>}
         </span>
         <span className="recipe-gallery-card__info">
@@ -505,8 +508,8 @@ export default function PlannerMenuScreen() {
           if (text.kind !== 'instruction' || !text.file) continue;
           const content = await getRawRecipeTxt(record.meta.id, text.file);
           if (!content) continue;
-          const { tags, ingredients, portions, fixedPortions } = parseRecipeMetadata(content);
-          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions });
+          const { tags, ingredients, portions, fixedPortions, status } = parseRecipeMetadata(content);
+          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, status });
         }
       }
       if (!cancelled) { setAllRecipes(all); setLoadingRecipes(false); }

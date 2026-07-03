@@ -14,6 +14,10 @@
  * fixed_portions marks recipes that are cooked as one inherent batch
  * (e.g. a pot of soup) — ingredient quantities can't be scaled below it.
  *
+ * status is 'final' or 'draft' — anything else (including missing) is
+ * treated as 'draft', so an unmarked recipe is flagged rather than
+ * silently assumed ready.
+ *
  * Ingredient block ends at the first # line that is NOT indented,
  * or at the first non-# line.
  */
@@ -22,6 +26,7 @@ export function parseRecipeMetadata(content) {
   const tags = [];
   let portions = 1;
   let fixedPortions = null;
+  let status = 'draft';
   const ingredients = [];
   let inIngredients = false;
 
@@ -59,10 +64,12 @@ export function parseRecipeMetadata(content) {
       fixedPortions = parseInt(kv.slice(15).trim(), 10) || null;
     } else if (kv.startsWith('portions:')) {
       portions = parseInt(kv.slice(9).trim(), 10) || 1;
+    } else if (kv.startsWith('status:')) {
+      status = kv.slice(7).trim() === 'final' ? 'final' : 'draft';
     } else if (kv === 'ingredients:') {
       inIngredients = true;
     }
   }
 
-  return { tags, portions, fixedPortions, ingredients };
+  return { tags, portions, fixedPortions, status, ingredients };
 }

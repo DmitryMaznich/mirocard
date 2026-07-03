@@ -68,6 +68,26 @@ describe('parseRecipeMetadata', () => {
     expect(ingredients).toHaveLength(1);
   });
 
+  it('extracts status: final', () => {
+    const { status } = parseRecipeMetadata('# status: final\nТест\n');
+    expect(status).toBe('final');
+  });
+
+  it('extracts status: draft', () => {
+    const { status } = parseRecipeMetadata('# status: draft\nТест\n');
+    expect(status).toBe('draft');
+  });
+
+  it('defaults status to draft when absent', () => {
+    const { status } = parseRecipeMetadata('Тест рецепт без метаданных\n');
+    expect(status).toBe('draft');
+  });
+
+  it('treats an unrecognized status value as draft', () => {
+    const { status } = parseRecipeMetadata('# status: review\nТест\n');
+    expect(status).toBe('draft');
+  });
+
   it('returns empty arrays when no metadata', () => {
     const { tags, ingredients } = parseRecipeMetadata('Просто рецепт без метаданных\n');
     expect(tags).toEqual([]);
@@ -90,6 +110,7 @@ describe('parseRecipeMetadata', () => {
     const result = parseRecipeMetadata(content);
     expect(result.tags).toEqual(['завтрак']);
     expect(result.portions).toBe(2);
+    expect(result.status).toBe('final');
     expect(result.ingredients).toHaveLength(4);
     expect(result.ingredients[0]).toEqual({ product: 'колбаса', qty: 200, unit: 'г' });
     expect(result.ingredients[3]).toEqual({ product: 'соль', qty: null, unit: null });
