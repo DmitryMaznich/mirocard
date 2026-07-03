@@ -19,7 +19,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.10";
+const VERSION   = "1.0.11";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 // Old ZIP cleaned up automatically in catalog update below
 
@@ -256,6 +256,7 @@ const VESSEL = {
 function buildTopic() {
   const cards = CONCEPTS.map(c => ({
     id:              c.id,
+    category:        c.category,
     noun:            c.noun,
     nounPhrase:      c.nounPhrase,
     adjPhrase:       c.adjPhrase,
