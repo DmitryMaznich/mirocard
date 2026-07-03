@@ -10,6 +10,7 @@ import {
   pullRecipeKvFromServer,
 } from "@/core/groupStore";
 import { getTopicTitle } from "@/shared/utils/format";
+import { BackArrowIcon, RefreshIcon } from "@/shared/components/ArrowIcons";
 
 function autoResize(el) {
   if (!el) return;
@@ -72,7 +73,7 @@ function RecipeEditor({ topicId, text, original, saved, onDelete, onSave }) {
               onClick={handleReset}
               title="Сбросить к оригиналу из ZIP"
             >
-              ↺
+              <RefreshIcon size={16} />
             </button>
           )}
           {text.createdByUser && onDelete && (
@@ -173,7 +174,7 @@ export default function AllTextsScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("texts")}>←</button>
+        <button className="back-btn" onClick={() => setScreen("texts")}><BackArrowIcon /></button>
         <h1 className="screen-title">
           {topicRecord ? getTopicTitle(topicRecord.meta.title) : "Все тексты"}
         </h1>

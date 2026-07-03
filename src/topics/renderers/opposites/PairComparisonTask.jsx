@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./Opposites.css";
 
 function PairCard({ topicId, card, showLabels, visible }) {
@@ -63,7 +64,7 @@ export default function PairComparisonTask({ task, topicId, onAdvance }) {
           onClick={handlePrev}
           disabled={isFirst}
         >
-          ←
+          <BackArrowIcon size={22} />
         </button>
         <span className="opp-pair-v2__progress">
           {currentIndex + 1} / {pairs.length}
@@ -72,7 +73,7 @@ export default function PairComparisonTask({ task, topicId, onAdvance }) {
           className="opp-pair-v2__nav-btn opp-pair-v2__nav-btn--next"
           onClick={handleNext}
         >
-          {isLast ? "Готово" : "→"}
+          {isLast ? "Готово" : <ForwardArrowIcon size={22} />}
         </button>
       </div>
     </div>

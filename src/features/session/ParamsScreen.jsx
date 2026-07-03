@@ -15,6 +15,7 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import ShoppingParamsContent from "@/features/session/ShoppingParamsContent";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
@@ -482,7 +483,7 @@ export default function ParamsScreen() {
               setScreen(sessionReturnScreen ?? "texts");
               setSessionReturnScreen(null);
             }}
-          >←</button>
+          ><BackArrowIcon /></button>
           <h1 className="screen-title">{getTopicTitle(activeText.title)}</h1>
           <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
         </div>
@@ -518,7 +519,7 @@ export default function ParamsScreen() {
     return (
       <div className="screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("home")}>←</button>
+          <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
           <h1 className="screen-title">{earlyModeTitle}</h1>
           <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
         </div>
@@ -585,7 +586,7 @@ export default function ParamsScreen() {
     return (
       <div className="screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("modes")}>←</button>
+          <button className="back-btn" onClick={() => setScreen("modes")}><BackArrowIcon /></button>
           <h1 className="screen-title">Параметры</h1>
         </div>
         <div className="empty-state"><div className="empty-state__text">Режим не выбран</div></div>
@@ -799,7 +800,7 @@ export default function ParamsScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen(modeBackScreen)}>←</button>
+        <button className="back-btn" onClick={() => setScreen(modeBackScreen)}><BackArrowIcon /></button>
         <h1 className="screen-title">{modeTitle}</h1>
         <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
       </div>

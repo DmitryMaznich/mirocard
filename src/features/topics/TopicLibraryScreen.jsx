@@ -16,6 +16,7 @@ import {
   fetchCatalogTopic,
   getImportErrorMessage,
 } from "./catalogService";
+import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
 function InstalledTopicItem({ record, onSelect, onMenu, onInfo }) {
   const isBuiltin = Boolean(record.meta.builtin);
@@ -105,7 +106,7 @@ function CatalogPreview({ catalog, topicRecords, onInstall, onOpenCatalog, disab
     <div className="catalog-preview-card">
       <button className="catalog-preview-card__header" onClick={onOpenCatalog}>
         <span className="catalog-preview-card__title">Каталог тем</span>
-        <span className="catalog-preview-card__open-btn">Открыть →</span>
+        <span className="catalog-preview-card__open-btn">Открыть <ChevronRightIcon size={13} /></span>
       </button>
       {(updates.length > 0 || newTopics.length > 0) && (
         <div className="catalog-preview-card__body">
@@ -197,7 +198,7 @@ export default function TopicLibraryScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("home")}>←</button>
+        <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
         <h1 className="screen-title">Темы</h1>
       </div>
 

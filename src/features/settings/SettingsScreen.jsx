@@ -6,6 +6,7 @@ import PinGateModal from "@/shared/components/PinGateModal";
 import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function SettingsScreen() {
   const setScreen        = useAppStore((s) => s.setScreen);
@@ -62,7 +63,7 @@ export default function SettingsScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("home")}>←</button>
+        <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
         <h1 className="screen-title">Настройки</h1>
       </div>
 

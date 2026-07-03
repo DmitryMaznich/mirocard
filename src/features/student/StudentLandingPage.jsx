@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import "./StudentLandingPage.css";
 
 
@@ -56,7 +57,7 @@ export default function StudentLandingPage({ onContinue }) {
         )}
 
         <button className="slp-btn-secondary" onClick={handleContinue}>
-          Продолжить в браузере →
+          Продолжить в браузере <ChevronRightIcon size={15} />
         </button>
       </div>
     </div>

@@ -11571,6 +11571,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   height: 52px;
   padding: 0 24px;
   border: none;
@@ -19872,6 +19873,10 @@ body { background: #eef0ef; }
   border: none;
   border-radius: 12px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .shopping-view-btn:active {
@@ -20174,6 +20179,10 @@ body { background: #eef0ef; }
   border-radius: 12px;
   cursor: pointer;
   letter-spacing: .01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 .shop-go-btn:active { background: #178060; transform: scale(.98); }
 

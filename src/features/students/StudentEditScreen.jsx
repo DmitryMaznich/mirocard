@@ -5,6 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 function generateStudentId() {
   return "student_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
@@ -277,7 +278,7 @@ export default function StudentEditScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={goBack}>←</button>
+        <button className="back-btn" onClick={goBack}><BackArrowIcon /></button>
         <h1 className="screen-title">{isEdit ? initial.name : "Новый ученик"}</h1>
         <button className="se-save-btn" onClick={handleSave} disabled={saving}>
           {saving ? "…" : "Сохранить"}

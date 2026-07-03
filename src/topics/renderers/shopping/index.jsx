@@ -15,6 +15,7 @@ import {
 } from "@/core/groupStore";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
+import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from "@/shared/components/ArrowIcons";
 import PinGateModal from "@/shared/components/PinGateModal";
 import SHOPPING_TXT_EMBEDDED from "../../../../content/shopping/shopping.txt?raw";
 
@@ -451,8 +452,8 @@ function CategoryEditor({ category, onSave, onDelete, onBack }) {
                 </span>
               )}
               <div className="cat-editor-sg-actions">
-                <button className="cat-editor-arrow-btn" onClick={() => moveSg(sgIdx, -1)} disabled={sgIdx === 0}>↑</button>
-                <button className="cat-editor-arrow-btn" onClick={() => moveSg(sgIdx, 1)} disabled={sgIdx === cat.subgroups.length - 1}>↓</button>
+                <button className="cat-editor-arrow-btn" onClick={() => moveSg(sgIdx, -1)} disabled={sgIdx === 0}><ArrowUpSmallIcon /></button>
+                <button className="cat-editor-arrow-btn" onClick={() => moveSg(sgIdx, 1)} disabled={sgIdx === cat.subgroups.length - 1}><ArrowDownSmallIcon /></button>
                 {cat.subgroups.length > 1 && (
                   <button className="cat-editor-sg-del-btn" onClick={() => deleteSubgroup(sgIdx)} aria-label="Удалить подгруппу">×</button>
                 )}
@@ -477,8 +478,8 @@ function CategoryEditor({ category, onSave, onDelete, onBack }) {
                     </span>
                   )}
                   <div className="cat-editor-item-actions">
-                    <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, -1)} disabled={itemIdx === 0}>↑</button>
-                    <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, 1)} disabled={itemIdx === sg.items.length - 1}>↓</button>
+                    <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, -1)} disabled={itemIdx === 0}><ArrowUpSmallIcon /></button>
+                    <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, 1)} disabled={itemIdx === sg.items.length - 1}><ArrowDownSmallIcon /></button>
                     <button className="cat-editor-item-del-btn" onClick={() => deleteItem(sgIdx, itemIdx)} aria-label="Удалить">×</button>
                   </div>
                 </li>
@@ -1064,7 +1065,7 @@ function PlanMode({ task, topicId, store, onGoToShop, onChangeStore, onExit }) {
           <button className="shopping-reset-btn" onClick={() => setConfirmReset(true)}>Сбросить к стандартному</button>
         ) : totalPlanned > 0 ? (
           <button className="shop-go-btn" onClick={onGoToShop}>
-            → В магазин ({totalPlanned})
+            <ForwardArrowIcon size={16} /> В магазин ({totalPlanned})
           </button>
         ) : (
           <div className="shop-hint">Нажми на категорию, чтобы выбрать продукты</div>
@@ -1184,7 +1185,7 @@ function ShopMode({ task, topicId, store, onGoToPlan, onExit }) {
           <div className="shop-state__title">Список пуст</div>
           <div className="shop-state__hint">Сначала составь список покупок</div>
           <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onGoToPlan}>
-            ← Составить список
+            <BackArrowIcon size={16} /> Составить список
           </button>
         </div>
       </div>
@@ -1200,7 +1201,7 @@ function ShopMode({ task, topicId, store, onGoToPlan, onExit }) {
           <div className="shop-state__title">Всё куплено!</div>
           <div className="shop-state__hint">{totalPlanned} продуктов{store ? ` • ${store}` : ""}</div>
           <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onGoToPlan}>
-            ← К списку
+            <BackArrowIcon size={16} /> К списку
           </button>
           <button className="shopping-view-btn" style={{ marginTop: 8, background: "#4caf90" }} onClick={clearPlanAndGo}>
             Начать новый список
@@ -1267,7 +1268,7 @@ function ShopMode({ task, topicId, store, onGoToPlan, onExit }) {
 
       <div className="shopping-actions">
         <button className="shopping-view-btn" onClick={onGoToPlan}>
-          ← К списку
+          <BackArrowIcon size={16} /> К списку
         </button>
         <button className="shopping-close-btn" onClick={clearPlanAndGo}>
           Новый список

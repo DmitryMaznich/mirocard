@@ -2,8 +2,10 @@
 .wf-nav-btn {
   min-width: 48px; min-height: 48px;
   border-radius: 12px; border: none;
-  background: #e0e0e0; font-size: 1.4rem;
+  background: #e0e0e0;
   cursor: pointer; transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 14px; gap: 4px;
 }
 .wf-nav-btn:disabled { opacity: 0.3; cursor: default; }
 .wf-nav-btn--next { background: #4caf50; color: #fff; }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
+import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
 const ROLE_LABELS = { parent: "Родитель", specialist: "Специалист" };
 
@@ -105,7 +106,7 @@ export default function AccountCard({ onLogout }) {
               ✎ Изменить
             </button>
             <button className="account-card__students-btn" onClick={() => setScreen("students")}>
-              Ученики →
+              Ученики <ChevronRightIcon size={14} />
             </button>
           </div>
         </div>

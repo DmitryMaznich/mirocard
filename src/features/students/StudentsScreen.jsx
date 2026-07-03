@@ -5,6 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import { formatDate, getInitials } from "@/shared/utils/format";
+import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
 async function persistStudents(db, students, setStudents) {
   await kv.set(db, "students", students);
@@ -55,7 +56,7 @@ export default function StudentsScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("home")}>←</button>
+        <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
         <h1 className="screen-title">Ученики</h1>
         <button className="header-action-btn" onClick={openAdd}>+</button>
       </div>
@@ -132,7 +133,7 @@ export default function StudentsScreen() {
                 fullWidth
                 onClick={() => { setActiveStudentId(panelStudent.id); setScreen("home"); }}
               >
-                Выбрать →
+                Выбрать <ChevronRightIcon size={14} />
               </Button>
               <div style={{ display: "flex", gap: 8 }}>
                 <Button variant="secondary" fullWidth onClick={() => openEdit(panelStudent)}>

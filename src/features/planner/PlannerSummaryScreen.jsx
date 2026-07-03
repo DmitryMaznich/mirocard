@@ -4,6 +4,7 @@ import { getTopicTitle } from '@/shared/utils/format';
 import Button from '@/shared/components/Button';
 import { MEAL_TYPES } from './plannerUtils.js';
 import { loadPlan, sendPlanToStudent } from './plannerApi.js';
+import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
 export default function PlannerSummaryScreen() {
@@ -53,7 +54,7 @@ export default function PlannerSummaryScreen() {
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
-        <button className="planner-header__back" onClick={() => setScreen('planner_menu')}>←</button>
+        <button className="planner-header__back" onClick={() => setScreen('planner_menu')}><BackArrowIcon size={22} /></button>
         <h1 className="planner-header__title">
           Меню{student ? ` для ${student.name}` : ''}
         </h1>
@@ -85,7 +86,7 @@ export default function PlannerSummaryScreen() {
 
       <div className="planner-footer">
         <Button fullWidth onClick={() => setScreen('planner_shopping')}>
-          🛒 Список покупок →
+          🛒 Список покупок <ForwardArrowIcon size={16} />
         </Button>
 
         <div style={{ marginTop: 12 }}>
@@ -99,7 +100,7 @@ export default function PlannerSummaryScreen() {
                 </div>
               )}
               <Button fullWidth variant="secondary" disabled={sending} onClick={handleSend}>
-                {sending ? 'Отправляем…' : 'Отправить меню ученику →'}
+                {sending ? 'Отправляем…' : <span style={{display:'inline-flex',alignItems:'center',gap:6}}>Отправить меню ученику <ForwardArrowIcon size={16} /></span>}
               </Button>
             </>
           )}

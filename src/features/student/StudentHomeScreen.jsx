@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getTopicTitle } from "@/shared/utils/format";
+import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import "./StudentHomeScreen.css";
 
 const RENDERER_EMOJI = {
@@ -95,7 +96,7 @@ export default function StudentHomeScreen({ student, activeTask, onStartSession,
               className="shs-start-btn"
               onClick={() => onStartSession({ topicId: activeTask.topicId, modeId: activeTask.modeId, textId: activeTask.textId })}
             >
-              Начать →
+              Начать <ChevronRightIcon size={15} />
             </button>
           </div>
         ) : (

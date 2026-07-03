@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 
 const STROKE_COLOR  = "#1d4ed8";
 const STROKE_WIDTH  = 8;
@@ -187,7 +188,7 @@ export default function LetterTraceView({ task, onAdvance }) {
 
       <div className="lw-controls">
         <button className="lw-btn lw-btn--secondary" onClick={handleClear}>✕ Стереть</button>
-        <button className="lw-btn lw-btn--done" onClick={onAdvance}>Готово →</button>
+        <button className="lw-btn lw-btn--done" onClick={onAdvance}>Готово <ForwardArrowIcon size={15} /></button>
       </div>
     </div>
   );

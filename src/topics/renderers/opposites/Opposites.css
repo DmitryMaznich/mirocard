@@ -337,7 +337,6 @@
 
 .opp-pair-v2__nav-btn {
   padding: 10px 22px;
-  font-size: 1.1rem;
   font-weight: 700;
   background: #f5f5f5;
   border: 2px solid #ddd;
@@ -345,6 +344,10 @@
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   min-width: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 .opp-pair-v2__nav-btn:disabled {
   opacity: 0.3;

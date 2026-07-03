@@ -5,6 +5,7 @@ import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import { getInitials } from "@/shared/utils/format";
 import { persistStudentTopicLink } from "@/core/linkUtils";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import "./chatParams.css";
 
 export default function ChatParamsScreen() {
@@ -100,7 +101,7 @@ export default function ChatParamsScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen(topicRecord.modes?.length > 0 ? "modes" : "home")}>←</button>
+        <button className="back-btn" onClick={() => setScreen(topicRecord.modes?.length > 0 ? "modes" : "home")}><BackArrowIcon /></button>
         <h1 className="screen-title">{modeTitle ?? topicTitle}</h1>
       </div>
 

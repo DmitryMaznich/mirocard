@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SLOT_TYPES } from "./SentenceRow";
+import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 
 function adjNominative(label) {
   if (!label) return "___";
@@ -80,8 +81,8 @@ export default function QuestionsView({ rows, structure, onNewRound, onBack }) {
         ))}
       </div>
       <div className="sp-questions-actions">
-        <button className="sp-btn sp-btn--secondary" onClick={onBack}>← Назад к пазлу</button>
-        <button className="sp-btn sp-btn--primary"   onClick={onNewRound}>Новое задание →</button>
+        <button className="sp-btn sp-btn--secondary" onClick={onBack}><BackArrowIcon size={16} /> Назад к пазлу</button>
+        <button className="sp-btn sp-btn--primary"   onClick={onNewRound}>Новое задание <ForwardArrowIcon size={16} /></button>
       </div>
     </div>
   );

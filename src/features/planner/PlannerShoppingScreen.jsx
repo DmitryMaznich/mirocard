@@ -5,6 +5,7 @@ import { loadPlan, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes } from './plannerUtils.js';
 import { generateShoppingList } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps } from './plannerShoppingUtils.js';
+import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
 function sName(step) { return step.text.replace(/:$/, '').trim(); }
@@ -53,7 +54,7 @@ function PlanGrid({ steps, icons, planned, onDetail, onShop, onReset }) {
       </div>
       <div className="shopping-actions">
         {total > 0
-          ? <button className="shop-go-btn" onClick={onShop}>→ В магазин ({total})</button>
+          ? <button className="shop-go-btn" onClick={onShop}><ForwardArrowIcon size={16} /> В магазин ({total})</button>
           : <div className="shop-hint">Нажми на категорию, чтобы выбрать продукты</div>
         }
       </div>
@@ -172,7 +173,7 @@ function ShopView({ steps, icons, planned, onBack }) {
         <div className="shop-state__icon">🛒</div>
         <div className="shop-state__title">Список пуст</div>
         <div className="shop-state__hint">Выбери продукты в списке покупок</div>
-        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onBack}>← Выбрать продукты</button>
+        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onBack}><BackArrowIcon size={16} /> Выбрать продукты</button>
       </div>
     </div>
   );
@@ -183,7 +184,7 @@ function ShopView({ steps, icons, planned, onBack }) {
         <div className="shop-state__icon">🎉</div>
         <div className="shop-state__title">Всё куплено!</div>
         <div className="shop-state__hint">{total} продуктов</div>
-        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onBack}>← К списку</button>
+        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onBack}><BackArrowIcon size={16} /> К списку</button>
       </div>
     </div>
   );
@@ -233,7 +234,7 @@ function ShopView({ steps, icons, planned, onBack }) {
         })}
       </ul>
       <div className="shopping-actions">
-        <button className="shopping-view-btn" onClick={onBack}>← К списку</button>
+        <button className="shopping-view-btn" onClick={onBack}><BackArrowIcon size={16} /> К списку</button>
       </div>
     </div>
   );
@@ -346,7 +347,7 @@ export default function PlannerShoppingScreen() {
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
-        <button className="planner-header__back" onClick={handleBack}>←</button>
+        <button className="planner-header__back" onClick={handleBack}><BackArrowIcon size={22} /></button>
         {headerTitle && <h1 className="planner-header__title">{headerTitle}</h1>}
       </div>
 

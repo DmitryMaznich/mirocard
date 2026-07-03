@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 
 const STROKE_COLOR = "#1d4ed8";
 const STROKE_WIDTH = 8;
@@ -232,7 +233,7 @@ export default function LetterDemoView({ task, onAdvance }) {
         <button className="lw-btn" onClick={() => startAnim(1.0)}>▶ Повторить</button>
         <button className="lw-btn lw-btn--secondary" onClick={() => startAnim(0.4)}>🐢 Медленно</button>
         {showAdvance && (
-          <button className="lw-btn lw-btn--advance" onClick={onAdvance}>Дальше →</button>
+          <button className="lw-btn lw-btn--advance" onClick={onAdvance}>Дальше <ForwardArrowIcon size={15} /></button>
         )}
       </div>
     </div>

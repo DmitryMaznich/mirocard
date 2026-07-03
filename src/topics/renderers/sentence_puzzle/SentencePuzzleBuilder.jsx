@@ -1,4 +1,5 @@
 import { useState }                                                                   from "react";
+import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { shuffle }    from "@/shared/utils/shuffle";
 import SentenceRow, { SLOT_TYPES } from "./SentenceRow";
@@ -123,7 +124,7 @@ export default function SentencePuzzleBuilder({ task, sessionParams, student, so
         {isComplete && (
           <div className="sp-complete-bar">
             <button className="sp-btn sp-btn--primary" onClick={() => setPhase("questions")}>
-              Вопросы →
+              Вопросы <ForwardArrowIcon size={16} />
             </button>
           </div>
         )}

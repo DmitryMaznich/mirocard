@@ -11,6 +11,7 @@ import {
   getImportErrorMessage,
   refreshInstalledCatalogTopics,
 } from "./catalogService";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 const CATALOG_CATEGORIES = {
   letter_writing:           "Чтение",
@@ -229,7 +230,7 @@ export default function TopicCatalogScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("topics")}>←</button>
+        <button className="back-btn" onClick={() => setScreen("topics")}><BackArrowIcon /></button>
         <h1 className="screen-title">Каталог тем</h1>
       </div>
       <div className="tab-content">

@@ -9,6 +9,7 @@ import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt,
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS as DndCSS } from "@dnd-kit/utilities";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -927,7 +928,7 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       <div className="session-body reading-body shopping-body">
         <div className="shopping-preview-header">
           <button className="shopping-back-btn" onClick={() => setView("grid")}>
-            ← Назад
+            <BackArrowIcon size={16} /> Назад
           </button>
           <span className="shopping-preview-title">
             {isEmpty ? "Ничего не выбрано" : "Список покупок"}

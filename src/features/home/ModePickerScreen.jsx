@@ -6,6 +6,7 @@ import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
 
 function LastResultBadge({ session }) {
@@ -77,7 +78,7 @@ export default function ModePickerScreen() {
     return (
       <div className="screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("home")}>←</button>
+          <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
           <h1 className="screen-title">Режим</h1>
         </div>
         <div className="empty-state">
@@ -92,7 +93,7 @@ export default function ModePickerScreen() {
     return (
       <div className="screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("texts")}>←</button>
+          <button className="back-btn" onClick={() => setScreen("texts")}><BackArrowIcon /></button>
           <h1 className="screen-title">Режим чтения</h1>
         </div>
         <div className="empty-state">
@@ -122,7 +123,7 @@ export default function ModePickerScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen(isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home")}>←</button>
+        <button className="back-btn" onClick={() => setScreen(isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home")}><BackArrowIcon /></button>
         <h1 className="screen-title">{isReading ? getTextTitle(activeText) : getTopicTitle(topicRecord.meta.title)}</h1>
         <button
           className="header-info-btn"

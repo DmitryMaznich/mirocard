@@ -4,6 +4,7 @@ import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
 import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 
@@ -97,7 +98,7 @@ export default function ConceptPickerScreen() {
   return (
     <div className="screen" style={{ height: "100dvh", overflow: "hidden" }}>
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("params")}>←</button>
+        <button className="back-btn" onClick={() => setScreen("params")}><BackArrowIcon /></button>
         <h1 className="screen-title">Понятия ({selected.size})</h1>
         <button className="header-action-btn" onClick={allFilteredSelected ? selectNone : selectAll}>
           {allFilteredSelected ? "−" : "✓"}

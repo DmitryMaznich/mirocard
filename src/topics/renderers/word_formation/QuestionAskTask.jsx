@@ -1,4 +1,5 @@
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { ChevronRightIcon, RefreshIcon } from "@/shared/components/ArrowIcons";
 
 function ConceptImage({ topicId, path }) {
   const url = useTopicFile(topicId, path);
@@ -18,13 +19,13 @@ export default function QuestionAskTask({ task, topicId, onCorrect }) {
       </div>
 
       <div className="wf-qa__answer-hint">
-        <span className="wf-qa__arrow">→</span>
+        <span className="wf-qa__arrow"><ChevronRightIcon size={20} /></span>
         <span className="wf-qa__adj-phrase">{task.correctAdjPhrase}</span>
       </div>
 
       <div className="wf-qa__buttons">
         <button className="wf-qa__btn wf-qa__btn--retry" onClick={() => {}}>
-          ↺ Ещё раз
+          <RefreshIcon size={14} /> Ещё раз
         </button>
         <button className="wf-qa__btn wf-qa__btn--correct" onClick={() => onCorrect(task.conceptId)}>
           ✓ Правильно

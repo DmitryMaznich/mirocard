@@ -18,11 +18,12 @@
 .planner-header__back {
   background: none;
   border: none;
-  font-size: 22px;
   cursor: pointer;
   padding: 4px 8px;
   color: #263131;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .planner-header__title {

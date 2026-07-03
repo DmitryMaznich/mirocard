@@ -82,6 +82,9 @@
   border: none;
   cursor: pointer;
   transition: opacity 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .sp-btn:active { opacity: 0.8; }
 

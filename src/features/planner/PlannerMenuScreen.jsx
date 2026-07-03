@@ -4,6 +4,7 @@ import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
 import { getRawRecipeTxt } from '@/core/groupStore';
 import { parseRecipeMetadata } from './recipeParser.js';
+import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import {
   createPlan, addDay, addRecipeToMeal, removeRecipeFromMeal, countPlanRecipes,
   findRecipePlacements, MEAL_TYPES,
@@ -32,7 +33,7 @@ function RecipeIngredients({ recipe, plan, onOpenAddSheet, onBack }) {
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
-        <button className="planner-header__back" onClick={onBack}>←</button>
+        <button className="planner-header__back" onClick={onBack}><BackArrowIcon size={22} /></button>
         <h1 className="planner-header__title">{getTopicTitle(text.title)}</h1>
       </div>
 
@@ -190,7 +191,7 @@ function RecipeBrowser({ plan, allRecipes, loading, planRecipeCount, onView, onC
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
-        <button className="planner-header__back" onClick={onBack}>←</button>
+        <button className="planner-header__back" onClick={onBack}><BackArrowIcon size={22} /></button>
         <h1 className="planner-header__title">Рецепты</h1>
         <button className="planner-plan-pill" onClick={onOpenPlan}>
           Меню{planRecipeCount > 0 ? ` · ${planRecipeCount}` : ''}
@@ -388,7 +389,7 @@ function PlanView({ plan, allRecipes, onAddDay, onRemove, onViewRecipe, onCook, 
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
-        <button className="planner-header__back" onClick={onBack}>←</button>
+        <button className="planner-header__back" onClick={onBack}><BackArrowIcon size={22} /></button>
         <h1 className="planner-header__title">Меню</h1>
       </div>
 

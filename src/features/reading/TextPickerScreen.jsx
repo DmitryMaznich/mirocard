@@ -4,6 +4,7 @@ import Button from "@/shared/components/Button";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { getUserRecipes } from "@/core/groupStore";
+import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
 const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список" };
 
@@ -85,7 +86,7 @@ export default function TextPickerScreen() {
     return (
       <div className="screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("home")}>←</button>
+          <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
           <h1 className="screen-title">Тексты</h1>
         </div>
         <div className="empty-state">
@@ -136,7 +137,7 @@ export default function TextPickerScreen() {
                   )}
                   <TextResultBadge session={lastSession} />
                 </div>
-                <span className="reading-text-arrow">→</span>
+                <span className="reading-text-arrow"><ChevronRightIcon size={16} /></span>
               </li>
             );
           })}

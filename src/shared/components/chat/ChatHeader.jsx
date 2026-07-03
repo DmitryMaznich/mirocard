@@ -1,4 +1,5 @@
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function ChatHeader({ contact, topicId, onBack }) {
   const avatarUrl = useTopicFile(topicId, contact?.avatar);
@@ -8,7 +9,7 @@ export default function ChatHeader({ contact, topicId, onBack }) {
     <div className="chat-header">
       {onBack && (
         <button className="chat-header__back" onClick={onBack} aria-label="Назад">
-          ←
+          <BackArrowIcon size={20} />
         </button>
       )}
       <div className="chat-header__avatar">

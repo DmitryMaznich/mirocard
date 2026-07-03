@@ -1,5 +1,6 @@
 import { useAppStore } from "@/core/store";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function StudentHistoryScreen() {
   const setScreen       = useAppStore((s) => s.setScreen);
@@ -16,7 +17,7 @@ export default function StudentHistoryScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("students")}>←</button>
+        <button className="back-btn" onClick={() => setScreen("students")}><BackArrowIcon /></button>
         <h1 className="screen-title">{student?.name ?? "История"}</h1>
       </div>
 

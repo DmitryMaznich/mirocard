@@ -1,6 +1,7 @@
 import React from "react";
 import HandImg from "./HandImg.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
+import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
 
 export default function FingersShowTask({ task, sessionParams, onCorrect, onPrevious }) {
@@ -22,10 +23,10 @@ export default function FingersShowTask({ task, sessionParams, onCorrect, onPrev
 
       <div className="fng-show-buttons">
         <button className="fng-show-btn fng-show-btn--prev" onClick={onPrevious}>
-          ← Назад
+          <BackArrowIcon size={16} /> Назад
         </button>
         <button className="fng-show-btn fng-show-btn--next" onClick={onCorrect}>
-          Следующая →
+          Следующая <ForwardArrowIcon size={16} />
         </button>
       </div>
     </div>

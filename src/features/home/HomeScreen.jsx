@@ -8,6 +8,7 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
+import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan } from "@/features/planner/plannerApi";
 import { countPlanRecipes } from "@/features/planner/plannerUtils";
 import "@/features/planner/planner.css";
@@ -128,7 +129,7 @@ function JourneyStep({ state, number, label, value, onClick, avatar }) {
         <span className="journey-step__label">{label}</span>
         <span className="journey-step__value">{value}</span>
       </span>
-      <span className="journey-step__arrow">→</span>
+      <span className="journey-step__arrow"><ChevronRightIcon size={18} /></span>
     </button>
   );
 }

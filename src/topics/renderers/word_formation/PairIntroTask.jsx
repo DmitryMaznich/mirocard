@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useAudio } from "@/shared/hooks/useAudio";
+import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 
 const QUESTION_DELAY_MS = 1800;
 const AUTO_REVEAL_DELAY_MS = 4500;
@@ -121,14 +122,14 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
       </div>
 
       <div className="wf-pair__nav" onClick={e => e.stopPropagation()}>
-        <button className="wf-nav-btn" onClick={handlePrev} disabled={index === 0}>←</button>
+        <button className="wf-nav-btn" onClick={handlePrev} disabled={index === 0}><BackArrowIcon size={22} /></button>
         <div className="wf-pair__dots">
           {cards.map((c, i) => (
             <span key={c.id} className={`wf-pair__dot${i === index ? " wf-pair__dot--active" : ""}`} />
           ))}
         </div>
         <button className="wf-nav-btn wf-nav-btn--next" onClick={handleNext}>
-          {isLast ? "Готово" : "→"}
+          {isLast ? "Готово" : <ForwardArrowIcon size={22} />}
         </button>
       </div>
     </div>

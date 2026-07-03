@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/core/api";
 import { flushQueue } from "@/core/syncApi";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 const HYPOTHESIS_COLOR = {
   "усваивает":  "#43a047",
@@ -58,7 +59,7 @@ export function AnalyticsScreen({ studentId, topicId, topicTitle, onClose }) {
   return (
     <div style={styles.screen}>
       <div style={styles.header}>
-        <button onClick={onClose} style={styles.closeBtn}>←</button>
+        <button onClick={onClose} style={styles.closeBtn}><BackArrowIcon size={20} /></button>
         <div style={styles.headerTitle}>
           <span style={styles.topicTitle}>{topicTitle}</span>
           {report?.generated_at && (

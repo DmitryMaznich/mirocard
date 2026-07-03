@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import "./Opposites.css";
 
 function CardImage({ topicId, card }) {
@@ -86,7 +87,7 @@ export default function FindOppositeTask({ task, topicId, onCorrect, onIncorrect
           }
         </div>
 
-        <div className="opp-fo__arrow">→</div>
+        <div className="opp-fo__arrow"><ChevronRightIcon size={20} /></div>
 
         <div
           ref={slotRef}

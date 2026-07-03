@@ -8,6 +8,7 @@ import { useAudio } from "@/shared/hooks/useAudio";
 import StarBar from "@/shared/components/StarBar";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 const ADVANCE_GATE_IDLE = "idle";
 const ADVANCE_GATE_WAITING = "waiting";
@@ -184,7 +185,7 @@ export default function SessionScreen() {
       <div className="session-screen">
         <div className="screen-center" style={{ gap: 16, padding: 24, textAlign: "center" }}>
           <div>Нет данных для сессии</div>
-          <button className="btn btn--secondary" onClick={() => setScreen("home")}>← На главную</button>
+          <button className="btn btn--secondary" onClick={() => setScreen("home")}><BackArrowIcon size={16} /> На главную</button>
         </div>
       </div>
     );
@@ -303,7 +304,7 @@ export default function SessionScreen() {
           <div>Для выбранных понятий нет подходящих предложений.</div>
           <div>Попробуйте выбрать другие понятия.</div>
           <button className="btn btn--secondary" style={{ marginTop: 8 }} onClick={() => setScreen("concepts")}>
-            ← Назад к понятиям
+            <BackArrowIcon size={16} /> Назад к понятиям
           </button>
         </div>
       ) : (
