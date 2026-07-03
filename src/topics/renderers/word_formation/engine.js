@@ -12,12 +12,19 @@ function pickDistractors(targetId, cards, count) {
   return shuffle(cards.filter(c => c.id !== targetId)).slice(0, count);
 }
 
+function filterByCategory(cards, category) {
+  if (!category || category === "all") return cards;
+  return cards.filter(c => c.category === category);
+}
+
 function generatePairIntroTasks(cards, params) {
+  const filtered = filterByCategory(cards, params.category);
+  const active   = filtered.length > 0 ? filtered : cards;
   return [{
     type:         "pair_intro",
-    cards:        sortByDifficulty(cards),
-    vesselImage:  cards[0]?.vesselImage  ?? "media/pot.webp",
-    questionText: cards[0]?.questionText ?? "Какой суп получится?",
+    cards:        sortByDifficulty(active),
+    vesselImage:  active[0]?.vesselImage  ?? "media/pot.webp",
+    questionText: active[0]?.questionText ?? "Какой суп?",
     params,
   }];
 }
@@ -97,12 +104,13 @@ function generateQuestionAskTasks(cards) {
 }
 
 function generatePickFormTasks(cards, params) {
+  const filtered = filterByCategory(cards, params.category);
+  const active   = filtered.length > 0 ? filtered : cards;
   // One task per card — session engine handles advancement between cards.
-  // allCards is passed for distractor building.
-  return shuffle(sortByDifficulty(cards).map((card) => ({
+  return shuffle(sortByDifficulty(active).map((card) => ({
     type:     "pick_form",
     card,
-    allCards: cards,
+    allCards: active,
     params,
   })));
 }
