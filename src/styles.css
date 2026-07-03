@@ -14434,12 +14434,12 @@ kbd {
 .home-header__copy {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .home-header__name {
   font-family: "Nunito", sans-serif;
-  font-size: 1.5rem;
+  font-size: 2.4rem;
   font-weight: 900;
   color: #2f5b57;
   letter-spacing: -0.02em;
