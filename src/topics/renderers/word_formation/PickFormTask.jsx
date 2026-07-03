@@ -1,12 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState, useMemo } from "react";
+import { useLayoutEffect, useRef, useState, useMemo } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
-import { useAudio } from "@/shared/hooks/useAudio";
 import { shuffle } from "@/shared/utils/shuffle";
 
 const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
 
 const OPTION_COUNT = 4;
-const QUESTION_DELAY_MS = 1800;
 
 function VisualImage({ topicId, path, className }) {
   const url = useTopicFile(topicId, path);
@@ -29,7 +27,7 @@ function buildOptions(card, allCards, difficulty) {
     ]);
   }
 
-  // Easy: same-category cards (same questionText), adjective only (no noun)
+  // Easy: other cards from same category (same questionText), adjective only
   const sameCategory = allCards.filter(
     c => c.id !== card.id && c.questionText === card.questionText
   );
@@ -43,17 +41,13 @@ function buildOptions(card, allCards, difficulty) {
   ]);
 }
 
-// Each task now represents a single card.
-// Session engine handles card-to-card navigation via onAdvance / onCorrect / onIncorrect.
+// One task = one card. Session engine handles card-to-card progression.
 export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) {
   const { card, allCards } = task;
-  const audioEnabled = task.params?.exerciseAudio ?? true;
-  const difficulty   = task.params?.difficulty ?? "easy";
+  const difficulty = task.params?.difficulty ?? "easy";
 
   const [picked, setPicked]     = useState(null);   // null | "correct" | "wrong"
   const [wrongIdx, setWrongIdx] = useState(null);
-  const { playTopicFile } = useAudio();
-  const timersRef  = useRef([]);
   const visualsRef = useRef();
   const promptRef1 = useRef();
 
@@ -61,25 +55,6 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
     () => card ? buildOptions(card, allCards ?? [], difficulty) : [],
     [card?.id, difficulty] // eslint-disable-line react-hooks/exhaustive-deps
   );
-
-  function clearTimers() {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-  }
-
-  useEffect(() => {
-    setPicked(null);
-    setWrongIdx(null);
-    clearTimers();
-    if (!card) return;
-    if (audioEnabled) {
-      playTopicFile(topicId, card.audioPrepPhrase);
-      timersRef.current.push(
-        setTimeout(() => playTopicFile(topicId, card.audioQuestion ?? "audio/question.mp3"), QUESTION_DELAY_MS)
-      );
-    }
-    return clearTimers;
-  }, [card?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useLayoutEffect(() => {
     const visuals = visualsRef.current;
@@ -100,13 +75,10 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
     const opt = options[optionIdx];
     if (opt.isTarget) {
       setPicked("correct");
-      if (audioEnabled) playTopicFile(topicId, card.audioAdjPhrase);
-      // playFeedback is handled by SessionScreen's handleCorrect wrapper
       onCorrect?.();
     } else {
       setWrongIdx(optionIdx);
       setPicked("wrong");
-      // playFeedback is handled by SessionScreen's handleIncorrect wrapper
       onIncorrect?.();
     }
   }
@@ -147,7 +119,6 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
           })}
         </div>
       </div>
-
     </div>
   );
 }

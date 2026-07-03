@@ -7,7 +7,6 @@
  *   Google TTS SA  — c:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json
  */
 
-import { createSign } from "node:crypto";
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,16 +18,12 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.12";
+const VERSION   = "1.0.13";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 // Old ZIP cleaned up automatically in catalog update below
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
 const GEMINI_MODEL = "gemini-2.5-flash-image";
-
-const TTS_SA_PATH = "c:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
-const TTS_VOICE   = "ru-RU-Wavenet-D";
-const TTS_RATE    = 0.9;
 
 const Q_SOUP  = "какой?";
 const Q_JUICE = "какой?";
@@ -172,87 +167,11 @@ function generatePotImage() {
   return generateImageFromPrompt("pot.webp", POT_PROMPT, "pot");
 }
 
-// ─── Google Cloud TTS ────────────────────────────────────────────────────────
-
-let _token = null, _tokenExp = 0;
-
-async function getTtsToken(sa) {
-  const now = Math.floor(Date.now() / 1000);
-  if (_token && now < _tokenExp - 60) return _token;
-
-  const hdr = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
-  const pay = Buffer.from(JSON.stringify({
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/cloud-platform",
-    aud: "https://oauth2.googleapis.com/token",
-    iat: now, exp: now + 3600,
-  })).toString("base64url");
-
-  const signer = createSign("RSA-SHA256");
-  signer.update(hdr + "." + pay);
-  const jwt = hdr + "." + pay + "." + signer.sign(sa.private_key, "base64url");
-
-  const r = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=" + jwt,
-  });
-  const b = await r.json();
-  if (!b.access_token) throw new Error("TTS token error: " + JSON.stringify(b));
-  _token = b.access_token;
-  _tokenExp = now + (b.expires_in || 3600);
-  return _token;
-}
-
-async function tts(sa, text) {
-  const token = await getTtsToken(sa);
-  const r = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-    body: JSON.stringify({
-      input: { text },
-      voice: { languageCode: "ru-RU", name: TTS_VOICE },
-      audioConfig: { audioEncoding: "MP3", speakingRate: TTS_RATE },
-    }),
-  });
-  const b = await r.json();
-  if (!r.ok) throw new Error(`TTS ${r.status}: ${b?.error?.message}`);
-  return Buffer.from(b.audioContent, "base64");
-}
-
-async function generateAudio(sa, concept, kind) {
-  // kind: "prep" (Готовим суп из X) | "adj" (Рыбный суп)
-  const text     = kind === "prep" ? `Готовим ${concept.nounPhrase}` : concept.adjPhrase;
-  const filename = `${concept.id}_${kind}.mp3`;
-  if (isCached(filename)) {
-    console.log(`  [cache] audio ${filename}`);
-    return readFileSync(cached(filename));
-  }
-  process.stdout.write(`  [tts]  ${filename}: "${text}" ... `);
-  const buf = await tts(sa, text);
-  writeFileSync(cached(filename), buf);
-  console.log(`OK (${Math.round(buf.length / 1024)} KB)`);
-  await sleep(200);
-  return buf;
-}
-
-async function generateQuestionAudio(sa, text, filename) {
-  if (isCached(filename)) {
-    console.log(`  [cache] audio ${filename}`);
-    return readFileSync(cached(filename));
-  }
-  process.stdout.write(`  [tts]  ${filename}: "${text}" ... `);
-  const buf = await tts(sa, text);
-  writeFileSync(cached(filename), buf);
-  console.log(`OK (${Math.round(buf.length / 1024)} KB)`);
-  await sleep(200);
-  return buf;
-}
 
 const VESSEL = {
-  soup:  { image: "media/pot.webp",    question: Q_SOUP,  audio: "audio/question_soup.mp3"  },
-  juice: { image: "media/juicer.webp", question: Q_JUICE, audio: "audio/question_juice.mp3" },
-  jam:   { image: "media/basin.webp",  question: Q_JAM,   audio: "audio/question_jam.mp3"   },
+  soup:  { image: "media/pot.webp",    question: Q_SOUP  },
+  juice: { image: "media/juicer.webp", question: Q_JUICE },
+  jam:   { image: "media/basin.webp",  question: Q_JAM   },
 };
 
 // ─── Build topic.json ────────────────────────────────────────────────────────
@@ -268,11 +187,8 @@ function buildTopic() {
     color:           c.color,
     image:           `media/${c.id}.webp`,
     ingredientImage: `media/${c.id}_ingredient.webp`,
-    audioPrepPhrase: `audio/${c.id}_prep.mp3`,
-    audioAdjPhrase:  `audio/${c.id}_adj.mp3`,
     vesselImage:     VESSEL[c.category].image,
     questionText:    VESSEL[c.category].question,
-    audioQuestion:   VESSEL[c.category].audio,
     wrongForms:      c.wrongForms ?? [],
   }));
 
@@ -286,16 +202,14 @@ function buildTopic() {
       { id: "pair_intro", type: "pair_intro", evaluation: "none", requirePin: false,
         ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" }, icon: "media/avatar_pair_intro.webp" },
         params: {
-          category:      { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
-          exerciseAudio: { type: "boolean", label: { ru: "Проговаривать слова" }, default: true },
+          category: { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
         },
       },
       { id: "pick_form", type: "pick_form", evaluation: "auto", requirePin: false,
         ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" }, icon: "media/avatar_pick_form.webp" },
         params: {
-          category:      { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
-          exerciseAudio: { type: "boolean", label: { ru: "Проговаривать слова" }, default: true },
-          difficulty:    { type: "enum",    label: { ru: "Сложность дистракторов" }, values: ["easy", "hard"], labels: { ru: { easy: "Лёгкий: слова из разных пар", hard: "Сложный: похожие формы одного корня" } }, default: "easy" },
+          category:   { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все" } }, default: "soup" },
+          difficulty: { type: "enum", label: { ru: "Сложность дистракторов" }, values: ["easy", "hard"], labels: { ru: { easy: "Лёгкий: слова из разных пар", hard: "Сложный: похожие формы одного корня" } }, default: "easy" },
         },
       },
     ],
@@ -307,8 +221,6 @@ function buildTopic() {
 
 async function main() {
   ensureDir(CACHE_DIR);
-
-  const sa = JSON.parse(readFileSync(TTS_SA_PATH, "utf8"));
 
   console.log("\n=== Генерация аватарок ===");
   const avatarTopic     = await generateImageFromPrompt("avatar_topic.webp",      AVATAR_TOPIC_PROMPT,      "avatar_topic");
@@ -328,18 +240,6 @@ async function main() {
     ingredientImages[c.id] = await generateImageFromPrompt(`${c.id}_ingredient.webp`, c.ingredientPrompt, `${c.id} (ingredient)`);
   }
 
-  console.log("\n=== Генерация аудио ===");
-  const questionAudios = {
-    "audio/question_soup.mp3":  await generateQuestionAudio(sa, Q_SOUP,  "question_soup.mp3"),
-    "audio/question_juice.mp3": await generateQuestionAudio(sa, Q_JUICE, "question_juice.mp3"),
-    "audio/question_jam.mp3":   await generateQuestionAudio(sa, Q_JAM,   "question_jam.mp3"),
-  };
-  const audio = {};
-  for (const c of CONCEPTS) {
-    audio[`${c.id}_prep`] = await generateAudio(sa, c, "prep");
-    audio[`${c.id}_adj`]  = await generateAudio(sa, c, "adj");
-  }
-
   console.log("\n=== Упаковка ZIP ===");
   const topic = buildTopic();
   const zip = new JSZip();
@@ -347,13 +247,10 @@ async function main() {
   zip.file("media/avatar_topic.webp",      avatarTopic);
   zip.file("media/avatar_pair_intro.webp", avatarPairIntro);
   zip.file("media/avatar_pick_form.webp",  avatarPickForm);
-  for (const [path, buf] of Object.entries(vessels))       zip.file(path, buf);
-  for (const [path, buf] of Object.entries(questionAudios)) zip.file(path, buf);
+  for (const [path, buf] of Object.entries(vessels)) zip.file(path, buf);
   for (const c of CONCEPTS) {
     zip.file(`media/${c.id}.webp`,            resultImages[c.id]);
     zip.file(`media/${c.id}_ingredient.webp`, ingredientImages[c.id]);
-    zip.file(`audio/${c.id}_prep.mp3`,        audio[`${c.id}_prep`]);
-    zip.file(`audio/${c.id}_adj.mp3`,         audio[`${c.id}_adj`]);
   }
 
   const buf = await zip.generateAsync({ type: "nodebuffer" });

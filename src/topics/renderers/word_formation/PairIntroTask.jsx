@@ -1,9 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
-import { useAudio } from "@/shared/hooks/useAudio";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 
-const QUESTION_DELAY_MS = 1800;
 const AUTO_REVEAL_DELAY_MS = 4500;
 
 const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
@@ -23,15 +21,9 @@ function VisualImage({ topicId, path, className }) {
 
 export default function PairIntroTask({ task, topicId, onAdvance }) {
   const { cards } = task;
-  const audioEnabled = task.params?.exerciseAudio ?? true;
   const [index, setIndex]       = useState(0);
   const [revealed, setRevealed] = useState(false);
-  const { playTopicFile } = useAudio();
-
-  function playIfEnabled(topicId, path) {
-    if (audioEnabled) playTopicFile(topicId, path);
-  }
-  const timersRef   = useRef([]);
+  const timerRef    = useRef(null);
   const revealedRef = useRef(false);
   const visualsRef  = useRef();
   const promptRef1  = useRef();
@@ -53,34 +45,19 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
     }
   }, [index, card?.id]);
 
-  function clearTimers() {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-  }
-
   useEffect(() => {
     setRevealed(false);
     revealedRef.current = false;
-    clearTimers();
+    if (timerRef.current) clearTimeout(timerRef.current);
     if (!card) return;
-
-    playIfEnabled(topicId, card.audioPrepPhrase);
-
-    timersRef.current.push(
-      setTimeout(() => playIfEnabled(topicId, card.audioQuestion ?? "audio/question.mp3"), QUESTION_DELAY_MS)
-    );
-    timersRef.current.push(
-      setTimeout(reveal, AUTO_REVEAL_DELAY_MS)
-    );
-
-    return clearTimers;
+    timerRef.current = setTimeout(reveal, AUTO_REVEAL_DELAY_MS);
+    return () => clearTimeout(timerRef.current);
   }, [index, card?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function reveal() {
     if (revealedRef.current) return;
     revealedRef.current = true;
-    clearTimers();
-    playIfEnabled(topicId, card.audioAdjPhrase);
+    if (timerRef.current) clearTimeout(timerRef.current);
     setRevealed(true);
   }
 
