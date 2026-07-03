@@ -265,24 +265,8 @@ const BUILTIN_ASSETS = {
   "media/avatar_column_addition.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f0f6ff"/>
-  <!-- LEFT: right-hand image (thumb on left, index→pinky left→right) -->
-  <rect x="8"  y="64" width="50" height="50" rx="11" fill="#FEB16B"/>
-  <rect x="13" y="24" width="11" height="46" rx="5.5" fill="#FEB16B"/>
-  <rect x="26" y="14" width="11" height="56" rx="5.5" fill="#FEB16B"/>
-  <rect x="39" y="18" width="11" height="52" rx="5.5" fill="#FEB16B"/>
-  <rect x="52" y="28" width="10" height="42" rx="5"   fill="#FEB16B"/>
-  <rect x="2"  y="68" width="12" height="28" rx="6"   fill="#FEB16B" transform="rotate(-22 8 82)"/>
-  <!-- palm line -->
-  <path d="M14 86 Q33 90 56 82" stroke="#E09055" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <!-- RIGHT: left-hand image (mirror — thumb on right, pinky→index left→right) -->
-  <rect x="70" y="64" width="50" height="50" rx="11" fill="#FEB16B"/>
-  <rect x="104" y="24" width="11" height="46" rx="5.5" fill="#FEB16B"/>
-  <rect x="91"  y="14" width="11" height="56" rx="5.5" fill="#FEB16B"/>
-  <rect x="78"  y="18" width="11" height="52" rx="5.5" fill="#FEB16B"/>
-  <rect x="66"  y="28" width="10" height="42" rx="5"   fill="#FEB16B"/>
-  <rect x="114" y="68" width="12" height="28" rx="6"   fill="#FEB16B" transform="rotate(22 120 82)"/>
-  <!-- palm line -->
-  <path d="M114 86 Q95 90 72 82" stroke="#E09055" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path fill="#FEB16B" d="M 33.4 25.1 Q 35.8 24.7 36.4 26.0 L 37.2 28.6 L 37.5 50.8 L 37.7 55.5 L 38.4 56.7 L 38.9 57.0 L 39.8 56.3 L 43.8 32.8 L 45.8 29.8 Q 48.1 29.4 48.8 30.7 L 49.3 35.2 L 46.4 59.5 L 47.1 60.4 L 47.9 60.6 L 49.1 59.7 L 54.9 43.9 L 56.8 41.4 Q 59.2 41.0 59.6 42.3 Q 60.0 46.7 58.8 49.4 L 53.3 66.6 L 51.2 82.4 L 46.7 94.8 L 46.4 102.9 L 46.6 103.3 L 25.6 103.2 L 25.9 95.6 Q 25.5 92.1 23.4 90.4 L 21.7 89.0 L 14.3 80.0 Q 10.5 69.7 4.3 61.8 L 4.0 59.7 Q 5.0 58.1 8.1 58.5 Q 11.6 59.8 13.5 62.6 L 18.9 70.9 L 20.2 71.4 L 21.1 70.8 Q 22.9 67.8 22.2 62.4 L 18.0 37.8 L 17.7 32.8 L 19.2 30.6 L 21.0 30.3 L 22.4 31.5 L 23.8 34.9 L 28.2 55.8 L 29.2 57.0 L 30.0 57.2 L 30.6 56.8 L 31.1 51.8 L 30.9 36.5 L 31.1 28.4 L 32.9 25.3 L 33.4 25.1 Z"/>
+  <path fill="#FEB16B" d="M 94.6 25.1 Q 92.2 24.7 91.6 26.0 L 90.8 28.6 L 90.5 50.8 L 90.3 55.5 L 89.6 56.7 L 89.1 57.0 L 88.2 56.3 L 84.2 32.8 L 82.2 29.8 Q 79.9 29.4 79.2 30.7 L 78.7 35.2 L 81.6 59.5 L 80.9 60.4 L 80.1 60.6 L 78.9 59.7 L 73.1 43.9 L 71.2 41.4 Q 68.8 41.0 68.4 42.3 Q 68.0 46.7 69.2 49.4 L 74.7 66.6 L 76.8 82.4 L 81.3 94.8 L 81.6 102.9 L 81.4 103.3 L 102.4 103.2 L 102.1 95.6 Q 102.5 92.1 104.6 90.4 L 106.3 89.0 L 113.7 80.0 Q 117.5 69.7 123.7 61.8 L 124.0 59.7 Q 123.0 58.1 119.9 58.5 Q 116.4 59.8 114.5 62.6 L 109.1 70.9 L 107.8 71.4 L 106.9 70.8 Q 105.1 67.8 105.8 62.4 L 110.0 37.8 L 110.3 32.8 L 108.8 30.6 L 107.0 30.3 L 105.6 31.5 L 104.2 34.9 L 99.8 55.8 L 98.8 57.0 L 98.0 57.2 L 97.4 56.8 L 96.9 51.8 L 97.1 36.5 L 96.9 28.4 L 95.1 25.3 L 94.6 25.1 Z"/>
 </svg>`,
   "media/icons/column_copy_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">

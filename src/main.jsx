@@ -9,6 +9,12 @@ import StudentApp from "./StudentApp";
 import { TimerProvider } from "./features/timer/TimerContext";
 
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
+if (import.meta.env.DEV) {
+  const { useAppStore } = await import("./core/store.js");
+  const { getDb, topics } = await import("./core/db.js");
+  window.__store = useAppStore;
+  window.__db = { getDb, topics };
+}
 
 function markIosStandalone() {
   const ua = navigator.userAgent || "";

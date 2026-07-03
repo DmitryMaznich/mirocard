@@ -23,7 +23,10 @@ export async function saveGroup(topicId, children) {
 
 export async function getRecipeSettings(topicId) {
   const db = await getDb();
-  return (await kv.get(db, settingsKey(topicId))) ?? { mode: "group", portions: 1 };
+  // portions defaults to null (not 1) so callers can distinguish "never
+  // configured" from "explicitly chose 1" and fall back to their own
+  // recipe-appropriate default (e.g. the recipe's own base serving count).
+  return (await kv.get(db, settingsKey(topicId))) ?? { mode: "group", portions: null };
 }
 
 export async function saveRecipeSettings(topicId, settings) {
