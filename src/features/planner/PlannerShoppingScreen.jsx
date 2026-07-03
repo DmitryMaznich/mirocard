@@ -3,6 +3,7 @@ import { useAppStore } from '@/core/store';
 import { getRawRecipeTxt, getPlannerShopPlan, savePlannerShopPlan, getPlannerShopCustomData, savePlannerShopCustomData } from '@/core/groupStore';
 import { loadPlan, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes } from './plannerUtils.js';
+import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps } from './plannerShoppingUtils.js';
 import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
@@ -275,15 +276,23 @@ export default function PlannerShoppingScreen() {
     const plan = await loadPlan(studentId);
     if (!plan) { setLoading(false); return; }
 
+    // Meal-type tags are purely informational ("when to eat it") — every
+    // selected recipe contributes to the shopping list regardless of
+    // whether (or how many times) it's tagged, scaled to its own chosen
+    // portions (plan.selectedPortions), defaulting to the recipe's own
+    // base/fixed portions when the stepper was never touched.
     const planRecipes = getPlanRecipes(plan);
     const recipesWithContent = await Promise.all(
-      planRecipes.map(async ({ textId, portionMultiplier }) => {
+      planRecipes.map(async (textId) => {
         for (const record of topicRecords) {
           if (record.meta?.renderer !== 'reading') continue;
           const text = (record.texts ?? []).find((t) => t.id === textId);
           if (!text?.file) continue;
           const content = await getRawRecipeTxt(record.meta.id, text.file);
-          if (content) return { textId, content, portionMultiplier };
+          if (!content) continue;
+          const { portions, fixedPortions } = parseRecipeMetadata(content);
+          const portionMultiplier = fixedPortions || plan.selectedPortions?.[textId] || portions;
+          return { textId, content, portionMultiplier };
         }
         return null;
       })

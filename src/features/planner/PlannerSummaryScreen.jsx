@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
 import { getTopicTitle } from '@/shared/utils/format';
 import Button from '@/shared/components/Button';
-import { MEAL_TYPES } from './plannerUtils.js';
+import { getRawRecipeTxt } from '@/core/groupStore';
+import { parseRecipeMetadata } from './recipeParser.js';
 import { loadPlan, sendPlanToStudent } from './plannerApi.js';
 import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
+
+const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎' };
 
 export default function PlannerSummaryScreen() {
   const setScreen        = useAppStore((s) => s.setScreen);
@@ -15,6 +18,7 @@ export default function PlannerSummaryScreen() {
   const student          = students.find((s) => s.id === activeStudentId);
 
   const [plan, setPlan]       = useState(null);
+  const [recipeMeta, setRecipeMeta] = useState({}); // textId -> { title, portions, fixedPortions }
   const [sending, setSending] = useState(false);
   const [sent, setSent]       = useState(false);
   const [sendError, setSendError] = useState(null);
@@ -27,13 +31,26 @@ export default function PlannerSummaryScreen() {
     });
   }, [activeStudentId]);
 
-  function getTitle(textId) {
-    for (const record of topicRecords) {
-      const text = (record.texts ?? []).find((t) => t.id === textId);
-      if (text) return getTopicTitle(text.title);
+  useEffect(() => {
+    if (!plan || !topicRecords.length) return;
+    let cancelled = false;
+    async function load() {
+      const meta = {};
+      for (const record of topicRecords) {
+        if (record.meta?.renderer !== 'reading') continue;
+        for (const text of record.texts ?? []) {
+          if (!plan.selectedRecipes.includes(text.id) || !text.file) continue;
+          const content = await getRawRecipeTxt(record.meta.id, text.file);
+          if (!content) continue;
+          const { portions, fixedPortions } = parseRecipeMetadata(content);
+          meta[text.id] = { title: getTopicTitle(text.title), portions, fixedPortions };
+        }
+      }
+      if (!cancelled) setRecipeMeta(meta);
     }
-    return textId;
-  }
+    load();
+    return () => { cancelled = true; };
+  }, [plan, topicRecords]);
 
   async function handleSend() {
     if (!plan) return;
@@ -61,23 +78,20 @@ export default function PlannerSummaryScreen() {
       </div>
 
       <div className="planner-body">
-        <div className="plan-days-summary">
-          {plan.days.map((day) => {
-            const filled = MEAL_TYPES.filter((m) => (day.meals[m] ?? []).length > 0);
-            if (!filled.length) return null;
+        <div className="plan-recipes-summary">
+          {plan.selectedRecipes.map((textId) => {
+            const meta = recipeMeta[textId];
+            const tags = plan.mealAssignments[textId] ?? [];
+            const portions = meta
+              ? (meta.fixedPortions || plan.selectedPortions[textId] || meta.portions || 1)
+              : null;
             return (
-              <div key={day.dayIndex} className="plan-day-summary">
-                <p className="plan-day-summary__title">День {day.dayIndex + 1}</p>
-                {filled.map((mealType) => (
-                  <div key={mealType} className="plan-meal-row">
-                    <span className="plan-meal-row__type">{mealType}:</span>
-                    {day.meals[mealType].map(({ textId, portions }) => (
-                      <span key={textId} className="plan-meal-row__recipe">
-                        {getTitle(textId)}{portions > 1 ? ` ×${portions}` : ''}
-                      </span>
-                    ))}
-                  </div>
-                ))}
+              <div key={textId} className="plan-recipe-summary-row">
+                <span className="plan-recipe-summary-row__title">{meta?.title ?? textId}</span>
+                <span className="plan-recipe-summary-row__meta">
+                  {tags.length > 0 ? tags.map((t) => MEAL_ICONS[t]).join(' ') : '—'}
+                  {portions != null ? ` · ${portions} порц.` : ''}
+                </span>
               </div>
             );
           })}

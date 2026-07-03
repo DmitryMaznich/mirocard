@@ -67,131 +67,6 @@
   border-top: 1px solid #e7dccf;
 }
 
-/* ── Day card ───────────────────────────────────────────────── */
-.planner-day-card {
-  background: rgba(250, 247, 242, 0.96);
-  border: 1px solid #e7dccf;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(71, 61, 48, 0.05);
-}
-
-.planner-day-title {
-  padding: 10px 16px;
-  font-weight: 800;
-  font-size: 13px;
-  background: rgba(74, 155, 143, 0.08);
-  color: #2f5b57;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.planner-day-card__empty {
-  padding: 14px 16px;
-  font-size: 13px;
-  color: #a8978a;
-}
-
-/* ── Meal section ───────────────────────────────────────────── */
-.planner-meal-section {
-  padding: 10px 16px;
-  border-top: 1px solid #e7dccf;
-}
-
-.planner-meal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 28px;
-}
-
-.planner-meal-type {
-  font-size: 14px;
-  font-weight: 700;
-  color: #263131;
-  text-transform: capitalize;
-  min-width: 72px;
-}
-
-.planner-recipe-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.planner-recipe-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(74, 155, 143, 0.1);
-  border-radius: 16px;
-  padding: 4px 6px;
-  font-size: 12px;
-  color: #263131;
-}
-
-.planner-recipe-chip__cook {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(150deg, #5cb0a3, #276b62);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-}
-
-.planner-recipe-chip__cook svg {
-  width: 11px;
-  height: 11px;
-}
-
-.planner-recipe-chip__remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0 2px;
-  font-size: 15px;
-  line-height: 1;
-  color: #7d8f8a;
-  flex-shrink: 0;
-}
-
-.planner-recipe-chip__move {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0 2px;
-  font-size: 13px;
-  line-height: 1;
-  color: #4a9b8f;
-  flex-shrink: 0;
-}
-
-/* ── Add day button ─────────────────────────────────────────── */
-.planner-add-day {
-  background: none;
-  border: 1.5px dashed #d8cbc0;
-  border-radius: 14px;
-  padding: 14px;
-  width: 100%;
-  font-size: 15px;
-  color: #4a9b8f;
-  cursor: pointer;
-  text-align: center;
-  font-weight: 700;
-}
-
-.planner-add-day:hover {
-  background: rgba(74, 155, 143, 0.08);
-}
-
 /* ── Selected pool (Отобрано) ──────────────────────────────────── */
 .menu-pool {
   background: rgba(250, 247, 242, 0.96);
@@ -218,16 +93,21 @@
 
 .menu-pool__row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  flex-wrap: wrap;
-  padding: 8px 0;
+  padding: 10px 0;
   border-top: 1px solid #e7dccf;
 }
 
 .menu-pool__row:first-child {
   border-top: none;
   padding-top: 0;
+}
+
+.menu-pool__row-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .menu-pool__name {
@@ -258,29 +138,6 @@
   text-overflow: ellipsis;
 }
 
-.menu-pool__badge {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 700;
-  color: #2f5b57;
-  background: rgba(74, 155, 143, 0.1);
-  border-radius: 999px;
-  padding: 3px 8px;
-}
-
-.menu-pool__distribute {
-  flex-shrink: 0;
-  border: 1.5px solid #4a9b8f;
-  border-radius: 10px;
-  background: none;
-  color: #2f5b57;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
 .menu-pool__remove {
   flex-shrink: 0;
   background: none;
@@ -290,6 +147,81 @@
   font-size: 12px;
   color: #a8978a;
   font-family: inherit;
+}
+
+.menu-pool__row-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.menu-pool__stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.menu-pool__stepper button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #4a9b8f;
+  background: #fff;
+  color: #2f5b57;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+
+.menu-pool__stepper button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.menu-pool__stepper-value {
+  font-size: 14px;
+  font-weight: 800;
+  color: #263131;
+  min-width: 16px;
+  text-align: center;
+}
+
+.menu-pool__fixed {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7d8f8a;
+}
+
+.menu-pool__meals {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.menu-pool__meal-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid #e0d4c3;
+  background: #fff;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.menu-pool__meal-btn--active {
+  border-color: #4a9b8f;
+  background: rgba(74, 155, 143, 0.16);
 }
 
 /* ── Ingredients summary (all selected recipes, merged) ─────────── */
@@ -780,272 +712,13 @@
   cursor: pointer;
 }
 
-/* ── Existing placements list on the recipe detail screen ─────── */
-.recipe-detail-placements {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 12px 0;
-}
-
-.recipe-detail-placements__label {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #a8978a;
-  width: 100%;
-}
-
-.recipe-detail-placements__chip {
-  font-size: 12px;
-  font-weight: 700;
-  color: #2f5b57;
-  background: rgba(74, 155, 143, 0.1);
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-
-.recipe-detail-placements__hint {
+/* ── Recipe detail: selection hint ─────────────────────────────── */
+.recipe-detail-hint {
+  padding: 10px 16px 0;
   font-size: 12px;
   font-weight: 600;
   color: #a8978a;
   font-style: italic;
-}
-
-/* ── Chip with clickable name ───────────────────────────────── */
-.planner-recipe-chip__name {
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 12px;
-  color: #263131;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: #a8978a;
-}
-
-.planner-recipe-chip__name:disabled {
-  cursor: default;
-  text-decoration: none;
-}
-
-/* ── Add-to-plan sheet ────────────────────────────────────────── */
-.add-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(38, 49, 49, 0.45);
-  display: flex;
-  align-items: flex-end;
-  z-index: 50;
-  animation: sheet-fade 0.18s ease both;
-}
-
-@keyframes sheet-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.add-sheet {
-  width: 100%;
-  max-height: 82vh;
-  overflow-y: auto;
-  background: #f7f1e7;
-  border-radius: 26px 26px 0 0;
-  padding: 10px 18px calc(22px + var(--app-safe-bottom, 0px));
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 -12px 32px rgba(71, 61, 48, 0.18);
-  animation: sheet-rise 0.22s cubic-bezier(0.2, 0.8, 0.3, 1) both;
-}
-
-@keyframes sheet-rise {
-  from { transform: translateY(24px); opacity: 0.4; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-
-.add-sheet__handle {
-  width: 40px;
-  height: 4px;
-  border-radius: 2px;
-  background: #d8cbc0;
-  margin: 4px auto 2px;
-}
-
-.add-sheet__title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  color: #263131;
-  text-align: center;
-}
-
-.add-sheet__section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.add-sheet__section--row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.add-sheet__label {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #7a8c88;
-}
-
-.add-sheet__fixed {
-  font-size: 12px;
-  font-weight: 700;
-  color: #7d8f8a;
-  text-align: right;
-  max-width: 60%;
-}
-
-.add-sheet__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.add-sheet__chip {
-  border: 1.5px solid #e0d4c3;
-  background: #fff;
-  color: #263131;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: 12px;
-  padding: 9px 14px;
-  cursor: pointer;
-}
-
-.add-sheet__chip--active {
-  border-color: #4a9b8f;
-  background: rgba(74, 155, 143, 0.12);
-  color: #2f5b57;
-}
-
-.add-sheet__chip--add {
-  border-style: dashed;
-  color: #4a9b8f;
-}
-
-.add-sheet__meals {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-
-.add-sheet__meal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  border: 1.5px solid #e0d4c3;
-  background: #fff;
-  border-radius: 14px;
-  padding: 8px 2px;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.add-sheet__meal-icon {
-  font-size: 20px;
-}
-
-.add-sheet__meal-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: #7d8f8a;
-  text-transform: capitalize;
-}
-
-.add-sheet__meal--active {
-  border-color: #4a9b8f;
-  background: rgba(74, 155, 143, 0.12);
-}
-
-.add-sheet__meal--active .add-sheet__meal-label {
-  color: #2f5b57;
-}
-
-.add-sheet__stepper {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.add-sheet__stepper button {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1.5px solid #4a9b8f;
-  background: #fff;
-  color: #2f5b57;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.add-sheet__stepper-value {
-  font-size: 18px;
-  font-weight: 800;
-  color: #263131;
-  min-width: 20px;
-  text-align: center;
-}
-
-.add-sheet__actions {
-  display: flex;
-  gap: 10px;
-}
-
-.add-sheet__cancel {
-  flex: 1;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1.5px solid #e0d4c3;
-  background: none;
-  color: #7d8f8a;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.add-sheet__confirm {
-  flex: 2;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  background: linear-gradient(150deg, #5cb0a3, #276b62);
-  box-shadow: 0 8px 20px rgba(39, 107, 98, 0.3);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.add-sheet__confirm:disabled {
-  background: #ded3c4;
-  box-shadow: none;
-  color: #a8978a;
-  cursor: default;
 }
 
 /* ── Shopping push ──────────────────────────────────────────── */
@@ -1076,50 +749,34 @@
 }
 
 /* ── Summary screen ─────────────────────────────────────────── */
-.plan-days-summary {
+.plan-recipes-summary {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.plan-day-summary {
+.plan-recipe-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   background: var(--color-surface, #fff);
   border-radius: 12px;
   padding: 12px 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.plan-day-summary__title {
+.plan-recipe-summary-row__title {
   font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 8px;
-  color: var(--color-text-secondary, #666);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.plan-meal-row {
-  font-size: 13px;
-  margin-bottom: 5px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-}
-
-.plan-meal-row__type {
-  color: var(--color-text-secondary, #888);
-  margin-right: 2px;
-  min-width: 64px;
-  flex-shrink: 0;
-}
-
-.plan-meal-row__recipe {
-  background: var(--color-primary-light, #eef);
-  border-radius: 10px;
-  padding: 2px 8px;
-  font-size: 12px;
+  font-weight: 700;
   color: var(--color-text, #222);
+}
+
+.plan-recipe-summary-row__meta {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary, #888);
+  white-space: nowrap;
 }
 
 .shopping-preview {
@@ -1450,12 +1107,6 @@
   color: #a8978a;
 }
 
-.hub-card__daystrip {
-  display: flex;
-  gap: 4px;
-  margin-top: 3px;
-}
-
 /* Ticket-stub status zone, perforated off from the main content */
 .hub-card__stub {
   flex-shrink: 0;
@@ -1492,17 +1143,6 @@
 
 .hub-card--locked .hub-card__stub-icon {
   color: #c2b6a4;
-}
-
-.daydot {
-  width: 16px;
-  height: 16px;
-  border-radius: 6px;
-  background: #ede5d8;
-}
-
-.daydot--filled {
-  background: #4a9b8f;
 }
 
 @keyframes hub-rise {

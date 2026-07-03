@@ -390,10 +390,6 @@ export default function PlannerMenuScreen() {
   const [view, setView] = useState(() => plannerInitialView ?? 'recipes');
   const [detailRecipe, setDetailRecipe] = useState(null);
   const [detailPrev, setDetailPrev] = useState('recipes');
-  // Shared by three entry points: the detail screen's "+ Добавить в меню",
-  // Меню's "Распределить" (adds a placement), and "↻" move (replaces one
-  // placement) — moveFrom distinguishes add vs. replace on confirm.
-  const [addSheet, setAddSheet] = useState(null); // { recipe, moveFrom: {dayIndex, mealType, portions} | null } | null
 
   // Consume the hub's requested initial view once, so a later visit
   // (without the hub setting it again) defaults back to 'recipes'.
@@ -443,22 +439,6 @@ export default function PlannerMenuScreen() {
     setView('detail');
   }
 
-  function openAddSheet(recipe, moveFrom = null) {
-    setAddSheet({ recipe, moveFrom });
-  }
-
-  function handleConfirmAddSheet(dayIndex, mealType, portions) {
-    const { recipe, moveFrom } = addSheet;
-    setPlan((p) => {
-      let next = selectRecipe(p, recipe.text.id);
-      if (moveFrom) {
-        next = removeRecipeFromMeal(next, moveFrom.dayIndex, moveFrom.mealType, recipe.text.id);
-      }
-      return addRecipeToMeal(next, dayIndex, mealType, recipe.text.id, portions);
-    });
-    setAddSheet(null);
-  }
-
   function handleToggleSelect(recipe) {
     setPlan((p) =>
       isRecipeSelected(p, recipe.text.id)
@@ -483,7 +463,7 @@ export default function PlannerMenuScreen() {
       <RecipeIngredients
         recipe={detailRecipe}
         plan={plan}
-        onOpenAddSheet={() => openAddSheet(detailRecipe)}
+        onToggleSelect={handleToggleSelect}
         onBack={() => setView(detailPrev)}
       />
     );
@@ -492,16 +472,13 @@ export default function PlannerMenuScreen() {
       <PlanView
         plan={plan}
         allRecipes={allRecipes}
-        onAddDay={() => setPlan((p) => addDay(p))}
-        onRemove={(dayIndex, mealType, textId) =>
-          setPlan((p) => removeRecipeFromMeal(p, dayIndex, mealType, textId))
+        onToggleMeal={(textId, mealType) =>
+          setPlan((p) => toggleMealAssignment(p, textId, mealType))
+        }
+        onSetPortions={(textId, portions) =>
+          setPlan((p) => setSelectedPortions(p, textId, portions))
         }
         onViewRecipe={(recipe) => openDetail(recipe, 'plan')}
-        onCook={handleCook}
-        onMove={(recipe, dayIndex, mealType, portions) =>
-          openAddSheet(recipe, { dayIndex, mealType, portions })
-        }
-        onDistribute={(recipe) => openAddSheet(recipe)}
         onDeselect={(textId) => setPlan((p) => deselectRecipe(p, textId))}
         onSetIngredientDecision={(product, decision) =>
           setPlan((p) => setIngredientDecision(p, product, decision))
@@ -526,21 +503,5 @@ export default function PlannerMenuScreen() {
     );
   }
 
-  return (
-    <>
-      {content}
-      {addSheet && (
-        <AddToPlanSheet
-          recipe={addSheet.recipe}
-          plan={plan}
-          initialDayIndex={addSheet.moveFrom?.dayIndex ?? 0}
-          initialMealType={addSheet.moveFrom?.mealType ?? null}
-          initialPortions={addSheet.moveFrom?.portions ?? null}
-          onAddDay={() => setPlan((p) => addDay(p))}
-          onConfirm={handleConfirmAddSheet}
-          onClose={() => setAddSheet(null)}
-        />
-      )}
-    </>
-  );
+  return content;
 }

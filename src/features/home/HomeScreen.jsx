@@ -10,7 +10,6 @@ import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan } from "@/features/planner/plannerApi";
-import { countPlanRecipes } from "@/features/planner/plannerUtils";
 import "@/features/planner/planner.css";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -202,17 +201,6 @@ function SessionTab({
 
 // ─── Planner tab ──────────────────────────────────────────────────────────────
 
-function DayStrip({ days }) {
-  return (
-    <span className="hub-card__daystrip">
-      {days.map((day, i) => {
-        const filled = Object.values(day.meals).some((ids) => ids.length > 0);
-        return <span key={i} className={`daydot${filled ? ' daydot--filled' : ''}`} />;
-      })}
-    </span>
-  );
-}
-
 function PlannerTab({ student, setScreen }) {
   const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
@@ -240,10 +228,10 @@ function PlannerTab({ student, setScreen }) {
   }
 
   const hasSelection = !!existingPlan && existingPlan.selectedRecipes.length > 0;
-  const hasRecipes = !!existingPlan && countPlanRecipes(existingPlan) > 0;
-  const dayCount = hasRecipes ? existingPlan.days.length : 0;
-  const recipeCount = hasRecipes ? countPlanRecipes(existingPlan) : 0;
   const selectedCount = hasSelection ? existingPlan.selectedRecipes.length : 0;
+  const scheduledCount = hasSelection
+    ? existingPlan.selectedRecipes.filter((id) => (existingPlan.mealAssignments?.[id]?.length ?? 0) > 0).length
+    : 0;
 
   return (
     <div className="planner-hub">
@@ -254,15 +242,13 @@ function PlannerTab({ student, setScreen }) {
           title="Рецепты"
           value={hasSelection ? `${selectedCount} отобрано` : 'Смотри рецепты и добавляй в меню'}
           onClick={() => setScreen('planner_menu')}
-        >
-          {hasRecipes && <DayStrip days={existingPlan.days} />}
-        </HubCard>
+        />
 
         <HubCard
           state={hasSelection ? 'active' : 'locked'}
           icon="📋"
           title="Меню"
-          value={hasRecipes ? `${dayCount} дн. · ${recipeCount} рец.` : hasSelection ? 'Пока пусто' : 'Сначала рецепты'}
+          value={hasSelection ? (scheduledCount > 0 ? `${scheduledCount} распределено` : 'Пока не распределено') : 'Сначала рецепты'}
           onClick={() => {
             setPlannerInitialView('plan');
             setScreen('planner_menu');
@@ -271,12 +257,12 @@ function PlannerTab({ student, setScreen }) {
         />
 
         <HubCard
-          state={hasRecipes ? 'active' : 'locked'}
+          state={hasSelection ? 'active' : 'locked'}
           icon="🛒"
           title="Покупки"
-          value={hasRecipes ? 'Список готов' : 'Сначала меню'}
+          value={hasSelection ? 'Список готов' : 'Сначала меню'}
           onClick={() => setScreen('planner_summary')}
-          disabled={!hasRecipes}
+          disabled={!hasSelection}
         />
 
         <HubCard
