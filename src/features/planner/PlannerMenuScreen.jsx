@@ -89,6 +89,15 @@ function PlayIcon() {
   );
 }
 
+function TrashIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M3 4.5h10M6.5 4.5V3a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1.5M6.5 7.5v4M9.5 7.5v4M4 4.5l.6 8a1.5 1.5 0 0 0 1.5 1.4h3.8a1.5 1.5 0 0 0 1.5-1.4l.6-8"
+        stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
   const { topicId, text, ingredients, status } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
@@ -213,15 +222,14 @@ function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselec
               <div className="menu-pool__row-top">
                 <button className="menu-pool__name" onClick={() => onViewRecipe(recipe)}>
                   <span className="menu-pool__title-text">{getTopicTitle(recipe.text.title)}</span>
-                  <span className="menu-pool__ingr">{keyIngredients(recipe.ingredients)}</span>
                 </button>
-                <button type="button" className="menu-pool__remove" onClick={() => onDeselect(textId)}>
-                  Убрать
+                <button type="button" className="menu-pool__remove" onClick={() => onDeselect(textId)} aria-label="Убрать">
+                  <TrashIcon />
                 </button>
               </div>
               <div className="menu-pool__row-controls">
                 {fixedPortions ? (
-                  <span className="menu-pool__fixed">🔒 {fixedPortions} порц.</span>
+                  <span className="menu-pool__fixed">🔒 {fixedPortions}</span>
                 ) : (
                   <div className="menu-pool__stepper">
                     <button
@@ -243,7 +251,7 @@ function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselec
                     </button>
                   </div>
                 )}
-                <div className="menu-pool__meals">
+                <div className="menu-pool__meal-grid" role="group" aria-label="Приёмы пищи">
                   {MEAL_TYPES.map((mt) => (
                     <button
                       key={mt}

@@ -140,47 +140,62 @@
 
 .menu-pool__remove {
   flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px 2px;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #a8978a;
   font-family: inherit;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.menu-pool__remove:hover,
+.menu-pool__remove:active {
+  background: rgba(197, 66, 46, 0.1);
+  color: #c5422e;
 }
 
 .menu-pool__row-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .menu-pool__stepper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .menu-pool__stepper button {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 1.5px solid #4a9b8f;
   background: #fff;
   color: #2f5b57;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
   font-family: inherit;
   padding: 0;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+.menu-pool__stepper button:active:not(:disabled) {
+  transform: scale(0.9);
+  background: rgba(74, 155, 143, 0.12);
 }
 
 .menu-pool__stepper button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 
@@ -188,43 +203,63 @@
   font-size: 14px;
   font-weight: 800;
   color: #263131;
-  min-width: 16px;
+  min-width: 18px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .menu-pool__fixed {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: #7d8f8a;
 }
 
-.menu-pool__meals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  flex-shrink: 0;
+/* Segmented control, same visual grammar as .ingr-toggle (one bordered
+   pill, internal dividers, tinted active segment) generalized from 2 to
+   4 segments — a real 1fr grid, not flex, so a segment can never shrink
+   below its column and spill its label into the neighbor (the bug this
+   replaces: flex + white-space:nowrap let buttons collapse while their
+   un-wrappable text kept its full width and overflowed on top of each
+   other). Each column reserves an equal, fixed share of the row; only
+   the label truncates if it ever runs out of room, it never overlaps. */
+.menu-pool__meal-grid {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1.5px solid #e0d4c3;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .menu-pool__meal-btn {
-  border-radius: 999px;
-  border: 1.5px solid #e0d4c3;
+  min-width: 0;
+  border: none;
+  border-right: 1px solid #e0d4c3;
   background: #fff;
   color: #7d8f8a;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: capitalize;
   white-space: nowrap;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
-  padding: 5px 9px;
+  padding: 7px 2px;
   font-family: inherit;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.menu-pool__meal-btn:last-child {
+  border-right: none;
+}
+
+.menu-pool__meal-btn:active {
+  background: rgba(74, 155, 143, 0.08);
 }
 
 .menu-pool__meal-btn--active {
-  border-color: #4a9b8f;
   background: rgba(74, 155, 143, 0.16);
   color: #2f5b57;
 }
