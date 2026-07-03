@@ -18,20 +18,28 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.14";
+const VERSION   = "1.0.15";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 // Old ZIP cleaned up automatically in catalog update below
 
 const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
 const GEMINI_MODEL = "gemini-2.5-flash-image";
 
-const Q_SOUP  = "какой?";
-const Q_JUICE = "какой?";
-const Q_JAM   = "какое?";
+const Q_SOUP    = "какой?";
+const Q_JUICE   = "какой?";
+const Q_JAM     = "какое?";
+const Q_KASHA   = "какая?";
+const Q_WEATHER = "какой?";
 
 const POT_PROMPT    = "a large stainless steel cooking pot on a gas stove with blue flame burning underneath, steam rising from the pot, kitchen setting, warm natural lighting, top-down 3/4 view, clean white background, square composition, no text, no watermark, photorealistic educational photo";
 const JUICER_PROMPT = "a modern electric centrifugal juicer machine alone on a clean kitchen counter, NO glass of juice and NO fruit nearby, just the appliance by itself, white and stainless steel, bright natural lighting, square 1:1 composition, no text, no watermark, child-friendly educational photo";
 const BASIN_PROMPT  = "a wide traditional enamel basin or preserving pan filled with boiling red berry jam, foam and bubbles on the surface, steam rising, classic Russian jam-making style, warm kitchen lighting, top-down 3/4 view, square composition, no text, no watermark, child-friendly educational photo";
+
+const SKY_DAY_PROMPT     = "a simple clean sky, soft blue with white fluffy clouds, neutral pleasant daytime, no horizon line, square 1:1 composition, flat child-friendly illustration style, no text, no watermark";
+const SEASON_WINTER_PROMPT = "a snowy winter landscape: bare trees covered in white snow, snowflakes gently falling, cold blue-white color palette, flat child-friendly illustration style, square 1:1 composition, no text, no watermark";
+const SEASON_AUTUMN_PROMPT = "a colorful autumn scene: trees with orange, red and yellow falling leaves, warm golden tones, flat child-friendly illustration style, square 1:1 composition, no text, no watermark";
+const SEASON_SUMMER_PROMPT = "a bright summer scene: lush green trees, sunny clear sky, flowers blooming, warm cheerful yellow tones, flat child-friendly illustration style, square 1:1 composition, no text, no watermark";
+const SEASON_SPRING_PROMPT = "a fresh spring scene: pink cherry blossoms, bright green new leaves, light blue sky, cheerful pastel tones, flat child-friendly illustration style, square 1:1 composition, no text, no watermark";
 
 const AVATAR_TOPIC_PROMPT      = "a simple flat cartoon icon: a whole fish on the left, a bold arrow pointing right, a steaming bowl of soup on the right, bright cheerful colors, thick outlines, white background, square 1:1 composition, no text, no letters, child-friendly educational icon";
 const AVATAR_PAIR_INTRO_PROMPT = "a simple flat cartoon icon: two square flashcards side by side, left card shows a fish illustration, right card shows bold text-like marks suggesting a word, a small arrow pointing from left to right between them, bright cheerful colors, thick outlines, white background, square 1:1 composition, no text, no letters";
@@ -104,6 +112,87 @@ const CONCEPTS = [
   { id: "chernika", noun: "черника",  nounPhrase: "варенье из черники",   adjPhrase: "черничное варенье",   difficulty: "hard",   color: "#3F51B5", category: "jam", wrongForms: ["черниковое варенье", "черничаное варенье", "черничковое варенье"],
     imgPrompt: "a glass jar of homemade blueberry jam, deep dark blue-purple jam, open jar with a wooden spoon, white background, bright natural lighting, square composition, no text, no watermark",
     ingredientPrompt: "a small pile of fresh dark blue blueberries, on a white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+
+  // ── каша ────────────────────────────────────────────────────────────────────
+  { id: "kasha_ris",      noun: "рис",      nounPhrase: "каша из риса",     adjPhrase: "рисовая каша",    difficulty: "easy",   color: "#F5DEB3", category: "kasha", wrongForms: ["рисная каша", "рисовная каша", "рисяная каша"],
+    imgPrompt: "a bowl of steaming white rice porridge, smooth creamy texture, simple white ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of dry white rice grains on a clean wooden surface, bright natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "kasha_grechka",  noun: "гречка",   nounPhrase: "каша из гречки",   adjPhrase: "гречневая каша",  difficulty: "easy",   color: "#8B4513", category: "kasha", wrongForms: ["гречкаяная каша", "гречковая каша", "гречняная каша"],
+    imgPrompt: "a bowl of steaming buckwheat porridge, dark brown grains, simple white ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of dry dark brown buckwheat grains on a clean wooden surface, bright natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "kasha_psheno",   noun: "пшено",    nounPhrase: "каша из пшена",    adjPhrase: "пшённая каша",    difficulty: "easy",   color: "#FFD700", category: "kasha", wrongForms: ["пшеновая каша", "пшенная каша", "пшёновая каша"],
+    imgPrompt: "a bowl of bright yellow millet porridge, steaming hot, simple white ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of dry bright yellow millet grains on a clean wooden surface, bright natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "kasha_ovos",     noun: "овёс",     nounPhrase: "каша из овса",     adjPhrase: "овсяная каша",    difficulty: "medium", color: "#D2B48C", category: "kasha", wrongForms: ["овсовая каша", "овёсная каша", "овсиная каша"],
+    imgPrompt: "a bowl of creamy oatmeal porridge, smooth texture, simple white ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of dry rolled oat flakes on a clean wooden surface, bright natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "kasha_kukuruza", noun: "кукуруза", nounPhrase: "каша из кукурузы", adjPhrase: "кукурузная каша", difficulty: "medium", color: "#FFCA28", category: "kasha", wrongForms: ["кукурузовая каша", "кукурузяная каша", "кукурузинная каша"],
+    imgPrompt: "a bowl of bright yellow corn porridge, smooth and creamy, simple white ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a fresh yellow corn cob on a clean wooden surface, bright natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "kasha_manka",    noun: "манка",    nounPhrase: "каша из манки",    adjPhrase: "манная каша",     difficulty: "hard",   color: "#F5F5DC", category: "kasha", wrongForms: ["манкаяная каша", "манковая каша", "манкинная каша"],
+    imgPrompt: "a bowl of smooth white semolina porridge, thick and creamy, simple white ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of fine white semolina grains on a clean wooden surface, bright natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "kasha_perlovka", noun: "перловка", nounPhrase: "каша из перловки", adjPhrase: "перловая каша",   difficulty: "hard",   color: "#C8A882", category: "kasha", wrongForms: ["перловочная каша", "перловатая каша", "перловочная каша"],
+    imgPrompt: "a bowl of pearl barley porridge, round grey-beige grains, simple white ceramic bowl, warm natural lighting, top-down view, square composition, no text, no watermark",
+    ingredientPrompt: "a small pile of dry pearl barley grains, round and beige-grey, on a clean wooden surface, bright natural lighting, top-down view, square composition, no text, no watermark, child-friendly educational photo" },
+
+  // ── материалы ───────────────────────────────────────────────────────────────
+  { id: "mat_derevo",  noun: "дерево",  nounPhrase: "стол из дерева",       adjPhrase: "деревянный стол",      questionText: "какой?", difficulty: "easy",   color: "#8B4513", category: "materials", wrongForms: ["деревной стол", "деревской стол", "деревый стол"],
+    imgPrompt: "a simple wooden table, natural warm wood grain, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a piece of natural wood with visible wood grain texture, warm brown color, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "mat_steklo",  noun: "стекло",  nounPhrase: "стакан из стекла",     adjPhrase: "стеклянный стакан",    questionText: "какой?", difficulty: "easy",   color: "#87CEEB", category: "materials", wrongForms: ["стекловый стакан", "стекловатый стакан", "стекляной стакан"],
+    imgPrompt: "a transparent drinking glass, clear glass smooth surface, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a flat piece of transparent glass, clear and shiny, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "mat_glina",   noun: "глина",   nounPhrase: "ваза из глины",         adjPhrase: "глиняная ваза",        questionText: "какая?", difficulty: "easy",   color: "#C47A39", category: "materials", wrongForms: ["глинная ваза", "глиновая ваза", "глинаяная ваза"],
+    imgPrompt: "a traditional terracotta clay vase, handmade look with visible clay texture, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a lump of raw grey-brown clay, soft moldable texture, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "mat_zoloto",  noun: "золото",  nounPhrase: "кольцо из золота",      adjPhrase: "золотое кольцо",       questionText: "какое?", difficulty: "medium", color: "#FFD700", category: "materials", wrongForms: ["золотовое кольцо", "золотяное кольцо", "золотское кольцо"],
+    imgPrompt: "a simple shiny gold ring, yellow gold metal, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a small gold nugget, shiny yellow metal, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "mat_serebro", noun: "серебро", nounPhrase: "браслет из серебра",    adjPhrase: "серебряный браслет",   questionText: "какой?", difficulty: "medium", color: "#C0C0C0", category: "materials", wrongForms: ["серебровый браслет", "серебряной браслет", "серебный браслет"],
+    imgPrompt: "a simple silver bracelet, shiny silver metal, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a small silver piece of metal, shiny grey-white, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "mat_kozha",   noun: "кожа",    nounPhrase: "куртка из кожи",        adjPhrase: "кожаная куртка",       questionText: "какая?", difficulty: "medium", color: "#3E2723", category: "materials", wrongForms: ["кожевая куртка", "кожаяная куртка", "кожистая куртка"],
+    imgPrompt: "a classic black leather jacket, smooth shiny leather surface, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a piece of natural brown leather material, smooth texture with visible grain, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "mat_sherst",  noun: "шерсть",  nounPhrase: "шарф из шерсти",        adjPhrase: "шерстяной шарф",       questionText: "какой?", difficulty: "hard",   color: "#FF5722", category: "materials", wrongForms: ["шерстной шарф", "шерстевой шарф", "шерстинный шарф"],
+    imgPrompt: "a cozy knitted wool scarf, warm red-orange color with textured knit pattern, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a ball of soft natural wool yarn, fluffy and warm, beige-white color, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "mat_plastik", noun: "пластик", nounPhrase: "игрушка из пластика",   adjPhrase: "пластиковая игрушка",  questionText: "какая?", difficulty: "hard",   color: "#E91E63", category: "materials", wrongForms: ["пластиковная игрушка", "пластинная игрушка", "пластяная игрушка"],
+    imgPrompt: "a simple colorful plastic toy, bright primary colors, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo",
+    ingredientPrompt: "a flat piece of colorful plastic material, smooth shiny surface, bright red or yellow, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+
+  // ── погода ───────────────────────────────────────────────────────────────────
+  { id: "wea_dozhd",  noun: "дождь",  nounPhrase: "день с дождём",  adjPhrase: "дождливый день",  difficulty: "easy",   color: "#607D8B", category: "weather", wrongForms: ["дождной день", "дождевной день", "дождяной день"],
+    ingredientPrompt: "heavy raindrops falling, close-up of rain splashing in puddles on a wet surface, grey rainy atmosphere, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "wea_sneg",   noun: "снег",   nounPhrase: "день со снегом", adjPhrase: "снежный день",    difficulty: "easy",   color: "#90CAF9", category: "weather", wrongForms: ["снеговой день", "снеговитый день", "снегный день"],
+    ingredientPrompt: "soft white snowflakes falling, close-up of fresh fluffy snow, white and clean winter snow, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "wea_solnce", noun: "солнце", nounPhrase: "день с солнцем", adjPhrase: "солнечный день",  difficulty: "easy",   color: "#FFCA28", category: "weather", wrongForms: ["солнцевой день", "солнцеватый день", "солнцный день"],
+    ingredientPrompt: "bright yellow sun shining in a clear blue sky, warm golden sunshine, no clouds, cheerful weather, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "wea_veter",  noun: "ветер",  nounPhrase: "день с ветром",  adjPhrase: "ветреный день",   difficulty: "medium", color: "#78909C", category: "weather", wrongForms: ["ветровой день", "ветровитый день", "ветерный день"],
+    ingredientPrompt: "strong wind blowing through tree branches, leaves flying through the air, dynamic wind effect, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "wea_tuman",  noun: "туман",  nounPhrase: "день с туманом", adjPhrase: "туманный день",   difficulty: "medium", color: "#B0BEC5", category: "weather", wrongForms: ["туманной день", "туманистый день", "туманинный день"],
+    ingredientPrompt: "thick white fog or mist in an outdoor scene, soft blurry visibility, mysterious foggy morning, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "wea_groza",  noun: "гроза",  nounPhrase: "день с грозой",  adjPhrase: "грозовой день",   difficulty: "hard",   color: "#37474F", category: "weather", wrongForms: ["грозаяной день", "грозовной день", "грозной день"],
+    ingredientPrompt: "dramatic lightning bolt in a dark stormy sky, thunderstorm with dark storm clouds, dramatic natural scene, square composition, no text, no watermark, child-friendly educational photo" },
+
+  // ── времена года ─────────────────────────────────────────────────────────────
+  { id: "sea_zima_sharf",   noun: "зима",  nounPhrase: "шарф для зимы",    adjPhrase: "зимний шарф",    questionText: "какой?", vesselImageSeason: "winter", difficulty: "easy",   color: "#90CAF9", category: "seasons", wrongForms: ["зимный шарф", "зимистый шарф", "зимовый шарф"],
+    ingredientPrompt: "a cozy knitted winter scarf, warm and soft, bright red color, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sea_zima_shuba",   noun: "зима",  nounPhrase: "шуба для зимы",    adjPhrase: "зимняя шуба",    questionText: "какая?", vesselImageSeason: "winter", difficulty: "easy",   color: "#90CAF9", category: "seasons", wrongForms: ["зимная шуба", "зимовая шуба", "зимистая шуба"],
+    ingredientPrompt: "a warm fluffy fur coat, soft and cozy, light beige color, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sea_osen_sapogi",  noun: "осень", nounPhrase: "сапоги для осени", adjPhrase: "осенние сапоги", questionText: "какие?", vesselImageSeason: "autumn", difficulty: "easy",   color: "#FF8F00", category: "seasons", wrongForms: ["осенные сапоги", "осенистые сапоги", "осеновые сапоги"],
+    ingredientPrompt: "a pair of tall rubber rain boots, classic dark green or brown color, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sea_osen_kurtka",  noun: "осень", nounPhrase: "куртка для осени", adjPhrase: "осенняя куртка", questionText: "какая?", vesselImageSeason: "autumn", difficulty: "easy",   color: "#FF8F00", category: "seasons", wrongForms: ["осенная куртка", "осенистая куртка", "осеновая куртка"],
+    ingredientPrompt: "a light autumn jacket, warm orange or olive green color, medium weight, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sea_leto_sarafan", noun: "лето",  nounPhrase: "сарафан для лета", adjPhrase: "летний сарафан", questionText: "какой?", vesselImageSeason: "summer", difficulty: "medium", color: "#FFD740", category: "seasons", wrongForms: ["летовый сарафан", "летный сарафан", "летяной сарафан"],
+    ingredientPrompt: "a light colorful summer sundress, bright cheerful colors with thin straps, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sea_leto_shorty",  noun: "лето",  nounPhrase: "шорты для лета",   adjPhrase: "летние шорты",   questionText: "какие?", vesselImageSeason: "summer", difficulty: "medium", color: "#FFD740", category: "seasons", wrongForms: ["летовые шорты", "летные шорты", "летские шорты"],
+    ingredientPrompt: "a pair of colorful summer shorts, light fabric, bright cheerful yellow or blue color, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sea_vesna_plash",  noun: "весна", nounPhrase: "плащ для весны",   adjPhrase: "весенний плащ",  questionText: "какой?", vesselImageSeason: "spring", difficulty: "hard",   color: "#81C784", category: "seasons", wrongForms: ["весенный плащ", "весновый плащ", "веснистый плащ"],
+    ingredientPrompt: "a light spring raincoat, thin waterproof jacket, soft mint green or light blue color, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
+  { id: "sea_vesna_zontik", noun: "весна", nounPhrase: "зонтик для весны", adjPhrase: "весенний зонтик", questionText: "какой?", vesselImageSeason: "spring", difficulty: "hard",   color: "#81C784", category: "seasons", wrongForms: ["весенный зонтик", "весновый зонтик", "веснистый зонтик"],
+    ingredientPrompt: "a colorful open umbrella, cheerful bright colors, clean white background, bright natural lighting, square composition, no text, no watermark, child-friendly educational photo" },
 ];
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -169,9 +258,11 @@ function generatePotImage() {
 
 
 const VESSEL = {
-  soup:  { image: "media/pot.webp",    question: Q_SOUP  },
-  juice: { image: "media/juicer.webp", question: Q_JUICE },
-  jam:   { image: "media/basin.webp",  question: Q_JAM   },
+  soup:    { image: "media/pot.webp",     question: Q_SOUP    },
+  juice:   { image: "media/juicer.webp",  question: Q_JUICE   },
+  jam:     { image: "media/basin.webp",   question: Q_JAM     },
+  kasha:   { image: "media/pot.webp",     question: Q_KASHA   },
+  weather: { image: "media/sky_day.webp", question: Q_WEATHER },
 };
 
 // ─── Build topic.json ────────────────────────────────────────────────────────
@@ -185,10 +276,14 @@ function buildTopic() {
     adjPhrase:       c.adjPhrase,
     difficulty:      c.difficulty,
     color:           c.color,
-    image:           `media/${c.id}.webp`,
+    image:           c.category === "weather"   ? VESSEL.weather.image
+                   : c.category === "seasons"   ? `media/season_${c.vesselImageSeason}.webp`
+                   : `media/${c.id}.webp`,
     ingredientImage: `media/${c.id}_ingredient.webp`,
-    vesselImage:     VESSEL[c.category].image,
-    questionText:    VESSEL[c.category].question,
+    vesselImage:     c.category === "materials" ? `media/${c.id}.webp`
+                   : c.category === "seasons"   ? `media/season_${c.vesselImageSeason}.webp`
+                   : VESSEL[c.category]?.image  ?? "media/pot.webp",
+    questionText:    c.questionText ?? VESSEL[c.category]?.question ?? "какой?",
     wrongForms:      c.wrongForms ?? [],
   }));
 
@@ -200,15 +295,15 @@ function buildTopic() {
     },
     modes: [
       { id: "pair_intro", type: "pair_intro", evaluation: "none", requirePin: false,
-        ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары: суп из … → … суп" }, icon: "media/avatar_pair_intro.webp" },
+        ui: { title: { ru: "Знакомство с парами" }, instruction: { ru: "Листайте пары и называйте прилагательное" }, icon: "media/avatar_pair_intro.webp" },
         params: {
-          category: { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all", "kasha", "materials", "weather", "seasons"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все", kasha: "Каша", materials: "Материалы", weather: "Погода", seasons: "Времена года" } }, disabledValues: ["kasha", "materials", "weather", "seasons"], default: "soup" },
+          category: { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "kasha", "materials", "weather", "seasons", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", kasha: "Каша", materials: "Материалы", weather: "Погода", seasons: "Времена года", all: "Все" } }, default: "soup" },
         },
       },
       { id: "pick_form", type: "pick_form", evaluation: "auto", requirePin: false,
         ui: { title: { ru: "Выбери правильную форму" }, instruction: { ru: "Нажми на правильное слово" }, icon: "media/avatar_pick_form.webp" },
         params: {
-          category:   { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "all", "kasha", "materials", "weather", "seasons"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", all: "Все", kasha: "Каша", materials: "Материалы", weather: "Погода", seasons: "Времена года" } }, disabledValues: ["kasha", "materials", "weather", "seasons"], default: "soup" },
+          category:   { type: "enum", label: { ru: "Категория" }, values: ["soup", "juice", "jam", "kasha", "materials", "weather", "seasons", "all"], labels: { ru: { soup: "Суп", juice: "Сок", jam: "Варенье", kasha: "Каша", materials: "Материалы", weather: "Погода", seasons: "Времена года", all: "Все" } }, default: "soup" },
           difficulty: { type: "enum", label: { ru: "Сложность дистракторов" }, values: ["easy", "hard"], labels: { ru: { easy: "Лёгкий: слова из разных пар", hard: "Сложный: похожие формы одного корня" } }, default: "easy" },
         },
       },
@@ -229,14 +324,21 @@ async function main() {
 
   console.log("\n=== Генерация изображений ===");
   const vessels = {
-    "media/pot.webp":    await generateImageFromPrompt("pot.webp",    POT_PROMPT,    "pot"),
-    "media/juicer.webp": await generateImageFromPrompt("juicer.webp", JUICER_PROMPT, "juicer"),
-    "media/basin.webp":  await generateImageFromPrompt("basin.webp",  BASIN_PROMPT,  "basin"),
+    "media/pot.webp":           await generateImageFromPrompt("pot.webp",           POT_PROMPT,           "pot"),
+    "media/juicer.webp":        await generateImageFromPrompt("juicer.webp",        JUICER_PROMPT,        "juicer"),
+    "media/basin.webp":         await generateImageFromPrompt("basin.webp",         BASIN_PROMPT,         "basin"),
+    "media/sky_day.webp":       await generateImageFromPrompt("sky_day.webp",       SKY_DAY_PROMPT,       "sky_day"),
+    "media/season_winter.webp": await generateImageFromPrompt("season_winter.webp", SEASON_WINTER_PROMPT, "season_winter"),
+    "media/season_autumn.webp": await generateImageFromPrompt("season_autumn.webp", SEASON_AUTUMN_PROMPT, "season_autumn"),
+    "media/season_summer.webp": await generateImageFromPrompt("season_summer.webp", SEASON_SUMMER_PROMPT, "season_summer"),
+    "media/season_spring.webp": await generateImageFromPrompt("season_spring.webp", SEASON_SPRING_PROMPT, "season_spring"),
   };
   const resultImages = {};
   const ingredientImages = {};
   for (const c of CONCEPTS) {
-    resultImages[c.id]     = await generateImageFromPrompt(`${c.id}.webp`,            c.imgPrompt,        c.id);
+    if (c.imgPrompt) {
+      resultImages[c.id] = await generateImageFromPrompt(`${c.id}.webp`, c.imgPrompt, c.id);
+    }
     ingredientImages[c.id] = await generateImageFromPrompt(`${c.id}_ingredient.webp`, c.ingredientPrompt, `${c.id} (ingredient)`);
   }
 
@@ -247,9 +349,9 @@ async function main() {
   zip.file("media/avatar_topic.webp",      avatarTopic);
   zip.file("media/avatar_pair_intro.webp", avatarPairIntro);
   zip.file("media/avatar_pick_form.webp",  avatarPickForm);
-  for (const [path, buf] of Object.entries(vessels)) zip.file(path, buf);
+  for (const [filePath, buf] of Object.entries(vessels)) zip.file(filePath, buf);
   for (const c of CONCEPTS) {
-    zip.file(`media/${c.id}.webp`,            resultImages[c.id]);
+    if (resultImages[c.id]) zip.file(`media/${c.id}.webp`, resultImages[c.id]);
     zip.file(`media/${c.id}_ingredient.webp`, ingredientImages[c.id]);
   }
 
