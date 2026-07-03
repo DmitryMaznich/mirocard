@@ -143,6 +143,14 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
  * - a missing selectedRecipes pool is backfilled from whatever recipes had
  *   placements, so an in-progress menu doesn't lose its pool view.
  */
+export function getPlanRecipes(plan) {
+  return plan?.selectedRecipes ?? [];
+}
+
+export function countPlanRecipes(plan) {
+  return (plan?.selectedRecipes ?? []).length;
+}
+
 export function normalizePlan(plan) {
   if (!plan) return plan;
 
