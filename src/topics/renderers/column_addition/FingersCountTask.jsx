@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import HandImg from "./HandImg.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import "./fingers.css";
@@ -69,9 +69,9 @@ function AdditionTask({ task, onCorrect, onMistake }) {
         </div>
       </div>
 
-      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
+      <div className="fng-add-kbd-zone">
         <div className="col-copy-keyboard"
-             style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
+             style={{ opacity: kbdVisible ? 1 : 0, pointerEvents: phase === "answer" ? "auto" : "none" }}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
             <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
               <span className="col-slant">{d}</span>
@@ -88,8 +88,139 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   );
 }
 
+// ── Shared gesture system (Subtraction + Large Addition) ──────────────────────
+
+const GESTURE_THRESHOLD = 30; // px (~1 cm на планшете)
+
+function GestureDot({ pos, direction, onCommit }) {
+  const startRef = useRef(null);
+
+  function onPointerDown(e) {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.stopPropagation();
+    startRef.current = { y: e.clientY };
+  }
+
+  function onPointerMove(e) {
+    if (!startRef.current) return;
+    const dy = e.clientY - startRef.current.y;
+    if (direction === "down" && dy > GESTURE_THRESHOLD) {
+      startRef.current = null;
+      onCommit();
+    } else if (direction === "up" && dy < -GESTURE_THRESHOLD) {
+      startRef.current = null;
+      onCommit();
+    }
+  }
+
+  function onPointerUp() {
+    startRef.current = null;
+  }
+
+  return (
+    <div
+      className={`fng-gesture-dot fng-gesture-dot--${direction}`}
+      style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+    />
+  );
+}
+
+function DrawnArrow({ tip, base, direction, onTap }) {
+  const startRef = useRef(null);
+
+  function onPointerDown(e) {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.stopPropagation();
+    startRef.current = { x: e.clientX, y: e.clientY };
+  }
+
+  function onPointerUp(e) {
+    if (!startRef.current) return;
+    const dx = Math.abs(e.clientX - startRef.current.x);
+    const dy = Math.abs(e.clientY - startRef.current.y);
+    if (dx < 15 && dy < 15) onTap();
+    startRef.current = null;
+  }
+
+  if (direction === "down") {
+    return (
+      <svg
+        viewBox="0 0 40 100"
+        className="fng-sub-arrow fng-gesture-arrow"
+        style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, pointerEvents: "auto" }}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+      >
+        <line x1="20" y1="2" x2="20" y2="68" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
+        <line x1="20" y1="2" x2="20" y2="68" stroke="#ef4444" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
+        <polygon points="20,100 0,63 40,63" fill="white" className="fng-head-bg" />
+        <polygon points="20,96 5,66 35,66" fill="#ef4444" className="fng-head" />
+      </svg>
+    );
+  }
+
+  // direction === "up"
+  const h = base ? (base.y - tip.y) * 100 : 0;
+  if (h <= 0) return null;
+  return (
+    <svg
+      viewBox="0 0 40 100"
+      className="fng-add-arrow fng-gesture-arrow"
+      style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, height: `${h}%`, pointerEvents: "auto" }}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
+      <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
+      <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
+      <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
+      <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
+    </svg>
+  );
+}
+
+function GestureOverlay({ items, direction }) {
+  const [committed, setCommitted] = useState(() => new Set());
+
+  function commit(i) { setCommitted(s => new Set([...s, i])); }
+  function revoke(i) { setCommitted(s => { const n = new Set(s); n.delete(i); return n; }); }
+
+  return (
+    <div className="fng-gesture-overlay">
+      {items.map((item, i) => {
+        const dotPos = direction === "down" ? item.tip : item.base;
+        if (!dotPos) return null;
+        return committed.has(i) ? (
+          <DrawnArrow key={i} tip={item.tip} base={item.base} direction={direction} onTap={() => revoke(i)} />
+        ) : (
+          <GestureDot key={i} pos={dotPos} direction={direction} onCommit={() => commit(i)} />
+        );
+      })}
+    </div>
+  );
+}
+
+function Keyboard({ onDigit, onDelete, active }) {
+  return (
+    <div className="col-copy-keyboard" style={{ pointerEvents: active ? "auto" : "none" }}>
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
+        <button key={d} className="col-copy-kb-btn" onClick={() => onDigit(d)}>
+          <span className="col-slant">{d}</span>
+        </button>
+      ))}
+      <button className="col-copy-kb-btn col-copy-kb-del" onClick={onDelete}>⌫</button>
+      <button className="col-copy-kb-btn" onClick={() => onDigit(0)}>
+        <span className="col-slant">0</span>
+      </button>
+      <div />
+    </div>
+  );
+}
+
 // ── Subtraction ───────────────────────────────────────────────────────────────
-// Flow: show → [tap] → remove (arrows) → [tap] → result → [tap] → answer
+// Flow: show (dots + Готово) → result [tap] → answer
 
 const FINGER_TIPS_R = {
   1: [{ x: 0.375, y: 0.113 }],
@@ -107,9 +238,8 @@ const FOLD_ORDER = {
   5: [0, 4, 3, 2, 1],
 };
 
-// Base (knuckle) positions of folded fingers when hand shows N raised fingers.
-// Indexed as [thumb=0, index=1, middle=2, ring=3, pinky=4] matching FINGER_TIPS_R[5].
-// null = that finger is already raised (not folded) at this count.
+// Knuckle positions of folded fingers when hand shows N raised fingers.
+// Indexed [thumb=0, index=1, middle=2, ring=3, pinky=4]. null = finger is raised.
 const FINGER_BASES_R = {
   0: [{ x: 0.494, y: 0.530 }, { x: 0.394, y: 0.550 }, { x: 0.431, y: 0.460 }, { x: 0.725, y: 0.540 }, { x: 0.619, y: 0.535 }],
   1: [{ x: 0.619, y: 0.542 }, null,                   { x: 0.719, y: 0.552 }, { x: 0.594, y: 0.462 }, { x: 0.513, y: 0.552 }],
@@ -133,11 +263,8 @@ function additionTips(startCount, endCount) {
   return raiseOrder.slice(startCount, endCount).map(i => tips[i]).filter(Boolean);
 }
 
-// Returns base positions (arrow start) for fingers being raised from startCount to endCount.
-// FINGER_TIPS_R[1..4] uses indices 0..N-1 = index..pinky (no thumb).
-// FINGER_TIPS_R[5] uses indices 0..4 = thumb,index,middle,ring,pinky.
-// FINGER_BASES_R always uses 0..4 = thumb,index,middle,ring,pinky.
-// So for endCount<5 we shift the index by +1 to skip thumb slot.
+// Returns knuckle positions for fingers being raised from startCount to endCount.
+// For endCount<5: FINGER_TIPS_R indices skip thumb, so shift base index by +1.
 function additionBases(startCount, endCount) {
   if (startCount >= endCount || endCount > 5) return [];
   const order      = FOLD_ORDER[endCount] ?? [];
@@ -155,19 +282,13 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   const [shake, setShake] = useState(false);
 
   const { a, b, result } = task;
-  const resultStr   = String(result);
+  const resultStr    = String(result);
   const startConfig  = getFingerConfig(a);
   const resultConfig = getFingerConfig(result);
 
   useEffect(() => {
     setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
-
-  function advance() {
-    if (phase === "show")   { setPhase("remove"); return; }
-    if (phase === "remove") { setPhase("result"); return; }
-    if (phase === "result") { setPhase("answer"); return; }
-  }
 
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
@@ -185,7 +306,6 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
   const hint =
     phase === "show"   ? "Было →" :
-    phase === "remove" ? `Убираем ${b} →` :
     phase === "result" ? "Стало →" :
     "Введи ответ";
 
@@ -202,78 +322,66 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   const rightStart = startConfig.right;
   const rightEnd   = resultConfig.right;
 
-  const leftCount  = (phase === "show" || phase === "remove") ? leftStart  : leftEnd;
-  const rightCount = (phase === "show" || phase === "remove") ? rightStart : rightEnd;
+  const leftCount  = phase === "show" ? leftStart  : leftEnd;
+  const rightCount = phase === "show" ? rightStart : rightEnd;
   const kbdVisible = phase === "answer" || phase === "done";
-  const tappable   = phase !== "answer" && phase !== "done";
+  const tappable   = phase === "result";
 
   const leftTips   = removalTips(leftStart, leftEnd);
   const rightTipsR = removalTips(rightStart, rightEnd);
   const rightTips  = [...rightTipsR].reverse().map(t => ({ x: 1 - t.x, y: t.y }));
 
-  function makeOverlay(tips) {
-    if (!tips.length) return null;
-    return (
-      <div className="fng-sub-finger-overlay">
-        {tips.map((tip, i) => (
-          <svg key={i} viewBox="0 0 40 100" className="fng-sub-arrow"
-               style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
-            <line x1="20" y1="2" x2="20" y2="68" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
-            <line x1="20" y1="2" x2="20" y2="68" stroke="#ef4444" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
-            <polygon points="20,100 0,63 40,63" fill="white" className="fng-head-bg" />
-            <polygon points="20,96 5,66 35,66" fill="#ef4444" className="fng-head" />
-          </svg>
-        ))}
-      </div>
-    );
-  }
+  const leftItems  = leftTips.map(tip => ({ tip, base: null }));
+  const rightItems = rightTips.map(tip => ({ tip, base: null }));
 
   return (
     <div className="fng-add-screen">
-      <div className="fng-add-top" onClick={advance} style={{ cursor: tappable ? "pointer" : "default" }}>
+      <div className="fng-add-top"
+           onClick={tappable ? () => setPhase("answer") : undefined}
+           style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-count-expr">{a} − {b} = {answerPart}</div>
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      <div className="fng-add-hands-zone" onClick={advance}
+      <div className="fng-add-hands-zone"
+           onClick={tappable ? () => setPhase("answer") : undefined}
            style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
-              {phase === "remove" && makeOverlay(leftTips)}
+              {phase === "show" && leftItems.length > 0 && (
+                <GestureOverlay key={task.cardId + "-L"} items={leftItems} direction="down" />
+              )}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
-              {phase === "remove" && makeOverlay(rightTips)}
+              {phase === "show" && rightItems.length > 0 && (
+                <GestureOverlay key={task.cardId + "-R"} items={rightItems} direction="down" />
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
-        <div className="col-copy-keyboard"
-             style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
-              <span className="col-slant">{d}</span>
-            </button>
-          ))}
-          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
-          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
-            <span className="col-slant">0</span>
-          </button>
-          <div />
+      <div className="fng-add-kbd-zone fng-kbd-relative">
+        <div style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
+          <Keyboard onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
         </div>
+        {phase === "show" && (
+          <div className="fng-ready-zone">
+            <button className="fng-ready-btn" onClick={() => setPhase("result")}>Готово</button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 // ── Large Addition (a > 5 or b > 5) ──────────────────────────────────────────
-// Flow: show → [tap] → add (arrows) → [tap] → result → [tap] → answer
+// Flow: show (dots + Готово) → result [tap] → answer
 
 function LargeAdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show");
@@ -288,12 +396,6 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
   useEffect(() => {
     setPhase("show"); setInput([]); setShake(false);
   }, [task.cardId]);
-
-  function advance() {
-    if (phase === "show")   { setPhase("add");    return; }
-    if (phase === "add")    { setPhase("result"); return; }
-    if (phase === "result") { setPhase("answer"); return; }
-  }
 
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
@@ -311,7 +413,6 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
 
   const hint =
     phase === "show"   ? `Было ${a} →` :
-    phase === "add"    ? `Добавляем ${b} →` :
     phase === "result" ? "Стало →" :
     "Введи ответ";
 
@@ -328,85 +429,67 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
   const rightStart = aConfig.right;
   const rightEnd   = resConfig.right;
 
-  const leftCount  = (phase === "show" || phase === "add") ? leftStart  : leftEnd;
-  const rightCount = (phase === "show" || phase === "add") ? rightStart : rightEnd;
+  const leftCount  = phase === "show" ? leftStart  : leftEnd;
+  const rightCount = phase === "show" ? rightStart : rightEnd;
   const kbdVisible = phase === "answer" || phase === "done";
-  const tappable   = phase !== "answer" && phase !== "done";
+  const tappable   = phase === "result";
 
+  // Addition gesture: dot at knuckle (base), arrow grows up to fingertip
   const leftTipsArr   = additionTips(leftStart, leftEnd);
   const leftBasesArr  = additionBases(leftStart, leftEnd);
-  const leftPairs     = leftTipsArr.map((tip, i) => ({ tip, base: leftBasesArr[i] })).filter(p => p.base);
+  const leftItems     = leftTipsArr.map((tip, i) => ({ tip, base: leftBasesArr[i] ?? null })).filter(item => item.base);
 
   const rightTipsArrR  = additionTips(rightStart, rightEnd);
   const rightBasesArrR = additionBases(rightStart, rightEnd);
-  const rightPairs     = [...Array(rightTipsArrR.length).keys()]
+  const rightItems     = [...Array(rightTipsArrR.length).keys()]
     .reverse()
     .map(origIdx => ({
-      tip:  { x: 1 - rightTipsArrR[origIdx].x, y: rightTipsArrR[origIdx].y },
+      tip:  { x: 1 - rightTipsArrR[origIdx].x,  y: rightTipsArrR[origIdx].y },
       base: rightBasesArrR[origIdx] ? { x: 1 - rightBasesArrR[origIdx].x, y: rightBasesArrR[origIdx].y } : null,
     }))
-    .filter(p => p.base);
-
-  function makeAddOverlay(pairs) {
-    if (!pairs.length) return null;
-    return (
-      <div className="fng-sub-finger-overlay">
-        {pairs.map(({ tip, base }, i) => {
-          const h = (base.y - tip.y) * 100;
-          if (h <= 0) return null;
-          return (
-            <svg key={i} viewBox="0 0 40 100" className="fng-add-arrow"
-                 style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, height: `${h}%` }}>
-              <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
-              <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
-              <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
-              <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
-            </svg>
-          );
-        })}
-      </div>
-    );
-  }
+    .filter(item => item.base);
 
   return (
     <div className="fng-add-screen">
-      <div className="fng-add-top" onClick={advance} style={{ cursor: tappable ? "pointer" : "default" }}>
+      <div className="fng-add-top"
+           onClick={tappable ? () => setPhase("answer") : undefined}
+           style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      <div className="fng-add-hands-zone" onClick={advance}
+      <div className="fng-add-hands-zone"
+           onClick={tappable ? () => setPhase("answer") : undefined}
            style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
-              {phase === "add" && makeAddOverlay(leftPairs)}
+              {phase === "show" && leftItems.length > 0 && (
+                <GestureOverlay key={task.cardId + "-L"} items={leftItems} direction="up" />
+              )}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
-              {phase === "add" && makeAddOverlay(rightPairs)}
+              {phase === "show" && rightItems.length > 0 && (
+                <GestureOverlay key={task.cardId + "-R"} items={rightItems} direction="up" />
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0 }}>
-        <div className="col-copy-keyboard"
-             style={{ pointerEvents: phase === "answer" ? "auto" : "none" }}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
-              <span className="col-slant">{d}</span>
-            </button>
-          ))}
-          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
-          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
-            <span className="col-slant">0</span>
-          </button>
-          <div />
+      <div className="fng-add-kbd-zone fng-kbd-relative">
+        <div style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
+          <Keyboard onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
         </div>
+        {phase === "show" && (
+          <div className="fng-ready-zone">
+            <button className="fng-ready-btn" onClick={() => setPhase("result")}>Готово</button>
+          </div>
+        )}
       </div>
     </div>
   );

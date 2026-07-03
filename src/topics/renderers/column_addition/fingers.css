@@ -263,6 +263,86 @@
 }
 
 
+/* ── Gesture overlay (жест-управляемые точки и стрелки) ─────────── */
+
+/* Overlay — pointer-events: none на контейнере, auto на дочерних элементах */
+.fng-gesture-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Gesture arrow: override pointer-events для tap-to-cancel */
+.fng-gesture-arrow {
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* Gesture dot: большая зона касания 44×44, видимая точка 18px */
+.fng-gesture-dot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fng-gesture-dot::after {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+  animation: fng-dot-pulse 1.1s ease-in-out infinite;
+}
+
+.fng-gesture-dot--down::after { background: #ef4444; }
+.fng-gesture-dot--up::after   { background: #22c55e; }
+
+@keyframes fng-dot-pulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35); }
+  50%       { transform: scale(1.3); box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.1);  }
+}
+
+/* kbd-zone с position:relative для позиционирования кнопки Готово */
+.fng-kbd-relative {
+  position: relative;
+}
+
+/* Зона кнопки Готово: поверх клавиатуры (которая прозрачна в show-фазе) */
+.fng-ready-zone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fng-ready-btn {
+  padding: 14px 52px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(20px, 5vw, 28px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
+}
+
 /* ── end FingersCount addition ───────────────────────────────────── */
 
 .fng-hand-wrap {
