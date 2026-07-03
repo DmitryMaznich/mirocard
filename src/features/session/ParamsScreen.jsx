@@ -28,13 +28,15 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
   const { markSessionStart } = useTimer();
   const fixedPortions = activeText.fixedPortions ?? null;
-  const [portions, setPortions] = useState(1);
+  const basePortions = activeText.portions ?? 1;
+  const maxPortions = activeText.maxPortions ?? 4;
+  const [portions, setPortions] = useState(basePortions);
 
   useEffect(() => {
     let cancelled = false;
-    getRecipeSettings(topicId).then((s) => { if (!cancelled) setPortions(s.portions ?? 1); }).catch(() => {});
+    getRecipeSettings(topicId).then((s) => { if (!cancelled) setPortions(s.portions ?? basePortions); }).catch(() => {});
     return () => { cancelled = true; };
-  }, [topicId]);
+  }, [topicId, basePortions]);
 
   function startSession() {
     const finalPortions = fixedPortions || portions;
@@ -72,7 +74,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
               : <div className="all-texts-portions">
                   <button className="all-texts-portions-btn" onClick={() => setPortions((p) => Math.max(1, p - 1))} disabled={portions <= 1}>−</button>
                   <span className="all-texts-portions-value">{portions}</span>
-                  <button className="all-texts-portions-btn" onClick={() => setPortions((p) => Math.min(20, p + 1))} disabled={portions >= 20}>+</button>
+                  <button className="all-texts-portions-btn" onClick={() => setPortions((p) => Math.min(maxPortions, p + 1))} disabled={portions >= maxPortions}>+</button>
                 </div>
             }
           </div>
