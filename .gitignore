@@ -54,6 +54,9 @@ __pycache__/
 chemex_review.html
 mockup-pair-intro.html
 scripts/_test_*.mjs
+scripts/_build_*.mjs
+scripts/_trace_*.mjs
+scripts/*.svg
 
 # Binary / document assets (not tracked in git)
 *.webp
