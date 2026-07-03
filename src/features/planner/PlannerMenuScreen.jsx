@@ -273,14 +273,19 @@ function AddToPlanSheet({ recipe, plan, initialDayIndex = 0, initialMealType = n
           )}
         </div>
 
-        <button
-          type="button"
-          className="add-sheet__confirm"
-          disabled={mealType === null}
-          onClick={() => onConfirm(dayIndex, mealType, portions)}
-        >
-          Добавить в меню
-        </button>
+        <div className="add-sheet__actions">
+          <button type="button" className="add-sheet__cancel" onClick={onClose}>
+            Отменить
+          </button>
+          <button
+            type="button"
+            className="add-sheet__confirm"
+            disabled={mealType === null}
+            onClick={() => onConfirm(dayIndex, mealType, portions)}
+          >
+            Добавить в меню
+          </button>
+        </div>
       </div>
     </div>
   );
