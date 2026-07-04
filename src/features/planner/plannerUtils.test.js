@@ -8,7 +8,7 @@ import {
   isRecipeSelected,
   selectRecipe,
   deselectRecipe,
-  toggleMealAssignment,
+  setMealAssignment,
   setSelectedPortions,
   resetPlan,
   normalizePlan,
@@ -92,9 +92,9 @@ describe('deselectRecipe', () => {
     expect(updated.selectedRecipes).toEqual([]);
   });
 
-  it('drops the recipe\'s meal tags and chosen portions', () => {
+  it('drops the recipe\'s meal tag and chosen portions', () => {
     let plan = selectRecipe(createPlan('s1'), 'soup_01');
-    plan = toggleMealAssignment(plan, 'soup_01', 'обед');
+    plan = setMealAssignment(plan, 'soup_01', 'обед');
     plan = setSelectedPortions(plan, 'soup_01', 6);
 
     const updated = deselectRecipe(plan, 'soup_01');
@@ -105,12 +105,12 @@ describe('deselectRecipe', () => {
   it('leaves other recipes and their state untouched', () => {
     let plan = selectRecipe(createPlan('s1'), 'soup_01');
     plan = selectRecipe(plan, 'salad_01');
-    plan = toggleMealAssignment(plan, 'soup_01', 'обед');
-    plan = toggleMealAssignment(plan, 'salad_01', 'ужин');
+    plan = setMealAssignment(plan, 'soup_01', 'обед');
+    plan = setMealAssignment(plan, 'salad_01', 'ужин');
 
     const updated = deselectRecipe(plan, 'soup_01');
     expect(updated.selectedRecipes).toEqual(['salad_01']);
-    expect(updated.mealAssignments['salad_01']).toEqual(['ужин']);
+    expect(updated.mealAssignments['salad_01']).toBe('ужин');
   });
 
   it('is a no-op when the recipe was never selected', () => {
@@ -120,34 +120,34 @@ describe('deselectRecipe', () => {
   });
 });
 
-describe('toggleMealAssignment', () => {
-  it('adds a meal tag when not present', () => {
-    const plan = toggleMealAssignment(createPlan('s1'), 'soup_01', 'обед');
-    expect(plan.mealAssignments['soup_01']).toEqual(['обед']);
+describe('setMealAssignment', () => {
+  it('sets a meal tag when not present', () => {
+    const plan = setMealAssignment(createPlan('s1'), 'soup_01', 'обед');
+    expect(plan.mealAssignments['soup_01']).toBe('обед');
   });
 
-  it('removes a meal tag when already present (toggle off)', () => {
-    let plan = toggleMealAssignment(createPlan('s1'), 'soup_01', 'обед');
-    plan = toggleMealAssignment(plan, 'soup_01', 'обед');
-    expect(plan.mealAssignments['soup_01']).toEqual([]);
+  it('clears the meal tag when tapping the already-active one (toggle off)', () => {
+    let plan = setMealAssignment(createPlan('s1'), 'soup_01', 'обед');
+    plan = setMealAssignment(plan, 'soup_01', 'обед');
+    expect(plan.mealAssignments['soup_01']).toBeUndefined();
   });
 
-  it('supports multiple meal tags on the same recipe', () => {
-    let plan = toggleMealAssignment(createPlan('s1'), 'soup_01', 'обед');
-    plan = toggleMealAssignment(plan, 'soup_01', 'ужин');
-    expect(plan.mealAssignments['soup_01']).toEqual(['обед', 'ужин']);
+  it('replaces the previous meal tag — only one is possible at a time', () => {
+    let plan = setMealAssignment(createPlan('s1'), 'soup_01', 'обед');
+    plan = setMealAssignment(plan, 'soup_01', 'ужин');
+    expect(plan.mealAssignments['soup_01']).toBe('ужин');
   });
 
   it('does not affect other recipes\' tags', () => {
-    let plan = toggleMealAssignment(createPlan('s1'), 'soup_01', 'обед');
-    plan = toggleMealAssignment(plan, 'salad_01', 'ужин');
-    expect(plan.mealAssignments['soup_01']).toEqual(['обед']);
-    expect(plan.mealAssignments['salad_01']).toEqual(['ужин']);
+    let plan = setMealAssignment(createPlan('s1'), 'soup_01', 'обед');
+    plan = setMealAssignment(plan, 'salad_01', 'ужин');
+    expect(plan.mealAssignments['soup_01']).toBe('обед');
+    expect(plan.mealAssignments['salad_01']).toBe('ужин');
   });
 
   it('does not mutate the original plan', () => {
     const plan = createPlan('s1');
-    toggleMealAssignment(plan, 'soup_01', 'обед');
+    setMealAssignment(plan, 'soup_01', 'обед');
     expect(plan.mealAssignments).toEqual({});
   });
 });
@@ -241,14 +241,11 @@ describe('buildSelectedIngredientsSummary', () => {
     expect(summary).toContainEqual({ product: 'картошка', qty: 8, unit: 'шт' });
   });
 
-  it('is independent of how many meal types the recipe is tagged for', () => {
+  it('is independent of which meal type the recipe is tagged for', () => {
     let plan = selectRecipe(createPlan('s1'), 'kompot_01');
     plan = setSelectedPortions(plan, 'kompot_01', 4); // double the base of 2
-    plan = toggleMealAssignment(plan, 'kompot_01', 'завтрак');
-    plan = toggleMealAssignment(plan, 'kompot_01', 'перекус');
+    plan = setMealAssignment(plan, 'kompot_01', 'завтрак');
     const summary = buildSelectedIngredientsSummary(plan, [kompot]);
-    // Tagged for two meals, but the batch is still just one — 4 portions,
-    // not 8 — because meal tags never affect quantities.
     expect(summary).toContainEqual({ product: 'ягоды', qty: 2, unit: 'стакан' });
   });
 
@@ -315,7 +312,7 @@ describe('resetPlan', () => {
 
   it('does not mutate or depend on any existing in-progress plan', () => {
     let plan = selectRecipe(createPlan('student1'), 'soup_01');
-    plan = toggleMealAssignment(plan, 'soup_01', 'обед');
+    plan = setMealAssignment(plan, 'soup_01', 'обед');
     const fresh = resetPlan('student1');
     expect(fresh.selectedRecipes).toEqual([]);
     expect(fresh.mealAssignments).toEqual({});
@@ -338,12 +335,25 @@ describe('normalizePlan', () => {
 
   it('leaves an already-normalized plan\'s fields untouched', () => {
     let plan = selectRecipe(createPlan('s1'), 'soup_01');
-    plan = toggleMealAssignment(plan, 'soup_01', 'обед');
+    plan = setMealAssignment(plan, 'soup_01', 'обед');
     plan = setSelectedPortions(plan, 'soup_01', 6);
     const normalized = normalizePlan(plan);
     expect(normalized.selectedRecipes).toEqual(['soup_01']);
-    expect(normalized.mealAssignments).toEqual({ soup_01: ['обед'] });
+    expect(normalized.mealAssignments).toEqual({ soup_01: 'обед' });
     expect(normalized.selectedPortions).toEqual({ soup_01: 6 });
+  });
+
+  it('collapses a legacy multi-select mealAssignments array to its last entry', () => {
+    const plan = {
+      id: 'p1',
+      studentId: 's1',
+      status: 'draft',
+      selectedRecipes: ['soup_01'],
+      mealAssignments: { soup_01: ['завтрак', 'перекус'] },
+      selectedPortions: {},
+    };
+    const normalized = normalizePlan(plan);
+    expect(normalized.mealAssignments).toEqual({ soup_01: 'перекус' });
   });
 
   describe('legacy (day-based) plan migration', () => {
@@ -356,7 +366,7 @@ describe('normalizePlan', () => {
       };
       const normalized = normalizePlan(legacy);
       expect(normalized.days).toBeUndefined();
-      expect(normalized.mealAssignments['oatmeal_01']).toEqual(['завтрак']);
+      expect(normalized.mealAssignments['oatmeal_01']).toBe('завтрак');
       expect(normalized.selectedPortions['oatmeal_01']).toBe(3);
     });
 
@@ -369,38 +379,24 @@ describe('normalizePlan', () => {
         days: [{ dayIndex: 0, meals: { завтрак: ['oatmeal_01'], обед: [], ужин: [], перекус: [] } }],
       };
       const normalized = normalizePlan(legacy);
-      expect(normalized.mealAssignments['oatmeal_01']).toEqual(['завтрак']);
+      expect(normalized.mealAssignments['oatmeal_01']).toBe('завтрак');
       expect(normalized.selectedPortions['oatmeal_01']).toBe(3);
     });
 
-    it('dedupes the same meal type across multiple days into one tag', () => {
-      const legacy = {
-        id: 'p1',
-        studentId: 's1',
-        status: 'draft',
-        days: [
-          { dayIndex: 0, meals: { завтрак: [], обед: [{ textId: 'soup_01', portions: 2 }], ужин: [], перекус: [] } },
-          { dayIndex: 1, meals: { завтрак: [], обед: [{ textId: 'soup_01', portions: 5 }], ужин: [], перекус: [] } },
-        ],
-      };
-      const normalized = normalizePlan(legacy);
-      expect(normalized.mealAssignments['soup_01']).toEqual(['обед']);
-      // Last placement seen wins for the carried-forward portions.
-      expect(normalized.selectedPortions['soup_01']).toBe(5);
-    });
-
-    it('collects distinct meal types placed on different days for the same recipe', () => {
+    it('keeps only the last-placed meal type when the same recipe was placed under multiple days/meals', () => {
       const legacy = {
         id: 'p1',
         studentId: 's1',
         status: 'draft',
         days: [
           { dayIndex: 0, meals: { завтрак: [{ textId: 'soup_01', portions: 2 }], обед: [], ужин: [], перекус: [] } },
-          { dayIndex: 1, meals: { завтрак: [], обед: [], ужин: [{ textId: 'soup_01', portions: 2 }], перекус: [] } },
+          { dayIndex: 1, meals: { завтрак: [], обед: [], ужин: [{ textId: 'soup_01', portions: 5 }], перекус: [] } },
         ],
       };
       const normalized = normalizePlan(legacy);
-      expect(normalized.mealAssignments['soup_01']).toEqual(['завтрак', 'ужин']);
+      // Last placement seen wins for both the meal type and the portions.
+      expect(normalized.mealAssignments['soup_01']).toBe('ужин');
+      expect(normalized.selectedPortions['soup_01']).toBe(5);
     });
 
     it('migrates a legacy напитки slot into перекус', () => {
@@ -418,8 +414,8 @@ describe('normalizePlan', () => {
         }],
       };
       const normalized = normalizePlan(legacy);
-      expect(normalized.mealAssignments['apple_01']).toEqual(['перекус']);
-      expect(normalized.mealAssignments['kompot_01']).toEqual(['перекус']);
+      expect(normalized.mealAssignments['apple_01']).toBe('перекус');
+      expect(normalized.mealAssignments['kompot_01']).toBe('перекус');
     });
 
     it('backfills selectedRecipes from existing placements when absent', () => {

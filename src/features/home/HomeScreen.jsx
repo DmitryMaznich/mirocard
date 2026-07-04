@@ -230,7 +230,7 @@ function PlannerTab({ student, setScreen }) {
   const hasSelection = !!existingPlan && existingPlan.selectedRecipes.length > 0;
   const selectedCount = hasSelection ? existingPlan.selectedRecipes.length : 0;
   const scheduledCount = hasSelection
-    ? existingPlan.selectedRecipes.filter((id) => (existingPlan.mealAssignments?.[id]?.length ?? 0) > 0).length
+    ? existingPlan.selectedRecipes.filter((id) => existingPlan.mealAssignments?.[id]).length
     : 0;
 
   return (

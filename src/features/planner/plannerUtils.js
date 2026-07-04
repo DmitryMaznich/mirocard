@@ -45,19 +45,21 @@ export function deselectRecipe(plan, textId) {
 }
 
 /**
- * Toggles whether a recipe is tagged for a given meal type. Meal tags are
- * purely informational ("when to eat it") — they never affect ingredient
- * or shopping-list quantities, which are driven solely by selectedPortions
- * and ingredientDecisions (see buildSelectedIngredientsSummary).
+ * Sets which single meal type a recipe is tagged for ("when to eat it") —
+ * tapping the already-active meal type clears it back to none. Only one
+ * meal type can be assigned per recipe at a time. Purely informational:
+ * it never affects ingredient or shopping-list quantities, which are
+ * driven solely by selectedPortions and ingredientDecisions (see
+ * buildSelectedIngredientsSummary).
  */
-export function toggleMealAssignment(plan, textId, mealType) {
-  const current = plan.mealAssignments[textId] ?? [];
-  const next = current.includes(mealType)
-    ? current.filter((mt) => mt !== mealType)
-    : [...current, mealType];
+export function setMealAssignment(plan, textId, mealType) {
+  const current = plan.mealAssignments[textId] ?? null;
+  const next = { ...plan.mealAssignments };
+  if (current === mealType) delete next[textId];
+  else next[textId] = mealType;
   return {
     ...plan,
-    mealAssignments: { ...plan.mealAssignments, [textId]: next },
+    mealAssignments: next,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -133,13 +135,14 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
  * Upgrades a plan saved in an old format so old saved plans keep loading
  * correctly:
  * - a legacy day/meal-placement plan (plan.days) is folded into the flat
- *   model: every placement's meal type becomes a mealAssignments tag
- *   (deduplicated per recipe — the day it was on doesn't survive), and its
- *   portions become that recipe's selectedPortions (last placement seen
- *   wins if a recipe was placed more than once with different amounts).
+ *   model: each recipe gets at most one meal-type tag (last placement seen
+ *   wins if it was placed under more than one meal type), and its portions
+ *   become that recipe's selectedPortions (also last placement wins).
  * - a legacy напитки meal slot (no longer a valid meal type — it's a
  *   browsing-only tag, see RECIPE_TAGS) is folded into перекус, the
  *   least-wrong default for a drink with no real meal assignment.
+ * - a legacy multi-select mealAssignments array (briefly the shape before
+ *   this became single-select) collapses to its last entry.
  * - a missing selectedRecipes pool is backfilled from whatever recipes had
  *   placements, so an in-progress menu doesn't lose its pool view.
  */
@@ -149,6 +152,14 @@ export function getPlanRecipes(plan) {
 
 export function countPlanRecipes(plan) {
   return (plan?.selectedRecipes ?? []).length;
+}
+
+function collapseMealAssignments(raw) {
+  const collapsed = {};
+  for (const [textId, value] of Object.entries(raw ?? {})) {
+    collapsed[textId] = Array.isArray(value) ? (value[value.length - 1] ?? null) : value;
+  }
+  return collapsed;
 }
 
 export function normalizePlan(plan) {
@@ -167,10 +178,7 @@ export function normalizePlan(plan) {
           const entry = typeof rawEntry === 'string'
             ? { textId: rawEntry, portions: legacyMultiplier }
             : rawEntry;
-          const tags = mealAssignments[entry.textId] ?? [];
-          if (!tags.includes(normalizedType)) {
-            mealAssignments[entry.textId] = [...tags, normalizedType];
-          }
+          mealAssignments[entry.textId] = normalizedType;
           if (entry.portions != null) selectedPortions[entry.textId] = entry.portions;
         }
       }
@@ -190,7 +198,7 @@ export function normalizePlan(plan) {
 
   return {
     ...plan,
-    mealAssignments: plan.mealAssignments ?? {},
+    mealAssignments: collapseMealAssignments(plan.mealAssignments),
     selectedPortions: plan.selectedPortions ?? {},
     ingredientDecisions: plan.ingredientDecisions ?? {},
   };

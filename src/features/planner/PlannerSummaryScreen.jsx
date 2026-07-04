@@ -79,7 +79,7 @@ export default function PlannerSummaryScreen() {
         <div className="plan-recipes-summary">
           {plan.selectedRecipes.map((textId) => {
             const meta = recipeMeta[textId];
-            const tags = plan.mealAssignments[textId] ?? [];
+            const meal = plan.mealAssignments[textId] ?? null;
             const portions = meta
               ? (meta.fixedPortions || plan.selectedPortions[textId] || meta.portions || 1)
               : null;
@@ -87,7 +87,7 @@ export default function PlannerSummaryScreen() {
               <div key={textId} className="plan-recipe-summary-row">
                 <span className="plan-recipe-summary-row__title">{meta?.title ?? textId}</span>
                 <span className="plan-recipe-summary-row__meta">
-                  {tags.length > 0 ? tags.join(', ') : '—'}
+                  {meal ?? '—'}
                   {portions != null ? ` · ${portions} порц.` : ''}
                 </span>
               </div>

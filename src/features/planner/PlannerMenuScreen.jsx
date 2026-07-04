@@ -7,7 +7,7 @@ import { parseRecipeMetadata } from './recipeParser.js';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
-  toggleMealAssignment, setSelectedPortions,
+  setMealAssignment, setSelectedPortions,
   setIngredientDecision, buildSelectedIngredientsSummary,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
@@ -248,7 +248,7 @@ function RecipeBrowser({ plan, allRecipes, loading, selectedCount, onView, onCoo
 
 // ─── Selected pool (Отобрано) ─────────────────────────────────────────────────
 
-function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselect, onViewRecipe }) {
+function SelectedPool({ plan, allRecipes, onSetMeal, onSetPortions, onDeselect, onViewRecipe }) {
   if (plan.selectedRecipes.length === 0) return null;
 
   return (
@@ -260,7 +260,7 @@ function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselec
           if (!recipe) return null;
           const { fixedPortions, portions: basePortions, maxPortions } = recipe;
           const chosenPortions = fixedPortions || plan.selectedPortions[textId] || basePortions || 1;
-          const assignedMeals = plan.mealAssignments[textId] ?? [];
+          const assignedMeal = plan.mealAssignments[textId] ?? null;
           return (
             <div key={textId} className="menu-pool__row">
               <div className="menu-pool__row-top">
@@ -295,13 +295,16 @@ function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselec
                 </button>
               </div>
               <div className="menu-pool__row-controls">
-                <div className="menu-pool__meal-grid" role="group" aria-label="Приёмы пищи">
+                <span className="menu-pool__meal-label">Готовим на:</span>
+                <div className="menu-pool__meal-grid" role="radiogroup" aria-label="Приём пищи">
                   {MEAL_TYPES.map((mt) => (
                     <button
                       key={mt}
                       type="button"
-                      className={`menu-pool__meal-btn${assignedMeals.includes(mt) ? ' menu-pool__meal-btn--active' : ''}`}
-                      onClick={() => onToggleMeal(textId, mt)}
+                      role="radio"
+                      aria-checked={assignedMeal === mt}
+                      className={`menu-pool__meal-btn${assignedMeal === mt ? ' menu-pool__meal-btn--active' : ''}`}
+                      onClick={() => onSetMeal(textId, mt)}
                     >
                       {mt}
                     </button>
@@ -377,7 +380,7 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
 
 // ─── Plan view (pool review) ──────────────────────────────────────────────────
 
-function PlanView({ plan, allRecipes, onToggleMeal, onSetPortions, onViewRecipe, onDeselect, onSetIngredientDecision, onReset, onBack }) {
+function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, onDeselect, onSetIngredientDecision, onReset, onBack }) {
   const [confirmReset, setConfirmReset] = useState(false);
 
   return (
@@ -391,7 +394,7 @@ function PlanView({ plan, allRecipes, onToggleMeal, onSetPortions, onViewRecipe,
         <SelectedPool
           plan={plan}
           allRecipes={allRecipes}
-          onToggleMeal={onToggleMeal}
+          onSetMeal={onSetMeal}
           onSetPortions={onSetPortions}
           onDeselect={onDeselect}
           onViewRecipe={onViewRecipe}
@@ -541,8 +544,8 @@ export default function PlannerMenuScreen() {
       <PlanView
         plan={plan}
         allRecipes={allRecipes}
-        onToggleMeal={(textId, mealType) =>
-          setPlan((p) => toggleMealAssignment(p, textId, mealType))
+        onSetMeal={(textId, mealType) =>
+          setPlan((p) => setMealAssignment(p, textId, mealType))
         }
         onSetPortions={(textId, portions) =>
           setPlan((p) => setSelectedPortions(p, textId, portions))
