@@ -14,6 +14,8 @@ import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
 function pluralizePortions(n) {
   const mod10 = n % 10;
   const mod100 = n % 100;
@@ -69,7 +71,7 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
       </div>
 
       <div className="planner-footer">
-        <button className="recipe-detail-add" onClick={() => onToggleSelect(recipe)}>
+        <button className="recipe-detail-add" onClick={onToggleSelect}>
           {selected ? '✓ Убрать из меню' : '+ Добавить в меню'}
         </button>
       </div>
@@ -77,7 +79,7 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
   );
 }
 
-// ─── Recipe card (tap to view, or select for the menu pool) ──────────────────
+// ─── Recipe card (tap to view, or select for a meal slot) ────────────────────
 
 function PlayIcon() {
   return (
@@ -96,7 +98,7 @@ function TrashIcon() {
   );
 }
 
-function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
+function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect }) {
   const { topicId, text, ingredients, status } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
 
@@ -111,7 +113,8 @@ function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
           <span className={`recipe-gallery-card__status recipe-gallery-card__status--${status}`}>
             {status === 'final' ? 'Финал' : 'Черновик'}
           </span>
-          {selected && <span className="recipe-gallery-card__badge">✓</span>}
+          {isHere && <span className="recipe-gallery-card__badge">✓</span>}
+          {otherMeal && <span className="recipe-gallery-card__badge recipe-gallery-card__badge--other">{otherMeal}</span>}
         </span>
         <span className="recipe-gallery-card__info">
           <span className="recipe-gallery-card__title">{getTopicTitle(text.title)}</span>
@@ -130,10 +133,10 @@ function RecipeCard({ recipe, selected, onView, onCook, onToggleSelect }) {
         </button>
         <button
           type="button"
-          className={`recipe-gallery-card__add-btn${selected ? ' recipe-gallery-card__add-btn--active' : ''}`}
-          onClick={() => onToggleSelect(recipe)}
+          className={`recipe-gallery-card__add-btn${isHere ? ' recipe-gallery-card__add-btn--active' : ''}`}
+          onClick={onToggleSelect}
         >
-          {selected ? '✓ В меню' : '+ Добавить'}
+          {isHere ? '✓ В меню' : otherMeal ? `Перенести из «${otherMeal}»` : '+ Добавить'}
         </button>
       </div>
     </div>
@@ -184,36 +187,33 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
   );
 }
 
-// ─── Recipe browser (category tabs + grid) ───────────────────────────────────
+// ─── Recipe picker (category tabs + grid, opened for one meal slot) ─────────
 
 const TAB_ALL = 'all';
 
-function RecipeBrowser({ plan, allRecipes, loading, selectedCount, onView, onCook, onOpenPlan, onBack, onToggleSelect }) {
-  const [mealType, setMealType] = useState(TAB_ALL);
-  const filtered = mealType === TAB_ALL ? allRecipes : allRecipes.filter((r) => r.tags.includes(mealType));
+function RecipePicker({ plan, allRecipes, loading, targetMealType, onView, onCook, onBack, onToggleSelect }) {
+  const [activeTab, setActiveTab] = useState(targetMealType);
+  const filtered = activeTab === TAB_ALL ? allRecipes : allRecipes.filter((r) => r.tags.includes(activeTab));
 
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
         <button className="planner-header__back" onClick={onBack}><BackArrowIcon size={22} /></button>
-        <h1 className="planner-header__title">Рецепты</h1>
-        <button className="planner-plan-pill" onClick={onOpenPlan}>
-          Меню{selectedCount > 0 ? ` · ${selectedCount}` : ''}
-        </button>
+        <h1 className="planner-header__title">{MEAL_ICONS[targetMealType]} {capitalize(targetMealType)}</h1>
       </div>
 
       <div className="gallery-meal-tabs">
         <button
-          className={`gallery-meal-tab${mealType === TAB_ALL ? ' gallery-meal-tab--active' : ''}`}
-          onClick={() => setMealType(TAB_ALL)}
+          className={`gallery-meal-tab${activeTab === TAB_ALL ? ' gallery-meal-tab--active' : ''}`}
+          onClick={() => setActiveTab(TAB_ALL)}
         >
           Все
         </button>
         {RECIPE_TAGS.map((mt) => (
           <button
             key={mt}
-            className={`gallery-meal-tab${mealType === mt ? ' gallery-meal-tab--active' : ''}`}
-            onClick={() => setMealType(mt)}
+            className={`gallery-meal-tab${activeTab === mt ? ' gallery-meal-tab--active' : ''}`}
+            onClick={() => setActiveTab(mt)}
           >
             {MEAL_ICONS[mt]} {mt}
           </button>
@@ -224,95 +224,88 @@ function RecipeBrowser({ plan, allRecipes, loading, selectedCount, onView, onCoo
         <div className="planner-loading">Загружаем рецепты…</div>
       ) : filtered.length === 0 ? (
         <div className="gallery-empty">
-          {mealType === TAB_ALL ? 'Рецептов пока нет' : `Нет рецептов для «${mealType}»`}
+          {activeTab === TAB_ALL ? 'Рецептов пока нет' : `Нет рецептов для «${activeTab}»`}
         </div>
       ) : (
         <div className="recipe-gallery-grid">
-          {filtered.map((recipe) => (
-            <RecipeCard
-              key={`${recipe.topicId}_${recipe.text.id}`}
-              recipe={recipe}
-              selected={isRecipeSelected(plan, recipe.text.id)}
-              onView={() => onView(recipe)}
-              onCook={onCook}
-              onToggleSelect={onToggleSelect}
-            />
-          ))}
+          {filtered.map((recipe) => {
+            const assigned = plan.mealAssignments[recipe.text.id] ?? null;
+            const isHere = isRecipeSelected(plan, recipe.text.id) && assigned === targetMealType;
+            const otherMeal = isRecipeSelected(plan, recipe.text.id) && assigned && assigned !== targetMealType ? assigned : null;
+            return (
+              <RecipeCard
+                key={`${recipe.topicId}_${recipe.text.id}`}
+                recipe={recipe}
+                isHere={isHere}
+                otherMeal={otherMeal}
+                onView={() => onView(recipe)}
+                onCook={onCook}
+                onToggleSelect={() => onToggleSelect(recipe, targetMealType)}
+              />
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-// ─── Selected pool (Отобрано) ─────────────────────────────────────────────────
+// ─── Meal slot section (one of the four question blocks) ────────────────────
 
-function SelectedPool({ plan, allRecipes, onSetMeal, onSetPortions, onDeselect, onViewRecipe }) {
-  if (plan.selectedRecipes.length === 0) return null;
+function MealSlotSection({ mealType, plan, allRecipes, onSetPortions, onDeselect, onViewRecipe, onOpenPicker }) {
+  const recipesHere = plan.selectedRecipes.filter((textId) => plan.mealAssignments[textId] === mealType);
 
   return (
     <div className="menu-pool">
-      <h2 className="menu-pool__title">Отобрано</h2>
-      <div className="menu-pool__list">
-        {plan.selectedRecipes.map((textId) => {
-          const recipe = allRecipes.find((r) => r.text.id === textId);
-          if (!recipe) return null;
-          const { fixedPortions, portions: basePortions, maxPortions } = recipe;
-          const chosenPortions = fixedPortions || plan.selectedPortions[textId] || basePortions || 1;
-          const assignedMeal = plan.mealAssignments[textId] ?? null;
-          return (
-            <div key={textId} className="menu-pool__row">
-              <div className="menu-pool__row-top">
-                <button className="menu-pool__name" onClick={() => onViewRecipe(recipe)}>
-                  <span className="menu-pool__title-text">{getTopicTitle(recipe.text.title)}</span>
-                </button>
-                {fixedPortions ? (
-                  <span className="menu-pool__fixed">🔒 {fixedPortions}</span>
-                ) : (
-                  <div className="menu-pool__stepper">
-                    <button
-                      type="button"
-                      disabled={chosenPortions <= 1}
-                      onClick={() => onSetPortions(textId, Math.max(1, chosenPortions - 1))}
-                      aria-label="Меньше порций"
-                    >
-                      −
-                    </button>
-                    <span className="menu-pool__stepper-value">{chosenPortions}</span>
-                    <button
-                      type="button"
-                      disabled={chosenPortions >= maxPortions}
-                      onClick={() => onSetPortions(textId, Math.min(maxPortions, chosenPortions + 1))}
-                      aria-label="Больше порций"
-                    >
-                      +
-                    </button>
-                  </div>
-                )}
-                <button type="button" className="menu-pool__remove" onClick={() => onDeselect(textId)} aria-label="Убрать">
-                  <TrashIcon />
-                </button>
-              </div>
-              <div className="menu-pool__row-controls">
-                <span className="menu-pool__meal-label">Готовим на:</span>
-                <div className="menu-pool__meal-grid" role="radiogroup" aria-label="Приём пищи">
-                  {MEAL_TYPES.map((mt) => (
-                    <button
-                      key={mt}
-                      type="button"
-                      role="radio"
-                      aria-checked={assignedMeal === mt}
-                      className={`menu-pool__meal-btn${assignedMeal === mt ? ' menu-pool__meal-btn--active' : ''}`}
-                      onClick={() => onSetMeal(textId, mt)}
-                    >
-                      {mt}
-                    </button>
-                  ))}
+      <h2 className="menu-pool__title">{MEAL_ICONS[mealType]} {capitalize(mealType)}</h2>
+      {recipesHere.length > 0 && (
+        <div className="menu-pool__list">
+          {recipesHere.map((textId) => {
+            const recipe = allRecipes.find((r) => r.text.id === textId);
+            if (!recipe) return null;
+            const { fixedPortions, portions: basePortions, maxPortions } = recipe;
+            const chosenPortions = fixedPortions || plan.selectedPortions[textId] || basePortions || 1;
+            return (
+              <div key={textId} className="menu-pool__row">
+                <div className="menu-pool__row-top">
+                  <button className="menu-pool__name" onClick={() => onViewRecipe(recipe, mealType)}>
+                    <span className="menu-pool__title-text">{getTopicTitle(recipe.text.title)}</span>
+                  </button>
+                  {fixedPortions ? (
+                    <span className="menu-pool__fixed">🔒 {fixedPortions}</span>
+                  ) : (
+                    <div className="menu-pool__stepper">
+                      <button
+                        type="button"
+                        disabled={chosenPortions <= 1}
+                        onClick={() => onSetPortions(textId, Math.max(1, chosenPortions - 1))}
+                        aria-label="Меньше порций"
+                      >
+                        −
+                      </button>
+                      <span className="menu-pool__stepper-value">{chosenPortions}</span>
+                      <button
+                        type="button"
+                        disabled={chosenPortions >= maxPortions}
+                        onClick={() => onSetPortions(textId, Math.min(maxPortions, chosenPortions + 1))}
+                        aria-label="Больше порций"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+                  <button type="button" className="menu-pool__remove" onClick={() => onDeselect(textId)} aria-label="Убрать">
+                    <TrashIcon />
+                  </button>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
+      <button type="button" className="menu-slot-add-btn" onClick={() => onOpenPicker(mealType)}>
+        + Добавить рецепт
+      </button>
     </div>
   );
 }
@@ -374,9 +367,9 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
   );
 }
 
-// ─── Plan view (pool review) ──────────────────────────────────────────────────
+// ─── Menu landing view (the one Меню page: slots + ingredients + footer) ────
 
-function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, onDeselect, onSetIngredientDecision, onReset, onBack, onGoShopping, onSendToStudent }) {
+function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRecipe, onOpenPicker, onSetIngredientDecision, onReset, onBack, onGoShopping, onSendToStudent }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -409,14 +402,18 @@ function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, on
       </div>
 
       <div className="planner-body">
-        <SelectedPool
-          plan={plan}
-          allRecipes={allRecipes}
-          onSetMeal={onSetMeal}
-          onSetPortions={onSetPortions}
-          onDeselect={onDeselect}
-          onViewRecipe={onViewRecipe}
-        />
+        {MEAL_TYPES.map((mealType) => (
+          <MealSlotSection
+            key={mealType}
+            mealType={mealType}
+            plan={plan}
+            allRecipes={allRecipes}
+            onSetPortions={onSetPortions}
+            onDeselect={onDeselect}
+            onViewRecipe={onViewRecipe}
+            onOpenPicker={onOpenPicker}
+          />
+        ))}
         <MenuIngredientsSummary
           plan={plan}
           allRecipes={allRecipes}
@@ -425,8 +422,6 @@ function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, on
         <button type="button" className="menu-reset-link" onClick={() => setConfirmReset(true)}>
           Начать меню заново
         </button>
-        {/* Minimized pending a redesign — kept working but out of the way
-            of the primary Меню -> Покупки flow. */}
         {sendError && <div className="menu-send-error">{sendError}</div>}
         {sent ? (
           <div className="menu-send-link menu-send-link--sent">✓ Отправлено ученику</div>
@@ -478,27 +473,22 @@ export default function PlannerMenuScreen() {
   const setActiveText = useAppStore((s) => s.setActiveText);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
-  const plannerInitialView = useAppStore((s) => s.plannerInitialView);
-  const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
 
   const [plan, setPlan] = useState(null);
   const [allRecipes, setAllRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
 
-  // view: 'recipes' | 'plan' | 'detail'
-  const [view, setView] = useState(() => plannerInitialView ?? 'recipes');
+  // view: 'menu' | 'picker' | 'detail'
+  const [view, setView] = useState('menu');
+  const [pickerMealType, setPickerMealType] = useState(null);
   const [detailRecipe, setDetailRecipe] = useState(null);
-  const [detailPrev, setDetailPrev] = useState('recipes');
-  // Recipe currently awaiting a portions choice before it's added to the
-  // pool — set only when adding (never when removing) and only for
-  // recipes where portions is an actual choice (not fixed_portions).
+  const [detailPrev, setDetailPrev] = useState('menu');
+  const [detailMealType, setDetailMealType] = useState(null);
+  // Recipe (+ the meal slot it's being added for) currently awaiting a
+  // portions choice before it's added — set only when adding (never when
+  // removing) and only for recipes where portions is an actual choice (not
+  // fixed_portions).
   const [portionsPrompt, setPortionsPrompt] = useState(null);
-
-  // Consume the hub's requested initial view once, so a later visit
-  // (without the hub setting it again) defaults back to 'recipes'.
-  useEffect(() => {
-    if (plannerInitialView) setPlannerInitialView(null);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load saved plan
   useEffect(() => {
@@ -526,32 +516,50 @@ export default function PlannerMenuScreen() {
     return () => { cancelled = true; };
   }, [topicRecords]);
 
-  function openDetail(recipe, from) {
+  function openPicker(mealType) {
+    setPickerMealType(mealType);
+    setView('picker');
+  }
+
+  function openDetail(recipe, from, mealType) {
     setDetailRecipe(recipe);
     setDetailPrev(from);
+    setDetailMealType(mealType);
     setView('detail');
   }
 
-  // Removing needs no prompt. Adding a fixed_portions recipe has nothing
-  // to choose (the batch size is inherent to the dish), so it's added
-  // immediately too. Everything else asks for portions first, so the
-  // count is always something the user actually chose — never a silent
-  // default that happens to equal the recipe's own base serving size.
-  function handleToggleSelect(recipe) {
+  // Removing needs no prompt. Adding a fixed_portions recipe has nothing to
+  // choose (the batch size is inherent to the dish), so it's added
+  // immediately too. Everything else asks for portions first, so the count
+  // is always something the user actually chose — never a silent default
+  // that happens to equal the recipe's own base serving size.
+  //
+  // A recipe already selected for a *different* meal type re-assigns
+  // (moves) instead of being removed — this is how the picker's "already:
+  // X" badge becomes an actual reassignment when tapped from another slot.
+  function handleToggleSelect(recipe, mealType) {
     if (isRecipeSelected(plan, recipe.text.id)) {
+      if (mealType && plan.mealAssignments[recipe.text.id] !== mealType) {
+        setPlan((p) => setMealAssignment(p, recipe.text.id, mealType));
+        return;
+      }
       setPlan((p) => deselectRecipe(p, recipe.text.id));
       return;
     }
     if (recipe.fixedPortions) {
-      setPlan((p) => selectRecipe(p, recipe.text.id));
+      setPlan((p) => setMealAssignment(selectRecipe(p, recipe.text.id), recipe.text.id, mealType));
       return;
     }
-    setPortionsPrompt(recipe);
+    setPortionsPrompt({ recipe, mealType });
   }
 
   function handleConfirmPortions(portions) {
-    const recipe = portionsPrompt;
-    setPlan((p) => setSelectedPortions(selectRecipe(p, recipe.text.id), recipe.text.id, portions));
+    const { recipe, mealType } = portionsPrompt;
+    setPlan((p) => setMealAssignment(
+      setSelectedPortions(selectRecipe(p, recipe.text.id), recipe.text.id, portions),
+      recipe.text.id,
+      mealType
+    ));
     setPortionsPrompt(null);
   }
 
@@ -571,23 +579,34 @@ export default function PlannerMenuScreen() {
       <RecipeIngredients
         recipe={detailRecipe}
         plan={plan}
-        onToggleSelect={handleToggleSelect}
+        onToggleSelect={() => handleToggleSelect(detailRecipe, detailMealType)}
         onBack={() => setView(detailPrev)}
       />
     );
-  } else if (view === 'plan') {
+  } else if (view === 'picker') {
     content = (
-      <PlanView
+      <RecipePicker
         plan={plan}
         allRecipes={allRecipes}
-        onSetMeal={(textId, mealType) =>
-          setPlan((p) => setMealAssignment(p, textId, mealType))
-        }
+        loading={loadingRecipes}
+        targetMealType={pickerMealType}
+        onView={(recipe) => openDetail(recipe, 'picker', pickerMealType)}
+        onCook={handleCook}
+        onBack={() => setView('menu')}
+        onToggleSelect={handleToggleSelect}
+      />
+    );
+  } else {
+    content = (
+      <MenuLandingView
+        plan={plan}
+        allRecipes={allRecipes}
         onSetPortions={(textId, portions) =>
           setPlan((p) => setSelectedPortions(p, textId, portions))
         }
-        onViewRecipe={(recipe) => openDetail(recipe, 'plan')}
         onDeselect={(textId) => setPlan((p) => deselectRecipe(p, textId))}
+        onViewRecipe={(recipe, mealType) => openDetail(recipe, 'menu', mealType)}
+        onOpenPicker={openPicker}
         onSetIngredientDecision={(product, decision) =>
           setPlan((p) => setIngredientDecision(p, product, decision))
         }
@@ -595,28 +614,9 @@ export default function PlannerMenuScreen() {
           setPlan(resetPlan(activeStudentId));
           resetShoppingData(activeStudentId).catch(() => {});
         }}
-        onBack={() => setView('recipes')}
-        onGoShopping={() => {
-          // So that backing out of Покупки (or any later hub visit) resumes
-          // on this Меню view instead of defaulting to Рецепты.
-          setPlannerInitialView('plan');
-          setScreen('planner_shopping');
-        }}
-        onSendToStudent={() => sendPlanToStudent(activeStudentId, plan)}
-      />
-    );
-  } else {
-    content = (
-      <RecipeBrowser
-        plan={plan}
-        allRecipes={allRecipes}
-        loading={loadingRecipes}
-        selectedCount={plan.selectedRecipes.length}
-        onView={(recipe) => openDetail(recipe, 'recipes')}
-        onCook={handleCook}
-        onOpenPlan={() => setView('plan')}
         onBack={() => setScreen('home')}
-        onToggleSelect={handleToggleSelect}
+        onGoShopping={() => setScreen('planner_shopping')}
+        onSendToStudent={() => sendPlanToStudent(activeStudentId, plan)}
       />
     );
   }
@@ -626,7 +626,7 @@ export default function PlannerMenuScreen() {
       {content}
       {portionsPrompt && (
         <PortionsPromptSheet
-          recipe={portionsPrompt}
+          recipe={portionsPrompt.recipe}
           onConfirm={handleConfirmPortions}
           onClose={() => setPortionsPrompt(null)}
         />

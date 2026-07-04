@@ -1649,3 +1649,26 @@
   color: #a8978a;
 }
 
+/* ── Menu slot "add recipe" button (MealSlotSection) ───────────────── */
+.menu-slot-add-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1.5px dashed #4a9b8f;
+  background: none;
+  color: #2f5b57;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ── "Already assigned to another meal" badge (RecipeCard in the picker) ── */
+.recipe-gallery-card__badge--other {
+  background: #d68910;
+  font-size: 10px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
