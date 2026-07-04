@@ -17,7 +17,6 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
-import ShoppingParamsContent from "@/features/session/ShoppingParamsContent";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 
@@ -472,7 +471,6 @@ export default function ParamsScreen() {
   const isComparison          = topicRecord?.meta.renderer === "comparison";
   const isPhraseMatch         = topicRecord?.meta.renderer === "phrase_match";
   const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
-  const isShoppingPlan        = topicRecord?.meta.renderer === "shopping" && mode?.type === "plan";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
 
@@ -511,35 +509,6 @@ export default function ParamsScreen() {
             topicId={activeTopicId}
             modeId={activeModeId}
             textId={activeTextId}
-            modeTitle={earlyModeTitle}
-            onClose={() => setShowShare(false)}
-          />
-        )}
-      </div>
-    );
-  }
-
-  if (isShoppingPlan) {
-    const shoppingText = topicRecord?.texts?.[0];
-    const earlyModeTitle = getTopicTitle(mode?.ui?.title) || mode?.id;
-    return (
-      <div className="screen">
-        <div className="screen-header">
-          <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-          <h1 className="screen-title">{earlyModeTitle}</h1>
-          <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
-        </div>
-        <ShoppingParamsContent
-          topicId={activeTopicId}
-          textId={shoppingText?.id}
-          filePath={shoppingText?.file}
-          topicTitle={getTopicTitle(topicRecord.meta.title)}
-          modeTitle={earlyModeTitle}
-        />
-        {showShare && (
-          <ShareWithStudentPanel
-            topicId={activeTopicId}
-            modeId={activeModeId}
             modeTitle={earlyModeTitle}
             onClose={() => setShowShare(false)}
           />

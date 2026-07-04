@@ -226,6 +226,29 @@ export async function savePlannerShopCustomData(studentId, data) {
   await kv.set(db, plannerShopCustomKey(studentId), data);
 }
 
+const plannerShopStoresKey  = (sid) => `planner_shop_stores_${sid}`;
+const plannerShopHistoryKey = (sid) => `planner_shop_history_${sid}`;
+
+export async function getPlannerShopStores(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerShopStoresKey(studentId))) ?? null;
+}
+
+export async function savePlannerShopStores(studentId, stores) {
+  const db = await getDb();
+  await kv.set(db, plannerShopStoresKey(studentId), stores);
+}
+
+export async function getPlannerShopHistory(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerShopHistoryKey(studentId))) ?? [];
+}
+
+export async function savePlannerShopHistory(studentId, history) {
+  const db = await getDb();
+  await kv.set(db, plannerShopHistoryKey(studentId), history);
+}
+
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {
