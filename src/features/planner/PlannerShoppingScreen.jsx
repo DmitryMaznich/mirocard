@@ -12,11 +12,11 @@ import {
   getPlannerShopBought, savePlannerShopBought,
   savePlannerPutawayPlan,
 } from '@/core/groupStore';
-import { loadPlan, PANTRY_ITEMS } from './plannerApi.js';
-import { getPlanRecipes } from './plannerUtils.js';
+import { loadPlan, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
+import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.js';
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
-import { buildPlannerShoppingData, customDataToSteps, applyDecisionsToPlanned } from './plannerShoppingUtils.js';
+import { buildPlannerShoppingData, customDataToSteps, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -851,28 +851,34 @@ export default function PlannerShoppingScreen() {
   async function loadAndApply(forceRegen = false) {
     setLoading(true);
     if (!forceRegen) {
-      const [savedCustom, savedPlan, savedBought, currentPlan] = await Promise.all([
+      const [savedCustom, savedPlan, savedBought, currentPlan, allRecipes] = await Promise.all([
         getPlannerShopCustomData(studentId),
         getPlannerShopPlan(studentId),
         getPlannerShopBought(studentId),
         loadPlan(studentId),
+        loadAllRecipes(topicRecords),
       ]);
       if (savedCustom) {
-        const stepsFromSaved = customDataToSteps(savedCustom);
         // Re-sync with Меню's Дома/Купить decisions on every load — not
         // just the first generation — so a decision changed after this
-        // list already existed (or after custom items were added via the
-        // editor) still lands here, without touching custom items the
+        // list already existed (or after a new recipe was added to the
+        // menu) still lands here: newly-decided "buy" ingredients get added
+        // (via the same fuzzy match first generation uses, falling back to
+        // "Из меню"), without touching custom categories/items the
         // decisions don't mention.
-        const mergedPlanned = currentPlan
-          ? applyDecisionsToPlanned(stepsFromSaved, savedPlan ?? {}, currentPlan.ingredientDecisions ?? {})
-          : (savedPlan ?? {});
-        setSteps(stepsFromSaved);
-        setIcons(savedCustom.categories.map((c) => c.icon));
+        const ingredientItems = currentPlan ? buildSelectedIngredientsSummary(currentPlan, allRecipes) : [];
+        const { customData: syncedCustomData, planned: mergedPlanned } = currentPlan
+          ? syncDecisionsIntoShoppingData(savedCustom, savedPlan ?? {}, ingredientItems, currentPlan.ingredientDecisions ?? {})
+          : { customData: savedCustom, planned: savedPlan ?? {} };
+        setSteps(customDataToSteps(syncedCustomData));
+        setIcons(syncedCustomData.categories.map((c) => c.icon));
         setPlanned(mergedPlanned);
         setBought(savedBought ?? {});
-        setCustomData(savedCustom);
+        setCustomData(syncedCustomData);
         setLoading(false);
+        if (JSON.stringify(syncedCustomData) !== JSON.stringify(savedCustom)) {
+          savePlannerShopCustomData(studentId, syncedCustomData).catch(() => {});
+        }
         if (JSON.stringify(mergedPlanned) !== JSON.stringify(savedPlan ?? {})) {
           savePlannerShopPlan(studentId, mergedPlanned).catch(() => {});
         }
