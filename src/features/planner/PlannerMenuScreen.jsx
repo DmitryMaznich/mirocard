@@ -9,7 +9,7 @@ import {
   setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
-import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
+import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, resetShoppingData, PANTRY_ITEMS } from './plannerApi.js';
 import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
@@ -591,7 +591,10 @@ export default function PlannerMenuScreen() {
         onSetIngredientDecision={(product, decision) =>
           setPlan((p) => setIngredientDecision(p, product, decision))
         }
-        onReset={() => setPlan(resetPlan(activeStudentId))}
+        onReset={() => {
+          setPlan(resetPlan(activeStudentId));
+          resetShoppingData(activeStudentId).catch(() => {});
+        }}
         onBack={() => setView('recipes')}
         onGoShopping={() => {
           // So that backing out of Покупки (or any later hub visit) resumes
