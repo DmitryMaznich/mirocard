@@ -146,8 +146,11 @@ function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect 
 // ─── Portions prompt (asked once, when a recipe is first added) ─────────────
 
 function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
-  const { portions: basePortions, maxPortions } = recipe;
-  const [portions, setPortions] = useState(basePortions || 1);
+  const { maxPortions } = recipe;
+  // Always starts at 1, regardless of the recipe's own base "portions"
+  // (that field only anchors ingredient-quantity scaling — see
+  // buildSelectedIngredientsSummary — it is not a suggested serving size).
+  const [portions, setPortions] = useState(1);
 
   return (
     <div className="portions-sheet-backdrop" onClick={onClose}>
