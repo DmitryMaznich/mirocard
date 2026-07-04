@@ -17,7 +17,7 @@
     },
     {
       "id": "reading_dad_texts",
-      "version": "1.133.0",
+      "version": "1.134.0",
       "title": {
         "ru": "Чтение. Готовим еду",
         "en": "Reading: Cooking"
@@ -26,7 +26,7 @@
         "ru": "Пошаговые инструкции для самостоятельных действий.",
         "en": "Step-by-step instructions for independent tasks."
       },
-      "url": "./decks/reading_dad_texts_v1.133.0.zip",
+      "url": "./decks/reading_dad_texts_v1.134.0.zip",
       "status": "release",
       "access": "free"
     },
@@ -190,9 +190,9 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.16",
-      "url": "./decks/word_formation_soup_v1.0.16.zip",
-      "zipUrl": "word_formation_soup_v1.0.16.zip",
+      "version": "1.0.18",
+      "url": "./decks/word_formation_soup_v1.0.18.zip",
+      "zipUrl": "word_formation_soup_v1.0.18.zip",
       "title": {
         "ru": "Словообразование"
       },
