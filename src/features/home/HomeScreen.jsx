@@ -207,7 +207,6 @@ function SessionTab({
 // ─── Planner tab ──────────────────────────────────────────────────────────────
 
 function PlannerTab({ student, setScreen }) {
-  const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
   const topicRecords = useAppStore((s) => s.topicRecords);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
   const setActiveText = useAppStore((s) => s.setActiveText);
@@ -264,9 +263,6 @@ function PlannerTab({ student, setScreen }) {
 
   const hasSelection = !!existingPlan && existingPlan.selectedRecipes.length > 0;
   const selectedCount = hasSelection ? existingPlan.selectedRecipes.length : 0;
-  const scheduledCount = hasSelection
-    ? existingPlan.selectedRecipes.filter((id) => existingPlan.mealAssignments?.[id]).length
-    : 0;
   const menuDone = hasSelection && allRecipes.length > 0 && isMenuFullyDecided(existingPlan, allRecipes);
   const readyToCook = hasSelection && allRecipes.length > 0 && isReadyToCook(existingPlan, allRecipes, shoppingDone);
   const menuRecipes = hasSelection
@@ -286,23 +282,11 @@ function PlannerTab({ student, setScreen }) {
     <div className="planner-hub">
       <div className="planner-hub__grid">
         <HubCard
-          state={hasSelection ? 'done' : 'active'}
-          icon="🍽️"
-          title="Рецепты"
-          value={hasSelection ? `${selectedCount} отобрано` : 'Смотри рецепты и добавляй в меню'}
-          onClick={() => setScreen('planner_menu')}
-        />
-
-        <HubCard
-          state={!hasSelection ? 'locked' : menuDone ? 'done' : 'active'}
+          state={menuDone ? 'done' : 'active'}
           icon="📋"
           title="Меню"
-          value={!hasSelection ? 'Сначала рецепты' : menuDone ? 'Готово' : (scheduledCount > 0 ? `${scheduledCount} распределено` : 'Пока не распределено')}
-          onClick={() => {
-            setPlannerInitialView('plan');
-            setScreen('planner_menu');
-          }}
-          disabled={!hasSelection}
+          value={menuDone ? 'Готово' : hasSelection ? `${selectedCount} рецептов отобрано` : 'Что будем готовить?'}
+          onClick={() => setScreen('planner_menu')}
         />
 
         <HubCard
