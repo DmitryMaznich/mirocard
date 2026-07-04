@@ -98,6 +98,13 @@ export function buildPlannerShoppingData(shoppingListItems) {
   return { customData, plan };
 }
 
+// Hub "done" badge for Покупки: everything planned has also been marked
+// bought in В магазине, and there was at least one planned item.
+export function isShoppingDone(planned, bought) {
+  const keys = Object.keys(planned ?? {});
+  return keys.length > 0 && keys.every((k) => bought?.[k]);
+}
+
 export function customDataToSteps(customData) {
   return customData.categories.map((cat) => {
     const items = [];

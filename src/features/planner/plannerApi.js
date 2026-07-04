@@ -1,7 +1,9 @@
 import { getDb, kv } from '@/core/db';
 import { pushOp } from '@/core/syncApi';
 import { api } from '@/core/api';
+import { getRawRecipeTxt } from '@/core/groupStore';
 import { normalizePlan } from './plannerUtils.js';
+import { parseRecipeMetadata } from './recipeParser.js';
 
 const planKey = (studentId) => `planner:plan:${studentId}`;
 
@@ -40,4 +42,22 @@ export async function sendPlanToStudent(studentId, plan) {
     modeId: null,
     planData: plan,
   });
+}
+
+// Every recipe topic's instruction texts, with parsed ingredients/portions —
+// shared between PlannerMenuScreen (browsing) and the Planner hub (checking
+// whether every selected recipe's ingredients have a Дома/Купить decision).
+export async function loadAllRecipes(topicRecords) {
+  const all = [];
+  for (const record of topicRecords) {
+    if (record.meta?.renderer !== 'reading') continue;
+    for (const text of record.texts ?? []) {
+      if (text.kind !== 'instruction' || !text.file) continue;
+      const content = await getRawRecipeTxt(record.meta.id, text.file);
+      if (!content) continue;
+      const { tags, ingredients, portions, fixedPortions, maxPortions, status } = parseRecipeMetadata(content);
+      all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, maxPortions, status });
+    }
+  }
+  return all;
 }

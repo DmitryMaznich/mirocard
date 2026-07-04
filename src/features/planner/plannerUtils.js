@@ -131,6 +131,16 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
   return Array.from(map.values());
 }
 
+// Gate for Меню -> Покупки (and the hub's "done" badge on Меню): every
+// ingredient across the selected recipes must have an explicit Дома/Купить
+// decision, and there must be at least one ingredient to decide on.
+export function isMenuFullyDecided(plan, allRecipes) {
+  const items = buildSelectedIngredientsSummary(plan, allRecipes);
+  return items.length > 0 && items.every(
+    (item) => !!plan.ingredientDecisions[item.product.toLowerCase()]
+  );
+}
+
 /**
  * Upgrades a plan saved in an old format so old saved plans keep loading
  * correctly:

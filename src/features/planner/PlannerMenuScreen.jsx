@@ -2,16 +2,14 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
 import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
-import { getRawRecipeTxt } from '@/core/groupStore';
-import { parseRecipeMetadata } from './recipeParser.js';
 import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
   setMealAssignment, setSelectedPortions,
-  setIngredientDecision, buildSelectedIngredientsSummary,
+  setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
-import { loadPlan, savePlan, sendPlanToStudent, PANTRY_ITEMS } from './plannerApi.js';
+import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
 import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
@@ -401,9 +399,7 @@ function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, on
   // explicit Дома/Купить decision first (see MenuIngredientsSummary) —
   // no silent defaults, and nothing to buy if the pool is empty.
   const ingredientItems = buildSelectedIngredientsSummary(plan, allRecipes);
-  const allDecided = ingredientItems.length > 0 && ingredientItems.every(
-    (item) => !!plan.ingredientDecisions[item.product.toLowerCase()]
-  );
+  const allDecided = isMenuFullyDecided(plan, allRecipes);
 
   return (
     <div className="screen planner-screen">
@@ -429,17 +425,19 @@ function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, on
         <button type="button" className="menu-reset-link" onClick={() => setConfirmReset(true)}>
           Начать меню заново
         </button>
-      </div>
-
-      <div className="planner-footer">
+        {/* Minimized pending a redesign — kept working but out of the way
+            of the primary Меню -> Покупки flow. */}
         {sendError && <div className="menu-send-error">{sendError}</div>}
         {sent ? (
-          <div className="planner-sent">✓ Отправлено ученику</div>
+          <div className="menu-send-link menu-send-link--sent">✓ Отправлено ученику</div>
         ) : (
-          <button type="button" className="menu-send-btn" disabled={sending} onClick={handleSend}>
+          <button type="button" className="menu-send-link" disabled={sending} onClick={handleSend}>
             {sending ? 'Отправляем…' : 'Отправить меню ученику ↗'}
           </button>
         )}
+      </div>
+
+      <div className="planner-footer">
         <button
           type="button"
           className="menu-shopping-btn"
@@ -521,17 +519,7 @@ export default function PlannerMenuScreen() {
     let cancelled = false;
     async function load() {
       setLoadingRecipes(true);
-      const all = [];
-      for (const record of topicRecords) {
-        if (record.meta?.renderer !== 'reading') continue;
-        for (const text of record.texts ?? []) {
-          if (text.kind !== 'instruction' || !text.file) continue;
-          const content = await getRawRecipeTxt(record.meta.id, text.file);
-          if (!content) continue;
-          const { tags, ingredients, portions, fixedPortions, maxPortions, status } = parseRecipeMetadata(content);
-          all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, maxPortions, status });
-        }
-      }
+      const all = await loadAllRecipes(topicRecords);
       if (!cancelled) { setAllRecipes(all); setLoadingRecipes(false); }
     }
     load();

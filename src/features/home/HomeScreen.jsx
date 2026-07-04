@@ -9,8 +9,11 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
-import { loadPlan } from "@/features/planner/plannerApi";
-import { getPlannerShopBought } from "@/core/groupStore";
+import { loadPlan, loadAllRecipes } from "@/features/planner/plannerApi";
+import { isMenuFullyDecided } from "@/features/planner/plannerUtils";
+import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
+import { buildPutawayQueue } from "@/features/planner/putawayUtils";
+import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan } from "@/core/groupStore";
 import "@/features/planner/planner.css";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -204,8 +207,12 @@ function SessionTab({
 
 function PlannerTab({ student, setScreen }) {
   const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
+  const topicRecords = useAppStore((s) => s.topicRecords);
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
+  const [allRecipes, setAllRecipes] = useState([]);
   const [boughtCount, setBoughtCount] = useState(0);
+  const [shoppingDone, setShoppingDone] = useState(false);
+  const [putawayDone, setPutawayDone] = useState(false);
 
   useEffect(() => {
     if (!student) { setExistingPlan(null); return; }
@@ -213,8 +220,23 @@ function PlannerTab({ student, setScreen }) {
   }, [student?.id]);
 
   useEffect(() => {
-    if (!student) { setBoughtCount(0); return; }
-    getPlannerShopBought(student.id).then((bought) => setBoughtCount(Object.keys(bought ?? {}).length));
+    if (!topicRecords.length) return;
+    loadAllRecipes(topicRecords).then(setAllRecipes);
+  }, [topicRecords]);
+
+  useEffect(() => {
+    if (!student) { setBoughtCount(0); setShoppingDone(false); setPutawayDone(false); return; }
+    Promise.all([
+      getPlannerShopPlan(student.id),
+      getPlannerShopBought(student.id),
+      getPlannerShopCustomData(student.id),
+      getPlannerPutawayPlan(student.id),
+    ]).then(([planned, bought, customData, putawayPlan]) => {
+      setBoughtCount(Object.keys(bought ?? {}).length);
+      setShoppingDone(isShoppingDone(planned, bought));
+      const remainingQueue = customData ? buildPutawayQueue(customData, bought ?? {}, putawayPlan ?? {}) : [];
+      setPutawayDone(Object.keys(bought ?? {}).length > 0 && remainingQueue.length === 0);
+    });
   }, [student?.id]);
 
   if (!student) {
@@ -239,6 +261,7 @@ function PlannerTab({ student, setScreen }) {
   const scheduledCount = hasSelection
     ? existingPlan.selectedRecipes.filter((id) => existingPlan.mealAssignments?.[id]).length
     : 0;
+  const menuDone = hasSelection && allRecipes.length > 0 && isMenuFullyDecided(existingPlan, allRecipes);
 
   return (
     <div className="planner-hub">
@@ -252,10 +275,10 @@ function PlannerTab({ student, setScreen }) {
         />
 
         <HubCard
-          state={hasSelection ? 'active' : 'locked'}
+          state={!hasSelection ? 'locked' : menuDone ? 'done' : 'active'}
           icon="📋"
           title="Меню"
-          value={hasSelection ? (scheduledCount > 0 ? `${scheduledCount} распределено` : 'Пока не распределено') : 'Сначала рецепты'}
+          value={!hasSelection ? 'Сначала рецепты' : menuDone ? 'Готово' : (scheduledCount > 0 ? `${scheduledCount} распределено` : 'Пока не распределено')}
           onClick={() => {
             setPlannerInitialView('plan');
             setScreen('planner_menu');
@@ -264,19 +287,19 @@ function PlannerTab({ student, setScreen }) {
         />
 
         <HubCard
-          state={hasSelection ? 'active' : 'locked'}
+          state={!hasSelection ? 'locked' : shoppingDone ? 'done' : 'active'}
           icon="🛒"
           title="Покупки"
-          value={hasSelection ? 'Список готов' : 'Сначала меню'}
+          value={!hasSelection ? 'Сначала меню' : shoppingDone ? 'Всё куплено' : 'Список готов'}
           onClick={() => setScreen('planner_shopping')}
           disabled={!hasSelection}
         />
 
         <HubCard
-          state={boughtCount > 0 ? 'active' : 'locked'}
+          state={boughtCount === 0 ? 'locked' : putawayDone ? 'done' : 'active'}
           icon="📦"
           title="Раскладка"
-          value={boughtCount > 0 ? `${boughtCount} товаров готово к раскладке` : 'После покупок'}
+          value={boughtCount === 0 ? 'После покупок' : putawayDone ? 'Всё разложено' : `${boughtCount} товаров готово к раскладке`}
           onClick={() => setScreen('planner_putaway')}
           disabled={boughtCount === 0}
         />
