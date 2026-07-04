@@ -10,6 +10,7 @@ import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan } from "@/features/planner/plannerApi";
+import { getPlannerShopBought } from "@/core/groupStore";
 import "@/features/planner/planner.css";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -204,10 +205,16 @@ function SessionTab({
 function PlannerTab({ student, setScreen }) {
   const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
+  const [boughtCount, setBoughtCount] = useState(0);
 
   useEffect(() => {
     if (!student) { setExistingPlan(null); return; }
     loadPlan(student.id).then(setExistingPlan);
+  }, [student?.id]);
+
+  useEffect(() => {
+    if (!student) { setBoughtCount(0); return; }
+    getPlannerShopBought(student.id).then((bought) => setBoughtCount(Object.keys(bought ?? {}).length));
   }, [student?.id]);
 
   if (!student) {
@@ -266,11 +273,12 @@ function PlannerTab({ student, setScreen }) {
         />
 
         <HubCard
-          state="locked"
+          state={boughtCount > 0 ? 'active' : 'locked'}
           icon="📦"
           title="Раскладка"
-          value="После покупок"
-          disabled
+          value={boughtCount > 0 ? `${boughtCount} товаров готово к раскладке` : 'После покупок'}
+          onClick={() => setScreen('planner_putaway')}
+          disabled={boughtCount === 0}
         />
       </div>
     </div>

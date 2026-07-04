@@ -9,6 +9,8 @@ import {
   getPlannerShopCustomData, savePlannerShopCustomData,
   getPlannerShopStores, savePlannerShopStores,
   getPlannerShopHistory, savePlannerShopHistory,
+  getPlannerShopBought, savePlannerShopBought,
+  savePlannerPutawayPlan,
 } from '@/core/groupStore';
 import { loadPlan, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes } from './plannerUtils.js';
@@ -703,9 +705,7 @@ function PreviewView({ steps, planned, store }) {
 
 // ── Shop (in-store) view ──────────────────────────────────────────────────────
 
-function ShopView({ steps, icons, planned, store, onNewList, onBackToPlan }) {
-  const [done, setDone] = useState({});
-
+function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewList, onBackToPlan, onPutaway }) {
   const list = steps.map((step, si) => {
     const name = sName(step);
     const icon = icons[si] ?? '📦';
@@ -717,13 +717,12 @@ function ShopView({ steps, icons, planned, store, onNewList, onBackToPlan }) {
 
   const total = list.reduce((s, { items }) => s + items.length, 0);
   const totalDone = list.reduce((s, { name, items }) =>
-    s + items.filter(({ ii }) => done[planKey(name, ii)]).length, 0);
+    s + items.filter(({ ii }) => bought[planKey(name, ii)]).length, 0);
   const allDone = total > 0 && totalDone === total;
   const progress = total > 0 ? (totalDone / total) * 100 : 0;
 
   function toggle(step, ii) {
-    const key = planKey(sName(step), ii);
-    setDone((p) => ({ ...p, [key]: !p[key] }));
+    onToggleBought(planKey(sName(step), ii));
   }
 
   if (total === 0) return (
@@ -751,6 +750,7 @@ function ShopView({ steps, icons, planned, store, onNewList, onBackToPlan }) {
         <button className="shopping-view-btn" style={{ marginTop: 8, background: '#4caf90' }} onClick={onNewList}>
           Начать новый список
         </button>
+        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onPutaway}>📦 Разложить продукты</button>
       </div>
     </div>
   );
@@ -766,7 +766,7 @@ function ShopView({ steps, icons, planned, store, onNewList, onBackToPlan }) {
       </div>
       <ul className="shopping-items">
         {list.map(({ step, name, icon, items }) => {
-          const catDone = items.every(({ ii }) => done[planKey(name, ii)]);
+          const catDone = items.every(({ ii }) => bought[planKey(name, ii)]);
           return (
             <Fragment key={name}>
               <li className={`shop-section-header${catDone ? ' shop-section-header--done' : ''}`}>
@@ -777,7 +777,7 @@ function ShopView({ steps, icons, planned, store, onNewList, onBackToPlan }) {
               {items.map(({ item, ii, sub }, idx) => {
                 const prevSub = idx > 0 ? items[idx - 1].sub : null;
                 const showSub = sub && sub !== prevSub && !isDupSub(sub, name);
-                const isDoneItem = !!done[planKey(name, ii)];
+                const isDoneItem = !!bought[planKey(name, ii)];
                 const note = noteFor(planned, planKey(name, ii));
                 return (
                   <Fragment key={`${name}_${ii}`}>
@@ -825,6 +825,7 @@ export default function PlannerShoppingScreen() {
   const [steps, setSteps]       = useState([]);
   const [icons, setIcons]       = useState([]);
   const [planned, setPlanned]   = useState({});
+  const [bought, setBought]     = useState({});
   const [customData, setCustomData] = useState(null);
   const [history, setHistory] = useState([]);
   const [editMode, setEditMode] = useState(false);
@@ -850,9 +851,10 @@ export default function PlannerShoppingScreen() {
   async function loadAndApply(forceRegen = false) {
     setLoading(true);
     if (!forceRegen) {
-      const [savedCustom, savedPlan, currentPlan] = await Promise.all([
+      const [savedCustom, savedPlan, savedBought, currentPlan] = await Promise.all([
         getPlannerShopCustomData(studentId),
         getPlannerShopPlan(studentId),
+        getPlannerShopBought(studentId),
         loadPlan(studentId),
       ]);
       if (savedCustom) {
@@ -868,6 +870,7 @@ export default function PlannerShoppingScreen() {
         setSteps(stepsFromSaved);
         setIcons(savedCustom.categories.map((c) => c.icon));
         setPlanned(mergedPlanned);
+        setBought(savedBought ?? {});
         setCustomData(savedCustom);
         setLoading(false);
         if (JSON.stringify(mergedPlanned) !== JSON.stringify(savedPlan ?? {})) {
@@ -915,6 +918,7 @@ export default function PlannerShoppingScreen() {
     setSteps(customDataToSteps(newCustomData));
     setIcons(newCustomData.categories.map((c) => c.icon));
     setPlanned(newPlan);
+    setBought((await getPlannerShopBought(studentId)) ?? {});
     setCustomData(newCustomData);
     setLoading(false);
   }
@@ -946,9 +950,20 @@ export default function PlannerShoppingScreen() {
     });
   }
 
+  function toggleBought(key) {
+    setBought((prev) => {
+      const next = { ...prev };
+      if (next[key]) { delete next[key]; } else { next[key] = true; }
+      savePlannerShopBought(studentId, next).catch(() => {});
+      return next;
+    });
+  }
+
   async function handleRegenerate() {
     await savePlannerShopCustomData(studentId, null);
     await savePlannerShopPlan(studentId, {});
+    await savePlannerShopBought(studentId, {});
+    await savePlannerPutawayPlan(studentId, {});
     setConfirmReset(false);
     setView('grid');
     setEditMode(false);
@@ -959,7 +974,10 @@ export default function PlannerShoppingScreen() {
   function clearAllChecks() {
     const next = {};
     setPlanned(next);
+    setBought(next);
     savePlannerShopPlan(studentId, next).catch(() => {});
+    savePlannerShopBought(studentId, next).catch(() => {});
+    savePlannerPutawayPlan(studentId, next).catch(() => {});
     setConfirmClear(false);
   }
 
@@ -1016,11 +1034,15 @@ export default function PlannerShoppingScreen() {
     const cat = customData.categories.find((c) => c.id === catId);
     if (cat) {
       const newPlanned = { ...planned };
+      const newBought = { ...bought };
       cat.subgroups.flatMap((sg) => sg.items).forEach((_, ii) => {
         delete newPlanned[planKey(catName, ii)];
+        delete newBought[planKey(catName, ii)];
       });
       setPlanned(newPlanned);
+      setBought(newBought);
       savePlannerShopPlan(studentId, newPlanned).catch(() => {});
+      savePlannerShopBought(studentId, newBought).catch(() => {});
     }
     setCustomData((prev) => {
       const nd = { ...prev, categories: prev.categories.filter((c) => c.id !== catId) };
@@ -1051,14 +1073,20 @@ export default function PlannerShoppingScreen() {
       } catch {}
     }
     await savePlannerShopPlan(studentId, {});
+    await savePlannerShopBought(studentId, {});
+    await savePlannerPutawayPlan(studentId, {});
     setPlanned({});
+    setBought({});
     setModeView('plan');
     setView('grid');
   }
 
   function handleRestoreHistory(entryPlan) {
     setPlanned(entryPlan);
+    setBought({});
     savePlannerShopPlan(studentId, entryPlan).catch(() => {});
+    savePlannerShopBought(studentId, {}).catch(() => {});
+    savePlannerPutawayPlan(studentId, {}).catch(() => {});
     setView('grid');
   }
 
@@ -1093,8 +1121,10 @@ export default function PlannerShoppingScreen() {
         </div>
         <ShopView
           steps={steps} icons={icons} planned={planned} store={stores.current}
+          bought={bought} onToggleBought={toggleBought}
           onNewList={handleNewListAfterShop}
           onBackToPlan={() => setModeView('plan')}
+          onPutaway={() => setScreen('planner_putaway')}
         />
       </div>
     );

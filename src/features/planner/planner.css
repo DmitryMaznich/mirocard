@@ -1389,3 +1389,177 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Putaway (Раскладка) ────────────────────────────────────────
+   One product at a time: a spotlight card up top, six storage-zone
+   tiles below to tap the answer into. Progress dots track completion
+   across the whole bought list — placements persist, so re-entering
+   the screen resumes instead of restarting. */
+.putaway-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.putaway-progress {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7d8f8a;
+  margin-bottom: 14px;
+}
+
+.putaway-card {
+  width: 160px;
+  height: 160px;
+  border-radius: 24px;
+  background: rgba(250, 247, 242, 0.97);
+  box-shadow: 0 8px 22px rgba(71, 61, 48, 0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.putaway-card__icon {
+  font-size: 44px;
+}
+
+.putaway-card__name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #263131;
+  text-align: center;
+  padding: 0 10px;
+}
+
+.putaway-zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.putaway-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background: rgba(250, 247, 242, 0.97);
+  box-shadow: 0 4px 14px rgba(71, 61, 48, 0.05);
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.putaway-zone:active {
+  transform: scale(0.96);
+}
+
+.putaway-zone__icon {
+  font-size: 26px;
+}
+
+.putaway-zone__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #263131;
+  text-align: center;
+}
+
+.putaway-zone--wrong {
+  animation: putaway-shake 0.3s ease;
+  border-color: #e07a5f;
+  background: #fdeeea;
+}
+
+@keyframes putaway-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.putaway-zone--hint {
+  border-color: #4a9b8f;
+  animation: putaway-glow 1s ease-in-out infinite;
+}
+
+@keyframes putaway-glow {
+  0%, 100% { box-shadow: 0 4px 14px rgba(71, 61, 48, 0.05); background: rgba(250, 247, 242, 0.97); }
+  50% { box-shadow: 0 0 0 6px rgba(74, 155, 143, 0.25); background: rgba(74, 155, 143, 0.1); }
+}
+
+.putaway-hint {
+  min-height: 16px;
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: #e07a5f;
+}
+
+.putaway-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  max-width: 280px;
+}
+
+.putaway-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d8cbc0;
+  flex-shrink: 0;
+}
+
+.putaway-dot--done {
+  background: #4a9b8f;
+}
+
+.putaway-complete {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 32px;
+}
+
+.putaway-complete__icon {
+  font-size: 48px;
+}
+
+.putaway-complete__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #263131;
+}
+
+.putaway-complete__hint {
+  font-size: 14px;
+  color: #7d8f8a;
+}
+
+.putaway-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  color: #a8978a;
+  font-size: 15px;
+}
+

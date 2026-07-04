@@ -226,6 +226,38 @@ export async function savePlannerShopCustomData(studentId, data) {
   await kv.set(db, plannerShopCustomKey(studentId), data);
 }
 
+// ─── Planner shopping "bought" state (persists ShopView's tap-to-take
+// checks — previously local useState, lost on navigating away; Раскладка
+// needs to know what was actually bought, not just planned) ────────────────
+
+const plannerShopBoughtKey = (sid) => `planner_shop_bought_${sid}`;
+
+export async function getPlannerShopBought(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerShopBoughtKey(studentId))) ?? {};
+}
+
+export async function savePlannerShopBought(studentId, bought) {
+  const db = await getDb();
+  await kv.set(db, plannerShopBoughtKey(studentId), bought);
+}
+
+// ─── Planner putaway (Раскладка) placements ──────────────────────────────
+// { [planKey]: zoneId } — keyed the same way as the shopping plan/bought
+// maps, so no new identifier scheme is introduced.
+
+const plannerPutawayPlanKey = (sid) => `planner_putaway_plan_${sid}`;
+
+export async function getPlannerPutawayPlan(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerPutawayPlanKey(studentId))) ?? {};
+}
+
+export async function savePlannerPutawayPlan(studentId, plan) {
+  const db = await getDb();
+  await kv.set(db, plannerPutawayPlanKey(studentId), plan);
+}
+
 const plannerShopStoresKey  = (sid) => `planner_shop_stores_${sid}`;
 const plannerShopHistoryKey = (sid) => `planner_shop_history_${sid}`;
 
