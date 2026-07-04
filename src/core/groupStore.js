@@ -258,6 +258,24 @@ export async function savePlannerPutawayPlan(studentId, plan) {
   await kv.set(db, plannerPutawayPlanKey(studentId), plan);
 }
 
+// ─── Planner "menu-managed" keys ──────────────────────────────────────────
+// { planKey: true } → array of planKey strings currently checked *because*
+// Меню decided "Купить" for them (as opposed to checked manually in
+// Покупки, e.g. napkins) — lets syncDecisionsIntoShoppingData tell the two
+// apart when a recipe leaves the menu and its ingredients need un-checking.
+
+const plannerShopMenuKeysKey = (sid) => `planner_shop_menu_keys_${sid}`;
+
+export async function getPlannerShopMenuKeys(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerShopMenuKeysKey(studentId))) ?? [];
+}
+
+export async function savePlannerShopMenuKeys(studentId, keys) {
+  const db = await getDb();
+  await kv.set(db, plannerShopMenuKeysKey(studentId), keys);
+}
+
 const plannerShopStoresKey  = (sid) => `planner_shop_stores_${sid}`;
 const plannerShopHistoryKey = (sid) => `planner_shop_history_${sid}`;
 
