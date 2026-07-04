@@ -1,7 +1,11 @@
 import { getDb, kv } from '@/core/db';
 import { pushOp } from '@/core/syncApi';
 import { api } from '@/core/api';
-import { getRawRecipeTxt } from '@/core/groupStore';
+import {
+  getRawRecipeTxt,
+  savePlannerShopCustomData, savePlannerShopPlan, savePlannerShopBought,
+  savePlannerPutawayPlan, savePlannerShopMenuKeys,
+} from '@/core/groupStore';
 import { normalizePlan } from './plannerUtils.js';
 import { parseRecipeMetadata } from './recipeParser.js';
 
@@ -60,4 +64,18 @@ export async function loadAllRecipes(topicRecords) {
     }
   }
   return all;
+}
+
+// Clears the whole downstream shopping-list lifecycle for a student: the
+// generated category list, what's checked, what's bought, where it's been
+// put away, and which checks were menu-managed. Used both when starting a
+// brand-new menu (Меню's "Начать меню заново") and when regenerating the
+// list from the current menu (Покупки's "Пересоставить из рецептов") — the
+// store list and shopping history are untouched by this on purpose.
+export async function resetShoppingData(studentId) {
+  await savePlannerShopCustomData(studentId, null);
+  await savePlannerShopPlan(studentId, {});
+  await savePlannerShopBought(studentId, {});
+  await savePlannerPutawayPlan(studentId, {});
+  await savePlannerShopMenuKeys(studentId, []);
 }
