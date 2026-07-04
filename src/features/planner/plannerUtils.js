@@ -141,6 +141,21 @@ export function isMenuFullyDecided(plan, allRecipes) {
   );
 }
 
+// Anything left to buy? True if at least one selected-recipe ingredient is
+// decided "buy" (regardless of whether it's actually been bought yet —
+// that's isReadyToCook's job, via the shoppingDone flag from Покупки).
+export function needsShopping(plan, allRecipes) {
+  const items = buildSelectedIngredientsSummary(plan, allRecipes);
+  return items.some((item) => plan.ingredientDecisions[item.product.toLowerCase()] === 'buy');
+}
+
+// Gate for the hub's "Начинаем готовить" CTA. Раскладка does not factor in
+// here on purpose — it's a parallel organizing skill, not a cooking
+// prerequisite (see docs/superpowers/specs/2026-07-04-planner-start-cooking-design.md).
+export function isReadyToCook(plan, allRecipes, shoppingDone) {
+  return isMenuFullyDecided(plan, allRecipes) && (!needsShopping(plan, allRecipes) || shoppingDone);
+}
+
 /**
  * Upgrades a plan saved in an old format so old saved plans keep loading
  * correctly:

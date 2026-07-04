@@ -14,6 +14,9 @@ import {
   normalizePlan,
   setIngredientDecision,
   buildSelectedIngredientsSummary,
+  isMenuFullyDecided,
+  needsShopping,
+  isReadyToCook,
 } from './plannerUtils.js';
 
 describe('MEAL_TYPES', () => {
@@ -276,6 +279,103 @@ describe('buildSelectedIngredientsSummary', () => {
 
   it('returns an empty array for an empty pool', () => {
     expect(buildSelectedIngredientsSummary(createPlan('s1'), [soup])).toEqual([]);
+  });
+});
+
+describe('isMenuFullyDecided', () => {
+  const soup = {
+    text: { id: 'soup_01' },
+    portions: 4,
+    fixedPortions: null,
+    ingredients: [
+      { product: 'картошка', qty: 4, unit: 'шт' },
+      { product: 'соль', qty: null, unit: null },
+    ],
+  };
+
+  it('is false with no recipes selected', () => {
+    expect(isMenuFullyDecided(createPlan('s1'), [soup])).toBe(false);
+  });
+
+  it('is false when some ingredients have no decision', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    expect(isMenuFullyDecided(plan, [soup])).toBe(false);
+  });
+
+  it('is true when every ingredient has a decision', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'соль', 'buy');
+    expect(isMenuFullyDecided(plan, [soup])).toBe(true);
+  });
+});
+
+describe('needsShopping', () => {
+  const soup = {
+    text: { id: 'soup_01' },
+    portions: 4,
+    fixedPortions: null,
+    ingredients: [
+      { product: 'картошка', qty: 4, unit: 'шт' },
+      { product: 'соль', qty: null, unit: null },
+    ],
+  };
+
+  it('is false when everything is decided "have"', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'соль', 'have');
+    expect(needsShopping(plan, [soup])).toBe(false);
+  });
+
+  it('is true when at least one ingredient is decided "buy"', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'соль', 'buy');
+    expect(needsShopping(plan, [soup])).toBe(true);
+  });
+
+  it('is false with no ingredients at all', () => {
+    expect(needsShopping(createPlan('s1'), [soup])).toBe(false);
+  });
+});
+
+describe('isReadyToCook', () => {
+  const soup = {
+    text: { id: 'soup_01' },
+    portions: 4,
+    fixedPortions: null,
+    ingredients: [
+      { product: 'картошка', qty: 4, unit: 'шт' },
+      { product: 'соль', qty: null, unit: null },
+    ],
+  };
+
+  it('is true when everything is decided "have" (no shopping needed)', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'соль', 'have');
+    expect(isReadyToCook(plan, [soup], false)).toBe(true);
+  });
+
+  it('is false when something needs buying and shopping is not done', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'соль', 'buy');
+    expect(isReadyToCook(plan, [soup], false)).toBe(false);
+  });
+
+  it('is true when something needed buying but shopping is done', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'соль', 'buy');
+    expect(isReadyToCook(plan, [soup], true)).toBe(true);
+  });
+
+  it('is false when not every ingredient has a decision yet, even if shoppingDone is true', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    expect(isReadyToCook(plan, [soup], true)).toBe(false);
   });
 });
 
