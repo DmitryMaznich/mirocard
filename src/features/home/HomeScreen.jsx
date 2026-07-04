@@ -10,9 +10,10 @@ import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan, loadAllRecipes } from "@/features/planner/plannerApi";
-import { isMenuFullyDecided } from "@/features/planner/plannerUtils";
+import { isMenuFullyDecided, isReadyToCook } from "@/features/planner/plannerUtils";
 import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
 import { buildPutawayQueue } from "@/features/planner/putawayUtils";
+import CookPickerSheet from "@/features/planner/CookPickerSheet";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan } from "@/core/groupStore";
 import "@/features/planner/planner.css";
 
@@ -208,11 +209,16 @@ function SessionTab({
 function PlannerTab({ student, setScreen }) {
   const setPlannerInitialView = useAppStore((s) => s.setPlannerInitialView);
   const topicRecords = useAppStore((s) => s.topicRecords);
+  const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
+  const setActiveText = useAppStore((s) => s.setActiveText);
+  const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+  const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
   const [allRecipes, setAllRecipes] = useState([]);
   const [boughtCount, setBoughtCount] = useState(0);
   const [shoppingDone, setShoppingDone] = useState(false);
   const [putawayDone, setPutawayDone] = useState(false);
+  const [cookPickerOpen, setCookPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!student) { setExistingPlan(null); return; }
@@ -262,6 +268,19 @@ function PlannerTab({ student, setScreen }) {
     ? existingPlan.selectedRecipes.filter((id) => existingPlan.mealAssignments?.[id]).length
     : 0;
   const menuDone = hasSelection && allRecipes.length > 0 && isMenuFullyDecided(existingPlan, allRecipes);
+  const readyToCook = hasSelection && allRecipes.length > 0 && isReadyToCook(existingPlan, allRecipes, shoppingDone);
+  const menuRecipes = hasSelection
+    ? existingPlan.selectedRecipes.map((id) => allRecipes.find((r) => r.text.id === id)).filter(Boolean)
+    : [];
+
+  function handlePickRecipe(recipe) {
+    setCookPickerOpen(false);
+    setActiveTopicId(recipe.topicId);
+    setActiveText(recipe.text);
+    setActiveModeId('follow_instruction');
+    setSessionReturnScreen('home');
+    setScreen('params');
+  }
 
   return (
     <div className="planner-hub">
@@ -304,6 +323,34 @@ function PlannerTab({ student, setScreen }) {
           disabled={boughtCount === 0}
         />
       </div>
+
+      {hasSelection && (
+        <>
+          <button
+            type="button"
+            className="planner-cook-cta"
+            disabled={!readyToCook}
+            onClick={() => setCookPickerOpen(true)}
+          >
+            🍳 Начинаем готовить
+          </button>
+          {!readyToCook && (
+            <div className="planner-cook-hint">
+              {!menuDone
+                ? 'Сначала реши «Дома» или «Купить» для каждого продукта'
+                : 'Сначала докупи всё по списку'}
+            </div>
+          )}
+        </>
+      )}
+
+      {cookPickerOpen && (
+        <CookPickerSheet
+          recipes={menuRecipes}
+          onPick={handlePickRecipe}
+          onClose={() => setCookPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1619,3 +1619,33 @@
   color: #263131;
 }
 
+/* ── Planner hub: Начинаем готовить CTA ────────────────────────── */
+.planner-cook-cta {
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(150deg, #5cb0a3, #276b62);
+  box-shadow: 0 8px 20px rgba(39, 107, 98, 0.3);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.planner-cook-cta:disabled {
+  background: #ede5d8;
+  box-shadow: none;
+  color: #a8978a;
+  cursor: default;
+}
+
+.planner-cook-hint {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  color: #a8978a;
+}
+
