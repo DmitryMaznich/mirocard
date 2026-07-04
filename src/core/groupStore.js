@@ -242,6 +242,22 @@ export async function savePlannerShopBought(studentId, bought) {
   await kv.set(db, plannerShopBoughtKey(studentId), bought);
 }
 
+// ─── Planner putaway (Раскладка) placements ──────────────────────────────
+// { [planKey]: zoneId } — keyed the same way as the shopping plan/bought
+// maps, so no new identifier scheme is introduced.
+
+const plannerPutawayPlanKey = (sid) => `planner_putaway_plan_${sid}`;
+
+export async function getPlannerPutawayPlan(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerPutawayPlanKey(studentId))) ?? {};
+}
+
+export async function savePlannerPutawayPlan(studentId, plan) {
+  const db = await getDb();
+  await kv.set(db, plannerPutawayPlanKey(studentId), plan);
+}
+
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {

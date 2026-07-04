@@ -38,6 +38,7 @@ import InstallBanner from "@/shared/components/InstallBanner";
 import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
 import PlannerSummaryScreen from "@/features/planner/PlannerSummaryScreen";
 import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
+import PlannerPutawayScreen from "@/features/planner/PlannerPutawayScreen";
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
@@ -84,6 +85,7 @@ const SCREENS = {
   planner_menu: PlannerMenuScreen,
   planner_summary: PlannerSummaryScreen,
   planner_shopping: PlannerShoppingScreen,
+  planner_putaway: PlannerPutawayScreen,
 };
 
 function OrientationGuard({ orientationLock }) {
