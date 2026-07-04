@@ -79,9 +79,15 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
     >
       <div className="wf-pair__content">
         <div className="wf-pair__visuals" ref={visualsRef}>
-          <VisualImage topicId={topicId} path={card.ingredientImage} className="wf-pair__visual-img" />
-          <div className="wf-pair__plus">+</div>
-          <VisualImage topicId={topicId} path={card.vesselImage ?? "media/pot.webp"} className="wf-pair__visual-img" />
+          {card.vesselImage ? (
+            <>
+              <VisualImage topicId={topicId} path={card.ingredientImage} className="wf-pair__visual-img" />
+              <div className="wf-pair__plus">+</div>
+              <VisualImage topicId={topicId} path={card.vesselImage} className="wf-pair__visual-img" />
+            </>
+          ) : (
+            <VisualImage topicId={topicId} path={card.ingredientImage} className="wf-pair__visual-img wf-pair__visual-img--solo" />
+          )}
         </div>
 
         <div className="wf-pair__prompt">

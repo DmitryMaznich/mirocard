@@ -54,6 +54,10 @@
   font-size: clamp(1.2rem, 3vmin, 1.8rem); font-weight: 300; color: #bdbdbd;
   width: clamp(24px, 5vmin, 36px); text-align: center; flex-shrink: 0;
 }
+.wf-pair__visual-img--solo {
+  width: min(320px, 55vmin); height: min(320px, 55vmin);
+  flex: 0 0 auto; max-width: none;
+}
 
 /* prompt — two lines */
 .wf-pair__prompt {

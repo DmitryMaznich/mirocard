@@ -18,7 +18,7 @@ const ROOT      = path.resolve(__dirname, "..");
 const CACHE_DIR = path.join(ROOT, ".cache", "word_formation_soup");
 
 const TOPIC_ID  = "word_formation_soup";
-const VERSION   = "1.0.15";
+const VERSION   = "1.0.16";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 // Old ZIP cleaned up automatically in catalog update below
 
@@ -279,8 +279,9 @@ function buildTopic() {
     image:           c.category === "weather"   ? VESSEL.weather.image
                    : c.category === "seasons"   ? `media/season_${c.vesselImageSeason}.webp`
                    : `media/${c.id}.webp`,
-    ingredientImage: `media/${c.id}_ingredient.webp`,
-    vesselImage:     c.category === "materials" ? `media/${c.id}.webp`
+    ingredientImage: c.category === "materials" ? `media/${c.id}.webp`
+                   : `media/${c.id}_ingredient.webp`,
+    vesselImage:     (c.category === "materials" || c.category === "weather") ? null
                    : c.category === "seasons"   ? `media/season_${c.vesselImageSeason}.webp`
                    : VESSEL[c.category]?.image  ?? "media/pot.webp",
     questionText:    c.questionText ?? VESSEL[c.category]?.question ?? "какой?",
