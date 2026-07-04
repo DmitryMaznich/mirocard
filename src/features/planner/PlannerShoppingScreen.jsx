@@ -454,7 +454,7 @@ function SortablePlanTile({ id, icon, name, count, onEdit, onDelete }) {
 
 function PlanGrid({
   steps, icons, planned, customData, editMode, history,
-  onDetail, onShop, onRegenerate, onChangeStore, store,
+  onDetail, onShop, onRegenerate, onChangeStore, store, onNote,
   onEnterEdit, onExitEdit, onEditCategory, onDeleteCategory, onAddCategory, onDragEnd,
   onOpenHistory, onOpenPreview, onClear,
 }) {
@@ -470,73 +470,77 @@ function PlanGrid({
 
   return (
     <div className="shopping-body">
-      <div className="shopping-grid-header">
-        <span>{editMode ? 'Редактор категорий' : (total > 0 ? `🛒 ${total} выбрано` : 'Что нужно купить?')}</span>
-        <div className="shopping-grid-header-actions">
-          {editMode ? (
-            <button className="shopping-sort-done-btn" onClick={onExitEdit}>✓ Готово</button>
-          ) : (
-            <>
-              <button className="shop-store-chip" onClick={onChangeStore} aria-label="Сменить магазин">{store || '🏪'}</button>
-              {history.length > 0 && (
-                <button className="shopping-clear-btn" onClick={onOpenHistory} aria-label="История">🕐</button>
-              )}
-              {total > 0 && (
-                <button className="shopping-clear-btn" onClick={onOpenPreview} aria-label="Печать">🖨</button>
-              )}
-              {total > 0 && (
-                <button className="shopping-clear-btn" onClick={onClear} aria-label="Очистить">🗑</button>
-              )}
-              <button className="shopping-clear-btn" onClick={onEnterEdit} aria-label="Редактировать категории">✏️</button>
-              <button className="shopping-clear-btn" onClick={onRegenerate} title="Пересоставить из рецептов">⟳</button>
-            </>
-          )}
+      <div className="shopping-scroll">
+        <div className="shopping-grid-header">
+          <span>{editMode ? 'Редактор категорий' : (total > 0 ? `🛒 ${total} выбрано` : 'Что нужно купить?')}</span>
+          <div className="shopping-grid-header-actions">
+            {editMode ? (
+              <button className="shopping-sort-done-btn" onClick={onExitEdit}>✓ Готово</button>
+            ) : (
+              <>
+                <button className="shop-store-chip" onClick={onChangeStore} aria-label="Сменить магазин">{store || '🏪'}</button>
+                {history.length > 0 && (
+                  <button className="shopping-clear-btn" onClick={onOpenHistory} aria-label="История">🕐</button>
+                )}
+                {total > 0 && (
+                  <button className="shopping-clear-btn" onClick={onOpenPreview} aria-label="Печать">🖨</button>
+                )}
+                {total > 0 && (
+                  <button className="shopping-clear-btn" onClick={onClear} aria-label="Очистить">🗑</button>
+                )}
+                <button className="shopping-clear-btn" onClick={onEnterEdit} aria-label="Редактировать категории">✏️</button>
+                <button className="shopping-clear-btn" onClick={onRegenerate} title="Пересоставить из рецептов">⟳</button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
 
-      {editMode ? (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
-            <div className="shopping-grid">
-              {steps.map((step, si) => (
-                <SortablePlanTile
-                  key={step.text}
-                  id={step.text}
-                  icon={icons[si] ?? '📦'}
-                  name={sName(step)}
-                  count={(step.items ?? []).filter((_, ii) => planned[planKey(sName(step), ii)]).length}
-                  onEdit={() => onEditCategory(customData?.categories[si]?.id ?? null)}
-                  onDelete={() => onDeleteCategory(customData?.categories[si]?.id)}
-                />
-              ))}
-              <button className="shopping-tile shopping-tile--add" onClick={onAddCategory} aria-label="Добавить категорию">
-                <span className="shopping-tile-icon">＋</span>
-                <span className="shopping-tile-name">Добавить</span>
-              </button>
-            </div>
-          </SortableContext>
-        </DndContext>
-      ) : (
-        <div className="shopping-grid">
-          {steps.map((step, si) => {
-            const n = sName(step);
-            const count = (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
-            const stepTotal = (step.items ?? []).length;
-            const done = count === stepTotal && stepTotal > 0;
-            return (
-              <button
-                key={si}
-                className={`shopping-tile${done ? ' shopping-tile--done' : count > 0 ? ' shopping-tile--partial' : ''}`}
-                onClick={() => onDetail(si)}
-              >
-                <span className="shopping-tile-icon">{icons[si] ?? '📦'}</span>
-                <span className="shopping-tile-name">{n}</span>
-                {count > 0 && <span className="shopping-tile-badge">{count}</span>}
-              </button>
-            );
-          })}
-        </div>
-      )}
+        {editMode ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
+              <div className="shopping-grid">
+                {steps.map((step, si) => (
+                  <SortablePlanTile
+                    key={step.text}
+                    id={step.text}
+                    icon={icons[si] ?? '📦'}
+                    name={sName(step)}
+                    count={(step.items ?? []).filter((_, ii) => planned[planKey(sName(step), ii)]).length}
+                    onEdit={() => onEditCategory(customData?.categories[si]?.id ?? null)}
+                    onDelete={() => onDeleteCategory(customData?.categories[si]?.id)}
+                  />
+                ))}
+                <button className="shopping-tile shopping-tile--add" onClick={onAddCategory} aria-label="Добавить категорию">
+                  <span className="shopping-tile-icon">＋</span>
+                  <span className="shopping-tile-name">Добавить</span>
+                </button>
+              </div>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div className="shopping-grid">
+            {steps.map((step, si) => {
+              const n = sName(step);
+              const count = (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
+              const stepTotal = (step.items ?? []).length;
+              const done = count === stepTotal && stepTotal > 0;
+              return (
+                <button
+                  key={si}
+                  className={`shopping-tile${done ? ' shopping-tile--done' : count > 0 ? ' shopping-tile--partial' : ''}`}
+                  onClick={() => onDetail(si)}
+                >
+                  <span className="shopping-tile-icon">{icons[si] ?? '📦'}</span>
+                  <span className="shopping-tile-name">{n}</span>
+                  {count > 0 && <span className="shopping-tile-badge">{done ? '✓' : count}</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {!editMode && <SelectedSummary steps={steps} icons={icons} planned={planned} onNote={onNote} />}
+      </div>
 
       <div className="shopping-actions">
         {editMode ? null : total > 0
@@ -544,6 +548,77 @@ function PlanGrid({
           : <div className="shop-hint">Нажми на категорию, чтобы выбрать продукты</div>
         }
       </div>
+    </div>
+  );
+}
+
+// ── Selected-items summary ("Вот что нужно купить"), grouped by category ────
+
+function SelectedSummary({ steps, icons, planned, onNote }) {
+  const [editingNote, setEditingNote] = useState(null); // { key, value } | null
+
+  const groups = steps.map((step, si) => {
+    const name = sName(step);
+    const items = (step.items ?? [])
+      .map((item, ii) => ({ item, key: planKey(name, ii) }))
+      .filter(({ key }) => planned[key]);
+    return { name, icon: icons[si] ?? '📦', items };
+  }).filter(({ items }) => items.length > 0);
+
+  if (groups.length === 0) return null;
+
+  function saveNote(key, raw) {
+    const note = raw.trim();
+    onNote(key, note ? { note } : true);
+    setEditingNote(null);
+  }
+
+  return (
+    <div className="selected-summary">
+      <h2 className="selected-summary__title">Вот что нужно купить</h2>
+      {groups.map(({ name, icon, items }) => (
+        <div key={name} className="cat-plate">
+          <div className="cat-plate__banner">
+            <span className="cat-plate__icon">{icon}</span>
+            <span className="cat-plate__name">{name}</span>
+          </div>
+          {items.map(({ item, key }) => {
+            const note = noteFor(planned, key);
+            const isEditing = editingNote?.key === key;
+            return (
+              <div key={key} className="cat-plate__row">
+                <div className="cat-plate__row-main">
+                  <span className="cat-plate__row-name">{item}</span>
+                  {isEditing ? (
+                    <input
+                      className="cat-plate__note-input" autoFocus
+                      value={editingNote.value}
+                      onChange={(e) => setEditingNote({ key, value: e.target.value })}
+                      onBlur={() => saveNote(key, editingNote.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                      placeholder="Заметка…"
+                    />
+                  ) : (
+                    <span className={`cat-plate__note${note ? ' cat-plate__note--set' : ''}`}>
+                      {note || '+ заметка'}
+                    </span>
+                  )}
+                </div>
+                {!isEditing && (
+                  <button
+                    type="button"
+                    className="cat-plate__edit-btn"
+                    onClick={() => setEditingNote({ key, value: note })}
+                    aria-label="Заметка"
+                  >
+                    ✎
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }
@@ -1203,6 +1278,7 @@ export default function PlannerShoppingScreen() {
         <PlanGrid
           steps={steps} icons={icons} planned={planned} customData={customData}
           editMode={editMode} history={history} store={stores.current}
+          onNote={saveNote}
           onDetail={setView}
           onShop={() => setModeView('shop')}
           onRegenerate={() => setConfirmReset(true)}
