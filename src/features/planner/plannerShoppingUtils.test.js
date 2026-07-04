@@ -62,31 +62,38 @@ function makeCustomData() {
 describe('syncDecisionsIntoShoppingData', () => {
   it('checks an existing matching item when decided buy', () => {
     const items = [{ product: 'картошка', qty: null, unit: null }];
-    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, items, { 'картошка': 'buy' });
+    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'картошка': 'buy' });
     expect(planned).toEqual({ 'Овощи_0': true });
+  });
+
+  it('tracks a checked buy-decision as menu-managed', () => {
+    const items = [{ product: 'картошка', qty: null, unit: null }];
+    const { menuKeys } = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'картошка': 'buy' });
+    expect(menuKeys).toEqual(['Овощи_0']);
   });
 
   it('adds an unmatched buy-decided ingredient to Из меню, labeled with its quantity', () => {
     const items = [{ product: 'экзотика икс', qty: 2, unit: 'шт' }];
-    const { customData, planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, items, { 'экзотика икс': 'buy' });
+    const { customData, planned, menuKeys } = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'экзотика икс': 'buy' });
     const menuCat = customData.categories.find((c) => c.id === 'planner_menu_extras');
     expect(menuCat.subgroups[0].items).toEqual(['экзотика икс 2 шт']);
     expect(planned).toEqual({ 'Из меню_0': true });
+    expect(menuKeys).toEqual(['Из меню_0']);
   });
 
   it('does not duplicate an already-added Из меню item on a repeated sync', () => {
     const items = [{ product: 'экзотика икс', qty: null, unit: null }];
     const decisions = { 'экзотика икс': 'buy' };
-    const first = syncDecisionsIntoShoppingData(makeCustomData(), {}, items, decisions);
-    const second = syncDecisionsIntoShoppingData(first.customData, first.planned, items, decisions);
+    const first = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, decisions);
+    const second = syncDecisionsIntoShoppingData(first.customData, first.planned, first.menuKeys, items, decisions);
     const menuCat = second.customData.categories.find((c) => c.id === 'planner_menu_extras');
     expect(menuCat.subgroups[0].items).toEqual(['экзотика икс']);
   });
 
   it('removes a Из меню item entirely when its decision reverts to have', () => {
     const items = [{ product: 'экзотика икс', qty: null, unit: null }];
-    const added = syncDecisionsIntoShoppingData(makeCustomData(), {}, items, { 'экзотика икс': 'buy' });
-    const reverted = syncDecisionsIntoShoppingData(added.customData, added.planned, items, { 'экзотика икс': 'have' });
+    const added = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'экзотика икс': 'buy' });
+    const reverted = syncDecisionsIntoShoppingData(added.customData, added.planned, added.menuKeys, items, { 'экзотика икс': 'have' });
     const menuCat = reverted.customData.categories.find((c) => c.id === 'planner_menu_extras');
     expect(menuCat.subgroups[0].items).toEqual([]);
     expect(reverted.planned).toEqual({});
@@ -94,8 +101,8 @@ describe('syncDecisionsIntoShoppingData', () => {
 
   it('unchecks but does not remove a normal category item when its decision reverts to have', () => {
     const items = [{ product: 'картошка', qty: null, unit: null }];
-    const bought = syncDecisionsIntoShoppingData(makeCustomData(), {}, items, { 'картошка': 'buy' });
-    const reverted = syncDecisionsIntoShoppingData(bought.customData, bought.planned, items, { 'картошка': 'have' });
+    const bought = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'картошка': 'buy' });
+    const reverted = syncDecisionsIntoShoppingData(bought.customData, bought.planned, bought.menuKeys, items, { 'картошка': 'have' });
     expect(reverted.planned).toEqual({});
     expect(reverted.customData.categories[0].subgroups[0].items).toEqual(['картошка', 'морковь']);
   });
@@ -103,7 +110,7 @@ describe('syncDecisionsIntoShoppingData', () => {
   it('leaves an item with no decision untouched', () => {
     const items = [{ product: 'картошка', qty: null, unit: null }];
     const customData = makeCustomData();
-    const { planned, customData: next } = syncDecisionsIntoShoppingData(customData, {}, items, {});
+    const { planned, customData: next } = syncDecisionsIntoShoppingData(customData, {}, [], items, {});
     expect(planned).toEqual({});
     expect(next).toEqual(customData);
   });
@@ -111,21 +118,21 @@ describe('syncDecisionsIntoShoppingData', () => {
   it('preserves an existing note on an already-checked buy item', () => {
     const items = [{ product: 'картошка', qty: null, unit: null }];
     const planned = { 'Овощи_0': { note: '2 кг' } };
-    const { planned: next } = syncDecisionsIntoShoppingData(makeCustomData(), planned, items, { 'картошка': 'buy' });
+    const { planned: next } = syncDecisionsIntoShoppingData(makeCustomData(), planned, [], items, { 'картошка': 'buy' });
     expect(next['Овощи_0']).toEqual({ note: '2 кг' });
   });
 
   it('leaves a custom ad-hoc item untouched since it never appears in ingredientItems', () => {
     const items = [{ product: 'картошка', qty: null, unit: null }];
     const customData = makeCustomData();
-    const { customData: next } = syncDecisionsIntoShoppingData(customData, { 'Своё_0': true }, items, { 'картошка': 'buy' });
+    const { customData: next } = syncDecisionsIntoShoppingData(customData, { 'Своё_0': true }, [], items, { 'картошка': 'buy' });
     const customCat = next.categories.find((c) => c.id === 'user_custom');
     expect(customCat.subgroups[0].items).toEqual(['Салфетки']);
   });
 
   it('matches product names case-insensitively', () => {
     const items = [{ product: 'КАРТОШКА', qty: null, unit: null }];
-    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, items, { 'картошка': 'buy' });
+    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'картошка': 'buy' });
     expect(planned['Овощи_0']).toBe(true);
   });
 
@@ -134,17 +141,70 @@ describe('syncDecisionsIntoShoppingData', () => {
       { product: 'картошка', qty: null, unit: null },
       { product: 'молоко', qty: null, unit: null },
     ];
-    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, items, { 'картошка': 'buy', 'молоко': 'have' });
+    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'картошка': 'buy', 'молоко': 'have' });
     expect(planned['Овощи_0']).toBe(true);
     expect(planned['Молочные продукты_0']).toBeUndefined();
   });
 
-  it('does not mutate the input customData or planned objects', () => {
+  it('does not mutate the input customData, planned, or menuKeys', () => {
     const customData = makeCustomData();
     const planned = {};
+    const menuKeys = ['Овощи_0'];
     const items = [{ product: 'картошка', qty: null, unit: null }];
-    syncDecisionsIntoShoppingData(customData, planned, items, { 'картошка': 'buy' });
+    syncDecisionsIntoShoppingData(customData, planned, menuKeys, items, { 'картошка': 'buy' });
     expect(planned).toEqual({});
+    expect(menuKeys).toEqual(['Овощи_0']);
     expect(customData.categories[0].subgroups[0].items).toEqual(['картошка', 'морковь']);
+  });
+
+  describe('reconciliation (a menu-managed item whose ingredient drops out of the menu)', () => {
+    it('unchecks a menu-managed normal-category item once its ingredient is no longer in the menu at all', () => {
+      const items = [{ product: 'картошка', qty: null, unit: null }];
+      const first = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'картошка': 'buy' });
+      expect(first.planned['Овощи_0']).toBe(true);
+      // Recipe using картошка removed from the menu: no items, no decisions this pass.
+      const second = syncDecisionsIntoShoppingData(first.customData, first.planned, first.menuKeys, [], {});
+      expect(second.planned['Овощи_0']).toBeUndefined();
+    });
+
+    it('removes a menu-managed Из меню item once its ingredient is no longer in the menu at all', () => {
+      const items = [{ product: 'экзотика икс', qty: null, unit: null }];
+      const first = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'экзотика икс': 'buy' });
+      const second = syncDecisionsIntoShoppingData(first.customData, first.planned, first.menuKeys, [], {});
+      const menuCat = second.customData.categories.find((c) => c.id === 'planner_menu_extras');
+      expect(menuCat.subgroups[0].items).toEqual([]);
+    });
+
+    it('keeps a still-needed menu-managed item checked across reconciliation', () => {
+      const items = [{ product: 'картошка', qty: null, unit: null }];
+      const decisions = { 'картошка': 'buy' };
+      const first = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, decisions);
+      const second = syncDecisionsIntoShoppingData(first.customData, first.planned, first.menuKeys, items, decisions);
+      expect(second.planned['Овощи_0']).toBe(true);
+    });
+
+    it('leaves a manually-checked item untouched during reconciliation, since it was never menu-managed', () => {
+      const customData = makeCustomData();
+      const planned = { 'Своё_0': true }; // manually checked "Салфетки", never via sync
+      const { planned: next } = syncDecisionsIntoShoppingData(customData, planned, [], [], {});
+      expect(next['Своё_0']).toBe(true);
+    });
+
+    it('removes two no-longer-needed Из меню items in the same pass without corrupting either', () => {
+      const items = [
+        { product: 'фыфымба одна', qty: null, unit: null },
+        { product: 'щурбулет два', qty: null, unit: null },
+      ];
+      const decisions = { 'фыфымба одна': 'buy', 'щурбулет два': 'buy' };
+      const first = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, decisions);
+      const menuCat1 = first.customData.categories.find((c) => c.id === 'planner_menu_extras');
+      expect(menuCat1.subgroups[0].items).toEqual(['фыфымба одна', 'щурбулет два']);
+
+      // Both recipes removed from the menu in one go.
+      const second = syncDecisionsIntoShoppingData(first.customData, first.planned, first.menuKeys, [], {});
+      const menuCat2 = second.customData.categories.find((c) => c.id === 'planner_menu_extras');
+      expect(menuCat2.subgroups[0].items).toEqual([]);
+      expect(second.planned).toEqual({});
+    });
   });
 });

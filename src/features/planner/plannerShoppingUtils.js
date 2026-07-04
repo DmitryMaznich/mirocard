@@ -165,31 +165,42 @@ function addMenuExtraItem(customData, label) {
  * Re-syncs Меню's Дома/Купить decisions into an already-existing shopping
  * list. Runs every time the Покупки screen loads (not just on first
  * generation), so a decision changed in Меню after the list was first
- * built — or after a new recipe was added to the menu — still lands in
- * Покупки:
+ * built — or after a recipe was added to or removed from the menu — still
+ * lands in Покупки:
  *
  * - matched + 'buy': checks it (unless already checked — preserves an
- *   existing note).
+ *   existing note), and records its key as menu-managed.
  * - matched + 'have', item is in the "Из меню" catch-all: removes the item
  *   from the category entirely (it only existed because of the decision).
  * - matched + 'have', item is a normal (shopping.txt-derived) category item:
  *   just unchecks it — it's a permanent list fixture, not removed.
  * - no match + 'buy': adds a new item to "Из меню" (creating that category
- *   if needed, via the same fuzzy-match cascade first generation uses) and
- *   checks it.
+ *   if needed, via the same fuzzy-match cascade first generation uses),
+ *   checks it, and records its key as menu-managed.
  * - no match + 'have': nothing to do, it never existed.
+ *
+ * After processing every current ingredient, reconciles against `menuKeys`
+ * (the menu-managed keys from the *previous* sync): any key that was
+ * menu-managed before but isn't menu-managed this time — its ingredient's
+ * recipe left the menu entirely, so it never even appears in
+ * `ingredientItems` this pass — gets cleaned up the same way an explicit
+ * "Дома" decision would. A manually-checked item (napkins, anything not
+ * tied to a recipe) is never in `menuKeys` to begin with, so reconciliation
+ * never touches it.
  *
  * Never touches custom categories/items the decisions don't mention.
  *
  * @param {object} customData
  * @param {object} planned
+ * @param {string[]} menuKeys - planKey's the menu managed as of the last sync
  * @param {Array<{product: string, qty: number|null, unit: string|null}>} ingredientItems
  * @param {Object<string, 'have'|'buy'>} ingredientDecisions
- * @returns {{ customData: object, planned: object }}
+ * @returns {{ customData: object, planned: object, menuKeys: string[] }}
  */
-export function syncDecisionsIntoShoppingData(customData, planned, ingredientItems, ingredientDecisions) {
+export function syncDecisionsIntoShoppingData(customData, planned, menuKeys, ingredientItems, ingredientDecisions) {
   const nextCustomData = JSON.parse(JSON.stringify(customData));
   const nextPlanned = { ...planned };
+  const nextMenuKeys = new Set();
 
   for (const item of ingredientItems) {
     const prodNorm = item.product.toLowerCase().trim();
@@ -203,6 +214,7 @@ export function syncDecisionsIntoShoppingData(customData, planned, ingredientIte
       const key = planKey(match.catName, match.ii);
       if (decision === 'buy') {
         if (!nextPlanned[key]) nextPlanned[key] = true;
+        nextMenuKeys.add(key);
       } else if (match.catName === 'Из меню') {
         const menuCat = nextCustomData.categories.find((c) => c.id === 'planner_menu_extras');
         if (menuCat) removeItemAtFlatIndex(menuCat, match.ii);
@@ -216,9 +228,38 @@ export function syncDecisionsIntoShoppingData(customData, planned, ingredientIte
       addMenuExtraItem(nextCustomData, label);
       const newLookup = buildCustomDataLookup(nextCustomData);
       const added = newLookup.find((l) => l.catName === 'Из меню' && l.norm === label.toLowerCase().trim());
-      if (added) nextPlanned[planKey(added.catName, added.ii)] = true;
+      if (added) {
+        const key = planKey(added.catName, added.ii);
+        nextPlanned[key] = true;
+        nextMenuKeys.add(key);
+      }
     }
   }
 
-  return { customData: nextCustomData, planned: nextPlanned };
+  // Reconcile: a key the menu managed last time but doesn't need this time
+  // (its ingredient's recipe was removed from the menu entirely, or dropped
+  // out for any other reason) gets cleaned up the same way an explicit
+  // "Дома" decision would.
+  const menuExtrasRemovals = [];
+  for (const oldKey of menuKeys) {
+    if (nextMenuKeys.has(oldKey)) continue;
+    const sep = oldKey.lastIndexOf('_');
+    const catName = oldKey.slice(0, sep);
+    const ii = Number(oldKey.slice(sep + 1));
+    if (catName === 'Из меню') {
+      menuExtrasRemovals.push(ii);
+    }
+    delete nextPlanned[oldKey];
+  }
+  if (menuExtrasRemovals.length) {
+    const menuCat = nextCustomData.categories.find((c) => c.id === 'planner_menu_extras');
+    if (menuCat) {
+      // Descending order so removing one doesn't shift the flat index of
+      // another item still pending removal in this same pass.
+      menuExtrasRemovals.sort((a, b) => b - a);
+      for (const ii of menuExtrasRemovals) removeItemAtFlatIndex(menuCat, ii);
+    }
+  }
+
+  return { customData: nextCustomData, planned: nextPlanned, menuKeys: Array.from(nextMenuKeys) };
 }
