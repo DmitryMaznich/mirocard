@@ -199,13 +199,12 @@ export default function SessionScreen() {
   const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
 
-  const isShoppingRenderer      = topicRecord.meta.renderer === "shopping";
   const isReadingRenderer       = topicRecord.meta.renderer === "reading" && mode?.type !== "daily_sentences";
   const isPrintMaterialsRenderer = topicRecord.meta.renderer === "print_materials";
 
   return (
     <div className="session-screen">
-      {!isShoppingRenderer && !isReadingRenderer && !isPrintMaterialsRenderer && (
+      {!isReadingRenderer && !isPrintMaterialsRenderer && (
         <div className="session-topbar">
           <div className="session-topbar-controls">
             {mode?.type !== "daily_sentences" && (
@@ -289,7 +288,6 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
-            onExit={isShoppingRenderer ? openSessionExitPrompt : undefined}
           />
         </div>
       ) : !rendererReady ? (

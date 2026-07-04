@@ -9,7 +9,6 @@ import VowelConsonantRenderer      from "./renderers/vowel_consonant/index.jsx";
 import NarrativeRenderer           from "./renderers/narrative/index.jsx";
 import LetterWritingRenderer       from "./renderers/letter_writing/index.jsx";
 import StreakTrackerRenderer        from "./renderers/streak_tracker/index.jsx";
-import ShoppingRenderer             from "./renderers/shopping/index.jsx";
 import PhraseMatchRenderer          from "./renderers/phrase_match/index.jsx";
 import ColumnAdditionRenderer       from "./renderers/column_addition/index.jsx";
 import WrittenLettersRenderer       from "./renderers/written_letters/index.jsx";
@@ -28,7 +27,6 @@ export const RENDERER_REGISTRY = {
   narrative:             NarrativeRenderer,
   letter_writing:        LetterWritingRenderer,
   streak_tracker:        StreakTrackerRenderer,
-  shopping:              ShoppingRenderer,
   phrase_match:          PhraseMatchRenderer,
   column_addition:       ColumnAdditionRenderer,
   written_letters:       WrittenLettersRenderer,

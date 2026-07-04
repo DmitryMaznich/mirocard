@@ -11,7 +11,6 @@ import { generateTasks as vowelConsonantEngine }       from "./vowel_consonant/e
 import { generateTasks as narrativeEngine }            from "./narrative/engine";
 import { generateTasks as letterWritingEngine }        from "./letter_writing/engine";
 import { generateTasks as streakTrackerEngine }        from "./streak_tracker/engine";
-import { generateTasks as shoppingEngine }             from "./shopping/engine";
 import { generateTasks as phraseMatchEngine }           from "./phrase_match/engine";
 import { generateTasks as columnAdditionEngine }       from "./column_addition/engine.js";
 import { generateTasks as writtenLettersEngine }       from "./written_letters/engine.js";
@@ -32,7 +31,6 @@ export const ENGINE_REGISTRY = {
   narrative:             narrativeEngine,
   letter_writing:        letterWritingEngine,
   streak_tracker:        streakTrackerEngine,
-  shopping:              shoppingEngine,
   phrase_match:          phraseMatchEngine,
   column_addition:       columnAdditionEngine,
   written_letters:       writtenLettersEngine,
