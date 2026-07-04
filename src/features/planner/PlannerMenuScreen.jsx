@@ -4,14 +4,14 @@ import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
 import { getRawRecipeTxt } from '@/core/groupStore';
 import { parseRecipeMetadata } from './recipeParser.js';
-import { BackArrowIcon } from '@/shared/components/ArrowIcons';
+import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
   setMealAssignment, setSelectedPortions,
   setIngredientDecision, buildSelectedIngredientsSummary,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
-import { loadPlan, savePlan, PANTRY_ITEMS } from './plannerApi.js';
+import { loadPlan, savePlan, sendPlanToStudent, PANTRY_ITEMS } from './plannerApi.js';
 import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
@@ -378,8 +378,32 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
 
 // ─── Plan view (pool review) ──────────────────────────────────────────────────
 
-function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, onDeselect, onSetIngredientDecision, onReset, onBack }) {
+function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, onDeselect, onSetIngredientDecision, onReset, onBack, onGoShopping, onSendToStudent }) {
   const [confirmReset, setConfirmReset] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState(null);
+
+  async function handleSend() {
+    setSending(true);
+    setSendError(null);
+    try {
+      await onSendToStudent();
+      setSent(true);
+    } catch (err) {
+      setSendError(err?.message ?? 'Ошибка отправки');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  // The transition to Покупки is gated: every ingredient must have an
+  // explicit Дома/Купить decision first (see MenuIngredientsSummary) —
+  // no silent defaults, and nothing to buy if the pool is empty.
+  const ingredientItems = buildSelectedIngredientsSummary(plan, allRecipes);
+  const allDecided = ingredientItems.length > 0 && ingredientItems.every(
+    (item) => !!plan.ingredientDecisions[item.product.toLowerCase()]
+  );
 
   return (
     <div className="screen planner-screen">
@@ -405,6 +429,32 @@ function PlanView({ plan, allRecipes, onSetMeal, onSetPortions, onViewRecipe, on
         <button type="button" className="menu-reset-link" onClick={() => setConfirmReset(true)}>
           Начать меню заново
         </button>
+      </div>
+
+      <div className="planner-footer">
+        {sendError && <div className="menu-send-error">{sendError}</div>}
+        {sent ? (
+          <div className="planner-sent">✓ Отправлено ученику</div>
+        ) : (
+          <button type="button" className="menu-send-btn" disabled={sending} onClick={handleSend}>
+            {sending ? 'Отправляем…' : 'Отправить меню ученику ↗'}
+          </button>
+        )}
+        <button
+          type="button"
+          className="menu-shopping-btn"
+          disabled={!allDecided}
+          onClick={onGoShopping}
+        >
+          Список покупок <ForwardArrowIcon size={16} />
+        </button>
+        {!allDecided && (
+          <div className="menu-shopping-hint">
+            {ingredientItems.length === 0
+              ? 'Сначала выбери рецепты'
+              : 'Отметь «Дома» или «Купить» для каждого продукта'}
+          </div>
+        )}
       </div>
 
       {confirmReset && (
@@ -555,6 +605,13 @@ export default function PlannerMenuScreen() {
         }
         onReset={() => setPlan(resetPlan(activeStudentId))}
         onBack={() => setView('recipes')}
+        onGoShopping={() => {
+          // So that backing out of Покупки (or any later hub visit) resumes
+          // on this Меню view instead of defaulting to Рецепты.
+          setPlannerInitialView('plan');
+          setScreen('planner_shopping');
+        }}
+        onSendToStudent={() => sendPlanToStudent(activeStudentId, plan)}
       />
     );
   } else {

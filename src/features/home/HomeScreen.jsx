@@ -261,7 +261,7 @@ function PlannerTab({ student, setScreen }) {
           icon="🛒"
           title="Покупки"
           value={hasSelection ? 'Список готов' : 'Сначала меню'}
-          onClick={() => setScreen('planner_summary')}
+          onClick={() => setScreen('planner_shopping')}
           disabled={!hasSelection}
         />
 

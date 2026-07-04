@@ -14,7 +14,7 @@ import { loadPlan, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes } from './plannerUtils.js';
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
-import { buildPlannerShoppingData, customDataToSteps } from './plannerShoppingUtils.js';
+import { buildPlannerShoppingData, customDataToSteps, applyDecisionsToPlanned } from './plannerShoppingUtils.js';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -835,13 +835,14 @@ export default function PlannerShoppingScreen() {
 
   useEffect(() => {
     if (!studentId) return;
+    // Always land directly on the catalog — the store picker is optional
+    // and reachable any time via the 🏪 chip, never a mandatory gate.
     getPlannerShopStores(studentId).then((saved) => {
-      const data = saved ?? { current: null, list: [...DEFAULT_STORES] };
-      setStores(data);
-      setModeView(data.current !== null ? 'plan' : 'storePicker');
+      setStores(saved ?? { current: null, list: [...DEFAULT_STORES] });
+      setModeView('plan');
     }).catch(() => {
       setStores({ current: null, list: [...DEFAULT_STORES] });
-      setModeView('storePicker');
+      setModeView('plan');
     });
     getPlannerShopHistory(studentId).then(setHistory).catch(() => {});
   }, [studentId]);
@@ -849,16 +850,29 @@ export default function PlannerShoppingScreen() {
   async function loadAndApply(forceRegen = false) {
     setLoading(true);
     if (!forceRegen) {
-      const [savedCustom, savedPlan] = await Promise.all([
+      const [savedCustom, savedPlan, currentPlan] = await Promise.all([
         getPlannerShopCustomData(studentId),
         getPlannerShopPlan(studentId),
+        loadPlan(studentId),
       ]);
       if (savedCustom) {
-        setSteps(customDataToSteps(savedCustom));
+        const stepsFromSaved = customDataToSteps(savedCustom);
+        // Re-sync with Меню's Дома/Купить decisions on every load — not
+        // just the first generation — so a decision changed after this
+        // list already existed (or after custom items were added via the
+        // editor) still lands here, without touching custom items the
+        // decisions don't mention.
+        const mergedPlanned = currentPlan
+          ? applyDecisionsToPlanned(stepsFromSaved, savedPlan ?? {}, currentPlan.ingredientDecisions ?? {})
+          : (savedPlan ?? {});
+        setSteps(stepsFromSaved);
         setIcons(savedCustom.categories.map((c) => c.icon));
-        setPlanned(savedPlan ?? {});
+        setPlanned(mergedPlanned);
         setCustomData(savedCustom);
         setLoading(false);
+        if (JSON.stringify(mergedPlanned) !== JSON.stringify(savedPlan ?? {})) {
+          savePlannerShopPlan(studentId, mergedPlanned).catch(() => {});
+        }
         return;
       }
     }
@@ -1052,7 +1066,7 @@ export default function PlannerShoppingScreen() {
     if (editMode && editingCategoryId !== null) { setEditingCategoryId(null); return; }
     if (editMode) { setEditMode(false); return; }
     if (typeof view === 'number' || view === 'history' || view === 'preview') { setView('grid'); return; }
-    setScreen('planner_summary');
+    setScreen('planner_menu');
   }
 
   if (modeView === 'loading' || stores === null) {
@@ -1065,7 +1079,7 @@ export default function PlannerShoppingScreen() {
         storeList={stores.list}
         onSelect={(s) => { persistStores({ ...stores, current: s }); setModeView('plan'); }}
         onSaveList={(list) => persistStores({ ...stores, list })}
-        onBack={stores.current !== null ? () => setModeView('plan') : null}
+        onBack={() => setModeView('plan')}
       />
     );
   }

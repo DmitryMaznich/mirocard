@@ -111,3 +111,38 @@ export function customDataToSteps(customData) {
     return { type: 'checklist', text: `${cat.name}:`, items, itemSubgroups };
   });
 }
+
+/**
+ * Re-applies the Дома/Купить decisions made in Меню onto an already
+ * existing planned checklist, matching items by normalized product name
+ * across every category. Runs every time the Покупки screen loads (not
+ * just on first generation) so a decision changed in Меню after the list
+ * was first built — or after custom items were added via the editor —
+ * still lands in Покупки, without wiping any custom categories/items the
+ * decisions don't mention.
+ *
+ * 'buy' checks the item only if it wasn't already checked (preserves an
+ * existing note). 'have' always unchecks it, since Меню's decision
+ * overrides whatever was manually toggled in Покупки before.
+ *
+ * @param {Array<{text: string, items: string[]}>} steps
+ * @param {object} planned
+ * @param {Object<string, 'have'|'buy'>} ingredientDecisions
+ */
+export function applyDecisionsToPlanned(steps, planned, ingredientDecisions) {
+  const next = { ...planned };
+  for (const step of steps) {
+    const catName = step.text.replace(/:$/, '').trim();
+    (step.items ?? []).forEach((item, ii) => {
+      const decision = ingredientDecisions[item.toLowerCase().trim()];
+      if (!decision) return;
+      const key = `${catName}_${ii}`;
+      if (decision === 'buy') {
+        if (!next[key]) next[key] = true;
+      } else if (decision === 'have') {
+        delete next[key];
+      }
+    });
+  }
+  return next;
+}
