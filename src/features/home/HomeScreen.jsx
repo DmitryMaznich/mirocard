@@ -407,9 +407,11 @@ export default function HomeScreen() {
   const activeModeId = useAppStore((s) => s.activeModeId);
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
+  const homeActiveTab = useAppStore((s) => s.homeActiveTab);
+  const setHomeActiveTab = useAppStore((s) => s.setHomeActiveTab);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
-  const [activeTab, setActiveTab] = useState('session');
+  const [activeTab, setActiveTab] = useState(() => homeActiveTab ?? 'session');
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
@@ -491,6 +493,11 @@ export default function HomeScreen() {
     ? `${getTopicTitle(activeText.title)}${mode ? ` · ${modeTitle}` : ""}`
     : "Не выбран";
 
+  function changeTab(tab) {
+    setActiveTab(tab);
+    setHomeActiveTab(tab);
+  }
+
   function startOrContinue() {
     if (isChatPractice) { setScreen(topic?.modes?.length > 0 ? "modes" : "chat_params"); return; }
     if (!isReading) { setScreen("params"); return; }
@@ -533,7 +540,7 @@ export default function HomeScreen() {
       <div className="home-main">
         <StudentPickerBar student={student} onTap={() => setScreen("students")} />
 
-        <HomeTabs active={activeTab} onChange={setActiveTab} showPlanner={hasPlannerAccess} />
+        <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} />
 
         <div className="home-tab-content">
           {activeTab === 'planner' && hasPlannerAccess ? (

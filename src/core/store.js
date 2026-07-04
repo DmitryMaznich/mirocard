@@ -117,6 +117,12 @@ export const useAppStore = create((set) => ({
   // default). Read once on mount, then cleared.
   plannerInitialView: null,
   setPlannerInitialView: (plannerInitialView) => set({ plannerInitialView }),
+  // Which Home tab ("session" | "planner") to land on. HomeScreen's own
+  // tab state is local (resets on remount), so without this, navigating
+  // back from a Planner screen (setScreen('home')) always dropped the
+  // user onto "Занятие" instead of back onto "Планировщик".
+  homeActiveTab: "session",
+  setHomeActiveTab: (homeActiveTab) => set({ homeActiveTab }),
 
   // ─── Session setup ─────────────────────────────────────────────────────────
   activeStudentId: null,
