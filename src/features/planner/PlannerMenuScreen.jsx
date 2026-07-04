@@ -360,12 +360,10 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
           const key = item.product.toLowerCase();
           return (
             <div key={key} className="menu-ingr-row">
-              <div className="menu-ingr-row__top">
-                <span className="menu-ingr-row__product">{item.product}</span>
-                <span className="menu-ingr-row__qty">
-                  {item.qty != null ? `${Math.round(item.qty * 10) / 10} ${item.unit ?? ''}`.trim() : 'по вкусу'}
-                </span>
-              </div>
+              <span className="menu-ingr-row__product">{item.product}</span>
+              <span className="menu-ingr-row__qty">
+                {item.qty != null ? `${Math.round(item.qty * 10) / 10} ${item.unit ?? ''}`.trim() : 'по вкусу'}
+              </span>
               <IngredientTriToggle
                 value={plan.ingredientDecisions[key] ?? null}
                 onChange={(decision) => onSetDecision(item.product, decision)}

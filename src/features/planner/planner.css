@@ -429,7 +429,7 @@
 
 .menu-ingr-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
   padding: 10px 0;
   border-top: 1px solid #e7dccf;
@@ -440,28 +440,28 @@
   padding-top: 0;
 }
 
-.menu-ingr-row__top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .menu-ingr-row__product {
-  font-size: 15px;
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
   font-weight: 700;
   color: #263131;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .menu-ingr-row__qty {
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #4a9b8f;
   white-space: nowrap;
 }
 
 .ingr-toggle {
+  flex-shrink: 0;
+  width: 148px;
   display: flex;
   align-items: stretch;
   border: 1.5px solid #e0d4c3;
@@ -472,8 +472,8 @@
 .ingr-toggle__btn {
   flex: 1;
   min-width: 0;
-  padding: 8px 4px;
-  font-size: 12px;
+  padding: 7px 3px;
+  font-size: 10.5px;
   font-weight: 700;
   font-family: inherit;
   background: none;
