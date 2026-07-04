@@ -36,7 +36,6 @@ import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
 import InstallBanner from "@/shared/components/InstallBanner";
 import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
-import PlannerSummaryScreen from "@/features/planner/PlannerSummaryScreen";
 import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
 import PlannerPutawayScreen from "@/features/planner/PlannerPutawayScreen";
 
@@ -83,7 +82,6 @@ const SCREENS = {
   history: StudentHistoryScreen,
   settings: SettingsScreen,
   planner_menu: PlannerMenuScreen,
-  planner_summary: PlannerSummaryScreen,
   planner_shopping: PlannerShoppingScreen,
   planner_putaway: PlannerPutawayScreen,
 };
