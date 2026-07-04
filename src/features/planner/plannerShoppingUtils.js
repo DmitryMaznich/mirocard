@@ -5,7 +5,7 @@ export const SHOPPING_STEPS = parseRecipeTxt(SHOPPING_TXT_EMBEDDED).filter(
   (s) => s.type === 'checklist' || s.type === 'action'
 );
 
-const CATEGORY_ICONS = {
+export const CATEGORY_ICONS = {
   'Овощи': '🥦', 'Фрукты': '🍎', 'Ягоды': '🍓', 'Зелень': '🌿',
   'Бакалея': '🌾', 'Мясо': '🥩', 'Рыба': '🐟', 'Гастрономия': '🧀',
   'Напитки': '☕', 'Молочные продукты': '🥛', 'Бытовая химия': '🧹',
