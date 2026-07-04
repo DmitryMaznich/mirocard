@@ -10,9 +10,10 @@ import {
   getPlannerShopStores, savePlannerShopStores,
   getPlannerShopHistory, savePlannerShopHistory,
   getPlannerShopBought, savePlannerShopBought,
+  getPlannerShopMenuKeys, savePlannerShopMenuKeys,
   savePlannerPutawayPlan,
 } from '@/core/groupStore';
-import { loadPlan, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
+import { loadPlan, loadAllRecipes, resetShoppingData, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.js';
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
@@ -851,25 +852,28 @@ export default function PlannerShoppingScreen() {
   async function loadAndApply(forceRegen = false) {
     setLoading(true);
     if (!forceRegen) {
-      const [savedCustom, savedPlan, savedBought, currentPlan, allRecipes] = await Promise.all([
+      const [savedCustom, savedPlan, savedBought, savedMenuKeys, currentPlan, allRecipes] = await Promise.all([
         getPlannerShopCustomData(studentId),
         getPlannerShopPlan(studentId),
         getPlannerShopBought(studentId),
+        getPlannerShopMenuKeys(studentId),
         loadPlan(studentId),
         loadAllRecipes(topicRecords),
       ]);
       if (savedCustom) {
         // Re-sync with Меню's Дома/Купить decisions on every load — not
         // just the first generation — so a decision changed after this
-        // list already existed (or after a new recipe was added to the
-        // menu) still lands here: newly-decided "buy" ingredients get added
-        // (via the same fuzzy match first generation uses, falling back to
-        // "Из меню"), without touching custom categories/items the
+        // list already existed (or after a recipe was added to or removed
+        // from the menu) still lands here: newly-decided "buy" ingredients
+        // get added (via the same fuzzy match first generation uses,
+        // falling back to "Из меню"), and menu-managed items whose
+        // ingredient left the menu entirely get cleaned up — without
+        // touching custom categories/items or manually-checked items the
         // decisions don't mention.
         const ingredientItems = currentPlan ? buildSelectedIngredientsSummary(currentPlan, allRecipes) : [];
-        const { customData: syncedCustomData, planned: mergedPlanned } = currentPlan
-          ? syncDecisionsIntoShoppingData(savedCustom, savedPlan ?? {}, ingredientItems, currentPlan.ingredientDecisions ?? {})
-          : { customData: savedCustom, planned: savedPlan ?? {} };
+        const { customData: syncedCustomData, planned: mergedPlanned, menuKeys: syncedMenuKeys } = currentPlan
+          ? syncDecisionsIntoShoppingData(savedCustom, savedPlan ?? {}, savedMenuKeys ?? [], ingredientItems, currentPlan.ingredientDecisions ?? {})
+          : { customData: savedCustom, planned: savedPlan ?? {}, menuKeys: savedMenuKeys ?? [] };
         setSteps(customDataToSteps(syncedCustomData));
         setIcons(syncedCustomData.categories.map((c) => c.icon));
         setPlanned(mergedPlanned);
@@ -881,6 +885,9 @@ export default function PlannerShoppingScreen() {
         }
         if (JSON.stringify(mergedPlanned) !== JSON.stringify(savedPlan ?? {})) {
           savePlannerShopPlan(studentId, mergedPlanned).catch(() => {});
+        }
+        if (JSON.stringify(syncedMenuKeys) !== JSON.stringify(savedMenuKeys ?? [])) {
+          savePlannerShopMenuKeys(studentId, syncedMenuKeys).catch(() => {});
         }
         return;
       }
@@ -920,6 +927,7 @@ export default function PlannerShoppingScreen() {
 
     await savePlannerShopCustomData(studentId, newCustomData);
     await savePlannerShopPlan(studentId, newPlan);
+    await savePlannerShopMenuKeys(studentId, Object.keys(newPlan));
 
     setSteps(customDataToSteps(newCustomData));
     setIcons(newCustomData.categories.map((c) => c.icon));
@@ -966,10 +974,7 @@ export default function PlannerShoppingScreen() {
   }
 
   async function handleRegenerate() {
-    await savePlannerShopCustomData(studentId, null);
-    await savePlannerShopPlan(studentId, {});
-    await savePlannerShopBought(studentId, {});
-    await savePlannerPutawayPlan(studentId, {});
+    await resetShoppingData(studentId);
     setConfirmReset(false);
     setView('grid');
     setEditMode(false);
@@ -984,6 +989,7 @@ export default function PlannerShoppingScreen() {
     savePlannerShopPlan(studentId, next).catch(() => {});
     savePlannerShopBought(studentId, next).catch(() => {});
     savePlannerPutawayPlan(studentId, next).catch(() => {});
+    savePlannerShopMenuKeys(studentId, []).catch(() => {});
     setConfirmClear(false);
   }
 
@@ -1081,6 +1087,7 @@ export default function PlannerShoppingScreen() {
     await savePlannerShopPlan(studentId, {});
     await savePlannerShopBought(studentId, {});
     await savePlannerPutawayPlan(studentId, {});
+    await savePlannerShopMenuKeys(studentId, []);
     setPlanned({});
     setBought({});
     setModeView('plan');
