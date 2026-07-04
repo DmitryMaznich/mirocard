@@ -456,6 +456,30 @@ describe('normalizePlan', () => {
     expect(normalized.mealAssignments).toEqual({ soup_01: 'перекус' });
   });
 
+  it('drops a selected recipe with no meal assignment (selectedRecipes must exactly match what the menu displays)', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = selectRecipe(plan, 'salad_01');
+    plan = setMealAssignment(plan, 'salad_01', 'ужин');
+    // soup_01 was selected but never assigned a meal — this can only happen
+    // via plans persisted before meal assignment became mandatory at
+    // add-time; normalizePlan must self-heal it on every load.
+    const normalized = normalizePlan(plan);
+    expect(normalized.selectedRecipes).toEqual(['salad_01']);
+  });
+
+  it('drops a selected recipe whose meal assignment is not a valid meal type', () => {
+    const plan = {
+      id: 'p1',
+      studentId: 's1',
+      status: 'draft',
+      selectedRecipes: ['soup_01'],
+      mealAssignments: { soup_01: 'напитки' },
+      selectedPortions: {},
+    };
+    const normalized = normalizePlan(plan);
+    expect(normalized.selectedRecipes).toEqual([]);
+  });
+
   describe('legacy (day-based) plan migration', () => {
     it('folds a placement into a mealAssignments tag and its portions into selectedPortions', () => {
       const legacy = {
@@ -532,7 +556,7 @@ describe('normalizePlan', () => {
       expect(normalized.selectedRecipes).toEqual(['oatmeal_01']);
     });
 
-    it('leaves an existing selectedRecipes array untouched (keeps unplaced pool members)', () => {
+    it('drops unplaced pool members from selectedRecipes (a recipe with no meal assignment is not part of the menu)', () => {
       const legacy = {
         id: 'p1',
         studentId: 's1',
@@ -541,7 +565,7 @@ describe('normalizePlan', () => {
         days: [{ dayIndex: 0, meals: { завтрак: [{ textId: 'oatmeal_01', portions: 1 }], обед: [], ужин: [], перекус: [] } }],
       };
       const normalized = normalizePlan(legacy);
-      expect(normalized.selectedRecipes).toEqual(['oatmeal_01', 'unplaced_01']);
+      expect(normalized.selectedRecipes).toEqual(['oatmeal_01']);
     });
 
     it('backfills ingredientDecisions to an empty object when absent', () => {

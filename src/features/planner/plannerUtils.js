@@ -187,6 +187,17 @@ function collapseMealAssignments(raw) {
   return collapsed;
 }
 
+// A recipe only counts as "in the menu" when it has a valid meal-type
+// assignment — that's the same condition MealSlotSection uses to decide
+// whether to render it. Without this, a recipe selected but never assigned
+// (only possible via plans saved before meal assignment became mandatory
+// at add-time) would be invisible in every meal slot yet still count toward
+// buildSelectedIngredientsSummary/isMenuFullyDecided, showing ingredients
+// for a menu that looks empty.
+function pruneUnassigned(selectedRecipes, mealAssignments) {
+  return (selectedRecipes ?? []).filter((textId) => MEAL_TYPES.includes(mealAssignments[textId]));
+}
+
 export function normalizePlan(plan) {
   if (!plan) return plan;
 
@@ -209,7 +220,7 @@ export function normalizePlan(plan) {
       }
     }
 
-    const selectedRecipes = plan.selectedRecipes ?? Object.keys(mealAssignments);
+    const selectedRecipes = pruneUnassigned(plan.selectedRecipes ?? Object.keys(mealAssignments), mealAssignments);
     const { days, portionMultiplier, ...rest } = plan;
 
     return {
@@ -221,9 +232,12 @@ export function normalizePlan(plan) {
     };
   }
 
+  const mealAssignments = collapseMealAssignments(plan.mealAssignments);
+
   return {
     ...plan,
-    mealAssignments: collapseMealAssignments(plan.mealAssignments),
+    selectedRecipes: pruneUnassigned(plan.selectedRecipes, mealAssignments),
+    mealAssignments,
     selectedPortions: plan.selectedPortions ?? {},
     ingredientDecisions: plan.ingredientDecisions ?? {},
   };
