@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { useAppStore } from '@/core/store';
-import { getRawRecipeTxt, getPlannerShopPlan, savePlannerShopPlan, getPlannerShopCustomData, savePlannerShopCustomData } from '@/core/groupStore';
+import { getRawRecipeTxt, getPlannerShopPlan, savePlannerShopPlan, getPlannerShopCustomData, savePlannerShopCustomData, getPlannerShopBought, savePlannerShopBought } from '@/core/groupStore';
 import { loadPlan, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes } from './plannerUtils.js';
 import { parseRecipeMetadata } from './recipeParser.js';
@@ -145,9 +145,7 @@ function PlanDetail({ steps, icons, planned, idx, onToggle, onNote, onNext }) {
 
 // ── Shop (in-store) view ──────────────────────────────────────────────────────
 
-function ShopView({ steps, icons, planned, onBack }) {
-  const [done, setDone] = useState({});
-
+function ShopView({ steps, icons, planned, bought, onToggleBought, onBack, onPutaway }) {
   const list = steps.map((step, si) => {
     const name = sName(step);
     const icon = icons[si] ?? '📦';
@@ -159,13 +157,12 @@ function ShopView({ steps, icons, planned, onBack }) {
 
   const total = list.reduce((s, { items }) => s + items.length, 0);
   const totalDone = list.reduce((s, { name, items }) =>
-    s + items.filter(({ ii }) => done[planKey(name, ii)]).length, 0);
+    s + items.filter(({ ii }) => bought[planKey(name, ii)]).length, 0);
   const allDone = total > 0 && totalDone === total;
   const progress = total > 0 ? (totalDone / total) * 100 : 0;
 
   function toggle(step, ii) {
-    const key = planKey(sName(step), ii);
-    setDone((p) => ({ ...p, [key]: !p[key] }));
+    onToggleBought(planKey(sName(step), ii));
   }
 
   if (total === 0) return (
@@ -186,6 +183,7 @@ function ShopView({ steps, icons, planned, onBack }) {
         <div className="shop-state__title">Всё куплено!</div>
         <div className="shop-state__hint">{total} продуктов</div>
         <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onBack}><BackArrowIcon size={16} /> К списку</button>
+        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onPutaway}>📦 Разложить продукты</button>
       </div>
     </div>
   );
@@ -200,7 +198,7 @@ function ShopView({ steps, icons, planned, onBack }) {
       </div>
       <ul className="shopping-items">
         {list.map(({ step, name, icon, items }) => {
-          const catDone = items.every(({ ii }) => done[planKey(name, ii)]);
+          const catDone = items.every(({ ii }) => bought[planKey(name, ii)]);
           return (
             <Fragment key={name}>
               <li className={`shop-section-header${catDone ? ' shop-section-header--done' : ''}`}>
@@ -211,7 +209,7 @@ function ShopView({ steps, icons, planned, onBack }) {
               {items.map(({ item, ii, sub }, idx) => {
                 const prevSub = idx > 0 ? items[idx - 1].sub : null;
                 const showSub = sub && sub !== prevSub && !isDupSub(sub, name);
-                const isDoneItem = !!done[planKey(name, ii)];
+                const isDoneItem = !!bought[planKey(name, ii)];
                 const note = noteFor(planned, planKey(name, ii));
                 return (
                   <Fragment key={`${name}_${ii}`}>
@@ -254,19 +252,22 @@ export default function PlannerShoppingScreen() {
   const [steps, setSteps]       = useState([]);
   const [icons, setIcons]       = useState([]);
   const [planned, setPlanned]   = useState({});
+  const [bought, setBought]     = useState({});
   const [confirmReset, setConfirmReset] = useState(false);
 
   async function loadAndApply(forceRegen = false) {
     setLoading(true);
     if (!forceRegen) {
-      const [savedCustom, savedPlan] = await Promise.all([
+      const [savedCustom, savedPlan, savedBought] = await Promise.all([
         getPlannerShopCustomData(studentId),
         getPlannerShopPlan(studentId),
+        getPlannerShopBought(studentId),
       ]);
       if (savedCustom) {
         setSteps(customDataToSteps(savedCustom));
         setIcons(savedCustom.categories.map((c) => c.icon));
         setPlanned(savedPlan ?? {});
+        setBought(savedBought ?? {});
         setLoading(false);
         return;
       }
@@ -310,6 +311,7 @@ export default function PlannerShoppingScreen() {
     setSteps(customDataToSteps(customData));
     setIcons(customData.categories.map((c) => c.icon));
     setPlanned(newPlan);
+    setBought((await getPlannerShopBought(studentId)) ?? {});
     setLoading(false);
   }
 
@@ -335,9 +337,19 @@ export default function PlannerShoppingScreen() {
     });
   }
 
+  function toggleBought(key) {
+    setBought((prev) => {
+      const next = { ...prev };
+      if (next[key]) { delete next[key]; } else { next[key] = true; }
+      savePlannerShopBought(studentId, next).catch(() => {});
+      return next;
+    });
+  }
+
   async function handleReset() {
     await savePlannerShopCustomData(studentId, null);
     await savePlannerShopPlan(studentId, {});
+    await savePlannerShopBought(studentId, {});
     setConfirmReset(false);
     setView('grid');
     loadAndApply(true);
@@ -364,7 +376,12 @@ export default function PlannerShoppingScreen() {
       </div>
 
       {view === 'shop' ? (
-        <ShopView steps={steps} icons={icons} planned={planned} onBack={() => setView('grid')} />
+        <ShopView
+          steps={steps} icons={icons} planned={planned}
+          bought={bought} onToggleBought={toggleBought}
+          onBack={() => setView('grid')}
+          onPutaway={() => setScreen('planner_putaway')}
+        />
       ) : typeof view === 'number' ? (
         <PlanDetail
           steps={steps} icons={icons} planned={planned}

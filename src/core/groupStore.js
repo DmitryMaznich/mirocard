@@ -226,6 +226,22 @@ export async function savePlannerShopCustomData(studentId, data) {
   await kv.set(db, plannerShopCustomKey(studentId), data);
 }
 
+// ─── Planner shopping "bought" state (persists ShopView's tap-to-take
+// checks — previously local useState, lost on navigating away; Раскладка
+// needs to know what was actually bought, not just planned) ────────────────
+
+const plannerShopBoughtKey = (sid) => `planner_shop_bought_${sid}`;
+
+export async function getPlannerShopBought(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerShopBoughtKey(studentId))) ?? {};
+}
+
+export async function savePlannerShopBought(studentId, bought) {
+  const db = await getDb();
+  await kv.set(db, plannerShopBoughtKey(studentId), bought);
+}
+
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {
