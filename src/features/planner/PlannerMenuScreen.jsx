@@ -267,11 +267,6 @@ function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselec
                 <button className="menu-pool__name" onClick={() => onViewRecipe(recipe)}>
                   <span className="menu-pool__title-text">{getTopicTitle(recipe.text.title)}</span>
                 </button>
-                <button type="button" className="menu-pool__remove" onClick={() => onDeselect(textId)} aria-label="Убрать">
-                  <TrashIcon />
-                </button>
-              </div>
-              <div className="menu-pool__row-controls">
                 {fixedPortions ? (
                   <span className="menu-pool__fixed">🔒 {fixedPortions}</span>
                 ) : (
@@ -295,6 +290,11 @@ function SelectedPool({ plan, allRecipes, onToggleMeal, onSetPortions, onDeselec
                     </button>
                   </div>
                 )}
+                <button type="button" className="menu-pool__remove" onClick={() => onDeselect(textId)} aria-label="Убрать">
+                  <TrashIcon />
+                </button>
+              </div>
+              <div className="menu-pool__row-controls">
                 <div className="menu-pool__meal-grid" role="group" aria-label="Приёмы пищи">
                   {MEAL_TYPES.map((mt) => (
                     <button
