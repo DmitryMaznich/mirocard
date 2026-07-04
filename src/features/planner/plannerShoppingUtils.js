@@ -41,6 +41,24 @@ export function buildBaseCustomData() {
   };
 }
 
+// Three-tier fuzzy match, shared by first-generation (buildPlannerShoppingData)
+// and re-sync (syncDecisionsIntoShoppingData below): exact normalized string,
+// then substring either direction, then any shared word longer than 3 chars.
+export function findFuzzyMatch(lookup, prodNorm) {
+  let match = lookup.find((l) => l.norm === prodNorm);
+  if (!match) {
+    match = lookup.find((l) => prodNorm.includes(l.norm) || l.norm.includes(prodNorm));
+  }
+  if (!match) {
+    const prodWords = prodNorm.split(/\s+/);
+    match = lookup.find((l) => {
+      const bw = l.norm.split(/\s+/);
+      return prodWords.some((w) => w.length > 3 && bw.some((b) => b.includes(w) || w.includes(b)));
+    });
+  }
+  return match;
+}
+
 // Maps generated shopping list items to shopping.txt categories.
 // Returns { customData, plan } ready to save to planner shop storage.
 export function buildPlannerShoppingData(shoppingListItems) {
@@ -59,19 +77,7 @@ export function buildPlannerShoppingData(shoppingListItems) {
   for (const { product, qty, unit, include } of shoppingListItems) {
     if (!include) continue;
     const prodNorm = product.toLowerCase().trim();
-
-    let match = lookup.find((l) => l.norm === prodNorm);
-    if (!match) {
-      match = lookup.find((l) => prodNorm.includes(l.norm) || l.norm.includes(prodNorm));
-    }
-    if (!match) {
-      const prodWords = prodNorm.split(/\s+/);
-      match = lookup.find((l) => {
-        const bw = l.norm.split(/\s+/);
-        return prodWords.some((w) => w.length > 3 && bw.some((b) => b.includes(w) || w.includes(b)));
-      });
-    }
-
+    const match = findFuzzyMatch(lookup, prodNorm);
     const note = qty != null ? `${Math.round(qty * 10) / 10}${unit ? ' ' + unit : ''}` : '';
 
     if (match) {
@@ -119,37 +125,100 @@ export function customDataToSteps(customData) {
   });
 }
 
-/**
- * Re-applies the Дома/Купить decisions made in Меню onto an already
- * existing planned checklist, matching items by normalized product name
- * across every category. Runs every time the Покупки screen loads (not
- * just on first generation) so a decision changed in Меню after the list
- * was first built — or after custom items were added via the editor —
- * still lands in Покупки, without wiping any custom categories/items the
- * decisions don't mention.
- *
- * 'buy' checks the item only if it wasn't already checked (preserves an
- * existing note). 'have' always unchecks it, since Меню's decision
- * overrides whatever was manually toggled in Покупки before.
- *
- * @param {Array<{text: string, items: string[]}>} steps
- * @param {object} planned
- * @param {Object<string, 'have'|'buy'>} ingredientDecisions
- */
-export function applyDecisionsToPlanned(steps, planned, ingredientDecisions) {
-  const next = { ...planned };
-  for (const step of steps) {
-    const catName = step.text.replace(/:$/, '').trim();
-    (step.items ?? []).forEach((item, ii) => {
-      const decision = ingredientDecisions[item.toLowerCase().trim()];
-      if (!decision) return;
-      const key = `${catName}_${ii}`;
-      if (decision === 'buy') {
-        if (!next[key]) next[key] = true;
-      } else if (decision === 'have') {
-        delete next[key];
-      }
+function buildCustomDataLookup(customData) {
+  const lookup = [];
+  customData.categories.forEach((cat) => {
+    let ii = 0;
+    cat.subgroups.forEach((sg) => {
+      sg.items.forEach((item) => {
+        lookup.push({ norm: item.toLowerCase().trim(), catName: cat.name, ii });
+        ii++;
+      });
     });
+  });
+  return lookup;
+}
+
+// Splices out the item at a category's flat index (spanning all its
+// subgroups) — same mechanism CategoryEditor's manual item deletion already
+// uses, including its accepted limitation that later items in the same
+// category shift down by one index.
+function removeItemAtFlatIndex(category, flatIndex) {
+  let idx = flatIndex;
+  for (const sg of category.subgroups) {
+    if (idx < sg.items.length) { sg.items.splice(idx, 1); return; }
+    idx -= sg.items.length;
   }
-  return next;
+}
+
+function addMenuExtraItem(customData, label) {
+  let menuCat = customData.categories.find((c) => c.id === 'planner_menu_extras');
+  if (!menuCat) {
+    menuCat = { id: 'planner_menu_extras', name: 'Из меню', icon: '📋', subgroups: [{ name: null, items: [] }] };
+    customData.categories.unshift(menuCat);
+  }
+  if (!menuCat.subgroups.length) menuCat.subgroups.push({ name: null, items: [] });
+  menuCat.subgroups[0].items.push(label);
+}
+
+/**
+ * Re-syncs Меню's Дома/Купить decisions into an already-existing shopping
+ * list. Runs every time the Покупки screen loads (not just on first
+ * generation), so a decision changed in Меню after the list was first
+ * built — or after a new recipe was added to the menu — still lands in
+ * Покупки:
+ *
+ * - matched + 'buy': checks it (unless already checked — preserves an
+ *   existing note).
+ * - matched + 'have', item is in the "Из меню" catch-all: removes the item
+ *   from the category entirely (it only existed because of the decision).
+ * - matched + 'have', item is a normal (shopping.txt-derived) category item:
+ *   just unchecks it — it's a permanent list fixture, not removed.
+ * - no match + 'buy': adds a new item to "Из меню" (creating that category
+ *   if needed, via the same fuzzy-match cascade first generation uses) and
+ *   checks it.
+ * - no match + 'have': nothing to do, it never existed.
+ *
+ * Never touches custom categories/items the decisions don't mention.
+ *
+ * @param {object} customData
+ * @param {object} planned
+ * @param {Array<{product: string, qty: number|null, unit: string|null}>} ingredientItems
+ * @param {Object<string, 'have'|'buy'>} ingredientDecisions
+ * @returns {{ customData: object, planned: object }}
+ */
+export function syncDecisionsIntoShoppingData(customData, planned, ingredientItems, ingredientDecisions) {
+  const nextCustomData = JSON.parse(JSON.stringify(customData));
+  const nextPlanned = { ...planned };
+
+  for (const item of ingredientItems) {
+    const prodNorm = item.product.toLowerCase().trim();
+    const decision = ingredientDecisions[prodNorm];
+    if (!decision) continue;
+
+    const lookup = buildCustomDataLookup(nextCustomData);
+    const match = findFuzzyMatch(lookup, prodNorm);
+
+    if (match) {
+      const key = planKey(match.catName, match.ii);
+      if (decision === 'buy') {
+        if (!nextPlanned[key]) nextPlanned[key] = true;
+      } else if (match.catName === 'Из меню') {
+        const menuCat = nextCustomData.categories.find((c) => c.id === 'planner_menu_extras');
+        if (menuCat) removeItemAtFlatIndex(menuCat, match.ii);
+        delete nextPlanned[key];
+      } else {
+        delete nextPlanned[key];
+      }
+    } else if (decision === 'buy') {
+      const note = item.qty != null ? `${Math.round(item.qty * 10) / 10}${item.unit ? ' ' + item.unit : ''}` : '';
+      const label = note ? `${item.product} ${note}` : item.product;
+      addMenuExtraItem(nextCustomData, label);
+      const newLookup = buildCustomDataLookup(nextCustomData);
+      const added = newLookup.find((l) => l.catName === 'Из меню' && l.norm === label.toLowerCase().trim());
+      if (added) nextPlanned[planKey(added.catName, added.ii)] = true;
+    }
+  }
+
+  return { customData: nextCustomData, planned: nextPlanned };
 }
