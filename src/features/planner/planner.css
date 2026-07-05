@@ -2,7 +2,12 @@
 .planner-screen {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* A percentage height here needs a definite height on every ancestor to
+     resolve against; body/html only set min-height, so height:100% used to
+     compute as auto once content grew past one viewport, letting the whole
+     page grow instead of clipping inside .planner-body/.shopping-scroll/etc.
+     100dvh is definite on its own, regardless of the ancestor chain. */
+  height: 100dvh;
   background: linear-gradient(180deg, #f7f1e7 0%, #f2ebe2 100%);
 }
 

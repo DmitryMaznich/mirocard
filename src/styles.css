@@ -19404,6 +19404,8 @@ body { background: #eef0ef; }
 .shopping-body {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
