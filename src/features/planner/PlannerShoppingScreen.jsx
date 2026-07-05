@@ -864,6 +864,8 @@ export default function PlannerShoppingScreen() {
   const setScreen    = useAppStore((s) => s.setScreen);
   const studentId    = useAppStore((s) => s.activeStudentId);
   const topicRecords = useAppStore((s) => s.topicRecords);
+  const plannerShoppingInitialMode = useAppStore((s) => s.plannerShoppingInitialMode);
+  const setPlannerShoppingInitialMode = useAppStore((s) => s.setPlannerShoppingInitialMode);
 
   // modeView: 'loading' | 'storePicker' | 'plan' | 'shop'
   const [modeView, setModeView] = useState('loading');
@@ -886,17 +888,22 @@ export default function PlannerShoppingScreen() {
 
   useEffect(() => {
     if (!studentId) return;
-    // Always land directly on the catalog — the store picker is optional
-    // and reachable any time via the 🏪 chip, never a mandatory gate.
+    // Normally lands directly on the catalog — the store picker is optional
+    // and reachable any time via the 🏪 chip, never a mandatory gate. The
+    // hub's "В магазин" card asks for the in-store checklist instead by
+    // setting plannerShoppingInitialMode before navigating here; consumed
+    // once, then cleared, so a later visit defaults back to the catalog.
+    const initialMode = plannerShoppingInitialMode === 'shop' ? 'shop' : 'plan';
+    if (plannerShoppingInitialMode) setPlannerShoppingInitialMode(null);
     getPlannerShopStores(studentId).then((saved) => {
       setStores(saved ?? { current: null, list: [...DEFAULT_STORES] });
-      setModeView('plan');
+      setModeView(initialMode);
     }).catch(() => {
       setStores({ current: null, list: [...DEFAULT_STORES] });
-      setModeView('plan');
+      setModeView(initialMode);
     });
     getPlannerShopHistory(studentId).then(setHistory).catch(() => {});
-  }, [studentId]);
+  }, [studentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadAndApply(forceRegen = false) {
     setLoading(true);
@@ -987,7 +994,10 @@ export default function PlannerShoppingScreen() {
   }
 
   useEffect(() => {
-    if (studentId && modeView === 'plan') loadAndApply();
+    // 'shop' also needs steps/customData/planned/bought loaded — the hub's
+    // "В магазин" card can land here directly without ever visiting 'plan'
+    // first (see the plannerShoppingInitialMode boot effect above).
+    if (studentId && (modeView === 'plan' || modeView === 'shop')) loadAndApply();
   }, [studentId, modeView]);
 
   function persistStores(next) {

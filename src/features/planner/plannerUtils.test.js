@@ -352,30 +352,37 @@ describe('isReadyToCook', () => {
     ],
   };
 
-  it('is true when everything is decided "have" (no shopping needed)', () => {
+  it('is true when everything is decided "have" (no shopping needed), regardless of putawayDone', () => {
     let plan = selectRecipe(createPlan('s1'), 'soup_01');
     plan = setIngredientDecision(plan, 'картошка', 'have');
     plan = setIngredientDecision(plan, 'соль', 'have');
-    expect(isReadyToCook(plan, [soup], false)).toBe(true);
+    expect(isReadyToCook(plan, [soup], false, false)).toBe(true);
   });
 
   it('is false when something needs buying and shopping is not done', () => {
     let plan = selectRecipe(createPlan('s1'), 'soup_01');
     plan = setIngredientDecision(plan, 'картошка', 'have');
     plan = setIngredientDecision(plan, 'соль', 'buy');
-    expect(isReadyToCook(plan, [soup], false)).toBe(false);
+    expect(isReadyToCook(plan, [soup], false, false)).toBe(false);
   });
 
-  it('is true when something needed buying but shopping is done', () => {
+  it('is false when shopping is done but putaway is not — putaway is now a required step, not a parallel one', () => {
     let plan = selectRecipe(createPlan('s1'), 'soup_01');
     plan = setIngredientDecision(plan, 'картошка', 'have');
     plan = setIngredientDecision(plan, 'соль', 'buy');
-    expect(isReadyToCook(plan, [soup], true)).toBe(true);
+    expect(isReadyToCook(plan, [soup], true, false)).toBe(false);
   });
 
-  it('is false when not every ingredient has a decision yet, even if shoppingDone is true', () => {
+  it('is true when something needed buying, shopping is done, and putaway is done', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setIngredientDecision(plan, 'картошка', 'have');
+    plan = setIngredientDecision(plan, 'соль', 'buy');
+    expect(isReadyToCook(plan, [soup], true, true)).toBe(true);
+  });
+
+  it('is false when not every ingredient has a decision yet, even if shoppingDone/putawayDone are true', () => {
     const plan = selectRecipe(createPlan('s1'), 'soup_01');
-    expect(isReadyToCook(plan, [soup], true)).toBe(false);
+    expect(isReadyToCook(plan, [soup], true, true)).toBe(false);
   });
 });
 

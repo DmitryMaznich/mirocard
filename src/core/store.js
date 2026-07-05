@@ -112,6 +112,12 @@ export const useAppStore = create((set) => ({
   // ─── Planner ───────────────────────────────────────────────────────────────
   plannerStudentId: null,
   setPlannerStudentId: (id) => set({ plannerStudentId: id }),
+  // Which modeView PlannerShoppingScreen should open on next mount (e.g. the
+  // hub's "В магазин" card wants the in-store checklist, not the category
+  // grid). Read once on mount, then cleared — mirrors how PlannerMenuScreen
+  // used to consume plannerInitialView before Меню became its only view.
+  plannerShoppingInitialMode: null,
+  setPlannerShoppingInitialMode: (plannerShoppingInitialMode) => set({ plannerShoppingInitialMode }),
   // Which Home tab ("session" | "planner") to land on. HomeScreen's own
   // tab state is local (resets on remount), so without this, navigating
   // back from a Planner screen (setScreen('home')) always dropped the

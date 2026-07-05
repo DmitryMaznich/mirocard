@@ -10,7 +10,7 @@ import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan, loadAllRecipes } from "@/features/planner/plannerApi";
-import { isMenuFullyDecided, isReadyToCook } from "@/features/planner/plannerUtils";
+import { isMenuFullyDecided, isReadyToCook, needsShopping } from "@/features/planner/plannerUtils";
 import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
 import { buildPutawayQueue } from "@/features/planner/putawayUtils";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
@@ -212,6 +212,7 @@ function PlannerTab({ student, setScreen }) {
   const setActiveText = useAppStore((s) => s.setActiveText);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
+  const setPlannerShoppingInitialMode = useAppStore((s) => s.setPlannerShoppingInitialMode);
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
   const [allRecipes, setAllRecipes] = useState([]);
   const [boughtCount, setBoughtCount] = useState(0);
@@ -264,7 +265,12 @@ function PlannerTab({ student, setScreen }) {
   const hasSelection = !!existingPlan && existingPlan.selectedRecipes.length > 0;
   const selectedCount = hasSelection ? existingPlan.selectedRecipes.length : 0;
   const menuDone = hasSelection && allRecipes.length > 0 && isMenuFullyDecided(existingPlan, allRecipes);
-  const readyToCook = hasSelection && allRecipes.length > 0 && isReadyToCook(existingPlan, allRecipes, shoppingDone);
+  // Once the menu is fully decided, a trip to the store is only actually
+  // needed if something got marked "Купить" — a fully home-stocked menu
+  // skips both "В магазин" and "Раскладка" as if already done, rather than
+  // blocking cooking on steps that could never complete.
+  const needsToShop = menuDone && needsShopping(existingPlan, allRecipes);
+  const readyToCook = hasSelection && allRecipes.length > 0 && isReadyToCook(existingPlan, allRecipes, shoppingDone, putawayDone);
   const menuRecipes = hasSelection
     ? existingPlan.selectedRecipes.map((id) => allRecipes.find((r) => r.text.id === id)).filter(Boolean)
     : [];
@@ -276,6 +282,11 @@ function PlannerTab({ student, setScreen }) {
     setActiveModeId('follow_instruction');
     setSessionReturnScreen('home');
     setScreen('params');
+  }
+
+  function handleGoShopping() {
+    setPlannerShoppingInitialMode('shop');
+    setScreen('planner_shopping');
   }
 
   return (
@@ -291,20 +302,35 @@ function PlannerTab({ student, setScreen }) {
 
         <HubCard
           state={!hasSelection ? 'locked' : shoppingDone ? 'done' : 'active'}
-          icon="🛒"
-          title="Покупки"
+          icon="📝"
+          title="Что купить?"
           value={!hasSelection ? 'Сначала меню' : shoppingDone ? 'Всё куплено' : 'Список готов'}
           onClick={() => setScreen('planner_shopping')}
           disabled={!hasSelection}
         />
 
         <HubCard
-          state={boughtCount === 0 ? 'locked' : putawayDone ? 'done' : 'active'}
+          state={!menuDone ? 'locked' : !needsToShop ? 'done' : shoppingDone ? 'done' : 'active'}
+          icon="🛒"
+          title="В магазин"
+          value={!menuDone ? 'Сначала список' : !needsToShop ? 'Всё уже дома' : shoppingDone ? 'Всё куплено' : 'Список готов'}
+          onClick={handleGoShopping}
+          disabled={!menuDone}
+        />
+
+        <HubCard
+          state={!menuDone ? 'locked' : !needsToShop ? 'done' : !shoppingDone ? 'locked' : putawayDone ? 'done' : 'active'}
           icon="📦"
           title="Раскладка"
-          value={boughtCount === 0 ? 'После покупок' : putawayDone ? 'Всё разложено' : `${boughtCount} товаров готово к раскладке`}
+          value={
+            !menuDone ? 'Сначала список' :
+            !needsToShop ? 'Нечего раскладывать' :
+            !shoppingDone ? 'После покупок' :
+            putawayDone ? 'Всё разложено' :
+            `${boughtCount} товаров готово к раскладке`
+          }
           onClick={() => setScreen('planner_putaway')}
-          disabled={boughtCount === 0}
+          disabled={!needsToShop || !shoppingDone}
         />
       </div>
 
@@ -322,7 +348,9 @@ function PlannerTab({ student, setScreen }) {
             <div className="planner-cook-hint">
               {!menuDone
                 ? 'Сначала реши «Дома» или «Купить» для каждого продукта'
-                : 'Сначала докупи всё по списку'}
+                : !shoppingDone
+                  ? 'Сначала докупи всё по списку'
+                  : 'Сначала разложи продукты'}
             </div>
           )}
         </>

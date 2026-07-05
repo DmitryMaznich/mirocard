@@ -149,11 +149,16 @@ export function needsShopping(plan, allRecipes) {
   return items.some((item) => plan.ingredientDecisions[item.product.toLowerCase()] === 'buy');
 }
 
-// Gate for the hub's "Начинаем готовить" CTA. Раскладка does not factor in
-// here on purpose — it's a parallel organizing skill, not a cooking
-// prerequisite (see docs/superpowers/specs/2026-07-04-planner-start-cooking-design.md).
-export function isReadyToCook(plan, allRecipes, shoppingDone) {
-  return isMenuFullyDecided(plan, allRecipes) && (!needsShopping(plan, allRecipes) || shoppingDone);
+// Gate for the hub's "Начинаем готовить" CTA. Раскладка is now a required
+// step in the shop -> put away -> cook sequence (revising the earlier
+// "parallel skill, not a prerequisite" decision) — but only when a trip to
+// the store was ever needed in the first place, so a menu that's fully
+// home-stocked isn't stuck waiting on a putaway step that could never
+// happen.
+export function isReadyToCook(plan, allRecipes, shoppingDone, putawayDone) {
+  if (!isMenuFullyDecided(plan, allRecipes)) return false;
+  if (!needsShopping(plan, allRecipes)) return true;
+  return shoppingDone && putawayDone;
 }
 
 /**
