@@ -80,6 +80,14 @@
   display: grid; grid-template-columns: 1fr 1fr;
   gap: clamp(8px, 2vmin, 14px); width: 100%; flex-shrink: 0;
 }
+.wf-pick__options--wide {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.wf-pick__options--wide .wf-pick__option {
+  padding-left: clamp(4px, 1.5vmin, 10px);
+  padding-right: clamp(4px, 1.5vmin, 10px);
+  font-size: clamp(0.78rem, 3.5vmin, 1.2rem);
+}
 @media (orientation: portrait) {
   .wf-pick__options { margin-top: 2em; }
 }

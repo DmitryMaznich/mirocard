@@ -4,8 +4,6 @@ import { shuffle } from "@/shared/utils/shuffle";
 
 const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
 
-const OPTION_COUNT = 4;
-
 function VisualImage({ topicId, path, className }) {
   const url = useTopicFile(topicId, path);
   return url
@@ -23,21 +21,18 @@ function buildOptions(card, allCards, difficulty) {
   if (difficulty === "hard" && card.wrongForms?.length >= 3) {
     return shuffle([
       { text: card.adjPhrase, isTarget: true },
-      ...card.wrongForms.slice(0, OPTION_COUNT - 1).map(text => ({ text, isTarget: false })),
+      ...card.wrongForms.map(text => ({ text, isTarget: false })),
     ]);
   }
 
-  // Easy: other cards from same category (same questionText), adjective only
+  // All cards from same category (same grammatical form) — maximum distractors
   const sameCategory = allCards.filter(
     c => c.id !== card.id && c.questionText === card.questionText
   );
-  const wrongTexts = shuffle(sameCategory)
-    .slice(0, OPTION_COUNT - 1)
-    .map(c => stripNoun(c.adjPhrase));
 
   return shuffle([
     { text: stripNoun(card.adjPhrase), isTarget: true },
-    ...wrongTexts.map(text => ({ text, isTarget: false })),
+    ...sameCategory.map(c => ({ text: stripNoun(c.adjPhrase), isTarget: false })),
   ]);
 }
 
@@ -106,7 +101,7 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
           </div>
         </div>
 
-        <div className="wf-pick__options">
+        <div className={`wf-pick__options${options.length > 4 ? " wf-pick__options--wide" : ""}`}>
           {options.map((opt, i) => {
             let mod = "";
             if (picked === "correct" && opt.isTarget)   mod = "wf-pick__option--correct";
