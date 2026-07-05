@@ -39,17 +39,32 @@
   color: #263131;
 }
 
-.planner-plan-pill {
+/* Trailing action row in .planner-header (e.g. Покупки's store/history/
+   print/clear/edit/regenerate icons) — sits in the same header bar as the
+   back arrow and title instead of a second header-styled row underneath. */
+.planner-header-actions {
   flex-shrink: 0;
-  border: 1px solid rgba(74, 155, 143, 0.35);
-  background: rgba(74, 155, 143, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.planner-header-done-btn {
+  all: unset;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: rgba(74, 155, 143, 0.12);
   color: #2f5b57;
   font-size: 13px;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: 7px 14px;
+  font-weight: 800;
+  padding: 6px 14px;
   cursor: pointer;
   font-family: inherit;
+}
+.planner-header-done-btn:hover,
+.planner-header-done-btn:active {
+  background: rgba(74, 155, 143, 0.22);
 }
 
 .planner-body {

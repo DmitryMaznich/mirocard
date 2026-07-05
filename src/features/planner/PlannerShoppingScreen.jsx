@@ -453,10 +453,8 @@ function SortablePlanTile({ id, icon, name, count, onEdit, onDelete }) {
 // ── Grid view ──────────────────────────────────────────────────────────────────
 
 function PlanGrid({
-  steps, icons, planned, customData, editMode, history,
-  onDetail, onShop, onRegenerate, onChangeStore, store, onNote,
-  onEnterEdit, onExitEdit, onEditCategory, onDeleteCategory, onAddCategory, onDragEnd,
-  onOpenHistory, onOpenPreview, onClear,
+  steps, icons, planned, customData, editMode, onNote,
+  onDetail, onShop, onEditCategory, onDeleteCategory, onAddCategory, onDragEnd,
 }) {
   const total = steps.reduce((s, step) => {
     const n = sName(step);
@@ -471,30 +469,6 @@ function PlanGrid({
   return (
     <div className="shopping-body">
       <div className="shopping-scroll">
-        <div className="shopping-grid-header">
-          <span>{editMode ? 'Редактор категорий' : (total > 0 ? `🛒 ${total} выбрано` : 'Что нужно купить?')}</span>
-          <div className="shopping-grid-header-actions">
-            {editMode ? (
-              <button className="shopping-sort-done-btn" onClick={onExitEdit}>✓ Готово</button>
-            ) : (
-              <>
-                <button className="shop-store-chip" onClick={onChangeStore} aria-label="Сменить магазин">{store || '🏪'}</button>
-                {history.length > 0 && (
-                  <button className="shopping-clear-btn" onClick={onOpenHistory} aria-label="История">🕐</button>
-                )}
-                {total > 0 && (
-                  <button className="shopping-clear-btn" onClick={onOpenPreview} aria-label="Печать">🖨</button>
-                )}
-                {total > 0 && (
-                  <button className="shopping-clear-btn" onClick={onClear} aria-label="Очистить">🗑</button>
-                )}
-                <button className="shopping-clear-btn" onClick={onEnterEdit} aria-label="Редактировать категории">✏️</button>
-                <button className="shopping-clear-btn" onClick={onRegenerate} title="Пересоставить из рецептов">⟳</button>
-              </>
-            )}
-          </div>
-        </div>
-
         {editMode ? (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
             <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
@@ -1255,11 +1229,47 @@ export default function PlannerShoppingScreen() {
     editMode ? 'Редактор категорий' :
     'Список покупок';
 
+  // The grid's own action icons (store/history/print/clear/edit/regenerate)
+  // live in the same header row as the back arrow and title, rather than a
+  // second header bar underneath — a "Список покупок" nav header immediately
+  // followed by another header-styled row read as one screen with two title
+  // bars stacked.
+  const showGridActions = typeof view !== 'number' && view !== 'history' && view !== 'preview';
+  const total = steps.reduce((s, step) => {
+    const n = sName(step);
+    return s + (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
+  }, 0);
+
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
         <button className="planner-header__back" onClick={handleBack}><BackArrowIcon size={22} /></button>
         {headerTitle && <h1 className="planner-header__title">{headerTitle}</h1>}
+        {showGridActions && (
+          editMode ? (
+            <button
+              className="planner-header-done-btn"
+              onClick={() => { setEditMode(false); setEditingCategoryId(null); }}
+            >
+              ✓ Готово
+            </button>
+          ) : (
+            <div className="planner-header-actions">
+              <button className="shop-store-chip" onClick={() => setModeView('storePicker')} aria-label="Сменить магазин">{stores.current || '🏪'}</button>
+              {history.length > 0 && (
+                <button className="shopping-clear-btn" onClick={() => setView('history')} aria-label="История">🕐</button>
+              )}
+              {total > 0 && (
+                <button className="shopping-clear-btn" onClick={() => setView('preview')} aria-label="Печать">🖨</button>
+              )}
+              {total > 0 && (
+                <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить">🗑</button>
+              )}
+              <button className="shopping-clear-btn" onClick={() => setEditMode(true)} aria-label="Редактировать категории">✏️</button>
+              <button className="shopping-clear-btn" onClick={() => setConfirmReset(true)} title="Пересоставить из рецептов">⟳</button>
+            </div>
+          )
+        )}
       </div>
 
       {typeof view === 'number' ? (
@@ -1277,21 +1287,14 @@ export default function PlannerShoppingScreen() {
       ) : (
         <PlanGrid
           steps={steps} icons={icons} planned={planned} customData={customData}
-          editMode={editMode} history={history} store={stores.current}
+          editMode={editMode}
           onNote={saveNote}
           onDetail={setView}
           onShop={() => setModeView('shop')}
-          onRegenerate={() => setConfirmReset(true)}
-          onChangeStore={() => setModeView('storePicker')}
-          onEnterEdit={() => setEditMode(true)}
-          onExitEdit={() => { setEditMode(false); setEditingCategoryId(null); }}
           onEditCategory={setEditingCategoryId}
           onDeleteCategory={handleDeleteCategory}
           onAddCategory={handleAddCategory}
           onDragEnd={handleDragEnd}
-          onOpenHistory={() => setView('history')}
-          onOpenPreview={() => setView('preview')}
-          onClear={() => setConfirmClear(true)}
         />
       )}
 
