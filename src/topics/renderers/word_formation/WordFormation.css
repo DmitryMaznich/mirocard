@@ -33,6 +33,7 @@
   display: flex; flex-direction: column;
   gap: clamp(8px, 2vmin, 16px);
   align-items: center;
+  justify-content: center;
 }
 
 /* visuals: ingredient + plus + pot */
@@ -55,7 +56,8 @@
   width: clamp(24px, 5vmin, 36px); text-align: center; flex-shrink: 0;
 }
 .wf-pair__visual-img--solo {
-  width: min(320px, 55vmin); height: min(320px, 55vmin);
+  width: min(80vw, 72vh);
+  height: min(80vw, 72vh);
   flex: 0 0 auto; max-width: none;
 }
 
