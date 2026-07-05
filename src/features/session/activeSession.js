@@ -62,3 +62,18 @@ export async function persistActiveSessionSnapshot(db, snapshot) {
 export async function clearActiveSessionSnapshot(db) {
   await kv.del(db, ACTIVE_SESSION_KEY);
 }
+
+// A persisted snapshot can be arbitrarily stale (e.g. the app crashed/
+// reloaded before the user picked anything new, leaving whatever topic/text
+// was active from an unrelated earlier session). Booting straight into
+// "session" for a topic/text that no longer resolves used to silently fall
+// back to the first topic and its first text — this checks the snapshot's
+// topic and text still exist in the current topicRecords before trusting it.
+export function canResumeActiveSession(activeSession, topicRecords) {
+  if (!activeSession?.sessionState) return false;
+  const { topicId, textId } = activeSession.context;
+  const record = (topicRecords ?? []).find((r) => r.meta?.id === topicId);
+  if (!record) return false;
+  if (textId && !(record.texts ?? []).some((t) => t.id === textId)) return false;
+  return true;
+}

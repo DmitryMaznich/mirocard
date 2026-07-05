@@ -7,7 +7,7 @@ import { flushQueue, setupOnlineListener } from "@/core/syncApi";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
 import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
-import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
+import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot, canResumeActiveSession } from "@/features/session/activeSession";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import HoldButton from "@/shared/components/HoldButton";
@@ -178,7 +178,12 @@ export default function App() {
         if (bootstrap.token && bootstrap.account) {
           setApiToken(bootstrap.token);
           setupOnlineListener();
-          setScreen(bootstrap.activeSession?.sessionState ? "session" : "home");
+          const resumable = canResumeActiveSession(bootstrap.activeSession, bootstrap.topicRecords);
+          setScreen(resumable ? "session" : "home");
+          if (bootstrap.activeSession?.sessionState && !resumable) {
+            useAppStore.setState({ activeSessionSnapshot: null });
+            clearPersistedActiveSessionSnapshot(db).catch(() => {});
+          }
 
           (async () => {
             try {
