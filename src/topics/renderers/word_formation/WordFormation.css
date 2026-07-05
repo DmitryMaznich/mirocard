@@ -266,6 +266,17 @@
 .wf-qa__btn--retry   { background: #fff3e0; color: #e65100; }
 .wf-qa__btn--correct { background: #4caf50; color: #fff; }
 
+/* ── pair_intro typography ──────────────────────────────── */
+.wf-intro__q {
+  font-weight: 300;
+  font-style: italic;
+  color: #a0a0a0;
+  font-size: 0.82em;
+}
+.wf-intro__ending {
+  color: #e07c00;
+}
+
 /* ── animations ─────────────────────────────────────── */
 @keyframes wf-pulse {
   0%, 100% { opacity: 1; }

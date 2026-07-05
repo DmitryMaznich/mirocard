@@ -4,6 +4,19 @@ import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons"
 
 const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
 
+const ADJ_ENDINGS = ["ый", "ий", "ой", "ая", "яя", "ое", "ее", "ые", "ие"];
+
+function splitAdj(adjPhrase) {
+  const [adj, ...tail] = adjPhrase.split(" ");
+  const rest = tail.length ? " " + tail.join(" ") : "";
+  for (const end of ADJ_ENDINGS) {
+    if (adj.endsWith(end)) {
+      return { stem: adj.slice(0, -end.length), ending: end, rest };
+    }
+  }
+  return { stem: adj, ending: "", rest };
+}
+
 function VisualImage({ topicId, path, className }) {
   const url = useTopicFile(topicId, path);
   return url
@@ -45,6 +58,8 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
 
   if (!card) return null;
 
+  const { stem, ending, rest } = splitAdj(card.adjPhrase);
+
   return (
     <div className="wf-pair wf-pair--revealed" onClick={handleNext}>
       <div className="wf-pair__content">
@@ -62,7 +77,10 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
 
         <div className="wf-pair__prompt">
           <div className="wf-pair__prompt-line wf-pair__prompt-line--question" ref={promptRef}>
-            {cap(card.nounPhrase)} ({card.questionText ?? "какой?"}) — {card.adjPhrase}
+            {cap(card.nounPhrase)}
+            <span className="wf-intro__q"> ({card.questionText ?? "какой?"})</span>
+            {" — "}
+            {stem}<span className="wf-intro__ending">{ending}</span>{rest}
           </div>
         </div>
       </div>
