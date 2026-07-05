@@ -14,6 +14,10 @@ import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
+// ASCII modifier suffixes for MealSlotSection's per-meal soft-color tint
+// (CSS class names stay Latin/kebab-case like everywhere else in the app).
+const MEAL_CLASS = { завтрак: 'breakfast', обед: 'lunch', ужин: 'dinner', перекус: 'snack' };
+
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 function pluralizePortions(n) {
@@ -259,8 +263,8 @@ function MealSlotSection({ mealType, plan, allRecipes, onSetPortions, onDeselect
   const recipesHere = plan.selectedRecipes.filter((textId) => plan.mealAssignments[textId] === mealType);
 
   return (
-    <div className="menu-pool">
-      <h2 className="menu-pool__title">{MEAL_ICONS[mealType]} {capitalize(mealType)}</h2>
+    <div className={`menu-pool menu-pool--${MEAL_CLASS[mealType]}`}>
+      <h2 className="menu-pool__title">{capitalize(mealType)}</h2>
       {recipesHere.length > 0 && (
         <div className="menu-pool__list">
           {recipesHere.map((textId) => {

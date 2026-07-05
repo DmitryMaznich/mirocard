@@ -100,6 +100,32 @@
   color: #2f5b57;
 }
 
+/* Each meal slot gets its own soft pastel tint, so the four plates read
+   as distinct sections at a glance instead of four identical cream boxes. */
+.menu-pool--breakfast {
+  background: #fbe8db;
+  border-color: #f0d4bd;
+}
+.menu-pool--breakfast .menu-pool__title { color: #a8623a; }
+
+.menu-pool--lunch {
+  background: #faf3d1;
+  border-color: #efe3ad;
+}
+.menu-pool--lunch .menu-pool__title { color: #9c7f1f; }
+
+.menu-pool--dinner {
+  background: #e9e3f3;
+  border-color: #d9cdeb;
+}
+.menu-pool--dinner .menu-pool__title { color: #5f4b8b; }
+
+.menu-pool--snack {
+  background: #ddf0e6;
+  border-color: #c3e4d3;
+}
+.menu-pool--snack .menu-pool__title { color: #2f7a5c; }
+
 .menu-pool__list {
   display: flex;
   flex-direction: column;
