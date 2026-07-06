@@ -1,5 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import { findFuzzyMatch, buildPlannerShoppingData, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
+import { findFuzzyMatch, buildPlannerShoppingData, syncDecisionsIntoShoppingData, formatShoppingNote } from './plannerShoppingUtils.js';
+
+describe('formatShoppingNote', () => {
+  it('returns empty string for a seasoning product regardless of qty', () => {
+    expect(formatShoppingNote('соль', 1, 'ч.л')).toBe('');
+    expect(formatShoppingNote('масло растительное', 3, 'ст.л')).toBe('');
+  });
+
+  it('returns empty string when qty is null', () => {
+    expect(formatShoppingNote('яйца', null, null)).toBe('');
+  });
+
+  it('formats a purchase-rounded quantity for a converted product', () => {
+    expect(formatShoppingNote('картошка', 300, 'г')).toBe('500 г');
+  });
+
+  it('falls back to the raw rounded qty/unit when there is no conversion entry', () => {
+    expect(formatShoppingNote('незнакомый продукт', 2.34, 'ст.л')).toBe('2.3 ст.л');
+  });
+
+  it('ceils a discrete unit even without a conversion table entry', () => {
+    expect(formatShoppingNote('яйца', 5.5, 'шт')).toBe('6 шт');
+  });
+});
 
 describe('findFuzzyMatch', () => {
   const lookup = [
@@ -25,11 +48,21 @@ describe('findFuzzyMatch', () => {
 });
 
 describe('buildPlannerShoppingData (after findFuzzyMatch extraction)', () => {
-  it('checks a matched item and adds a note for its quantity', () => {
+  it('checks a matched item and adds a purchase-rounded note for its quantity', () => {
     const { plan } = buildPlannerShoppingData([
-      { product: 'картошка', qty: 2, unit: 'шт', include: true },
+      { product: 'картошка', qty: 300, unit: 'г', include: true },
     ]);
-    expect(plan['Овощи_0']).toEqual({ note: '2 шт' });
+    // 300 г округляется вверх до шага покупки (500 г)
+    expect(plan['Овощи_0']).toEqual({ note: '500 г' });
+  });
+
+  it('shows no quantity note for a seasoning product even with an exact recipe dose', () => {
+    const { plan } = buildPlannerShoppingData([
+      { product: 'масло оливковое', qty: 3, unit: 'ст.л', include: true },
+    ]);
+    // «масло оливковое» — 8-й товар (индекс 7) в плоском списке категории «5. Бакалея:»
+    // (рис, гречка, макароны, полента, овсяные хлопья, киноа, масло растительное, масло оливковое, ...).
+    expect(plan['Бакалея_7']).toBe(true); // чекбокс без note, а не { note: '...' }
   });
 
   it('places a completely unmatched item into the Из меню catch-all', () => {

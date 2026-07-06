@@ -1,5 +1,6 @@
 import SHOPPING_TXT_EMBEDDED from '../../../content/shopping/shopping.txt?raw';
 import { parseRecipeTxt } from '../../topics/renderers/reading/parseRecipeTxt.js';
+import { toShoppingQuantity, NO_SHOPPING_QTY_PRODUCTS } from './shoppingUnitConversions.js';
 
 export const SHOPPING_STEPS = parseRecipeTxt(SHOPPING_TXT_EMBEDDED).filter(
   (s) => s.type === 'checklist' || s.type === 'action'
@@ -15,6 +16,22 @@ export const CATEGORY_ICONS = {
 
 function sName(step) { return step.text.replace(/:$/, '').trim(); }
 function planKey(name, ii) { return `${name}_${ii}`; }
+
+// Formats the small quantity note shown next to a shopping-list item.
+// Seasoning/pantry products (NO_SHOPPING_QTY_PRODUCTS) never show a
+// quantity — a spoonful of salt doesn't correspond to anything on a
+// shelf. Otherwise converts to a purchase-friendly amount via
+// toShoppingQuantity when a conversion is known, falling back to the
+// raw recipe qty/unit (rounded to one decimal) when it isn't.
+export function formatShoppingNote(product, qty, unit) {
+  if (qty == null) return '';
+  if (NO_SHOPPING_QTY_PRODUCTS.has(product.toLowerCase())) return '';
+  const converted = toShoppingQuantity(product, qty, unit);
+  if (converted) {
+    return `${converted.qty}${converted.unit ? ' ' + converted.unit : ''}`;
+  }
+  return `${Math.round(qty * 10) / 10}${unit ? ' ' + unit : ''}`;
+}
 
 export function buildBaseCustomData() {
   return {
@@ -78,7 +95,7 @@ export function buildPlannerShoppingData(shoppingListItems) {
     if (!include) continue;
     const prodNorm = product.toLowerCase().trim();
     const match = findFuzzyMatch(lookup, prodNorm);
-    const note = qty != null ? `${Math.round(qty * 10) / 10}${unit ? ' ' + unit : ''}` : '';
+    const note = formatShoppingNote(product, qty, unit);
 
     if (match) {
       plan[planKey(match.catName, match.ii)] = note ? { note } : true;
@@ -223,7 +240,7 @@ export function syncDecisionsIntoShoppingData(customData, planned, menuKeys, ing
         delete nextPlanned[key];
       }
     } else if (decision === 'buy') {
-      const note = item.qty != null ? `${Math.round(item.qty * 10) / 10}${item.unit ? ' ' + item.unit : ''}` : '';
+      const note = formatShoppingNote(item.product, item.qty, item.unit);
       const label = note ? `${item.product} ${note}` : item.product;
       addMenuExtraItem(nextCustomData, label);
       const newLookup = buildCustomDataLookup(nextCustomData);
