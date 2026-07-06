@@ -197,6 +197,17 @@
         "ru": "Словообразование"
       },
       "renderer": "word_formation"
+    },
+    {
+      "id": "phonetic_analysis",
+      "version": "1.0.0",
+      "url": "./decks/phonetic_analysis_v1.0.0.zip",
+      "zipUrl": "phonetic_analysis_v1.0.0.zip",
+      "title": {
+        "ru": "Звуки и буквы",
+        "en": "Sounds and Letters"
+      },
+      "renderer": "phonetic_analysis"
     }
   ]
 }
