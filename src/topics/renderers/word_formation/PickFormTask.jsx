@@ -1,8 +1,29 @@
-import { useLayoutEffect, useRef, useState, useMemo } from "react";
+﻿import { useLayoutEffect, useRef, useState, useMemo } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 
 const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : s;
+
+const PRONOUNS = {
+  "какой?":  "Этот",
+  "какая?":  "Эта",
+  "какое?":  "Это",
+  "какие?":  "Эти",
+};
+
+function getBaseNoun(nounPhrase) {
+  return (nounPhrase ?? "").trim().split(" ")[0].toLowerCase();
+}
+
+function buildQuestion(card, hintMode) {
+  const q = card.questionText ?? "какой?";
+  if (hintMode === "noun_only") {
+    const pronoun  = PRONOUNS[q] ?? "Этот";
+    const baseNoun = getBaseNoun(card.nounPhrase);
+    return `${pronoun} ${baseNoun} ${q}`;
+  }
+  return `${cap(card.nounPhrase)} (${q})`;
+}
 
 function VisualImage({ topicId, path, className }) {
   const url = useTopicFile(topicId, path);
@@ -11,7 +32,6 @@ function VisualImage({ topicId, path, className }) {
     : <div className={`${className} wf-pair__visual-img--loading`} />;
 }
 
-// "рыбный суп" → "рыбный"
 function stripNoun(phrase) {
   const words = phrase.trim().split(" ");
   return words.length > 1 ? words.slice(0, -1).join(" ") : phrase;
@@ -25,7 +45,6 @@ function buildOptions(card, allCards, difficulty) {
     ]);
   }
 
-  // All cards from same category (same grammatical form) — maximum distractors
   const sameCategory = allCards.filter(
     c => c.id !== card.id && c.questionText === card.questionText
   );
@@ -36,12 +55,12 @@ function buildOptions(card, allCards, difficulty) {
   ]);
 }
 
-// One task = one card. Session engine handles card-to-card progression.
 export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) {
   const { card, allCards } = task;
   const difficulty = task.params?.difficulty ?? "easy";
+  const hintMode   = task.params?.hintMode   ?? "phrase";
 
-  const [picked, setPicked]     = useState(null);   // null | "correct" | "wrong"
+  const [picked, setPicked]     = useState(null);
   const [wrongIdx, setWrongIdx] = useState(null);
   const visualsRef = useRef();
   const promptRef1 = useRef();
@@ -63,7 +82,7 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
       el.style.fontSize =
         (parseFloat(getComputedStyle(el).fontSize) * targetW / textW) + "px";
     }
-  }, [card?.id]);
+  }, [card?.id, hintMode]);
 
   function handleOption(optionIdx) {
     if (picked) return;
@@ -97,7 +116,7 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
 
         <div className="wf-pair__prompt">
           <div className="wf-pair__prompt-line wf-pair__prompt-line--question" ref={promptRef1}>
-            {cap(card.nounPhrase)} ({card.questionText ?? "какой?"})
+            {buildQuestion(card, hintMode)}
           </div>
         </div>
 
