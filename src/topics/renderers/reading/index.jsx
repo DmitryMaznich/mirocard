@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase } from "./parseRecipeTxt";
 import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
@@ -422,6 +422,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const [portions,   setPortions]   = useState(1);
+  const [portionsCount, setPortionsCount] = useState(1);
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
   const [group,      setGroup]      = useState([]);
   const [stepIndex,  setStepIndex]  = useState(0);
@@ -452,6 +453,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       const basePortions = task.text?.portions ?? 1;
       const chosenPortions = sessionPortionsOverride ?? settings.portions ?? basePortions;
       setPortions(stepPortionsMultiplier(basePortions, task.text?.fixedPortions, chosenPortions));
+      setPortionsCount(chosenPortions);
       if (sessionPortionsOverride != null) setSessionPortionsOverride(null);
     }
     load();
@@ -502,11 +504,17 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     setChecked((c) => ({ ...c, [key]: !c[key] }));
   }, [stepIndex]);
 
+  const [finished, setFinished] = useState(false);
+
   const handleNext = useCallback(() => {
     if (locked) return;
-    if (isLast) onAdvance();
+    if (isLast) setFinished(true);
     else setStepIndex((n) => n + 1);
-  }, [locked, isLast, onAdvance]);
+  }, [locked, isLast]);
+
+  const handleFinish = useCallback(() => {
+    onAdvance();
+  }, [onAdvance]);
 
   const handleSpace = useCallback(() => {
     if (step?.type === "checklist") {
@@ -533,6 +541,11 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   useEffect(() => {
     function onKey(e) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (finished) {
+        if (e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); handleFinish(); }
+        if (e.key === "Escape") { e.preventDefault(); exitInstruction(); }
+        return;
+      }
       switch (e.key) {
         case "ArrowRight": case "Enter": e.preventDefault(); handleNext(); break;
         case " ":          e.preventDefault(); handleSpace(); break;
@@ -542,7 +555,22 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleNext, handleSpace, goBack, exitInstruction]);
+  }, [handleNext, handleSpace, goBack, exitInstruction, finished, handleFinish]);
+
+  if (finished) {
+    return (
+      <div className="session-body reading-body instruction-body">
+        <div className="instruction-step instruction-step--heading">
+          <div className="instruction-step-text">🎉 Рецепт готов!</div>
+        </div>
+        <div className="instruction-nav">
+          <button type="button" className="reading-primary-btn instruction-cta-btn" onClick={handleFinish}>
+            Готово
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!step) return null;
 
@@ -616,7 +644,10 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
             </div>
           </div>
 
-          <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}${step.type === "warning" ? " instruction-step--warning" : ""}`}>
+          <div
+            key={stepIndex}
+            className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}${step.type === "warning" ? " instruction-step--warning" : ""}`}
+          >
             {step.type === "image" ? (
               imageUrl
                 ? <img src={imageUrl} alt="" className="instruction-step-img" />
@@ -627,6 +658,10 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                 {step.text}
               </div>
             ) : (
+            <>
+            {step.type === "heading" && stepIndex > 0 && (
+              <div className="instruction-phase-complete-badge">Этап пройден! 👍</div>
+            )}
             <div className="instruction-step-text">{(() => {
               const text = applyFireEmoji(applyPortions(step.text, portions));
               const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g);
@@ -638,6 +673,10 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                 </Fragment>
               ));
             })()}</div>
+            {step.type === "heading" && stepIndex === 0 && (
+              <div className="instruction-title-portions">{formatPortionsPhrase(portionsCount)}</div>
+            )}
+            </>
             )}
             {step.image && imageUrl && (
               <img src={imageUrl} alt="" className="instruction-step-illustration" />
