@@ -140,6 +140,40 @@ describe("bootstrap helpers", () => {
     expect(records[0].closeAdults[0].photo).toBe("data:image/png;base64,ABC");
   });
 
+  it("mergeStudentRecords adopts a newer server photo instead of freezing on a stale local data: URL", () => {
+    // Regression test: a device that once set its own photo used to keep showing that
+    // exact data: URL forever, ignoring any newer photo set later on another device.
+    const local = [{ id: "s1", updatedAt: "2026-01-01T00:00:00.000Z",
+      photo: "data:image/png;base64,OLD", photoUpdatedAt: "2026-01-01T00:00:00.000Z" }];
+    const server = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
+      photo: "/api/photos/newhash", photoUpdatedAt: "2026-06-01T00:00:00.000Z" }];
+
+    const records = mergeStudentRecords(local, server);
+    expect(records[0].photo).toBe("/api/photos/newhash");
+    expect(records[0].photoUpdatedAt).toBe("2026-06-01T00:00:00.000Z");
+  });
+
+  it("mergeStudentRecords keeps a just-set local photo that hasn't reached the server yet", () => {
+    const local = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
+      photo: "data:image/png;base64,NEW", photoUpdatedAt: "2026-06-01T00:00:00.000Z" }];
+    const server = [{ id: "s1", updatedAt: "2026-01-01T00:00:00.000Z",
+      photo: "/api/photos/oldhash", photoUpdatedAt: "2026-01-01T00:00:00.000Z" }];
+
+    const records = mergeStudentRecords(local, server);
+    expect(records[0].photo).toBe("data:image/png;base64,NEW");
+    expect(records[0].photoUpdatedAt).toBe("2026-06-01T00:00:00.000Z");
+  });
+
+  it("mergeStudentRecords prefers the winning record's closeAdult photo over a stale data: URL on the losing side", () => {
+    const local = [{ id: "s1", updatedAt: "2026-01-01T00:00:00.000Z",
+      closeAdults: [{ id: "a1", name: "Папа", photo: "data:image/png;base64,OLD" }] }];
+    const server = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
+      closeAdults: [{ id: "a1", name: "Папа", photo: "/api/photos/newhash" }] }];
+
+    const records = mergeStudentRecords(local, server);
+    expect(records[0].closeAdults[0].photo).toBe("/api/photos/newhash");
+  });
+
   it("markStudentDeleted creates a tombstone without losing existing fields", () => {
     const deletedAt = "2026-05-14T10:00:00.000Z";
     const records = markStudentDeleted(

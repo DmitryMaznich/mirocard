@@ -48,17 +48,16 @@ export function mergeStudentRecords(local, server) {
     const winner = (student.updatedAt ?? "") >= (current.updatedAt ?? "") ? student : current;
     const loser  = winner === student ? current : student;
 
-    // Photo is tracked with its own timestamp (photoUpdatedAt) so it merges independently
-    // of the rest of the student fields. This prevents an unrelated edit on Device B from
-    // silently erasing a photo set by Device A.
+    // Photo merges independently of the rest of the student fields, by its own
+    // photoUpdatedAt, so an unrelated edit on Device B can't erase a photo set on Device A.
+    // This timestamp must be the only signal: an earlier version also unconditionally
+    // preferred any local "data:" URL as "probably unflushed", but nothing ever rewrites
+    // that URL back to the server's resolved one after a sync, so every device ended up
+    // permanently stuck on whichever photo it had last set itself.
     const photoWinner = (student.photoUpdatedAt ?? "") >= (current.photoUpdatedAt ?? "")
       ? student : current;
-    // Prefer a local data: URL (not yet flushed to server) over any stored URL.
-    const localDataUrl = (student.photo?.startsWith("data:") ? student.photo : null)
-                      ?? (current.photo?.startsWith("data:") ? current.photo : null);
-    const resolvedPhoto      = localDataUrl ?? photoWinner.photo ?? null;
-    const resolvedPhotoTs    = localDataUrl ? (student.photo?.startsWith("data:") ? student.photoUpdatedAt : current.photoUpdatedAt)
-                                            : photoWinner.photoUpdatedAt ?? null;
+    const resolvedPhoto   = photoWinner.photo ?? null;
+    const resolvedPhotoTs = photoWinner.photoUpdatedAt ?? null;
 
     // If winner has an empty adults list but loser has adults with photos, keep loser's list
     // (empty winner means the server simply hasn't received the pushOp yet).
@@ -69,11 +68,12 @@ export function mergeStudentRecords(local, server) {
       : winnerAdults.length === 0 && loserAdults?.length > 0
         ? loserAdults
         : winnerAdults.map((adult) => {
-            const winnerAdultPhoto = adult.photo;
-            const loserAdultPhoto  = (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
-            const adultLocalUrl    = (winnerAdultPhoto?.startsWith("data:") ? winnerAdultPhoto : null)
-                                  ?? (loserAdultPhoto?.startsWith("data:")  ? loserAdultPhoto  : null);
-            const resolvedAdultPhoto = adultLocalUrl ?? (winner === student ? winnerAdultPhoto : loserAdultPhoto) ?? winnerAdultPhoto ?? null;
+            // Adults have no independent photo timestamp, so the whole-record `winner`
+            // (by updatedAt) is the best freshness signal available. Fall back to the
+            // loser's photo only when the winner doesn't have one for this adult, so a
+            // replica that hasn't received the photo yet doesn't erase it.
+            const loserAdultPhoto = (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
+            const resolvedAdultPhoto = adult.photo ?? loserAdultPhoto ?? null;
             return resolvedAdultPhoto === adult.photo ? adult : { ...adult, photo: resolvedAdultPhoto };
           });
 
