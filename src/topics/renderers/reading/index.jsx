@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments } from "./parseRecipeTxt";
 import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
@@ -389,6 +389,28 @@ function playWarningChime() {
   }
 }
 
+function InstructionProgressBar({ segments, stepIndex }) {
+  const active = segments.find((s) => stepIndex >= s.startIndex && stepIndex < s.startIndex + s.count);
+  return (
+    <div className="instruction-progressbar-wrap">
+      <div className="instruction-progressbar">
+        {segments.map((seg, i) => {
+          const endIndex = seg.startIndex + seg.count - 1;
+          let fillPct = 0;
+          if (stepIndex > endIndex) fillPct = 100;
+          else if (stepIndex >= seg.startIndex) fillPct = ((stepIndex - seg.startIndex + 1) / seg.count) * 100;
+          return (
+            <div key={i} className="instruction-progressbar-segment" style={{ flexGrow: seg.count }}>
+              <div className="instruction-progressbar-segment-fill" style={{ width: `${fillPct}%` }} />
+            </div>
+          );
+        })}
+      </div>
+      {active?.title && <div className="instruction-phase-label">{active.title}</div>}
+    </div>
+  );
+}
+
 function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const activeStudentId         = useAppStore((s) => s.activeStudentId);
@@ -435,6 +457,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     load();
   }, [topicId, task.text?.id, task.text?.file]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const segments = useMemo(() => computeStepSegments(steps), [steps]);
   const step = steps[stepIndex];
   const imageUrl = useTopicFile(topicId,
     step?.type === "image" ? `media/${step.file}` :
@@ -585,10 +608,12 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
         <div className="instruction-main">
           <div className="instruction-header">
-            <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
-            <button type="button" className="instruction-close-btn" onClick={exitInstruction}>
-              Закрыть рецепт
-            </button>
+            <InstructionProgressBar segments={segments} stepIndex={stepIndex} />
+            <div className="instruction-header-row">
+              <button type="button" className="instruction-close-btn" onClick={exitInstruction}>
+                Закрыть рецепт
+              </button>
+            </div>
           </div>
 
           <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}${step.type === "warning" ? " instruction-step--warning" : ""}`}>

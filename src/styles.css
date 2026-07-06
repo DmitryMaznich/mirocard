@@ -432,21 +432,49 @@ html.app-ios-standalone {
   width: 100%;
   flex-shrink: 0;
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.instruction-header-row {
+  display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
-.instruction-header-spacer {
-  width: 2.2rem;
-  flex-shrink: 0;
+.instruction-progressbar-wrap {
+  width: 100%;
 }
 
-.instruction-progress {
-  flex: 1;
-  text-align: center;
-  font-size: 1rem;
+.instruction-progressbar {
+  width: 100%;
+  display: flex;
+  gap: 4px;
+}
+
+.instruction-progressbar-segment {
+  height: 8px;
+  border-radius: 4px;
+  background: #e4ece9;
+  overflow: hidden;
+  position: relative;
+}
+
+.instruction-progressbar-segment-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  background: #4caf90;
+  border-radius: 4px;
+  transition: width 0.25s ease;
+}
+
+.instruction-phase-label {
+  margin-top: 4px;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #6b7a7a;
+  text-align: center;
 }
 
 .instruction-close-btn {
