@@ -99,6 +99,24 @@ describe('syncDecisionsIntoShoppingData', () => {
     expect(planned).toEqual({ 'Овощи_0': true });
   });
 
+  it('attaches the quantity note to a newly-synced matched buy-decision, not just a bare checkmark', () => {
+    const items = [{ product: 'морковь', qty: 2.34, unit: 'ст.л' }];
+    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'морковь': 'buy' });
+    expect(planned).toEqual({ 'Овощи_1': { note: '2.3 ст.л' } });
+  });
+
+  it('upgrades a previously bare-true matched item to include the note once qty becomes known', () => {
+    const items = [{ product: 'морковь', qty: 2.34, unit: 'ст.л' }];
+    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), { 'Овощи_1': true }, ['Овощи_1'], items, { 'морковь': 'buy' });
+    expect(planned).toEqual({ 'Овощи_1': { note: '2.3 ст.л' } });
+  });
+
+  it('does not clobber an existing manually-typed note on a matched buy-decision', () => {
+    const items = [{ product: 'морковь', qty: 2.34, unit: 'ст.л' }];
+    const { planned } = syncDecisionsIntoShoppingData(makeCustomData(), { 'Овощи_1': { note: 'молодая, не старая' } }, ['Овощи_1'], items, { 'морковь': 'buy' });
+    expect(planned).toEqual({ 'Овощи_1': { note: 'молодая, не старая' } });
+  });
+
   it('tracks a checked buy-decision as menu-managed', () => {
     const items = [{ product: 'картошка', qty: null, unit: null }];
     const { menuKeys } = syncDecisionsIntoShoppingData(makeCustomData(), {}, [], items, { 'картошка': 'buy' });

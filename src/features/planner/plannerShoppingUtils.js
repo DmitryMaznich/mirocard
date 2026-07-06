@@ -230,7 +230,15 @@ export function syncDecisionsIntoShoppingData(customData, planned, menuKeys, ing
     if (match) {
       const key = planKey(match.catName, match.ii);
       if (decision === 'buy') {
-        if (!nextPlanned[key]) nextPlanned[key] = true;
+        // A bare `true` (no note yet) gets the quantity attached here too —
+        // not just on first generation — so an ingredient synced in after
+        // the list already existed (or whose qty wasn't known the first
+        // time) still shows its amount. An existing note object (auto or
+        // manually typed) is left untouched.
+        if (!nextPlanned[key] || nextPlanned[key] === true) {
+          const note = formatShoppingNote(item.product, item.qty, item.unit);
+          nextPlanned[key] = note ? { note } : true;
+        }
         nextMenuKeys.add(key);
       } else if (match.catName === 'Из меню') {
         const menuCat = nextCustomData.categories.find((c) => c.id === 'planner_menu_extras');
