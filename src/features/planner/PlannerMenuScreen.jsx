@@ -5,7 +5,7 @@ import { useTopicFile } from '@/shared/hooks/useTopicFile';
 import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe,
-  setMealAssignment, setSelectedPortions,
+  setMealAssignment, setSelectedPortions, resolveChosenPortions,
   setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
   needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS,
@@ -40,10 +40,10 @@ function keyIngredients(ingredients) {
 // ─── Recipe ingredients (what you need, no step-by-step) ─────────────────────
 
 function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
-  const { topicId, text, ingredients, portions, fixedPortions } = recipe;
+  const { topicId, text, ingredients, fixedPortions } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
   const selected = isRecipeSelected(plan, text.id);
-  const basePortions = fixedPortions || portions || 1;
+  const { chosenPortions, scale } = resolveChosenPortions(recipe, plan);
 
   return (
     <div className="screen planner-screen">
@@ -60,17 +60,20 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
         <div className="recipe-ingredients">
           <span className="recipe-ingredients__meta">
             {fixedPortions ? '🔒 готовится сразу на ' : 'На '}
-            {basePortions} {pluralizePortions(basePortions)}
+            {chosenPortions} {pluralizePortions(chosenPortions)}
           </span>
           <ul className="recipe-ingredients__list">
-            {ingredients.map((ing, i) => (
-              <li key={i} className="recipe-ingredients__item">
-                <span className="recipe-ingredients__product">{ing.product}</span>
-                <span className="recipe-ingredients__qty">
-                  {ing.qty != null ? `${ing.qty} ${ing.unit ?? ''}`.trim() : 'по вкусу'}
-                </span>
-              </li>
-            ))}
+            {ingredients.map((ing, i) => {
+              const scaledQty = ing.qty != null ? Math.round(ing.qty * scale * 100) / 100 : null;
+              return (
+                <li key={i} className="recipe-ingredients__item">
+                  <span className="recipe-ingredients__product">{ing.product}</span>
+                  <span className="recipe-ingredients__qty">
+                    {scaledQty != null ? `${scaledQty} ${ing.unit ?? ''}`.trim() : 'по вкусу'}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
