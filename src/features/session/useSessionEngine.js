@@ -412,8 +412,14 @@ export function useSessionEngine() {
   }, [sessionState, activeStudentId, activeTopicId]);
 
   const currentTask = sessionState?.tasks[sessionState.taskIndex] ?? null;
-  const streakCount = sessionState?.streakCount ?? 0;
   const answersPerStar = sessionState?.answersPerStar ?? 1;
+  // When the reward modal is visible, keep the bar full (5 stars) — the internal
+  // streakCount resets to 0 in the same update that fires the reward, which makes
+  // it look like the reward appeared "without any stars". Show the winning state
+  // until the user dismisses the modal, then the bar naturally resets to 0.
+  const streakCount = rewardPending
+    ? answersPerStar * 5
+    : (sessionState?.streakCount ?? 0);
   const rewardProgress = {
     available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
   };
