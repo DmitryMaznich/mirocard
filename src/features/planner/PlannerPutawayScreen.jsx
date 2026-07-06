@@ -95,6 +95,7 @@ export default function PlannerPutawayScreen() {
           <div className="putaway-body">
             <div className="putaway-progress">Фото {photographedZones.length + 1} из {requiredZones.length}</div>
             <PhotoCaptureCard
+              key={zoneToShoot}
               title={`Сфотографируй: ${zoneMeta.label}`}
               hint="Покажи, что продукты разложены по местам"
               maxDim={1280}
