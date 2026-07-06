@@ -18,6 +18,7 @@ import {
   needsShopping,
   isReadyToCook,
   isRecipeCookedThisCycle,
+  needsMealMismatchWarning,
 } from './plannerUtils.js';
 
 describe('MEAL_TYPES', () => {
@@ -639,5 +640,28 @@ describe('isRecipeCookedThisCycle', () => {
 
   it('is false when sessions is empty', () => {
     expect(isRecipeCookedThisCycle(plan, recipe, [])).toBe(false);
+  });
+});
+
+describe('needsMealMismatchWarning', () => {
+  it('is true when the recipe is not tagged for the target meal type', () => {
+    const recipe = { tags: ['обед', 'ужин'] };
+    expect(needsMealMismatchWarning(recipe, 'завтрак')).toBe(true);
+  });
+
+  it('is false when the recipe is tagged for the target meal type', () => {
+    const recipe = { tags: ['обед', 'ужин'] };
+    expect(needsMealMismatchWarning(recipe, 'обед')).toBe(false);
+  });
+
+  it('is false for a напитки-tagged recipe regardless of the target meal type', () => {
+    const recipe = { tags: ['напитки', 'завтрак'] };
+    expect(needsMealMismatchWarning(recipe, 'обед')).toBe(false);
+    expect(needsMealMismatchWarning(recipe, 'ужин')).toBe(false);
+  });
+
+  it('is true for a recipe with no meal-type tags at all (defensive case)', () => {
+    const recipe = { tags: [] };
+    expect(needsMealMismatchWarning(recipe, 'завтрак')).toBe(true);
   });
 });

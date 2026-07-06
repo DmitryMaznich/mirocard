@@ -175,6 +175,14 @@ export function isRecipeCookedThisCycle(plan, recipe, sessions) {
   );
 }
 
+// "напитки" is a browsing-only catalog tag (see RECIPE_TAGS), not a
+// meal-type indicator — a drink recipe is never flagged as mismatched
+// for any slot.
+export function needsMealMismatchWarning(recipe, mealType) {
+  if (recipe.tags.includes('напитки')) return false;
+  return !recipe.tags.includes(mealType);
+}
+
 /**
  * Upgrades a plan saved in an old format so old saved plans keep loading
  * correctly:
