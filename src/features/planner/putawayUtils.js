@@ -1,5 +1,5 @@
 import { customDataToSteps, CATEGORY_ICONS } from './plannerShoppingUtils.js';
-import { getZoneForProduct } from './putawayLocations.js';
+import { getZoneForProduct, ZONES } from './putawayLocations.js';
 
 function sName(step) { return step.text.replace(/:$/, '').trim(); }
 function planKey(name, ii) { return `${name}_${ii}`; }
@@ -20,4 +20,12 @@ export function buildPutawayQueue(customData, bought, placed) {
     });
   }
   return queue;
+}
+
+// Unique zone ids that actually occur in this session's putawayPlan, in the
+// same deterministic order as ZONES — used to drive both the putaway-photo
+// gate (PlannerPutawayScreen) and the hub's putawayDone check (HomeScreen).
+export function getRequiredZones(putawayPlan) {
+  const used = new Set(Object.values(putawayPlan ?? {}));
+  return ZONES.map((z) => z.id).filter((id) => used.has(id));
 }

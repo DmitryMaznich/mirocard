@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPutawayQueue } from './putawayUtils.js';
+import { buildPutawayQueue, getRequiredZones } from './putawayUtils.js';
 
 function customData(categories) {
   // categories: [{ name, items: string[] }]
@@ -53,5 +53,20 @@ describe('buildPutawayQueue', () => {
 
   it('returns an empty queue for an empty customData', () => {
     expect(buildPutawayQueue({ categories: [] }, {}, {})).toEqual([]);
+  });
+});
+
+describe('getRequiredZones', () => {
+  it('returns unique zone ids from putawayPlan values, ordered as in ZONES', () => {
+    const plan = { 'Молочные продукты_0': 'fridge', 'Заморозка_0': 'freezer', 'Овощи_0': 'fridge' };
+    expect(getRequiredZones(plan)).toEqual(['freezer', 'fridge']);
+  });
+
+  it('returns an empty array for an empty putawayPlan', () => {
+    expect(getRequiredZones({})).toEqual([]);
+  });
+
+  it('treats a missing putawayPlan as empty', () => {
+    expect(getRequiredZones(undefined)).toEqual([]);
   });
 });
