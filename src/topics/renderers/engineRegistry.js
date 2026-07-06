@@ -16,6 +16,7 @@ import { generateTasks as columnAdditionEngine }       from "./column_addition/e
 import { generateTasks as writtenLettersEngine }       from "./written_letters/engine.js";
 import { generateTasks as printMaterialsEngine }       from "./print_materials/engine.js";
 import { generateTasks as wordFormationEngine }        from "./word_formation/engine";
+import { generateTasks as phoneticAnalysisEngine }     from "./phonetic_analysis/engine.js";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -36,4 +37,5 @@ export const ENGINE_REGISTRY = {
   written_letters:       writtenLettersEngine,
   print_materials:       printMaterialsEngine,
   word_formation:        wordFormationEngine,
+  phonetic_analysis:     phoneticAnalysisEngine,
 };

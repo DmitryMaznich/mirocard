@@ -98,12 +98,14 @@ const WORDS = [
     blanks: [{ blankIndex: 2, targetLetter: "ц" }], difficultyTier: 1 },
 ];
 
-function makeSvg({ word, emoji, color }) {
+function makeSvg({ emoji, color }) {
+  // No word text baked into the picture: first_sound/last_sound/sound_position
+  // rely on the picture alone (no spelling hint) — the word is only ever shown
+  // as text in missing_letter mode, rendered separately by BlankWord.
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
   <rect width="400" height="400" rx="32" fill="${color}"/>
   <rect x="12" y="12" width="376" height="376" rx="24" fill="rgba(0,0,0,0.12)"/>
-  <text x="200" y="190" font-family="sans-serif" font-size="140" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
-  <text x="200" y="320" font-family="sans-serif" font-size="52" font-weight="bold" fill="white" text-anchor="middle">${word}</text>
+  <text x="200" y="215" font-family="sans-serif" font-size="200" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
 </svg>`;
 }
 
