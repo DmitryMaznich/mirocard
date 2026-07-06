@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
 import { getPlannerShopCustomData, getPlannerShopBought, getPlannerPutawayPlan, savePlannerPutawayPlan } from '@/core/groupStore';
-import { buildPutawayQueue } from './putawayUtils.js';
+import { buildPutawayQueue, getRequiredZones } from './putawayUtils.js';
 import { ZONES } from './putawayLocations.js';
+import { getPendingZonePhotoIds, savePendingZonePhoto } from './plannerPhotos.js';
+import PhotoCaptureCard from './PhotoCaptureCard.jsx';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -17,6 +19,8 @@ export default function PlannerPutawayScreen() {
   const [totalCount, setTotalCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const [wrongZoneId, setWrongZoneId] = useState(null);
+  const [photographedZones, setPhotographedZones] = useState([]);
+  const [zonesLoaded, setZonesLoaded] = useState(false);
 
   useEffect(() => {
     if (!studentId) return;
@@ -41,7 +45,20 @@ export default function PlannerPutawayScreen() {
     return () => { cancelled = true; };
   }, [studentId]);
 
+  useEffect(() => {
+    if (loading || queue.length > 0 || !studentId) return;
+    let cancelled = false;
+    getPendingZonePhotoIds(studentId).then((ids) => {
+      if (!cancelled) { setPhotographedZones(ids); setZonesLoaded(true); }
+    });
+    return () => { cancelled = true; };
+  }, [loading, queue.length, studentId]);
+
   const current = queue[0];
+  const requiredZones = getRequiredZones(putawayPlan);
+  const missingZones = requiredZones.filter((id) => !photographedZones.includes(id));
+  const zoneToShoot = missingZones[0] ?? null;
+  const zoneMeta = zoneToShoot ? ZONES.find((z) => z.id === zoneToShoot) : null;
 
   function handlePick(zoneId) {
     if (!current) return;
@@ -72,6 +89,27 @@ export default function PlannerPutawayScreen() {
       {!current ? (
         totalCount === 0 ? (
           <div className="putaway-empty">Пока нечего раскладывать — сначала отметь купленные продукты в «В магазине».</div>
+        ) : !zonesLoaded ? (
+          <div className="putaway-body screen-center">Загрузка…</div>
+        ) : zoneToShoot ? (
+          <div className="putaway-body">
+            <div className="putaway-progress">Фото {photographedZones.length + 1} из {requiredZones.length}</div>
+            <PhotoCaptureCard
+              title={`Сфотографируй: ${zoneMeta.label}`}
+              hint="Покажи, что продукты разложены по местам"
+              maxDim={1280}
+              quality={0.75}
+              onConfirm={async (blob) => {
+                await savePendingZonePhoto(studentId, zoneToShoot, blob);
+                setPhotographedZones((prev) => [...prev, zoneToShoot]);
+              }}
+            />
+            <div className="putaway-dots">
+              {requiredZones.map((id) => (
+                <span key={id} className={`putaway-dot${photographedZones.includes(id) ? ' putaway-dot--done' : ''}`} />
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="putaway-complete">
             <div className="putaway-complete__icon">🎉</div>
