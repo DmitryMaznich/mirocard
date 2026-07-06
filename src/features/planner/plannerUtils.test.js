@@ -17,6 +17,7 @@ import {
   isMenuFullyDecided,
   needsShopping,
   isReadyToCook,
+  isRecipeCookedThisCycle,
 } from './plannerUtils.js';
 
 describe('MEAL_TYPES', () => {
@@ -597,5 +598,46 @@ describe('normalizePlan', () => {
       const normalized = normalizePlan(legacy);
       expect(normalized.ingredientDecisions).toEqual({ 'картошка': 'buy' });
     });
+  });
+});
+
+describe('isRecipeCookedThisCycle', () => {
+  const plan = { studentId: 's1', createdAt: '2026-07-01T00:00:00.000Z' };
+  const recipe = { topicId: 'reading_dad_texts', text: { id: 'soup_01' } };
+
+  it('is true when a matching session completed after the plan was created', () => {
+    const sessions = [{
+      studentId: 's1', topicId: 'reading_dad_texts', textId: 'soup_01',
+      modeId: 'follow_instruction', completedAt: '2026-07-02T00:00:00.000Z',
+    }];
+    expect(isRecipeCookedThisCycle(plan, recipe, sessions)).toBe(true);
+  });
+
+  it('is false when the only matching session completed before the plan was created', () => {
+    const sessions = [{
+      studentId: 's1', topicId: 'reading_dad_texts', textId: 'soup_01',
+      modeId: 'follow_instruction', completedAt: '2026-06-30T00:00:00.000Z',
+    }];
+    expect(isRecipeCookedThisCycle(plan, recipe, sessions)).toBe(false);
+  });
+
+  it('is false for a session with a different textId', () => {
+    const sessions = [{
+      studentId: 's1', topicId: 'reading_dad_texts', textId: 'salad_01',
+      modeId: 'follow_instruction', completedAt: '2026-07-02T00:00:00.000Z',
+    }];
+    expect(isRecipeCookedThisCycle(plan, recipe, sessions)).toBe(false);
+  });
+
+  it('is false for a session with a different modeId', () => {
+    const sessions = [{
+      studentId: 's1', topicId: 'reading_dad_texts', textId: 'soup_01',
+      modeId: 'quiz', completedAt: '2026-07-02T00:00:00.000Z',
+    }];
+    expect(isRecipeCookedThisCycle(plan, recipe, sessions)).toBe(false);
+  });
+
+  it('is false when sessions is empty', () => {
+    expect(isRecipeCookedThisCycle(plan, recipe, [])).toBe(false);
   });
 });

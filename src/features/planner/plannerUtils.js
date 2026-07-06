@@ -161,6 +161,20 @@ export function isReadyToCook(plan, allRecipes, shoppingDone, putawayDone) {
   return shoppingDone && putawayDone;
 }
 
+// Cooking a recipe in this app *is* completing a follow_instruction session
+// for its text — no separate "mark as cooked" tap needed. completedAt is
+// compared against plan.createdAt so a session from a previous cycle
+// (before this recipe was re-selected) doesn't count as done this time.
+export function isRecipeCookedThisCycle(plan, recipe, sessions) {
+  return sessions.some((s) =>
+    s.studentId === plan.studentId &&
+    s.topicId === recipe.topicId &&
+    s.textId === recipe.text.id &&
+    s.modeId === 'follow_instruction' &&
+    s.completedAt >= plan.createdAt
+  );
+}
+
 /**
  * Upgrades a plan saved in an old format so old saved plans keep loading
  * correctly:
