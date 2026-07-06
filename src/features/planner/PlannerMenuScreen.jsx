@@ -7,6 +7,7 @@ import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe,
   setMealAssignment, setSelectedPortions,
   setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
+  needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
@@ -188,6 +189,26 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
           <button type="button" className="portions-sheet__confirm" onClick={() => onConfirm(portions)}>
             Добавить в меню
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MealMismatchConfirm({ recipe, mealType, onConfirm, onCancel }) {
+  const others = recipe.tags.filter((t) => t !== 'напитки' && MEAL_TYPES.includes(t));
+  const text = others.length > 0
+    ? `Этот рецепт обычно готовят на ${others.join(' или ')}. Всё равно добавить на ${mealType}?`
+    : `Этот рецепт не подходит для приёма «${mealType}». Всё равно добавить?`;
+  return (
+    <div className="portions-sheet-backdrop" onClick={onCancel}>
+      <div className="portions-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="portions-sheet__handle" />
+        <h2 className="portions-sheet__title">{getTopicTitle(recipe.text.title)}</h2>
+        <p className="meal-mismatch-text">{text}</p>
+        <div className="meal-mismatch-actions">
+          <button type="button" className="menu-reset-bar__cancel" onClick={onCancel}>Нет</button>
+          <button type="button" className="menu-reset-bar__ok" onClick={onConfirm}>Да</button>
         </div>
       </div>
     </div>
@@ -483,6 +504,10 @@ export default function PlannerMenuScreen() {
   // removing) and only for recipes where portions is an actual choice (not
   // fixed_portions).
   const [portionsPrompt, setPortionsPrompt] = useState(null);
+  // Recipe (+ target meal slot) awaiting confirmation because its tags
+  // don't cover that meal type — set right before what would otherwise be
+  // an immediate assignment (select or reassign from another slot).
+  const [mismatchConfirm, setMismatchConfirm] = useState(null);
 
   // Load saved plan
   useEffect(() => {
@@ -531,7 +556,7 @@ export default function PlannerMenuScreen() {
   // A recipe already selected for a *different* meal type re-assigns
   // (moves) instead of being removed — this is how the picker's "already:
   // X" badge becomes an actual reassignment when tapped from another slot.
-  function handleToggleSelect(recipe, mealType) {
+  function applyToggleSelect(recipe, mealType) {
     if (isRecipeSelected(plan, recipe.text.id)) {
       if (mealType && plan.mealAssignments[recipe.text.id] !== mealType) {
         setPlan((p) => setMealAssignment(p, recipe.text.id, mealType));
@@ -545,6 +570,27 @@ export default function PlannerMenuScreen() {
       return;
     }
     setPortionsPrompt({ recipe, mealType });
+  }
+
+  // Gate in front of applyToggleSelect: everything that would result in the
+  // recipe becoming assigned to mealType (first pick, reassignment from
+  // another slot) is checked against its tags first. Only removing a recipe
+  // already sitting in this exact slot skips the check.
+  function handleToggleSelect(recipe, mealType) {
+    const isDeselecting =
+      isRecipeSelected(plan, recipe.text.id) &&
+      plan.mealAssignments[recipe.text.id] === mealType;
+    if (!isDeselecting && needsMealMismatchWarning(recipe, mealType)) {
+      setMismatchConfirm({ recipe, mealType });
+      return;
+    }
+    applyToggleSelect(recipe, mealType);
+  }
+
+  function confirmMealMismatch() {
+    const { recipe, mealType } = mismatchConfirm;
+    setMismatchConfirm(null);
+    applyToggleSelect(recipe, mealType);
   }
 
   function handleConfirmPortions(portions) {
@@ -619,6 +665,14 @@ export default function PlannerMenuScreen() {
           recipe={portionsPrompt.recipe}
           onConfirm={handleConfirmPortions}
           onClose={() => setPortionsPrompt(null)}
+        />
+      )}
+      {mismatchConfirm && (
+        <MealMismatchConfirm
+          recipe={mismatchConfirm.recipe}
+          mealType={mismatchConfirm.mealType}
+          onConfirm={confirmMealMismatch}
+          onCancel={() => setMismatchConfirm(null)}
         />
       )}
     </>

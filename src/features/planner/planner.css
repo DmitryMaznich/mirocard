@@ -450,6 +450,26 @@
   cursor: pointer;
 }
 
+.meal-mismatch-text {
+  margin: 0;
+  font-size: 14px;
+  color: #5a5044;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.meal-mismatch-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.meal-mismatch-actions .menu-reset-bar__cancel,
+.meal-mismatch-actions .menu-reset-bar__ok {
+  flex: 1;
+  text-align: center;
+}
+
 /* ── Ingredients summary (all selected recipes, merged) ─────────── */
 .menu-ingredients {
   background: rgba(250, 247, 242, 0.96);
