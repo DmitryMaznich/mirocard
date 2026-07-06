@@ -93,6 +93,23 @@ export function setIngredientDecision(plan, productKey, decision) {
 }
 
 /**
+ * Portion multiplier actually in effect for one recipe within a plan.
+ * fixed_portions recipes never scale (always their own fixed batch,
+ * stepper hidden in the UI) — otherwise whatever the student picked in
+ * the Меню stepper (plan.selectedPortions[textId]), falling back to the
+ * recipe's own base portions when never touched.
+ *
+ * @param {{text: {id: string}, portions: number, fixedPortions: number|null}} recipe
+ * @param {object} plan
+ * @returns {{basePortions: number, chosenPortions: number, scale: number}}
+ */
+export function resolveChosenPortions(recipe, plan) {
+  const basePortions = recipe.portions || 1;
+  const chosenPortions = recipe.fixedPortions || plan.selectedPortions[recipe.text.id] || basePortions;
+  return { basePortions, chosenPortions, scale: chosenPortions / basePortions };
+}
+
+/**
  * Aggregates ingredients across every recipe in the selection pool
  * (plan.selectedRecipes). Each recipe contributes exactly once, scaled to
  * its own chosen portions (plan.selectedPortions[textId], defaulting to the
@@ -111,9 +128,7 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
     const recipe = allRecipes.find((r) => r.text.id === textId);
     if (!recipe) continue;
 
-    const basePortions = recipe.portions || 1;
-    const chosenPortions = recipe.fixedPortions || plan.selectedPortions[textId] || basePortions;
-    const scale = chosenPortions / basePortions;
+    const { scale } = resolveChosenPortions(recipe, plan);
 
     for (const ing of recipe.ingredients) {
       const key = ing.product.toLowerCase();

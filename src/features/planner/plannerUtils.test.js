@@ -13,6 +13,7 @@ import {
   resetPlan,
   normalizePlan,
   setIngredientDecision,
+  resolveChosenPortions,
   buildSelectedIngredientsSummary,
   isMenuFullyDecided,
   needsShopping,
@@ -210,6 +211,28 @@ describe('setIngredientDecision', () => {
     const plan = createPlan('s1');
     setIngredientDecision(plan, 'картошка', 'have');
     expect(plan.ingredientDecisions).toEqual({});
+  });
+});
+
+describe('resolveChosenPortions', () => {
+  const soup = { text: { id: 'soup_01' }, portions: 4, fixedPortions: null };
+  const stew = { text: { id: 'stew_01' }, portions: 6, fixedPortions: 6 };
+
+  it('falls back to the recipe\'s base portions when the stepper was never touched', () => {
+    const plan = selectRecipe(createPlan('s1'), 'soup_01');
+    expect(resolveChosenPortions(soup, plan)).toEqual({ basePortions: 4, chosenPortions: 4, scale: 1 });
+  });
+
+  it('uses selectedPortions when explicitly chosen (regression: recipe detail screen used to ignore this entirely)', () => {
+    let plan = selectRecipe(createPlan('s1'), 'soup_01');
+    plan = setSelectedPortions(plan, 'soup_01', 1);
+    expect(resolveChosenPortions(soup, plan)).toEqual({ basePortions: 4, chosenPortions: 1, scale: 0.25 });
+  });
+
+  it('fixedPortions always wins, ignoring any selectedPortions override', () => {
+    let plan = selectRecipe(createPlan('s1'), 'stew_01');
+    plan = setSelectedPortions(plan, 'stew_01', 20);
+    expect(resolveChosenPortions(stew, plan)).toEqual({ basePortions: 6, chosenPortions: 6, scale: 1 });
   });
 });
 
