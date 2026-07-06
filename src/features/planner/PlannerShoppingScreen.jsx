@@ -18,6 +18,8 @@ import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
+import { getPendingReceiptPhoto, savePendingReceiptPhoto } from './plannerPhotos.js';
+import PhotoCaptureCard from './PhotoCaptureCard.jsx';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -755,7 +757,7 @@ function PreviewView({ steps, planned, store }) {
 
 // ── Shop (in-store) view ──────────────────────────────────────────────────────
 
-function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewList, onBackToPlan, onPutaway }) {
+function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewList, onBackToPlan, onPutaway, studentId }) {
   const list = steps.map((step, si) => {
     const name = sName(step);
     const icon = icons[si] ?? '📦';
@@ -770,6 +772,15 @@ function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewL
     s + items.filter(({ ii }) => bought[planKey(name, ii)]).length, 0);
   const allDone = total > 0 && totalDone === total;
   const progress = total > 0 ? (totalDone / total) * 100 : 0;
+
+  const [hasReceipt, setHasReceipt] = useState(null); // null = checking, false = missing, true = present
+
+  useEffect(() => {
+    if (!allDone) return;
+    let cancelled = false;
+    getPendingReceiptPhoto(studentId).then((blob) => { if (!cancelled) setHasReceipt(!!blob); });
+    return () => { cancelled = true; };
+  }, [allDone, studentId]);
 
   function toggle(step, ii) {
     onToggleBought(planKey(sName(step), ii));
@@ -788,22 +799,43 @@ function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewL
     </div>
   );
 
-  if (allDone) return (
-    <div className="shopping-body shop-center">
-      <div className="shop-state">
-        <div className="shop-state__icon">🎉</div>
-        <div className="shop-state__title">Всё куплено!</div>
-        <div className="shop-state__hint">{total} продуктов{store ? ` • ${store}` : ''}</div>
-        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onBackToPlan}>
-          <BackArrowIcon size={16} /> К списку
-        </button>
-        <button className="shopping-view-btn" style={{ marginTop: 8, background: '#4caf90' }} onClick={onNewList}>
-          Начать новый список
-        </button>
-        <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onPutaway}>📦 Разложить продукты</button>
+  if (allDone) {
+    if (hasReceipt === null) return (
+      <div className="shopping-body shop-center">Загрузка…</div>
+    );
+
+    if (!hasReceipt) return (
+      <div className="shopping-body shop-center">
+        <PhotoCaptureCard
+          title="Сфотографируй чек"
+          hint="Это подтвердит, что покупки сделаны"
+          maxDim={1800}
+          quality={0.82}
+          onConfirm={async (blob) => {
+            await savePendingReceiptPhoto(studentId, blob);
+            setHasReceipt(true);
+          }}
+        />
       </div>
-    </div>
-  );
+    );
+
+    return (
+      <div className="shopping-body shop-center">
+        <div className="shop-state">
+          <div className="shop-state__icon">🎉</div>
+          <div className="shop-state__title">Всё куплено!</div>
+          <div className="shop-state__hint">{total} продуктов{store ? ` • ${store}` : ''}</div>
+          <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onBackToPlan}>
+            <BackArrowIcon size={16} /> К списку
+          </button>
+          <button className="shopping-view-btn" style={{ marginTop: 8, background: '#4caf90' }} onClick={onNewList}>
+            Начать новый список
+          </button>
+          <button className="shopping-view-btn" style={{ marginTop: 8 }} onClick={onPutaway}>📦 Разложить продукты</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="shopping-body">
@@ -1197,6 +1229,7 @@ export default function PlannerShoppingScreen() {
           onNewList={handleNewListAfterShop}
           onBackToPlan={() => setModeView('plan')}
           onPutaway={() => setScreen('planner_putaway')}
+          studentId={studentId}
         />
       </div>
     );
