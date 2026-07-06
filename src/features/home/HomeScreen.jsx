@@ -139,8 +139,8 @@ function SessionTab({
   if (!student) {
     return (
       <div className="home-tab-empty">
-        <p>Выбери ученика выше</p>
-        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
+        <p>Ученик не выбран</p>
+        <Button onClick={() => setScreen("settings")}>Выбрать в настройках</Button>
       </div>
     );
   }
@@ -242,8 +242,8 @@ function PlannerTab({ student, setScreen }) {
   if (!student) {
     return (
       <div className="home-tab-empty">
-        <p>Выбери ученика выше</p>
-        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
+        <p>Ученик не выбран</p>
+        <Button onClick={() => setScreen("settings")}>Выбрать в настройках</Button>
       </div>
     );
   }
