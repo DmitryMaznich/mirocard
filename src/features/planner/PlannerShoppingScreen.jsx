@@ -18,8 +18,9 @@ import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
-import { getPendingReceiptPhoto, savePendingReceiptPhoto } from './plannerPhotos.js';
+import { getPendingReceiptPhoto, savePendingReceiptPhoto, archiveTripPhotos, getTripReceiptPhoto, getTripZonePhoto } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
+import { ZONES } from './putawayLocations.js';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -681,7 +682,37 @@ function PlanDetail({ steps, icons, planned, idx, onToggle, onNote, onNext }) {
 
 // ── History view ─────────────────────────────────────────────────────────────
 
-function HistoryView({ history, onRestore }) {
+function HistoryPhotoThumb({ studentId, tripId, zoneId, icon, onOpen }) {
+  const [url, setUrl] = useState(null);
+
+  useEffect(() => {
+    let objectUrl = null;
+    let cancelled = false;
+    const loader = zoneId
+      ? getTripZonePhoto(studentId, tripId, zoneId)
+      : getTripReceiptPhoto(studentId, tripId);
+    loader.then((blob) => {
+      if (cancelled || !blob) return;
+      objectUrl = URL.createObjectURL(blob);
+      setUrl(objectUrl);
+    });
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [studentId, tripId, zoneId]);
+
+  if (!url) return null;
+  return (
+    <button type="button" className="shop-history-photo" onClick={() => onOpen(url)}>
+      <img src={url} alt="" />
+      {icon && <span className="shop-history-photo__badge">{icon}</span>}
+    </button>
+  );
+}
+
+function HistoryView({ history, onRestore, studentId }) {
+  const [viewerUrl, setViewerUrl] = useState(null);
   return (
     <div className="shopping-body">
       <div className="shop-history-list">
@@ -694,10 +725,32 @@ function HistoryView({ history, onRestore }) {
               {entry.store && <span className="shop-history-store">{entry.store}</span>}
               <span className="shop-history-count">{entry.count} {pluralItems(entry.count)}</span>
             </div>
+            {(entry.hasReceipt || entry.zonePhotos?.length > 0) && (
+              <div className="shop-history-photos">
+                {entry.hasReceipt && (
+                  <HistoryPhotoThumb studentId={studentId} tripId={entry.id} zoneId={null} icon="🧾" onOpen={setViewerUrl} />
+                )}
+                {(entry.zonePhotos ?? []).map((zoneId) => (
+                  <HistoryPhotoThumb
+                    key={zoneId}
+                    studentId={studentId}
+                    tripId={entry.id}
+                    zoneId={zoneId}
+                    icon={ZONES.find((z) => z.id === zoneId)?.icon}
+                    onOpen={setViewerUrl}
+                  />
+                ))}
+              </div>
+            )}
             <button className="shop-history-restore" onClick={() => onRestore(entry.plan)}>Открыть</button>
           </div>
         ))}
       </div>
+      {viewerUrl && (
+        <div className="photo-viewer-overlay" onClick={() => setViewerUrl(null)}>
+          <img src={viewerUrl} className="photo-viewer-img" alt="" />
+        </div>
+      )}
     </div>
   );
 }
@@ -1161,12 +1214,16 @@ export default function PlannerShoppingScreen() {
   async function handleNewListAfterShop() {
     if (Object.keys(planned).length > 0) {
       const now = new Date();
+      const id = now.getTime();
+      const { hasReceipt, zonePhotos } = await archiveTripPhotos(studentId, id);
       const entry = {
-        id: now.getTime(),
+        id,
         date: formatHistoryDate(now),
         store: stores?.current ?? null,
         plan: { ...planned },
         count: Object.keys(planned).length,
+        hasReceipt,
+        zonePhotos,
       };
       try {
         const hist = await getPlannerShopHistory(studentId);
@@ -1324,7 +1381,7 @@ export default function PlannerShoppingScreen() {
           onNext={() => setView(view + 1)}
         />
       ) : view === 'history' ? (
-        <HistoryView history={history} onRestore={handleRestoreHistory} />
+        <HistoryView history={history} onRestore={handleRestoreHistory} studentId={studentId} />
       ) : view === 'preview' ? (
         <PreviewView steps={steps} planned={planned} store={stores.current} />
       ) : (
