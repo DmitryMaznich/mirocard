@@ -1649,6 +1649,19 @@
   color: #263131;
 }
 
+.cook-picker-item--done {
+  border-color: #4a9b8f;
+  background: rgba(74, 155, 143, 0.08);
+}
+
+.cook-picker-item__check {
+  margin-left: auto;
+  color: #2f5b57;
+  font-size: 18px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
 /* ── Planner hub: Начинаем готовить CTA ────────────────────────── */
 .planner-cook-cta {
   width: 100%;
