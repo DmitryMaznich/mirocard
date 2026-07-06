@@ -299,6 +299,29 @@ export async function savePlannerShopHistory(studentId, history) {
   await kv.set(db, plannerShopHistoryKey(studentId), history);
 }
 
+const plannerCycleTripsKey   = (sid) => `planner_cycle_trips_${sid}`;
+const plannerCycleHistoryKey = (sid) => `planner_cycle_history_${sid}`;
+
+export async function getPlannerCycleTrips(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerCycleTripsKey(studentId))) ?? [];
+}
+
+export async function savePlannerCycleTrips(studentId, trips) {
+  const db = await getDb();
+  await kv.set(db, plannerCycleTripsKey(studentId), trips);
+}
+
+export async function getPlannerCycleHistory(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerCycleHistoryKey(studentId))) ?? [];
+}
+
+export async function savePlannerCycleHistory(studentId, history) {
+  const db = await getDb();
+  await kv.set(db, plannerCycleHistoryKey(studentId), history);
+}
+
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {

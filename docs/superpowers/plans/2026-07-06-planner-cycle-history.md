@@ -185,6 +185,10 @@ describe('archiveCycle', () => {
     await savePendingZonePhoto(studentId, 'fridge', fakeBlob('trip2-fridge'));
     await savePendingZonePhoto(studentId, 'freezer', fakeBlob('trip2-freezer'));
     await archiveShoppingTrip(studentId, 'Ашан');
+    // Real callers always clear planned right after archiving a trip (see
+    // handleNewListAfterShop) — without this, archiveCycle below would find
+    // the same still-non-empty plan and archive a spurious third trip.
+    await savePlannerShopPlan(studentId, {});
 
     const entry = await archiveCycle(studentId, plan, [], new Set());
 
