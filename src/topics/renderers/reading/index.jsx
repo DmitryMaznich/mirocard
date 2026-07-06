@@ -465,15 +465,25 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     }
   }, [stepIndex, soundEnabled]); // step derived from stepIndex
 
+  const [locked, setLocked] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocked(true);
+    const t = setTimeout(() => setLocked(false), 450);
+    return () => clearTimeout(t);
+  }, [stepIndex]);
+
   const toggleItem = useCallback((i) => {
     const key = `${stepIndex}_${i}`;
     setChecked((c) => ({ ...c, [key]: !c[key] }));
   }, [stepIndex]);
 
   const handleNext = useCallback(() => {
+    if (locked) return;
     if (isLast) onAdvance();
     else setStepIndex((n) => n + 1);
-  }, [isLast, onAdvance]);
+  }, [locked, isLast, onAdvance]);
 
   const handleSpace = useCallback(() => {
     if (step?.type === "checklist") {
@@ -651,7 +661,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
             <button
               type="button"
               className="reading-primary-btn instruction-cta-btn"
-              disabled={!allChecked}
+              disabled={!allChecked || locked}
               onClick={handleNext}
             >
               {ctaLabel}
