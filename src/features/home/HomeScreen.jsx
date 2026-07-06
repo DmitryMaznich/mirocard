@@ -12,7 +12,8 @@ import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan, loadAllRecipes } from "@/features/planner/plannerApi";
 import { isMenuFullyDecided, isReadyToCook, needsShopping } from "@/features/planner/plannerUtils";
 import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
-import { buildPutawayQueue } from "@/features/planner/putawayUtils";
+import { buildPutawayQueue, getRequiredZones } from "@/features/planner/putawayUtils";
+import { getPendingReceiptPhoto, getPendingZonePhotoIds } from "@/features/planner/plannerPhotos";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan } from "@/core/groupStore";
 import "@/features/planner/planner.css";
@@ -237,11 +238,15 @@ function PlannerTab({ student, setScreen }) {
       getPlannerShopBought(student.id),
       getPlannerShopCustomData(student.id),
       getPlannerPutawayPlan(student.id),
-    ]).then(([planned, bought, customData, putawayPlan]) => {
+      getPendingReceiptPhoto(student.id),
+      getPendingZonePhotoIds(student.id),
+    ]).then(([planned, bought, customData, putawayPlan, receiptPhoto, photographedZones]) => {
       setBoughtCount(Object.keys(bought ?? {}).length);
-      setShoppingDone(isShoppingDone(planned, bought));
+      setShoppingDone(isShoppingDone(planned, bought) && !!receiptPhoto);
       const remainingQueue = customData ? buildPutawayQueue(customData, bought ?? {}, putawayPlan ?? {}) : [];
-      setPutawayDone(Object.keys(bought ?? {}).length > 0 && remainingQueue.length === 0);
+      const requiredZones = getRequiredZones(putawayPlan ?? {});
+      const zonesPhotographed = requiredZones.every((id) => photographedZones.includes(id));
+      setPutawayDone(Object.keys(bought ?? {}).length > 0 && remainingQueue.length === 0 && zonesPhotographed);
     });
   }, [student?.id]);
 
