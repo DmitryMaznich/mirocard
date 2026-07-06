@@ -1,5 +1,6 @@
 # photo: soup.webp
 # fixed_portions: 6
+# max_portions: 6
 # status: final
 # tags: обед, ужин
 # portions: 6
