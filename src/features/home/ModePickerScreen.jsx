@@ -6,8 +6,11 @@ import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
+import PinGateModal from "@/shared/components/PinGateModal";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
+import { getDb, kv } from "@/core/db";
+import { api } from "@/core/api";
 
 function LastResultBadge({ session }) {
   if (!session) return <span className="mode-badge mode-badge--none">Не проходили</span>;
@@ -61,9 +64,12 @@ export default function ModePickerScreen() {
   const topicRecords    = useAppStore((s) => s.topicRecords);
   const sessions        = useAppStore((s) => s.sessions);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+  const adultPinHash    = useAppStore((s) => s.settings.adultPinHash);
+  const patchSettings   = useAppStore((s) => s.patchSettings);
 
-  const [methodology,  setMethodology]  = useState(null);
-  const [topicAbout,   setTopicAbout]   = useState(false);
+  const [methodology,     setMethodology]     = useState(null);
+  const [topicAbout,      setTopicAbout]       = useState(false);
+  const [pinnedMode,      setPinnedMode]       = useState(null); // mode pending PIN unlock
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const isReading = topicRecord?.meta.renderer === "reading";
@@ -113,9 +119,24 @@ export default function ModePickerScreen() {
     }
   }, [hasSingleMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function pickMode(mode) {
+  function navigateToMode(mode) {
     setActiveModeId(mode.id);
     setScreen(topicRecord?.meta?.renderer === "chat_practice" ? "chat_params" : "params");
+  }
+
+  function pickMode(mode) {
+    if (mode.requirePin === true) {
+      setPinnedMode(mode);
+    } else {
+      navigateToMode(mode);
+    }
+  }
+
+  async function handleSetPin(hash) {
+    patchSettings({ adultPinHash: hash });
+    const db = await getDb();
+    await kv.set(db, "settings", { ...useAppStore.getState().settings, adultPinHash: hash });
+    api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
   }
 
   if (hasSingleMode) return null;
@@ -182,6 +203,15 @@ export default function ModePickerScreen() {
           about={topicRecord.meta.about}
           modes={modes}
           onClose={() => setTopicAbout(false)}
+        />
+      )}
+
+      {pinnedMode && (
+        <PinGateModal
+          pinHash={adultPinHash}
+          onSuccess={() => { setPinnedMode(null); navigateToMode(pinnedMode); }}
+          onSetPin={handleSetPin}
+          onCancel={() => setPinnedMode(null)}
         />
       )}
     </div>
