@@ -721,13 +721,13 @@ html.app-ios-standalone {
 .instruction-nav {
   width: 100%;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-shrink: 0;
   padding-bottom: max(4px, var(--app-safe-bottom, 0px));
 }
 
-.instruction-nav .reading-secondary-btn,
 .instruction-nav .reading-primary-btn {
   flex: 1;
   display: flex;
@@ -736,37 +736,28 @@ html.app-ios-standalone {
   gap: 8px;
 }
 
-/* Keyboard key badges inside nav buttons */
-.kb-key {
-  display: inline-flex;
+.instruction-back-btn {
+  flex-shrink: 0;
+  width: 52px;
+  min-height: 52px;
+  border-radius: 16px;
+  border: none;
+  background: #eef0ef;
+  color: #566461;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 900;
-  flex-shrink: 0;
-  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.kb-key--back {
-  background: #c4cbca;
-  color: #3a4a47;
-  box-shadow: 0 3px 0 #8fa0a0;
+.instruction-back-btn:active {
+  background: #dfe4e2;
 }
 
-.kb-key--fwd {
-  background: rgba(255,255,255,0.22);
-  color: white;
-  box-shadow: 0 3px 0 rgba(0,0,0,0.18);
-}
-
-/* Keyboard-only mode: screen taps disabled, keys are the cue */
-.instruction-nav--kbd .reading-secondary-btn,
-.instruction-nav--kbd .reading-primary-btn {
-  pointer-events: none;
-  cursor: default;
+.instruction-cta-btn:disabled {
+  opacity: 0.5;
+  box-shadow: none;
 }
 
 @media (min-width: 768px) {
@@ -1314,10 +1305,14 @@ html.app-ios-standalone {
     max-width: 40px;
   }
 
-  .instruction-nav .reading-secondary-btn,
   .instruction-nav .reading-primary-btn {
     padding: 14px 10px;
     font-size: 1rem;
+  }
+
+  .instruction-back-btn {
+    width: 46px;
+    min-height: 46px;
   }
 
   .instruction-drawer {

@@ -393,7 +393,6 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const activeStudentId         = useAppStore((s) => s.activeStudentId);
   const students                = useAppStore((s) => s.students);
-  const adultConfirmAdvance     = useAppStore((s) => s.settings?.adultConfirmAdvance ?? true);
   const sessionPortionsOverride    = useAppStore((s) => s.sessionPortionsOverride);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
   const sessionReturnScreen        = useAppStore((s) => s.sessionReturnScreen);
@@ -451,6 +450,16 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const allChecked =
     step?.type !== "checklist" ||
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
+
+  const ctaLabel = isLast
+    ? "Готово, рецепт закончен! 🎉"
+    : step?.type === "heading"
+    ? "Начнём →"
+    : step?.type === "warning"
+    ? "Понял(а)"
+    : step?.type === "image" || step?.type === "bullets"
+    ? "Дальше →"
+    : "Готово ✓";
 
   useEffect(() => {
     if (!listOpen || !listRef.current) return;
@@ -671,14 +680,22 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
             </div>
           )}
 
-          <div className={`instruction-nav${adultConfirmAdvance ? " instruction-nav--kbd" : ""}`}>
-            <button className="reading-secondary-btn" onClick={adultConfirmAdvance ? undefined : goBack}>
-              <span className="kb-key kb-key--back">←</span>
-              Назад
+          <div className="instruction-nav">
+            <button
+              type="button"
+              className="instruction-back-btn"
+              onClick={goBack}
+              aria-label="Назад"
+            >
+              <BackArrowIcon size={20} />
             </button>
-            <button className="reading-primary-btn" disabled={!allChecked} onClick={adultConfirmAdvance ? undefined : handleNext}>
-              {isLast ? "Готово" : "Дальше"}
-              <span className="kb-key kb-key--fwd">→</span>
+            <button
+              type="button"
+              className="reading-primary-btn instruction-cta-btn"
+              disabled={!allChecked}
+              onClick={handleNext}
+            >
+              {ctaLabel}
             </button>
           </div>
         </div>
