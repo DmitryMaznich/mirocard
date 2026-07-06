@@ -1,5 +1,5 @@
 # photo: kompot.webp
-# tags: перекус
+# tags: напитки, перекус
 # portions: 4
 # fixed_portions: 4
 # ingredients:

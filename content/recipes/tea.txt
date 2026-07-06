@@ -1,6 +1,6 @@
 # photo: tea.webp
 # Холодный чай
-# tags: перекус
+# tags: напитки, перекус
 # portions: 1
 # max_portions: 4
 # ingredients:

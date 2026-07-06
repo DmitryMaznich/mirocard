@@ -1,5 +1,5 @@
 # photo: cocoa.webp
-# tags: завтрак, перекус
+# tags: напитки, завтрак, перекус
 # portions: 1
 # max_portions: 4
 # ingredients:
