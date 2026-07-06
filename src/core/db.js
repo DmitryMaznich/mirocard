@@ -94,6 +94,10 @@ export const topics = {
       req.onerror   = () => reject(req.error);
     });
   },
+
+  deleteFile(db, topicId, filename) {
+    return req2p(tx(db, "topics", "readwrite").delete(topicKey(topicId, filename)));
+  },
 };
 
 // ─── audioOverrides helpers ───────────────────────────────────────────────────

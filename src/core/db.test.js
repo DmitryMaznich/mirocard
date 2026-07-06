@@ -62,4 +62,13 @@ describe("topics store", () => {
     await topics.deleteTopic(db, "del_me");
     expect(await topics.listFiles(db, "del_me")).toHaveLength(0);
   });
+
+  it('deleteFile removes only the named file, keeping others in the same topic', async () => {
+    const b = new Blob(['x']);
+    await topics.saveFile(db, 'keep_some', 'a.webp', b);
+    await topics.saveFile(db, 'keep_some', 'b.webp', b);
+    await topics.deleteFile(db, 'keep_some', 'a.webp');
+    expect(await topics.getFile(db, 'keep_some', 'a.webp')).toBeNull();
+    expect(await topics.getFile(db, 'keep_some', 'b.webp')).toBeInstanceOf(Blob);
+  });
 });
