@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -69,5 +69,61 @@ describe('formatPortionsPhrase', () => {
 
   it('rounds a fractional count', () => {
     expect(formatPortionsPhrase(2.4)).toBe('Готовим на двоих');
+  });
+});
+
+describe('computeStepSegments', () => {
+  it('groups a typical recipe into segments by heading', () => {
+    const steps = [
+      { type: 'heading', text: 'Омлет' },
+      { type: 'heading', text: 'Подготовка' },
+      { type: 'checklist', text: 'Собери ингредиенты' },
+      { type: 'heading', text: 'Готовим' },
+      { type: 'action', text: 'Разбей яйца' },
+      { type: 'action', text: 'Взбей вилкой' },
+    ];
+    expect(computeStepSegments(steps)).toEqual([
+      { title: 'Омлет', startIndex: 0, count: 1 },
+      { title: 'Подготовка', startIndex: 1, count: 2 },
+      { title: 'Готовим', startIndex: 3, count: 3 },
+    ]);
+  });
+
+  it('puts steps before the first heading into an untitled segment', () => {
+    const steps = [
+      { type: 'action', text: 'Разогрей сковороду' },
+      { type: 'heading', text: 'Готовим' },
+      { type: 'action', text: 'Налей масло' },
+    ];
+    expect(computeStepSegments(steps)).toEqual([
+      { title: null, startIndex: 0, count: 1 },
+      { title: 'Готовим', startIndex: 1, count: 2 },
+    ]);
+  });
+
+  it('treats a recipe with no headings as one untitled segment', () => {
+    const steps = [
+      { type: 'action', text: 'Раз' },
+      { type: 'action', text: 'Два' },
+    ];
+    expect(computeStepSegments(steps)).toEqual([
+      { title: null, startIndex: 0, count: 2 },
+    ]);
+  });
+
+  it('handles back-to-back headings as separate single-step segments', () => {
+    const steps = [
+      { type: 'heading', text: 'А' },
+      { type: 'heading', text: 'Б' },
+      { type: 'action', text: 'Шаг' },
+    ];
+    expect(computeStepSegments(steps)).toEqual([
+      { title: 'А', startIndex: 0, count: 1 },
+      { title: 'Б', startIndex: 1, count: 2 },
+    ]);
+  });
+
+  it('returns an empty array for no steps', () => {
+    expect(computeStepSegments([])).toEqual([]);
   });
 });
