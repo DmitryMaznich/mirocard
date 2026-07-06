@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier } from "./parseRecipeTxt";
 import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
@@ -431,8 +431,8 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       setGroup(grpList);
       setSteps(annotated);
       const basePortions = task.text?.portions ?? 1;
-      const chosenAbsolute = task.text?.fixedPortions ?? sessionPortionsOverride ?? settings.portions ?? basePortions;
-      setPortions(task.text?.fixedPortions ? chosenAbsolute : chosenAbsolute / basePortions);
+      const chosenPortions = sessionPortionsOverride ?? settings.portions ?? basePortions;
+      setPortions(stepPortionsMultiplier(basePortions, task.text?.fixedPortions, chosenPortions));
       if (sessionPortionsOverride != null) setSessionPortionsOverride(null);
     }
     load();

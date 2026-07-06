@@ -203,6 +203,21 @@ function formatWithUnit(val, one, few, many) {
   return `${whole} ${pluralizeRu(whole, one.trim(), few.trim(), many.trim())}`;
 }
 
+/**
+ * Multiplier to pass into applyPortions() for a recipe's step text.
+ *
+ * Regular recipes scale with whatever portion count the user picked
+ * relative to the recipe's own base amount. A fixed_portions recipe is
+ * cooked as one inherent batch — its base amounts already are the
+ * full-batch amount, so the ratio is always 1, exactly like the shopping
+ * list's scale (fixedPortions / portions).
+ */
+export function stepPortionsMultiplier(basePortions, fixedPortions, chosenPortions) {
+  const base = basePortions || 1;
+  const chosen = fixedPortions ?? chosenPortions ?? base;
+  return chosen / base;
+}
+
 export function applyPortions(text, portions) {
   if (!text) return text ?? "";
   const factor = portions || 1;
