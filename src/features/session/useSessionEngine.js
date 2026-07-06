@@ -214,7 +214,7 @@ export function useSessionEngine() {
   const [completedRecord, setCompletedRecord] = useState(null);
   const [rewardPending, setRewardPending] = useState(false);
   const [deckExhausted, setDeckExhausted] = useState(false);
-  const lastRewardEarnedCountRef = useRef(0);
+  const lastRewardEarnedCountRef = useRef(sessionState?.rewardEarnedCount ?? 0);
 
   async function finishSession(state) {
     const cardEvents = cardLogger.getCardEvents();
