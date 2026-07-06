@@ -4,12 +4,12 @@ import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
 import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons';
 import {
-  createPlan, isRecipeSelected, selectRecipe, deselectRecipe, resetPlan,
+  createPlan, isRecipeSelected, selectRecipe, deselectRecipe,
   setMealAssignment, setSelectedPortions,
   setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
-import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, resetShoppingData, PANTRY_ITEMS } from './plannerApi.js';
+import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
 import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
@@ -376,8 +376,7 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
 
 // ─── Menu landing view (the one Меню page: slots + ingredients + footer) ────
 
-function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRecipe, onOpenPicker, onSetIngredientDecision, onReset, onBack, onGoShopping, onSendToStudent }) {
-  const [confirmReset, setConfirmReset] = useState(false);
+function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRecipe, onOpenPicker, onSetIngredientDecision, onBack, onGoShopping, onSendToStudent }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState(null);
@@ -426,9 +425,6 @@ function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRe
           allRecipes={allRecipes}
           onSetDecision={onSetIngredientDecision}
         />
-        <button type="button" className="menu-reset-link" onClick={() => setConfirmReset(true)}>
-          Начать меню заново
-        </button>
         {sendError && <div className="menu-send-error">{sendError}</div>}
         {sent ? (
           <div className="menu-send-link menu-send-link--sent">✓ Отправлено ученику</div>
@@ -457,15 +453,6 @@ function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRe
         )}
       </div>
 
-      {confirmReset && (
-        <div className="menu-reset-bar">
-          <span className="menu-reset-bar__text">Точно начать заново? Всё меню будет удалено.</span>
-          <div className="menu-reset-bar__actions">
-            <button type="button" className="menu-reset-bar__cancel" onClick={() => setConfirmReset(false)}>Нет</button>
-            <button type="button" className="menu-reset-bar__ok" onClick={() => { setConfirmReset(false); onReset(); }}>Да</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -617,10 +604,6 @@ export default function PlannerMenuScreen() {
         onSetIngredientDecision={(product, decision) =>
           setPlan((p) => setIngredientDecision(p, product, decision))
         }
-        onReset={() => {
-          setPlan(resetPlan(activeStudentId));
-          resetShoppingData(activeStudentId).catch(() => {});
-        }}
         onBack={() => setScreen('home')}
         onGoShopping={() => setScreen('planner_shopping')}
         onSendToStudent={() => sendPlanToStudent(activeStudentId, plan)}
