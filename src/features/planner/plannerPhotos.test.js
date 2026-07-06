@@ -101,3 +101,25 @@ describe('resizeToBlob', () => {
     expect(result).toBe(original);
   });
 });
+
+import { clearPendingPhotos } from './plannerPhotos.js';
+
+describe('clearPendingPhotos', () => {
+  it('removes pending receipt and zone photos but keeps archived trip photos', async () => {
+    await savePendingReceiptPhoto('student-g', fakeBlob('pending-receipt'));
+    await savePendingZonePhoto('student-g', 'fridge', fakeBlob('pending-fridge'));
+    await archiveTripPhotos('student-g', 555); // archives a copy under receipt_555.jpg / putaway_555_fridge.jpg
+
+    await clearPendingPhotos('student-g');
+
+    expect(await getPendingReceiptPhoto('student-g')).toBeNull();
+    expect(await getPendingZonePhotoIds('student-g')).toEqual([]);
+    expect(await getTripReceiptPhoto('student-g', 555)).toBeInstanceOf(Blob);
+    expect(await getTripZonePhoto('student-g', 555, 'fridge')).toBeInstanceOf(Blob);
+  });
+
+  it('does nothing when there is nothing pending', async () => {
+    await clearPendingPhotos('student-h');
+    expect(await getPendingReceiptPhoto('student-h')).toBeNull();
+  });
+});

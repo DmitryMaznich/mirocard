@@ -82,3 +82,12 @@ export async function resizeToBlob(file, maxDim, quality) {
   canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
   return canvas.convertToBlob({ type: 'image/jpeg', quality });
 }
+
+export async function clearPendingPhotos(studentId) {
+  const db = await getDb();
+  await topics.deleteFile(db, photoTopic(studentId), 'pending_receipt.jpg');
+  const zoneIds = await getPendingZonePhotoIds(studentId);
+  for (const zoneId of zoneIds) {
+    await topics.deleteFile(db, photoTopic(studentId), `pending_putaway_${zoneId}.jpg`);
+  }
+}
