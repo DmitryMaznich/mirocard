@@ -3,6 +3,7 @@ import {
   savePendingReceiptPhoto, getPendingReceiptPhoto,
   savePendingZonePhoto, getPendingZonePhoto, getPendingZonePhotoIds,
   archiveTripPhotos, getTripReceiptPhoto, getTripZonePhoto,
+  resizeToBlob,
 } from './plannerPhotos.js';
 
 function fakeBlob(content) {
@@ -52,5 +53,51 @@ describe('archiveTripPhotos', () => {
     const result = await archiveTripPhotos('student-f', 99999);
     expect(result).toEqual({ hasReceipt: false, zonePhotos: [] });
     expect(await getTripReceiptPhoto('student-f', 99999)).toBeNull();
+  });
+});
+
+describe('resizeToBlob', () => {
+  it('downscales an image larger than maxDim, preserving aspect ratio', async () => {
+    let drawnArgs = null;
+    global.createImageBitmap = async () => ({ width: 4000, height: 2000 });
+    global.OffscreenCanvas = class {
+      constructor(w, h) { this.width = w; this.height = h; }
+      getContext() {
+        return { drawImage: (...args) => { drawnArgs = args; } };
+      }
+      async convertToBlob({ type, quality }) {
+        return new Blob([`resized:${this.width}x${this.height}:${type}:${quality}`]);
+      }
+    };
+
+    const result = await resizeToBlob(new Blob(['orig']), 1000, 0.8);
+
+    expect(await result.text()).toBe('resized:1000x500:image/jpeg:0.8');
+    expect(drawnArgs[1]).toBe(0);
+    expect(drawnArgs[2]).toBe(0);
+    expect(drawnArgs[3]).toBe(1000);
+    expect(drawnArgs[4]).toBe(500);
+  });
+
+  it('does not upscale an image smaller than maxDim', async () => {
+    global.createImageBitmap = async () => ({ width: 300, height: 200 });
+    global.OffscreenCanvas = class {
+      constructor(w, h) { this.width = w; this.height = h; }
+      getContext() { return { drawImage: () => {} }; }
+      async convertToBlob() { return new Blob([`resized:${this.width}x${this.height}`]); }
+    };
+
+    const result = await resizeToBlob(new Blob(['orig']), 1000, 0.8);
+
+    expect(await result.text()).toBe('resized:300x200');
+  });
+
+  it('falls back to the original file when decoding fails', async () => {
+    global.createImageBitmap = async () => { throw new Error('unsupported format'); };
+    const original = new Blob(['undecoded-original']);
+
+    const result = await resizeToBlob(original, 1000, 0.8);
+
+    expect(result).toBe(original);
   });
 });
