@@ -122,6 +122,45 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues }) 
   );
 }
 
+function EnumMultiParam({ label, options, labels, value, onChange }) {
+  const selected = Array.isArray(value) ? value : [];
+  const allSelected = selected.length === 0;
+
+  function toggle(opt) {
+    if (allSelected) {
+      onChange([opt]);
+      return;
+    }
+    const next = selected.includes(opt)
+      ? selected.filter(o => o !== opt)
+      : [...selected, opt];
+    onChange(next.length === options.length ? [] : next);
+  }
+
+  return (
+    <div className="param-row param-row--block">
+      <div className="param-label">{label}</div>
+      <div className="param-enum-group">
+        <button
+          className={`enum-btn ${allSelected ? "enum-btn--active" : ""}`}
+          onClick={() => onChange([])}
+        >
+          Все
+        </button>
+        {options.map((opt) => (
+          <button
+            key={opt}
+            className={`enum-btn ${!allSelected && selected.includes(opt) ? "enum-btn--active" : ""}`}
+            onClick={() => toggle(opt)}
+          >
+            {labels?.[opt] ?? opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function BooleanParam({ label, hint, value, onChange, disabled }) {
   return (
     <label className={`param-row param-row--checkbox${disabled ? " param-row--disabled" : ""}`}>
@@ -542,6 +581,10 @@ export default function ParamsScreen() {
         out[key] = saved[key] ?? [];
         continue;
       }
+      if (def.type === "enum_multi") {
+        out[key] = saved[key] ?? def.default ?? [];
+        continue;
+      }
       out[key] = saved[key] ?? def.default ?? (def.type === "number" ? def.min : def.values?.[0]);
     }
     return out;
@@ -737,6 +780,18 @@ export default function ParamsScreen() {
               value={params[key] ?? def.default}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               disabledValues={def.disabledValues}
+            />
+          );
+        }
+        if (def.type === "enum_multi") {
+          return (
+            <EnumMultiParam
+              key={key}
+              label={def.label?.ru ?? key}
+              options={def.values}
+              labels={def.labels?.ru}
+              value={params[key] ?? def.default ?? []}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
             />
           );
         }

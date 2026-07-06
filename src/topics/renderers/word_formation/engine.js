@@ -14,6 +14,10 @@ function pickDistractors(targetId, cards, count) {
 
 function filterByCategory(cards, category) {
   if (!category || category === "all") return cards;
+  if (Array.isArray(category)) {
+    if (category.length === 0) return cards;
+    return cards.filter(c => category.includes(c.category));
+  }
   return cards.filter(c => c.category === category);
 }
 
