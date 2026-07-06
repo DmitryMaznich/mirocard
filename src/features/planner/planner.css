@@ -1692,6 +1692,24 @@
   color: #a8978a;
 }
 
+.planner-new-menu-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid #cbb9a3;
+  background: none;
+  color: #6b5c48;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.planner-new-menu-btn:active {
+  background: rgba(203, 185, 163, 0.15);
+}
+
 /* ── Menu slot "add recipe" button (MealSlotSection) ───────────────── */
 .menu-slot-add-btn {
   width: 100%;

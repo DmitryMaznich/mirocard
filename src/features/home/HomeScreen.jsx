@@ -9,11 +9,11 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
-import { loadPlan, loadAllRecipes } from "@/features/planner/plannerApi";
-import { isMenuFullyDecided, isReadyToCook, needsShopping } from "@/features/planner/plannerUtils";
+import { loadPlan, loadAllRecipes, savePlan, resetShoppingData } from "@/features/planner/plannerApi";
+import { isMenuFullyDecided, isReadyToCook, needsShopping, resetPlan, isRecipeCookedThisCycle } from "@/features/planner/plannerUtils";
 import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
 import { buildPutawayQueue, getRequiredZones } from "@/features/planner/putawayUtils";
-import { getPendingReceiptPhoto, getPendingZonePhotoIds } from "@/features/planner/plannerPhotos";
+import { getPendingReceiptPhoto, getPendingZonePhotoIds, clearPendingPhotos } from "@/features/planner/plannerPhotos";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan } from "@/core/groupStore";
 import "@/features/planner/planner.css";
@@ -203,12 +203,14 @@ function PlannerTab({ student, setScreen }) {
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
   const setPlannerShoppingInitialMode = useAppStore((s) => s.setPlannerShoppingInitialMode);
+  const sessions = useAppStore((s) => s.sessions);
   const [existingPlan, setExistingPlan] = useState(undefined); // undefined = loading
   const [allRecipes, setAllRecipes] = useState([]);
   const [boughtCount, setBoughtCount] = useState(0);
   const [shoppingDone, setShoppingDone] = useState(false);
   const [putawayDone, setPutawayDone] = useState(false);
   const [cookPickerOpen, setCookPickerOpen] = useState(false);
+  const [confirmNewMenu, setConfirmNewMenu] = useState(false);
 
   useEffect(() => {
     if (!student) { setExistingPlan(null); return; }
@@ -268,6 +270,9 @@ function PlannerTab({ student, setScreen }) {
   const menuRecipes = hasSelection
     ? existingPlan.selectedRecipes.map((id) => allRecipes.find((r) => r.text.id === id)).filter(Boolean)
     : [];
+  const cookedTextIds = new Set(
+    menuRecipes.filter((r) => isRecipeCookedThisCycle(existingPlan, r, sessions)).map((r) => r.text.id)
+  );
 
   function handlePickRecipe(recipe) {
     setCookPickerOpen(false);
@@ -281,6 +286,15 @@ function PlannerTab({ student, setScreen }) {
   function handleGoShopping() {
     setPlannerShoppingInitialMode('shop');
     setScreen('planner_shopping');
+  }
+
+  async function handleStartNewMenu() {
+    setConfirmNewMenu(false);
+    const fresh = resetPlan(student.id);
+    await savePlan(fresh);
+    await resetShoppingData(student.id);
+    await clearPendingPhotos(student.id);
+    setExistingPlan(fresh);
   }
 
   return (
@@ -336,7 +350,9 @@ function PlannerTab({ student, setScreen }) {
             disabled={!readyToCook}
             onClick={() => setCookPickerOpen(true)}
           >
-            🍳 Начинаем готовить
+            {cookedTextIds.size === 0
+              ? '🍳 Начинаем готовить'
+              : `🍳 Готовка: ${cookedTextIds.size} из ${menuRecipes.length} приготовлено`}
           </button>
           {!readyToCook && (
             <div className="planner-cook-hint">
@@ -347,12 +363,29 @@ function PlannerTab({ student, setScreen }) {
                   : 'Сначала разложи продукты'}
             </div>
           )}
+          <button type="button" className="planner-new-menu-btn" onClick={() => setConfirmNewMenu(true)}>
+            🏁 Начать новое меню
+          </button>
+          {confirmNewMenu && (
+            <div className="menu-reset-bar">
+              <span className="menu-reset-bar__text">
+                {cookedTextIds.size < menuRecipes.length
+                  ? `Готово только ${cookedTextIds.size} из ${menuRecipes.length} блюд. Всё равно начать новое меню?`
+                  : 'Начать новое меню? Текущее будет закрыто.'}
+              </span>
+              <div className="menu-reset-bar__actions">
+                <button type="button" className="menu-reset-bar__cancel" onClick={() => setConfirmNewMenu(false)}>Нет</button>
+                <button type="button" className="menu-reset-bar__ok" onClick={handleStartNewMenu}>Да</button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
       {cookPickerOpen && (
         <CookPickerSheet
           recipes={menuRecipes}
+          cookedTextIds={cookedTextIds}
           onPick={handlePickRecipe}
           onClose={() => setCookPickerOpen(false)}
         />
