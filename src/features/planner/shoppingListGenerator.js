@@ -1,4 +1,5 @@
 import { parseRecipeMetadata } from './recipeParser.js';
+import { toCanonicalQty } from './shoppingUnitConversions.js';
 
 /**
  * Aggregates ingredients from multiple recipes into a shopping list.
@@ -18,11 +19,12 @@ export function generateShoppingList(recipes, pantryItems = new Set()) {
     for (const { product, qty, unit } of ingredients) {
       const key = product.toLowerCase();
       const scaledQty = qty != null ? qty * scale : null;
+      const canonical = toCanonicalQty(product, scaledQty, unit);
 
       if (map.has(key)) {
         const existing = map.get(key);
-        if (existing.qty != null && scaledQty != null) {
-          existing.qty += scaledQty;
+        if (existing.qty != null && canonical.qty != null) {
+          existing.qty += canonical.qty;
         } else {
           existing.qty = null;
         }
@@ -32,8 +34,8 @@ export function generateShoppingList(recipes, pantryItems = new Set()) {
       } else {
         map.set(key, {
           product,
-          qty: scaledQty,
-          unit,
+          qty: canonical.qty,
+          unit: canonical.unit,
           include: !pantryItems.has(key),
           recipeIds: [textId],
         });

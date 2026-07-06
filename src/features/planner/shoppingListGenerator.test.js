@@ -18,13 +18,25 @@ describe('generateShoppingList', () => {
     expect(list[0]).toMatchObject({ product: 'яйца', qty: 3, unit: 'шт', include: true, recipeIds: ['r1'] });
   });
 
-  it('aggregates same product from two recipes', () => {
+  it('aggregates same product from two recipes, converting to canonical grams', () => {
     const r1 = recipe('r1', [['лук', 2, 'шт']]);
     const r2 = recipe('r2', [['лук', 1, 'шт']]);
     const list = generateShoppingList([r1, r2]);
     const luk = list.find((i) => i.product === 'лук');
-    expect(luk.qty).toBe(3);
+    expect(luk.qty).toBe(300); // (2 + 1) шт × 100 г/шт
+    expect(luk.unit).toBe('г');
     expect(luk.recipeIds).toEqual(['r1', 'r2']);
+  });
+
+  it('correctly sums a product recorded in different recipe units across recipes', () => {
+    // До этой задачи: сырые qty складывались без учёта единицы (1 "стакан" + 100 "г" = 101 — бессмыслица).
+    // После: оба значения приводятся к граммам перед суммированием.
+    const r1 = recipe('r1', [['гречка', 1, 'стакан']]); // 210 г
+    const r2 = recipe('r2', [['гречка', 100, 'г']]); // уже в граммах
+    const list = generateShoppingList([r1, r2]);
+    const grechka = list.find((i) => i.product === 'гречка');
+    expect(grechka.qty).toBe(310);
+    expect(grechka.unit).toBe('г');
   });
 
   it('scales qty by portionMultiplier / portions', () => {
@@ -55,7 +67,8 @@ describe('generateShoppingList', () => {
   it('uses portionMultiplier 1 by default', () => {
     const r = recipe('r1', [['морковь', 2, 'шт']], 2, 2);
     const list = generateShoppingList([r]);
-    expect(list[0].qty).toBe(2); // 2 * (2/2) = 2
+    expect(list[0].qty).toBe(160); // 2 * (2/2) = 2 шт × 80 г/шт
+    expect(list[0].unit).toBe('г');
   });
 
   it('deduplicates by lowercase product name', () => {
@@ -63,7 +76,7 @@ describe('generateShoppingList', () => {
     const r2 = recipe('r2', [['лук', 2, 'шт']]);
     const list = generateShoppingList([r1, r2]);
     expect(list).toHaveLength(1);
-    expect(list[0].qty).toBe(3);
+    expect(list[0].qty).toBe(300); // (1 + 2) шт × 100 г/шт
   });
 
   it('returns empty list for empty recipes', () => {
