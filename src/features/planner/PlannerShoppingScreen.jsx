@@ -8,19 +8,17 @@ import {
   getPlannerShopPlan, savePlannerShopPlan,
   getPlannerShopCustomData, savePlannerShopCustomData,
   getPlannerShopStores, savePlannerShopStores,
-  getPlannerShopHistory, savePlannerShopHistory,
   getPlannerShopBought, savePlannerShopBought,
   getPlannerShopMenuKeys, savePlannerShopMenuKeys,
   savePlannerPutawayPlan,
 } from '@/core/groupStore';
-import { loadPlan, loadAllRecipes, resetShoppingData, PANTRY_ITEMS } from './plannerApi.js';
+import { loadPlan, loadAllRecipes, resetShoppingData, archiveShoppingTrip, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.js';
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
-import { getPendingReceiptPhoto, savePendingReceiptPhoto, archiveTripPhotos, getTripReceiptPhoto, getTripZonePhoto } from './plannerPhotos.js';
+import { getPendingReceiptPhoto, savePendingReceiptPhoto } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
-import { ZONES } from './putawayLocations.js';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -37,23 +35,10 @@ function noteFor(planned, key) {
 
 const RU_MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 
-function formatHistoryDate(d) {
-  return `${d.getDate()} ${RU_MONTHS[d.getMonth()]} • ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
 function formatTodayRu() {
   const RU_DAYS = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
   const d = new Date();
   return `${d.getDate()} ${RU_MONTHS[d.getMonth()]}, ${RU_DAYS[d.getDay()]}`;
-}
-
-function pluralItems(n) {
-  const abs = Math.abs(n) % 100;
-  const m = abs % 10;
-  if (abs >= 11 && abs <= 19) return 'товаров';
-  if (m === 1) return 'товар';
-  if (m >= 2 && m <= 4) return 'товара';
-  return 'товаров';
 }
 
 function stripEmoji(s) { return s.replace(/^\S+\s+/, '').trim(); }
@@ -680,81 +665,6 @@ function PlanDetail({ steps, icons, planned, idx, onToggle, onNote, onNext }) {
   );
 }
 
-// ── History view ─────────────────────────────────────────────────────────────
-
-function HistoryPhotoThumb({ studentId, tripId, zoneId, icon, onOpen }) {
-  const [url, setUrl] = useState(null);
-
-  useEffect(() => {
-    let objectUrl = null;
-    let cancelled = false;
-    const loader = zoneId
-      ? getTripZonePhoto(studentId, tripId, zoneId)
-      : getTripReceiptPhoto(studentId, tripId);
-    loader.then((blob) => {
-      if (cancelled || !blob) return;
-      objectUrl = URL.createObjectURL(blob);
-      setUrl(objectUrl);
-    });
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [studentId, tripId, zoneId]);
-
-  if (!url) return null;
-  return (
-    <button type="button" className="shop-history-photo" onClick={() => onOpen(url)}>
-      <img src={url} alt="" />
-      {icon && <span className="shop-history-photo__badge">{icon}</span>}
-    </button>
-  );
-}
-
-function HistoryView({ history, onRestore, studentId }) {
-  const [viewerUrl, setViewerUrl] = useState(null);
-  return (
-    <div className="shopping-body">
-      <div className="shop-history-list">
-        {history.length === 0 ? (
-          <div className="shop-history-empty">История пока пуста</div>
-        ) : history.map((entry) => (
-          <div key={entry.id} className="shop-history-entry">
-            <div className="shop-history-meta">
-              <span className="shop-history-date">{entry.date}</span>
-              {entry.store && <span className="shop-history-store">{entry.store}</span>}
-              <span className="shop-history-count">{entry.count} {pluralItems(entry.count)}</span>
-            </div>
-            {(entry.hasReceipt || entry.zonePhotos?.length > 0) && (
-              <div className="shop-history-photos">
-                {entry.hasReceipt && (
-                  <HistoryPhotoThumb studentId={studentId} tripId={entry.id} zoneId={null} icon="🧾" onOpen={setViewerUrl} />
-                )}
-                {(entry.zonePhotos ?? []).map((zoneId) => (
-                  <HistoryPhotoThumb
-                    key={zoneId}
-                    studentId={studentId}
-                    tripId={entry.id}
-                    zoneId={zoneId}
-                    icon={ZONES.find((z) => z.id === zoneId)?.icon}
-                    onOpen={setViewerUrl}
-                  />
-                ))}
-              </div>
-            )}
-            <button className="shop-history-restore" onClick={() => onRestore(entry.plan)}>Открыть</button>
-          </div>
-        ))}
-      </div>
-      {viewerUrl && (
-        <div className="photo-viewer-overlay" onClick={() => setViewerUrl(null)}>
-          <img src={viewerUrl} className="photo-viewer-img" alt="" />
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Preview / print view ──────────────────────────────────────────────────────
 
 function PreviewView({ steps, planned, store }) {
@@ -956,7 +866,7 @@ export default function PlannerShoppingScreen() {
   const [modeView, setModeView] = useState('loading');
   const [stores, setStores] = useState(null); // { current: string|null, list: string[] }
 
-  // view within 'plan': 'grid' | number (detail idx) | 'history' | 'preview'
+  // view within 'plan': 'grid' | number (detail idx) | 'preview'
   const [view, setView]    = useState('grid');
   const [loading, setLoading]   = useState(true);
   const [steps, setSteps]       = useState([]);
@@ -964,7 +874,6 @@ export default function PlannerShoppingScreen() {
   const [planned, setPlanned]   = useState({});
   const [bought, setBought]     = useState({});
   const [customData, setCustomData] = useState(null);
-  const [history, setHistory] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { catId, catName, plannedCount }
@@ -987,7 +896,6 @@ export default function PlannerShoppingScreen() {
       setStores({ current: null, list: [...DEFAULT_STORES] });
       setModeView(initialMode);
     });
-    getPlannerShopHistory(studentId).then(setHistory).catch(() => {});
   }, [studentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadAndApply(forceRegen = false) {
@@ -1212,26 +1120,7 @@ export default function PlannerShoppingScreen() {
   }
 
   async function handleNewListAfterShop() {
-    if (Object.keys(planned).length > 0) {
-      const now = new Date();
-      const id = now.getTime();
-      const { hasReceipt, zonePhotos } = await archiveTripPhotos(studentId, id);
-      const entry = {
-        id,
-        date: formatHistoryDate(now),
-        store: stores?.current ?? null,
-        plan: { ...planned },
-        count: Object.keys(planned).length,
-        hasReceipt,
-        zonePhotos,
-      };
-      try {
-        const hist = await getPlannerShopHistory(studentId);
-        const nextHist = [entry, ...hist].slice(0, 5);
-        await savePlannerShopHistory(studentId, nextHist);
-        setHistory(nextHist);
-      } catch {}
-    }
+    await archiveShoppingTrip(studentId, stores?.current);
     await savePlannerShopPlan(studentId, {});
     await savePlannerShopBought(studentId, {});
     await savePlannerPutawayPlan(studentId, {});
@@ -1242,19 +1131,10 @@ export default function PlannerShoppingScreen() {
     setView('grid');
   }
 
-  function handleRestoreHistory(entryPlan) {
-    setPlanned(entryPlan);
-    setBought({});
-    savePlannerShopPlan(studentId, entryPlan).catch(() => {});
-    savePlannerShopBought(studentId, {}).catch(() => {});
-    savePlannerPutawayPlan(studentId, {}).catch(() => {});
-    setView('grid');
-  }
-
   function handleBack() {
     if (editMode && editingCategoryId !== null) { setEditingCategoryId(null); return; }
     if (editMode) { setEditMode(false); return; }
-    if (typeof view === 'number' || view === 'history' || view === 'preview') { setView('grid'); return; }
+    if (typeof view === 'number' || view === 'preview') { setView('grid'); return; }
     setScreen('planner_menu');
   }
 
@@ -1324,17 +1204,16 @@ export default function PlannerShoppingScreen() {
 
   const headerTitle =
     typeof view === 'number' ? null :
-    view === 'history' ? 'История списков' :
     view === 'preview' ? 'Список покупок' :
     editMode ? 'Редактор категорий' :
     'Список покупок';
 
-  // The grid's own action icons (store/history/print/clear/edit/regenerate)
-  // live in the same header row as the back arrow and title, rather than a
-  // second header bar underneath — a "Список покупок" nav header immediately
+  // The grid's own action icons (store/print/clear/edit/regenerate) live in
+  // the same header row as the back arrow and title, rather than a second
+  // header-styled row underneath — a "Список покупок" nav header immediately
   // followed by another header-styled row read as one screen with two title
   // bars stacked.
-  const showGridActions = typeof view !== 'number' && view !== 'history' && view !== 'preview';
+  const showGridActions = typeof view !== 'number' && view !== 'preview';
   const total = steps.reduce((s, step) => {
     const n = sName(step);
     return s + (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
@@ -1356,9 +1235,6 @@ export default function PlannerShoppingScreen() {
           ) : (
             <div className="planner-header-actions">
               <button className="shop-store-chip" onClick={() => setModeView('storePicker')} aria-label="Сменить магазин">{stores.current || '🏪'}</button>
-              {history.length > 0 && (
-                <button className="shopping-clear-btn" onClick={() => setView('history')} aria-label="История">🕐</button>
-              )}
               {total > 0 && (
                 <button className="shopping-clear-btn" onClick={() => setView('preview')} aria-label="Печать">🖨</button>
               )}
@@ -1380,8 +1256,6 @@ export default function PlannerShoppingScreen() {
           onNote={saveNote}
           onNext={() => setView(view + 1)}
         />
-      ) : view === 'history' ? (
-        <HistoryView history={history} onRestore={handleRestoreHistory} studentId={studentId} />
       ) : view === 'preview' ? (
         <PreviewView steps={steps} planned={planned} store={stores.current} />
       ) : (
