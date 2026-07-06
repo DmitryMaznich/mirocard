@@ -49,34 +49,23 @@ function HomeHeader({ onSettings, onBrandTap }) {
   );
 }
 
-// ─── Student picker bar ────────────────────────────────────────────────────────
+// ─── Student status (read-only — switching lives in Настройки) ────────────────
 
-function ChevronTriangle() {
+function StudentStatus({ student }) {
   return (
-    <svg className="home-student-bar__chevron" width="9" height="16" viewBox="0 0 9 16" aria-hidden>
-      <polygon points="0,0 9,8 0,16" fill="currentColor" />
-    </svg>
-  );
-}
-
-function StudentPickerBar({ student, onTap }) {
-  return (
-    <button className="home-student-bar" onClick={onTap}>
-      <span className={`home-student-bar__icon${student ? ' home-student-bar__icon--filled' : ''}`}>
-        {student ? (
-          student.photo
-            ? <img src={student.photo} alt="" />
-            : getInitials(student.name)
-        ) : '+'}
+    <div className="home-student-status">
+      <span className={`home-student-status__icon${student ? ' home-student-status__icon--filled' : ''}`}>
+        {student
+          ? (student.photo ? <img src={student.photo} alt="" /> : getInitials(student.name))
+          : '—'}
       </span>
-      <span className="home-student-bar__copy">
-        <span className="home-student-bar__label">Ученик</span>
-        <span className="home-student-bar__value">
-          {student?.name ?? 'Не выбран'}
+      <span className="home-student-status__copy">
+        <span className="home-student-status__label">Ученик:</span>
+        <span className={`home-student-status__value${student ? '' : ' home-student-status__value--empty'}`}>
+          {student ? student.name : 'не выбран'}
         </span>
       </span>
-      <ChevronTriangle />
-    </button>
+    </div>
   );
 }
 
@@ -633,7 +622,7 @@ export default function HomeScreen() {
       <HomeHeader onSettings={() => setScreen("settings")} onBrandTap={handleBrandTap} />
 
       <div className="home-main">
-        <StudentPickerBar student={student} onTap={() => setScreen("students")} />
+        <StudentStatus student={student} />
 
         <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} />
 

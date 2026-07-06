@@ -1135,35 +1135,23 @@
   font-size: 14px;
 }
 
-/* ── Student picker bar ─────────────────────────────────────── */
-.home-student-bar {
+/* ── Student status (read-only — switching lives in Настройки) ── */
+.home-student-status {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  background: rgba(250, 247, 242, 0.96);
-  border: 1px solid #e7dccf;
-  border-radius: 20px;
-  margin: 0 14px;
-  cursor: pointer;
-  text-align: left;
-  box-shadow: 0 6px 18px rgba(71, 61, 48, 0.06);
-  transition: background 0.12s, box-shadow 0.12s;
+  gap: 9px;
+  padding: 2px 18px 0;
 }
 
-.home-student-bar:active {
-  background: #f0ebe3;
-  box-shadow: 0 2px 8px rgba(71, 61, 48, 0.04);
-}
-
-/* Square avatar with rounded corners */
-.home-student-bar__icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  background: #ddd;
-  color: #888;
-  font-size: 17px;
+/* Small rounded-square avatar chip — same family as the old picker's
+   icon, scaled down since this is a caption now, not a tap target. */
+.home-student-status__icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: #ede5d8;
+  color: #a8978a;
+  font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -1172,37 +1160,33 @@
   overflow: hidden;
 }
 
-.home-student-bar__icon--filled {
+.home-student-status__icon--filled {
   background: #4a9b8f;
   color: #fff;
 }
 
-.home-student-bar__icon img {
+.home-student-status__icon img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 0;
 }
 
-/* Label + name column */
-.home-student-bar__copy {
-  flex: 1;
+.home-student-status__copy {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: baseline;
+  gap: 5px;
   min-width: 0;
 }
 
-.home-student-bar__label {
+.home-student-status__label {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #999;
+  color: #a8978a;
+  flex-shrink: 0;
 }
 
-.home-student-bar__value {
-  font-size: 18px;
+.home-student-status__value {
+  font-size: 13.5px;
   font-weight: 700;
   color: #263131;
   white-space: nowrap;
@@ -1210,10 +1194,10 @@
   text-overflow: ellipsis;
 }
 
-/* Filled triangle chevron */
-.home-student-bar__chevron {
-  color: #c8bfb0;
-  flex-shrink: 0;
+.home-student-status__value--empty {
+  font-weight: 600;
+  font-style: italic;
+  color: #a8978a;
 }
 
 /* ── Tab bar ────────────────────────────────────────────────── */
