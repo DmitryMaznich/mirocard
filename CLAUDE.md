@@ -96,3 +96,40 @@ Restore and scheduling details: `docs/backup-restore.md`.
 - Two backend processes on `3012` conflict; stop the old process before starting a new one.
 - `npm run deploy:verify` must pass after every production deploy.
 - Rotate any token or password that was ever committed, pasted into docs, or embedded in git remotes.
+
+## iOS Safe Area (notch / Dynamic Island / home indicator) — mandatory check
+
+The app runs as an iOS PWA with `viewport-fit=cover`. Any screen-level element pinned to
+a screen edge — header, footer, floating close/back/action button, bottom sheet — renders
+under the iPhone status bar/notch/Dynamic Island or the home-indicator bar if it doesn't
+reserve space for it, and its buttons become untappable there. This has been a recurring
+bug (fixed piecemeal multiple times: `.home-header`, `.session-topbar`, `.planner-header`,
+`.chat-header`, `.shs-root`, `.admin-lock-fab`, `.worksheet-close-button--floating`,
+`.video-reward-close`, and others — audited and fixed 2026-07-06).
+
+**Rule — apply this in the same diff that adds or edits any screen-level fixed/sticky/
+absolute-positioned element, not as a follow-up:**
+
+- Global CSS variables already exist in `src/styles.css` (`:root`): `--app-safe-top`,
+  `--app-safe-right`, `--app-safe-bottom`, `--app-safe-left` (backed by
+  `env(safe-area-inset-*)`, boosted under `html.app-ios-standalone`). Use them — do not
+  invent new ones.
+- Top bars: `padding-top: calc(<original> + var(--app-safe-top, 0px))`.
+- Bottom bars/sheets: `padding-bottom: calc(<original> + var(--app-safe-bottom, 0px))`.
+- Floating buttons pinned to a corner (`position: fixed`/`absolute` + `top`/`right`/
+  `bottom`/`left`): add the matching `var(--app-safe-*, 0px)` to that offset, e.g.
+  `top: calc(12px + var(--app-safe-top, 0px)); right: calc(12px + var(--app-safe-right, 0px));`.
+- Reusing an existing shared class (`.screen-header`, `.planner-header`, `.home-header`,
+  `.session-topbar`) already covers this — no extra work needed. The bug only appears
+  when a **new** header/footer/floating-button class is introduced.
+- Before calling a new/changed screen done, grep the touched CSS for
+  `position:\s*(fixed|sticky|absolute)` and confirm every rule with a `top`/`right`/
+  `bottom`/`left` offset that reaches a real screen edge has the variable baked in.
+- To verify without a physical device (Playwright or devtools console):
+  ```js
+  document.documentElement.classList.add('app-ios-standalone');
+  document.documentElement.style.setProperty('--app-safe-top', '59px');   // Dynamic Island
+  document.documentElement.style.setProperty('--app-safe-bottom', '34px'); // home indicator
+  ```
+  then screenshot the screen — anything now cramped or overlapping the top/bottom edge
+  needs the fix above.
