@@ -404,8 +404,6 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const [group,      setGroup]      = useState([]);
   const [stepIndex,  setStepIndex]  = useState(0);
   const [checked,    setChecked]    = useState({});
-  const [listOpen,   setListOpen]   = useState(false);
-  const listRef = useRef(null);
 
   useEffect(() => {
     async function load() {
@@ -462,12 +460,6 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     : "Готово ✓";
 
   useEffect(() => {
-    if (!listOpen || !listRef.current) return;
-    const el = listRef.current.querySelector(".instruction-list-item--active");
-    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [listOpen]);
-
-  useEffect(() => {
     if (step?.type === "warning" && soundEnabled !== false) {
       playWarningChime();
     }
@@ -479,7 +471,6 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   }, [stepIndex]);
 
   const handleNext = useCallback(() => {
-    setListOpen(false);
     if (isLast) onAdvance();
     else setStepIndex((n) => n + 1);
   }, [isLast, onAdvance]);
@@ -647,38 +638,6 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
               </ul>
             )}
           </div>
-
-
-          <button
-            className={`instruction-drawer-toggle${listOpen ? " instruction-drawer-toggle--open" : ""}`}
-            onClick={() => setListOpen((v) => !v)}
-          >
-            <span className="instruction-drawer-pill" />
-            <span className="instruction-drawer-label">все шаги {listOpen ? "▲" : "▼"}</span>
-          </button>
-
-          {listOpen && (
-            <div className="instruction-drawer" ref={listRef}>
-              {steps.map((s, i) => {
-                const isDone = i < stepIndex;
-                const isActive = i === stepIndex;
-                return (
-                  <div
-                    key={s.id}
-                    className={[
-                      "instruction-list-item",
-                      isDone ? "instruction-list-item--done" : "",
-                      isActive ? "instruction-list-item--active" : "",
-                    ].filter(Boolean).join(" ")}
-                  >
-                    <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
-                    {s.type !== "heading" && <span className="instruction-list-num">{i + 1}.</span>}
-                    <span className="instruction-list-text">{applyFireEmoji(applyPortions(s.text, portions))}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           <div className="instruction-nav">
             <button
