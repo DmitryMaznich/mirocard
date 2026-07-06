@@ -68,7 +68,8 @@ function generateBlankTasks(cards) {
   return shuffle(tasks);
 }
 
-export function generateTasks(modeType, cards) {
+export function generateTasks(modeOrType, cards) {
+  const modeType = typeof modeOrType === "string" ? modeOrType : modeOrType?.type;
   switch (modeType) {
     case "first_sound":    return generateEdgeTasks(cards, "first");
     case "last_sound":     return generateEdgeTasks(cards, "last");

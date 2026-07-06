@@ -30,6 +30,11 @@ describe("generateTasks — first_sound", () => {
     expect(generateTasks("first_sound", CARDS)).toHaveLength(3);
   });
 
+  it("accepts a mode object (as the real session engine passes it), not just a type string", () => {
+    const mode = { id: "first_sound", type: "first_sound", evaluation: "auto" };
+    expect(generateTasks(mode, CARDS)).toHaveLength(3);
+  });
+
   it("each task has 3 options with exactly one target matching targetLetter (uppercased)", () => {
     for (const t of generateTasks("first_sound", CARDS)) {
       expect(t.type).toBe("first_sound");
