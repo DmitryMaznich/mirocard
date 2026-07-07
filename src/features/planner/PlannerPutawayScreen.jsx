@@ -3,10 +3,35 @@ import { useAppStore } from '@/core/store';
 import { getPlannerShopCustomData, getPlannerShopBought, getPlannerPutawayPlan, savePlannerPutawayPlan } from '@/core/groupStore';
 import { buildPutawayQueue, getRequiredZones } from './putawayUtils.js';
 import { ZONES } from './putawayLocations.js';
-import { getPendingZonePhotoIds, savePendingZonePhoto } from './plannerPhotos.js';
+import { getPendingZonePhotoIds, savePendingZonePhoto, getZoneReferencePhoto, saveZoneReferencePhoto } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
+
+// Loads (and re-loads when `version` bumps) one zone's permanent reference
+// photo. Same load-blob/create-object-URL/revoke-on-cleanup shape as
+// HomeScreen.jsx's CycleHistoryPhotoThumb — kept local here since nothing
+// outside this screen needs it.
+function ZonePhoto({ studentId, zoneId, version, className, fallback }) {
+  const [url, setUrl] = useState(null);
+
+  useEffect(() => {
+    let objectUrl = null;
+    let cancelled = false;
+    getZoneReferencePhoto(studentId, zoneId).then((blob) => {
+      if (cancelled || !blob) return;
+      objectUrl = URL.createObjectURL(blob);
+      setUrl(objectUrl);
+    });
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [studentId, zoneId, version]);
+
+  if (!url) return fallback;
+  return <img src={url} className={className} alt="" />;
+}
 
 export default function PlannerPutawayScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -21,6 +46,8 @@ export default function PlannerPutawayScreen() {
   const [wrongZoneId, setWrongZoneId] = useState(null);
   const [photographedZones, setPhotographedZones] = useState([]);
   const [zonesLoaded, setZonesLoaded] = useState(false);
+  const [zonePhotoVersions, setZonePhotoVersions] = useState({});
+  const [editingZoneId, setEditingZoneId] = useState(null);
 
   useEffect(() => {
     if (!studentId) return;
@@ -77,6 +104,14 @@ export default function PlannerPutawayScreen() {
     setWrongZoneId(null);
   }
 
+  function handleZonePhotoConfirm(zoneId) {
+    return async (blob) => {
+      await saveZoneReferencePhoto(studentId, zoneId, blob);
+      setZonePhotoVersions((prev) => ({ ...prev, [zoneId]: (prev[zoneId] ?? 0) + 1 }));
+      setEditingZoneId(null);
+    };
+  }
+
   if (loading) return <div className="screen screen-center">Загрузка…</div>;
 
   return (
@@ -123,7 +158,13 @@ export default function PlannerPutawayScreen() {
           <div className="putaway-progress">Продукт {doneCount + 1} из {totalCount}</div>
 
           <div className="putaway-card">
-            <div className="putaway-card__icon">{current.categoryIcon}</div>
+            <ZonePhoto
+              studentId={studentId}
+              zoneId={current.zoneId}
+              version={zonePhotoVersions[current.zoneId] ?? 0}
+              className="putaway-card__photo"
+              fallback={<div className="putaway-card__icon">{ZONES.find((z) => z.id === current.zoneId)?.icon}</div>}
+            />
             <div className="putaway-card__name">{current.product}</div>
           </div>
 
@@ -134,7 +175,20 @@ export default function PlannerPutawayScreen() {
                 className={`putaway-zone${wrongZoneId === zone.id ? ' putaway-zone--wrong' : ''}${wrongCount >= 2 && zone.id === current.zoneId ? ' putaway-zone--hint' : ''}`}
                 onClick={() => handlePick(zone.id)}
               >
-                <span className="putaway-zone__icon">{zone.icon}</span>
+                <span
+                  className="putaway-zone__camera-badge"
+                  onClick={(e) => { e.stopPropagation(); setEditingZoneId(zone.id); }}
+                  aria-label={`Сфотографировать: ${zone.label}`}
+                >
+                  📷
+                </span>
+                <ZonePhoto
+                  studentId={studentId}
+                  zoneId={zone.id}
+                  version={zonePhotoVersions[zone.id] ?? 0}
+                  className="putaway-zone__photo"
+                  fallback={<span className="putaway-zone__icon">{zone.icon}</span>}
+                />
                 <span className="putaway-zone__label">{zone.label}</span>
               </button>
             ))}
@@ -148,6 +202,22 @@ export default function PlannerPutawayScreen() {
             {Array.from({ length: totalCount }).map((_, i) => (
               <span key={i} className={`putaway-dot${i < doneCount ? ' putaway-dot--done' : ''}`} />
             ))}
+          </div>
+        </div>
+      )}
+
+      {editingZoneId && (
+        <div className="portions-sheet-backdrop" onClick={() => setEditingZoneId(null)}>
+          <div className="portions-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="portions-sheet__handle" />
+            <PhotoCaptureCard
+              key={editingZoneId}
+              title={`Сфотографируй: ${ZONES.find((z) => z.id === editingZoneId).label}`}
+              hint="Так ученик быстрее узнает своё место"
+              maxDim={1280}
+              quality={0.75}
+              onConfirm={handleZonePhotoConfirm(editingZoneId)}
+            />
           </div>
         </div>
       )}
