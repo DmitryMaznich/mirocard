@@ -4,6 +4,8 @@ import {
   savePendingZonePhoto, getPendingZonePhoto, getPendingZonePhotoIds,
   archiveTripPhotos, getTripReceiptPhoto, getTripZonePhoto,
   resizeToBlob,
+  saveZoneReferencePhoto, getZoneReferencePhoto,
+  clearPendingPhotos,
 } from './plannerPhotos.js';
 
 function fakeBlob(content) {
@@ -34,6 +36,37 @@ describe('pending zone photos', () => {
     expect(await getPendingZonePhotoIds('student-d')).toEqual(['freezer', 'pantry']);
     const blob = await getPendingZonePhoto('student-d', 'freezer');
     expect(await blob.text()).toBe('freezer-photo');
+  });
+});
+
+describe('zone reference photos', () => {
+  it('returns null when nothing has been saved yet', async () => {
+    expect(await getZoneReferencePhoto('student-zref-a', 'fridge')).toBeNull();
+  });
+
+  it('round-trips a saved photo', async () => {
+    await saveZoneReferencePhoto('student-zref-b', 'freezer', fakeBlob('freezer-door'));
+    const blob = await getZoneReferencePhoto('student-zref-b', 'freezer');
+    expect(blob).toBeInstanceOf(Blob);
+    expect(await blob.text()).toBe('freezer-door');
+  });
+
+  it('replacing a photo overwrites the previous one', async () => {
+    await saveZoneReferencePhoto('student-zref-c', 'pantry', fakeBlob('old-pantry-photo'));
+    await saveZoneReferencePhoto('student-zref-c', 'pantry', fakeBlob('new-pantry-photo'));
+    const blob = await getZoneReferencePhoto('student-zref-c', 'pantry');
+    expect(await blob.text()).toBe('new-pantry-photo');
+  });
+
+  it('is not touched by clearPendingPhotos', async () => {
+    await saveZoneReferencePhoto('student-zref-d', 'fridge', fakeBlob('fridge-door'));
+    await savePendingReceiptPhoto('student-zref-d', fakeBlob('some-receipt'));
+
+    await clearPendingPhotos('student-zref-d');
+
+    expect(await getPendingReceiptPhoto('student-zref-d')).toBeNull(); // pending state did get cleared
+    const stillThere = await getZoneReferencePhoto('student-zref-d', 'fridge');
+    expect(await stillThere.text()).toBe('fridge-door'); // reference photo survives
   });
 });
 
@@ -101,8 +134,6 @@ describe('resizeToBlob', () => {
     expect(result).toBe(original);
   });
 });
-
-import { clearPendingPhotos } from './plannerPhotos.js';
 
 describe('clearPendingPhotos', () => {
   it('removes pending receipt and zone photos but keeps archived trip photos', async () => {

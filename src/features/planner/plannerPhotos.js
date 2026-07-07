@@ -37,6 +37,20 @@ export async function getPendingZonePhotoIds(studentId) {
   return ZONES.map((z) => z.id).filter((id) => ids.has(id));
 }
 
+// Permanent "what does this zone actually look like" reference photo —
+// unrelated to the pending_putaway_* files above (those are per-trip
+// proof-of-placement and get archived/cleared every cycle). This one is
+// set once by an adult and reused forever until explicitly retaken.
+export async function saveZoneReferencePhoto(studentId, zoneId, blob) {
+  const db = await getDb();
+  await topics.saveFile(db, photoTopic(studentId), `zone_reference_${zoneId}.jpg`, blob);
+}
+
+export async function getZoneReferencePhoto(studentId, zoneId) {
+  const db = await getDb();
+  return topics.getFile(db, photoTopic(studentId), `zone_reference_${zoneId}.jpg`);
+}
+
 // Copies this session's pending photos into permanent, trip-scoped files.
 // Called once from handleNewListAfterShop, right before the pending files
 // would otherwise be silently reused (overwritten) by the next trip.
