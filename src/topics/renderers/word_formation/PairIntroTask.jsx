@@ -80,7 +80,7 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
             {cap(card.nounPhrase)}
             <span className="wf-intro__q"> ({card.questionText ?? "какой?"})</span>
             {" — "}
-            {stem}<span className="wf-intro__ending">{ending}</span>{rest}
+            {stem}<span className="wf-intro__ending">{ending}</span>
           </div>
         </div>
       </div>
