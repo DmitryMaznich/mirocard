@@ -11,6 +11,7 @@ import {
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
+import { isDiscreteUnit } from './shoppingUnitConversions.js';
 import './planner.css';
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
@@ -64,7 +65,9 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
           </span>
           <ul className="recipe-ingredients__list">
             {ingredients.map((ing, i) => {
-              const scaledQty = ing.qty != null ? Math.round(ing.qty * scale * 100) / 100 : null;
+              const scaledQty = ing.qty == null ? null
+                : isDiscreteUnit(ing.unit) ? Math.ceil(ing.qty * scale)
+                : Math.round(ing.qty * scale * 100) / 100;
               return (
                 <li key={i} className="recipe-ingredients__item">
                   <span className="recipe-ingredients__product">{ing.product}</span>

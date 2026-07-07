@@ -51,6 +51,11 @@ export const NO_SHOPPING_QTY_PRODUCTS = new Set([
 // or 1.5 jars of sour cream).
 const DISCRETE_UNITS = new Set(['шт', 'пачка', 'банка', 'упаковка', 'пучок', 'веточка', 'зуб', 'горсть']);
 
+/** Whether `unit` is a whole-count unit (see DISCRETE_UNITS above). */
+export function isDiscreteUnit(unit) {
+  return DISCRETE_UNITS.has(unit);
+}
+
 function lookup(product) {
   return SHOPPING_UNIT_CONVERSIONS[product.toLowerCase()];
 }
