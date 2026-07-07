@@ -21,24 +21,41 @@ function filterByCategory(cards, category) {
   return cards.filter(c => c.category === category);
 }
 
+function isOverview(card) {
+  return Array.isArray(card.items) && card.items.length > 0;
+}
+
 function generatePairIntroTasks(cards, params) {
   const filtered = filterByCategory(cards, params.category);
   const active   = filtered.length > 0 ? filtered : cards;
-  return [{
-    type:         "pair_intro",
-    cards:        sortByDifficulty(active),
-    vesselImage:  active[0]?.vesselImage  ?? "media/pot.webp",
-    questionText: active[0]?.questionText ?? "Какой суп?",
+
+  const overviewCards = active.filter(isOverview);
+  const regularCards  = active.filter(c => !isOverview(c));
+
+  const tasks = overviewCards.map(card => ({
+    type: "season_overview",
+    card,
     params,
-  }];
+  }));
+
+  if (regularCards.length > 0) {
+    tasks.push({
+      type:  "pair_intro",
+      cards: sortByDifficulty(regularCards),
+      params,
+    });
+  }
+
+  return tasks;
 }
 
 function generateFormItTasks(cards, params) {
+  const playable      = cards.filter(c => !isOverview(c));
   const optionCount   = params.optionCount ?? 4;
   const stimulusParam = params.stimulus ?? "mixed";
 
   const stimuli = shuffle(
-    cards.map((_, i) =>
+    playable.map((_, i) =>
       stimulusParam === "mixed"
         ? (i % 2 === 0 ? "phrase" : "image")
         : stimulusParam
@@ -46,8 +63,8 @@ function generateFormItTasks(cards, params) {
   );
 
   return shuffle(
-    cards.map((card, i) => {
-      const distractors = pickDistractors(card.id, cards, Math.min(optionCount - 1, cards.length - 1));
+    playable.map((card, i) => {
+      const distractors = pickDistractors(card.id, playable, Math.min(optionCount - 1, playable.length - 1));
       const options = shuffle([
         { adjPhrase: card.adjPhrase, isTarget: true },
         ...distractors.map(d => ({ adjPhrase: d.adjPhrase, isTarget: false })),
@@ -69,17 +86,18 @@ function generateFormItTasks(cards, params) {
 }
 
 function generateYesNoTasks(cards, params) {
-  const reps  = params.repsPerConcept ?? 1;
-  const tasks = [];
+  const playable = cards.filter(c => !isOverview(c));
+  const reps     = params.repsPerConcept ?? 1;
+  const tasks    = [];
 
-  for (const card of cards) {
+  for (const card of playable) {
     for (let i = 0; i < reps; i++) {
       const isCorrect = Math.random() < 0.6;
       let displayPhrase;
       if (isCorrect) {
         displayPhrase = card.adjPhrase;
       } else {
-        const distractor = shuffle(cards.filter(c => c.id !== card.id))[0];
+        const distractor = shuffle(playable.filter(c => c.id !== card.id))[0];
         displayPhrase = distractor?.adjPhrase ?? card.adjPhrase;
       }
       tasks.push({
@@ -97,7 +115,8 @@ function generateYesNoTasks(cards, params) {
 }
 
 function generateQuestionAskTasks(cards) {
-  return sortByDifficulty(cards).map(card => ({
+  const playable = cards.filter(c => !isOverview(c));
+  return sortByDifficulty(playable).map(card => ({
     type:             "question_ask",
     conceptId:        card.id,
     difficulty:       card.difficulty,
@@ -110,11 +129,11 @@ function generateQuestionAskTasks(cards) {
 function generatePickFormTasks(cards, params) {
   const filtered = filterByCategory(cards, params.category);
   const active   = filtered.length > 0 ? filtered : cards;
-  // One task per card — session engine handles advancement between cards.
-  return shuffle(sortByDifficulty(active).map((card) => ({
+  const playable = active.filter(c => !isOverview(c));
+  return shuffle(sortByDifficulty(playable).map((card) => ({
     type:     "pick_form",
     card,
-    allCards: active,
+    allCards: playable,
     params,
   })));
 }
