@@ -30,6 +30,11 @@ function pluralizePortions(n) {
   return 'порций';
 }
 
+// Household measuring tools only come in whole/half increments — round to
+// the nearest half instead of showing an unmeasurable raw fraction, same
+// as the reading engine already does for step text (formatWithUnit).
+const HALF_SNAP_UNITS = new Set(['стакан', 'ст.л', 'ч.л']);
+
 function keyIngredients(ingredients) {
   return ingredients
     .filter((i) => i.product && !PANTRY_ITEMS.has(i.product))
@@ -67,6 +72,7 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
             {ingredients.map((ing, i) => {
               const scaledQty = ing.qty == null ? null
                 : isDiscreteUnit(ing.unit) ? Math.ceil(ing.qty * scale)
+                : HALF_SNAP_UNITS.has(ing.unit) ? Math.round(ing.qty * scale * 2) / 2
                 : Math.round(ing.qty * scale * 100) / 100;
               return (
                 <li key={i} className="recipe-ingredients__item">
