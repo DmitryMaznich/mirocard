@@ -251,3 +251,45 @@ export function resolveStepOwners(ownerNames, group, student) {
   }
   return [];
 }
+
+const COLLECTIVE_PORTIONS_RU = {
+  1: "одного",
+  2: "двоих",
+  3: "троих",
+  4: "четверых",
+  5: "пятерых",
+  6: "шестерых",
+  7: "семерых",
+  8: "восьмерых",
+};
+
+/**
+ * "Готовим на двоих" style phrase for the recipe title card, using Russian
+ * collective numerals for 1-8 (the observed max_portions range) and a plain
+ * "на N человек" fallback above that.
+ */
+export function formatPortionsPhrase(count) {
+  const n = Math.round(count) || 1;
+  const word = COLLECTIVE_PORTIONS_RU[n];
+  return word ? `Готовим на ${word}` : `Готовим на ${n} человек`;
+}
+
+/**
+ * Group a recipe's parsed steps into phase segments for the progress bar.
+ * A new segment starts at every `heading` step; steps before the first
+ * heading (if any) form a leading untitled segment. Consecutive headings
+ * each start their own segment.
+ */
+export function computeStepSegments(steps) {
+  const segments = [];
+  let current = null;
+  steps.forEach((step, i) => {
+    if (step.type === "heading" || !current) {
+      if (current) segments.push(current);
+      current = { title: step.type === "heading" ? step.text : null, startIndex: i, count: 0 };
+    }
+    current.count += 1;
+  });
+  if (current) segments.push(current);
+  return segments;
+}

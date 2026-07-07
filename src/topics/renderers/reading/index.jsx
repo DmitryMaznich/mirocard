@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase } from "./parseRecipeTxt";
 import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
@@ -389,11 +389,32 @@ function playWarningChime() {
   }
 }
 
+function InstructionProgressBar({ segments, stepIndex }) {
+  const active = segments.find((s) => stepIndex >= s.startIndex && stepIndex < s.startIndex + s.count);
+  return (
+    <div className="instruction-progressbar-wrap">
+      <div className="instruction-progressbar">
+        {segments.map((seg, i) => {
+          const endIndex = seg.startIndex + seg.count - 1;
+          let fillPct = 0;
+          if (stepIndex > endIndex) fillPct = 100;
+          else if (stepIndex >= seg.startIndex) fillPct = ((stepIndex - seg.startIndex + 1) / seg.count) * 100;
+          return (
+            <div key={i} className="instruction-progressbar-segment" style={{ flexGrow: seg.count }}>
+              <div className="instruction-progressbar-segment-fill" style={{ width: `${fillPct}%` }} />
+            </div>
+          );
+        })}
+      </div>
+      {active?.title && <div className="instruction-phase-label">{active.title}</div>}
+    </div>
+  );
+}
+
 function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const activeStudentId         = useAppStore((s) => s.activeStudentId);
   const students                = useAppStore((s) => s.students);
-  const adultConfirmAdvance     = useAppStore((s) => s.settings?.adultConfirmAdvance ?? true);
   const sessionPortionsOverride    = useAppStore((s) => s.sessionPortionsOverride);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
   const sessionReturnScreen        = useAppStore((s) => s.sessionReturnScreen);
@@ -401,12 +422,11 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const [portions,   setPortions]   = useState(1);
+  const [portionsCount, setPortionsCount] = useState(1);
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
   const [group,      setGroup]      = useState([]);
   const [stepIndex,  setStepIndex]  = useState(0);
   const [checked,    setChecked]    = useState({});
-  const [listOpen,   setListOpen]   = useState(false);
-  const listRef = useRef(null);
 
   useEffect(() => {
     async function load() {
@@ -433,11 +453,13 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       const basePortions = task.text?.portions ?? 1;
       const chosenPortions = sessionPortionsOverride ?? settings.portions ?? basePortions;
       setPortions(stepPortionsMultiplier(basePortions, task.text?.fixedPortions, chosenPortions));
+      setPortionsCount(chosenPortions);
       if (sessionPortionsOverride != null) setSessionPortionsOverride(null);
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const segments = useMemo(() => computeStepSegments(steps), [steps]);
   const step = steps[stepIndex];
   const imageUrl = useTopicFile(topicId,
     step?.type === "image" ? `media/${step.file}` :
@@ -452,11 +474,15 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     step?.type !== "checklist" ||
     (step.items ?? []).every((_, i) => !!checked[`${stepIndex}_${i}`]);
 
-  useEffect(() => {
-    if (!listOpen || !listRef.current) return;
-    const el = listRef.current.querySelector(".instruction-list-item--active");
-    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [listOpen]);
+  const ctaLabel = isLast
+    ? "Готово, рецепт закончен! 🎉"
+    : step?.type === "heading"
+    ? "Начнём →"
+    : step?.type === "warning"
+    ? "Понял(а)"
+    : step?.type === "image" || step?.type === "bullets"
+    ? "Дальше →"
+    : "Готово ✓";
 
   useEffect(() => {
     if (step?.type === "warning" && soundEnabled !== false) {
@@ -464,16 +490,31 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     }
   }, [stepIndex, soundEnabled]); // step derived from stepIndex
 
+  const [locked, setLocked] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocked(true);
+    const t = setTimeout(() => setLocked(false), 450);
+    return () => clearTimeout(t);
+  }, [stepIndex]);
+
   const toggleItem = useCallback((i) => {
     const key = `${stepIndex}_${i}`;
     setChecked((c) => ({ ...c, [key]: !c[key] }));
   }, [stepIndex]);
 
+  const [finished, setFinished] = useState(false);
+
   const handleNext = useCallback(() => {
-    setListOpen(false);
-    if (isLast) onAdvance();
+    if (locked) return;
+    if (isLast) setFinished(true);
     else setStepIndex((n) => n + 1);
-  }, [isLast, onAdvance]);
+  }, [locked, isLast]);
+
+  const handleFinish = useCallback(() => {
+    onAdvance();
+  }, [onAdvance]);
 
   const handleSpace = useCallback(() => {
     if (step?.type === "checklist") {
@@ -500,6 +541,11 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   useEffect(() => {
     function onKey(e) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (finished) {
+        if (e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); handleFinish(); }
+        if (e.key === "Escape") { e.preventDefault(); exitInstruction(); }
+        return;
+      }
       switch (e.key) {
         case "ArrowRight": case "Enter": e.preventDefault(); handleNext(); break;
         case " ":          e.preventDefault(); handleSpace(); break;
@@ -509,7 +555,22 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleNext, handleSpace, goBack, exitInstruction]);
+  }, [handleNext, handleSpace, goBack, exitInstruction, finished, handleFinish]);
+
+  if (finished) {
+    return (
+      <div className="session-body reading-body instruction-body">
+        <div className="instruction-step instruction-step--heading">
+          <div className="instruction-step-text">🎉 Рецепт готов!</div>
+        </div>
+        <div className="instruction-nav">
+          <button type="button" className="reading-primary-btn instruction-cta-btn" onClick={handleFinish}>
+            Готово
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!step) return null;
 
@@ -575,13 +636,18 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
         <div className="instruction-main">
           <div className="instruction-header">
-            <span className="instruction-progress">{stepIndex + 1} / {steps.length}</span>
-            <button type="button" className="instruction-close-btn" onClick={exitInstruction}>
-              Закрыть рецепт
-            </button>
+            <InstructionProgressBar segments={segments} stepIndex={stepIndex} />
+            <div className="instruction-header-row">
+              <button type="button" className="instruction-close-btn" onClick={exitInstruction}>
+                Закрыть рецепт
+              </button>
+            </div>
           </div>
 
-          <div className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}${step.type === "warning" ? " instruction-step--warning" : ""}`}>
+          <div
+            key={stepIndex}
+            className={`instruction-step${step.type === "heading" ? " instruction-step--heading" : ""}${step.type === "image" ? " instruction-step--image" : ""}${step.type === "warning" ? " instruction-step--warning" : ""}`}
+          >
             {step.type === "image" ? (
               imageUrl
                 ? <img src={imageUrl} alt="" className="instruction-step-img" />
@@ -592,6 +658,10 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                 {step.text}
               </div>
             ) : (
+            <>
+            {step.type === "heading" && stepIndex > 0 && (
+              <div className="instruction-phase-complete-badge">Этап пройден! 👍</div>
+            )}
             <div className="instruction-step-text">{(() => {
               const text = applyFireEmoji(applyPortions(step.text, portions));
               const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g);
@@ -603,6 +673,10 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                 </Fragment>
               ));
             })()}</div>
+            {step.type === "heading" && stepIndex === 0 && (
+              <div className="instruction-title-portions">{formatPortionsPhrase(portionsCount)}</div>
+            )}
+            </>
             )}
             {step.image && imageUrl && (
               <img src={imageUrl} alt="" className="instruction-step-illustration" />
@@ -639,46 +713,22 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
             )}
           </div>
 
-
-          <button
-            className={`instruction-drawer-toggle${listOpen ? " instruction-drawer-toggle--open" : ""}`}
-            onClick={() => setListOpen((v) => !v)}
-          >
-            <span className="instruction-drawer-pill" />
-            <span className="instruction-drawer-label">все шаги {listOpen ? "▲" : "▼"}</span>
-          </button>
-
-          {listOpen && (
-            <div className="instruction-drawer" ref={listRef}>
-              {steps.map((s, i) => {
-                const isDone = i < stepIndex;
-                const isActive = i === stepIndex;
-                return (
-                  <div
-                    key={s.id}
-                    className={[
-                      "instruction-list-item",
-                      isDone ? "instruction-list-item--done" : "",
-                      isActive ? "instruction-list-item--active" : "",
-                    ].filter(Boolean).join(" ")}
-                  >
-                    <span className="instruction-list-icon">{isDone ? "✓" : isActive ? "▶" : ""}</span>
-                    {s.type !== "heading" && <span className="instruction-list-num">{i + 1}.</span>}
-                    <span className="instruction-list-text">{applyFireEmoji(applyPortions(s.text, portions))}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className={`instruction-nav${adultConfirmAdvance ? " instruction-nav--kbd" : ""}`}>
-            <button className="reading-secondary-btn" onClick={adultConfirmAdvance ? undefined : goBack}>
-              <span className="kb-key kb-key--back">←</span>
-              Назад
+          <div className="instruction-nav">
+            <button
+              type="button"
+              className="instruction-back-btn"
+              onClick={goBack}
+              aria-label="Назад"
+            >
+              <BackArrowIcon size={20} />
             </button>
-            <button className="reading-primary-btn" disabled={!allChecked} onClick={adultConfirmAdvance ? undefined : handleNext}>
-              {isLast ? "Готово" : "Дальше"}
-              <span className="kb-key kb-key--fwd">→</span>
+            <button
+              type="button"
+              className="reading-primary-btn instruction-cta-btn"
+              disabled={!allChecked || locked}
+              onClick={handleNext}
+            >
+              {ctaLabel}
             </button>
           </div>
         </div>
