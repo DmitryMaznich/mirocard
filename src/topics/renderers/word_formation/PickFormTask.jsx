@@ -57,8 +57,9 @@ function buildOptions(card, allCards, difficulty) {
 
 export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) {
   const { card, allCards } = task;
-  const difficulty = task.params?.difficulty ?? "easy";
-  const hintMode   = task.params?.hintMode   ?? "phrase";
+  const difficulty  = task.params?.difficulty  ?? "easy";
+  const hintMode    = task.params?.hintMode    ?? "phrase";
+  const showImage   = task.params?.showImage   !== false;
 
   const [picked, setPicked]     = useState(null);
   const [wrongIdx, setWrongIdx] = useState(null);
@@ -102,7 +103,7 @@ export default function PickFormTask({ task, topicId, onCorrect, onIncorrect }) 
   return (
     <div className="wf-pair">
       <div className="wf-pair__content">
-        <div className="wf-pair__visuals" ref={visualsRef}>
+        <div className="wf-pair__visuals" ref={visualsRef} style={showImage ? undefined : { visibility: "hidden" }}>
           {card.vesselImage ? (
             <>
               <VisualImage topicId={topicId} path={card.ingredientImage} className="wf-pair__visual-img" />
