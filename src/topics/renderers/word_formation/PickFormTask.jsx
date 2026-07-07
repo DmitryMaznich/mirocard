@@ -40,8 +40,8 @@ function stripNoun(phrase) {
 function buildOptions(card, allCards, difficulty) {
   if (difficulty === "hard" && card.wrongForms?.length >= 3) {
     return shuffle([
-      { text: card.adjPhrase, isTarget: true },
-      ...card.wrongForms.map(text => ({ text, isTarget: false })),
+      { text: stripNoun(card.adjPhrase), isTarget: true },
+      ...card.wrongForms.map(text => ({ text: stripNoun(text), isTarget: false })),
     ]);
   }
 

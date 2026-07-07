@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useAudio } from "@/shared/hooks/useAudio";
 
+function stripNoun(phrase) {
+  const words = (phrase ?? "").trim().split(" ");
+  return words.length > 1 ? words.slice(0, -1).join(" ") : phrase;
+}
+
 function StimulusImage({ topicId, path }) {
   const url = useTopicFile(topicId, path);
   return url
@@ -75,7 +80,7 @@ export default function FormItTask({ task, topicId, onCorrect, onIncorrect }) {
               onClick={() => handleOption(opt)}
               disabled={answered}
             >
-              {opt.adjPhrase}
+              {stripNoun(opt.adjPhrase)}
             </button>
           );
         })}
