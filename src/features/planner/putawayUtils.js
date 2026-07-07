@@ -1,4 +1,4 @@
-import { customDataToSteps, CATEGORY_ICONS } from './plannerShoppingUtils.js';
+import { customDataToSteps } from './plannerShoppingUtils.js';
 import { getZoneForProduct, ZONES } from './putawayLocations.js';
 
 function sName(step) { return step.text.replace(/:$/, '').trim(); }
@@ -16,7 +16,7 @@ export function buildPutawayQueue(customData, bought, placed) {
       if (!bought[key] || placed[key]) return;
       const zoneId = getZoneForProduct(category, product);
       if (!zoneId) return;
-      queue.push({ key, category, product, zoneId, categoryIcon: CATEGORY_ICONS[category] ?? '📦' });
+      queue.push({ key, category, product, zoneId });
     });
   }
   return queue;

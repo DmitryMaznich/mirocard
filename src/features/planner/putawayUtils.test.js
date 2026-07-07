@@ -18,7 +18,7 @@ describe('buildPutawayQueue', () => {
     const cd = customData([{ name: 'Молочные продукты', items: ['молоко'] }]);
     const queue = buildPutawayQueue(cd, { 'Молочные продукты_0': true }, {});
     expect(queue).toEqual([
-      { key: 'Молочные продукты_0', category: 'Молочные продукты', product: 'молоко', zoneId: 'fridge', categoryIcon: '🥛' },
+      { key: 'Молочные продукты_0', category: 'Молочные продукты', product: 'молоко', zoneId: 'fridge' },
     ]);
   });
 
