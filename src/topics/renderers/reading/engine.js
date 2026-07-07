@@ -110,7 +110,7 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
     case "understand_text":
       return buildUnderstandTasks(text);
     case "assemble_text":
-      return text.kind === "poem" ? buildAssembleTasks(text) : [];
+      return (text.kind === "poem" || text.kind === "story") ? buildAssembleTasks(text) : [];
     case "follow_instruction":
       return text.kind === "instruction" ? [buildFollowInstructionTask(text)] : [];
     case "shopping_list": {

@@ -44,7 +44,7 @@ function filterReadingModes(modes = [], text) {
   if (text.kind === "sentence_pool") {
     return modes.filter((mode) => mode.type === "daily_sentences");
   }
-  return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem") && mode.id !== "follow_instruction");
+  return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem" && text.kind !== "story") && mode.id !== "follow_instruction");
 }
 
 function getModeTitle(mode) {

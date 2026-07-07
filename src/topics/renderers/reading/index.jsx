@@ -17,11 +17,13 @@ const UNDERSTAND_BUTTONS = [
   { value: "none",        label: "Нет ответа", mod: "fail" },
 ];
 
-function getLineText(line) {
-  return typeof line === "string" ? line : line?.text ?? "";
+function getLineText(line, textStyle = "normal") {
+  if (typeof line === "string") return line;
+  if (textStyle === "syllables" && line?.syllableText) return line.syllableText;
+  return line?.text ?? "";
 }
 
-function ReadingTextBlock({ lines, large = false, activeLineId = null }) {
+function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal" }) {
   return (
     <div className={`reading-text${large ? " reading-text--large" : ""}`}>
       {(lines ?? []).map((line) => (
@@ -29,7 +31,7 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null }) {
           key={line.id ?? getLineText(line)}
           className={`reading-line${activeLineId === line.id ? " reading-line--active" : ""}`}
         >
-          {getLineText(line)}
+          {getLineText(line, textStyle)}
         </div>
       ))}
     </div>
@@ -76,6 +78,7 @@ function ReadingIllustration({ topicId, text }) {
 function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   const lines = task.text?.lines ?? [];
   const layout = sessionParams?.layout ?? "full";
+  const textStyle = sessionParams?.textStyle ?? "normal";
   const [lineIndex, setLineIndex] = useState(0);
   const activeLine = lines[lineIndex] ?? lines[0];
   const isPool = task.text?.kind === "sentence_pool";
@@ -85,8 +88,9 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
       <div className="session-body reading-body">
         <div className="reading-poem-wrap">
           {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
+          {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
           <div className="reading-content">
-            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} />
+            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} textStyle={textStyle} />
           </div>
         </div>
         <div className="reading-line-nav">
@@ -118,8 +122,9 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
     <div className="session-body reading-body" style={isPool ? { justifyContent: "center" } : undefined} onClick={onAdvance}>
       <div className="reading-poem-wrap">
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
+        {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
         <div className="reading-content">
-          <ReadingTextBlock lines={lines} large={isPool} />
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} />

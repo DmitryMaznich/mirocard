@@ -696,7 +696,7 @@ export default function HomeScreen() {
     ? (topic?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
   const availableModes = isReading
-    ? (activeText ? topic?.modes?.filter((m) => !(m.id === "assemble_text" && activeText.kind !== "poem")) : [])
+    ? (activeText ? topic?.modes?.filter((m) => !(m.id === "assemble_text" && activeText.kind !== "poem" && activeText.kind !== "story")) : [])
     : topic?.modes ?? [];
   const mode = availableModes.find((m) => m.id === activeModeId) ?? availableModes[0];
 
