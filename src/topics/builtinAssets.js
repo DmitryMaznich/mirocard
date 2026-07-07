@@ -265,24 +265,15 @@ const BUILTIN_ASSETS = {
   "media/avatar_column_addition.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f0f6ff"/>
-  <!-- LEFT: right-hand image (thumb on left, index→pinky left→right) -->
-  <rect x="8"  y="64" width="50" height="50" rx="11" fill="#FEB16B"/>
-  <rect x="13" y="24" width="11" height="46" rx="5.5" fill="#FEB16B"/>
-  <rect x="26" y="14" width="11" height="56" rx="5.5" fill="#FEB16B"/>
-  <rect x="39" y="18" width="11" height="52" rx="5.5" fill="#FEB16B"/>
-  <rect x="52" y="28" width="10" height="42" rx="5"   fill="#FEB16B"/>
-  <rect x="2"  y="68" width="12" height="28" rx="6"   fill="#FEB16B" transform="rotate(-22 8 82)"/>
-  <!-- palm line -->
-  <path d="M14 86 Q33 90 56 82" stroke="#E09055" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-  <!-- RIGHT: left-hand image (mirror — thumb on right, pinky→index left→right) -->
-  <rect x="70" y="64" width="50" height="50" rx="11" fill="#FEB16B"/>
-  <rect x="104" y="24" width="11" height="46" rx="5.5" fill="#FEB16B"/>
-  <rect x="91"  y="14" width="11" height="56" rx="5.5" fill="#FEB16B"/>
-  <rect x="78"  y="18" width="11" height="52" rx="5.5" fill="#FEB16B"/>
-  <rect x="66"  y="28" width="10" height="42" rx="5"   fill="#FEB16B"/>
-  <rect x="114" y="68" width="12" height="28" rx="6"   fill="#FEB16B" transform="rotate(22 120 82)"/>
-  <!-- palm line -->
-  <path d="M114 86 Q95 90 72 82" stroke="#E09055" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <text x="58" y="23" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#5b8def">1</text>
+  <text x="58" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">3</text>
+  <text x="90" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">5</text>
+  <text x="26" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#4a9b8f">+</text>
+  <text x="58" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">1</text>
+  <text x="90" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">7</text>
+  <line x1="16" y1="86" x2="106" y2="86" stroke="#1a1a2e" stroke-width="2.5"/>
+  <text x="58" y="114" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">5</text>
+  <text x="90" y="114" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">2</text>
 </svg>`,
   "media/icons/fingers_count_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
