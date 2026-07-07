@@ -16,6 +16,21 @@
       "access": "free"
     },
     {
+      "id": "reading_short_stories",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Чтение: Короткие рассказы",
+        "en": "Reading: Short Stories"
+      },
+      "description": {
+        "ru": "Три коротких рассказа с иллюстрациями: совместное чтение (с показом по слогам или обычным текстом), вопросы по смыслу и сборка текста из слов.",
+        "en": "Three short illustrated stories: shared reading (syllable or normal text display), comprehension questions, and sentence assembly."
+      },
+      "url": "./decks/reading_short_stories_v1.0.0.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
       "id": "reading_dad_texts",
       "version": "1.135.0",
       "title": {
@@ -190,9 +205,9 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.23",
-      "url": "./decks/word_formation_soup_v1.0.23.zip",
-      "zipUrl": "word_formation_soup_v1.0.23.zip",
+      "version": "1.0.24",
+      "url": "./decks/word_formation_soup_v1.0.24.zip",
+      "zipUrl": "word_formation_soup_v1.0.24.zip",
       "title": {
         "ru": "Словообразование"
       },
