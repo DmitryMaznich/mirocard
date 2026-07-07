@@ -2,7 +2,15 @@ function generateId() {
   return "session_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
 }
 
+// Task types that never call handleAnswer/handleInstantCorrect (advance-only)
+const ADVANCE_ONLY_TYPES = new Set(["pair_intro", "season_overview"]);
+
 export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false, answersPerStar = 1) {
+  const rawAps = Math.max(1, Math.min(3, Math.round(answersPerStar ?? 1)));
+  const evaluableCount = tasks.filter(t => !ADVANCE_ONLY_TYPES.has(t.type)).length;
+  // Cap so 5 stars can always be earned within the available evaluable tasks.
+  // Math.floor(evaluableCount / 5) = 0 when there are fewer than 5 tasks → cap to 1.
+  const effectiveAps = Math.max(1, Math.min(rawAps, Math.floor(evaluableCount / 5) || 1));
   return {
     status: "task_active",
     tasks,
@@ -14,7 +22,7 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     textId,
     conceptIds,
     isDeckMode,
-    answersPerStar: Math.max(1, Math.min(3, Math.round(answersPerStar ?? 1))),
+    answersPerStar: effectiveAps,
     correctCount: 0,
     incorrectCount: 0,
     streakCount: 0,

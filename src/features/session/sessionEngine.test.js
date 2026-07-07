@@ -7,6 +7,11 @@ const TASKS = [
   { type: "yes_no", conceptId: "skirt",  card: { id: "s1" }, displayLabel: "юбка",     isLabelCorrect: true },
 ];
 
+// 15 evaluable tasks — needed for answersPerStar=2 (needs ≥10) and answersPerStar=3 (needs ≥15)
+const TASKS_15 = Array.from({ length: 15 }, (_, i) => ({
+  type: "yes_no", conceptId: `c${i}`, card: { id: `c${i}` }, displayLabel: `слово${i}`, isLabelCorrect: true,
+}));
+
 const MODE = { id: "yes_no", type: "yes_no", evaluation: "auto" };
 
 describe("createSessionState", () => {
@@ -112,8 +117,23 @@ describe("handleAnswer — streak tracking", () => {
     expect(state.rewardEarnedCount).toBe(2);
   });
 
+  it("answersPerStar is capped when task count < 5 × answersPerStar", () => {
+    const mk = (n) => Array.from({ length: n }, (_, i) => ({ type: "yes_no", conceptId: `c${i}`, card: { id: `c${i}` } }));
+    // 8 tasks + ×2 → Math.floor(8/5)=1 → cap to 1
+    expect(createSessionState(mk(8), MODE, "s1", "t1", "1.0.0", [], null, false, 2).answersPerStar).toBe(1);
+    // 8 tasks + ×3 → same cap
+    expect(createSessionState(mk(8), MODE, "s1", "t1", "1.0.0", [], null, false, 3).answersPerStar).toBe(1);
+    // 10 tasks + ×2 → Math.floor(10/5)=2 → stays 2
+    expect(createSessionState(mk(10), MODE, "s1", "t1", "1.0.0", [], null, false, 2).answersPerStar).toBe(2);
+    // 10 tasks + ×3 → Math.floor(10/5)=2 → cap to 2
+    expect(createSessionState(mk(10), MODE, "s1", "t1", "1.0.0", [], null, false, 3).answersPerStar).toBe(2);
+    // 15 tasks + ×3 → Math.floor(15/5)=3 → stays 3
+    expect(createSessionState(mk(15), MODE, "s1", "t1", "1.0.0", [], null, false, 3).answersPerStar).toBe(3);
+  });
+
   it("answersPerStar=2: earns reward at streak 10, not at 5", () => {
-    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", [], null, false, 2);
+    let state = createSessionState(TASKS_15, MODE, "s1", "t1", "1.0.0", [], null, false, 2);
+    expect(state.answersPerStar).toBe(2);
     for (let i = 0; i < 5; i++) state = handleAnswer(state, true);
     expect(state.streakCount).toBe(5);
     expect(state.rewardEarnedCount).toBe(0);
@@ -123,7 +143,8 @@ describe("handleAnswer — streak tracking", () => {
   });
 
   it("answersPerStar=3: earns reward at streak 15", () => {
-    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", [], null, false, 3);
+    let state = createSessionState(TASKS_15, MODE, "s1", "t1", "1.0.0", [], null, false, 3);
+    expect(state.answersPerStar).toBe(3);
     for (let i = 0; i < 14; i++) state = handleAnswer(state, true);
     expect(state.rewardEarnedCount).toBe(0);
     state = handleAnswer(state, true);
