@@ -636,10 +636,15 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
         <div className="instruction-main">
           <div className="instruction-header">
-            <InstructionProgressBar segments={segments} stepIndex={stepIndex} />
             <div className="instruction-header-row">
-              <button type="button" className="instruction-close-btn" onClick={exitInstruction}>
-                Закрыть рецепт
+              <InstructionProgressBar segments={segments} stepIndex={stepIndex} />
+              <button
+                type="button"
+                className="instruction-close-btn"
+                onClick={exitInstruction}
+                aria-label="Закрыть рецепт"
+              >
+                ✕
               </button>
             </div>
           </div>
