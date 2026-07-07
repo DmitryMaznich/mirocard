@@ -77,10 +77,22 @@ export default function PairIntroTask({ task, topicId, onAdvance }) {
 
         <div className="wf-pair__prompt">
           <div className="wf-pair__prompt-line wf-pair__prompt-line--question" ref={promptRef}>
-            {cap(card.nounPhrase)}
-            <span className="wf-intro__q"> ({card.questionText ?? "какой?"})</span>
-            {" — "}
-            {stem}<span className="wf-intro__ending">{ending}</span>
+            {card.contextPhrase ? (
+              <>
+                {cap(card.contextPhrase)}.{" "}
+                {cap(card.nounPhrase)}
+                <span className="wf-intro__q"> ({card.questionText ?? "какой?"})</span>
+                {" "}
+                {stem}<span className="wf-intro__ending">{ending}</span>.
+              </>
+            ) : (
+              <>
+                {cap(card.nounPhrase)}
+                <span className="wf-intro__q"> ({card.questionText ?? "какой?"})</span>
+                {" — "}
+                {stem}<span className="wf-intro__ending">{ending}</span>.
+              </>
+            )}
           </div>
         </div>
       </div>
