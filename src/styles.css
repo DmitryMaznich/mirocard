@@ -428,6 +428,14 @@ html.app-ios-standalone {
   overflow-y: auto;
 }
 
+/* Override the shared .session-body's align-items:center — without this,
+   the column shrink-wraps to whichever step's content happens to be
+   widest, making the progress bar and nav buttons below change width
+   between steps instead of consistently filling the screen. */
+.session-body.reading-body.instruction-body {
+  align-items: stretch;
+}
+
 .instruction-header {
   width: 100%;
   flex-shrink: 0;
