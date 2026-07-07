@@ -23,9 +23,9 @@ function getLineText(line, textStyle = "normal") {
   return line?.text ?? "";
 }
 
-function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal" }) {
+function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false }) {
   return (
-    <div className={`reading-text${large ? " reading-text--large" : ""}`}>
+    <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""}`}>
       {(lines ?? []).map((line) => (
         <div
           key={line.id ?? getLineText(line)}
@@ -68,29 +68,43 @@ function ReadingIllustration({ topicId, text }) {
 
   if (!text?.image || !url) return null;
 
+  const hasRoundedCorners = text?.kind === "story" || text?.kind === "poem";
+
   return (
-    <div className="reading-illustration">
+    <div className={`reading-illustration${hasRoundedCorners ? " reading-illustration--book" : ""}`}>
       <img src={url} alt="" draggable={false} />
     </div>
   );
 }
 
-function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
+function ReadingCloseButton({ onClose }) {
+  if (!onClose) return null;
+  return (
+    <button type="button" className="reading-close-btn" onClick={onClose} aria-label="Закрыть">
+      ✕
+    </button>
+  );
+}
+
+function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
   const lines = task.text?.lines ?? [];
   const layout = sessionParams?.layout ?? "full";
   const textStyle = sessionParams?.textStyle ?? "normal";
   const [lineIndex, setLineIndex] = useState(0);
   const activeLine = lines[lineIndex] ?? lines[0];
   const isPool = task.text?.kind === "sentence_pool";
+  const bookStyle = task.text?.kind === "story";
+  const showCloseButton = task.text?.kind === "story" || task.text?.kind === "poem";
 
   if (layout === "line") {
     return (
       <div className="session-body reading-body">
+        {showCloseButton && <ReadingCloseButton onClose={onClose} />}
         <div className="reading-poem-wrap">
           {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
           {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
           <div className="reading-content">
-            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} textStyle={textStyle} />
+            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} textStyle={textStyle} bookStyle={bookStyle} />
           </div>
         </div>
         <div className="reading-line-nav">
@@ -119,12 +133,13 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   }
 
   return (
-    <div className="session-body reading-body" style={isPool ? { justifyContent: "center" } : undefined} onClick={onAdvance}>
+    <div className="session-body reading-body" style={isPool ? { justifyContent: "center" } : undefined} onClick={showCloseButton ? undefined : onAdvance}>
+      {showCloseButton && <ReadingCloseButton onClose={onClose} />}
       <div className="reading-poem-wrap">
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
         <div className="reading-content">
-          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} />
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} />
@@ -135,6 +150,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
 function UnderstandTextTask({ task, onQualityAnswer }) {
   const [showSupport, setShowSupport] = useState(false);
   const supportLines = task.supportLines?.length ? task.supportLines : task.text?.lines ?? [];
+  const bookStyle = task.text?.kind === "story";
 
   function answer(value) {
     onQualityAnswer(value, task.textId, task.question.id);
@@ -145,7 +161,7 @@ function UnderstandTextTask({ task, onQualityAnswer }) {
       <div className="reading-question">{task.question.prompt}</div>
 
       {showSupport ? (
-        <ReadingTextBlock lines={supportLines} activeLineId={supportLines[0]?.id} />
+        <ReadingTextBlock lines={supportLines} activeLineId={supportLines[0]?.id} bookStyle={bookStyle} />
       ) : (
         <button className="reading-support-placeholder" onClick={() => setShowSupport(true)}>
           Показать фрагмент текста
@@ -1163,7 +1179,7 @@ const TASK_RENDERERS = {
   shopping_list:       ShoppingListTask,
 };
 
-export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onQualityAnswer }) {
+export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onQualityAnswer, onClose }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -1176,6 +1192,7 @@ export default function ReadingRenderer({ task, topicId, sessionParams, soundEna
       onMistake={onMistake}
       onAdvance={onAdvance}
       onQualityAnswer={onQualityAnswer}
+      onClose={onClose}
     />
   );
 }

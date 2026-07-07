@@ -284,6 +284,7 @@ export default function SessionScreen() {
             onMistake={isAdvanceGateActive ? noop : handleMistake}
             onAdvance={requestAdvance}
             onQualityAnswer={isAdvanceGateActive ? noop : handleQualityAnswer}
+            onClose={openSessionExitPrompt}
             onCardShown={onCardShown}
             onTap={onTap}
             onQuality={onQuality}
