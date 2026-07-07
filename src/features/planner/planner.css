@@ -1697,9 +1697,32 @@
   color: #a8978a;
 }
 
-.planner-new-menu-btn {
-  width: 100%;
+.planner-cycle-actions {
+  display: flex;
+  gap: 8px;
   margin-top: 10px;
+}
+
+.planner-history-btn {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #cbb9a3;
+  background: none;
+  color: #6b5c48;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.planner-history-btn:active {
+  background: rgba(203, 185, 163, 0.15);
+}
+
+.planner-new-menu-btn {
+  flex: 1;
   padding: 12px;
   border-radius: 14px;
   border: 1.5px solid #cbb9a3;
@@ -1713,6 +1736,42 @@
 
 .planner-new-menu-btn:active {
   background: rgba(203, 185, 163, 0.15);
+}
+
+.cycle-history-sheet {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cycle-history-recipes {
+  font-size: 13px;
+  color: #5a5044;
+  align-self: flex-start;
+}
+
+.cycle-history-trips {
+  align-self: flex-start;
+  width: 100%;
+}
+
+.cycle-history-trips__label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7d8f8a;
+  margin-bottom: 4px;
+}
+
+.cycle-history-trip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.cycle-history-trip__meta {
+  font-size: 13px;
+  color: #5a5044;
+  flex: 1;
 }
 
 /* ── Menu slot "add recipe" button (MealSlotSection) ───────────────── */

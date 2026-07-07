@@ -9,13 +9,14 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
-import { loadPlan, loadAllRecipes, savePlan, resetShoppingData } from "@/features/planner/plannerApi";
+import { loadPlan, loadAllRecipes, savePlan, resetShoppingData, archiveCycle } from "@/features/planner/plannerApi";
 import { isMenuFullyDecided, isReadyToCook, needsShopping, resetPlan, isRecipeCookedThisCycle } from "@/features/planner/plannerUtils";
 import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
 import { buildPutawayQueue, getRequiredZones } from "@/features/planner/putawayUtils";
-import { getPendingReceiptPhoto, getPendingZonePhotoIds, clearPendingPhotos } from "@/features/planner/plannerPhotos";
+import { getPendingReceiptPhoto, getPendingZonePhotoIds, clearPendingPhotos, getTripReceiptPhoto, getTripZonePhoto } from "@/features/planner/plannerPhotos";
+import { ZONES } from "@/features/planner/putawayLocations";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
-import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan } from "@/core/groupStore";
+import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory } from "@/core/groupStore";
 import "@/features/planner/planner.css";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -196,6 +197,109 @@ function SessionTab({
 
 // ─── Planner tab ──────────────────────────────────────────────────────────────
 
+function pluralItems(n) {
+  const abs = Math.abs(n) % 100;
+  const m = abs % 10;
+  if (abs >= 11 && abs <= 19) return 'товаров';
+  if (m === 1) return 'товар';
+  if (m >= 2 && m <= 4) return 'товара';
+  return 'товаров';
+}
+
+function CycleHistoryPhotoThumb({ studentId, tripId, zoneId, icon, onOpen }) {
+  const [url, setUrl] = useState(null);
+
+  useEffect(() => {
+    let objectUrl = null;
+    let cancelled = false;
+    const loader = zoneId
+      ? getTripZonePhoto(studentId, tripId, zoneId)
+      : getTripReceiptPhoto(studentId, tripId);
+    loader.then((blob) => {
+      if (cancelled || !blob) return;
+      objectUrl = URL.createObjectURL(blob);
+      setUrl(objectUrl);
+    });
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [studentId, tripId, zoneId]);
+
+  if (!url) return null;
+  return (
+    <button type="button" className="shop-history-photo" onClick={() => onOpen(url)}>
+      <img src={url} alt="" />
+      {icon && <span className="shop-history-photo__badge">{icon}</span>}
+    </button>
+  );
+}
+
+function CycleHistorySheet({ studentId, history, onClose }) {
+  const [viewerUrl, setViewerUrl] = useState(null);
+  return (
+    <>
+      <div className="portions-sheet-backdrop" onClick={onClose}>
+        <div className="portions-sheet cycle-history-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="portions-sheet__handle" />
+          <h2 className="portions-sheet__title">История</h2>
+          <div className="shop-history-list">
+            {history.length === 0 ? (
+              <div className="shop-history-empty">История пока пуста</div>
+            ) : history.map((entry) => (
+              <div key={entry.id} className="shop-history-entry">
+                <div className="shop-history-meta">
+                  <span className="shop-history-date">{entry.dateRange}</span>
+                </div>
+                {entry.recipes.length > 0 && (
+                  <div className="cycle-history-recipes">
+                    🍽️ Готовили: {entry.recipes.map((r) => `${getTopicTitle(r.title)} ${r.cooked ? '✓' : '✗'}`).join(', ')}
+                  </div>
+                )}
+                {entry.trips.length > 0 && (
+                  <div className="cycle-history-trips">
+                    <div className="cycle-history-trips__label">🛒 Походы в магазин ({entry.trips.length}):</div>
+                    {entry.trips.map((trip) => (
+                      <div key={trip.tripId} className="cycle-history-trip">
+                        <span className="cycle-history-trip__meta">
+                          {trip.date}{trip.store ? `, ${trip.store}` : ''} • {trip.count} {pluralItems(trip.count)}
+                        </span>
+                        {trip.hasReceipt && (
+                          <CycleHistoryPhotoThumb studentId={studentId} tripId={trip.tripId} zoneId={null} icon="🧾" onOpen={setViewerUrl} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {entry.zonePhotos.length > 0 && (
+                  <div className="shop-history-photos">
+                    {entry.zonePhotos.map(({ zoneId, tripId }) => (
+                      <CycleHistoryPhotoThumb
+                        key={zoneId}
+                        studentId={studentId}
+                        tripId={tripId}
+                        zoneId={zoneId}
+                        icon={ZONES.find((z) => z.id === zoneId)?.icon}
+                        onOpen={setViewerUrl}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <button type="button" className="portions-sheet__cancel" onClick={onClose}>Закрыть</button>
+        </div>
+      </div>
+      {viewerUrl && (
+        <div className="photo-viewer-overlay" onClick={() => setViewerUrl(null)}>
+          <img src={viewerUrl} className="photo-viewer-img" alt="" />
+        </div>
+      )}
+    </>
+  );
+}
+
 function PlannerTab({ student, setScreen }) {
   const topicRecords = useAppStore((s) => s.topicRecords);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
@@ -211,6 +315,8 @@ function PlannerTab({ student, setScreen }) {
   const [putawayDone, setPutawayDone] = useState(false);
   const [cookPickerOpen, setCookPickerOpen] = useState(false);
   const [confirmNewMenu, setConfirmNewMenu] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [cycleHistory, setCycleHistory] = useState([]);
 
   useEffect(() => {
     if (!student) { setExistingPlan(null); return; }
@@ -290,11 +396,17 @@ function PlannerTab({ student, setScreen }) {
 
   async function handleStartNewMenu() {
     setConfirmNewMenu(false);
+    await archiveCycle(student.id, existingPlan, menuRecipes, cookedTextIds);
     const fresh = resetPlan(student.id);
     await savePlan(fresh);
     await resetShoppingData(student.id);
     await clearPendingPhotos(student.id);
     setExistingPlan(fresh);
+  }
+
+  function handleOpenHistory() {
+    getPlannerCycleHistory(student.id).then(setCycleHistory);
+    setHistoryOpen(true);
   }
 
   return (
@@ -363,23 +475,31 @@ function PlannerTab({ student, setScreen }) {
                   : 'Сначала разложи продукты'}
             </div>
           )}
+        </>
+      )}
+
+      <div className="planner-cycle-actions">
+        <button type="button" className="planner-history-btn" onClick={handleOpenHistory}>
+          🕐 История
+        </button>
+        {hasSelection && (
           <button type="button" className="planner-new-menu-btn" onClick={() => setConfirmNewMenu(true)}>
             🏁 Начать новое меню
           </button>
-          {confirmNewMenu && (
-            <div className="menu-reset-bar">
-              <span className="menu-reset-bar__text">
-                {cookedTextIds.size < menuRecipes.length
-                  ? `Готово только ${cookedTextIds.size} из ${menuRecipes.length} блюд. Всё равно начать новое меню?`
-                  : 'Начать новое меню? Текущее будет закрыто.'}
-              </span>
-              <div className="menu-reset-bar__actions">
-                <button type="button" className="menu-reset-bar__cancel" onClick={() => setConfirmNewMenu(false)}>Нет</button>
-                <button type="button" className="menu-reset-bar__ok" onClick={handleStartNewMenu}>Да</button>
-              </div>
-            </div>
-          )}
-        </>
+        )}
+      </div>
+      {hasSelection && confirmNewMenu && (
+        <div className="menu-reset-bar">
+          <span className="menu-reset-bar__text">
+            {cookedTextIds.size < menuRecipes.length
+              ? `Готово только ${cookedTextIds.size} из ${menuRecipes.length} блюд. Всё равно начать новое меню?`
+              : 'Начать новое меню? Текущее будет закрыто.'}
+          </span>
+          <div className="menu-reset-bar__actions">
+            <button type="button" className="menu-reset-bar__cancel" onClick={() => setConfirmNewMenu(false)}>Нет</button>
+            <button type="button" className="menu-reset-bar__ok" onClick={handleStartNewMenu}>Да</button>
+          </div>
+        </div>
       )}
 
       {cookPickerOpen && (
@@ -388,6 +508,13 @@ function PlannerTab({ student, setScreen }) {
           cookedTextIds={cookedTextIds}
           onPick={handlePickRecipe}
           onClose={() => setCookPickerOpen(false)}
+        />
+      )}
+      {historyOpen && (
+        <CycleHistorySheet
+          studentId={student.id}
+          history={cycleHistory}
+          onClose={() => setHistoryOpen(false)}
         />
       )}
     </div>
