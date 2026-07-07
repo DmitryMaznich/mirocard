@@ -287,67 +287,113 @@
 
 /* ── season_overview ────────────────────────────────── */
 .wf-season {
-  display: flex; flex-direction: column;
-  height: 100%; box-sizing: border-box; overflow: hidden;
-}
-
-.wf-season__bg {
   position: relative;
-  flex: 1; min-height: 0; overflow: hidden;
+  height: 100%; overflow: hidden;
 }
 
-.wf-season__bg-img {
-  width: 100%; height: 100%;
+/* full-screen background image */
+.wf-season__bg {
+  position: absolute;
+  inset: 0; width: 100%; height: 100%;
   object-fit: cover; display: block;
 }
-
-.wf-season__bg-img--empty {
-  background: #c8d8e4;
-  width: 100%; height: 100%; display: block;
+.wf-season__bg--empty {
+  background: #5C7A3A;
 }
 
+/* season title floats over the photo */
 .wf-season__title {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.60));
+  left: 0; right: 0;
+  bottom: 42%;
   color: #fff;
-  font-size: clamp(1.1rem, 4vmin, 1.8rem);
-  font-weight: 700; text-align: center;
-  padding: 32px 16px 12px;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  font-size: clamp(1.1rem, 4vmin, 1.7rem);
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4);
+  padding: 0 20px;
+  pointer-events: none;
 }
 
-.wf-season__items {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px; padding: 8px 10px 4px;
+/* fog gradient zone — chips float over darkened photo */
+.wf-season__fog {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 44%;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 8, 2, 0)    0%,
+    rgba(15, 8, 2, 0.50) 22%,
+    rgba(15, 8, 2, 0.87) 55%,
+    rgba(10, 5, 1, 0.97) 100%
+  );
+  display: flex; flex-direction: column; justify-content: flex-end;
+  gap: clamp(6px, 1.4vmin, 9px);
+  padding: 0
+    clamp(10px, 2.5vmin, 16px)
+    clamp(56px, 10vmin, 68px)
+    clamp(10px, 2.5vmin, 16px);
 }
 
-.wf-season-item {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 3px;
+.wf-season__chips-row {
+  display: flex;
+  gap: clamp(5px, 1.2vmin, 8px);
 }
 
-.wf-season-item__img {
-  width: 100%; aspect-ratio: 1;
-  object-fit: cover; border-radius: 8px;
-  display: block; background: #e0e0e0;
+/* frosted glass chip */
+.wf-season__chip {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center;
+  gap: clamp(4px, 1vmin, 6px);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  padding: clamp(5px, 1.1vmin, 7px) clamp(7px, 1.5vmin, 10px) clamp(5px, 1.1vmin, 7px) clamp(4px, 1vmin, 6px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.wf-season-item__img--empty {
-  animation: wf-pulse 1.2s ease-in-out infinite;
+.wf-season__chip-img {
+  width: clamp(26px, 5.5vmin, 34px);
+  height: clamp(26px, 5.5vmin, 34px);
+  border-radius: 50%;
+  object-fit: cover; display: block;
+  background: rgba(255,255,255,0.10);
+  flex-shrink: 0;
+}
+.wf-season__chip-img--empty {
+  background: rgba(255,255,255,0.07);
 }
 
-.wf-season-item__label {
-  font-size: clamp(0.56rem, 1.8vmin, 0.72rem);
-  text-align: center; line-height: 1.2;
-  color: #555; padding: 0 2px;
+.wf-season__chip-text {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: clamp(0.58rem, 1.8vmin, 0.72rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.wf-season__chip-ending {
+  color: #F4A44A;
 }
 
-.wf-season__nav {
-  display: flex; justify-content: flex-end;
-  padding: 6px 10px 8px;
+/* floating forward button */
+.wf-season__fwd {
+  position: absolute;
+  bottom: clamp(10px, 2vmin, 14px);
+  right: clamp(10px, 2vmin, 14px);
+  width: 44px; height: 44px;
+  background: #4caf50; color: #fff;
+  border: none; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+  transition: background 0.15s;
 }
+.wf-season__fwd:active { background: #388e3c; }
 
 /* ── animations ─────────────────────────────────────── */
 @keyframes wf-pulse {
