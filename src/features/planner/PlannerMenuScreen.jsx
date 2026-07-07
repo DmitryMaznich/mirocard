@@ -368,7 +368,7 @@ function IngredientTriToggle({ value, onChange }) {
         className={`ingr-toggle__btn ingr-toggle__btn--buy${value === 'buy' ? ' ingr-toggle__btn--active' : ''}`}
         onClick={() => onChange(value === 'buy' ? null : 'buy')}
       >
-        Надо купить
+        Купить
       </button>
     </div>
   );
