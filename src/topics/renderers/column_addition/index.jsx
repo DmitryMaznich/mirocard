@@ -73,19 +73,20 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize }) {
           </button>
         ))}
       </div>
-      {phase === "form" && (
-        <div className="col-tap-row col-tap-row--form">
-          <button className="col-tap-btn col-tap-btn--sign" style={signStyle} onClick={() => onSign(correctSign)}>
-            <span className="col-slant">{correctSign}</span>
-          </button>
-          <button className="col-tap-btn col-tap-btn--sign-dim" style={signStyle} onClick={() => onSign(wrongSign)}>
-            <span className="col-slant">{wrongSign}</span>
-          </button>
-          <button className="col-tap-btn col-tap-btn--line" style={{ height: bsStr, flex: 1 }} onClick={onLine}>
-            <div className="col-line-tile-bar" />
-          </button>
-        </div>
-      )}
+      <div
+        className="col-tap-row col-tap-row--form"
+        style={phase !== "form" ? { visibility: "hidden", pointerEvents: "none" } : undefined}
+      >
+        <button className="col-tap-btn col-tap-btn--sign" style={signStyle} onClick={() => onSign(correctSign)}>
+          <span className="col-slant">{correctSign}</span>
+        </button>
+        <button className="col-tap-btn col-tap-btn--sign-dim" style={signStyle} onClick={() => onSign(wrongSign)}>
+          <span className="col-slant">{wrongSign}</span>
+        </button>
+        <button className="col-tap-btn col-tap-btn--line" style={{ height: bsStr, flex: 1 }} onClick={onLine}>
+          <div className="col-line-tile-bar" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -333,7 +334,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       className="col-problem"
       style={{
         gridTemplateColumns: `repeat(${totalCols}, ${csStr})`,
-        gridTemplateRows: `${carryH} ${csStr} ${csStr} 3px ${csStr}`,
+        gridTemplateRows: `${csStr} ${csStr} ${csStr} 3px ${csStr}`,
       }}
     >
       {cells}
