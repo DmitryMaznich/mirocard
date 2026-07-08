@@ -91,14 +91,12 @@ function PreviewChip({ entry, onInstall, disabled, isUpdate }) {
   );
 }
 
-function CatalogPreview({ catalog, topicRecords, ownedTopicIds, account, onInstall, onOpenCatalog, disabled }) {
+function CatalogPreview({ catalog, topicRecords, hasAdminGrants, grantedIds, onInstall, onOpenCatalog, disabled }) {
   if (!catalog) return null;
 
-  const accessibleDecks = catalog.decks.filter((e) => {
-    if (!account) return true;
-    const access = e.access ?? "free";
-    return access === "free" || ownedTopicIds.has(e.id);
-  });
+  const accessibleDecks = catalog.decks.filter((e) =>
+    !hasAdminGrants || grantedIds.has(e.id)
+  );
 
   const updates = accessibleDecks.filter((e) => {
     const installed = topicRecords.find((r) => r.meta.id === e.id);
@@ -200,11 +198,15 @@ export default function TopicLibraryScreen() {
     setDeleting(null);
   }
 
-  // When logged in, only expose topics the user owns (or builtin ones).
-  // In local/offline mode show all installed topics.
+  // When admin has granted specific topics (source === "grant"), use those as a whitelist.
+  // Without admin grants, show all installed topics.
+  const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
+  const grantedIds = new Set(
+    (ownedTopics ?? []).filter((o) => o.source === "grant").map((o) => o.topicId)
+  );
   const ownedTopicIds = new Set((ownedTopics ?? []).map((o) => o.topicId));
-  const visibleRecords = account
-    ? topicRecords.filter((r) => r.meta.builtin || ownedTopicIds.has(r.meta.id))
+  const visibleRecords = hasAdminGrants
+    ? topicRecords.filter((r) => r.meta.builtin || grantedIds.has(r.meta.id))
     : topicRecords;
 
   const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
@@ -251,8 +253,8 @@ export default function TopicLibraryScreen() {
         <CatalogPreview
           catalog={catalog}
           topicRecords={visibleRecords}
-          ownedTopicIds={ownedTopicIds}
-          account={account}
+          hasAdminGrants={hasAdminGrants}
+          grantedIds={grantedIds}
           onInstall={installCatalogEntry}
           onOpenCatalog={() => setScreen("catalog")}
           disabled={false}

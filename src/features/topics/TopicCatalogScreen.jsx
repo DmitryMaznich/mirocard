@@ -207,19 +207,13 @@ export default function TopicCatalogScreen() {
 
   const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
 
-  // When logged in, only show topics the user has access to:
-  //   • free topics are visible to everyone
-  //   • paid topics are visible only if the admin granted them (source != "request")
-  // In local/offline mode (no account) show everything.
-  function isAccessible(entry) {
-    if (!account) return true;
-    const access = entry.access ?? "free";
-    if (access === "free") return true;
-    const owned = ownedById[entry.id];
-    return owned != null && owned.source !== "request";
-  }
+  // When admin has explicitly granted topics (source === "grant"), treat it as a whitelist:
+  // show only those topics. Without any admin grants, show everything (no restriction).
+  const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
 
-  const visibleDecks = catalog ? catalog.decks.filter(isAccessible) : [];
+  const visibleDecks = catalog
+    ? catalog.decks.filter((e) => !hasAdminGrants || ownedById[e.id]?.source === "grant")
+    : [];
 
   const grouped = catalog
     ? CATEGORY_ORDER
