@@ -14487,54 +14487,46 @@ kbd {
   transform: translateY(1px);
   background: rgba(255, 255, 255, 0.08);
 }
-.home-header__badge {
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #f0c375;
-  border: 2px solid #2f5b57;
-}
-
-.home-version {
+/* Version indicator, moved into the header next to Настройки — tap to
+   check for updates and refresh topics. Muted by default, brightens on
+   hasUpdate/refreshing/error, same state machine as before, just restyled
+   for the dark teal header instead of the cream page background. */
+.home-header__version {
+  flex-shrink: 0;
   border: 0;
   background: transparent;
   appearance: none;
-  text-align: center;
-  font-size: 0.72rem;
-  color: #c0b8b0;
-  padding: 6px 0 10px;
-  letter-spacing: 0.05em;
-  position: relative;
-  display: inline-block;
-  align-self: center;
   font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(250, 247, 242, 0.5);
+  padding: 4px 6px;
+  position: relative;
   cursor: pointer;
 }
-.home-version--update {
-  color: #a09890;
+.home-header__version--update {
+  color: rgba(250, 247, 242, 0.82);
 }
-.home-version--refreshing {
+.home-header__version--refreshing {
   opacity: 0.72;
 }
-.home-version--error {
-  color: #b45309;
+.home-header__version--error {
+  color: #f0a868;
 }
-.home-version__dot {
+.home-header__version__dot {
   position: absolute;
-  top: 4px;
-  right: -10px;
-  width: 7px;
-  height: 7px;
-  background: #f59e0b;
+  top: 1px;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+  background: #f0c375;
   border-radius: 50%;
 }
-.home-version--refreshing .home-version__dot {
+.home-header__version--refreshing .home-header__version__dot {
   animation: homeVersionPulse 0.8s ease-in-out infinite;
 }
-.home-version--error .home-version__dot {
+.home-header__version--error .home-header__version__dot {
   background: #ef4444;
 }
 @keyframes homeVersionPulse {
@@ -14767,57 +14759,6 @@ kbd {
 .home-quick-btn:active {
   border-color: #4a9b8f;
   color: #2f5b57;
-}
-
-.home-version {
-  border: 0;
-  background: transparent;
-  appearance: none;
-  text-align: center;
-  font-size: 0.72rem;
-  color: #c0b8b0;
-  padding: 6px 0 10px;
-  letter-spacing: 0.05em;
-  position: relative;
-  display: inline-block;
-  align-self: center;
-  font: inherit;
-  cursor: pointer;
-}
-.home-version--update {
-  color: #a09890;
-}
-.home-version--refreshing {
-  opacity: 0.72;
-}
-.home-version--error {
-  color: #b45309;
-}
-.home-version__dot {
-  position: absolute;
-  top: 4px;
-  right: -10px;
-  width: 7px;
-  height: 7px;
-  background: #f59e0b;
-  border-radius: 50%;
-}
-.home-version--refreshing .home-version__dot {
-  animation: homeVersionPulse 0.8s ease-in-out infinite;
-}
-.home-version--error .home-version__dot {
-  background: #ef4444;
-}
-@keyframes homeVersionPulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.84);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.18);
-  }
 }
 
 /* ─── Concept picker ─────────────────────────────────────────────────────── */
@@ -17724,7 +17665,6 @@ body { background: #eef0ef; }
 
   /* ── Home: compact footer ── */
   .home-actions--footer { padding-top: 2px; }
-  .home-version { padding: 2px 0 4px; font-size: 0.65rem; }
 
   /* ── Other screens: concept picker columns ── */
   .concept-grid { grid-template-columns: repeat(8, 1fr); }

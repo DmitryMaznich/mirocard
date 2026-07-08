@@ -45,7 +45,10 @@ function getTimeGreeting(date = new Date()) {
   return "Добрый вечер,";
 }
 
-function HomeHeader({ student, hasUpdate, onSettings, onAvatarTap }) {
+function HomeHeader({
+  student, buildInfo, hasUpdate, refreshingAll, refreshFailed, versionTitle,
+  onRefresh, onSettings, onAvatarTap,
+}) {
   return (
     <header className="home-header">
       {/* Secret 5-tap shortcut into the "streak_tracker" test topic — a dev/QA
@@ -61,9 +64,18 @@ function HomeHeader({ student, hasUpdate, onSettings, onAvatarTap }) {
           {student ? student.name : 'Ученик не выбран'}
         </span>
       </div>
+      <button
+        type="button"
+        className={`home-header__version${hasUpdate || refreshingAll || refreshFailed ? " home-header__version--update" : ""}${refreshingAll ? " home-header__version--refreshing" : ""}${refreshFailed ? " home-header__version--error" : ""}`}
+        onClick={onRefresh}
+        title={versionTitle}
+        disabled={refreshingAll}
+      >
+        v{buildInfo.version}
+        {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-header__version__dot" />}
+      </button>
       <button className="home-header__settings-btn" onClick={onSettings} aria-label="Настройки">
         <AccountIcon />
-        {hasUpdate && <span className="home-header__badge" />}
       </button>
     </header>
   );
@@ -755,7 +767,12 @@ export default function HomeScreen() {
     <div className="screen home-screen-v2">
       <HomeHeader
         student={student}
+        buildInfo={buildInfo}
         hasUpdate={hasUpdate}
+        refreshingAll={refreshingAll}
+        refreshFailed={refreshFailed}
+        versionTitle={versionTitle}
+        onRefresh={refreshAppAndTopics}
         onSettings={() => setScreen("settings")}
         onAvatarTap={handleAvatarSecretTap}
       />
@@ -785,17 +802,6 @@ export default function HomeScreen() {
             />
           )}
         </div>
-
-        <button
-          type="button"
-          className={`home-version${hasUpdate || refreshingAll || refreshFailed ? " home-version--update" : ""}${refreshingAll ? " home-version--refreshing" : ""}${refreshFailed ? " home-version--error" : ""}`}
-          onClick={refreshAppAndTopics}
-          title={versionTitle}
-          disabled={refreshingAll}
-        >
-          v{buildInfo.version}
-          {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-version__dot" />}
-        </button>
       </div>
     </div>
   );
