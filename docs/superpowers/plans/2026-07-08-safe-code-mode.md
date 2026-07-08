@@ -14,6 +14,7 @@
 - Canonical project root is `C:\Users\dmazn\Projects\Mirocard2`. Never edit files under `runtime/`, `dist/`, `.superpowers/deploy-copy-*`, `codex-deploy-*`, `__codex_deploy_*`, or any restored-backup folder — several stray copies of this repo exist at the repo root; only edit files under the real `src/`, `scripts/`, `content/`, `public/`, `docs/`.
 - When running `npx vitest run <path>`, vitest's positional argument is a substring filter, not an exact path — it will also match same-named files inside the stray copies above. Only trust results whose reported path starts with `src/` (no leading stray-folder segment).
 - `src/topics/topicLoader.test.js:184` (`imports a reading topic with texts and no cards`) is a **pre-existing broken test**, unrelated to this feature — it still expects the mode list from before `follow_instruction` was added to `DEFAULT_MODES.reading`. Task 3 below fixes this in the same edit that touches that array, since leaving it stale would make the diff confusing; do not otherwise "fix" unrelated failing tests.
+- The baseline test run on this branch (before any task in this plan) already has 20 failing tests inside `src/` and `backend/` unrelated to safe_code, including but not limited to: `src/topics/topicLoader.test.js` (`imports addition/subtraction procedural cards with default modes`, plus the line-184 case above), `src/topics/renderers/reading/engine.test.js` (`reading engine > generates reading, understanding, and assemble tasks` — an `assemble_text` task-count mismatch), `src/topics/renderers/column_addition/engine.test.js`, `src/topics/renderers/comparison/engine.test.js`, `src/topics/renderers/function_cards/engine.test.js`, `src/shared/utils/format.test.js`, and all of `backend/tests/*`. When a task's steps say to run a test file, only the tests **listed in that step** are the pass/fail signal — do not attempt to fix any other red test you see in the same run, and do not report a task blocked because of them.
 - Recipe deck content is rebuilt via `scripts/update-recipes-deck.mjs`, which **completely rebuilds `topic.json`'s `texts` array from `content/recipes/*.txt`** — any text not sourced that way (like our safe_code locations pool) will be silently dropped on the next recipe deploy unless the script itself is taught to also include it. Task 4 handles this.
 - No new image/SVG assets — the design is explicitly text-only except for the safe/keypad UI chrome.
 - Follow the existing code style: no comments except where a non-obvious constraint needs explaining, no unrelated refactors.
@@ -207,7 +208,7 @@ Add a case to the `switch (mode.type)` inside `generateTasks` (after the `case "
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run ./src/topics/renderers/reading/engine.test.js`
-Expected: PASS (all tests in the file, including the two new ones).
+Expected: PASS for both new tests under `describe("safe_code mode", ...)`. The file will still report one pre-existing failure, `reading engine > generates reading, understanding, and assemble tasks` (an `assemble_text` task-count mismatch) — that failure exists on this branch before this task and is unrelated to safe_code; do not attempt to fix it.
 
 - [ ] **Step 5: Commit**
 
@@ -273,7 +274,7 @@ In `src/topics/topicLoader.js`, inside `DEFAULT_MODE_METHODOLOGY.reading` (the o
 - [ ] **Step 4: Run the topicLoader test file**
 
 Run: `npx vitest run ./src/topics/topicLoader.test.js`
-Expected: PASS for `"imports a reading topic with texts and no cards"` and all other tests in the file (ignore any results reported under stray backup-folder paths per the Global Constraints note).
+Expected: PASS for `"imports a reading topic with texts and no cards"`. The file has one other pre-existing failure, `imports addition/subtraction procedural cards with default modes` — that failure exists on this branch before this task and is unrelated to safe_code; do not attempt to fix it. Ignore any results reported under stray backup-folder paths per the Global Constraints note.
 
 - [ ] **Step 5: Commit**
 
