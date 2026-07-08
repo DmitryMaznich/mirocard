@@ -355,8 +355,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [shakeCell, setShakeCell] = useState(null);
   const [solved, setSolved] = useState(false);
   const [showHelper, setShowHelper] = useState(false);
-  const [gridCellSize, setGridCellSize] = useState(44);
-  const [exprCellSize, setExprCellSize] = useState(44);
+  const [cellSize, setCellSize] = useState(44);
   const [btnSize, setBtnSize] = useState(52);
 
   const rootRef = useRef(null);
@@ -382,40 +381,39 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const activeStep = phase === "solve" && stepIdx < task.steps.length ? task.steps[stepIdx] : null;
 
   // Compute adaptive cell and button sizes after layout.
+  // Single cellSize used for both expression and column grid so both snap to the same grid.
+  // Constrained by the expression width: top_digits + sign + bottom_digits + eq + result_digits.
   useLayoutEffect(() => {
     function compute() {
       if (!rootRef.current) return;
       const w = rootRef.current.clientWidth;
       const avail = w - 32;
       const digits = task.digits;
-      const grid = Math.min(52, Math.max(32, Math.floor(avail / (digits + 2))));
-      // Expression worst-case: top_digits + sign + bottom_digits + eq + result_digits = 3×digits+3
-      const exprCols = 3 * digits + 3;
-      const expr = Math.min(grid, Math.max(28, Math.floor(avail / exprCols)));
-      // 5 buttons + 4 gaps of 6px each
+      const resultDigits = String(task.result).length;
+      const exprCols = 2 * digits + 2 + resultDigits;
+      const cs = Math.min(52, Math.max(28, Math.floor(avail / exprCols)));
+      setCellSize(cs);
       const btn = Math.min(56, Math.max(36, Math.floor((avail - 24) / 5)));
-      setGridCellSize(grid);
-      setExprCellSize(expr);
       setBtnSize(btn);
     }
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
-  }, [task.digits]);
+  }, [task.digits, task.result]);
 
   // Align full-screen background grid with notebook cell boundaries.
   useLayoutEffect(() => {
     const screen = rootRef.current;
     const notebook = notebookRef.current;
     if (!screen || !notebook) return;
-    const cs = gridCellSize;
+    const cs = cellSize;
     screen.style.backgroundSize = `${cs}px ${cs}px`;
     const sr = screen.getBoundingClientRect();
     const nr = notebook.getBoundingClientRect();
     const offX = ((nr.left - sr.left) % cs + cs) % cs;
     const offY = ((nr.top - sr.top) % cs + cs) % cs;
     screen.style.backgroundPosition = `${offX}px ${offY}px`;
-  }, [gridCellSize, phase, solved]);
+  }, [cellSize, phase, solved]);
 
   useEffect(() => {
     setPhase("form");
@@ -501,8 +499,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
 
   return (
     <div className="col-screen" ref={rootRef}>
-      <div className="col-notebook" ref={notebookRef}>
-        <Expression task={task} result={solved ? task.result : null} cellSize={exprCellSize} />
+      <div className="col-notebook" ref={notebookRef} style={{ gap: `${2 * cellSize}px` }}>
+        <Expression task={task} result={solved ? task.result : null} cellSize={cellSize} />
         <ColumnGrid
           task={task}
           phase={phase}
@@ -514,7 +512,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           activeStep={activeStep}
           formActiveKey={formActiveKey}
           shakeCell={shakeCell}
-          cellSize={gridCellSize}
+          cellSize={cellSize}
         />
       </div>
 
