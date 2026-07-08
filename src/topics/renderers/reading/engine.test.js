@@ -152,3 +152,33 @@ describe("daily_sentences mode", () => {
     expect(tasks).toHaveLength(2);
   });
 });
+
+describe("safe_code mode", () => {
+  const SAFE_CODE_TOPIC = {
+    meta: { id: "reading_test", renderer: "reading" },
+    texts: [
+      {
+        id: "safe_code_locations",
+        kind: "safe_code",
+        title: { ru: "Код от сейфа" },
+        spots: [
+          { id: "pillow", label: "Подушка", phrase: "под подушкой" },
+          { id: "box", label: "Коробка", phrase: "в коробке" },
+        ],
+      },
+    ],
+  };
+
+  it("generates one safe_code task ignoring textId", () => {
+    const tasks = generateTasks({ type: "safe_code" }, SAFE_CODE_TOPIC, "any_text_id");
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].type).toBe("safe_code");
+    expect(tasks[0].text.kind).toBe("safe_code");
+    expect(tasks[0].text.spots).toHaveLength(2);
+  });
+
+  it("returns empty if no safe_code kind text exists", () => {
+    const tasks = generateTasks({ type: "safe_code" }, TOPIC, "dad_best");
+    expect(tasks).toHaveLength(0);
+  });
+});
