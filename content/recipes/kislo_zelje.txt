@@ -2,7 +2,6 @@
 # status: draft
 # tags: обед, ужин
 # portions: 4
-# max_portions: 8
 # ingredients:
 #   кислая капуста | 800 | гр
 #   колбаса | 300 | гр

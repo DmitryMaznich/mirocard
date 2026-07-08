@@ -2,7 +2,6 @@
 # status: final
 # tags: завтрак, перекус
 # portions: 1
-# max_portions: 4
 # ingredients:
 #   яйца | 3 | шт
 #   колбаса | 100 | гр

@@ -2,7 +2,6 @@
 # status: draft
 # tags: завтрак
 # portions: 4
-# max_portions: 8
 # ingredients:
 #   творог | 2 | пачка
 #   сметана | 4 | ст.л

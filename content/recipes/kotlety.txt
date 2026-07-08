@@ -1,7 +1,7 @@
 # photo: kotlety.webp
 # tags: обед, ужин
 # portions: 4
-# fixed_portions: 4
+# type: fixed
 # ingredients:
 #   фарш | 500 | гр
 #   лук | 2 | шт

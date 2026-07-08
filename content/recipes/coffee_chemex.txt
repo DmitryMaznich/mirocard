@@ -2,8 +2,7 @@
 # status: draft
 # tags: напитки, завтрак
 # portions: 1
-# fixed_portions: 1
-# max_portions: 1
+# type: fixed
 # ingredients:
 #   кофейные зёрна | 20 | гр
 #   вода | 320 | мл

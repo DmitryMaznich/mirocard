@@ -1,7 +1,7 @@
 # photo: kompot.webp
 # tags: напитки, перекус
 # portions: 4
-# fixed_portions: 4
+# type: fixed
 # ingredients:
 #   замороженные ягоды | 2 | горсти
 #   сахар | 3 | ст.л

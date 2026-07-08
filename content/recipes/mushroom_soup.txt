@@ -2,7 +2,6 @@
 # status: draft
 # tags: обед, ужин
 # portions: 4
-# max_portions: 8
 # ingredients:
 #   куриные голени | 4 | шт
 #   грибы шампиньоны | 1 | упаковка

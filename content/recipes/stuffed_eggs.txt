@@ -1,7 +1,7 @@
 # photo: stuffed_eggs.webp
 # tags: перекус, завтрак
 # portions: 4
-# fixed_portions: 4
+# type: fixed
 # ingredients:
 #   яйца | 10 | шт
 #   сливочный сыр | 1 | пачка

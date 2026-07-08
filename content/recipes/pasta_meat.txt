@@ -2,7 +2,7 @@
 # status: final
 # tags: обед, ужин
 # portions: 4
-# fixed_portions: 4
+# type: fixed
 # ingredients:
 #   макароны | 4 | стакана
 #   фарш | 400 | гр

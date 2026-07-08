@@ -2,7 +2,7 @@
 # status: final
 # tags: напитки, перекус
 # portions: 4
-# fixed_portions: 4
+# type: fixed
 # ingredients:
 #   лимон | 2 | шт
 #   апельсины | 1 | шт

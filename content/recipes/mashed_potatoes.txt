@@ -1,7 +1,6 @@
 # photo: mashed_potatoes.webp
 # tags: обед, ужин
 # portions: 2
-# max_portions: 6
 # ingredients:
 #   картошка | 4 | шт
 #   сливки 20% | 3 | ст.л

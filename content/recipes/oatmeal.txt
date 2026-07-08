@@ -1,7 +1,6 @@
 # photo: oatmeal.webp
 # tags: завтрак
 # portions: 1
-# max_portions: 4
 # ingredients:
 #   молоко | 1 | стакан
 #   овсяные хлопья | 0.5 | стакана

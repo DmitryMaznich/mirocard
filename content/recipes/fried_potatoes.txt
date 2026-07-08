@@ -2,7 +2,6 @@
 # status: final
 # tags: обед, ужин
 # portions: 1
-# max_portions: 4
 # ingredients:
 #   картошка | 3 | шт
 #   лук | 1 | шт
