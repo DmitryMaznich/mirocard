@@ -453,18 +453,38 @@ function PlannerTab({ student, setScreen }) {
         />
       </div>
 
-      {hasSelection && (
+      {hasSelection ? (
         <>
-          <button
-            type="button"
-            className="planner-cook-cta"
-            disabled={!readyToCook}
-            onClick={() => setCookPickerOpen(true)}
-          >
-            {cookedTextIds.size === 0
-              ? '🍳 Начинаем готовить'
-              : `🍳 Готовка: ${cookedTextIds.size} из ${menuRecipes.length} приготовлено`}
-          </button>
+          <div className="planner-action-dock">
+            <button
+              type="button"
+              className="planner-action-dock__cook"
+              disabled={!readyToCook}
+              onClick={() => setCookPickerOpen(true)}
+            >
+              {cookedTextIds.size === 0
+                ? '🍲 Начинаем готовить'
+                : `🍲 Готовка: ${cookedTextIds.size} из ${menuRecipes.length} приготовлено`}
+            </button>
+            <button
+              type="button"
+              className="planner-action-dock__icon"
+              onClick={handleOpenHistory}
+              aria-label="История"
+              title="История"
+            >
+              🕐
+            </button>
+            <button
+              type="button"
+              className="planner-action-dock__icon"
+              onClick={() => setConfirmNewMenu(true)}
+              aria-label="Начать новое меню"
+              title="Начать новое меню"
+            >
+              🏁
+            </button>
+          </div>
           {!readyToCook && (
             <div className="planner-cook-hint">
               {!menuDone
@@ -475,18 +495,13 @@ function PlannerTab({ student, setScreen }) {
             </div>
           )}
         </>
-      )}
-
-      <div className="planner-cycle-actions">
-        <button type="button" className="planner-history-btn" onClick={handleOpenHistory}>
-          🕐 История
-        </button>
-        {hasSelection && (
-          <button type="button" className="planner-new-menu-btn" onClick={() => setConfirmNewMenu(true)}>
-            🏁 Начать новое меню
+      ) : (
+        <div className="planner-cycle-actions">
+          <button type="button" className="planner-history-btn" onClick={handleOpenHistory}>
+            🕐 История
           </button>
-        )}
-      </div>
+        </div>
+      )}
       {hasSelection && confirmNewMenu && (
         <div className="menu-reset-bar">
           <span className="menu-reset-bar__text">

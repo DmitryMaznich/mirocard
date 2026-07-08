@@ -1634,26 +1634,69 @@
 }
 
 /* ── Planner hub: Начинаем готовить CTA ────────────────────────── */
-.planner-cook-cta {
-  width: 100%;
+/* Единая панель действий: готовка — крупный заливной сегмент, История и
+   Начать новое меню — компактные иконки-кнопки внутри той же подложки.
+   Заменяет прежние разрозненные planner-cook-cta + planner-cycle-actions
+   (полноразмерная таблетка одним рядом + обводка другим рядом ниже) —
+   см. аудит планировщика. */
+.planner-action-dock {
+  display: flex;
+  align-items: stretch;
+  height: 56px;
   margin-top: 16px;
-  padding: 16px;
-  border-radius: 16px;
+  border-radius: 18px;
+  background: rgba(250, 247, 242, 0.97);
+  border: 1px solid #e7dccf;
+  box-shadow: 0 8px 20px rgba(71, 61, 48, 0.08);
+  overflow: hidden;
+}
+
+.planner-action-dock__cook {
+  flex: 1.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 5px;
+  padding: 0 8px;
   border: none;
+  border-radius: 13px;
   background: linear-gradient(150deg, #5cb0a3, #276b62);
-  box-shadow: 0 8px 20px rgba(39, 107, 98, 0.3);
+  box-shadow: 0 4px 12px rgba(39, 107, 98, 0.35);
   color: #fff;
-  font-size: 16px;
+  font-size: 13.5px;
   font-weight: 800;
   font-family: inherit;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.planner-cook-cta:disabled {
+.planner-action-dock__cook:disabled {
   background: #ede5d8;
   box-shadow: none;
   color: #a8978a;
   cursor: default;
+}
+
+.planner-action-dock__icon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-left: 1px solid #e7dccf;
+  background: none;
+  color: #7a8c88;
+  font-size: 19px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.planner-action-dock__icon:active {
+  background: rgba(203, 185, 163, 0.15);
 }
 
 .planner-cook-hint {
@@ -1684,23 +1727,6 @@
 }
 
 .planner-history-btn:active {
-  background: rgba(203, 185, 163, 0.15);
-}
-
-.planner-new-menu-btn {
-  flex: 1;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1.5px solid #cbb9a3;
-  background: none;
-  color: #6b5c48;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.planner-new-menu-btn:active {
   background: rgba(203, 185, 163, 0.15);
 }
 
