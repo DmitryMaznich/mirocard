@@ -207,12 +207,13 @@ export default function TopicCatalogScreen() {
 
   const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
 
-  // When admin has explicitly granted topics (source === "grant"), treat it as a whitelist:
-  // show only those topics. Without any admin grants, show everything (no restriction).
+  // When admin has explicitly granted topics (source === "grant"), treat ownedTopics as
+  // a whitelist: show all topics the user owns (any non-pending source). Without any admin
+  // grants, show the full catalog (no restriction).
   const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
 
   const visibleDecks = catalog
-    ? catalog.decks.filter((e) => !hasAdminGrants || ownedById[e.id]?.source === "grant")
+    ? catalog.decks.filter((e) => !hasAdminGrants || (ownedById[e.id] != null && ownedById[e.id].source !== "request"))
     : [];
 
   const grouped = catalog

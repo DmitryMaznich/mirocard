@@ -92,11 +92,11 @@ function PreviewChip({ entry, onInstall, disabled, isUpdate }) {
   );
 }
 
-function CatalogPreview({ catalog, topicRecords, hasAdminGrants, grantedIds, onInstall, onOpenCatalog, disabled }) {
+function CatalogPreview({ catalog, topicRecords, hasAdminGrants, ownedNonPendingIds, onInstall, onOpenCatalog, disabled }) {
   if (!catalog) return null;
 
   const accessibleDecks = catalog.decks.filter((e) =>
-    !hasAdminGrants || grantedIds.has(e.id)
+    !hasAdminGrants || ownedNonPendingIds.has(e.id)
   );
 
   const updates = accessibleDecks.filter((e) => {
@@ -266,7 +266,7 @@ export default function TopicLibraryScreen() {
           catalog={catalog}
           topicRecords={visibleRecords}
           hasAdminGrants={hasAdminGrants}
-          grantedIds={grantedIds}
+          ownedNonPendingIds={ownedNonPendingIds}
           onInstall={installCatalogEntry}
           onOpenCatalog={() => setScreen("catalog")}
           disabled={false}
