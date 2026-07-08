@@ -5,7 +5,7 @@ const ADJ_ENDINGS = ["ый", "ий", "ой", "ая", "яя", "ое", "ее", "ы
 
 function splitAdjPhrase(adjPhrase) {
   const [adj, ...rest] = (adjPhrase ?? "").split(" ");
-  const noun = rest.length ? " " + rest.join(" ") : "";
+  const noun = rest.join(" ");
   for (const end of ADJ_ENDINGS) {
     if (adj.endsWith(end)) {
       return { stem: adj.slice(0, -end.length), ending: end, noun };
@@ -21,21 +21,14 @@ function BgImage({ topicId, path }) {
     : <div className="wf-season__bg wf-season__bg--empty" />;
 }
 
-function ChipImage({ topicId, path }) {
-  const url = useTopicFile(topicId, path ?? "");
-  return (path && url)
-    ? <img className="wf-season__chip-img" src={url} alt="" draggable={false} />
-    : <div className="wf-season__chip-img wf-season__chip-img--empty" />;
-}
-
-function Chip({ item, topicId }) {
+function Chip({ item }) {
   const { stem, ending, noun } = splitAdjPhrase(item.adjPhrase);
   return (
     <div className="wf-season__chip">
-      <ChipImage topicId={topicId} path={item.image} />
-      <span className="wf-season__chip-text">
-        {stem}<span className="wf-season__chip-ending">{ending}</span>{noun}
+      <span className="wf-season__chip-adj">
+        {stem}<span className="wf-season__chip-ending">{ending}</span>
       </span>
+      {noun && <span className="wf-season__chip-noun">{noun}</span>}
     </div>
   );
 }
@@ -46,15 +39,16 @@ export default function SeasonIntroTask({ task, topicId, onAdvance }) {
 
   return (
     <div className="wf-season">
-      <BgImage topicId={topicId} path={card.backgroundImage} />
+      <div className="wf-season__photo-wrap">
+        <BgImage topicId={topicId} path={card.backgroundImage} />
+        <div className="wf-season__title">{card.contextPhrase}.</div>
+      </div>
 
-      <div className="wf-season__title">{card.contextPhrase}.</div>
-
-      <div className="wf-season__fog">
-        {[0, 3].map(start => (
-          <div key={start} className="wf-season__chips-row">
-            {items.slice(start, start + 3).map(item => (
-              <Chip key={item.id} item={item} topicId={topicId} />
+      <div className="wf-season__panel">
+        {[0, 2, 4].map(start => (
+          <div key={start} className="wf-season__row">
+            {items.slice(start, start + 2).map(item => (
+              <Chip key={item.id} item={item} />
             ))}
           </div>
         ))}
