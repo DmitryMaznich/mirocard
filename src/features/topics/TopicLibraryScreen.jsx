@@ -14,6 +14,7 @@ import { getTopicTitle } from "@/shared/utils/format";
 import {
   fetchCatalog,
   fetchCatalogTopic,
+  claimDeck,
   getImportErrorMessage,
 } from "./catalogService";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
@@ -157,6 +158,7 @@ export default function TopicLibraryScreen() {
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const setTopicRecords   = useAppStore((s) => s.setTopicRecords);
   const upsertTopicRecord = useAppStore((s) => s.upsertTopicRecord);
+  const upsertOwnedTopic  = useAppStore((s) => s.upsertOwnedTopic);
   const buildInfo         = useAppStore((s) => s.buildInfo);
   const activeTopicId     = useAppStore((s) => s.activeTopicId);
   const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
@@ -172,10 +174,17 @@ export default function TopicLibraryScreen() {
   const [actionSheetRecord, setActionSheetRecord] = useState(null);
 
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
+    const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
+    const isGranted = owned != null && owned.source !== "request";
+    if (!isGranted) {
+      const result = await claimDeck(entry.id);
+      upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
+      if (result.status !== "granted") return; // pending — don't download yet
+    }
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
     upsertTopicRecord(record);
     return record;
-  }, [buildInfo.version, upsertTopicRecord]);
+  }, [buildInfo.version, upsertTopicRecord, upsertOwnedTopic, ownedTopics]);
 
   useEffect(() => {
     if (catalog !== null) return;
@@ -198,15 +207,18 @@ export default function TopicLibraryScreen() {
     setDeleting(null);
   }
 
-  // When admin has granted specific topics (source === "grant"), use those as a whitelist.
-  // Without admin grants, show all installed topics.
+  // Library always shows only what the current user owns — so topics from a previous
+  // user logged in on the same device don't bleed through.
+  // Builtin topics are always visible. Local mode (no account) shows everything.
   const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
   const grantedIds = new Set(
     (ownedTopics ?? []).filter((o) => o.source === "grant").map((o) => o.topicId)
   );
-  const ownedTopicIds = new Set((ownedTopics ?? []).map((o) => o.topicId));
-  const visibleRecords = hasAdminGrants
-    ? topicRecords.filter((r) => r.meta.builtin || grantedIds.has(r.meta.id))
+  const ownedNonPendingIds = new Set(
+    (ownedTopics ?? []).filter((o) => o.source !== "request").map((o) => o.topicId)
+  );
+  const visibleRecords = account
+    ? topicRecords.filter((r) => r.meta.builtin || ownedNonPendingIds.has(r.meta.id))
     : topicRecords;
 
   const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
