@@ -599,7 +599,6 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 
   // Adaptive sizing: fit expression width AND all rows within screen height
   useLayoutEffect(() => {
-    const ROW_GAP = 4;
     function compute() {
       if (!screenRef.current) return;
       const w = screenRef.current.clientWidth;
@@ -607,8 +606,9 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
       // Expression: top_digits + sign + bottom_digits + eq + (digits+1 result digits)
       const exprCols = 3 * digits + 3;
       const cs_w = Math.min(52, Math.max(20, Math.floor((w - 32) / exprCols)));
-      // Height: count example rows + keyboard (3 rows) + overhead (padding, gaps, margins ~80px)
-      const cs_h = Math.floor((h - 80 - (count - 1) * ROW_GAP) / (count + 3));
+      // Height: count rows + (count-1) gap rows (each = cs) + keyboard 3 rows + overhead ~80px
+      // Total cs rows = count + (count-1) + 3 = 2*count + 2
+      const cs_h = Math.floor((h - 80) / (2 * count + 2));
       setCellSize(Math.min(cs_w, Math.max(20, cs_h)));
     }
     compute();
@@ -680,7 +680,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 
   return (
     <div className="col-screen col-copy-screen" ref={screenRef}>
-      <div className="col-copy-list" ref={listRef}>
+      <div className="col-copy-list" ref={listRef} style={{ gap: `${cellSize}px` }}>
         {examples.map((ex, i) => {
           const res      = ex.operation === "add" ? ex.top + ex.bottom : ex.top - ex.bottom;
           const resStr   = String(res);
