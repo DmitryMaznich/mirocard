@@ -53,7 +53,9 @@ export default function PhotoCaptureCard({ title, hint, maxDim, quality, onConfi
           </div>
           {hint && <div className="photo-capture__hint">{hint}</div>}
           {onSkip && (
-            <button type="button" className="photo-capture__skip" onClick={onSkip}>{skipLabel ?? 'Пропустить'}</button>
+            <button type="button" className="photo-capture__skip" onClick={onSkip}>
+              {skipLabel ?? 'Пропустить'}
+            </button>
           )}
         </>
       )}

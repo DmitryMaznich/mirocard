@@ -139,6 +139,8 @@ export default function PlannerPutawayScreen() {
                 await savePendingZonePhoto(studentId, zoneToShoot, blob);
                 setPhotographedZones((prev) => [...prev, zoneToShoot]);
               }}
+              onSkip={() => setPhotographedZones((prev) => [...prev, zoneToShoot])}
+              skipLabel="Пропустить фото"
             />
             <div className="putaway-dots">
               {requiredZones.map((id) => (

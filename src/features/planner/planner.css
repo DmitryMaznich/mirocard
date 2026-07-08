@@ -1916,16 +1916,20 @@
 }
 
 .photo-capture__skip {
+  margin-top: 4px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1.5px solid #d8cbb8;
   background: none;
-  border: none;
-  padding: 6px;
-  font-size: 13px;
+  color: #7d6f5c;
+  font-size: 14px;
   font-weight: 700;
-  color: #a8978a;
-  text-decoration: underline;
-  text-decoration-style: dotted;
   cursor: pointer;
   font-family: inherit;
+}
+
+.photo-capture__skip:active {
+  background: rgba(125, 111, 92, 0.08);
 }
 
 .photo-capture__btns {
