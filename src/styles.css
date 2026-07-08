@@ -21189,18 +21189,20 @@ body { background: #eef0ef; }
 .safe-code-numpad {
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, auto);
+  justify-content: center;
+  gap: clamp(10px, 3vw, 22px);
   padding-bottom: max(4px, var(--app-safe-bottom, 0px));
 }
 
 .safe-code-numpad-btn {
-  min-height: 56px;
+  width: clamp(64px, min(27vw, 13dvh), 140px);
+  height: clamp(64px, min(27vw, 13dvh), 140px);
   border: none;
-  border-radius: 14px;
+  border-radius: 18%;
   background: #eef0ef;
   color: #1c3634;
-  font-size: 1.3rem;
+  font-size: clamp(24px, min(10vw, 5dvh), 56px);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
