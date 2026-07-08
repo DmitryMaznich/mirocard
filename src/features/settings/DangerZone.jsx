@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
-import { getDb, kv } from "@/core/db";
+import { getDb } from "@/core/db";
 import { api } from "@/core/api";
+import { clearUserIdbData } from "@/core/bootstrap";
 import Button from "@/shared/components/Button";
 
 export default function DangerZone() {
@@ -22,8 +23,7 @@ export default function DangerZone() {
     try {
       await api.delete("/account");
       const db = await getDb();
-      await kv.del(db, "token");
-      await kv.del(db, "account");
+      await clearUserIdbData(db);
       logout();
     } catch (err) {
       setError(err.message || "Не удалось удалить аккаунт. Попробуйте ещё раз.");

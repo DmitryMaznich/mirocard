@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
-import { getDb, kv } from "@/core/db";
+import { getDb } from "@/core/db";
 import { api } from "@/core/api";
+import { clearUserIdbData } from "@/core/bootstrap";
 import PinGateModal from "@/shared/components/PinGateModal";
 import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
@@ -55,8 +56,7 @@ export default function SettingsScreen() {
       // Local logout should still proceed when the network request fails.
     }
     const db = await getDb();
-    await kv.del(db, "token");
-    await kv.del(db, "account");
+    await clearUserIdbData(db);
     logout();
   }
 

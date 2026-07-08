@@ -240,6 +240,18 @@ export async function loadLocalBootstrap(db) {
   });
 }
 
+// IDB keys that belong to a specific user account.
+// Clear all of these when switching accounts so data doesn't leak between users.
+const USER_IDB_KEYS = [
+  "token", "account", "accountId",
+  "students", "sessions", "studentTopicLinks", "conceptProgress",
+  "ownedTopics", "lastContext", "activeSession", "settings",
+];
+
+export async function clearUserIdbData(db) {
+  await Promise.all(USER_IDB_KEYS.map((key) => kv.del(db, key)));
+}
+
 export async function persistBootstrap(db, raw) {
   const bootstrap = normalizeBootstrap(raw);
   const writes = [];
