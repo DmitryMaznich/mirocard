@@ -10,6 +10,7 @@ import {
   needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS,
 } from './plannerUtils.js';
+import { GLOBAL_MAX_PORTIONS } from './recipeParser.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
 import { isDiscreteUnit } from './shoppingUnitConversions.js';
 import './planner.css';
@@ -180,7 +181,6 @@ function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect 
 // ─── Portions prompt (asked once, when a recipe is first added) ─────────────
 
 function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
-  const { maxPortions } = recipe;
   // Always starts at 1, regardless of the recipe's own base "portions"
   // (that field only anchors ingredient-quantity scaling — see
   // buildSelectedIngredientsSummary — it is not a suggested serving size).
@@ -204,8 +204,8 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
           <span className="portions-sheet__value">{portions} {pluralizePortions(portions)}</span>
           <button
             type="button"
-            disabled={portions >= maxPortions}
-            onClick={() => setPortions((p) => Math.min(maxPortions, p + 1))}
+            disabled={portions >= GLOBAL_MAX_PORTIONS}
+            onClick={() => setPortions((p) => Math.min(GLOBAL_MAX_PORTIONS, p + 1))}
             aria-label="Больше порций"
           >
             +
@@ -320,7 +320,7 @@ function MealSlotSection({ mealType, plan, allRecipes, onSetPortions, onDeselect
           {recipesHere.map((textId) => {
             const recipe = allRecipes.find((r) => r.text.id === textId);
             if (!recipe) return null;
-            const { fixedPortions, portions: basePortions, maxPortions } = recipe;
+            const { fixedPortions, portions: basePortions } = recipe;
             const chosenPortions = fixedPortions || plan.selectedPortions[textId] || basePortions || 1;
             return (
               <div key={textId} className="menu-pool__row">
@@ -343,8 +343,8 @@ function MealSlotSection({ mealType, plan, allRecipes, onSetPortions, onDeselect
                       <span className="menu-pool__stepper-value">{chosenPortions}</span>
                       <button
                         type="button"
-                        disabled={chosenPortions >= maxPortions}
-                        onClick={() => onSetPortions(textId, Math.min(maxPortions, chosenPortions + 1))}
+                        disabled={chosenPortions >= GLOBAL_MAX_PORTIONS}
+                        onClick={() => onSetPortions(textId, Math.min(GLOBAL_MAX_PORTIONS, chosenPortions + 1))}
                         aria-label="Больше порций"
                       >
                         +

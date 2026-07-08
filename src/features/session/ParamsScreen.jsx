@@ -18,6 +18,7 @@ import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
+import { GLOBAL_MAX_PORTIONS } from "@/features/planner/recipeParser.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 
@@ -29,7 +30,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const { markSessionStart } = useTimer();
   const fixedPortions = activeText.fixedPortions ?? null;
   const basePortions = activeText.portions ?? 1;
-  const maxPortions = activeText.maxPortions ?? 4;
+  const maxPortions = GLOBAL_MAX_PORTIONS;
   const [portions, setPortions] = useState(basePortions);
 
   useEffect(() => {
