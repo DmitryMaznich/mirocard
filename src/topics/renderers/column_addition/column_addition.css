@@ -488,10 +488,10 @@
 .col-copy-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
   flex: 1;
   overflow: hidden;
-  padding: 0 4px;
+  padding: 0;
 }
 
 .col-copy-expr-row {
