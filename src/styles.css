@@ -97,7 +97,7 @@ html.app-ios-standalone {
 .reading-title {
   width: 100%;
   max-width: 760px;
-  font-size: 1.95rem;
+  font-size: calc(1.95rem * var(--reading-fit-scale, 1));
   font-weight: 900;
   color: #1c3634;
   line-height: 1.15;
@@ -124,8 +124,8 @@ html.app-ios-standalone {
   margin: auto 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 18px;
+  gap: calc(12px * var(--reading-fit-scale, 1));
+  padding: calc(18px * var(--reading-fit-scale, 1));
   border-radius: 18px;
   background: transparent;
   border: none;
@@ -142,7 +142,7 @@ html.app-ios-standalone {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: calc(24px * var(--reading-fit-scale, 1));
   width: 100%;
   margin: 0;
 }
@@ -155,7 +155,7 @@ html.app-ios-standalone {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: calc(14px * var(--reading-fit-scale, 1));
 }
 
 .reading-content .reading-text {
@@ -164,7 +164,7 @@ html.app-ios-standalone {
 
 .reading-illustration {
   flex: 1 1 0;
-  min-height: 0;
+  min-height: 30vh;
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
@@ -242,12 +242,12 @@ html.app-ios-standalone {
 }
 
 .reading-line {
-  min-height: 42px;
+  min-height: calc(42px * var(--reading-fit-scale, 1));
   display: flex;
   align-items: center;
   justify-content: center;
   color: #1a2e2b;
-  font-size: 1.6rem;
+  font-size: calc(1.6rem * var(--reading-fit-scale, 1));
   font-weight: 800;
   line-height: 1.25;
   text-align: center;
@@ -1341,8 +1341,8 @@ html.app-ios-standalone {
   }
 
   .reading-line {
-    min-height: 54px;
-    font-size: 2.15rem;
+    min-height: calc(54px * var(--reading-fit-scale, 1));
+    font-size: calc(2.15rem * var(--reading-fit-scale, 1));
   }
 
   .reading-text--large .reading-line {
@@ -1356,7 +1356,7 @@ html.app-ios-standalone {
   }
 
   .reading-title {
-    font-size: 2.65rem;
+    font-size: calc(2.65rem * var(--reading-fit-scale, 1));
   }
 
   .reading-slot {

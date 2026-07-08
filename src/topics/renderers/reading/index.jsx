@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, Fragment } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, Fragment } from "react";
 import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
@@ -38,7 +38,7 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle
   );
 }
 
-function ReadingIllustration({ topicId, text }) {
+function ReadingIllustration({ topicId, text, illustrationRef }) {
   const cornerPhotos = text?.cornerPhotos;
   const leftEntry  = cornerPhotos?.find((p) => p.position === "bottom-left");
   const rightEntry = cornerPhotos?.find((p) => p.position === "bottom-right");
@@ -49,7 +49,7 @@ function ReadingIllustration({ topicId, text }) {
   if (cornerPhotos) {
     if (!leftUrl && !rightUrl) return null;
     return (
-      <div className="reading-illustration reading-illustration--corners">
+      <div className="reading-illustration reading-illustration--corners" ref={illustrationRef}>
         {leftUrl && (
           <div className="reading-corner-photo reading-corner-photo--bottom-left">
             <img src={leftUrl} alt="" draggable={false} />
@@ -71,10 +71,97 @@ function ReadingIllustration({ topicId, text }) {
   const hasRoundedCorners = text?.kind === "story" || text?.kind === "poem";
 
   return (
-    <div className={`reading-illustration${hasRoundedCorners ? " reading-illustration--book" : ""}`}>
+    <div className={`reading-illustration${hasRoundedCorners ? " reading-illustration--book" : ""}`} ref={illustrationRef}>
       <img src={url} alt="" draggable={false} />
     </div>
   );
+}
+
+// Shrinks the poem/story text (font-size, gaps) to fit the space left over
+// after the illustration claims its reserved height, so the whole text is
+// visible on one screen without scrolling on small devices. Falls back to
+// scrolling just the line list if even the minimum readable scale overflows.
+function useFitReadingText(active, deps) {
+  const bodyRef = useRef(null);
+  const wrapRef = useRef(null);
+  const contentRef = useRef(null);
+  const illustrationNodeRef = useRef(null);
+
+  const measure = useCallback(() => {
+    if (!active) return;
+    const body = bodyRef.current;
+    const wrap = wrapRef.current;
+    const content = contentRef.current;
+    if (!body || !wrap) return;
+
+    const GAP = 18; // .reading-body gap between the poem-wrap and the illustration
+    const MIN_SCALE = 0.55;
+
+    wrap.style.setProperty("--reading-fit-scale", "1");
+    if (content) {
+      content.style.maxHeight = "";
+      content.style.overflowY = "";
+      content.style.justifyContent = "";
+    }
+
+    const textEl = wrap.querySelector(".reading-text");
+    if (!textEl) return;
+
+    // .reading-content centers its child vertically — if that child overflows,
+    // the overflow is clipped symmetrically top-and-bottom (a known flexbox
+    // centering quirk) and scrollHeight on ancestors under-reports it. Measure
+    // the text block's own true rendered position instead, which is reliable
+    // regardless of that clipping.
+    function requiredHeight() {
+      return textEl.getBoundingClientRect().bottom - wrap.getBoundingClientRect().top;
+    }
+
+    const bodyStyle = getComputedStyle(body);
+    const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
+    const bodyHeight = body.getBoundingClientRect().height;
+    const illuHeight = illustrationNodeRef.current?.getBoundingClientRect().height ?? 0;
+    const available = Math.max(0, bodyHeight - paddingV - illuHeight - GAP);
+
+    let current = 1;
+    let required = requiredHeight();
+    let iterations = 0;
+    while (required > available && current > MIN_SCALE && iterations < 8) {
+      current = Math.max(MIN_SCALE, current * (available / required) * 0.97);
+      wrap.style.setProperty("--reading-fit-scale", String(current));
+      required = requiredHeight();
+      iterations += 1;
+    }
+
+    if (required > available + 1 && content) {
+      const textHeight = textEl.getBoundingClientRect().height;
+      const chromeHeight = Math.max(0, required - textHeight);
+      content.style.maxHeight = `${Math.max(0, available - chromeHeight)}px`;
+      content.style.overflowY = "auto";
+      // Overflow must scroll top-to-bottom, not clip symmetrically around a
+      // centered child — the child needs to start at the top to be scrollable.
+      content.style.justifyContent = "flex-start";
+    }
+  }, [active]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(measure, [measure, ...deps]);
+
+  useEffect(() => {
+    if (!active) return undefined;
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, [active, measure]);
+
+  const illustrationRef = useCallback((node) => {
+    illustrationNodeRef.current = node;
+    measure();
+  }, [measure]);
+
+  return { bodyRef, wrapRef, contentRef, illustrationRef };
 }
 
 function ReadingCloseButton({ onClose }) {
@@ -95,6 +182,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
   const isPool = task.text?.kind === "sentence_pool";
   const bookStyle = task.text?.kind === "story";
   const showCloseButton = task.text?.kind === "story" || task.text?.kind === "poem";
+  const fit = useFitReadingText(showCloseButton && layout === "full", [task.text?.id, textStyle, lines.length]);
 
   if (layout === "line") {
     return (
@@ -133,16 +221,21 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
   }
 
   return (
-    <div className="session-body reading-body" style={isPool ? { justifyContent: "center" } : undefined} onClick={showCloseButton ? undefined : onAdvance}>
+    <div
+      className="session-body reading-body"
+      ref={fit.bodyRef}
+      style={isPool ? { justifyContent: "center" } : undefined}
+      onClick={showCloseButton ? undefined : onAdvance}
+    >
       {showCloseButton && <ReadingCloseButton onClose={onClose} />}
-      <div className="reading-poem-wrap">
+      <div className="reading-poem-wrap" ref={fit.wrapRef}>
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
-        <div className="reading-content">
+        <div className="reading-content" ref={fit.contentRef}>
           <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} />
         </div>
       </div>
-      <ReadingIllustration topicId={topicId} text={task.text} />
+      <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
     </div>
   );
 }
