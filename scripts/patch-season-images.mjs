@@ -17,9 +17,9 @@ const DECKS_DIR = path.join(ROOT, "public/decks");
 const SEASON_DIR = path.join(__dirname, "season_output");
 const CATALOG_PATH = path.join(DECKS_DIR, "catalog.json");
 
-const SOURCE_ZIP = "word_formation_soup_v1.0.26.zip";
-const TARGET_ZIP = "word_formation_soup_v1.0.27.zip";
-const NEW_VERSION = "1.0.27";
+const SOURCE_ZIP = "word_formation_soup_v1.0.27.zip";
+const TARGET_ZIP = "word_formation_soup_v1.0.28.zip";
+const NEW_VERSION = "1.0.28";
 
 const SEASON_FILES = ["autumn", "winter", "spring", "summer"].map((s) => ({
   zipPath: `media/season_${s}.webp`,

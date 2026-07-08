@@ -17,57 +17,63 @@ const API_KEY = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
 
 const STYLE =
   "vibrant children's book flat illustration, bold highly saturated colors, " +
-  "thick clean outlines, simple charming shapes, playful kawaii style, " +
-  "no photorealism, no gradients on background, no text, no watermarks, " +
-  "square 1:1 composition, centered composition";
+  "thick clean outlines, simple geometric shapes, no photorealism, " +
+  "no gradients on background, no text, no watermarks, " +
+  "NO animals, NO people, NO characters, NO snowman, NO birds, NO squirrels, " +
+  "focus on landscape and environment only, " +
+  "square 1:1 composition";
 
 const SEASONS = [
   {
     name: "autumn",
     prompt:
-      `${STYLE}, warm rich autumn forest scene, ` +
-      "deep orange and burgundy maple trees with falling leaves, " +
-      "cute cartoon squirrel holding an acorn, orange pumpkins on the ground, " +
-      "golden sunlight filtering through colorful canopy, bright blue sky, " +
-      "saturated warm palette: deep orange #E8610A, burgundy #8B2500, gold #F0A500, " +
-      "rich green #4A7A1A, vibrant and cozy atmosphere",
+      `${STYLE}, autumn forest landscape, ` +
+      "tall maple trees with bright orange red yellow crowns filling the frame, " +
+      "carpet of fallen colourful leaves covering the ground, " +
+      "golden light streaming between trunks, blue sky visible through canopy, " +
+      "a few orange pumpkins on the ground in the distance, " +
+      "rich warm palette: deep orange #E8610A, burgundy #8B2500, gold #F0A500, " +
+      "dark trunks #4A2800, patch of blue sky #5BB8F0, " +
+      "NO animals, NO people, NO characters, lush and cosy autumn atmosphere",
   },
   {
     name: "winter",
     prompt:
-      `${STYLE}, magical winter snow scene, ` +
-      "big fluffy snowflakes falling from a deep blue starry sky, " +
-      "round cute snowman with orange carrot nose and red scarf, " +
-      "snow-covered pine trees sparkling with gold stars, " +
-      "warm glowing windows of a little house in the background, " +
-      "saturated blue and white palette with warm gold and red accents: " +
-      "deep sky blue #1A4A8A, bright white snow, warm gold #FFD700, " +
-      "festive red #D42B2B, magical and cozy atmosphere",
+      `${STYLE}, winter snowy landscape, ` +
+      "snow-covered pine and fir trees in a quiet forest, " +
+      "large fluffy snowflakes drifting down from a deep blue night sky, " +
+      "white snow drifts with smooth rounded shapes, " +
+      "a small cosy house with glowing yellow windows far in the background, " +
+      "icicles hanging from branches, " +
+      "saturated palette: deep navy #0A1A4A, bright white snow, " +
+      "teal-blue fir trees #1A6A5A, warm yellow window glow #FFD000, " +
+      "NO snowman, NO animals, NO people, peaceful magical winter night",
   },
   {
     name: "spring",
     prompt:
-      `${STYLE}, cheerful spring garden scene, ` +
-      "bright pink cherry blossom trees in full bloom with petals flying, " +
-      "a pair of cute cartoon blue birds on a branch, " +
-      "colorful tulips and daisies in vivid red yellow purple on bright green grass, " +
-      "fluffy white clouds on a vibrant turquoise sky, " +
-      "saturated spring palette: hot pink #FF5BA8, vivid green #3DB827, " +
-      "bright turquoise sky #1ED8C8, red tulips #F02020, " +
-      "joyful and energetic atmosphere",
+      `${STYLE}, spring garden and orchard landscape, ` +
+      "cherry blossom trees in full bloom with vivid hot-pink flowers, " +
+      "pink petals falling through the air, " +
+      "bright green meadow with patches of red and yellow tulips, " +
+      "fluffy white clouds on a clear turquoise sky, " +
+      "a winding stone path leading into the blossoming orchard, " +
+      "saturated spring palette: hot pink #FF3D8A, vivid green #2EC820, " +
+      "turquoise sky #00D4CC, red tulips #F01010, yellow tulips #FFE000, " +
+      "NO animals, NO people, NO birds, joyful blooming spring landscape",
   },
   {
     name: "summer",
     prompt:
-      `${STYLE}, bright sunny summer meadow scene, ` +
-      "big smiling cartoon sun with rays in vivid golden yellow, " +
-      "tall lush green sunflowers with happy faces, " +
-      "rolling green hills with colorful wildflowers, butterflies, " +
-      "a small pond reflecting the blue sky, " +
-      "saturated summer palette: vivid yellow #FFD600, " +
-      "deep leafy green #2E9E0A, sky blue #1E9FFF, " +
-      "orange sunflower center #E06400, " +
-      "warm energetic summer feeling",
+      `${STYLE}, bright summer meadow landscape, ` +
+      "vast rolling green hills covered with wild flowers and sunflowers, " +
+      "blazing yellow sun high in a vivid blue sky, " +
+      "fluffy white cumulus clouds, " +
+      "a small sparkling blue lake or river in the middle distance, " +
+      "tall green grass and dandelions in the foreground, " +
+      "saturated summer palette: sky blue #1AB0FF, vivid green #20C010, " +
+      "sunflower yellow #FFD800, white clouds, " +
+      "NO people, NO animals, NO characters, open joyful summer landscape",
   },
 ];
 
