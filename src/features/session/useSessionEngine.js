@@ -87,8 +87,15 @@ function buildGeneratedSessionState({
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
     const selectedCards = shuffle(topicRecord.cards.filter((card) => selectedConceptIds.includes(card.conceptId)));
+    // When a mode defines a category param, category filter is authoritative — pass all cards
+    // so filterByCategory inside generateTasks can include cards from any selected category,
+    // not just those that happened to be in selectedConceptIds from a prior concept-picker save.
+    const modeHasCategoryParam = !!mode?.params?.category;
+    const cardsForEngine = modeHasCategoryParam
+      ? topicRecord.cards
+      : (selectedCards.length ? selectedCards : topicRecord.cards);
     tasks = generateTasks
-      ? generateTasks(mode, selectedCards.length ? selectedCards : topicRecord.cards, sessionSize, sessionParams)
+      ? generateTasks(mode, cardsForEngine, sessionSize, sessionParams)
       : [];
     // If the concept filter excluded cards required for this mode (e.g. only finger cards
     // selected but mode needs arithmetic cards), fall back to all cards so the session starts.
