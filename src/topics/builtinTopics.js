@@ -1,3 +1,5 @@
+import { buildRecipesTopicRecord } from "./builtinRecipesTopic.js";
+
 export const BUILTIN_TOPICS = [
   {
     meta: {
@@ -35,6 +37,7 @@ export const BUILTIN_TOPICS = [
     cards: [{ id: "streak_task", conceptId: "streak_task", primary: true }],
     installedAt: "builtin",
   },
+  buildRecipesTopicRecord(),
 ];
 
 export const BUILTIN_TOPIC_IDS = new Set(BUILTIN_TOPICS.map((t) => t.meta.id));

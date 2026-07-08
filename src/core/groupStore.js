@@ -1,6 +1,7 @@
 import { getDb, kv, topics } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import { api } from "@/core/api";
+import { RECIPES_TOPIC_ID, getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic";
 
 const groupKey     = (topicId) => `group_${topicId}`;
 const settingsKey  = (topicId) => `recipe_settings_${topicId}`;
@@ -58,8 +59,11 @@ export async function saveRecipeOverrideForMode(topicId, textId, mode, rawText) 
   pushOp("kv.upsert", { key, value: rawText }).catch(() => {});
 }
 
-/** Load raw recipe .txt from ZIP store (topics IndexedDB). */
+/** Load raw recipe .txt — from the bundled recipe library, or from ZIP store (topics IndexedDB) for any other reading topic. */
 export async function getRawRecipeTxt(topicId, filePath) {
+  if (topicId === RECIPES_TOPIC_ID) {
+    return getBuiltinRecipeRawText(filePath);
+  }
   const db = await getDb();
   const blob = await topics.getFile(db, topicId, filePath);
   if (!blob) return null;
