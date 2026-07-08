@@ -73,6 +73,8 @@ async function main() {
   }
   entry.version = NEW_VERSION;
   entry.file = TARGET_ZIP;
+  entry.url = `./decks/${TARGET_ZIP}`;
+  entry.zipUrl = TARGET_ZIP;
   fs.writeFileSync(CATALOG_PATH, JSON.stringify(catalog, null, 2) + "\n", "utf8");
   console.log(`Updated catalog.json → ${TARGET_ZIP} v${NEW_VERSION}`);
 }
