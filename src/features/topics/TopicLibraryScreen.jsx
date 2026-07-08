@@ -91,14 +91,20 @@ function PreviewChip({ entry, onInstall, disabled, isUpdate }) {
   );
 }
 
-function CatalogPreview({ catalog, topicRecords, onInstall, onOpenCatalog, disabled }) {
+function CatalogPreview({ catalog, topicRecords, ownedTopicIds, account, onInstall, onOpenCatalog, disabled }) {
   if (!catalog) return null;
 
-  const updates = catalog.decks.filter((e) => {
+  const accessibleDecks = catalog.decks.filter((e) => {
+    if (!account) return true;
+    const access = e.access ?? "free";
+    return access === "free" || ownedTopicIds.has(e.id);
+  });
+
+  const updates = accessibleDecks.filter((e) => {
     const installed = topicRecords.find((r) => r.meta.id === e.id);
     return installed && installed.meta.version !== e.version;
   });
-  const newTopics = catalog.decks
+  const newTopics = accessibleDecks
     .filter((e) => !topicRecords.find((r) => r.meta.id === e.id))
     .slice(0, 3);
 
@@ -157,6 +163,8 @@ export default function TopicLibraryScreen() {
   const activeTopicId     = useAppStore((s) => s.activeTopicId);
   const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
+  const ownedTopics       = useAppStore((s) => s.ownedTopics);
+  const account           = useAppStore((s) => s.account);
 
 
   const [catalog,           setCatalog]           = useState(null);
@@ -192,8 +200,15 @@ export default function TopicLibraryScreen() {
     setDeleting(null);
   }
 
-  const activeRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
-  const otherRecords = topicRecords.filter((r) => r.meta.id !== activeTopicId);
+  // When logged in, only expose topics the user owns (or builtin ones).
+  // In local/offline mode show all installed topics.
+  const ownedTopicIds = new Set((ownedTopics ?? []).map((o) => o.topicId));
+  const visibleRecords = account
+    ? topicRecords.filter((r) => r.meta.builtin || ownedTopicIds.has(r.meta.id))
+    : topicRecords;
+
+  const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
+  const otherRecords = visibleRecords.filter((r) => r.meta.id !== activeTopicId);
 
   return (
     <div className="screen">
@@ -235,7 +250,9 @@ export default function TopicLibraryScreen() {
         {/* Zone 3: Catalog preview */}
         <CatalogPreview
           catalog={catalog}
-          topicRecords={topicRecords}
+          topicRecords={visibleRecords}
+          ownedTopicIds={ownedTopicIds}
+          account={account}
           onInstall={installCatalogEntry}
           onOpenCatalog={() => setScreen("catalog")}
           disabled={false}

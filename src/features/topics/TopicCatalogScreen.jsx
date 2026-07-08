@@ -128,6 +128,7 @@ export default function TopicCatalogScreen() {
   const upsertTopicRecord = useAppStore((s) => s.upsertTopicRecord);
   const upsertOwnedTopic  = useAppStore((s) => s.upsertOwnedTopic);
   const ownedTopics       = useAppStore((s) => s.ownedTopics);
+  const account           = useAppStore((s) => s.account);
   const buildInfo         = useAppStore((s) => s.buildInfo);
 
   const [catalog,         setCatalog]         = useState(null);
@@ -206,12 +207,26 @@ export default function TopicCatalogScreen() {
 
   const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
 
+  // When logged in, only show topics the user has access to:
+  //   • free topics are visible to everyone
+  //   • paid topics are visible only if the admin granted them (source != "request")
+  // In local/offline mode (no account) show everything.
+  function isAccessible(entry) {
+    if (!account) return true;
+    const access = entry.access ?? "free";
+    if (access === "free") return true;
+    const owned = ownedById[entry.id];
+    return owned != null && owned.source !== "request";
+  }
+
+  const visibleDecks = catalog ? catalog.decks.filter(isAccessible) : [];
+
   const grouped = catalog
     ? CATEGORY_ORDER
-        .map((cat) => ({ label: cat, entries: catalog.decks.filter((e) => CATALOG_CATEGORIES[e.id] === cat) }))
+        .map((cat) => ({ label: cat, entries: visibleDecks.filter((e) => CATALOG_CATEGORIES[e.id] === cat) }))
         .filter((g) => g.entries.length > 0)
     : [];
-  const uncategorized = catalog ? catalog.decks.filter((e) => !CATALOG_CATEGORIES[e.id]) : [];
+  const uncategorized = catalog ? visibleDecks.filter((e) => !CATALOG_CATEGORIES[e.id]) : [];
 
   function renderEntry(entry) {
     return (
