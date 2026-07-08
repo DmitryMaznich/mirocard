@@ -71,6 +71,9 @@ export async function clearActiveSessionSnapshot(db) {
 // topic and text still exist in the current topicRecords before trusting it.
 export function canResumeActiveSession(activeSession, topicRecords) {
   if (!activeSession?.sessionState) return false;
+  // Recipe cooking (follow_instruction) must never auto-resume — always
+  // started intentionally from the planner, not on any app restart.
+  if (activeSession.context?.modeId === "follow_instruction") return false;
   const { topicId, textId } = activeSession.context;
   const record = (topicRecords ?? []).find((r) => r.meta?.id === topicId);
   if (!record) return false;
