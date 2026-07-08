@@ -46,6 +46,21 @@
       "access": "free"
     },
     {
+      "id": "reading_dad_instructions",
+      "version": "1.0.5",
+      "title": {
+        "ru": "Чтение. Инструкции",
+        "en": "Reading: Instructions"
+      },
+      "description": {
+        "ru": "Читаем предложение и выполняем задание. Каждый день — новый набор из 10 предложений.",
+        "en": "Read the sentence and follow the instruction. A new set of 10 sentences every day."
+      },
+      "url": "./decks/reading_dad_instructions_v1.0.5.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
       "id": "emotions_v2",
       "version": "1.2.0",
       "title": {
@@ -224,6 +239,119 @@
         "en": "Sounds and Letters"
       },
       "renderer": "phonetic_analysis"
+    },
+    {
+      "id": "written_letters",
+      "version": "1.0.4",
+      "title": {
+        "ru": "Письменные буквы",
+        "en": "Written Letters"
+      },
+      "description": {
+        "ru": "33 буквы русского алфавита в рукописном написании. Четыре режима: строчная/заглавная, найди рукописную, найди печатную, найди пару.",
+        "en": "33 Russian alphabet letters in cursive. Four modes: uppercase/lowercase sort, find cursive, find print, find the pair."
+      },
+      "url": "./decks/written_letters_v1.0.4.zip",
+      "zipUrl": "written_letters_v1.0.4.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "letter_writing",
+      "version": "1.1.0",
+      "title": {
+        "ru": "Написание букв",
+        "en": "Letter Writing"
+      },
+      "description": {
+        "ru": "33 заглавных буквы русского алфавита. Рабочий лист: буквы на линейке, нажми — увидишь анимацию по штрихам.",
+        "en": "33 uppercase Russian letters. Worksheet: letters on lined paper, tap to see stroke-by-stroke animation."
+      },
+      "url": "./decks/letter_writing_v1.1.0.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "vowel_consonant_ru",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Гласные и согласные",
+        "en": "Vowels and Consonants"
+      },
+      "description": {
+        "ru": "31 буква русского алфавита. Перетащи каждую букву в группу гласных или согласных.",
+        "en": "31 Russian letters. Drag each letter into the vowel or consonant group."
+      },
+      "url": "./decks/vowel_consonant_ru_v1.0.0.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "magnetic_alphabet",
+      "version": "1.7.1",
+      "title": {
+        "ru": "Магнитная азбука",
+        "en": "Magnetic Alphabet"
+      },
+      "description": {
+        "ru": "33 буквы русского алфавита на магнитной доске. Составляй слова и предложения из букв. Гласные — красные, согласные — синие.",
+        "en": "33 Russian letters on a magnetic board. Build words and sentences by dragging letters. Vowels in red, consonants in blue."
+      },
+      "url": "./decks/magnetic_alphabet_v1.7.1.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "coffee",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Приготовление кофе",
+        "en": "Coffee Making"
+      },
+      "description": {
+        "ru": "27 карточек в трёх сетах: Способы приготовления, Оборудование и инвентарь, Детали машины Vetrano 2B.",
+        "en": "27 cards in three sets: Brewing Methods, Equipment and Tools, Vetrano 2B Machine Parts."
+      },
+      "url": "./decks/coffee_v1.0.0.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "opposites",
+      "version": "2.5.1",
+      "title": {
+        "ru": "Противоположности"
+      },
+      "description": {
+        "ru": "9 пар признаков: большой/маленький, высокий/низкий, длинный/короткий, широкий/узкий, полный/пустой, чистый/грязный, горячий/холодный, новый/старый, мокрый/сухой. 6 режимов: знакомство, сравнение, выбор, сортировка, найди все, найди неприятеля."
+      },
+      "url": "./decks/opposites_v2.5.1.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "first_then",
+      "version": "1.1.9",
+      "title": {
+        "ru": "Сначала — потом"
+      },
+      "url": "./decks/first_then_v1.1.9.zip",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "phrase_match_pilot",
+      "version": "2.1.0",
+      "renderer": "phrase_match",
+      "url": "./decks/phrase_match_pilot_v2.1.0.zip",
+      "title": {
+        "ru": "Точное чтение"
+      },
+      "description": {
+        "ru": "8 групп на глагольные приставки. Перетащи ответ к нужному вопросу."
+      },
+      "status": "release",
+      "access": "free"
     }
   ]
 }
