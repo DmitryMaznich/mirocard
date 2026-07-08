@@ -21,14 +21,18 @@ function BgImage({ topicId, path }) {
     : <div className="wf-season__bg wf-season__bg--empty" />;
 }
 
-function Chip({ item }) {
+function Chip({ item, topicId }) {
   const { stem, ending, noun } = splitAdjPhrase(item.adjPhrase);
+  const imgUrl = useTopicFile(topicId, item.image ?? "");
   return (
-    <div className="wf-season__chip">
-      <span className="wf-season__chip-adj">
-        {stem}<span className="wf-season__chip-ending">{ending}</span>
-      </span>
-      {noun && <span className="wf-season__chip-noun">{noun}</span>}
+    <div className={`wf-season__chip${imgUrl ? " wf-season__chip--img" : ""}`}>
+      {imgUrl && <img className="wf-season__chip-img" src={imgUrl} alt="" draggable={false} />}
+      <div className="wf-season__chip-text">
+        <span className="wf-season__chip-adj">
+          {stem}<span className="wf-season__chip-ending">{ending}</span>
+        </span>
+        {noun && <span className="wf-season__chip-noun">{noun}</span>}
+      </div>
     </div>
   );
 }
@@ -48,7 +52,7 @@ export default function SeasonIntroTask({ task, topicId, onAdvance }) {
         {[0, 2, 4].map(start => (
           <div key={start} className="wf-season__row">
             {items.slice(start, start + 2).map(item => (
-              <Chip key={item.id} item={item} />
+              <Chip key={item.id} item={item} topicId={topicId} />
             ))}
           </div>
         ))}
