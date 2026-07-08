@@ -543,6 +543,40 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   );
 }
 
+// ── Copy mode numpad (5+5+controls) ──────────────────────────────────────────
+
+function CopyKeyboard({ cellSize, onDigit, onDelete, onRefresh }) {
+  const bs        = cellSize;
+  const bsStr     = bs + "px";
+  const digitFS   = Math.round(bs * 0.72) + "px";
+  const iconFS    = Math.round(bs * 0.55) + "px";
+  const digitStyle = { width: bsStr, height: bsStr, fontSize: digitFS };
+  const ctrlH     = { height: bsStr, fontSize: iconFS };
+
+  return (
+    <div className="col-tap-kb">
+      <div className="col-tap-row">
+        {[1, 2, 3, 4, 5].map((d) => (
+          <button key={d} className="col-tap-btn" style={digitStyle} onClick={() => onDigit(d)}>
+            <span className="col-slant">{d}</span>
+          </button>
+        ))}
+      </div>
+      <div className="col-tap-row">
+        {[6, 7, 8, 9, 0].map((d) => (
+          <button key={d} className="col-tap-btn" style={digitStyle} onClick={() => onDigit(d)}>
+            <span className="col-slant">{d}</span>
+          </button>
+        ))}
+      </div>
+      <div className="col-tap-row">
+        <button className="col-tap-btn col-copy-kb-del"     style={{ ...ctrlH, flex: 3 }} onClick={onDelete}>⌫</button>
+        <button className="col-tap-btn col-copy-kb-refresh" style={{ ...ctrlH, flex: 2 }} onClick={onRefresh}>↻</button>
+      </div>
+    </div>
+  );
+}
+
 // ── Copy mode (column_copy) ───────────────────────────────────────────────────
 
 function ColumnCopyView({ sessionParams, onCorrect, student }) {
@@ -555,29 +589,52 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
   const listRef   = useRef(null);
   const activeRef = useRef(null);
 
-  const [examples,    setExamples]    = useState(() => generateExamples(count, { operation, carryMode, digits }));
-  const [activeIdx,   setActiveIdx]   = useState(0);
-  const [solved,      setSolved]      = useState({});
-  const [input,       setInput]       = useState([]);
-  const [shake,       setShake]       = useState(false);
-  const [showReward,  setShowReward]  = useState(false);
+  const [examples,   setExamples]   = useState(() => generateExamples(count, { operation, carryMode, digits }));
+  const [activeIdx,  setActiveIdx]  = useState(0);
+  const [solved,     setSolved]     = useState({});
+  const [input,      setInput]      = useState([]);
+  const [shake,      setShake]      = useState(false);
+  const [showReward, setShowReward] = useState(false);
+  const [cellSize,   setCellSize]   = useState(44);
 
-  // Align background grid with first cell left edge
+  // Adaptive sizing: fit expression width AND all rows within screen height
+  useLayoutEffect(() => {
+    const ROW_GAP = 4;
+    function compute() {
+      if (!screenRef.current) return;
+      const w = screenRef.current.clientWidth;
+      const h = screenRef.current.clientHeight;
+      // Expression: top_digits + sign + bottom_digits + eq + (digits+1 result digits)
+      const exprCols = 3 * digits + 3;
+      const cs_w = Math.min(52, Math.max(20, Math.floor((w - 32) / exprCols)));
+      // Height: count example rows + keyboard (3 rows) + overhead (padding, gaps, margins ~80px)
+      const cs_h = Math.floor((h - 80 - (count - 1) * ROW_GAP) / (count + 3));
+      setCellSize(Math.min(cs_w, Math.max(20, cs_h)));
+    }
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [digits, count]);
+
+  // Background grid alignment
   useLayoutEffect(() => {
     const screen = screenRef.current;
     const list   = listRef.current;
     if (!screen || !list) return;
+    const cs = cellSize;
+    screen.style.backgroundSize = `${cs}px ${cs}px`;
     const sr = screen.getBoundingClientRect();
     const lr = list.getBoundingClientRect();
-    screen.style.backgroundPosition = `${(lr.left - sr.left) % 44}px ${(lr.top - sr.top) % 44}px`;
-  }, [examples]);
+    const offX = ((lr.left - sr.left) % cs + cs) % cs;
+    const offY = ((lr.top  - sr.top)  % cs + cs) % cs;
+    screen.style.backgroundPosition = `${offX}px ${offY}px`;
+  }, [cellSize, examples]);
 
-  // Scroll active row into view when it changes
   useEffect(() => {
     activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [activeIdx]);
 
-  const activeEx = examples[activeIdx] ?? null;
+  const activeEx      = examples[activeIdx] ?? null;
   const correctResult = activeEx
     ? (activeEx.operation === "add" ? activeEx.top + activeEx.bottom : activeEx.top - activeEx.bottom)
     : null;
@@ -587,7 +644,6 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
     if (!activeEx || shake) return;
     const next = [...input, String(d)];
     if (next.length < resultStr.length) { setInput(next); return; }
-    // Last digit — auto-check
     if (Number(next.join("")) === correctResult) {
       setSolved(prev => ({ ...prev, [activeIdx]: true }));
       setInput([]);
@@ -616,41 +672,47 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
     setShowReward(false);
   }
 
+  const cs      = cellSize;
+  const csStr   = cs + "px";
+  const pt      = Math.round(cs * 0.5) + "px";
+  const fs      = Math.round(cs * 1.14) + "px";
+  const cellSty = { width: csStr, height: csStr, paddingTop: pt, fontSize: fs };
+
   return (
     <div className="col-screen col-copy-screen" ref={screenRef}>
       <div className="col-copy-list" ref={listRef}>
         {examples.map((ex, i) => {
-          const res    = ex.operation === "add" ? ex.top + ex.bottom : ex.top - ex.bottom;
-          const resStr = String(res);
-          const sign   = ex.operation === "add" ? "+" : "−";
-          const isActive  = i === activeIdx;
-          const isSolved  = !!solved[i];
+          const res      = ex.operation === "add" ? ex.top + ex.bottom : ex.top - ex.bottom;
+          const resStr   = String(res);
+          const sign     = ex.operation === "add" ? "+" : "−";
+          const isActive = i === activeIdx;
+          const isSolved = !!solved[i];
 
           return (
             <div key={i} ref={isActive ? activeRef : null} className="col-copy-expr-row">
               {String(ex.top).split("").map((ch, j) => (
-                <span key={j} className="col-expr-cell"><span className="col-slant">{ch}</span></span>
+                <span key={j} className="col-expr-cell" style={cellSty}><span className="col-slant">{ch}</span></span>
               ))}
-              <span className="col-expr-cell col-expr-sign"><span className="col-slant">{sign}</span></span>
+              <span className="col-expr-cell col-expr-sign" style={cellSty}><span className="col-slant">{sign}</span></span>
               {String(ex.bottom).split("").map((ch, j) => (
-                <span key={`b${j}`} className="col-expr-cell"><span className="col-slant">{ch}</span></span>
+                <span key={`b${j}`} className="col-expr-cell" style={cellSty}><span className="col-slant">{ch}</span></span>
               ))}
-              <span className="col-expr-cell col-expr-eq"><span className="col-slant">=</span></span>
+              <span className="col-expr-cell col-expr-eq" style={cellSty}><span className="col-slant">=</span></span>
               {isSolved ? (
                 resStr.split("").map((ch, j) => (
-                  <span key={`r${j}`} className="col-expr-cell col-copy-cell-ok">
+                  <span key={`r${j}`} className="col-expr-cell col-copy-cell-ok" style={cellSty}>
                     <span className="col-slant">{ch}</span>
                   </span>
                 ))
               ) : isActive ? (
                 resStr.split("").map((_, j) => (
-                  <span key={`inp${j}`} className={`col-expr-cell col-copy-cell-input${shake ? " col-copy-cell-shake" : ""}`}>
+                  <span key={`inp${j}`} className={`col-expr-cell col-copy-cell-input${shake ? " col-copy-cell-shake" : ""}`} style={cellSty}>
                     {input[j] != null ? <span className="col-slant">{input[j]}</span> : null}
                   </span>
                 ))
               ) : (
                 resStr.split("").map((_, j) => (
-                  <span key={`w${j}`} className="col-expr-cell col-copy-cell-wait" />
+                  <span key={`w${j}`} className="col-expr-cell col-copy-cell-wait" style={cellSty} />
                 ))
               )}
             </div>
@@ -666,18 +728,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
         />
       )}
 
-      <div className="col-copy-keyboard">
-        {[1,2,3,4,5,6,7,8,9].map(d => (
-          <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
-            <span className="col-slant">{d}</span>
-          </button>
-        ))}
-        <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
-        <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
-          <span className="col-slant">0</span>
-        </button>
-        <button className="col-copy-kb-btn col-copy-kb-refresh" onClick={refresh}>↻</button>
-      </div>
+      <CopyKeyboard cellSize={cellSize} onDigit={handleDigit} onDelete={handleDelete} onRefresh={refresh} />
     </div>
   );
 }
