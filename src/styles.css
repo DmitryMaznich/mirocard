@@ -21084,12 +21084,14 @@ body { background: #eef0ef; }
   flex-direction: column;
   gap: 16px;
   padding: 16px;
+  overflow-y: auto;
 }
 
 .safe-code-header {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 25dvh;
 }
 
 .safe-code-progress {
@@ -21156,16 +21158,8 @@ body { background: #eef0ef; }
   text-align: center;
 }
 
-.safe-code-step-label {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #6b7a7a;
-}
-
 .safe-code-instruction-text {
-  font-size: 1.55rem;
+  font-size: 3.1rem;
   font-weight: 800;
   line-height: 1.28;
   color: #1c3634;
