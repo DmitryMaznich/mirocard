@@ -124,6 +124,14 @@ function TrashIcon() {
   );
 }
 
+function SendIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M2 8.4 13.5 3l-3.8 11-2.4-4.6L2 8.4Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect }) {
   const { topicId, text, ingredients, status } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
@@ -441,15 +449,36 @@ function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRe
   // no silent defaults, and nothing to buy if the pool is empty.
   const ingredientItems = buildSelectedIngredientsSummary(plan, allRecipes);
   const allDecided = isMenuFullyDecided(plan, allRecipes);
+  const filledMealsCount = MEAL_TYPES.filter((mealType) =>
+    plan.selectedRecipes.some((textId) => plan.mealAssignments[textId] === mealType)
+  ).length;
+  const hasSelection = plan.selectedRecipes.length > 0;
 
   return (
     <div className="screen planner-screen">
       <div className="planner-header">
         <button className="planner-header__back" onClick={onBack}><BackArrowIcon size={22} /></button>
-        <h1 className="planner-header__title">Меню</h1>
+        <div className="planner-header__titlegroup">
+          <h1 className="planner-header__title">Меню</h1>
+          <span className="planner-header__subtitle">{filledMealsCount} из {MEAL_TYPES.length} приёмов выбрано</span>
+        </div>
+        {hasSelection && (
+          <button
+            type="button"
+            className={`planner-header-send-btn${sent ? ' planner-header-send-btn--sent' : ''}`}
+            onClick={handleSend}
+            disabled={sending || sent}
+            aria-label={sent ? 'Меню отправлено ученику' : 'Отправить меню ученику'}
+            title={sent ? 'Отправлено ученику' : 'Отправить меню ученику'}
+          >
+            {sent ? '✓' : sending ? '…' : <SendIcon />}
+          </button>
+        )}
       </div>
 
       <div className="planner-body">
+        {sendError && <div className="menu-send-error">{sendError}</div>}
+        {sent && <div className="menu-send-confirm">✓ Меню отправлено ученику</div>}
         {MEAL_TYPES.map((mealType) => (
           <MealSlotSection
             key={mealType}
@@ -467,14 +496,6 @@ function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRe
           allRecipes={allRecipes}
           onSetDecision={onSetIngredientDecision}
         />
-        {sendError && <div className="menu-send-error">{sendError}</div>}
-        {sent ? (
-          <div className="menu-send-link menu-send-link--sent">✓ Отправлено ученику</div>
-        ) : (
-          <button type="button" className="menu-send-link" disabled={sending} onClick={handleSend}>
-            {sending ? 'Отправляем…' : 'Отправить меню ученику ↗'}
-          </button>
-        )}
       </div>
 
       <div className="planner-footer">

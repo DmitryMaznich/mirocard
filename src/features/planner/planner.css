@@ -44,6 +44,54 @@
   color: #263131;
 }
 
+/* Меню header: title + at-a-glance "N of 4 meals filled" status, so the
+   tutor doesn't have to scroll all 4 slots to see progress. */
+.planner-header__titlegroup {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.planner-header__subtitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #4a9b8f;
+  font-variant-numeric: tabular-nums;
+}
+
+.planner-header-send-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(74, 155, 143, 0.12);
+  color: #2f5b57;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.planner-header-send-btn:active:not(:disabled) {
+  background: rgba(74, 155, 143, 0.22);
+}
+
+.planner-header-send-btn:disabled {
+  cursor: default;
+}
+
+.planner-header-send-btn--sent {
+  background: rgba(74, 155, 143, 0.2);
+  color: #2a7a5a;
+}
+
 /* Trailing action row in .planner-header (e.g. Покупки's store/history/
    print/clear/edit/regenerate icons) — sits in the same header bar as the
    back arrow and title instead of a second header-styled row underneath. */
@@ -615,37 +663,20 @@
   font-family: inherit;
 }
 
-/* ── Меню: send to student (minimized — see PlannerMenuScreen.jsx) ── */
-.menu-send-link {
-  background: none;
-  border: none;
-  padding: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #a8978a;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  cursor: pointer;
-  font-family: inherit;
-  align-self: center;
-}
-
-.menu-send-link:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.menu-send-link--sent {
-  color: #2a7a5a;
-  text-decoration: none;
-  cursor: default;
-}
-
+/* ── Меню: send to student (button lives in .planner-header now) ── */
 .menu-send-error {
   margin-bottom: 8px;
   text-align: center;
   font-size: 13px;
   color: #c0392b;
+}
+
+.menu-send-confirm {
+  margin-bottom: 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2a7a5a;
 }
 
 .menu-shopping-btn {
