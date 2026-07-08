@@ -6,7 +6,7 @@ import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { getUserRecipes } from "@/core/groupStore";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
-const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список" };
+const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список", safe_code: "сейф" };
 
 function getTextTitle(text) {
   return getTopicTitle(text?.title) || text?.id || "";
@@ -76,6 +76,9 @@ export default function TextPickerScreen() {
       setScreen("home");
     } else if (text.kind === "shopping_list") {
       setActiveModeId("shopping_list");
+      setScreen("home");
+    } else if (text.kind === "safe_code") {
+      setActiveModeId("safe_code");
       setScreen("home");
     } else {
       setScreen("modes");
