@@ -205,13 +205,14 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.26",
+      "version": "1.0.27",
       "url": "./decks/word_formation_soup_v1.0.26.zip",
       "zipUrl": "word_formation_soup_v1.0.26.zip",
       "title": {
         "ru": "Словообразование"
       },
-      "renderer": "word_formation"
+      "renderer": "word_formation",
+      "file": "word_formation_soup_v1.0.27.zip"
     },
     {
       "id": "phonetic_analysis",
