@@ -1329,7 +1329,7 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
   if (opened) {
     return (
       <div className="session-body reading-body safe-code-body">
-        <div className="safe-code-instruction-zone safe-code-instruction-zone--opened">
+        <div className="safe-code-instruction-zone">
           <div className="safe-code-icon">🔓🎉</div>
           <div className="safe-code-instruction-text">Сейф открыт!</div>
         </div>
@@ -1337,6 +1337,7 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
           rewardVideos={student?.rewardVideos ?? []}
           studentId={student?.id}
           onDismiss={onAdvance}
+          title="Ты открыл сейф! 🎉"
         />
       </div>
     );
