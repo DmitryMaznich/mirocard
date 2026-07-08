@@ -973,6 +973,13 @@ const DEFAULT_MODES = {
           default: 2,
           label: { ru: "Разрядность" },
         },
+        showHelper: {
+          type: "enum",
+          values: [false, true],
+          labels: { ru: { "false": "Скрыт", "true": "Показывать" } },
+          default: false,
+          label: { ru: "Помощник (палка)" },
+        },
       },
     },
     {

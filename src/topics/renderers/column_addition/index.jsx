@@ -343,7 +343,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
 
 // ── Main task component ───────────────────────────────────────────────────────
 
-function ColumnArithmeticTask({ task, onCorrect, onMistake }) {
+function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [phase, setPhase] = useState("form");
   const [topFilled, setTopFilled] = useState({});
   const [bottomFilled, setBottomFilled] = useState({});
@@ -520,7 +520,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake }) {
 
       {showHelper && (
         <div className="col-helper-area">
-          <HelperPanel maxNumber={20} showMoveHint={true} onClose={() => setShowHelper(false)} />
+          <HelperPanel maxNumber={20} showMoveHint={false} onClose={() => setShowHelper(false)} />
         </div>
       )}
 
@@ -533,7 +533,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake }) {
         btnSize={btnSize}
       />
 
-      {!showHelper && (
+      {!showHelper && !!sessionParams?.showHelper && (
         <button
           type="button"
           className="helper-toggle-btn"
@@ -708,6 +708,7 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
       task={task}
       onCorrect={onCorrect}
       onMistake={strictMistake}
+      sessionParams={sessionParams}
     />
   );
 }
