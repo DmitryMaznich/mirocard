@@ -694,7 +694,12 @@ export default function HomeScreen() {
   }, [activeStudentId, setActiveTopicId, setActiveModeId, setScreen]);
 
   const student = students.find((s) => s.id === activeStudentId) ?? students[0];
-  const topic = topicRecords.find((r) => r.meta.id === activeTopicId) ?? topicRecords[0];
+  // Hidden topics (e.g. the Planner's recipe library) are implementation
+  // details of another flow — activeTopicId can point at one right after
+  // cooking a recipe, but Home's own session picker must never present it
+  // as the current/default selection.
+  const visibleTopicRecords = topicRecords.filter((r) => !r.meta.hidden);
+  const topic = visibleTopicRecords.find((r) => r.meta.id === activeTopicId) ?? visibleTopicRecords[0];
   const isReading      = topic?.meta?.renderer === "reading";
   const isChatPractice = topic?.meta?.renderer === "chat_practice";
   const activeText = isReading
