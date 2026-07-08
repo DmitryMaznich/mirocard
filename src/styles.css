@@ -21191,18 +21191,18 @@ body { background: #eef0ef; }
   display: grid;
   grid-template-columns: repeat(3, auto);
   justify-content: center;
-  gap: clamp(10px, 3vw, 22px);
+  gap: clamp(7px, 2.1vw, 15px);
   padding-bottom: max(4px, var(--app-safe-bottom, 0px));
 }
 
 .safe-code-numpad-btn {
-  width: clamp(64px, min(27vw, 13dvh), 140px);
-  height: clamp(64px, min(27vw, 13dvh), 140px);
+  width: clamp(45px, min(19vw, 9.1dvh), 98px);
+  height: clamp(45px, min(19vw, 9.1dvh), 98px);
   border: none;
   border-radius: 18%;
   background: #eef0ef;
   color: #1c3634;
-  font-size: clamp(24px, min(10vw, 5dvh), 56px);
+  font-size: clamp(17px, min(7vw, 3.5dvh), 39px);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
