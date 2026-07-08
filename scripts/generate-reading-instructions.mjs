@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync } from "node:fs";
 
 const avatarSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
   <circle cx="120" cy="120" r="116" fill="#eef4ff" stroke="#c4d8f8" stroke-width="3"/>
@@ -75,7 +75,7 @@ const SENTENCES = [
 const manifest = {
   meta: {
     id: "reading_dad_instructions",
-    version: "1.0.4",
+    version: "1.0.5",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -128,11 +128,21 @@ const manifest = {
   ],
 };
 
+// Safe code (safe_code mode) — fixed pool of hiding-spot phrases, sourced from
+// content/safe_code/locations.json so it stays in sync with the shared content file.
+const safeCodeLocations = JSON.parse(readFileSync("content/safe_code/locations.json", "utf-8"));
+manifest.texts.push({
+  id: "safe_code_locations",
+  kind: "safe_code",
+  title: safeCodeLocations.title,
+  spots: safeCodeLocations.spots,
+});
+
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/avatar.svg", avatarSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_instructions_v1.0.4.zip", buffer);
+writeFileSync("public/decks/reading_dad_instructions_v1.0.5.zip", buffer);
 const basic = SENTENCES.filter((s) => s.group === "basic").length;
 const spatial = SENTENCES.filter((s) => s.group === "spatial").length;
-console.log(`✓ reading_dad_instructions_v1.0.4.zip (${buffer.length} bytes, ${basic} basic + ${spatial} spatial)`);
+console.log(`✓ reading_dad_instructions_v1.0.5.zip (${buffer.length} bytes, ${basic} basic + ${spatial} spatial + safe_code)`);
