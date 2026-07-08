@@ -47,7 +47,7 @@ function Expression({ task, result, cellSize = 44 }) {
 // ── Compact tap keyboard ──────────────────────────────────────────────────────
 // Rows: [1-5] / [6-0] / phase1: [sign+][sign−][line]  phase2: [helper toggle]
 
-function TapKeyboard({ phase, operation, onDigit, onSign, onLine, onToggleHelper, showHelper, btnSize }) {
+function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize }) {
   const bs = btnSize;
   const bsStr = bs + "px";
   const digitFS = Math.round(bs * 0.72) + "px";
@@ -73,7 +73,7 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, onToggleHelper
           </button>
         ))}
       </div>
-      {phase === "form" ? (
+      {phase === "form" && (
         <div className="col-tap-row col-tap-row--form">
           <button className="col-tap-btn col-tap-btn--sign" style={signStyle} onClick={() => onSign(correctSign)}>
             <span className="col-slant">{correctSign}</span>
@@ -85,13 +85,6 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, onToggleHelper
             <div className="col-line-tile-bar" />
           </button>
         </div>
-      ) : (
-        <button
-          className={`col-helper-toggle${showHelper ? " col-helper-toggle--active" : ""}`}
-          onClick={onToggleHelper}
-        >
-          {showHelper ? "✕ скрыть помощник" : "🧮 палочки"}
-        </button>
       )}
     </div>
   );
@@ -506,26 +499,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake }) {
     }
   }, [activeStep, stepIdx, task.steps, triggerShake, onMistake, onCorrect]);
 
-  // Context chip: hint text describing the current fill step.
-  const contextLabel = useMemo(() => {
-    if (solved) return null;
-    if (phase === "form") {
-      if (!formActiveStep) return null;
-      const key = formActiveStep.cellKey;
-      if (key === "sign") return "запиши знак";
-      if (key === "line") return "проведи черту";
-      if (key.startsWith("top:")) return "запиши первое число";
-      return "запиши второе число";
-    }
-    if (!activeStep) return null;
-    if (activeStep.cellType === "carry") return "запиши перенос";
-    if (activeStep.cellType === "borrow") return "запиши заём";
-    return "запиши ответ";
-  }, [phase, formActiveStep, activeStep, solved]);
-
   return (
     <div className="col-screen" ref={rootRef}>
-      {contextLabel && <div className="col-context-chip">{contextLabel}</div>}
       <div className="col-notebook" ref={notebookRef}>
         <Expression task={task} result={solved ? task.result : null} cellSize={exprCellSize} />
         <ColumnGrid
@@ -545,7 +520,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake }) {
 
       {showHelper && (
         <div className="col-helper-area">
-          <HelperPanel maxNumber={10} showMoveHint={true} onClose={() => setShowHelper(false)} />
+          <HelperPanel maxNumber={20} showMoveHint={true} onClose={() => setShowHelper(false)} />
         </div>
       )}
 
@@ -555,10 +530,19 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake }) {
         onDigit={(d) => phase === "form" ? handleFormTap(d, "digit") : handleSolveTap(d)}
         onSign={(s) => handleFormTap(s, "sign")}
         onLine={() => handleFormTap(null, "line")}
-        onToggleHelper={() => setShowHelper((h) => !h)}
-        showHelper={showHelper}
         btnSize={btnSize}
       />
+
+      {!showHelper && (
+        <button
+          type="button"
+          className="helper-toggle-btn"
+          onClick={() => setShowHelper(true)}
+          aria-label="Открыть помощник"
+        >
+          🧮
+        </button>
+      )}
     </div>
   );
 }

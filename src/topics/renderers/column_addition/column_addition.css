@@ -261,17 +261,11 @@
   animation: col-ink-in 0.35s ease-out;
 }
 
-/* ── Context hint chip ──────────────────────── */
+/* ── Helper toggle btn: safe-area override for full-screen .col-screen ── */
 
-.col-context-chip {
-  font-size: 13px;
-  font-weight: 600;
-  color: #4b5563;
-  background: rgba(255, 255, 255, 0.78);
-  border-radius: 20px;
-  padding: 4px 14px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+.col-screen .helper-toggle-btn {
+  bottom: calc(12px + var(--app-safe-bottom, 0px));
+  right: calc(12px + var(--app-safe-right, 0px));
 }
 
 /* ── Tap keyboard ───────────────────────────── */
@@ -349,32 +343,6 @@
 .col-tap-btn--line:active {
   transform: translateY(2px);
   box-shadow: none;
-}
-
-/* ── Helper toggle button ───────────────────── */
-
-.col-helper-toggle {
-  width: 100%;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f0fdf4;
-  border: 1.5px solid #86efac;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #15803d;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  gap: 4px;
-}
-
-.col-helper-toggle--active {
-  background: #dcfce7;
-  border-color: #4ade80;
 }
 
 /* ── Helper panel wrapper ───────────────────── */
