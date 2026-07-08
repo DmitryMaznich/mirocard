@@ -14445,10 +14445,9 @@ kbd {
 }
 
 .home-header__eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: #f0c375;
 }
 
@@ -14497,6 +14496,19 @@ kbd {
   border-radius: 50%;
   background: #f0c375;
   border: 2px solid #2f5b57;
+}
+
+/* Plain, non-interactive version readout — always the true current version
+   (every full page load fetches index.html with cache: "no-store" in sw.js,
+   so this never lags behind a deploy the way a "hasUpdate" flag can). No
+   badge, no click target: that's what Настройки → Проверить обновления is
+   for. This is just a glance-and-compare number. */
+.home-build-tag {
+  text-align: center;
+  padding: 6px 0 4px;
+  font-size: 0.7rem;
+  color: #c0b8b0;
+  letter-spacing: 0.04em;
 }
 
 /* ── Home section card ───────────────────────────────────────────── */

@@ -40,9 +40,9 @@ function AccountIcon() {
 
 function getTimeGreeting(date = new Date()) {
   const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return "Доброе утро";
-  if (hour >= 12 && hour < 18) return "Добрый день";
-  return "Добрый вечер";
+  if (hour >= 5 && hour < 12) return "Доброе Утро,";
+  if (hour >= 12 && hour < 18) return "Добрый День,";
+  return "Добрый Вечер,";
 }
 
 function HomeHeader({ student, hasUpdate, onSettings, onAvatarTap }) {
@@ -740,6 +740,8 @@ export default function HomeScreen() {
             />
           )}
         </div>
+
+        <div className="home-build-tag">v{buildInfo.version}</div>
       </div>
     </div>
   );
