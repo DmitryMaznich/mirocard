@@ -1715,3 +1715,12 @@ export async function deleteTopicRecord(db, topicId) {
   await kv.del(db, `topic:${topicId}`);
   await removeFromIndex(db, topicId);
 }
+
+export async function clearAllInstalledTopics(db) {
+  const ids = await getInstalledTopicIds(db);
+  await Promise.all([
+    ...ids.map((id) => topics.deleteTopic(db, id)),
+    ...ids.map((id) => kv.del(db, `topic:${id}`)),
+    kv.set(db, "installedTopicIds", []),
+  ]);
+}

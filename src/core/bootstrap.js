@@ -1,6 +1,6 @@
 import { kv } from "@/core/db";
 import { useAppStore } from "@/core/store";
-import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
+import { listTopicRecords, installFirstPartyDeckIfNeeded, clearAllInstalledTopics } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
 import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
 
@@ -249,7 +249,10 @@ const USER_IDB_KEYS = [
 ];
 
 export async function clearUserIdbData(db) {
-  await Promise.all(USER_IDB_KEYS.map((key) => kv.del(db, key)));
+  await Promise.all([
+    ...USER_IDB_KEYS.map((key) => kv.del(db, key)),
+    clearAllInstalledTopics(db),
+  ]);
 }
 
 export async function persistBootstrap(db, raw) {
