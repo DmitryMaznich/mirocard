@@ -484,6 +484,15 @@ function PlanGrid({
   return (
     <div className="shopping-body">
       <div className="shopping-scroll">
+        {/* The selected-items summary leads the page — reachable without any
+            scroll — so adding one more item doesn't bury "Вот что нужно
+            купить" under the full category grid again. The grid itself stays
+            exactly as it was (2-column, everything visible) below it, since
+            browsing/adding across all categories needs the overview a
+            horizontal strip can't give — see plannerShoppingScreen commit
+            history for the compact-strip attempt this replaced. */}
+        {!editMode && <SelectedSummary steps={steps} icons={icons} planned={planned} onNote={onNote} />}
+
         {editMode ? (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
             <SortableContext items={steps.map((s) => s.text)} strategy={rectSortingStrategy}>
@@ -506,41 +515,14 @@ function PlanGrid({
               </div>
             </SortableContext>
           </DndContext>
-        ) : (() => {
-          const tileData = steps.map((step, si) => {
-            const n = sName(step);
-            const count = (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
-            const stepTotal = (step.items ?? []).length;
-            const done = count === stepTotal && stepTotal > 0;
-            return { si, n, count, done };
-          });
-          // Once a list is actually collected, the full 2-column catalog grid
-          // (all 13+ categories) doesn't need to dominate the screen above
-          // "Вот что нужно купить" anymore — it collapses into a single
-          // horizontally-scrollable row of the same tiles, compacted, so the
-          // real list is reachable without scrolling past mostly-irrelevant
-          // categories first. Every category is still one tap away, just
-          // via horizontal scroll instead of vertical.
-          return total > 0 ? (
-            <div className="shopping-strip-wrap">
-              <div className="shopping-strip-label">Категории</div>
-              <div className="shopping-strip">
-                {tileData.map(({ si, n, count, done }) => (
-                  <button
-                    key={si}
-                    className={`shopping-strip-chip${done ? ' shopping-strip-chip--done' : count > 0 ? ' shopping-strip-chip--partial' : ''}`}
-                    onClick={() => onDetail(si)}
-                  >
-                    <span className="shopping-strip-chip-icon">{icons[si] ?? '📦'}</span>
-                    <span className="shopping-strip-chip-name">{n}</span>
-                    {count > 0 && <span className="shopping-strip-chip-badge">{done ? '✓' : count}</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="shopping-grid">
-              {tileData.map(({ si, n, count, done }) => (
+        ) : (
+          <div className="shopping-grid">
+            {steps.map((step, si) => {
+              const n = sName(step);
+              const count = (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
+              const stepTotal = (step.items ?? []).length;
+              const done = count === stepTotal && stepTotal > 0;
+              return (
                 <button
                   key={si}
                   className={`shopping-tile${done ? ' shopping-tile--done' : count > 0 ? ' shopping-tile--partial' : ''}`}
@@ -550,12 +532,10 @@ function PlanGrid({
                   <span className="shopping-tile-name">{n}</span>
                   {count > 0 && <span className="shopping-tile-badge">{done ? '✓' : count}</span>}
                 </button>
-              ))}
-            </div>
-          );
-        })()}
-
-        {!editMode && <SelectedSummary steps={steps} icons={icons} planned={planned} onNote={onNote} />}
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="shopping-actions">
