@@ -503,19 +503,17 @@ function PlannerTab({ student, setScreen }) {
               type="button"
               className="planner-action-dock__icon"
               onClick={handleOpenHistory}
-              aria-label="История"
-              title="История"
             >
-              🕐
+              <span className="planner-action-dock__icon-glyph">🕐</span>
+              <span>История</span>
             </button>
             <button
               type="button"
               className="planner-action-dock__icon"
               onClick={() => setConfirmNewMenu(true)}
-              aria-label="Начать новое меню"
-              title="Начать новое меню"
             >
-              🏁
+              <span className="planner-action-dock__icon-glyph">🏁</span>
+              <span>Новое меню</span>
             </button>
           </div>
           {!readyToCook && (

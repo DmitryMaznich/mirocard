@@ -1227,6 +1227,10 @@
    tokens (see .home-section, .journey-step). ── */
 .planner-hub {
   padding: 18px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .planner-hub__grid {
@@ -1653,38 +1657,36 @@
   flex-shrink: 0;
 }
 
-/* ── Planner hub: Начинаем готовить CTA ────────────────────────── */
-/* Единая панель действий: готовка — крупный заливной сегмент, История и
-   Начать новое меню — компактные иконки-кнопки внутри той же подложки.
-   Заменяет прежние разрозненные planner-cook-cta + planner-cycle-actions
-   (полноразмерная таблетка одним рядом + обводка другим рядом ниже) —
-   см. аудит планировщика. */
+/* ── Planner hub: bottom action bar ────────────────────────────── */
+/* Same language as .home-tabbar (icon over label, muted vs accent) — pinned
+   above it, not competing with it. .planner-hub is a flex column filling
+   .home-tab-content's full height (see .planner-hub above); margin-top:auto
+   here pushes the bar to the bottom of that column regardless of how tall
+   the card grid is, and the negative side margins cancel .planner-hub's own
+   14px padding so the bar runs edge to edge like the tab bar does. */
 .planner-action-dock {
   display: flex;
   align-items: stretch;
-  height: 56px;
-  margin-top: 16px;
-  border-radius: 18px;
+  gap: 6px;
+  margin: auto -14px 0;
+  padding: 6px;
   background: rgba(250, 247, 242, 0.97);
-  border: 1px solid #e7dccf;
-  box-shadow: 0 8px 20px rgba(71, 61, 48, 0.08);
-  overflow: hidden;
+  border-top: 1px solid #e7dccf;
 }
 
 .planner-action-dock__cook {
-  flex: 1.8;
+  flex: 1.7;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin: 5px;
-  padding: 0 8px;
+  padding: 0 10px;
   border: none;
   border-radius: 13px;
   background: linear-gradient(150deg, #5cb0a3, #276b62);
-  box-shadow: 0 4px 12px rgba(39, 107, 98, 0.35);
+  box-shadow: 0 4px 12px rgba(39, 107, 98, 0.3);
   color: #fff;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 800;
   font-family: inherit;
   cursor: pointer;
@@ -1703,16 +1705,23 @@
 .planner-action-dock__icon {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   border: none;
-  border-left: 1px solid #e7dccf;
+  border-radius: 13px;
   background: none;
-  color: #7a8c88;
-  font-size: 19px;
+  color: #a8978a;
+  font-size: 9.5px;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  padding: 0;
+  padding: 4px 2px;
+}
+
+.planner-action-dock__icon-glyph {
+  font-size: 17px;
 }
 
 .planner-action-dock__icon:active {
