@@ -69,15 +69,17 @@ export default function SafeCodeParamsContent({ topicId, spots, topicTitle, text
   }
 
   function generateRandom() {
-    const filled = rows.filter((row) => row.phrase.trim());
-    const digits = randomDigits(filled.length);
-    let d = 0;
-    setRows((prev) => prev.map((row) => {
-      if (!row.phrase.trim()) return row;
-      const digit = String(digits[d]);
-      d += 1;
-      return { ...row, digit };
-    }));
+    setRows((prev) => {
+      const filledIndices = prev.reduce((acc, row, i) => {
+        if (row.phrase.trim()) acc.push(i);
+        return acc;
+      }, []);
+      const digits = randomDigits(filledIndices.length);
+      return prev.map((row, i) => {
+        const pos = filledIndices.indexOf(i);
+        return pos === -1 ? row : { ...row, digit: String(digits[pos]) };
+      });
+    });
   }
 
   const isReady = rows.length === codeLength && rows.every((row) => row.phrase.trim() && row.digit !== "");
