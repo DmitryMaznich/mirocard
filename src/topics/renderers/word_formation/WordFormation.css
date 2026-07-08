@@ -417,8 +417,6 @@
   background: rgba(58, 170, 110, 0.06);
 }
 
-.wf-pick-item__check--dim   { opacity: 0.35; }
-.wf-pick-item__check--done  { background: #888; cursor: default; }
 
 /* ── animations ─────────────────────────────────────── */
 @keyframes wf-pulse {

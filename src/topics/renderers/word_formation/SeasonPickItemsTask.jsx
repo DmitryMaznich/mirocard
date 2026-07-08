@@ -42,41 +42,28 @@ function PickChip({ item, topicId, chipState, onClick }) {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-      <polyline points="4,11 9,16 18,6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 export default function SeasonPickItemsTask({ task, topicId, onCorrect, onIncorrect }) {
   const { card, chips } = task;
-  const [selected, setSelected]   = useState(new Set());
-  const [evaluated, setEvaluated] = useState(false);
+  const [correctTapped, setCorrectTapped] = useState(new Set());
+  const [wrongId, setWrongId]             = useState(null);
+  const done = wrongId !== null || correctTapped.size >= 2;
 
-  function toggleChip(itemId) {
-    if (evaluated) return;
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(itemId)) next.delete(itemId); else next.add(itemId);
-      return next;
-    });
-  }
-
-  function handleCheck() {
-    if (evaluated || selected.size === 0) return;
-    setEvaluated(true);
-    const allCorrect = chips.filter(c => c.isTarget).every(c => selected.has(c.id));
-    const noWrong    = [...selected].every(id => chips.find(c => c.id === id)?.isTarget);
-    if (allCorrect && noWrong) onCorrect?.(); else onIncorrect?.();
+  function handleTap(item) {
+    if (done) return;
+    if (item.isTarget) {
+      const next = new Set(correctTapped);
+      next.add(item.id);
+      setCorrectTapped(next);
+      if (next.size >= 2) onCorrect?.();
+    } else {
+      setWrongId(item.id);
+      onIncorrect?.();
+    }
   }
 
   function chipState(item) {
-    if (!evaluated) return selected.has(item.id) ? "selected" : null;
-    if (item.isTarget && selected.has(item.id))  return "correct";
-    if (!item.isTarget && selected.has(item.id)) return "wrong";
-    if (item.isTarget && !selected.has(item.id)) return "missed";
+    if (correctTapped.has(item.id)) return "correct";
+    if (wrongId === item.id)        return "wrong";
     return null;
   }
 
@@ -96,20 +83,12 @@ export default function SeasonPickItemsTask({ task, topicId, onCorrect, onIncorr
                 item={item}
                 topicId={topicId}
                 chipState={chipState(item)}
-                onClick={() => toggleChip(item.id)}
+                onClick={() => handleTap(item)}
               />
             ))}
           </div>
         ))}
       </div>
-
-      <button
-        className={`wf-season__fwd wf-pick-item__check${selected.size === 0 ? " wf-pick-item__check--dim" : ""}${evaluated ? " wf-pick-item__check--done" : ""}`}
-        onClick={handleCheck}
-        disabled={selected.size === 0 || evaluated}
-      >
-        <CheckIcon />
-      </button>
     </div>
   );
 }
