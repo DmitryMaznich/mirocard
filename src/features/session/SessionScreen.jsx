@@ -89,7 +89,7 @@ export default function SessionScreen() {
   useEffect(() => {
     if (!completedRecord) return;
     const skipSummary = topicRecord?.meta.renderer === "reading" && (mode?.type === "read_text" || mode?.type === "daily_sentences");
-    const isInstruction = mode?.type === "follow_instruction" || mode?.type === "shopping_list";
+    const isInstruction = mode?.type === "follow_instruction" || mode?.type === "shopping_list" || mode?.type === "safe_code";
     if (isInstruction && sessionReturnScreen) {
       setScreen(sessionReturnScreen);
       setSessionReturnScreen(null);
@@ -152,7 +152,7 @@ export default function SessionScreen() {
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
 
-    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction" || mode?.type === "daily_sentences" || mode?.type === "listen_write_letters" || mode?.type === "magnetic_sentence" || mode?.type === "magnetic_sentence_audio" || mode?.type === "sort_letters" || mode?.type === "story_sequence" || mode?.type === "letter_demo" || mode?.type === "letter_follow" || mode?.type === "letter_trace") {
+    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction" || mode?.type === "daily_sentences" || mode?.type === "listen_write_letters" || mode?.type === "magnetic_sentence" || mode?.type === "magnetic_sentence_audio" || mode?.type === "sort_letters" || mode?.type === "story_sequence" || mode?.type === "letter_demo" || mode?.type === "letter_follow" || mode?.type === "letter_trace" || mode?.type === "safe_code") {
       setManualAdvanceGate({ key: null, state: null });
       onAdvance();
       return;

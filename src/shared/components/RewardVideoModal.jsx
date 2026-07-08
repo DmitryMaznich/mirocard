@@ -10,7 +10,12 @@ function blockInteraction(event) {
   event.stopPropagation();
 }
 
-export default function RewardVideoModal({ rewardVideos = [], studentId, onDismiss }) {
+export default function RewardVideoModal({
+  rewardVideos = [],
+  studentId,
+  onDismiss,
+  title = "Молодец! Пять правильных подряд!",
+}) {
   const [videoUrl, setVideoUrl] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
 
@@ -74,7 +79,7 @@ export default function RewardVideoModal({ rewardVideos = [], studentId, onDismi
     <div className="reward-modal-overlay" onClick={onDismiss}>
       <div className="reward-modal" onClick={(e) => e.stopPropagation()}>
         <div className="reward-modal__stars">⭐⭐⭐⭐⭐</div>
-        <div className="reward-modal__title">Молодец! Пять правильных подряд!</div>
+        <div className="reward-modal__title">{title}</div>
         <div className="reward-modal__actions">
           <button className="reward-modal__btn reward-modal__btn--watch" onClick={handleWatch}>
             🎬 Смотреть мультик

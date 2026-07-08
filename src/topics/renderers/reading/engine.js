@@ -66,6 +66,14 @@ function buildShoppingListTask(text) {
   };
 }
 
+function buildSafeCodeTask(text) {
+  return {
+    type: "safe_code",
+    textId: text.id,
+    text,
+  };
+}
+
 function seededShuffle(arr, seedStr) {
   let s = 0;
   for (let i = 0; i < seedStr.length; i++) {
@@ -117,6 +125,8 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
       const shoppingText = (topicRecord.texts ?? []).find((t) => t.kind === "shopping_list");
       return shoppingText ? [buildShoppingListTask(shoppingText)] : [];
     }
+    case "safe_code":
+      return text.kind === "safe_code" ? [buildSafeCodeTask(text)] : [];
     case "daily_sentences":
       return text.kind === "sentence_pool"
         ? buildDailySentencesTasks(text, sessionParams?.today ?? null, sessionParams?.selectedLineIds ?? null, sessionParams?.group ?? null)

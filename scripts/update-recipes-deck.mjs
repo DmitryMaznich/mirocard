@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
-const OLD_ZIP = "public/decks/reading_dad_texts_v1.134.0.zip";
-const NEW_ZIP = "public/decks/reading_dad_texts_v1.135.0.zip";
-const NEW_VERSION = "1.135.0";
+const OLD_ZIP = "public/decks/reading_dad_texts_v1.135.0.zip";
+const NEW_ZIP = "public/decks/reading_dad_texts_v1.136.0.zip";
+const NEW_VERSION = "1.136.0";
 const RECIPES_DIR = "content/recipes";
 const MEDIA_DIR = "content/media";
 
@@ -139,6 +139,17 @@ for (const id of recipeIds) {
 
   console.log(`${id}.txt: ${steps} шагов — "${title.ru}"`);
 }
+
+// Safe code (safe_code mode) — fixed pool of hiding-spot phrases, not derived
+// from content/recipes/*.txt, so it must be re-added explicitly on every
+// rebuild or it would silently disappear from the deck.
+const safeCodeLocations = JSON.parse(readFileSync("content/safe_code/locations.json", "utf-8"));
+textsManifest.push({
+  id: "safe_code_locations",
+  kind: "safe_code",
+  title: safeCodeLocations.title,
+  spots: safeCodeLocations.spots,
+});
 
 // Build new topic.json
 const newTopic = {

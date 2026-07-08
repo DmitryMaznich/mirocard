@@ -38,10 +38,13 @@ function filterReadingModes(modes = [], text) {
   if (text.kind === "instruction") {
     return modes.filter((mode) => mode.id === "follow_instruction");
   }
+  if (text.kind === "safe_code") {
+    return modes.filter((mode) => mode.id === "safe_code");
+  }
   if (text.kind === "sentence_pool") {
     return modes.filter((mode) => mode.type === "daily_sentences");
   }
-  return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem" && text.kind !== "story") && mode.id !== "follow_instruction");
+  return modes.filter((mode) => !(mode.id === "assemble_text" && text.kind !== "poem" && text.kind !== "story") && mode.id !== "follow_instruction" && mode.id !== "safe_code");
 }
 
 function getModeTitle(mode) {

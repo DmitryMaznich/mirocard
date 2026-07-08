@@ -1,0 +1,13 @@
+{
+  "title": { "ru": "Код от сейфа", "en": "Safe Code" },
+  "spots": [
+    { "id": "pillow",   "label": "Подушка",             "phrase": "под подушкой" },
+    { "id": "box",      "label": "Коробка",              "phrase": "в коробке" },
+    { "id": "table",    "label": "Стол",                 "phrase": "на столе" },
+    { "id": "wardrobe", "label": "Шкаф",                  "phrase": "в шкафу" },
+    { "id": "shelf",    "label": "Полка",                 "phrase": "на полке" },
+    { "id": "book",     "label": "Книга",                 "phrase": "за книгой" },
+    { "id": "carpet",   "label": "Ковёр",                  "phrase": "под ковром" },
+    { "id": "sofa",     "label": "Диван",                 "phrase": "под диваном" }
+  ]
+}

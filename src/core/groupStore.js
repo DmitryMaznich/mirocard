@@ -322,6 +322,55 @@ export async function savePlannerCycleHistory(studentId, history) {
   await kv.set(db, plannerCycleHistoryKey(studentId), history);
 }
 
+// ─── Safe code (safe_code mode) session config ───────────────────────────────
+
+const safeCodeConfigKey = (topicId) => `safe_code_config_${topicId}`;
+
+export async function getSafeCodeConfig(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, safeCodeConfigKey(topicId))) ?? null;
+}
+
+export async function saveSafeCodeConfig(topicId, config) {
+  const db = await getDb();
+  const key = safeCodeConfigKey(topicId);
+  await kv.set(db, key, config);
+  pushOp("kv.upsert", { key, value: config }).catch(() => {});
+}
+
+// ─── Safe code custom (user-typed) hiding spots ──────────────────────────────
+
+const safeCodeCustomLocationsKey = (topicId) => `safe_code_custom_locations_${topicId}`;
+
+export async function getSafeCodeCustomLocations(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, safeCodeCustomLocationsKey(topicId))) ?? [];
+}
+
+export async function saveSafeCodeCustomLocations(topicId, locations) {
+  const db = await getDb();
+  const key = safeCodeCustomLocationsKey(topicId);
+  await kv.set(db, key, locations);
+  pushOp("kv.upsert", { key, value: locations }).catch(() => {});
+}
+
+// ─── Safe code attempt log (analytics only, not synced) ──────────────────────
+
+const safeCodeLogKey = (topicId) => `safe_code_log_${topicId}`;
+
+export async function getSafeCodeLog(topicId) {
+  const db = await getDb();
+  return (await kv.get(db, safeCodeLogKey(topicId))) ?? [];
+}
+
+export async function appendSafeCodeLog(topicId, entry) {
+  const db = await getDb();
+  const key = safeCodeLogKey(topicId);
+  const existing = (await kv.get(db, key)) ?? [];
+  const updated = [...existing, entry].slice(-200);
+  await kv.set(db, key, updated);
+}
+
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {

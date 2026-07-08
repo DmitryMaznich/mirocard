@@ -17,6 +17,7 @@ import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
+import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 
@@ -510,6 +511,7 @@ export default function ParamsScreen() {
   const isComparison          = topicRecord?.meta.renderer === "comparison";
   const isPhraseMatch         = topicRecord?.meta.renderer === "phrase_match";
   const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
+  const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
 
@@ -552,6 +554,30 @@ export default function ParamsScreen() {
             onClose={() => setShowShare(false)}
           />
         )}
+      </div>
+    );
+  }
+
+  if (isReadingSafeCode) {
+    return (
+      <div className="screen">
+        <div className="screen-header">
+          <button
+            className="back-btn"
+            onClick={() => {
+              setScreen(sessionReturnScreen ?? "texts");
+              setSessionReturnScreen(null);
+            }}
+          ><BackArrowIcon /></button>
+          <h1 className="screen-title">{getTopicTitle(activeText.title)}</h1>
+        </div>
+        <SafeCodeParamsContent
+          topicId={activeTopicId}
+          spots={activeText.spots ?? []}
+          topicTitle={getTopicTitle(topicRecord.meta.title)}
+          textTitle={getTopicTitle(activeText.title)}
+          student={student}
+        />
       </div>
     );
   }
