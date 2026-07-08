@@ -21159,7 +21159,7 @@ body { background: #eef0ef; }
 }
 
 .safe-code-instruction-text {
-  font-size: 3.1rem;
+  font-size: clamp(20px, min(7vw, 3dvh), 40px);
   font-weight: 800;
   line-height: 1.28;
   color: #1c3634;
