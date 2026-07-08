@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseRecipeMetadata } from './recipeParser.js';
+import { parseRecipeMetadata, GLOBAL_MAX_PORTIONS } from './recipeParser.js';
 
 describe('parseRecipeMetadata', () => {
   it('extracts tags from # tags: line', () => {
@@ -25,30 +25,40 @@ describe('parseRecipeMetadata', () => {
     expect(portions).toBe(1);
   });
 
-  it('extracts fixed_portions as integer', () => {
-    const content = '# portions: 6\n# fixed_portions: 6\nТест\n';
+  it('extracts photo filename', () => {
+    const { photo } = parseRecipeMetadata('# photo: soup.webp\nТест\n');
+    expect(photo).toBe('soup.webp');
+  });
+
+  it('defaults photo to null when absent', () => {
+    const { photo } = parseRecipeMetadata('# portions: 2\nТест\n');
+    expect(photo).toBeNull();
+  });
+
+  it('derives fixedPortions from type: fixed, using portions as the count', () => {
+    const content = '# portions: 6\n# type: fixed\nТест\n';
     const { fixedPortions } = parseRecipeMetadata(content);
     expect(fixedPortions).toBe(6);
   });
 
-  it('defaults fixedPortions to null when absent', () => {
+  it('defaults fixedPortions to null when type is absent', () => {
     const { fixedPortions } = parseRecipeMetadata('# portions: 2\nТест\n');
     expect(fixedPortions).toBeNull();
   });
 
-  it('extracts max_portions as integer', () => {
-    const { maxPortions } = parseRecipeMetadata('# max_portions: 8\nТест\n');
-    expect(maxPortions).toBe(8);
+  it('defaults fixedPortions to null when type is not "fixed"', () => {
+    const { fixedPortions } = parseRecipeMetadata('# portions: 2\n# type: per_portion\nТест\n');
+    expect(fixedPortions).toBeNull();
   });
 
-  it('defaults maxPortions to 4 when absent', () => {
-    const { maxPortions } = parseRecipeMetadata('# portions: 4\nТест\n');
-    expect(maxPortions).toBe(4);
+  it('derives fixedPortions correctly when type: fixed appears before portions:', () => {
+    const content = '# type: fixed\n# portions: 4\nТест\n';
+    const { fixedPortions } = parseRecipeMetadata(content);
+    expect(fixedPortions).toBe(4);
   });
 
-  it('defaults maxPortions to 4 when the value is not a number', () => {
-    const { maxPortions } = parseRecipeMetadata('# max_portions: many\nТест\n');
-    expect(maxPortions).toBe(4);
+  it('exports a single global portions ceiling constant', () => {
+    expect(GLOBAL_MAX_PORTIONS).toBe(8);
   });
 
   it('extracts ingredient with qty and unit', () => {
@@ -126,7 +136,7 @@ describe('parseRecipeMetadata', () => {
     expect(result.tags).toEqual(['завтрак']);
     expect(result.portions).toBe(2);
     expect(result.status).toBe('final');
-    expect(result.maxPortions).toBe(4);
+    expect(result.photo).toBe('scramble_sausage.webp');
     expect(result.ingredients).toHaveLength(4);
     expect(result.ingredients[0]).toEqual({ product: 'колбаса', qty: 200, unit: 'г' });
     expect(result.ingredients[3]).toEqual({ product: 'соль', qty: null, unit: null });

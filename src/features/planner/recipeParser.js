@@ -6,17 +6,15 @@
  *   # status: final
  *   # tags: завтрак, обед
  *   # portions: 4
- *   # fixed_portions: 4
+ *   # type: fixed
  *   # ingredients:
  *   #   продукт | количество | единица
  *   #   соль | |
  *
- * fixed_portions marks recipes that are cooked as one inherent batch
- * (e.g. a pot of soup) — ingredient quantities can't be scaled below it.
- *
- * max_portions caps how far the portions stepper can go for this dish
- * (e.g. a single-pan dish shouldn't scale to 20 servings). Defaults to 4
- * when absent.
+ * type: fixed marks a recipe cooked as one inherent batch (e.g. a pot of
+ * soup) — its # portions: count is fixed, not a user choice, and ingredient
+ * quantities can't be scaled below it. Absent (or any other value) means
+ * the recipe scales per portion, up to GLOBAL_MAX_PORTIONS.
  *
  * status is 'final' or 'draft' — anything else (including missing) is
  * treated as 'draft', so an unmarked recipe is flagged rather than
@@ -25,12 +23,18 @@
  * Ingredient block ends at the first # line that is NOT indented,
  * or at the first non-# line.
  */
+
+// Single global stepper ceiling for every scalable recipe (type absent) —
+// a guard against a mistyped portions count, not a per-dish cooking
+// constraint. See docs/superpowers/specs/2026-07-08-recipe-architecture-simplification-design.md.
+export const GLOBAL_MAX_PORTIONS = 8;
+
 export function parseRecipeMetadata(content) {
   const lines = content.split('\n');
   const tags = [];
+  let photo = null;
   let portions = 1;
-  let fixedPortions = null;
-  let maxPortions = 4;
+  let isFixedType = false;
   let status = 'draft';
   const ingredients = [];
   let inIngredients = false;
@@ -62,13 +66,13 @@ export function parseRecipeMetadata(content) {
     }
 
     const kv = afterHash.trim();
-    if (kv.startsWith('tags:')) {
+    if (kv.startsWith('photo:')) {
+      photo = kv.slice(6).trim() || null;
+    } else if (kv.startsWith('tags:')) {
       const raw = kv.slice(5).trim();
       tags.push(...raw.split(',').map((t) => t.trim()).filter(Boolean));
-    } else if (kv.startsWith('fixed_portions:')) {
-      fixedPortions = parseInt(kv.slice(15).trim(), 10) || null;
-    } else if (kv.startsWith('max_portions:')) {
-      maxPortions = parseInt(kv.slice(13).trim(), 10) || 4;
+    } else if (kv.startsWith('type:')) {
+      isFixedType = kv.slice(5).trim() === 'fixed';
     } else if (kv.startsWith('portions:')) {
       portions = parseInt(kv.slice(9).trim(), 10) || 1;
     } else if (kv.startsWith('status:')) {
@@ -78,5 +82,12 @@ export function parseRecipeMetadata(content) {
     }
   }
 
-  return { tags, portions, fixedPortions, maxPortions, status, ingredients };
+  return {
+    photo,
+    tags,
+    portions,
+    fixedPortions: isFixedType ? portions : null,
+    status,
+    ingredients,
+  };
 }
