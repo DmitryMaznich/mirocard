@@ -81,28 +81,49 @@ function HomeHeader({
   );
 }
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
+// ─── Tabs — bottom tab bar, pinned like a native iOS tab bar ─────────────────
+
+function SessionTabIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+      <rect x="3" y="3" width="16" height="16" rx="5" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M9 7.5l6 3.5-6 3.5V7.5Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function PlannerTabIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+      <rect x="3.5" y="3.5" width="15" height="15" rx="4" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M7 8.5l1.5 1.5L11.5 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7 14h8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function HomeTabs({ active, onChange, showPlanner }) {
   return (
-    <div className="home-tabs" role="tablist">
+    <nav className="home-tabbar" role="tablist">
       <button
         role="tab"
-        className={`home-tab${active === 'session' ? ' home-tab--active' : ''}`}
+        className={`home-tabbar__item${active === 'session' ? ' home-tabbar__item--active' : ''}`}
         onClick={() => onChange('session')}
       >
-        Занятие
+        <SessionTabIcon />
+        <span>Занятие</span>
       </button>
       {showPlanner && (
         <button
           role="tab"
-          className={`home-tab${active === 'planner' ? ' home-tab--active' : ''}`}
+          className={`home-tabbar__item${active === 'planner' ? ' home-tabbar__item--active' : ''}`}
           onClick={() => onChange('planner')}
         >
-          Планировщик
+          <PlannerTabIcon />
+          <span>Планировщик</span>
         </button>
       )}
-    </div>
+    </nav>
   );
 }
 
@@ -778,8 +799,6 @@ export default function HomeScreen() {
       />
 
       <div className="home-main">
-        <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} />
-
         <div className="home-tab-content">
           {activeTab === 'planner' && hasPlannerAccess ? (
             <PlannerTab student={student} setScreen={setScreen} />
@@ -803,6 +822,8 @@ export default function HomeScreen() {
           )}
         </div>
       </div>
+
+      <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} />
     </div>
   );
 }
