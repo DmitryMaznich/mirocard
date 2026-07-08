@@ -17,7 +17,7 @@ import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
-import { savePendingReceiptPhoto, markPendingReceiptSkipped, isPendingReceiptResolved } from './plannerPhotos.js';
+import { savePendingReceiptPhoto, markPendingReceiptSkipped, isPendingReceiptResolved, clearPendingPhotos } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
@@ -1162,6 +1162,11 @@ export default function PlannerShoppingScreen() {
 
   async function handleNewListAfterShop() {
     await archiveShoppingTrip(studentId, stores?.current);
+    // archiveShoppingTrip already copied whatever pending receipt/zone photos
+    // (or skip markers) existed into this trip's permanent record — clear the
+    // pending ones now, or the next trip within the same cycle would see them
+    // as still resolved and silently skip its own receipt/zone-photo prompts.
+    await clearPendingPhotos(studentId);
     await savePlannerShopPlan(studentId, {});
     await savePlannerShopBought(studentId, {});
     await savePlannerPutawayPlan(studentId, {});
