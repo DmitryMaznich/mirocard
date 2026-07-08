@@ -217,9 +217,10 @@ export default function TopicLibraryScreen() {
   const ownedNonPendingIds = new Set(
     (ownedTopics ?? []).filter((o) => o.source !== "request").map((o) => o.topicId)
   );
-  const visibleRecords = account
+  const visibleRecords = (account
     ? topicRecords.filter((r) => r.meta.builtin || ownedNonPendingIds.has(r.meta.id))
-    : topicRecords;
+    : topicRecords
+  ).filter((r) => !r.meta.hidden);
 
   const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
   const otherRecords = visibleRecords.filter((r) => r.meta.id !== activeTopicId);

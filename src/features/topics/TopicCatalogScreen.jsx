@@ -17,7 +17,6 @@ const CATALOG_CATEGORIES = {
   letter_writing:           "Чтение",
   reading_dad_poems:        "Чтение",
   reading_dad_instructions: "Чтение",
-  reading_dad_texts:        "Чтение",
   sentence_puzzle:          "Чтение",
   phrase_match_pilot:       "Чтение",
   vowel_consonant_ru:       "Чтение",
