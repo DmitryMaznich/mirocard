@@ -126,16 +126,35 @@ function generateQuestionAskTasks(cards) {
   }));
 }
 
+function generateSeasonPickItemsTasks(overviewCards) {
+  const allItems = overviewCards.flatMap(card =>
+    (card.items ?? []).map(it => ({ ...it, _seasonCardId: card.id }))
+  );
+  return shuffle(overviewCards.map(card => {
+    const correct     = shuffle([...(card.items ?? [])]).slice(0, 2);
+    const distractors = shuffle(allItems.filter(it => it._seasonCardId !== card.id)).slice(0, 4);
+    const chips = shuffle([
+      ...correct.map(it    => ({ ...it, isTarget: true  })),
+      ...distractors.map(it => ({ ...it, isTarget: false })),
+    ]);
+    return { type: "season_pick_items", card, chips };
+  }));
+}
+
 function generatePickFormTasks(cards, params) {
   const filtered = filterByCategory(cards, params.category);
   const active   = filtered.length > 0 ? filtered : cards;
-  const playable = active.filter(c => !isOverview(c));
-  return shuffle(sortByDifficulty(playable).map((card) => ({
-    type:     "pick_form",
-    card,
-    allCards: playable,
-    params,
-  })));
+  const overviewCards = active.filter(isOverview);
+  const playable      = active.filter(c => !isOverview(c));
+  return [
+    ...(overviewCards.length > 0 ? generateSeasonPickItemsTasks(overviewCards) : []),
+    ...shuffle(sortByDifficulty(playable).map((card) => ({
+      type:     "pick_form",
+      card,
+      allCards: playable,
+      params,
+    }))),
+  ];
 }
 
 export function generateTasks(mode, cards, _sessionSize, params = {}) {

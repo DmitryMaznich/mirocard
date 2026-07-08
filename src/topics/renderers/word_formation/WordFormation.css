@@ -397,6 +397,29 @@
 }
 .wf-season__fwd:active { background: #388e3c; }
 
+/* ── season_pick_items ───────────────────────────────── */
+.wf-season__chip { transition: outline 0.12s, background 0.12s; }
+
+.wf-pick-item__chip--selected {
+  outline: 2.5px solid #5b87e5;
+  background: rgba(91, 135, 229, 0.10);
+}
+.wf-pick-item__chip--correct {
+  outline: 2.5px solid #3aaa6e;
+  background: rgba(58, 170, 110, 0.14);
+}
+.wf-pick-item__chip--wrong {
+  outline: 2.5px solid #e05252;
+  background: rgba(224, 82, 82, 0.12);
+}
+.wf-pick-item__chip--missed {
+  outline: 2.5px dashed #3aaa6e;
+  background: rgba(58, 170, 110, 0.06);
+}
+
+.wf-pick-item__check--dim   { opacity: 0.35; }
+.wf-pick-item__check--done  { background: #888; cursor: default; }
+
 /* ── animations ─────────────────────────────────────── */
 @keyframes wf-pulse {
   0%, 100% { opacity: 1; }
