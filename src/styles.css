@@ -21033,3 +21033,49 @@ body { background: #eef0ef; }
 .topic-import-link:active { color: #4a9b8f; }
 .topic-import-link:disabled { opacity: 0.5; pointer-events: none; }
 
+.safe-code-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.safe-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.safe-code-row-index {
+  font-weight: 800;
+  color: #566461;
+  min-width: 18px;
+}
+
+.safe-code-location-select,
+.safe-code-custom-input {
+  flex: 1;
+  min-width: 140px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid #dde4e2;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.safe-code-digit-input {
+  width: 48px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid #dde4e2;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-family: inherit;
+}
+
+.safe-code-generate-btn {
+  margin-top: 8px;
+}
+
