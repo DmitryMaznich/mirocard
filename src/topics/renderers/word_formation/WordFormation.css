@@ -320,13 +320,13 @@
 .wf-season__fog {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: 44%;
+  height: 42%;
   background: linear-gradient(
     to bottom,
-    rgba(15, 8, 2, 0)    0%,
-    rgba(15, 8, 2, 0.50) 22%,
-    rgba(15, 8, 2, 0.87) 55%,
-    rgba(10, 5, 1, 0.97) 100%
+    rgba(12, 6, 1, 0)    0%,
+    rgba(12, 6, 1, 0.38) 28%,
+    rgba(12, 6, 1, 0.72) 60%,
+    rgba(8,  4, 0, 0.88) 100%
   );
   display: flex; flex-direction: column; justify-content: flex-end;
   gap: clamp(6px, 1.4vmin, 9px);
@@ -341,34 +341,32 @@
   gap: clamp(5px, 1.2vmin, 8px);
 }
 
-/* frosted glass chip */
+/* white chip — dark text on light ground, readable at any size */
 .wf-season__chip {
   flex: 1; min-width: 0;
   display: flex; align-items: center;
-  gap: clamp(4px, 1vmin, 6px);
-  background: rgba(255, 255, 255, 0.13);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  gap: clamp(5px, 1.2vmin, 7px);
+  background: rgba(255, 255, 255, 0.93);
   border-radius: 12px;
-  padding: clamp(5px, 1.1vmin, 7px) clamp(7px, 1.5vmin, 10px) clamp(5px, 1.1vmin, 7px) clamp(4px, 1vmin, 6px);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  padding: clamp(5px, 1.2vmin, 8px) clamp(7px, 1.6vmin, 10px) clamp(5px, 1.2vmin, 8px) clamp(5px, 1.1vmin, 6px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .wf-season__chip-img {
-  width: clamp(26px, 5.5vmin, 34px);
-  height: clamp(26px, 5.5vmin, 34px);
+  width: clamp(28px, 5.5vmin, 36px);
+  height: clamp(28px, 5.5vmin, 36px);
   border-radius: 50%;
   object-fit: cover; display: block;
-  background: rgba(255,255,255,0.10);
+  background: #e8e0d8;
   flex-shrink: 0;
 }
 .wf-season__chip-img--empty {
-  background: rgba(255,255,255,0.07);
+  background: #ddd8d0;
 }
 
 .wf-season__chip-text {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: clamp(0.58rem, 1.8vmin, 0.72rem);
+  color: #1A0C04;
+  font-size: clamp(0.67rem, 2vmin, 0.8rem);
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.01em;
@@ -378,7 +376,7 @@
   -webkit-box-orient: vertical;
 }
 .wf-season__chip-ending {
-  color: #F4A44A;
+  color: #C85C00;
 }
 
 /* floating forward button */
