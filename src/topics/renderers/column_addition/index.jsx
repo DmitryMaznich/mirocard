@@ -357,7 +357,6 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [solved, setSolved] = useState(false);
   const [showHelper, setShowHelper] = useState(false);
   const [cellSize, setCellSize] = useState(44);
-  const [btnSize, setBtnSize] = useState(52);
 
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
@@ -394,8 +393,6 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
       const exprCols = 2 * digits + 2 + resultDigits;
       const cs = Math.min(52, Math.max(28, Math.floor(avail / exprCols)));
       setCellSize(cs);
-      const btn = Math.min(56, Math.max(36, Math.floor((avail - 24) / 5)));
-      setBtnSize(btn);
     }
     compute();
     window.addEventListener("resize", compute);
@@ -529,7 +526,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         onDigit={(d) => phase === "form" ? handleFormTap(d, "digit") : handleSolveTap(d)}
         onSign={(s) => handleFormTap(s, "sign")}
         onLine={() => handleFormTap(null, "line")}
-        btnSize={btnSize}
+        btnSize={cellSize}
       />
 
       {!showHelper && !!sessionParams?.showHelper && (
