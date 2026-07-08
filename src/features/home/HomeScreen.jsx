@@ -4,10 +4,11 @@ import Button from "@/shared/components/Button";
 import TopicCover from "@/shared/components/TopicCover";
 import ModeIcon from "@/shared/components/ModeIcon";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { useAppUpdate } from "@/shared/hooks/useAppUpdate";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
-import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
+import { silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan, loadAllRecipes, savePlan, resetShoppingData, archiveCycle } from "@/features/planner/plannerApi";
 import { isMenuFullyDecided, isReadyToCook, needsShopping, resetPlan, isRecipeCookedThisCycle } from "@/features/planner/plannerUtils";
@@ -32,41 +33,31 @@ function AccountIcon() {
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
+// Reads as a page title ("Занятие · <ученик>"), not a personal greeting —
+// the app is opened by the tutor, not the student, so it never addresses
+// anyone by name as if they were the one holding the phone.
 
-function HomeHeader({ onSettings, onBrandTap }) {
+function HomeHeader({ student, hasUpdate, onSettings, onAvatarTap }) {
   return (
     <header className="home-header">
-      <div className="home-header__brand" onClick={onBrandTap} style={{ cursor: "default" }}>
-        <img className="home-header__logo" src="/mirocard-mark.svg" alt="" aria-hidden />
-        <div className="home-header__copy">
-          <span className="home-header__name">Mirocard</span>
-          <span className="home-header__tagline">карточки для специалистов</span>
-        </div>
-      </div>
-      <button className="home-header__settings-btn" onClick={onSettings} aria-label="Настройки">
-        <AccountIcon />
-      </button>
-    </header>
-  );
-}
-
-// ─── Student status (read-only — switching lives in Настройки) ────────────────
-
-function StudentStatus({ student }) {
-  return (
-    <div className="home-student-status">
-      <span className={`home-student-status__icon${student ? ' home-student-status__icon--filled' : ''}`}>
+      {/* Secret 5-tap shortcut into the "streak_tracker" test topic — a dev/QA
+          convenience, not a real feature, so it stays visually inert. */}
+      <div className="home-header__avatar" onClick={onAvatarTap} style={{ cursor: "default" }}>
         {student
           ? (student.photo ? <img src={student.photo} alt="" /> : getInitials(student.name))
           : '—'}
-      </span>
-      <span className="home-student-status__copy">
-        <span className="home-student-status__label">Ученик:</span>
-        <span className={`home-student-status__value${student ? '' : ' home-student-status__value--empty'}`}>
-          {student ? student.name : 'не выбран'}
+      </div>
+      <div className="home-header__copy">
+        <span className="home-header__eyebrow">Занятие</span>
+        <span className="home-header__student-name">
+          {student ? student.name : 'Ученик не выбран'}
         </span>
-      </span>
-    </div>
+      </div>
+      <button className="home-header__settings-btn" onClick={onSettings} aria-label="Настройки">
+        <AccountIcon />
+        {hasUpdate && <span className="home-header__badge" />}
+      </button>
+    </header>
   );
 }
 
@@ -594,46 +585,6 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
   return { total, mastered };
 }
 
-function useAppUpdate() {
-  const [hasUpdate, setHasUpdate] = useState(false);
-  const [reg, setReg] = useState(null);
-
-  useEffect(() => {
-    if (!navigator.serviceWorker) return;
-    navigator.serviceWorker.ready.then((r) => {
-      setReg(r);
-      if (r.waiting) setHasUpdate(true);
-      r.addEventListener("updatefound", () => {
-        const sw = r.installing;
-        sw?.addEventListener("statechange", () => {
-          if (sw.state === "installed" && navigator.serviceWorker.controller) {
-            setHasUpdate(true);
-          }
-        });
-      });
-      r.update().catch(() => {});
-    });
-    const onController = () => window.location.reload();
-    navigator.serviceWorker.addEventListener("controllerchange", onController);
-    return () => navigator.serviceWorker.removeEventListener("controllerchange", onController);
-  }, []);
-
-  const applyUpdate = useCallback(async () => {
-    if (reg?.waiting) {
-      reg.waiting.postMessage({ type: "SKIP_WAITING" });
-      return;
-    }
-    try {
-      await reg?.update();
-    } catch {
-      // A manual refresh still gives the browser a chance to load the newest app shell.
-    }
-    window.location.reload();
-  }, [reg]);
-
-  return { hasUpdate, applyUpdate };
-}
-
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
@@ -656,8 +607,6 @@ export default function HomeScreen() {
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
   const [activeTab, setActiveTab] = useState(() => homeActiveTab ?? 'session');
-  const [refreshingAll, setRefreshingAll] = useState(false);
-  const [refreshFailed, setRefreshFailed] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   useEffect(() => {
@@ -673,7 +622,7 @@ export default function HomeScreen() {
 
   const streakTapCountRef = useRef(0);
   const streakTapTimerRef = useRef(null);
-  const handleBrandTap = useCallback(() => {
+  const handleAvatarSecretTap = useCallback(() => {
     streakTapCountRef.current += 1;
     clearTimeout(streakTapTimerRef.current);
     if (streakTapCountRef.current >= 5) {
@@ -712,7 +661,7 @@ export default function HomeScreen() {
     if (mode && mode.id !== activeModeId) setActiveModeId(mode.id);
   }, [mode?.id]);
 
-  const { hasUpdate, applyUpdate } = useAppUpdate();
+  const { hasUpdate } = useAppUpdate();
   const hasPlannerAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("planner");
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (
@@ -749,41 +698,16 @@ export default function HomeScreen() {
     setScreen("params");
   }
 
-  async function refreshAppAndTopics() {
-    if (refreshingAll) return;
-    setRefreshingAll(true);
-    setRefreshFailed(false);
-    try {
-      if (topicRecords.length > 0) {
-        const result = await refreshInstalledCatalogTopics({
-          topicRecords,
-          appVersion: buildInfo.version,
-          force: true,
-        });
-        if (result.updated.length > 0) setTopicRecords(result.nextRecords);
-        if (result.failed.length > 0) setRefreshFailed(true);
-      }
-    } catch {
-      setRefreshFailed(true);
-    } finally {
-      setRefreshingAll(false);
-      applyUpdate();
-    }
-  }
-
-  const versionTitle = refreshingAll
-    ? "Обновляем приложение и темы…"
-    : refreshFailed
-      ? "Часть тем не обновилась. Нажмите, чтобы повторить"
-      : "Обновить приложение и активные темы";
-
   return (
     <div className="screen home-screen-v2">
-      <HomeHeader onSettings={() => setScreen("settings")} onBrandTap={handleBrandTap} />
+      <HomeHeader
+        student={student}
+        hasUpdate={hasUpdate}
+        onSettings={() => setScreen("settings")}
+        onAvatarTap={handleAvatarSecretTap}
+      />
 
       <div className="home-main">
-        <StudentStatus student={student} />
-
         <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} />
 
         <div className="home-tab-content">
@@ -808,17 +732,6 @@ export default function HomeScreen() {
             />
           )}
         </div>
-
-        <button
-          type="button"
-          className={`home-version${hasUpdate || refreshingAll || refreshFailed ? " home-version--update" : ""}${refreshingAll ? " home-version--refreshing" : ""}${refreshFailed ? " home-version--error" : ""}`}
-          onClick={refreshAppAndTopics}
-          title={versionTitle}
-          disabled={refreshingAll}
-        >
-          v{buildInfo.version}
-          {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-version__dot" />}
-        </button>
       </div>
     </div>
   );

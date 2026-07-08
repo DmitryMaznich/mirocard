@@ -4352,21 +4352,6 @@ button {
   gap: 14px;
 }
 
-.home-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  position: relative;
-  z-index: 5;
-  padding: 12px 14px;
-  border-radius: 22px;
-  border: 1px solid rgba(231, 220, 207, 0.96);
-  background: rgba(250, 247, 242, 0.96);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 10px 28px rgba(71, 61, 48, 0.07);
-}
-
 .home-brand-button {
   display: inline-flex;
   align-items: center;
@@ -4893,12 +4878,6 @@ button {
 
   .dashed-button--toolbar {
     width: 100%;
-  }
-
-  .home-header {
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
   }
 
   .home-brand-button {
@@ -14398,6 +14377,7 @@ kbd {
 .param-concept-dots { display: flex; flex-wrap: wrap; gap: 4px; }
 .concept-dot { display: inline-block; border-radius: 50%; flex-shrink: 0; }
 .link-btn { background: none; border: none; color: #4a9b8f; font-family: inherit; font-size: 0.88rem; cursor: pointer; text-decoration: underline; font-weight: 700; }
+.link-btn:disabled { color: #a8978a; cursor: default; }
 
 /* ─── Home screen ────────────────────────────────────────────────────────── */
 /* ══ Home screen ═══════════════════════════════════════════════════ */
@@ -14418,11 +14398,13 @@ kbd {
 }
 
 /* ── Header ──────────────────────────────────────────────────────── */
+/* Reads as a page title ("Занятие · <ученик>"), not a personal greeting —
+   flat teal, no blur, no gradient: cheap on old hardware, and doesn't
+   pretend to be a glass panel it isn't. */
 .home-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   padding: max(14px, env(safe-area-inset-top)) 18px 14px;
   margin: 0;
   border-radius: 0;
@@ -14432,68 +14414,89 @@ kbd {
   box-shadow: 0 2px 16px rgba(20, 42, 40, 0.22);
 }
 
-.home-header__brand {
+.home-header__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #7fc4b7, #2f5b57);
+  color: #fff;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
 }
-
-.home-header__logo {
-  width: 56px;
-  height: 53px;
-  object-fit: contain;
-  flex-shrink: 0;
-  filter: brightness(0) invert(1) opacity(0.92);
+.home-header__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .home-header__copy {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.home-header__name {
-  font-family: "Nunito", sans-serif;
-  font-size: 2.4rem;
-  font-weight: 900;
-  color: #faf7f2;
-  letter-spacing: -0.02em;
-  line-height: 1;
+.home-header__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #f0c375;
 }
 
-.home-header__tagline {
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(250, 247, 242, 0.58);
-  letter-spacing: 0.01em;
+.home-header__student-name {
+  font-family: "Nunito", sans-serif;
+  font-size: 1.32rem;
+  font-weight: 900;
+  color: #faf7f2;
+  letter-spacing: -0.01em;
+  line-height: 1.18;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .home-header__settings-btn {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  background: transparent;
   color: #faf7f2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  position: relative;
+  transition: transform 0.14s ease, background 0.14s ease;
   cursor: pointer;
 }
 .home-header__settings-btn:hover {
-  background: rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.14);
   transform: translateY(-1px);
 }
 .home-header__settings-btn:active {
   transform: translateY(1px);
   background: rgba(255, 255, 255, 0.08);
+}
+.home-header__badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f0c375;
+  border: 2px solid #2f5b57;
 }
 
 /* ── Home section card ───────────────────────────────────────────── */
@@ -16892,12 +16895,13 @@ select.account-card__input {
   font-style: italic;
 }
 
-.settings-build-info {
-  text-align: center;
-  padding: 16px;
-  font-size: 0.75rem;
-  color: #ccc;
-  margin-top: auto;
+.settings-row-hint {
+  padding: 0 16px 12px;
+  font-size: 0.78rem;
+  color: #7c8c89;
+}
+.settings-row-hint--error {
+  color: #b45309;
 }
 
 /* ─── Tablet layout for admin screens (≥ 768px) ────────────────────────── */
@@ -17629,8 +17633,8 @@ body { background: #eef0ef; }
   .home-header {
     padding: max(10px, env(safe-area-inset-top)) 14px 10px;
   }
-  .home-header__logo  { width: 30px; height: 28px; }
-  .home-header__tagline { display: none; }
+  .home-header__avatar { width: 32px; height: 32px; }
+  .home-header__eyebrow { display: none; }
 
   /* ── Home: tighten container gaps ── */
   .home-screen-v2 {
