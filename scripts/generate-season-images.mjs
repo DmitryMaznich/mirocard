@@ -15,65 +15,66 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const API_KEY = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
 
-const STYLE =
-  "vibrant children's book flat illustration, bold highly saturated colors, " +
-  "thick clean outlines, simple geometric shapes, no photorealism, " +
-  "no gradients on background, no text, no watermarks, " +
-  "NO animals, NO people, NO characters, NO snowman, NO birds, NO squirrels, " +
-  "focus on landscape and environment only, " +
-  "square 1:1 composition";
+// Same park scene in all 4 seasons:
+// A large deciduous tree (oak) centered, a wooden bench beside it,
+// a stone path curving through green grass, low garden fence in background.
+// Only seasonal elements change — tree foliage, ground cover, sky, light.
+
+const BASE =
+  "children's book flat illustration, bold highly saturated colors, " +
+  "thick clean outlines, simple shapes, no photorealism, no text, no watermarks, " +
+  "NO animals, NO people, NO characters, " +
+  "SAME SCENE every image: a large oak tree centered, a wooden bench to its right, " +
+  "a curved stone path through a grassy park, low garden fence and shrubs in background, " +
+  "square 1:1 composition, wide landscape view";
 
 const SEASONS = [
   {
-    name: "autumn",
-    prompt:
-      `${STYLE}, autumn forest landscape, ` +
-      "tall maple trees with bright orange red yellow crowns filling the frame, " +
-      "carpet of fallen colourful leaves covering the ground, " +
-      "golden light streaming between trunks, blue sky visible through canopy, " +
-      "a few orange pumpkins on the ground in the distance, " +
-      "rich warm palette: deep orange #E8610A, burgundy #8B2500, gold #F0A500, " +
-      "dark trunks #4A2800, patch of blue sky #5BB8F0, " +
-      "NO animals, NO people, NO characters, lush and cosy autumn atmosphere",
-  },
-  {
-    name: "winter",
-    prompt:
-      `${STYLE}, winter snowy landscape, ` +
-      "snow-covered pine and fir trees in a quiet forest, " +
-      "large fluffy snowflakes drifting down from a deep blue night sky, " +
-      "white snow drifts with smooth rounded shapes, " +
-      "a small cosy house with glowing yellow windows far in the background, " +
-      "icicles hanging from branches, " +
-      "saturated palette: deep navy #0A1A4A, bright white snow, " +
-      "teal-blue fir trees #1A6A5A, warm yellow window glow #FFD000, " +
-      "NO snowman, NO animals, NO people, peaceful magical winter night",
-  },
-  {
     name: "spring",
     prompt:
-      `${STYLE}, spring garden and orchard landscape, ` +
-      "cherry blossom trees in full bloom with vivid hot-pink flowers, " +
-      "pink petals falling through the air, " +
-      "bright green meadow with patches of red and yellow tulips, " +
-      "fluffy white clouds on a clear turquoise sky, " +
-      "a winding stone path leading into the blossoming orchard, " +
-      "saturated spring palette: hot pink #FF3D8A, vivid green #2EC820, " +
-      "turquoise sky #00D4CC, red tulips #F01010, yellow tulips #FFE000, " +
-      "NO animals, NO people, NO birds, joyful blooming spring landscape",
+      `${BASE}, SPRING: ` +
+      "tree has fresh light-green young leaves just opening on branches, " +
+      "small pink and white blossoms on nearby shrubs, " +
+      "bright green grass with scattered yellow dandelions and small white flowers, " +
+      "bench is clean dry wood, " +
+      "pale blue sky with a few fluffy white clouds, soft warm sunlight from the right, " +
+      "palette: fresh green #4CD62A, pale blue sky #87DCFF, white blossom, yellow dandelion #FFE040, " +
+      "light brown bench #C8854A, grey stone path",
   },
   {
     name: "summer",
     prompt:
-      `${STYLE}, bright summer meadow landscape, ` +
-      "vast rolling green hills covered with wild flowers and sunflowers, " +
-      "blazing yellow sun high in a vivid blue sky, " +
-      "fluffy white cumulus clouds, " +
-      "a small sparkling blue lake or river in the middle distance, " +
-      "tall green grass and dandelions in the foreground, " +
-      "saturated summer palette: sky blue #1AB0FF, vivid green #20C010, " +
-      "sunflower yellow #FFD800, white clouds, " +
-      "NO people, NO animals, NO characters, open joyful summer landscape",
+      `${BASE}, SUMMER: ` +
+      "tree has a full dense dark-green canopy casting deep shadow on the ground, " +
+      "thick lush green grass, no fallen leaves, " +
+      "bench sits in dappled shade under the tree, " +
+      "blazing yellow-white sun high in a deep blue sky, one or two white clouds, " +
+      "bright saturated summer palette: deep green #18A800, vivid sky blue #1A9FFF, " +
+      "golden sun #FFD700, warm light brown bench #C8854A, grey stone path, " +
+      "long shadow of tree falling across path",
+  },
+  {
+    name: "autumn",
+    prompt:
+      `${BASE}, AUTUMN: ` +
+      "tree has a brilliant crown of orange, red and yellow leaves, many leaves falling, " +
+      "ground covered with a carpet of fallen orange and red leaves, " +
+      "bench has a few leaves resting on it, " +
+      "warm golden-orange afternoon light, pale blue-grey sky with light clouds, " +
+      "rich warm palette: deep orange #E86010, crimson #C02010, gold #F0A500, " +
+      "brown trunk #5A3010, grey path visible through leaf carpet, pale sky #B8D8F0",
+  },
+  {
+    name: "winter",
+    prompt:
+      `${BASE}, WINTER: ` +
+      "tree is completely bare, dark skeletal branches against the sky, " +
+      "white snow covering the ground, bench, and branch tips, " +
+      "soft snowflakes drifting down, " +
+      "grey-white overcast sky, cold bluish light, " +
+      "palette: white snow, dark bare branches #3A2810, " +
+      "light blue-grey sky #C8DCF0, blue-tinted snow shadows #A8C4E0, " +
+      "wooden bench barely visible under snow, grey stone path under thin snow layer",
   },
 ];
 
