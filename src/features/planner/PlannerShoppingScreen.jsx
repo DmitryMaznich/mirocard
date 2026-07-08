@@ -26,7 +26,17 @@ import './planner.css';
 
 function sName(step) { return step.text.replace(/:$/, '').trim(); }
 function planKey(name, ii) { return `${name}_${ii}`; }
-function isDupSub(sub, cat) { return sub.replace(/^\S+\s+/, '').trim() === cat; }
+// Hides a subgroup header that's just "🌾 <category name>" restating its
+// own category. Must only strip the first word when it's actually an emoji
+// (see firstTokenIsEmoji below) — otherwise a plain-text subgroup name
+// whose *second* word happens to match the category ("Особые продукты" vs.
+// category "продукты") would be falsely treated as a duplicate and its
+// header hidden.
+function isDupSub(sub, cat) {
+  const parts = sub.trim().split(/\s+/);
+  const rest = parts.length > 1 && firstTokenIsEmoji(parts[0]) ? parts.slice(1).join(' ').trim() : sub.trim();
+  return rest === cat;
+}
 
 function noteFor(planned, key) {
   const v = planned[key];
@@ -41,7 +51,24 @@ function formatTodayRu() {
   return `${d.getDate()} ${RU_MONTHS[d.getMonth()]}, ${RU_DAYS[d.getDay()]}`;
 }
 
-function stripEmoji(s) { return s.replace(/^\S+\s+/, '').trim(); }
+// A subgroup's "icon" is just its name's first word — there's no dedicated
+// icon field — so both stripping and displaying it must first check that
+// the word is actually an emoji (via Extended_Pictographic) rather than
+// blindly assuming it. Free-typed subgroup names ("Особые продукты", no
+// emoji) are common — the add-subgroup field only *suggests* starting with
+// one, it doesn't require it — and treating a plain first word as an emoji
+// used to both truncate it out of the name and show it standalone in the
+// icon-sized button next to the (still-prefixed) full name.
+function firstTokenIsEmoji(s) {
+  const first = s?.trim().split(/\s+/)[0] ?? '';
+  return /\p{Extended_Pictographic}/u.test(first);
+}
+
+function stripEmoji(s) {
+  const parts = s.trim().split(/\s+/);
+  if (parts.length > 1 && firstTokenIsEmoji(parts[0])) return parts.slice(1).join(' ').trim();
+  return s.trim();
+}
 
 function printShoppingList(allItems, todayStr, store) {
   let listHtml = '';
@@ -312,7 +339,7 @@ function CategoryEditor({ category, onSave, onDelete, onBack }) {
           <div key={sgIdx} className="cat-editor-subgroup">
             <div className="cat-editor-sg-header">
               <button className="cat-editor-sg-emoji-btn" onClick={() => setShowEmojiFor(sgIdx)} aria-label="Иконка подгруппы">
-                {sg.name ? sg.name.split(' ')[0] : '📋'}
+                {sg.name && firstTokenIsEmoji(sg.name) ? sg.name.split(' ')[0] : '📋'}
               </button>
               {editingSg?.sgIdx === sgIdx ? (
                 <input
@@ -479,14 +506,41 @@ function PlanGrid({
               </div>
             </SortableContext>
           </DndContext>
-        ) : (
-          <div className="shopping-grid">
-            {steps.map((step, si) => {
-              const n = sName(step);
-              const count = (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
-              const stepTotal = (step.items ?? []).length;
-              const done = count === stepTotal && stepTotal > 0;
-              return (
+        ) : (() => {
+          const tileData = steps.map((step, si) => {
+            const n = sName(step);
+            const count = (step.items ?? []).filter((_, ii) => planned[planKey(n, ii)]).length;
+            const stepTotal = (step.items ?? []).length;
+            const done = count === stepTotal && stepTotal > 0;
+            return { si, n, count, done };
+          });
+          // Once a list is actually collected, the full 2-column catalog grid
+          // (all 13+ categories) doesn't need to dominate the screen above
+          // "Вот что нужно купить" anymore — it collapses into a single
+          // horizontally-scrollable row of the same tiles, compacted, so the
+          // real list is reachable without scrolling past mostly-irrelevant
+          // categories first. Every category is still one tap away, just
+          // via horizontal scroll instead of vertical.
+          return total > 0 ? (
+            <div className="shopping-strip-wrap">
+              <div className="shopping-strip-label">Категории</div>
+              <div className="shopping-strip">
+                {tileData.map(({ si, n, count, done }) => (
+                  <button
+                    key={si}
+                    className={`shopping-strip-chip${done ? ' shopping-strip-chip--done' : count > 0 ? ' shopping-strip-chip--partial' : ''}`}
+                    onClick={() => onDetail(si)}
+                  >
+                    <span className="shopping-strip-chip-icon">{icons[si] ?? '📦'}</span>
+                    <span className="shopping-strip-chip-name">{n}</span>
+                    {count > 0 && <span className="shopping-strip-chip-badge">{done ? '✓' : count}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="shopping-grid">
+              {tileData.map(({ si, n, count, done }) => (
                 <button
                   key={si}
                   className={`shopping-tile${done ? ' shopping-tile--done' : count > 0 ? ' shopping-tile--partial' : ''}`}
@@ -496,10 +550,10 @@ function PlanGrid({
                   <span className="shopping-tile-name">{n}</span>
                   {count > 0 && <span className="shopping-tile-badge">{done ? '✓' : count}</span>}
                 </button>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
 
         {!editMode && <SelectedSummary steps={steps} icons={icons} planned={planned} onNote={onNote} />}
       </div>
@@ -778,6 +832,8 @@ function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewL
             await savePendingReceiptPhoto(studentId, blob);
             setHasReceipt(true);
           }}
+          onSkip={() => setHasReceipt(true)}
+          skipLabel="Без чека"
         />
       </div>
     );
@@ -879,6 +935,7 @@ export default function PlannerShoppingScreen() {
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { catId, catName, plannedCount }
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [showActionsSheet, setShowActionsSheet] = useState(false);
 
   useEffect(() => {
     if (!studentId) return;
@@ -917,11 +974,12 @@ export default function PlannerShoppingScreen() {
         // get added (via the same fuzzy match first generation uses,
         // falling back to "Из меню"), and menu-managed items whose
         // ingredient left the menu entirely get cleaned up — without
-        // touching custom categories/items or manually-checked items the
-        // decisions don't mention.
+        // touching custom categories/items, manually-checked items the
+        // decisions don't mention, or anything already bought (see
+        // syncDecisionsIntoShoppingData's bought-guard).
         const ingredientItems = currentPlan ? buildSelectedIngredientsSummary(currentPlan, allRecipes) : [];
         const { customData: syncedCustomData, planned: mergedPlanned, menuKeys: syncedMenuKeys } = currentPlan
-          ? syncDecisionsIntoShoppingData(savedCustom, savedPlan ?? {}, savedMenuKeys ?? [], ingredientItems, currentPlan.ingredientDecisions ?? {})
+          ? syncDecisionsIntoShoppingData(savedCustom, savedPlan ?? {}, savedMenuKeys ?? [], ingredientItems, currentPlan.ingredientDecisions ?? {}, savedBought ?? {})
           : { customData: savedCustom, planned: savedPlan ?? {}, menuKeys: savedMenuKeys ?? [] };
         setSteps(customDataToSteps(syncedCustomData));
         setIcons(syncedCustomData.categories.map((c) => c.icon));
@@ -1235,14 +1293,8 @@ export default function PlannerShoppingScreen() {
           ) : (
             <div className="planner-header-actions">
               <button className="shop-store-chip" onClick={() => setModeView('storePicker')} aria-label="Сменить магазин">{stores.current || '🏪'}</button>
-              {total > 0 && (
-                <button className="shopping-clear-btn" onClick={() => setView('preview')} aria-label="Печать">🖨</button>
-              )}
-              {total > 0 && (
-                <button className="shopping-clear-btn" onClick={() => setConfirmClear(true)} aria-label="Очистить">🗑</button>
-              )}
               <button className="shopping-clear-btn" onClick={() => setEditMode(true)} aria-label="Редактировать категории">✏️</button>
-              <button className="shopping-clear-btn" onClick={() => setConfirmReset(true)} title="Пересоставить из рецептов">⟳</button>
+              <button className="shopping-clear-btn" onClick={() => setShowActionsSheet(true)} aria-label="Ещё действия">⋯</button>
             </div>
           )
         )}
@@ -1272,19 +1324,52 @@ export default function PlannerShoppingScreen() {
         />
       )}
 
+      {showActionsSheet && (
+        <div className="portions-sheet-backdrop" onClick={() => setShowActionsSheet(false)}>
+          <div className="portions-sheet shop-actions-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="portions-sheet__handle" />
+            {total > 0 && (
+              <button
+                type="button"
+                className="shop-actions-sheet__item"
+                onClick={() => { setView('preview'); setShowActionsSheet(false); }}
+              >
+                <span className="shop-actions-sheet__ic">🖨</span> Печать / PDF
+              </button>
+            )}
+            <button
+              type="button"
+              className="shop-actions-sheet__item"
+              onClick={() => { setConfirmReset(true); setShowActionsSheet(false); }}
+            >
+              <span className="shop-actions-sheet__ic">⟳</span> Пересобрать из рецептов
+            </button>
+            {total > 0 && (
+              <button
+                type="button"
+                className="shop-actions-sheet__item shop-actions-sheet__item--danger"
+                onClick={() => { setConfirmClear(true); setShowActionsSheet(false); }}
+              >
+                <span className="shop-actions-sheet__ic">🗑</span> Очистить весь список
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {confirmReset && (
         <div className="shopping-confirm-bar">
-          <span className="shopping-confirm-text">Пересоставить список из текущего меню? Изменения будут потеряны.</span>
+          <span className="shopping-confirm-text">Пересобрать список заново из текущего меню? Удалит все ваши изменения — добавленные и переименованные категории, свои товары — и все отметки «куплено». Вернётся только то, что есть в Меню.</span>
           <div className="shopping-confirm-actions">
             <button className="shopping-confirm-cancel" onClick={() => setConfirmReset(false)}>Нет</button>
-            <button className="shopping-confirm-ok" onClick={handleRegenerate}>Да</button>
+            <button className="shopping-confirm-ok" onClick={handleRegenerate}>Да, пересобрать</button>
           </div>
         </div>
       )}
 
       {confirmClear && (
         <div className="shopping-confirm-bar">
-          <span className="shopping-confirm-text">Очистить весь список?</span>
+          <span className="shopping-confirm-text">Снять все отметки «нужно купить» и «куплено»? Категории и товары останутся — исчезнут только галочки.</span>
           <div className="shopping-confirm-actions">
             <button className="shopping-confirm-cancel" onClick={() => setConfirmClear(false)}>Нет</button>
             <button className="shopping-confirm-ok" onClick={clearAllChecks}>Да, очистить</button>

@@ -19498,6 +19498,79 @@ body { background: #eef0ef; }
   }
 }
 
+/* ── Compact catalog strip — replaces the full grid once a list is already
+   collected, so "Вот что нужно купить" doesn't sit below 13+ full-size
+   tiles. Every category stays one tap away via horizontal scroll instead
+   of a tall vertical grid. ── */
+.shopping-strip-wrap {
+  padding: 2px 6px 0;
+}
+
+.shopping-strip-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a8978a;
+  padding: 0 4px 4px;
+}
+
+.shopping-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 4px 6px;
+}
+
+.shopping-strip-chip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 8px;
+  background: #faf7f2;
+  border: 1px solid #e7dccf;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(71, 61, 48, 0.04);
+}
+
+.shopping-strip-chip:active {
+  background: rgba(74, 155, 143, 0.1);
+}
+
+.shopping-strip-chip--done {
+  border-color: #4a9b8f;
+  background: rgba(74, 155, 143, 0.12);
+}
+
+.shopping-strip-chip--partial {
+  border-color: rgba(74, 155, 143, 0.55);
+  background: rgba(74, 155, 143, 0.05);
+}
+
+.shopping-strip-chip-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.shopping-strip-chip-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #263131;
+}
+
+.shopping-strip-chip-badge {
+  background: #4a9b8f;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  line-height: 1.4;
+}
+
 .shopping-tile {
   display: flex;
   flex-direction: row;

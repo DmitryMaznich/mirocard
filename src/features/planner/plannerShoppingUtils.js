@@ -205,6 +205,13 @@ function addMenuExtraItem(customData, label) {
  * tied to a recipe) is never in `menuKeys` to begin with, so reconciliation
  * never touches it.
  *
+ * A key already marked bought (`bought[key]`) is never removed or unchecked
+ * by any of the above — a tutor mid-trip who already ticked an item off in
+ * В магазине must not see it silently vanish just because they glanced back
+ * at Меню and flipped a decision, or dropped the recipe that needed it. It
+ * simply stops being menu-managed going forward, the same as a manually
+ * added item.
+ *
  * Never touches custom categories/items the decisions don't mention.
  *
  * @param {object} customData
@@ -212,9 +219,10 @@ function addMenuExtraItem(customData, label) {
  * @param {string[]} menuKeys - planKey's the menu managed as of the last sync
  * @param {Array<{product: string, qty: number|null, unit: string|null}>} ingredientItems
  * @param {Object<string, 'have'|'buy'>} ingredientDecisions
+ * @param {Object<string, boolean>} [bought] - planKey's already checked off in В магазине
  * @returns {{ customData: object, planned: object, menuKeys: string[] }}
  */
-export function syncDecisionsIntoShoppingData(customData, planned, menuKeys, ingredientItems, ingredientDecisions) {
+export function syncDecisionsIntoShoppingData(customData, planned, menuKeys, ingredientItems, ingredientDecisions, bought = {}) {
   const nextCustomData = JSON.parse(JSON.stringify(customData));
   const nextPlanned = { ...planned };
   const nextMenuKeys = new Set();
@@ -240,6 +248,8 @@ export function syncDecisionsIntoShoppingData(customData, planned, menuKeys, ing
           nextPlanned[key] = note ? { note } : true;
         }
         nextMenuKeys.add(key);
+      } else if (bought[key]) {
+        // Already bought — leave it in place; see the bought-guard note above.
       } else if (match.catName === 'Из меню') {
         const menuCat = nextCustomData.categories.find((c) => c.id === 'planner_menu_extras');
         if (menuCat) removeItemAtFlatIndex(menuCat, match.ii);
@@ -264,10 +274,13 @@ export function syncDecisionsIntoShoppingData(customData, planned, menuKeys, ing
   // Reconcile: a key the menu managed last time but doesn't need this time
   // (its ingredient's recipe was removed from the menu entirely, or dropped
   // out for any other reason) gets cleaned up the same way an explicit
-  // "Дома" decision would.
+  // "Дома" decision would — unless it's already bought (see the bought-guard
+  // note above), in which case it's left alone and simply stops being
+  // menu-managed going forward.
   const menuExtrasRemovals = [];
   for (const oldKey of menuKeys) {
     if (nextMenuKeys.has(oldKey)) continue;
+    if (bought[oldKey]) continue;
     const sep = oldKey.lastIndexOf('_');
     const catName = oldKey.slice(0, sep);
     const ii = Number(oldKey.slice(sep + 1));

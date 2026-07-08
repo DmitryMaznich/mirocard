@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { resizeToBlob } from './plannerPhotos.js';
 
-export default function PhotoCaptureCard({ title, hint, maxDim, quality, onConfirm }) {
+export default function PhotoCaptureCard({ title, hint, maxDim, quality, onConfirm, onSkip, skipLabel }) {
   const [blob, setBlob] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -52,6 +52,9 @@ export default function PhotoCaptureCard({ title, hint, maxDim, quality, onConfi
             </button>
           </div>
           {hint && <div className="photo-capture__hint">{hint}</div>}
+          {onSkip && (
+            <button type="button" className="photo-capture__skip" onClick={onSkip}>{skipLabel ?? 'Пропустить'}</button>
+          )}
         </>
       )}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFile} />

@@ -498,6 +498,50 @@
   cursor: pointer;
 }
 
+/* ── Покупки: header overflow ("⋯") — rare actions (print/reset/clear),
+   frequent ones (store, edit) stay directly in the header. Reuses the
+   .portions-sheet shell for the same bottom-sheet visual language as the
+   rest of the app. ── */
+.shop-actions-sheet {
+  align-items: stretch;
+  gap: 2px;
+  padding-top: 8px;
+}
+
+.shop-actions-sheet__item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #263131;
+  cursor: pointer;
+}
+
+.shop-actions-sheet__item:active {
+  background: rgba(74, 155, 143, 0.1);
+}
+
+.shop-actions-sheet__item--danger {
+  color: #c0392b;
+}
+
+.shop-actions-sheet__item--danger:active {
+  background: rgba(197, 66, 46, 0.08);
+}
+
+.shop-actions-sheet__ic {
+  font-size: 16px;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .meal-mismatch-text {
   margin: 0;
   font-size: 14px;
@@ -1869,6 +1913,19 @@
   font-size: 14px;
   color: #8a7f6f;
   text-align: center;
+}
+
+.photo-capture__skip {
+  background: none;
+  border: none;
+  padding: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #a8978a;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .photo-capture__btns {
