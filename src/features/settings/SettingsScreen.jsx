@@ -3,8 +3,6 @@ import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { api } from "@/core/api";
 import { clearUserIdbData } from "@/core/bootstrap";
-import { useAppUpdate } from "@/shared/hooks/useAppUpdate";
-import { refreshInstalledCatalogTopics } from "@/features/topics/catalogService";
 import PinGateModal from "@/shared/components/PinGateModal";
 import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
@@ -17,34 +15,6 @@ export default function SettingsScreen() {
   const logout           = useAppStore((s) => s.logout);
   const settings         = useAppStore((s) => s.settings);
   const patchSettings    = useAppStore((s) => s.patchSettings);
-  const topicRecords     = useAppStore((s) => s.topicRecords);
-  const setTopicRecords  = useAppStore((s) => s.setTopicRecords);
-
-  const { hasUpdate, applyUpdate } = useAppUpdate();
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshFailed, setRefreshFailed] = useState(false);
-
-  async function handleCheckForUpdates() {
-    if (refreshing) return;
-    setRefreshing(true);
-    setRefreshFailed(false);
-    try {
-      if (topicRecords.length > 0) {
-        const result = await refreshInstalledCatalogTopics({
-          topicRecords,
-          appVersion: buildInfo.version,
-          force: true,
-        });
-        if (result.updated.length > 0) setTopicRecords(result.nextRecords);
-        if (result.failed.length > 0) setRefreshFailed(true);
-      }
-    } catch {
-      setRefreshFailed(true);
-    } finally {
-      setRefreshing(false);
-      applyUpdate();
-    }
-  }
 
   const adultPinHash      = settings.adultPinHash ?? null;
   const physicalKeyboard  = settings.physicalKeyboard ?? false;
@@ -185,26 +155,13 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        <div className="settings-section">
-          <div className="settings-section-title">Приложение</div>
-          <div className="settings-row">
-            <span className="settings-row__label">
-              Версия {buildInfo.version} · {buildInfo.gitSha}
-            </span>
-            <button className="link-btn" onClick={handleCheckForUpdates} disabled={refreshing}>
-              {refreshing ? "Обновляем…" : refreshFailed ? "Повторить" : "Проверить обновления"}
-            </button>
-          </div>
-          {hasUpdate && !refreshing && (
-            <div className="settings-row-hint">Доступно обновление — нажмите «Проверить обновления»</div>
-          )}
-          {refreshFailed && (
-            <div className="settings-row-hint settings-row-hint--error">Часть тем не обновилась, попробуйте ещё раз</div>
-          )}
-        </div>
       </div>
 
       <DangerZone />
+
+      <div className="settings-build-info">
+        v{buildInfo.version} · {buildInfo.gitSha}
+      </div>
 
       {pinResetMode === "verify-old" && (
         <PinGateModal

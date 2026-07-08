@@ -8,7 +8,7 @@ import { useAppUpdate } from "@/shared/hooks/useAppUpdate";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
-import { silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
+import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
 import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 import { loadPlan, loadAllRecipes, savePlan, resetShoppingData, archiveCycle } from "@/features/planner/plannerApi";
 import { isMenuFullyDecided, isReadyToCook, needsShopping, resetPlan, isRecipeCookedThisCycle } from "@/features/planner/plannerUtils";
@@ -40,9 +40,9 @@ function AccountIcon() {
 
 function getTimeGreeting(date = new Date()) {
   const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return "Доброе Утро,";
-  if (hour >= 12 && hour < 18) return "Добрый День,";
-  return "Добрый Вечер,";
+  if (hour >= 5 && hour < 12) return "Доброе утро,";
+  if (hour >= 12 && hour < 18) return "Добрый день,";
+  return "Добрый вечер,";
 }
 
 function HomeHeader({ student, hasUpdate, onSettings, onAvatarTap }) {
@@ -615,6 +615,8 @@ export default function HomeScreen() {
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
   const [activeTab, setActiveTab] = useState(() => homeActiveTab ?? 'session');
+  const [refreshingAll, setRefreshingAll] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   useEffect(() => {
@@ -669,7 +671,7 @@ export default function HomeScreen() {
     if (mode && mode.id !== activeModeId) setActiveModeId(mode.id);
   }, [mode?.id]);
 
-  const { hasUpdate } = useAppUpdate();
+  const { hasUpdate, applyUpdate } = useAppUpdate();
   const hasPlannerAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("planner");
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (
@@ -706,6 +708,34 @@ export default function HomeScreen() {
     setScreen("params");
   }
 
+  async function refreshAppAndTopics() {
+    if (refreshingAll) return;
+    setRefreshingAll(true);
+    setRefreshFailed(false);
+    try {
+      if (topicRecords.length > 0) {
+        const result = await refreshInstalledCatalogTopics({
+          topicRecords,
+          appVersion: buildInfo.version,
+          force: true,
+        });
+        if (result.updated.length > 0) setTopicRecords(result.nextRecords);
+        if (result.failed.length > 0) setRefreshFailed(true);
+      }
+    } catch {
+      setRefreshFailed(true);
+    } finally {
+      setRefreshingAll(false);
+      applyUpdate();
+    }
+  }
+
+  const versionTitle = refreshingAll
+    ? "Обновляем приложение и темы…"
+    : refreshFailed
+      ? "Часть тем не обновилась. Нажмите, чтобы повторить"
+      : "Обновить приложение и активные темы";
+
   return (
     <div className="screen home-screen-v2">
       <HomeHeader
@@ -741,7 +771,16 @@ export default function HomeScreen() {
           )}
         </div>
 
-        <div className="home-build-tag">v{buildInfo.version}</div>
+        <button
+          type="button"
+          className={`home-version${hasUpdate || refreshingAll || refreshFailed ? " home-version--update" : ""}${refreshingAll ? " home-version--refreshing" : ""}${refreshFailed ? " home-version--error" : ""}`}
+          onClick={refreshAppAndTopics}
+          title={versionTitle}
+          disabled={refreshingAll}
+        >
+          v{buildInfo.version}
+          {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-version__dot" />}
+        </button>
       </div>
     </div>
   );
