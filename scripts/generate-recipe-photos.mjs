@@ -17,7 +17,7 @@ import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const MEDIA_DIR = path.join(ROOT, "content/media");
+const MEDIA_DIR = path.join(ROOT, "public/recipe-media/media");
 const RECIPES_DIR = path.join(ROOT, "content/recipes");
 
 // ── Load env ──────────────────────────────────────────────────────────────────
