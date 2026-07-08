@@ -49,7 +49,16 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
   const { topicId, text, ingredients, fixedPortions } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
   const selected = isRecipeSelected(plan, text.id);
-  const { chosenPortions, scale } = resolveChosenPortions(recipe, plan);
+  // Before the recipe is added to the menu, no portion count has actually
+  // been chosen — resolveChosenPortions would otherwise silently fall back
+  // to the recipe's own base `portions` (a fact about the recipe file, not
+  // a user choice), which is exactly the anti-pattern applyToggleSelect's
+  // comment above warns about. Preview as 1, matching PortionsPromptSheet's
+  // own default, until the user actually picks a count via that sheet.
+  const resolved = resolveChosenPortions(recipe, plan);
+  const { chosenPortions, scale } = selected || fixedPortions
+    ? resolved
+    : { chosenPortions: 1, scale: 1 / resolved.basePortions };
 
   return (
     <div className="screen planner-screen">
