@@ -14,7 +14,7 @@ import { loadPlan, loadAllRecipes, savePlan, resetShoppingData, archiveCycle } f
 import { isMenuFullyDecided, isReadyToCook, needsShopping, resetPlan, isRecipeCookedThisCycle } from "@/features/planner/plannerUtils";
 import { isShoppingDone } from "@/features/planner/plannerShoppingUtils";
 import { buildPutawayQueue, getRequiredZones } from "@/features/planner/putawayUtils";
-import { getPendingReceiptPhoto, getPendingZonePhotoIds, clearPendingPhotos, getTripReceiptPhoto, getTripZonePhoto } from "@/features/planner/plannerPhotos";
+import { isPendingReceiptResolved, getResolvedZoneIds, clearPendingPhotos, getTripReceiptPhoto, getTripZonePhoto } from "@/features/planner/plannerPhotos";
 import { ZONES } from "@/features/planner/putawayLocations";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory } from "@/core/groupStore";
@@ -367,15 +367,15 @@ function PlannerTab({ student, setScreen }) {
       getPlannerShopBought(student.id),
       getPlannerShopCustomData(student.id),
       getPlannerPutawayPlan(student.id),
-      getPendingReceiptPhoto(student.id),
-      getPendingZonePhotoIds(student.id),
-    ]).then(([planned, bought, customData, putawayPlan, receiptPhoto, photographedZones]) => {
+      isPendingReceiptResolved(student.id),
+      getResolvedZoneIds(student.id),
+    ]).then(([planned, bought, customData, putawayPlan, receiptResolved, resolvedZones]) => {
       setBoughtCount(Object.keys(bought ?? {}).length);
-      setShoppingDone(isShoppingDone(planned, bought) && !!receiptPhoto);
+      setShoppingDone(isShoppingDone(planned, bought) && receiptResolved);
       const remainingQueue = customData ? buildPutawayQueue(customData, bought ?? {}, putawayPlan ?? {}) : [];
       const requiredZones = getRequiredZones(putawayPlan ?? {});
-      const zonesPhotographed = requiredZones.every((id) => photographedZones.includes(id));
-      setPutawayDone(Object.keys(bought ?? {}).length > 0 && remainingQueue.length === 0 && zonesPhotographed);
+      const zonesResolved = requiredZones.every((id) => resolvedZones.includes(id));
+      setPutawayDone(Object.keys(bought ?? {}).length > 0 && remainingQueue.length === 0 && zonesResolved);
     });
   }, [student?.id]);
 

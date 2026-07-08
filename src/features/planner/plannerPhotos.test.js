@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   savePendingReceiptPhoto, getPendingReceiptPhoto,
+  markPendingReceiptSkipped, isPendingReceiptResolved,
   savePendingZonePhoto, getPendingZonePhoto, getPendingZonePhotoIds,
+  markPendingZoneSkipped, getResolvedZoneIds,
   archiveTripPhotos, getTripReceiptPhoto, getTripZonePhoto,
   resizeToBlob,
   saveZoneReferencePhoto, getZoneReferencePhoto,
@@ -25,6 +27,29 @@ describe('pending receipt photo', () => {
   });
 });
 
+describe('receipt skip', () => {
+  it('is not resolved when nothing was saved or skipped', async () => {
+    expect(await isPendingReceiptResolved('student-skip-a')).toBe(false);
+  });
+
+  it('is resolved by a real photo', async () => {
+    await savePendingReceiptPhoto('student-skip-b', fakeBlob('receipt'));
+    expect(await isPendingReceiptResolved('student-skip-b')).toBe(true);
+  });
+
+  it('is resolved by an explicit skip, without a photo ever existing', async () => {
+    await markPendingReceiptSkipped('student-skip-c');
+    expect(await isPendingReceiptResolved('student-skip-c')).toBe(true);
+    expect(await getPendingReceiptPhoto('student-skip-c')).toBeNull();
+  });
+
+  it('a skip does not make archiveTripPhotos claim a receipt exists', async () => {
+    await markPendingReceiptSkipped('student-skip-d');
+    const result = await archiveTripPhotos('student-skip-d', 111);
+    expect(result.hasReceipt).toBe(false);
+  });
+});
+
 describe('pending zone photos', () => {
   it('returns an empty array when nothing has been saved', async () => {
     expect(await getPendingZonePhotoIds('student-c')).toEqual([]);
@@ -36,6 +61,24 @@ describe('pending zone photos', () => {
     expect(await getPendingZonePhotoIds('student-d')).toEqual(['freezer', 'pantry']);
     const blob = await getPendingZonePhoto('student-d', 'freezer');
     expect(await blob.text()).toBe('freezer-photo');
+  });
+});
+
+describe('zone photo skip', () => {
+  it('getResolvedZoneIds returns real photos plus explicitly skipped zones', async () => {
+    await savePendingZonePhoto('student-zskip-a', 'fridge', fakeBlob('fridge-photo'));
+    await markPendingZoneSkipped('student-zskip-a', 'pantry');
+    expect(await getResolvedZoneIds('student-zskip-a')).toEqual(['fridge', 'pantry']);
+    // a skipped zone still has no real photo of its own
+    expect(await getPendingZonePhoto('student-zskip-a', 'pantry')).toBeNull();
+    expect(await getPendingZonePhotoIds('student-zskip-a')).toEqual(['fridge']);
+  });
+
+  it('a skip does not make archiveTripPhotos archive a photo for that zone', async () => {
+    await markPendingZoneSkipped('student-zskip-b', 'freezer');
+    const result = await archiveTripPhotos('student-zskip-b', 222);
+    expect(result.zonePhotos).toEqual([]);
+    expect(await getTripZonePhoto('student-zskip-b', 222, 'freezer')).toBeNull();
   });
 });
 
@@ -152,5 +195,15 @@ describe('clearPendingPhotos', () => {
   it('does nothing when there is nothing pending', async () => {
     await clearPendingPhotos('student-h');
     expect(await getPendingReceiptPhoto('student-h')).toBeNull();
+  });
+
+  it('also clears receipt and zone skip markers', async () => {
+    await markPendingReceiptSkipped('student-i');
+    await markPendingZoneSkipped('student-i', 'pantry');
+
+    await clearPendingPhotos('student-i');
+
+    expect(await isPendingReceiptResolved('student-i')).toBe(false);
+    expect(await getResolvedZoneIds('student-i')).toEqual([]);
   });
 });

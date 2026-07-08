@@ -17,7 +17,7 @@ import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.
 import { parseRecipeMetadata } from './recipeParser.js';
 import { generateShoppingList, applyIngredientDecisions } from './shoppingListGenerator.js';
 import { buildPlannerShoppingData, customDataToSteps, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
-import { getPendingReceiptPhoto, savePendingReceiptPhoto } from './plannerPhotos.js';
+import { savePendingReceiptPhoto, markPendingReceiptSkipped, isPendingReceiptResolved } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
@@ -775,7 +775,7 @@ function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewL
   useEffect(() => {
     if (!allDone) return;
     let cancelled = false;
-    getPendingReceiptPhoto(studentId).then((blob) => { if (!cancelled) setHasReceipt(!!blob); });
+    isPendingReceiptResolved(studentId).then((resolved) => { if (!cancelled) setHasReceipt(resolved); });
     return () => { cancelled = true; };
   }, [allDone, studentId]);
 
@@ -812,7 +812,10 @@ function ShopView({ steps, icons, planned, store, bought, onToggleBought, onNewL
             await savePendingReceiptPhoto(studentId, blob);
             setHasReceipt(true);
           }}
-          onSkip={() => setHasReceipt(true)}
+          onSkip={async () => {
+            await markPendingReceiptSkipped(studentId);
+            setHasReceipt(true);
+          }}
           skipLabel="Без чека"
         />
       </div>

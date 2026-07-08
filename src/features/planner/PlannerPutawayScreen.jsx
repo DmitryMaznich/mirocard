@@ -3,7 +3,7 @@ import { useAppStore } from '@/core/store';
 import { getPlannerShopCustomData, getPlannerShopBought, getPlannerPutawayPlan, savePlannerPutawayPlan } from '@/core/groupStore';
 import { buildPutawayQueue, getRequiredZones } from './putawayUtils.js';
 import { ZONES } from './putawayLocations.js';
-import { getPendingZonePhotoIds, savePendingZonePhoto, getZoneReferencePhoto, saveZoneReferencePhoto } from './plannerPhotos.js';
+import { savePendingZonePhoto, markPendingZoneSkipped, getResolvedZoneIds, getZoneReferencePhoto, saveZoneReferencePhoto } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
@@ -75,7 +75,7 @@ export default function PlannerPutawayScreen() {
   useEffect(() => {
     if (loading || queue.length > 0 || !studentId) return;
     let cancelled = false;
-    getPendingZonePhotoIds(studentId).then((ids) => {
+    getResolvedZoneIds(studentId).then((ids) => {
       if (!cancelled) { setPhotographedZones(ids); setZonesLoaded(true); }
     });
     return () => { cancelled = true; };
@@ -139,7 +139,10 @@ export default function PlannerPutawayScreen() {
                 await savePendingZonePhoto(studentId, zoneToShoot, blob);
                 setPhotographedZones((prev) => [...prev, zoneToShoot]);
               }}
-              onSkip={() => setPhotographedZones((prev) => [...prev, zoneToShoot])}
+              onSkip={async () => {
+                await markPendingZoneSkipped(studentId, zoneToShoot);
+                setPhotographedZones((prev) => [...prev, zoneToShoot]);
+              }}
               skipLabel="Пропустить фото"
             />
             <div className="putaway-dots">
@@ -153,6 +156,9 @@ export default function PlannerPutawayScreen() {
             <div className="putaway-complete__icon">🎉</div>
             <div className="putaway-complete__title">Всё разложено!</div>
             <div className="putaway-complete__hint">{totalCount} продуктов на своих местах</div>
+            <button type="button" className="putaway-complete__done-btn" onClick={() => setScreen('home')}>
+              На главный
+            </button>
           </div>
         )
       ) : (

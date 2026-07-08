@@ -13,6 +13,23 @@ export async function getPendingReceiptPhoto(studentId) {
   return topics.getFile(db, photoTopic(studentId), 'pending_receipt.jpg');
 }
 
+// Marks the receipt step as explicitly skipped ("Без чека") — a distinct
+// marker file, not a fake photo, so archiveTripPhotos' hasReceipt keeps
+// honestly reflecting whether a real photo exists. Everything that gates
+// on "is the receipt step resolved" (В магазине's own screen, the hub's
+// shoppingDone) must check isPendingReceiptResolved, not this file alone.
+export async function markPendingReceiptSkipped(studentId) {
+  const db = await getDb();
+  await topics.saveFile(db, photoTopic(studentId), 'pending_receipt.skipped', new Blob([]));
+}
+
+export async function isPendingReceiptResolved(studentId) {
+  const db = await getDb();
+  const photo = await topics.getFile(db, photoTopic(studentId), 'pending_receipt.jpg');
+  if (photo) return true;
+  return !!(await topics.getFile(db, photoTopic(studentId), 'pending_receipt.skipped'));
+}
+
 export async function savePendingZonePhoto(studentId, zoneId, blob) {
   const db = await getDb();
   await topics.saveFile(db, photoTopic(studentId), `pending_putaway_${zoneId}.jpg`, blob);
@@ -31,10 +48,35 @@ export async function getPendingZonePhotoIds(studentId) {
   const prefix = 'pending_putaway_';
   const ids = new Set(
     files
-      .filter((f) => f.startsWith(prefix))
+      .filter((f) => f.startsWith(prefix) && f.endsWith('.jpg'))
       .map((f) => f.slice(prefix.length, -'.jpg'.length))
   );
   return ZONES.map((z) => z.id).filter((id) => ids.has(id));
+}
+
+// Marks one zone's placement-confirmation photo as explicitly skipped — same
+// marker-file approach as markPendingReceiptSkipped, for the same reason.
+export async function markPendingZoneSkipped(studentId, zoneId) {
+  const db = await getDb();
+  await topics.saveFile(db, photoTopic(studentId), `pending_putaway_${zoneId}.skipped`, new Blob([]));
+}
+
+// Zones that no longer need a placement-confirmation photo — either a real
+// one was taken (getPendingZonePhotoIds) or the step was explicitly skipped.
+// Use this (not getPendingZonePhotoIds) anywhere the question is "is this
+// zone resolved" rather than "does a real photo exist for this zone" —
+// archiveTripPhotos deliberately keeps using getPendingZonePhotoIds directly
+// since it only ever archives real photos.
+export async function getResolvedZoneIds(studentId) {
+  const db = await getDb();
+  const photographed = await getPendingZonePhotoIds(studentId);
+  const files = await topics.listFiles(db, photoTopic(studentId));
+  const prefix = 'pending_putaway_';
+  const suffix = '.skipped';
+  const skipped = files
+    .filter((f) => f.startsWith(prefix) && f.endsWith(suffix))
+    .map((f) => f.slice(prefix.length, -suffix.length));
+  return ZONES.map((z) => z.id).filter((id) => photographed.includes(id) || skipped.includes(id));
 }
 
 // Permanent "what does this zone actually look like" reference photo —
@@ -100,8 +142,10 @@ export async function resizeToBlob(file, maxDim, quality) {
 export async function clearPendingPhotos(studentId) {
   const db = await getDb();
   await topics.deleteFile(db, photoTopic(studentId), 'pending_receipt.jpg');
-  const zoneIds = await getPendingZonePhotoIds(studentId);
+  await topics.deleteFile(db, photoTopic(studentId), 'pending_receipt.skipped');
+  const zoneIds = await getResolvedZoneIds(studentId);
   for (const zoneId of zoneIds) {
     await topics.deleteFile(db, photoTopic(studentId), `pending_putaway_${zoneId}.jpg`);
+    await topics.deleteFile(db, photoTopic(studentId), `pending_putaway_${zoneId}.skipped`);
   }
 }

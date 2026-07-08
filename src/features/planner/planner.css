@@ -1659,6 +1659,20 @@
   color: #7d8f8a;
 }
 
+.putaway-complete__done-btn {
+  margin-top: 12px;
+  padding: 14px 28px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(150deg, #5cb0a3, #276b62);
+  box-shadow: 0 8px 20px rgba(39, 107, 98, 0.3);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 .putaway-empty {
   flex: 1;
   display: flex;
