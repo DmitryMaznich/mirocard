@@ -1374,7 +1374,6 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
       </div>
 
       <div className="safe-code-instruction-zone">
-        <div className="safe-code-step-label">Цифра {foundCount + 1} из {total}</div>
         <div className="safe-code-instruction-text">
           Иди и найди {current?.phrase} {ORDINALS_ACCUSATIVE[foundCount] ?? "следующую"} цифру кода.
         </div>
