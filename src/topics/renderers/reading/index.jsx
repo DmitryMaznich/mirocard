@@ -10,6 +10,8 @@ import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSe
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS as DndCSS } from "@dnd-kit/utilities";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
+import { getSafeCodeConfig, appendSafeCodeLog } from "@/core/groupStore";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -1264,12 +1266,141 @@ li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
   );
 }
 
+const ORDINALS_ACCUSATIVE = ["первую", "вторую", "третью", "четвёртую", "пятую"];
+
+function SafeCodeTask({ topicId, onAdvance, onClose }) {
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const students = useAppStore((s) => s.students);
+  const student = students.find((s) => s.id === activeStudentId) ?? null;
+
+  const [config, setConfig] = useState(null);
+  const [foundCount, setFoundCount] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [wrongPulse, setWrongPulse] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  const [opened, setOpened] = useState(false);
+  const startedAtRef = useRef(null);
+  const loggedRef = useRef(false);
+
+  useEffect(() => {
+    startedAtRef.current = Date.now();
+  }, []);
+
+  useEffect(() => {
+    getSafeCodeConfig(topicId).then(setConfig).catch(() => setConfig({ codeLength: 0, locations: [] }));
+  }, [topicId]);
+
+  if (!config) return <div className="session-body reading-body">Загрузка…</div>;
+
+  const locations = config.locations ?? [];
+  const total = locations.length;
+
+  function handleDigit(digit) {
+    if (opened || foundCount >= total) return;
+    const expected = locations[foundCount]?.digit;
+    if (digit === expected) {
+      setFeedback({ ok: true, text: "Верно! Идём дальше." });
+      const next = foundCount + 1;
+      setFoundCount(next);
+      if (next >= total) {
+        setTimeout(() => {
+          setOpened(true);
+          if (!loggedRef.current) {
+            loggedRef.current = true;
+            appendSafeCodeLog(topicId, {
+              codeLength: config.codeLength,
+              locationCount: total,
+              wrongAttempts,
+              elapsedMs: Date.now() - (startedAtRef.current ?? Date.now()),
+              opened: true,
+            }).catch(() => {});
+          }
+        }, 500);
+      }
+      setTimeout(() => setFeedback(null), 900);
+    } else {
+      setWrongAttempts((n) => n + 1);
+      setWrongPulse(true);
+      setFeedback({ ok: false, text: "Не подходит — попробуй ещё раз." });
+      setTimeout(() => { setWrongPulse(false); setFeedback(null); }, 500);
+    }
+  }
+
+  if (opened) {
+    return (
+      <div className="session-body reading-body safe-code-body">
+        <div className="safe-code-instruction-zone safe-code-instruction-zone--opened">
+          <div className="safe-code-icon">🔓🎉</div>
+          <div className="safe-code-instruction-text">Сейф открыт!</div>
+        </div>
+        <RewardVideoModal
+          rewardVideos={student?.rewardVideos ?? []}
+          studentId={student?.id}
+          onDismiss={onAdvance}
+        />
+      </div>
+    );
+  }
+
+  const current = locations[foundCount];
+
+  return (
+    <div className="session-body reading-body safe-code-body">
+      <ReadingCloseButton onClose={onClose} />
+      <div className="safe-code-header">
+        <div className="safe-code-progress">
+          {locations.map((_, i) => (
+            <div key={i} className="safe-code-progress-seg">
+              <div className="safe-code-progress-seg-fill" style={{ width: i < foundCount ? "100%" : "0%" }} />
+            </div>
+          ))}
+        </div>
+        <div className="safe-code-tracker">
+          {locations.map((loc, i) => (
+            <div
+              key={i}
+              className={[
+                "safe-code-slot",
+                i === foundCount ? "safe-code-slot--active" : "",
+                i === foundCount && wrongPulse ? "safe-code-slot--wrong" : "",
+                i < foundCount ? "safe-code-slot--done" : "",
+              ].filter(Boolean).join(" ")}
+            >
+              {i < foundCount ? loc.digit : ""}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="safe-code-instruction-zone">
+        <div className="safe-code-step-label">Цифра {foundCount + 1} из {total}</div>
+        <div className="safe-code-instruction-text">
+          Иди и найди {current?.phrase} {ORDINALS_ACCUSATIVE[foundCount] ?? "следующую"} цифру кода.
+        </div>
+        <div className={`safe-code-feedback${feedback ? " safe-code-feedback--show" : ""}${feedback?.ok ? " safe-code-feedback--ok" : ""}`}>
+          {feedback?.text ?? ""}
+        </div>
+      </div>
+
+      <div className="safe-code-numpad">
+        {[7, 8, 9, 4, 5, 6, 1, 2, 3].map((d) => (
+          <button key={d} className="safe-code-numpad-btn" onClick={() => handleDigit(d)}>{d}</button>
+        ))}
+        <div />
+        <button className="safe-code-numpad-btn" onClick={() => handleDigit(0)}>0</button>
+        <div />
+      </div>
+    </div>
+  );
+}
+
 const TASK_RENDERERS = {
   read_text:           ReadTextTask,
   understand_text:     UnderstandTextTask,
   assemble_line:       AssembleLineTask,
   follow_instruction:  InstructionTask,
   shopping_list:       ShoppingListTask,
+  safe_code:           SafeCodeTask,
 };
 
 export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onQualityAnswer, onClose }) {

@@ -21079,3 +21079,140 @@ body { background: #eef0ef; }
   margin-top: 8px;
 }
 
+.safe-code-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.safe-code-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.safe-code-progress {
+  display: flex;
+  gap: 4px;
+}
+
+.safe-code-progress-seg {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #e4ece9;
+  overflow: hidden;
+}
+
+.safe-code-progress-seg-fill {
+  height: 100%;
+  background: #4caf90;
+  transition: width 0.3s ease;
+}
+
+.safe-code-tracker {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.safe-code-slot {
+  width: 40px;
+  height: 48px;
+  border-radius: 10px;
+  background: #fbf3e3;
+  border: 2px solid #b8873f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #8a6329;
+  font-variant-numeric: tabular-nums;
+}
+
+.safe-code-slot--active {
+  border-color: #4a9b8f;
+  box-shadow: 0 0 0 3px rgba(74, 155, 143, 0.22);
+}
+
+.safe-code-slot--wrong {
+  border-color: #c85a4d;
+}
+
+.safe-code-slot--done {
+  background: #b8873f;
+  color: #fff8ec;
+}
+
+.safe-code-instruction-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.safe-code-step-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b7a7a;
+}
+
+.safe-code-instruction-text {
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.28;
+  color: #1c3634;
+}
+
+.safe-code-feedback {
+  min-height: 22px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #8f3b31;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.safe-code-feedback--show {
+  opacity: 1;
+}
+
+.safe-code-feedback--ok {
+  color: #2f6f66;
+}
+
+.safe-code-icon {
+  font-size: 2.6rem;
+}
+
+.safe-code-numpad {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-bottom: max(4px, var(--app-safe-bottom, 0px));
+}
+
+.safe-code-numpad-btn {
+  min-height: 56px;
+  border: none;
+  border-radius: 14px;
+  background: #eef0ef;
+  color: #1c3634;
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.safe-code-numpad-btn:active {
+  background: #4a9b8f;
+  color: white;
+}
+
