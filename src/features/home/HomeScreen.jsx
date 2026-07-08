@@ -33,9 +33,17 @@ function AccountIcon() {
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
-// Reads as a page title ("Занятие · <ученик>"), not a personal greeting —
-// the app is opened by the tutor, not the student, so it never addresses
-// anyone by name as if they were the one holding the phone.
+// The eyebrow greets by time of day, not by name — the app is opened by the
+// tutor, not the student, so a generic "Доброе утро" is safe, but naming the
+// student there would wrongly address the greeting to them. The student's
+// name stays where it always was: a status line, not part of the greeting.
+
+function getTimeGreeting(date = new Date()) {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) return "Доброе утро";
+  if (hour >= 12 && hour < 18) return "Добрый день";
+  return "Добрый вечер";
+}
 
 function HomeHeader({ student, hasUpdate, onSettings, onAvatarTap }) {
   return (
@@ -48,7 +56,7 @@ function HomeHeader({ student, hasUpdate, onSettings, onAvatarTap }) {
           : '—'}
       </div>
       <div className="home-header__copy">
-        <span className="home-header__eyebrow">Занятие</span>
+        <span className="home-header__eyebrow">{getTimeGreeting()}</span>
         <span className="home-header__student-name">
           {student ? student.name : 'Ученик не выбран'}
         </span>
