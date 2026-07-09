@@ -866,6 +866,7 @@ html.app-ios-standalone {
   flex-shrink: 0;
   padding: 6px 12px;
   overflow-x: auto;
+  touch-action: pan-x pan-y;
 }
 
 .instruction-participant {
@@ -1324,6 +1325,7 @@ html.app-ios-standalone {
   .instruction-participants {
     flex-wrap: nowrap;
     overflow-x: auto;
+    touch-action: pan-x pan-y;
     justify-content: flex-start;
     padding-left: 0;
     padding-right: 0;
@@ -1384,7 +1386,12 @@ html,
 body,
 #root {
   overscroll-behavior: none;
-  touch-action: pan-x pan-y;
+  /* pan-y only (no pan-x): blocks iOS Safari's edge-swipe-back gesture, which
+     clashes with the SPA history guard (useBackButtonGuard.js) and produces a
+     white-flash/hang before snapping back. Elements that need horizontal touch
+     scroll re-enable pan-x locally (see .instruction-participants, .sidebar
+     mobile layout, .concept-group-filter, .note-preset-chips). */
+  touch-action: pan-y;
 }
 
 body {
@@ -1805,6 +1812,7 @@ button {
     padding: 6px;
     border-radius: 18px;
     overflow-x: auto;
+    touch-action: pan-x pan-y;
   }
 
   .sidebar-label {
@@ -14841,6 +14849,7 @@ kbd {
   gap: 6px;
   padding: 8px 12px;
   overflow-x: auto;
+  touch-action: pan-x pan-y;
   flex-shrink: 0;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -19873,6 +19882,7 @@ body { background: #eef0ef; }
   gap: 4px;
   margin-top: 3px;
   overflow-x: auto;
+  touch-action: pan-x pan-y;
   padding-bottom: 2px;
 }
 
