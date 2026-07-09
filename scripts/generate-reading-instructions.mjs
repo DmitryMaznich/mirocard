@@ -75,7 +75,7 @@ const SENTENCES = [
 const manifest = {
   meta: {
     id: "reading_dad_instructions",
-    version: "1.0.5",
+    version: "1.0.6",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -104,6 +104,7 @@ const manifest = {
       ui: {
         title: { ru: "Читаем и выполняем", en: "Read and do" },
         instruction: { ru: "Прочитай предложение и выполни задание", en: "Read and follow the instruction" },
+        icon: "media/icons/reading_daily_sentences.svg",
       },
     },
     {
@@ -142,7 +143,7 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 zip.file("media/avatar.svg", avatarSvg);
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_instructions_v1.0.5.zip", buffer);
+writeFileSync("public/decks/reading_dad_instructions_v1.0.6.zip", buffer);
 const basic = SENTENCES.filter((s) => s.group === "basic").length;
 const spatial = SENTENCES.filter((s) => s.group === "spatial").length;
-console.log(`✓ reading_dad_instructions_v1.0.5.zip (${buffer.length} bytes, ${basic} basic + ${spatial} spatial + safe_code)`);
+console.log(`✓ reading_dad_instructions_v1.0.6.zip (${buffer.length} bytes, ${basic} basic + ${spatial} spatial + safe_code)`);
