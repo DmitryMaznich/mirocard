@@ -21165,6 +21165,26 @@ body { background: #eef0ef; }
   color: #1c3634;
 }
 
+.safe-code-instruction-text--failed {
+  color: #c85a4d;
+}
+
+@keyframes safe-code-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(4px); }
+}
+
+.safe-code-instruction-zone--failed {
+  animation: safe-code-shake 0.4s ease;
+}
+
+.safe-code-retry-btn {
+  margin: 0 auto;
+}
+
 .safe-code-feedback {
   min-height: 22px;
   font-size: 0.92rem;

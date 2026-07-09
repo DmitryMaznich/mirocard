@@ -1279,6 +1279,7 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
   const [wrongPulse, setWrongPulse] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [opened, setOpened] = useState(false);
+  const [failed, setFailed] = useState(false);
   const startedAtRef = useRef(null);
   const loggedRef = useRef(false);
 
@@ -1319,11 +1320,38 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
       }
       setTimeout(() => setFeedback(null), 900);
     } else {
-      setWrongAttempts((n) => n + 1);
+      const nextWrong = wrongAttempts + 1;
+      setWrongAttempts(nextWrong);
       setWrongPulse(true);
       setFeedback({ ok: false, text: "Не подходит — попробуй ещё раз." });
-      setTimeout(() => { setWrongPulse(false); setFeedback(null); }, 500);
+      if (nextWrong >= 2) {
+        setTimeout(() => { setWrongPulse(false); setFeedback(null); setFailed(true); }, 600);
+      } else {
+        setTimeout(() => { setWrongPulse(false); setFeedback(null); }, 500);
+      }
     }
+  }
+
+  function retry() {
+    setFoundCount(0);
+    setWrongAttempts(0);
+    setFeedback(null);
+    setWrongPulse(false);
+    setFailed(false);
+  }
+
+  if (failed) {
+    return (
+      <div className="session-body reading-body safe-code-body">
+        <div className="safe-code-instruction-zone safe-code-instruction-zone--failed">
+          <div className="safe-code-icon">💥</div>
+          <div className="safe-code-instruction-text safe-code-instruction-text--failed">Миссия провалена!</div>
+        </div>
+        <button type="button" className="reading-primary-btn safe-code-retry-btn" onClick={retry}>
+          Попробовать снова
+        </button>
+      </div>
+    );
   }
 
   if (opened) {
