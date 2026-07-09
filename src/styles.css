@@ -19849,6 +19849,12 @@ body { background: #eef0ef; }
   font-style: normal;
 }
 
+.shopping-item-note-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .shopping-item-note-input {
   border: none;
   border-bottom: 1.5px solid #4caf90;
@@ -19859,6 +19865,32 @@ body { background: #eef0ef; }
   outline: none;
   padding: 2px 0;
   font-family: inherit;
+}
+
+.note-preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.note-preset-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.3px solid #e0d4c3;
+  background: #fff;
+  color: #7d8f8a;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.note-preset-chip:active {
+  background: rgba(74, 155, 143, 0.12);
+  border-color: #4a9b8f;
+  color: #2f5b57;
 }
 
 .shopping-tap-hint {

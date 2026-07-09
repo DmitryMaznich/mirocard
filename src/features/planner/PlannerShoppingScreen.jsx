@@ -548,6 +548,35 @@ function PlanGrid({
   );
 }
 
+// ── Note editing (shared by SelectedSummary and PlanDetail) ──────────────────
+
+const NOTE_PRESETS = ['одна упаковка', 'одна штука', 'один килограмм'];
+
+// Quick-pick chips shown alongside a note's text input — tapping one fills
+// the input with that preset (replacing whatever was there), but doesn't
+// save or close the input, so it's still freely hand-editable afterward
+// (add to it, replace it, or just tap away to confirm as-is). onMouseDown
+// preventDefault keeps focus in the input instead of the chip stealing it —
+// without it, the input's onBlur would fire and save the pre-preset value
+// before the click handler ever runs.
+function NotePresetChips({ onPick }) {
+  return (
+    <div className="note-preset-chips" onClick={(e) => e.stopPropagation()}>
+      {NOTE_PRESETS.map((preset) => (
+        <button
+          key={preset}
+          type="button"
+          className="note-preset-chip"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onPick(preset)}
+        >
+          {preset}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── Selected-items summary ("Вот что нужно купить"), grouped by category ────
 
 function SelectedSummary({ steps, icons, planned, onNote }) {
@@ -586,14 +615,17 @@ function SelectedSummary({ steps, icons, planned, onNote }) {
                 <div className="cat-plate__row-main">
                   <span className="cat-plate__row-name">{item}</span>
                   {isEditing ? (
-                    <input
-                      className="cat-plate__note-input" autoFocus
-                      value={editingNote.value}
-                      onChange={(e) => setEditingNote({ key, value: e.target.value })}
-                      onBlur={() => saveNote(key, editingNote.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-                      placeholder="Заметка…"
-                    />
+                    <>
+                      <input
+                        className="cat-plate__note-input" autoFocus
+                        value={editingNote.value}
+                        onChange={(e) => setEditingNote({ key, value: e.target.value })}
+                        onBlur={() => saveNote(key, editingNote.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                        placeholder="Заметка…"
+                      />
+                      <NotePresetChips onPick={(preset) => setEditingNote({ key, value: preset })} />
+                    </>
                   ) : (
                     <span className={`cat-plate__note${note ? ' cat-plate__note--set' : ''}`}>
                       {note || '+ заметка'}
@@ -673,15 +705,17 @@ function PlanDetail({ steps, icons, planned, idx, onToggle, onNote, onNext }) {
                   <span className="shopping-item-label">{item}</span>
                   {isPlanned && (
                     isEditing ? (
-                      <input
-                        className="shopping-item-note-input" autoFocus
-                        value={editingNote.value}
-                        onChange={(e) => setEditingNote({ key, value: e.target.value })}
-                        onBlur={() => saveNote(key, editingNote.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-                        placeholder="Заметка…"
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                      <span className="shopping-item-note-edit" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          className="shopping-item-note-input" autoFocus
+                          value={editingNote.value}
+                          onChange={(e) => setEditingNote({ key, value: e.target.value })}
+                          onBlur={() => saveNote(key, editingNote.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                          placeholder="Заметка…"
+                        />
+                        <NotePresetChips onPick={(preset) => setEditingNote({ key, value: preset })} />
+                      </span>
                     ) : (
                       <span className={`shopping-item-note${note ? ' shopping-item-note--set' : ''}`}>
                         {note || '+ заметка'}
