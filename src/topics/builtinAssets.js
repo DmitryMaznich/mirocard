@@ -497,6 +497,24 @@ const BUILTIN_ASSETS = {
   <rect x="28" y="28" width="72" height="72" rx="14" fill="#fff" stroke="#c8bde8" stroke-width="4"/>
   <path d="M44 52h40M44 68h30M44 84h40" stroke="#4a9b8f" stroke-width="7" stroke-linecap="round"/>
 </svg>`,
+  "media/icons/safe_code_mode.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fbf3e3"/>
+  <rect x="24" y="20" width="80" height="88" rx="10" fill="#8a6329" stroke="#5c421a" stroke-width="4"/>
+  <rect x="34" y="30" width="60" height="68" rx="6" fill="#b8873f"/>
+  <circle cx="64" cy="56" r="16" fill="#fbf3e3" stroke="#5c421a" stroke-width="4"/>
+  <circle cx="64" cy="56" r="4" fill="#5c421a"/>
+  <rect x="60" y="60" width="8" height="14" rx="2" fill="#5c421a"/>
+  <rect x="46" y="84" width="36" height="8" rx="4" fill="#fbf3e3" opacity="0.8"/>
+</svg>`,
+  "media/icons/reading_daily_sentences.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff4ee"/>
+  <rect x="20" y="24" width="72" height="60" rx="12" fill="#fff" stroke="#f0c9a8" stroke-width="4"/>
+  <path d="M34 44h44M34 58h32M34 72h44" stroke="#ef6f5e" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="96" cy="90" r="22" fill="#4a9b8f"/>
+  <path d="M86 90 93 98 108 80" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
 };
 
 const TOPIC_AVATAR_VARIANTS = {

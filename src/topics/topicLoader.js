@@ -776,6 +776,7 @@ const DEFAULT_MODES = {
       ui: {
         title: "Код от сейфа",
         instruction: "Ищите цифры по дому и вводите их на клавиатуре",
+        icon: "media/icons/safe_code_mode.svg",
       },
     },
   ],
