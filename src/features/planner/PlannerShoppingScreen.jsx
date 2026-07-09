@@ -550,7 +550,7 @@ function PlanGrid({
 
 // ── Note editing (shared by SelectedSummary and PlanDetail) ──────────────────
 
-const NOTE_PRESETS = ['одна упаковка', 'одна штука', 'один килограмм'];
+const NOTE_PRESETS = ['одна упаковка', 'одна штука', 'один килограмм', 'одна бутылка'];
 
 // Quick-pick chips shown alongside a note's text input — tapping one fills
 // the input with that preset (replacing whatever was there), but doesn't
