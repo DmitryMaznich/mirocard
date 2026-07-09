@@ -1346,10 +1346,10 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
         <div className="safe-code-instruction-zone safe-code-instruction-zone--failed">
           <div className="safe-code-icon">💥</div>
           <div className="safe-code-instruction-text safe-code-instruction-text--failed">Миссия провалена!</div>
+          <button type="button" className="reading-primary-btn safe-code-retry-btn" onClick={retry}>
+            Попробовать снова
+          </button>
         </div>
-        <button type="button" className="reading-primary-btn safe-code-retry-btn" onClick={retry}>
-          Попробовать снова
-        </button>
       </div>
     );
   }
