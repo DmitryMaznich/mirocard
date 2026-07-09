@@ -2,15 +2,16 @@ import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { useTimer } from "@/features/timer/TimerContext";
 import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
 import { getInitials } from "@/shared/utils/format";
 import { getSafeCodeCustomLocations, saveSafeCodeCustomLocations, saveSafeCodeConfig } from "@/core/groupStore";
 
-const CUSTOM_VALUE = "__custom__";
 const MIN_CODE_LENGTH = 2;
 const MAX_CODE_LENGTH = 5;
+const DATALIST_ID = "safe-code-saved-locations";
 
 function emptyRow() {
-  return { locationId: "", customText: "", phrase: "", digit: "" };
+  return { phrase: "", digit: "" };
 }
 
 function randomDigits(count) {
@@ -22,19 +23,18 @@ function randomDigits(count) {
   return pool.slice(0, count);
 }
 
-export default function SafeCodeParamsContent({ topicId, spots, topicTitle, textTitle, student }) {
+export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, student }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const { markSessionStart } = useTimer();
 
   const [customLocations, setCustomLocations] = useState([]);
   const [codeLength, setCodeLength] = useState(3);
   const [rows, setRows] = useState(() => Array.from({ length: 3 }, emptyRow));
+  const [showManage, setShowManage] = useState(false);
 
   useEffect(() => {
     getSafeCodeCustomLocations(topicId).then(setCustomLocations).catch(() => {});
   }, [topicId]);
-
-  const allOptions = [...spots, ...customLocations];
 
   function changeCodeLength(next) {
     const clamped = Math.max(MIN_CODE_LENGTH, Math.min(MAX_CODE_LENGTH, next));
@@ -48,19 +48,6 @@ export default function SafeCodeParamsContent({ topicId, spots, topicTitle, text
 
   function updateRow(index, patch) {
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
-  }
-
-  function selectLocation(index, value) {
-    if (value === CUSTOM_VALUE) {
-      updateRow(index, { locationId: CUSTOM_VALUE, phrase: "" });
-      return;
-    }
-    const option = allOptions.find((o) => (o.id ?? o.phrase) === value);
-    updateRow(index, { locationId: value, phrase: option?.phrase ?? "", customText: "" });
-  }
-
-  function setCustomText(index, text) {
-    updateRow(index, { customText: text, phrase: text });
   }
 
   function setDigit(index, value) {
@@ -82,17 +69,29 @@ export default function SafeCodeParamsContent({ topicId, spots, topicTitle, text
     });
   }
 
+  function updateSavedLocation(index, text) {
+    setCustomLocations((prev) => prev.map((loc, i) => (i === index ? { label: text, phrase: text } : loc)));
+  }
+
+  function persistSavedLocations() {
+    saveSafeCodeCustomLocations(topicId, customLocations).catch(() => {});
+  }
+
+  function deleteSavedLocation(index) {
+    setCustomLocations((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      saveSafeCodeCustomLocations(topicId, next).catch(() => {});
+      return next;
+    });
+  }
+
   const isReady = rows.length === codeLength && rows.every((row) => row.phrase.trim() && row.digit !== "");
 
   async function startSession() {
-    const newCustom = rows
-      .filter((row) => row.locationId === CUSTOM_VALUE && row.customText.trim())
-      .map((row) => ({ label: row.customText.trim(), phrase: row.customText.trim() }));
-    if (newCustom.length) {
-      const merged = [...customLocations];
-      for (const loc of newCustom) {
-        if (!merged.some((m) => m.phrase === loc.phrase)) merged.push(loc);
-      }
+    const typedPhrases = rows.map((row) => row.phrase.trim()).filter(Boolean);
+    const newOnes = typedPhrases.filter((p) => !customLocations.some((c) => c.phrase === p));
+    if (newOnes.length) {
+      const merged = [...customLocations, ...newOnes.map((p) => ({ label: p, phrase: p }))];
       setCustomLocations(merged);
       await saveSafeCodeCustomLocations(topicId, merged).catch(() => {});
     }
@@ -142,25 +141,13 @@ export default function SafeCodeParamsContent({ topicId, spots, topicTitle, text
               {rows.map((row, i) => (
                 <div key={i} className="safe-code-row">
                   <span className="safe-code-row-index">{i + 1}.</span>
-                  <select
-                    className="safe-code-location-select"
-                    value={row.locationId}
-                    onChange={(e) => selectLocation(i, e.target.value)}
-                  >
-                    <option value="" disabled>Выбери место</option>
-                    {allOptions.map((opt) => (
-                      <option key={opt.id ?? opt.phrase} value={opt.id ?? opt.phrase}>{opt.label}</option>
-                    ))}
-                    <option value={CUSTOM_VALUE}>Своё место…</option>
-                  </select>
-                  {row.locationId === CUSTOM_VALUE && (
-                    <input
-                      className="safe-code-custom-input"
-                      value={row.customText}
-                      onChange={(e) => setCustomText(i, e.target.value)}
-                      placeholder="например: в кармане куртки"
-                    />
-                  )}
+                  <input
+                    className="safe-code-location-input"
+                    list={DATALIST_ID}
+                    value={row.phrase}
+                    onChange={(e) => updateRow(i, { phrase: e.target.value })}
+                    placeholder="например: под подушкой"
+                  />
                   <input
                     className="safe-code-digit-input"
                     inputMode="numeric"
@@ -171,9 +158,19 @@ export default function SafeCodeParamsContent({ topicId, spots, topicTitle, text
                 </div>
               ))}
             </div>
-            <button className="link-btn safe-code-generate-btn" onClick={generateRandom}>
-              🎲 Сгенерировать случайные
-            </button>
+            <datalist id={DATALIST_ID}>
+              {customLocations.map((loc) => <option key={loc.phrase} value={loc.phrase} />)}
+            </datalist>
+            <div className="safe-code-params-actions">
+              <button className="link-btn safe-code-generate-btn" onClick={generateRandom}>
+                🎲 Сгенерировать случайные
+              </button>
+              {customLocations.length > 0 && (
+                <button className="link-btn" onClick={() => setShowManage(true)}>
+                  ✎ Управлять сохранёнными местами
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -181,6 +178,33 @@ export default function SafeCodeParamsContent({ topicId, spots, topicTitle, text
           <Button fullWidth onClick={startSession} disabled={!isReady}>Начать занятие</Button>
         </div>
       </div>
+
+      {showManage && (
+        <Modal title="Сохранённые места" onClose={() => setShowManage(false)}>
+          <div className="safe-code-manage-list">
+            {customLocations.map((loc, i) => (
+              <div key={i} className="safe-code-manage-row">
+                <input
+                  className="safe-code-manage-input"
+                  value={loc.phrase}
+                  onChange={(e) => updateSavedLocation(i, e.target.value)}
+                  onBlur={persistSavedLocations}
+                />
+                <button
+                  className="safe-code-manage-delete"
+                  onClick={() => deleteSavedLocation(i)}
+                  aria-label="Удалить место"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            {customLocations.length === 0 && (
+              <div className="safe-code-manage-empty">Сохранённых мест пока нет.</div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

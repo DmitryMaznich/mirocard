@@ -574,7 +574,6 @@ export default function ParamsScreen() {
         </div>
         <SafeCodeParamsContent
           topicId={activeTopicId}
-          spots={activeText.spots ?? []}
           topicTitle={getTopicTitle(topicRecord.meta.title)}
           textTitle={getTopicTitle(activeText.title)}
           student={student}

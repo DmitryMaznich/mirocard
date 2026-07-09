@@ -21052,8 +21052,7 @@ body { background: #eef0ef; }
   min-width: 18px;
 }
 
-.safe-code-location-select,
-.safe-code-custom-input {
+.safe-code-location-input {
   flex: 1;
   min-width: 140px;
   min-height: 44px;
@@ -21075,8 +21074,50 @@ body { background: #eef0ef; }
   font-family: inherit;
 }
 
-.safe-code-generate-btn {
+.safe-code-params-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-top: 8px;
+}
+
+.safe-code-manage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.safe-code-manage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.safe-code-manage-input {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid #dde4e2;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.safe-code-manage-delete {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: #fbeceb;
+  color: #c85a4d;
+  font-size: 1.1rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.safe-code-manage-empty {
+  color: #6b7a7a;
+  font-size: 0.9rem;
 }
 
 .safe-code-body {
