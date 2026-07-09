@@ -31,6 +31,20 @@ function pluralizePortions(n) {
   return 'порций';
 }
 
+// Case form for "на N ..." phrasing ("на" + accusative) — differs from
+// pluralizePortions only at n=1 ("на 1 порцию", not the bare nominative
+// "порция" a standalone count like a stepper value would use). The 2-4
+// and 5+ forms are already identical to their accusative-plural spelling,
+// so they're reused as-is. Reading this correctly matters here specifically
+// — the app teaches children with ASD to read, and a grammatically wrong
+// label undermines that.
+function pluralizePortionsAccusative(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'порцию';
+  return pluralizePortions(n);
+}
+
 // Household measuring tools only come in whole/half increments — round to
 // the nearest half instead of showing an unmeasurable raw fraction, same
 // as the reading engine already does for step text (formatWithUnit).
@@ -76,7 +90,7 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
         <div className="recipe-ingredients">
           <span className="recipe-ingredients__meta">
             {fixedPortions ? '🔒 готовится сразу на ' : 'На '}
-            {chosenPortions} {pluralizePortions(chosenPortions)}
+            {chosenPortions} {pluralizePortionsAccusative(chosenPortions)}
           </span>
           <ul className="recipe-ingredients__list">
             {ingredients.map((ing, i) => {
