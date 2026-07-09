@@ -6,7 +6,7 @@ import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { getUserRecipes } from "@/core/groupStore";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
-const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список", safe_code: "сейф" };
+const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список", safe_code: "сейф", sentence_pool: "задания" };
 
 function getTextTitle(text) {
   return getTopicTitle(text?.title) || text?.id || "";
