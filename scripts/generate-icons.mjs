@@ -31,6 +31,14 @@ async function generate(size, filename, bg, fg) {
   console.log(`Generated ${filename} (${size}x${size})`);
 }
 
+// iOS and CDN/edge layers cache icon-192.png / icon-512.png /
+// apple-touch-icon.png hard (iOS home-screen icons in particular
+// barely ever refresh from a same-named URL, even after reinstalling
+// the app). Whenever these files change, bump the `?v=` query string
+// on their references in public/manifest.json and index.html so
+// clients fetch the new file under a new URL instead of serving a
+// stale cached copy.
+
 const BG = "#ffffff";
 const FG = "#080f20"; // navy, same ink as the splash screen
 
