@@ -11,6 +11,11 @@ Code: `feedback-bot/`, `scripts/fetch-feedback-backlog.py`, `scripts/deploy-feed
    messages, not just commands, to cache them for later reactions).
 3. Add the bot to the Mirocard2 testers group as a regular member (admin not
    required).
+4. Check the group's reaction settings (Group Settings → Reactions). If it's
+   set to a restricted "Some reactions" list, 👀 may not be selectable — an
+   admin needs to switch it to "All Reactions", or the trigger emoji in
+   `feedback-bot/formatting.py` (`PIN_EMOJI`) needs to be changed to one that
+   is in the allowed set.
 
 ## 2. Collect the IDs you need
 
@@ -69,7 +74,7 @@ Start-ScheduledTask -TaskName "MirocardFeedbackBot"
 ## 6. Manual test checklist (from the design doc)
 
 1. Send a plain text message in the testers group, then a message with a
-   photo attached. React 📌 on both (as the owner).
+   photo attached. React 👀 on both (as the owner).
    Expect: ✅ appears on both within a few seconds; two new lines appear in
    `C:/Users/dmazn/Projects/Mirocard2/feedback/inbox.jsonl` on the runtime
    host, and the screenshot lands in `feedback/screenshots/`.
@@ -77,7 +82,7 @@ Start-ScheduledTask -TaskName "MirocardFeedbackBot"
    `Start-ScheduledTask -TaskName "MirocardFeedbackBot"`), then react 📌 on a
    message that was sent *before* the restart.
    Expect: ✅ still appears (the persistent cache survived the restart).
-3. React 📌 as a **different** Telegram account (not the owner).
+3. React 👀 as a **different** Telegram account (not the owner).
    Expect: no reaction from the bot, no new backlog entry.
 4. From the local dev machine:
    ```bash

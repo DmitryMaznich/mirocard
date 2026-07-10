@@ -1,6 +1,6 @@
 from typing import Iterable, Optional
 
-PIN_EMOJI = '📌'
+PIN_EMOJI = '👀'
 
 
 def format_author(full_name: str, username: Optional[str]) -> str:

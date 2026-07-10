@@ -2,7 +2,7 @@
 """Mirocard2 testers-group feedback bot.
 
 Listens to the testers group, caches messages, and — when the owner reacts
-with 📌 — saves the message into feedback/inbox.jsonl.
+with 👀 — saves the message into feedback/inbox.jsonl.
 
 Run: python mirocard_feedback_bot.py
 """
