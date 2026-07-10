@@ -10,6 +10,7 @@ let container = null;
 
 function GuardHost(props) {
   useBackButtonGuard({
+    screen: "home",
     isTimerOpen: false,
     onCloseTimer: undefined,
     isSessionExitPromptOpen: false,
@@ -147,5 +148,148 @@ describe("useBackButtonGuard", () => {
 
     expect(useAppStore.getState().screen).toBe("students");
     expect(onCloseTimer).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("useBackButtonGuard on iOS", () => {
+  const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(window.navigator, "userAgent");
+
+  function mockIos() {
+    Object.defineProperty(window.navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+      configurable: true,
+    });
+  }
+
+  afterEach(() => {
+    if (originalUserAgentDescriptor) {
+      Object.defineProperty(window.navigator, "userAgent", originalUserAgentDescriptor);
+    } else {
+      delete window.navigator.userAgent;
+    }
+  });
+
+  function dispatchPopState(state) {
+    time += 250;
+    vi.setSystemTime(time);
+    window.dispatchEvent(new PopStateEvent("popstate", { state }));
+  }
+
+  it("pushes a real history entry for each forward screen change", () => {
+    mockIos();
+    resetStore("home");
+    const pushSpy = vi.spyOn(window.history, "pushState");
+
+    act(() => {
+      root.render(<GuardHost screen="home" />);
+    });
+    pushSpy.mockClear();
+
+    act(() => {
+      root.render(<GuardHost screen="students" />);
+    });
+
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ mirocardIosNav: true, screen: "students" }),
+      "",
+      expect.any(String),
+    );
+  });
+
+  it("restores the previous screen on a completed swipe-back", () => {
+    mockIos();
+    resetStore("home");
+
+    act(() => {
+      root.render(<GuardHost screen="home" />);
+    });
+    act(() => {
+      root.render(<GuardHost screen="students" />);
+    });
+
+    act(() => {
+      dispatchPopState({ mirocardIosNav: true, screen: "home", seq: 0 });
+    });
+
+    expect(useAppStore.getState().screen).toBe("home");
+  });
+
+  it("does nothing extra when swiping past the app's root", () => {
+    mockIos();
+    resetStore("home");
+
+    act(() => {
+      root.render(<GuardHost screen="home" />);
+    });
+    const pushSpy = vi.spyOn(window.history, "pushState");
+
+    act(() => {
+      dispatchPopState(null);
+    });
+
+    expect(pushSpy).not.toHaveBeenCalled();
+    expect(useAppStore.getState().screen).toBe("home");
+  });
+
+  it("intercepts swipe-back during an active session with a confirmation prompt", () => {
+    mockIos();
+    resetStore("session");
+    const onRequestSessionExit = vi.fn();
+
+    act(() => {
+      root.render(<GuardHost screen="session" onRequestSessionExit={onRequestSessionExit} />);
+    });
+    const pushSpy = vi.spyOn(window.history, "pushState");
+
+    act(() => {
+      dispatchPopState(null);
+    });
+
+    expect(useAppStore.getState().screen).toBe("session");
+    expect(onRequestSessionExit).toHaveBeenCalledTimes(1);
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ mirocardIosNav: true, screen: "session" }),
+      "",
+      expect.any(String),
+    );
+  });
+
+  it("closes an already-open session exit prompt on a second swipe-back", () => {
+    mockIos();
+    resetStore("session");
+    const onCloseSessionExitPrompt = vi.fn();
+
+    act(() => {
+      root.render(
+        <GuardHost
+          screen="session"
+          isSessionExitPromptOpen
+          onCloseSessionExitPrompt={onCloseSessionExitPrompt}
+        />,
+      );
+    });
+
+    act(() => {
+      dispatchPopState(null);
+    });
+
+    expect(onCloseSessionExitPrompt).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes the timer before navigating, without changing screen", () => {
+    mockIos();
+    resetStore("students");
+    const onCloseTimer = vi.fn();
+
+    act(() => {
+      root.render(<GuardHost screen="students" isTimerOpen onCloseTimer={onCloseTimer} />);
+    });
+
+    act(() => {
+      dispatchPopState({ mirocardIosNav: true, screen: "home", seq: 0 });
+    });
+
+    expect(onCloseTimer).toHaveBeenCalledTimes(1);
+    expect(useAppStore.getState().screen).toBe("students");
   });
 });

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
+import { isIOS, installIosRoot, pushIosScreen, getIosNavState } from "@/shared/navigation/iosBackNavigation";
 
 // One entry is enough. With DEPTH=1 the rebound always goes root→#_guard
 // (different URLs), so Chrome Android never silently ignores the pushState.
@@ -11,6 +12,7 @@ let guardSequence = 0;
 let guardTopSequence = 0;
 let lastObservedSequence = 0;
 let lastHandledBackAt = 0;
+let lastHandledIosSpecialAt = 0;
 
 function guardUrl() {
   return window.location.href.replace(/#.*$/, "") + GUARD_HASH;
@@ -66,25 +68,31 @@ function reboundToGuardTop(sequence) {
 }
 
 export function useBackButtonGuard({
+  screen,
   isTimerOpen,
   onCloseTimer,
   isSessionExitPromptOpen,
   onCloseSessionExitPrompt,
   onRequestSessionExit,
 }) {
+  const screenRef = useRef(screen);
   const isTimerOpenRef = useRef(isTimerOpen);
   const onCloseTimerRef = useRef(onCloseTimer);
   const isSessionExitPromptOpenRef = useRef(isSessionExitPromptOpen);
   const onCloseSessionExitPromptRef = useRef(onCloseSessionExitPrompt);
   const onRequestSessionExitRef = useRef(onRequestSessionExit);
+  const isFirstIosRenderRef = useRef(true);
+  const isRestoringFromHistoryRef = useRef(false);
 
   useEffect(() => {
+    screenRef.current = screen;
     isTimerOpenRef.current = isTimerOpen;
     onCloseTimerRef.current = onCloseTimer;
     isSessionExitPromptOpenRef.current = isSessionExitPromptOpen;
     onCloseSessionExitPromptRef.current = onCloseSessionExitPrompt;
     onRequestSessionExitRef.current = onRequestSessionExit;
   }, [
+    screen,
     isTimerOpen,
     onCloseTimer,
     isSessionExitPromptOpen,
@@ -92,8 +100,64 @@ export function useBackButtonGuard({
     onRequestSessionExit,
   ]);
 
+  // iOS only: push a real history entry for every forward screen change, so a
+  // completed edge-swipe-back has an actual destination to land on instead of
+  // rebounding off a stale boot-screen snapshot (see design doc for root cause).
+  useEffect(() => {
+    if (!isIOS() || !window.history?.pushState) return undefined;
+
+    if (isFirstIosRenderRef.current) {
+      isFirstIosRenderRef.current = false;
+      installIosRoot(screen);
+      return undefined;
+    }
+
+    if (isRestoringFromHistoryRef.current) {
+      isRestoringFromHistoryRef.current = false;
+      return undefined;
+    }
+
+    pushIosScreen(screen);
+    return undefined;
+  }, [screen]);
+
   useEffect(() => {
     if (!window.history?.pushState) return undefined;
+
+    if (isIOS()) {
+      function handleIosPopState(event) {
+        if (isTimerOpenRef.current) {
+          const now = Date.now();
+          if (now - lastHandledIosSpecialAt < 180) return;
+          lastHandledIosSpecialAt = now;
+          pushIosScreen(screenRef.current);
+          onCloseTimerRef.current?.();
+          return;
+        }
+
+        if (screenRef.current === "session") {
+          const now = Date.now();
+          if (now - lastHandledIosSpecialAt < 180) return;
+          lastHandledIosSpecialAt = now;
+          pushIosScreen(screenRef.current);
+          if (isSessionExitPromptOpenRef.current) {
+            onCloseSessionExitPromptRef.current?.();
+          } else {
+            onRequestSessionExitRef.current?.();
+          }
+          return;
+        }
+
+        const state = getIosNavState(event);
+        if (!state) return;
+
+        isRestoringFromHistoryRef.current = true;
+        useAppStore.getState().setScreen(state.screen);
+      }
+
+      window.addEventListener("popstate", handleIosPopState);
+      return () => window.removeEventListener("popstate", handleIosPopState);
+    }
 
     installBackGuardStack();
 

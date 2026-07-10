@@ -146,6 +146,7 @@ export default function App() {
   useKioskMode(orientationLock);
 
   useBackButtonGuard({
+    screen,
     isTimerOpen,
     onCloseTimer: closeTimer,
     isSessionExitPromptOpen: showSessionExitPrompt,
