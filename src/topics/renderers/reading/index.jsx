@@ -5,7 +5,7 @@ import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase } from "./parseRecipeTxt";
-import { getGroup, getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
+import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS as DndCSS } from "@dnd-kit/utilities";
@@ -445,36 +445,6 @@ function AssembleLineTask({ task, soundEnabled, playFeedback, onMistake, onAdvan
   );
 }
 
-// Parse "1-15,21,24-28" → Set of step numbers
-function parseStepRanges(rangeStr) {
-  const nums = new Set();
-  for (const part of (rangeStr ?? "").split(",")) {
-    const m = part.trim().match(/^(\d+)-(\d+)$/);
-    if (m) {
-      for (let i = +m[1]; i <= +m[2]; i++) nums.add(i);
-    } else {
-      const n = parseInt(part.trim());
-      if (!isNaN(n) && n > 0) nums.add(n);
-    }
-  }
-  return nums;
-}
-
-// Apply group step-range assignments to parsed steps (headings don't consume a number)
-function applyGroupToSteps(parsedSteps, group) {
-  const memberRanges = group
-    .filter((m) => m.stepRanges?.trim())
-    .map((m) => ({ name: m.name, nums: parseStepRanges(m.stepRanges) }));
-  if (!memberRanges.length) return parsedSteps;
-
-  let actionNum = 0;
-  return parsedSteps.map((step) => {
-    if (step.type !== "heading") actionNum++;
-    const matches = memberRanges.filter((mr) => mr.nums.has(actionNum));
-    return { ...step, owners: matches.map((mr) => mr.name) };
-  });
-}
-
 function playWarningChime() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -529,18 +499,14 @@ function InstructionProgressBar({ segments, stepIndex }) {
 
 function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
-  const activeStudentId         = useAppStore((s) => s.activeStudentId);
-  const students                = useAppStore((s) => s.students);
   const sessionPortionsOverride    = useAppStore((s) => s.sessionPortionsOverride);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
   const sessionReturnScreen        = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen     = useAppStore((s) => s.setSessionReturnScreen);
-  const student = students.find((s) => s.id === activeStudentId) ?? null;
 
   const [portions,   setPortions]   = useState(1);
   const [portionsCount, setPortionsCount] = useState(1);
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
-  const [group,      setGroup]      = useState([]);
   const [stepIndex,  setStepIndex]  = useState(0);
   const [checked,    setChecked]    = useState({});
 
@@ -549,8 +515,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       await pullRecipeKvFromServer().catch(() => {});
       const textId   = task.text?.id;
       const filePath = task.text?.file;
-      const [grp, settings, rawText] = await Promise.all([
-        getGroup(topicId).catch(() => []),
+      const [settings, rawText] = await Promise.all([
         getRecipeSettings(topicId).catch(() => ({ portions: 1 })),
         (async () => {
           if (textId) {
@@ -561,11 +526,8 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
           return null;
         })(),
       ]);
-      const grpList      = grp ?? [];
-      const parsedSteps  = rawText ? parseRecipeTxt(rawText) : (task.text?.steps ?? []);
-      const annotated    = applyGroupToSteps(parsedSteps, grpList);
-      setGroup(grpList);
-      setSteps(annotated);
+      const parsedSteps = rawText ? parseRecipeTxt(rawText) : (task.text?.steps ?? []);
+      setSteps(parsedSteps);
       const basePortions = task.text?.portions ?? 1;
       const chosenPortions = sessionPortionsOverride ?? settings.portions ?? basePortions;
       setPortions(stepPortionsMultiplier(basePortions, task.text?.fixedPortions, chosenPortions));
@@ -581,10 +543,6 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     step?.type === "image" ? `media/${step.file}` :
     step?.image ? `media/${step.image}` : null
   );
-  // Support both old single-owner (step.owner) and new multi-owner (step.owners) formats
-  const owners = step
-    ? resolveStepOwners(step.owners ?? (step.owner ? [step.owner] : []), group, student)
-    : [];
   const isLast = stepIndex === steps.length - 1;
   const allChecked =
     step?.type !== "checklist" ||
@@ -690,64 +648,17 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
   if (!step) return null;
 
-  const chef = group.find((m) => m.role === "chef") ?? null;
-
   return (
     <div className="session-body reading-body instruction-body">
 
       <div className="instruction-running-layout">
 
-        {/* Left panel — visible only in landscape; contains chef info + team at bottom */}
-        <div className="instruction-chef-panel">
-          {chef && (
-            <>
-              <div className="instruction-chef-crown">👑</div>
-              <div className="instruction-chef-avatar">
-                {chef.photoDataUrl
-                  ? <img src={chef.photoDataUrl} alt={chef.name} />
-                  : <div className="instruction-chef-initials">{chef.name?.[0] ?? "?"}</div>
-                }
-              </div>
-              <div className="instruction-chef-name">{chef.name}</div>
-              <div className="instruction-chef-label">шеф</div>
-            </>
-          )}
-
-          {/* Recipe title block */}
+        {/* Left panel — visible only in landscape */}
+        <div className="instruction-info-panel">
           <div className="instruction-panel-now-cooking">
             <div className="instruction-panel-now-cooking__label">сейчас готовим:</div>
             <div className="instruction-panel-now-cooking__title">{getTopicTitle(task.text?.title)}</div>
           </div>
-
-          {/* Team avatars at bottom of left panel — chef excluded (shown above) */}
-          {group.length > 1 && (
-            <div className="instruction-panel-participants">
-              <div className="instruction-panel-participants-label">Команда шефа:</div>
-              {group.filter((m) => m.role !== "chef").map((member) => {
-                const isActive = owners.some((o) => o.id === member.id || o.name === member.name);
-                const isChef = member.role === "chef";
-                return (
-                  <div
-                    key={member.id ?? member.name}
-                    className={[
-                      "instruction-panel-participant",
-                      isActive ? "instruction-panel-participant--active" : "",
-                      isChef ? "instruction-panel-participant--chef" : "",
-                    ].filter(Boolean).join(" ")}
-                  >
-                    <div className="instruction-panel-participant-avatar">
-                      {member.photoDataUrl
-                        ? <img src={member.photoDataUrl} alt={member.name} />
-                        : <div className="instruction-panel-participant-initials">{member.name?.[0] ?? "?"}</div>
-                      }
-                    </div>
-                    <div className="instruction-panel-participant-name">{member.name}</div>
-                    {isChef && <span className="instruction-panel-participant-chef-mark">👑</span>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="instruction-main">
@@ -856,34 +767,6 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
       </div>
 
-      {group.length > 1 && (
-        <div className="instruction-participants">
-          {group.map((member) => {
-            const isActive = owners.some((o) => o.id === member.id || o.name === member.name);
-            const isChef = member.role === "chef";
-            return (
-              <div
-                key={member.id ?? member.name}
-                className={[
-                  "instruction-participant",
-                  isActive ? "instruction-participant--active" : "",
-                  isChef ? "instruction-participant--chef" : "",
-                ].filter(Boolean).join(" ")}
-              >
-                <div className="instruction-participant-avatar">
-                  {member.photoDataUrl
-                    ? <img src={member.photoDataUrl} alt={member.name} />
-                    : <div className="instruction-participant-initials">{member.name?.[0] ?? "?"}</div>
-                  }
-                </div>
-                <div className="instruction-participant-name">{member.name}</div>
-                {isChef && <span className="instruction-participant-chef-mark">👑</span>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
     </div>
   );
 }
@@ -921,7 +804,6 @@ function SortableTile({ id, icon, name }) {
 function ShoppingListTask({ task, topicId, onAdvance }) {
   const [steps, setSteps] = useState([]);
   const [categoryIcons, setCategoryIcons] = useState([]);
-  const [group, setGroup] = useState([]);
   const [view, setView] = useState("grid"); // "grid" | "preview" | number
   const [checked, setChecked] = useState({});
   const [sortMode, setSortMode] = useState(false);
@@ -941,7 +823,7 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       await pullRecipeKvFromServer().catch(() => {});
       const textId   = task.text?.id;
       const filePath = task.text?.file;
-      const [raw, grp, savedOrder] = await Promise.all([
+      const [raw, savedOrder] = await Promise.all([
         (async () => {
           if (textId) {
             const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);
@@ -950,7 +832,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
           if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
           return null;
         })(),
-        getGroup(topicId).catch(() => []),
         getShoppingOrder(topicId).catch(() => null),
       ]);
       let rawSteps;
@@ -965,7 +846,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       const { steps: orderedSteps, categoryIcons: orderedIcons } = applyShoppingOrder(rawSteps, rawIcons, savedOrder);
       setSteps(orderedSteps);
       setCategoryIcons(orderedIcons);
-      setGroup(grp ?? []);
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]);
@@ -1107,8 +987,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
       ? steps.map((step, si) => ({ step, si, icon: categoryIcons[si] ?? "📦", entries: toEntries(step, si) }))
       : selected;
 
-    const responsible = group.find((m) => m.role === "chef");
-    const teammates   = group.filter((m) => m.role !== "chef");
     const todayStr    = formatTodayRu();
 
     return (
@@ -1123,19 +1001,9 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
         </div>
 
         <div className="shopping-preview-content">
-          {/* Шапка — title (print only) + date + team */}
+          {/* Шапка — title (print only) + date */}
           <div className="shopping-print-header">
             <div className="shopping-preview-date">{todayStr}</div>
-            {responsible && (
-              <div className="shopping-preview-responsible">
-                Ответственный:&nbsp;<strong>{responsible.name}</strong>&nbsp;★
-              </div>
-            )}
-            {teammates.length > 0 && (
-              <div className="shopping-preview-teammates">
-                Команда:&nbsp;{teammates.map((m) => m.name).join(", ")}
-              </div>
-            )}
           </div>
 
           <div className="shopping-preview-separator" />
@@ -1167,10 +1035,6 @@ function ShoppingListTask({ task, topicId, onAdvance }) {
               listHtml += `<li class="item">&#9744;&nbsp;${item}</li>`;
               prevSub = subgroup;
             }
-            const teamHtml = [
-              responsible ? `<div>Ответственный: <strong>${responsible.name}</strong> ★</div>` : "",
-              teammates.length ? `<div>Команда: ${teammates.map(m => m.name).join(", ")}</div>` : "",
-            ].join("");
             const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Список покупок</title><style>
 @page{size:A4;margin:18mm 22mm}
 body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#111}
@@ -1182,7 +1046,7 @@ li.sub{font-size:8pt;font-weight:700;letter-spacing:.06em;text-transform:upperca
 li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
 </style></head><body>
 <h1>Список покупок</h1>
-<div class="meta">${todayStr}</div>${teamHtml}<hr>
+<div class="meta">${todayStr}</div><hr>
 <ul>${listHtml}</ul>
 </body></html>`;
             const iframe = document.createElement("iframe");

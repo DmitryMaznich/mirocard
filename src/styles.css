@@ -856,74 +856,6 @@ html.app-ios-standalone {
   to   { transform: rotate(18deg); }
 }
 
-/* Instruction: participant strip */
-.instruction-participants {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 6px 12px;
-  overflow-x: auto;
-  touch-action: pan-x pan-y;
-}
-
-.instruction-participant {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  opacity: 0.45;
-  transition: opacity 0.2s;
-}
-
-.instruction-participant--active {
-  opacity: 1;
-}
-
-.instruction-participant-avatar {
-  width: clamp(36px, 9vmin, 56px);
-  height: clamp(36px, 9vmin, 56px);
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid transparent;
-  transition: border-color 0.2s;
-}
-
-.instruction-participant--active .instruction-participant-avatar {
-  border-color: #5ab88a;
-}
-
-.instruction-participant-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.instruction-participant-initials {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e8f5ee;
-  font-size: clamp(13px, 3vmin, 20px);
-  font-weight: 700;
-  color: #2d7a5a;
-}
-
-.instruction-participant-name {
-  font-size: clamp(10px, 2.4vmin, 14px);
-  font-weight: 600;
-  color: #4a6a5a;
-  text-align: center;
-  max-width: clamp(40px, 10vmin, 64px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* Instruction: cover / setup screen */
 .instruction-cover {
   position: relative;
@@ -1003,164 +935,6 @@ html.app-ios-standalone {
   color: #2a4a40;
 }
 
-.instruction-cover-members {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.instruction-cover-member {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f0f8f4;
-  border-radius: 12px;
-  padding: 8px 12px;
-}
-
-.instruction-cover-member-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-  border: 2px solid #b0dcc0;
-}
-
-.instruction-cover-member-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.instruction-cover-member-initials {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #d4f0e2;
-  font-size: 18px;
-  font-weight: 700;
-  color: #2d7a5a;
-}
-
-.instruction-cover-member-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.instruction-cover-member-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2d4a3e;
-}
-
-.instruction-cover-ranges-input {
-  border: 1.5px solid #c0ddd0;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 13px;
-  color: #4a6a5a;
-  outline: none;
-  background: #fff;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.instruction-cover-ranges-input:focus {
-  border-color: #5ab88a;
-}
-
-.instruction-cover-ranges-input::placeholder {
-  color: #a0beb0;
-}
-
-.instruction-cover-member-remove {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  background: #e8d0d0;
-  color: #a04040;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.instruction-cover-add-member {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f8fdf9;
-  border: 1.5px dashed #a0c8b0;
-  border-radius: 12px;
-  padding: 8px 12px;
-}
-
-.instruction-cover-name-input {
-  flex: 1;
-  border: 1.5px solid #c0ddd0;
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-size: 15px;
-  color: #2d4a3e;
-  outline: none;
-  background: #fff;
-}
-
-.instruction-cover-name-input:focus {
-  border-color: #5ab88a;
-}
-
-.instruction-cover-photo-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1.5px solid #b0dcc0;
-  background: #e8f5ee;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-  padding: 0;
-}
-
-.instruction-cover-photo-preview {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.instruction-cover-add-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #5ab88a;
-  color: #fff;
-  font-size: 22px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-weight: 700;
-}
-
-.instruction-cover-add-btn:disabled {
-  background: #c0ddd0;
-  cursor: default;
-}
 
 .instruction-cover-edit-recipe {
   background: none;
@@ -1228,39 +1002,6 @@ html.app-ios-standalone {
     font-size: 11px;
   }
 
-  .instruction-cover-member {
-    padding: 6px 10px;
-  }
-
-  .instruction-cover-member-avatar {
-    width: 36px;
-    height: 36px;
-  }
-
-  .instruction-cover-member-name {
-    font-size: 14px;
-  }
-
-  .instruction-cover-ranges-input {
-    font-size: 12px;
-    padding: 3px 6px;
-  }
-
-  .instruction-cover-add-member {
-    padding: 6px 10px;
-  }
-
-  .instruction-cover-name-input {
-    font-size: 14px;
-    padding: 6px 8px;
-  }
-
-  .instruction-cover-photo-btn {
-    width: 34px;
-    height: 34px;
-    font-size: 16px;
-  }
-
   .instruction-cover-start {
     max-width: none;
     padding: 14px;
@@ -1296,21 +1037,6 @@ html.app-ios-standalone {
     padding: 10px 12px;
   }
 
-  .instruction-participants {
-    gap: 8px;
-    padding: 4px 8px;
-  }
-
-  .instruction-participant-avatar {
-    width: 36px;
-    height: 36px;
-  }
-
-  .instruction-participant-name {
-    font-size: 10px;
-    max-width: 40px;
-  }
-
   .instruction-nav .reading-primary-btn {
     padding: 14px 10px;
     font-size: 1rem;
@@ -1319,16 +1045,6 @@ html.app-ios-standalone {
   .instruction-back-btn {
     width: 46px;
     min-height: 46px;
-  }
-
-  /* Participants strip: scroll if many members */
-  .instruction-participants {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    touch-action: pan-x pan-y;
-    justify-content: flex-start;
-    padding-left: 0;
-    padding-right: 0;
   }
 }
 
@@ -1389,8 +1105,8 @@ body,
   /* pan-y only (no pan-x): blocks iOS Safari's edge-swipe-back gesture, which
      clashes with the SPA history guard (useBackButtonGuard.js) and produces a
      white-flash/hang before snapping back. Elements that need horizontal touch
-     scroll re-enable pan-x locally (see .instruction-participants, .sidebar
-     mobile layout, .concept-group-filter, .note-preset-chips). */
+     scroll re-enable pan-x locally (see .sidebar mobile layout,
+     .concept-group-filter, .note-preset-chips). */
   touch-action: pan-y;
 }
 
@@ -18329,29 +18045,6 @@ body { background: #eef0ef; }
   color: #b33;
 }
 
-/* ─── Chef role toggle button in setup ─────────────────────────────────────── */
-.instruction-cover-chef-btn {
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid #e0e0e0;
-  background: transparent;
-  border-radius: 8px;
-  font-size: 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  opacity: 0.3;
-  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
-  margin-right: 4px;
-}
-.instruction-cover-chef-btn--active {
-  opacity: 1;
-  background: #fffbe8;
-  border-color: #d4a800;
-}
-
 /* ─── Running phase layout wrapper ─────────────────────────────────────────── */
 .instruction-running-layout {
   flex: 1;
@@ -18369,31 +18062,9 @@ body { background: #eef0ef; }
   overflow-y: auto;
 }
 
-/* ─── Owner name inline in step ─────────────────────────────────────────────── */
-.instruction-step-owner {
-  font-size: clamp(22px, 4.5vmin, 40px);
-  font-weight: 900;
-  color: #1a6040;
-  line-height: 1.15;
-  margin-bottom: 6px;
-}
-
-/* ─── Chef panel (hidden in portrait) ───────────────────────────────────────── */
-.instruction-chef-panel {
+/* ─── Info panel (hidden in portrait) ───────────────────────────────────────── */
+.instruction-info-panel {
   display: none;
-}
-
-/* ─── Chef mark in participant strip ─────────────────────────────────────────── */
-.instruction-participant--chef {
-  position: relative;
-}
-.instruction-participant-chef-mark {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 11px;
-  line-height: 1;
-  pointer-events: none;
 }
 
 /* ─── Landscape layout ───────────────────────────────────────────────────────── */
@@ -18419,8 +18090,8 @@ body { background: #eef0ef; }
     justify-content: flex-start;
   }
 
-  /* Chef panel: golden left column — 1/3 of screen */
-  .instruction-chef-panel {
+  /* Info panel: golden left column — 1/3 of screen */
+  .instruction-info-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -18432,59 +18103,6 @@ body { background: #eef0ef; }
     border-right: 2px solid #e8d060;
     padding: 16px 20px;
     overflow: hidden;
-  }
-
-  .instruction-chef-crown {
-    font-size: clamp(28px, 6vh, 48px);
-    line-height: 1;
-  }
-
-  .instruction-chef-avatar {
-    width: clamp(100px, 22vh, 200px);
-    height: clamp(100px, 22vh, 200px);
-    border-radius: 50%;
-    overflow: hidden;
-    border: 4px solid #d4a800;
-    flex-shrink: 0;
-    background: #fdf0c0;
-    box-shadow: 0 4px 24px rgba(180, 130, 0, 0.18);
-  }
-
-  .instruction-chef-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .instruction-chef-initials {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: clamp(40px, 9vh, 80px);
-    font-weight: 800;
-    color: #7a5500;
-  }
-
-  .instruction-chef-name {
-    font-size: clamp(18px, 4vh, 32px);
-    font-weight: 900;
-    color: #2a1800;
-    text-align: center;
-    line-height: 1.2;
-    word-break: break-word;
-  }
-
-  .instruction-chef-label {
-    font-size: clamp(11px, 2vh, 14px);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #8a6000;
-    background: #fde88a;
-    border-radius: 6px;
-    padding: 2px 7px;
   }
 
   .instruction-panel-now-cooking {
@@ -18520,105 +18138,8 @@ body { background: #eef0ef; }
     justify-content: safe center;
   }
 
-  /* Bigger owner name and step text in landscape */
-  .instruction-step-owner {
-    font-size: clamp(24px, 5.5vh, 46px);
-    margin-bottom: 4px;
-  }
-
   .instruction-step-text {
     font-size: clamp(17px, 4vh, 32px) !important;
-  }
-
-  /* External participants strip is replaced by in-panel list in landscape */
-  .instruction-participants {
-    display: none;
-  }
-
-  /* ── Team list at bottom of left panel ── */
-  .instruction-panel-participants-label {
-    font-size: clamp(9px, 1.6vh, 12px);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #8a6000;
-    margin-bottom: 4px;
-  }
-
-  .instruction-panel-participants {
-    margin-top: auto;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    border-top: 1px solid rgba(210, 165, 0, 0.4);
-    padding-top: 10px;
-    overflow-y: auto;
-  }
-
-  .instruction-panel-participant {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 3px 6px;
-    border-radius: 10px;
-    transition: background 0.15s;
-  }
-
-  .instruction-panel-participant--active {
-    background: rgba(210, 165, 0, 0.22);
-  }
-
-  .instruction-panel-participant-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: #fde88a;
-    border: 2px solid #d4a800;
-  }
-
-  .instruction-panel-participant--active .instruction-panel-participant-avatar {
-    border-color: #7a5500;
-    box-shadow: 0 0 0 2px #ffe066;
-  }
-
-  .instruction-panel-participant-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .instruction-panel-participant-initials {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 800;
-    color: #7a5500;
-  }
-
-  .instruction-panel-participant-name {
-    flex: 1;
-    min-width: 0;
-    font-size: clamp(11px, 2.2vh, 15px);
-    font-weight: 700;
-    color: #2a1800;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .instruction-panel-participant--active .instruction-panel-participant-name {
-    color: #7a5500;
-  }
-
-  .instruction-panel-participant-chef-mark {
-    font-size: 12px;
-    line-height: 1;
   }
 }
 
@@ -18705,39 +18226,6 @@ body { background: #eef0ef; }
     max-width: 100%;
   }
 
-  /* Compact member rows in landscape */
-  .instruction-cover-member {
-    padding: 6px 10px;
-  }
-
-  .instruction-cover-member-avatar {
-    width: 34px;
-    height: 34px;
-  }
-
-  .instruction-cover-member-avatar img,
-  .instruction-cover-member-initials {
-    font-size: 14px;
-  }
-
-  .instruction-cover-member-name {
-    font-size: 14px;
-  }
-
-  .instruction-cover-ranges-input {
-    font-size: 12px;
-    padding: 3px 8px;
-  }
-
-  .instruction-cover-add-member {
-    padding: 6px 10px;
-  }
-
-  .instruction-cover-name-input {
-    font-size: 14px;
-    padding: 5px 8px;
-  }
-
   .instruction-cover-section-label {
     font-size: 11px;
   }
@@ -18757,10 +18245,6 @@ body { background: #eef0ef; }
   .instruction-step-text {
     text-align: center;
     font-size: clamp(18px, 4.5vh, 34px) !important;
-  }
-
-  .instruction-step-owner {
-    text-align: center;
   }
 
   /* Header: compact in landscape */
@@ -18788,13 +18272,6 @@ body { background: #eef0ef; }
   /* Bullet items: smaller */
   .instruction-bullet-item {
     font-size: clamp(14px, 3.5vh, 22px);
-  }
-
-  /* Participants strip: use full width, don't scroll horizontally */
-  .instruction-participants {
-    justify-content: space-around;
-    padding: 4px 12px;
-    gap: 8px;
   }
 }
 
@@ -20028,21 +19505,6 @@ body { background: #eef0ef; }
   color: #263131;
   padding: 4px 0 4px 4px;
   line-height: 1.4;
-}
-
-.shopping-preview-team-section {
-  margin-top: 4px;
-}
-
-.shopping-preview-responsible {
-  font-size: clamp(0.9rem, 2.5dvh, 1rem);
-  color: #263131;
-  margin-bottom: 4px;
-}
-
-.shopping-preview-teammates {
-  font-size: clamp(0.85rem, 2.3dvh, 0.95rem);
-  color: #666;
 }
 
 /* ── Action bar ── */

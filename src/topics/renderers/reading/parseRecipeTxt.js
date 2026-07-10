@@ -2,15 +2,13 @@
  * Parse plain-text recipe format into step objects.
  *
  * Format rules:
- *   N. Step text     → {type: "action", text, owner}
+ *   N. Step text     → {type: "action", text}
  *   - Item           → checklist item appended to previous step
- *   @Name            → sets owner for all following steps
- *   Plain line       → {type: "heading", text, owner}
+ *   Plain line       → {type: "heading", text}
  */
 export function parseRecipeTxt(raw) {
   const lines = raw.split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
   const steps = [];
-  let currentOwner = null;
   let current = null;
   let stepNum = 0;
   let currentSubgroup = null;
@@ -39,12 +37,6 @@ export function parseRecipeTxt(raw) {
       continue;
     }
 
-    if (line.startsWith("@")) {
-      flush();
-      currentOwner = line.slice(1).trim() || null;
-      continue;
-    }
-
     const numMatch = line.match(/^(\d+)\.\s+(.+)/);
     if (numMatch) {
       flush();
@@ -54,7 +46,6 @@ export function parseRecipeTxt(raw) {
         id: `s${stepNum}`,
         type: text.trim() === "Проверка!" ? "warning" : "action",
         text,
-        owner: currentOwner,
       };
       continue;
     }
@@ -94,7 +85,6 @@ export function parseRecipeTxt(raw) {
       id: `h${steps.length + 1}`,
       type: "heading",
       text: line,
-      owner: currentOwner,
     };
   }
 
@@ -119,15 +109,9 @@ export function parseRecipeTxt(raw) {
  */
 export function serializeRecipeTxt(steps) {
   const lines = [];
-  let lastOwner = undefined;
   let num = 0;
 
   for (const step of steps) {
-    if (step.owner !== lastOwner) {
-      if (lastOwner !== undefined) lines.push("");
-      if (step.owner) lines.push(`@${step.owner}`);
-      lastOwner = step.owner;
-    }
     if (step.type === "heading") {
       lines.push(step.text);
     } else {
@@ -145,21 +129,6 @@ export function serializeRecipeTxt(steps) {
   }
 
   return lines.join("\n");
-}
-
-/**
- * Resolve which group member owns a step.
- * Falls back to the active student when no group is configured.
- */
-export function resolveStepOwner(ownerName, group, student) {
-  if (ownerName) {
-    const member = group?.find((m) => m.name === ownerName);
-    return member ?? { id: null, name: ownerName, photoDataUrl: null };
-  }
-  if (!group?.length && student) {
-    return { id: student.id, name: student.name, photoDataUrl: student.photo ?? null };
-  }
-  return null;
 }
 
 const FIRE_MAP = [
@@ -245,20 +214,11 @@ export function applyPortions(text, portions) {
 }
 
 /**
- * Resolve all owners of a step (supports multiple assignees).
- * Falls back to the active student when no group is configured.
+ * The active student "owns" every step — wrapped in an array to match the
+ * shape step-owner avatar rendering expects.
  */
-export function resolveStepOwners(ownerNames, group, student) {
-  if (ownerNames?.length) {
-    return ownerNames.map((name) => {
-      const member = group?.find((m) => m.name === name);
-      return member ?? { id: null, name, photoDataUrl: null };
-    });
-  }
-  if (!group?.length && student) {
-    return [{ id: student.id, name: student.name, photoDataUrl: student.photo ?? null }];
-  }
-  return [];
+export function resolveStepOwners(student) {
+  return student ? [{ id: student.id, name: student.name, photoDataUrl: student.photo ?? null }] : [];
 }
 
 const COLLECTIVE_PORTIONS_RU = {

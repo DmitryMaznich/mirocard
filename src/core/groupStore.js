@@ -3,22 +3,11 @@ import { pushOp } from "@/core/syncApi";
 import { api } from "@/core/api";
 import { RECIPES_TOPIC_ID, getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic";
 
-const groupKey     = (topicId) => `group_${topicId}`;
 const settingsKey  = (topicId) => `recipe_settings_${topicId}`;
 const overrideKey  = (topicId, textId, mode) =>
   mode === "individual"
     ? `recipe_override_${topicId}_${textId}_individual`
     : `recipe_override_${topicId}_${textId}`;
-
-export async function getGroup(topicId) {
-  const db = await getDb();
-  return (await kv.get(db, groupKey(topicId))) ?? [];
-}
-
-export async function saveGroup(topicId, children) {
-  const db = await getDb();
-  await kv.set(db, groupKey(topicId), children);
-}
 
 // ─── Recipe settings ─────────────────────────────────────────────────────────
 
