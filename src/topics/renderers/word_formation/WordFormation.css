@@ -361,26 +361,29 @@
 }
 .wf-season__chip-text {
   flex: 1;
-  display: flex; flex-direction: column;
-  min-width: 0; justify-content: center;
+  display: flex; flex-direction: row;
+  flex-wrap: wrap;
+  min-width: 0;
+  align-items: baseline;
+  align-content: center;
+  gap: 0 0.3em;
   padding: clamp(4px, 1vmin, 8px) clamp(5px, 1.2vmin, 9px);
 }
 .wf-season__chip-adj {
   font-size: clamp(1rem, 3.6vmin, 2rem);
   font-weight: 800;
   color: #1A0C04;
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: -0.02em;
-  white-space: nowrap; overflow: hidden;
+  white-space: nowrap;
 }
 .wf-season__chip-ending { color: #C85C00; }
 .wf-season__chip-noun {
   font-size: clamp(1rem, 3.6vmin, 2rem);
   font-weight: 400;
   color: #5A3E2B;
-  line-height: 1.15;
-  margin-top: 1px;
-  white-space: nowrap; overflow: hidden;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 /* forward button pinned bottom-right */
