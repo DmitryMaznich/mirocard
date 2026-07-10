@@ -181,7 +181,7 @@ describe("importTopic — valid cases", () => {
     expect(record.meta.avatar).toBe("media/avatar_reading.svg");
     expect(record.cards).toEqual([]);
     expect(record.texts).toHaveLength(1);
-    expect(record.modes.map((m) => m.id)).toEqual(["read_text", "understand_text", "assemble_text", "follow_instruction", "safe_code"]);
+    expect(record.modes.map((m) => m.id)).toEqual(["read_text", "understand_text", "assemble_text", "follow_instruction", "safe_code", "read_poem_book"]);
   });
 
   it("accepts deck.json as fallback for v1 compatibility", async () => {
