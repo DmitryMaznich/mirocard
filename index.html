@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800;900&display=swap" />
     <title>Mirocard</title>
   </head>
   <body>
@@ -39,18 +39,108 @@
         position: absolute;
         inset: 0;
         background-image:
-          radial-gradient(1.5px 1.5px at  8% 12%, rgba(255,255,255,.55) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 83% 18%, rgba(255,255,255,.45) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 22% 42%, rgba(255,255,255,.35) 0%, transparent 100%),
-          radial-gradient(1.5px 1.5px at 68% 72%, rgba(255,255,255,.50) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 38% 82%, rgba(255,255,255,.30) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 91% 52%, rgba(255,255,255,.40) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 14% 76%, rgba(255,255,255,.45) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 57%  8%, rgba(255,255,255,.40) 0%, transparent 100%),
-          radial-gradient(2px   2px   at 47% 28%, rgba(255,255,255,.25) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 76% 38%, rgba(255,255,255,.50) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 30% 22%, rgba(255,255,255,.35) 0%, transparent 100%),
-          radial-gradient(1px   1px   at 93% 85%, rgba(255,255,255,.30) 0%, transparent 100%);
+          radial-gradient(1px 1px at 4% 9%, rgba(255,255,255,.4) 0%, transparent 100%),
+          radial-gradient(1px 1px at 13% 22%, rgba(255,255,255,.3) 0%, transparent 100%),
+          radial-gradient(1px 1px at 24% 6%, rgba(255,255,255,.35) 0%, transparent 100%),
+          radial-gradient(1px 1px at 33% 34%, rgba(255,255,255,.25) 0%, transparent 100%),
+          radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,.3) 0%, transparent 100%),
+          radial-gradient(1px 1px at 52% 46%, rgba(255,255,255,.22) 0%, transparent 100%),
+          radial-gradient(1px 1px at 61% 11%, rgba(255,255,255,.35) 0%, transparent 100%),
+          radial-gradient(1px 1px at 70% 28%, rgba(255,255,255,.3) 0%, transparent 100%),
+          radial-gradient(1px 1px at 79% 5%, rgba(255,255,255,.25) 0%, transparent 100%),
+          radial-gradient(1px 1px at 87% 20%, rgba(255,255,255,.35) 0%, transparent 100%),
+          radial-gradient(1px 1px at 95% 40%, rgba(255,255,255,.28) 0%, transparent 100%),
+          radial-gradient(1px 1px at 9% 55%, rgba(255,255,255,.3) 0%, transparent 100%),
+          radial-gradient(1px 1px at 18% 68%, rgba(255,255,255,.25) 0%, transparent 100%),
+          radial-gradient(1px 1px at 29% 88%, rgba(255,255,255,.32) 0%, transparent 100%),
+          radial-gradient(1px 1px at 41% 62%, rgba(255,255,255,.22) 0%, transparent 100%),
+          radial-gradient(1px 1px at 50% 92%, rgba(255,255,255,.3) 0%, transparent 100%),
+          radial-gradient(1px 1px at 58% 75%, rgba(255,255,255,.25) 0%, transparent 100%),
+          radial-gradient(1px 1px at 66% 58%, rgba(255,255,255,.3) 0%, transparent 100%),
+          radial-gradient(1px 1px at 73% 84%, rgba(255,255,255,.24) 0%, transparent 100%),
+          radial-gradient(1px 1px at 82% 66%, rgba(255,255,255,.32) 0%, transparent 100%),
+          radial-gradient(1px 1px at 90% 90%, rgba(255,255,255,.26) 0%, transparent 100%),
+          radial-gradient(1px 1px at 97% 72%, rgba(255,255,255,.3) 0%, transparent 100%);
+        animation: starsdrift 60s linear infinite;
+      }
+      @keyframes starsdrift {
+        from { transform: translateY(0); }
+        to   { transform: translateY(-14px); }
+      }
+      .spl-stars::before,
+      .spl-stars::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+      }
+      .spl-stars::before {
+        background-image:
+          radial-gradient(1.6px 1.6px at  8% 12%, #fff 0%, transparent 100%),
+          radial-gradient(1.4px 1.4px at 83% 18%, #fff 0%, transparent 100%),
+          radial-gradient(1.3px 1.3px at 22% 42%, #fff 0%, transparent 100%),
+          radial-gradient(1.6px 1.6px at 68% 72%, #fff 0%, transparent 100%),
+          radial-gradient(1.3px 1.3px at 38% 82%, #fff 0%, transparent 100%),
+          radial-gradient(1.4px 1.4px at 91% 52%, #fff 0%, transparent 100%),
+          radial-gradient(1.3px 1.3px at 14% 76%, #fff 0%, transparent 100%);
+        animation: twinklespl 2.6s ease-in-out infinite;
+      }
+      .spl-stars::after {
+        background-image:
+          radial-gradient(1.5px 1.5px at 57%  8%, #fff 0%, transparent 100%),
+          radial-gradient(2px   2px   at 47% 28%, #fff 0%, transparent 100%),
+          radial-gradient(1.4px 1.4px at 76% 38%, #fff 0%, transparent 100%),
+          radial-gradient(1.3px 1.3px at 30% 22%, #fff 0%, transparent 100%),
+          radial-gradient(1.4px 1.4px at 93% 85%, #fff 0%, transparent 100%),
+          radial-gradient(1.3px 1.3px at  5% 40%, #fff 0%, transparent 100%),
+          radial-gradient(1.5px 1.5px at 63% 94%, #fff 0%, transparent 100%);
+        animation: twinklespl 3.4s ease-in-out .9s infinite;
+      }
+      @keyframes twinklespl {
+        0%, 100% { opacity: .25; }
+        50%      { opacity: 1; }
+      }
+      .spl-sparkle {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        opacity: 0;
+        filter:
+          drop-shadow(0 0 5px rgba(255,255,255,.9))
+          drop-shadow(0 0 10px rgba(120,180,255,.6));
+      }
+      .spl-sparkle::before,
+      .spl-sparkle::after {
+        content: "";
+        position: absolute;
+        background: #fff;
+        border-radius: 2px;
+      }
+      .spl-sparkle::before { top: 50%; left: 0; right: 0; height: 1.4px; transform: translateY(-50%); }
+      .spl-sparkle::after  { left: 50%; top: 0; bottom: 0; width: 1.4px; transform: translateX(-50%); }
+      .spl-sparkle--1 { top: 18%; left: 20%; animation: sparklepop 3.6s ease-in-out .4s infinite; }
+      .spl-sparkle--2 { top: 24%; right: 16%; width: 10px; height: 10px; animation: sparklepop 3.6s ease-in-out 1.6s infinite; }
+      .spl-sparkle--3 { bottom: 22%; left: 14%; width: 9px; height: 9px; animation: sparklepop 3.6s ease-in-out 2.5s infinite; }
+      @keyframes sparklepop {
+        0%, 100% { opacity: 0; transform: scale(.4) rotate(0deg); }
+        50%      { opacity: 1; transform: scale(1) rotate(90deg); }
+      }
+      .spl-shoot {
+        position: absolute;
+        top: 20%;
+        left: -10%;
+        width: 70px;
+        height: 1.5px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.9) 60%, #fff);
+        border-radius: 2px;
+        opacity: 0;
+        transform: rotate(18deg);
+        animation: shoot 1.15s cubic-bezier(.2,.6,.3,1) 1.3s 1;
+      }
+      @keyframes shoot {
+        0%   { opacity: 0; transform: translate(0,0) rotate(18deg); }
+        8%   { opacity: 1; }
+        70%  { opacity: .85; }
+        100% { opacity: 0; transform: translate(70vw, 22vh) rotate(18deg); }
       }
       .spl-aurora {
         position: absolute;
@@ -97,10 +187,11 @@
       @keyframes logoin { to { opacity: 1; transform: scale(1); } }
 
       .spl-name {
-        margin-top: 22px;
-        font-family: 'Bebas Neue', 'Nunito', sans-serif;
-        font-size: clamp(44px, 11vw, 68px);
-        letter-spacing: .20em;
+        margin-top: 20px;
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900;
+        font-size: clamp(32px, 8.5vw, 50px);
+        letter-spacing: -0.01em;
         color: #fff;
         line-height: 1;
         opacity: 0;
@@ -118,11 +209,12 @@
       }
       .spl-tagline {
         margin-top: 12px;
-        font-family: 'Nunito', sans-serif;
-        font-size: clamp(14px, 3.6vw, 18px);
+        font-family: 'DM Serif Display', Georgia, serif;
+        font-style: italic;
+        font-size: clamp(15px, 3.8vw, 19px);
         font-weight: 400;
-        letter-spacing: .045em;
-        color: rgba(255,255,255,.68);
+        letter-spacing: .01em;
+        color: rgba(255,255,255,.72);
         opacity: 0;
         transform: translateY(7px);
         animation: textin .6s ease .90s forwards;
@@ -133,13 +225,17 @@
     <div id="splash">
       <div class="spl-bg"></div>
       <div class="spl-stars"></div>
+      <div class="spl-sparkle spl-sparkle--1"></div>
+      <div class="spl-sparkle spl-sparkle--2"></div>
+      <div class="spl-sparkle spl-sparkle--3"></div>
+      <div class="spl-shoot"></div>
       <div class="spl-aurora"></div>
       <div class="spl-warmth"></div>
       <div class="spl-content">
         <svg class="spl-logo" viewBox="0 0 496 440" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M 98.0 0.0 L 376.0 0.0 L 401.0 5.0 L 401.0 7.0 L 388.0 12.0 L 382.0 20.0 L 379.0 17.0 L 369.0 15.0 L 342.0 24.0 L 319.0 23.0 L 291.0 29.0 L 291.0 31.0 L 297.0 29.0 L 313.0 29.0 L 313.0 31.0 L 279.0 41.0 L 229.0 67.0 L 219.0 67.0 L 209.0 61.0 L 215.0 69.0 L 233.0 71.0 L 245.0 67.0 L 265.0 55.0 L 268.0 56.0 L 247.0 71.0 L 204.0 88.0 L 198.0 96.0 L 196.0 112.0 L 200.0 102.0 L 209.0 93.0 L 219.0 91.0 L 206.0 102.0 L 199.0 125.0 L 188.0 136.0 L 200.0 132.0 L 194.0 142.0 L 193.0 151.0 L 201.0 143.0 L 198.0 156.0 L 203.0 167.0 L 206.0 148.0 L 209.0 147.0 L 207.0 151.0 L 209.0 155.0 L 216.0 150.0 L 213.0 159.0 L 214.0 200.0 L 212.0 206.0 L 196.0 224.0 L 176.0 236.0 L 171.0 245.0 L 173.0 255.0 L 191.0 273.0 L 190.0 284.0 L 185.0 289.0 L 186.0 296.0 L 197.0 303.0 L 198.0 310.0 L 209.0 311.0 L 213.0 309.0 L 215.0 311.0 L 212.0 316.0 L 199.0 317.0 L 194.0 322.0 L 195.0 331.0 L 202.0 338.0 L 204.0 344.0 L 203.0 365.0 L 205.0 375.0 L 214.0 386.0 L 224.0 390.0 L 274.0 390.0 L 294.0 396.0 L 304.0 406.0 L 311.0 421.0 L 316.0 440.0 L 92.0 440.0 L 75.0 435.0 L 54.0 422.0 L 42.0 408.0 L 35.0 395.0 L 30.0 374.0 L 31.0 61.0 L 40.0 36.0 L 59.0 15.0 L 77.0 5.0 Z" fill="white"/>
         </svg>
-        <div class="spl-name">MIROCARD</div>
+        <div class="spl-name">Mirocard</div>
         <div class="spl-divider"></div>
         <div class="spl-tagline">Ваш ребёнок сможет больше</div>
       </div>
