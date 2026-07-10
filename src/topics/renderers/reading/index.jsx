@@ -25,9 +25,9 @@ function getLineText(line, textStyle = "normal") {
   return line?.text ?? "";
 }
 
-function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false }) {
+function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false }) {
   return (
-    <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""}`}>
+    <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""}${noWrap ? " reading-text--nowrap" : ""}`}>
       {(lines ?? []).map((line) => (
         <div
           key={line.id ?? getLineText(line)}
@@ -118,6 +118,20 @@ function useFitReadingText(active, deps) {
       return textEl.getBoundingClientRect().bottom - wrap.getBoundingClientRect().top;
     }
 
+    // With .reading-text--nowrap, a line that doesn't fit the available width
+    // overflows horizontally instead of wrapping onto a second line — so each
+    // poem line stays a single visual line, like real verse, and we can detect
+    // the overflow via scrollWidth vs. the box's own clientWidth.
+    function widestLineRatio() {
+      let maxRatio = 1;
+      textEl.querySelectorAll(".reading-line").forEach((el) => {
+        if (el.scrollWidth > el.clientWidth) {
+          maxRatio = Math.max(maxRatio, el.scrollWidth / el.clientWidth);
+        }
+      });
+      return maxRatio;
+    }
+
     const bodyStyle = getComputedStyle(body);
     const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
     const bodyHeight = body.getBoundingClientRect().height;
@@ -126,11 +140,15 @@ function useFitReadingText(active, deps) {
 
     let current = 1;
     let required = requiredHeight();
+    let widthRatio = widestLineRatio();
     let iterations = 0;
-    while (required > available && current > MIN_SCALE && iterations < 8) {
-      current = Math.max(MIN_SCALE, current * (available / required) * 0.97);
+    while ((required > available || widthRatio > 1) && current > MIN_SCALE && iterations < 8) {
+      const heightFactor = required > available ? (available / required) * 0.97 : 1;
+      const widthFactor = widthRatio > 1 ? (1 / widthRatio) * 0.97 : 1;
+      current = Math.max(MIN_SCALE, current * Math.min(heightFactor, widthFactor));
       wrap.style.setProperty("--reading-fit-scale", String(current));
       required = requiredHeight();
+      widthRatio = widestLineRatio();
       iterations += 1;
     }
 
@@ -234,7 +252,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
         <div className="reading-content" ref={fit.contentRef}>
-          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} />
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={showCloseButton} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
@@ -256,7 +274,7 @@ function ReadPoemBookTask({ task, topicId, onAdvance, onClose }) {
       <div className="reading-poem-wrap" ref={fit.wrapRef}>
         <div className="reading-title">{getTopicTitle(page.title)}</div>
         <div className="reading-content" ref={fit.contentRef}>
-          <ReadingTextBlock lines={page.lines} />
+          <ReadingTextBlock lines={page.lines} noWrap />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={page} illustrationRef={fit.illustrationRef} />
@@ -1309,7 +1327,9 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
 
       <div className="safe-code-instruction-zone">
         <div className="safe-code-instruction-text">
-          Иди и найди {current?.phrase} {ORDINALS_ACCUSATIVE[foundCount] ?? "следующую"} цифру кода.
+          {current?.place
+            ? `Иди ${current.place} и найди ${current?.phrase} ${ORDINALS_ACCUSATIVE[foundCount] ?? "следующую"} цифру кода.`
+            : `Иди и найди ${current?.phrase} ${ORDINALS_ACCUSATIVE[foundCount] ?? "следующую"} цифру кода.`}
         </div>
         <div className={`safe-code-feedback${feedback ? " safe-code-feedback--show" : ""}${feedback?.ok ? " safe-code-feedback--ok" : ""}`}>
           {feedback?.text ?? ""}

@@ -263,6 +263,10 @@ html.app-ios-standalone {
   text-align: left;
 }
 
+.reading-text--nowrap .reading-line {
+  white-space: nowrap;
+}
+
 .reading-line--active {
   color: #2f5b57;
 }
@@ -16909,6 +16913,7 @@ select.account-card__input {
   background: #ffffff;
   color: #263131;
   padding: 16px;
+  padding-top: calc(16px + var(--app-safe-top, 0px));
   gap: 18px;
 }
 
@@ -16930,6 +16935,7 @@ select.account-card__input {
 @media (min-width: 768px) {
   .session-body.reading-body {
     padding: 24px;
+    padding-top: calc(24px + var(--app-safe-top, 0px));
     gap: 22px;
   }
 }
@@ -20559,6 +20565,12 @@ body { background: #eef0ef; }
   min-width: 18px;
 }
 
+.safe-code-row-verb {
+  font-size: 0.85rem;
+  color: #8a9a96;
+  white-space: nowrap;
+}
+
 .safe-code-location-input {
   flex: 1;
   min-width: 140px;
@@ -20597,11 +20609,13 @@ body { background: #eef0ef; }
 .safe-code-manage-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .safe-code-manage-input {
   flex: 1;
+  min-width: 110px;
   min-height: 44px;
   border-radius: 12px;
   border: 1px solid #dde4e2;

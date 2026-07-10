@@ -8,10 +8,15 @@ import { getSafeCodeCustomLocations, saveSafeCodeCustomLocations, saveSafeCodeCo
 
 const MIN_CODE_LENGTH = 2;
 const MAX_CODE_LENGTH = 5;
-const DATALIST_ID = "safe-code-saved-locations";
+const PLACE_DATALIST_ID = "safe-code-saved-places";
+const SPOT_DATALIST_ID = "safe-code-saved-spots";
 
 function emptyRow() {
-  return { phrase: "", digit: "" };
+  return { place: "", phrase: "", digit: "" };
+}
+
+function uniqueValues(items, key) {
+  return [...new Set(items.map((item) => item[key]).filter(Boolean))];
 }
 
 function randomDigits(count) {
@@ -92,8 +97,8 @@ export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, 
     });
   }
 
-  function updateSavedLocation(index, text) {
-    setCustomLocations((prev) => prev.map((loc, i) => (i === index ? { label: text, phrase: text } : loc)));
+  function updateSavedLocation(index, patch) {
+    setCustomLocations((prev) => prev.map((loc, i) => (i === index ? { ...loc, ...patch } : loc)));
   }
 
   function persistSavedLocations() {
@@ -108,19 +113,23 @@ export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, 
     });
   }
 
-  const isReady = rows.length === codeLength && rows.every((row) => row.phrase.trim() && row.digit !== "");
+  const isReady = rows.length === codeLength && rows.every((row) => row.place.trim() && row.phrase.trim() && row.digit !== "");
 
   async function startSession() {
-    const typedPhrases = rows.map((row) => row.phrase.trim()).filter(Boolean);
-    const newOnes = typedPhrases.filter((p) => !customLocations.some((c) => c.phrase === p));
+    const typedRows = rows
+      .map((row) => ({ place: row.place.trim(), phrase: row.phrase.trim() }))
+      .filter((row) => row.place && row.phrase);
+    const newOnes = typedRows.filter(
+      (row) => !customLocations.some((c) => c.place === row.place && c.phrase === row.phrase)
+    );
     if (newOnes.length) {
-      const merged = [...customLocations, ...newOnes.map((p) => ({ label: p, phrase: p }))];
+      const merged = [...customLocations, ...newOnes];
       setCustomLocations(merged);
       await saveSafeCodeCustomLocations(topicId, merged).catch(() => {});
     }
     await saveSafeCodeConfig(topicId, {
       codeLength,
-      locations: rows.map((row) => ({ phrase: row.phrase, digit: Number(row.digit) })),
+      locations: rows.map((row) => ({ place: row.place, phrase: row.phrase, digit: Number(row.digit) })),
     }).catch(() => {});
     markSessionStart();
     setScreen("session");
@@ -170,12 +179,21 @@ export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, 
               {rows.map((row, i) => (
                 <div key={i} className="safe-code-row">
                   <span className="safe-code-row-index">{i + 1}.</span>
+                  <span className="safe-code-row-verb">Иди</span>
                   <input
                     className="safe-code-location-input"
-                    list={DATALIST_ID}
+                    list={PLACE_DATALIST_ID}
+                    value={row.place}
+                    onChange={(e) => updateRow(i, { place: e.target.value })}
+                    placeholder="куда: в свою комнату"
+                  />
+                  <span className="safe-code-row-verb">и найди</span>
+                  <input
+                    className="safe-code-location-input"
+                    list={SPOT_DATALIST_ID}
                     value={row.phrase}
                     onChange={(e) => updateRow(i, { phrase: e.target.value })}
-                    placeholder="например: под подушкой"
+                    placeholder="где: под подушкой"
                   />
                   <input
                     className="safe-code-digit-input"
@@ -187,8 +205,11 @@ export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, 
                 </div>
               ))}
             </div>
-            <datalist id={DATALIST_ID}>
-              {customLocations.map((loc) => <option key={loc.phrase} value={loc.phrase} />)}
+            <datalist id={PLACE_DATALIST_ID}>
+              {uniqueValues(customLocations, "place").map((place) => <option key={place} value={place} />)}
+            </datalist>
+            <datalist id={SPOT_DATALIST_ID}>
+              {uniqueValues(customLocations, "phrase").map((phrase) => <option key={phrase} value={phrase} />)}
             </datalist>
             <div className="safe-code-params-actions">
               <button className="link-btn safe-code-generate-btn" onClick={generateRandom}>
@@ -215,9 +236,17 @@ export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, 
               <div key={i} className="safe-code-manage-row">
                 <input
                   className="safe-code-manage-input"
-                  value={loc.phrase}
-                  onChange={(e) => updateSavedLocation(i, e.target.value)}
+                  value={loc.place}
+                  onChange={(e) => updateSavedLocation(i, { place: e.target.value })}
                   onBlur={persistSavedLocations}
+                  placeholder="куда идти"
+                />
+                <input
+                  className="safe-code-manage-input"
+                  value={loc.phrase}
+                  onChange={(e) => updateSavedLocation(i, { phrase: e.target.value })}
+                  onBlur={persistSavedLocations}
+                  placeholder="где искать"
                 />
                 <button
                   className="safe-code-manage-delete"
