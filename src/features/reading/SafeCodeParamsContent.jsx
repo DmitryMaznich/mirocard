@@ -23,6 +23,29 @@ function randomDigits(count) {
   return pool.slice(0, count);
 }
 
+function printDigitCards() {
+  const cells = Array.from({ length: 10 }, (_, i) => `<div class="cell"><span class="digit">${i}</span></div>`).join("");
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Карточки с цифрами</title><style>
+@page{size:A4;margin:12mm}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(5,1fr);width:100%;height:273mm}
+.cell{display:flex;align-items:center;justify-content:center;border:1px dashed #999}
+.digit{font-family:Arial,Helvetica,sans-serif;font-size:120pt;font-weight:900;color:#111}
+</style></head><body>
+<div class="grid">${cells}</div>
+</body></html>`;
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;width:0;height:0;opacity:0;border:none";
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(html);
+  iframe.contentDocument.close();
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+  setTimeout(() => document.body.removeChild(iframe), 2000);
+}
+
 export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, student }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const { markSessionStart } = useTimer();
@@ -133,6 +156,12 @@ export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, 
               <span className="stepper-value">{codeLength}</span>
               <button className="stepper-btn" disabled={codeLength >= MAX_CODE_LENGTH} onClick={() => changeCodeLength(codeLength + 1)}>+</button>
             </div>
+          </div>
+
+          <div className="param-row">
+            <button type="button" className="link-btn safe-code-print-btn" onClick={printDigitCards}>
+              🖨 Распечатать карточки с цифрами (0–9)
+            </button>
           </div>
 
           <div className="param-row param-row--block">
