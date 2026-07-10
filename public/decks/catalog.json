@@ -191,19 +191,6 @@
       "access": "free"
     },
     {
-      "id": "print_materials",
-      "version": "1.0.2",
-      "title": {
-        "ru": "Печатные материалы"
-      },
-      "description": {
-        "ru": "Тетради и рабочие листы для печати"
-      },
-      "url": "./decks/print_materials_v1.0.2.zip",
-      "status": "release",
-      "access": "free"
-    },
-    {
       "id": "word_formation_soup",
       "version": "1.0.34",
       "url": "./decks/word_formation_soup_v1.0.34.zip",
@@ -337,6 +324,17 @@
       },
       "status": "release",
       "access": "free"
+    },
+    {
+      "id": "print_materials",
+      "version": "1.0.3",
+      "title": {
+        "ru": "Печатные материалы"
+      },
+      "description": {
+        "ru": "Тетради и рабочие листы для печати"
+      },
+      "url": "./decks/print_materials_v1.0.3.zip"
     }
   ]
 }

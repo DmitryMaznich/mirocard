@@ -11,7 +11,7 @@ make_notebook.py — сборка тетрадей для прописей
 import sys, os, subprocess, shutil
 import fitz  # PyMuPDF
 
-from notebooks import NOTEBOOKS, COVER_SCRIPT, COVER_PDF, OUTPUT_DIR
+from notebooks import NOTEBOOKS, COVER_SCRIPT, OUTPUT_DIR
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,11 +41,15 @@ def build(name):
     merged.save(out_pages)
     print(f"{cfg['sheets']} листов A4 = {cfg['sheets'] * 2} страниц A5")
 
-    # 3. Генерируем обложку
+    # 3. Генерируем обложку для данного варианта
+    style = cfg.get("cover_style", "плотная")
     print("  Обложка...", end=" ", flush=True)
-    run(COVER_SCRIPT)
+    subprocess.run(
+        [sys.executable, os.path.join(ROOT, COVER_SCRIPT), f"--style={style}"],
+        cwd=ROOT, check=True
+    )
     out_cover = os.path.join(out_dir, f"{name}_cover.pdf")
-    shutil.copy(os.path.join(ROOT, COVER_PDF), out_cover)
+    shutil.copy(os.path.join(ROOT, f"cover_{style}.pdf"), out_cover)
     print("готово")
 
     # 4. Инструкция

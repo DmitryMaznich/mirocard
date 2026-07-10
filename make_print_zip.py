@@ -34,7 +34,9 @@ def run_make_notebook():
 def copy_pdfs():
     os.makedirs(STAGING_PRINT, exist_ok=True)
     mapping = {
-        "cover.pdf":          os.path.join(OUTPUT_DIR, "стандарт_cover.pdf"),
+        "cover_стандарт.pdf": os.path.join(OUTPUT_DIR, "стандарт_cover.pdf"),
+        "cover_плотная.pdf":  os.path.join(OUTPUT_DIR, "плотная_cover.pdf"),
+        "cover_точки.pdf":    os.path.join(OUTPUT_DIR, "точки_cover.pdf"),
         "стандарт_pages.pdf": os.path.join(OUTPUT_DIR, "стандарт_pages.pdf"),
         "плотная_pages.pdf":  os.path.join(OUTPUT_DIR, "плотная_pages.pdf"),
         "точки_pages.pdf":    os.path.join(OUTPUT_DIR, "точки_pages.pdf"),

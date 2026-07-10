@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "print_materials",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "renderer": "print_materials",
     "title": {
       "ru": "Печатные материалы"
@@ -46,7 +46,7 @@
       "files": [
         {
           "label": "Обложка",
-          "path": "print/cover.pdf",
+          "path": "print/cover_стандарт.pdf",
           "filename": "тетрадь_обложка.pdf",
           "hint": "1 лист, плотная бумага 180–250 г/м²"
         },
@@ -68,7 +68,7 @@
       "files": [
         {
           "label": "Обложка",
-          "path": "print/cover.pdf",
+          "path": "print/cover_плотная.pdf",
           "filename": "тетрадь_обложка.pdf",
           "hint": "1 лист, плотная бумага 180–250 г/м²"
         },
@@ -90,7 +90,7 @@
       "files": [
         {
           "label": "Обложка",
-          "path": "print/cover.pdf",
+          "path": "print/cover_точки.pdf",
           "filename": "тетрадь_обложка.pdf",
           "hint": "1 лист, плотная бумага 180–250 г/м²"
         },

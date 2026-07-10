@@ -22,7 +22,7 @@ from reportlab.lib.pagesizes import landscape, A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-import os, math
+import os, sys, math
 
 # ── Метрики ───────────────────────────────────────────────────────────────────
 MM = 2.8346472
@@ -106,7 +106,6 @@ def diag_lines(cv, x0, x1, y0, y1, step=None):
     h   = y1 - y0
     dx  = h / math.tan(math.radians(DIAG_ANG))
     if step is None:
-        # 80/600 × ширину — аналог SVG-шага
         step = max(6 * MM, (x1 - x0) * 80 / 600)
     cv.saveState()
     p = cv.beginPath()
@@ -119,6 +118,34 @@ def diag_lines(cv, x0, x1, y0, y1, step=None):
         cv.line(x, y0, x + dx, y1)
         x += step
     cv.restoreState()
+
+
+def thumbnail_dots(cv, x0, x1, y0, y1, narrow_h, pitch, n_rows):
+    """
+    Вместо диагональных линий рисует точки на верхних линиях каждой строки
+    (как в варианте «вспомогательные точки»).
+    """
+    TAN     = math.tan(math.radians(90 - DIAG_ANG))  # tan(25°) ≈ 0.4663
+    step_d  = 2.5 * MM   # шаг диагоналей в миниатюре
+    dot_r   = 0.32 * MM
+
+    # x_start-позиции, которые могут пересечь миниатюру
+    x_starts = []
+    xs = x0 - y1 * TAN
+    while xs < x1:
+        x_starts.append(xs)
+        xs += step_d
+
+    cv.setFillColorRGB(0.4, 0.45, 0.55)
+    for i in range(n_rows):
+        y_base = y1 - narrow_h - i * pitch
+        y_top  = y_base + narrow_h
+        if y_top < y0:
+            break
+        for xs in x_starts:
+            xi = xs + y_top * TAN
+            if x0 <= xi <= x1:
+                cv.circle(xi, y_top, dot_r, fill=1, stroke=0)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -203,7 +230,7 @@ def left_page(cv):
 # Правая страница — бланк ТЕТРАДЬ
 # ═════════════════════════════════════════════════════════════════════════════
 
-def right_page(cv):
+def right_page(cv, style="плотная"):
     cv.setFillColorRGB(1, 1, 1)
     cv.rect(HALF_W, 0, HALF_W, PAGE_H, fill=1, stroke=0)
 
@@ -273,8 +300,13 @@ def right_page(cv):
     rp.curveTo(th_x0, th_y0 + th_r*(1-K),      th_x0 + th_r*(1-K), th_y0, th_x0 + th_r, th_y0)
     rp.close()
     cv.clipPath(rp, stroke=0, fill=0)
-    diag_lines(cv, th_x0, th_x1, th_y0, th_y1)
-    propis_rows(cv, th_x0, th_x1, th_y_first, 5, narrow_h=th_narrow, pitch=th_pitch)
+    if style == "точки":
+        propis_rows(cv, th_x0, th_x1, th_y_first, 5, narrow_h=th_narrow, pitch=th_pitch)
+        thumbnail_dots(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, 5)
+    else:
+        diag_step = 3 * MM if style == "плотная" else 7 * MM
+        diag_lines(cv, th_x0, th_x1, th_y0, th_y1, step=diag_step)
+        propis_rows(cv, th_x0, th_x1, th_y_first, 5, narrow_h=th_narrow, pitch=th_pitch)
     cv.restoreState()
 
     # Скруглённая рамка поверх содержимого
@@ -288,11 +320,16 @@ def right_page(cv):
 # ═════════════════════════════════════════════════════════════════════════════
 
 def main():
-    out = os.path.join(ROOT_DIR, "cover_mama.pdf")
+    style = "плотная"
+    for arg in sys.argv[1:]:
+        if arg.startswith("--style="):
+            style = arg.split("=", 1)[1]
+
+    out = os.path.join(ROOT_DIR, f"cover_{style}.pdf")
     cv = canvas.Canvas(out, pagesize=landscape(A4))
 
     left_page(cv)
-    right_page(cv)
+    right_page(cv, style=style)
 
     # Линия сгиба
     cv.setStrokeColorRGB(0.50, 0.50, 0.60)
