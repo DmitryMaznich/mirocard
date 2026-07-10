@@ -21,6 +21,30 @@ async function buildSisterPhoto(path) {
 
 const [alinaPhoto, polinaPhoto] = await Promise.all([buildSisterPhoto(alinaPath), buildSisterPhoto(polinaPath)]);
 
+async function buildPoemPageImage(pngPath) {
+  return sharp(pngPath)
+    .resize(900, 900, { fit: "inside" })
+    .webp({ quality: 85 })
+    .toBuffer();
+}
+
+const poemBookSourceDir = fileURLToPath(new URL("../Teaching poems/", import.meta.url));
+const poemBookPages = [
+  { id: "vanya",  file: "neposlushni.png",  title: "Ваня-непослушный" },
+  { id: "lena",   file: "Trudoljubiv.png",  title: "Лена-трудолюбивая" },
+  { id: "danya",  file: "Grjaznulja.png",   title: "Даня-грязнуля" },
+  { id: "katya",  file: "Zhadina.png",      title: "Катя-жадина" },
+  { id: "andrey", file: "Trus.png",         title: "Андрей-трус" },
+  { id: "sasha",  file: "Smelij.png",       title: "Саша-смелый" },
+  { id: "yulya",  file: "kaprizulja.png",   title: "Юля-капризуля" },
+  { id: "nikita", file: "Lenivij.png",      title: "Никита-ленивый" },
+];
+const poemBookImages = Object.fromEntries(
+  await Promise.all(
+    poemBookPages.map(async ({ id, file }) => [id, await buildPoemPageImage(`${poemBookSourceDir}${file}`)])
+  )
+);
+
 const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
   <circle cx="120" cy="120" r="116" fill="#fef6f0" stroke="#f0d8c8" stroke-width="3"/>
   <ellipse cx="120" cy="202" rx="86" ry="12" fill="#b8dc90" opacity="0.55"/>
@@ -51,7 +75,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.20",
+    version: "1.0.21",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -77,6 +101,7 @@ const manifest = {
     { id: "understand_text", requirePin: false },
     { id: "assemble_text", requirePin: false },
     { id: "follow_instruction", requirePin: false },
+    { id: "read_poem_book", requirePin: false },
   ],
   cards: [],
   texts: [
@@ -451,6 +476,117 @@ const manifest = {
         },
       ],
     },
+    {
+      id: "character_traits_book",
+      kind: "poem_book",
+      title: { ru: "Педагогические стихи" },
+      image: "media/vanya.webp",
+      level: 1,
+      pages: [
+        {
+          id: "vanya",
+          kind: "poem",
+          title: { ru: "Ваня-непослушный" },
+          image: "media/vanya.webp",
+          lines: [
+            { id: "l1", text: "Ваня очень непослушный-" },
+            { id: "l2", text: "Папу с мамой он не слушал!" },
+            { id: "l3", text: "Не получит он за это," },
+            { id: "l4", text: "Ни качелей, ни планшета!" },
+          ],
+        },
+        {
+          id: "lena",
+          kind: "poem",
+          title: { ru: "Лена-трудолюбивая" },
+          image: "media/lena.webp",
+          lines: [
+            { id: "l1", text: "Лена очень любит труд" },
+            { id: "l2", text: "Помогает там и тут!" },
+            { id: "l3", text: "Убирает и стирает," },
+            { id: "l4", text: "Пыль все время вытирает!" },
+            { id: "l5", text: "Все в восторге! Что за диво!" },
+            { id: "l6", text: "Как она трудолюбива!" },
+          ],
+        },
+        {
+          id: "danya",
+          kind: "poem",
+          title: { ru: "Даня-грязнуля" },
+          image: "media/danya.webp",
+          lines: [
+            { id: "l1", text: "Даня мыться не любил!" },
+            { id: "l2", text: "Тело очень редко мыл!" },
+            { id: "l3", text: "Мама с папой лишь вздохнули!" },
+            { id: "l4", text: "Даню все зовут грязнулей!" },
+            { id: "l5", text: "С ним никто дружить не хочет," },
+            { id: "l6", text: "Так как он вонючий очень!" },
+          ],
+        },
+        {
+          id: "katya",
+          kind: "poem",
+          title: { ru: "Катя-жадина" },
+          image: "media/katya.webp",
+          lines: [
+            { id: "l1", text: "Кате сложно поделиться" },
+            { id: "l2", text: "И игрушками, и пиццей!" },
+            { id: "l3", text: "И сидит в углу одна-" },
+            { id: "l4", text: "Так как жадная она!" },
+          ],
+        },
+        {
+          id: "andrey",
+          kind: "poem",
+          title: { ru: "Андрей-трус" },
+          image: "media/andrey.webp",
+          lines: [
+            { id: "l1", text: "Наш Андрей всего боится" },
+            { id: "l2", text: "Грома, пауков и птицу," },
+            { id: "l3", text: "И комарика укус…" },
+            { id: "l4", text: "Наш Андрюша просто трус." },
+          ],
+        },
+        {
+          id: "sasha",
+          kind: "poem",
+          title: { ru: "Саша-смелый" },
+          image: "media/sasha.webp",
+          lines: [
+            { id: "l1", text: "Ну а Саша смелый очень-" },
+            { id: "l2", text: "Не боится даже ночью!" },
+            { id: "l3", text: "Защищает слабых он!" },
+            { id: "l4", text: "Саша просто чемпион!!!" },
+          ],
+        },
+        {
+          id: "yulya",
+          kind: "poem",
+          title: { ru: "Юля-капризуля" },
+          image: "media/yulya.webp",
+          lines: [
+            { id: "l1", text: "Наша Юля-капризуля!" },
+            { id: "l2", text: "Ноет, плачет и ревёт…" },
+            { id: "l3", text: "И поэтому никто ей" },
+            { id: "l4", text: "Ничего и не даёт!" },
+          ],
+        },
+        {
+          id: "nikita",
+          kind: "poem",
+          title: { ru: "Никита-ленивый" },
+          image: "media/nikita.webp",
+          lines: [
+            { id: "l1", text: "Никита сутки напролёт" },
+            { id: "l2", text: "С кровати мягкой не встаёт." },
+            { id: "l3", text: "Маме он не помогает," },
+            { id: "l4", text: "Умных книжек не читает," },
+            { id: "l5", text: "Чтоб вы знали, между прочим," },
+            { id: "l6", text: "Быть ленивым плохо очень!" },
+          ],
+        },
+      ],
+    },
   ],
 };
 
@@ -461,5 +597,8 @@ zip.file("media/mom_love.webp", momLoveImage);
 zip.file("media/family.svg", familySvg);
 zip.file("media/sister_alina.webp", alinaPhoto);
 zip.file("media/sister_polina.webp", polinaPhoto);
+for (const { id } of poemBookPages) {
+  zip.file(`media/${id}.webp`, poemBookImages[id]);
+}
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.20.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.21.zip", buffer);
