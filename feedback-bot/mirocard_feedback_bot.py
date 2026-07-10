@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Mirocard2 testers-group feedback bot.
+
+Listens to the testers group, caches messages, and — when the owner reacts
+with 📌 — saves the message into feedback/inbox.jsonl.
+
+Run: python mirocard_feedback_bot.py
+"""
+
+import logging
+import os
+
+from telegram import ReactionTypeEmoji, Update
+from telegram.ext import Application, ContextTypes, MessageHandler, MessageReactionHandler, filters
+
+from backlog import append_entry, build_entry
+from env_helpers import get_env, get_int_env
+from formatting import format_author, has_pin_reaction
+from message_cache import MessageCache
+
+BOT_TOKEN = get_env('FEEDBACK_BOT_TOKEN', required=True)
+OWNER_ID = get_int_env('FEEDBACK_BOT_OWNER_ID', required=True)
+CHAT_ID = get_int_env('FEEDBACK_BOT_CHAT_ID', required=True)
+RETENTION_DAYS = get_int_env('FEEDBACK_BOT_CACHE_RETENTION_DAYS', default=30)
+DATA_DIR = get_env('FEEDBACK_BOT_DATA_DIR', required=True)
+
+CACHE_PATH = os.path.join(DATA_DIR, 'message_cache.json')
+INBOX_PATH = os.path.join(DATA_DIR, 'inbox.jsonl')
+SCREENSHOTS_DIR = os.path.join(DATA_DIR, 'screenshots')
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+log = logging.getLogger(__name__)
+
+cache = MessageCache(CACHE_PATH, retention_days=RETENTION_DAYS)
+
+
+async def handle_group_message(update: Update, _ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_chat is None or update.effective_chat.id != CHAT_ID:
+        return
+    message = update.effective_message
+    if message is None:
+        return
+
+    user = update.effective_user
+    author = format_author(user.full_name, user.username) if user else 'Unknown'
+    photo_file_id = message.photo[-1].file_id if message.photo else None
+    text = message.text or message.caption or ''
+
+    cache.remember(
+        CHAT_ID, message.message_id,
+        author=author,
+        text=text,
+        photo_file_id=photo_file_id,
+        message_date=message.date.isoformat(),
+    )
+
+
+async def handle_reaction(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    reaction = update.message_reaction
+    if reaction is None or reaction.chat.id != CHAT_ID:
+        return
+    if reaction.user is None or reaction.user.id != OWNER_ID:
+        return
+
+    new_emojis = {r.emoji for r in reaction.new_reaction if getattr(r, 'emoji', None)}
+    if not has_pin_reaction(new_emojis):
+        return
+
+    cached = cache.get(CHAT_ID, reaction.message_id)
+    if cached is None:
+        log.warning('No cached message for reaction on %s/%s', CHAT_ID, reaction.message_id)
+        await ctx.bot.set_message_reaction(
+            chat_id=CHAT_ID, message_id=reaction.message_id,
+            reaction=[ReactionTypeEmoji('⚠️')],
+        )
+        return
+
+    photo_relpath = None
+    if cached.get('photo_file_id'):
+        os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+        filename = f'{CHAT_ID}_{reaction.message_id}.jpg'
+        dest_path = os.path.join(SCREENSHOTS_DIR, filename)
+        try:
+            tg_file = await ctx.bot.get_file(cached['photo_file_id'])
+            await tg_file.download_to_drive(dest_path)
+            photo_relpath = f'screenshots/{filename}'
+        except Exception:
+            log.exception('Failed to download photo for %s/%s', CHAT_ID, reaction.message_id)
+
+    try:
+        entry = build_entry(CHAT_ID, reaction.message_id, cached, photo_relpath)
+        append_entry(INBOX_PATH, entry)
+    except Exception:
+        log.exception('Failed to write backlog entry for %s/%s', CHAT_ID, reaction.message_id)
+        return
+
+    await ctx.bot.set_message_reaction(
+        chat_id=CHAT_ID, message_id=reaction.message_id,
+        reaction=[ReactionTypeEmoji('✅')],
+    )
+
+
+async def prune_cache_job(_ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    removed = cache.prune()
+    if removed:
+        log.info('Pruned %d stale cache entries', removed)
+
+
+def main() -> None:
+    app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(MessageHandler(filters.ChatType.GROUPS, handle_group_message))
+    app.add_handler(MessageReactionHandler(handle_reaction))
+    app.job_queue.run_repeating(prune_cache_job, interval=60 * 60 * 24, first=60)
+    log.info('Mirocard feedback bot started (chat=%d, owner=%d)', CHAT_ID, OWNER_ID)
+    app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
+
+
+if __name__ == '__main__':
+    main()

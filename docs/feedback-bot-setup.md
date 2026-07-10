@@ -1,0 +1,90 @@
+# Feedback bot — setup runbook
+
+One-time setup to bring the Telegram testers-group feedback bot online.
+Design: `docs/superpowers/specs/2026-07-10-telegram-feedback-bot-design.md`.
+Code: `feedback-bot/`, `scripts/fetch-feedback-backlog.py`, `scripts/deploy-feedback-bot.py`.
+
+## 1. Create the bot in @BotFather
+
+1. `/newbot` → name it (e.g. "Mirocard Feedback"), get the token.
+2. `/setprivacy` → select the new bot → **Disable** (it must see all group
+   messages, not just commands, to cache them for later reactions).
+3. Add the bot to the Mirocard2 testers group as a regular member (admin not
+   required).
+
+## 2. Collect the IDs you need
+
+- **Owner Telegram user id**: message `@userinfobot` from your own account.
+- **Group chat id**: add `@RawDataBot` to the group temporarily (or check
+  `getUpdates` after sending a message) — it's a negative number like
+  `-1001234567890` for a supergroup.
+
+## 3. Configure `.env` on the runtime host
+
+On `192.168.1.163`, create `C:/Users/dmazn/Projects/Mirocard2/feedback-bot/.env`
+(this file is never uploaded by the deploy script — create/edit it directly on
+the host over SSH or RDP) with real values, following `feedback-bot/.env.example`:
+
+```text
+FEEDBACK_BOT_TOKEN=<token from step 1>
+FEEDBACK_BOT_OWNER_ID=<your user id from step 2>
+FEEDBACK_BOT_CHAT_ID=<group chat id from step 2>
+FEEDBACK_BOT_CACHE_RETENTION_DAYS=30
+FEEDBACK_BOT_DATA_DIR=C:/Users/dmazn/Projects/Mirocard2/feedback
+```
+
+## 4. First deploy
+
+From the local machine, with `MIROCARD_DEPLOY_PASSWORD` (or
+`MIROCARD_DEPLOY_KEY_PATH`) set in the environment:
+
+```bash
+python scripts/deploy-feedback-bot.py
+```
+
+This uploads `feedback-bot/*.py` and `requirements.txt` to
+`C:/Users/dmazn/Projects/Mirocard2/feedback-bot/` on the runtime host and
+tries to restart the `MirocardFeedbackBot` task (harmless no-op the first
+time, since the task doesn't exist yet).
+
+Then, on the runtime host itself, install dependencies once:
+
+```powershell
+cd C:\Users\dmazn\Projects\Mirocard2\feedback-bot
+pip install -r requirements.txt
+```
+
+## 5. Register the scheduled task
+
+On the runtime host itself (not over a plain SSH exec — Scheduled Task
+registration needs an interactive session per the existing `MirocardBackend2`
+precedent documented in `DEPLOYMENT.md`):
+
+```powershell
+cd C:\Users\dmazn\Projects\Mirocard2
+.\scripts\install-feedback-bot-task.ps1
+Start-ScheduledTask -TaskName "MirocardFeedbackBot"
+```
+
+## 6. Manual test checklist (from the design doc)
+
+1. Send a plain text message in the testers group, then a message with a
+   photo attached. React 📌 on both (as the owner).
+   Expect: ✅ appears on both within a few seconds; two new lines appear in
+   `C:/Users/dmazn/Projects/Mirocard2/feedback/inbox.jsonl` on the runtime
+   host, and the screenshot lands in `feedback/screenshots/`.
+2. Restart the bot task (`Stop-ScheduledTask` then
+   `Start-ScheduledTask -TaskName "MirocardFeedbackBot"`), then react 📌 on a
+   message that was sent *before* the restart.
+   Expect: ✅ still appears (the persistent cache survived the restart).
+3. React 📌 as a **different** Telegram account (not the owner).
+   Expect: no reaction from the bot, no new backlog entry.
+4. From the local dev machine:
+   ```bash
+   python scripts/fetch-feedback-backlog.py
+   ```
+   Expect: new entries appear in the local `feedback/inbox.jsonl`; running it
+   again immediately prints `0 new entries` and doesn't duplicate lines.
+5. Manually edit one local entry's `status` to `"done"`, then run
+   `scripts/fetch-feedback-backlog.py` again.
+   Expect: that entry's `status` is still `"done"` after the sync.

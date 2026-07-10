@@ -99,3 +99,6 @@ mirocard-project-*.zip
 mirocard-db-*.db
 mirocard-db-*.db-shm
 mirocard-db-*.db-wal
+
+# Telegram testers feedback backlog (working data, not source)
+feedback/
