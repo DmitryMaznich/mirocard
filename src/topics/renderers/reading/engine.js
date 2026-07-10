@@ -74,6 +74,14 @@ function buildSafeCodeTask(text) {
   };
 }
 
+function buildPoemBookTask(text) {
+  return {
+    type: "read_poem_book",
+    textId: text.id,
+    text,
+  };
+}
+
 function seededShuffle(arr, seedStr) {
   let s = 0;
   for (let i = 0; i < seedStr.length; i++) {
@@ -127,6 +135,8 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
     }
     case "safe_code":
       return text.kind === "safe_code" ? [buildSafeCodeTask(text)] : [];
+    case "read_poem_book":
+      return text.kind === "poem_book" ? [buildPoemBookTask(text)] : [];
     case "daily_sentences":
       return text.kind === "sentence_pool"
         ? buildDailySentencesTasks(text, sessionParams?.today ?? null, sessionParams?.selectedLineIds ?? null, sessionParams?.group ?? null)

@@ -182,3 +182,46 @@ describe("safe_code mode", () => {
     expect(tasks).toHaveLength(0);
   });
 });
+
+describe("read_poem_book mode", () => {
+  const BOOK_TOPIC = {
+    meta: { id: "reading_test", renderer: "reading" },
+    texts: [
+      {
+        id: "character_traits_book",
+        kind: "poem_book",
+        title: { ru: "Педагогические стихи" },
+        pages: [
+          {
+            id: "vanya",
+            kind: "poem",
+            title: { ru: "Ваня-непослушный" },
+            image: "media/vanya.webp",
+            lines: [{ id: "l1", text: "Ваня очень непослушный-" }],
+          },
+          {
+            id: "lena",
+            kind: "poem",
+            title: { ru: "Лена-трудолюбивая" },
+            image: "media/lena.webp",
+            lines: [{ id: "l1", text: "Лена очень любит труд" }],
+          },
+        ],
+      },
+    ],
+  };
+
+  it("generates one read_poem_book task carrying all pages", () => {
+    const tasks = generateTasks({ type: "read_poem_book" }, BOOK_TOPIC, "character_traits_book");
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].type).toBe("read_poem_book");
+    expect(tasks[0].textId).toBe("character_traits_book");
+    expect(tasks[0].text.pages).toHaveLength(2);
+    expect(tasks[0].text.pages[0].id).toBe("vanya");
+  });
+
+  it("returns empty if no poem_book kind text exists", () => {
+    const tasks = generateTasks({ type: "read_poem_book" }, TOPIC, "dad_best");
+    expect(tasks).toHaveLength(0);
+  });
+});
