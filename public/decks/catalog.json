@@ -192,14 +192,14 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.39",
-      "url": "/decks/word_formation_soup_v1.0.39.zip",
-      "zipUrl": "/decks/word_formation_soup_v1.0.39.zip",
+      "version": "1.0.40",
+      "url": "/decks/word_formation_soup_v1.0.40.zip",
+      "zipUrl": "/decks/word_formation_soup_v1.0.40.zip",
       "title": {
         "ru": "Словообразование"
       },
       "renderer": "word_formation",
-      "file": "word_formation_soup_v1.0.39.zip"
+      "file": "word_formation_soup_v1.0.40.zip"
     },
     {
       "id": "phonetic_analysis",
