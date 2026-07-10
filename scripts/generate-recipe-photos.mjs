@@ -75,7 +75,7 @@ const RECIPES = {
   risotto_shrimp:   "creamy shrimp risotto with arborio rice, plump pink shrimp, grated parmesan on top, flecks of fresh thyme, golden buttery sauce, served in a white shallow bowl",
   ravioli:          "fresh pasta ravioli in golden sage butter sauce, sprinkled with grated parmesan, crispy sage leaves as garnish, white plate, Italian-style",
   breakfast_champion: "creamy white cottage cheese and yogurt dessert bowl, smooth silky texture, topped with fresh strawberries and a drizzle of honey, served in a white ceramic bowl, cozy breakfast table",
-  kislo_zelje:      "Slovenian braised sauerkraut with pieces of smoked meat, golden-brown color, hearty rustic dish, served on a white plate, traditional Slavic comfort food",
+  kislo_zelje:      "cold Slovenian sauerkraut salad in a white bowl, pale sauerkraut strands with thin onion rings, glistening with dark greenish pumpkin seed oil, a few caraway seeds visible, fresh and crisp, light rustic side salad",
   mushroom_soup:    "mushroom soup with champignons in a white ceramic bowl, rich golden-brown broth, sliced mushrooms visible, fresh green herbs sprinkled on top, dollop of white sour cream, rustic wooden table, steam rising",
   chicken_potato_oven: "rustic baked chicken pieces with golden crispy skin and potato wedges skin-on, fresh rosemary and thyme sprigs, roasted garlic, drizzled with olive oil, on parchment-lined baking sheet, golden-brown caramelized, overhead shot",
   cicchetti: "Venetian cicchetti assortment on a rustic wooden board, four toasted baguette slices with colorful toppings: prosciutto, creamy white spread with herbs, tomato and mozzarella with basil, dark olive tapenade, soft warm light, Italian appetizer, overhead shot",
