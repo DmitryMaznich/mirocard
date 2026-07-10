@@ -190,6 +190,15 @@ function pluralizeRu(n, one, few, many) {
  * {2} with portions=3 → "6"
  * {2|стакан|стакана|стаканов} with portions=3 → "6 стаканов"
  */
+// "половина/половину/с половиной X" needs the genitive singular form of the
+// whole measuring phrase. The noun half of `few` (used for 2-4, e.g.
+// "ложки") is already genitive singular — only its agreeing adjective is
+// wrong, since `few` carries the plural adjective form ("чайные"). Русское
+// правило: множественное "-ые"/"-ие" → родительный падеж ед.ч. "-ой"/"-ей".
+function toGenitiveSingular(few) {
+  return few.replace(/(\S*)ые(\s|$)/, "$1ой$2").replace(/(\S*)ие(\s|$)/, "$1ей$2");
+}
+
 function formatWithUnit(val, one, few, many) {
   // Snap to nearest 0.5 to avoid floating-point drift (e.g. 0.5*7 = 3.5000000000000004)
   const snapped = Math.round(val * 2) / 2;
@@ -198,7 +207,7 @@ function formatWithUnit(val, one, few, many) {
 
   if (isHalf) {
     const prefix = whole > 0 ? `${whole} с половиной` : "половину";
-    return `${prefix} ${few.trim()}`;
+    return `${prefix} ${toGenitiveSingular(few.trim())}`;
   }
   return `${whole} ${pluralizeRu(whole, one.trim(), few.trim(), many.trim())}`;
 }

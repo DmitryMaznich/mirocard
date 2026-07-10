@@ -43,6 +43,24 @@ describe('applyPortions with stepPortionsMultiplier (integration)', () => {
     const text = 'Добавить {2|столовую ложку|столовые ложки|столовых ложек} сливочного масла.';
     expect(applyPortions(text, multiplier)).toBe('Добавить 4 столовые ложки сливочного масла.');
   });
+
+  it('declines "половину X" correctly for a teaspoon at half quantity', () => {
+    const multiplier = stepPortionsMultiplier(4, null, 2); // 1 * (2/4) = 0.5
+    const text = 'Добавить {1|чайную ложку|чайные ложки|чайных ложек} тмина.';
+    expect(applyPortions(text, multiplier)).toBe('Добавить половину чайной ложки тмина.');
+  });
+
+  it('declines "половину X" correctly for a tablespoon at half quantity', () => {
+    const multiplier = stepPortionsMultiplier(4, null, 2); // 1 * (2/4) = 0.5
+    const text = 'Добавить {1|столовую ложку|столовые ложки|столовых ложек} масла.';
+    expect(applyPortions(text, multiplier)).toBe('Добавить половину столовой ложки масла.');
+  });
+
+  it('declines "N с половиной X" correctly for a teaspoon', () => {
+    const multiplier = stepPortionsMultiplier(4, null, 6); // 1 * (6/4) = 1.5
+    const text = 'Добавить {1|чайную ложку|чайные ложки|чайных ложек} соли.';
+    expect(applyPortions(text, multiplier)).toBe('Добавить 1 с половиной чайной ложки соли.');
+  });
 });
 
 describe('formatPortionsPhrase', () => {
