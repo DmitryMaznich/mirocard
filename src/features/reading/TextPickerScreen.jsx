@@ -6,7 +6,7 @@ import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { getUserRecipes } from "@/core/groupStore";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
-const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список", safe_code: "сейф", sentence_pool: "задания" };
+const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список", safe_code: "сейф", sentence_pool: "задания", poem_book: "книга" };
 
 function getTextTitle(text) {
   return getTopicTitle(text?.title) || text?.id || "";
@@ -80,6 +80,9 @@ export default function TextPickerScreen() {
     } else if (text.kind === "safe_code") {
       setActiveModeId("safe_code");
       setScreen("home");
+    } else if (text.kind === "poem_book") {
+      setActiveModeId("read_poem_book");
+      setScreen("home");
     } else {
       setScreen("modes");
     }
@@ -128,7 +131,9 @@ export default function TextPickerScreen() {
                 <ReadingTextThumb topicId={activeTopicId} text={text} />
                 <div className="topic-item__info">
                   <div className="topic-item__title">{getTextTitle(text)}</div>
-                  {text.kind !== "instruction" && (
+                  {text.kind === "poem_book" ? (
+                    <div className="topic-item__meta">{`${text.pages?.length ?? 0} стихов`}</div>
+                  ) : text.kind !== "instruction" && (
                     <div className="topic-item__meta">
                       {`${text.lines?.length ?? 0} строк · уровень ${text.level ?? 1}`}
                     </div>
