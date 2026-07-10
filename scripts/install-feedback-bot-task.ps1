@@ -31,7 +31,12 @@ if ($existing -and $Force) {
   Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
 }
 
-$action = New-ScheduledTaskAction -Execute $PythonExe -Argument "`"$botScript`"" -WorkingDirectory (Split-Path $botScript -Parent)
+# Task Scheduler launches actions via CreateProcess, which does not resolve
+# the Microsoft Store Python's App Execution Alias (WindowsApps\python.exe is
+# a reparse-point stub that only activates for shell-resolved launches).
+# Routing through cmd.exe /c mirrors how an interactive/SSH shell resolves
+# "python" on PATH, which does work.
+$action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c $PythonExe `"$botScript`"" -WorkingDirectory (Split-Path $botScript -Parent)
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero)
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
