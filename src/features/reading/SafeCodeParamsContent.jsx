@@ -26,12 +26,12 @@ function randomDigits(count) {
 function printDigitCards() {
   const cells = Array.from({ length: 10 }, (_, i) => `<div class="cell"><span class="digit">${i}</span></div>`).join("");
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Карточки с цифрами</title><style>
-@page{size:A4;margin:12mm}
+@page{size:A4;margin:5mm}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;padding:0}
-.grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(5,1fr);width:100%;height:273mm}
-.cell{display:flex;align-items:center;justify-content:center;border:1px dashed #999}
-.digit{font-family:Arial,Helvetica,sans-serif;font-size:120pt;font-weight:900;color:#111}
+.grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(5,1fr);width:100%;height:100%}
+.cell{display:flex;align-items:center;justify-content:center;border:1px dashed #999;overflow:hidden}
+.digit{font-family:Arial,Helvetica,sans-serif;font-size:120pt;font-weight:900;color:#111;line-height:1}
 </style></head><body>
 <div class="grid">${cells}</div>
 </body></html>`;
