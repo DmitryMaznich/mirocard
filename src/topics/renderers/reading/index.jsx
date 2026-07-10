@@ -242,6 +242,48 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
   );
 }
 
+function ReadPoemBookTask({ task, topicId, onAdvance, onClose }) {
+  const pages = task.text?.pages ?? [];
+  const [pageIndex, setPageIndex] = useState(0);
+  const page = pages[pageIndex] ?? pages[0];
+  const fit = useFitReadingText(true, [page?.id]);
+
+  if (!page) return null;
+
+  return (
+    <div className="session-body reading-body" ref={fit.bodyRef}>
+      <ReadingCloseButton onClose={onClose} />
+      <div className="reading-poem-wrap" ref={fit.wrapRef}>
+        <div className="reading-title">{getTopicTitle(page.title)}</div>
+        <div className="reading-content" ref={fit.contentRef}>
+          <ReadingTextBlock lines={page.lines} />
+        </div>
+      </div>
+      <ReadingIllustration topicId={topicId} text={page} illustrationRef={fit.illustrationRef} />
+      <div className="reading-line-nav">
+        <button
+          className="reading-secondary-btn"
+          disabled={pageIndex <= 0}
+          onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
+        >
+          Назад
+        </button>
+        <span className="reading-line-count">{pageIndex + 1} / {pages.length}</span>
+        {pageIndex + 1 < pages.length ? (
+          <button
+            className="reading-primary-btn"
+            onClick={() => setPageIndex((i) => Math.min(pages.length - 1, i + 1))}
+          >
+            Дальше
+          </button>
+        ) : (
+          <button className="reading-primary-btn" onClick={onAdvance}>Готово</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function UnderstandTextTask({ task, onQualityAnswer }) {
   const [showSupport, setShowSupport] = useState(false);
   const supportLines = task.supportLines?.length ? task.supportLines : task.text?.lines ?? [];
@@ -1293,6 +1335,7 @@ const TASK_RENDERERS = {
   follow_instruction:  InstructionTask,
   shopping_list:       ShoppingListTask,
   safe_code:           SafeCodeTask,
+  read_poem_book:      ReadPoemBookTask,
 };
 
 export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onQualityAnswer, onClose }) {
