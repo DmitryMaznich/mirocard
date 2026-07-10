@@ -13,7 +13,7 @@ export async function fetchCatalog() {
     return await api.get("/decks/catalog");
   } catch {
     // Fallback: fetch the static catalog.json (works without auth for free/local installs)
-    const res = await fetch("/decks/catalog.json");
+    const res = await fetch("/decks/catalog.json", { cache: "no-store" });
     if (!res.ok) throw new Error("Не удалось загрузить каталог");
     return res.json();
   }

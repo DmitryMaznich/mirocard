@@ -12,7 +12,7 @@
     root * C:\Users\dmazn\Projects\Mirocard2\dist
     encode zstd gzip
 
-    @shell path / /index.html /manifest.json /sw.js
+    @shell path / /index.html /manifest.json /sw.js /decks/catalog.json
     header @shell Cache-Control "no-store, no-cache, must-revalidate"
 
     @manifest path /manifest.json
