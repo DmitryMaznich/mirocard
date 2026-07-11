@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
-import { isIOS, installIosRoot, pushIosScreen, getIosNavState } from "@/shared/navigation/iosBackNavigation";
+import { isIOS, installIosRoot, pushIosScreen } from "@/shared/navigation/iosBackNavigation";
 
 // One entry is enough. With DEPTH=1 the rebound always goes root→#_guard
 // (different URLs), so Chrome Android never silently ignores the pushState.
@@ -82,7 +82,6 @@ export function useBackButtonGuard({
   const onCloseSessionExitPromptRef = useRef(onCloseSessionExitPrompt);
   const onRequestSessionExitRef = useRef(onRequestSessionExit);
   const isFirstIosRenderRef = useRef(true);
-  const isRestoringFromHistoryRef = useRef(false);
 
   useEffect(() => {
     screenRef.current = screen;
@@ -100,20 +99,17 @@ export function useBackButtonGuard({
     onRequestSessionExit,
   ]);
 
-  // iOS only: push a real history entry for every forward screen change, so a
-  // completed edge-swipe-back has an actual destination to land on instead of
-  // rebounding off a stale boot-screen snapshot (see design doc for root cause).
+  // iOS only: push a real history entry for every forward screen change, so
+  // WebKit's mid-swipe preview reflects the current screen rather than a
+  // snapshot frozen at boot. The popstate handler below never reads these
+  // entries back — it always rebounds to the current screen regardless of
+  // what a swipe reveals (see iosBackNavigation.js for why).
   useEffect(() => {
     if (!isIOS() || !window.history?.pushState) return undefined;
 
     if (isFirstIosRenderRef.current) {
       isFirstIosRenderRef.current = false;
       installIosRoot(screen);
-      return undefined;
-    }
-
-    if (isRestoringFromHistoryRef.current) {
-      isRestoringFromHistoryRef.current = false;
       return undefined;
     }
 
@@ -125,45 +121,31 @@ export function useBackButtonGuard({
     if (!window.history?.pushState) return undefined;
 
     if (isIOS()) {
-      function handleIosPopState(event) {
+      // Always rebound to the current screen — never treat a swipe as real
+      // navigation. See iosBackNavigation.js for why: `screen` alone can't
+      // capture full app state, and stale entries from earlier page loads
+      // can't be told apart reliably, so trusting history content twice
+      // over broke navigation in practice. This mirrors Android's
+      // always-rebound behavior below, just via a per-transition entry.
+      function handleIosPopState() {
+        const now = Date.now();
+        if (now - lastHandledIosSpecialAt < 180) return;
+        lastHandledIosSpecialAt = now;
+
+        pushIosScreen(screenRef.current);
+
         if (isTimerOpenRef.current) {
-          const now = Date.now();
-          if (now - lastHandledIosSpecialAt < 180) return;
-          lastHandledIosSpecialAt = now;
-          pushIosScreen(screenRef.current);
           onCloseTimerRef.current?.();
           return;
         }
 
         if (screenRef.current === "session") {
-          const now = Date.now();
-          if (now - lastHandledIosSpecialAt < 180) return;
-          lastHandledIosSpecialAt = now;
-          pushIosScreen(screenRef.current);
           if (isSessionExitPromptOpenRef.current) {
             onCloseSessionExitPromptRef.current?.();
           } else {
             onRequestSessionExitRef.current?.();
           }
-          return;
         }
-
-        const state = getIosNavState(event);
-        if (!state) {
-          // Untrusted entry: either a stale one left over from a previous
-          // page load (history persists across reloads within the same
-          // tab — there is no API to clear it), or genuinely below our own
-          // root this session. Either way, don't let the browser sit on
-          // content we don't control — re-anchor on the current screen.
-          const now = Date.now();
-          if (now - lastHandledIosSpecialAt < 180) return;
-          lastHandledIosSpecialAt = now;
-          pushIosScreen(screenRef.current);
-          return;
-        }
-
-        isRestoringFromHistoryRef.current = true;
-        useAppStore.getState().setScreen(state.screen);
       }
 
       window.addEventListener("popstate", handleIosPopState);

@@ -196,30 +196,34 @@ describe("useBackButtonGuard on iOS", () => {
     );
   });
 
-  it("restores the previous screen on a completed swipe-back", () => {
+  it("always rebounds to the current screen on swipe-back, regardless of what the revealed entry says", () => {
     mockIos();
     resetStore("home");
 
     act(() => {
       root.render(<GuardHost screen="home" />);
     });
-    // Capture the real root state (with its real session nonce) that
-    // installIosRoot wrote, so the popstate below is trusted the same way
-    // an actual swipe-back-to-root would be.
-    const rootState = window.history.state;
-
     act(() => {
       root.render(<GuardHost screen="students" />);
     });
+    const pushSpy = vi.spyOn(window.history, "pushState");
+    const setScreenSpy = vi.spyOn(useAppStore.getState(), "setScreen");
 
+    // A swipe never restores a screen from history — not even one that
+    // looks like a plausible, correctly-tagged prior entry (e.g. root).
     act(() => {
-      dispatchPopState(rootState);
+      dispatchPopState({ mirocardIosNav: true, screen: "home", seq: 0 });
     });
 
-    expect(useAppStore.getState().screen).toBe("home");
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ mirocardIosNav: true, screen: "students" }),
+      "",
+      expect.any(String),
+    );
+    expect(setScreenSpy).not.toHaveBeenCalled();
   });
 
-  it("re-anchors on the current screen instead of trusting an untagged entry", () => {
+  it("rebounds the same way for an untagged or foreign history entry", () => {
     mockIos();
     resetStore("home");
 
@@ -238,27 +242,6 @@ describe("useBackButtonGuard on iOS", () => {
       expect.any(String),
     );
     expect(useAppStore.getState().screen).toBe("home");
-  });
-
-  it("re-anchors on the current screen instead of trusting a stale entry from a previous page load", () => {
-    mockIos();
-    resetStore("students");
-
-    act(() => {
-      root.render(<GuardHost screen="students" />);
-    });
-    const pushSpy = vi.spyOn(window.history, "pushState");
-
-    act(() => {
-      dispatchPopState({ mirocardIosNav: true, nonce: "stale-from-earlier-load", screen: "session", seq: 12 });
-    });
-
-    expect(pushSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ mirocardIosNav: true, screen: "students" }),
-      "",
-      expect.any(String),
-    );
-    expect(useAppStore.getState().screen).toBe("students");
   });
 
   it("intercepts swipe-back during an active session with a confirmation prompt", () => {
