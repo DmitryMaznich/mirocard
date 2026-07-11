@@ -203,18 +203,23 @@ describe("useBackButtonGuard on iOS", () => {
     act(() => {
       root.render(<GuardHost screen="home" />);
     });
+    // Capture the real root state (with its real session nonce) that
+    // installIosRoot wrote, so the popstate below is trusted the same way
+    // an actual swipe-back-to-root would be.
+    const rootState = window.history.state;
+
     act(() => {
       root.render(<GuardHost screen="students" />);
     });
 
     act(() => {
-      dispatchPopState({ mirocardIosNav: true, screen: "home", seq: 0 });
+      dispatchPopState(rootState);
     });
 
     expect(useAppStore.getState().screen).toBe("home");
   });
 
-  it("does nothing extra when swiping past the app's root", () => {
+  it("re-anchors on the current screen instead of trusting an untagged entry", () => {
     mockIos();
     resetStore("home");
 
@@ -227,8 +232,33 @@ describe("useBackButtonGuard on iOS", () => {
       dispatchPopState(null);
     });
 
-    expect(pushSpy).not.toHaveBeenCalled();
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ mirocardIosNav: true, screen: "home" }),
+      "",
+      expect.any(String),
+    );
     expect(useAppStore.getState().screen).toBe("home");
+  });
+
+  it("re-anchors on the current screen instead of trusting a stale entry from a previous page load", () => {
+    mockIos();
+    resetStore("students");
+
+    act(() => {
+      root.render(<GuardHost screen="students" />);
+    });
+    const pushSpy = vi.spyOn(window.history, "pushState");
+
+    act(() => {
+      dispatchPopState({ mirocardIosNav: true, nonce: "stale-from-earlier-load", screen: "session", seq: 12 });
+    });
+
+    expect(pushSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ mirocardIosNav: true, screen: "students" }),
+      "",
+      expect.any(String),
+    );
+    expect(useAppStore.getState().screen).toBe("students");
   });
 
   it("intercepts swipe-back during an active session with a confirmation prompt", () => {

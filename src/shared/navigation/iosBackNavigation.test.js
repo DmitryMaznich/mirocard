@@ -55,7 +55,7 @@ describe("installIosRoot", () => {
     installIosRoot("home");
 
     expect(replaceSpy).toHaveBeenCalledWith(
-      { mirocardIosNav: true, screen: "home", seq: 0 },
+      expect.objectContaining({ mirocardIosNav: true, screen: "home", seq: 0 }),
       "",
       window.location.href.replace(/#.*$/, ""),
     );
@@ -82,20 +82,28 @@ describe("pushIosScreen", () => {
 
     pushIosScreen("students");
     const firstUrl = pushSpy.mock.calls[0][2];
-    expect(pushSpy.mock.calls[0][0]).toEqual({ mirocardIosNav: true, screen: "students", seq: 1 });
+    expect(pushSpy.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ mirocardIosNav: true, screen: "students", seq: 1 }),
+    );
 
     pushIosScreen("student_edit");
     const secondUrl = pushSpy.mock.calls[1][2];
-    expect(pushSpy.mock.calls[1][0]).toEqual({ mirocardIosNav: true, screen: "student_edit", seq: 2 });
+    expect(pushSpy.mock.calls[1][0]).toEqual(
+      expect.objectContaining({ mirocardIosNav: true, screen: "student_edit", seq: 2 }),
+    );
 
     expect(secondUrl).not.toBe(firstUrl);
   });
 });
 
 describe("getIosNavState", () => {
-  it("returns the state when it is tagged", () => {
-    const event = { state: { mirocardIosNav: true, screen: "home", seq: 3 } };
-    expect(getIosNavState(event)).toEqual({ mirocardIosNav: true, screen: "home", seq: 3 });
+  it("returns the state when it belongs to the current page load", () => {
+    installIosRoot("home");
+    const pushSpy = vi.spyOn(window.history, "pushState");
+    pushIosScreen("students");
+    const ownState = pushSpy.mock.calls[0][0];
+
+    expect(getIosNavState({ state: ownState })).toEqual(ownState);
   });
 
   it("returns null when state is missing", () => {
@@ -104,5 +112,15 @@ describe("getIosNavState", () => {
 
   it("returns null when state is not tagged (foreign entry, e.g. below our root)", () => {
     expect(getIosNavState({ state: { someOtherApp: true } })).toBeNull();
+  });
+
+  it("returns null for a stale entry tagged by a previous page load (different nonce)", () => {
+    const staleEntryFromEarlierLoad = {
+      mirocardIosNav: true,
+      nonce: "some-earlier-load-nonce",
+      screen: "session",
+      seq: 7,
+    };
+    expect(getIosNavState({ state: staleEntryFromEarlierLoad })).toBeNull();
   });
 });

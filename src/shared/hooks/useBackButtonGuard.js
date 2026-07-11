@@ -149,7 +149,18 @@ export function useBackButtonGuard({
         }
 
         const state = getIosNavState(event);
-        if (!state) return;
+        if (!state) {
+          // Untrusted entry: either a stale one left over from a previous
+          // page load (history persists across reloads within the same
+          // tab — there is no API to clear it), or genuinely below our own
+          // root this session. Either way, don't let the browser sit on
+          // content we don't control — re-anchor on the current screen.
+          const now = Date.now();
+          if (now - lastHandledIosSpecialAt < 180) return;
+          lastHandledIosSpecialAt = now;
+          pushIosScreen(screenRef.current);
+          return;
+        }
 
         isRestoringFromHistoryRef.current = true;
         useAppStore.getState().setScreen(state.screen);

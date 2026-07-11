@@ -3,8 +3,16 @@
 // gesture, this module gives it a real history stack to traverse: one tagged
 // entry per screen transition, so a completed swipe lands on an actual
 // destination instead of rebounding off a stale boot-screen snapshot.
+//
+// History entries survive page reloads (same-tab history is never cleared by
+// the History API — there is no way to truncate it), so entries pushed by a
+// *previous* load of this app can still be revealed by swiping past this
+// load's root. sessionNonce, generated fresh on every module evaluation
+// (i.e. every real page load), tags entries as belonging to the current load
+// so stale entries from earlier loads are never trusted to restore a screen.
 
 let iosSequence = 0;
+const sessionNonce = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export function isIOS() {
   const ua = navigator.userAgent || "";
@@ -19,7 +27,7 @@ function iosBaseUrl() {
 export function installIosRoot(screen) {
   iosSequence = 0;
   window.history.replaceState(
-    { mirocardIosNav: true, screen, seq: iosSequence },
+    { mirocardIosNav: true, nonce: sessionNonce, screen, seq: iosSequence },
     "",
     iosBaseUrl(),
   );
@@ -28,12 +36,14 @@ export function installIosRoot(screen) {
 export function pushIosScreen(screen) {
   iosSequence += 1;
   window.history.pushState(
-    { mirocardIosNav: true, screen, seq: iosSequence },
+    { mirocardIosNav: true, nonce: sessionNonce, screen, seq: iosSequence },
     "",
     `${iosBaseUrl()}#s${iosSequence}`,
   );
 }
 
 export function getIosNavState(event) {
-  return event.state?.mirocardIosNav ? event.state : null;
+  const state = event.state;
+  if (!state?.mirocardIosNav || state.nonce !== sessionNonce) return null;
+  return state;
 }
