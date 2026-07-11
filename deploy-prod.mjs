@@ -118,6 +118,7 @@ function upload(files) {
 
   const pyPath = path.join(tmpdir(), `mirocard2_deploy_prod_${Date.now()}.py`);
   writeFileSync(pyPath, `
+import hashlib
 import os
 import posixpath
 import paramiko
@@ -134,8 +135,26 @@ FILES = ${JSON.stringify(files, null, 2)}
 # version.json and index.html change every build — always force-upload, skip size check
 ALWAYS_UPLOAD = {"index.html", "version.json", "catalog.json"}
 TMP_RENAME    = {"index.html", "version.json"}
+# Deck ZIPs are edited by regenerating them (e.g. fixing a typo in topic.json),
+# which commonly leaves the compressed size unchanged — a same-size skip would
+# silently keep serving the stale content. Verify these by hash, not just size.
+HASH_VERIFY_EXT = {".zip"}
 
 _known_dirs = set()
+
+def local_md5(path):
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest().upper()
+
+def remote_md5(client, remote_path):
+    win_path = remote_path.replace("/", "\\\\")
+    cmd = "powershell -Command \\"(Get-FileHash -Algorithm MD5 -LiteralPath '{}').Hash\\"".format(win_path)
+    stdin, stdout, stderr = client.exec_command(cmd)
+    out = stdout.read().decode().strip()
+    return out.upper() if out else None
 
 def mkdir_p(sftp, remote_path):
     parts = remote_path.replace("\\\\", "/").split("/")
@@ -182,7 +201,12 @@ def upload_file(sftp, client, local, remote):
     if filename not in ALWAYS_UPLOAD:
         try:
             if sftp.stat(remote).st_size == local_size:
-                return False  # unchanged
+                ext = os.path.splitext(filename)[1].lower()
+                if ext not in HASH_VERIFY_EXT:
+                    return False  # unchanged
+                remote_hash = remote_md5(client, remote)
+                if remote_hash and remote_hash == local_md5(local):
+                    return False  # unchanged, confirmed by content hash
         except IOError:
             pass
     mkdir_p(sftp, posixpath.dirname(remote))
