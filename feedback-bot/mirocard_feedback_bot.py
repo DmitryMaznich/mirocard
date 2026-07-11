@@ -11,7 +11,7 @@ import logging
 import os
 
 from telegram import ReactionTypeEmoji, Update
-from telegram.ext import Application, ContextTypes, MessageHandler, MessageReactionHandler, filters
+from telegram.ext import Application, ContextTypes, MessageHandler, MessageReactionHandler, TypeHandler, filters
 
 from backlog import append_entry, build_entry
 from env_helpers import get_env, get_int_env
@@ -27,11 +27,26 @@ DATA_DIR = get_env('FEEDBACK_BOT_DATA_DIR', required=True)
 CACHE_PATH = os.path.join(DATA_DIR, 'message_cache.json')
 INBOX_PATH = os.path.join(DATA_DIR, 'inbox.jsonl')
 SCREENSHOTS_DIR = os.path.join(DATA_DIR, 'screenshots')
+LOG_PATH = os.path.join(DATA_DIR, 'bot.log')
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+os.makedirs(DATA_DIR, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s',
+    handlers=[logging.StreamHandler(), logging.FileHandler(LOG_PATH, encoding='utf-8')],
+)
 log = logging.getLogger(__name__)
 
 cache = MessageCache(CACHE_PATH, retention_days=RETENTION_DAYS)
+
+
+async def log_all_updates(update: Update, _ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = update.effective_chat
+    log.info(
+        'Update received: update_id=%s chat_id=%s chat_type=%s update=%s',
+        update.update_id, chat.id if chat else None, chat.type if chat else None,
+        update.to_dict(),
+    )
 
 
 async def handle_group_message(update: Update, _ctx: ContextTypes.DEFAULT_TYPE) -> None:
@@ -108,6 +123,7 @@ async def prune_cache_job(_ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main() -> None:
     app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(TypeHandler(Update, log_all_updates), group=-1)
     app.add_handler(MessageHandler(filters.ChatType.GROUPS, handle_group_message))
     app.add_handler(MessageReactionHandler(handle_reaction))
     app.job_queue.run_repeating(prune_cache_job, interval=60 * 60 * 24, first=60)
