@@ -70,6 +70,16 @@ async def handle_group_message(update: Update, _ctx: ContextTypes.DEFAULT_TYPE) 
     )
 
 
+async def _set_confirmation_reaction(ctx: ContextTypes.DEFAULT_TYPE, message_id: int, emoji: str) -> None:
+    try:
+        await ctx.bot.set_message_reaction(
+            chat_id=CHAT_ID, message_id=message_id,
+            reaction=[ReactionTypeEmoji(emoji)],
+        )
+    except Exception:
+        log.exception('Failed to set confirmation reaction %s on %s/%s', emoji, CHAT_ID, message_id)
+
+
 async def handle_reaction(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     reaction = update.message_reaction
     if reaction is None or reaction.chat.id != CHAT_ID:
@@ -84,10 +94,7 @@ async def handle_reaction(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
     cached = cache.get(CHAT_ID, reaction.message_id)
     if cached is None:
         log.warning('No cached message for reaction on %s/%s', CHAT_ID, reaction.message_id)
-        await ctx.bot.set_message_reaction(
-            chat_id=CHAT_ID, message_id=reaction.message_id,
-            reaction=[ReactionTypeEmoji('⚠️')],
-        )
+        await _set_confirmation_reaction(ctx, reaction.message_id, '👎')
         return
 
     photo_relpath = None
@@ -109,10 +116,7 @@ async def handle_reaction(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
         log.exception('Failed to write backlog entry for %s/%s', CHAT_ID, reaction.message_id)
         return
 
-    await ctx.bot.set_message_reaction(
-        chat_id=CHAT_ID, message_id=reaction.message_id,
-        reaction=[ReactionTypeEmoji('✅')],
-    )
+    await _set_confirmation_reaction(ctx, reaction.message_id, '👍')
 
 
 async def prune_cache_job(_ctx: ContextTypes.DEFAULT_TYPE) -> None:

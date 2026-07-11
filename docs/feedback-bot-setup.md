@@ -9,9 +9,18 @@ Code: `feedback-bot/`, `scripts/fetch-feedback-backlog.py`, `scripts/deploy-feed
 1. `/newbot` → name it (e.g. "Mirocard Feedback"), get the token.
 2. `/setprivacy` → select the new bot → **Disable** (it must see all group
    messages, not just commands, to cache them for later reactions).
-3. Add the bot to the Mirocard2 testers group as a regular member (admin not
-   required).
-4. Check the group's reaction settings (Group Settings → Reactions). If it's
+3. Add the bot to the Mirocard2 testers group, then **promote it to
+   administrator** (no specific permissions need to be granted — the
+   `administrator` status itself is what matters). This is required: Telegram
+   only sends bots the `message_reaction` update (which includes *who*
+   reacted) if the bot is an admin of that chat. A regular member bot only
+   sees anonymous aggregate counts (`message_reaction_count`), which our code
+   doesn't handle and which can't be filtered to the owner's reaction.
+4. If the group was a "basic group" (not already a supergroup), promoting a
+   bot to admin auto-upgrades it to a supergroup — **this changes the chat's
+   internal id**. Re-fetch the chat id (step 2 below) *after* this promotion,
+   not before, and update `FEEDBACK_BOT_CHAT_ID` if it changed.
+5. Check the group's reaction settings (Group Settings → Reactions). If it's
    set to a restricted "Some reactions" list, 👀 may not be selectable — an
    admin needs to switch it to "All Reactions", or the trigger emoji in
    `feedback-bot/formatting.py` (`PIN_EMOJI`) needs to be changed to one that
@@ -75,13 +84,13 @@ Start-ScheduledTask -TaskName "MirocardFeedbackBot"
 
 1. Send a plain text message in the testers group, then a message with a
    photo attached. React 👀 on both (as the owner).
-   Expect: ✅ appears on both within a few seconds; two new lines appear in
+   Expect: 👍 appears on both within a few seconds; two new lines appear in
    `C:/Users/dmazn/Projects/Mirocard2/feedback/inbox.jsonl` on the runtime
    host, and the screenshot lands in `feedback/screenshots/`.
 2. Restart the bot task (`Stop-ScheduledTask` then
-   `Start-ScheduledTask -TaskName "MirocardFeedbackBot"`), then react 📌 on a
+   `Start-ScheduledTask -TaskName "MirocardFeedbackBot"`), then react 👀 on a
    message that was sent *before* the restart.
-   Expect: ✅ still appears (the persistent cache survived the restart).
+   Expect: 👍 still appears (the persistent cache survived the restart).
 3. React 👀 as a **different** Telegram account (not the owner).
    Expect: no reaction from the bot, no new backlog entry.
 4. From the local dev machine:
