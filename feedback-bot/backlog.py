@@ -12,7 +12,8 @@ def public_chat_id(chat_id: int) -> str:
     return text.lstrip('-')
 
 
-def build_entry(chat_id: int, message_id: int, cached: dict, photo_relpath: Optional[str]) -> dict:
+def build_entry(chat_id: int, message_id: int, cached: dict, photo_relpath: Optional[str],
+                 voice_relpath: Optional[str] = None) -> dict:
     return {
         'id': f'{chat_id}_{message_id}',
         'captured_at': datetime.now(timezone.utc).isoformat(),
@@ -20,6 +21,7 @@ def build_entry(chat_id: int, message_id: int, cached: dict, photo_relpath: Opti
         'author': cached['author'],
         'text': cached['text'],
         'photo': photo_relpath,
+        'voice': voice_relpath,
         'telegram_link': f'https://t.me/c/{public_chat_id(chat_id)}/{message_id}',
         'status': 'new',
     }

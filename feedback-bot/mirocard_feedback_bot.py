@@ -27,6 +27,7 @@ DATA_DIR = get_env('FEEDBACK_BOT_DATA_DIR', required=True)
 CACHE_PATH = os.path.join(DATA_DIR, 'message_cache.json')
 INBOX_PATH = os.path.join(DATA_DIR, 'inbox.jsonl')
 SCREENSHOTS_DIR = os.path.join(DATA_DIR, 'screenshots')
+VOICE_DIR = os.path.join(DATA_DIR, 'voice')
 LOG_PATH = os.path.join(DATA_DIR, 'bot.log')
 
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -59,6 +60,7 @@ async def handle_group_message(update: Update, _ctx: ContextTypes.DEFAULT_TYPE) 
     user = update.effective_user
     author = format_author(user.full_name, user.username) if user else 'Unknown'
     photo_file_id = message.photo[-1].file_id if message.photo else None
+    voice_file_id = message.voice.file_id if message.voice else None
     text = message.text or message.caption or ''
 
     cache.remember(
@@ -66,6 +68,7 @@ async def handle_group_message(update: Update, _ctx: ContextTypes.DEFAULT_TYPE) 
         author=author,
         text=text,
         photo_file_id=photo_file_id,
+        voice_file_id=voice_file_id,
         message_date=message.date.isoformat(),
     )
 
@@ -109,8 +112,20 @@ async def handle_reaction(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
         except Exception:
             log.exception('Failed to download photo for %s/%s', CHAT_ID, reaction.message_id)
 
+    voice_relpath = None
+    if cached.get('voice_file_id'):
+        os.makedirs(VOICE_DIR, exist_ok=True)
+        filename = f'{CHAT_ID}_{reaction.message_id}.ogg'
+        dest_path = os.path.join(VOICE_DIR, filename)
+        try:
+            tg_file = await ctx.bot.get_file(cached['voice_file_id'])
+            await tg_file.download_to_drive(dest_path)
+            voice_relpath = f'voice/{filename}'
+        except Exception:
+            log.exception('Failed to download voice message for %s/%s', CHAT_ID, reaction.message_id)
+
     try:
-        entry = build_entry(CHAT_ID, reaction.message_id, cached, photo_relpath)
+        entry = build_entry(CHAT_ID, reaction.message_id, cached, photo_relpath, voice_relpath)
         append_entry(INBOX_PATH, entry)
     except Exception:
         log.exception('Failed to write backlog entry for %s/%s', CHAT_ID, reaction.message_id)

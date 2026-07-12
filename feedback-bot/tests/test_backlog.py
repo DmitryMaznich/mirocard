@@ -33,6 +33,14 @@ def test_build_entry_without_photo():
     cached = {'author': 'A', 'text': 'B', 'message_date': '2026-07-10T14:20:11+00:00'}
     entry = build_entry(-1001234567890, 1, cached, None)
     assert entry['photo'] is None
+    assert entry['voice'] is None
+
+
+def test_build_entry_with_voice():
+    cached = {'author': 'A', 'text': '', 'message_date': '2026-07-10T14:20:11+00:00'}
+    entry = build_entry(-1001234567890, 2, cached, None, 'voice/-1001234567890_2.ogg')
+    assert entry['voice'] == 'voice/-1001234567890_2.ogg'
+    assert entry['photo'] is None
 
 
 def test_append_entry_writes_jsonl_line(tmp_path):

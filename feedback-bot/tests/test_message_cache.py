@@ -19,6 +19,32 @@ def test_remember_and_get_roundtrip(tmp_path):
     assert entry['photo_file_id'] is None
 
 
+def test_remember_stores_voice_file_id(tmp_path):
+    cache = MessageCache(str(tmp_path / 'cache.json'))
+    cache.remember(
+        -100123, 457,
+        author='Иван Тестов (@ivan_test)',
+        text='',
+        photo_file_id=None,
+        voice_file_id='voice-file-abc',
+        message_date='2026-07-10T12:00:00+00:00',
+    )
+    entry = cache.get(-100123, 457)
+    assert entry is not None
+    assert entry['voice_file_id'] == 'voice-file-abc'
+
+
+def test_remember_defaults_voice_file_id_to_none(tmp_path):
+    cache = MessageCache(str(tmp_path / 'cache.json'))
+    cache.remember(
+        -100123, 458,
+        author='Иван', text='текст без голоса', photo_file_id=None,
+        message_date='2026-07-10T12:00:00+00:00',
+    )
+    entry = cache.get(-100123, 458)
+    assert entry['voice_file_id'] is None
+
+
 def test_get_missing_returns_none(tmp_path):
     cache = MessageCache(str(tmp_path / 'cache.json'))
     assert cache.get(-100123, 999) is None

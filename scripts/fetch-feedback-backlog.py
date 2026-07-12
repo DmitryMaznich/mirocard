@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Pull new feedback backlog entries and screenshots from the runtime host.
+"""Pull new feedback backlog entries and attachments from the runtime host.
 
 Reads SSH connection settings from the local .env file (the same
 MIROCARD_DEPLOY_* variables used by fetch-production-db-backup.py). Merges
@@ -14,6 +14,7 @@ from pathlib import Path
 import paramiko
 
 REMOTE_FEEDBACK_ROOT = "C:/Users/dmazn/Projects/Mirocard2/feedback"
+ATTACHMENT_FIELDS = ("photo", "voice")
 
 
 def load_env(path):
@@ -116,15 +117,16 @@ def main():
             merged, newly_added = merge_backlog(remote_entries, local_entries)
 
             for entry in newly_added:
-                photo = entry.get("photo")
-                if not photo:
-                    continue
-                local_photo_path = out_dir / photo
-                if local_photo_path.exists():
-                    continue
-                remote_photo_path = sftp_path(f"{args.remote_root}/{photo}")
-                local_photo_path.parent.mkdir(parents=True, exist_ok=True)
-                sftp.get(remote_photo_path, str(local_photo_path))
+                for field in ATTACHMENT_FIELDS:
+                    relpath = entry.get(field)
+                    if not relpath:
+                        continue
+                    local_path = out_dir / relpath
+                    if local_path.exists():
+                        continue
+                    remote_path = sftp_path(f"{args.remote_root}/{relpath}")
+                    local_path.parent.mkdir(parents=True, exist_ok=True)
+                    sftp.get(remote_path, str(local_path))
 
             body = "\n".join(json.dumps(entry, ensure_ascii=False) for entry in merged)
             local_inbox_path.write_text(body + ("\n" if merged else ""), encoding="utf-8")

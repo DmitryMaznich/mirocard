@@ -36,13 +36,15 @@ class MessageCache:
         return f'{chat_id}_{message_id}'
 
     def remember(self, chat_id: int, message_id: int, *, author: str, text: str,
-                 photo_file_id: Optional[str], message_date: str) -> None:
+                 photo_file_id: Optional[str], voice_file_id: Optional[str] = None,
+                 message_date: str) -> None:
         self._data[self._key(chat_id, message_id)] = {
             'chat_id': chat_id,
             'message_id': message_id,
             'author': author,
             'text': text,
             'photo_file_id': photo_file_id,
+            'voice_file_id': voice_file_id,
             'message_date': message_date,
             'cached_at': datetime.now(timezone.utc).isoformat(),
         }
