@@ -206,7 +206,9 @@ export async function getPlannerShopPlan(studentId) {
 
 export async function savePlannerShopPlan(studentId, plan) {
   const db = await getDb();
-  await kv.set(db, plannerShopPlanKey(studentId), plan);
+  const key = plannerShopPlanKey(studentId);
+  await kv.set(db, key, plan);
+  pushOp("kv.upsert", { key, value: plan }).catch(() => {});
 }
 
 export async function getPlannerShopCustomData(studentId) {
@@ -216,7 +218,9 @@ export async function getPlannerShopCustomData(studentId) {
 
 export async function savePlannerShopCustomData(studentId, data) {
   const db = await getDb();
-  await kv.set(db, plannerShopCustomKey(studentId), data);
+  const key = plannerShopCustomKey(studentId);
+  await kv.set(db, key, data);
+  pushOp("kv.upsert", { key, value: data }).catch(() => {});
 }
 
 // ─── Planner shopping "bought" state (persists ShopView's tap-to-take
@@ -232,7 +236,9 @@ export async function getPlannerShopBought(studentId) {
 
 export async function savePlannerShopBought(studentId, bought) {
   const db = await getDb();
-  await kv.set(db, plannerShopBoughtKey(studentId), bought);
+  const key = plannerShopBoughtKey(studentId);
+  await kv.set(db, key, bought);
+  pushOp("kv.upsert", { key, value: bought }).catch(() => {});
 }
 
 // ─── Planner putaway (Раскладка) placements ──────────────────────────────
@@ -248,7 +254,9 @@ export async function getPlannerPutawayPlan(studentId) {
 
 export async function savePlannerPutawayPlan(studentId, plan) {
   const db = await getDb();
-  await kv.set(db, plannerPutawayPlanKey(studentId), plan);
+  const key = plannerPutawayPlanKey(studentId);
+  await kv.set(db, key, plan);
+  pushOp("kv.upsert", { key, value: plan }).catch(() => {});
 }
 
 // ─── Planner "menu-managed" keys ──────────────────────────────────────────
@@ -266,7 +274,9 @@ export async function getPlannerShopMenuKeys(studentId) {
 
 export async function savePlannerShopMenuKeys(studentId, keys) {
   const db = await getDb();
-  await kv.set(db, plannerShopMenuKeysKey(studentId), keys);
+  const key = plannerShopMenuKeysKey(studentId);
+  await kv.set(db, key, keys);
+  pushOp("kv.upsert", { key, value: keys }).catch(() => {});
 }
 
 const plannerShopStoresKey  = (sid) => `planner_shop_stores_${sid}`;
@@ -279,7 +289,9 @@ export async function getPlannerShopStores(studentId) {
 
 export async function savePlannerShopStores(studentId, stores) {
   const db = await getDb();
-  await kv.set(db, plannerShopStoresKey(studentId), stores);
+  const key = plannerShopStoresKey(studentId);
+  await kv.set(db, key, stores);
+  pushOp("kv.upsert", { key, value: stores }).catch(() => {});
 }
 
 export async function getPlannerShopHistory(studentId) {
@@ -289,7 +301,9 @@ export async function getPlannerShopHistory(studentId) {
 
 export async function savePlannerShopHistory(studentId, history) {
   const db = await getDb();
-  await kv.set(db, plannerShopHistoryKey(studentId), history);
+  const key = plannerShopHistoryKey(studentId);
+  await kv.set(db, key, history);
+  pushOp("kv.upsert", { key, value: history }).catch(() => {});
 }
 
 const plannerCycleTripsKey   = (sid) => `planner_cycle_trips_${sid}`;
@@ -302,7 +316,9 @@ export async function getPlannerCycleTrips(studentId) {
 
 export async function savePlannerCycleTrips(studentId, trips) {
   const db = await getDb();
-  await kv.set(db, plannerCycleTripsKey(studentId), trips);
+  const key = plannerCycleTripsKey(studentId);
+  await kv.set(db, key, trips);
+  pushOp("kv.upsert", { key, value: trips }).catch(() => {});
 }
 
 export async function getPlannerCycleHistory(studentId) {
@@ -312,7 +328,9 @@ export async function getPlannerCycleHistory(studentId) {
 
 export async function savePlannerCycleHistory(studentId, history) {
   const db = await getDb();
-  await kv.set(db, plannerCycleHistoryKey(studentId), history);
+  const key = plannerCycleHistoryKey(studentId);
+  await kv.set(db, key, history);
+  pushOp("kv.upsert", { key, value: history }).catch(() => {});
 }
 
 // ─── Planner zone customizations (Раскладка: family-renamed/added zones) ──
@@ -409,5 +427,20 @@ export async function pullRecipeKvFromServer() {
     }
   } catch {
     // Offline или не авторизован — пропускаем тихо
+  }
+}
+
+const PLANNER_KV_PREFIX = "planner_";
+
+export async function pullPlannerKvFromServer() {
+  try {
+    const { kv: items } = await api.get(`/account/kv?prefix=${encodeURIComponent(PLANNER_KV_PREFIX)}`);
+    if (!Array.isArray(items) || !items.length) return;
+    const db = await getDb();
+    for (const { key, value } of items) {
+      await kv.set(db, key, value);
+    }
+  } catch {
+    // Offline или не авторизован — пропускаем тихо, как pullRecipeKvFromServer
   }
 }
