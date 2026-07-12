@@ -6,7 +6,7 @@ function planKey(name, ii) { return `${name}_${ii}`; }
 
 // Builds the ordered list of bought-but-not-yet-placed items for the
 // putaway screen. `bought` and `placed` are both { [planKey]: truthy } maps.
-export function buildPutawayQueue(customData, bought, placed) {
+export function buildPutawayQueue(customData, bought, placed, overrides = {}) {
   const steps = customDataToSteps(customData);
   const queue = [];
   for (const step of steps) {
@@ -14,8 +14,7 @@ export function buildPutawayQueue(customData, bought, placed) {
     (step.items ?? []).forEach((product, ii) => {
       const key = planKey(category, ii);
       if (!bought[key] || placed[key]) return;
-      const zoneId = getZoneForProduct(category, product);
-      if (!zoneId) return;
+      const zoneId = getZoneForProduct(category, product, overrides);
       queue.push({ key, category, product, zoneId });
     });
   }
