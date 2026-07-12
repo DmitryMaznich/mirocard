@@ -19,6 +19,7 @@ import { ZONES } from "@/features/planner/putawayLocations";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory } from "@/core/groupStore";
 import "@/features/planner/planner.css";
+import InstructionsTab from "@/features/instructions/InstructionsTab";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -102,7 +103,18 @@ function PlannerTabIcon() {
   );
 }
 
-function HomeTabs({ active, onChange, showPlanner }) {
+function InstructionsTabIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+      <path d="M8 6h11M8 11h11M8 16h11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path d="m3 6 1 1 2-2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m3 11 1 1 2-2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m3 16 1 1 2-2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function HomeTabs({ active, onChange, showPlanner, showInstructions }) {
   return (
     <nav className="home-tabbar" role="tablist">
       <button
@@ -121,6 +133,16 @@ function HomeTabs({ active, onChange, showPlanner }) {
         >
           <PlannerTabIcon />
           <span>Планировщик</span>
+        </button>
+      )}
+      {showInstructions && (
+        <button
+          role="tab"
+          className={`home-tabbar__item${active === 'instructions' ? ' home-tabbar__item--active' : ''}`}
+          onClick={() => onChange('instructions')}
+        >
+          <InstructionsTabIcon />
+          <span>Инструкции</span>
         </button>
       )}
     </nav>
@@ -724,6 +746,7 @@ export default function HomeScreen() {
 
   const { hasUpdate, applyUpdate } = useAppUpdate();
   const hasPlannerAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("planner");
+  const hasInstructionsAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("instructions");
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (
     isChatPractice ? true :
@@ -803,7 +826,9 @@ export default function HomeScreen() {
 
       <div className="home-main">
         <div className="home-tab-content">
-          {activeTab === 'planner' && hasPlannerAccess ? (
+          {activeTab === 'instructions' && hasInstructionsAccess ? (
+            <InstructionsTab setScreen={setScreen} />
+          ) : activeTab === 'planner' && hasPlannerAccess ? (
             <PlannerTab student={student} setScreen={setScreen} />
           ) : (
             <SessionTab
@@ -826,7 +851,7 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} />
+      <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} />
     </div>
   );
 }
