@@ -89,6 +89,7 @@
 }
 
 .ig-card__medallion {
+  container-type: size;
   position: relative;
   flex: 0 0 62%;
   display: flex;
@@ -119,7 +120,7 @@
 }
 
 .ig-card__emoji {
-  font-size: 52px;
+  font-size: 80cqh;
   line-height: 1;
   filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.22));
   transform: rotate(-6deg);
