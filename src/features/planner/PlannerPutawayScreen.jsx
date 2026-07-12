@@ -213,46 +213,61 @@ export default function PlannerPutawayScreen() {
 
           <div className="putaway-progress">Продукт {doneCount + 1} из {totalCount}</div>
 
-          <div className="putaway-card">
-            <ZonePhoto
-              studentId={studentId}
-              zoneId={current.zoneId}
-              version={zonePhotoVersions[current.zoneId] ?? 0}
-              className="putaway-card__photo"
-              fallback={<div className="putaway-card__icon">{ZONES.find((z) => z.id === current.zoneId)?.icon}</div>}
-            />
-            <div className="putaway-card__name">{current.product}</div>
-          </div>
-
-          <div className="putaway-zones">
-            {ZONES.map((zone) => (
-              <button
-                key={zone.id}
-                className={`putaway-zone${wrongZoneId === zone.id ? ' putaway-zone--wrong' : ''}${wrongCount >= 2 && zone.id === current.zoneId ? ' putaway-zone--hint' : ''}`}
-                onClick={() => handlePick(zone.id)}
-              >
-                <span
-                  className="putaway-zone__camera-badge"
-                  onClick={(e) => { e.stopPropagation(); setEditingZoneId(zone.id); }}
-                  aria-label={`Сфотографировать: ${zone.label}`}
-                >
-                  📷
-                </span>
+          {current.zoneId === null ? (
+            <div className="putaway-orphan">
+              <div className="putaway-card">
+                <div className="putaway-card__icon">❓</div>
+                <div className="putaway-card__name">{current.product}</div>
+              </div>
+              <div className="putaway-orphan__hint">Нужна помощь взрослого — выбери место для этого продукта</div>
+              <button type="button" className="putaway-orphan__fix-btn" onClick={() => setZoneFixGateOpen(true)}>
+                Выбрать место
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="putaway-card">
                 <ZonePhoto
                   studentId={studentId}
-                  zoneId={zone.id}
-                  version={zonePhotoVersions[zone.id] ?? 0}
-                  className="putaway-zone__photo"
-                  fallback={<span className="putaway-zone__icon">{zone.icon}</span>}
+                  zoneId={current.zoneId}
+                  version={zonePhotoVersions[current.zoneId] ?? 0}
+                  className="putaway-card__photo"
+                  fallback={<div className="putaway-card__icon">{ZONES.find((z) => z.id === current.zoneId)?.icon}</div>}
                 />
-                <span className="putaway-zone__label">{zone.label}</span>
-              </button>
-            ))}
-          </div>
+                <div className="putaway-card__name">{current.product}</div>
+              </div>
 
-          <div className="putaway-hint">
-            {wrongCount >= 2 ? 'Вот сюда — попробуй эту зону' : wrongZoneId ? 'Не совсем — попробуй другое место' : ''}
-          </div>
+              <div className="putaway-zones">
+                {effectiveZones.map((zone) => (
+                  <button
+                    key={zone.id}
+                    className={`putaway-zone${wrongZoneId === zone.id ? ' putaway-zone--wrong' : ''}${wrongCount >= 2 && zone.id === current.zoneId ? ' putaway-zone--hint' : ''}`}
+                    onClick={() => handlePick(zone.id)}
+                  >
+                    <span
+                      className="putaway-zone__camera-badge"
+                      onClick={(e) => { e.stopPropagation(); setEditingZoneId(zone.id); }}
+                      aria-label={`Сфотографировать: ${zone.label}`}
+                    >
+                      📷
+                    </span>
+                    <ZonePhoto
+                      studentId={studentId}
+                      zoneId={zone.id}
+                      version={zonePhotoVersions[zone.id] ?? 0}
+                      className="putaway-zone__photo"
+                      fallback={<span className="putaway-zone__icon">{zone.icon}</span>}
+                    />
+                    <span className="putaway-zone__label">{zone.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="putaway-hint">
+                {wrongCount >= 2 ? 'Вот сюда — попробуй эту зону' : wrongZoneId ? 'Не совсем — попробуй другое место' : ''}
+              </div>
+            </>
+          )}
 
           <div className="putaway-dots">
             {Array.from({ length: totalCount }).map((_, i) => (
