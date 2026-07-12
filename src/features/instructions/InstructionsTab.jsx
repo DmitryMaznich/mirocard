@@ -3,7 +3,7 @@ import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 import PinGateModal from "@/shared/components/PinGateModal";
-import { getAllInstructions } from "./instructionsApi";
+import { getAllInstructions, pullUserInstructionsFromServer } from "./instructionsApi";
 import "./instructions.css";
 
 export default function InstructionsTab({ setScreen }) {
@@ -18,7 +18,11 @@ export default function InstructionsTab({ setScreen }) {
 
   useEffect(() => {
     let cancelled = false;
-    getAllInstructions().then((all) => { if (!cancelled) setInstructions(all); });
+    (async () => {
+      await pullUserInstructionsFromServer().catch(() => {});
+      const all = await getAllInstructions();
+      if (!cancelled) setInstructions(all);
+    })();
     return () => { cancelled = true; };
   }, []);
 

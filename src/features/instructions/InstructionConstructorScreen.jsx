@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
-import { getUserInstructions, addInstruction, updateInstruction, deleteInstruction } from "./instructionsApi";
+import {
+  getUserInstructions, addInstruction, updateInstruction, deleteInstruction, pullUserInstructionsFromServer,
+} from "./instructionsApi";
 import { validateInstructionDraft } from "./instructionValidation";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import Button from "@/shared/components/Button";
@@ -24,7 +26,9 @@ export default function InstructionConstructorScreen() {
   useEffect(() => {
     if (!isEditing) return;
     let cancelled = false;
-    getUserInstructions().then((all) => {
+    (async () => {
+      await pullUserInstructionsFromServer().catch(() => {});
+      const all = await getUserInstructions();
       if (cancelled) return;
       const existing = all.find((i) => i.id === instructionConstructorId);
       if (existing) {
@@ -33,7 +37,7 @@ export default function InstructionConstructorScreen() {
         setSteps(existing.steps.length ? existing.steps : [""]);
       }
       setLoaded(true);
-    });
+    })();
     return () => { cancelled = true; };
   }, [isEditing, instructionConstructorId]);
 
