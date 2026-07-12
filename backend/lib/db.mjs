@@ -213,6 +213,23 @@ export function initDb(dbPath = DB_PATH) {
     db.exec("ALTER TABLE sessions ADD COLUMN card_events TEXT DEFAULT '[]'");
   }
 
+  // Ensure unique email at DB level. Older DBs may lack the constraint if the
+  // table was created before UNIQUE was in the schema. IF NOT EXISTS is safe to
+  // run on every startup — it's a no-op once the index exists. We skip only
+  // when duplicates are already present (rare; needs manual cleanup first).
+  {
+    const dupes = db.prepare(
+      "SELECT email FROM accounts GROUP BY email HAVING COUNT(*) > 1"
+    ).all();
+    if (dupes.length === 0) {
+      db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email)");
+    } else {
+      console.warn(
+        `[db] Cannot add unique email index: ${dupes.length} duplicate email(s) found. Clean up first.`
+      );
+    }
+  }
+
   const accountColumns = db.prepare("PRAGMA table_info(accounts)").all().map(c => c.name);
   if (!accountColumns.includes("first_name")) {
     db.exec("ALTER TABLE accounts ADD COLUMN first_name TEXT NOT NULL DEFAULT ''");

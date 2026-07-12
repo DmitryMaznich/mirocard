@@ -216,15 +216,23 @@ async function handleRegister(req, res) {
   if (!consentPersonalData) return writeJson(res, 400, { error: "Consent to personal data processing is required" });
   if (findAccountByEmailAny(db, email)) return writeJson(res, 409, { error: "Email already registered" });
 
-  const account = createAccount(db, {
-    email,
-    passwordHash: createPasswordHash(password),
-    firstName,
-    lastName,
-    role,
-    referralSource,
-    consentPersonalDataAt: new Date().toISOString(),
-  });
+  let account;
+  try {
+    account = createAccount(db, {
+      email,
+      passwordHash: createPasswordHash(password),
+      firstName,
+      lastName,
+      role,
+      referralSource,
+      consentPersonalDataAt: new Date().toISOString(),
+    });
+  } catch (e) {
+    if (String(e?.message).includes("UNIQUE constraint failed")) {
+      return writeJson(res, 409, { error: "Email already registered" });
+    }
+    throw e;
+  }
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
