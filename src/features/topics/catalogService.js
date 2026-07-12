@@ -30,7 +30,9 @@ export async function fetchCatalogTopic(entry, appVersion) {
   let res;
   if (access === "free" && entry.url) {
     // Free decks: download directly from static URL — no auth needed, fast, no API dependency
-    const directUrl = entry.url.replace(/^\.\//, "/");
+    // ?_refresh=1 tells the service worker to bypass its cache-first strategy and re-fetch from
+    // the network (the SW then updates the cached copy under the clean URL).
+    const directUrl = entry.url.replace(/^\.\//, "/") + "?_refresh=1";
     res = await fetch(directUrl);
     // Fallback to API if static fails (e.g., deck not in dist)
     if (!res.ok && token) {
