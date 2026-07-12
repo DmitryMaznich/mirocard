@@ -24,7 +24,7 @@
 .ig-title {
   font-family: "DM Serif Display", Georgia, serif;
   font-size: 24px;
-  font-style: italic;
+  font-weight: 700;
   color: #1c3634;
   margin: 2px 0 2px;
 }
@@ -48,19 +48,22 @@
   gap: 12px;
 }
 
+/* Card is a two-zone "medallion" — a big color-washed emoji zone on top,
+   a ticket-stub dashed perforation, then a label strip with a step count
+   and title. Replaces an earlier version that was a plain white square
+   with a tiny 46px badge and small text — this fills the tile on purpose. */
 .ig-card {
-  aspect-ratio: 1 / 0.92;
+  aspect-ratio: 1 / 1.18;
   border-radius: 20px;
   border: 1px solid #e7dccf;
   background: #ffffff;
-  box-shadow: 0 8px 20px rgba(71, 61, 48, 0.06);
+  box-shadow: 0 10px 24px rgba(71, 61, 48, 0.09);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 14px;
+  overflow: hidden;
   cursor: pointer;
   position: relative;
+  padding: 0;
   text-align: left;
   font-family: inherit;
 }
@@ -70,107 +73,177 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
   background: none;
   border: none;
   padding: 0;
   text-align: left;
   font-family: inherit;
   cursor: pointer;
+  min-height: 0;
 }
 
-.ig-card__emoji {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: linear-gradient(150deg, #5cb0a3, #276b62);
-  box-shadow: 0 6px 14px rgba(39, 107, 98, 0.3);
+.ig-card__medallion {
+  position: relative;
+  flex: 0 0 62%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  overflow: hidden;
+  background: linear-gradient(155deg, #6fc0b1 0%, #2f7a6d 65%, #235a51 100%);
 }
-
-.ig-card--mine .ig-card__emoji {
-  background: linear-gradient(150deg, #e3a24f, #b5723a);
-  box-shadow: 0 6px 14px rgba(154, 96, 30, 0.28);
-}
-
-.ig-card__title {
-  font-size: 14.5px;
-  font-weight: 800;
-  color: #1c3634;
-  line-height: 1.25;
-  margin-top: 8px;
-}
-
-.ig-card__tag {
+.ig-card__medallion::before {
+  /* soft off-center sheen — gives the fill depth instead of a flat wash */
+  content: "";
   position: absolute;
-  top: 10px;
-  right: 10px;
+  inset: -20% -20% auto auto;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 70%);
+}
+.ig-card__medallion::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 7px);
+  mix-blend-mode: overlay;
+}
+.ig-card--mine .ig-card__medallion {
+  background: linear-gradient(155deg, #f0b96e 0%, #c9822f 65%, #9c5c1f 100%);
+}
+
+.ig-card__emoji {
+  font-size: 52px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.22));
+  transform: rotate(-6deg);
+  position: relative;
+  z-index: 2;
+}
+
+.ig-card__ribbon {
+  position: absolute;
+  top: 11px;
+  right: -28px;
+  width: 110px;
+  padding: 3px 0;
+  background: #f4dcae;
+  color: #6b4416;
   font-size: 9.5px;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #a5652a;
-  background: rgba(227, 162, 79, 0.16);
-  padding: 3px 6px;
-  border-radius: 6px;
+  text-align: center;
+  transform: rotate(40deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  z-index: 3;
+}
+
+.ig-card__stub-line {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed rgba(0, 0, 0, 0.14);
+  flex-shrink: 0;
+}
+.ig-card__stub-line::before,
+.ig-card__stub-line::after {
+  content: "";
+  position: absolute;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #f7f1e7;
+}
+.ig-card__stub-line::before { left: -8px; }
+.ig-card__stub-line::after { right: -8px; }
+
+.ig-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 14px 12px;
+  min-height: 0;
+}
+
+.ig-card__eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #2f5b57;
+  opacity: 0.65;
+}
+.ig-card--mine .ig-card__eyebrow { color: #a5652a; opacity: 0.8; }
+
+.ig-card__title {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #1c3634;
 }
 
 .ig-card__pencil {
   position: absolute;
-  bottom: 10px;
   right: 10px;
-  width: 26px;
-  height: 26px;
+  bottom: 10px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(74, 155, 143, 0.12);
-  color: #276b62;
-  border: none;
+  background: #fff;
+  border: 1px solid #e7dccf;
+  color: #a5652a;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(71, 61, 48, 0.12);
+  z-index: 3;
 }
 
 .ig-card--add {
   border-style: dashed;
-  background:
-    repeating-linear-gradient(135deg, rgba(199, 186, 166, 0.14) 0 10px, transparent 10px 20px),
-    rgba(250, 247, 242, 0.72);
   box-shadow: none;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 6px;
+  background: rgba(250, 247, 242, 0.6);
 }
+.ig-card--add .ig-card__medallion {
+  background:
+    repeating-linear-gradient(135deg, rgba(199, 186, 166, 0.16) 0 10px, transparent 10px 20px),
+    rgba(250, 247, 242, 0.5);
+}
+.ig-card--add .ig-card__medallion::before,
+.ig-card--add .ig-card__medallion::after { content: none; }
 
-.ig-card--add .ig-card__plus {
-  width: 40px;
-  height: 40px;
+.ig-card__plus {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  border: 2px dashed rgba(74, 155, 143, 0.45);
+  border: 2.5px dashed rgba(74, 155, 143, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: #276b62;
+  font-size: 24px;
   font-weight: 700;
+  color: #276b62;
+  background: rgba(255, 255, 255, 0.5);
 }
 
-.ig-card--add .ig-card__title {
-  font-size: 13px;
-  color: #2f5b57;
-  margin-top: 0;
-}
-
+.ig-card--add .ig-card__body { align-items: center; text-align: center; }
+.ig-card--add .ig-card__title { font-size: 14px; color: #2f5b57; }
 .ig-card--add .ig-card__lock {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #8a9e99;
   font-weight: 700;
+  margin-top: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ig-card { transition: transform 0.12s ease; }
+  .ig-card:active { transform: scale(0.97); }
 }
 
 /* ── Runner (InstructionRunnerScreen) ─────────────────────────────────────

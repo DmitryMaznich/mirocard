@@ -6,6 +6,30 @@ import PinGateModal from "@/shared/components/PinGateModal";
 import { getAllInstructions, pullUserInstructionsFromServer } from "./instructionsApi";
 import "./instructions.css";
 
+function pluralizeSteps(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "шаг";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return "шага";
+  return "шагов";
+}
+
+function InstructionCardContent({ instruction }) {
+  return (
+    <>
+      <div className="ig-card__medallion">
+        {!instruction.builtin && <div className="ig-card__ribbon">моя</div>}
+        <span className="ig-card__emoji">{instruction.emoji}</span>
+      </div>
+      <div className="ig-card__stub-line" />
+      <div className="ig-card__body">
+        <span className="ig-card__eyebrow">{instruction.steps.length} {pluralizeSteps(instruction.steps.length)}</span>
+        <span className="ig-card__title">{instruction.title}</span>
+      </div>
+    </>
+  );
+}
+
 export default function InstructionsTab({ setScreen }) {
   const settings = useAppStore((s) => s.settings);
   const patchSettings = useAppStore((s) => s.patchSettings);
@@ -78,15 +102,12 @@ export default function InstructionsTab({ setScreen }) {
                 className="ig-card"
                 onClick={() => openInstruction(instruction.id)}
               >
-                <span className="ig-card__emoji">{instruction.emoji}</span>
-                <span className="ig-card__title">{instruction.title}</span>
+                <InstructionCardContent instruction={instruction} />
               </button>
             ) : (
               <div key={instruction.id} className="ig-card ig-card--mine">
-                <span className="ig-card__tag">Моя</span>
                 <button type="button" className="ig-card__main-btn" onClick={() => openInstruction(instruction.id)}>
-                  <span className="ig-card__emoji">{instruction.emoji}</span>
-                  <span className="ig-card__title">{instruction.title}</span>
+                  <InstructionCardContent instruction={instruction} />
                 </button>
                 <button
                   type="button"
@@ -100,9 +121,14 @@ export default function InstructionsTab({ setScreen }) {
             )
           ))}
           <button type="button" className="ig-card ig-card--add" onClick={requestCreate}>
-            <span className="ig-card__plus">+</span>
-            <span className="ig-card__title">Создать свою</span>
-            <span className="ig-card__lock">🔒 для родителя</span>
+            <div className="ig-card__medallion">
+              <span className="ig-card__plus">+</span>
+            </div>
+            <div className="ig-card__stub-line" />
+            <div className="ig-card__body">
+              <span className="ig-card__title">Создать свою</span>
+              <span className="ig-card__lock">🔒 для родителя</span>
+            </div>
           </button>
         </div>
       </div>
