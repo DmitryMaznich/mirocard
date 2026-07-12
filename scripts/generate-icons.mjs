@@ -39,8 +39,8 @@ async function generate(size, filename, bg, fg) {
 // clients fetch the new file under a new URL instead of serving a
 // stale cached copy.
 
-const BG = "#ffffff";
-const FG = "#080f20"; // navy, same ink as the splash screen
+const BG = "#080f20"; // navy, same ink as the splash screen
+const FG = "#ffffff";
 
 await generate(192, "icon-192.png", BG, FG);
 await generate(512, "icon-512.png", BG, FG);
