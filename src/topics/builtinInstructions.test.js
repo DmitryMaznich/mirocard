@@ -5,9 +5,9 @@ describe('BUILTIN_INSTRUCTIONS', () => {
   it('includes the kitchen cleaning instruction', () => {
     const kitchen = BUILTIN_INSTRUCTIONS.find((i) => i.id === 'kitchen_cleaning');
     expect(kitchen).toBeDefined();
-    expect(kitchen.title).toBe('Уборка на кухне');
+    expect(kitchen.title).toBe('Уборка кухни после приготовления еды');
     expect(kitchen.emoji).toBe('🧽');
-    expect(kitchen.steps.length).toBe(6);
+    expect(kitchen.steps.length).toBe(10);
   });
 
   it('marks every built-in instruction as builtin with at least one step', () => {
