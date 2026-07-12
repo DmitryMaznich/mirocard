@@ -43,6 +43,18 @@ def test_build_entry_with_voice():
     assert entry['photo'] is None
 
 
+def test_build_entry_dm_source_has_no_telegram_link():
+    cached = {'author': 'A', 'text': 'идея для приложения', 'message_date': '2026-07-10T14:20:11+00:00'}
+    entry = build_entry(468130718, 5, cached, None, source='dm')
+    assert entry['telegram_link'] is None
+
+
+def test_build_entry_group_source_still_defaults_to_link():
+    cached = {'author': 'A', 'text': 'B', 'message_date': '2026-07-10T14:20:11+00:00'}
+    entry = build_entry(-1001234567890, 7, cached, None)
+    assert entry['telegram_link'] == 'https://t.me/c/1234567890/7'
+
+
 def test_append_entry_writes_jsonl_line(tmp_path):
     inbox_path = str(tmp_path / 'inbox.jsonl')
     append_entry(inbox_path, {'id': 'a'})

@@ -13,7 +13,12 @@ def public_chat_id(chat_id: int) -> str:
 
 
 def build_entry(chat_id: int, message_id: int, cached: dict, photo_relpath: Optional[str],
-                 voice_relpath: Optional[str] = None) -> dict:
+                 voice_relpath: Optional[str] = None, source: str = 'group') -> dict:
+    """`source='group'` builds a t.me/c/ deep link; `source='dm'` (a private
+    chat with the bot) has no such link, so `telegram_link` is None."""
+    telegram_link = (
+        f'https://t.me/c/{public_chat_id(chat_id)}/{message_id}' if source == 'group' else None
+    )
     return {
         'id': f'{chat_id}_{message_id}',
         'captured_at': datetime.now(timezone.utc).isoformat(),
@@ -22,7 +27,7 @@ def build_entry(chat_id: int, message_id: int, cached: dict, photo_relpath: Opti
         'text': cached['text'],
         'photo': photo_relpath,
         'voice': voice_relpath,
-        'telegram_link': f'https://t.me/c/{public_chat_id(chat_id)}/{message_id}',
+        'telegram_link': telegram_link,
         'status': 'new',
     }
 
