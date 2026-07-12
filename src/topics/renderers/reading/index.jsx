@@ -4,7 +4,8 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText } from "./parseRecipeTxt";
+import { useTimer } from "@/features/timer/TimerContext";
 import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
@@ -623,6 +624,13 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       playWarningChime();
     }
   }, [stepIndex, soundEnabled]); // step derived from stepIndex
+
+  const requestTimer = useTimer()?.requestTimer;
+  useEffect(() => {
+    const minutes = parseTimerMinutesFromText(step?.text);
+    if (minutes && requestTimer) requestTimer(minutes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIndex]); // step derived from stepIndex
 
   const [locked, setLocked] = useState(false);
 

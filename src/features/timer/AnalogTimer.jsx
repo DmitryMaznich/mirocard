@@ -65,7 +65,7 @@ function getSecondLabel(value) {
 }
 
 export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
-  const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes } = useTimer();
+  const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes, timerRequest } = useTimer();
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [running, setRunning] = useState(false);
@@ -97,6 +97,17 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   useEffect(() => { setTimeLeft(secondsLeft); }, [secondsLeft, setTimeLeft]);
   useEffect(() => { setIsRunning(running); }, [running, setIsRunning]);
   useEffect(() => { setConfigMinutes(setMinutes); }, [setMinutes, setConfigMinutes]);
+
+  // A recipe step asked for a specific duration (parseTimerMinutesFromText).
+  // Pre-fill the dial so the child only has to press play — but never
+  // clobber a countdown that's already running.
+  useEffect(() => {
+    if (!timerRequest || running) return;
+    hardReset();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing the dial to an external request from the recipe engine, not derived local state
+    setSetMinutes(Math.max(1, Math.min(59, Math.round(timerRequest.minutes))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerRequest]);
 
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;

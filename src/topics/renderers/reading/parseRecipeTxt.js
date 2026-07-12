@@ -243,6 +243,47 @@ export function formatPortionsPhrase(count) {
   return word ? `Готовим на ${word}` : `Готовим на ${n} человек`;
 }
 
+const TIMER_OVERRIDE_RE = /установить\s+таймер\s+на\s+(\d+(?:[.,]\d+)?)\s*(секунд\w*|минут\w*|час\w*)/i;
+const TIMER_PAREN_RE = /\(\s*установить\s+таймер/i;
+const DURATION_RE = /(\d+(?:[.,]\d+)?)\s*(секунд\w*|минут\w*|час\w*)/gi;
+
+function durationToMinutes(rawValue, unit) {
+  const n = parseFloat(String(rawValue).replace(",", "."));
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (/^час/.test(unit)) return Math.max(1, Math.round(n * 60));
+  if (/^секунд/.test(unit)) return Math.max(1, Math.ceil(n / 60));
+  return Math.max(1, Math.round(n));
+}
+
+/**
+ * Extract the intended timer duration (in whole minutes, dial-granularity)
+ * from a recipe step's "(установить таймер)" marker, so the app can
+ * pre-configure the timer instead of making the child read the step and
+ * drag the dial themselves.
+ *
+ * "(установить таймер на N минут/час)" is an explicit override and wins.
+ * Otherwise the last "N минут/секунд/час" mention before the marker is
+ * used. Sub-minute waits (секунд) round up to 1 minute — the analog dial
+ * has no finer resolution than a minute.
+ */
+export function parseTimerMinutesFromText(text) {
+  if (!text || !/установить\s+таймер/i.test(text)) return null;
+
+  const override = text.match(TIMER_OVERRIDE_RE);
+  if (override) return durationToMinutes(override[1], override[2]);
+
+  const parenIndex = text.search(TIMER_PAREN_RE);
+  const before = parenIndex >= 0 ? text.slice(0, parenIndex) : text;
+
+  let match;
+  let last = null;
+  DURATION_RE.lastIndex = 0;
+  while ((match = DURATION_RE.exec(before)) !== null) {
+    last = match;
+  }
+  return last ? durationToMinutes(last[1], last[2]) : null;
+}
+
 /**
  * Group a recipe's parsed steps into phase segments for the progress bar.
  * A new segment starts at every `heading` step; steps before the first

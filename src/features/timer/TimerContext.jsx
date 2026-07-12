@@ -9,7 +9,13 @@ export function TimerProvider({ children }) {
   const [isRunning, setIsRunning] = useState(false);
   const [configMinutes, setConfigMinutes] = useState(0);
   const [sessionSeconds, setSessionSeconds] = useState(0);
+  const [timerRequest, setTimerRequest] = useState(null);
   const sessionStart = useRef(null);
+
+  function requestTimer(minutes) {
+    setTimerRequest({ minutes, nonce: Date.now() + Math.random() });
+    setIsOpen(true);
+  }
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -38,6 +44,7 @@ export function TimerProvider({ children }) {
       isRunning, setIsRunning,
       configMinutes, setConfigMinutes,
       sessionSeconds,
+      timerRequest, requestTimer,
       markSessionStart,
       resetSession,
     }}>

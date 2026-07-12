@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -143,5 +143,39 @@ describe('computeStepSegments', () => {
 
   it('returns an empty array for no steps', () => {
     expect(computeStepSegments([])).toEqual([]);
+  });
+});
+
+describe('parseTimerMinutesFromText', () => {
+  it('returns null for steps with no timer marker', () => {
+    expect(parseTimerMinutesFromText('Нарезать лук мелким кубиком.')).toBeNull();
+  });
+
+  it('reads a plain "N минут (установить таймер)" duration', () => {
+    expect(parseTimerMinutesFromText('Варить 25 минут (установить таймер).')).toBe(25);
+  });
+
+  it('reads a "N минуту" singular duration', () => {
+    expect(parseTimerMinutesFromText('Томить 1 минуту (установить таймер). Перемешать.')).toBe(1);
+  });
+
+  it('rounds sub-minute "N секунд" waits up to 1 minute (dial has no finer resolution)', () => {
+    expect(parseTimerMinutesFromText('Подождать 45 секунд (установить таймер).')).toBe(1);
+  });
+
+  it('prefers an explicit "установить таймер на N минут" override over the earlier duration', () => {
+    expect(parseTimerMinutesFromText('Запекать 1 час (установить таймер на 60 минут).')).toBe(60);
+  });
+
+  it('honors an explicit override even when it disagrees with the earlier duration', () => {
+    expect(parseTimerMinutesFromText('Варить 10 минут (установить таймер на 12 минут).')).toBe(12);
+  });
+
+  it('picks the last duration mention before the marker when several numbers appear', () => {
+    expect(parseTimerMinutesFromText('Обжаривать вместе 3 минуты, помешивая (установить таймер).')).toBe(3);
+  });
+
+  it('ignores durations mentioned after the timer marker', () => {
+    expect(parseTimerMinutesFromText('Варить 8 минут, часто помешивать ложкой (установить таймер). Потом добавить 2 ложки соли.')).toBe(8);
   });
 });

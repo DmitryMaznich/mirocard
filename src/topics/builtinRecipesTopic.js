@@ -79,6 +79,7 @@ export function buildRecipesTopicRecord() {
       title: { ru: 'Готовим еду', en: 'Cooking' },
       builtin: true,
       hidden: true,
+      requiresTimer: true,
     },
     modes: [],
     cards: [],
