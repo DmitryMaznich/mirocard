@@ -4,6 +4,7 @@ import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
+import { useTimer } from "@/features/timer/TimerContext";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -32,9 +33,13 @@ function speak(text) {
 }
 
 export default function SessionSummary() {
-  const setScreen    = useAppStore((s) => s.setScreen);
-  const sessions     = useAppStore((s) => s.sessions);
-  const topicRecords = useAppStore((s) => s.topicRecords);
+  const setScreen         = useAppStore((s) => s.setScreen);
+  const sessions          = useAppStore((s) => s.sessions);
+  const topicRecords      = useAppStore((s) => s.topicRecords);
+  const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
+  const setActiveTextId   = useAppStore((s) => s.setActiveTextId);
+  const setActiveModeId   = useAppStore((s) => s.setActiveModeId);
+  const { markSessionStart } = useTimer();
 
   const session = sessions[sessions.length - 1];
 
@@ -66,6 +71,14 @@ export default function SessionSummary() {
 
   const progressAfter = computeProgressAfterSession(sessions, session);
 
+  function handleRepeat() {
+    setActiveTopicId(session.topicId);
+    if (session.textId) setActiveTextId(session.textId);
+    setActiveModeId(session.modeId);
+    markSessionStart();
+    setScreen("session");
+  }
+
   return (
     <div className="screen summary-screen">
 
@@ -83,7 +96,7 @@ export default function SessionSummary() {
 
       {/* Actions */}
       <div className="summary-actions">
-        <Button variant="secondary" onClick={() => setScreen("modes")}>Ещё раз</Button>
+        <Button variant="secondary" onClick={handleRepeat}>Ещё раз</Button>
         <button
           className="summary-finish-btn"
           onClick={() => setScreen("home")}
