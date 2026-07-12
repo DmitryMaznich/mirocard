@@ -3,6 +3,13 @@ import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 
 const ADJ_ENDINGS = ["ый", "ий", "ой", "ая", "яя", "ое", "ее", "ые", "ие"];
 
+const QUESTION_ENDING = {
+  "ый": "ой", "ий": "ой", "ой": "ой",
+  "ая": "ая", "яя": "ая",
+  "ое": "ое", "ее": "ое",
+  "ые": "ие", "ие": "ие",
+};
+
 function splitAdjPhrase(adjPhrase) {
   const [adj, ...rest] = (adjPhrase ?? "").split(" ");
   const noun = rest.join(" ");
@@ -23,15 +30,19 @@ function BgImage({ topicId, path }) {
 
 function Chip({ item, topicId }) {
   const { stem, ending, noun } = splitAdjPhrase(item.adjPhrase);
+  const qEnding = QUESTION_ENDING[ending] ?? "ой";
   const imgUrl = useTopicFile(topicId, item.image ?? "");
   return (
     <div className={`wf-season__chip${imgUrl ? " wf-season__chip--img" : ""}`}>
       {imgUrl && <img className="wf-season__chip-img" src={imgUrl} alt="" draggable={false} />}
       <div className="wf-season__chip-text">
+        {noun && <span className="wf-season__chip-noun">{noun}</span>}
+        <span className="wf-season__chip-question">
+          (как<span className="wf-season__chip-ending">{qEnding}</span>?)
+        </span>
         <span className="wf-season__chip-adj">
           {stem}<span className="wf-season__chip-ending">{ending}</span>
         </span>
-        {noun && <span className="wf-season__chip-noun">{noun}</span>}
       </div>
     </div>
   );

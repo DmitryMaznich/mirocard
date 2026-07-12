@@ -385,6 +385,13 @@
   line-height: 1.2;
   white-space: nowrap;
 }
+.wf-season__chip-question {
+  font-size: clamp(0.82rem, 2.9vmin, 1.6rem);
+  font-weight: 400;
+  color: #8A6E55;
+  line-height: 1.2;
+  white-space: nowrap;
+}
 
 /* forward button pinned bottom-right */
 .wf-season__fwd {
