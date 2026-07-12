@@ -41,8 +41,20 @@ const PRODUCT_ZONE_OVERRIDES = {
   'мороженое': 'freezer',
 };
 
-export function getZoneForProduct(categoryName, productName) {
+export function getZoneForProduct(categoryName, productName, overrides = {}) {
   const norm = productName.trim().toLowerCase();
+  if (overrides[norm]) return overrides[norm];
   if (PRODUCT_ZONE_OVERRIDES[norm]) return PRODUCT_ZONE_OVERRIDES[norm];
   return CATEGORY_DEFAULT_ZONE[categoryName] ?? null;
+}
+
+// Merges a family's zone customizations (renamed labels + added zones) into
+// the base ZONES list. Base zone ids/icons never change — only the label can
+// be overridden — so callers that key off `id` (getZoneForProduct, the
+// hardcoded overrides above) are unaffected by anything done here.
+export function getEffectiveZones(customizations = {}) {
+  const renamed = customizations.renamed ?? {};
+  const added = customizations.added ?? [];
+  const base = ZONES.map((z) => ({ ...z, label: renamed[z.id] ?? z.label }));
+  return [...base, ...added];
 }
