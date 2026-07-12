@@ -154,7 +154,7 @@ export default function PlannerPutawayScreen() {
   if (loading) return <div className="screen screen-center">Загрузка…</div>;
 
   return (
-    <div className="screen planner-screen">
+    <div className="screen planner-screen putaway-screen">
       <div className="planner-header">
         <button className="planner-header__back" onClick={() => setScreen('home')}><BackArrowIcon size={22} /></button>
         <h1 className="planner-header__title">Раскладка</h1>
