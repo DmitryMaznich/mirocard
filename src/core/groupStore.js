@@ -315,6 +315,38 @@ export async function savePlannerCycleHistory(studentId, history) {
   await kv.set(db, plannerCycleHistoryKey(studentId), history);
 }
 
+// ─── Planner zone customizations (Раскладка: family-renamed/added zones) ──
+
+const plannerZoneCustomizationsKey = (sid) => `planner_zone_customizations_${sid}`;
+
+export async function getPlannerZoneCustomizations(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerZoneCustomizationsKey(studentId))) ?? { renamed: {}, added: [] };
+}
+
+export async function savePlannerZoneCustomizations(studentId, customizations) {
+  const db = await getDb();
+  const key = plannerZoneCustomizationsKey(studentId);
+  await kv.set(db, key, customizations);
+  pushOp("kv.upsert", { key, value: customizations }).catch(() => {});
+}
+
+// ─── Planner product zone overrides (family fix for one product's zone) ───
+
+const plannerProductZoneOverridesKey = (sid) => `planner_product_zone_overrides_${sid}`;
+
+export async function getPlannerProductZoneOverrides(studentId) {
+  const db = await getDb();
+  return (await kv.get(db, plannerProductZoneOverridesKey(studentId))) ?? {};
+}
+
+export async function savePlannerProductZoneOverrides(studentId, overrides) {
+  const db = await getDb();
+  const key = plannerProductZoneOverridesKey(studentId);
+  await kv.set(db, key, overrides);
+  pushOp("kv.upsert", { key, value: overrides }).catch(() => {});
+}
+
 // ─── Safe code (safe_code mode) session config ───────────────────────────────
 
 const safeCodeConfigKey = (topicId) => `safe_code_config_${topicId}`;
