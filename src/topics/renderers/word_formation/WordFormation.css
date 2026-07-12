@@ -404,19 +404,27 @@
   white-space: nowrap;
 }
 
-/* forward button pinned bottom-right */
-.wf-season__fwd {
+/* nav buttons pinned bottom corners */
+.wf-season__fwd,
+.wf-season__back {
   position: absolute;
   bottom: clamp(10px, 2vmin, 14px);
-  right: clamp(12px, 2.5vmin, 16px);
   width: 44px; height: 44px;
-  background: #4caf50; color: #fff;
   border: none; border-radius: 12px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   transition: background 0.15s;
 }
+.wf-season__fwd {
+  right: clamp(12px, 2.5vmin, 16px);
+  background: #4caf50; color: #fff;
+}
 .wf-season__fwd:active { background: #388e3c; }
+.wf-season__back {
+  left: clamp(12px, 2.5vmin, 16px);
+  background: #E8E4DE; color: #5A3E2B;
+}
+.wf-season__back:active { background: #D4CFC8; }
 
 /* ── season_pick_items ───────────────────────────────── */
 .wf-season__chip { transition: outline 0.12s, background 0.12s; }

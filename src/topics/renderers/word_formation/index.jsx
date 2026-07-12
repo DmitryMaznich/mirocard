@@ -7,10 +7,10 @@ import SeasonIntroTask      from "./SeasonIntroTask";
 import SeasonPickItemsTask  from "./SeasonPickItemsTask";
 import "./WordFormation.css";
 
-export default function WordFormationRenderer({ task, topicId, onAdvance, onCorrect, onIncorrect }) {
+export default function WordFormationRenderer({ task, topicId, onAdvance, onPrevious, onCorrect, onIncorrect }) {
   switch (task?.type) {
     case "pair_intro":        return <PairIntroTask       task={task} topicId={topicId} onAdvance={onAdvance} />;
-    case "season_overview":   return <SeasonIntroTask     task={task} topicId={topicId} onAdvance={onAdvance} />;
+    case "season_overview":   return <SeasonIntroTask     task={task} topicId={topicId} onAdvance={onAdvance} onPrevious={onPrevious} />;
     case "season_pick_items": return <SeasonPickItemsTask task={task} topicId={topicId} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
     case "pick_form":         return <PickFormTask        task={task} topicId={topicId} onAdvance={onAdvance} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
     case "form_it":           return <FormItTask          task={task} topicId={topicId} onCorrect={onCorrect} onIncorrect={onIncorrect} />;

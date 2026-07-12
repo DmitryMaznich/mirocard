@@ -1,5 +1,5 @@
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
-import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
+import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 
 const ADJ_ENDINGS = ["ый", "ий", "ой", "ая", "яя", "ое", "ее", "ые", "ие"];
 
@@ -61,7 +61,7 @@ function Chip({ item, topicId }) {
   );
 }
 
-export default function SeasonIntroTask({ task, topicId, onAdvance }) {
+export default function SeasonIntroTask({ task, topicId, onAdvance, onPrevious }) {
   const { card } = task;
   const items = card.items ?? [];
 
@@ -82,6 +82,11 @@ export default function SeasonIntroTask({ task, topicId, onAdvance }) {
         ))}
       </div>
 
+      {onPrevious && (
+        <button className="wf-season__back" onClick={onPrevious}>
+          <BackArrowIcon size={20} />
+        </button>
+      )}
       <button className="wf-season__fwd" onClick={onAdvance}>
         <ForwardArrowIcon size={20} />
       </button>
