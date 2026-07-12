@@ -498,6 +498,23 @@
   cursor: pointer;
 }
 
+.zone-picker-list {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 4px 4px 8px;
+  max-height: 50vh; overflow-y: auto;
+}
+.zone-picker-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 12px;
+  border: 1px solid transparent; background: none;
+  font-size: 1rem; text-align: left; cursor: pointer;
+}
+.zone-picker-item--active {
+  border-color: #2a8060; background: #eafaf3;
+}
+.zone-picker-item__icon { font-size: 1.4rem; }
+.zone-picker-item__label { flex: 1; }
+
 /* ── Покупки: header overflow ("⋯") — rare actions (print/reset/clear),
    frequent ones (store, edit) stay directly in the header. Reuses the
    .portions-sheet shell for the same bottom-sheet visual language as the
