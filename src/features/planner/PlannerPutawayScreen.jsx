@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
-import { getPlannerShopCustomData, getPlannerShopBought, getPlannerPutawayPlan, savePlannerPutawayPlan, getPlannerProductZoneOverrides } from '@/core/groupStore';
+import { getDb, kv } from '@/core/db';
+import { api } from '@/core/api';
+import {
+  getPlannerShopCustomData, getPlannerShopBought, getPlannerPutawayPlan, savePlannerPutawayPlan,
+  getPlannerProductZoneOverrides, savePlannerProductZoneOverrides, getPlannerZoneCustomizations,
+} from '@/core/groupStore';
 import { buildPutawayQueue, getRequiredZones } from './putawayUtils.js';
-import { ZONES } from './putawayLocations.js';
+import { ZONES, getEffectiveZones } from './putawayLocations.js';
 import { savePendingZonePhoto, markPendingZoneSkipped, getResolvedZoneIds, getZoneReferencePhoto, saveZoneReferencePhoto } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
+import ZonePickerSheet from './ZonePickerSheet.jsx';
+import PinGateModal from '@/shared/components/PinGateModal';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -36,6 +43,8 @@ function ZonePhoto({ studentId, zoneId, version, className, fallback }) {
 export default function PlannerPutawayScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const studentId = useAppStore((s) => s.activeStudentId);
+  const adultPinHash = useAppStore((s) => s.settings.adultPinHash);
+  const patchSettings = useAppStore((s) => s.patchSettings);
 
   const [loading, setLoading] = useState(true);
   const [queue, setQueue] = useState([]);
@@ -48,23 +57,31 @@ export default function PlannerPutawayScreen() {
   const [zonesLoaded, setZonesLoaded] = useState(false);
   const [zonePhotoVersions, setZonePhotoVersions] = useState({});
   const [editingZoneId, setEditingZoneId] = useState(null);
+  const [overrides, setOverrides] = useState({});
+  const [effectiveZones, setEffectiveZones] = useState(ZONES);
+  const [zoneFixGateOpen, setZoneFixGateOpen] = useState(false);
+  const [zonePickerOpen, setZonePickerOpen] = useState(false);
 
   useEffect(() => {
     if (!studentId) return;
     let cancelled = false;
     async function load() {
       setLoading(true);
-      const [customData, bought, plan, zoneOverrides] = await Promise.all([
+      const [customData, bought, plan, zoneOverrides, zoneCustomizations] = await Promise.all([
         getPlannerShopCustomData(studentId),
         getPlannerShopBought(studentId),
         getPlannerPutawayPlan(studentId),
         getPlannerProductZoneOverrides(studentId),
+        getPlannerZoneCustomizations(studentId),
       ]);
       if (cancelled) return;
       const safePlan = plan ?? {};
-      const builtQueue = customData ? buildPutawayQueue(customData, bought ?? {}, safePlan, zoneOverrides ?? {}) : [];
+      const safeOverrides = zoneOverrides ?? {};
+      const builtQueue = customData ? buildPutawayQueue(customData, bought ?? {}, safePlan, safeOverrides) : [];
       setQueue(builtQueue);
       setPutawayPlan(safePlan);
+      setOverrides(safeOverrides);
+      setEffectiveZones(getEffectiveZones(zoneCustomizations));
       setDoneCount(Object.keys(safePlan).length);
       setTotalCount(Object.keys(safePlan).length + builtQueue.length);
       setLoading(false);
@@ -103,6 +120,27 @@ export default function PlannerPutawayScreen() {
     setDoneCount((n) => n + 1);
     setWrongCount(0);
     setWrongZoneId(null);
+  }
+
+  async function saveZoneOverride(productName, zoneId) {
+    const norm = productName.trim().toLowerCase();
+    const next = { ...overrides, [norm]: zoneId };
+    setOverrides(next);
+    await savePlannerProductZoneOverrides(studentId, next);
+  }
+
+  function handleZoneFixSelect(zoneId) {
+    if (!current) return;
+    saveZoneOverride(current.product, zoneId).catch(() => {});
+    setQueue((q) => q.map((item, i) => (i === 0 ? { ...item, zoneId } : item)));
+    setZonePickerOpen(false);
+  }
+
+  async function handleSetPin(hash) {
+    patchSettings({ adultPinHash: hash });
+    const db = await getDb();
+    await kv.set(db, "settings", { ...useAppStore.getState().settings, adultPinHash: hash });
+    api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
   }
 
   function handleZonePhotoConfirm(zoneId) {
@@ -164,6 +202,15 @@ export default function PlannerPutawayScreen() {
         )
       ) : (
         <div className="putaway-body">
+          <button
+            type="button"
+            className="putaway-zone-fix-fab"
+            onClick={() => setZoneFixGateOpen(true)}
+            aria-label="Исправить место для товара"
+          >
+            ⚙️
+          </button>
+
           <div className="putaway-progress">Продукт {doneCount + 1} из {totalCount}</div>
 
           <div className="putaway-card">
@@ -229,6 +276,24 @@ export default function PlannerPutawayScreen() {
             />
           </div>
         </div>
+      )}
+
+      {zoneFixGateOpen && (
+        <PinGateModal
+          pinHash={adultPinHash}
+          onSuccess={() => { setZoneFixGateOpen(false); setZonePickerOpen(true); }}
+          onSetPin={handleSetPin}
+          onCancel={() => setZoneFixGateOpen(false)}
+        />
+      )}
+      {zonePickerOpen && current && (
+        <ZonePickerSheet
+          zones={effectiveZones}
+          currentZoneId={current.zoneId}
+          title={`Место для «${current.product}»`}
+          onSelect={handleZoneFixSelect}
+          onClose={() => setZonePickerOpen(false)}
+        />
       )}
     </div>
   );
