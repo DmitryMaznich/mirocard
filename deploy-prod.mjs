@@ -133,7 +133,10 @@ FILES = ${JSON.stringify(files, null, 2)}
 
 # index.html is kept open by Caddy — must use tmp+rename to avoid SFTP Failure
 # version.json and index.html change every build — always force-upload, skip size check
-ALWAYS_UPLOAD = {"index.html", "version.json", "catalog.json"}
+# manifest.json is small and its edits (e.g. bumping an icon `?v=` query
+# string) commonly leave the byte size unchanged, which would defeat the
+# same-size skip check below — always force-upload it too.
+ALWAYS_UPLOAD = {"index.html", "version.json", "catalog.json", "manifest.json"}
 TMP_RENAME    = {"index.html", "version.json"}
 # Deck ZIPs are edited by regenerating them (e.g. fixing a typo in topic.json),
 # which commonly leaves the compressed size unchanged — a same-size skip would
