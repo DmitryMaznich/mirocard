@@ -42,9 +42,15 @@
   padding: 14px 2px 10px;
 }
 
+/* auto-fill + a capped column width, not a fixed 2-column split — on a
+   phone this still lands at 2 columns, but on a tablet/wide screen it adds
+   columns instead of stretching two cards to fill the whole row (which
+   left the medallion/label proportions the same but blew up the absolute
+   empty space inside each card). */
 .ig-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 200px));
+  justify-content: center;
   gap: 12px;
 }
 
