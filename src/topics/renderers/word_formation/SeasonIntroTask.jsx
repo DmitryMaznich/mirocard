@@ -28,6 +28,19 @@ function BgImage({ topicId, path }) {
     : <div className="wf-season__bg wf-season__bg--empty" />;
 }
 
+function SeasonTitle({ contextPhrase }) {
+  const words = (contextPhrase ?? "").trim().split(/\s+/);
+  const name = words[words.length - 1];
+  return (
+    <div className="wf-season__title">
+      <span className="wf-season__title-pill">
+        {"Время года — "}
+        <span className="wf-season__title-name">{name}</span>
+      </span>
+    </div>
+  );
+}
+
 function Chip({ item, topicId }) {
   const { stem, ending, noun } = splitAdjPhrase(item.adjPhrase);
   const qEnding = QUESTION_ENDING[ending] ?? "ой";
@@ -56,7 +69,7 @@ export default function SeasonIntroTask({ task, topicId, onAdvance }) {
     <div className="wf-season">
       <div className="wf-season__photo-wrap">
         <BgImage topicId={topicId} path={card.backgroundImage} />
-        <div className="wf-season__title">{card.contextPhrase}.</div>
+        <SeasonTitle contextPhrase={card.contextPhrase} />
       </div>
 
       <div className="wf-season__panel">
