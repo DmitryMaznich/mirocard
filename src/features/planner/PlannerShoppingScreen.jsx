@@ -11,6 +11,7 @@ import {
   getPlannerShopBought, savePlannerShopBought,
   getPlannerShopMenuKeys, savePlannerShopMenuKeys,
   savePlannerPutawayPlan,
+  getPlannerProductZoneOverrides, savePlannerProductZoneOverrides, getPlannerZoneCustomizations,
 } from '@/core/groupStore';
 import { loadPlan, loadAllRecipes, resetShoppingData, archiveShoppingTrip, PANTRY_ITEMS } from './plannerApi.js';
 import { getPlanRecipes, buildSelectedIngredientsSummary } from './plannerUtils.js';
@@ -19,6 +20,8 @@ import { generateShoppingList, applyIngredientDecisions } from './shoppingListGe
 import { buildPlannerShoppingData, customDataToSteps, syncDecisionsIntoShoppingData } from './plannerShoppingUtils.js';
 import { savePendingReceiptPhoto, markPendingReceiptSkipped, isPendingReceiptResolved, clearPendingPhotos } from './plannerPhotos.js';
 import PhotoCaptureCard from './PhotoCaptureCard.jsx';
+import { getEffectiveZones, getZoneForProduct, ZONES } from './putawayLocations.js';
+import ZonePickerSheet from './ZonePickerSheet.jsx';
 import { BackArrowIcon, ForwardArrowIcon, ArrowUpSmallIcon, ArrowDownSmallIcon } from '@/shared/components/ArrowIcons';
 import './planner.css';
 
@@ -218,7 +221,7 @@ function EmojiPicker({ onSelect, onClose }) {
 
 // ── CategoryEditor ───────────────────────────────────────────────────────────────
 
-function CategoryEditor({ category, onSave, onDelete, onBack }) {
+function CategoryEditor({ category, onSave, onDelete, onBack, zones, zoneOverrides, onZoneOverrideChange }) {
   const [cat, setCat] = useState(() => JSON.parse(JSON.stringify(category)));
   const [showEmojiFor, setShowEmojiFor] = useState(null); // null | "cat" | sgIdx (number)
   const [editingName, setEditingName] = useState(false);
@@ -229,6 +232,7 @@ function CategoryEditor({ category, onSave, onDelete, onBack }) {
   const [addingItemVal, setAddingItemVal] = useState('');
   const [addingSg, setAddingSg] = useState(false);
   const [addingSgVal, setAddingSgVal] = useState('');
+  const [zonePickerFor, setZonePickerFor] = useState(null); // { sgIdx, itemIdx } | null
 
   function mutate(fn) {
     setCat((prev) => {
@@ -384,6 +388,20 @@ function CategoryEditor({ category, onSave, onDelete, onBack }) {
                       {item}
                     </span>
                   )}
+                  {(() => {
+                    const zid = getZoneForProduct(cat.name, item, zoneOverrides);
+                    const z = zones.find((zz) => zz.id === zid);
+                    return (
+                      <button
+                        type="button"
+                        className={`cat-editor-item-zone-chip${z ? '' : ' cat-editor-item-zone-chip--unset'}`}
+                        onClick={() => setZonePickerFor({ sgIdx, itemIdx })}
+                        aria-label="Место хранения"
+                      >
+                        {z ? z.icon : '❓'}
+                      </button>
+                    );
+                  })()}
                   <div className="cat-editor-item-actions">
                     <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, -1)} disabled={itemIdx === 0}><ArrowUpSmallIcon /></button>
                     <button className="cat-editor-arrow-btn" onClick={() => moveItem(sgIdx, itemIdx, 1)} disabled={itemIdx === sg.items.length - 1}><ArrowDownSmallIcon /></button>
@@ -433,6 +451,23 @@ function CategoryEditor({ category, onSave, onDelete, onBack }) {
       {showEmojiFor !== null && (
         <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiFor(null)} />
       )}
+
+      {zonePickerFor && (() => {
+        const sg = cat.subgroups[zonePickerFor.sgIdx];
+        const productName = sg.items[zonePickerFor.itemIdx];
+        return (
+          <ZonePickerSheet
+            zones={zones}
+            currentZoneId={getZoneForProduct(cat.name, productName, zoneOverrides)}
+            title={`Место для «${productName}»`}
+            onSelect={(zoneId) => {
+              onZoneOverrideChange(productName, zoneId);
+              setZonePickerFor(null);
+            }}
+            onClose={() => setZonePickerFor(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -953,6 +988,8 @@ export default function PlannerShoppingScreen() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [showActionsSheet, setShowActionsSheet] = useState(false);
+  const [zoneOverrides, setZoneOverrides] = useState({});
+  const [effectiveZones, setEffectiveZones] = useState(ZONES);
 
   useEffect(() => {
     if (!studentId) return;
@@ -971,6 +1008,27 @@ export default function PlannerShoppingScreen() {
       setModeView(initialMode);
     });
   }, [studentId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!studentId) return;
+    let cancelled = false;
+    Promise.all([
+      getPlannerProductZoneOverrides(studentId),
+      getPlannerZoneCustomizations(studentId),
+    ]).then(([overridesData, customizations]) => {
+      if (cancelled) return;
+      setZoneOverrides(overridesData ?? {});
+      setEffectiveZones(getEffectiveZones(customizations));
+    });
+    return () => { cancelled = true; };
+  }, [studentId]);
+
+  async function handleZoneOverrideChange(productName, zoneId) {
+    const norm = productName.trim().toLowerCase();
+    const next = { ...zoneOverrides, [norm]: zoneId };
+    setZoneOverrides(next);
+    await savePlannerProductZoneOverrides(studentId, next);
+  }
 
   async function loadAndApply(forceRegen = false) {
     setLoading(true);
@@ -1265,6 +1323,9 @@ export default function PlannerShoppingScreen() {
             onSave={handleCategoryEditorSave}
             onDelete={() => handleDeleteCategory(editingCategoryId)}
             onBack={() => setEditingCategoryId(null)}
+            zones={effectiveZones}
+            zoneOverrides={zoneOverrides}
+            onZoneOverrideChange={handleZoneOverrideChange}
           />
         )}
         {deleteConfirm && (

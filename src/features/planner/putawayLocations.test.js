@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ZONES, getZoneForProduct } from './putawayLocations.js';
+import { ZONES, getZoneForProduct, getEffectiveZones } from './putawayLocations.js';
 
 describe('ZONES', () => {
   it('has exactly six zones with the fixed ids', () => {
@@ -64,5 +64,42 @@ describe('getZoneForProduct', () => {
 
   it('returns null for an unrecognized category', () => {
     expect(getZoneForProduct('Из меню', 'что-то непонятное')).toBeNull();
+  });
+});
+
+describe('getZoneForProduct with family overrides', () => {
+  it('prefers a family override over the category default', () => {
+    expect(getZoneForProduct('Овощи', 'огурцы', { 'огурцы': 'veg' })).toBe('veg');
+  });
+
+  it('prefers a family override over the global product override', () => {
+    expect(getZoneForProduct('Овощи', 'картошка', { 'картошка': 'fridge' })).toBe('fridge');
+  });
+
+  it('falls back to the normal chain when no override matches', () => {
+    expect(getZoneForProduct('Овощи', 'огурцы', { 'помидоры': 'table' })).toBe('fridge');
+  });
+
+  it('matches overrides case-insensitively, same as global overrides', () => {
+    expect(getZoneForProduct('Овощи', 'ОГУРЦЫ', { 'огурцы': 'veg' })).toBe('veg');
+  });
+});
+
+describe('getEffectiveZones', () => {
+  it('returns the base six zones unchanged when there are no customizations', () => {
+    expect(getEffectiveZones()).toEqual(ZONES);
+  });
+
+  it('applies a renamed label without changing the id or icon', () => {
+    const result = getEffectiveZones({ renamed: { pantry: 'Кладовка' }, added: [] });
+    const pantry = result.find((z) => z.id === 'pantry');
+    expect(pantry).toEqual({ id: 'pantry', label: 'Кладовка', icon: '🌾' });
+  });
+
+  it('appends added zones after the base six, in insertion order', () => {
+    const added = [{ id: 'custom_1', label: 'Балкон', icon: '🪟' }];
+    const result = getEffectiveZones({ renamed: {}, added });
+    expect(result).toHaveLength(7);
+    expect(result[6]).toEqual(added[0]);
   });
 });

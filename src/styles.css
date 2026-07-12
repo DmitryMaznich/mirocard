@@ -16206,6 +16206,26 @@ button.operation-dot {
 }
 .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-top: 1px solid rgba(28, 54, 52, 0.06); }
 
+.settings-row--zone { gap: 10px; }
+.settings-zone-icon { font-size: 1.3rem; flex-shrink: 0; }
+.settings-zone-name { flex: 1; cursor: pointer; }
+.settings-zone-name-input {
+  flex: 1; font-size: 1rem; border: none; border-bottom: 1.5px solid #2a8060;
+  outline: none; background: transparent; min-width: 0;
+}
+.settings-zone-del-btn {
+  background: none; border: 1px solid #f5c6c2; color: #c0392b;
+  border-radius: 6px; width: 24px; height: 24px; cursor: pointer;
+  font-size: 0.9rem; font-weight: 700; flex-shrink: 0;
+}
+.settings-row--add-zone { flex-direction: column; align-items: stretch; gap: 8px; }
+.settings-zone-icon-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.settings-zone-icon-option {
+  width: 34px; height: 34px; border-radius: 8px; border: 1px solid #e0ddd6;
+  background: #fff; font-size: 1.1rem; cursor: pointer;
+}
+.settings-zone-icon-option--active { border-color: #2a8060; background: #eafaf3; }
+
 /* ─── Account card ───────────────────────────────────────────────────────── */
 .account-card {
   position: relative;
@@ -20274,6 +20294,12 @@ body { background: #eef0ef; }
   border: none; border-bottom: 1.5px solid #2a8060; outline: none;
   background: transparent; min-width: 0;
 }
+.cat-editor-item-zone-chip {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 6px;
+  border: 1px solid #e0ddd6; background: #fff; font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.cat-editor-item-zone-chip--unset { border-color: #f0c419; background: #fff9e6; }
 .cat-editor-item-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .cat-editor-item-del-btn {
   background: none; border: 1px solid #f5c6c2; color: #c0392b;

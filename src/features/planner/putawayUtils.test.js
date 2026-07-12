@@ -34,10 +34,18 @@ describe('buildPutawayQueue', () => {
     expect(queue).toEqual([]);
   });
 
-  it('excludes a bought item with no known zone (e.g. the "Из меню" catch-all category)', () => {
+  it('includes a bought item with no known zone as an orphan (zoneId: null), not dropped', () => {
     const cd = customData([{ name: 'Из меню', items: ['непонятный ингредиент'] }]);
     const queue = buildPutawayQueue(cd, { 'Из меню_0': true }, {});
-    expect(queue).toEqual([]);
+    expect(queue).toEqual([
+      { key: 'Из меню_0', category: 'Из меню', product: 'непонятный ингредиент', zoneId: null },
+    ]);
+  });
+
+  it('resolves an orphan item once a family override is provided', () => {
+    const cd = customData([{ name: 'Из меню', items: ['непонятный ингредиент'] }]);
+    const queue = buildPutawayQueue(cd, { 'Из меню_0': true }, {}, { 'непонятный ингредиент': 'pantry' });
+    expect(queue[0].zoneId).toBe('pantry');
   });
 
   it('preserves category/item order across multiple categories', () => {

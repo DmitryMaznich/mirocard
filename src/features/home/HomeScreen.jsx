@@ -17,7 +17,7 @@ import { buildPutawayQueue, getRequiredZones } from "@/features/planner/putawayU
 import { isPendingReceiptResolved, getResolvedZoneIds, clearPendingPhotos, getTripReceiptPhoto, getTripZonePhoto } from "@/features/planner/plannerPhotos";
 import { ZONES } from "@/features/planner/putawayLocations";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
-import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory } from "@/core/groupStore";
+import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory, getPlannerProductZoneOverrides, pullPlannerKvFromServer } from "@/core/groupStore";
 import "@/features/planner/planner.css";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -352,7 +352,7 @@ function PlannerTab({ student, setScreen }) {
 
   useEffect(() => {
     if (!student) { setExistingPlan(null); return; }
-    loadPlan(student.id).then(setExistingPlan);
+    pullPlannerKvFromServer().then(() => loadPlan(student.id)).then(setExistingPlan);
   }, [student?.id]);
 
   useEffect(() => {
@@ -369,10 +369,11 @@ function PlannerTab({ student, setScreen }) {
       getPlannerPutawayPlan(student.id),
       isPendingReceiptResolved(student.id),
       getResolvedZoneIds(student.id),
-    ]).then(([planned, bought, customData, putawayPlan, receiptResolved, resolvedZones]) => {
+      getPlannerProductZoneOverrides(student.id),
+    ]).then(([planned, bought, customData, putawayPlan, receiptResolved, resolvedZones, zoneOverrides]) => {
       setBoughtCount(Object.keys(bought ?? {}).length);
       setShoppingDone(isShoppingDone(planned, bought) && receiptResolved);
-      const remainingQueue = customData ? buildPutawayQueue(customData, bought ?? {}, putawayPlan ?? {}) : [];
+      const remainingQueue = customData ? buildPutawayQueue(customData, bought ?? {}, putawayPlan ?? {}, zoneOverrides ?? {}) : [];
       const requiredZones = getRequiredZones(putawayPlan ?? {});
       const zonesResolved = requiredZones.every((id) => resolvedZones.includes(id));
       setPutawayDone(Object.keys(bought ?? {}).length > 0 && remainingQueue.length === 0 && zonesResolved);

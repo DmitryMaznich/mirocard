@@ -7,6 +7,7 @@ import PinGateModal from "@/shared/components/PinGateModal";
 import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
+import ZoneSettingsSection from "./ZoneSettingsSection";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function SettingsScreen() {
@@ -154,6 +155,8 @@ export default function SettingsScreen() {
             />
           </div>
         </div>
+
+        <ZoneSettingsSection />
 
       </div>
 
