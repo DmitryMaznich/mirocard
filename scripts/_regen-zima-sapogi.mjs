@@ -55,6 +55,7 @@ const data = JSON.parse(await zip.file("topic.json").async("text"));
 const [maj, min, pat] = data.version.split(".").map(Number);
 const newVer = `${maj}.${min}.${pat + 1}`;
 data.version = newVer;
+data.meta.version = newVer;
 zip.file("topic.json", JSON.stringify(data, null, 2));
 zip.file("media/item_zima_sapogi.webp", imgBuf);
 

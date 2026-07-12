@@ -28,6 +28,7 @@ console.log("After:", shortyItem.image);
 const [maj, min, pat] = data.version.split(".").map(Number);
 const newVer = `${maj}.${min}.${pat + 1}`;
 data.version = newVer;
+data.meta.version = newVer;
 zip.file("topic.json", JSON.stringify(data, null, 2));
 
 const outName = `word_formation_soup_v${newVer}.zip`;

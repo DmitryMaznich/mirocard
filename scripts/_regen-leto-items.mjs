@@ -99,6 +99,7 @@ const data = JSON.parse(await zip.file("topic.json").async("text"));
 const [maj, min, pat] = data.version.split(".").map(Number);
 const newVer = `${maj}.${min}.${pat + 1}`;
 data.version = newVer;
+data.meta.version = newVer;
 
 console.log(`\n=== Generating ${ITEMS.length} summer images ===`);
 for (const item of ITEMS) {

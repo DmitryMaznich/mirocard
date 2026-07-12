@@ -1,3 +1,7 @@
+/**
+ * Syncs data.meta.version to data.version in the latest deck ZIP,
+ * then bumps both to the next patch.
+ */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -19,15 +23,16 @@ console.log(`Source: ${srcName}`);
 const zip = await JSZip.loadAsync(fs.readFileSync(path.join(DECKS, srcName)));
 const data = JSON.parse(await zip.file("topic.json").async("text"));
 
-const card = data.cards.find(c => c.id === "sea_vesna_overview");
-const item = card.items.find(i => i.id === "item_vesna_botinki");
-item.adjPhrase = "весенние сапоги";
-console.log("Changed:", item);
+console.log(`data.version:      ${data.version}`);
+console.log(`data.meta.version: ${data.meta.version}`);
 
 const [maj, min, pat] = data.version.split(".").map(Number);
 const newVer = `${maj}.${min}.${pat + 1}`;
+
 data.version = newVer;
-data.meta.version = newVer;
+data.meta.version = newVer;  // sync meta.version so the app update check works
+
+console.log(`→ both set to ${newVer}`);
 zip.file("topic.json", JSON.stringify(data, null, 2));
 
 const outName = `word_formation_soup_v${newVer}.zip`;
@@ -42,4 +47,4 @@ entry.version = newVer; entry.file = outName;
 entry.url = `/decks/${outName}`; entry.zipUrl = `/decks/${outName}`;
 fs.writeFileSync(catPath, JSON.stringify(catalog, null, 2));
 
-console.log(`Done → ${outName} (v${newVer})`);
+console.log(`Done → ${outName}`);
