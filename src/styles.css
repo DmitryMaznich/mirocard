@@ -20294,6 +20294,12 @@ body { background: #eef0ef; }
   border: none; border-bottom: 1.5px solid #2a8060; outline: none;
   background: transparent; min-width: 0;
 }
+.cat-editor-item-zone-chip {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 6px;
+  border: 1px solid #e0ddd6; background: #fff; font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.cat-editor-item-zone-chip--unset { border-color: #f0c419; background: #fff9e6; }
 .cat-editor-item-actions { display: flex; gap: 2px; flex-shrink: 0; }
 .cat-editor-item-del-btn {
   background: none; border: 1px solid #f5c6c2; color: #c0392b;
