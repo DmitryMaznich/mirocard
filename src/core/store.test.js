@@ -38,6 +38,16 @@ describe("actions", () => {
     expect(getStore().activeStudentId).toBe("s1");
   });
 
+  it("setActiveInstructionId updates selection", () => {
+    getStore().setActiveInstructionId("kitchen_cleaning");
+    expect(getStore().activeInstructionId).toBe("kitchen_cleaning");
+  });
+
+  it("setInstructionConstructorId updates selection", () => {
+    getStore().setInstructionConstructorId("abc-123");
+    expect(getStore().instructionConstructorId).toBe("abc-123");
+  });
+
   it("setSyncStatus updates sync status", () => {
     getStore().setSyncStatus("syncing");
     expect(getStore().syncStatus).toBe("syncing");
