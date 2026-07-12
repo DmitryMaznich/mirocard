@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/core/store';
-import { getPlannerShopCustomData, getPlannerShopBought, getPlannerPutawayPlan, savePlannerPutawayPlan } from '@/core/groupStore';
+import { getPlannerShopCustomData, getPlannerShopBought, getPlannerPutawayPlan, savePlannerPutawayPlan, getPlannerProductZoneOverrides } from '@/core/groupStore';
 import { buildPutawayQueue, getRequiredZones } from './putawayUtils.js';
 import { ZONES } from './putawayLocations.js';
 import { savePendingZonePhoto, markPendingZoneSkipped, getResolvedZoneIds, getZoneReferencePhoto, saveZoneReferencePhoto } from './plannerPhotos.js';
@@ -54,14 +54,15 @@ export default function PlannerPutawayScreen() {
     let cancelled = false;
     async function load() {
       setLoading(true);
-      const [customData, bought, plan] = await Promise.all([
+      const [customData, bought, plan, zoneOverrides] = await Promise.all([
         getPlannerShopCustomData(studentId),
         getPlannerShopBought(studentId),
         getPlannerPutawayPlan(studentId),
+        getPlannerProductZoneOverrides(studentId),
       ]);
       if (cancelled) return;
       const safePlan = plan ?? {};
-      const builtQueue = customData ? buildPutawayQueue(customData, bought ?? {}, safePlan) : [];
+      const builtQueue = customData ? buildPutawayQueue(customData, bought ?? {}, safePlan, zoneOverrides ?? {}) : [];
       setQueue(builtQueue);
       setPutawayPlan(safePlan);
       setDoneCount(Object.keys(safePlan).length);
