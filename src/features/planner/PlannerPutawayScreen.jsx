@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/core/store';
 import { getDb, kv } from '@/core/db';
 import { api } from '@/core/api';
@@ -38,6 +38,47 @@ function ZonePhoto({ studentId, zoneId, version, className, fallback }) {
 
   if (!url) return fallback;
   return <img src={url} className={className} alt="" />;
+}
+
+const LONG_PRESS_MS = 500;
+
+// A zone tile is both a "pick this zone" tap target and, on long-press, an
+// "edit this zone's reference photo" trigger — no separate camera icon
+// needed. The long press must suppress the click that a pointerup normally
+// fires, otherwise picking would fire right after opening the photo sheet.
+function LongPressZoneButton({ className, onTap, onLongPress, children }) {
+  const timerRef = useRef(null);
+  const firedRef = useRef(false);
+
+  function start() {
+    firedRef.current = false;
+    timerRef.current = setTimeout(() => {
+      firedRef.current = true;
+      onLongPress();
+    }, LONG_PRESS_MS);
+  }
+
+  function cancel() {
+    clearTimeout(timerRef.current);
+  }
+
+  function handleClick() {
+    if (firedRef.current) { firedRef.current = false; return; }
+    onTap();
+  }
+
+  return (
+    <button
+      className={className}
+      onPointerDown={start}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
+      onClick={handleClick}
+    >
+      {children}
+    </button>
+  );
 }
 
 export default function PlannerPutawayScreen() {
@@ -239,19 +280,13 @@ export default function PlannerPutawayScreen() {
 
               <div className="putaway-zones">
                 {effectiveZones.map((zone) => (
-                  <button
+                  <LongPressZoneButton
                     key={zone.id}
                     className={`putaway-zone${wrongZoneId === zone.id ? ' putaway-zone--wrong' : ''}${wrongCount >= 2 && zone.id === current.zoneId ? ' putaway-zone--hint' : ''}`}
-                    onClick={() => handlePick(zone.id)}
+                    onTap={() => handlePick(zone.id)}
+                    onLongPress={() => setEditingZoneId(zone.id)}
                   >
                     <div className="putaway-zone__media">
-                      <span
-                        className="putaway-zone__camera-badge"
-                        onClick={(e) => { e.stopPropagation(); setEditingZoneId(zone.id); }}
-                        aria-label={`Сфотографировать: ${zone.label}`}
-                      >
-                        📷
-                      </span>
                       <ZonePhoto
                         studentId={studentId}
                         zoneId={zone.id}
@@ -261,7 +296,7 @@ export default function PlannerPutawayScreen() {
                       />
                     </div>
                     <span className="putaway-zone__label">{zone.label}</span>
-                  </button>
+                  </LongPressZoneButton>
                 ))}
               </div>
 
