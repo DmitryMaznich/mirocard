@@ -30,14 +30,14 @@ async function buildPoemPageImage(pngPath) {
 
 const poemBookSourceDir = fileURLToPath(new URL("../Teaching poems/", import.meta.url));
 const poemBookPages = [
-  { id: "vanya",  file: "neposlushni.png",  title: "Ваня-непослушный" },
-  { id: "lena",   file: "Trudoljubiv.png",  title: "Лена-трудолюбивая" },
-  { id: "danya",  file: "Grjaznulja.png",   title: "Даня-грязнуля" },
-  { id: "katya",  file: "Zhadina.png",      title: "Катя-жадина" },
-  { id: "andrey", file: "Trus.png",         title: "Андрей-трус" },
-  { id: "sasha",  file: "Smelij.png",       title: "Саша-смелый" },
+  { id: "vanya",  file: "neposlushni.png",  title: "Непослушный Ваня" },
+  { id: "lena",   file: "Trudoljubiv.png",  title: "Трудолюбивая Лена" },
+  { id: "danya",  file: "Grjaznulja.png",   title: "Грязнуля Даня" },
+  { id: "katya",  file: "Zhadina.png",      title: "Жадина Катя" },
+  { id: "andrey", file: "Trus.png",         title: "Трус Андрей" },
+  { id: "sasha",  file: "Smelij.png",       title: "Смелый Саша" },
   { id: "yulya",  file: "kaprizulja.png",   title: "Юля-капризуля" },
-  { id: "nikita", file: "Lenivij.png",      title: "Никита-ленивый" },
+  { id: "nikita", file: "Lenivij.png",      title: "Ленивый Никита" },
 ];
 const poemBookImages = Object.fromEntries(
   await Promise.all(
@@ -75,7 +75,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.21",
+    version: "1.0.22",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -486,7 +486,7 @@ const manifest = {
         {
           id: "vanya",
           kind: "poem",
-          title: { ru: "Ваня-непослушный" },
+          title: { ru: "Непослушный Ваня" },
           image: "media/vanya.webp",
           lines: [
             { id: "l1", text: "Ваня очень непослушный-" },
@@ -498,7 +498,7 @@ const manifest = {
         {
           id: "lena",
           kind: "poem",
-          title: { ru: "Лена-трудолюбивая" },
+          title: { ru: "Трудолюбивая Лена" },
           image: "media/lena.webp",
           lines: [
             { id: "l1", text: "Лена очень любит труд" },
@@ -512,7 +512,7 @@ const manifest = {
         {
           id: "danya",
           kind: "poem",
-          title: { ru: "Даня-грязнуля" },
+          title: { ru: "Грязнуля Даня" },
           image: "media/danya.webp",
           lines: [
             { id: "l1", text: "Даня мыться не любил!" },
@@ -526,7 +526,7 @@ const manifest = {
         {
           id: "katya",
           kind: "poem",
-          title: { ru: "Катя-жадина" },
+          title: { ru: "Жадина Катя" },
           image: "media/katya.webp",
           lines: [
             { id: "l1", text: "Кате сложно поделиться" },
@@ -538,7 +538,7 @@ const manifest = {
         {
           id: "andrey",
           kind: "poem",
-          title: { ru: "Андрей-трус" },
+          title: { ru: "Трус Андрей" },
           image: "media/andrey.webp",
           lines: [
             { id: "l1", text: "Наш Андрей всего боится" },
@@ -550,7 +550,7 @@ const manifest = {
         {
           id: "sasha",
           kind: "poem",
-          title: { ru: "Саша-смелый" },
+          title: { ru: "Смелый Саша" },
           image: "media/sasha.webp",
           lines: [
             { id: "l1", text: "Ну а Саша смелый очень-" },
@@ -574,7 +574,7 @@ const manifest = {
         {
           id: "nikita",
           kind: "poem",
-          title: { ru: "Никита-ленивый" },
+          title: { ru: "Ленивый Никита" },
           image: "media/nikita.webp",
           lines: [
             { id: "l1", text: "Никита сутки напролёт" },
@@ -601,4 +601,4 @@ for (const { id } of poemBookPages) {
   zip.file(`media/${id}.webp`, poemBookImages[id]);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.21.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.22.zip", buffer);
