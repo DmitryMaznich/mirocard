@@ -69,7 +69,13 @@ type Instruction = {
 ## Навигация и экраны
 
 1. **Таб-бар** (`HomeTabs`): третья вкладка «Инструкции», иконка — список с галочками
-   (list-checks), активна всегда (без featureFlag, как «Занятие»).
+   (list-checks). Гейтится featureFlag `"instructions"` — по тому же паттерну, что
+   «Планировщик» гейтится флагом `"planner"` (`account.featureFlags.includes("planner")`
+   в `HomeScreen.jsx`): `hasInstructionsAccess = account?.featureFlags?.includes("instructions")`,
+   прокидывается в `HomeTabs`, вкладка не рендерится без флага. Флаг добавляется в
+   список `KNOWN_FLAGS` в `public/admin.html`, включается/выключается администратором
+   через `POST /api/admin/account/flags` — новых изменений схемы backend не требуется
+   (колонка `accounts.feature_flags` уже JSON-массив).
 2. **`InstructionsHomeScreen`** — сетка карточек (эмодзи + название): встроенные
    инструкции первыми, затем пользовательские (помечены тегом «Моя», с иконкой
    редактирования), затем плитка «+ Создать свою» (пунктирная рамка, иконка замка —
