@@ -61,7 +61,7 @@ export default function InstructionsTab({ setScreen }) {
     <div className="instructions-home">
       <div className="ig-head">
         <div className="ig-eyebrow">Инструкции</div>
-        <h1 className="ig-title">Что разберём сегодня?</h1>
+        <h1 className="ig-title">Что делаем сегодня?</h1>
         <p className="ig-sub">Пошаговые подсказки для важных дел</p>
       </div>
       <div className="ig-scroll">
