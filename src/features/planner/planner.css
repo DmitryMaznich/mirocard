@@ -1508,7 +1508,7 @@
 }
 
 .putaway-progress {
-  font-size: clamp(12px, 2vw, 22px);
+  font-size: clamp(12px, 2.4vw, 26px);
   font-weight: 700;
   color: #7d8f8a;
   margin-bottom: 14px;
@@ -1525,8 +1525,8 @@
 }
 
 .putaway-card {
-  width: clamp(160px, 26vw, 340px);
-  height: clamp(160px, 26vw, 340px);
+  width: clamp(160px, 30vw, 380px);
+  height: clamp(160px, 30vw, 380px);
   border-radius: 24px;
   background: rgba(250, 247, 242, 0.97);
   box-shadow: 0 8px 22px rgba(71, 61, 48, 0.10);
@@ -1539,30 +1539,34 @@
 }
 
 .putaway-card__icon {
-  font-size: clamp(44px, 6vw, 84px);
+  font-size: clamp(44px, 6.5vw, 90px);
 }
 
 .putaway-card__photo {
-  width: clamp(100px, 16vw, 220px);
-  height: clamp(100px, 16vw, 220px);
+  width: clamp(100px, 18vw, 240px);
+  height: clamp(100px, 18vw, 240px);
   border-radius: 16px;
   object-fit: cover;
 }
 
 .putaway-card__name {
-  font-size: clamp(15px, 2vw, 26px);
+  font-size: clamp(15px, 2.2vw, 28px);
   font-weight: 800;
   color: #263131;
   text-align: center;
   padding: 0 10px;
 }
 
+/* max-width is deliberately generous (94vw) — the .putaway-body padding is
+   what actually limits it on phones/tablets, so the grid fills essentially
+   all of the available width there. The 1100px ceiling only ever kicks in
+   on desktop-sized viewports, to stop the tiles from becoming absurdly wide. */
 .putaway-zones {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(10px, 1.4vw, 22px);
+  gap: clamp(10px, 1.6vw, 24px);
   width: 100%;
-  max-width: clamp(340px, 56vw, 820px);
+  max-width: clamp(340px, 94vw, 1100px);
 }
 
 .putaway-zone {
@@ -1570,7 +1574,7 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  min-height: clamp(72px, 9vw, 120px);
+  min-height: clamp(72px, 10vw, 140px);
   padding: 0;
   overflow: hidden;
   border-radius: 16px;
@@ -1599,7 +1603,7 @@
 }
 
 .putaway-zone__icon {
-  font-size: clamp(26px, 4.2vw, 54px);
+  font-size: clamp(26px, 4.6vw, 60px);
 }
 
 .putaway-zone__photo {
@@ -1628,8 +1632,8 @@
   flex: 1;
   display: flex;
   align-items: center;
-  padding: 8px clamp(10px, 1.5vw, 16px);
-  font-size: clamp(12px, 2vw, 22px);
+  padding: clamp(8px, 1.4vw, 16px) clamp(10px, 1.8vw, 20px);
+  font-size: clamp(12px, 2.4vw, 28px);
   font-weight: 700;
   color: #263131;
   text-align: left;
@@ -1660,7 +1664,7 @@
 .putaway-hint {
   min-height: 16px;
   margin-top: 12px;
-  font-size: clamp(12px, 2vw, 22px);
+  font-size: clamp(12px, 2.4vw, 26px);
   font-weight: 600;
   text-align: center;
   color: #e07a5f;
@@ -1680,7 +1684,7 @@
   justify-content: center;
   gap: 6px;
   margin-top: 20px;
-  max-width: clamp(280px, 34vw, 480px);
+  max-width: clamp(280px, 60vw, 900px);
 }
 
 .putaway-dot {
