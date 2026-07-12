@@ -1568,10 +1568,11 @@
 .putaway-zone {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: clamp(16px, 2.6vw, 34px) clamp(8px, 1.5vw, 18px);
+  flex-direction: row;
+  align-items: stretch;
+  min-height: clamp(72px, 9vw, 120px);
+  padding: 0;
+  overflow: hidden;
   border-radius: 16px;
   border: 2px solid transparent;
   background: rgba(250, 247, 242, 0.97);
@@ -1585,14 +1586,25 @@
   transform: scale(0.96);
 }
 
+/* Left strip — ~32% of the tile, full height, icon or a cropped photo.
+   .putaway-zone gets overflow:hidden so a photo's corners still follow the
+   tile's own border-radius without needing a second radius here. */
+.putaway-zone__media {
+  position: relative;
+  flex: 0 0 32%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(71, 61, 48, 0.04);
+}
+
 .putaway-zone__icon {
   font-size: clamp(26px, 4.2vw, 54px);
 }
 
 .putaway-zone__photo {
-  width: clamp(44px, 6.5vw, 92px);
-  height: clamp(44px, 6.5vw, 92px);
-  border-radius: 10px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -1613,10 +1625,14 @@
 }
 
 .putaway-zone__label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 8px clamp(10px, 1.5vw, 16px);
   font-size: clamp(12px, 2vw, 22px);
   font-weight: 700;
   color: #263131;
-  text-align: center;
+  text-align: left;
 }
 
 .putaway-zone--wrong {

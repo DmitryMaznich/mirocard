@@ -244,20 +244,22 @@ export default function PlannerPutawayScreen() {
                     className={`putaway-zone${wrongZoneId === zone.id ? ' putaway-zone--wrong' : ''}${wrongCount >= 2 && zone.id === current.zoneId ? ' putaway-zone--hint' : ''}`}
                     onClick={() => handlePick(zone.id)}
                   >
-                    <span
-                      className="putaway-zone__camera-badge"
-                      onClick={(e) => { e.stopPropagation(); setEditingZoneId(zone.id); }}
-                      aria-label={`Сфотографировать: ${zone.label}`}
-                    >
-                      📷
-                    </span>
-                    <ZonePhoto
-                      studentId={studentId}
-                      zoneId={zone.id}
-                      version={zonePhotoVersions[zone.id] ?? 0}
-                      className="putaway-zone__photo"
-                      fallback={<span className="putaway-zone__icon">{zone.icon}</span>}
-                    />
+                    <div className="putaway-zone__media">
+                      <span
+                        className="putaway-zone__camera-badge"
+                        onClick={(e) => { e.stopPropagation(); setEditingZoneId(zone.id); }}
+                        aria-label={`Сфотографировать: ${zone.label}`}
+                      >
+                        📷
+                      </span>
+                      <ZonePhoto
+                        studentId={studentId}
+                        zoneId={zone.id}
+                        version={zonePhotoVersions[zone.id] ?? 0}
+                        className="putaway-zone__photo"
+                        fallback={<span className="putaway-zone__icon">{zone.icon}</span>}
+                      />
+                    </div>
                     <span className="putaway-zone__label">{zone.label}</span>
                   </button>
                 ))}
