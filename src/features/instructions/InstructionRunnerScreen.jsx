@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAppStore } from "@/core/store";
 import { getAllInstructions } from "./instructionsApi";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import "./instructions.css";
 
 export default function InstructionRunnerScreen() {
@@ -60,9 +61,13 @@ export default function InstructionRunnerScreen() {
   if (instruction === null) {
     return (
       <div className="screen instruction-runner">
-        <div className="dn-body">
-          <p>Инструкция не найдена.</p>
-          <button type="button" className="dn-btn" onClick={exit}>К списку инструкций</button>
+        <div className="instruction-step instruction-step--heading">
+          <div className="instruction-step-text">Инструкция не найдена</div>
+        </div>
+        <div className="instruction-nav">
+          <button type="button" className="reading-primary-btn instruction-cta-btn" onClick={exit}>
+            К списку инструкций
+          </button>
         </div>
       </div>
     );
@@ -71,11 +76,14 @@ export default function InstructionRunnerScreen() {
   if (finished) {
     return (
       <div className="screen instruction-runner">
-        <div className="dn-body">
-          <div className="dn-badge">✓</div>
-          <div className="dn-title">Готово!</div>
-          <p className="dn-sub">Инструкция «{instruction.title}» пройдена до конца.</p>
-          <button type="button" className="dn-btn" onClick={exit}>К списку инструкций</button>
+        <div className="instruction-step instruction-step--heading">
+          <div className="instruction-phase-complete-badge">Готово! 👍</div>
+          <div className="instruction-step-text">Инструкция «{instruction.title}» пройдена до конца.</div>
+        </div>
+        <div className="instruction-nav">
+          <button type="button" className="reading-primary-btn instruction-cta-btn" onClick={exit}>
+            К списку инструкций
+          </button>
         </div>
       </div>
     );
@@ -83,29 +91,38 @@ export default function InstructionRunnerScreen() {
 
   return (
     <div className="screen instruction-runner">
-      <div className="rn-top">
-        <button type="button" className="rn-close" onClick={exit} aria-label="Закрыть">✕</button>
-        <div className="rn-progress-wrap">
-          <div className="rn-progress">
-            {steps.map((_, i) => (
-              <div
-                key={i}
-                className={`rn-seg${i < stepIndex ? " rn-seg--done" : i === stepIndex ? " rn-seg--current" : " rn-seg--todo"}`}
-              >
-                <span />
-              </div>
-            ))}
+      <div className="instruction-header">
+        <div className="instruction-header-row">
+          <div className="instruction-progressbar-wrap">
+            <div className="instruction-progressbar">
+              {steps.map((_, i) => (
+                <div key={i} className="instruction-progressbar-segment">
+                  <div
+                    className="instruction-progressbar-segment-fill"
+                    style={{ width: `${stepIndex >= i ? 100 : 0}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="instruction-phase-label">{instruction.emoji} {instruction.title}</div>
           </div>
-          <div className="rn-count">Шаг {stepIndex + 1} из {steps.length}</div>
+          <button type="button" className="instruction-close-btn" onClick={exit} aria-label="Закрыть">
+            ✕
+          </button>
         </div>
       </div>
-      <div className="rn-body">
-        <div className="rn-kicker">{instruction.emoji} {instruction.title}</div>
-        <div className="rn-step">{steps[stepIndex]}</div>
+
+      <div key={stepIndex} className="instruction-step">
+        <div className="instruction-step-text">{steps[stepIndex]}</div>
       </div>
-      <div className="rn-foot">
-        <button type="button" className="rn-btn rn-btn--back" onClick={handleBack}>Назад</button>
-        <button type="button" className="rn-btn rn-btn--next" onClick={handleNext}>Дальше</button>
+
+      <div className="instruction-nav">
+        <button type="button" className="instruction-back-btn" onClick={handleBack} aria-label="Назад">
+          <BackArrowIcon size={20} />
+        </button>
+        <button type="button" className="reading-primary-btn instruction-cta-btn" onClick={handleNext}>
+          {isLast ? "Готово ✓" : "Дальше →"}
+        </button>
       </div>
     </div>
   );

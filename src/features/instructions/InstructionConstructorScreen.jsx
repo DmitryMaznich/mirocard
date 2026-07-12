@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { getUserInstructions, addInstruction, updateInstruction, deleteInstruction } from "./instructionsApi";
 import { validateInstructionDraft } from "./instructionValidation";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import Button from "@/shared/components/Button";
 import "./instructions.css";
 
 const EMOJI_CHOICES = ["🎒", "🧦", "🪥", "🛏️", "🧸", "🧽", "🧥", "🍽️", "📚", "🧴"];
@@ -158,14 +159,14 @@ export default function InstructionConstructorScreen() {
         {isEditing && (
           confirmDelete ? (
             <>
-              <button type="button" className="cn-delete" onClick={() => setConfirmDelete(false)}>Отмена</button>
-              <button type="button" className="cn-delete cn-delete--confirm" onClick={handleDelete}>Точно удалить</button>
+              <Button variant="secondary" onClick={() => setConfirmDelete(false)}>Отмена</Button>
+              <Button variant="danger" onClick={handleDelete}>Точно удалить</Button>
             </>
           ) : (
-            <button type="button" className="cn-delete" onClick={() => setConfirmDelete(true)}>Удалить</button>
+            <Button variant="danger" onClick={() => setConfirmDelete(true)}>Удалить</Button>
           )
         )}
-        <button type="button" className="cn-save" onClick={handleSave} disabled={saving}>Сохранить</button>
+        <Button variant="primary" onClick={handleSave} disabled={saving}>Сохранить</Button>
       </div>
     </div>
   );

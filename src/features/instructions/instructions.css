@@ -173,116 +173,32 @@
   font-weight: 700;
 }
 
-/* ── Runner (InstructionRunnerScreen) ────────────────────────────────────── */
+/* ── Runner (InstructionRunnerScreen) ─────────────────────────────────────
+   Deliberately reuses the recipe reading engine's own classes
+   (.instruction-header, .instruction-step, .instruction-nav, .instruction-*
+   progress bar, .reading-primary-btn — all defined in src/styles.css) so the
+   step-through UI is visually identical to "Готовим еду", not a re-derived
+   look-alike. Only the screen root gets an override here, to match what
+   .session-body.reading-body.instruction-body gives recipes (white body,
+   safe-area top padding, tighter max-width) without depending on being
+   nested inside the session/task-engine component tree. ── */
 
-.instruction-runner {
-  background:
-    radial-gradient(circle at top, rgba(74, 155, 143, 0.12), transparent 34%),
-    linear-gradient(180deg, #f7f1e7 0%, #f2ebe2 100%);
-}
-
-.rn-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: calc(10px + var(--app-safe-top, 0px)) 18px 6px;
-  flex-shrink: 0;
-}
-
-.rn-close {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(38, 49, 49, 0.06);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7d8f8a;
-  font-size: 15px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.rn-progress-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.rn-progress { display: flex; gap: 4px; }
-.rn-seg { flex: 1; height: 7px; border-radius: 999px; background: #e8e2d5; overflow: hidden; }
-.rn-seg > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4a9b8f, #8abfae); }
-.rn-seg--done > span { width: 100%; }
-.rn-seg--current > span { width: 100%; opacity: 0.55; }
-.rn-seg--todo > span { width: 0%; }
-.rn-count { font-size: 11.5px; font-weight: 700; color: #7d8f8a; font-variant-numeric: tabular-nums; }
-
-.rn-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 26px 40px;
-  text-align: center;
+.screen.instruction-runner {
+  background: #ffffff;
+  color: #263131;
+  padding: 16px;
+  padding-top: calc(16px + var(--app-safe-top, 0px));
   gap: 18px;
-}
-
-.rn-kicker {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #2f5b57;
-  opacity: 0.65;
-}
-
-.rn-step {
-  font-family: "DM Serif Display", Georgia, serif;
-  font-size: 28px;
-  line-height: 1.28;
-  color: #1c3634;
-  max-width: 420px;
-}
-
-.rn-foot {
-  display: flex;
-  gap: 10px;
-  padding: 10px 18px calc(18px + var(--app-safe-bottom, 0px));
-  flex-shrink: 0;
-}
-
-.rn-btn { flex: 1; border: none; border-radius: 16px; padding: 15px 16px; font-family: inherit; font-size: 15.5px; font-weight: 800; cursor: pointer; }
-.rn-btn--back { background: #fff; border: 1px solid #e7dccf; color: #263131; flex: 0.7; }
-.rn-btn--next { background: linear-gradient(150deg, #5cb0a3, #276b62); color: #fff; box-shadow: 0 10px 22px rgba(39, 107, 98, 0.3); }
-
-/* ── Done state (shared by Runner) ───────────────────────────────────────── */
-
-.dn-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 30px;
-  text-align: center;
-}
-.dn-badge {
-  width: 92px; height: 92px; border-radius: 50%;
-  background: linear-gradient(150deg, #5cb0a3, #276b62);
-  box-shadow: 0 14px 30px rgba(39, 107, 98, 0.32);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 42px; color: #fff;
-}
-.dn-title { font-family: "DM Serif Display", Georgia, serif; font-style: italic; font-size: 28px; color: #1c3634; }
-.dn-sub { font-size: 14.5px; color: #7d8f8a; font-weight: 600; max-width: 320px; }
-.dn-btn {
-  margin-top: 10px; border: none; border-radius: 16px; padding: 14px 26px;
-  background: linear-gradient(150deg, #5cb0a3, #276b62); color: #fff;
-  font-family: inherit; font-weight: 800; font-size: 15px;
-  box-shadow: 0 10px 22px rgba(39, 107, 98, 0.3); cursor: pointer;
+  align-items: stretch;
+  overflow: hidden;
+  max-width: 640px;
 }
 
 /* ── Constructor (InstructionConstructorScreen) ──────────────────────────── */
 
-.instruction-constructor { background: #f7f1e7; }
+.screen.instruction-constructor {
+  background: #f7f1e7;
+}
 
 .cn-scroll {
   flex: 1;
@@ -314,11 +230,11 @@
 
 .cn-input {
   width: 100%; border-radius: 14px; border: 1.5px solid #e7dccf; background: #fff;
-  padding: 13px 14px; font-family: inherit; font-size: 16px; font-weight: 700; color: #1c3634;
+  padding: 13px 14px; font-family: inherit; font-size: 16px; font-weight: 700; color: #263131;
 }
 .cn-input:focus-visible { outline: 2px solid #4a9b8f; outline-offset: 1px; }
 
-.cn-error { color: #b5533f; font-size: 12.5px; font-weight: 700; margin-top: 6px; }
+.cn-error { color: #e05252; font-size: 12.5px; font-weight: 700; margin-top: 6px; }
 
 .cn-steps { display: flex; flex-direction: column; gap: 10px; }
 .cn-step-row { display: flex; align-items: flex-start; gap: 8px; }
@@ -346,8 +262,8 @@
 .cn-step-text:focus-visible { outline: 2px solid #4a9b8f; outline-offset: 1px; }
 
 .cn-step-del {
-  width: 26px; height: 26px; border-radius: 50%; background: rgba(181, 83, 63, 0.1);
-  color: #b5533f; display: flex; align-items: center; justify-content: center; font-size: 13px;
+  width: 26px; height: 26px; border-radius: 50%; background: rgba(224, 82, 82, 0.1);
+  color: #e05252; display: flex; align-items: center; justify-content: center; font-size: 13px;
   flex-shrink: 0; margin-top: 8px; border: none; cursor: pointer;
 }
 .cn-step-del:disabled { opacity: 0.3; cursor: default; }
@@ -361,19 +277,7 @@
 .cn-foot {
   flex-shrink: 0;
   padding: 10px 18px calc(14px + var(--app-safe-bottom, 0px));
-  display: flex; gap: 10px;
+  display: flex; gap: 10px; justify-content: flex-end;
   border-top: 1px solid #ece4d8;
   background: rgba(250, 247, 242, 0.92);
 }
-.cn-save {
-  flex: 1; border: none; border-radius: 16px; padding: 15px 16px;
-  background: linear-gradient(150deg, #5cb0a3, #276b62); color: #fff;
-  font-family: inherit; font-weight: 800; font-size: 15.5px; cursor: pointer;
-  box-shadow: 0 10px 22px rgba(39, 107, 98, 0.3);
-}
-.cn-delete {
-  border: 1px solid rgba(181, 83, 63, 0.35); background: #fff; color: #b5533f;
-  border-radius: 16px; padding: 15px 16px; font-family: inherit; font-weight: 800;
-  font-size: 14px; cursor: pointer;
-}
-.cn-delete--confirm { border-color: #b5533f; background: #b5533f; color: #fff; }
