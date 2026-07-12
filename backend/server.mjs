@@ -228,7 +228,7 @@ async function handleRegister(req, res) {
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
-  await sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
+  sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
 
   writeJson(res, 201, { message: "Check your email" });
 }
@@ -288,7 +288,7 @@ async function handleForgotPassword(req, res) {
   if (account) {
     const rawToken = randomUUID();
     createPasswordResetToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
-    await sendPasswordResetEmail(account.email, rawToken).catch(console.error);
+    sendPasswordResetEmail(account.email, rawToken).catch(console.error);
   }
 
   writeJson(res, 200, { ok: true });
@@ -352,7 +352,7 @@ async function handleResendVerification(req, res) {
     deleteEmailVerificationTokensForAccount(db, account.id);
     const rawToken = randomUUID();
     createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
-    await sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
+    sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
   }
 
   writeJson(res, 200, { message: "ok" });
