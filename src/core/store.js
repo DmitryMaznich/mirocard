@@ -125,6 +125,12 @@ export const useAppStore = create((set) => ({
   homeActiveTab: "session",
   setHomeActiveTab: (homeActiveTab) => set({ homeActiveTab }),
 
+  // ─── Instructions ───────────────────────────────────────────────────────────
+  activeInstructionId: null,
+  setActiveInstructionId: (id) => set({ activeInstructionId: id }),
+  instructionConstructorId: null,
+  setInstructionConstructorId: (id) => set({ instructionConstructorId: id }),
+
   // ─── Session setup ─────────────────────────────────────────────────────────
   activeStudentId: null,
   activeTopicId: null,
