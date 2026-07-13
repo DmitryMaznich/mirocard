@@ -473,7 +473,7 @@
 }
 .wf-sfp__season-pill-wrap {
   position: absolute;
-  bottom: 124px; left: 0; right: 0;
+  bottom: calc(var(--sfp-card-half, 108px) + 16px); left: 0; right: 0;
   display: flex; justify-content: center; z-index: 1;
 }
 .wf-sfp__season-pill {
@@ -492,6 +492,7 @@
   transform: translate(-50%, 50%);
   z-index: 2;
   width: min(48vw, 260px);
+  container-type: inline-size;
 }
 .wf-sfp__item-card {
   width: 100%;
@@ -513,7 +514,8 @@
   display: flex; align-items: center; justify-content: center;
 }
 .wf-sfp__label {
-  font-size: clamp(0.82rem, 4.2vmin, 1.1rem); font-weight: 700; color: #2C1A0E; line-height: 1.3;
+  /* 11cqi = 11% of card width — fits longest expected phrase within card padding */
+  font-size: clamp(1rem, 11cqi, 1.55rem); font-weight: 700; color: #2C1A0E; line-height: 1.3;
   text-align: center; white-space: nowrap;
   overflow: hidden; max-width: 100%;
 }
