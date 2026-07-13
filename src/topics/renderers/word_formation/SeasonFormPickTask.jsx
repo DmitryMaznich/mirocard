@@ -112,9 +112,6 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
         </div>
       </div>
 
-      {/* Spacer pushes buttons to the bottom */}
-      <div className="wf-sfp__spacer" />
-
       {/* Choice buttons 2×2 */}
       <div className="wf-sfp__options">
         {options.map((opt, idx) => (
