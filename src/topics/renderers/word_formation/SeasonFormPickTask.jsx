@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 
@@ -39,8 +39,24 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
   const [pickedIdx, setPickedIdx] = useState(null);
   const [status, setStatus]       = useState("idle"); // idle | correct | wrong
 
+  const anchorRef = useRef(null);
+
   const bgUrl   = useTopicFile(topicId, card.backgroundImage ?? "");
   const itemUrl = useTopicFile(topicId, item.image ?? "");
+
+  // Keep spacer = half of card height so card sits exactly on the boundary
+  useLayoutEffect(() => {
+    const el = anchorRef.current;
+    if (!el) return;
+    const update = () => {
+      const root = el.closest(".wf-sfp");
+      if (root) root.style.setProperty("--sfp-card-half", Math.ceil(el.offsetHeight / 2) + "px");
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const { stem, ending: correctEnding, noun } = splitAdj(item.adjPhrase);
   const seasonName = (card.contextPhrase ?? "").trim().split(/\s+/).at(-1);
@@ -93,7 +109,7 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
             {"Время года — "}<strong>{seasonName}</strong>
           </span>
         </div>
-        <div className="wf-sfp__card-anchor">
+        <div className="wf-sfp__card-anchor" ref={anchorRef}>
           <div className="wf-sfp__item-card">
             {itemUrl && (
               <img className="wf-sfp__item-img" src={itemUrl} alt={noun} draggable={false} />
@@ -104,9 +120,8 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
                   {noun} как<span className="wf-sfp__q-end">{qEnd}</span>?
                 </div>
                 <div className="wf-sfp__label wf-sfp__label--a">
-                  <span className="wf-sfp__adj-stem">{stem}</span>
-                  <span className="wf-sfp__adj-end">{correctEnding}</span>
-                  {" "}{noun}
+                  <span><span className="wf-sfp__adj-stem">{stem}</span><span className="wf-sfp__adj-end">{correctEnding}</span></span>
+                  <span>{noun}</span>
                 </div>
               </div>
             </div>
