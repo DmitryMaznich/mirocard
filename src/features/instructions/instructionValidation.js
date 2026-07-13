@@ -5,7 +5,7 @@ export function validateInstructionDraft(draft) {
     errors.title = 'Введите название';
   }
 
-  const nonEmptySteps = (draft.steps ?? []).map((s) => s.trim()).filter(Boolean);
+  const nonEmptySteps = (draft.steps ?? []).map((s) => s.text.trim()).filter(Boolean);
   if (nonEmptySteps.length === 0) {
     errors.steps = 'Добавьте хотя бы один шаг';
   }
