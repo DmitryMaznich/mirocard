@@ -577,7 +577,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       const textId   = task.text?.id;
       const filePath = task.text?.file;
       const [settings, rawText] = await Promise.all([
-        getRecipeSettings(topicId).catch(() => ({ portions: 1 })),
+        getRecipeSettings(topicId, task.text?.id).catch(() => ({ portions: 1 })),
         (async () => {
           if (textId) {
             const override = await getRecipeOverrideForMode(topicId, textId, "group").catch(() => null);

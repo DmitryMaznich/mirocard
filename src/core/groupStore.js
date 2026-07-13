@@ -3,7 +3,7 @@ import { pushOp } from "@/core/syncApi";
 import { api } from "@/core/api";
 import { RECIPES_TOPIC_ID, getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic";
 
-const settingsKey  = (topicId) => `recipe_settings_${topicId}`;
+const settingsKey  = (topicId, textId) => `recipe_settings_${topicId}_${textId}`;
 const overrideKey  = (topicId, textId, mode) =>
   mode === "individual"
     ? `recipe_override_${topicId}_${textId}_individual`
@@ -11,17 +11,17 @@ const overrideKey  = (topicId, textId, mode) =>
 
 // ─── Recipe settings ─────────────────────────────────────────────────────────
 
-export async function getRecipeSettings(topicId) {
+export async function getRecipeSettings(topicId, textId) {
   const db = await getDb();
   // portions defaults to null (not 1) so callers can distinguish "never
   // configured" from "explicitly chose 1" and fall back to their own
   // recipe-appropriate default (e.g. the recipe's own base serving count).
-  return (await kv.get(db, settingsKey(topicId))) ?? { mode: "group", portions: null };
+  return (await kv.get(db, settingsKey(topicId, textId))) ?? { mode: "group", portions: null };
 }
 
-export async function saveRecipeSettings(topicId, settings) {
+export async function saveRecipeSettings(topicId, textId, settings) {
   const db = await getDb();
-  const key = settingsKey(topicId);
+  const key = settingsKey(topicId, textId);
   await kv.set(db, key, settings);
   pushOp("kv.upsert", { key, value: settings }).catch(() => {});
 }

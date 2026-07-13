@@ -35,14 +35,14 @@ function RecipeStartParams({ topicId, activeText, student }) {
 
   useEffect(() => {
     let cancelled = false;
-    getRecipeSettings(topicId).then((s) => { if (!cancelled) setPortions(s.portions ?? basePortions); }).catch(() => {});
+    getRecipeSettings(topicId, activeText.id).then((s) => { if (!cancelled) setPortions(s.portions ?? basePortions); }).catch(() => {});
     return () => { cancelled = true; };
-  }, [topicId, basePortions]);
+  }, [topicId, activeText.id, basePortions]);
 
   function startSession() {
     const finalPortions = fixedPortions || portions;
     setSessionPortionsOverride(finalPortions);
-    saveRecipeSettings(topicId, { portions: finalPortions }).catch(() => {});
+    saveRecipeSettings(topicId, activeText.id, { portions: finalPortions }).catch(() => {});
     markSessionStart();
     setScreen("session");
   }

@@ -34,7 +34,7 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
   useEffect(() => {
     async function load() {
       await pullRecipeKvFromServer().catch(() => {});
-      const settings = await getRecipeSettings(topicId).catch(() => ({ portions: 1 }));
+      const settings = await getRecipeSettings(topicId, textId).catch(() => ({ portions: 1 }));
       setPortions(settings.portions ?? 1);
       await loadRecipeText();
     }
@@ -66,7 +66,7 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
   async function handlePortionsChange(delta) {
     const next = Math.max(1, Math.min(20, portions + delta));
     setPortions(next);
-    await saveRecipeSettings(topicId, { portions: next }).catch(() => {});
+    await saveRecipeSettings(topicId, textId, { portions: next }).catch(() => {});
   }
 
   async function startSession() {
