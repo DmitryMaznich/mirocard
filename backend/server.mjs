@@ -28,7 +28,7 @@ import {
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
-  getPhoto, migratePhotoData,
+  getPhoto, migratePhotoData, extractAndStorePhoto,
   getAccountKvByPrefixes,
 } from "./lib/account-repository.mjs";
 import {
@@ -827,6 +827,15 @@ async function handlePushSubscribe(req, res) {
 
 // ─── Photo handler ─────────────────────────────────────────────────────────────
 
+async function handleUploadPhoto(req, res) {
+  requireAuth(req);
+  const raw = await readRawBody(req, 4 * 1024 * 1024);
+  const body = JSON.parse(raw.toString("utf8"));
+  if (!body?.dataUrl) return writeJson(res, 400, { error: "dataUrl required" });
+  const url = extractAndStorePhoto(db, body.dataUrl);
+  writeJson(res, 200, { url });
+}
+
 async function handleGetPhoto(req, res) {
   const url = new URL(req.url, "http://localhost");
   const hash = url.pathname.split("/").at(-1);
@@ -1088,7 +1097,8 @@ async function router(req, res) {
     if (method === "POST"   && p === "/admin/notify-topic-updates") return await handleNotifyTopicUpdates(req, res);
     if (method === "POST"   && p === "/push/subscribe")             return await handlePushSubscribe(req, res);
 
-    // Photos (content-addressable, no auth required)
+    // Photos (upload requires auth; read is content-addressable, no auth required)
+    if (method === "POST"   && p === "/photos")                   return await handleUploadPhoto(req, res);
     if (method === "GET"    && /^\/photos\/[^/]+$/.test(p))       return await handleGetPhoto(req, res);
 
     // Version

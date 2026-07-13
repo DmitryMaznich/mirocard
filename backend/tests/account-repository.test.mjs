@@ -17,6 +17,8 @@ import {
   createEmailVerificationToken,
   consumeEmailVerificationToken,
   serializeAccount,
+  extractAndStorePhoto,
+  getPhoto,
 } from "../lib/account-repository.mjs";
 
 function makeDb() { return initDb(":memory:"); }
@@ -369,4 +371,26 @@ test("setAccountFeatureFlags updates account flags", () => {
   setAccountFeatureFlags(db, acc.id, ["beta", "experimental"]);
   const row = db.prepare("SELECT feature_flags FROM accounts WHERE id = ?").get(acc.id);
   assert.deepEqual(JSON.parse(row.feature_flags), ["beta", "experimental"]);
+});
+
+test("extractAndStorePhoto stores a data URL and returns a stable /api/photos/<hash> URL", () => {
+  const db = makeDb();
+  const url = extractAndStorePhoto(db, "data:image/webp;base64,AAAA");
+  assert.match(url, /^\/api\/photos\/[0-9a-f]{32}$/);
+  const hash = url.split("/").at(-1);
+  const stored = getPhoto(db, hash);
+  assert.equal(stored.content_type, "image/webp");
+  assert.equal(stored.data, "AAAA");
+});
+
+test("extractAndStorePhoto dedupes identical content to the same hash", () => {
+  const db = makeDb();
+  const first = extractAndStorePhoto(db, "data:image/webp;base64,BBBB");
+  const second = extractAndStorePhoto(db, "data:image/webp;base64,BBBB");
+  assert.equal(first, second);
+});
+
+test("getPhoto returns null for an unknown hash", () => {
+  const db = makeDb();
+  assert.equal(getPhoto(db, "does-not-exist"), null);
 });
