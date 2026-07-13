@@ -124,7 +124,14 @@ export default function InstructionRunnerScreen() {
       </div>
 
       <div key={stepIndex} className="instruction-step">
-        <div className="instruction-step-text">{splitSentences(steps[stepIndex])}</div>
+        <div className="instruction-step-text">{splitSentences(steps[stepIndex].text)}</div>
+        {steps[stepIndex].photo && (
+          <img
+            className="instruction-step-img instruction-step-img--inline"
+            src={steps[stepIndex].photo}
+            alt=""
+          />
+        )}
       </div>
 
       <div className="instruction-nav">
