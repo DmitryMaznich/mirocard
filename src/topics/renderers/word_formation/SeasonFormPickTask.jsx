@@ -80,39 +80,42 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
 
   return (
     <div className="wf-sfp">
-      {/* Season background zone */}
+      {/* Season photo — card anchor sits at bottom edge, overflows downward by 50% */}
       <div className="wf-sfp__season-zone">
-        {bgUrl
-          ? <img className="wf-sfp__season-bg" src={bgUrl} alt="" draggable={false} />
-          : <div className="wf-sfp__season-bg wf-sfp__season-bg--empty" />
-        }
+        <div className="wf-sfp__season-art">
+          {bgUrl
+            ? <img className="wf-sfp__season-bg" src={bgUrl} alt="" draggable={false} />
+            : <div className="wf-sfp__season-bg--empty" />
+          }
+        </div>
         <div className="wf-sfp__season-pill-wrap">
           <span className="wf-sfp__season-pill">
             {"Время года — "}<strong>{seasonName}</strong>
           </span>
         </div>
-      </div>
-
-      {/* Item card (overlaps season zone) */}
-      <div className="wf-sfp__item-card">
-        {itemUrl && (
-          <img className="wf-sfp__item-img" src={itemUrl} alt={noun} draggable={false} />
-        )}
-        <div className="wf-sfp__item-label">
-          <div className={`wf-sfp__label-wrap${answered ? " wf-sfp__label-wrap--answered" : ""}`}>
-            <div className="wf-sfp__label wf-sfp__label--q">
-              {noun} как<span className="wf-sfp__q-end">{qEnd}</span>?
-            </div>
-            <div className="wf-sfp__label wf-sfp__label--a">
-              <span className="wf-sfp__adj-stem">{stem}</span>
-              <span className="wf-sfp__adj-end">{correctEnding}</span>
-              {" "}{noun}
+        <div className="wf-sfp__card-anchor">
+          <div className="wf-sfp__item-card">
+            {itemUrl && (
+              <img className="wf-sfp__item-img" src={itemUrl} alt={noun} draggable={false} />
+            )}
+            <div className="wf-sfp__item-label">
+              <div className={`wf-sfp__label-wrap${answered ? " wf-sfp__label-wrap--answered" : ""}`}>
+                <div className="wf-sfp__label wf-sfp__label--q">
+                  {noun} как<span className="wf-sfp__q-end">{qEnd}</span>?
+                </div>
+                <div className="wf-sfp__label wf-sfp__label--a">
+                  <span className="wf-sfp__adj-stem">{stem}</span>
+                  <span className="wf-sfp__adj-end">{correctEnding}</span>
+                  {" "}{noun}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="wf-sfp__spacer" />
+      {/* Spacer equal to bottom half of card so options start below it */}
+      <div className="wf-sfp__card-spacer" />
 
       {/* Choice buttons 2×2 */}
       <div className="wf-sfp__options">
