@@ -4,6 +4,13 @@ import { shuffle } from "@/shared/utils/shuffle";
 
 const ADJ_ENDINGS = ["ый", "ий", "ой", "ая", "яя", "ое", "ее", "ые", "ие"];
 
+const QUESTION_END = {
+  "ий": "ой", "ый": "ой", "ой": "ой",
+  "ая": "ая", "яя": "ая",
+  "ое": "ое", "ее": "ое",
+  "ые": "ие", "ие": "ие",
+};
+
 const FORM_SETS = {
   "ий": ["ий", "яя", "ее", "ие"],
   "ый": ["ый", "ая", "ое", "ые"],
@@ -36,7 +43,8 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
   const itemUrl = useTopicFile(topicId, item.image ?? "");
 
   const { stem, ending: correctEnding, noun } = splitAdj(item.adjPhrase);
-  const seasonName = (card.contextPhrase ?? "").trim().split(/\s+/).at(-1);
+  const seasonName  = (card.contextPhrase ?? "").trim().split(/\s+/).at(-1);
+  const questionWord = "как" + (QUESTION_END[correctEnding] ?? "ой") + "?";
 
   const options = useMemo(
     () => shuffle((FORM_SETS[correctEnding] ?? [correctEnding]).map((end, i) => ({
@@ -93,7 +101,7 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
         <div className="wf-sfp__item-label">
           <div className={`wf-sfp__label-wrap${answered ? " wf-sfp__label-wrap--answered" : ""}`}>
             <div className="wf-sfp__label wf-sfp__label--q">
-              {noun} <span className="wf-sfp__qmark">(какой?)</span>
+              {noun} <span className="wf-sfp__qmark">({questionWord})</span>
             </div>
             <div className="wf-sfp__label wf-sfp__label--a">
               <span className="wf-sfp__adj-stem">{stem}</span>
@@ -103,6 +111,9 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
           </div>
         </div>
       </div>
+
+      {/* Spacer pushes buttons to the bottom */}
+      <div className="wf-sfp__spacer" />
 
       {/* Choice buttons 2×2 */}
       <div className="wf-sfp__options">
