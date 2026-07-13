@@ -7,7 +7,11 @@ describe('BUILTIN_INSTRUCTIONS', () => {
     expect(kitchen).toBeDefined();
     expect(kitchen.title).toBe('Уборка кухни после приготовления еды');
     expect(kitchen.emoji).toBe('🧽');
-    expect(kitchen.steps.length).toBe(11);
+    expect(kitchen.steps).toHaveLength(11);
+    expect(kitchen.steps[0]).toEqual({
+      text: 'Унести всю грязную посуду со столов в раковину.',
+      photo: null,
+    });
   });
 
   it('marks every built-in instruction as builtin with at least one step', () => {

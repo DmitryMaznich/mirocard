@@ -35,7 +35,7 @@ function extractSteps(txt) {
   const steps = [];
   for (const rawLine of txt.split('\n')) {
     const match = rawLine.trim().match(/^\d+\.\s*(.+)$/);
-    if (match) steps.push(match[1].trim());
+    if (match) steps.push({ text: match[1].trim(), photo: null });
   }
   return steps;
 }
