@@ -242,8 +242,11 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const allCards = cards.filter(c => c.renderer === "column_addition");
   if (!allCards.length) return [];
 
-  const fingerShowCards  = allCards.filter(c => c.params?.mode === "fingers_show");
-  const fingerCountCards = allCards.filter(c => c.params?.mode === "fingers_count");
+  const fingerShowCards     = allCards.filter(c => c.params?.mode === "fingers_show");
+  const fingerCountCards    = allCards.filter(c => c.params?.mode === "fingers_count");
+  const buildNumberCards    = allCards.filter(c => c.params?.mode === "build_number");
+  const identifyNumberCards = allCards.filter(c => c.params?.mode === "identify_number");
+  const regroupTenCards     = allCards.filter(c => c.params?.mode === "regroup_ten");
 
   if (mode === "fingers_show") {
     const pool = fingerShowCards.length ? fingerShowCards : [];
@@ -264,6 +267,36 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const tasks = [];
     for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
       tasks.push(generateFingersCount(pool[i % pool.length]));
+    }
+    return tasks;
+  }
+
+  if (mode === "build_number") {
+    if (!buildNumberCards.length) return [];
+    const level = Number(params.level ?? 1);
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      tasks.push(generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], level));
+    }
+    return tasks;
+  }
+
+  if (mode === "identify_number") {
+    if (!identifyNumberCards.length) return [];
+    const level = Number(params.level ?? 1);
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      tasks.push(generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], level));
+    }
+    return tasks;
+  }
+
+  if (mode === "regroup_ten") {
+    if (!regroupTenCards.length) return [];
+    const level = Number(params.level ?? 1);
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      tasks.push(generateRegroupTask(regroupTenCards[i % regroupTenCards.length], level));
     }
     return tasks;
   }
