@@ -192,7 +192,7 @@ const PLACE_VALUE_CARDS = [
 
 describe("generateTasks – build_number", () => {
   it("returns tasks of type build_number with number matching target", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 10, { level: 1 });
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 10, { maxOnes: 9 });
     expect(tasks).toHaveLength(10);
     for (const t of tasks) {
       expect(t.type).toBe("build_number");
@@ -200,18 +200,26 @@ describe("generateTasks – build_number", () => {
     }
   });
 
-  it("level 1: ones digit is 1 or 2", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { level: 1 });
-    for (const t of tasks) expect([1, 2]).toContain(t.target.ones);
-  });
-
-  it("level 4: ones digit is always 0", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 20, { level: 4 });
+  it("maxOnes 0: ones digit is always 0", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 20, { maxOnes: 0 });
     for (const t of tasks) expect(t.target.ones).toBe(0);
   });
 
+  it("maxOnes 2: ones digit is always 1 or 2, never 0", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxOnes: 2 });
+    for (const t of tasks) expect([1, 2]).toContain(t.target.ones);
+  });
+
+  it("maxOnes 9: ones digit spans 1-9", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxOnes: 9 });
+    for (const t of tasks) {
+      expect(t.target.ones).toBeGreaterThanOrEqual(1);
+      expect(t.target.ones).toBeLessThanOrEqual(9);
+    }
+  });
+
   it("tens digit is always 1-9", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { level: 5 });
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxOnes: 9 });
     for (const t of tasks) {
       expect(t.target.tens).toBeGreaterThanOrEqual(1);
       expect(t.target.tens).toBeLessThanOrEqual(9);
@@ -221,7 +229,7 @@ describe("generateTasks – build_number", () => {
 
 describe("generateTasks – identify_number", () => {
   it("returns tasks of type identify_number with number matching model", () => {
-    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 10, { level: 2 });
+    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 10, { maxOnes: 7 });
     expect(tasks).toHaveLength(10);
     for (const t of tasks) {
       expect(t.type).toBe("identify_number");
@@ -229,17 +237,22 @@ describe("generateTasks – identify_number", () => {
     }
   });
 
-  it("showCounters is true only at level 1", () => {
-    const l1 = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { level: 1 });
-    const l2 = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { level: 2 });
-    expect(l1.every(t => t.showCounters === true)).toBe(true);
-    expect(l2.every(t => t.showCounters === false)).toBe(true);
+  it("showCounters follows the showCounters param, independent of maxOnes", () => {
+    const withCounters = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, showCounters: true });
+    const withoutCounters = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, showCounters: false });
+    expect(withCounters.every(t => t.showCounters === true)).toBe(true);
+    expect(withoutCounters.every(t => t.showCounters === false)).toBe(true);
+  });
+
+  it("showCounters defaults to true when not specified", () => {
+    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9 });
+    expect(tasks.every(t => t.showCounters === true)).toBe(true);
   });
 });
 
 describe("generateTasks – regroup_ten", () => {
   it("returns tasks where after = initial minus one ten plus ten ones", () => {
-    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 20, { level: 5 });
+    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 20, { maxOnes: 9 });
     expect(tasks).toHaveLength(20);
     for (const t of tasks) {
       expect(t.type).toBe("regroup_ten");

@@ -164,51 +164,49 @@ export function generateFingersCount(card) {
   return base;
 }
 
-function randomPlaceValueNumber(level) {
+// maxOnes = 0 is a distinct, deliberate case (ones is always 0) — it is never mixed in
+// with maxOnes > 0, where ones is drawn from [1, maxOnes]. This keeps "no ones" (a separate
+// abstraction for a child learning place value) from showing up as an incidental low roll
+// once a parent widens the range — it only appears when maxOnes is set to exactly 0.
+function randomPlaceValueNumber(maxOnes) {
   const tens = randomInt(1, 9);
-  let ones;
-  switch (Number(level)) {
-    case 1: ones = randomInt(1, 2); break;
-    case 2: ones = randomInt(3, 7); break;
-    case 3: ones = randomInt(6, 9); break;
-    case 4: ones = 0; break;
-    default: ones = randomInt(0, 9); break;
-  }
+  const max = Number(maxOnes);
+  const ones = max === 0 ? 0 : randomInt(1, max);
   return { tens, ones };
 }
 
-export function generateBuildNumberTask(card, level) {
-  const { tens, ones } = randomPlaceValueNumber(level);
+export function generateBuildNumberTask(card, maxOnes) {
+  const { tens, ones } = randomPlaceValueNumber(maxOnes);
   return {
     type: "build_number",
     cardId: card.id,
     conceptId: card.conceptId,
-    level: Number(level),
+    maxOnes: Number(maxOnes),
     number: tens * 10 + ones,
     target: { tens, ones },
   };
 }
 
-export function generateIdentifyNumberTask(card, level) {
-  const { tens, ones } = randomPlaceValueNumber(level);
+export function generateIdentifyNumberTask(card, maxOnes, showCounters) {
+  const { tens, ones } = randomPlaceValueNumber(maxOnes);
   return {
     type: "identify_number",
     cardId: card.id,
     conceptId: card.conceptId,
-    level: Number(level),
+    maxOnes: Number(maxOnes),
     number: tens * 10 + ones,
     model: { tens, ones },
-    showCounters: Number(level) === 1,
+    showCounters: Boolean(showCounters),
   };
 }
 
-export function generateRegroupTask(card, level) {
-  const { tens, ones } = randomPlaceValueNumber(level);
+export function generateRegroupTask(card, maxOnes) {
+  const { tens, ones } = randomPlaceValueNumber(maxOnes);
   return {
     type: "regroup_ten",
     cardId: card.id,
     conceptId: card.conceptId,
-    level: Number(level),
+    maxOnes: Number(maxOnes),
     number: tens * 10 + ones,
     initial: { tens, ones },
     after: { tens: tens - 1, ones: ones + 10 },
@@ -273,30 +271,31 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
 
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
-    const level = Number(params.level ?? 1);
+    const maxOnes = Number(params.maxOnes ?? 9);
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], level));
+      tasks.push(generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes));
     }
     return tasks;
   }
 
   if (mode === "identify_number") {
     if (!identifyNumberCards.length) return [];
-    const level = Number(params.level ?? 1);
+    const maxOnes = Number(params.maxOnes ?? 9);
+    const showCounters = params.showCounters ?? true;
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], level));
+      tasks.push(generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, showCounters));
     }
     return tasks;
   }
 
   if (mode === "regroup_ten") {
     if (!regroupTenCards.length) return [];
-    const level = Number(params.level ?? 1);
+    const maxOnes = Number(params.maxOnes ?? 9);
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateRegroupTask(regroupTenCards[i % regroupTenCards.length], level));
+      tasks.push(generateRegroupTask(regroupTenCards[i % regroupTenCards.length], maxOnes));
     }
     return tasks;
   }
