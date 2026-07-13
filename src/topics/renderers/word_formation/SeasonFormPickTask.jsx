@@ -43,8 +43,8 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
   const itemUrl = useTopicFile(topicId, item.image ?? "");
 
   const { stem, ending: correctEnding, noun } = splitAdj(item.adjPhrase);
-  const seasonName  = (card.contextPhrase ?? "").trim().split(/\s+/).at(-1);
-  const questionWord = "как" + (QUESTION_END[correctEnding] ?? "ой") + "?";
+  const seasonName = (card.contextPhrase ?? "").trim().split(/\s+/).at(-1);
+  const qEnd       = QUESTION_END[correctEnding] ?? "ой";
 
   const options = useMemo(
     () => shuffle((FORM_SETS[correctEnding] ?? [correctEnding]).map((end, i) => ({
@@ -101,7 +101,7 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
         <div className="wf-sfp__item-label">
           <div className={`wf-sfp__label-wrap${answered ? " wf-sfp__label-wrap--answered" : ""}`}>
             <div className="wf-sfp__label wf-sfp__label--q">
-              {noun} <span className="wf-sfp__qmark">({questionWord})</span>
+              {noun} как<span className="wf-sfp__q-end">{qEnd}</span>?
             </div>
             <div className="wf-sfp__label wf-sfp__label--a">
               <span className="wf-sfp__adj-stem">{stem}</span>
