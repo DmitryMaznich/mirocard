@@ -6,7 +6,7 @@ import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
-import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder } from "@/core/groupStore";
+import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS as DndCSS } from "@dnd-kit/utilities";
@@ -570,6 +570,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
   const [stepIndex,  setStepIndex]  = useState(0);
   const [checked,    setChecked]    = useState({});
+  const [stoveHeatMapping, setStoveHeatMapping] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -586,6 +587,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
           if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
           return null;
         })(),
+        getStoveHeatMapping().then(setStoveHeatMapping).catch(() => {}),
       ]);
       const parsedSteps = rawText ? parseRecipeTxt(rawText) : (task.text?.steps ?? []);
       setSteps(parsedSteps);
@@ -763,7 +765,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
               <div className="instruction-phase-complete-badge">Этап пройден! 👍</div>
             )}
             <div className="instruction-step-text">{(() => {
-              const text = applyFireEmoji(applyPortions(step.text, portions));
+              const text = applyFireEmoji(applyPortions(step.text, portions), stoveHeatMapping);
               const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g);
               if (parts.length === 1) return text;
               return parts.map((s, i) => (
@@ -794,7 +796,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                       onClick={() => toggleItem(i)}
                     >
                       <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                      <span className="instruction-check-label">{applyFireEmoji(applyPortions(item, portions))}</span>
+                      <span className="instruction-check-label">{applyFireEmoji(applyPortions(item, portions), stoveHeatMapping)}</span>
                       {!done && <span className="instruction-check-tap-hint">нажми</span>}
                     </li>
                   );

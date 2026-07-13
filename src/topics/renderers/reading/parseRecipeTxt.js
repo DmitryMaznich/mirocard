@@ -131,17 +131,27 @@ export function serializeRecipeTxt(steps) {
   return lines.join("\n");
 }
 
-const FIRE_MAP = [
-  [/очень сильный огонь/gi, "🔥🔥🔥🔥"],
-  [/сильный огонь/gi,       "🔥🔥🔥"],
-  [/средний огонь/gi,       "🔥🔥"],
-  [/слабый огонь/gi,        "🔥"],
+const FIRE_LEVELS = [
+  { re: /очень сильный огонь/gi, emoji: "🔥🔥🔥🔥", key: "veryStrong" },
+  { re: /сильный огонь/gi,       emoji: "🔥🔥🔥",   key: "strong" },
+  { re: /средний огонь/gi,       emoji: "🔥🔥",     key: "medium" },
+  { re: /слабый огонь/gi,        emoji: "🔥",       key: "weak" },
 ];
 
-export function applyFireEmoji(text) {
+/**
+ * "очень сильный огонь" etc. become fire emoji — every stove's dial numbers
+ * differ, so when the family has configured their own mapping (see
+ * getStoveHeatMapping/saveStoveHeatMapping in groupStore.js) the matching
+ * dial number is appended next to the emoji, e.g. "🔥🔥🔥 · 7". Without a
+ * configured mapping this falls back to plain emoji, unchanged.
+ */
+export function applyFireEmoji(text, stoveHeatMapping) {
   if (!text) return text ?? "";
   let result = text;
-  for (const [pattern, emoji] of FIRE_MAP) result = result.replace(pattern, emoji);
+  for (const { re, emoji, key } of FIRE_LEVELS) {
+    const num = stoveHeatMapping?.[key];
+    result = result.replace(re, num ? `${emoji} · ${num}` : emoji);
+  }
   return result;
 }
 

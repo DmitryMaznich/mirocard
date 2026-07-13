@@ -92,6 +92,57 @@
   color: #2a7a5a;
 }
 
+.planner-header-stove-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(74, 155, 143, 0.12);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+}
+
+.planner-header-stove-btn:active {
+  background: rgba(74, 155, 143, 0.22);
+}
+
+.stove-heat-modal__hint {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #5b6b68;
+  margin: 0 0 14px;
+}
+
+.stove-heat-modal__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(74, 155, 143, 0.14);
+}
+
+.stove-heat-modal__row label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2f5b57;
+}
+
+.stove-heat-modal__row input {
+  width: 56px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(74, 155, 143, 0.3);
+  font-size: 14px;
+  text-align: center;
+  font-family: inherit;
+}
+
 /* Trailing action row in .planner-header (e.g. Покупки's store/history/
    print/clear/edit/regenerate icons) — sits in the same header bar as the
    back arrow and title instead of a second header-styled row underneath. */

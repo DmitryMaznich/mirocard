@@ -26,6 +26,26 @@ export async function saveRecipeSettings(topicId, textId, settings) {
   pushOp("kv.upsert", { key, value: settings }).catch(() => {});
 }
 
+// ─── Stove heat mapping ──────────────────────────────────────────────────────
+// Every stove's dial numbers differ, so recipes describe heat qualitatively
+// (слабый/средний/сильный/очень сильный) and this one family-wide mapping
+// (not per-recipe — it's a property of the stove, not the dish) translates
+// each level to the family's own dial number. Synced across devices the same
+// way as recipe settings (pushOp + pullRecipeKvFromServer, see below).
+
+const STOVE_HEAT_KEY = "stove_heat_mapping";
+
+export async function getStoveHeatMapping() {
+  const db = await getDb();
+  return (await kv.get(db, STOVE_HEAT_KEY)) ?? { weak: null, medium: null, strong: null, veryStrong: null };
+}
+
+export async function saveStoveHeatMapping(mapping) {
+  const db = await getDb();
+  await kv.set(db, STOVE_HEAT_KEY, mapping);
+  pushOp("kv.upsert", { key: STOVE_HEAT_KEY, value: mapping }).catch(() => {});
+}
+
 // ─── Recipe overrides (mode-aware) ───────────────────────────────────────────
 
 export async function getRecipeOverride(topicId, textId) {
@@ -414,7 +434,7 @@ export async function appendSafeCodeLog(topicId, entry) {
   await kv.set(db, key, updated);
 }
 
-const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
+const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_", "stove_heat_"];
 
 export async function pullRecipeKvFromServer() {
   // Flush first: a local write queued but not yet sent (e.g. the app closed

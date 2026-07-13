@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -177,5 +177,38 @@ describe('parseTimerMinutesFromText', () => {
 
   it('ignores durations mentioned after the timer marker', () => {
     expect(parseTimerMinutesFromText('Варить 8 минут, часто помешивать ложкой (установить таймер). Потом добавить 2 ложки соли.')).toBe(8);
+  });
+});
+
+describe('applyFireEmoji', () => {
+  it('replaces each heat level with the matching number of fire emoji, no mapping given', () => {
+    expect(applyFireEmoji('Включить нагрев (слабый огонь).')).toBe('Включить нагрев (🔥).');
+    expect(applyFireEmoji('Включить нагрев (средний огонь).')).toBe('Включить нагрев (🔥🔥).');
+    expect(applyFireEmoji('Включить нагрев (сильный огонь).')).toBe('Включить нагрев (🔥🔥🔥).');
+    expect(applyFireEmoji('Включить нагрев (очень сильный огонь).')).toBe('Включить нагрев (🔥🔥🔥🔥).');
+  });
+
+  it('does not let "сильный огонь" swallow "очень сильный огонь"', () => {
+    expect(applyFireEmoji('очень сильный огонь')).toBe('🔥🔥🔥🔥');
+  });
+
+  it('appends the family\'s configured stove dial number next to the emoji', () => {
+    const mapping = { weak: 2, medium: 4, strong: 6, veryStrong: 9 };
+    expect(applyFireEmoji('Включить нагрев (слабый огонь).', mapping)).toBe('Включить нагрев (🔥 · 2).');
+    expect(applyFireEmoji('Включить нагрев (средний огонь).', mapping)).toBe('Включить нагрев (🔥🔥 · 4).');
+    expect(applyFireEmoji('Включить нагрев (сильный огонь).', mapping)).toBe('Включить нагрев (🔥🔥🔥 · 6).');
+    expect(applyFireEmoji('Включить нагрев (очень сильный огонь).', mapping)).toBe('Включить нагрев (🔥🔥🔥🔥 · 9).');
+  });
+
+  it('falls back to plain emoji for a level left unconfigured in the mapping', () => {
+    const mapping = { weak: 2, medium: null, strong: null, veryStrong: null };
+    expect(applyFireEmoji('Включить нагрев (слабый огонь).', mapping)).toBe('Включить нагрев (🔥 · 2).');
+    expect(applyFireEmoji('Включить нагрев (средний огонь).', mapping)).toBe('Включить нагрев (🔥🔥).');
+  });
+
+  it('returns an empty string for empty/nullish input', () => {
+    expect(applyFireEmoji('')).toBe('');
+    expect(applyFireEmoji(null)).toBe('');
+    expect(applyFireEmoji(undefined)).toBe('');
   });
 });
