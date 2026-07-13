@@ -344,12 +344,48 @@
   flex-shrink: 0; margin-top: 8px; font-variant-numeric: tabular-nums;
 }
 
+.cn-step-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .cn-step-text {
-  flex: 1; border-radius: 14px; border: 1.5px solid #e7dccf; background: #fff;
+  width: 100%; box-sizing: border-box; border-radius: 14px; border: 1.5px solid #e7dccf; background: #fff;
   padding: 11px 12px; font-family: inherit; font-size: 14.5px; font-weight: 600; color: #263131;
   resize: none; min-height: 44px; line-height: 1.35;
 }
 .cn-step-text:focus-visible { outline: 2px solid #4a9b8f; outline-offset: 1px; }
+
+.cn-step-photo { display: flex; align-items: center; }
+
+.cn-step-photo__add {
+  width: 40px; height: 40px; border-radius: 12px;
+  border: 1.5px dashed rgba(74, 155, 143, 0.45);
+  background: rgba(74, 155, 143, 0.06); color: #276b62; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.cn-step-photo__add:disabled { opacity: 0.5; cursor: default; }
+
+.cn-step-photo__preview {
+  position: relative;
+  width: 56px; height: 56px; border-radius: 12px; overflow: hidden;
+  border: 1.5px solid #e7dccf;
+}
+.cn-step-photo__preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.cn-step-photo__remove {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(38, 49, 49, 0.72); color: #fff; border: none; font-size: 10px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+.cn-step-photo__retry {
+  border: none; background: none; color: #e05252; font-weight: 800; font-size: 12px;
+  text-decoration: underline; cursor: pointer; padding: 0;
+}
 
 .cn-step-del {
   width: 26px; height: 26px; border-radius: 50%; background: rgba(224, 82, 82, 0.1);
