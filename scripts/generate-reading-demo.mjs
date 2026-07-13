@@ -38,6 +38,8 @@ const poemBookPages = [
   { id: "sasha",  file: "Smelij.png",       title: "Смелый Саша" },
   { id: "yulya",  file: "kaprizulja.png",   title: "Юля-капризуля" },
   { id: "nikita", file: "Lenivij.png",      title: "Ленивый Никита" },
+  { id: "vova",   file: "nevezhliviy.png",  title: "Невежливый Вова" },
+  { id: "sveta",  file: "Nerjaha.png",      title: "Неряха Света" },
 ];
 const poemBookImages = Object.fromEntries(
   await Promise.all(
@@ -75,7 +77,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.22",
+    version: "1.0.23",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -585,6 +587,36 @@ const manifest = {
             { id: "l6", text: "Быть ленивым плохо очень!" },
           ],
         },
+        {
+          id: "vova",
+          kind: "poem",
+          title: { ru: "Невежливый Вова" },
+          image: "media/vova.webp",
+          lines: [
+            { id: "l1", text: "Невежлив со всеми!" },
+            { id: "l2", text: "Здороваться он забывает все время!" },
+            { id: "l3", text: "Прощаться не любит!" },
+            { id: "l4", text: "Спасибо не знает." },
+            { id: "l5", text: "Ему поучиться не помешает!" },
+            { id: "l6", text: "Если ты хочешь со всеми дружить," },
+            { id: "l7", text: "Добрым и вежливым должен ты быть!" },
+          ],
+        },
+        {
+          id: "sveta",
+          kind: "poem",
+          title: { ru: "Неряха Света" },
+          image: "media/sveta.webp",
+          lines: [
+            { id: "l1", text: "Все разбрасывает Света…" },
+            { id: "l2", text: "На пол — фантик от конфеты," },
+            { id: "l3", text: "Стружки от карандашей," },
+            { id: "l4", text: "Крошки хлеба для мышей…" },
+            { id: "l5", text: "Бесконечный беспорядок оставляет за собой!" },
+            { id: "l6", text: "Знай, что девочка-неряха —" },
+            { id: "l7", text: "Это просто ой-ой-ой!" },
+          ],
+        },
       ],
     },
   ],
@@ -601,4 +633,4 @@ for (const { id } of poemBookPages) {
   zip.file(`media/${id}.webp`, poemBookImages[id]);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.22.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.23.zip", buffer);
