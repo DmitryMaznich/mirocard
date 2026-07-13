@@ -1,5 +1,5 @@
 import { getDb, kv, topics } from "@/core/db";
-import { pushOp } from "@/core/syncApi";
+import { pushOp, flushQueue } from "@/core/syncApi";
 import { api } from "@/core/api";
 import { RECIPES_TOPIC_ID, getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic";
 
@@ -417,6 +417,10 @@ export async function appendSafeCodeLog(topicId, entry) {
 const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_"];
 
 export async function pullRecipeKvFromServer() {
+  // Flush first: a local write queued but not yet sent (e.g. the app closed
+  // right after a save) must reach the server before we pull, or this pull
+  // would overwrite it with the server's still-stale value.
+  await flushQueue().catch(() => {});
   try {
     const query = RECIPE_KV_PREFIXES.map((p) => `prefix=${encodeURIComponent(p)}`).join("&");
     const { kv: items } = await api.get(`/account/kv?${query}`);
@@ -433,6 +437,12 @@ export async function pullRecipeKvFromServer() {
 const PLANNER_KV_PREFIX = "planner_";
 
 export async function pullPlannerKvFromServer() {
+  // Flush first — see pullRecipeKvFromServer's comment. Without this, e.g.
+  // "Новое меню"'s reset (kv.upsert of customData=null) queued but not yet
+  // sent gets silently overwritten by the still-old server value on the next
+  // pull, un-doing the reset and making the next menu's list merge with the
+  // previous one.
+  await flushQueue().catch(() => {});
   try {
     const { kv: items } = await api.get(`/account/kv?prefix=${encodeURIComponent(PLANNER_KV_PREFIX)}`);
     if (!Array.isArray(items) || !items.length) return;
