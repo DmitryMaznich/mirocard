@@ -1,8 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Fragment } from "react";
 import { useAppStore } from "@/core/store";
 import { getAllInstructions } from "./instructionsApi";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import "./instructions.css";
+
+// Same sentence-break rule as the recipe reading engine (reading/index.jsx):
+// put each sentence on its own line instead of one dense paragraph.
+function splitSentences(text) {
+  return text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g).map((sentence, i) => (
+    <Fragment key={i}>
+      {i > 0 && <br />}
+      {sentence}
+    </Fragment>
+  ));
+}
 
 export default function InstructionRunnerScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -55,12 +66,12 @@ export default function InstructionRunnerScreen() {
   }, [finished, handleNext, handleBack, exit]);
 
   if (instruction === undefined) {
-    return <div className="screen instruction-runner"><div className="home-tab-loading">Загрузка…</div></div>;
+    return <div className="session-screen instruction-runner"><div className="home-tab-loading">Загрузка…</div></div>;
   }
 
   if (instruction === null) {
     return (
-      <div className="screen instruction-runner">
+      <div className="session-screen instruction-runner">
         <div className="instruction-step instruction-step--heading">
           <div className="instruction-step-text">Инструкция не найдена</div>
         </div>
@@ -75,7 +86,7 @@ export default function InstructionRunnerScreen() {
 
   if (finished) {
     return (
-      <div className="screen instruction-runner">
+      <div className="session-screen instruction-runner">
         <div className="instruction-step instruction-step--heading">
           <div className="instruction-phase-complete-badge">Готово! 👍</div>
           <div className="instruction-step-text">Инструкция «{instruction.title}» пройдена до конца.</div>
@@ -90,7 +101,7 @@ export default function InstructionRunnerScreen() {
   }
 
   return (
-    <div className="screen instruction-runner">
+    <div className="session-screen instruction-runner">
       <div className="instruction-header">
         <div className="instruction-header-row">
           <div className="instruction-progressbar-wrap">
@@ -113,7 +124,7 @@ export default function InstructionRunnerScreen() {
       </div>
 
       <div key={stepIndex} className="instruction-step">
-        <div className="instruction-step-text">{steps[stepIndex]}</div>
+        <div className="instruction-step-text">{splitSentences(steps[stepIndex])}</div>
       </div>
 
       <div className="instruction-nav">

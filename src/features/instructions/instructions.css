@@ -257,21 +257,20 @@
    Deliberately reuses the recipe reading engine's own classes
    (.instruction-header, .instruction-step, .instruction-nav, .instruction-*
    progress bar, .reading-primary-btn — all defined in src/styles.css) so the
-   step-through UI is visually identical to "Готовим еду", not a re-derived
-   look-alike. Only the screen root gets an override here, to match what
-   .session-body.reading-body.instruction-body gives recipes (white body,
-   safe-area top padding, tighter max-width) without depending on being
-   nested inside the session/task-engine component tree. ── */
+   step-through UI is visually identical to "Готовим еду". The root uses the
+   same .session-screen the recipe SessionScreen uses (position:fixed,
+   inset:0, full viewport width — recipes are NOT capped to .screen's 820px)
+   instead of re-deriving a narrower look-alike shell. ── */
 
-.screen.instruction-runner {
-  background: #ffffff;
+.session-screen.instruction-runner {
   color: #263131;
-  padding: 16px;
   padding-top: calc(16px + var(--app-safe-top, 0px));
+  padding-right: calc(16px + var(--app-safe-right, 0px));
+  padding-bottom: 16px;
+  padding-left: calc(16px + var(--app-safe-left, 0px));
   gap: 18px;
   align-items: stretch;
   overflow: hidden;
-  max-width: 640px;
 }
 
 /* ── Constructor (InstructionConstructorScreen) ──────────────────────────── */
