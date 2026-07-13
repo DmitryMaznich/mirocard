@@ -164,6 +164,57 @@ export function generateFingersCount(card) {
   return base;
 }
 
+function randomPlaceValueNumber(level) {
+  const tens = randomInt(1, 9);
+  let ones;
+  switch (Number(level)) {
+    case 1: ones = randomInt(1, 2); break;
+    case 2: ones = randomInt(3, 7); break;
+    case 3: ones = randomInt(6, 9); break;
+    case 4: ones = 0; break;
+    default: ones = randomInt(0, 9); break;
+  }
+  return { tens, ones };
+}
+
+export function generateBuildNumberTask(card, level) {
+  const { tens, ones } = randomPlaceValueNumber(level);
+  return {
+    type: "build_number",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    level: Number(level),
+    number: tens * 10 + ones,
+    target: { tens, ones },
+  };
+}
+
+export function generateIdentifyNumberTask(card, level) {
+  const { tens, ones } = randomPlaceValueNumber(level);
+  return {
+    type: "identify_number",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    level: Number(level),
+    number: tens * 10 + ones,
+    model: { tens, ones },
+    showCounters: Number(level) === 1,
+  };
+}
+
+export function generateRegroupTask(card, level) {
+  const { tens, ones } = randomPlaceValueNumber(level);
+  return {
+    type: "regroup_ten",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    level: Number(level),
+    number: tens * 10 + ones,
+    initial: { tens, ones },
+    after: { tens: tens - 1, ones: ones + 10 },
+  };
+}
+
 export function generateExamples(count, params) {
   const operation = params?.operation ?? "add";
   const carryMode = params?.carryMode ?? "none";
