@@ -157,13 +157,25 @@ function generatePickFormTasks(cards, params) {
   ];
 }
 
+function generateSeasonFormPickTasks(cards, params) {
+  const overviewCards = cards.filter(isOverview);
+  const tasks = [];
+  for (const card of overviewCards) {
+    for (const item of (card.items ?? [])) {
+      tasks.push({ type: "season_form_pick", card, item, params });
+    }
+  }
+  return shuffle(tasks);
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   switch (mode.type) {
-    case "pair_intro":   return generatePairIntroTasks(cards, params);
-    case "pick_form":    return generatePickFormTasks(cards, params);
-    case "form_it":      return generateFormItTasks(cards, params);
-    case "yes_no":       return generateYesNoTasks(cards, params);
-    case "question_ask": return generateQuestionAskTasks(cards);
-    default:             return [];
+    case "pair_intro":        return generatePairIntroTasks(cards, params);
+    case "pick_form":         return generatePickFormTasks(cards, params);
+    case "form_it":           return generateFormItTasks(cards, params);
+    case "yes_no":            return generateYesNoTasks(cards, params);
+    case "question_ask":      return generateQuestionAskTasks(cards);
+    case "season_form_pick":  return generateSeasonFormPickTasks(cards, params);
+    default:                  return [];
   }
 }
