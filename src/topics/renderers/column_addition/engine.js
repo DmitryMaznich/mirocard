@@ -164,6 +164,57 @@ export function generateFingersCount(card) {
   return base;
 }
 
+function randomPlaceValueNumber(level) {
+  const tens = randomInt(1, 9);
+  let ones;
+  switch (Number(level)) {
+    case 1: ones = randomInt(1, 2); break;
+    case 2: ones = randomInt(3, 7); break;
+    case 3: ones = randomInt(6, 9); break;
+    case 4: ones = 0; break;
+    default: ones = randomInt(0, 9); break;
+  }
+  return { tens, ones };
+}
+
+export function generateBuildNumberTask(card, level) {
+  const { tens, ones } = randomPlaceValueNumber(level);
+  return {
+    type: "build_number",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    level: Number(level),
+    number: tens * 10 + ones,
+    target: { tens, ones },
+  };
+}
+
+export function generateIdentifyNumberTask(card, level) {
+  const { tens, ones } = randomPlaceValueNumber(level);
+  return {
+    type: "identify_number",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    level: Number(level),
+    number: tens * 10 + ones,
+    model: { tens, ones },
+    showCounters: Number(level) === 1,
+  };
+}
+
+export function generateRegroupTask(card, level) {
+  const { tens, ones } = randomPlaceValueNumber(level);
+  return {
+    type: "regroup_ten",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    level: Number(level),
+    number: tens * 10 + ones,
+    initial: { tens, ones },
+    after: { tens: tens - 1, ones: ones + 10 },
+  };
+}
+
 export function generateExamples(count, params) {
   const operation = params?.operation ?? "add";
   const carryMode = params?.carryMode ?? "none";
@@ -191,8 +242,11 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const allCards = cards.filter(c => c.renderer === "column_addition");
   if (!allCards.length) return [];
 
-  const fingerShowCards  = allCards.filter(c => c.params?.mode === "fingers_show");
-  const fingerCountCards = allCards.filter(c => c.params?.mode === "fingers_count");
+  const fingerShowCards     = allCards.filter(c => c.params?.mode === "fingers_show");
+  const fingerCountCards    = allCards.filter(c => c.params?.mode === "fingers_count");
+  const buildNumberCards    = allCards.filter(c => c.params?.mode === "build_number");
+  const identifyNumberCards = allCards.filter(c => c.params?.mode === "identify_number");
+  const regroupTenCards     = allCards.filter(c => c.params?.mode === "regroup_ten");
 
   if (mode === "fingers_show") {
     const pool = fingerShowCards.length ? fingerShowCards : [];
@@ -213,6 +267,36 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const tasks = [];
     for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
       tasks.push(generateFingersCount(pool[i % pool.length]));
+    }
+    return tasks;
+  }
+
+  if (mode === "build_number") {
+    if (!buildNumberCards.length) return [];
+    const level = Number(params.level ?? 1);
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      tasks.push(generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], level));
+    }
+    return tasks;
+  }
+
+  if (mode === "identify_number") {
+    if (!identifyNumberCards.length) return [];
+    const level = Number(params.level ?? 1);
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      tasks.push(generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], level));
+    }
+    return tasks;
+  }
+
+  if (mode === "regroup_ten") {
+    if (!regroupTenCards.length) return [];
+    const level = Number(params.level ?? 1);
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      tasks.push(generateRegroupTask(regroupTenCards[i % regroupTenCards.length], level));
     }
     return tasks;
   }

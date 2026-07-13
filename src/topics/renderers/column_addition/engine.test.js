@@ -183,3 +183,70 @@ describe("generateTasks – fingers_count", () => {
     expect(t?.removeHand).toBe("left");
   });
 });
+
+const PLACE_VALUE_CARDS = [
+  { id: "build_number",    conceptId: "build_number",    renderer: "column_addition", params: { mode: "build_number" } },
+  { id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } },
+  { id: "regroup_ten",     conceptId: "regroup_ten",     renderer: "column_addition", params: { mode: "regroup_ten" } },
+];
+
+describe("generateTasks – build_number", () => {
+  it("returns tasks of type build_number with number matching target", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 10, { level: 1 });
+    expect(tasks).toHaveLength(10);
+    for (const t of tasks) {
+      expect(t.type).toBe("build_number");
+      expect(t.number).toBe(t.target.tens * 10 + t.target.ones);
+    }
+  });
+
+  it("level 1: ones digit is 1 or 2", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { level: 1 });
+    for (const t of tasks) expect([1, 2]).toContain(t.target.ones);
+  });
+
+  it("level 4: ones digit is always 0", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 20, { level: 4 });
+    for (const t of tasks) expect(t.target.ones).toBe(0);
+  });
+
+  it("tens digit is always 1-9", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { level: 5 });
+    for (const t of tasks) {
+      expect(t.target.tens).toBeGreaterThanOrEqual(1);
+      expect(t.target.tens).toBeLessThanOrEqual(9);
+    }
+  });
+});
+
+describe("generateTasks – identify_number", () => {
+  it("returns tasks of type identify_number with number matching model", () => {
+    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 10, { level: 2 });
+    expect(tasks).toHaveLength(10);
+    for (const t of tasks) {
+      expect(t.type).toBe("identify_number");
+      expect(t.number).toBe(t.model.tens * 10 + t.model.ones);
+    }
+  });
+
+  it("showCounters is true only at level 1", () => {
+    const l1 = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { level: 1 });
+    const l2 = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { level: 2 });
+    expect(l1.every(t => t.showCounters === true)).toBe(true);
+    expect(l2.every(t => t.showCounters === false)).toBe(true);
+  });
+});
+
+describe("generateTasks – regroup_ten", () => {
+  it("returns tasks where after = initial minus one ten plus ten ones", () => {
+    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 20, { level: 5 });
+    expect(tasks).toHaveLength(20);
+    for (const t of tasks) {
+      expect(t.type).toBe("regroup_ten");
+      expect(t.initial.tens).toBeGreaterThanOrEqual(1);
+      expect(t.after.tens).toBe(t.initial.tens - 1);
+      expect(t.after.ones).toBe(t.initial.ones + 10);
+      expect(t.after.tens * 10 + t.after.ones).toBe(t.number);
+    }
+  });
+});
