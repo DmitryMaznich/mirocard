@@ -77,7 +77,7 @@ const familySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 const manifest = {
   meta: {
     id: "reading_dad_poems",
-    version: "1.0.23",
+    version: "1.0.24",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -593,13 +593,14 @@ const manifest = {
           title: { ru: "Невежливый Вова" },
           image: "media/vova.webp",
           lines: [
-            { id: "l1", text: "Невежлив со всеми!" },
-            { id: "l2", text: "Здороваться он забывает все время!" },
-            { id: "l3", text: "Прощаться не любит!" },
-            { id: "l4", text: "Спасибо не знает." },
-            { id: "l5", text: "Ему поучиться не помешает!" },
-            { id: "l6", text: "Если ты хочешь со всеми дружить," },
-            { id: "l7", text: "Добрым и вежливым должен ты быть!" },
+            { id: "l1", text: "Невежливый Вова" },
+            { id: "l2", text: "Невежлив со всеми!" },
+            { id: "l3", text: "Здороваться он забывает все время!" },
+            { id: "l4", text: "Прощаться не любит!" },
+            { id: "l5", text: "Спасибо не знает." },
+            { id: "l6", text: "Ему поучиться не помешает!" },
+            { id: "l7", text: "Если ты хочешь со всеми дружить," },
+            { id: "l8", text: "Добрым и вежливым должен ты быть!" },
           ],
         },
         {
@@ -633,4 +634,4 @@ for (const { id } of poemBookPages) {
   zip.file(`media/${id}.webp`, poemBookImages[id]);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_dad_poems_v1.0.23.zip", buffer);
+writeFileSync("public/decks/reading_dad_poems_v1.0.24.zip", buffer);
