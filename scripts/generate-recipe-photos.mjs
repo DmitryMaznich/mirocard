@@ -81,6 +81,8 @@ const RECIPES = {
   cicchetti: "Venetian cicchetti assortment on a rustic wooden board, four toasted baguette slices with colorful toppings: prosciutto, creamy white spread with herbs, tomato and mozzarella with basil, dark olive tapenade, soft warm light, Italian appetizer, overhead shot",
   stuffed_eggs: "deviled stuffed eggs on a white plate, halved hard-boiled eggs filled with creamy yellow yolk and cream cheese mixture, garnished with fresh green dill, six halves arranged neatly, top-down overhead shot, appetizing",
   coffee_chemex: "chemex pour-over coffee brewer filled with dark amber coffee, distinctive hourglass glass shape with wooden collar, steam rising, on a light wooden table, morning light, minimalist",
+  okroshka: "cold Russian okroshka soup in a white bowl, diced potato, egg, cucumber, radish and chicken visible in pale kefir broth, garnished with fresh dill and green onion, dollop of sour cream on top, refreshing summer soup, overhead shot",
+  vinegret: "Russian vinegret beet salad in a white bowl, diced deep-red beets, potato, carrot, pickles and sauerkraut mixed together, glistening with a light sheen of oil, fresh and colorful, rustic side salad, overhead shot",
 
   // Chemex step-by-step illustrations
   chemex_s06: "pouring clear filtered water from a glass pitcher or glass carafe into a black electric gooseneck coffee kettle on a kitchen counter, clean white countertop, morning light, no tap or faucet visible",

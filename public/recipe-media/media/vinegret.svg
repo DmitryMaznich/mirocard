@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Cold dish background -->
+  <circle cx="120" cy="120" r="116" fill="#edfaf0" stroke="#90c890" stroke-width="3"/>
+  <!-- Bowl shadow -->
+  <ellipse cx="122" cy="188" rx="62" ry="8" fill="#70b870" opacity="0.2"/>
+  <!-- Bowl outer -->
+  <path d="M 62 128 Q 62 196 120 196 Q 178 196 178 128 Z" fill="#f0d8dc"/>
+  <path d="M 66 128 Q 66 190 120 190 Q 174 190 174 128 Z" fill="#f8e8ea"/>
+  <!-- Bowl rim -->
+  <ellipse cx="120" cy="128" rx="58" ry="11" fill="#f8e8ea"/>
+  <ellipse cx="120" cy="126" rx="56" ry="9" fill="#fdf4f4"/>
+  <!-- Salad base -->
+  <ellipse cx="120" cy="124" rx="52" ry="8" fill="#e8c8ce" opacity="0.6"/>
+  <!-- Diced beet (dominant, deep red) -->
+  <rect x="100" y="110" width="13" height="10" rx="3" fill="#a02850" transform="rotate(-8 106 115)"/>
+  <rect x="122" y="106" width="12" height="10" rx="3" fill="#b03058" transform="rotate(10 128 111)"/>
+  <rect x="108" y="122" width="11" height="9" rx="2.5" fill="#982448" transform="rotate(6 113 126)"/>
+  <rect x="138" y="118" width="11" height="9" rx="2.5" fill="#a82c52" transform="rotate(-12 143 122)"/>
+  <!-- Diced potato -->
+  <rect x="88" y="120" width="11" height="9" rx="2.5" fill="#f0d870"/>
+  <rect x="146" y="108" width="10" height="8" rx="2.5" fill="#f4e080"/>
+  <!-- Diced carrot -->
+  <rect x="114" y="130" width="10" height="8" rx="2.5" fill="#e86820" transform="rotate(5 119 134)"/>
+  <rect x="132" y="128" width="9" height="7" rx="2.5" fill="#f07830" transform="rotate(-8 136 131)"/>
+  <!-- Diced pickles / sauerkraut strands -->
+  <rect x="96" y="108" width="9" height="7" rx="2" fill="#8ab040" transform="rotate(12 100 111)"/>
+  <path d="M 128 122 Q 138 118 148 124" fill="none" stroke="#d8d090" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 96 132 Q 106 128 116 134" fill="none" stroke="#d8d090" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+  <!-- Herb flecks -->
+  <circle cx="112" cy="106" r="2.5" fill="#4e8038"/>
+  <circle cx="140" cy="112" r="2" fill="#5a9040"/>
+  <circle cx="122" cy="132" r="2" fill="#4a9030"/>
+</svg>
