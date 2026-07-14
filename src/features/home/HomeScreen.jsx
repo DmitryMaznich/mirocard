@@ -17,6 +17,8 @@ import { buildPutawayQueue, getRequiredZones } from "@/features/planner/putawayU
 import { isPendingReceiptResolved, getResolvedZoneIds, clearPendingPhotos, getTripReceiptPhoto, getTripZonePhoto } from "@/features/planner/plannerPhotos";
 import { ZONES } from "@/features/planner/putawayLocations";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
+import PlannerActionBar from "@/features/planner/PlannerActionBar";
+import Modal from "@/shared/components/Modal";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory, getPlannerProductZoneOverrides, pullPlannerKvFromServer } from "@/core/groupStore";
 import "@/features/planner/planner.css";
 import InstructionsTab from "@/features/instructions/InstructionsTab";
@@ -368,6 +370,7 @@ function PlannerTab({ student, setScreen }) {
   const [shoppingDone, setShoppingDone] = useState(false);
   const [putawayDone, setPutawayDone] = useState(false);
   const [cookPickerOpen, setCookPickerOpen] = useState(false);
+  const [catalogPickerOpen, setCatalogPickerOpen] = useState(false);
   const [confirmNewMenu, setConfirmNewMenu] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [cycleHistory, setCycleHistory] = useState([]);
@@ -435,8 +438,9 @@ function PlannerTab({ student, setScreen }) {
     menuRecipes.filter((r) => isRecipeCookedThisCycle(existingPlan, r, sessions)).map((r) => r.text.id)
   );
 
-  function handlePickRecipe(recipe) {
+  function pickRecipeAndCook(recipe) {
     setCookPickerOpen(false);
+    setCatalogPickerOpen(false);
     setActiveTopicId(recipe.topicId);
     setActiveText(recipe.text);
     setActiveModeId('follow_instruction');
@@ -446,6 +450,11 @@ function PlannerTab({ student, setScreen }) {
 
   function handleGoShopping() {
     setPlannerShoppingInitialMode('shop');
+    setScreen('planner_shopping');
+  }
+
+  function handleEditProducts() {
+    setPlannerShoppingInitialMode('edit');
     setScreen('planner_shopping');
   }
 
@@ -509,73 +518,57 @@ function PlannerTab({ student, setScreen }) {
         />
       </div>
 
-      {hasSelection ? (
-        <>
-          <div className="planner-action-dock">
-            <button
-              type="button"
-              className="planner-action-dock__cook"
-              disabled={!readyToCook}
-              onClick={() => setCookPickerOpen(true)}
-            >
-              {cookedTextIds.size === 0
-                ? '🍲 Начинаем готовить'
-                : `🍲 Готовка: ${cookedTextIds.size} из ${menuRecipes.length} приготовлено`}
-            </button>
-            <button
-              type="button"
-              className="planner-action-dock__icon"
-              onClick={handleOpenHistory}
-            >
-              <span className="planner-action-dock__icon-glyph">🕐</span>
-              <span>История</span>
-            </button>
-            <button
-              type="button"
-              className="planner-action-dock__icon"
-              onClick={() => setConfirmNewMenu(true)}
-            >
-              <span className="planner-action-dock__icon-glyph">🏁</span>
-              <span>Новое меню</span>
-            </button>
-          </div>
-          {!readyToCook && (
-            <div className="planner-cook-hint">
-              {!menuDone
+      <PlannerActionBar
+        hasSelection={hasSelection}
+        readyToCook={readyToCook}
+        cookedCount={cookedTextIds.size}
+        totalCount={menuRecipes.length}
+        recipesLoaded={allRecipes.length > 0}
+        hint={
+          hasSelection && !readyToCook
+            ? (!menuDone
                 ? 'Сначала реши «Дома» или «Купить» для каждого продукта'
                 : !shoppingDone
                   ? 'Сначала докупи всё по списку'
-                  : 'Сначала разложи продукты'}
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="planner-cycle-actions">
-          <button type="button" className="planner-history-btn" onClick={handleOpenHistory}>
-            🕐 История
-          </button>
-        </div>
-      )}
-      {hasSelection && confirmNewMenu && (
-        <div className="menu-reset-bar">
-          <span className="menu-reset-bar__text">
-            {cookedTextIds.size < menuRecipes.length
-              ? `Готово только ${cookedTextIds.size} из ${menuRecipes.length} блюд. Всё равно начать новое меню?`
-              : 'Начать новое меню? Текущее будет закрыто.'}
-          </span>
-          <div className="menu-reset-bar__actions">
-            <button type="button" className="menu-reset-bar__cancel" onClick={() => setConfirmNewMenu(false)}>Нет</button>
-            <button type="button" className="menu-reset-bar__ok" onClick={handleStartNewMenu}>Да</button>
-          </div>
-        </div>
+                  : 'Сначала разложи продукты')
+            : null
+        }
+        onOpenCatalog={() => setCatalogPickerOpen(true)}
+        onEditProducts={handleEditProducts}
+        onCook={() => setCookPickerOpen(true)}
+        onRestart={() => setConfirmNewMenu(true)}
+        onHistory={handleOpenHistory}
+      />
+      {confirmNewMenu && (
+        <Modal
+          title="Начать новое меню?"
+          onClose={() => setConfirmNewMenu(false)}
+          actions={
+            <>
+              <Button variant="secondary" onClick={() => setConfirmNewMenu(false)}>Нет</Button>
+              <Button variant="danger" onClick={handleStartNewMenu}>Заново</Button>
+            </>
+          }
+        >
+          {cookedTextIds.size < menuRecipes.length
+            ? `Готово только ${cookedTextIds.size} из ${menuRecipes.length} блюд. Всё равно начать новое меню?`
+            : 'Начать новое меню? Текущее будет закрыто.'}
+        </Modal>
       )}
 
       {cookPickerOpen && (
         <CookPickerSheet
           recipes={menuRecipes}
           cookedTextIds={cookedTextIds}
-          onPick={handlePickRecipe}
+          onPick={pickRecipeAndCook}
           onClose={() => setCookPickerOpen(false)}
+        />
+      )}
+      {catalogPickerOpen && (
+        <CookPickerSheet
+          recipes={allRecipes}
+          onPick={pickRecipeAndCook}
+          onClose={() => setCatalogPickerOpen(false)}
         />
       )}
       {historyOpen && (
