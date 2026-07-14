@@ -93,6 +93,7 @@
   justify-content: center;
   gap: 14px;
   min-height: 60px;
+  container-type: inline-size;
 }
 
 .pv-zone-counter {
@@ -168,16 +169,20 @@
    family already used for units (blue) vs tens (amber). Sized with clamp() so
    they use the generous empty space on tall/wide screens instead of staying
    pinned to the phone-portrait base size: up to 2x in the drop zones, up to
-   3x in the tray (fewer items there, so it can grow further). ── */
+   3x in the tray (fewer items there, so it can grow further). The zone size
+   is also capped by cqi (relative to .pv-zone-body's own width, which set
+   container-type above) so a zone with many blocks (up to 19 after a
+   regroup) always keeps at least two per row instead of collapsing into a
+   single tall column. ── */
 .pv-numeric-block {
-  width: clamp(40px, 20vw, 80px);
-  height: clamp(40px, 20vw, 80px);
-  border-radius: clamp(8px, 4vw, 16px);
+  width: clamp(40px, min(20vw, 36cqi), 80px);
+  height: clamp(40px, min(20vw, 36cqi), 80px);
+  border-radius: clamp(8px, min(4vw, 7.2cqi), 16px);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: clamp(16px, 8vw, 32px);
+  font-size: clamp(16px, min(8vw, 14.4cqi), 32px);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
   cursor: pointer;
