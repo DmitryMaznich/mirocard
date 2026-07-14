@@ -158,11 +158,8 @@ function generatePickFormTasks(cards, params) {
 }
 
 function generateSeasonFormPickTasks(cards, params) {
-  const filtered     = filterByCategory(cards, params.category);
-  const active       = filtered.length > 0 ? filtered : cards;
-  const overviewCards = active.filter(isOverview);
   const tasks = [];
-  for (const card of overviewCards) {
+  for (const card of cards.filter(isOverview)) {
     for (const item of (card.items ?? [])) {
       tasks.push({ type: "season_form_pick", card, item, params });
     }
