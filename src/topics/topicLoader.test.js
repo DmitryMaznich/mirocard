@@ -354,6 +354,37 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params).toHaveProperty("maxOnes");
     expect(buildNumber.params).not.toHaveProperty("level");
   });
+
+  it("refreshes a mode's icon to the current default, even if an older icon was persisted", async () => {
+    // Simulates a device that installed build_number back when it still used the
+    // shared column_addition_mode.svg icon — on the next load, it must pick up the
+    // mode-specific icon instead of staying pinned to the old shared one forever.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "build_number",
+          type: "build_number",
+          evaluation: "instant",
+          ui: { title: "Собери число", icon: "media/icons/column_addition_mode.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+          },
+        },
+      ],
+      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const buildNumber = record.modes.find((m) => m.id === "build_number");
+    expect(buildNumber.ui.icon).toBe("media/icons/place_value_build.svg");
+  });
 });
 
 // ─── chat_practice ────────────────────────────────────────────────────────────
