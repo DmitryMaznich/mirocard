@@ -995,17 +995,22 @@ export default function PlannerShoppingScreen() {
     if (!studentId) return;
     // Normally lands directly on the catalog — the store picker is optional
     // and reachable any time via the 🏪 chip, never a mandatory gate. The
-    // hub's "В магазин" card asks for the in-store checklist instead by
-    // setting plannerShoppingInitialMode before navigating here; consumed
-    // once, then cleared, so a later visit defaults back to the catalog.
+    // hub's "В магазин" card asks for the in-store checklist instead, and
+    // the hub's "Продукты" bar button asks to land straight in the category
+    // editor, by setting plannerShoppingInitialMode before navigating here;
+    // consumed once, then cleared, so a later visit defaults back to the
+    // catalog.
     const initialMode = plannerShoppingInitialMode === 'shop' ? 'shop' : 'plan';
+    const shouldOpenEditor = plannerShoppingInitialMode === 'edit';
     if (plannerShoppingInitialMode) setPlannerShoppingInitialMode(null);
     getPlannerShopStores(studentId).then((saved) => {
       setStores(saved ?? { current: null, list: [...DEFAULT_STORES] });
       setModeView(initialMode);
+      if (shouldOpenEditor) setEditMode(true);
     }).catch(() => {
       setStores({ current: null, list: [...DEFAULT_STORES] });
       setModeView(initialMode);
+      if (shouldOpenEditor) setEditMode(true);
     });
   }, [studentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
