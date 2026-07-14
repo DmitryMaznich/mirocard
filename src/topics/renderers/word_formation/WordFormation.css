@@ -479,8 +479,8 @@
 .wf-sfp__season-pill {
   background: rgba(255, 209, 102, 0.92);
   color: #2C1A0E;
-  font-size: clamp(0.8rem, 2.5vmin, 1.15rem); font-weight: 600;
-  padding: clamp(4px, 1vmin, 7px) clamp(10px, 2.5vmin, 18px); border-radius: 20px;
+  font-size: clamp(1.2rem, 3.75vmin, 1.72rem); font-weight: 600;
+  padding: clamp(6px, 1.5vmin, 10px) clamp(15px, 3.75vmin, 27px); border-radius: 20px;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
