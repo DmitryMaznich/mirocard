@@ -165,19 +165,29 @@
 
 /* ── numeric blocks (optional alternative to cube/ten-frame visuals):
    same-size square frames, distinguished only by the digit and border colour
-   family already used for units (blue) vs tens (amber). ── */
+   family already used for units (blue) vs tens (amber). Sized with clamp() so
+   they use the generous empty space on tall/wide screens instead of staying
+   pinned to the phone-portrait base size: up to 2x in the drop zones, up to
+   3x in the tray (fewer items there, so it can grow further). ── */
 .pv-numeric-block {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: clamp(40px, 20vw, 80px);
+  height: clamp(40px, 20vw, 80px);
+  border-radius: clamp(8px, 4vw, 16px);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 16px;
+  font-size: clamp(16px, 8vw, 32px);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
   cursor: pointer;
+}
+
+.pv-tray .pv-numeric-block {
+  width: clamp(40px, 30vw, 120px);
+  height: clamp(40px, 30vw, 120px);
+  border-radius: clamp(8px, 6vw, 24px);
+  font-size: clamp(16px, 12vw, 48px);
 }
 
 .pv-numeric-block--unit {
