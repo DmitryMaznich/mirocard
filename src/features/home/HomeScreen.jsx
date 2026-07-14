@@ -17,6 +17,7 @@ import { buildPutawayQueue, getRequiredZones } from "@/features/planner/putawayU
 import { isPendingReceiptResolved, getResolvedZoneIds, clearPendingPhotos, getTripReceiptPhoto, getTripZonePhoto } from "@/features/planner/plannerPhotos";
 import { ZONES } from "@/features/planner/putawayLocations";
 import CookPickerSheet from "@/features/planner/CookPickerSheet";
+import RecipeCatalogSheet from "@/features/planner/RecipeCatalogSheet";
 import PlannerActionBar from "@/features/planner/PlannerActionBar";
 import Modal from "@/shared/components/Modal";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory, getPlannerProductZoneOverrides, pullPlannerKvFromServer } from "@/core/groupStore";
@@ -565,9 +566,9 @@ function PlannerTab({ student, setScreen }) {
         />
       )}
       {catalogPickerOpen && (
-        <CookPickerSheet
-          recipes={allRecipes}
-          onPick={pickRecipeAndCook}
+        <RecipeCatalogSheet
+          allRecipes={allRecipes}
+          onCook={pickRecipeAndCook}
           onClose={() => setCatalogPickerOpen(false)}
         />
       )}

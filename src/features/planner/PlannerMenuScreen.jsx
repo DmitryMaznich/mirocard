@@ -8,15 +8,13 @@ import {
   setMealAssignment, setSelectedPortions, resolveChosenPortions,
   setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
   needsMealMismatchWarning,
-  MEAL_TYPES, RECIPE_TAGS,
+  MEAL_TYPES, RECIPE_TAGS, MEAL_ICONS,
 } from './plannerUtils.js';
 import { GLOBAL_MAX_PORTIONS } from './recipeParser.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
 import { isDiscreteUnit } from './shoppingUnitConversions.js';
 import StoveHeatModal from '@/shared/components/StoveHeatModal';
 import './planner.css';
-
-const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
 // ASCII modifier suffixes for MealSlotSection's per-meal soft-color tint
 // (CSS class names stay Latin/kebab-case like everywhere else in the app).
@@ -148,7 +146,7 @@ function SendIcon() {
   );
 }
 
-function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect }) {
+export function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect }) {
   const { topicId, text, ingredients, status } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
 
@@ -181,13 +179,15 @@ function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect 
         >
           <PlayIcon />
         </button>
-        <button
-          type="button"
-          className={`recipe-gallery-card__add-btn${isHere ? ' recipe-gallery-card__add-btn--active' : ''}`}
-          onClick={onToggleSelect}
-        >
-          {isHere ? '✓ В меню' : otherMeal ? `Перенести из «${otherMeal}»` : '+ Добавить'}
-        </button>
+        {onToggleSelect && (
+          <button
+            type="button"
+            className={`recipe-gallery-card__add-btn${isHere ? ' recipe-gallery-card__add-btn--active' : ''}`}
+            onClick={onToggleSelect}
+          >
+            {isHere ? '✓ В меню' : otherMeal ? `Перенести из «${otherMeal}»` : '+ Добавить'}
+          </button>
+        )}
       </div>
     </div>
   );

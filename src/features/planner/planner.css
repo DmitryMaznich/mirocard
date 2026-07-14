@@ -1888,7 +1888,7 @@
   gap: 4px;
   border: none;
   background: none;
-  color: #a8978a;
+  color: #2f5b57;
   font-family: inherit;
   font-size: clamp(8px, 2.4vw, 9px);
   font-weight: 700;
@@ -1901,6 +1901,7 @@
   width: clamp(20px, 6.5vw, 26px);
   height: clamp(20px, 6.5vw, 26px);
   flex-shrink: 0;
+  color: #4a9b8f;
 }
 
 .planner-navbar__item span {
@@ -1915,6 +1916,10 @@
 .planner-navbar__item:disabled {
   color: #d3c7b8;
   cursor: default;
+}
+
+.planner-navbar__item:disabled svg {
+  color: #d3c7b8;
 }
 
 .planner-navbar__item:disabled:active {
@@ -1988,6 +1993,25 @@
   text-align: center;
   font-size: 12px;
   color: #a8978a;
+}
+
+/* ── Recipe catalog overlay (hub's "Рецепты" button) ───────────────────
+   Reuses the exact .screen.planner-screen + .recipe-gallery-grid look from
+   the meal-slot RecipePicker ("Все" tab), but rendered as a full-viewport
+   overlay (position:fixed) instead of a real screen swap, since it's
+   opened from inside the already-mounted planner hub rather than via
+   setScreen(). .planner-header inside already reserves --app-safe-top;
+   the grid's own bottom needs --app-safe-bottom explicitly since nothing
+   else below it does (unlike the real picker screen, which normally sits
+   above a footer that already accounts for it). */
+.recipe-catalog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.recipe-catalog-overlay .recipe-gallery-grid {
+  padding-bottom: calc(12px + var(--app-safe-bottom, 0px));
 }
 
 .cycle-history-sheet {

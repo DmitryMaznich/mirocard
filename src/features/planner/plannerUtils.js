@@ -1,5 +1,6 @@
 export const MEAL_TYPES = ['завтрак', 'обед', 'ужин', 'перекус'];
 export const RECIPE_TAGS = [...MEAL_TYPES, 'напитки'];
+export const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
 export function createPlan(studentId) {
   return {
