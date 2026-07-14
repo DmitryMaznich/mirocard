@@ -62,12 +62,10 @@ function Zones({ tens, ones, exchanged, initialOnes, numeric }) {
   );
 }
 
-export default function RegroupTenTask({ task, onCorrect, onMistake }) {
+export default function RegroupTenTask({ task, onCorrect }) {
   const [tens, setTens] = useState(task.initial.tens);
   const [ones, setOnes] = useState(task.initial.ones);
   const [exchanged, setExchanged] = useState(false);
-  const [answered, setAnswered] = useState(false);
-  const [wrongFlash, setWrongFlash] = useState(false);
   const { speak } = useSpeech();
 
   const sensors = useSensors(
@@ -81,17 +79,6 @@ export default function RegroupTenTask({ task, onCorrect, onMistake }) {
     setOnes((o) => o + 10);
     setExchanged(true);
     speak("Один десяток разменяли на десять единиц");
-  }
-
-  function handleAnswer(saysChanged) {
-    if (saysChanged) {
-      setWrongFlash(true);
-      setTimeout(() => setWrongFlash(false), 500);
-      onMistake?.(task.conceptId, task.cardId);
-      return;
-    }
-    setAnswered(true);
-    speak("Верно! Число не изменилось");
   }
 
   function handleContinue() {
@@ -119,17 +106,7 @@ export default function RegroupTenTask({ task, onCorrect, onMistake }) {
 
         <div className="pv-spacer" />
 
-        {exchanged && !answered && (
-          <div className="pv-footer" style={{ flexDirection: "column", gap: 8 }}>
-            <div className="pv-question">Число изменилось?</div>
-            <div className="pv-yesno-row">
-              <Button variant={wrongFlash ? "primary" : "secondary"} onClick={() => handleAnswer(true)}>ДА</Button>
-              <Button variant="secondary" onClick={() => handleAnswer(false)}>НЕТ</Button>
-            </div>
-          </div>
-        )}
-
-        {answered && (
+        {exchanged && (
           <div className="pv-result-panel">
             <div className="pv-result-line">
               {task.initial.tens * 10} + {task.initial.ones} = {task.number}

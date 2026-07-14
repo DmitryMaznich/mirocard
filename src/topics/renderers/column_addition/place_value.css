@@ -308,21 +308,6 @@
   flex-shrink: 0;
 }
 
-.pv-question {
-  text-align: center;
-  font-size: 16px;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin-bottom: 8px;
-}
-
-.pv-yesno-row {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
 .pv-result-panel {
   display: flex;
   flex-direction: column;
