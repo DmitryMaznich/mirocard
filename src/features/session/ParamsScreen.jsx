@@ -193,6 +193,38 @@ function BooleanParam({ label, hint, value, onChange, disabled }) {
   );
 }
 
+// Two-segment switch: left side is a text label (the "off" state), right side is a
+// small preview of the actual visual it turns on — used where the setting IS a choice
+// between two concrete looks, so showing the look directly reads faster than a label.
+function VisualBooleanParam({ label, offLabel, value, onChange, disabled }) {
+  return (
+    <div
+      className={`param-row param-row--visual-toggle${disabled ? " param-row--disabled" : ""}`}
+      role="group"
+      aria-label={label}
+    >
+      <div className="param-visual-toggle">
+        <button
+          type="button"
+          className={`enum-btn ${!value ? "enum-btn--active" : ""}`}
+          disabled={disabled}
+          onClick={() => onChange(false)}
+        >
+          {offLabel}
+        </button>
+        <button
+          type="button"
+          className={`enum-btn enum-btn--visual ${value ? "enum-btn--active" : ""}`}
+          disabled={disabled}
+          onClick={() => onChange(true)}
+        >
+          <span className="param-visual-block">10</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SentenceListParam({ label, predefined, value, onChange }) {
   const selected = Array.isArray(value) ? value : [];
   const [customText, setCustomText] = useState(() =>
@@ -843,6 +875,18 @@ export default function ParamsScreen() {
                 key={key}
                 label={def.label?.ru ?? key}
                 hint={def.hint?.ru ?? ""}
+                value={params[key] ?? def.default ?? false}
+                disabled={def.dependsOn ? !params[def.dependsOn] : false}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (def.type === "visual_boolean") {
+            return (
+              <VisualBooleanParam
+                key={key}
+                label={def.label?.ru ?? key}
+                offLabel={def.offLabel?.ru ?? "Выкл"}
                 value={params[key] ?? def.default ?? false}
                 disabled={def.dependsOn ? !params[def.dependsOn] : false}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}

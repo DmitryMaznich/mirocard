@@ -1143,8 +1143,9 @@ const DEFAULT_MODES = {
           label: { ru: "Максимум единиц" },
         },
         numericBlocks: {
-          type: "boolean",
+          type: "visual_boolean",
           default: false,
+          offLabel: { ru: "Десятки" },
           label: { ru: "Блоки с цифрами вместо кубиков" },
         },
       },
@@ -1169,8 +1170,9 @@ const DEFAULT_MODES = {
           label: { ru: "Показывать счётчики" },
         },
         numericBlocks: {
-          type: "boolean",
+          type: "visual_boolean",
           default: false,
+          offLabel: { ru: "Десятки" },
           label: { ru: "Блоки с цифрами вместо кубиков" },
         },
       },
@@ -1190,8 +1192,9 @@ const DEFAULT_MODES = {
           label: { ru: "Максимум единиц" },
         },
         numericBlocks: {
-          type: "boolean",
+          type: "visual_boolean",
           default: false,
+          offLabel: { ru: "Десятки" },
           label: { ru: "Блоки с цифрами вместо кубиков" },
         },
       },
@@ -1421,7 +1424,13 @@ function getFallbackModeGoal(mode) {
 
 function normalizeModeMethodology(mode, renderer) {
   const defaults = DEFAULT_MODE_METHODOLOGY[renderer]?.[mode.id] ?? {};
-  const raw = { ...defaults, ...(mode.methodology ?? {}) };
+  // defaults wins over mode.methodology for any key it defines — mode.methodology can
+  // only be a stale snapshot of a previous run of this same DEFAULT_MODE_METHODOLOGY
+  // entry for known default modes (no shipped manifest ever authors its own mode
+  // methodology), so pinning to whatever was persisted first would mean edits to this
+  // text never reach already-installed records. mode.methodology still supplies any
+  // key defaults doesn't define, which matters for genuinely custom (non-default) modes.
+  const raw = { ...(mode.methodology ?? {}), ...defaults };
   const text = normalizeTextValue(raw.text ?? raw.description ?? mode.ui?.instruction, "");
   const summary = normalizeTextValue(raw.summary, text || normalizeTextValue(mode.ui?.instruction, ""));
   const settings = normalizeTextList(raw.settings, describeModeParams(mode.params));
@@ -1499,24 +1508,16 @@ function ensureModeIcons(modes = [], renderer) {
   });
 }
 
-// Keeps a saved param override only if the current code still defines that param key.
-// Without this, renaming/removing a mode param (e.g. level -> maxOnes) leaves the old
-// key merged in forever for any record that ever had it persisted — a dead control that
-// looks live in settings but nothing reads it anymore.
-function pruneStaleParams(defParams = {}, existingParams = {}) {
-  return Object.fromEntries(
-    Object.entries(existingParams).filter(([key]) => key in defParams)
-  );
-}
-
-// title/instruction/icon are code-owned for default modes — no shipped topic manifest
-// defines its own "modes" array (verified across public/*.json), so `existingUi` here
-// can only ever be a previously-persisted snapshot of this very DEFAULT_MODES data,
-// never a genuine user/manifest customization. The current code should always win so
-// text and icon fixes reach already-installed records instead of staying pinned to
-// whatever was true the first time a record was migrated.
-function mergeModeUi(defUi = {}, existingUi = {}) {
-  return { ...existingUi, ...defUi };
+// ui and params are code-owned for default modes — no shipped topic manifest defines
+// its own "modes" array (verified across public/*.json), so whatever is persisted
+// under these keys on an already-installed record can only be a stale snapshot of a
+// PREVIOUS run of this very DEFAULT_MODES data, never a genuine user/manifest
+// customization. The current code should always fully replace it — both to refresh
+// changed values (renamed labels, new icon paths, a param's widget type changing) and
+// to drop keys that no longer exist (e.g. the old `level` param renamed to `maxOnes`).
+// (methodology text is handled the same way, separately, in normalizeModeMethodology.)
+function preferCurrentDefault(defValue) {
+  return defValue ?? {};
 }
 
 function mergeDefaultModes(existingModes = [], defaultModes = []) {
@@ -1528,9 +1529,8 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
     return {
       ...def,
       ...existing,
-      ui:     mergeModeUi(def.ui, existing.ui),
-      params: { ...(def.params ?? {}), ...pruneStaleParams(def.params, existing.params) },
-      methodology: { ...(def.methodology ?? {}), ...(existing.methodology ?? {}) },
+      ui:     preferCurrentDefault(def.ui),
+      params: preferCurrentDefault(def.params),
     };
   });
   const customModes = existingModes.filter((mode) => !defaultIds.has(mode.id));
@@ -1547,9 +1547,8 @@ function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
     return {
       ...def,
       ...mode,
-      ui:     mergeModeUi(def.ui, mode.ui),
-      params: { ...(def.params ?? {}), ...pruneStaleParams(def.params, mode.params) },
-      methodology: { ...(def.methodology ?? {}), ...(mode.methodology ?? {}) },
+      ui:     preferCurrentDefault(def.ui),
+      params: preferCurrentDefault(def.params),
     };
   });
   const missing = defaultModes.filter((m) => !manifestIds.has(m.id));

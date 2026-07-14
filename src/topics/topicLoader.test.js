@@ -403,6 +403,75 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(regroupTen.ui.title).toBe("Разменяй десяток");
     expect(regroupTen.ui.icon).toBe("media/icons/place_value_regroup.svg");
   });
+
+  it("refreshes a mode's param widget type to the current default, even if an older shape was persisted", async () => {
+    // Simulates a device that installed build_number back when numericBlocks was a
+    // plain boolean checkbox — on the next load, the param definition must switch to
+    // the current visual_boolean toggle instead of staying pinned to the old shape.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "build_number",
+          type: "build_number",
+          evaluation: "instant",
+          ui: { title: "Собери число", icon: "media/icons/place_value_build.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+            numericBlocks: { type: "boolean", default: false, label: { ru: "Блоки с цифрами вместо кубиков" } },
+          },
+        },
+      ],
+      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const buildNumber = record.modes.find((m) => m.id === "build_number");
+    expect(buildNumber.params.numericBlocks.type).toBe("visual_boolean");
+    expect(buildNumber.params.numericBlocks.offLabel.ru).toBe("Десятки");
+  });
+
+  it("refreshes a mode's methodology tips to the current default, even if older tips were persisted", async () => {
+    // Simulates a device that installed regroup_ten back when its tips still mentioned
+    // the "Число изменилось?" question that has since been removed — on the next load,
+    // the tips must reflect the current copy instead of staying pinned to the old text.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "regroup_ten",
+          type: "regroup_ten",
+          evaluation: "instant",
+          ui: { title: "Разменяй десяток", instruction: "Перетащи десяток в единицы", icon: "media/icons/place_value_regroup.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+          },
+          methodology: {
+            text: "старый текст с вопросом «Число изменилось?»",
+            tips: ["Если ребёнок отвечает «Да» (число изменилось) — не поясняйте, просто дайте попробовать ещё раз."],
+          },
+        },
+      ],
+      cards: [{ id: "regroup_ten", conceptId: "regroup_ten", renderer: "column_addition", params: { mode: "regroup_ten" } }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const regroupTen = record.modes.find((m) => m.id === "regroup_ten");
+    expect(regroupTen.methodology.text).not.toContain("Число изменилось");
+    expect(regroupTen.methodology.tips.some((t) => t.includes("Число изменилось"))).toBe(false);
+  });
 });
 
 // ─── chat_practice ────────────────────────────────────────────────────────────

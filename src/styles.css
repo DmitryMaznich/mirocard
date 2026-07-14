@@ -14109,6 +14109,31 @@ kbd {
   box-shadow: 0 2px 8px rgba(28, 122, 110, 0.35);
 }
 .enum-btn--active:hover { background: #18695f; }
+
+/* two-segment switch: text on one side, a small preview graphic on the other */
+.param-row--visual-toggle { padding: 10px; }
+.param-visual-toggle { display: flex; gap: 6px; flex: 1; }
+.param-visual-toggle .enum-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.param-visual-toggle .enum-btn--visual { padding: 6px 14px; }
+.param-visual-block {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #fffaf0;
+  border: 1.5px solid #d9a441;
+  color: #92400e;
+  font-weight: 800;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
 .param-concept-row { display: flex; align-items: center; gap: 12px; }
 .param-concept-col { display: flex; flex-direction: column; gap: 6px; }
 .param-concept-dots { display: flex; flex-wrap: wrap; gap: 4px; }
