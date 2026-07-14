@@ -792,75 +792,99 @@ export default function ParamsScreen() {
           </div>
         </div>
       )}
-      {Object.entries(mode.params ?? {}).map(([key, def]) => {
-        if (def.type === "concept_selector") return null;
-        if (def.showWhen) {
-          const [condKey, condVal] = Object.entries(def.showWhen)[0];
-          if ((params[condKey] ?? mode.params?.[condKey]?.default) !== condVal) return null;
+      {(() => {
+        function renderParam(key, def) {
+          if (def.type === "concept_selector") return null;
+          if (def.showWhen) {
+            const [condKey, condVal] = Object.entries(def.showWhen)[0];
+            if ((params[condKey] ?? mode.params?.[condKey]?.default) !== condVal) return null;
+          }
+          if (def.type === "number") {
+            return (
+              <NumberStepper
+                key={key}
+                label={def.label?.ru ?? key}
+                value={params[key] ?? def.default}
+                min={def.min}
+                max={def.max}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (def.type === "enum") {
+            return (
+              <EnumParam
+                key={key}
+                label={def.label?.ru ?? key}
+                options={def.values}
+                labels={def.labels?.ru}
+                value={params[key] ?? def.default}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                disabledValues={def.disabledValues}
+              />
+            );
+          }
+          if (def.type === "enum_multi") {
+            return (
+              <EnumMultiParam
+                key={key}
+                label={def.label?.ru ?? key}
+                options={def.values}
+                labels={def.labels?.ru}
+                value={params[key] ?? def.default ?? []}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (def.type === "boolean") {
+            return (
+              <BooleanParam
+                key={key}
+                label={def.label?.ru ?? key}
+                hint={def.hint?.ru ?? ""}
+                value={params[key] ?? def.default ?? false}
+                disabled={def.dependsOn ? !params[def.dependsOn] : false}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (def.type === "sentence_list") {
+            const predefined = topicRecord?.sentences ?? [];
+            return (
+              <SentenceListParam
+                key={key}
+                label={def.label?.ru ?? key}
+                predefined={predefined}
+                value={params[key] ?? []}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          return null;
         }
-        if (def.type === "number") {
-          return (
-            <NumberStepper
-              key={key}
-              label={def.label?.ru ?? key}
-              value={params[key] ?? def.default}
-              min={def.min}
-              max={def.max}
-              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-            />
-          );
+
+        const allEntries = Object.entries(mode.params ?? {});
+        const ungrouped  = allEntries.filter(([, def]) => !def.section);
+        const sectionMap = {};
+        for (const [key, def] of allEntries) {
+          if (def.section) {
+            if (!sectionMap[def.section]) sectionMap[def.section] = [];
+            sectionMap[def.section].push([key, def]);
+          }
         }
-        if (def.type === "enum") {
-          return (
-            <EnumParam
-              key={key}
-              label={def.label?.ru ?? key}
-              options={def.values}
-              labels={def.labels?.ru}
-              value={params[key] ?? def.default}
-              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-              disabledValues={def.disabledValues}
-            />
-          );
-        }
-        if (def.type === "enum_multi") {
-          return (
-            <EnumMultiParam
-              key={key}
-              label={def.label?.ru ?? key}
-              options={def.values}
-              labels={def.labels?.ru}
-              value={params[key] ?? def.default ?? []}
-              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-            />
-          );
-        }
-        if (def.type === "boolean") {
-          return (
-            <BooleanParam
-              key={key}
-              label={def.label?.ru ?? key}
-              hint={def.hint?.ru ?? ""}
-              value={params[key] ?? def.default ?? false}
-              disabled={def.dependsOn ? !params[def.dependsOn] : false}
-              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-            />
-          );
-        }
-        if (def.type === "sentence_list") {
-          const predefined = topicRecord?.sentences ?? [];
-          return (
-            <SentenceListParam
-              key={key}
-              label={def.label?.ru ?? key}
-              predefined={predefined}
-              value={params[key] ?? []}
-              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-            />
-          );
-        }
-        return null;
-      })}
+
+        return (
+          <>
+            {ungrouped.map(([key, def]) => renderParam(key, def))}
+            {Object.entries(sectionMap).map(([sectionName, entries]) => (
+              <div key={sectionName} className="param-section">
+                <div className="param-section__header">{sectionName}</div>
+                {entries.map(([key, def]) => renderParam(key, def))}
+              </div>
+            ))}
+          </>
+        );
+      })()}
     </>
   );
 

@@ -126,7 +126,7 @@ function generateQuestionAskTasks(cards) {
   }));
 }
 
-function generateSeasonPickItemsTasks(overviewCards) {
+function generateSeasonPickItemsTasks(overviewCards, params = {}) {
   const allItems = overviewCards.flatMap(card =>
     (card.items ?? []).map(it => ({ ...it, _seasonCardId: card.id }))
   );
@@ -137,7 +137,7 @@ function generateSeasonPickItemsTasks(overviewCards) {
       ...correct.map(it    => ({ ...it, isTarget: true  })),
       ...distractors.map(it => ({ ...it, isTarget: false })),
     ]);
-    return { type: "season_pick_items", card, chips };
+    return { type: "season_pick_items", card, chips, params };
   }));
 }
 
@@ -147,7 +147,7 @@ function generatePickFormTasks(cards, params) {
   const overviewCards = active.filter(isOverview);
   const playable      = active.filter(c => !isOverview(c));
   return [
-    ...(overviewCards.length > 0 ? generateSeasonPickItemsTasks(overviewCards) : []),
+    ...(overviewCards.length > 0 ? generateSeasonPickItemsTasks(overviewCards, params) : []),
     ...shuffle(sortByDifficulty(playable).map((card) => ({
       type:     "pick_form",
       card,

@@ -21,17 +21,17 @@ function BgImage({ topicId, path }) {
     : <div className="wf-season__bg wf-season__bg--empty" />;
 }
 
-function PickChip({ item, topicId, chipState, onClick }) {
+function PickChip({ item, topicId, chipState, onClick, hideImage }) {
   const { stem, ending, noun } = splitAdjPhrase(item.adjPhrase);
   const imgUrl = useTopicFile(topicId, item.image ?? "");
 
   let cls = "wf-season__chip";
-  if (imgUrl) cls += " wf-season__chip--img";
+  if (imgUrl && !hideImage) cls += " wf-season__chip--img";
   if (chipState) cls += ` wf-pick-item__chip--${chipState}`;
 
   return (
     <div className={cls} onClick={onClick}>
-      {imgUrl && <img className="wf-season__chip-img" src={imgUrl} alt="" draggable={false} />}
+      {imgUrl && !hideImage && <img className="wf-season__chip-img" src={imgUrl} alt="" draggable={false} />}
       <div className="wf-season__chip-text">
         <span className="wf-season__chip-adj">
           {stem}<span className="wf-season__chip-ending">{ending}</span>
@@ -44,6 +44,7 @@ function PickChip({ item, topicId, chipState, onClick }) {
 
 export default function SeasonPickItemsTask({ task, topicId, onCorrect, onIncorrect }) {
   const { card, chips } = task;
+  const hideOptionImages = task.params?.hideOptionImages ?? false;
   const [correctTapped, setCorrectTapped] = useState(new Set());
   const [wrongId, setWrongId]             = useState(null);
   const done = wrongId !== null || correctTapped.size >= 2;
@@ -84,6 +85,7 @@ export default function SeasonPickItemsTask({ task, topicId, onCorrect, onIncorr
                 topicId={topicId}
                 chipState={chipState(item)}
                 onClick={() => handleTap(item)}
+                hideImage={hideOptionImages}
               />
             ))}
           </div>

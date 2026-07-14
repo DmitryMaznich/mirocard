@@ -14007,6 +14007,15 @@ kbd {
 .recipe-cover-photo { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 12px; margin-bottom: 4px; }
 
 .params-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.param-section { display: flex; flex-direction: column; gap: 8px; }
+.param-section__header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #7a9e9a;
+  padding: 4px 4px 0;
+}
 .param-row {
   display: flex;
   align-items: center;
