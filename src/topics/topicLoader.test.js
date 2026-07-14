@@ -355,10 +355,12 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params).not.toHaveProperty("level");
   });
 
-  it("refreshes a mode's icon to the current default, even if an older icon was persisted", async () => {
-    // Simulates a device that installed build_number back when it still used the
-    // shared column_addition_mode.svg icon — on the next load, it must pick up the
-    // mode-specific icon instead of staying pinned to the old shared one forever.
+  it("refreshes a mode's title/instruction/icon to the current default, even if older text was persisted", async () => {
+    // Simulates a device that installed these modes back when build_number still used
+    // the shared column_addition_mode.svg icon and regroup_ten's title had the wrong
+    // "Размени" conjugation — on the next load, both must pick up the current text
+    // instead of staying pinned to whatever was true the first time the record was
+    // migrated.
     const db = await freshDb();
     const staleRecord = {
       id: "column_addition",
@@ -373,8 +375,20 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
             maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
           },
         },
+        {
+          id: "regroup_ten",
+          type: "regroup_ten",
+          evaluation: "instant",
+          ui: { title: "Размени десяток", instruction: "Перетащи десяток в единицы", icon: "media/icons/column_addition_mode.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+          },
+        },
       ],
-      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      cards: [
+        { id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } },
+        { id: "regroup_ten", conceptId: "regroup_ten", renderer: "column_addition", params: { mode: "regroup_ten" } },
+      ],
       installedAt: new Date().toISOString(),
     };
 
@@ -384,6 +398,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const record = await getTopicRecord(db, "column_addition");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.ui.icon).toBe("media/icons/place_value_build.svg");
+
+    const regroupTen = record.modes.find((m) => m.id === "regroup_ten");
+    expect(regroupTen.ui.title).toBe("Разменяй десяток");
+    expect(regroupTen.ui.icon).toBe("media/icons/place_value_regroup.svg");
   });
 });
 

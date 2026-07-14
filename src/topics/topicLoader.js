@@ -659,7 +659,7 @@ const DEFAULT_MODE_METHODOLOGY = {
       ],
     },
     regroup_ten: {
-      summary: "Размени один десяток на десять единиц.",
+      summary: "Разменяй один десяток на десять единиц.",
       text: "Число уже собрано. Ребёнок перетаскивает один столбик-десяток прямо в зону ЕДИНИЦЫ — он рассыпается на 10 кубиков. Число сверху не меняется. Затем вопрос «Число изменилось?» — правильный ответ «НЕТ».",
       settings: [
         "«Максимум единиц» — тот же диапазон, что и в «Собери число»; режим имеет смысл только для чисел, где десятков ≥ 1 (гарантировано генератором).",
@@ -1170,7 +1170,7 @@ const DEFAULT_MODES = {
       type: "regroup_ten",
       evaluation: "instant",
       orientationLock: "portrait",
-      ui: { title: "Размени десяток", instruction: "Перетащи десяток в единицы", icon: "media/icons/place_value_regroup.svg" },
+      ui: { title: "Разменяй десяток", instruction: "Перетащи десяток в единицы", icon: "media/icons/place_value_regroup.svg" },
       params: {
         maxOnes: {
           type: "number",
@@ -1499,16 +1499,14 @@ function pruneStaleParams(defParams = {}, existingParams = {}) {
   );
 }
 
-// icon is a code-owned visual asset for default modes — nothing lets a user pick a
-// different one — so unlike title/instruction it should never be pinned to whatever
-// path was persisted the first time a record was migrated. Without this, swapping a
-// mode's icon file in DEFAULT_MODES never reaches already-installed records.
+// title/instruction/icon are code-owned for default modes — no shipped topic manifest
+// defines its own "modes" array (verified across public/*.json), so `existingUi` here
+// can only ever be a previously-persisted snapshot of this very DEFAULT_MODES data,
+// never a genuine user/manifest customization. The current code should always win so
+// text and icon fixes reach already-installed records instead of staying pinned to
+// whatever was true the first time a record was migrated.
 function mergeModeUi(defUi = {}, existingUi = {}) {
-  return {
-    ...defUi,
-    ...existingUi,
-    icon: defUi.icon ?? existingUi.icon,
-  };
+  return { ...existingUi, ...defUi };
 }
 
 function mergeDefaultModes(existingModes = [], defaultModes = []) {

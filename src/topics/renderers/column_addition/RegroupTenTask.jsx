@@ -101,7 +101,7 @@ export default function RegroupTenTask({ task, onCorrect, onMistake }) {
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen">
-        <div className="pv-instruction">Размени один десяток на единицы</div>
+        <div className="pv-instruction">Разменяй один десяток на единицы</div>
         <div className="pv-number">{task.number}</div>
 
         <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} numeric={task.numericBlocks} />
