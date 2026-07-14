@@ -59,7 +59,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
           <div className="pv-zone-label">ДЕСЯТКИ</div>
           <div className="pv-zone-body">
             {Array.from({ length: task.model.tens }, (_, i) => (
-              <TenCard key={i} />
+              <TenCard key={i} numeric={task.numericBlocks} />
             ))}
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
           <div className="pv-zone-label">ЕДИНИЦЫ</div>
           <div className="pv-zone-body">
             {Array.from({ length: task.model.ones }, (_, i) => (
-              <UnitCube key={i} />
+              <UnitCube key={i} numeric={task.numericBlocks} />
             ))}
           </div>
         </div>
