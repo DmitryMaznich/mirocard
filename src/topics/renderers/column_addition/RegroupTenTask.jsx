@@ -12,7 +12,7 @@ function DraggableTenCard({ id, numeric }) {
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 10 : "auto", cursor: "grab" }}
+      style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 10 : "auto", cursor: "grab", touchAction: "none" }}
       {...listeners}
       {...attributes}
     >
