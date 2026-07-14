@@ -65,6 +65,12 @@
   border-color: #ef4444;
 }
 
+.pv-zone--correct {
+  border-color: #059669;
+  border-style: solid;
+  background: #d1fae5;
+}
+
 @keyframes pv-shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-6px); }
@@ -219,6 +225,12 @@
   animation: pv-shake 0.4s ease-in-out;
 }
 
+.pv-answer-slot--correct {
+  border-color: #059669;
+  background: #d1fae5;
+  color: #065f46;
+}
+
 .pv-numpad {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -266,9 +278,17 @@
 }
 
 .pv-result-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   text-align: center;
   padding: 14px;
   flex-shrink: 0;
+}
+
+.pv-result-panel .btn {
+  margin-top: 8px;
 }
 
 .pv-result-line {

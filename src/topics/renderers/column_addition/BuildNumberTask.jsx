@@ -26,11 +26,11 @@ function TrayItem({ id, kind, children }) {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Workspace({ placed, errorZones, onRemoveTen, onRemoveOne }) {
+function Workspace({ placed, errorZones, solved, onRemoveTen, onRemoveOne }) {
   const { setNodeRef, isOver } = useDroppable({ id: "pv-workspace" });
   return (
     <div className="pv-zones" ref={setNodeRef}>
-      <div className={`pv-zone${errorZones.tens ? " pv-zone--error" : ""}${isOver ? " pv-zone--drag-over" : ""}`}>
+      <div className={`pv-zone${errorZones.tens ? " pv-zone--error" : ""}${solved ? " pv-zone--correct" : ""}${isOver ? " pv-zone--drag-over" : ""}`}>
         <div className="pv-zone-label">ДЕСЯТКИ</div>
         <div className="pv-zone-body">
           {Array.from({ length: placed.tens }, (_, i) => (
@@ -40,7 +40,7 @@ function Workspace({ placed, errorZones, onRemoveTen, onRemoveOne }) {
           ))}
         </div>
       </div>
-      <div className={`pv-zone${errorZones.ones ? " pv-zone--error" : ""}${isOver ? " pv-zone--drag-over" : ""}`}>
+      <div className={`pv-zone${errorZones.ones ? " pv-zone--error" : ""}${solved ? " pv-zone--correct" : ""}${isOver ? " pv-zone--drag-over" : ""}`}>
         <div className="pv-zone-label">ЕДИНИЦЫ</div>
         <div className="pv-zone-body">
           {Array.from({ length: placed.ones }, (_, i) => (
@@ -57,6 +57,7 @@ function Workspace({ placed, errorZones, onRemoveTen, onRemoveOne }) {
 export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   const [placed, setPlaced] = useState({ tens: 0, ones: 0 });
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
+  const [solved, setSolved] = useState(false);
   const { speak } = useSpeech();
 
   const sensors = useSensors(
@@ -88,11 +89,15 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
     const okOnes = placed.ones === task.target.ones;
     if (okTens && okOnes) {
       speak("Верно!");
-      onCorrect(task.conceptId, task.cardId);
+      setSolved(true);
     } else {
       setErrorZones({ tens: !okTens, ones: !okOnes });
       onMistake?.(task.conceptId, task.cardId);
     }
+  }
+
+  function handleContinue() {
+    onCorrect(task.conceptId, task.cardId);
   }
 
   return (
@@ -101,7 +106,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
         <div className="pv-instruction">Собери число</div>
         <div className="pv-number">{task.number}</div>
 
-        <Workspace placed={placed} errorZones={errorZones} onRemoveTen={removeTen} onRemoveOne={removeOne} />
+        <Workspace placed={placed} errorZones={errorZones} solved={solved} onRemoveTen={removeTen} onRemoveOne={removeOne} />
 
         <div className="pv-zones" style={{ flex: 0 }}>
           <div style={{ flex: 1 }} className="pv-zone-counter">
@@ -124,7 +129,11 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
         </div>
 
         <div className="pv-footer">
-          <Button variant="primary" onClick={handleDone}>ГОТОВО</Button>
+          {solved ? (
+            <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
+          ) : (
+            <Button variant="primary" onClick={handleDone}>ГОТОВО</Button>
+          )}
         </div>
       </div>
     </DndContext>

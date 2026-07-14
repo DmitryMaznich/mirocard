@@ -92,6 +92,9 @@ export default function RegroupTenTask({ task, onCorrect, onMistake }) {
     }
     setAnswered(true);
     speak("Верно! Число не изменилось");
+  }
+
+  function handleContinue() {
     onCorrect(task.conceptId, task.cardId);
   }
 
@@ -134,6 +137,7 @@ export default function RegroupTenTask({ task, onCorrect, onMistake }) {
             <div className="pv-result-line pv-result-line--sum">
               {task.after.tens * 10} + {task.after.ones} = {task.number}
             </div>
+            <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
           </div>
         )}
       </div>

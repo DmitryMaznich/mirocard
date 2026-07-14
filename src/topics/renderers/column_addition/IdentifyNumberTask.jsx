@@ -10,6 +10,7 @@ const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
   const [val, setVal] = useState({ tens: null, ones: null });
   const [shake, setShake] = useState({ tens: false, ones: false });
+  const [solved, setSolved] = useState(false);
   const { speak } = useSpeech();
 
   function checkAnswer(next) {
@@ -17,7 +18,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
     const okOnes = next.ones === task.model.ones;
     if (okTens && okOnes) {
       speak("Верно!");
-      onCorrect(task.conceptId, task.cardId);
+      setSolved(true);
       return;
     }
     setShake({ tens: !okTens, ones: !okOnes });
@@ -29,6 +30,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
   }
 
   function handleDigit(d) {
+    if (solved) return;
     if (val.tens === null) {
       setVal({ tens: d, ones: null });
       return;
@@ -42,6 +44,10 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
 
   function handleClear() {
     setVal({ tens: null, ones: null });
+  }
+
+  function handleContinue() {
+    onCorrect(task.conceptId, task.cardId);
   }
 
   return (
@@ -79,10 +85,10 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
       )}
 
       <div className="pv-answer-row">
-        <div className={`pv-answer-slot${val.tens !== null ? " pv-answer-slot--filled" : ""}${shake.tens ? " pv-answer-slot--shake" : ""}`}>
+        <div className={`pv-answer-slot${val.tens !== null ? " pv-answer-slot--filled" : ""}${solved ? " pv-answer-slot--correct" : ""}${shake.tens ? " pv-answer-slot--shake" : ""}`}>
           {val.tens ?? "?"}
         </div>
-        <div className={`pv-answer-slot${val.ones !== null ? " pv-answer-slot--filled" : ""}${shake.ones ? " pv-answer-slot--shake" : ""}`}>
+        <div className={`pv-answer-slot${val.ones !== null ? " pv-answer-slot--filled" : ""}${solved ? " pv-answer-slot--correct" : ""}${shake.ones ? " pv-answer-slot--shake" : ""}`}>
           {val.ones ?? "?"}
         </div>
       </div>
@@ -91,13 +97,17 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
 
       <div className="pv-numpad">
         {DIGITS.map((d) => (
-          <button key={d} className="pv-numkey" onClick={() => handleDigit(d)}>
+          <button key={d} className="pv-numkey" onClick={() => handleDigit(d)} disabled={solved}>
             {d}
           </button>
         ))}
       </div>
       <div className="pv-footer">
-        <Button variant="secondary" onClick={handleClear}>Стереть</Button>
+        {solved ? (
+          <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
+        ) : (
+          <Button variant="secondary" onClick={handleClear}>Стереть</Button>
+        )}
       </div>
     </div>
   );
