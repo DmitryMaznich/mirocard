@@ -30,7 +30,11 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
   const { markSessionStart } = useTimer();
   const fixedPortions = activeText.fixedPortions ?? null;
-  const basePortions = activeText.portions ?? 1;
+  // Defaults to 1, not the recipe file's "written for N people" portions —
+  // that's a fact about the recipe, not a choice the cook has made yet (same
+  // reasoning as the menu/catalog ingredient previews). getRecipeSettings
+  // below still restores whatever the cook picked last time for this recipe.
+  const basePortions = 1;
   const maxPortions = GLOBAL_MAX_PORTIONS;
   const [portions, setPortions] = useState(basePortions);
   const [stoveModalOpen, setStoveModalOpen] = useState(false);
