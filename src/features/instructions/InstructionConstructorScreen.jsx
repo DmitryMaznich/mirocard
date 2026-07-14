@@ -7,9 +7,20 @@ import { validateInstructionDraft } from "./instructionValidation";
 import { uploadInstructionPhoto } from "./instructionPhotoUpload";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
 import "./instructions.css";
 
-const EMOJI_CHOICES = ["🎒", "🧦", "🪥", "🛏️", "🧸", "🧽", "🧥", "🍽️", "📚", "🧴"];
+const EMOJI_CATEGORIES = [
+  ["Дом и уборка", ["🧹", "🧺", "🪣", "🗑️", "🧻", "🪟", "🛏️", "🧽"]],
+  ["Гигиена", ["🪥", "🚿", "🛁", "🧼", "💧", "🪒", "💅", "🧴"]],
+  ["Одежда", ["👕", "👖", "🧦", "🧥", "👟", "🧢", "👗", "🩳"]],
+  ["Еда и кухня", ["🍽️", "🥣", "🥤", "🍎", "🥪", "🍳", "🥛", "🧊"]],
+  ["Школа и творчество", ["🎒", "📚", "✏️", "🖍️", "📓", "🧩", "✂️", "🎨"]],
+  ["Спорт и игры", ["⚽", "🚴", "🏀", "🧸", "🎲", "🪀", "🛝", "🏊"]],
+  ["Природа и улица", ["🌳", "🌞", "☂️", "🐶", "🐱", "🦋", "🌧️", "🚗"]],
+  ["Разное", ["⏰", "🎉", "⭐", "✅", "💤", "🎁", "📅", "🔔"]],
+];
+const DEFAULT_EMOJI = EMOJI_CATEGORIES[0][1][0];
 
 export default function InstructionConstructorScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -17,7 +28,8 @@ export default function InstructionConstructorScreen() {
   const isEditing = !!instructionConstructorId;
 
   const [title, setTitle] = useState("");
-  const [emoji, setEmoji] = useState(EMOJI_CHOICES[0]);
+  const [emoji, setEmoji] = useState(DEFAULT_EMOJI);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [steps, setSteps] = useState([{ text: "", photo: null }]);
   const [uploadingSteps, setUploadingSteps] = useState(() => new Set());
   const [photoErrors, setPhotoErrors] = useState({});
@@ -131,18 +143,14 @@ export default function InstructionConstructorScreen() {
       <div className="cn-scroll">
         <div className="cn-field">
           <label>Значок</label>
-          <div className="cn-emoji-row">
-            {EMOJI_CHOICES.map((e) => (
-              <button
-                type="button"
-                key={e}
-                className={`cn-emoji-pick${emoji === e ? " cn-emoji-pick--selected" : ""}`}
-                onClick={() => setEmoji(e)}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
+          <button type="button" className="cn-emoji-trigger" onClick={() => setEmojiPickerOpen(true)}>
+            <span className="cn-emoji-trigger__glyph">{emoji}</span>
+            <span className="cn-emoji-trigger__text">
+              <span className="cn-emoji-trigger__title">{emoji} Выбран</span>
+              <span className="cn-emoji-trigger__hint">Нажмите, чтобы сменить</span>
+            </span>
+            <span className="cn-emoji-trigger__chevron">›</span>
+          </button>
         </div>
         <div className="cn-field">
           <label>Название</label>
@@ -250,6 +258,31 @@ export default function InstructionConstructorScreen() {
         )}
         <Button variant="primary" onClick={handleSave} disabled={saving || uploadingSteps.size > 0}>Сохранить</Button>
       </div>
+
+      {emojiPickerOpen && (
+        <Modal title="Выберите значок" onClose={() => setEmojiPickerOpen(false)}>
+          {EMOJI_CATEGORIES.map(([label, emojis]) => (
+            <div className="cn-emoji-category" key={label}>
+              <div className="cn-emoji-category__label">{label}</div>
+              <div className="cn-emoji-category__grid">
+                {emojis.map((e) => (
+                  <button
+                    type="button"
+                    key={e}
+                    className={`cn-emoji-pick${emoji === e ? " cn-emoji-pick--selected" : ""}`}
+                    onClick={() => {
+                      setEmoji(e);
+                      setEmojiPickerOpen(false);
+                    }}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </Modal>
+      )}
     </div>
   );
 }
