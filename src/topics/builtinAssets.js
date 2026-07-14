@@ -327,6 +327,50 @@ const BUILTIN_ASSETS = {
   <rect x="78" y="84" width="24" height="24" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
   <text x="90" y="102" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#059669">2</text>
 </svg>`,
+  "media/icons/place_value_build.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff8ec"/>
+  <rect x="30" y="12" width="68" height="34" rx="10" fill="#ffffff" stroke="#e4c98a" stroke-width="3"/>
+  <text x="64" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="900" fill="#1a1a2e">24</text>
+  <path d="M42 76V54" stroke="#c9a227" stroke-width="4" stroke-linecap="round"/>
+  <path d="M36 60 42 52 48 60" fill="none" stroke="#c9a227" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M86 76V54" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+  <path d="M80 60 86 52 92 60" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="24" y="80" width="36" height="36" rx="9" fill="#fffaf0" stroke="#d9a441" stroke-width="3"/>
+  <text x="42" y="104" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="900" fill="#92400e">10</text>
+  <rect x="68" y="80" width="36" height="36" rx="9" fill="#93c5fd" stroke="#2563eb" stroke-width="3"/>
+  <text x="86" y="104" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="900" fill="#1e3a8a">1</text>
+</svg>`,
+  "media/icons/place_value_identify.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <rect x="24" y="20" width="34" height="34" rx="8" fill="#fffaf0" stroke="#d9a441" stroke-width="3"/>
+  <text x="41" y="43" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="900" fill="#92400e">10</text>
+  <rect x="70" y="20" width="34" height="34" rx="8" fill="#93c5fd" stroke="#2563eb" stroke-width="3"/>
+  <text x="87" y="43" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="900" fill="#1e3a8a">1</text>
+  <rect x="28" y="70" width="32" height="38" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="3" stroke-dasharray="4,3"/>
+  <text x="44" y="97" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#64748b">?</text>
+  <rect x="68" y="70" width="32" height="38" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="3" stroke-dasharray="4,3"/>
+  <text x="84" y="97" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" fill="#64748b">?</text>
+</svg>`,
+  "media/icons/place_value_regroup.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fef9ee"/>
+  <rect x="12" y="46" width="40" height="40" rx="9" fill="#fffaf0" stroke="#d9a441" stroke-width="3"/>
+  <text x="32" y="72" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="900" fill="#92400e">10</text>
+  <path d="M56 66h16" stroke="#c9a227" stroke-width="4" stroke-linecap="round"/>
+  <path d="M66 60 74 66 66 72" fill="none" stroke="#c9a227" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="74" y="57" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="84" y="57" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="94" y="57" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="104" y="57" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="114" y="57" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="74" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="84" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="94" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="104" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+  <rect x="114" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
+</svg>`,
   "media/avatar_operations.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#eefaf5"/>
