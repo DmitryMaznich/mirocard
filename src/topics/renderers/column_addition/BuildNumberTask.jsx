@@ -26,7 +26,7 @@ function TrayItem({ id, kind, children }) {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Workspace({ placed, errorZones, solved, onRemoveTen, onRemoveOne }) {
+function Workspace({ placed, errorZones, solved, numeric, onRemoveTen, onRemoveOne }) {
   const { setNodeRef, isOver } = useDroppable({ id: "pv-workspace" });
   return (
     <div className="pv-zones" ref={setNodeRef}>
@@ -35,7 +35,7 @@ function Workspace({ placed, errorZones, solved, onRemoveTen, onRemoveOne }) {
         <div className="pv-zone-body">
           {Array.from({ length: placed.tens }, (_, i) => (
             <div key={i} onClick={onRemoveTen}>
-              <TenCard />
+              <TenCard numeric={numeric} />
             </div>
           ))}
         </div>
@@ -45,7 +45,7 @@ function Workspace({ placed, errorZones, solved, onRemoveTen, onRemoveOne }) {
         <div className="pv-zone-body">
           {Array.from({ length: placed.ones }, (_, i) => (
             <div key={i} onClick={onRemoveOne}>
-              <UnitCube />
+              <UnitCube numeric={numeric} />
             </div>
           ))}
         </div>
@@ -106,7 +106,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
         <div className="pv-instruction">Собери число</div>
         <div className="pv-number">{task.number}</div>
 
-        <Workspace placed={placed} errorZones={errorZones} solved={solved} onRemoveTen={removeTen} onRemoveOne={removeOne} />
+        <Workspace placed={placed} errorZones={errorZones} solved={solved} numeric={task.numericBlocks} onRemoveTen={removeTen} onRemoveOne={removeOne} />
 
         <div className="pv-zones" style={{ flex: 0 }}>
           <div style={{ flex: 1 }} className="pv-zone-counter">
@@ -121,10 +121,10 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
 
         <div className="pv-tray">
           <TrayItem id="tray-ten" kind="ten">
-            <TenCard />
+            <TenCard numeric={task.numericBlocks} />
           </TrayItem>
           <TrayItem id="tray-unit" kind="unit">
-            <UnitCube />
+            <UnitCube numeric={task.numericBlocks} />
           </TrayItem>
         </div>
 
