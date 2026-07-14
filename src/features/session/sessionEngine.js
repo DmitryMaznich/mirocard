@@ -5,7 +5,7 @@ function generateId() {
 // Task types that never call handleAnswer/handleInstantCorrect (advance-only)
 const ADVANCE_ONLY_TYPES = new Set(["pair_intro", "season_overview"]);
 
-export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false, answersPerStar = 1) {
+export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false, answersPerStar = 1, strictStars = true) {
   const rawAps = Math.max(1, Math.min(3, Math.round(answersPerStar ?? 1)));
   const evaluableCount = tasks.filter(t => !ADVANCE_ONLY_TYPES.has(t.type)).length;
   // Cap so 5 stars can always be earned within the available evaluable tasks.
@@ -23,6 +23,7 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     conceptIds,
     isDeckMode,
     answersPerStar: effectiveAps,
+    strictStars: !!strictStars,
     correctCount: 0,
     incorrectCount: 0,
     streakCount: 0,
@@ -56,7 +57,7 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
     ...state,
     status: "answer_incorrect",
     incorrectCount: state.incorrectCount + 1,
-    streakCount: 0,
+    streakCount: state.strictStars ? 0 : (state.streakCount ?? 0),
     mistakes: conceptId
       ? [...state.mistakes, { conceptId, cardId }]
       : state.mistakes,
@@ -87,7 +88,7 @@ export function handleInstantIncorrect(state, conceptId, cardId) {
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
-  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount: 0, mistakes };
+  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount: state.strictStars ? 0 : (state.streakCount ?? 0), mistakes };
 }
 
 export function handleQualityAnswer(state, quality, conceptId, cardId) {

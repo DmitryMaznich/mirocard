@@ -114,6 +114,7 @@ function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
+    link.strictStars ?? true,
   );
 
   if (mode.type === "assemble_text") {

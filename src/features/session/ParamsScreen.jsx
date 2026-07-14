@@ -529,6 +529,7 @@ export default function ParamsScreen() {
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
+  const modeHasCategoryParam  = !!mode?.params?.category;
 
   const [showShare, setShowShare] = useState(false);
 
@@ -633,7 +634,7 @@ export default function ParamsScreen() {
   const [params,         setParams]        = useState(getInitialParams);
   const [videoReward,   setVideoReward]   = useState(link.videoRewardEnabled ?? true);
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
-  const [strictStars,   setStrictStars]   = useState(link.strictStars ?? false);
+  const [strictStars,   setStrictStars]   = useState(link.strictStars ?? true);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
 
@@ -761,7 +762,7 @@ export default function ParamsScreen() {
     <ComparisonParams params={params} onChange={setParams} />
   ) : (
     <>
-      {!isPhraseMatch && (
+      {!isPhraseMatch && !modeHasCategoryParam && (
         <div className="param-row param-row--block">
           <div className="param-label">Понятия</div>
           <div className="param-concept-col">
