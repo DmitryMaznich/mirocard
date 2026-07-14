@@ -7,7 +7,7 @@ import { UnitCube, TenCard } from "./PlaceValueBlocks.jsx";
 import { pluralTens, pluralOnes } from "./placeValueLabels.js";
 import "./place_value.css";
 
-function DraggableTenCard({ id }) {
+function DraggableTenCard({ id, numeric }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id, data: { kind: "ten" } });
   return (
     <div
@@ -16,7 +16,7 @@ function DraggableTenCard({ id }) {
       {...listeners}
       {...attributes}
     >
-      <TenCard />
+      <TenCard numeric={numeric} />
     </div>
   );
 }
@@ -25,7 +25,7 @@ function DraggableTenCard({ id }) {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Zones({ tens, ones, exchanged, initialOnes }) {
+function Zones({ tens, ones, exchanged, initialOnes, numeric }) {
   const { setNodeRef, isOver } = useDroppable({ id: "pv-ones-zone" });
   return (
     <div className="pv-zones">
@@ -34,9 +34,9 @@ function Zones({ tens, ones, exchanged, initialOnes }) {
         <div className="pv-zone-body">
           {Array.from({ length: tens }, (_, i) =>
             !exchanged && i === tens - 1 ? (
-              <DraggableTenCard key={i} id={`ten-${i}`} />
+              <DraggableTenCard key={i} id={`ten-${i}`} numeric={numeric} />
             ) : (
-              <TenCard key={i} />
+              <TenCard key={i} numeric={numeric} />
             )
           )}
         </div>
@@ -52,7 +52,7 @@ function Zones({ tens, ones, exchanged, initialOnes }) {
                 className={isNew ? "pv-cube-pop" : undefined}
                 style={isNew ? { animationDelay: `${(i - initialOnes) * 45}ms` } : undefined}
               >
-                <UnitCube />
+                <UnitCube numeric={numeric} />
               </div>
             );
           })}
@@ -104,7 +104,7 @@ export default function RegroupTenTask({ task, onCorrect, onMistake }) {
         <div className="pv-instruction">Размени один десяток на единицы</div>
         <div className="pv-number">{task.number}</div>
 
-        <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} />
+        <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} numeric={task.numericBlocks} />
 
         <div className="pv-zones" style={{ flex: 0 }}>
           <div style={{ flex: 1 }} className="pv-zone-counter">
