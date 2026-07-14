@@ -1471,6 +1471,16 @@ function ensureModeIcons(modes = [], renderer) {
   });
 }
 
+// Keeps a saved param override only if the current code still defines that param key.
+// Without this, renaming/removing a mode param (e.g. level -> maxOnes) leaves the old
+// key merged in forever for any record that ever had it persisted — a dead control that
+// looks live in settings but nothing reads it anymore.
+function pruneStaleParams(defParams = {}, existingParams = {}) {
+  return Object.fromEntries(
+    Object.entries(existingParams).filter(([key]) => key in defParams)
+  );
+}
+
 function mergeDefaultModes(existingModes = [], defaultModes = []) {
   const existingById = Object.fromEntries(existingModes.map((mode) => [mode.id, mode]));
   const defaultIds = new Set(defaultModes.map((mode) => mode.id));
@@ -1481,7 +1491,7 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
       ...def,
       ...existing,
       ui:     { ...(def.ui ?? {}), ...(existing.ui ?? {}) },
-      params: { ...(def.params ?? {}), ...(existing.params ?? {}) },
+      params: { ...(def.params ?? {}), ...pruneStaleParams(def.params, existing.params) },
       methodology: { ...(def.methodology ?? {}), ...(existing.methodology ?? {}) },
     };
   });
@@ -1500,7 +1510,7 @@ function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
       ...def,
       ...mode,
       ui:     { ...(def.ui ?? {}), ...(mode.ui ?? {}) },
-      params: { ...(def.params ?? {}), ...(mode.params ?? {}) },
+      params: { ...(def.params ?? {}), ...pruneStaleParams(def.params, mode.params) },
       methodology: { ...(def.methodology ?? {}), ...(mode.methodology ?? {}) },
     };
   });

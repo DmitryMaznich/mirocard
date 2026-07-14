@@ -323,6 +323,37 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(record.meta.avatar).toBe("media/avatar_flashcards.svg");
     expect(record.modes.every((mode) => mode.ui?.icon)).toBe(true);
   });
+
+  it("drops a mode param that no longer exists in the current default, keeping the new one", async () => {
+    // Simulates a device that saved build_number's old "level" param before it was
+    // renamed to "maxOnes" — on the next load, the stale key must not linger forever.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "build_number",
+          type: "build_number",
+          evaluation: "instant",
+          ui: { title: "Собери число" },
+          params: {
+            level: { type: "enum", values: [1, 2, 3, 4, 5], default: 1, label: { ru: "Уровень" } },
+          },
+        },
+      ],
+      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const buildNumber = record.modes.find((m) => m.id === "build_number");
+    expect(buildNumber.params).toHaveProperty("maxOnes");
+    expect(buildNumber.params).not.toHaveProperty("level");
+  });
 });
 
 // ─── chat_practice ────────────────────────────────────────────────────────────
