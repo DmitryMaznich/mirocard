@@ -13,16 +13,8 @@ import {
 import { GLOBAL_MAX_PORTIONS } from './recipeParser.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
 import { isDiscreteUnit } from './shoppingUnitConversions.js';
-import { getStoveHeatMapping, saveStoveHeatMapping, pullRecipeKvFromServer } from '@/core/groupStore';
-import Modal from '@/shared/components/Modal';
+import StoveHeatModal from '@/shared/components/StoveHeatModal';
 import './planner.css';
-
-const STOVE_HEAT_LEVELS = [
-  { key: 'weak',       label: 'Слабый огонь' },
-  { key: 'medium',     label: 'Средний огонь' },
-  { key: 'strong',     label: 'Сильный огонь' },
-  { key: 'veryStrong', label: 'Очень сильный огонь' },
-];
 
 const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
@@ -454,28 +446,6 @@ function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRe
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState(null);
   const [stoveModalOpen, setStoveModalOpen] = useState(false);
-  const [stoveMapping, setStoveMapping] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      await pullRecipeKvFromServer().catch(() => {});
-      const mapping = await getStoveHeatMapping().catch(() => null);
-      if (!cancelled) setStoveMapping(mapping);
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
-
-  function handleStoveFieldChange(key, value) {
-    const num = value === '' ? null : Math.max(1, Math.min(20, parseInt(value, 10) || 1));
-    setStoveMapping((prev) => ({ ...prev, [key]: num }));
-  }
-
-  async function handleStoveSave() {
-    await saveStoveHeatMapping(stoveMapping).catch(() => {});
-    setStoveModalOpen(false);
-  }
 
   async function handleSend() {
     setSending(true);
@@ -531,32 +501,7 @@ function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRe
         )}
       </div>
 
-      {stoveModalOpen && (
-        <Modal title="Цифры на плите" onClose={() => setStoveModalOpen(false)}>
-          <p className="stove-heat-modal__hint">
-            У всех плит разная шкала. Впишите, какой цифре на вашей плите
-            соответствует каждый уровень нагрева из рецептов — эта цифра
-            будет показываться рядом с огоньками во время готовки.
-          </p>
-          {STOVE_HEAT_LEVELS.map(({ key, label }) => (
-            <div className="stove-heat-modal__row" key={key}>
-              <label htmlFor={`stove-heat-${key}`}>{label}</label>
-              <input
-                id={`stove-heat-${key}`}
-                type="number"
-                min="1"
-                max="20"
-                inputMode="numeric"
-                value={stoveMapping?.[key] ?? ''}
-                onChange={(e) => handleStoveFieldChange(key, e.target.value)}
-              />
-            </div>
-          ))}
-          <button type="button" className="menu-shopping-btn" onClick={handleStoveSave}>
-            Сохранить
-          </button>
-        </Modal>
-      )}
+      {stoveModalOpen && <StoveHeatModal onClose={() => setStoveModalOpen(false)} />}
 
       <div className="planner-body">
         {sendError && <div className="menu-send-error">{sendError}</div>}

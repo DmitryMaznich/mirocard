@@ -18,6 +18,7 @@ import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
+import StoveHeatModal from "@/shared/components/StoveHeatModal";
 import { GLOBAL_MAX_PORTIONS } from "@/features/planner/recipeParser.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
@@ -32,6 +33,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const basePortions = activeText.portions ?? 1;
   const maxPortions = GLOBAL_MAX_PORTIONS;
   const [portions, setPortions] = useState(basePortions);
+  const [stoveModalOpen, setStoveModalOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,11 +81,23 @@ function RecipeStartParams({ topicId, activeText, student }) {
                 </div>
             }
           </div>
+          <div className="param-row">
+            <div className="param-label">Цифры на плите</div>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => setStoveModalOpen(true)}
+            >
+              Настроить
+            </button>
+          </div>
         </div>
         <div className="params-start-phone">
           <Button fullWidth onClick={startSession}>Начать готовить</Button>
         </div>
       </div>
+
+      {stoveModalOpen && <StoveHeatModal onClose={() => setStoveModalOpen(false)} />}
     </div>
   );
 }
