@@ -1123,7 +1123,7 @@ const DEFAULT_MODES = {
       type: "build_number",
       evaluation: "instant",
       orientationLock: "portrait",
-      ui: { title: "Собери число", instruction: "Перетащи десятки и единицы на свои места", icon: "media/icons/column_addition_mode.svg" },
+      ui: { title: "Собери число", instruction: "Перетащи десятки и единицы на свои места", icon: "media/icons/place_value_build.svg" },
       params: {
         maxOnes: {
           type: "number",
@@ -1144,7 +1144,7 @@ const DEFAULT_MODES = {
       type: "identify_number",
       evaluation: "instant",
       orientationLock: "portrait",
-      ui: { title: "Какое это число?", instruction: "Посмотри на десятки и единицы и введи число", icon: "media/icons/column_addition_mode.svg" },
+      ui: { title: "Какое это число?", instruction: "Посмотри на десятки и единицы и введи число", icon: "media/icons/place_value_identify.svg" },
       params: {
         maxOnes: {
           type: "number",
@@ -1170,7 +1170,7 @@ const DEFAULT_MODES = {
       type: "regroup_ten",
       evaluation: "instant",
       orientationLock: "portrait",
-      ui: { title: "Размени десяток", instruction: "Перетащи десяток в единицы", icon: "media/icons/column_addition_mode.svg" },
+      ui: { title: "Размени десяток", instruction: "Перетащи десяток в единицы", icon: "media/icons/place_value_regroup.svg" },
       params: {
         maxOnes: {
           type: "number",
@@ -1499,6 +1499,18 @@ function pruneStaleParams(defParams = {}, existingParams = {}) {
   );
 }
 
+// icon is a code-owned visual asset for default modes — nothing lets a user pick a
+// different one — so unlike title/instruction it should never be pinned to whatever
+// path was persisted the first time a record was migrated. Without this, swapping a
+// mode's icon file in DEFAULT_MODES never reaches already-installed records.
+function mergeModeUi(defUi = {}, existingUi = {}) {
+  return {
+    ...defUi,
+    ...existingUi,
+    icon: defUi.icon ?? existingUi.icon,
+  };
+}
+
 function mergeDefaultModes(existingModes = [], defaultModes = []) {
   const existingById = Object.fromEntries(existingModes.map((mode) => [mode.id, mode]));
   const defaultIds = new Set(defaultModes.map((mode) => mode.id));
@@ -1508,7 +1520,7 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
     return {
       ...def,
       ...existing,
-      ui:     { ...(def.ui ?? {}), ...(existing.ui ?? {}) },
+      ui:     mergeModeUi(def.ui, existing.ui),
       params: { ...(def.params ?? {}), ...pruneStaleParams(def.params, existing.params) },
       methodology: { ...(def.methodology ?? {}), ...(existing.methodology ?? {}) },
     };
@@ -1527,7 +1539,7 @@ function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
     return {
       ...def,
       ...mode,
-      ui:     { ...(def.ui ?? {}), ...(mode.ui ?? {}) },
+      ui:     mergeModeUi(def.ui, mode.ui),
       params: { ...(def.params ?? {}), ...pruneStaleParams(def.params, mode.params) },
       methodology: { ...(def.methodology ?? {}), ...(mode.methodology ?? {}) },
     };
