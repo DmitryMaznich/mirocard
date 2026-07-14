@@ -225,6 +225,16 @@ describe("generateTasks – build_number", () => {
       expect(t.target.tens).toBeLessThanOrEqual(9);
     }
   });
+
+  it("numericBlocks defaults to false when not specified", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9 });
+    expect(tasks.every(t => t.numericBlocks === false)).toBe(true);
+  });
+
+  it("numericBlocks follows the numericBlocks param", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, numericBlocks: true });
+    expect(tasks.every(t => t.numericBlocks === true)).toBe(true);
+  });
 });
 
 describe("generateTasks – identify_number", () => {
@@ -248,6 +258,11 @@ describe("generateTasks – identify_number", () => {
     const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9 });
     expect(tasks.every(t => t.showCounters === true)).toBe(true);
   });
+
+  it("numericBlocks follows the numericBlocks param, independent of showCounters", () => {
+    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, numericBlocks: true });
+    expect(tasks.every(t => t.numericBlocks === true)).toBe(true);
+  });
 });
 
 describe("generateTasks – regroup_ten", () => {
@@ -261,5 +276,10 @@ describe("generateTasks – regroup_ten", () => {
       expect(t.after.ones).toBe(t.initial.ones + 10);
       expect(t.after.tens * 10 + t.after.ones).toBe(t.number);
     }
+  });
+
+  it("numericBlocks follows the numericBlocks param", () => {
+    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 5, { maxOnes: 9, numericBlocks: true });
+    expect(tasks.every(t => t.numericBlocks === true)).toBe(true);
   });
 });
