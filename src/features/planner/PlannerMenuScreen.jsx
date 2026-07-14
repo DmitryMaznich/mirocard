@@ -9,10 +9,11 @@ import {
   setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
   needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS, MEAL_ICONS,
+  pluralizePortions, pluralizePortionsAccusative,
 } from './plannerUtils.js';
 import { GLOBAL_MAX_PORTIONS } from './recipeParser.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
-import { isDiscreteUnit } from './shoppingUnitConversions.js';
+import { scaleIngredientQty } from './shoppingUnitConversions.js';
 import StoveHeatModal from '@/shared/components/StoveHeatModal';
 import './planner.css';
 
@@ -21,33 +22,6 @@ import './planner.css';
 const MEAL_CLASS = { завтрак: 'breakfast', обед: 'lunch', ужин: 'dinner', перекус: 'snack' };
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-function pluralizePortions(n) {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return 'порция';
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'порции';
-  return 'порций';
-}
-
-// Case form for "на N ..." phrasing ("на" + accusative) — differs from
-// pluralizePortions only at n=1 ("на 1 порцию", not the bare nominative
-// "порция" a standalone count like a stepper value would use). The 2-4
-// and 5+ forms are already identical to their accusative-plural spelling,
-// so they're reused as-is. Reading this correctly matters here specifically
-// — the app teaches children with ASD to read, and a grammatically wrong
-// label undermines that.
-function pluralizePortionsAccusative(n) {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return 'порцию';
-  return pluralizePortions(n);
-}
-
-// Household measuring tools only come in whole/half increments — round to
-// the nearest half instead of showing an unmeasurable raw fraction, same
-// as the reading engine already does for step text (formatWithUnit).
-const HALF_SNAP_UNITS = new Set(['стакан', 'ст.л', 'ч.л']);
 
 function keyIngredients(ingredients) {
   return ingredients
@@ -93,10 +67,7 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
           </span>
           <ul className="recipe-ingredients__list">
             {ingredients.map((ing, i) => {
-              const scaledQty = ing.qty == null ? null
-                : isDiscreteUnit(ing.unit) ? Math.ceil(ing.qty * scale)
-                : HALF_SNAP_UNITS.has(ing.unit) ? Math.round(ing.qty * scale * 2) / 2
-                : Math.round(ing.qty * scale * 100) / 100;
+              const scaledQty = scaleIngredientQty(ing.qty, ing.unit, scale);
               return (
                 <li key={i} className="recipe-ingredients__item">
                   <span className="recipe-ingredients__product">{ing.product}</span>
@@ -146,7 +117,7 @@ function SendIcon() {
   );
 }
 
-export function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect }) {
+function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggleSelect }) {
   const { topicId, text, ingredients, status } = recipe;
   const photoUrl = useTopicFile(topicId, text.photo);
 
@@ -179,15 +150,13 @@ export function RecipeCard({ recipe, isHere, otherMeal, onView, onCook, onToggle
         >
           <PlayIcon />
         </button>
-        {onToggleSelect && (
-          <button
-            type="button"
-            className={`recipe-gallery-card__add-btn${isHere ? ' recipe-gallery-card__add-btn--active' : ''}`}
-            onClick={onToggleSelect}
-          >
-            {isHere ? '✓ В меню' : otherMeal ? `Перенести из «${otherMeal}»` : '+ Добавить'}
-          </button>
-        )}
+        <button
+          type="button"
+          className={`recipe-gallery-card__add-btn${isHere ? ' recipe-gallery-card__add-btn--active' : ''}`}
+          onClick={onToggleSelect}
+        >
+          {isHere ? '✓ В меню' : otherMeal ? `Перенести из «${otherMeal}»` : '+ Добавить'}
+        </button>
       </div>
     </div>
   );

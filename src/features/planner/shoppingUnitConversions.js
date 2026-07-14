@@ -56,6 +56,25 @@ export function isDiscreteUnit(unit) {
   return DISCRETE_UNITS.has(unit);
 }
 
+// Household measuring tools only come in whole/half increments — round to
+// the nearest half instead of showing an unmeasurable raw fraction, same
+// as the reading engine already does for step text (formatWithUnit).
+export const HALF_SNAP_UNITS = new Set(['стакан', 'ст.л', 'ч.л']);
+
+/**
+ * Scales one ingredient's display quantity for a chosen portion count,
+ * rounding to whatever precision that unit's measuring tool actually
+ * supports (whole count, nearest half, or two decimals). Shared by any
+ * screen that shows a recipe's ingredient list at a given portion count
+ * (recipe detail view, catalog preview).
+ */
+export function scaleIngredientQty(qty, unit, scale) {
+  if (qty == null) return null;
+  if (isDiscreteUnit(unit)) return Math.ceil(qty * scale);
+  if (HALF_SNAP_UNITS.has(unit)) return Math.round(qty * scale * 2) / 2;
+  return Math.round(qty * scale * 100) / 100;
+}
+
 function lookup(product) {
   return SHOPPING_UNIT_CONVERSIONS[product.toLowerCase()];
 }

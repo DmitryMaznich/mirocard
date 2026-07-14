@@ -2,6 +2,28 @@ export const MEAL_TYPES = ['завтрак', 'обед', 'ужин', 'перек
 export const RECIPE_TAGS = [...MEAL_TYPES, 'напитки'];
 export const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
 
+export function pluralizePortions(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'порция';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'порции';
+  return 'порций';
+}
+
+// Case form for "на N ..." phrasing ("на" + accusative) — differs from
+// pluralizePortions only at n=1 ("на 1 порцию", not the bare nominative
+// "порция" a standalone count like a stepper value would use). The 2-4
+// and 5+ forms are already identical to their accusative-plural spelling,
+// so they're reused as-is. Reading this correctly matters here specifically
+// — the app teaches children with ASD to read, and a grammatically wrong
+// label undermines that.
+export function pluralizePortionsAccusative(n) {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'порцию';
+  return pluralizePortions(n);
+}
+
 export function createPlan(studentId) {
   return {
     id: crypto.randomUUID(),

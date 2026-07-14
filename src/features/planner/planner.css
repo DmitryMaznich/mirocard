@@ -1996,14 +1996,15 @@
 }
 
 /* ── Recipe catalog overlay (hub's "Рецепты" button) ───────────────────
-   Reuses the exact .screen.planner-screen + .recipe-gallery-grid look from
-   the meal-slot RecipePicker ("Все" tab), but rendered as a full-viewport
-   overlay (position:fixed) instead of a real screen swap, since it's
-   opened from inside the already-mounted planner hub rather than via
-   setScreen(). .planner-header inside already reserves --app-safe-top;
-   the grid's own bottom needs --app-safe-bottom explicitly since nothing
-   else below it does (unlike the real picker screen, which normally sits
-   above a footer that already accounts for it). */
+   Reuses .screen.planner-screen + .recipe-gallery-grid/__view/__photo-btn/
+   __photo/__status from the meal-slot RecipePicker ("Все" tab) unmodified
+   — those parts aren't changing. Rendered as a full-viewport overlay
+   (position:fixed) instead of a real screen swap, since it's opened from
+   inside the already-mounted planner hub rather than via setScreen().
+   .planner-header inside already reserves --app-safe-top; the grid's own
+   bottom needs --app-safe-bottom explicitly since nothing else below it
+   does (unlike the real picker screen, which normally sits above a footer
+   that already accounts for it). */
 .recipe-catalog-overlay {
   position: fixed;
   inset: 0;
@@ -2012,6 +2013,43 @@
 
 .recipe-catalog-overlay .recipe-gallery-grid {
   padding-bottom: calc(12px + var(--app-safe-bottom, 0px));
+}
+
+/* Catalog's own card footer/title — deliberately separate from
+   .recipe-gallery-card__title/__ingr/__add-row (used by the meal-slot
+   picker) so tweaking the catalog's look can never change the picker's. */
+.recipe-catalog-card__title {
+  padding: 10px 10px 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #263131;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recipe-catalog-card__cook-btn {
+  margin: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(150deg, #5cb0a3, #276b62);
+  box-shadow: 0 4px 10px rgba(39, 107, 98, 0.3);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.recipe-catalog-card__cook-btn:active {
+  transform: scale(0.98);
 }
 
 .cycle-history-sheet {
