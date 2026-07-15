@@ -141,6 +141,7 @@ export default function InstructionConstructorScreen() {
         <h1 className="screen-title">{isEditing ? "Редактировать инструкцию" : "Новая инструкция"}</h1>
       </div>
       <div className="cn-scroll">
+      <div className="cn-card">
         <div className="cn-field">
           <label>Значок</label>
           <button type="button" className="cn-emoji-trigger" onClick={() => setEmojiPickerOpen(true)}>
@@ -244,6 +245,7 @@ export default function InstructionConstructorScreen() {
           {errors.steps && <div className="cn-error">{errors.steps}</div>}
           <button type="button" className="cn-add-step" onClick={addStep}>+ Добавить шаг</button>
         </div>
+      </div>
       </div>
       <div className="cn-foot">
         {isEditing && (
