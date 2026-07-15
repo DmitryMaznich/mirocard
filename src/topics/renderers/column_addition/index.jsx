@@ -6,6 +6,7 @@ import FingersCountTask from "./FingersCountTask.jsx";
 import BuildNumberTask from "./BuildNumberTask.jsx";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
 import RegroupTenTask from "./RegroupTenTask.jsx";
+import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
 import "./column_addition.css";
 
@@ -138,7 +139,7 @@ function BorrowCompareStrip({ topDigit, bottomDigit, onResolve }) {
 
 // ── Column grid ───────────────────────────────────────────────────────────────
 
-function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, formActiveKey, shakeCell, cellSize = 44 }) {
+function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, formActiveKey, shakeCell, cellSize = 44, crossoutPaths = {}, onCrossoutComplete }) {
   const { digits, operation } = task;
   const totalCols = digits + 2;
   const cells = [];
@@ -215,16 +216,16 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         </div>
       );
     } else {
-      // The digit that gets crossed out is the SOURCE of a borrow — the
-      // column one place lower (i-1) is the one that was short and borrowed
-      // from THIS digit. Cross it out once that lower column's own borrow
-      // cell is filled, and show the child's own typed reduced value (not
-      // an auto-computed one) once their "adjust" entry is filled too.
-      const lowerCol = i > 0 ? task.columns[i - 1] : null;
-      const wasBorrowedFrom =
+      // The digit that gets crossed out is the SOURCE of a borrow — its own
+      // "crossout" step (same position as "adjust") is what marks it, once
+      // the child's own swipe gesture has completed. No more deriving this
+      // from the lower column's borrow cell — the gesture is its own step.
+      const crossoutKey = `crossout:${pos}`;
+      const wasBorrowedFrom = operation === "subtract" && filledCells[crossoutKey] !== undefined;
+      const isCrossoutActive =
         operation === "subtract" &&
-        lowerCol?.borrowOut === 1 &&
-        filledCells[`borrow:${lowerCol?.position}`] !== undefined;
+        activeStep?.cellType === "crossout" &&
+        activeStep?.position === pos;
       const adjustKey = `adjust:${pos}`;
       const adjustFilled = wasBorrowedFrom && filledCells[adjustKey] !== undefined;
       cells.push(
@@ -235,6 +236,21 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         >
           {col.topDigit}
           {adjustFilled && <span className="col-digit-adjusted">{filledCells[adjustKey]}</span>}
+          {isCrossoutActive && (
+            <CrossoutGesture cellWidth={cs} cellHeight={cs} onComplete={onCrossoutComplete} />
+          )}
+          {wasBorrowedFrom && crossoutPaths[pos] && (
+            <svg className="col-crossout-mark" width={cs} height={cs}>
+              <path
+                d={crossoutPaths[pos]}
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth={4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
         </div>
       );
     }
@@ -398,6 +414,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [shakeCell, setShakeCell] = useState(null);
   const [solved, setSolved] = useState(false);
   const [resolvedCompares, setResolvedCompares] = useState(new Set());
+  const [crossoutPaths, setCrossoutPaths] = useState({});
   const [showHelper, setShowHelper] = useState(false);
   const [cellSize, setCellSize] = useState(44);
 
@@ -468,6 +485,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     setShakeCell(null);
     setSolved(false);
     setResolvedCompares(new Set());
+    setCrossoutPaths({});
   }, [task.cardId, task.top, task.bottom, task.operation]);
 
   // Advance to phase 2 when column fully built.
@@ -539,6 +557,19 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     }
   }, [activeStep, stepIdx, task.steps, triggerShake, onMistake, onCorrect]);
 
+  const handleCrossoutComplete = useCallback((pathD) => {
+    if (!activeStep || activeStep.cellType !== "crossout") return;
+    const key = `${activeStep.cellType}:${activeStep.position}`;
+    setCrossoutPaths((prev) => ({ ...prev, [activeStep.position]: pathD }));
+    setFilledCells((prev) => ({ ...prev, [key]: true }));
+    const next = stepIdx + 1;
+    setStepIdx(next);
+    if (next >= task.steps.length) {
+      setSolved(true);
+      setTimeout(() => onCorrect?.(), 1200);
+    }
+  }, [activeStep, stepIdx, task.steps, onCorrect]);
+
   const showCompareParam = sessionParams?.showCompare ?? true;
   const showingCompare =
     phase === "solve" &&
@@ -548,6 +579,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     !resolvedCompares.has(activeStep.position);
 
   const compareColumn = showingCompare ? task.columns[POS_INDEX[activeStep.position]] : null;
+
+  const showingCrossout = phase === "solve" && activeStep?.cellType === "crossout";
 
   return (
     <div className="col-screen" ref={rootRef}>
@@ -565,6 +598,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           formActiveKey={formActiveKey}
           shakeCell={shakeCell}
           cellSize={cellSize}
+          crossoutPaths={crossoutPaths}
+          onCrossoutComplete={handleCrossoutComplete}
         />
       </div>
 
@@ -582,7 +617,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         />
       )}
 
-      {!showingCompare && (
+      {!showingCompare && !showingCrossout && (
         <TapKeyboard
           phase={phase}
           operation={task.operation}
@@ -593,7 +628,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         />
       )}
 
-      {!showHelper && !showingCompare && !!sessionParams?.showHelper && (
+      {!showHelper && !showingCompare && !showingCrossout && !!sessionParams?.showHelper && (
         <button
           type="button"
           className="helper-toggle-btn"

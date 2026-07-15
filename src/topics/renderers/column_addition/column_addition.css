@@ -90,9 +90,24 @@
 .col-sign--minus { margin-top: 6px; }
 
 .col-digit--top-borrowed {
-  text-decoration: line-through;
-  text-decoration-color: #ef4444;
+  /* No CSS line-through here — the cross-out line is the child's own
+     hand-drawn gesture (.col-crossout-mark), not an automatic decoration. */
   color: #9ca3af;
+}
+
+.col-crossout-gesture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.col-crossout-mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
 }
 
 .col-digit-adjusted {
