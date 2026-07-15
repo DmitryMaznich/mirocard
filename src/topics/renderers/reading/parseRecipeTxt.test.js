@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -210,5 +210,53 @@ describe('applyFireEmoji', () => {
     expect(applyFireEmoji('')).toBe('');
     expect(applyFireEmoji(null)).toBe('');
     expect(applyFireEmoji(undefined)).toBe('');
+  });
+});
+
+describe('applyOptionSelections', () => {
+  it('fills in a single chosen option', () => {
+    expect(applyOptionSelections('Добавить в тарелку по вкусу: {topping}.', { topping: ['мёд'] }))
+      .toBe('Добавить в тарелку по вкусу: мёд.');
+  });
+
+  it('joins two choices with "и"', () => {
+    expect(applyOptionSelections('{topping}', { topping: ['мёд', 'ягоды'] })).toBe('мёд и ягоды');
+  });
+
+  it('joins three or more choices with commas and a final "и"', () => {
+    expect(applyOptionSelections('{topping}', { topping: ['мёд', 'ягоды', 'банан'] })).toBe('мёд, ягоды и банан');
+  });
+
+  it('does not confuse a portions {N} token with an option placeholder', () => {
+    expect(applyOptionSelections('{2} стакана', { topping: ['мёд'] })).toBe('{2} стакана');
+  });
+
+  it('leaves unrelated text untouched when selections is empty/undefined', () => {
+    expect(applyOptionSelections('Обычный шаг без опций.', {})).toBe('Обычный шаг без опций.');
+  });
+});
+
+describe('filterStepsByOptions', () => {
+  it('keeps a step whose option group has at least one selection', () => {
+    const steps = [{ id: 's1', type: 'action', text: 'Добавить {topping}.' }];
+    expect(filterStepsByOptions(steps, { topping: ['мёд'] })).toEqual(steps);
+  });
+
+  it('drops a step whose option group has nothing selected', () => {
+    const steps = [
+      { id: 's1', type: 'action', text: 'Обычный шаг.' },
+      { id: 's2', type: 'action', text: 'Добавить {topping}.' },
+    ];
+    expect(filterStepsByOptions(steps, { topping: [] })).toEqual([steps[0]]);
+  });
+
+  it('drops a step whose option group was never selected at all', () => {
+    const steps = [{ id: 's1', type: 'action', text: 'Добавить {topping}.' }];
+    expect(filterStepsByOptions(steps, {})).toEqual([]);
+  });
+
+  it('keeps steps with no option placeholder regardless of selections', () => {
+    const steps = [{ id: 's1', type: 'action', text: 'Перемешать.' }];
+    expect(filterStepsByOptions(steps, {})).toEqual(steps);
   });
 });

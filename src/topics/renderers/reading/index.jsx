@@ -4,9 +4,9 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, applyOptionSelections, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
-import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping } from "@/core/groupStore";
+import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping, getRecipeOptionSelections } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS as DndCSS } from "@dnd-kit/utilities";
@@ -562,12 +562,15 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const sessionPortionsOverride    = useAppStore((s) => s.sessionPortionsOverride);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
+  const sessionOptionsOverride      = useAppStore((s) => s.sessionOptionsOverride);
+  const setSessionOptionsOverride   = useAppStore((s) => s.setSessionOptionsOverride);
   const sessionReturnScreen        = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen     = useAppStore((s) => s.setSessionReturnScreen);
 
   const [portions,   setPortions]   = useState(1);
   const [portionsCount, setPortionsCount] = useState(1);
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
+  const [optionSelections, setOptionSelections] = useState({});
   const [stepIndex,  setStepIndex]  = useState(0);
   const [checked,    setChecked]    = useState({});
   const [stoveHeatMapping, setStoveHeatMapping] = useState(null);
@@ -577,7 +580,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       await pullRecipeKvFromServer().catch(() => {});
       const textId   = task.text?.id;
       const filePath = task.text?.file;
-      const [settings, rawText] = await Promise.all([
+      const [settings, rawText, savedOptions] = await Promise.all([
         getRecipeSettings(topicId, task.text?.id).catch(() => ({ portions: 1 })),
         (async () => {
           if (textId) {
@@ -587,15 +590,19 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
           if (filePath) return getRawRecipeTxt(topicId, filePath).catch(() => null);
           return null;
         })(),
+        getRecipeOptionSelections(topicId, textId).catch(() => ({})),
         getStoveHeatMapping().then(setStoveHeatMapping).catch(() => {}),
       ]);
+      const selections = sessionOptionsOverride ?? savedOptions ?? {};
+      setOptionSelections(selections);
       const parsedSteps = rawText ? parseRecipeTxt(rawText) : (task.text?.steps ?? []);
-      setSteps(parsedSteps);
+      setSteps(filterStepsByOptions(parsedSteps, selections));
       const basePortions = task.text?.portions ?? 1;
       const chosenPortions = sessionPortionsOverride ?? settings.portions ?? basePortions;
       setPortions(stepPortionsMultiplier(basePortions, task.text?.fixedPortions, chosenPortions));
       setPortionsCount(chosenPortions);
       if (sessionPortionsOverride != null) setSessionPortionsOverride(null);
+      if (sessionOptionsOverride != null) setSessionOptionsOverride(null);
     }
     load();
   }, [topicId, task.text?.id, task.text?.file]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -765,7 +772,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
               <div className="instruction-phase-complete-badge">Этап пройден! 👍</div>
             )}
             <div className="instruction-step-text">{(() => {
-              const text = applyFireEmoji(applyPortions(step.text, portions), stoveHeatMapping);
+              const text = applyFireEmoji(applyOptionSelections(applyPortions(step.text, portions), optionSelections), stoveHeatMapping);
               const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g);
               if (parts.length === 1) return text;
               return parts.map((s, i) => (
@@ -796,7 +803,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                       onClick={() => toggleItem(i)}
                     >
                       <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                      <span className="instruction-check-label">{applyFireEmoji(applyPortions(item, portions), stoveHeatMapping)}</span>
+                      <span className="instruction-check-label">{applyFireEmoji(applyOptionSelections(applyPortions(item, portions), optionSelections), stoveHeatMapping)}</span>
                       {!done && <span className="instruction-check-tap-hint">нажми</span>}
                     </li>
                   );

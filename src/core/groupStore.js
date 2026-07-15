@@ -26,6 +26,26 @@ export async function saveRecipeSettings(topicId, textId, settings) {
   pushOp("kv.upsert", { key, value: settings }).catch(() => {});
 }
 
+// ─── Recipe option selections (e.g. topping choices) ─────────────────────────
+// Independent of the Планировщик plan's own selectedOptions (which drives the
+// shopping list, chosen once when the recipe is added to Меню) — this one
+// remembers what was picked the last time this recipe was actually *cooked*,
+// shown on the cook-start screen with a chance to change it per session.
+
+const recipeOptionsKey = (topicId, textId) => `recipe_options_${topicId}_${textId}`;
+
+export async function getRecipeOptionSelections(topicId, textId) {
+  const db = await getDb();
+  return (await kv.get(db, recipeOptionsKey(topicId, textId))) ?? {};
+}
+
+export async function saveRecipeOptionSelections(topicId, textId, selections) {
+  const db = await getDb();
+  const key = recipeOptionsKey(topicId, textId);
+  await kv.set(db, key, selections);
+  pushOp("kv.upsert", { key, value: selections }).catch(() => {});
+}
+
 // ─── Stove heat mapping ──────────────────────────────────────────────────────
 // Every stove's dial numbers differ, so recipes describe heat qualitatively
 // (слабый/средний/сильный/очень сильный) and this one family-wide mapping
@@ -434,7 +454,7 @@ export async function appendSafeCodeLog(topicId, entry) {
   await kv.set(db, key, updated);
 }
 
-const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "shopping_order_", "shopping_plan_", "stove_heat_"];
+const RECIPE_KV_PREFIXES = ["recipe_override_", "user_recipes_", "recipe_settings_", "recipe_options_", "shopping_order_", "shopping_plan_", "stove_heat_"];
 
 export async function pullRecipeKvFromServer() {
   // Flush first: a local write queued but not yet sent (e.g. the app closed

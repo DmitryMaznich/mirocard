@@ -35,6 +35,37 @@ function parseHeaderField(txt, prefix) {
   return null;
 }
 
+// "# options:" declares choice groups (e.g. a topping) — each indented line
+// is "groupId | product | qty | unit". Used by the cook-start screen to
+// render a picker and by the reading engine to fill in {groupId} in step
+// text (see parseRecipeTxt.js's applyOptionSelections/filterStepsByOptions).
+function parseOptions(txt) {
+  const options = {};
+  let inOptions = false;
+  for (const rawLine of txt.split('\n')) {
+    if (!rawLine.startsWith('#')) { inOptions = false; continue; }
+    const afterHash = rawLine.slice(1);
+    if (inOptions) {
+      if (afterHash.startsWith('  ') || afterHash.startsWith('\t\t')) {
+        const parts = afterHash.trim().split('|').map((p) => p.trim());
+        const [groupId, product] = parts;
+        if (groupId && product) {
+          if (!options[groupId]) options[groupId] = [];
+          options[groupId].push({
+            product,
+            qty: parts[2] ? parseFloat(parts[2]) || null : null,
+            unit: parts[3] || null,
+          });
+        }
+        continue;
+      }
+      inOptions = false;
+    }
+    if (afterHash.trim() === 'options:') inOptions = true;
+  }
+  return options;
+}
+
 function buildTextEntry(id, content) {
   const photo = parseHeaderField(content, 'photo:');
   const status = parseHeaderField(content, 'status:') === 'final' ? 'final' : 'draft';
@@ -43,6 +74,7 @@ function buildTextEntry(id, content) {
   const portions = portionsRaw ? (parseInt(portionsRaw, 10) || 1) : 1;
   const fixedPortions = type === 'fixed' ? portions : null;
   const title = extractTitle(content);
+  const options = parseOptions(content);
 
   return {
     id: `${id}_instruction`,
@@ -52,6 +84,7 @@ function buildTextEntry(id, content) {
     image: `media/${id}.svg`,
     portions,
     ...(fixedPortions ? { fixedPortions } : {}),
+    ...(Object.keys(options).length ? { options } : {}),
     status,
     file: `recipes/${id}.txt`,
     stepCount: countSteps(content),
