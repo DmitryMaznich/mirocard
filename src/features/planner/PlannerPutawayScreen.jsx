@@ -92,7 +92,6 @@ export default function PlannerPutawayScreen() {
   const [putawayPlan, setPutawayPlan] = useState({});
   const [doneCount, setDoneCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
   const [wrongZoneId, setWrongZoneId] = useState(null);
   const [photographedZones, setPhotographedZones] = useState([]);
   const [zonesLoaded, setZonesLoaded] = useState(false);
@@ -151,7 +150,6 @@ export default function PlannerPutawayScreen() {
     if (zoneId !== current.zoneId) {
       setWrongZoneId(zoneId);
       setTimeout(() => setWrongZoneId(null), 300);
-      setWrongCount((n) => n + 1);
       return;
     }
     const nextPlan = { ...putawayPlan, [current.key]: current.zoneId };
@@ -159,7 +157,6 @@ export default function PlannerPutawayScreen() {
     savePlannerPutawayPlan(studentId, nextPlan).catch(() => {});
     setQueue((q) => q.slice(1));
     setDoneCount((n) => n + 1);
-    setWrongCount(0);
     setWrongZoneId(null);
   }
 
@@ -282,7 +279,7 @@ export default function PlannerPutawayScreen() {
                 {effectiveZones.map((zone) => (
                   <LongPressZoneButton
                     key={zone.id}
-                    className={`putaway-zone${wrongZoneId === zone.id ? ' putaway-zone--wrong' : ''}${wrongCount >= 2 && zone.id === current.zoneId ? ' putaway-zone--hint' : ''}`}
+                    className={`putaway-zone${wrongZoneId === zone.id ? ' putaway-zone--wrong' : ''}${zone.id === current.zoneId ? ' putaway-zone--hint' : ''}`}
                     onTap={() => handlePick(zone.id)}
                     onLongPress={() => setEditingZoneId(zone.id)}
                   >
@@ -301,7 +298,7 @@ export default function PlannerPutawayScreen() {
               </div>
 
               <div className="putaway-hint">
-                {wrongCount >= 2 ? 'Вот сюда — попробуй эту зону' : wrongZoneId ? 'Не совсем — попробуй другое место' : ''}
+                {wrongZoneId ? 'Не совсем — попробуй другое место' : 'Клади туда, где мигает!'}
               </div>
             </>
           )}
