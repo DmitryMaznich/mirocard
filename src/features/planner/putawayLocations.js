@@ -41,6 +41,10 @@ const PRODUCT_ZONE_OVERRIDES = {
   'чеснок': 'veg',
   'капуста': 'veg',
   'мороженое': 'freezer',
+  // Listed under "Консервы" (category default: pantry), but unlike sealed
+  // canned goods it's an unsealed fermented product that keeps fermenting
+  // at room temperature — needs the fridge, not the cupboard.
+  'кислая капуста': 'fridge',
 };
 
 export function getZoneForProduct(categoryName, productName, overrides = {}) {
