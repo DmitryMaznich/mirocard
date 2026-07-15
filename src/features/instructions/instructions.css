@@ -84,6 +84,9 @@
   font-family: inherit;
   transform: rotate(var(--tilt, -1.4deg));
 }
+/* Peeking card-back — no rotation of its own, so it stays perfectly
+   parallel to the front card (same --tilt, inherited from .ig-card's own
+   transform) instead of leaning at a visibly different angle. */
 .ig-card::after {
   content: "";
   position: absolute;
@@ -93,7 +96,6 @@
   background: #fffdf9;
   border: 1px solid #e7dccf;
   opacity: 0.9;
-  transform: rotate(calc(var(--tilt, -1.4deg) * -1.6));
 }
 .ig-grid > :nth-child(2n) { --tilt: 1.6deg; }
 .ig-grid > :nth-child(3n) { --tilt: -2.1deg; }
