@@ -116,46 +116,35 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
   const resultCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const carryStyle = { width: carryW, height: carryH, fontSize: carryFS };
 
-  // ── Carry / borrow row (phase 2 only) ────────────────────────────────────
+  // ── Carry / borrow / adjust row (phase 2 only) ───────────────────────────
+  // Driven directly by whichever aux steps exist in task.steps, rather than a
+  // fixed position range — this is what lets "borrow" (now at the receiving
+  // column) and "adjust" (at the source column) coexist without assuming
+  // where either one lives.
   if (phase === "solve") {
-    const hasAux = task.steps.some((s) => s.cellType === "carry" || s.cellType === "borrow");
-    if (hasAux) {
-      for (let i = 1; i < digits; i++) {
-        const pos = POSITIONS[i];
-        const cellType = operation === "add" ? "carry" : "borrow";
-        const key = `${cellType}:${pos}`;
-        const filled = filledCells[key] !== undefined;
-        const active = activeStep?.cellType === cellType && activeStep?.position === pos;
-        const gridCol = digits + 2 - i;
-        cells.push(
-          <div
-            key={`aux:${pos}`}
-            data-cell-key={key}
-            className={[
-              "col-carry-cell",
-              active ? "col-carry-cell--active" : "",
-              filled ? "col-carry-cell--filled" : "",
-            ].filter(Boolean).join(" ")}
-            style={{ ...carryStyle, gridColumn: gridCol, gridRow: 1 }}
-          >
-            {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
-          </div>
-        );
-      }
-      if (operation === "subtract") {
-        for (let i = 0; i < digits; i++) {
-          const pos = POSITIONS[i];
-          const col = task.columns[i];
-          const gridCol = digits + 2 - i;
-          if (col.borrowIn === 1 && filledCells[`borrow:${pos}`] !== undefined) {
-            cells.push(
-              <div key={`eff:${pos}`} className="col-effective-label" style={{ gridColumn: gridCol, gridRow: 1 }}>
-                {col.effectiveTopDigit}
-              </div>
-            );
-          }
-        }
-      }
+    const auxSteps = task.steps.filter(
+      (s) => s.cellType === "carry" || s.cellType === "borrow" || s.cellType === "adjust"
+    );
+    for (const step of auxSteps) {
+      const i = POS_INDEX[step.position];
+      const gridCol = digits + 2 - i;
+      const key = `${step.cellType}:${step.position}`;
+      const filled = filledCells[key] !== undefined;
+      const active = activeStep?.cellType === step.cellType && activeStep?.position === step.position;
+      cells.push(
+        <div
+          key={`aux:${key}`}
+          data-cell-key={key}
+          className={[
+            "col-carry-cell",
+            active ? "col-carry-cell--active" : "",
+            filled ? "col-carry-cell--filled" : "",
+          ].filter(Boolean).join(" ")}
+          style={{ ...carryStyle, gridColumn: gridCol, gridRow: 1 }}
+        >
+          {filled ? <span className="col-slant">{filledCells[key]}</span> : ""}
+        </div>
+      );
     }
   }
 
@@ -184,10 +173,18 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         </div>
       );
     } else {
+      // The digit that gets crossed out is the SOURCE of a borrow — the
+      // column one place lower (i-1) is the one that was short and borrowed
+      // from THIS digit. Cross it out once that lower column's own borrow
+      // cell is filled, and show the child's own typed reduced value (not
+      // an auto-computed one) once their "adjust" entry is filled too.
+      const lowerCol = i > 0 ? task.columns[i - 1] : null;
       const wasBorrowedFrom =
         operation === "subtract" &&
-        col.borrowOut === 1 &&
-        filledCells[`borrow:${POSITIONS[i + 1]}`] !== undefined;
+        lowerCol?.borrowOut === 1 &&
+        filledCells[`borrow:${lowerCol?.position}`] !== undefined;
+      const adjustKey = `adjust:${pos}`;
+      const adjustFilled = wasBorrowedFrom && filledCells[adjustKey] !== undefined;
       cells.push(
         <div
           key={`top:${pos}`}
@@ -195,7 +192,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           style={{ ...digitStyle, gridColumn: gridCol, gridRow: 2 }}
         >
           {col.topDigit}
-          {wasBorrowedFrom && <span className="col-digit-adjusted">{col.topDigit - 1}</span>}
+          {adjustFilled && <span className="col-digit-adjusted">{filledCells[adjustKey]}</span>}
         </div>
       );
     }
