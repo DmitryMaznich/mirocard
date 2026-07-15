@@ -19057,6 +19057,13 @@ body { background: #eef0ef; }
   cursor: pointer;
   text-align: left;
   min-height: 0;
+  /* Without this, a grid item's implicit minimum width is its content's
+     min-content (the widest unbreakable word in the category name) — the
+     two 1fr .shopping-grid columns then size to whichever column happens
+     to hold the longer category names that render, not an even 50/50
+     split, producing a visibly wider left/right column depending on which
+     category names landed where. */
+  min-width: 0;
   position: relative;
   box-shadow: 0 2px 8px rgba(71, 61, 48, 0.04);
 }
@@ -19078,6 +19085,8 @@ body { background: #eef0ef; }
 }
 
 .shopping-tile-name {
+  min-width: 0;
+  overflow-wrap: break-word;
   font-size: clamp(0.75rem, 2dvh, 1rem);
   font-weight: 700;
   color: #263131;
