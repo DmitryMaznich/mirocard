@@ -132,7 +132,23 @@ export function serializeAccount(row) {
     role: row.role,
     featureFlags: safeJson(row.feature_flags, []),
     createdAt: row.created_at,
+    lastSeenAt: row.last_seen_at ?? null,
+    openCount: row.open_count ?? 0,
   };
+}
+
+export function touchAccountSeen(db, accountId) {
+  const row = db.prepare("SELECT last_seen_at FROM accounts WHERE id = ?").get(accountId);
+  const lastSeen = row?.last_seen_at;
+  const ts = new Date().toISOString();
+  const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  if (!lastSeen || lastSeen < tenMinAgo) {
+    db.prepare(
+      "UPDATE accounts SET last_seen_at = ?, open_count = COALESCE(open_count, 0) + 1 WHERE id = ?"
+    ).run(ts, accountId);
+  } else {
+    db.prepare("UPDATE accounts SET last_seen_at = ? WHERE id = ?").run(ts, accountId);
+  }
 }
 
 export function updateAccount(db, id, { firstName, lastName, role }) {
@@ -488,14 +504,22 @@ export function setAccountFeatureFlags(db, accountId, flags) {
 }
 
 export function listAllAccounts(db) {
-  const accounts = db.prepare("SELECT * FROM accounts ORDER BY created_at DESC").all();
+  const accounts = db.prepare(
+    "SELECT * FROM accounts ORDER BY last_seen_at DESC NULLS LAST, created_at DESC"
+  ).all();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   return accounts.map((a) => ({
     ...serializeAccount(a),
     status: a.status,
-    createdAt: a.created_at,
     ownedTopics: db.prepare(
       "SELECT topic_id, source, acquired_at FROM account_topics WHERE account_id = ? AND deleted_at IS NULL"
     ).all(a.id).map((t) => ({ topicId: t.topic_id, source: t.source, acquiredAt: t.acquired_at })),
+    sessions7d: db.prepare(
+      "SELECT COUNT(*) as c FROM sessions WHERE account_id = ? AND completed_at >= ?"
+    ).get(a.id, sevenDaysAgo)?.c ?? 0,
+    sessionsTotal: db.prepare(
+      "SELECT COUNT(*) as c FROM sessions WHERE account_id = ?"
+    ).get(a.id)?.c ?? 0,
   }));
 }
 

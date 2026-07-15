@@ -231,6 +231,12 @@ export function initDb(dbPath = DB_PATH) {
   }
 
   const accountColumns = db.prepare("PRAGMA table_info(accounts)").all().map(c => c.name);
+  if (!accountColumns.includes("last_seen_at")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN last_seen_at TEXT");
+  }
+  if (!accountColumns.includes("open_count")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN open_count INTEGER NOT NULL DEFAULT 0");
+  }
   if (!accountColumns.includes("first_name")) {
     db.exec("ALTER TABLE accounts ADD COLUMN first_name TEXT NOT NULL DEFAULT ''");
   }

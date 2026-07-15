@@ -24,7 +24,7 @@ import {
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
   getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
-  listAllAccounts, revokeAccountTopic,
+  listAllAccounts, revokeAccountTopic, touchAccountSeen,
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
@@ -434,6 +434,7 @@ async function handleBootstrap(req, res) {
   const account = requireAuth(req);
   const url = new URL(req.url, "http://localhost");
   const since = Number(url.searchParams.get("since") || 0);
+  touchAccountSeen(db, account.id);
   writeJson(res, 200, buildBootstrap(db, account.id, since));
 }
 
@@ -699,6 +700,22 @@ async function handleAdminGrant(req, res) {
 async function handleAdminListAccounts(req, res) {
   requireAdmin(req);
   writeJson(res, 200, listAllAccounts(db));
+}
+
+async function handleAdminGetAccountSessions(req, res, accountId) {
+  requireAdmin(req);
+  const rows = getSessions(db, accountId, { limit: 30 });
+  writeJson(res, 200, rows.map((s) => ({
+    id: s.id,
+    studentId: s.student_id,
+    topicId: s.topic_id,
+    mode: s.mode,
+    startedAt: s.started_at,
+    completedAt: s.completed_at,
+    correctCount: s.correct_count,
+    incorrectCount: s.incorrect_count,
+    percentCorrect: s.percent_correct,
+  })));
 }
 
 async function handleAdminRevoke(req, res) {
@@ -1074,6 +1091,8 @@ async function router(req, res) {
     if (method === "POST"   && /^\/decks\/[^/]+\/claim$/.test(p))                 return await handleClaimDeck(req, res);
     if (method === "GET"    && /^\/decks\/[^/]+\/download$/.test(p))              return await handleDownloadDeck(req, res);
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
+    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/sessions$/);
+      if (method === "GET" && m) return await handleAdminGetAccountSessions(req, res, m[1]); }
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
     if (method === "POST"   && p === "/admin/grant")                               return await handleAdminGrant(req, res);
     if (method === "POST"   && p === "/admin/revoke")                              return await handleAdminRevoke(req, res);
