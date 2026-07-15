@@ -94,7 +94,6 @@
   z-index: -1;
   border-radius: 14px;
   background: #fffdf9;
-  border: 1px solid #e7dccf;
   opacity: 0.9;
 }
 .ig-grid > :nth-child(2n) { --tilt: 1.6deg; }
