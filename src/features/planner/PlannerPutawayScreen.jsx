@@ -254,7 +254,6 @@ export default function PlannerPutawayScreen() {
           {current.zoneId === null ? (
             <div className="putaway-orphan">
               <div className="putaway-card">
-                <div className="putaway-card__icon">❓</div>
                 <div className="putaway-card__name">{current.product}</div>
               </div>
               <div className="putaway-orphan__hint">Нужна помощь взрослого — выбери место для этого продукта</div>
@@ -265,13 +264,6 @@ export default function PlannerPutawayScreen() {
           ) : (
             <>
               <div className="putaway-card">
-                <ZonePhoto
-                  studentId={studentId}
-                  zoneId={current.zoneId}
-                  version={zonePhotoVersions[current.zoneId] ?? 0}
-                  className="putaway-card__photo"
-                  fallback={<div className="putaway-card__icon">{ZONES.find((z) => z.id === current.zoneId)?.icon}</div>}
-                />
                 <div className="putaway-card__name">{current.product}</div>
               </div>
 

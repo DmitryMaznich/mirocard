@@ -1620,36 +1620,23 @@
 }
 
 .putaway-card {
-  width: clamp(160px, 30vw, 380px);
-  height: clamp(160px, 30vw, 380px);
+  min-width: clamp(200px, 40vw, 480px);
+  max-width: 92%;
+  padding: clamp(20px, 3.4vw, 40px) clamp(28px, 4.5vw, 56px);
   border-radius: 24px;
   background: rgba(250, 247, 242, 0.97);
   box-shadow: 0 8px 22px rgba(71, 61, 48, 0.10);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   margin-bottom: clamp(24px, 3vw, 40px);
 }
 
-.putaway-card__icon {
-  font-size: clamp(44px, 6.5vw, 90px);
-}
-
-.putaway-card__photo {
-  width: clamp(100px, 18vw, 240px);
-  height: clamp(100px, 18vw, 240px);
-  border-radius: 16px;
-  object-fit: cover;
-}
-
 .putaway-card__name {
-  font-size: clamp(15px, 2.2vw, 28px);
+  font-size: clamp(26px, 5vw, 60px);
   font-weight: 800;
   color: #263131;
   text-align: center;
-  padding: 0 10px;
 }
 
 /* max-width is deliberately generous (94vw) — the .putaway-body padding is
