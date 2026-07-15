@@ -61,7 +61,12 @@ function buildSubSteps(columns) {
     const col = columns[i];
     const next = columns[i + 1];
     if (col.borrowOut > 0 && next) {
-      steps.push({ cellType: "borrow", position: next.position, digit: 1 });
+      // "borrow" sits at the column that RECEIVES the extra ten (the one that
+      // was short) — the child types "1" here to acknowledge the borrow.
+      steps.push({ cellType: "borrow", position: col.position, digit: 1 });
+      // "adjust" sits at the SOURCE column (one place higher) — the child
+      // computes and types its own reduced digit (topDigit - 1) themselves.
+      steps.push({ cellType: "adjust", position: next.position, digit: next.topDigit - 1 });
     }
     steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
   }
@@ -232,6 +237,13 @@ export function generateExamples(count, params) {
     if (t) results.push({ operation: t.operation, top: t.top, bottom: t.bottom });
   }
   return results;
+}
+
+// Gate for the borrow-teaching UI (comparison strip + borrow/adjust squares):
+// only subtraction tasks that actually contain a borrow qualify. Addition,
+// and subtraction tasks generated without a borrow, are untouched by it.
+export function taskNeedsBorrowTeaching(task) {
+  return task?.operation === "subtract" && (task?.columns ?? []).some((c) => c.borrowOut > 0);
 }
 
 export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {

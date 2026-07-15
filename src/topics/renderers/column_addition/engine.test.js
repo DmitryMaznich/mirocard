@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateTasks } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching } from "./engine.js";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 
 const CARDS = [
@@ -87,6 +87,56 @@ describe("generateTasks – column_arithmetic", () => {
   it("sub: top > bottom always", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "mixed", digits: 2 });
     for (const t of tasks) expect(t.top).toBeGreaterThan(t.bottom);
+  });
+});
+
+describe("buildSubSteps borrow/adjust step shape", () => {
+  it("borrow step sits at the receiving (lower) column's own position", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
+    const t = tasks.find((task) => task.columns[0].borrowOut > 0);
+    expect(t).toBeDefined();
+    const borrowStep = t.steps.find((s) => s.cellType === "borrow");
+    expect(borrowStep.position).toBe("units");
+    expect(borrowStep.digit).toBe(1);
+  });
+
+  it("adjust step sits at the source (higher) column's position with topDigit-1", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
+    const t = tasks.find((task) => task.columns[0].borrowOut > 0);
+    const adjustStep = t.steps.find((s) => s.cellType === "adjust");
+    expect(adjustStep.position).toBe("tens");
+    expect(adjustStep.digit).toBe(t.columns[1].topDigit - 1);
+  });
+
+  it("step order is borrow, adjust, result(lower), result(higher)", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
+    const t = tasks.find((task) => task.columns[0].borrowOut > 0);
+    expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "adjust", "result", "result"]);
+  });
+
+  it("no adjust step when the column doesn't need a borrow", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "none", digits: 2 });
+    for (const t of tasks) {
+      expect(t.steps.some((s) => s.cellType === "adjust")).toBe(false);
+      expect(t.steps.some((s) => s.cellType === "borrow")).toBe(false);
+    }
+  });
+});
+
+describe("taskNeedsBorrowTeaching", () => {
+  it("true for subtraction tasks with a borrow", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
+    expect(tasks.every(taskNeedsBorrowTeaching)).toBe(true);
+  });
+
+  it("false for addition tasks, even with carry", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode: "carry", digits: 2 });
+    expect(tasks.every((t) => !taskNeedsBorrowTeaching(t))).toBe(true);
+  });
+
+  it("false for subtraction tasks without a borrow", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "none", digits: 2 });
+    expect(tasks.every((t) => !taskNeedsBorrowTeaching(t))).toBe(true);
   });
 });
 
