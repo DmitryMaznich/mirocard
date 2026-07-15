@@ -134,7 +134,20 @@ export function serializeAccount(row) {
     createdAt: row.created_at,
     lastSeenAt: row.last_seen_at ?? null,
     openCount: row.open_count ?? 0,
+    lastDevice: row.last_device ?? null,
+    lastTopicId: row.last_topic_id ?? null,
   };
+}
+
+export function recordHeartbeat(db, accountId, { device, topicId }) {
+  const ts = new Date().toISOString();
+  db.prepare(`
+    UPDATE accounts
+    SET last_seen_at = ?,
+        last_device = COALESCE(?, last_device),
+        last_topic_id = COALESCE(?, last_topic_id)
+    WHERE id = ?
+  `).run(ts, device ?? null, topicId ?? null, accountId);
 }
 
 export function touchAccountSeen(db, accountId) {

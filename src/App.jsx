@@ -5,6 +5,7 @@ import { api, setApiToken } from "@/core/api";
 import { loadLocalBootstrap, applyBootstrapToStore, persistBootstrap, mergeStudents } from "@/core/bootstrap";
 import { flushQueue, setupOnlineListener } from "@/core/syncApi";
 import { useKioskMode } from "@/shared/hooks/useKioskMode";
+import { useHeartbeat } from "@/shared/hooks/useHeartbeat";
 import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot, canResumeActiveSession } from "@/features/session/activeSession";
@@ -148,6 +149,7 @@ export default function App() {
   const orientationLock = getActiveOrientationLock({ screen, topicRecords, activeTopicId, activeModeId });
 
   useKioskMode(orientationLock);
+  useHeartbeat();
 
   useBackButtonGuard({
     screen,

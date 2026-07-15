@@ -215,6 +215,45 @@
     .last-seen--never { color: #bbb; }
     .last-seen--recent { color: #1a9e60; }
 
+    /* ── Online now ── */
+    .online-section {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+    .online-section__title { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+    .online-list { display: flex; flex-direction: column; gap: 6px; }
+    .online-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #1a9e60; flex-shrink: 0; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+    .online-email { font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .online-device { color: #999; font-size: 12px; flex-shrink: 0; }
+    .online-topic { color: #6c63ff; font-size: 12px; flex-shrink: 0; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .online-empty { color: #bbb; font-size: 13px; }
+
+    /* ── Device + topic badge ── */
+    .user-context {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+    .ctx-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .ctx-badge--device { background: #f0f2f5; color: #555; }
+    .ctx-badge--topic  { background: #ede9ff; color: #6c63ff; }
+
     /* ── Sessions list ── */
     .sessions-list {
       margin-top: 10px;
@@ -275,6 +314,7 @@
   </div>
   <div class="panel-body">
     <div id="error-banner" class="error-msg" style="display:none"></div>
+    <div id="online-container"></div>
     <div id="accounts-container"><div class="state-msg"><div class="spinner"></div></div></div>
   </div>
 </div>
@@ -349,10 +389,29 @@
       icon.className = '';
       icon.textContent = '↺';
     }
+    renderOnline();
     renderAccounts();
   }
 
   // ── Render ────────────────────────────────────────────────────────────────────
+  function renderOnline() {
+    const TWO_MIN = 2 * 60 * 1000;
+    const online = allAccounts.filter(a => a.lastSeenAt && Date.now() - new Date(a.lastSeenAt).getTime() < TWO_MIN);
+    const el = document.getElementById('online-container');
+    if (!online.length) { el.innerHTML = ''; return; }
+    const items = online.map(a => `
+      <div class="online-item">
+        <div class="online-dot"></div>
+        <span class="online-email">${esc(a.email)}</span>
+        ${a.lastDevice ? `<span class="online-device">${esc(a.lastDevice)}</span>` : ''}
+        ${a.lastTopicId ? `<span class="online-topic">${esc(getTopicLabel(a.lastTopicId))}</span>` : ''}
+      </div>`).join('');
+    el.innerHTML = `<div class="online-section">
+      <div class="online-section__title">Сейчас в приложении</div>
+      <div class="online-list">${items}</div>
+    </div>`;
+  }
+
   function renderAccounts() {
     const q = (document.getElementById('search')?.value ?? '').toLowerCase();
     const list = q
@@ -414,6 +473,10 @@
             </div>
           </div>
           ${lastSeenHtml}
+          <div class="user-context">
+            ${acc.lastDevice ? `<span class="ctx-badge ctx-badge--device">${esc(acc.lastDevice)}</span>` : ''}
+            ${acc.lastTopicId ? `<span class="ctx-badge ctx-badge--topic">${esc(getTopicLabel(acc.lastTopicId))}</span>` : ''}
+          </div>
           <div style="margin-top:8px">
             <button class="btn btn--secondary btn--sm" onclick="toggleSessions('${acc.id}')">
               История занятий

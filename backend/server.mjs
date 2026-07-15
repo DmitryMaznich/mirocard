@@ -24,7 +24,7 @@ import {
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
   getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
-  listAllAccounts, revokeAccountTopic, touchAccountSeen,
+  listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat,
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
@@ -135,6 +135,19 @@ function requireStudentPortal(req) {
 
 function sanitizeEmail(email) {
   return String(email || "").trim().toLowerCase();
+}
+
+function parseDevice(ua) {
+  if (!ua) return null;
+  const s = ua.toLowerCase();
+  if (s.includes("iphone"))                          return "iPhone";
+  if (s.includes("ipad"))                            return "iPad";
+  if (s.includes("android") && s.includes("mobile")) return "Android";
+  if (s.includes("android"))                         return "Android tablet";
+  if (s.includes("windows"))                         return "Windows";
+  if (s.includes("macintosh") || s.includes("mac os x")) return "Mac";
+  if (s.includes("linux"))                           return "Linux";
+  return "Desktop";
 }
 
 function safeJson(value, fallback) {
@@ -428,6 +441,15 @@ async function handlePatchSettings(req, res) {
   }
   updateAccountSettings(db, account.id, patch);
   writeJson(res, 200, getAccountSettings(db, account.id));
+}
+
+async function handleHeartbeat(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  const device = parseDevice(req.headers["user-agent"]);
+  const topicId = typeof body?.topicId === "string" ? body.topicId || null : null;
+  recordHeartbeat(db, account.id, { device, topicId });
+  writeNoContent(res);
 }
 
 async function handleBootstrap(req, res) {
@@ -1061,6 +1083,7 @@ async function router(req, res) {
     if (method === "POST"   && p === "/auth/resend-verification") return await handleResendVerification(req, res);
 
     // Account
+    if (method === "POST"   && p === "/heartbeat")                 return await handleHeartbeat(req, res);
     if (method === "GET"    && p === "/account/bootstrap")        return await handleBootstrap(req, res);
     if (method === "GET"    && p === "/account/kv")              return await handleGetAccountKv(req, res);
     if (method === "PATCH"  && p === "/account")                  return await handlePatchAccount(req, res);
