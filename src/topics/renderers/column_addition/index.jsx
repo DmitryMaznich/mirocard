@@ -54,10 +54,11 @@ function Expression({ task, result, cellSize = 44 }) {
 function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidden }) {
   const bs = btnSize;
   const bsStr = bs + "px";
-  const digitFS = Math.round(bs * 0.72) + "px";
+  const btnWStr = Math.round(bs * 1.1) + "px";
+  const digitFS = Math.round(bs * 0.95) + "px";
   const signFS = Math.round(bs * 0.85) + "px";
-  const digitStyle = { width: bsStr, height: bsStr, fontSize: digitFS };
-  const signStyle = { width: bsStr, height: bsStr, fontSize: signFS };
+  const digitStyle = { width: btnWStr, height: bsStr, fontSize: digitFS };
+  const signStyle = { width: btnWStr, height: bsStr, fontSize: signFS };
   const correctSign = operation === "add" ? "+" : "−";
   const wrongSign = operation === "add" ? "−" : "+";
 
