@@ -381,22 +381,25 @@ function BulkIngredientToggle({ items, decisions, onSetAll }) {
   const keys = items.map((item) => item.product);
 
   return (
-    <div className="ingr-toggle ingr-toggle--bulk">
-      <button
-        type="button"
-        className={`ingr-toggle__btn ingr-toggle__btn--have${allHave ? ' ingr-toggle__btn--active' : ''}`}
-        onClick={() => onSetAll(keys, 'have')}
-      >
-        Всё дома
-      </button>
-      <span className="ingr-toggle__mid" aria-hidden="true" />
-      <button
-        type="button"
-        className={`ingr-toggle__btn ingr-toggle__btn--buy${allBuy ? ' ingr-toggle__btn--active' : ''}`}
-        onClick={() => onSetAll(keys, 'buy')}
-      >
-        Всё купить
-      </button>
+    <div className="ingr-bulk">
+      <span className="ingr-bulk__label">Все:</span>
+      <div className="ingr-toggle ingr-toggle--bulk">
+        <button
+          type="button"
+          className={`ingr-toggle__btn${allHave ? ' ingr-toggle__btn--active' : ''}`}
+          onClick={() => onSetAll(keys, 'have')}
+        >
+          дома
+        </button>
+        <span className="ingr-toggle__mid" aria-hidden="true" />
+        <button
+          type="button"
+          className={`ingr-toggle__btn${allBuy ? ' ingr-toggle__btn--active' : ''}`}
+          onClick={() => onSetAll(keys, 'buy')}
+        >
+          купить
+        </button>
+      </div>
     </div>
   );
 }
