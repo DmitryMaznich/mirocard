@@ -317,6 +317,12 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.col-tap-btn--digit {
+  align-items: flex-end;
+  padding-bottom: 4px;
 }
 
 .col-tap-btn:active {
