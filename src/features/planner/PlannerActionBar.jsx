@@ -71,7 +71,7 @@ export default function PlannerActionBar({
           <span>История</span>
         </button>
         <button type="button" className="planner-navbar__cook" onClick={onCook} disabled={!readyToCook}>
-          <span className="planner-navbar__cook-label">ГОТОВИМ</span>
+          <span className="planner-navbar__cook-label">Готовим!</span>
           <CookArrowIcon />
           {showCookBadge && (
             <span className="planner-navbar__cook-badge">{cookedCount}/{totalCount}</span>
