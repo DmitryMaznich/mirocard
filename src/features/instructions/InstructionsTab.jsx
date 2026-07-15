@@ -14,16 +14,41 @@ function pluralizeSteps(n) {
   return "шагов";
 }
 
+// Each card gets its own "ink" color instead of one flat teal for every
+// card — picked deterministically from the instruction id so the same
+// card always lands on the same color, but the grid as a whole reads as
+// a varied card catalog rather than a two-tone (builtin/mine) grid.
+const INK_PALETTE = [
+  { a: "#6fc0b1", b: "#2f7a6d", c: "#235a51" }, // teal
+  { a: "#e8b08e", b: "#c2624a", c: "#8f4433" }, // terracotta
+  { a: "#9ecf9e", b: "#5f9a5a", c: "#3f6e3c" }, // sage
+  { a: "#a9c3e0", b: "#5c85ac", c: "#3e5c78" }, // dusty blue
+  { a: "#d3a8dd", b: "#935fae", c: "#6a4180" }, // plum
+  { a: "#f0b96e", b: "#c9822f", c: "#9c5c1f" }, // amber
+];
+
+function inkForId(id) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  return INK_PALETTE[Math.abs(hash) % INK_PALETTE.length];
+}
+
 function InstructionCardContent({ instruction }) {
+  const ink = inkForId(instruction.id);
   return (
     <>
-      <div className="ig-card__medallion">
-        {!instruction.builtin && <div className="ig-card__ribbon">моя</div>}
+      <div className="ig-card__punch" />
+      <div
+        className="ig-card__medallion"
+        style={{ "--ink-a": ink.a, "--ink-b": ink.b, "--ink-c": ink.c }}
+      >
         <span className="ig-card__emoji">{instruction.emoji}</span>
       </div>
-      <div className="ig-card__stub-line" />
+      <div className="ig-card__stitch" />
       <div className="ig-card__body">
-        <span className="ig-card__eyebrow">{instruction.steps.length} {pluralizeSteps(instruction.steps.length)}</span>
+        <span className="ig-card__eyebrow" style={{ color: ink.b }}>
+          {instruction.steps.length} {pluralizeSteps(instruction.steps.length)}
+        </span>
         <span className="ig-card__title">{instruction.title}</span>
       </div>
     </>
@@ -109,6 +134,7 @@ export default function InstructionsTab({ setScreen }) {
                 <button type="button" className="ig-card__main-btn" onClick={() => openInstruction(instruction.id)}>
                   <InstructionCardContent instruction={instruction} />
                 </button>
+                <span className="ig-card__pin" aria-hidden>📌</span>
                 <button
                   type="button"
                   className="ig-card__pencil"
@@ -121,14 +147,9 @@ export default function InstructionsTab({ setScreen }) {
             )
           ))}
           <button type="button" className="ig-card ig-card--add" onClick={requestCreate}>
-            <div className="ig-card__medallion">
-              <span className="ig-card__plus">+</span>
-            </div>
-            <div className="ig-card__stub-line" />
-            <div className="ig-card__body">
-              <span className="ig-card__title">Создать свою</span>
-              <span className="ig-card__lock">🔒 для родителя</span>
-            </div>
+            <span className="ig-card__plus">+</span>
+            <span className="ig-card__title">Создать своё</span>
+            <span className="ig-card__lock">🔒 для родителя</span>
           </button>
         </div>
       </div>
