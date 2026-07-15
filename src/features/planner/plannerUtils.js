@@ -116,6 +116,21 @@ export function setIngredientDecision(plan, productKey, decision) {
 }
 
 /**
+ * Bulk version of setIngredientDecision — applies the same decision to
+ * every product key at once, for the "Всё есть дома" / "Всё купить"
+ * toggle above the ingredients list.
+ */
+export function setAllIngredientDecisions(plan, productKeys, decision) {
+  const next = { ...(plan.ingredientDecisions ?? {}) };
+  for (const productKey of productKeys) {
+    const key = productKey.toLowerCase();
+    if (decision) next[key] = decision;
+    else delete next[key];
+  }
+  return { ...plan, ingredientDecisions: next, updatedAt: new Date().toISOString() };
+}
+
+/**
  * Portion multiplier actually in effect for one recipe within a plan.
  * fixed_portions recipes never scale (always their own fixed batch,
  * stepper hidden in the UI) — otherwise whatever the student picked in

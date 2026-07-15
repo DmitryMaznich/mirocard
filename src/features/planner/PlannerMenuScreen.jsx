@@ -6,7 +6,7 @@ import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons'
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe,
   setMealAssignment, setSelectedPortions, resolveChosenPortions,
-  setIngredientDecision, buildSelectedIngredientsSummary, isMenuFullyDecided,
+  setIngredientDecision, setAllIngredientDecisions, buildSelectedIngredientsSummary, isMenuFullyDecided,
   needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS, MEAL_ICONS,
   pluralizePortions, pluralizePortionsAccusative,
@@ -375,7 +375,33 @@ function IngredientTriToggle({ value, onChange }) {
   );
 }
 
-function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
+function BulkIngredientToggle({ items, decisions, onSetAll }) {
+  const allHave = items.every((item) => decisions[item.product.toLowerCase()] === 'have');
+  const allBuy = items.every((item) => decisions[item.product.toLowerCase()] === 'buy');
+  const keys = items.map((item) => item.product);
+
+  return (
+    <div className="ingr-toggle ingr-toggle--bulk">
+      <button
+        type="button"
+        className={`ingr-toggle__btn ingr-toggle__btn--have${allHave ? ' ingr-toggle__btn--active' : ''}`}
+        onClick={() => onSetAll(keys, 'have')}
+      >
+        Всё дома
+      </button>
+      <span className="ingr-toggle__mid" aria-hidden="true" />
+      <button
+        type="button"
+        className={`ingr-toggle__btn ingr-toggle__btn--buy${allBuy ? ' ingr-toggle__btn--active' : ''}`}
+        onClick={() => onSetAll(keys, 'buy')}
+      >
+        Всё купить
+      </button>
+    </div>
+  );
+}
+
+function MenuIngredientsSummary({ plan, allRecipes, onSetDecision, onSetAllDecisions }) {
   if (plan.selectedRecipes.length === 0) return null;
 
   const items = buildSelectedIngredientsSummary(plan, allRecipes)
@@ -386,7 +412,10 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
 
   return (
     <div className="menu-ingredients">
-      <h2 className="menu-ingredients__title">Ингредиенты</h2>
+      <div className="menu-ingredients__header">
+        <h2 className="menu-ingredients__title">Ингредиенты</h2>
+        <BulkIngredientToggle items={items} decisions={plan.ingredientDecisions} onSetAll={onSetAllDecisions} />
+      </div>
       <div className="menu-ingredients__list">
         {items.map((item) => {
           const key = item.product.toLowerCase();
@@ -410,7 +439,7 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision }) {
 
 // ─── Menu landing view (the one Меню page: slots + ingredients + footer) ────
 
-function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRecipe, onOpenPicker, onSetIngredientDecision, onBack, onGoShopping, onSendToStudent }) {
+function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRecipe, onOpenPicker, onSetIngredientDecision, onSetAllIngredientDecisions, onBack, onGoShopping, onSendToStudent }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState(null);
@@ -491,6 +520,7 @@ function MenuLandingView({ plan, allRecipes, onSetPortions, onDeselect, onViewRe
           plan={plan}
           allRecipes={allRecipes}
           onSetDecision={onSetIngredientDecision}
+          onSetAllDecisions={onSetAllIngredientDecisions}
         />
       </div>
 
@@ -687,6 +717,9 @@ export default function PlannerMenuScreen() {
         onOpenPicker={openPicker}
         onSetIngredientDecision={(product, decision) =>
           setPlan((p) => setIngredientDecision(p, product, decision))
+        }
+        onSetAllIngredientDecisions={(productKeys, decision) =>
+          setPlan((p) => setAllIngredientDecisions(p, productKeys, decision))
         }
         onBack={() => setScreen('home')}
         onGoShopping={() => setScreen('planner_shopping')}

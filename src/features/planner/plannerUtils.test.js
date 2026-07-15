@@ -13,6 +13,7 @@ import {
   resetPlan,
   normalizePlan,
   setIngredientDecision,
+  setAllIngredientDecisions,
   resolveChosenPortions,
   buildSelectedIngredientsSummary,
   isMenuFullyDecided,
@@ -210,6 +211,37 @@ describe('setIngredientDecision', () => {
   it('does not mutate the original plan', () => {
     const plan = createPlan('s1');
     setIngredientDecision(plan, 'картошка', 'have');
+    expect(plan.ingredientDecisions).toEqual({});
+  });
+});
+
+describe('setAllIngredientDecisions', () => {
+  it('sets the same decision for every product key at once', () => {
+    const plan = setAllIngredientDecisions(createPlan('s1'), ['Картошка', 'лук', 'Соль'], 'have');
+    expect(plan.ingredientDecisions).toEqual({ 'картошка': 'have', 'лук': 'have', 'соль': 'have' });
+  });
+
+  it('overwrites existing per-product decisions', () => {
+    let plan = setIngredientDecision(createPlan('s1'), 'картошка', 'buy');
+    plan = setAllIngredientDecisions(plan, ['картошка', 'лук'], 'have');
+    expect(plan.ingredientDecisions).toEqual({ 'картошка': 'have', 'лук': 'have' });
+  });
+
+  it('clears all listed decisions when passed null', () => {
+    let plan = setAllIngredientDecisions(createPlan('s1'), ['картошка', 'лук'], 'have');
+    plan = setAllIngredientDecisions(plan, ['картошка', 'лук'], null);
+    expect(plan.ingredientDecisions).toEqual({});
+  });
+
+  it('does not affect a product outside the given list', () => {
+    let plan = setIngredientDecision(createPlan('s1'), 'соль', 'buy');
+    plan = setAllIngredientDecisions(plan, ['картошка', 'лук'], 'have');
+    expect(plan.ingredientDecisions).toEqual({ 'соль': 'buy', 'картошка': 'have', 'лук': 'have' });
+  });
+
+  it('does not mutate the original plan', () => {
+    const plan = createPlan('s1');
+    setAllIngredientDecisions(plan, ['картошка'], 'have');
     expect(plan.ingredientDecisions).toEqual({});
   });
 });

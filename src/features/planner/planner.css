@@ -639,13 +639,25 @@
   box-shadow: 0 4px 14px rgba(71, 61, 48, 0.05);
 }
 
+.menu-ingredients__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
 .menu-ingredients__title {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #2f5b57;
+}
+
+.ingr-toggle--bulk {
+  width: 172px;
 }
 
 .menu-ingredients__list {
