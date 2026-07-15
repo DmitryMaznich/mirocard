@@ -6,6 +6,7 @@ import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons'
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe,
   setMealAssignment, setSelectedPortions, resolveChosenPortions,
+  setSelectedOptions,
   setIngredientDecision, setAllIngredientDecisions, buildSelectedIngredientsSummary, isMenuFullyDecided,
   needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS, MEAL_ICONS,
@@ -15,6 +16,7 @@ import { GLOBAL_MAX_PORTIONS } from './recipeParser.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
 import { scaleIngredientQty } from './shoppingUnitConversions.js';
 import StoveHeatModal from '@/shared/components/StoveHeatModal';
+import OptionsPicker from '@/shared/components/OptionsPicker';
 import './planner.css';
 
 // ASCII modifier suffixes for MealSlotSection's per-meal soft-color tint
@@ -169,6 +171,8 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
   // (that field only anchors ingredient-quantity scaling — see
   // buildSelectedIngredientsSummary — it is not a suggested serving size).
   const [portions, setPortions] = useState(1);
+  const [options, setOptions] = useState({}); // { groupId: string[] }
+  const optionGroups = Object.entries(recipe.options ?? {});
 
   return (
     <div className="portions-sheet-backdrop" onClick={onClose}>
@@ -195,11 +199,20 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
             +
           </button>
         </div>
+        {optionGroups.map(([groupId, choices]) => (
+          <OptionsPicker
+            key={groupId}
+            label="Топпинг (можно несколько или ничего)"
+            choices={choices}
+            selected={options[groupId] ?? []}
+            onChange={(next) => setOptions((prev) => ({ ...prev, [groupId]: next }))}
+          />
+        ))}
         <div className="portions-sheet__actions">
           <button type="button" className="portions-sheet__cancel" onClick={onClose}>
             Отменить
           </button>
-          <button type="button" className="portions-sheet__confirm" onClick={() => onConfirm(portions)}>
+          <button type="button" className="portions-sheet__confirm" onClick={() => onConfirm(portions, options)}>
             Добавить в меню
           </button>
         </div>
@@ -664,13 +677,19 @@ export default function PlannerMenuScreen() {
     applyToggleSelect(recipe, mealType);
   }
 
-  function handleConfirmPortions(portions) {
+  function handleConfirmPortions(portions, options) {
     const { recipe, mealType } = portionsPrompt;
-    setPlan((p) => setMealAssignment(
-      setSelectedPortions(selectRecipe(p, recipe.text.id), recipe.text.id, portions),
-      recipe.text.id,
-      mealType
-    ));
+    setPlan((p) => {
+      let next = setMealAssignment(
+        setSelectedPortions(selectRecipe(p, recipe.text.id), recipe.text.id, portions),
+        recipe.text.id,
+        mealType
+      );
+      for (const [groupId, choices] of Object.entries(options ?? {})) {
+        next = setSelectedOptions(next, recipe.text.id, groupId, choices);
+      }
+      return next;
+    });
     setPortionsPrompt(null);
   }
 

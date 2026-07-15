@@ -10,6 +10,14 @@
  *   # ingredients:
  *   #   продукт | количество | единица
  *   #   соль | |
+ *   # options:
+ *   #   topping | мёд | 1 | ч.л
+ *   #   topping | ягоды | 1 | горсть
+ *
+ * options is an optional set of choice groups (e.g. a topping the child
+ * picks) — each line is `groupId | product | qty | unit`. A chosen
+ * product's qty/unit feeds the shopping list exactly like a regular
+ * ingredient, scaled the same way; an unchosen one contributes nothing.
  *
  * type: fixed marks a recipe cooked as one inherent batch (e.g. a pot of
  * soup) — its # portions: count is fixed, not a user choice, and ingredient
@@ -37,11 +45,14 @@ export function parseRecipeMetadata(content) {
   let isFixedType = false;
   let status = 'draft';
   const ingredients = [];
+  const options = {};
   let inIngredients = false;
+  let inOptions = false;
 
   for (const line of lines) {
     if (!line.startsWith('#')) {
       inIngredients = false;
+      inOptions = false;
       continue;
     }
 
@@ -65,6 +76,24 @@ export function parseRecipeMetadata(content) {
       inIngredients = false;
     }
 
+    if (inOptions) {
+      // Option lines: "#   groupId | product | qty | unit"
+      if (afterHash.startsWith('  ') || afterHash.startsWith('\t\t')) {
+        const parts = afterHash.trim().split('|').map((p) => p.trim());
+        const [groupId, product] = parts;
+        if (groupId && product) {
+          if (!options[groupId]) options[groupId] = [];
+          options[groupId].push({
+            product,
+            qty: parts[2] ? parseFloat(parts[2]) || null : null,
+            unit: parts[3] || null,
+          });
+        }
+        continue;
+      }
+      inOptions = false;
+    }
+
     const kv = afterHash.trim();
     if (kv.startsWith('photo:')) {
       photo = kv.slice(6).trim() || null;
@@ -79,6 +108,8 @@ export function parseRecipeMetadata(content) {
       status = kv.slice(7).trim() === 'final' ? 'final' : 'draft';
     } else if (kv === 'ingredients:') {
       inIngredients = true;
+    } else if (kv === 'options:') {
+      inOptions = true;
     }
   }
 
@@ -87,6 +118,7 @@ export function parseRecipeMetadata(content) {
     tags,
     portions,
     fixedPortions: isFixedType ? portions : null,
+    options,
     status,
     ingredients,
   };

@@ -16,6 +16,11 @@ export const useAppStore = create((set) => ({
   // The reading renderer reads it once on mount, then it's cleared.
   sessionPortionsOverride: null,
   setSessionPortionsOverride: (sessionPortionsOverride) => set({ sessionPortionsOverride }),
+  // Same idea as sessionPortionsOverride, for a recipe's option-group
+  // choices (e.g. topping) — { groupId: string[] }. Null means "use
+  // whatever was saved last time via saveRecipeOptionSelections".
+  sessionOptionsOverride: null,
+  setSessionOptionsOverride: (sessionOptionsOverride) => set({ sessionOptionsOverride }),
   sessionExitPromptOpen: false,
   openSessionExitPrompt:  () => set({ sessionExitPromptOpen: true }),
   closeSessionExitPrompt: () => set({ sessionExitPromptOpen: false }),

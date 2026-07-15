@@ -313,3 +313,40 @@ export function computeStepSegments(steps) {
   if (current) segments.push(current);
   return segments;
 }
+
+// Matches a bare "{groupId}" option placeholder — deliberately excludes a
+// leading digit so it can never collide with the {N}/{N|one|few|many}
+// portion-scaling syntax (applyPortions), which always starts with a number.
+const OPTION_PLACEHOLDER_RE = /\{([a-zA-Zа-яёА-ЯЁ]\w*)\}/g;
+
+function joinOptionChoices(choices) {
+  if (!choices || choices.length === 0) return "";
+  if (choices.length === 1) return choices[0];
+  return `${choices.slice(0, -1).join(", ")} и ${choices[choices.length - 1]}`;
+}
+
+/**
+ * Fills in "{groupId}" placeholders (e.g. "{topping}") with the
+ * human-readable joined list of what the child picked for that option
+ * group — see setSelectedOptions/getRecipeOptionSelections. A step whose
+ * placeholder resolves to nothing should be dropped entirely first, via
+ * filterStepsByOptions — this function assumes that already happened.
+ */
+export function applyOptionSelections(text, selections) {
+  if (!text) return text ?? "";
+  return text.replace(OPTION_PLACEHOLDER_RE, (_, groupId) => joinOptionChoices(selections?.[groupId]));
+}
+
+/**
+ * Drops any step referencing an option group with nothing selected (e.g.
+ * "Добавить в тарелку по вкусу: {topping}." when no topping was chosen) —
+ * a bare, un-decorated "по вкусу: " line would make no sense to read.
+ * Steps with no option placeholder at all pass through unaffected.
+ */
+export function filterStepsByOptions(steps, selections) {
+  return steps.filter((step) => {
+    const matches = step.text?.match(OPTION_PLACEHOLDER_RE);
+    if (!matches) return true;
+    return matches.every((token) => (selections?.[token.slice(1, -1)]?.length ?? 0) > 0);
+  });
+}

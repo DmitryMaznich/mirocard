@@ -7,7 +7,8 @@ import Modal from "@/shared/components/Modal";
 import PinGateModal from "@/shared/components/PinGateModal";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
-import { getRecipeSettings, saveRecipeSettings } from "@/core/groupStore";
+import { getRecipeSettings, saveRecipeSettings, getRecipeOptionSelections, saveRecipeOptionSelections } from "@/core/groupStore";
+import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
@@ -28,6 +29,7 @@ import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 function RecipeStartParams({ topicId, activeText, student }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
+  const setSessionOptionsOverride = useAppStore((s) => s.setSessionOptionsOverride);
   const { markSessionStart } = useTimer();
   const fixedPortions = activeText.fixedPortions ?? null;
   // Defaults to 1, not the recipe file's "written for N people" portions —
@@ -38,10 +40,13 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const maxPortions = GLOBAL_MAX_PORTIONS;
   const [portions, setPortions] = useState(basePortions);
   const [stoveModalOpen, setStoveModalOpen] = useState(false);
+  const [options, setOptions] = useState({}); // { groupId: string[] } — last cooked-with choice
+  const optionGroups = Object.entries(activeText.options ?? {});
 
   useEffect(() => {
     let cancelled = false;
     getRecipeSettings(topicId, activeText.id).then((s) => { if (!cancelled) setPortions(s.portions ?? basePortions); }).catch(() => {});
+    getRecipeOptionSelections(topicId, activeText.id).then((s) => { if (!cancelled) setOptions(s ?? {}); }).catch(() => {});
     return () => { cancelled = true; };
   }, [topicId, activeText.id, basePortions]);
 
@@ -49,6 +54,8 @@ function RecipeStartParams({ topicId, activeText, student }) {
     const finalPortions = fixedPortions || portions;
     setSessionPortionsOverride(finalPortions);
     saveRecipeSettings(topicId, activeText.id, { portions: finalPortions }).catch(() => {});
+    setSessionOptionsOverride(options);
+    saveRecipeOptionSelections(topicId, activeText.id, options).catch(() => {});
     markSessionStart();
     setScreen("session");
   }
@@ -95,6 +102,15 @@ function RecipeStartParams({ topicId, activeText, student }) {
               Настроить
             </button>
           </div>
+          {optionGroups.map(([groupId, choices]) => (
+            <OptionsPicker
+              key={groupId}
+              label="Топпинг (можно несколько или ничего)"
+              choices={choices}
+              selected={options[groupId] ?? []}
+              onChange={(next) => setOptions((prev) => ({ ...prev, [groupId]: next }))}
+            />
+          ))}
         </div>
         <div className="params-start-phone">
           <Button fullWidth onClick={startSession}>Начать готовить</Button>

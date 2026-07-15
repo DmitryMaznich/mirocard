@@ -79,8 +79,8 @@ export async function loadAllRecipes(topicRecords) {
       if (text.kind !== 'instruction' || !text.file) continue;
       const content = await getRawRecipeTxt(record.meta.id, text.file);
       if (!content) continue;
-      const { tags, ingredients, portions, fixedPortions, status } = parseRecipeMetadata(content);
-      all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, status });
+      const { tags, ingredients, portions, fixedPortions, status, options } = parseRecipeMetadata(content);
+      all.push({ topicId: record.meta.id, text, tags, ingredients, portions, fixedPortions, status, options });
     }
   }
   return all;

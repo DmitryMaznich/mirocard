@@ -32,6 +32,7 @@ export function createPlan(studentId) {
     selectedRecipes: [],
     mealAssignments: {},
     selectedPortions: {},
+    selectedOptions: {},
     ingredientDecisions: {},
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -58,11 +59,14 @@ export function deselectRecipe(plan, textId) {
   delete mealAssignments[textId];
   const selectedPortions = { ...plan.selectedPortions };
   delete selectedPortions[textId];
+  const selectedOptions = { ...(plan.selectedOptions ?? {}) };
+  delete selectedOptions[textId];
   return {
     ...plan,
     selectedRecipes: plan.selectedRecipes.filter((id) => id !== textId),
     mealAssignments,
     selectedPortions,
+    selectedOptions,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -94,6 +98,26 @@ export function setSelectedPortions(plan, textId, portions) {
     selectedPortions: { ...plan.selectedPortions, [textId]: portions },
     updatedAt: new Date().toISOString(),
   };
+}
+
+/**
+ * Sets which choices are picked within one option group of a recipe (e.g.
+ * textId's "topping" group -> ['мёд', 'ягоды']) — an empty array means
+ * none chosen. Feeds buildSelectedIngredientsSummary the same way
+ * selectedPortions feeds ingredient scaling.
+ */
+export function setSelectedOptions(plan, textId, groupId, choices) {
+  const forRecipe = { ...(plan.selectedOptions?.[textId] ?? {}), [groupId]: choices };
+  return {
+    ...plan,
+    selectedOptions: { ...(plan.selectedOptions ?? {}), [textId]: forRecipe },
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+/** Choices currently picked for one recipe's option group — [] if none. */
+export function getSelectedOptions(plan, textId, groupId) {
+  return plan.selectedOptions?.[textId]?.[groupId] ?? [];
 }
 
 export function resetPlan(studentId) {
@@ -177,6 +201,24 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
         else existing.qty = null;
       } else {
         map.set(key, { product: ing.product, qty: scaledQty, unit: ing.unit });
+      }
+    }
+
+    // Only the chosen options actually need buying — an unpicked topping
+    // contributes nothing (see setSelectedOptions/getSelectedOptions).
+    for (const [groupId, choicesAvailable] of Object.entries(recipe.options ?? {})) {
+      const chosen = new Set(getSelectedOptions(plan, textId, groupId));
+      for (const opt of choicesAvailable) {
+        if (!chosen.has(opt.product)) continue;
+        const key = opt.product.toLowerCase();
+        const scaledQty = opt.qty != null ? opt.qty * scale : null;
+        if (map.has(key)) {
+          const existing = map.get(key);
+          if (existing.qty != null && scaledQty != null) existing.qty += scaledQty;
+          else existing.qty = null;
+        } else {
+          map.set(key, { product: opt.product, qty: scaledQty, unit: opt.unit });
+        }
       }
     }
   }
@@ -308,6 +350,7 @@ export function normalizePlan(plan) {
       selectedRecipes,
       mealAssignments,
       selectedPortions,
+      selectedOptions: plan.selectedOptions ?? {},
       ingredientDecisions: plan.ingredientDecisions ?? {},
     };
   }
@@ -319,6 +362,7 @@ export function normalizePlan(plan) {
     selectedRecipes: pruneUnassigned(plan.selectedRecipes, mealAssignments),
     mealAssignments,
     selectedPortions: plan.selectedPortions ?? {},
+    selectedOptions: plan.selectedOptions ?? {},
     ingredientDecisions: plan.ingredientDecisions ?? {},
   };
 }
