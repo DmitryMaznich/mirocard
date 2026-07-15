@@ -333,6 +333,29 @@
   ];
 
   // ── Init ──────────────────────────────────────────────────────────────────────
+  let _autoRefreshTimer = null;
+
+  function startAutoRefresh() {
+    stopAutoRefresh();
+    _autoRefreshTimer = setInterval(() => {
+      // Silent refresh: update data without showing spinner
+      Promise.all([
+        apiFetch('/api/admin/accounts'),
+        fetch('/decks/catalog.json'),
+      ]).then(async ([accRes, catRes]) => {
+        if (!accRes.ok) return;
+        allAccounts = await accRes.json();
+        catalog = catRes.ok ? (await catRes.json()).decks ?? [] : [];
+        renderOnline();
+        renderAccounts();
+      }).catch(() => {});
+    }, 30_000);
+  }
+
+  function stopAutoRefresh() {
+    if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }
+  }
+
   if (TOKEN) showPanel();
 
   document.getElementById('token-input').addEventListener('keydown', (e) => {
@@ -368,6 +391,7 @@
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('panel').style.display = 'block';
     loadData();
+    startAutoRefresh();
   }
 
   // ── Data ──────────────────────────────────────────────────────────────────────
