@@ -51,7 +51,7 @@ function Expression({ task, result, cellSize = 44 }) {
 // ── Compact tap keyboard ──────────────────────────────────────────────────────
 // Rows: [1-5] / [6-0] / phase1: [sign+][sign−][line]  phase2: [helper toggle]
 
-function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize }) {
+function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidden }) {
   const bs = btnSize;
   const bsStr = bs + "px";
   const digitFS = Math.round(bs * 0.72) + "px";
@@ -62,7 +62,7 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize }) {
   const wrongSign = operation === "add" ? "−" : "+";
 
   return (
-    <div className="col-tap-kb">
+    <div className="col-tap-kb" style={hidden ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div className="col-tap-row">
         {[1, 2, 3, 4, 5].map((d) => (
           <button key={d} className="col-tap-btn" style={digitStyle} onClick={() => onDigit(d)}>
@@ -609,15 +609,12 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         </div>
       )}
 
-      {showingCompare && compareColumn && (
-        <BorrowCompareStrip
-          topDigit={compareColumn.topDigit}
-          bottomDigit={compareColumn.bottomDigit}
-          onResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.position))}
-        />
-      )}
-
-      {!showingCompare && !showingCrossout && (
+      {/* TapKeyboard stays mounted (just visually hidden) whenever the compare
+          strip or the crossout gesture takes over — this reserves its exact
+          footprint so the column above never reflows when .col-screen
+          re-centers its flex content. BorrowCompareStrip overlays on top of
+          that reserved space instead of adding its own. */}
+      <div className="col-controls-area">
         <TapKeyboard
           phase={phase}
           operation={task.operation}
@@ -625,8 +622,16 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           onSign={(s) => handleFormTap(s, "sign")}
           onLine={() => handleFormTap(null, "line")}
           btnSize={cellSize}
+          hidden={showingCompare || showingCrossout}
         />
-      )}
+        {showingCompare && compareColumn && (
+          <BorrowCompareStrip
+            topDigit={compareColumn.topDigit}
+            bottomDigit={compareColumn.bottomDigit}
+            onResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.position))}
+          />
+        )}
+      </div>
 
       {!showHelper && !showingCompare && !showingCrossout && !!sessionParams?.showHelper && (
         <button

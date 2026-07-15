@@ -356,13 +356,24 @@
 
 /* ── Borrow comparison strip ─────────────────── */
 
+.col-controls-area {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .col-borrow-compare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  margin-top: 8px;
-  flex-shrink: 0;
 }
 
 .col-borrow-compare-expr {
