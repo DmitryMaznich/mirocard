@@ -1699,7 +1699,7 @@
   display: flex;
   align-items: center;
   padding: clamp(8px, 1.4vw, 16px) clamp(10px, 1.8vw, 20px);
-  font-size: clamp(12px, 2.4vw, 28px);
+  font-size: clamp(14px, 2.4vw, 30px);
   font-weight: 700;
   color: #263131;
   text-align: left;

@@ -18,9 +18,12 @@ import './planner.css';
 // Loads (and re-loads when `version` bumps) one zone's permanent reference
 // photo. Same load-blob/create-object-URL/revoke-on-cleanup shape as
 // HomeScreen.jsx's CycleHistoryPhotoThumb — kept local here since nothing
-// outside this screen needs it.
-function ZonePhoto({ studentId, zoneId, version, className, fallback }) {
+// outside this screen needs it. Three tiers: the family's own photo (once
+// taken via long-press) > a generic stock photo for that zone > the emoji
+// fallback, if no default photo is configured or it fails to load.
+function ZonePhoto({ studentId, zoneId, version, className, defaultPhoto, fallback }) {
   const [url, setUrl] = useState(null);
+  const [defaultFailed, setDefaultFailed] = useState(false);
 
   useEffect(() => {
     let objectUrl = null;
@@ -36,8 +39,11 @@ function ZonePhoto({ studentId, zoneId, version, className, fallback }) {
     };
   }, [studentId, zoneId, version]);
 
-  if (!url) return fallback;
-  return <img src={url} className={className} alt="" />;
+  if (url) return <img src={url} className={className} alt="" />;
+  if (defaultPhoto && !defaultFailed) {
+    return <img src={defaultPhoto} className={className} alt="" onError={() => setDefaultFailed(true)} />;
+  }
+  return fallback;
 }
 
 const LONG_PRESS_MS = 500;
@@ -281,6 +287,7 @@ export default function PlannerPutawayScreen() {
                         zoneId={zone.id}
                         version={zonePhotoVersions[zone.id] ?? 0}
                         className="putaway-zone__photo"
+                        defaultPhoto={zone.defaultPhoto}
                         fallback={<span className="putaway-zone__icon">{zone.icon}</span>}
                       />
                     </div>

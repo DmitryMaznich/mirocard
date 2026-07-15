@@ -12,6 +12,12 @@ describe('ZONES', () => {
       expect(zone.icon.length).toBeGreaterThan(0);
     }
   });
+
+  it('every zone has a default photo path under /zone-media/', () => {
+    for (const zone of ZONES) {
+      expect(zone.defaultPhoto).toMatch(/^\/zone-media\/.+\.webp$/);
+    }
+  });
 });
 
 describe('getZoneForProduct', () => {
@@ -93,7 +99,7 @@ describe('getEffectiveZones', () => {
   it('applies a renamed label without changing the id or icon', () => {
     const result = getEffectiveZones({ renamed: { pantry: 'Кладовка' }, added: [] });
     const pantry = result.find((z) => z.id === 'pantry');
-    expect(pantry).toEqual({ id: 'pantry', label: 'Кладовка', icon: '🌾' });
+    expect(pantry).toEqual({ id: 'pantry', label: 'Кладовка', icon: '🌾', defaultPhoto: '/zone-media/pantry.webp' });
   });
 
   it('appends added zones after the base six, in insertion order', () => {

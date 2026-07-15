@@ -1,10 +1,12 @@
+// defaultPhoto is a generic stock photo shown until the family photographs
+// their own version of that zone (PlannerPutawayScreen's long-press flow).
 export const ZONES = [
-  { id: 'freezer', label: 'Морозилка', icon: '❄️' },
-  { id: 'fridge', label: 'Холодильник', icon: '🧊' },
-  { id: 'pantry', label: 'Шкаф', icon: '🌾' },
-  { id: 'veg', label: 'Место для овощей', icon: '🥔' },
-  { id: 'chem', label: 'Шкаф бытовой химии', icon: '🧹' },
-  { id: 'table', label: 'Стол', icon: '🍎' },
+  { id: 'freezer', label: 'Морозилка', icon: '❄️', defaultPhoto: '/zone-media/freezer.webp' },
+  { id: 'fridge', label: 'Холодильник', icon: '🧊', defaultPhoto: '/zone-media/fridge.webp' },
+  { id: 'pantry', label: 'Шкаф', icon: '🌾', defaultPhoto: '/zone-media/pantry.webp' },
+  { id: 'veg', label: 'Место для овощей', icon: '🥔', defaultPhoto: '/zone-media/veg.webp' },
+  { id: 'chem', label: 'Шкаф бытовой химии', icon: '🧹', defaultPhoto: '/zone-media/chem.webp' },
+  { id: 'table', label: 'Стол', icon: '🍎', defaultPhoto: '/zone-media/table.webp' },
 ];
 
 // Default zone per shopping.txt category. Most items in a category really
