@@ -237,11 +237,17 @@ export function initDb(dbPath = DB_PATH) {
   if (!accountColumns.includes("open_count")) {
     db.exec("ALTER TABLE accounts ADD COLUMN open_count INTEGER NOT NULL DEFAULT 0");
   }
-  if (!accountColumns.includes("last_device")) {
-    db.exec("ALTER TABLE accounts ADD COLUMN last_device TEXT");
+
+  // Per-device activity tracked in auth_tokens, not in accounts
+  const tokenColumns = db.prepare("PRAGMA table_info(auth_tokens)").all().map(c => c.name);
+  if (!tokenColumns.includes("last_seen_at")) {
+    db.exec("ALTER TABLE auth_tokens ADD COLUMN last_seen_at TEXT");
   }
-  if (!accountColumns.includes("last_topic_id")) {
-    db.exec("ALTER TABLE accounts ADD COLUMN last_topic_id TEXT");
+  if (!tokenColumns.includes("device")) {
+    db.exec("ALTER TABLE auth_tokens ADD COLUMN device TEXT");
+  }
+  if (!tokenColumns.includes("last_topic_id")) {
+    db.exec("ALTER TABLE auth_tokens ADD COLUMN last_topic_id TEXT");
   }
   if (!accountColumns.includes("first_name")) {
     db.exec("ALTER TABLE accounts ADD COLUMN first_name TEXT NOT NULL DEFAULT ''");

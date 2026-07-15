@@ -419,17 +419,18 @@
 
   // ── Render ────────────────────────────────────────────────────────────────────
   function renderOnline() {
-    const TWO_MIN = 2 * 60 * 1000;
-    const online = allAccounts.filter(a => a.lastSeenAt && Date.now() - new Date(a.lastSeenAt).getTime() < TWO_MIN);
+    const online = allAccounts.filter(a => (a.activeSessions ?? []).length > 0);
     const el = document.getElementById('online-container');
     if (!online.length) { el.innerHTML = ''; return; }
-    const items = online.map(a => `
-      <div class="online-item">
-        <div class="online-dot"></div>
-        <span class="online-email">${esc(a.email)}</span>
-        ${a.lastDevice ? `<span class="online-device">${esc(a.lastDevice)}</span>` : ''}
-        ${a.lastTopicId ? `<span class="online-topic">${esc(getTopicLabel(a.lastTopicId))}</span>` : ''}
-      </div>`).join('');
+    const items = online.flatMap(a =>
+      (a.activeSessions ?? []).map(s => `
+        <div class="online-item">
+          <div class="online-dot"></div>
+          <span class="online-email">${esc(a.email)}</span>
+          ${s.device ? `<span class="online-device">${esc(s.device)}</span>` : ''}
+          ${s.topicId ? `<span class="online-topic">${esc(getTopicLabel(s.topicId))}</span>` : '<span class="online-device">—</span>'}
+        </div>`)
+    ).join('');
     el.innerHTML = `<div class="online-section">
       <div class="online-section__title">Сейчас в приложении</div>
       <div class="online-list">${items}</div>
@@ -497,10 +498,13 @@
             </div>
           </div>
           ${lastSeenHtml}
+          ${(acc.activeSessions ?? []).length > 0 ? `
           <div class="user-context">
-            ${acc.lastDevice ? `<span class="ctx-badge ctx-badge--device">${esc(acc.lastDevice)}</span>` : ''}
-            ${acc.lastTopicId ? `<span class="ctx-badge ctx-badge--topic">${esc(getTopicLabel(acc.lastTopicId))}</span>` : ''}
-          </div>
+            ${(acc.activeSessions).map(s => `
+              <span class="ctx-badge ctx-badge--device">${esc(s.device ?? '?')}</span>
+              ${s.topicId ? `<span class="ctx-badge ctx-badge--topic">${esc(getTopicLabel(s.topicId))}</span>` : ''}
+            `).join('')}
+          </div>` : ''}
           <div style="margin-top:8px">
             <button class="btn btn--secondary btn--sm" onclick="toggleSessions('${acc.id}')">
               История занятий

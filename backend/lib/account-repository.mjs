@@ -134,20 +134,28 @@ export function serializeAccount(row) {
     createdAt: row.created_at,
     lastSeenAt: row.last_seen_at ?? null,
     openCount: row.open_count ?? 0,
-    lastDevice: row.last_device ?? null,
-    lastTopicId: row.last_topic_id ?? null,
   };
 }
 
-export function recordHeartbeat(db, accountId, { device, topicId }) {
+export function recordHeartbeat(db, tokenHash, { device, topicId }) {
   const ts = new Date().toISOString();
   db.prepare(`
-    UPDATE accounts
+    UPDATE auth_tokens
     SET last_seen_at = ?,
-        last_device = COALESCE(?, last_device),
+        device = COALESCE(?, device),
         last_topic_id = COALESCE(?, last_topic_id)
-    WHERE id = ?
-  `).run(ts, device ?? null, topicId ?? null, accountId);
+    WHERE token_hash = ?
+  `).run(ts, device ?? null, topicId ?? null, tokenHash);
+}
+
+export function getActiveTokens(db, accountId, withinMs = 2 * 60 * 1000) {
+  const since = new Date(Date.now() - withinMs).toISOString();
+  return db.prepare(`
+    SELECT device, last_topic_id, last_seen_at
+    FROM auth_tokens
+    WHERE account_id = ? AND last_seen_at >= ? AND expires_at > ?
+    ORDER BY last_seen_at DESC
+  `).all(accountId, since, new Date().toISOString());
 }
 
 export function touchAccountSeen(db, accountId) {
@@ -521,6 +529,8 @@ export function listAllAccounts(db) {
     "SELECT * FROM accounts ORDER BY last_seen_at DESC NULLS LAST, created_at DESC"
   ).all();
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const now = new Date().toISOString();
   return accounts.map((a) => ({
     ...serializeAccount(a),
     status: a.status,
@@ -533,6 +543,16 @@ export function listAllAccounts(db) {
     sessionsTotal: db.prepare(
       "SELECT COUNT(*) as c FROM sessions WHERE account_id = ?"
     ).get(a.id)?.c ?? 0,
+    activeSessions: db.prepare(`
+      SELECT device, last_topic_id, last_seen_at
+      FROM auth_tokens
+      WHERE account_id = ? AND last_seen_at >= ? AND expires_at > ?
+      ORDER BY last_seen_at DESC
+    `).all(a.id, twoMinAgo, now).map(t => ({
+      device: t.device,
+      topicId: t.last_topic_id,
+      lastSeenAt: t.last_seen_at,
+    })),
   }));
 }
 

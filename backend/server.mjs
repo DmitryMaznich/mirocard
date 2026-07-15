@@ -24,7 +24,7 @@ import {
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
   getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
-  listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat,
+  listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat, getActiveTokens,
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress, getAllConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
@@ -444,11 +444,12 @@ async function handlePatchSettings(req, res) {
 }
 
 async function handleHeartbeat(req, res) {
-  const account = requireAuth(req);
+  requireAuth(req);
+  const raw = getBearerToken(req);
   const body = await readJsonBody(req);
   const device = parseDevice(req.headers["user-agent"]);
   const topicId = typeof body?.topicId === "string" ? body.topicId || null : null;
-  recordHeartbeat(db, account.id, { device, topicId });
+  recordHeartbeat(db, hashToken(raw), { device, topicId });
   writeNoContent(res);
 }
 
