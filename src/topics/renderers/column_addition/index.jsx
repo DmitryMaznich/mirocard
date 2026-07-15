@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
-import { generateExamples } from "./engine.js";
+import { generateExamples, taskNeedsBorrowTeaching } from "./engine.js";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import FingersShowTask from "./FingersShowTask.jsx";
 import FingersCountTask from "./FingersCountTask.jsx";
@@ -89,6 +89,48 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize }) {
         <button className="col-tap-btn col-tap-btn--line" style={{ height: bsStr, flex: 1 }} onClick={onLine}>
           <div className="col-line-tile-bar" />
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Borrow comparison strip ───────────────────────────────────────────────
+// Shown under the column, gated by the "Сравнение" param, right before the
+// child is expected to fill a "borrow" step. Reuses the same tap-a-sign
+// interaction as the "Сравнение чисел" topic's ComparePutSign, scaled down.
+// The child's own answer is what unlocks the borrow square below — nothing
+// here is decided for them.
+
+function BorrowCompareStrip({ topDigit, bottomDigit, onResolve }) {
+  const [shakeSign, setShakeSign] = useState(null);
+  const correctSign = topDigit < bottomDigit ? "<" : topDigit > bottomDigit ? ">" : "=";
+
+  function handleTap(sign) {
+    if (sign !== correctSign) {
+      setShakeSign(sign);
+      setTimeout(() => setShakeSign(null), 400);
+      return;
+    }
+    onResolve();
+  }
+
+  return (
+    <div className="col-borrow-compare">
+      <div className="col-borrow-compare-expr">
+        <span className="col-slant">{topDigit}</span>
+        <span className="col-borrow-compare-blank">?</span>
+        <span className="col-slant">{bottomDigit}</span>
+      </div>
+      <div className="col-borrow-compare-btns">
+        {["<", ">", "="].map((sign) => (
+          <button
+            key={sign}
+            className={["col-borrow-compare-btn", shakeSign === sign ? "col-borrow-compare-btn--shake" : ""].filter(Boolean).join(" ")}
+            onClick={() => handleTap(sign)}
+          >
+            <span className="col-slant">{sign}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -355,6 +397,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [formStepIdx, setFormStepIdx] = useState(0);
   const [shakeCell, setShakeCell] = useState(null);
   const [solved, setSolved] = useState(false);
+  const [resolvedCompares, setResolvedCompares] = useState(new Set());
   const [showHelper, setShowHelper] = useState(false);
   const [cellSize, setCellSize] = useState(44);
 
@@ -424,6 +467,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     setFormStepIdx(0);
     setShakeCell(null);
     setSolved(false);
+    setResolvedCompares(new Set());
   }, [task.cardId, task.top, task.bottom, task.operation]);
 
   // Advance to phase 2 when column fully built.
@@ -495,6 +539,16 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     }
   }, [activeStep, stepIdx, task.steps, triggerShake, onMistake, onCorrect]);
 
+  const showCompareParam = sessionParams?.showCompare ?? true;
+  const showingCompare =
+    phase === "solve" &&
+    activeStep?.cellType === "borrow" &&
+    showCompareParam &&
+    taskNeedsBorrowTeaching(task) &&
+    !resolvedCompares.has(activeStep.position);
+
+  const compareColumn = showingCompare ? task.columns[POS_INDEX[activeStep.position]] : null;
+
   return (
     <div className="col-screen" ref={rootRef}>
       <div className="col-notebook" ref={notebookRef} style={{ gap: `${2 * cellSize}px` }}>
@@ -520,16 +574,26 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         </div>
       )}
 
-      <TapKeyboard
-        phase={phase}
-        operation={task.operation}
-        onDigit={(d) => phase === "form" ? handleFormTap(d, "digit") : handleSolveTap(d)}
-        onSign={(s) => handleFormTap(s, "sign")}
-        onLine={() => handleFormTap(null, "line")}
-        btnSize={cellSize}
-      />
+      {showingCompare && compareColumn && (
+        <BorrowCompareStrip
+          topDigit={compareColumn.topDigit}
+          bottomDigit={compareColumn.bottomDigit}
+          onResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.position))}
+        />
+      )}
 
-      {!showHelper && !!sessionParams?.showHelper && (
+      {!showingCompare && (
+        <TapKeyboard
+          phase={phase}
+          operation={task.operation}
+          onDigit={(d) => phase === "form" ? handleFormTap(d, "digit") : handleSolveTap(d)}
+          onSign={(s) => handleFormTap(s, "sign")}
+          onLine={() => handleFormTap(null, "line")}
+          btnSize={cellSize}
+        />
+      )}
+
+      {!showHelper && !showingCompare && !!sessionParams?.showHelper && (
         <button
           type="button"
           className="helper-toggle-btn"

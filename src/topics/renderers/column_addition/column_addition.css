@@ -339,6 +339,61 @@
   box-shadow: none;
 }
 
+/* ── Borrow comparison strip ─────────────────── */
+
+.col-borrow-compare {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.col-borrow-compare-expr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  font-family: 'Primo', cursive;
+}
+
+.col-borrow-compare-blank {
+  min-width: 20px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.col-borrow-compare-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.col-borrow-compare-btn {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Primo', cursive;
+  border-radius: 10px;
+  border: 2px solid #dbeafe;
+  background: #fff;
+  box-shadow: 0 3px 0 #c7d2fe;
+  cursor: pointer;
+  color: #1a1a2e;
+}
+
+.col-borrow-compare-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.col-borrow-compare-btn--shake {
+  animation: col-shake 0.4s ease-in-out;
+}
+
 /* ── Helper panel wrapper ───────────────────── */
 
 .col-helper-area {
