@@ -26,7 +26,7 @@ function numGen(n) { return NUM_GEN[n] ?? String(n); }
 function numDat(n) { return NUM_DAT[n] ?? String(n); }
 function cap(s)    { return s ? s[0].toUpperCase() + s.slice(1) : s; }
 
-export function generateComparisonTask(params) {
+export function generateComparisonTask(params, usedPairs) {
   const { min = 1, max = 10, minDiff = 1, allowEqual = false } = params;
 
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
@@ -35,8 +35,19 @@ export function generateComparisonTask(params) {
     const diff  = Math.abs(left - right);
 
     if (!allowEqual && left === right) continue;
-    if (allowEqual && left === right)  return { left, right };
+    if (allowEqual && left === right) {
+      const key = `${left},${right}`;
+      if (usedPairs?.has(key)) continue;
+      usedPairs?.add(key);
+      return { left, right };
+    }
     if (diff < minDiff) continue;
+    // Avoid handing back the exact same pair twice within one generated batch —
+    // independent random draws otherwise repeat far more often than a
+    // parent/child expects, especially at the narrower difficulty levels.
+    const key = `${left},${right}`;
+    if (usedPairs?.has(key)) continue;
+    usedPairs?.add(key);
     return { left, right };
   }
 
@@ -136,14 +147,21 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   const totalPairs  = examplesCount > 1 ? count * examplesCount : count;
   const tasks       = [];
   const equalTarget = showEqual ? Math.round(totalPairs * 0.3) : 0;
+  const usedPairs    = new Set();
 
   for (let i = 0; i < totalPairs; i++) {
     let left, right;
     if (i < equalTarget) {
-      const val = Math.floor(Math.random() * (baseParams.max - baseParams.min + 1)) + baseParams.min;
+      let val, key, tries = 0;
+      do {
+        val = Math.floor(Math.random() * (baseParams.max - baseParams.min + 1)) + baseParams.min;
+        key = `${val},${val}`;
+        tries++;
+      } while (usedPairs.has(key) && tries < MAX_ATTEMPTS);
+      usedPairs.add(key);
       left = right = val;
     } else {
-      ({ left, right } = generateComparisonTask({ ...baseParams, allowEqual: false }));
+      ({ left, right } = generateComparisonTask({ ...baseParams, allowEqual: false }, usedPairs));
     }
 
     const isEqual = left === right;

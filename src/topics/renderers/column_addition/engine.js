@@ -73,7 +73,7 @@ function buildSubSteps(columns) {
   return steps;
 }
 
-function generateAddTask(carryMode, digits, card) {
+function generateAddTask(carryMode, digits, card, usedPairs) {
   for (let attempt = 0; attempt < 100; attempt++) {
     let top, bottom;
     if (digits === 2) {
@@ -95,6 +95,12 @@ function generateAddTask(carryMode, digits, card) {
     const hasCarry = columns.some(c => c.carryOut > 0);
     if (carryMode === "none" && hasCarry) continue;
     if (carryMode === "carry" && !hasCarry) continue;
+    // Avoid handing back the exact same pair twice within one generated batch —
+    // pure independent random draws otherwise repeat far more often than a
+    // parent/child expects, especially once carryMode narrows the digit space.
+    const pairKey = `add:${top},${bottom}`;
+    if (usedPairs?.has(pairKey)) continue;
+    usedPairs?.add(pairKey);
     return {
       type: "column_arithmetic",
       cardId: card.id,
@@ -111,7 +117,7 @@ function generateAddTask(carryMode, digits, card) {
   return null;
 }
 
-function generateSubTask(carryMode, digits, card) {
+function generateSubTask(carryMode, digits, card, usedPairs) {
   for (let attempt = 0; attempt < 100; attempt++) {
     let top, bottom;
     if (digits === 2) {
@@ -133,6 +139,9 @@ function generateSubTask(carryMode, digits, card) {
     const hasBorrow = columns.some(c => c.borrowOut > 0);
     if (carryMode === "none" && hasBorrow) continue;
     if (carryMode === "carry" && !hasBorrow) continue;
+    const pairKey = `sub:${top},${bottom}`;
+    if (usedPairs?.has(pairKey)) continue;
+    usedPairs?.add(pairKey);
     return {
       type: "column_arithmetic",
       cardId: card.id,
@@ -227,13 +236,14 @@ export function generateExamples(count, params) {
   const digits = Number(params?.digits ?? 2);
   const fakeCard = { id: "copy", conceptId: "copy" };
   const results = [];
+  const usedPairs = new Set();
   let attempts = 0;
   while (results.length < count && attempts < count * 30) {
     attempts++;
     const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
     const t = op === "add"
-      ? generateAddTask(carryMode, digits, fakeCard)
-      : generateSubTask(carryMode, digits, fakeCard);
+      ? generateAddTask(carryMode, digits, fakeCard, usedPairs)
+      : generateSubTask(carryMode, digits, fakeCard, usedPairs);
     if (t) results.push({ operation: t.operation, top: t.top, bottom: t.bottom });
   }
   return results;
@@ -331,6 +341,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const activePool = filtered.length ? filtered : arithmeticCards;
 
   const tasks = [];
+  const usedPairs = new Set();
   let idx = 0, attempts = 0;
 
   while (tasks.length < count && attempts < count * 20) {
@@ -338,8 +349,8 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const card = activePool[idx % activePool.length];
     const op   = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
     const task = op === "add"
-      ? generateAddTask(carryMode, digits, card)
-      : generateSubTask(carryMode, digits, card);
+      ? generateAddTask(carryMode, digits, card, usedPairs)
+      : generateSubTask(carryMode, digits, card, usedPairs);
     if (task) { tasks.push(task); idx++; }
   }
 
