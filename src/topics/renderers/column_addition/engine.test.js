@@ -108,10 +108,25 @@ describe("buildSubSteps borrow/adjust step shape", () => {
     expect(adjustStep.digit).toBe(t.columns[1].topDigit - 1);
   });
 
-  it("step order is borrow, adjust, result(lower), result(higher)", () => {
+  it("step order is borrow, crossout, adjust, result(lower), result(higher)", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
     const t = tasks.find((task) => task.columns[0].borrowOut > 0);
-    expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "adjust", "result", "result"]);
+    expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "crossout", "adjust", "result", "result"]);
+  });
+
+  it("crossout step sits at the source column's position, between borrow and adjust", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
+    const t = tasks.find((task) => task.columns[0].borrowOut > 0);
+    const crossoutStep = t.steps.find((s) => s.cellType === "crossout");
+    expect(crossoutStep).toBeDefined();
+    expect(crossoutStep.position).toBe("tens");
+  });
+
+  it("no crossout step when the column doesn't need a borrow", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "none", digits: 2 });
+    for (const t of tasks) {
+      expect(t.steps.some((s) => s.cellType === "crossout")).toBe(false);
+    }
   });
 
   it("no adjust step when the column doesn't need a borrow", () => {

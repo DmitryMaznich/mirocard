@@ -64,8 +64,13 @@ function buildSubSteps(columns) {
       // "borrow" sits at the column that RECEIVES the extra ten (the one that
       // was short) — the child types "1" here to acknowledge the borrow.
       steps.push({ cellType: "borrow", position: col.position, digit: 1 });
-      // "adjust" sits at the SOURCE column (one place higher) — the child
-      // computes and types its own reduced digit (topDigit - 1) themselves.
+      // "crossout" sits at the SOURCE column (one place higher), same
+      // position "adjust" uses — the child must draw a left-to-right swipe
+      // across that digit themselves before it counts as crossed out.
+      // digit:null because this step isn't a numeric input, it's a gesture.
+      steps.push({ cellType: "crossout", position: next.position, digit: null });
+      // "adjust" sits at the SOURCE column too — the child computes and
+      // types its own reduced digit (topDigit - 1) themselves.
       steps.push({ cellType: "adjust", position: next.position, digit: next.topDigit - 1 });
     }
     steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
