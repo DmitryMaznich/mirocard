@@ -35,6 +35,7 @@ import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
+import LessonPlanPanel from "@/features/lessonPlan/LessonPlanPanel";
 import InstallBanner from "@/shared/components/InstallBanner";
 import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
 import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
@@ -284,6 +285,7 @@ export default function App() {
   return (
     <>
       {timerEnabled && <GlobalTimer rewardVideos={rewardVideos} />}
+      <LessonPlanPanel />
       <ErrorBoundary key={screen}>
         <Screen />
       </ErrorBoundary>

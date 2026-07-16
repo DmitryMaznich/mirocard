@@ -7,6 +7,7 @@ import "./styles.css";
 import App from "./App";
 import StudentApp from "./StudentApp";
 import { TimerProvider } from "./features/timer/TimerContext";
+import { LessonPlanProvider } from "./features/lessonPlan/LessonPlanContext";
 
 window.__Mirocard = { React, ReactDOM, jsxRuntime };
 if (import.meta.env.DEV) {
@@ -137,7 +138,7 @@ createRoot(document.getElementById("root")).render(
     <TimerProvider>
       {_portalToken
         ? <StudentApp token={_portalToken} isStandalone={_isStandalone} fromLink={Boolean(_urlPortalMatch) && !_isStandalone} />
-        : <App />}
+        : <LessonPlanProvider><App /></LessonPlanProvider>}
     </TimerProvider>
   </StrictMode>
 );
