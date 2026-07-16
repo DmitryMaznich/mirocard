@@ -192,15 +192,21 @@
    10 loose coins gets its own copy that flies from where that specific
    coin was sitting to its slot in the forming stack, staggered in
    BuildNumberTask.jsx so they arrive in a quick visible sequence rather
-   than one blob resizing in place. Appended directly to document.body and
-   removed when its own flight finishes — not part of React's render
-   tree, and deliberately not the plain .cb-coin class: that class carries
-   the pv-pop mount animation, which would fight this ghost's own
-   Web-Animations transform on the same property. */
+   than one blob resizing in place. Appended directly to document.body —
+   OUTSIDE .cb-screen's subtree, since it needs to render above everything
+   mid-flight — so var(--cb-scale) has nothing to inherit from there and
+   MUST carry the `, 1px` fallback below; omitting it (as a prior version
+   of this ghost did) makes the whole calc() invalid and collapses the
+   ghost to a ~4px dot (border only), which read as the stack "starting
+   tiny" before growing to the real, correctly-scaled TenStack once it
+   replaces the ghost. Not part of React's render tree, and deliberately
+   not the plain .cb-coin class: that class carries the pv-pop mount
+   animation, which would fight this ghost's own Web-Animations transform
+   on the same property. */
 .cb-coin-fly-ghost {
   position: fixed;
-  width: calc(30 * var(--cb-scale));
-  height: calc(30 * var(--cb-scale));
+  width: calc(30 * var(--cb-scale, 1px));
+  height: calc(30 * var(--cb-scale, 1px));
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, #fff6da, #f6c94e 45%, #e0a72c 85%);
   border: 2px solid #9a6414;
