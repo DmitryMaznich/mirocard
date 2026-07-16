@@ -27,7 +27,7 @@ export async function saveRecipeSettings(topicId, textId, settings) {
 }
 
 // ─── Recipe option selections (e.g. topping choices) ─────────────────────────
-// Independent of the Планировщик plan's own selectedOptions (which drives the
+// Independent of the meal planner's own selectedOptions (which drives the
 // shopping list, chosen once when the recipe is added to Меню) — this one
 // remembers what was picked the last time this recipe was actually *cooked*,
 // shown on the cook-start screen with a chance to change it per session.

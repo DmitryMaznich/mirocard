@@ -12,7 +12,7 @@ const STOVE_HEAT_LEVELS = [
 /**
  * One family-wide setting (not per-recipe — it's a property of the stove,
  * not the dish): maps each qualitative heat level recipes use to the
- * family's own dial number. Reused from both the Планировщик "Меню" screen
+ * family's own dial number. Reused from both the meal planner's "Меню" screen
  * and the per-recipe start screen — same modal, same storage, so a change
  * made from either place is immediately visible from the other.
  */

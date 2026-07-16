@@ -23,6 +23,7 @@ import Modal from "@/shared/components/Modal";
 import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, getPlannerPutawayPlan, getPlannerCycleHistory, getPlannerProductZoneOverrides, pullPlannerKvFromServer } from "@/core/groupStore";
 import "@/features/planner/planner.css";
 import InstructionsTab from "@/features/instructions/InstructionsTab";
+import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -117,7 +118,16 @@ function InstructionsTabIcon() {
   );
 }
 
-function HomeTabs({ active, onChange, showPlanner, showInstructions }) {
+function LessonPlanTabIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+      <rect x="4" y="3" width="14" height="16" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M7.5 8h7M7.5 11.5h7M7.5 15h4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonPlan }) {
   return (
     <nav className="home-tabbar" role="tablist">
       <button
@@ -128,6 +138,16 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions }) {
         <SessionTabIcon />
         <span>Занятие</span>
       </button>
+      {showLessonPlan && (
+        <button
+          role="tab"
+          className={`home-tabbar__item${active === 'lesson_plan' ? ' home-tabbar__item--active' : ''}`}
+          onClick={() => onChange('lesson_plan')}
+        >
+          <LessonPlanTabIcon />
+          <span>План занятия</span>
+        </button>
+      )}
       {showPlanner && (
         <button
           role="tab"
@@ -135,7 +155,7 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions }) {
           onClick={() => onChange('planner')}
         >
           <PlannerTabIcon />
-          <span>Планировщик</span>
+          <span>Меню и магазин</span>
         </button>
       )}
       {showInstructions && (
@@ -742,6 +762,7 @@ export default function HomeScreen() {
   const { hasUpdate, applyUpdate } = useAppUpdate();
   const hasPlannerAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("planner");
   const hasInstructionsAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("instructions");
+  const hasLessonPlanAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("lesson_plan");
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
   const canStart = !!student && !!topic && (
     isChatPractice ? true :
@@ -823,6 +844,8 @@ export default function HomeScreen() {
         <div className="home-tab-content">
           {activeTab === 'instructions' && hasInstructionsAccess ? (
             <InstructionsTab setScreen={setScreen} />
+          ) : activeTab === 'lesson_plan' && hasLessonPlanAccess ? (
+            <LessonPlanTab student={student} setScreen={setScreen} />
           ) : activeTab === 'planner' && hasPlannerAccess ? (
             <PlannerTab student={student} setScreen={setScreen} />
           ) : (
@@ -846,7 +869,7 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} />
+      <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />
     </div>
   );
 }

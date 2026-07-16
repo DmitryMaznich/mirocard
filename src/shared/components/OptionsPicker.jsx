@@ -1,6 +1,6 @@
 /**
  * Checkbox group for one recipe "option" group (e.g. topping choices) —
- * shared between the Планировщик add-to-menu flow and the per-recipe
+ * shared between the meal planner's add-to-menu flow and the per-recipe
  * cook-start screen, so both read/write the same shape:
  * { [groupId]: string[] } of chosen product names, empty array meaning
  * none chosen (a valid, deliberate choice — not "not yet decided").
