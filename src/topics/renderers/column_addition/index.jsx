@@ -56,6 +56,11 @@ function Expression({ task, result, cellSize = 44 }) {
 // size to the RIGHT of true center for every digit 0-9. This nudges it back
 // left, scaling with button size so it holds at both phone and tablet sizes.
 const DIGIT_INK_OFFSET_RATIO = 0.136;
+// Deliberate downward nudge (not a font-metrics fix — an explicit design
+// choice): 6px at the 44px phone button size (mid-point of the requested
+// 5-7px range), expressed as a ratio of button size so it scales the same
+// way at tablet size (1.5x button -> proportionally larger nudge).
+const DIGIT_VERTICAL_OFFSET_RATIO = 6 / 44;
 
 function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidden }) {
   const [isTablet, setIsTablet] = useState(
@@ -74,7 +79,9 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidde
   const signFS = Math.round(bs * 0.85) + "px";
   const digitStyle = { width: bsStr, height: bsStr, fontSize: digitFS };
   const signStyle = { width: bsStr, height: bsStr, fontSize: signFS };
-  const digitSlantStyle = { transform: `translateX(-${Math.round(bs * DIGIT_INK_OFFSET_RATIO)}px)` };
+  const digitSlantStyle = {
+    transform: `translateX(-${Math.round(bs * DIGIT_INK_OFFSET_RATIO)}px) translateY(${Math.round(bs * DIGIT_VERTICAL_OFFSET_RATIO)}px)`,
+  };
   const correctSign = operation === "add" ? "+" : "−";
   const wrongSign = operation === "add" ? "−" : "+";
 
