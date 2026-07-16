@@ -4,6 +4,7 @@ import { getDb, kv } from "@/core/db";
 import { RENDERER_REGISTRY } from "@/topics/registry";
 import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
+import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
 import StarBar from "@/shared/components/StarBar";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
@@ -26,6 +27,9 @@ export default function SessionScreen() {
   const setScreen             = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
+  const activeLessonPlanItemId    = useAppStore((s) => s.activeLessonPlanItemId);
+  const setActiveLessonPlanItemId = useAppStore((s) => s.setActiveLessonPlanItemId);
+  const lessonPlan = useLessonPlan();
   const openSessionExitPrompt = useAppStore((s) => s.openSessionExitPrompt);
   const students              = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
@@ -88,6 +92,10 @@ export default function SessionScreen() {
 
   useEffect(() => {
     if (!completedRecord) return;
+    if (activeLessonPlanItemId) {
+      lessonPlan?.markItemDone(activeLessonPlanItemId, true);
+      setActiveLessonPlanItemId(null);
+    }
     const skipSummary = topicRecord?.meta.renderer === "reading" && (mode?.type === "read_text" || mode?.type === "daily_sentences");
     const isInstruction = mode?.type === "follow_instruction" || mode?.type === "shopping_list" || mode?.type === "safe_code";
     if (isInstruction && sessionReturnScreen) {
@@ -96,7 +104,7 @@ export default function SessionScreen() {
       return;
     }
     setScreen(isInstruction ? "texts" : skipSummary ? "modes" : "summary");
-  }, [completedRecord, mode?.type, setScreen, topicRecord?.meta.renderer, sessionReturnScreen, setSessionReturnScreen]);
+  }, [completedRecord, activeLessonPlanItemId, lessonPlan, setActiveLessonPlanItemId, mode?.type, setScreen, topicRecord?.meta.renderer, sessionReturnScreen, setSessionReturnScreen]);
 
   const ownsFeedback = currentTask?.type === "choose_action" || currentTask?.type === "scene_function";
 
