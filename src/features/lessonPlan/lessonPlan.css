@@ -68,3 +68,16 @@
 .lesson-plan-sheet__note-input {
   flex: 1; font-size: 12px; padding: 4px 8px; border-radius: 8px; border: 1px solid #ddd;
 }
+
+.lesson-plan-add-sheet__tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.lesson-plan-add-sheet__tab {
+  flex: 1; padding: 8px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 13px; cursor: pointer;
+}
+.lesson-plan-add-sheet__tab--active { background: #f0f6ff; border-color: #1a73e8; color: #1a73e8; font-weight: 600; }
+.lesson-plan-add-sheet__list { list-style: none; margin: 0; padding: 0; }
+.lesson-plan-add-sheet__list li { border-bottom: 1px solid #f0f0f0; }
+.lesson-plan-add-sheet__list button {
+  width: 100%; text-align: left; padding: 10px 4px; background: none; border: none; font-size: 14px; cursor: pointer;
+}
+.lesson-plan-add-sheet__freeform { display: flex; flex-direction: column; gap: 8px; }
+.lesson-plan-add-sheet__input { padding: 8px 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; }
