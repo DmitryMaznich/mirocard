@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   getPeriodPlans, savePeriodPlans, getActivePeriodPlan, startPeriodPlan,
   addPeriodItem, closePeriodPlan, addPeriodNote,
+  getSessionPlans, saveSessionPlans, getActiveSessionPlan, getSessionsForPeriod,
+  startSessionPlan, setSessionItemDone, closeSessionPlan,
 } from './lessonPlanApi.js';
 
 describe('getPeriodPlans / getActivePeriodPlan', () => {
@@ -89,5 +91,122 @@ describe('closePeriodPlan', () => {
 
   it('returns null when there is no active period to close', async () => {
     expect(await closePeriodPlan('lp-student-close-none', [])).toBeNull();
+  });
+});
+
+describe('startSessionPlan', () => {
+  it('builds items from period selections and adhoc texts', async () => {
+    const studentId = 'lp-student-session-1';
+    await startPeriodPlan(studentId, 7);
+    const period = await addPeriodItem(studentId, { kind: 'freeform', text: 'Звук Р' });
+
+    const plan = await startSessionPlan(studentId, {
+      periodItemIds: [period.items[0].id],
+      adhocTexts: ['Повторить стишок'],
+      periodPlanId: period.id,
+    });
+
+    expect(plan.status).toBe('active');
+    expect(plan.periodPlanId).toBe(period.id);
+    expect(plan.items).toHaveLength(2);
+    const periodItem = plan.items.find((i) => i.origin === 'period');
+    expect(periodItem.text).toBe('Звук Р');
+    expect(periodItem.periodItemId).toBe(period.items[0].id);
+    expect(periodItem.done).toBe(false);
+    const adhocItem = plan.items.find((i) => i.origin === 'adhoc');
+    expect(adhocItem.text).toBe('Повторить стишок');
+  });
+
+  it('edits the existing active plan in place instead of creating a duplicate', async () => {
+    const studentId = 'lp-student-session-2';
+    await startPeriodPlan(studentId, 7);
+    const period = await addPeriodItem(studentId, { kind: 'freeform', text: 'Звук Р' });
+    const first = await startSessionPlan(studentId, {
+      periodItemIds: [period.items[0].id], adhocTexts: [], periodPlanId: period.id,
+    });
+
+    const second = await startSessionPlan(studentId, {
+      periodItemIds: [], adhocTexts: ['Новая задача'], periodPlanId: period.id,
+    });
+
+    expect(second.id).toBe(first.id);
+    expect(second.items).toHaveLength(1);
+    expect(second.items[0].text).toBe('Новая задача');
+    expect(await getSessionPlans(studentId)).toHaveLength(1);
+  });
+
+  it('preserves done state of a period item that stays checked across an edit', async () => {
+    const studentId = 'lp-student-session-3';
+    await startPeriodPlan(studentId, 7);
+    const period = await addPeriodItem(studentId, { kind: 'freeform', text: 'Звук Р' });
+    let plan = await startSessionPlan(studentId, {
+      periodItemIds: [period.items[0].id], adhocTexts: [], periodPlanId: period.id,
+    });
+    await setSessionItemDone(studentId, plan.items[0].id, true);
+
+    plan = await startSessionPlan(studentId, {
+      periodItemIds: [period.items[0].id], adhocTexts: ['X'], periodPlanId: period.id,
+    });
+
+    const periodItem = plan.items.find((i) => i.origin === 'period');
+    expect(periodItem.done).toBe(true);
+  });
+});
+
+describe('setSessionItemDone', () => {
+  it('marks a freeform item done without touching any period', async () => {
+    const studentId = 'lp-student-done-1';
+    const plan = await startSessionPlan(studentId, { adhocTexts: ['X'] });
+    const updated = await setSessionItemDone(studentId, plan.items[0].id, true);
+    expect(updated.items[0].done).toBe(true);
+    expect(updated.items[0].doneAt).toEqual(expect.any(Number));
+  });
+
+  it('increments the linked period item progress count when a period-linked item is marked done', async () => {
+    const studentId = 'lp-student-done-2';
+    await startPeriodPlan(studentId, 7);
+    const period = await addPeriodItem(studentId, { kind: 'freeform', text: 'Звук Р' });
+    const plan = await startSessionPlan(studentId, {
+      periodItemIds: [period.items[0].id], periodPlanId: period.id,
+    });
+
+    await setSessionItemDone(studentId, plan.items[0].id, true, 'хорошо получалось');
+
+    const reloadedPeriod = await getActivePeriodPlan(studentId);
+    const progress = reloadedPeriod.progress[period.items[0].id];
+    expect(progress.count).toBe(1);
+    expect(progress.notes).toEqual([{ text: 'хорошо получалось', at: expect.any(Number) }]);
+  });
+
+  it('decrements the period count when a done item is un-checked', async () => {
+    const studentId = 'lp-student-done-3';
+    await startPeriodPlan(studentId, 7);
+    const period = await addPeriodItem(studentId, { kind: 'freeform', text: 'Звук Р' });
+    const plan = await startSessionPlan(studentId, {
+      periodItemIds: [period.items[0].id], periodPlanId: period.id,
+    });
+    await setSessionItemDone(studentId, plan.items[0].id, true);
+
+    await setSessionItemDone(studentId, plan.items[0].id, false);
+
+    const reloadedPeriod = await getActivePeriodPlan(studentId);
+    expect(reloadedPeriod.progress[period.items[0].id].count).toBe(0);
+  });
+});
+
+describe('closeSessionPlan / getSessionsForPeriod', () => {
+  it('closes the active session plan and it shows up in the period timeline', async () => {
+    const studentId = 'lp-student-timeline-1';
+    await startPeriodPlan(studentId, 7);
+    const period = await addPeriodItem(studentId, { kind: 'freeform', text: 'Звук Р' });
+    await startSessionPlan(studentId, { periodItemIds: [period.items[0].id], periodPlanId: period.id });
+
+    const closed = await closeSessionPlan(studentId);
+
+    expect(closed.status).toBe('closed');
+    expect(await getActiveSessionPlan(studentId)).toBeNull();
+    const timeline = await getSessionsForPeriod(studentId, period.id);
+    expect(timeline).toHaveLength(1);
+    expect(timeline[0].id).toBe(closed.id);
   });
 });
