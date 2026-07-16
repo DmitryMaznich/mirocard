@@ -283,12 +283,30 @@ describe("generateTasks – build_number", () => {
     }
   });
 
-  it("tens digit is always 1-9", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxOnes: 9 });
+  it("maxTens 9: tens digit spans the full 1-9 range", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxOnes: 9, maxTens: 9 });
     for (const t of tasks) {
       expect(t.target.tens).toBeGreaterThanOrEqual(1);
       expect(t.target.tens).toBeLessThanOrEqual(9);
     }
+  });
+
+  it("maxTens not specified: tens digit defaults to the 1-3 range", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxOnes: 9 });
+    for (const t of tasks) {
+      expect(t.target.tens).toBeGreaterThanOrEqual(1);
+      expect(t.target.tens).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it("maxTens 1: tens digit is always 1", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 20, { maxOnes: 9, maxTens: 1 });
+    for (const t of tasks) expect(t.target.tens).toBe(1);
+  });
+
+  it("task.maxTens reflects the configured value", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, maxTens: 5 });
+    expect(tasks.every((t) => t.maxTens === 5)).toBe(true);
   });
 
   it("numericBlocks defaults to false when not specified", () => {

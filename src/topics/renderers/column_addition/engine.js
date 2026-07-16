@@ -187,20 +187,21 @@ export function generateFingersCount(card) {
 // with maxOnes > 0, where ones is drawn from [1, maxOnes]. This keeps "no ones" (a separate
 // abstraction for a child learning place value) from showing up as an incidental low roll
 // once a parent widens the range — it only appears when maxOnes is set to exactly 0.
-function randomPlaceValueNumber(maxOnes) {
-  const tens = randomInt(1, 9);
+function randomPlaceValueNumber(maxOnes, maxTens = 9) {
+  const tens = randomInt(1, Number(maxTens));
   const max = Number(maxOnes);
   const ones = max === 0 ? 0 : randomInt(1, max);
   return { tens, ones };
 }
 
-export function generateBuildNumberTask(card, maxOnes, numericBlocks) {
-  const { tens, ones } = randomPlaceValueNumber(maxOnes);
+export function generateBuildNumberTask(card, maxOnes, maxTens, numericBlocks) {
+  const { tens, ones } = randomPlaceValueNumber(maxOnes, maxTens);
   return {
     type: "build_number",
     cardId: card.id,
     conceptId: card.conceptId,
     maxOnes: Number(maxOnes),
+    maxTens: Number(maxTens),
     numericBlocks: Boolean(numericBlocks),
     number: tens * 10 + ones,
     target: { tens, ones },
@@ -302,10 +303,11 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
+    const maxTens = Number(params.maxTens ?? 3);
     const numericBlocks = params.numericBlocks ?? false;
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes, numericBlocks));
+      tasks.push(generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes, maxTens, numericBlocks));
     }
     return tasks;
   }
