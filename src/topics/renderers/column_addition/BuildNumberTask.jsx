@@ -1,23 +1,24 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
 import { useSpeech } from "@/shared/hooks/useSpeech";
-import { UnitCube, TenCard } from "./PlaceValueBlocks.jsx";
+import { Coin, TenStack, CoinPile } from "./CoinBlocks.jsx";
 import { pluralTens, pluralOnes } from "./placeValueLabels.js";
 import "./place_value.css";
+import "./coins.css";
 
-function TrayItem({ id, kind, children }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id, data: { kind } });
+function PileSource() {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: "coin-pile", data: { kind: "coin" } });
   return (
     <div
       ref={setNodeRef}
-      className="pv-tray-item"
+      className="cb-pile-drag"
       style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 10 : "auto" }}
       {...listeners}
       {...attributes}
     >
-      {children}
+      <CoinPile />
     </div>
   );
 }
@@ -26,32 +27,37 @@ function TrayItem({ id, kind, children }) {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Workspace({ placed, errorZones, solved, numeric, onRemoveTen, onRemoveOne }) {
-  const { setNodeRef, isOver } = useDroppable({ id: "pv-workspace" });
+function Workspace({ placed, groupableCount, errorZones, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
+  const { setNodeRef, isOver } = useDroppable({ id: "cb-workspace" });
   return (
-    <div className="pv-zones" ref={setNodeRef}>
-      <div className={`pv-zone${errorZones.tens ? " pv-zone--error" : ""}${solved ? " pv-zone--correct" : ""}${isOver ? " pv-zone--drag-over" : ""}`}>
-        <div className="pv-zone-label">ДЕСЯТКИ</div>
-        <div className="pv-zone-body">
-          {Array.from({ length: placed.tens }, (_, i) => (
-            <div key={i} onClick={onRemoveTen}>
-              <TenCard numeric={numeric} />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className={`pv-zone${errorZones.ones ? " pv-zone--error" : ""}${solved ? " pv-zone--correct" : ""}${isOver ? " pv-zone--drag-over" : ""}`}>
-        <div className="pv-zone-label">ЕДИНИЦЫ</div>
-        <div className="pv-zone-body">
-          {Array.from({ length: placed.ones }, (_, i) => (
-            <div key={i} onClick={onRemoveOne}>
-              <UnitCube numeric={numeric} />
-            </div>
-          ))}
+    <div className="pv-zones">
+      <div
+        ref={setNodeRef}
+        className={`pv-zone${solved ? " pv-zone--correct" : ""}${isOver ? " pv-zone--drag-over" : ""}`}
+      >
+        <div className="cb-zone-split">
+          <div className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}`} ref={stacksAreaRef}>
+            {Array.from({ length: placed.tens }, (_, i) => (
+              <div key={i} onClick={onRemoveTen}>
+                <TenStack numeric={numeric} />
+              </div>
+            ))}
+          </div>
+          <div className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}`} ref={looseAreaRef}>
+            {Array.from({ length: placed.ones }, (_, i) => (
+              <div key={i} onClick={i < groupableCount ? onGroup : onRemoveOne}>
+                <Coin numeric={numeric} groupable={i < groupableCount} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+function rectCenter(rect) {
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 }
 
 export default function BuildNumberTask({ task, onCorrect, onMistake }) {
@@ -59,29 +65,62 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [solved, setSolved] = useState(false);
   const { speak } = useSpeech();
+  const stacksAreaRef = useRef(null);
+  const looseAreaRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
   );
 
-  function handleDragEnd({ active, over }) {
+  function handleDragEnd({ over }) {
     if (!over) return;
-    const kind = active.data.current?.kind;
     setErrorZones({ tens: false, ones: false });
-    if (kind === "ten") {
-      setPlaced((p) => ({ ...p, tens: p.tens + 1 }));
-    } else if (kind === "unit") {
-      setPlaced((p) => ({ ...p, ones: p.ones + 1 }));
-    }
+    setPlaced((p) => ({ ...p, ones: p.ones + 1 }));
+  }
+
+  function removeOne() {
+    setPlaced((p) => ({ ...p, ones: Math.max(0, p.ones - 1) }));
   }
 
   function removeTen() {
     setPlaced((p) => ({ ...p, tens: Math.max(0, p.tens - 1) }));
   }
 
-  function removeOne() {
-    setPlaced((p) => ({ ...p, ones: Math.max(0, p.ones - 1) }));
+  function handleGroup() {
+    if (placed.ones < 10) return;
+    const looseRect = looseAreaRef.current.getBoundingClientRect();
+    const stacksRect = stacksAreaRef.current.getBoundingClientRect();
+    const from = rectCenter(looseRect);
+    const to = { x: stacksRect.left + 24 + (placed.tens % 4) * 46, y: stacksRect.bottom - 30 };
+
+    setPlaced((p) => ({ ...p, ones: p.ones - 10 }));
+
+    const ghost = document.createElement("div");
+    ghost.className = "cb-stack-ghost";
+    ghost.style.left = `${from.x}px`;
+    ghost.style.top = `${from.y}px`;
+    for (let i = 0; i < 6; i++) {
+      const c = document.createElement("div");
+      c.className = "cb-stack-coin";
+      ghost.appendChild(c);
+    }
+    document.body.appendChild(ghost);
+
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const anim = ghost.animate(
+      [
+        { transform: "translate(-50%, -50%) scale(0.9) rotate(0deg)", offset: 0 },
+        { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 40}px)) scale(1.05) rotate(-6deg)`, offset: 0.55 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1) rotate(3deg)`, offset: 1 },
+      ],
+      { duration: 550, easing: "cubic-bezier(.3,.6,.4,1)" },
+    );
+    anim.onfinish = () => {
+      ghost.remove();
+      setPlaced((p) => ({ ...p, tens: p.tens + 1 }));
+    };
   }
 
   function handleDone() {
@@ -100,13 +139,26 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
     onCorrect(task.conceptId, task.cardId);
   }
 
+  const groupableCount = placed.ones >= 10 ? 10 : 0;
+
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen">
         <div className="pv-instruction">Собери число</div>
         <div className="pv-number">{task.number}</div>
 
-        <Workspace placed={placed} errorZones={errorZones} solved={solved} numeric={task.numericBlocks} onRemoveTen={removeTen} onRemoveOne={removeOne} />
+        <Workspace
+          placed={placed}
+          groupableCount={groupableCount}
+          errorZones={errorZones}
+          solved={solved}
+          numeric={task.numericBlocks}
+          onRemoveOne={removeOne}
+          onGroup={handleGroup}
+          onRemoveTen={removeTen}
+          stacksAreaRef={stacksAreaRef}
+          looseAreaRef={looseAreaRef}
+        />
 
         <div className="pv-zones" style={{ flex: 0 }}>
           <div style={{ flex: 1 }} className="pv-zone-counter">
@@ -120,13 +172,9 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
         <div className="pv-spacer" />
 
         <div className="pv-tray">
-          <TrayItem id="tray-ten" kind="ten">
-            <TenCard numeric={task.numericBlocks} />
-          </TrayItem>
-          <TrayItem id="tray-unit" kind="unit">
-            <UnitCube numeric={task.numericBlocks} />
-          </TrayItem>
+          <PileSource />
         </div>
+        <div className="pv-caption">тяни монету из кучи</div>
 
         <div className="pv-footer">
           {solved ? (
