@@ -112,7 +112,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
     ghost.className = "cb-stack-ghost";
     ghost.style.left = `${from.x}px`;
     ghost.style.top = `${from.y}px`;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 10; i++) {
       const c = document.createElement("div");
       c.className = "cb-stack-coin";
       ghost.appendChild(c);

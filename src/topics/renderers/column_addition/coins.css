@@ -8,6 +8,10 @@
   display: flex;
   flex: 1;
   gap: 10px;
+  /* Room for two coin rows (30px coin + 8px row gap, twice) even when
+     empty, so the workspace never collapses to a bare strip before the
+     first coin lands. */
+  min-height: 68px;
 }
 
 .cb-stacks-area {
@@ -78,11 +82,11 @@
 
 .cb-stack-coin {
   width: 34px;
-  height: 13px;
+  height: 12px;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 22%, #fff6da, #f6c94e 45%, #e0a72c 85%);
   border: 2px solid #9a6414;
-  margin-top: -6px;
+  margin-top: -7px;
   box-shadow: 0 1.5px 0 rgba(0, 0, 0, 0.12);
 }
 .cb-ten-stack .cb-stack-coin:last-child { margin-top: 0; }

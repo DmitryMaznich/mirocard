@@ -27,7 +27,7 @@ export function Coin({ numeric = false, groupable = false }) {
 export function TenStack({ numeric = false }) {
   return (
     <div className="cb-ten-stack">
-      {Array.from({ length: 6 }, (_, i) => (
+      {Array.from({ length: 10 }, (_, i) => (
         <div key={i} className="cb-stack-coin" />
       ))}
       {numeric && <div className="cb-stack-badge">10</div>}
