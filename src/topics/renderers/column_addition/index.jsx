@@ -54,11 +54,10 @@ function Expression({ task, result, cellSize = 44 }) {
 function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidden }) {
   const bs = btnSize;
   const bsStr = bs + "px";
-  const btnWStr = Math.round(bs * 1.1) + "px";
   const digitFS = Math.round(bs * 0.8) + "px";
   const signFS = Math.round(bs * 0.85) + "px";
-  const digitStyle = { width: btnWStr, height: bsStr, fontSize: digitFS };
-  const signStyle = { width: btnWStr, height: bsStr, fontSize: signFS };
+  const digitStyle = { width: bsStr, height: bsStr, fontSize: digitFS };
+  const signStyle = { width: bsStr, height: bsStr, fontSize: signFS };
   const correctSign = operation === "add" ? "+" : "−";
   const wrongSign = operation === "add" ? "−" : "+";
 
@@ -66,14 +65,14 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidde
     <div className="col-tap-kb" style={hidden ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div className="col-tap-row">
         {[1, 2, 3, 4, 5].map((d) => (
-          <button key={d} className="col-tap-btn col-tap-btn--digit" style={digitStyle} onClick={() => onDigit(d)}>
+          <button key={d} className="col-tap-btn" style={digitStyle} onClick={() => onDigit(d)}>
             <span className="col-slant">{d}</span>
           </button>
         ))}
       </div>
       <div className="col-tap-row">
         {[6, 7, 8, 9, 0].map((d) => (
-          <button key={d} className="col-tap-btn col-tap-btn--digit" style={digitStyle} onClick={() => onDigit(d)}>
+          <button key={d} className="col-tap-btn" style={digitStyle} onClick={() => onDigit(d)}>
             <span className="col-slant">{d}</span>
           </button>
         ))}

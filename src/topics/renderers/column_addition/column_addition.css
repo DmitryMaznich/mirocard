@@ -320,15 +320,6 @@
   overflow: hidden;
 }
 
-.col-tap-btn--digit {
-  align-items: flex-end;
-  padding-bottom: 4px;
-}
-
-.col-tap-btn--digit .col-slant {
-  transform: translateX(7px);
-}
-
 .col-tap-btn:active {
   transform: translateY(2px);
   box-shadow: none;
