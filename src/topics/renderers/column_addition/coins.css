@@ -130,6 +130,16 @@
 }
 .cb-ten-stack .cb-stack-coin:last-child { margin-top: 0; }
 
+/* The newest stack mounts for real (at its true flex-wrapped position, so
+   BuildNumberTask.jsx can measure an accurate fly-animation landing spot)
+   before the grouping coins have actually arrived. visibility (not
+   display:none) keeps it taking up layout space — so the measured rect is
+   the real final one — while making it invisible and un-clickable until
+   the flight finishes. */
+.cb-ten-stack-pending {
+  visibility: hidden;
+}
+
 .cb-stack-badge {
   position: absolute;
   top: calc(-4 * var(--cb-scale));

@@ -49,7 +49,7 @@ function PileSource() {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Workspace({ placed, groupableCount, errorZones, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
+function Workspace({ placed, formingStack, groupableCount, errorZones, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
   const { setNodeRef, isOver } = useDroppable({ id: "cb-workspace" });
   return (
     <div className="pv-zones">
@@ -60,7 +60,11 @@ function Workspace({ placed, groupableCount, errorZones, solved, numeric, onRemo
         <div className="cb-zone-split">
           <div className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}`} ref={stacksAreaRef}>
             {Array.from({ length: placed.tens }, (_, i) => (
-              <div key={i} onClick={onRemoveTen}>
+              <div
+                key={i}
+                className={formingStack && i === placed.tens - 1 ? "cb-ten-stack-pending" : undefined}
+                onClick={onRemoveTen}
+              >
                 <TenStack numeric={numeric} />
               </div>
             ))}
@@ -84,6 +88,7 @@ function rectCenter(rect) {
 
 export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   const [placed, setPlaced] = useState({ tens: 0, ones: 0 });
+  const [formingStack, setFormingStack] = useState(false);
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [solved, setSolved] = useState(false);
   const { speak } = useSpeech();
@@ -110,49 +115,70 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   }
 
   // Each of the 10 grouped coins gets its own ghost that flies from where
-  // that specific coin was actually sitting to a slightly higher slot in
-  // the forming stack, launched with a short stagger — a visible sequence
-  // of coins arriving one after another, not one shape resizing in place.
+  // that specific coin was actually sitting to a slot in the forming
+  // stack, launched with a short stagger — a visible sequence of coins
+  // arriving one after another, not one shape resizing in place.
+  //
+  // The landing spot is measured from the REAL new TenStack, not guessed:
+  // .cb-stacks-area is flex-wrap, so a hardcoded "Nth column" formula
+  // drifts from where the stack actually wraps to once there are enough
+  // of them. So the tens count (and ones count) update immediately —
+  // React mounts the new TenStack at its true flex position right away —
+  // but it stays hidden (formingStack + .cb-ten-stack-pending, see
+  // Workspace) until every ghost has actually arrived, then it's
+  // revealed. The counter text is deliberately still held back by one
+  // during this window (see the JSX below) so "N десятков" doesn't tick
+  // up before the coins visibly land.
   function handleGroup() {
     if (placed.ones < 10) return;
     const looseCoinEls = Array.from(looseAreaRef.current.querySelectorAll(".cb-coin")).slice(0, 10);
     if (looseCoinEls.length < 10) return;
 
-    const stacksRect = stacksAreaRef.current.getBoundingClientRect();
-    const sampleRect = looseCoinEls[0].getBoundingClientRect();
-    const discPitch = sampleRect.height * (5 / 12); // matches .cb-stack-coin's own overlap ratio
-    const landX = stacksRect.left + 24 + (placed.tens % 4) * 46;
-    const landBaseY = stacksRect.bottom - 30;
     const froms = looseCoinEls.map((el) => rectCenter(el.getBoundingClientRect()));
 
-    setPlaced((p) => ({ ...p, ones: p.ones - 10 }));
+    setFormingStack(true);
+    setPlaced((p) => ({ ones: p.ones - 10, tens: p.tens + 1 }));
 
-    let remaining = froms.length;
-    froms.forEach((from, i) => {
-      const to = { x: landX, y: landBaseY - i * discPitch };
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
+    requestAnimationFrame(() => {
+      const stackEls = stacksAreaRef.current.querySelectorAll(".cb-ten-stack");
+      const newStackEl = stackEls[stackEls.length - 1];
+      const rect = newStackEl.getBoundingClientRect();
+      // Reverse-engineer one coin's height from the whole stack's rendered
+      // height: 10 coins overlapping by the same ratio as .cb-stack-coin's
+      // own margin-top (-7 out of a 12-tall coin, i.e. each added coin
+      // contributes a 5/12 sliver) — see coins.css.
+      const coinHeight = rect.height / (1 + 9 * (5 / 12));
+      const discPitch = coinHeight * (5 / 12);
+      const landX = rect.left + rect.width / 2;
+      const landBaseY = rect.bottom - coinHeight / 2;
 
-      const ghost = document.createElement("div");
-      ghost.className = "cb-coin-fly-ghost";
-      ghost.style.left = `${from.x}px`;
-      ghost.style.top = `${from.y}px`;
-      document.body.appendChild(ghost);
+      let remaining = froms.length;
+      froms.forEach((from, i) => {
+        const to = { x: landX, y: landBaseY - i * discPitch };
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
 
-      const anim = ghost.animate(
-        [
-          { transform: "translate(-50%, -50%) scale(1) rotate(0deg)", offset: 0 },
-          { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.85) rotate(10deg)`, offset: 1 },
-        ],
-        { duration: 260, delay: i * 45, easing: "cubic-bezier(.35,.6,.4,1)", fill: "forwards" },
-      );
-      anim.onfinish = () => {
-        ghost.remove();
-        remaining -= 1;
-        if (remaining === 0) {
-          setPlaced((p) => ({ ...p, tens: p.tens + 1 }));
-        }
-      };
+        const ghost = document.createElement("div");
+        ghost.className = "cb-coin-fly-ghost";
+        ghost.style.left = `${from.x}px`;
+        ghost.style.top = `${from.y}px`;
+        document.body.appendChild(ghost);
+
+        const anim = ghost.animate(
+          [
+            { transform: "translate(-50%, -50%) scale(1) rotate(0deg)", offset: 0 },
+            { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.85) rotate(10deg)`, offset: 1 },
+          ],
+          { duration: 260, delay: i * 45, easing: "cubic-bezier(.35,.6,.4,1)", fill: "forwards" },
+        );
+        anim.onfinish = () => {
+          ghost.remove();
+          remaining -= 1;
+          if (remaining === 0) {
+            setFormingStack(false);
+          }
+        };
+      });
     });
   }
 
@@ -182,6 +208,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
 
         <Workspace
           placed={placed}
+          formingStack={formingStack}
           groupableCount={groupableCount}
           errorZones={errorZones}
           solved={solved}
@@ -195,7 +222,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
 
         <div className="pv-zones" style={{ flex: 0 }}>
           <div style={{ flex: 1 }} className="pv-zone-counter">
-            {placed.tens} {pluralTens(placed.tens)}
+            {placed.tens - (formingStack ? 1 : 0)} {pluralTens(placed.tens - (formingStack ? 1 : 0))}
           </div>
           <div style={{ flex: 1 }} className="pv-zone-counter">
             {placed.ones} {pluralOnes(placed.ones)}
