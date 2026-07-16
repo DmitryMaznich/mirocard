@@ -42,7 +42,11 @@ export function CoinPile() {
         <div
           key={i}
           className="cb-pile-coin"
-          style={{ left: `${x}px`, top: `${y}px`, transform: `rotate(${r}deg)` }}
+          style={{
+            left: `calc(${x} * var(--cb-scale, 1px))`,
+            top: `calc(${y} * var(--cb-scale, 1px))`,
+            transform: `rotate(${r}deg)`,
+          }}
         />
       ))}
     </div>

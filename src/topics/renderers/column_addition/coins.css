@@ -4,14 +4,37 @@
    (loaded alongside this file by BuildNumberTask.jsx); only the coin
    shapes and the single-zone split layout are new. */
 
+/* --cb-scale holds a LENGTH — "1 scaled px" — not a bare number: CSS
+   calc()'s division operator only accepts a plain <number> as the right
+   operand, so `100vw / 400` (400 as a bare number) itself resolves to a
+   LENGTH, not a unitless ratio. Every size below is therefore written as
+   calc(N * var(--cb-scale)) — N a bare number, var(--cb-scale) supplying
+   the unit — never calc(Npx * var(--cb-scale)), which would multiply two
+   lengths together (an invalid px² result that silently drops the whole
+   declaration).
+
+   This is calc() on real layout properties (width/height/left/top), not a
+   CSS `transform: scale()` on an ancestor: the draggable top coin
+   (.cb-pile-drag) carries dnd-kit's own drag transform, and nesting it
+   under a scaled ancestor would multiply that translate by the scale
+   factor too, decoupling the coin from the pointer mid-drag. calc() has no
+   such interaction — it grows the coins for wider (tablet) viewports while
+   leaving dnd-kit's pointer tracking exact. 400px is this file's phone
+   reference width (matching the existing clamp(...,20vw,...) calibration
+   on .pv-numeric-block in place_value.css) — at or below it, scale is
+   1px (today's phone sizing, unchanged); it only grows past that. */
+.cb-screen {
+  --cb-scale: clamp(1px, calc(100vw / 400), 2px);
+}
+
 .cb-zone-split {
   display: flex;
   flex: 1;
-  gap: 10px;
+  gap: calc(10 * var(--cb-scale));
   /* Room for two coin rows (30px coin + 8px row gap, twice) even when
      empty, so the workspace never collapses to a bare strip before the
      first coin lands. */
-  min-height: 68px;
+  min-height: calc(68 * var(--cb-scale));
 }
 
 .cb-stacks-area {
@@ -20,9 +43,9 @@
   align-items: flex-end;
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: calc(10 * var(--cb-scale));
   border-right: 1.5px dashed rgba(148, 163, 184, 0.6);
-  padding-right: 10px;
+  padding-right: calc(10 * var(--cb-scale));
 }
 
 .cb-loose-area {
@@ -30,7 +53,7 @@
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 8px;
+  gap: calc(8 * var(--cb-scale));
 }
 
 .cb-area--error {
@@ -42,8 +65,8 @@
 }
 
 .cb-coin {
-  width: 30px;
-  height: 30px;
+  width: calc(30 * var(--cb-scale));
+  height: calc(30 * var(--cb-scale));
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, #fff6da, #f6c94e 45%, #e0a72c 85%);
   border: 2px solid #9a6414;
@@ -54,7 +77,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 12px;
+  font-size: calc(12 * var(--cb-scale));
   color: #7a4e10;
   animation: pv-pop 0.22s ease-out both;
 }
@@ -76,31 +99,31 @@
   cursor: pointer;
   flex-shrink: 0;
   position: relative;
-  padding-top: 6px;
+  padding-top: calc(6 * var(--cb-scale));
   animation: pv-pop 0.3s ease-out both;
 }
 
 .cb-stack-coin {
-  width: 34px;
-  height: 12px;
+  width: calc(34 * var(--cb-scale));
+  height: calc(12 * var(--cb-scale));
   border-radius: 50%;
   background: radial-gradient(circle at 32% 22%, #fff6da, #f6c94e 45%, #e0a72c 85%);
   border: 2px solid #9a6414;
-  margin-top: -7px;
+  margin-top: calc(-7 * var(--cb-scale));
   box-shadow: 0 1.5px 0 rgba(0, 0, 0, 0.12);
 }
 .cb-ten-stack .cb-stack-coin:last-child { margin-top: 0; }
 
 .cb-stack-badge {
   position: absolute;
-  top: -4px;
-  right: -8px;
-  width: 18px;
-  height: 18px;
+  top: calc(-4 * var(--cb-scale));
+  right: calc(-8 * var(--cb-scale));
+  width: calc(18 * var(--cb-scale));
+  height: calc(18 * var(--cb-scale));
   border-radius: 50%;
   background: #8a5a1c;
   color: #fff6da;
-  font-size: 9px;
+  font-size: calc(9 * var(--cb-scale));
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -110,11 +133,13 @@
 
 /* Sizing/positioning context for the heap: the static CoinPile and the
    separately-draggable top coin (.cb-pile-drag) are both absolutely
-   positioned within this box. */
+   positioned within this box. Its own children's inline left/top offsets
+   (PILE_LAYOUT/PILE_TOP in CoinBlocks.jsx) are calc()-scaled the same way,
+   so the whole heap's proportions stay consistent as it grows. */
 .cb-pile-wrap {
   position: relative;
-  width: 132px;
-  height: 74px;
+  width: calc(132 * var(--cb-scale));
+  height: calc(74 * var(--cb-scale));
 }
 
 .cb-pile-drag {
@@ -130,8 +155,8 @@
 
 .cb-pile-coin {
   position: absolute;
-  width: 28px;
-  height: 28px;
+  width: calc(28 * var(--cb-scale));
+  height: calc(28 * var(--cb-scale));
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, #fff6da, #f6c94e 45%, #e0a72c 85%);
   border: 2px solid #9a6414;

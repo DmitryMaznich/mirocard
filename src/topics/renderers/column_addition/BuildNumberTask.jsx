@@ -22,8 +22,8 @@ function PileSource() {
         ref={setNodeRef}
         className={`cb-pile-drag cb-pile-coin${isDragging ? "" : " cb-pile-coin--top"}`}
         style={{
-          left: `${PILE_TOP.x}px`,
-          top: `${PILE_TOP.y}px`,
+          left: `calc(${PILE_TOP.x} * var(--cb-scale, 1px))`,
+          top: `calc(${PILE_TOP.y} * var(--cb-scale, 1px))`,
           transform: `rotate(${PILE_TOP.r}deg)${transform ? " " + CSS.Translate.toString(transform) : ""}`,
           opacity: isDragging ? 0.4 : 1,
           zIndex: isDragging ? 10 : "auto",
@@ -155,7 +155,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="pv-screen">
+      <div className="pv-screen cb-screen">
         <div className="pv-instruction">Собери число</div>
         <div className="pv-number">{task.number}</div>
 
