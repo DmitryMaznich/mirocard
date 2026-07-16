@@ -662,14 +662,14 @@ function CopyKeyboard({ cellSize, onDigit, onDelete, onRefresh }) {
     <div className="col-tap-kb">
       <div className="col-tap-row">
         {[1, 2, 3, 4, 5].map((d) => (
-          <button key={d} className="col-tap-btn col-tap-btn--digit" style={digitStyle} onClick={() => onDigit(d)}>
+          <button key={d} className="col-tap-btn" style={digitStyle} onClick={() => onDigit(d)}>
             <span className="col-slant">{d}</span>
           </button>
         ))}
       </div>
       <div className="col-tap-row">
         {[6, 7, 8, 9, 0].map((d) => (
-          <button key={d} className="col-tap-btn col-tap-btn--digit" style={digitStyle} onClick={() => onDigit(d)}>
+          <button key={d} className="col-tap-btn" style={digitStyle} onClick={() => onDigit(d)}>
             <span className="col-slant">{d}</span>
           </button>
         ))}
