@@ -31,6 +31,9 @@
 
 .cb-area--error {
   animation: pv-shake 0.4s ease-in-out;
+  border: 2px solid #ef4444;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .cb-coin {
