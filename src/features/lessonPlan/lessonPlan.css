@@ -1,72 +1,134 @@
+/* ── Floating checklist badge — a quiet "clipboard tab" peeking off the
+   right edge, with a thin progress ring that fills in as items get
+   checked off. Deliberately tucked to the edge rather than a free-floating
+   circle: this is meant to read as a soft reminder, not a notification. ── */
 .lesson-plan-badge {
   position: fixed;
-  top: calc(12px + var(--app-safe-top, 0px));
-  right: calc(12px + var(--app-safe-right, 0px));
+  top: calc(14px + var(--app-safe-top, 0px));
+  right: var(--app-safe-right, 0px);
   z-index: 250;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  border-radius: 20px;
-  border: none;
-  background: #1a1a1a;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  gap: 8px;
+  background: #fff;
+  border: 1.5px solid #e0d4c3;
+  border-right: none;
+  border-radius: 14px 0 0 14px;
+  padding: 7px 14px 7px 7px;
+  box-shadow: -4px 4px 14px rgba(38, 49, 49, 0.12);
   cursor: pointer;
+  font-family: inherit;
 }
 
+.lesson-plan-badge__ring-wrap { position: relative; width: 30px; height: 30px; flex-shrink: 0; }
+.lesson-plan-badge__ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.lesson-plan-badge__ring-track { stroke: #e6dcc9; }
+.lesson-plan-badge__ring-fill {
+  stroke: #4a9b8f;
+  transition: stroke-dashoffset 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lesson-plan-badge__icon {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #eef6f4;
+  color: #4a9b8f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.lesson-plan-badge--complete .lesson-plan-badge__icon { background: #4a9b8f; color: #fff; }
+
+.lesson-plan-badge__count { font-weight: 900; font-size: 14px; color: #263131; line-height: 1.1; }
+.lesson-plan-badge__count small {
+  display: block; font-weight: 800; color: #8c9895; font-size: 9px; letter-spacing: 0.04em;
+}
+
+/* ── Expanded sheet — same warm card language as journey-step ── */
 .lesson-plan-sheet {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 250;
-  max-height: 60vh;
+  max-height: 62vh;
   overflow-y: auto;
   background: #fff;
-  border-radius: 16px 16px 0 0;
-  padding: 12px 16px calc(16px + var(--app-safe-bottom, 0px));
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+  border-radius: 20px 20px 0 0;
+  border: 1.5px solid #e0d4c3;
+  border-bottom: none;
+  padding: 16px 18px calc(18px + var(--app-safe-bottom, 0px));
+  box-shadow: 0 -8px 28px rgba(38, 49, 49, 0.16);
+  animation: lesson-plan-sheet-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes lesson-plan-sheet-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 
 .lesson-plan-sheet__header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 8px;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.lesson-plan-sheet__title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: #263131;
 }
 .lesson-plan-sheet__header button {
   background: none;
   border: none;
-  color: #888;
-  font-size: 12px;
+  color: #8c9895;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   cursor: pointer;
 }
 
 .lesson-plan-sheet__list { list-style: none; margin: 0; padding: 0; }
-.lesson-plan-sheet__item { border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
-.lesson-plan-sheet__row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.lesson-plan-sheet__label { font-size: 14px; }
-.lesson-plan-sheet__label--done { text-decoration: line-through; color: #aaa; }
-.lesson-plan-sheet__play {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 10px;
-  border: none;
-  background: #1a73e8;
-  color: #fff;
+.lesson-plan-sheet__item { padding: 10px 0; border-bottom: 1.5px dashed #e6dcc9; }
+.lesson-plan-sheet__item:last-child { border-bottom: none; }
+.lesson-plan-sheet__row { display: flex; align-items: center; gap: 10px; }
+
+.lesson-plan-sheet__check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #cfd9d6;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; font-weight: 900;
+  transition: background 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
+  padding: 0;
+  background: none;
 }
+.lesson-plan-sheet__check--done { background: #4a9b8f; border-color: #4a9b8f; }
+
+.lesson-plan-sheet__label { flex: 1; font-size: 14px; font-weight: 700; color: #263131; }
+.lesson-plan-sheet__label--done { color: #a8978a; text-decoration: line-through; }
+.lesson-plan-sheet__play {
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 12px;
+  color: #fff;
+  background: #4a9b8f;
+  border: none;
+  padding: 7px 13px;
+  border-radius: 10px;
+  box-shadow: 0 3px 0 #2a6b60;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.lesson-plan-sheet__play:active { transform: translateY(2px); box-shadow: 0 1px 0 #2a6b60; }
+
 .lesson-plan-sheet__note-link {
-  background: none; border: none; color: #1a73e8; font-size: 11px; padding: 2px 0; cursor: pointer;
+  background: none; border: none; color: #4a9b8f; font-size: 11.5px; font-weight: 700; padding: 4px 0 0; cursor: pointer;
 }
-.lesson-plan-sheet__note-row { display: flex; gap: 6px; margin-top: 4px; }
+.lesson-plan-sheet__note-row { display: flex; gap: 6px; margin-top: 6px; }
 .lesson-plan-sheet__note-input {
-  flex: 1; font-size: 12px; padding: 4px 8px; border-radius: 8px; border: 1px solid #ddd;
+  flex: 1; font-size: 12.5px; padding: 6px 10px; border-radius: 10px; border: 1.5px solid #e0d4c3; font-family: inherit;
 }
 
 .lesson-plan-add-sheet__tabs { display: flex; gap: 8px; margin-bottom: 12px; }
