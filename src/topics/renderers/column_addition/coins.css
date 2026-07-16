@@ -147,26 +147,20 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Sizing/positioning context for the heap: the static CoinPile and the
-   separately-draggable top coin (.cb-pile-drag) are both absolutely
-   positioned within this box. Its own children's inline left/top offsets
-   (PILE_LAYOUT/PILE_TOP in CoinBlocks.jsx) are calc()-scaled the same way,
+/* Sizing/positioning context for the pyramid: every PILE_LAYOUT coin
+   (BuildNumberTask.jsx's PileCoin) is absolutely positioned within this
+   box, each with its own draggable left/top calc()-scaled the same way,
    so the whole heap's proportions stay consistent as it grows. */
 .cb-pile-wrap {
   position: relative;
   width: calc(132 * var(--cb-scale));
-  height: calc(74 * var(--cb-scale));
+  height: calc(88 * var(--cb-scale));
 }
 
 .cb-pile-drag {
   position: absolute;
   cursor: grab;
   touch-action: none;
-}
-
-.cb-coin-pile {
-  position: absolute;
-  inset: 0;
 }
 
 .cb-pile-coin {

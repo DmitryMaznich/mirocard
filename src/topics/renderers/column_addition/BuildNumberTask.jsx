@@ -3,34 +3,44 @@ import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDragg
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
 import { useSpeech } from "@/shared/hooks/useSpeech";
-import { Coin, TenStack, CoinPile, PILE_TOP } from "./CoinBlocks.jsx";
+import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
 import { pluralTens, pluralOnes } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
 
-// The heap (CoinPile) is static decoration — only this single top coin is
-// draggable, so dragging pulls one coin away while the rest of the pile
-// stays put. The idle bob is dropped while actually dragging so dnd-kit's
-// translate and the bob keyframe's own transform don't fight over the
-// element's `transform` property.
+// Every coin in the pyramid is its own draggable (not just the apex), so a
+// child can pull any coin out of the heap. Each keeps rendering at its
+// fixed spot after a drag ends (nothing is removed from PILE_LAYOUT), so
+// the pile always looks the same regardless of how many coins were
+// dragged from it — the same "infinite supply" trick as the tray items
+// before this mode had a heap at all. The idle bob (apex only) is dropped
+// while THAT coin is being dragged so dnd-kit's translate and the bob
+// keyframe's own transform don't fight over the element's `transform`.
+function PileCoin({ id, x, y, r, top }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id, data: { kind: "coin" } });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`cb-pile-drag cb-pile-coin${top && !isDragging ? " cb-pile-coin--top" : ""}`}
+      style={{
+        left: `calc(${x} * var(--cb-scale, 1px))`,
+        top: `calc(${y} * var(--cb-scale, 1px))`,
+        transform: `rotate(${r}deg)${transform ? " " + CSS.Translate.toString(transform) : ""}`,
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 10 : "auto",
+      }}
+      {...listeners}
+      {...attributes}
+    />
+  );
+}
+
 function PileSource() {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: "coin-top", data: { kind: "coin" } });
   return (
     <div className="cb-pile-wrap">
-      <CoinPile />
-      <div
-        ref={setNodeRef}
-        className={`cb-pile-drag cb-pile-coin${isDragging ? "" : " cb-pile-coin--top"}`}
-        style={{
-          left: `calc(${PILE_TOP.x} * var(--cb-scale, 1px))`,
-          top: `calc(${PILE_TOP.y} * var(--cb-scale, 1px))`,
-          transform: `rotate(${PILE_TOP.r}deg)${transform ? " " + CSS.Translate.toString(transform) : ""}`,
-          opacity: isDragging ? 0.4 : 1,
-          zIndex: isDragging ? 10 : "auto",
-        }}
-        {...listeners}
-        {...attributes}
-      />
+      {PILE_LAYOUT.map((coin, i) => (
+        <PileCoin key={i} id={`coin-pile-${i}`} {...coin} />
+      ))}
     </div>
   );
 }
