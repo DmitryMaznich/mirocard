@@ -109,40 +109,51 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
     setPlaced((p) => ({ ...p, tens: Math.max(0, p.tens - 1) }));
   }
 
+  // Each of the 10 grouped coins gets its own ghost that flies from where
+  // that specific coin was actually sitting to a slightly higher slot in
+  // the forming stack, launched with a short stagger — a visible sequence
+  // of coins arriving one after another, not one shape resizing in place.
   function handleGroup() {
     if (placed.ones < 10) return;
-    const looseRect = looseAreaRef.current.getBoundingClientRect();
+    const looseCoinEls = Array.from(looseAreaRef.current.querySelectorAll(".cb-coin")).slice(0, 10);
+    if (looseCoinEls.length < 10) return;
+
     const stacksRect = stacksAreaRef.current.getBoundingClientRect();
-    const from = rectCenter(looseRect);
-    const to = { x: stacksRect.left + 24 + (placed.tens % 4) * 46, y: stacksRect.bottom - 30 };
+    const sampleRect = looseCoinEls[0].getBoundingClientRect();
+    const discPitch = sampleRect.height * (5 / 12); // matches .cb-stack-coin's own overlap ratio
+    const landX = stacksRect.left + 24 + (placed.tens % 4) * 46;
+    const landBaseY = stacksRect.bottom - 30;
+    const froms = looseCoinEls.map((el) => rectCenter(el.getBoundingClientRect()));
 
     setPlaced((p) => ({ ...p, ones: p.ones - 10 }));
 
-    const ghost = document.createElement("div");
-    ghost.className = "cb-stack-ghost";
-    ghost.style.left = `${from.x}px`;
-    ghost.style.top = `${from.y}px`;
-    for (let i = 0; i < 10; i++) {
-      const c = document.createElement("div");
-      c.className = "cb-stack-coin";
-      ghost.appendChild(c);
-    }
-    document.body.appendChild(ghost);
+    let remaining = froms.length;
+    froms.forEach((from, i) => {
+      const to = { x: landX, y: landBaseY - i * discPitch };
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
 
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    const anim = ghost.animate(
-      [
-        { transform: "translate(-50%, -50%) scale(0.9) rotate(0deg)", offset: 0 },
-        { transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5 - 40}px)) scale(1.05) rotate(-6deg)`, offset: 0.55 },
-        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1) rotate(3deg)`, offset: 1 },
-      ],
-      { duration: 550, easing: "cubic-bezier(.3,.6,.4,1)" },
-    );
-    anim.onfinish = () => {
-      ghost.remove();
-      setPlaced((p) => ({ ...p, tens: p.tens + 1 }));
-    };
+      const ghost = document.createElement("div");
+      ghost.className = "cb-coin-fly-ghost";
+      ghost.style.left = `${from.x}px`;
+      ghost.style.top = `${from.y}px`;
+      document.body.appendChild(ghost);
+
+      const anim = ghost.animate(
+        [
+          { transform: "translate(-50%, -50%) scale(1) rotate(0deg)", offset: 0 },
+          { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.85) rotate(10deg)`, offset: 1 },
+        ],
+        { duration: 260, delay: i * 45, easing: "cubic-bezier(.35,.6,.4,1)", fill: "forwards" },
+      );
+      anim.onfinish = () => {
+        ghost.remove();
+        remaining -= 1;
+        if (remaining === 0) {
+          setPlaced((p) => ({ ...p, tens: p.tens + 1 }));
+        }
+      };
+    });
   }
 
   function handleDone() {

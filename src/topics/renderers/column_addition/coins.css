@@ -188,18 +188,24 @@
   .cb-coin--groupable { animation: pv-pop 0.22s ease-out both; }
 }
 
-/* Ghost element for the tap-to-group fly animation only. Appended directly
-   to document.body by BuildNumberTask.jsx and removed when the animation
-   finishes — it is not part of React's render tree. */
-.cb-stack-ghost {
+/* One ghost per grouped coin for the tap-to-group animation: each of the
+   10 loose coins gets its own copy that flies from where that specific
+   coin was sitting to its slot in the forming stack, staggered in
+   BuildNumberTask.jsx so they arrive in a quick visible sequence rather
+   than one blob resizing in place. Appended directly to document.body and
+   removed when its own flight finishes — not part of React's render
+   tree, and deliberately not the plain .cb-coin class: that class carries
+   the pv-pop mount animation, which would fight this ghost's own
+   Web-Animations transform on the same property. */
+.cb-coin-fly-ghost {
   position: fixed;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
+  width: calc(30 * var(--cb-scale));
+  height: calc(30 * var(--cb-scale));
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff6da, #f6c94e 45%, #e0a72c 85%);
+  border: 2px solid #9a6414;
+  box-shadow: inset 0 -2px 3px rgba(154, 100, 20, 0.45), 0 4px 10px rgba(0, 0, 0, 0.3);
   pointer-events: none;
   z-index: 200;
   transform: translate(-50%, -50%);
-}
-.cb-stack-ghost .cb-stack-coin {
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
