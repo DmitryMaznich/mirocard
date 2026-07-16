@@ -1,6 +1,9 @@
 // Fixed heap layout (not randomized per render) so the pile's silhouette
-// stays recognizable across reloads — wide base narrowing to one coin at
-// the apex, which gets the idle "pick me" bob.
+// stays recognizable across reloads — wide base narrowing toward the apex,
+// where the separately-rendered, actually-draggable top coin (PILE_TOP,
+// below) sits. Keeping the drag target as a single coin — not this whole
+// heap — is what makes dragging pull one coin away while the rest of the
+// pile stays put.
 const PILE_LAYOUT = [
   { x: 4, y: 40, r: -8 },
   { x: 30, y: 44, r: 6 },
@@ -9,8 +12,9 @@ const PILE_LAYOUT = [
   { x: 18, y: 24, r: -10 },
   { x: 46, y: 26, r: 5 },
   { x: 72, y: 22, r: -6 },
-  { x: 44, y: 6, r: 3, top: true },
 ];
+
+export const PILE_TOP = { x: 44, y: 6, r: 3 };
 
 export function Coin({ numeric = false, groupable = false }) {
   return (
@@ -34,10 +38,10 @@ export function TenStack({ numeric = false }) {
 export function CoinPile() {
   return (
     <div className="cb-coin-pile">
-      {PILE_LAYOUT.map(({ x, y, r, top }, i) => (
+      {PILE_LAYOUT.map(({ x, y, r }, i) => (
         <div
           key={i}
-          className={`cb-pile-coin${top ? " cb-pile-coin--top" : ""}`}
+          className="cb-pile-coin"
           style={{ left: `${x}px`, top: `${y}px`, transform: `rotate(${r}deg)` }}
         />
       ))}

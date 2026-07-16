@@ -104,15 +104,24 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
+/* Sizing/positioning context for the heap: the static CoinPile and the
+   separately-draggable top coin (.cb-pile-drag) are both absolutely
+   positioned within this box. */
+.cb-pile-wrap {
+  position: relative;
+  width: 132px;
+  height: 74px;
+}
+
 .cb-pile-drag {
+  position: absolute;
   cursor: grab;
   touch-action: none;
 }
 
 .cb-coin-pile {
-  position: relative;
-  width: 132px;
-  height: 74px;
+  position: absolute;
+  inset: 0;
 }
 
 .cb-pile-coin {

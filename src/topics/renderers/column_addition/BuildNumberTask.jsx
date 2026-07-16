@@ -3,22 +3,34 @@ import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDragg
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
 import { useSpeech } from "@/shared/hooks/useSpeech";
-import { Coin, TenStack, CoinPile } from "./CoinBlocks.jsx";
+import { Coin, TenStack, CoinPile, PILE_TOP } from "./CoinBlocks.jsx";
 import { pluralTens, pluralOnes } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
 
+// The heap (CoinPile) is static decoration — only this single top coin is
+// draggable, so dragging pulls one coin away while the rest of the pile
+// stays put. The idle bob is dropped while actually dragging so dnd-kit's
+// translate and the bob keyframe's own transform don't fight over the
+// element's `transform` property.
 function PileSource() {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: "coin-pile", data: { kind: "coin" } });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: "coin-top", data: { kind: "coin" } });
   return (
-    <div
-      ref={setNodeRef}
-      className="cb-pile-drag"
-      style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 10 : "auto" }}
-      {...listeners}
-      {...attributes}
-    >
+    <div className="cb-pile-wrap">
       <CoinPile />
+      <div
+        ref={setNodeRef}
+        className={`cb-pile-drag cb-pile-coin${isDragging ? "" : " cb-pile-coin--top"}`}
+        style={{
+          left: `${PILE_TOP.x}px`,
+          top: `${PILE_TOP.y}px`,
+          transform: `rotate(${PILE_TOP.r}deg)${transform ? " " + CSS.Translate.toString(transform) : ""}`,
+          opacity: isDragging ? 0.4 : 1,
+          zIndex: isDragging ? 10 : "auto",
+        }}
+        {...listeners}
+        {...attributes}
+      />
     </div>
   );
 }
