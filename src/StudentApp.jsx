@@ -69,7 +69,7 @@ function ErrorScreen({ reason }) {
   );
 }
 
-function computeDefaultParams(topicRecord, mode) {
+export function computeDefaultParams(topicRecord, mode) {
   const renderer = topicRecord?.meta?.renderer;
   if (renderer === "comparison") {
     return { level: 2, question: "more", showEqual: false, wordsVerdict: false,

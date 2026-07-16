@@ -1,0 +1,70 @@
+.lesson-plan-badge {
+  position: fixed;
+  top: calc(12px + var(--app-safe-top, 0px));
+  right: calc(12px + var(--app-safe-right, 0px));
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: none;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.lesson-plan-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 250;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 12px 16px calc(16px + var(--app-safe-bottom, 0px));
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.lesson-plan-sheet__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+.lesson-plan-sheet__header button {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.lesson-plan-sheet__list { list-style: none; margin: 0; padding: 0; }
+.lesson-plan-sheet__item { border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
+.lesson-plan-sheet__row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.lesson-plan-sheet__label { font-size: 14px; }
+.lesson-plan-sheet__label--done { text-decoration: line-through; color: #aaa; }
+.lesson-plan-sheet__play {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: none;
+  background: #1a73e8;
+  color: #fff;
+  cursor: pointer;
+}
+.lesson-plan-sheet__note-link {
+  background: none; border: none; color: #1a73e8; font-size: 11px; padding: 2px 0; cursor: pointer;
+}
+.lesson-plan-sheet__note-row { display: flex; gap: 6px; margin-top: 4px; }
+.lesson-plan-sheet__note-input {
+  flex: 1; font-size: 12px; padding: 4px 8px; border-radius: 8px; border: 1px solid #ddd;
+}
