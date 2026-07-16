@@ -10,6 +10,12 @@ export const useAppStore = create((set) => ({
   // screen. Null means "use the default flow".
   sessionReturnScreen: null,
   setSessionReturnScreen: (sessionReturnScreen) => set({ sessionReturnScreen }),
+  // Which lesson-plan checklist item (see src/features/lessonPlan) launched
+  // the session currently in progress, if it was started via "Играть это".
+  // Read once when the session completes to auto-mark that item done, then
+  // cleared — mirrors sessionReturnScreen's "read once, then null" pattern.
+  activeLessonPlanItemId: null,
+  setActiveLessonPlanItemId: (activeLessonPlanItemId) => set({ activeLessonPlanItemId }),
   // In-memory portions choice for the recipe session about to start.
   // Bypasses the persisted settings round-trip (IndexedDB + server pull),
   // which can race and clobber a value just saved via saveRecipeSettings.
@@ -123,10 +129,11 @@ export const useAppStore = create((set) => ({
   // used to consume plannerInitialView before Меню became its only view.
   plannerShoppingInitialMode: null,
   setPlannerShoppingInitialMode: (plannerShoppingInitialMode) => set({ plannerShoppingInitialMode }),
-  // Which Home tab ("session" | "planner") to land on. HomeScreen's own
-  // tab state is local (resets on remount), so without this, navigating
-  // back from a Planner screen (setScreen('home')) always dropped the
-  // user onto "Занятие" instead of back onto "Планировщик".
+  // Which Home tab ("session" | "planner" | "lesson_plan") to land on.
+  // HomeScreen's own tab state is local (resets on remount), so without
+  // this, navigating back from a sub-screen (setScreen('home')) always
+  // dropped the user onto "Занятие" instead of back onto the tab they came
+  // from (e.g. "Меню и магазин" or "План занятия").
   homeActiveTab: "session",
   setHomeActiveTab: (homeActiveTab) => set({ homeActiveTab }),
 
