@@ -27,6 +27,22 @@
   --cb-scale: clamp(1px, calc(100vw / 400), 2px);
 }
 
+/* build_number-only overrides of shared place_value.css text sizes (the
+   target number and the "N десятков"/"N единиц" counters) — doubled from
+   the shared defaults (54px/15px) and, like the coins, tied to
+   --cb-scale so the doubled size keeps growing on tablet instead of
+   pinning back to a fixed px. Scoped under .cb-screen (this file loads
+   after place_value.css, and this selector is more specific, so it wins
+   here without touching identify_number/regroup_ten's plain .pv-number/
+   .pv-zone-counter). */
+.cb-screen .pv-number {
+  font-size: calc(108 * var(--cb-scale));
+}
+
+.cb-screen .pv-zone-counter {
+  font-size: calc(30 * var(--cb-scale));
+}
+
 .cb-zone-split {
   display: flex;
   flex: 1;
