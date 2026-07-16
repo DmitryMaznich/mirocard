@@ -437,6 +437,41 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params.numericBlocks.offLabel.ru).toBe("Десятки");
   });
 
+  it("adds the new maxTens param to a build_number record saved before it existed", async () => {
+    // Simulates a device that installed build_number before maxTens/the coin
+    // mechanic existed — on the next load, the new range param and the updated
+    // instruction copy must both appear.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "build_number",
+          type: "build_number",
+          evaluation: "instant",
+          ui: { title: "Собери число", instruction: "Перетащи десятки и единицы на свои места", icon: "media/icons/place_value_build.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+            numericBlocks: { type: "visual_boolean", default: false, offLabel: { ru: "Десятки" }, label: { ru: "Блоки с цифрами вместо кубиков" } },
+          },
+        },
+      ],
+      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const buildNumber = record.modes.find((m) => m.id === "build_number");
+    expect(buildNumber.params.maxTens).toEqual({
+      type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" },
+    });
+    expect(buildNumber.ui.instruction).toBe("Перетаскивай монетки, пока не наберёшь число");
+  });
+
   it("refreshes a mode's methodology tips to the current default, even if older tips were persisted", async () => {
     // Simulates a device that installed regroup_ten back when its tips still mentioned
     // the "Число изменилось?" question that has since been removed — on the next load,

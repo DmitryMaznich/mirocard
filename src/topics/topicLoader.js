@@ -1142,7 +1142,7 @@ const DEFAULT_MODES = {
       type: "build_number",
       evaluation: "instant",
       orientationLock: "portrait",
-      ui: { title: "Собери число", instruction: "Перетащи десятки и единицы на свои места", icon: "media/icons/place_value_build.svg" },
+      ui: { title: "Собери число", instruction: "Перетаскивай монетки, пока не наберёшь число", icon: "media/icons/place_value_build.svg" },
       params: {
         maxOnes: {
           type: "number",
@@ -1150,6 +1150,13 @@ const DEFAULT_MODES = {
           max: 9,
           default: 2,
           label: { ru: "Максимум единиц" },
+        },
+        maxTens: {
+          type: "number",
+          min: 1,
+          max: 9,
+          default: 3,
+          label: { ru: "Максимум десятков" },
         },
         numericBlocks: {
           type: "visual_boolean",
