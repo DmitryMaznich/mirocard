@@ -42,6 +42,7 @@ import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
 import PlannerPutawayScreen from "@/features/planner/PlannerPutawayScreen";
 import InstructionRunnerScreen from "@/features/instructions/InstructionRunnerScreen";
 import InstructionConstructorScreen from "@/features/instructions/InstructionConstructorScreen";
+import PeriodPlanScreen from "@/features/lessonPlan/PeriodPlanScreen";
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
@@ -90,6 +91,7 @@ const SCREENS = {
   planner_putaway: PlannerPutawayScreen,
   instruction_runner: InstructionRunnerScreen,
   instruction_constructor: InstructionConstructorScreen,
+  lesson_plan_period: PeriodPlanScreen,
 };
 
 function OrientationGuard({ orientationLock }) {
