@@ -114,7 +114,7 @@ function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    link.strictStars ?? true,
+    link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true,
   );
 
   if (mode.type === "assemble_text") {
@@ -170,7 +170,7 @@ export function useSessionEngine() {
     : (link.selectedConceptIds?.length ? link.selectedConceptIds : null)
       ?? topicRecord?.cards.filter((c) => c.primary).map((c) => c.conceptId)
       ?? [];
-  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? true };
+  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true };
   const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
