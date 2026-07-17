@@ -12,6 +12,8 @@ Do not open backup archives, restored backup folders, Synology backup folders, `
 
 ## Runtime Host (backend + Caddy)
 
+> **ВАЖНО:** бэкенд и Caddy работают на **отдельной машине** (192.168.1.163), а не на машине разработчика. Все операции с продакшн-БД, логами и процессом бэкенда — только через SSH на 192.168.1.163. Локальный файл `runtime/data/mirocard.db` в рабочей копии — это **не продакшн**, а локальная разработка.
+
 | Parameter | Value |
 |-----------|-------|
 | LAN IP | `192.168.1.163` |
@@ -26,6 +28,29 @@ Do not open backup archives, restored backup folders, Synology backup folders, `
 | Public URL | `https://mirocard.kaplieva.help/` |
 
 Do not deploy the backend to Synology. Synology/SmartNAS is backup storage only.
+
+### Подключение к продакшн-БД (только через SSH)
+
+```python
+import paramiko
+
+client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+client.connect("192.168.1.163", port=22, username="dmazn", password="241078diMA", timeout=10)
+
+# Запрос к БД на продакшн-машине
+cmd = r'node --input-type=module -e "import { DatabaseSync } from \"node:sqlite\"; const db = new DatabaseSync(\"C:/Users/dmazn/Projects/Mirocard2/runtime/data/mirocard.db\"); console.log(JSON.stringify(db.prepare(\"SELECT COUNT(*) as n FROM accounts\").get())); db.close();"'
+stdin, stdout, stderr = client.exec_command(cmd)
+print(stdout.read().decode())
+client.close()
+```
+
+### Логи бэкенда на продакшне
+
+```
+C:/Users/dmazn/Projects/Mirocard2/backend/logs/server.log
+C:/Users/dmazn/Projects/Mirocard2/backend/logs/server-err.log
+```
 
 ## Credentials
 
