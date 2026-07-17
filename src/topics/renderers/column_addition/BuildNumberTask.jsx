@@ -49,7 +49,7 @@ function PileSource() {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Workspace({ placed, formingStack, groupableCount, errorZones, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
+function Workspace({ placed, formingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
   const { setNodeRef, isOver } = useDroppable({ id: "cb-workspace" });
   return (
     <div className="pv-zones">
@@ -58,7 +58,10 @@ function Workspace({ placed, formingStack, groupableCount, errorZones, solved, n
         className={`pv-zone${solved ? " pv-zone--correct" : ""}${isOver ? " pv-zone--drag-over" : ""}`}
       >
         <div className="cb-zone-split">
-          <div className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}`} ref={stacksAreaRef}>
+          <div
+            className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}${capacityFlash.tens ? " cb-area--capacity" : ""}`}
+            ref={stacksAreaRef}
+          >
             {Array.from({ length: placed.tens }, (_, i) => (
               <div
                 key={i}
@@ -69,7 +72,10 @@ function Workspace({ placed, formingStack, groupableCount, errorZones, solved, n
               </div>
             ))}
           </div>
-          <div className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}`} ref={looseAreaRef}>
+          <div
+            className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}${capacityFlash.ones ? " cb-area--capacity" : ""}`}
+            ref={looseAreaRef}
+          >
             {Array.from({ length: placed.ones }, (_, i) => (
               <div key={i} onClick={i < groupableCount ? onGroup : onRemoveOne}>
                 <Coin numeric={numeric} groupable={i < groupableCount} />
@@ -86,22 +92,45 @@ function rectCenter(rect) {
   return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 }
 
+// A generous safety ceiling, not a per-task one: capping loose/stacked
+// coins exactly at the target would double as revealing the answer (the
+// zone would visibly "stop accepting" right at the correct count), which
+// this app's other training modes deliberately never do. ONES_CEILING is
+// a flat number since maxOnes never exceeds 9 by design, so 19 is already
+// generous for every task; the tens ceiling is relative to the session's
+// own maxTens (task.maxTens) so a deliberately-larger configured range
+// never gets blocked as "too many". Both exist only to catch an
+// unsupervised child dragging hundreds of coins in — not to referee
+// ordinary wrong answers, which ГОТОВО already handles.
+const ONES_CEILING = 19;
+
 export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   const [placed, setPlaced] = useState({ tens: 0, ones: 0 });
   const [formingStack, setFormingStack] = useState(false);
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
+  const [capacityFlash, setCapacityFlash] = useState({ tens: false, ones: false });
   const [solved, setSolved] = useState(false);
   const { speak } = useSpeech();
   const stacksAreaRef = useRef(null);
   const looseAreaRef = useRef(null);
+  const tensCeiling = (task.maxTens ?? 3) + 2;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
   );
 
+  function flashCapacity(side) {
+    setCapacityFlash((c) => ({ ...c, [side]: true }));
+    setTimeout(() => setCapacityFlash((c) => ({ ...c, [side]: false })), 400);
+  }
+
   function handleDragEnd({ over }) {
     if (!over) return;
+    if (placed.ones >= ONES_CEILING) {
+      flashCapacity("ones");
+      return;
+    }
     setErrorZones({ tens: false, ones: false });
     setPlaced((p) => ({ ...p, ones: p.ones + 1 }));
   }
@@ -131,6 +160,10 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   // up before the coins visibly land.
   function handleGroup() {
     if (placed.ones < 10) return;
+    if (placed.tens >= tensCeiling) {
+      flashCapacity("tens");
+      return;
+    }
     const looseCoinEls = Array.from(looseAreaRef.current.querySelectorAll(".cb-coin")).slice(0, 10);
     if (looseCoinEls.length < 10) return;
 
@@ -211,6 +244,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
           formingStack={formingStack}
           groupableCount={groupableCount}
           errorZones={errorZones}
+          capacityFlash={capacityFlash}
           solved={solved}
           numeric={task.numericBlocks}
           onRemoveOne={removeOne}

@@ -80,6 +80,18 @@
   background: rgba(239, 68, 68, 0.08);
 }
 
+/* Distinct amber (not the red .cb-area--error) — this fires when a
+   generous safety ceiling (BuildNumberTask.jsx's ONES_CEILING/tensCeiling)
+   rejects a drop, not when ГОТОВО judges the answer wrong. Different
+   color on purpose, so it never reads as "that's the wrong answer". */
+.cb-area--capacity {
+  animation: pv-shake 0.4s ease-in-out;
+  outline: 2px solid #d97706;
+  outline-offset: 2px;
+  border-radius: 10px;
+  background: rgba(217, 119, 6, 0.08);
+}
+
 .cb-coin {
   width: calc(30 * var(--cb-scale));
   height: calc(30 * var(--cb-scale));
