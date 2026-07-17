@@ -55,7 +55,7 @@ export default function RegisterScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mirocard</div>
+      <div className="auth-logo">Mironium</div>
       <form className="auth-form" onSubmit={handleSubmit}>
         <input
           className="auth-input"
@@ -100,7 +100,7 @@ export default function RegisterScreen() {
           onChange={(e) => setReferralSource(e.target.value)}
           required
         >
-          <option value="" disabled>Как узнали о Mirocard? *</option>
+          <option value="" disabled>Как узнали о Mironium? *</option>
           <option value="friend">Рекомендация друзей</option>
           <option value="developer">Приглашение разработчика</option>
           <option value="other">Другое</option>

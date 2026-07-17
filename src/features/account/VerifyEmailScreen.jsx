@@ -56,7 +56,7 @@ export default function VerifyEmailScreen() {
   if (status === "loading") {
     return (
       <div className="auth-screen">
-        <div className="auth-logo">Mirocard</div>
+        <div className="auth-logo">Mironium</div>
         <div className="auth-form" style={{ textAlign: "center" }}>
           Подтверждаем email…
         </div>
@@ -67,7 +67,7 @@ export default function VerifyEmailScreen() {
   if (status === "success") {
     return (
       <div className="auth-screen">
-        <div className="auth-logo">Mirocard</div>
+        <div className="auth-logo">Mironium</div>
         <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
           <p style={{ fontSize: "1.1rem", color: "#4a9b8f", fontWeight: 600 }}>
             Email подтверждён!
@@ -82,7 +82,7 @@ export default function VerifyEmailScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mirocard</div>
+      <div className="auth-logo">Mironium</div>
       <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
         <p style={{ color: "#c0392b" }}>
           Ссылка недействительна или срок её действия истёк.

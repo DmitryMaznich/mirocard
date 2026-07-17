@@ -133,7 +133,7 @@ export default function LoginScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mirocard</div>
+      <div className="auth-logo">Mironium</div>
       <form className="auth-form" onSubmit={handleSubmit}>
         <input
           className="auth-input"

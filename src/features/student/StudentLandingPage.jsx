@@ -30,7 +30,7 @@ export default function StudentLandingPage({ onContinue }) {
       <div className="slp-card">
         <div className="slp-icon">📚</div>
         <div className="slp-title">Задание готово!</div>
-        <div className="slp-sub">Логопед назначил тебе занятие в приложении Mirocard</div>
+        <div className="slp-sub">Логопед назначил тебе занятие в приложении Mironium</div>
 
         <button
           className="slp-btn-primary"
@@ -47,12 +47,12 @@ export default function StudentLandingPage({ onContinue }) {
             <li><span className="slp-step-icon">①</span> Нажми кнопку <strong>«Поделиться»</strong> <span className="slp-share-icon">⬆︎</span> внизу Safari</li>
             <li><span className="slp-step-icon">②</span> Выбери <strong>«На экран Домой»</strong></li>
             <li><span className="slp-step-icon">③</span> Нажми <strong>«Добавить»</strong></li>
-            <li><span className="slp-step-icon">④</span> Открой иконку <strong>Mirocard</strong> — задание будет внутри</li>
+            <li><span className="slp-step-icon">④</span> Открой иконку <strong>Mironium</strong> — задание будет внутри</li>
           </ol>
         ) : (
           <ol className="slp-steps">
             <li><span className="slp-step-icon">①</span> Нажми <strong>«Установить»</strong> или <strong>⋮</strong> → <strong>«Добавить на главный экран»</strong> в Chrome</li>
-            <li><span className="slp-step-icon">②</span> Открой иконку <strong>Mirocard</strong> — задание будет внутри</li>
+            <li><span className="slp-step-icon">②</span> Открой иконку <strong>Mironium</strong> — задание будет внутри</li>
           </ol>
         )}
 

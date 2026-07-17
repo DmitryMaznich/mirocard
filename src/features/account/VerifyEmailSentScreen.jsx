@@ -25,7 +25,7 @@ export default function VerifyEmailSentScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mirocard</div>
+      <div className="auth-logo">Mironium</div>
       <div className="auth-form">
         <p style={{ textAlign: "center", lineHeight: 1.6 }}>
           Письмо с подтверждением отправлено на{" "}

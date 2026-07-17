@@ -1,8 +1,8 @@
 {
-  "name": "Mirocard",
-  "short_name": "Mirocard",
+  "name": "Mironium",
+  "short_name": "Mironium",
   "id": "/",
-  "description": "Занятия и карточки Mirocard",
+  "description": "Занятия и карточки Mironium",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
