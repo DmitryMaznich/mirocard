@@ -53,7 +53,7 @@ export default function LessonPlanPanel() {
   return (
     <>
       <button
-        className={`lesson-plan-badge${isComplete ? " lesson-plan-badge--complete" : ""}`}
+        className={`lesson-plan-badge${isComplete ? " lesson-plan-badge--complete" : ""}${lessonPlan.isOpen ? " lesson-plan-badge--peeled" : ""}`}
         onClick={() => lessonPlan.setIsOpen((v) => !v)}
         aria-label="План занятий"
       >
@@ -94,16 +94,20 @@ export default function LessonPlanPanel() {
           <ul className="lesson-plan-sheet__list">
             {activeSessionPlan.items.map((item) => {
               const playable = !item.done && isPlayable(item);
-              const manuallyCheckable = !item.done && !playable;
+              // The check is always reversible — a done item un-checks back to pending,
+              // a pending item completes on tap unless it's a topic item awaiting
+              // quick-start (that one only has the "Играть это" button as its trigger,
+              // so the circle stays a plain status dot until it's actually played).
+              const clickable = item.done || !playable;
               return (
                 <li key={item.id} className="lesson-plan-sheet__item">
                   <div className="lesson-plan-sheet__row">
                     <button
                       type="button"
                       className={`lesson-plan-sheet__check${item.done ? " lesson-plan-sheet__check--done" : ""}`}
-                      onClick={manuallyCheckable ? () => lessonPlan.markItemDone(item.id, true) : undefined}
-                      disabled={!manuallyCheckable && !item.done}
-                      aria-label={item.done ? "Выполнено" : "Отметить выполненным"}
+                      onClick={clickable ? () => lessonPlan.markItemDone(item.id, !item.done) : undefined}
+                      disabled={!clickable}
+                      aria-label={item.done ? "Отменить отметку" : "Отметить выполненным"}
                     >
                       {item.done ? "✓" : ""}
                     </button>
