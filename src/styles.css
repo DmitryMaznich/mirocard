@@ -14052,7 +14052,8 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   padding: 14px 16px;
   background: #fff;
   border-radius: 14px;
@@ -14173,7 +14174,7 @@ kbd {
 .link-btn { background: none; border: none; color: #4a9b8f; font-family: inherit; font-size: 0.88rem; cursor: pointer; text-decoration: underline; font-weight: 700; }
 .link-btn:disabled { color: #a8978a; cursor: default; }
 
-.param-label-wrap { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.param-label-wrap { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; min-width: 0; }
 .param-info-btn {
   width: 18px; height: 18px;
   border-radius: 50%;
