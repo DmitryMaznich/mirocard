@@ -1039,7 +1039,7 @@ const DEFAULT_MODES = {
         operation: {
           type: "enum",
           values: ["add", "subtract", "mixed"],
-          labels: { ru: { add: "Только +", subtract: "Только −", mixed: "Микс" } },
+          labels: { ru: { add: "+", subtract: "−", mixed: "Микс" } },
           default: "add",
           label: { ru: "Операция" },
           section: "Что решаем",
@@ -1053,7 +1053,7 @@ const DEFAULT_MODES = {
         carryMode: {
           type: "enum",
           values: ["none", "carry", "mixed"],
-          labels: { ru: { none: "Без переноса / займа", carry: "С переносом / займом", mixed: "Микс" } },
+          labels: { ru: { none: "Без", carry: "С", mixed: "Микс" } },
           default: "none",
           label: { ru: "Перенос / заём" },
           section: "Что решаем",
@@ -1067,7 +1067,7 @@ const DEFAULT_MODES = {
         digits: {
           type: "enum",
           values: [2, 3],
-          labels: { ru: { "2": "2-значные", "3": "3-значные" } },
+          labels: { ru: { "2": "2-зн.", "3": "3-зн." } },
           default: 2,
           label: { ru: "Разрядность" },
           section: "Что решаем",
