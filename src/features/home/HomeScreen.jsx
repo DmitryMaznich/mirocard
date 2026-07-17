@@ -145,7 +145,7 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonP
           onClick={() => onChange('lesson_plan')}
         >
           <LessonPlanTabIcon />
-          <span>План занятия</span>
+          <span>План занятий</span>
         </button>
       )}
       {showPlanner && (

@@ -55,7 +55,7 @@ export default function LessonPlanPanel() {
       <button
         className={`lesson-plan-badge${isComplete ? " lesson-plan-badge--complete" : ""}`}
         onClick={() => lessonPlan.setIsOpen((v) => !v)}
-        aria-label="План занятия"
+        aria-label="План занятий"
       >
         <span className="lesson-plan-badge__ring-wrap">
           <svg viewBox="0 0 30 30">
@@ -88,7 +88,7 @@ export default function LessonPlanPanel() {
       {lessonPlan.isOpen && (
         <div className="lesson-plan-sheet">
           <div className="lesson-plan-sheet__header">
-            <span className="lesson-plan-sheet__title">План занятия</span>
+            <span className="lesson-plan-sheet__title">План занятий</span>
             <button onClick={() => lessonPlan.setIsOpen(false)}>свернуть ▾</button>
           </div>
           <ul className="lesson-plan-sheet__list">

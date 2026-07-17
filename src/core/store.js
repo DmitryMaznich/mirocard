@@ -133,7 +133,7 @@ export const useAppStore = create((set) => ({
   // HomeScreen's own tab state is local (resets on remount), so without
   // this, navigating back from a sub-screen (setScreen('home')) always
   // dropped the user onto "Занятие" instead of back onto the tab they came
-  // from (e.g. "Меню и магазин" or "План занятия").
+  // from (e.g. "Меню и магазин" or "План занятий").
   homeActiveTab: "session",
   setHomeActiveTab: (homeActiveTab) => set({ homeActiveTab }),
 
