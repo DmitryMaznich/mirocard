@@ -712,7 +712,7 @@ export default function ParamsScreen() {
   const [params,         setParams]        = useState(getInitialParams);
   const [videoReward,   setVideoReward]   = useState(link.videoRewardEnabled ?? true);
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
-  const [strictStars,   setStrictStars]   = useState(link.strictStars ?? true);
+  const [strictStars,   setStrictStars]   = useState(link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
   const [activeInfo,     setActiveInfo]      = useState(null);
@@ -841,7 +841,7 @@ export default function ParamsScreen() {
     <ComparisonParams params={params} onChange={setParams} />
   ) : (
     <>
-      {!isPhraseMatch && !modeHasCategoryParam && (
+      {!isPhraseMatch && !modeHasCategoryParam && !mode?.hideConceptPicker && (
         <div className="param-row param-row--block">
           <div className="param-label">Понятия</div>
           <div className="param-concept-col">
