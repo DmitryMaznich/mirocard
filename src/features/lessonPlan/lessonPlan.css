@@ -14,19 +14,38 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  /* Extra left padding when peeking gives the pull-tab a real touch
+     target (44px+) instead of a sliver of the ring icon — the ring
+     itself isn't a reliable thing to aim a thumb at when 90% of it
+     is off-canvas. */
+  min-height: 44px;
   background: #fff;
   border: 1.5px solid #e0d4c3;
   border-right: none;
-  border-radius: 14px 0 0 14px;
-  padding: 7px 14px 7px 7px;
+  border-radius: 16px 0 0 16px;
+  padding: 7px 14px 7px 14px;
   box-shadow: -4px 4px 14px rgba(38, 49, 49, 0.12);
   cursor: pointer;
   font-family: inherit;
-  transform: translateY(-50%) translateX(calc(100% - 20px));
+  transform: translateY(-50%) translateX(calc(100% - 46px));
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .lesson-plan-badge--peeled {
   transform: translateY(-50%) translateX(0);
+}
+/* Grip nub — always at the badge's leading edge, so it's the first
+   thing visible (and grabbable) while peeking, rather than relying on
+   a half-cropped ring icon to read as "pull me". */
+.lesson-plan-badge::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 26px;
+  border-radius: 3px;
+  background: #cbb99e;
 }
 
 .lesson-plan-badge__ring-wrap { position: relative; width: 30px; height: 30px; flex-shrink: 0; }
