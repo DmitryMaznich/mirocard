@@ -86,7 +86,7 @@
   border-radius: 20px 20px 0 0;
   border: 1.5px solid #e0d4c3;
   border-bottom: none;
-  padding: 16px 18px calc(18px + var(--app-safe-bottom, 0px));
+  padding: 16px calc(18px + var(--app-safe-right, 0px)) calc(18px + var(--app-safe-bottom, 0px)) calc(18px + var(--app-safe-left, 0px));
   box-shadow: 0 -8px 28px rgba(38, 49, 49, 0.16);
   animation: lesson-plan-sheet-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -135,9 +135,13 @@
 .lesson-plan-sheet__check--done { background: #4a9b8f; border-color: #4a9b8f; }
 .lesson-plan-sheet__check:disabled { cursor: default; }
 
-.lesson-plan-sheet__label { flex: 1; font-size: 14px; font-weight: 700; color: #263131; }
+/* min-width: 0 overrides the flexbox default (content's own width), which
+   otherwise refuses to let a long label shrink — pushing __play off the
+   edge of the row entirely instead of wrapping. */
+.lesson-plan-sheet__label { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: #263131; }
 .lesson-plan-sheet__label--done { color: #a8978a; text-decoration: line-through; }
 .lesson-plan-sheet__play {
+  flex-shrink: 0;
   font-family: inherit;
   font-weight: 800;
   font-size: 12px;
