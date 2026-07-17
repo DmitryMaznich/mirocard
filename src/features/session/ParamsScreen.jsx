@@ -1040,81 +1040,75 @@ export default function ParamsScreen() {
             {paramsContent}
           </div>
 
-          {hasVideos && mode.evaluation !== "none" && !isAlphabetPairs && (
-            <div className="param-row param-row--block">
-              <div className="param-label">Сложность серии</div>
-              <div className="param-enum-section">
-                <div className="param-enum-group">
-                  {[1, 2, 3].map((n) => (
-                    <button
-                      key={n}
-                      className={`enum-btn enum-btn--compact ${answersPerStar === n ? "enum-btn--active" : ""}`}
-                      onClick={() => setAnswersPerStar(n)}
-                    >
-                      ×{n}
-                    </button>
-                  ))}
-                </div>
-                <div className="param-hint">
-                  Бонус каждые {5 * answersPerStar} правильных ответов подряд
-                </div>
-              </div>
-            </div>
-          )}
-
-          {hasVideos && mode.evaluation !== "none" && !isAlphabetPairs && (
-            <div className="param-row param-row--block">
-              <div className="param-label">Подсчёт звёзд</div>
-              <div className="param-enum-section">
-                <div className="param-enum-group">
-                  <button
-                    className={`enum-btn enum-btn--compact ${!strictStars ? "enum-btn--active" : ""}`}
-                    onClick={() => setStrictStars(false)}
-                  >
-                    Мягко
-                  </button>
-                  <button
-                    className={`enum-btn enum-btn--compact ${strictStars ? "enum-btn--active" : ""}`}
-                    onClick={() => setStrictStars(true)}
-                  >
-                    Строго
-                  </button>
-                </div>
-                <div className="param-hint">
-                  {strictStars
-                    ? "Любая ошибка сбрасывает серию"
-                    : "Ошибки не сбрасывают серию"}
-                </div>
-              </div>
-            </div>
-          )}
-
           {hasVideos && !isAlphabetPairs && (
-            <div className="param-row param-row--block">
-              <div className="param-label">Видео-награда</div>
-              <div className="param-enum-section">
-                <div className="param-enum-group">
-                  <button
-                    className={`enum-btn enum-btn--compact ${!videoReward ? "enum-btn--active" : ""}`}
-                    onClick={() => setVideoReward(false)}
-                  >
-                    Нет
-                  </button>
-                  <button
-                    className={`enum-btn enum-btn--compact ${videoReward ? "enum-btn--active" : ""}`}
-                    onClick={() => setVideoReward(true)}
-                  >
-                    Да
-                  </button>
-                </div>
-                <div className="param-hint">
-                  {!videoReward
-                    ? "Видео-награда отключена"
-                    : mode.evaluation !== "none"
-                      ? "Видео показывается за серию правильных ответов"
-                      : "Награда доступна на экране завершения"}
-                </div>
+            <div className="param-section">
+              <div className="param-section__header">Награда за занятие</div>
+
+              <div className="param-row">
+                <ParamLabel
+                  label="Видео-награда"
+                  info={{
+                    text: "Включает показ бонусного видео ученику за успешную серию правильных ответов в этом занятии.",
+                    tip: "Выключите, если видео отвлекает ребёнка от задания сильнее, чем мотивирует.",
+                  }}
+                  onShowInfo={setActiveInfo}
+                />
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={videoReward}
+                  aria-label="Видео-награда"
+                  className={`param-toggle ${videoReward ? "param-toggle--on" : ""}`}
+                  onClick={() => setVideoReward((v) => !v)}
+                />
               </div>
+
+              {mode.evaluation !== "none" && (
+                <>
+                  <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
+                    <ParamLabel
+                      label="Серия для видеонаграды"
+                      info={{
+                        text: "Сколько правильных ответов подряд без ошибок нужно набрать, чтобы получить бонусное видео — отображается как 5 звёзд по пути.",
+                        tip: "Начните с 5, чтобы награда приходила быстро и не терялась мотивация; увеличивайте до 10-15 по мере уверенности ребёнка.",
+                      }}
+                      onShowInfo={setActiveInfo}
+                    />
+                    <div className="param-enum-group">
+                      {[1, 2, 3].map((n) => (
+                        <button
+                          key={n}
+                          className={`enum-btn ${answersPerStar === n ? "enum-btn--active" : ""}`}
+                          disabled={!videoReward}
+                          onClick={() => setAnswersPerStar(n)}
+                        >
+                          {5 * n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
+                    <ParamLabel
+                      label="Строгий подсчёт"
+                      info={{
+                        text: "В «Строго» любая ошибка — даже одна неверная цифра в отдельной клетке примера — сразу обнуляет серию для звёзд. В «Мягко» ошибки в клетках не сбрасывают серию, она растёт по мере решённых примеров.",
+                        tip: "Для «Столбика» рекомендуем «Мягко» — ошибка в одной цифре трёхзначного числа при «Строго» может обнулить всю серию за один случайный тап.",
+                      }}
+                      onShowInfo={setActiveInfo}
+                    />
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={strictStars}
+                      aria-label="Строгий подсчёт"
+                      className={`param-toggle ${strictStars ? "param-toggle--on" : ""}`}
+                      disabled={!videoReward}
+                      onClick={() => setStrictStars((v) => !v)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
