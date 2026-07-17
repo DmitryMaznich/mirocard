@@ -14173,6 +14173,64 @@ kbd {
 .link-btn { background: none; border: none; color: #4a9b8f; font-family: inherit; font-size: 0.88rem; cursor: pointer; text-decoration: underline; font-weight: 700; }
 .link-btn:disabled { color: #a8978a; cursor: default; }
 
+.param-label-wrap { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.param-info-btn {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: #e4ecea;
+  color: #4a7f78;
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+.param-info-btn:hover { background: #d3e4e1; }
+
+.param-toggle {
+  width: 44px; height: 26px;
+  border-radius: 13px;
+  border: none;
+  background: #d5dbd9;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s;
+  padding: 0;
+}
+.param-toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: left 0.15s;
+}
+.param-toggle--on { background: #1c7a6e; }
+.param-toggle--on::after { left: 21px; }
+.param-toggle:disabled { cursor: not-allowed; }
+
+.param-hint--under-row { padding: 0 4px 4px; margin-top: -4px; }
+
+.info-modal-text { font-size: 0.92rem; line-height: 1.5; color: #33433f; margin: 0 0 12px; }
+.info-modal-tip {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  background: #eef6f4;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #1a2e2b;
+}
+.info-modal-tip b { color: #1c7a6e; }
+
 /* ─── Home screen ────────────────────────────────────────────────────────── */
 /* ══ Home screen ═══════════════════════════════════════════════════ */
 .home-screen-v2 {
