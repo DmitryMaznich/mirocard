@@ -122,10 +122,32 @@ function RecipeStartParams({ topicId, activeText, student }) {
   );
 }
 
-function NumberStepper({ label, value, min, max, onChange }) {
+function ParamLabel({ label, info, onShowInfo }) {
+  return (
+    <div className="param-label-wrap">
+      <span className="param-label">{label}</span>
+      {info && (
+        <button
+          type="button"
+          className="param-info-btn"
+          aria-label={`Что означает: ${label}`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onShowInfo({ title: label, text: info.text, tip: info.tip });
+          }}
+        >
+          i
+        </button>
+      )}
+    </div>
+  );
+}
+
+function NumberStepper({ label, value, min, max, onChange, info, onShowInfo }) {
   return (
     <div className="param-row">
-      <div className="param-label">{label}</div>
+      <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
       <div className="param-stepper">
         <button className="stepper-btn" disabled={value <= min} onClick={() => onChange(value - 1)}>−</button>
         <span className="stepper-value">{value}</span>
@@ -135,10 +157,10 @@ function NumberStepper({ label, value, min, max, onChange }) {
   );
 }
 
-function EnumParam({ label, options, labels, value, onChange, disabledValues }) {
+function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo }) {
   return (
     <div className="param-row">
-      <div className="param-label">{label}</div>
+      <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
       <div className="param-enum-group">
         {options.map((opt) => {
           const isDisabled = disabledValues?.includes(opt) ?? false;
@@ -197,19 +219,23 @@ function EnumMultiParam({ label, options, labels, value, onChange }) {
   );
 }
 
-function BooleanParam({ label, hint, value, onChange, disabled }) {
+function BooleanParam({ label, hint, value, onChange, disabled, info, onShowInfo }) {
   return (
-    <label className={`param-row param-row--checkbox${disabled ? " param-row--disabled" : ""}`}>
-      <input
-        type="checkbox"
-        className="param-checkbox"
-        checked={Boolean(value)}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <span className="param-label">{label}</span>
-      {hint ? <span className="param-hint">{hint}</span> : null}
-    </label>
+    <>
+      <div className={`param-row${disabled ? " param-row--disabled" : ""}`}>
+        <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={Boolean(value)}
+          aria-label={label}
+          className={`param-toggle ${value ? "param-toggle--on" : ""}`}
+          disabled={disabled}
+          onClick={() => onChange(!value)}
+        />
+      </div>
+      {hint ? <div className="param-hint param-hint--under-row">{hint}</div> : null}
+    </>
   );
 }
 
@@ -689,6 +715,7 @@ export default function ParamsScreen() {
   const [strictStars,   setStrictStars]   = useState(link.strictStars ?? true);
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
+  const [activeInfo,     setActiveInfo]      = useState(null);
 
   const allModes = topicRecord?.modes ?? [];
   const modeBackScreen = allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
@@ -861,6 +888,8 @@ export default function ParamsScreen() {
                 min={def.min}
                 max={def.max}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                info={def.info?.ru}
+                onShowInfo={setActiveInfo}
               />
             );
           }
@@ -874,6 +903,8 @@ export default function ParamsScreen() {
                 value={params[key] ?? def.default}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 disabledValues={def.disabledValues}
+                info={def.info?.ru}
+                onShowInfo={setActiveInfo}
               />
             );
           }
@@ -898,6 +929,8 @@ export default function ParamsScreen() {
                 value={params[key] ?? def.default ?? false}
                 disabled={def.dependsOn ? !params[def.dependsOn] : false}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                info={def.info?.ru}
+                onShowInfo={setActiveInfo}
               />
             );
           }
@@ -1098,6 +1131,15 @@ export default function ParamsScreen() {
       {showModeInfo && (
         <Modal title={modeTitle} onClose={() => setShowModeInfo(false)}>
           <ModeMethodology mode={mode} />
+        </Modal>
+      )}
+
+      {activeInfo && (
+        <Modal title={activeInfo.title} onClose={() => setActiveInfo(null)}>
+          <p className="info-modal-text">{activeInfo.text}</p>
+          {activeInfo.tip && (
+            <div className="info-modal-tip"><b>Совет:</b> {activeInfo.tip}</div>
+          )}
         </Modal>
       )}
 
