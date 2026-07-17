@@ -437,6 +437,52 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params.numericBlocks.offLabel.ru).toBe("Десятки");
   });
 
+  it("refreshes column_arithmetic's params to the new reference shape, even if an older shape was persisted", async () => {
+    // Simulates a device that installed column_arithmetic back when showHelper/showCompare
+    // were enum widgets and the mode had no section/info/hideConceptPicker/rewardDefaults —
+    // on the next load, the mode must pick up the new reference-screen shape.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "column_arithmetic",
+          type: "column_arithmetic",
+          evaluation: "auto",
+          ui: { title: "Столбик", instruction: "Перетащи цифры в нужные клетки", icon: "media/icons/column_addition_mode.svg" },
+          params: {
+            operation: { type: "enum", values: ["add", "subtract", "mixed"], labels: { ru: { add: "Только +", subtract: "Только −", mixed: "Микс" } }, default: "add", label: { ru: "Операция" } },
+            carryMode: { type: "enum", values: ["none", "carry", "mixed"], labels: { ru: { none: "Без переноса / займа", carry: "С переносом / займом", mixed: "Микс" } }, default: "none", label: { ru: "Перенос / заём" } },
+            digits: { type: "enum", values: [2, 3], labels: { ru: { "2": "2-значные", "3": "3-значные" } }, default: 2, label: { ru: "Разрядность" } },
+            showHelper: { type: "enum", values: [false, true], labels: { ru: { "false": "Скрыт", "true": "Показывать" } }, default: false, label: { ru: "Помощник (палка)" } },
+            showCompare: { type: "enum", values: [true, false], labels: { ru: { "true": "Показывать", "false": "Скрыт" } }, default: true, label: { ru: "Сравнение" } },
+          },
+        },
+      ],
+      cards: [
+        { id: "col_add", conceptId: "col_add", renderer: "column_addition", params: { operation: "add" } },
+        { id: "col_sub", conceptId: "col_sub", renderer: "column_addition", params: { operation: "subtract" } },
+      ],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const mode = record.modes.find((m) => m.id === "column_arithmetic");
+
+    expect(mode.hideConceptPicker).toBe(true);
+    expect(mode.rewardDefaults).toEqual({ strictStars: false });
+    expect(mode.params.showHelper.type).toBe("boolean");
+    expect(mode.params.showCompare.type).toBe("boolean");
+    expect(mode.params.operation.section).toBe("Что решаем");
+    expect(mode.params.showHelper.section).toBe("Отображение в занятии");
+    expect(mode.params.operation.info.ru.text).toEqual(expect.any(String));
+    expect(mode.params.operation.info.ru.tip).toEqual(expect.any(String));
+  });
+
   it("adds the new maxTens param to a build_number record saved before it existed", async () => {
     // Simulates a device that installed build_number before maxTens/the coin
     // mechanic existed — on the next load, the new range param and the updated
