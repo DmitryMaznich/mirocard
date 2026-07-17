@@ -170,7 +170,7 @@ export function useSessionEngine() {
     : (link.selectedConceptIds?.length ? link.selectedConceptIds : null)
       ?? topicRecord?.cards.filter((c) => c.primary).map((c) => c.conceptId)
       ?? [];
-  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? false };
+  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? true };
   const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {

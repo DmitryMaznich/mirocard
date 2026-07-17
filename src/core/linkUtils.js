@@ -20,7 +20,7 @@ export async function persistStudentTopicLink(studentId, topicId, patch) {
     params:             link.params ?? {},
     videoRewardEnabled: link.videoRewardEnabled ?? true,
     answersPerStar:     link.answersPerStar ?? 1,
-    strictStars:        link.strictStars ?? false,
+    strictStars:        link.strictStars ?? true,
     rewardThreshold:    link.rewardThreshold ?? 90,
     deckPosition:       link.deckPosition ?? 0,
   });
