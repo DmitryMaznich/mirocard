@@ -23,9 +23,9 @@
 - [x] Task 1: `formatPlanTongueLabel` helper — committed `227e0814`.
 - [x] Task 2: Extract `SessionHeader`, make it universal — committed `8a8d53ce`.
 - [x] Task 3: Tongue trigger + `SessionPlanDrawer` overlay — committed across `5c73c4d2`, `bcfde779`, `bf8b46dd`, `4242ee1f` (reconstructed once after a concurrent `git reset --hard` wiped the first attempt).
-- [ ] Task 4: Delete `LessonPlanPanel` and its now-dead code.
-- [ ] Task 5: Delete `reading`'s own `ReadingCloseButton`.
-- [ ] Task 6: Full regression pass.
+- [x] Task 4: Delete `LessonPlanPanel` and its now-dead code — committed `d34ae47c`.
+- [x] Task 5: Delete `reading`'s own `ReadingCloseButton` — committed `d943d9ed` (also dropped the now-unused `onClose` param from the 3 task components that lost their only reference to it).
+- [x] Task 6: Full regression pass — unit tests green (160/161; the 1 failure, `activeSession.test.js`, is a pre-existing baseline issue in code untouched for 10+ days, reproduces in isolation independent of this plan). Manual pass via headed Playwright confirmed: header renders (progress variant and subtitle-only variant) for every renderer including previously-broken `print_materials`; tongue opens/closes the panel identically everywhere; both drawer tabs work (checklist empty-state + "Настройки режима" → real `ParamsScreen`); exactly one close button remains per screen (no `ReadingCloseButton` duplicate); no floating peek-tab badge anywhere. Not independently re-verified after the fact: the settings-tab save round-trip and the iOS safe-area simulated check — both rely on code paths exercised/read during Tasks 2–3 (existing `ParamsScreen` save flow, existing `--app-safe-*` CSS pattern) rather than a fresh end-to-end click-through.
 
 ---
 
