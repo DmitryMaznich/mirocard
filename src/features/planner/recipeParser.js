@@ -37,6 +37,38 @@
 // constraint. See docs/superpowers/specs/2026-07-08-recipe-architecture-simplification-design.md.
 export const GLOBAL_MAX_PORTIONS = 8;
 
+// Parses one qty-column value from an ingredient/option line. Supports:
+//   "3"            → { qty: 3, key: null, additiveStep: null }
+//   "1+0.5"        → { qty: 1, key: null, additiveStep: 0.5 } (unkeyed additive — rare, but valid)
+//   "oil:1+0.5"    → { qty: 1, key: "oil", additiveStep: 0.5 }
+//   "oil:1"        → { qty: 1, key: "oil", additiveStep: null }
+//   "" / undefined → { qty: null, key: null, additiveStep: null }
+// Mirrors the {key:base+step|...} step-text syntax in parseRecipeTxt.js so a
+// recipe's shopping-list quantity always matches what the step actually says
+// to use — see docs/superpowers/specs/2026-07-18-recipe-portion-scaling-design.md.
+function parseQtyField(raw) {
+  if (!raw) return { qty: null, key: null, additiveStep: null };
+  const keyMatch = raw.match(/^([a-zA-Z]\w*):(.+)$/);
+  const key = keyMatch ? keyMatch[1] : null;
+  const rest = keyMatch ? keyMatch[2] : raw;
+  const stepMatch = rest.match(/^(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)$/);
+  if (stepMatch) {
+    return { qty: parseFloat(stepMatch[1]) || null, key, additiveStep: parseFloat(stepMatch[2]) || null };
+  }
+  return { qty: parseFloat(rest) || null, key, additiveStep: null };
+}
+
+// Scales one ingredient's qty for a chosen portions factor — additive
+// ingredients (additiveStep set) grow by a flat step per extra portion
+// instead of re-multiplying, matching applyAdditiveScaling in
+// parseRecipeTxt.js. Shared by buildSelectedIngredientsSummary
+// (plannerUtils.js) and generateShoppingList (shoppingListGenerator.js) so
+// both screens agree with what a recipe's steps actually say to use.
+export function scalePortionQty(qty, additiveStep, scale) {
+  if (qty == null) return null;
+  return additiveStep != null ? qty + additiveStep * (scale - 1) : qty * scale;
+}
+
 export function parseRecipeMetadata(content) {
   const lines = content.split('\n');
   const tags = [];
@@ -65,10 +97,13 @@ export function parseRecipeMetadata(content) {
         const parts = afterHash.trim().split('|').map((p) => p.trim());
         const product = parts[0];
         if (product) {
+          const { qty, key, additiveStep } = parseQtyField(parts[1]);
           ingredients.push({
             product,
-            qty: parts[1] ? parseFloat(parts[1]) || null : null,
+            qty,
             unit: parts[2] || null,
+            ...(key != null ? { key } : {}),
+            ...(additiveStep != null ? { additiveStep } : {}),
           });
         }
         continue;
@@ -83,10 +118,13 @@ export function parseRecipeMetadata(content) {
         const [groupId, product] = parts;
         if (groupId && product) {
           if (!options[groupId]) options[groupId] = [];
+          const { qty, key, additiveStep } = parseQtyField(parts[2]);
           options[groupId].push({
             product,
-            qty: parts[2] ? parseFloat(parts[2]) || null : null,
+            qty,
             unit: parts[3] || null,
+            ...(key != null ? { key } : {}),
+            ...(additiveStep != null ? { additiveStep } : {}),
           });
         }
         continue;

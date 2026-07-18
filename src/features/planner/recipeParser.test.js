@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseRecipeMetadata, GLOBAL_MAX_PORTIONS } from './recipeParser.js';
+import { parseRecipeMetadata, GLOBAL_MAX_PORTIONS, scalePortionQty } from './recipeParser.js';
 
 describe('parseRecipeMetadata', () => {
   it('extracts tags from # tags: line', () => {
@@ -93,6 +93,30 @@ describe('parseRecipeMetadata', () => {
     expect(ingredients).toHaveLength(1);
   });
 
+  it('extracts an additive keyed ingredient qty ("key:base+step")', () => {
+    const content = '# ingredients:\n#   масло | oil:1+0.5 | ст.л\nТест\n';
+    const { ingredients } = parseRecipeMetadata(content);
+    expect(ingredients).toEqual([{ product: 'масло', qty: 1, unit: 'ст.л', key: 'oil', additiveStep: 0.5 }]);
+  });
+
+  it('extracts a keyed ingredient qty with no additive step ("key:base")', () => {
+    const content = '# ingredients:\n#   соль | salt:2 | ч.л\nТест\n';
+    const { ingredients } = parseRecipeMetadata(content);
+    expect(ingredients).toEqual([{ product: 'соль', qty: 2, unit: 'ч.л', key: 'salt' }]);
+  });
+
+  it('leaves a plain unkeyed ingredient qty exactly as before (no key/additiveStep fields)', () => {
+    const content = '# ingredients:\n#   яйца | 3 | шт\nТест\n';
+    const { ingredients } = parseRecipeMetadata(content);
+    expect(ingredients).toEqual([{ product: 'яйца', qty: 3, unit: 'шт' }]);
+  });
+
+  it('extracts an additive keyed option qty', () => {
+    const content = '# options:\n#   topping | мёд | dip:1+0.5 | ч.л\nТест\n';
+    const { options } = parseRecipeMetadata(content);
+    expect(options.topping).toEqual([{ product: 'мёд', qty: 1, unit: 'ч.л', key: 'dip', additiveStep: 0.5 }]);
+  });
+
   it('extracts status: final', () => {
     const { status } = parseRecipeMetadata('# status: final\nТест\n');
     expect(status).toBe('final');
@@ -140,5 +164,23 @@ describe('parseRecipeMetadata', () => {
     expect(result.ingredients).toHaveLength(4);
     expect(result.ingredients[0]).toEqual({ product: 'колбаса', qty: 200, unit: 'г' });
     expect(result.ingredients[3]).toEqual({ product: 'соль', qty: null, unit: null });
+  });
+});
+
+describe('scalePortionQty', () => {
+  it('scales a plain (non-additive) qty proportionally', () => {
+    expect(scalePortionQty(2, null, 3)).toBe(6);
+  });
+
+  it('grows an additive qty by a flat step per extra portion, not a re-multiplication', () => {
+    expect(scalePortionQty(1, 0.5, 3)).toBe(2); // 1 + 0.5*(3-1)
+  });
+
+  it('stays at the base value when scale is 1 for an additive qty', () => {
+    expect(scalePortionQty(1, 0.5, 1)).toBe(1);
+  });
+
+  it('returns null when qty is null, regardless of additiveStep', () => {
+    expect(scalePortionQty(null, 0.5, 3)).toBeNull();
   });
 });
