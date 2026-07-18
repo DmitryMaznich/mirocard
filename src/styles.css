@@ -12182,6 +12182,49 @@ button {
 .session-score    { color: #888; }
 .session-subtitle--inline { flex: 1; min-width: 0; }
 
+.session-header-wrap {
+  position: relative;
+  z-index: 20;
+}
+
+.session-plan-tongue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 16px 8px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.session-plan-tongue:active,
+.session-plan-tongue--open {
+  background: rgba(74, 155, 143, 0.06);
+}
+.session-plan-tongue__rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+}
+.session-plan-tongue__label {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2f5b57;
+  white-space: nowrap;
+}
+.session-plan-tongue__chevron {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: #2f5b57;
+  transition: transform 0.18s ease;
+}
+.session-plan-tongue--open .session-plan-tongue__chevron {
+  transform: rotate(180deg);
+}
+
 /* ── StarBar ─────────────────────────────────────── */
 .star-bar-zone {
   display: flex;
