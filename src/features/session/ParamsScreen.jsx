@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTimer } from "@/features/timer/TimerContext";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -21,6 +21,8 @@ import InstructionParamsContent from "@/features/reading/InstructionParamsConten
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
 import StoveHeatModal from "@/shared/components/StoveHeatModal";
 import { GLOBAL_MAX_PORTIONS } from "@/features/planner/recipeParser.js";
+import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
+import { extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit, stepPortionsMultiplier } from "@/topics/renderers/reading/parseRecipeTxt.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 
@@ -29,6 +31,7 @@ import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 function RecipeStartParams({ topicId, activeText, student }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
+  const setSessionIngredientOverrides = useAppStore((s) => s.setSessionIngredientOverrides);
   const setSessionOptionsOverride = useAppStore((s) => s.setSessionOptionsOverride);
   const { markSessionStart } = useTimer();
   const fixedPortions = activeText.fixedPortions ?? null;
@@ -39,21 +42,50 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const basePortions = 1;
   const maxPortions = GLOBAL_MAX_PORTIONS;
   const [portions, setPortions] = useState(basePortions);
+  const [ingredientOverrides, setIngredientOverrides] = useState({});
   const [stoveModalOpen, setStoveModalOpen] = useState(false);
   const [options, setOptions] = useState({}); // { groupId: string[] } — last cooked-with choice
   const optionGroups = Object.entries(activeText.options ?? {});
 
+  // Only keys BOTH declared in # adjustable: (for the label) AND actually
+  // present as a {key:...} template in the steps (for the number/word
+  // forms) get a stepper — adjusting a key with no visible effect on any
+  // step would be a dead control. Memoized on the file path only (a stable
+  // string) — filtering the small resulting array against the labels object
+  // every render is cheap and avoids depending on a `?? {}` object literal
+  // that would get a new identity on every render.
+  const adjustableLabels = activeText.adjustable ?? {};
+  const allTemplates = useMemo(
+    () => extractAdjustableTemplates(getBuiltinRecipeRawText(activeText.file) ?? ""),
+    [activeText.file]
+  );
+  const adjustableTemplates = allTemplates.filter((t) => adjustableLabels[t.key] != null);
+  const factor = stepPortionsMultiplier(activeText.portions, fixedPortions, portions);
+
   useEffect(() => {
     let cancelled = false;
-    getRecipeSettings(topicId, activeText.id).then((s) => { if (!cancelled) setPortions(s.portions ?? basePortions); }).catch(() => {});
+    getRecipeSettings(topicId, activeText.id).then((s) => {
+      if (cancelled) return;
+      setPortions(s.portions ?? basePortions);
+      setIngredientOverrides(s.ingredientOverrides ?? {});
+    }).catch(() => {});
     getRecipeOptionSelections(topicId, activeText.id).then((s) => { if (!cancelled) setOptions(s ?? {}); }).catch(() => {});
     return () => { cancelled = true; };
   }, [topicId, activeText.id, basePortions]);
 
+  // Changing the batch size invalidates any manual per-ingredient tweak made
+  // for the old size — silently carrying it over would quietly unbalance the
+  // dish (e.g. an oil amount hand-tuned for 3 portions surviving a jump to 8).
+  function changePortions(next) {
+    setPortions(next);
+    setIngredientOverrides({});
+  }
+
   function startSession() {
     const finalPortions = fixedPortions || portions;
     setSessionPortionsOverride(finalPortions);
-    saveRecipeSettings(topicId, activeText.id, { portions: finalPortions }).catch(() => {});
+    setSessionIngredientOverrides(ingredientOverrides);
+    saveRecipeSettings(topicId, activeText.id, { portions: finalPortions, ingredientOverrides }).catch(() => {});
     setSessionOptionsOverride(options);
     saveRecipeOptionSelections(topicId, activeText.id, options).catch(() => {});
     markSessionStart();
@@ -86,12 +118,40 @@ function RecipeStartParams({ topicId, activeText, student }) {
             {fixedPortions
               ? <span className="all-texts-portions-fixed">готовим {fixedPortions}</span>
               : <div className="all-texts-portions">
-                  <button className="all-texts-portions-btn" onClick={() => setPortions((p) => Math.max(1, p - 1))} disabled={portions <= 1}>−</button>
+                  <button className="all-texts-portions-btn" onClick={() => changePortions(Math.max(1, portions - 1))} disabled={portions <= 1}>−</button>
                   <span className="all-texts-portions-value">{portions}</span>
-                  <button className="all-texts-portions-btn" onClick={() => setPortions((p) => Math.min(maxPortions, p + 1))} disabled={portions >= maxPortions}>+</button>
+                  <button className="all-texts-portions-btn" onClick={() => changePortions(Math.min(maxPortions, portions + 1))} disabled={portions >= maxPortions}>+</button>
                 </div>
             }
           </div>
+          {adjustableTemplates.length > 0 && (
+            <div className="param-section">
+              <div className="param-section__header">Количества</div>
+              {adjustableTemplates.map((t) => {
+                const defaultValue = computeAdjustableDefault(t, factor);
+                const value = ingredientOverrides[t.key] ?? defaultValue;
+                const increment = t.kind === "additive" ? t.step : 1;
+                const min = Math.max(0, t.base - increment);
+                return (
+                  <div className="param-row" key={t.key}>
+                    <div className="param-label">{adjustableLabels[t.key]}</div>
+                    <div className="param-stepper">
+                      <button
+                        className="stepper-btn"
+                        disabled={value <= min}
+                        onClick={() => setIngredientOverrides((prev) => ({ ...prev, [t.key]: Math.max(min, value - increment) }))}
+                      >−</button>
+                      <span className="stepper-value">{formatWithUnit(value, t.one, t.few, t.many)}</span>
+                      <button
+                        className="stepper-btn"
+                        onClick={() => setIngredientOverrides((prev) => ({ ...prev, [t.key]: value + increment }))}
+                      >+</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="param-row">
             <div className="param-label">Цифры на плите</div>
             <button

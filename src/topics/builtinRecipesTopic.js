@@ -66,6 +66,32 @@ function parseOptions(txt) {
   return options;
 }
 
+// "# adjustable:" declares which {key:...} template placeholders in the step
+// text get an editable stepper on the cook-start screen, and what to label
+// each one — each indented line is "key | label". A key only gets a stepper
+// if it's ALSO declared here AND appears in a {key:...} template somewhere
+// in the steps (see extractAdjustableTemplates in parseRecipeTxt.js) — this
+// block supplies the label, the step text supplies the number.
+export function parseAdjustable(txt) {
+  const adjustable = {};
+  let inAdjustable = false;
+  for (const rawLine of txt.split('\n')) {
+    if (!rawLine.startsWith('#')) { inAdjustable = false; continue; }
+    const afterHash = rawLine.slice(1);
+    if (inAdjustable) {
+      if (afterHash.startsWith('  ') || afterHash.startsWith('\t\t')) {
+        const parts = afterHash.trim().split('|').map((p) => p.trim());
+        const [key, label] = parts;
+        if (key && label) adjustable[key] = label;
+        continue;
+      }
+      inAdjustable = false;
+    }
+    if (afterHash.trim() === 'adjustable:') inAdjustable = true;
+  }
+  return adjustable;
+}
+
 function buildTextEntry(id, content) {
   const photo = parseHeaderField(content, 'photo:');
   const status = parseHeaderField(content, 'status:') === 'final' ? 'final' : 'draft';
@@ -75,6 +101,7 @@ function buildTextEntry(id, content) {
   const fixedPortions = type === 'fixed' ? portions : null;
   const title = extractTitle(content);
   const options = parseOptions(content);
+  const adjustable = parseAdjustable(content);
 
   return {
     id: `${id}_instruction`,
@@ -85,6 +112,7 @@ function buildTextEntry(id, content) {
     portions,
     ...(fixedPortions ? { fixedPortions } : {}),
     ...(Object.keys(options).length ? { options } : {}),
+    ...(Object.keys(adjustable).length ? { adjustable } : {}),
     status,
     file: `recipes/${id}.txt`,
     stepCount: countSteps(content),

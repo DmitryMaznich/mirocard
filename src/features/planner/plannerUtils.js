@@ -1,3 +1,5 @@
+import { scalePortionQty } from './recipeParser.js';
+
 export const MEAL_TYPES = ['завтрак', 'обед', 'ужин', 'перекус'];
 export const RECIPE_TAGS = [...MEAL_TYPES, 'напитки'];
 export const MEAL_ICONS = { завтрак: '🌅', обед: '☀️', ужин: '🌙', перекус: '🍎', напитки: '🥤' };
@@ -194,7 +196,7 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
 
     for (const ing of recipe.ingredients) {
       const key = ing.product.toLowerCase();
-      const scaledQty = ing.qty != null ? ing.qty * scale : null;
+      const scaledQty = scalePortionQty(ing.qty, ing.additiveStep, scale);
       if (map.has(key)) {
         const existing = map.get(key);
         if (existing.qty != null && scaledQty != null) existing.qty += scaledQty;
@@ -211,7 +213,7 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
       for (const opt of choicesAvailable) {
         if (!chosen.has(opt.product)) continue;
         const key = opt.product.toLowerCase();
-        const scaledQty = opt.qty != null ? opt.qty * scale : null;
+        const scaledQty = scalePortionQty(opt.qty, opt.additiveStep, scale);
         if (map.has(key)) {
           const existing = map.get(key);
           if (existing.qty != null && scaledQty != null) existing.qty += scaledQty;

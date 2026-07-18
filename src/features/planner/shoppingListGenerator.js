@@ -1,4 +1,4 @@
-import { parseRecipeMetadata } from './recipeParser.js';
+import { parseRecipeMetadata, scalePortionQty } from './recipeParser.js';
 import { toCanonicalQty } from './shoppingUnitConversions.js';
 
 /**
@@ -16,9 +16,9 @@ export function generateShoppingList(recipes, pantryItems = new Set()) {
     const { ingredients, portions } = parseRecipeMetadata(content);
     const scale = portionMultiplier / portions;
 
-    for (const { product, qty, unit } of ingredients) {
+    for (const { product, qty, unit, additiveStep } of ingredients) {
       const key = product.toLowerCase();
-      const scaledQty = qty != null ? qty * scale : null;
+      const scaledQty = scalePortionQty(qty, additiveStep, scale);
       const canonical = toCanonicalQty(product, scaledQty, unit);
 
       if (map.has(key)) {

@@ -27,6 +27,11 @@ export const useAppStore = create((set) => ({
   // whatever was saved last time via saveRecipeOptionSelections".
   sessionOptionsOverride: null,
   setSessionOptionsOverride: (sessionOptionsOverride) => set({ sessionOptionsOverride }),
+  // Same idea as sessionPortionsOverride, for a recipe's per-ingredient
+  // stepper overrides on the cook-start screen — { [key]: absoluteValue }.
+  // Null means "use whatever was saved last time via saveRecipeSettings".
+  sessionIngredientOverrides: null,
+  setSessionIngredientOverrides: (sessionIngredientOverrides) => set({ sessionIngredientOverrides }),
   sessionExitPromptOpen: false,
   openSessionExitPrompt:  () => set({ sessionExitPromptOpen: true }),
   closeSessionExitPrompt: () => set({ sessionExitPromptOpen: false }),
