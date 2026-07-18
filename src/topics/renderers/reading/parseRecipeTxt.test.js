@@ -61,6 +61,40 @@ describe('applyPortions with stepPortionsMultiplier (integration)', () => {
     const text = 'Добавить {1|чайную ложку|чайные ложки|чайных ложек} соли.';
     expect(applyPortions(text, multiplier)).toBe('Добавить 1 с половиной чайной ложки соли.');
   });
+
+  it('additive {base+step|...} stays at base when the multiplier is 1 (recipe\'s own base portions)', () => {
+    const text = 'Подогревать {3+1|минуту|минуты|минут}.';
+    expect(applyPortions(text, 1)).toBe('Подогревать 3 минуты.');
+  });
+
+  it('additive {base+step|...} adds a flat step per extra batch multiple, not a re-multiplication', () => {
+    const text = 'Подогревать {3+1|минуту|минуты|минут}.';
+    expect(applyPortions(text, 2)).toBe('Подогревать 4 минуты.'); // 3 + 1*(2-1), not 3*2=6
+    expect(applyPortions(text, 3)).toBe('Подогревать 5 минут.');
+    expect(applyPortions(text, 8)).toBe('Подогревать 10 минут.');
+  });
+
+  it('additive {base+step|...} and ordinary {N|...} templates can coexist in the same text', () => {
+    const text = 'Налить {1|стакан|стакана|стаканов} молока. Подогревать {3+1|минуту|минуты|минут}.';
+    expect(applyPortions(text, 2)).toBe('Налить 2 стакана молока. Подогревать 4 минуты.');
+  });
+
+  it('conditional {N?singular|plural} picks the singular phrase when the scaled quantity is exactly 1', () => {
+    const text = 'Аккуратно разлить какао {1?в кружку|по кружкам}.';
+    expect(applyPortions(text, 1)).toBe('Аккуратно разлить какао в кружку.');
+  });
+
+  it('conditional {N?singular|plural} picks the plural phrase for anything above 1', () => {
+    const text = 'Аккуратно разлить какао {1?в кружку|по кружкам}.';
+    expect(applyPortions(text, 2)).toBe('Аккуратно разлить какао по кружкам.');
+    expect(applyPortions(text, 3)).toBe('Аккуратно разлить какао по кружкам.');
+    expect(applyPortions(text, 8)).toBe('Аккуратно разлить какао по кружкам.');
+  });
+
+  it('conditional {N?...} coexists with additive and ordinary templates in the same text', () => {
+    const text = 'Подогревать {3+1|минуту|минуты|минут}. Разлить {1|кружку|кружки|кружек}, {1?в кружку|по кружкам}.';
+    expect(applyPortions(text, 2)).toBe('Подогревать 4 минуты. Разлить 2 кружки, по кружкам.');
+  });
 });
 
 describe('formatPortionsPhrase', () => {

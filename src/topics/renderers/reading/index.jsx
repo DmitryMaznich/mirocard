@@ -636,10 +636,14 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
   const requestTimer = useTimer()?.requestTimer;
   useEffect(() => {
-    const minutes = parseTimerMinutesFromText(step?.text);
+    // Duration can be templated ({N|минуту|минуты|минут}) to scale with
+    // portions (e.g. "подогревать 3 минуты" for 1 stakan of milk becomes
+    // "6 минут" for 2) — parse the portion-substituted text, not the raw
+    // step text, or a scaled duration would never be recognized.
+    const minutes = parseTimerMinutesFromText(applyPortions(step?.text, portions));
     if (minutes && requestTimer) requestTimer(minutes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIndex]); // step derived from stepIndex
+  }, [stepIndex, portions]); // step derived from stepIndex; portions loads asynchronously and may not be settled yet on the first render for this step
 
   const [locked, setLocked] = useState(false);
 

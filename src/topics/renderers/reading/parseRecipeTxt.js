@@ -206,10 +206,48 @@ export function stepPortionsMultiplier(basePortions, fixedPortions, chosenPortio
   return chosen / base;
 }
 
+/**
+ * {base+step|one|few|many} — additive scaling, for quantities that don't
+ * simply multiply with the batch size (e.g. stovetop heating time: doubling
+ * the liquid does NOT double the time a fixed-power burner needs — cooking
+ * guidance puts it at roughly +15-25% per doubling, not +100%, since burner
+ * power stays constant and a larger volume loses proportionally less heat
+ * to its surroundings). Renders as `base + step * (factor - 1)`, so at
+ * factor=1 (the recipe's own base portions) it's exactly `base`, and each
+ * additional batch-multiple adds a flat `step` instead of re-multiplying
+ * the whole value. Use the ordinary {N|...} template for anything that
+ * actually does scale proportionally (ingredient quantities, etc).
+ */
+function applyAdditiveScaling(text, factor) {
+  return text.replace(
+    /\{(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
+    (_, base, step, one, few, many) =>
+      formatWithUnit(parseFloat(base) + parseFloat(step) * (factor - 1), one, few, many)
+  );
+}
+
+/**
+ * {N?singular_phrase|plural_phrase} — chooses between two differently-shaped
+ * phrasings depending on whether the portion-scaled quantity resolves to
+ * exactly one or to more than one, without printing the number itself
+ * (unlike {N|one|few|many}). Needed when pluralizing a noun isn't enough and
+ * the whole sentence shape changes with the count — e.g. "разлить в кружку"
+ * (one mug) vs "разлить по кружкам" (several mugs): the preposition itself
+ * changes (в → по), not just the noun's case/number.
+ */
+function applyConditionalPhrase(text, factor) {
+  return text.replace(
+    /\{(\d+(?:\.\d+)?)\?([^|}]+)\|([^|}]+)\}/g,
+    (_, n, singular, plural) => (Math.round(parseFloat(n) * factor) === 1 ? singular.trim() : plural.trim())
+  );
+}
+
 export function applyPortions(text, portions) {
   if (!text) return text ?? "";
   const factor = portions || 1;
-  let result = text.replace(
+  let result = applyConditionalPhrase(text, factor);
+  result = applyAdditiveScaling(result, factor);
+  result = result.replace(
     /\{(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
     (_, n, one, few, many) => formatWithUnit(parseFloat(n) * factor, one, few, many)
   );
