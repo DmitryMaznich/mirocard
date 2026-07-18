@@ -45,6 +45,13 @@ describe('generateShoppingList', () => {
     expect(list[0].qty).toBe(200); // 400 * (2/4)
   });
 
+  it('scales an additive-keyed ingredient by a flat step per extra portion, not proportionally', () => {
+    const r = recipe('r1', [['масло растительное', 'oil:1+0.5', 'ст.л']], 1, 4); // 1 + 0.5*(4-1) = 2.5, not 1*4
+    const list = generateShoppingList([r]);
+    expect(list[0].qty).toBe(2.5);
+    expect(list[0].unit).toBe('ст.л');
+  });
+
   it('marks pantry items as include: false', () => {
     const r = recipe('r1', [['соль', null, null]]);
     const list = generateShoppingList([r], new Set(['соль']));
