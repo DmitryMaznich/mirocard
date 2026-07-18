@@ -11,7 +11,6 @@ import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot, canResumeActiveSession } from "@/features/session/activeSession";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
-import HoldButton from "@/shared/components/HoldButton";
 
 import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
@@ -302,7 +301,7 @@ export default function App() {
           actions={
             <>
               <Button variant="secondary" onClick={closeSessionExitPrompt}>Остаться</Button>
-              <HoldButton className="btn btn--danger" onAction={finishSessionFromPrompt} skipTaps>Завершить</HoldButton>
+              <Button variant="danger" onClick={finishSessionFromPrompt}>Завершить</Button>
             </>
           }
         >
