@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Bowl shadow -->
+  <ellipse cx="122" cy="190" rx="64" ry="8" fill="#d4b870" opacity="0.2"/>
+  <!-- Bowl outer -->
+  <path d="M 60 130 Q 60 198 120 198 Q 180 198 180 130 Z" fill="#e8d8c0"/>
+  <path d="M 64 130 Q 64 192 120 192 Q 176 192 176 130 Z" fill="#f4ece0"/>
+  <!-- Bowl rim -->
+  <ellipse cx="120" cy="130" rx="60" ry="12" fill="#f4ece0"/>
+  <ellipse cx="120" cy="128" rx="58" ry="10" fill="#faf4ec"/>
+  <!-- Creamy broth surface -->
+  <ellipse cx="120" cy="126" rx="54" ry="8" fill="#f0dfb8"/>
+  <ellipse cx="120" cy="124" rx="52" ry="7" fill="#e8d4a0"/>
+  <!-- Broth shimmer -->
+  <ellipse cx="104" cy="122" rx="12" ry="3" fill="#faeecc" opacity="0.6"/>
+
+  <!-- Potato chunk -->
+  <rect x="70" y="112" width="15" height="12" rx="4" fill="#f0d870"/>
+  <rect x="71" y="113" width="13" height="9" rx="3" fill="#f8e888"/>
+
+  <!-- Broccoli floret -->
+  <circle cx="98" cy="106" r="9" fill="#4e8838"/>
+  <circle cx="92" cy="110" r="6" fill="#5a9840"/>
+  <circle cx="103" cy="111" r="6" fill="#5a9840"/>
+
+  <!-- Cauliflower floret -->
+  <circle cx="140" cy="108" r="9" fill="#f0ecd8"/>
+  <circle cx="134" cy="112" r="6" fill="#faf6e8"/>
+  <circle cx="145" cy="112" r="6" fill="#faf6e8"/>
+
+  <!-- Fish chunk -->
+  <ellipse cx="120" cy="120" rx="15" ry="10" fill="#e8927a" transform="rotate(-8 120 120)"/>
+  <ellipse cx="117" cy="117" rx="10" ry="6" fill="#f0a890" transform="rotate(-8 117 117)"/>
+
+  <!-- Shrimp -->
+  <path d="M 156 116 Q 168 108 172 118 Q 174 126 164 126 Q 156 124 156 116 Z" fill="#e8846a"/>
+  <path d="M 158 116 Q 166 112 170 118" fill="none" stroke="#d06850" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Dill garnish -->
+  <path d="M 106 100 L 110 92" stroke="#4e8838" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M 110 92 L 106 88" stroke="#4e8838" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 110 92 L 115 88" stroke="#4e8838" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 128 98 L 132 90" stroke="#4e8838" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M 132 90 L 128 86" stroke="#4e8838" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 132 90 L 137 86" stroke="#4e8838" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- Steam -->
+  <path d="M 96 108 Q 92 98 96 88" fill="none" stroke="#e8c080" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 120 104 Q 116 94 120 84" fill="none" stroke="#e8c080" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 144 108 Q 140 98 144 88" fill="none" stroke="#e8c080" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+</svg>

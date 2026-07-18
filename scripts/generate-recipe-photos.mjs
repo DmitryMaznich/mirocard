@@ -83,6 +83,9 @@ const RECIPES = {
   coffee_chemex: "chemex pour-over coffee brewer filled with dark amber coffee, distinctive hourglass glass shape with wooden collar, steam rising, on a light wooden table, morning light, minimalist",
   okroshka: "cold Russian okroshka soup in a white bowl, diced potato, egg, cucumber, radish and chicken visible in pale kefir broth, garnished with fresh dill and green onion, dollop of sour cream on top, refreshing summer soup, overhead shot",
   vinegret: "Russian vinegret beet salad in a white bowl, diced deep-red beets, potato, carrot, pickles and sauerkraut mixed together, glistening with a light sheen of oil, fresh and colorful, rustic side salad, overhead shot",
+  burger: "juicy cheeseburger on a wooden board, toasted bun, melted cheddar cheese, fresh lettuce, tomato and pickle slices visible, sesame seed bun, appetizing home-cooked burger",
+  fiskesuppe: "creamy Norwegian fish soup in a white bowl, pale golden broth with visible chunks of white fish, shrimp, potato and broccoli and cauliflower florets, fresh dill sprinkled on top, cozy Scandinavian soup, overhead shot",
+  rice_porridge: "creamy sweet rice porridge in a white bowl, glossy milky rice pudding texture, pat of melting butter on top, sprinkle of sugar and a few raisins, cozy warm breakfast",
 
   // Chemex step-by-step illustrations
   chemex_s06: "pouring clear filtered water from a glass pitcher or glass carafe into a black electric gooseneck coffee kettle on a kitchen counter, clean white countertop, morning light, no tap or faucet visible",

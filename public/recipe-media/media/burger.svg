@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <!-- Hot dish background -->
+  <circle cx="120" cy="120" r="116" fill="#fffbf0" stroke="#e8d9b0" stroke-width="3"/>
+  <!-- Board shadow -->
+  <ellipse cx="120" cy="196" rx="72" ry="9" fill="#c8a868" opacity="0.25"/>
+  <!-- Wooden board -->
+  <rect x="46" y="186" width="148" height="14" rx="7" fill="#b98552"/>
+  <rect x="46" y="182" width="148" height="10" rx="5" fill="#caa070"/>
+
+  <!-- Bottom bun -->
+  <ellipse cx="120" cy="176" rx="62" ry="16" fill="#e8b878"/>
+  <ellipse cx="120" cy="172" rx="58" ry="12" fill="#f0c890"/>
+
+  <!-- Lettuce peeking out -->
+  <path d="M 58 162 Q 70 148 84 160 Q 96 146 108 160 Q 120 146 132 160 Q 144 146 156 160 Q 170 148 182 162 L 182 170 L 58 170 Z" fill="#6aa850"/>
+  <path d="M 62 160 Q 74 150 84 158 Q 96 148 108 158 Q 120 148 132 158 Q 144 148 156 158 Q 168 150 178 160" fill="none" stroke="#5a9040" stroke-width="2" opacity="0.5"/>
+
+  <!-- Tomato slice -->
+  <ellipse cx="120" cy="156" rx="60" ry="9" fill="#d83838"/>
+  <ellipse cx="120" cy="155" rx="52" ry="6" fill="#e85050"/>
+  <circle cx="100" cy="155" r="2" fill="#f0b8a0" opacity="0.7"/>
+  <circle cx="120" cy="154" r="2" fill="#f0b8a0" opacity="0.7"/>
+  <circle cx="140" cy="155" r="2" fill="#f0b8a0" opacity="0.7"/>
+
+  <!-- Cheese layer with drips -->
+  <ellipse cx="72" cy="150" rx="6" ry="8" fill="#f0a828"/>
+  <ellipse cx="96" cy="152" rx="6" ry="9" fill="#f0a828"/>
+  <ellipse cx="120" cy="153" rx="6" ry="10" fill="#f0a828"/>
+  <ellipse cx="144" cy="152" rx="6" ry="9" fill="#f0a828"/>
+  <ellipse cx="168" cy="150" rx="6" ry="8" fill="#f0a828"/>
+  <rect x="62" y="136" width="116" height="14" rx="6" fill="#f0a828"/>
+  <rect x="62" y="136" width="116" height="9" rx="4.5" fill="#f8c058"/>
+
+  <!-- Patty -->
+  <ellipse cx="120" cy="132" rx="58" ry="14" fill="#6b4530"/>
+  <ellipse cx="120" cy="128" rx="54" ry="10" fill="#7d5238"/>
+  <!-- Grill marks -->
+  <path d="M 80 126 L 92 132" stroke="#5a3820" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+  <path d="M 104 124 L 116 130" stroke="#5a3820" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+  <path d="M 128 124 L 140 130" stroke="#5a3820" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+  <path d="M 152 126 L 160 131" stroke="#5a3820" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+
+  <!-- Top bun -->
+  <path d="M 60 122 Q 60 76 120 76 Q 180 76 180 122 Z" fill="#e0a860"/>
+  <path d="M 64 122 Q 64 82 120 82 Q 176 82 176 122 Z" fill="#eeba76"/>
+  <!-- Bun shine -->
+  <ellipse cx="96" cy="96" rx="22" ry="10" fill="#f8d8a0" opacity="0.5"/>
+  <!-- Sesame seeds -->
+  <ellipse cx="90" cy="94" rx="3" ry="1.6" fill="#fff2d0" transform="rotate(-20 90 94)"/>
+  <ellipse cx="106" cy="88" rx="3" ry="1.6" fill="#fff2d0" transform="rotate(10 106 88)"/>
+  <ellipse cx="122" cy="86" rx="3" ry="1.6" fill="#fff2d0" transform="rotate(-15 122 86)"/>
+  <ellipse cx="138" cy="90" rx="3" ry="1.6" fill="#fff2d0" transform="rotate(20 138 90)"/>
+  <ellipse cx="152" cy="98" rx="3" ry="1.6" fill="#fff2d0" transform="rotate(-10 152 98)"/>
+  <ellipse cx="112" cy="100" rx="3" ry="1.6" fill="#fff2d0" transform="rotate(5 112 100)"/>
+  <ellipse cx="132" cy="104" rx="3" ry="1.6" fill="#fff2d0" transform="rotate(-5 132 104)"/>
+</svg>
