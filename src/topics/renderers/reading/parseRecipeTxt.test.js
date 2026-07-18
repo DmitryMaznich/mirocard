@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions, extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -292,5 +292,87 @@ describe('filterStepsByOptions', () => {
   it('keeps steps with no option placeholder regardless of selections', () => {
     const steps = [{ id: 's1', type: 'action', text: 'Перемешать.' }];
     expect(filterStepsByOptions(steps, {})).toEqual(steps);
+  });
+});
+
+describe('applyPortions with key: overrides', () => {
+  it('uses the override value instead of the additive formula when a key matches', () => {
+    const text = 'Добавить {oil:1+0.5|столовую ложку|столовые ложки|столовых ложек} масла.';
+    expect(applyPortions(text, 3, { oil: 5 })).toBe('Добавить 5 столовых ложек масла.');
+  });
+
+  it('falls back to the additive formula when the key has no override', () => {
+    const text = 'Добавить {oil:1+0.5|столовую ложку|столовые ложки|столовых ложек} масла.';
+    expect(applyPortions(text, 3)).toBe('Добавить 2 столовые ложки масла.'); // 1 + 0.5*(3-1)
+  });
+
+  it('uses the override value instead of the proportional formula for a keyed {key:N|...} template', () => {
+    const text = 'Добавить {salt:2|чайную ложку|чайные ложки|чайных ложек} соли.';
+    expect(applyPortions(text, 4, { salt: 1 })).toBe('Добавить 1 чайную ложку соли.');
+  });
+
+  it('leaves an unkeyed template unaffected by an unrelated override', () => {
+    const text = 'Добавить {2|чайную ложку|чайные ложки|чайных ложек} соли.';
+    expect(applyPortions(text, 2, { oil: 99 })).toBe('Добавить 4 чайные ложки соли.');
+  });
+
+  it('defaults overrides to an empty object when omitted (no crash, ordinary scaling)', () => {
+    const text = 'Добавить {oil:1+0.5|столовую ложку|столовые ложки|столовых ложек} масла.';
+    expect(applyPortions(text, 1)).toBe('Добавить 1 столовую ложку масла.');
+  });
+});
+
+describe('extractAdjustableTemplates', () => {
+  it('finds an additive keyed template', () => {
+    const text = 'Добавить {oil:1+0.5|столовую ложку|столовые ложки|столовых ложек} масла.';
+    expect(extractAdjustableTemplates(text)).toEqual([
+      { key: 'oil', kind: 'additive', base: 1, step: 0.5, one: 'столовую ложку', few: 'столовые ложки', many: 'столовых ложек' },
+    ]);
+  });
+
+  it('finds a proportional keyed template', () => {
+    const text = 'Добавить {salt:2|чайную ложку|чайные ложки|чайных ложек} соли.';
+    expect(extractAdjustableTemplates(text)).toEqual([
+      { key: 'salt', kind: 'proportional', base: 2, one: 'чайную ложку', few: 'чайные ложки', many: 'чайных ложек' },
+    ]);
+  });
+
+  it('ignores unkeyed templates', () => {
+    const text = 'Добавить {2|чайную ложку|чайные ложки|чайных ложек} соли.';
+    expect(extractAdjustableTemplates(text)).toEqual([]);
+  });
+
+  it('dedupes a repeated key, keeping the first occurrence', () => {
+    const text = '{time:5+1|минуту|минуты|минут} и снова {time:5+1|минуту|минуты|минут}.';
+    expect(extractAdjustableTemplates(text)).toHaveLength(1);
+  });
+
+  it('finds multiple distinct keys in the same text', () => {
+    const text = '{oil:1+0.5|ложку|ложки|ложек} и {butter:1+0.5|ложку|ложки|ложек}.';
+    expect(extractAdjustableTemplates(text).map((t) => t.key)).toEqual(['oil', 'butter']);
+  });
+});
+
+describe('computeAdjustableDefault', () => {
+  it("computes the additive formula at the recipe's own base portions", () => {
+    expect(computeAdjustableDefault({ kind: 'additive', base: 1, step: 0.5 }, 1)).toBe(1);
+  });
+
+  it('computes the additive formula above base portions', () => {
+    expect(computeAdjustableDefault({ kind: 'additive', base: 1, step: 0.5 }, 8)).toBe(4.5); // 1 + 0.5*7
+  });
+
+  it('computes the proportional formula', () => {
+    expect(computeAdjustableDefault({ kind: 'proportional', base: 2 }, 3)).toBe(6);
+  });
+});
+
+describe('formatWithUnit (exported for the ingredient-stepper UI)', () => {
+  it('formats a whole number', () => {
+    expect(formatWithUnit(3, 'минуту', 'минуты', 'минут')).toBe('3 минуты');
+  });
+
+  it('formats a half quantity as "половину X"', () => {
+    expect(formatWithUnit(0.5, 'ложку', 'ложки', 'ложек')).toBe('половину ложки');
   });
 });

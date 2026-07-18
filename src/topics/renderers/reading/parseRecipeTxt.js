@@ -178,7 +178,7 @@ function toGenitiveSingular(few) {
   return few.replace(/(\S*)ые(\s|$)/, "$1ой$2").replace(/(\S*)ие(\s|$)/, "$1ей$2");
 }
 
-function formatWithUnit(val, one, few, many) {
+export function formatWithUnit(val, one, few, many) {
   // Snap to nearest 0.5 to avoid floating-point drift (e.g. 0.5*7 = 3.5000000000000004)
   const snapped = Math.round(val * 2) / 2;
   const whole   = Math.floor(snapped);
@@ -218,11 +218,15 @@ export function stepPortionsMultiplier(basePortions, fixedPortions, chosenPortio
  * the whole value. Use the ordinary {N|...} template for anything that
  * actually does scale proportionally (ingredient quantities, etc).
  */
-function applyAdditiveScaling(text, factor) {
+function applyAdditiveScaling(text, factor, overrides) {
   return text.replace(
-    /\{(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
-    (_, base, step, one, few, many) =>
-      formatWithUnit(parseFloat(base) + parseFloat(step) * (factor - 1), one, few, many)
+    /\{(?:([a-zA-Z]\w*):)?(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
+    (_, key, base, step, one, few, many) => {
+      const value = key && overrides[key] != null
+        ? overrides[key]
+        : parseFloat(base) + parseFloat(step) * (factor - 1);
+      return formatWithUnit(value, one, few, many);
+    }
   );
 }
 
@@ -242,14 +246,17 @@ function applyConditionalPhrase(text, factor) {
   );
 }
 
-export function applyPortions(text, portions) {
+export function applyPortions(text, portions, overrides = {}) {
   if (!text) return text ?? "";
   const factor = portions || 1;
   let result = applyConditionalPhrase(text, factor);
-  result = applyAdditiveScaling(result, factor);
+  result = applyAdditiveScaling(result, factor, overrides);
   result = result.replace(
-    /\{(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
-    (_, n, one, few, many) => formatWithUnit(parseFloat(n) * factor, one, few, many)
+    /\{(?:([a-zA-Z]\w*):)?(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
+    (_, key, n, one, few, many) => {
+      const value = key && overrides[key] != null ? overrides[key] : parseFloat(n) * factor;
+      return formatWithUnit(value, one, few, many);
+    }
   );
   result = result.replace(/\{(\d+(?:\.\d+)?)\}/g, (_, n) => {
     const snapped = Math.round(parseFloat(n) * factor * 2) / 2;
@@ -259,6 +266,49 @@ export function applyPortions(text, portions) {
     return Number.isInteger(snapped) ? String(snapped) : String(parseFloat(snapped.toFixed(2)));
   });
   return result;
+}
+
+const ADDITIVE_TEMPLATE_RE = /\{([a-zA-Z]\w*):(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g;
+const PROPORTIONAL_KEYED_TEMPLATE_RE = /\{([a-zA-Z]\w*):(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g;
+
+/**
+ * Finds every {key:...} template in a recipe's raw text — the ones a cook
+ * can override with a stepper on the start-cooking screen (see
+ * RecipeStartParams in ParamsScreen.jsx). Keys with no {key:...} anywhere
+ * in the text are not returned even if declared in # adjustable: — no
+ * template to override means no stepper. First occurrence of a repeated
+ * key wins.
+ */
+export function extractAdjustableTemplates(rawText) {
+  const found = new Map();
+  let match;
+  ADDITIVE_TEMPLATE_RE.lastIndex = 0;
+  while ((match = ADDITIVE_TEMPLATE_RE.exec(rawText)) !== null) {
+    const [, key, base, step, one, few, many] = match;
+    if (!found.has(key)) {
+      found.set(key, { key, kind: "additive", base: parseFloat(base), step: parseFloat(step), one, few, many });
+    }
+  }
+  PROPORTIONAL_KEYED_TEMPLATE_RE.lastIndex = 0;
+  while ((match = PROPORTIONAL_KEYED_TEMPLATE_RE.exec(rawText)) !== null) {
+    const [, key, base, one, few, many] = match;
+    if (!found.has(key)) {
+      found.set(key, { key, kind: "proportional", base: parseFloat(base), one, few, many });
+    }
+  }
+  return [...found.values()];
+}
+
+/**
+ * The value a {key:...} template resolves to at a given portions factor,
+ * before any manual override — same formula applyPortions/applyAdditiveScaling
+ * use internally, exposed so the start-cooking screen can pre-fill each
+ * stepper with the number the step would otherwise show.
+ */
+export function computeAdjustableDefault(template, factor) {
+  return template.kind === "additive"
+    ? template.base + template.step * (factor - 1)
+    : template.base * factor;
 }
 
 /**
