@@ -10,6 +10,8 @@ import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import SessionHeader from "./SessionHeader";
+import SessionPlanDrawer from "@/features/lessonPlan/SessionPlanDrawer";
+import { formatPlanTongueLabel } from "@/features/lessonPlan/lessonPlanUtils";
 
 const ADVANCE_GATE_IDLE = "idle";
 const ADVANCE_GATE_WAITING = "waiting";
@@ -89,6 +91,13 @@ export default function SessionScreen() {
 
   const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
   const [manualAdvanceGate, setManualAdvanceGate] = useState({ key: null, state: null });
+  const [isPlanDrawerOpen, setIsPlanDrawerOpen] = useState(false);
+
+  function handleOpenModeSettings() {
+    setIsPlanDrawerOpen(false);
+    setSessionReturnScreen("session");
+    setScreen("params");
+  }
 
   useEffect(() => {
     if (!completedRecord) return;
@@ -215,29 +224,40 @@ export default function SessionScreen() {
 
   return (
     <div className="session-screen">
-      <SessionHeader
-        topicTitle={topicTitle}
-        modeTitle={modeTitle}
-        showProgress={showProgress}
-        showStreak={showStreak}
-        streakCount={streakCount}
-        rewardAvailable={rewardProgress?.available ?? false}
-        answersPerStar={answersPerStar}
-        taskIndex={taskIndex}
-        total={total}
-        correctCount={correctCount}
-        incorrectCount={incorrectCount}
-        evaluation={mode.evaluation}
-        soundEnabled={soundEnabled}
-        onToggleSound={toggleSound}
-        isStudentPortal={isStudentPortal}
-        adultConfirmAdvance={adultConfirmAdvance}
-        lockHoldProgress={lockHoldProgress}
-        lockFlash={lockFlash}
-        onLockPointerDown={startLockHold}
-        onLockPointerUp={cancelLockHold}
-        onClose={openSessionExitPrompt}
-      />
+      <div className="session-header-wrap">
+        <SessionHeader
+          topicTitle={topicTitle}
+          modeTitle={modeTitle}
+          showProgress={showProgress}
+          showStreak={showStreak}
+          streakCount={streakCount}
+          rewardAvailable={rewardProgress?.available ?? false}
+          answersPerStar={answersPerStar}
+          taskIndex={taskIndex}
+          total={total}
+          correctCount={correctCount}
+          incorrectCount={incorrectCount}
+          evaluation={mode.evaluation}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          isStudentPortal={isStudentPortal}
+          adultConfirmAdvance={adultConfirmAdvance}
+          lockHoldProgress={lockHoldProgress}
+          lockFlash={lockFlash}
+          onLockPointerDown={startLockHold}
+          onLockPointerUp={cancelLockHold}
+          onClose={openSessionExitPrompt}
+          tongueLabel={formatPlanTongueLabel(lessonPlan?.activeSessionPlan ?? null)}
+          isDrawerOpen={isPlanDrawerOpen}
+          onToggleDrawer={() => setIsPlanDrawerOpen((v) => !v)}
+        />
+        <SessionPlanDrawer
+          isOpen={isPlanDrawerOpen}
+          onClose={() => setIsPlanDrawerOpen(false)}
+          modeTitle={modeTitle}
+          onOpenModeSettings={handleOpenModeSettings}
+        />
+      </div>
 
       {Renderer && currentTask ? (
         <div
