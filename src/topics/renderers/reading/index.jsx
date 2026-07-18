@@ -562,6 +562,8 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   const setScreen               = useAppStore((s) => s.setScreen);
   const sessionPortionsOverride    = useAppStore((s) => s.sessionPortionsOverride);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
+  const sessionIngredientOverrides    = useAppStore((s) => s.sessionIngredientOverrides);
+  const setSessionIngredientOverrides = useAppStore((s) => s.setSessionIngredientOverrides);
   const sessionOptionsOverride      = useAppStore((s) => s.sessionOptionsOverride);
   const setSessionOptionsOverride   = useAppStore((s) => s.setSessionOptionsOverride);
   const sessionReturnScreen        = useAppStore((s) => s.sessionReturnScreen);
@@ -569,6 +571,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
 
   const [portions,   setPortions]   = useState(1);
   const [portionsCount, setPortionsCount] = useState(1);
+  const [ingredientOverrides, setIngredientOverrides] = useState({});
   const [steps,      setSteps]      = useState(task.text?.steps ?? []);
   const [optionSelections, setOptionSelections] = useState({});
   const [stepIndex,  setStepIndex]  = useState(0);
@@ -601,7 +604,9 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
       const chosenPortions = sessionPortionsOverride ?? settings.portions ?? basePortions;
       setPortions(stepPortionsMultiplier(basePortions, task.text?.fixedPortions, chosenPortions));
       setPortionsCount(chosenPortions);
+      setIngredientOverrides(sessionIngredientOverrides ?? settings.ingredientOverrides ?? {});
       if (sessionPortionsOverride != null) setSessionPortionsOverride(null);
+      if (sessionIngredientOverrides != null) setSessionIngredientOverrides(null);
       if (sessionOptionsOverride != null) setSessionOptionsOverride(null);
     }
     load();
@@ -640,10 +645,10 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     // portions (e.g. "подогревать 3 минуты" for 1 stakan of milk becomes
     // "6 минут" for 2) — parse the portion-substituted text, not the raw
     // step text, or a scaled duration would never be recognized.
-    const minutes = parseTimerMinutesFromText(applyPortions(step?.text, portions));
+    const minutes = parseTimerMinutesFromText(applyPortions(step?.text, portions, ingredientOverrides));
     if (minutes && requestTimer) requestTimer(minutes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIndex, portions]); // step derived from stepIndex; portions loads asynchronously and may not be settled yet on the first render for this step
+  }, [stepIndex, portions, ingredientOverrides]); // step derived from stepIndex; portions loads asynchronously and may not be settled yet on the first render for this step
 
   const [locked, setLocked] = useState(false);
 
@@ -776,7 +781,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
               <div className="instruction-phase-complete-badge">Этап пройден! 👍</div>
             )}
             <div className="instruction-step-text">{(() => {
-              const text = applyFireEmoji(applyOptionSelections(applyPortions(step.text, portions), optionSelections), stoveHeatMapping);
+              const text = applyFireEmoji(applyOptionSelections(applyPortions(step.text, portions, ingredientOverrides), optionSelections), stoveHeatMapping);
               const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g);
               if (parts.length === 1) return text;
               return parts.map((s, i) => (
@@ -807,7 +812,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                       onClick={() => toggleItem(i)}
                     >
                       <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                      <span className="instruction-check-label">{applyFireEmoji(applyOptionSelections(applyPortions(item, portions), optionSelections), stoveHeatMapping)}</span>
+                      <span className="instruction-check-label">{applyFireEmoji(applyOptionSelections(applyPortions(item, portions, ingredientOverrides), optionSelections), stoveHeatMapping)}</span>
                       {!done && <span className="instruction-check-tap-hint">нажми</span>}
                     </li>
                   );
