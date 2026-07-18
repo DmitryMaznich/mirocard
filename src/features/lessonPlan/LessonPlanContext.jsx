@@ -6,7 +6,6 @@ const LessonPlanContext = createContext(null);
 
 export function LessonPlanProvider({ children }) {
   const [activeSessionPlan, setActiveSessionPlan] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
 
   const refresh = useCallback(async (studentId) => {
@@ -17,7 +16,7 @@ export function LessonPlanProvider({ children }) {
   }, [activeStudentId]);
 
   useEffect(() => {
-    if (!activeStudentId) { setActiveSessionPlan(null); setIsOpen(false); return; }
+    if (!activeStudentId) { setActiveSessionPlan(null); return; }
     refresh(activeStudentId);
   }, [activeStudentId, refresh]);
 
@@ -27,7 +26,7 @@ export function LessonPlanProvider({ children }) {
     if (updated) setActiveSessionPlan(updated);
   }, [activeStudentId]);
 
-  const value = { activeSessionPlan, isOpen, setIsOpen, refresh, markItemDone };
+  const value = { activeSessionPlan, refresh, markItemDone };
   return <LessonPlanContext.Provider value={value}>{children}</LessonPlanContext.Provider>;
 }
 
