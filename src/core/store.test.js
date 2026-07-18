@@ -15,6 +15,10 @@ describe("initial state", () => {
   it("has null account", () => {
     expect(getStore().account).toBeNull();
   });
+
+  it("has null sessionIngredientOverrides", () => {
+    expect(getStore().sessionIngredientOverrides).toBeNull();
+  });
 });
 
 describe("actions", () => {
@@ -36,6 +40,11 @@ describe("actions", () => {
   it("setActiveStudentId updates selection", () => {
     getStore().setActiveStudentId("s1");
     expect(getStore().activeStudentId).toBe("s1");
+  });
+
+  it("setSessionIngredientOverrides updates the value", () => {
+    getStore().setSessionIngredientOverrides({ oil: 2.5 });
+    expect(getStore().sessionIngredientOverrides).toEqual({ oil: 2.5 });
   });
 
   it("setActiveInstructionId updates selection", () => {
