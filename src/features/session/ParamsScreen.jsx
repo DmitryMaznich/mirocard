@@ -779,6 +779,7 @@ export default function ParamsScreen() {
     markSessionStart();
     persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, answersPerStar, strictStars });
     setScreen("session");
+    setSessionReturnScreen(null);
   }
 
   async function handleSetPin(hash) {
