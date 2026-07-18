@@ -185,16 +185,7 @@ function useFitReadingText(active, deps) {
   return { bodyRef, wrapRef, contentRef, illustrationRef };
 }
 
-function ReadingCloseButton({ onClose }) {
-  if (!onClose) return null;
-  return (
-    <button type="button" className="reading-close-btn" onClick={onClose} aria-label="Закрыть">
-      ✕
-    </button>
-  );
-}
-
-function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
+function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   const lines = task.text?.lines ?? [];
   const layout = sessionParams?.layout ?? "full";
   const textStyle = sessionParams?.textStyle ?? "normal";
@@ -208,7 +199,6 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
   if (layout === "line") {
     return (
       <div className="session-body reading-body">
-        {showCloseButton && <ReadingCloseButton onClose={onClose} />}
         <div className="reading-poem-wrap">
           {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
           {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
@@ -248,7 +238,6 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
       style={isPool ? { justifyContent: "center" } : undefined}
       onClick={showCloseButton ? undefined : onAdvance}
     >
-      {showCloseButton && <ReadingCloseButton onClose={onClose} />}
       <div className="reading-poem-wrap" ref={fit.wrapRef}>
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
@@ -261,7 +250,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onClose }) {
   );
 }
 
-function ReadPoemBookTask({ task, topicId, onAdvance, onClose }) {
+function ReadPoemBookTask({ task, topicId, onAdvance }) {
   const pages = task.text?.pages ?? [];
   const [pageIndex, setPageIndex] = useState(0);
   const page = pages[pageIndex] ?? pages[0];
@@ -271,7 +260,6 @@ function ReadPoemBookTask({ task, topicId, onAdvance, onClose }) {
 
   return (
     <div className="session-body reading-body" ref={fit.bodyRef}>
-      <ReadingCloseButton onClose={onClose} />
       <div className="reading-poem-wrap" ref={fit.wrapRef}>
         <div className="reading-title">{getTopicTitle(page.title)}</div>
         <div className="reading-content" ref={fit.contentRef}>
@@ -1213,7 +1201,7 @@ li.item{font-size:14pt;padding:3pt 0;line-height:1.45}
 
 const ORDINALS_ACCUSATIVE = ["первую", "вторую", "третью", "четвёртую", "пятую"];
 
-function SafeCodeTask({ topicId, onAdvance, onClose }) {
+function SafeCodeTask({ topicId, onAdvance }) {
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const students = useAppStore((s) => s.students);
   const student = students.find((s) => s.id === activeStudentId) ?? null;
@@ -1320,7 +1308,6 @@ function SafeCodeTask({ topicId, onAdvance, onClose }) {
 
   return (
     <div className="session-body reading-body safe-code-body">
-      <ReadingCloseButton onClose={onClose} />
       <div className="safe-code-header">
         <div className="safe-code-progress">
           {locations.map((_, i) => (
