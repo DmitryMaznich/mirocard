@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildRecipesTopicRecord, getBuiltinRecipeRawText, RECIPES_TOPIC_ID } from './builtinRecipesTopic.js';
+import { buildRecipesTopicRecord, getBuiltinRecipeRawText, RECIPES_TOPIC_ID, parseAdjustable } from './builtinRecipesTopic.js';
 
 describe('buildRecipesTopicRecord', () => {
   const record = buildRecipesTopicRecord();
@@ -37,6 +37,11 @@ describe('buildRecipesTopicRecord', () => {
     expect(omelet.fixedPortions).toBeUndefined();
   });
 
+  it('leaves adjustable unset for a recipe with no # adjustable: block', () => {
+    const soup = record.texts.find((t) => t.file === 'recipes/soup.txt');
+    expect(soup.adjustable).toBeUndefined();
+  });
+
   it('gives every text entry a media/ prefixed photo and image path', () => {
     for (const text of record.texts) {
       expect(text.photo).toMatch(/^media\//);
@@ -53,5 +58,21 @@ describe('getBuiltinRecipeRawText', () => {
 
   it('returns null for an unknown file path', () => {
     expect(getBuiltinRecipeRawText('recipes/does_not_exist.txt')).toBeNull();
+  });
+});
+
+describe('parseAdjustable', () => {
+  it('parses key | label lines under # adjustable:', () => {
+    const content = '# adjustable:\n#   oil | Растительное масло\n#   butter | Сливочное масло\nТест\n';
+    expect(parseAdjustable(content)).toEqual({ oil: 'Растительное масло', butter: 'Сливочное масло' });
+  });
+
+  it('returns an empty object when there is no # adjustable: block', () => {
+    expect(parseAdjustable('Тест рецепт без метаданных\n')).toEqual({});
+  });
+
+  it('stops the block at the next # key', () => {
+    const content = '# adjustable:\n#   oil | Масло\n# ingredients:\n#   яйца | 3 | шт\nТест\n';
+    expect(parseAdjustable(content)).toEqual({ oil: 'Масло' });
   });
 });
