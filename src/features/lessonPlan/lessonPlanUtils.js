@@ -73,3 +73,10 @@ export function sessionOccasionSummary(sessionPlan) {
   const done = sessionPlan.items.filter((item) => item.done).length;
   return { done, total };
 }
+
+export function formatPlanTongueLabel(sessionPlan) {
+  if (!sessionPlan) return 'План занятия';
+  const { done, total } = sessionOccasionSummary(sessionPlan);
+  if (total > 0 && done === total) return 'План занятия · готово ✓';
+  return `План занятия · ${done} из ${total}`;
+}

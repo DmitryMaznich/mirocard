@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   createPlanItem, createPeriodPlan, isPeriodExpired, countTouchedGoals,
   itemsForCarryOver, buildCarriedPeriod, createSessionPlan, sessionOccasionSummary,
+  formatPlanTongueLabel,
 } from './lessonPlanUtils.js';
 
 describe('createPlanItem', () => {
@@ -119,5 +120,21 @@ describe('sessionOccasionSummary', () => {
     const plan = createSessionPlan('s1');
     plan.items = [{ done: true }, { done: false }, { done: true }];
     expect(sessionOccasionSummary(plan)).toEqual({ done: 2, total: 3 });
+  });
+});
+
+describe('formatPlanTongueLabel', () => {
+  it('returns a bare label when there is no active plan', () => {
+    expect(formatPlanTongueLabel(null)).toBe('План занятия');
+  });
+
+  it('shows done/total when some items remain', () => {
+    const plan = { items: [{ done: true }, { done: false }, { done: false }] };
+    expect(formatPlanTongueLabel(plan)).toBe('План занятия · 1 из 3');
+  });
+
+  it('shows a completion label when every item is done', () => {
+    const plan = { items: [{ done: true }, { done: true }] };
+    expect(formatPlanTongueLabel(plan)).toBe('План занятия · готово ✓');
   });
 });
