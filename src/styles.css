@@ -12180,6 +12180,7 @@ button {
 }
 .session-counter  { font-size: 0.85rem; color: #666; white-space: nowrap; }
 .session-score    { color: #888; }
+.session-subtitle--inline { flex: 1; min-width: 0; }
 
 /* ── StarBar ─────────────────────────────────────── */
 .star-bar-zone {

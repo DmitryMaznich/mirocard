@@ -6,10 +6,10 @@ import { loadRenderer } from "@/topics/rendererLoader";
 import { useSessionEngine } from "./useSessionEngine";
 import { useLessonPlan } from "@/features/lessonPlan/LessonPlanContext";
 import { useAudio } from "@/shared/hooks/useAudio";
-import StarBar from "@/shared/components/StarBar";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import SessionHeader from "./SessionHeader";
 
 const ADVANCE_GATE_IDLE = "idle";
 const ADVANCE_GATE_WAITING = "waiting";
@@ -207,67 +207,37 @@ export default function SessionScreen() {
   const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
 
-  const isReadingRenderer       = topicRecord.meta.renderer === "reading" && mode?.type !== "daily_sentences";
-  const isPrintMaterialsRenderer = topicRecord.meta.renderer === "print_materials";
+  const showStreak = mode?.type !== "daily_sentences";
+  const showProgress = !(
+    (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
+    || topicRecord.meta.renderer === "print_materials"
+  );
 
   return (
     <div className="session-screen">
-      {!isReadingRenderer && !isPrintMaterialsRenderer && (
-        <div className="session-topbar">
-          <div className="session-topbar-controls">
-            {mode?.type !== "daily_sentences" && (
-            <StarBar
-              className="session-progress"
-              streakCount={streakCount}
-              available={rewardProgress?.available ?? false}
-              answersPerStar={answersPerStar}
-            />
-          )}
-            <div className="session-topbar-right">
-              {mode?.evaluation !== "instant" && total > 1 && (
-                <div className="session-counter">
-                  {taskIndex + 1} / {total}
-                  {mode.evaluation !== "none" && (
-                    <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
-                  )}
-                </div>
-              )}
-              <button
-                className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
-                onClick={toggleSound}
-                aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
-              >
-                <span className="session-audio-speaker-icon">
-                  {soundEnabled ? "🔊" : "🔇"}
-                </span>
-              </button>
-              {!isStudentPortal && (
-                <button
-                  className="session-lock-btn"
-                  style={{ "--lock-p": lockHoldProgress }}
-                  onPointerDown={startLockHold}
-                  onPointerUp={cancelLockHold}
-                  onPointerLeave={cancelLockHold}
-                  onPointerCancel={cancelLockHold}
-                  onContextMenu={(e) => e.preventDefault()}
-                  aria-label={adultConfirmAdvance ? "Снять блокировку (удержать)" : "Включить блокировку (удержать)"}
-                >
-                  <span className="session-lock-btn__icon">
-                    {adultConfirmAdvance ? "🔒" : "🔓"}
-                  </span>
-                  {lockFlash && (
-                    <span className={`session-lock-flash session-lock-flash--${lockFlash}`}>
-                      {lockFlash === "locked" ? "Блок." : "Снято"}
-                    </span>
-                  )}
-                </button>
-              )}
-              <button className="session-finish-btn" onClick={openSessionExitPrompt}>✕</button>
-            </div>
-          </div>
-          <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
-        </div>
-      )}
+      <SessionHeader
+        topicTitle={topicTitle}
+        modeTitle={modeTitle}
+        showProgress={showProgress}
+        showStreak={showStreak}
+        streakCount={streakCount}
+        rewardAvailable={rewardProgress?.available ?? false}
+        answersPerStar={answersPerStar}
+        taskIndex={taskIndex}
+        total={total}
+        correctCount={correctCount}
+        incorrectCount={incorrectCount}
+        evaluation={mode.evaluation}
+        soundEnabled={soundEnabled}
+        onToggleSound={toggleSound}
+        isStudentPortal={isStudentPortal}
+        adultConfirmAdvance={adultConfirmAdvance}
+        lockHoldProgress={lockHoldProgress}
+        lockFlash={lockFlash}
+        onLockPointerDown={startLockHold}
+        onLockPointerUp={cancelLockHold}
+        onClose={openSessionExitPrompt}
+      />
 
       {Renderer && currentTask ? (
         <div
