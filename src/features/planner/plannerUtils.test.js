@@ -328,6 +328,19 @@ describe('buildSelectedIngredientsSummary', () => {
     expect(summary).toContainEqual({ product: 'картошка', qty: 6, unit: 'шт' });
   });
 
+  it('scales an additive-keyed ingredient by a flat step per extra portion, not proportionally', () => {
+    const chicken = {
+      text: { id: 'chicken_01' },
+      portions: 1,
+      fixedPortions: null,
+      ingredients: [{ product: 'масло растительное', qty: 1, unit: 'ст.л', key: 'oil', additiveStep: 0.5 }],
+    };
+    let plan = selectRecipe(createPlan('s1'), 'chicken_01');
+    plan = setSelectedPortions(plan, 'chicken_01', 4); // additive: 1 + 0.5*(4-1) = 2.5, not proportional 1*4=4
+    const summary = buildSelectedIngredientsSummary(plan, [chicken]);
+    expect(summary).toContainEqual({ product: 'масло растительное', qty: 2.5, unit: 'ст.л' });
+  });
+
   it('skips a selected recipe missing from allRecipes without crashing', () => {
     const plan = selectRecipe(createPlan('s1'), 'unknown_recipe');
     expect(() => buildSelectedIngredientsSummary(plan, [soup])).not.toThrow();
