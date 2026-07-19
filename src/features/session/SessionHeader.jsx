@@ -25,6 +25,7 @@ export default function SessionHeader({
   tongueLabel,
   isDrawerOpen,
   onToggleDrawer,
+  hasUndonePlanItems,
 }) {
   const rightCluster = (
     <div className="session-topbar-right">
@@ -95,14 +96,14 @@ export default function SessionHeader({
       )}
       <button
         type="button"
-        className={`session-plan-tongue${isDrawerOpen ? " session-plan-tongue--open" : ""}`}
+        className={`session-plan-tongue${isDrawerOpen ? " session-plan-tongue--open" : ""}${!isDrawerOpen && hasUndonePlanItems ? " session-plan-tongue--pulse" : ""}`}
         onClick={onToggleDrawer}
+        aria-label={tongueLabel}
         aria-expanded={isDrawerOpen}
       >
-        <span className="session-plan-tongue__rule" aria-hidden="true" />
-        <span className="session-plan-tongue__label">{tongueLabel}</span>
-        <span className="session-plan-tongue__chevron" aria-hidden="true">⌄</span>
-        <span className="session-plan-tongue__rule" aria-hidden="true" />
+        <span className="session-plan-tongue__bar" aria-hidden="true" />
+        <span className="session-plan-tongue__bar" aria-hidden="true" />
+        <span className="session-plan-tongue__bar" aria-hidden="true" />
       </button>
     </div>
   );

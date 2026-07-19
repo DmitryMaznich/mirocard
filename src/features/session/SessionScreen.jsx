@@ -248,6 +248,7 @@ export default function SessionScreen() {
           onLockPointerUp={cancelLockHold}
           onClose={openSessionExitPrompt}
           tongueLabel={formatPlanTongueLabel(lessonPlan?.activeSessionPlan ?? null)}
+          hasUndonePlanItems={(lessonPlan?.activeSessionPlan?.items ?? []).some((item) => !item.done)}
           isDrawerOpen={isPlanDrawerOpen}
           onToggleDrawer={() => setIsPlanDrawerOpen((v) => !v)}
         />

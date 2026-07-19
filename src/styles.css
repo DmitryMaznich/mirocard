@@ -12167,42 +12167,58 @@ button {
   z-index: 20;
 }
 
+/* ── Plan/settings tongue — a small capsule "grip" poking out of the
+   header's bottom edge, half-embedded so it reads as grown out of the
+   header rather than glued on top of it. Burger bars morph into an X
+   on open (classic, satisfying, no separate icon needed). A slow
+   breathing pulse only plays when there's an actual undone plan item
+   to surface — the motion is a signal, not decoration. ── */
 .session-plan-tongue {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 50%);
+  width: 46px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 16px 8px;
-  background: none;
-  border: none;
-  font-family: inherit;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(180deg, #ffffff, #f6f0e5);
+  box-shadow: 0 3px 6px rgba(20, 42, 40, 0.2), 0 1px 2px rgba(20, 42, 40, 0.12);
   cursor: pointer;
-  transition: background 0.15s ease;
+  z-index: 22;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.session-plan-tongue:active,
-.session-plan-tongue--open {
-  background: rgba(74, 155, 143, 0.06);
+.session-plan-tongue:active {
+  transform: translate(-50%, 50%) scale(0.9);
+  box-shadow: 0 1px 2px rgba(20, 42, 40, 0.16);
 }
-.session-plan-tongue__rule {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+.session-plan-tongue__bar {
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: #4a9b8f;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease;
 }
-.session-plan-tongue__label {
-  flex-shrink: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #2f5b57;
-  white-space: nowrap;
+.session-plan-tongue--open .session-plan-tongue__bar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
 }
-.session-plan-tongue__chevron {
-  flex-shrink: 0;
-  font-size: 0.7rem;
-  color: #2f5b57;
-  transition: transform 0.18s ease;
+.session-plan-tongue--open .session-plan-tongue__bar:nth-child(2) {
+  opacity: 0;
 }
-.session-plan-tongue--open .session-plan-tongue__chevron {
-  transform: rotate(180deg);
+.session-plan-tongue--open .session-plan-tongue__bar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+@keyframes sessionPlanTonguePulse {
+  0%, 100% { transform: translate(-50%, 50%) scale(1); }
+  50%      { transform: translate(-50%, 50%) scale(1.08); }
+}
+.session-plan-tongue--pulse {
+  animation: sessionPlanTonguePulse 2.4s ease-in-out infinite;
 }
 
 /* ── StarBar ─────────────────────────────────────── */
