@@ -348,6 +348,31 @@ describe('applyPortions with {key:/N|...} coverage scaling', () => {
   });
 });
 
+describe('applyPortions with {key:/N?singular|plural} coverage conditional', () => {
+  it('picks the singular phrase while the portion count is within the coverage', () => {
+    const text = '{tomato:/5?Помыть помидор|Помыть помидоры}. Нарезать тонкими кружочками.';
+    expect(applyPortions(text, 1)).toBe('Помыть помидор. Нарезать тонкими кружочками.');
+    expect(applyPortions(text, 5)).toBe('Помыть помидор. Нарезать тонкими кружочками.');
+  });
+
+  it('picks the plural phrase as soon as the portion count exceeds the coverage', () => {
+    const text = '{tomato:/5?Помыть помидор|Помыть помидоры}. Нарезать тонкими кружочками.';
+    expect(applyPortions(text, 6)).toBe('Помыть помидоры. Нарезать тонкими кружочками.');
+    expect(applyPortions(text, 7)).toBe('Помыть помидоры. Нарезать тонкими кружочками.');
+  });
+
+  it('uses the override value instead of the coverage formula when a key matches', () => {
+    const text = '{tomato:/5?Помыть помидор|Помыть помидоры}.';
+    expect(applyPortions(text, 1, { tomato: 3 })).toBe('Помыть помидоры.');
+    expect(applyPortions(text, 7, { tomato: 1 })).toBe('Помыть помидор.');
+  });
+
+  it('does not collide with the numbered {key:/N|one|few|many} coverage template in the same text', () => {
+    const text = 'Взять {tomato:/5|помидор|помидора|помидоров}. {tomato:/5?Помыть помидор|Помыть помидоры}.';
+    expect(applyPortions(text, 7)).toBe('Взять 2 помидора. Помыть помидоры.');
+  });
+});
+
 describe('extractAdjustableTemplates', () => {
   it('finds an additive keyed template', () => {
     const text = 'Добавить {oil:1+0.5|столовую ложку|столовые ложки|столовых ложек} масла.';

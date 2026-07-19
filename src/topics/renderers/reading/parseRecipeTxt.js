@@ -282,12 +282,34 @@ function applyConditionalPhrase(text, factor) {
   );
 }
 
+/**
+ * {key:/N?singular_phrase|plural_phrase} — the coverage-scaling counterpart
+ * of {N?singular|plural}: chooses a phrasing without printing the number,
+ * based on the SAME ceil(factor / N) a {key:/N|...} occurrence of this key
+ * elsewhere in the recipe already shows the child (e.g. step 3 already said
+ * "взять 2 помидора" — a later prep step doesn't need to repeat the count,
+ * just "Помыть помидоры" vs "Помыть помидор"). {N?...} can't be reused here
+ * because its formula is a plain N*factor ratio, not a ceiling division —
+ * at, say, 3 portions it would wrongly conclude "plural" even though the
+ * coverage count is still exactly 1.
+ */
+function applyCoverageConditional(text, factor, overrides) {
+  return text.replace(
+    /\{([a-zA-Z]\w*):\/(\d+)\?([^|}]+)\|([^|}]+)\}/g,
+    (_, key, divisor, singular, plural) => {
+      const value = overrides[key] != null ? overrides[key] : Math.ceil(factor / parseFloat(divisor));
+      return value === 1 ? singular.trim() : plural.trim();
+    }
+  );
+}
+
 export function applyPortions(text, portions, overrides = {}) {
   if (!text) return text ?? "";
   const factor = portions || 1;
   let result = applyConditionalPhrase(text, factor);
   result = applyAdditiveScaling(result, factor, overrides);
   result = applyCoverageScaling(result, factor, overrides);
+  result = applyCoverageConditional(result, factor, overrides);
   result = result.replace(
     /\{(?:([a-zA-Z]\w*):)?(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
     (_, key, n, one, few, many) => {
