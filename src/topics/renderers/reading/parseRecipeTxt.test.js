@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions, extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions, extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit, formatCompact } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -374,5 +374,23 @@ describe('formatWithUnit (exported for the ingredient-stepper UI)', () => {
 
   it('formats a half quantity as "половину X"', () => {
     expect(formatWithUnit(0.5, 'ложку', 'ложки', 'ложек')).toBe('половину ложки');
+  });
+});
+
+describe('formatCompact (compact settings-screen readout)', () => {
+  it('formats a whole number with the given unit', () => {
+    expect(formatCompact(3, 'мин')).toBe('3 мин');
+  });
+
+  it('formats a half quantity with a fraction glyph, not a spelled-out word', () => {
+    expect(formatCompact(4.5, 'ст.л.')).toBe('4½ ст.л.');
+  });
+
+  it('formats a half quantity below 1 as a bare fraction glyph', () => {
+    expect(formatCompact(0.5, 'ч.л.')).toBe('½ ч.л.');
+  });
+
+  it('snaps a near-half float to the nearest half before formatting', () => {
+    expect(formatCompact(2.4999999999, 'мин')).toBe('2½ мин');
   });
 });
