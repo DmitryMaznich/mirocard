@@ -25,6 +25,7 @@ import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
 import { extractAdjustableTemplates, computeAdjustableDefault, formatCompact, stepPortionsMultiplier, formatPortionsPhrase } from "@/topics/renderers/reading/parseRecipeTxt.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
+import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -736,6 +737,7 @@ export default function ParamsScreen() {
   const adultPinHash           = useAppStore((s) => s.settings.adultPinHash);
   const settings               = useAppStore((s) => s.settings);
   const patchSettings          = useAppStore((s) => s.patchSettings);
+  const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode        = topicRecord?.modes.find((m) => m.id === activeModeId);
@@ -926,6 +928,24 @@ export default function ParamsScreen() {
   function launchSession() {
     setShowPinGate(false);
     markSessionStart();
+
+    // If the parent came here mid-session (Настройки button) and actually changed
+    // something, an active-session snapshot for this exact student/topic/mode still
+    // matches on identity and would otherwise silently resurrect the old task list and
+    // old answersPerStar/strictStars. An unchanged round-trip (just opened Настройки
+    // and left) must still resume normally, so only clear when settings really differ.
+    const baseline = {
+      params: getInitialParams(),
+      videoRewardEnabled: link.videoRewardEnabled ?? true,
+      answersPerStar: link.answersPerStar ?? 1,
+      strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true,
+    };
+    const current = { params, videoRewardEnabled: videoReward, answersPerStar, strictStars };
+    if (sessionSettingsChanged(current, baseline)) {
+      clearActiveSessionSnapshot();
+      getDb().then((db) => clearPersistedActiveSessionSnapshot(db)).catch(() => {});
+    }
+
     persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, answersPerStar, strictStars });
     setScreen("session");
     setSessionReturnScreen(null);
