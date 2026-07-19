@@ -4,6 +4,7 @@ import {
   normalizeActiveSessionSnapshot,
   restoreActiveSessionState,
   canResumeActiveSession,
+  sessionSettingsChanged,
 } from "./activeSession";
 
 describe("activeSession helpers", () => {
@@ -96,5 +97,52 @@ describe("canResumeActiveSession", () => {
       { status: "task_active", topicVersion: "1.0.0" },
     );
     expect(canResumeActiveSession(snapshot, topicRecords)).toBe(false);
+  });
+});
+
+describe("sessionSettingsChanged", () => {
+  // Mid-session, opening Настройки and hitting «Начать занятие» must only skip the
+  // resume-snapshot (and regenerate tasks) when the parent actually changed something —
+  // otherwise navigating to Настройки and back with no edits would lose progress.
+  const baseline = {
+    params: { operation: "add", carryMode: "none", digits: 2 },
+    videoRewardEnabled: true,
+    answersPerStar: 1,
+    strictStars: false,
+  };
+
+  it("is false when nothing changed", () => {
+    const current = { ...baseline, params: { ...baseline.params } };
+    expect(sessionSettingsChanged(current, baseline)).toBe(false);
+  });
+
+  it("is true when a mode param changed", () => {
+    const current = { ...baseline, params: { ...baseline.params, digits: 3 } };
+    expect(sessionSettingsChanged(current, baseline)).toBe(true);
+  });
+
+  it("is true when a mode param was added or removed", () => {
+    const current = { ...baseline, params: { operation: "add", carryMode: "none" } };
+    expect(sessionSettingsChanged(current, baseline)).toBe(true);
+  });
+
+  it("is true when strictStars changed", () => {
+    const current = { ...baseline, strictStars: true };
+    expect(sessionSettingsChanged(current, baseline)).toBe(true);
+  });
+
+  it("is true when answersPerStar changed", () => {
+    const current = { ...baseline, answersPerStar: 2 };
+    expect(sessionSettingsChanged(current, baseline)).toBe(true);
+  });
+
+  it("is true when videoRewardEnabled changed", () => {
+    const current = { ...baseline, videoRewardEnabled: false };
+    expect(sessionSettingsChanged(current, baseline)).toBe(true);
+  });
+
+  it("is true when either side is missing", () => {
+    expect(sessionSettingsChanged(null, baseline)).toBe(true);
+    expect(sessionSettingsChanged(baseline, null)).toBe(true);
   });
 });

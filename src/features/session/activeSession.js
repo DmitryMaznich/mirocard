@@ -50,6 +50,26 @@ export function restoreActiveSessionState(snapshot, context) {
   return normalized.sessionState;
 }
 
+// restoreActiveSessionState only checks identity (student/topic/text/mode/version), not
+// settings — so a snapshot from before the parent edited params/reward settings in Настройки
+// would silently resurrect the old task list and old answersPerStar/strictStars. Callers use
+// this to decide whether to clear the snapshot before navigating back into a session, so an
+// actual settings change forces a fresh session while an unchanged round-trip still resumes.
+export function sessionSettingsChanged(current, baseline) {
+  if (!current || !baseline) return true;
+  if (current.videoRewardEnabled !== baseline.videoRewardEnabled) return true;
+  if (current.answersPerStar !== baseline.answersPerStar) return true;
+  if (current.strictStars !== baseline.strictStars) return true;
+
+  const currentParams = current.params ?? {};
+  const baselineParams = baseline.params ?? {};
+  const keys = new Set([...Object.keys(currentParams), ...Object.keys(baselineParams)]);
+  for (const key of keys) {
+    if (JSON.stringify(currentParams[key]) !== JSON.stringify(baselineParams[key])) return true;
+  }
+  return false;
+}
+
 export async function persistActiveSessionSnapshot(db, snapshot) {
   const normalized = normalizeActiveSessionSnapshot(snapshot);
   if (!normalized) {
