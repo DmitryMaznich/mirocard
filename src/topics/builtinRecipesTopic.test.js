@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildRecipesTopicRecord, getBuiltinRecipeRawText, RECIPES_TOPIC_ID, parseAdjustable } from './builtinRecipesTopic.js';
+import { buildRecipesTopicRecord, getBuiltinRecipeRawText, RECIPES_TOPIC_ID, parseAdjustable, parseOptionGroups } from './builtinRecipesTopic.js';
 
 describe('buildRecipesTopicRecord', () => {
   const record = buildRecipesTopicRecord();
@@ -82,5 +82,36 @@ describe('parseAdjustable', () => {
   it('skips a line missing any of the four fields', () => {
     const content = '# adjustable:\n#   oil | ingredient | Масло\nТест\n';
     expect(parseAdjustable(content)).toEqual({});
+  });
+});
+
+describe('parseOptionGroups', () => {
+  it('parses groupId | mode | label lines under # option_groups:', () => {
+    const content = '# option_groups:\n#   filling | single | Начинка\nТест\n';
+    expect(parseOptionGroups(content)).toEqual({ filling: { mode: 'single', label: 'Начинка' } });
+  });
+
+  it('returns an empty object when there is no # option_groups: block', () => {
+    expect(parseOptionGroups('Тест рецепт без метаданных\n')).toEqual({});
+  });
+
+  it('stops the block at the next # key', () => {
+    const content = '# option_groups:\n#   filling | single | Начинка\n# options:\n#   filling | колбаса | 80 | гр\nТест\n';
+    expect(parseOptionGroups(content)).toEqual({ filling: { mode: 'single', label: 'Начинка' } });
+  });
+
+  it('skips a line missing any of the three fields', () => {
+    const content = '# option_groups:\n#   filling | single\nТест\n';
+    expect(parseOptionGroups(content)).toEqual({});
+  });
+
+  it('a recipe with no # option_groups: (e.g. porridge toppings) yields no metadata', () => {
+    const oatmeal = getBuiltinRecipeRawText('recipes/oatmeal.txt') ?? '';
+    expect(parseOptionGroups(oatmeal)).toEqual({});
+  });
+
+  it("omelet's filling group is single-mode with a custom label", () => {
+    const omelet = getBuiltinRecipeRawText('recipes/omelet.txt') ?? '';
+    expect(parseOptionGroups(omelet)).toEqual({ filling: { mode: 'single', label: 'Начинка' } });
   });
 });

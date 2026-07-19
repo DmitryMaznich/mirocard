@@ -46,6 +46,18 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const [stoveModalOpen, setStoveModalOpen] = useState(false);
   const [options, setOptions] = useState({}); // { groupId: string[] } — last cooked-with choice
   const optionGroups = Object.entries(activeText.options ?? {});
+  const optionGroupsMeta = activeText.optionGroups ?? {}; // { groupId: { mode, label } }, see builtinRecipesTopic.js
+
+  // A "single" group (exclusive swap, e.g. omelette filling) always needs
+  // exactly one selection — default to the first choice when nothing was
+  // saved yet, so a cook who never touches the picker still gets a valid,
+  // persisted choice instead of an empty/undefined one at session start.
+  const effectiveOptions = { ...options };
+  for (const [groupId, choices] of optionGroups) {
+    if (optionGroupsMeta[groupId]?.mode === "single" && !(effectiveOptions[groupId]?.length)) {
+      effectiveOptions[groupId] = choices[0] ? [choices[0].product] : [];
+    }
+  }
 
   // Only keys BOTH declared in # adjustable: (for the label) AND actually
   // present as a {key:...} template in the steps (for the number/word
@@ -86,8 +98,8 @@ function RecipeStartParams({ topicId, activeText, student }) {
     setSessionPortionsOverride(finalPortions);
     setSessionIngredientOverrides(ingredientOverrides);
     saveRecipeSettings(topicId, activeText.id, { portions: finalPortions, ingredientOverrides }).catch(() => {});
-    setSessionOptionsOverride(options);
-    saveRecipeOptionSelections(topicId, activeText.id, options).catch(() => {});
+    setSessionOptionsOverride(effectiveOptions);
+    saveRecipeOptionSelections(topicId, activeText.id, effectiveOptions).catch(() => {});
     markSessionStart();
     setScreen("session");
   }
@@ -239,9 +251,10 @@ function RecipeStartParams({ topicId, activeText, student }) {
           {optionGroups.map(([groupId, choices]) => (
             <OptionsPicker
               key={groupId}
-              label="Топпинг (можно несколько или ничего)"
+              label={optionGroupsMeta[groupId]?.label ?? "Топпинг (можно несколько или ничего)"}
+              mode={optionGroupsMeta[groupId]?.mode ?? "multi"}
               choices={choices}
-              selected={options[groupId] ?? []}
+              selected={effectiveOptions[groupId] ?? []}
               onChange={(next) => setOptions((prev) => ({ ...prev, [groupId]: next }))}
             />
           ))}

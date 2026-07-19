@@ -95,6 +95,33 @@ export function parseAdjustable(txt) {
   return adjustable;
 }
 
+// "# option_groups:" declares per-group behavior for "# options:" groups:
+// each indented line is "groupId | mode | label" — mode is "single" (exactly
+// one choice always selected, e.g. swapping the one filling in an omelette)
+// or "multi" (any subset or none, e.g. porridge toppings). A group with no
+// entry here defaults to multi + the generic "Топпинг" label, so existing
+// recipes that only have "# options:" (no "# option_groups:") keep working
+// unchanged.
+export function parseOptionGroups(txt) {
+  const groups = {};
+  let inGroups = false;
+  for (const rawLine of txt.split('\n')) {
+    if (!rawLine.startsWith('#')) { inGroups = false; continue; }
+    const afterHash = rawLine.slice(1);
+    if (inGroups) {
+      if (afterHash.startsWith('  ') || afterHash.startsWith('\t\t')) {
+        const parts = afterHash.trim().split('|').map((p) => p.trim());
+        const [groupId, mode, label] = parts;
+        if (groupId && mode && label) groups[groupId] = { mode, label };
+        continue;
+      }
+      inGroups = false;
+    }
+    if (afterHash.trim() === 'option_groups:') inGroups = true;
+  }
+  return groups;
+}
+
 function buildTextEntry(id, content) {
   const photo = parseHeaderField(content, 'photo:');
   const status = parseHeaderField(content, 'status:') === 'final' ? 'final' : 'draft';
@@ -104,6 +131,7 @@ function buildTextEntry(id, content) {
   const fixedPortions = type === 'fixed' ? portions : null;
   const title = extractTitle(content);
   const options = parseOptions(content);
+  const optionGroups = parseOptionGroups(content);
   const adjustable = parseAdjustable(content);
 
   return {
@@ -115,6 +143,7 @@ function buildTextEntry(id, content) {
     portions,
     ...(fixedPortions ? { fixedPortions } : {}),
     ...(Object.keys(options).length ? { options } : {}),
+    ...(Object.keys(optionGroups).length ? { optionGroups } : {}),
     ...(Object.keys(adjustable).length ? { adjustable } : {}),
     status,
     file: `recipes/${id}.txt`,
