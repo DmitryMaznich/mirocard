@@ -99,6 +99,12 @@ describe('parseRecipeMetadata', () => {
     expect(ingredients).toEqual([{ product: 'масло', qty: 1, unit: 'ст.л', key: 'oil', additiveStep: 0.5 }]);
   });
 
+  it('parses a zero additive step as a genuinely constant quantity, not null (regression: "0 || null" silently dropped it)', () => {
+    const content = '# ingredients:\n#   помидоры | tomato:1+0 | шт\nТест\n';
+    const { ingredients } = parseRecipeMetadata(content);
+    expect(ingredients).toEqual([{ product: 'помидоры', qty: 1, unit: 'шт', key: 'tomato', additiveStep: 0 }]);
+  });
+
   it('extracts a keyed ingredient qty with no additive step ("key:base")', () => {
     const content = '# ingredients:\n#   соль | salt:2 | ч.л\nТест\n';
     const { ingredients } = parseRecipeMetadata(content);
@@ -182,5 +188,9 @@ describe('scalePortionQty', () => {
 
   it('returns null when qty is null, regardless of additiveStep', () => {
     expect(scalePortionQty(null, 0.5, 3)).toBeNull();
+  });
+
+  it('keeps qty constant across any scale when additiveStep is exactly 0', () => {
+    expect(scalePortionQty(1, 0, 7)).toBe(1);
   });
 });

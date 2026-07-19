@@ -130,6 +130,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
           <button
             type="button"
             className="rp-spoon-btn"
+            disabled={increment === 0}
             onClick={() => setIngredientOverrides((prev) => ({ ...prev, [t.key]: value + increment }))}
           >+</button>
         </span>

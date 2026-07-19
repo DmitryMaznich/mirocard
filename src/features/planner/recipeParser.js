@@ -53,7 +53,12 @@ function parseQtyField(raw) {
   const rest = keyMatch ? keyMatch[2] : raw;
   const stepMatch = rest.match(/^(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)$/);
   if (stepMatch) {
-    return { qty: parseFloat(stepMatch[1]) || null, key, additiveStep: parseFloat(stepMatch[2]) || null };
+    // No `|| null` fallback here: the regex already guarantees both groups
+    // are valid digit strings, so parseFloat can't return NaN — and unlike
+    // the plain-qty branch below, 0 is a legitimate, meaningful value for
+    // both (a genuinely constant quantity is additiveStep: 0; qty: 0 is
+    // equally valid). `0 || null` would silently discard both.
+    return { qty: parseFloat(stepMatch[1]), key, additiveStep: parseFloat(stepMatch[2]) };
   }
   return { qty: parseFloat(rest) || null, key, additiveStep: null };
 }
