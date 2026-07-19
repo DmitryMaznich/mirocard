@@ -5,7 +5,20 @@ import { computeDefaultParams } from "@/StudentApp";
 import SessionPlanBuilderSheet from "./SessionPlanBuilderSheet";
 import "./lessonPlan.css";
 
-export default function SessionPlanDrawer({ isOpen, onClose, modeTitle, onOpenModeSettings }) {
+export default function SessionPlanDrawer({
+  isOpen,
+  onClose,
+  modeTitle,
+  onOpenModeSettings,
+  soundEnabled,
+  onToggleSound,
+  isStudentPortal,
+  adultConfirmAdvance,
+  lockHoldProgress,
+  lockFlash,
+  onLockPointerDown,
+  onLockPointerUp,
+}) {
   const lessonPlan = useLessonPlan();
   const topicRecords = useAppStore((s) => s.topicRecords);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
@@ -80,6 +93,13 @@ export default function SessionPlanDrawer({ isOpen, onClose, modeTitle, onOpenMo
           >
             Настройки режима
           </button>
+          <button
+            type="button"
+            className={`session-plan-panel__tab${activeTab === "session" ? " session-plan-panel__tab--active" : ""}`}
+            onClick={() => setActiveTab("session")}
+          >
+            Сессия
+          </button>
         </div>
 
         <div className="session-plan-panel__body">
@@ -146,6 +166,50 @@ export default function SessionPlanDrawer({ isOpen, onClose, modeTitle, onOpenMo
               <button className="lesson-plan-sheet__play" onClick={onOpenModeSettings}>
                 Изменить →
               </button>
+            </div>
+          )}
+
+          {activeTab === "session" && (
+            <div className="session-plan-session-tab">
+              <div className="session-plan-settings-row">
+                <span className="session-plan-settings-row__label">Звук</span>
+                <button
+                  type="button"
+                  className={`session-audio-icon-button${soundEnabled ? " session-audio-icon-button--active" : ""}`}
+                  onClick={onToggleSound}
+                  aria-label={soundEnabled ? "Выключить звук" : "Включить звук"}
+                >
+                  <span className="session-audio-speaker-icon">
+                    {soundEnabled ? "🔊" : "🔇"}
+                  </span>
+                </button>
+              </div>
+
+              {!isStudentPortal && (
+                <div className="session-plan-settings-row">
+                  <span className="session-plan-settings-row__label">Переход с подтверждением</span>
+                  <button
+                    type="button"
+                    className="session-lock-btn"
+                    style={{ "--lock-p": lockHoldProgress }}
+                    onPointerDown={onLockPointerDown}
+                    onPointerUp={onLockPointerUp}
+                    onPointerLeave={onLockPointerUp}
+                    onPointerCancel={onLockPointerUp}
+                    onContextMenu={(e) => e.preventDefault()}
+                    aria-label={adultConfirmAdvance ? "Снять блокировку (удержать)" : "Включить блокировку (удержать)"}
+                  >
+                    <span className="session-lock-btn__icon">
+                      {adultConfirmAdvance ? "🔒" : "🔓"}
+                    </span>
+                    {lockFlash && (
+                      <span className={`session-lock-flash session-lock-flash--${lockFlash}`}>
+                        {lockFlash === "locked" ? "Блок." : "Снято"}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -238,14 +238,6 @@ export default function SessionScreen() {
           correctCount={correctCount}
           incorrectCount={incorrectCount}
           evaluation={mode.evaluation}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          isStudentPortal={isStudentPortal}
-          adultConfirmAdvance={adultConfirmAdvance}
-          lockHoldProgress={lockHoldProgress}
-          lockFlash={lockFlash}
-          onLockPointerDown={startLockHold}
-          onLockPointerUp={cancelLockHold}
           onClose={openSessionExitPrompt}
           tongueLabel={formatPlanTongueLabel(lessonPlan?.activeSessionPlan ?? null)}
           hasUndonePlanItems={(lessonPlan?.activeSessionPlan?.items ?? []).some((item) => !item.done)}
@@ -257,6 +249,14 @@ export default function SessionScreen() {
           onClose={() => setIsPlanDrawerOpen(false)}
           modeTitle={modeTitle}
           onOpenModeSettings={handleOpenModeSettings}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          isStudentPortal={isStudentPortal}
+          adultConfirmAdvance={adultConfirmAdvance}
+          lockHoldProgress={lockHoldProgress}
+          lockFlash={lockFlash}
+          onLockPointerDown={startLockHold}
+          onLockPointerUp={cancelLockHold}
         />
       </div>
 

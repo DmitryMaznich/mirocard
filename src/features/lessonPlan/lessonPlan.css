@@ -130,3 +130,26 @@
 
 .session-plan-settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 2px; }
 .session-plan-settings-row__label { font-size: 14px; font-weight: 700; color: #263131; }
+
+/* ── "Сессия" tab — sound + adult-confirm lock, relocated out of the
+   header where they used to crowd the icon cluster. Same controls,
+   same hold-to-confirm physics for the lock — only the home changed. ── */
+.session-plan-session-tab { display: flex; flex-direction: column; gap: 4px; }
+.session-plan-session-tab .session-plan-settings-row + .session-plan-settings-row {
+  border-top: 1px dashed #e6dcc9;
+}
+/* The lock's hold-progress flash normally floats to the button's left
+   (fine in the header's tight icon cluster) — here the row label sits
+   there instead, so drop it below the button. */
+.session-plan-session-tab .session-lock-flash {
+  top: 100%;
+  right: 0;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  margin-top: 4px;
+}
+.session-plan-session-tab .session-audio-icon-button,
+.session-plan-session-tab .session-lock-btn {
+  flex-shrink: 0;
+}
