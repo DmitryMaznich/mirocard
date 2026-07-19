@@ -250,7 +250,7 @@ export default function SessionScreen() {
           tongueLabel={formatPlanTongueLabel(lessonPlan?.activeSessionPlan ?? null)}
           hasUndonePlanItems={(lessonPlan?.activeSessionPlan?.items ?? []).some((item) => !item.done)}
           isDrawerOpen={isPlanDrawerOpen}
-          onToggleDrawer={() => setIsPlanDrawerOpen((v) => !v)}
+          onSetDrawerOpen={setIsPlanDrawerOpen}
         />
         <SessionPlanDrawer
           isOpen={isPlanDrawerOpen}

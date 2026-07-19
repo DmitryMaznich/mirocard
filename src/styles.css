@@ -12131,7 +12131,11 @@ button {
 }
 .session-topbar {
   position: relative;
-  z-index: 20;
+  /* Above .session-plan-panel (z-index 21) so the tongue capsule nested
+     inside — its own z-index only competes within this stacking context,
+     not the panel's — stays visible poking out of the panel's top edge
+     instead of getting buried under it once the panel opens. */
+  z-index: 22;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -12169,39 +12173,62 @@ button {
 
 /* ── Plan/settings tongue — a small capsule "grip" poking out of the
    header's bottom edge, half-embedded so it reads as grown out of the
-   header rather than glued on top of it. Burger bars morph into an X
-   on open (classic, satisfying, no separate icon needed). A slow
-   breathing pulse only plays when there's an actual undone plan item
-   to surface — the motion is a signal, not decoration. ── */
+   header rather than glued on top of it. Relief comes from three
+   layered cues: a dark contact shadow beneath it, an inset highlight
+   along its top rim (light catching a domed surface) and an inset
+   shade along its bottom rim (the surface curving away from that
+   light) — the same trick real embossed rubber grips use. Dragging it
+   stretches it downward 1:1 with the finger via --tongue-pull (set
+   from JS pointermove); release past the threshold commits the open/
+   close, short of it springs back. Burger bars morph into an X on
+   open. A slow breathing pulse only plays when there's an actual
+   undone plan item to surface — the motion is a signal, not
+   decoration. ── */
 .session-plan-tongue {
+  --tongue-pull: 0;
   position: absolute;
   left: 50%;
   bottom: 0;
-  transform: translate(-50%, 50%);
-  width: 46px;
+  transform:
+    translate(-50%, calc(50% + var(--tongue-pull) * 9px))
+    scaleY(calc(1 + var(--tongue-pull) * 0.22));
+  transform-origin: center top;
+  width: 48px;
   height: 22px;
   padding: 0;
-  border: none;
+  border: 1px solid rgba(20, 42, 40, 0.1);
   border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  background: linear-gradient(180deg, #ffffff, #f6f0e5);
-  box-shadow: 0 3px 6px rgba(20, 42, 40, 0.2), 0 1px 2px rgba(20, 42, 40, 0.12);
+  background: linear-gradient(180deg, #ffffff 0%, #f8f3e8 55%, #efe5d2 100%);
+  box-shadow:
+    0 6px 10px rgba(20, 42, 40, 0.32),
+    0 2px 3px rgba(20, 42, 40, 0.2),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -3px 4px rgba(20, 42, 40, 0.16);
   cursor: pointer;
+  touch-action: none;
   z-index: 22;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
 }
 .session-plan-tongue:active {
-  transform: translate(-50%, 50%) scale(0.9);
-  box-shadow: 0 1px 2px rgba(20, 42, 40, 0.16);
+  transform:
+    translate(-50%, calc(50% + var(--tongue-pull) * 9px))
+    scaleY(calc(1 + var(--tongue-pull) * 0.22))
+    scale(0.95);
+  box-shadow:
+    0 2px 4px rgba(20, 42, 40, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 3px rgba(20, 42, 40, 0.2);
 }
 .session-plan-tongue__bar {
-  width: 14px;
-  height: 2px;
-  border-radius: 1px;
-  background: #4a9b8f;
+  width: 15px;
+  height: 2.5px;
+  border-radius: 1.5px;
+  background: #3d7d73;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
   transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease;
 }
 .session-plan-tongue--open .session-plan-tongue__bar:nth-child(1) {
@@ -12214,8 +12241,8 @@ button {
   transform: translateY(-6px) rotate(-45deg);
 }
 @keyframes sessionPlanTonguePulse {
-  0%, 100% { transform: translate(-50%, 50%) scale(1); }
-  50%      { transform: translate(-50%, 50%) scale(1.08); }
+  0%, 100% { transform: translate(-50%, 50%) scaleY(1); }
+  50%      { transform: translate(-50%, 50%) scaleY(1.1) scale(1.06); }
 }
 .session-plan-tongue--pulse {
   animation: sessionPlanTonguePulse 2.4s ease-in-out infinite;
