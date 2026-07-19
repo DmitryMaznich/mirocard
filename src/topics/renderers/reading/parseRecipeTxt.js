@@ -246,6 +246,27 @@ function applyAdditiveScaling(text, factor, overrides) {
 }
 
 /**
+ * {key:/N|one|few|many} — coverage scaling, for a whole discrete unit that
+ * comfortably serves up to N portions before a second one is needed (e.g.
+ * one tomato thinly sliced covers up to 5 burgers — a 7-portion batch still
+ * only needs 2 tomatoes, not 7*0.2=1.4). Renders as `ceil(factor / N)`, a
+ * step function rather than a smooth ratio — {base+step|...} can't express
+ * this because no linear formula stays flat across a whole coverage range
+ * and then jumps a full unit at the boundary. Use this for "one X covers a
+ * batch of Y" ingredients; use {N|...} for anything that scales smoothly
+ * with the batch size.
+ */
+function applyCoverageScaling(text, factor, overrides) {
+  return text.replace(
+    /\{([a-zA-Z]\w*):\/(\d+)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
+    (_, key, divisor, one, few, many) => {
+      const value = overrides[key] != null ? overrides[key] : Math.ceil(factor / parseFloat(divisor));
+      return formatWithUnit(value, one, few, many);
+    }
+  );
+}
+
+/**
  * {N?singular_phrase|plural_phrase} — chooses between two differently-shaped
  * phrasings depending on whether the portion-scaled quantity resolves to
  * exactly one or to more than one, without printing the number itself
@@ -266,6 +287,7 @@ export function applyPortions(text, portions, overrides = {}) {
   const factor = portions || 1;
   let result = applyConditionalPhrase(text, factor);
   result = applyAdditiveScaling(result, factor, overrides);
+  result = applyCoverageScaling(result, factor, overrides);
   result = result.replace(
     /\{(?:([a-zA-Z]\w*):)?(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
     (_, key, n, one, few, many) => {
@@ -285,6 +307,7 @@ export function applyPortions(text, portions, overrides = {}) {
 
 const ADDITIVE_TEMPLATE_RE = /\{([a-zA-Z]\w*):(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g;
 const PROPORTIONAL_KEYED_TEMPLATE_RE = /\{([a-zA-Z]\w*):(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g;
+const COVERAGE_TEMPLATE_RE = /\{([a-zA-Z]\w*):\/(\d+)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g;
 
 /**
  * Finds every {key:...} template in a recipe's raw text — the ones a cook
@@ -311,6 +334,13 @@ export function extractAdjustableTemplates(rawText) {
       found.set(key, { key, kind: "proportional", base: parseFloat(base), one, few, many });
     }
   }
+  COVERAGE_TEMPLATE_RE.lastIndex = 0;
+  while ((match = COVERAGE_TEMPLATE_RE.exec(rawText)) !== null) {
+    const [, key, divisor, one, few, many] = match;
+    if (!found.has(key)) {
+      found.set(key, { key, kind: "coverage", divisor: parseFloat(divisor), one, few, many });
+    }
+  }
   return [...found.values()];
 }
 
@@ -321,9 +351,9 @@ export function extractAdjustableTemplates(rawText) {
  * stepper with the number the step would otherwise show.
  */
 export function computeAdjustableDefault(template, factor) {
-  return template.kind === "additive"
-    ? template.base + template.step * (factor - 1)
-    : template.base * factor;
+  if (template.kind === "additive") return template.base + template.step * (factor - 1);
+  if (template.kind === "coverage") return Math.ceil(factor / template.divisor);
+  return template.base * factor;
 }
 
 /**

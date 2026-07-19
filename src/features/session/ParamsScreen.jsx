@@ -109,7 +109,9 @@ function RecipeStartParams({ topicId, activeText, student }) {
     const defaultValue = computeAdjustableDefault(t, factor);
     const value = ingredientOverrides[t.key] ?? defaultValue;
     const increment = t.kind === "additive" ? t.step : 1;
-    const min = Math.max(0, t.base - increment);
+    // Coverage templates have no `base` (they're driven by `divisor` instead) —
+    // a whole unit is never optional, so the floor is always 1, not 0.
+    const min = t.kind === "coverage" ? 1 : Math.max(0, t.base - increment);
     const isOverridden = ingredientOverrides[t.key] != null;
     return (
       <li className="rp-row" key={t.key}>

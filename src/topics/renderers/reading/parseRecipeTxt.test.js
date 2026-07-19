@@ -322,6 +322,32 @@ describe('applyPortions with key: overrides', () => {
   });
 });
 
+describe('applyPortions with {key:/N|...} coverage scaling', () => {
+  it('needs one unit while the portion count is within the coverage', () => {
+    const text = 'Взять {tomato:/5|помидор|помидора|помидоров}.';
+    expect(applyPortions(text, 1)).toBe('Взять 1 помидор.');
+    expect(applyPortions(text, 5)).toBe('Взять 1 помидор.');
+  });
+
+  it('needs a second unit as soon as the portion count exceeds the coverage', () => {
+    const text = 'Взять {tomato:/5|помидор|помидора|помидоров}.';
+    expect(applyPortions(text, 6)).toBe('Взять 2 помидора.');
+    expect(applyPortions(text, 7)).toBe('Взять 2 помидора.');
+    expect(applyPortions(text, 10)).toBe('Взять 2 помидора.');
+    expect(applyPortions(text, 11)).toBe('Взять 3 помидора.');
+  });
+
+  it('uses the override value instead of the coverage formula when a key matches', () => {
+    const text = 'Взять {tomato:/5|помидор|помидора|помидоров}.';
+    expect(applyPortions(text, 7, { tomato: 3 })).toBe('Взять 3 помидора.');
+  });
+
+  it('coexists with additive and proportional templates in the same text', () => {
+    const text = 'Взять {tomato:/5|помидор|помидора|помидоров} и {oil:1+0.5|ложку|ложки|ложек}.';
+    expect(applyPortions(text, 6)).toBe('Взять 2 помидора и 3 с половиной ложки.');
+  });
+});
+
 describe('extractAdjustableTemplates', () => {
   it('finds an additive keyed template', () => {
     const text = 'Добавить {oil:1+0.5|столовую ложку|столовые ложки|столовых ложек} масла.';
@@ -351,6 +377,13 @@ describe('extractAdjustableTemplates', () => {
     const text = '{oil:1+0.5|ложку|ложки|ложек} и {butter:1+0.5|ложку|ложки|ложек}.';
     expect(extractAdjustableTemplates(text).map((t) => t.key)).toEqual(['oil', 'butter']);
   });
+
+  it('finds a coverage keyed template', () => {
+    const text = 'Взять {tomato:/5|помидор|помидора|помидоров}.';
+    expect(extractAdjustableTemplates(text)).toEqual([
+      { key: 'tomato', kind: 'coverage', divisor: 5, one: 'помидор', few: 'помидора', many: 'помидоров' },
+    ]);
+  });
 });
 
 describe('computeAdjustableDefault', () => {
@@ -364,6 +397,13 @@ describe('computeAdjustableDefault', () => {
 
   it('computes the proportional formula', () => {
     expect(computeAdjustableDefault({ kind: 'proportional', base: 2 }, 3)).toBe(6);
+  });
+
+  it('computes the coverage formula as a ceiling division', () => {
+    expect(computeAdjustableDefault({ kind: 'coverage', divisor: 5 }, 5)).toBe(1);
+    expect(computeAdjustableDefault({ kind: 'coverage', divisor: 5 }, 6)).toBe(2);
+    expect(computeAdjustableDefault({ kind: 'coverage', divisor: 5 }, 10)).toBe(2);
+    expect(computeAdjustableDefault({ kind: 'coverage', divisor: 5 }, 11)).toBe(3);
   });
 });
 

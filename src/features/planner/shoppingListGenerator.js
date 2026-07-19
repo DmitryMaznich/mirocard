@@ -16,9 +16,9 @@ export function generateShoppingList(recipes, pantryItems = new Set()) {
     const { ingredients, portions } = parseRecipeMetadata(content);
     const scale = portionMultiplier / portions;
 
-    for (const { product, qty, unit, additiveStep } of ingredients) {
+    for (const { product, qty, unit, additiveStep, coverDivisor } of ingredients) {
       const key = product.toLowerCase();
-      const scaledQty = scalePortionQty(qty, additiveStep, scale);
+      const scaledQty = scalePortionQty(qty, additiveStep, scale, coverDivisor);
       const canonical = toCanonicalQty(product, scaledQty, unit);
 
       if (map.has(key)) {

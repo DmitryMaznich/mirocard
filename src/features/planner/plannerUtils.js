@@ -196,7 +196,7 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
 
     for (const ing of recipe.ingredients) {
       const key = ing.product.toLowerCase();
-      const scaledQty = scalePortionQty(ing.qty, ing.additiveStep, scale);
+      const scaledQty = scalePortionQty(ing.qty, ing.additiveStep, scale, ing.coverDivisor);
       if (map.has(key)) {
         const existing = map.get(key);
         if (existing.qty != null && scaledQty != null) existing.qty += scaledQty;
@@ -213,7 +213,7 @@ export function buildSelectedIngredientsSummary(plan, allRecipes) {
       for (const opt of choicesAvailable) {
         if (!chosen.has(opt.product)) continue;
         const key = opt.product.toLowerCase();
-        const scaledQty = scalePortionQty(opt.qty, opt.additiveStep, scale);
+        const scaledQty = scalePortionQty(opt.qty, opt.additiveStep, scale, opt.coverDivisor);
         if (map.has(key)) {
           const existing = map.get(key);
           if (existing.qty != null && scaledQty != null) existing.qty += scaledQty;

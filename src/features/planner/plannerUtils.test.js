@@ -341,6 +341,19 @@ describe('buildSelectedIngredientsSummary', () => {
     expect(summary).toContainEqual({ product: 'масло растительное', qty: 2.5, unit: 'ст.л' });
   });
 
+  it('scales a coverage-keyed ingredient as a ceiling division, not proportionally', () => {
+    const burger = {
+      text: { id: 'burger_01' },
+      portions: 1,
+      fixedPortions: null,
+      ingredients: [{ product: 'помидоры', qty: 1, unit: 'шт', key: 'tomato', coverDivisor: 5 }],
+    };
+    let plan = selectRecipe(createPlan('s1'), 'burger_01');
+    plan = setSelectedPortions(plan, 'burger_01', 7); // ceil(7/5) = 2, not proportional 1*7=7
+    const summary = buildSelectedIngredientsSummary(plan, [burger]);
+    expect(summary).toContainEqual({ product: 'помидоры', qty: 2, unit: 'шт' });
+  });
+
   it('skips a selected recipe missing from allRecipes without crashing', () => {
     const plan = selectRecipe(createPlan('s1'), 'unknown_recipe');
     expect(() => buildSelectedIngredientsSummary(plan, [soup])).not.toThrow();

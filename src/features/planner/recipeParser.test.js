@@ -123,6 +123,12 @@ describe('parseRecipeMetadata', () => {
     expect(options.topping).toEqual([{ product: 'мёд', qty: 1, unit: 'ч.л', key: 'dip', additiveStep: 0.5 }]);
   });
 
+  it('extracts a coverage keyed ingredient qty ("key:/N")', () => {
+    const content = '# ingredients:\n#   помидоры | tomato:/5 | шт\nТест\n';
+    const { ingredients } = parseRecipeMetadata(content);
+    expect(ingredients).toEqual([{ product: 'помидоры', unit: 'шт', key: 'tomato', qty: 1, coverDivisor: 5 }]);
+  });
+
   it('extracts status: final', () => {
     const { status } = parseRecipeMetadata('# status: final\nТест\n');
     expect(status).toBe('final');
@@ -192,5 +198,16 @@ describe('scalePortionQty', () => {
 
   it('keeps qty constant across any scale when additiveStep is exactly 0', () => {
     expect(scalePortionQty(1, 0, 7)).toBe(1);
+  });
+
+  it('computes a coverage qty as a ceiling division when coverDivisor is set', () => {
+    expect(scalePortionQty(1, null, 5, 5)).toBe(1);
+    expect(scalePortionQty(1, null, 6, 5)).toBe(2);
+    expect(scalePortionQty(1, null, 10, 5)).toBe(2);
+    expect(scalePortionQty(1, null, 11, 5)).toBe(3);
+  });
+
+  it('coverDivisor takes priority over additiveStep/qty when both are somehow set', () => {
+    expect(scalePortionQty(3, 1, 6, 5)).toBe(2);
   });
 });
