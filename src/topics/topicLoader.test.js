@@ -405,9 +405,42 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
   });
 
   it("refreshes a mode's param widget type to the current default, even if an older shape was persisted", async () => {
-    // Simulates a device that installed build_number back when numericBlocks was a
+    // Simulates a device that installed identify_number back when numericBlocks was a
     // plain boolean checkbox — on the next load, the param definition must switch to
     // the current visual_boolean toggle instead of staying pinned to the old shape.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "identify_number",
+          type: "identify_number",
+          evaluation: "instant",
+          ui: { title: "Какое это число?", icon: "media/icons/place_value_identify.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+            numericBlocks: { type: "boolean", default: false, label: { ru: "Блоки с цифрами вместо кубиков" } },
+          },
+        },
+      ],
+      cards: [{ id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const identifyNumber = record.modes.find((m) => m.id === "identify_number");
+    expect(identifyNumber.params.numericBlocks.type).toBe("visual_boolean");
+    expect(identifyNumber.params.numericBlocks.offLabel.ru).toBe("Десятки");
+  });
+
+  it("drops build_number's numericBlocks param now that only Десятки is offered", async () => {
+    // build_number used to offer a "10" numeric-block visual alongside "Десятки" — the
+    // choice is gone, so a device that saved the old param shape must have it dropped on
+    // the next load, the same way a renamed/retired param is dropped elsewhere.
     const db = await freshDb();
     const staleRecord = {
       id: "column_addition",
@@ -420,7 +453,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           ui: { title: "Собери число", icon: "media/icons/place_value_build.svg" },
           params: {
             maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
-            numericBlocks: { type: "boolean", default: false, label: { ru: "Блоки с цифрами вместо кубиков" } },
+            maxTens: { type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" } },
+            numericBlocks: { type: "visual_boolean", default: false, offLabel: { ru: "Десятки" }, label: { ru: "Блоки с цифрами вместо кубиков" } },
           },
         },
       ],
@@ -433,8 +467,9 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
     const record = await getTopicRecord(db, "column_addition");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
-    expect(buildNumber.params.numericBlocks.type).toBe("visual_boolean");
-    expect(buildNumber.params.numericBlocks.offLabel.ru).toBe("Десятки");
+    expect(buildNumber.params).not.toHaveProperty("numericBlocks");
+    expect(buildNumber.params).toHaveProperty("maxOnes");
+    expect(buildNumber.params).toHaveProperty("maxTens");
   });
 
   it("refreshes column_arithmetic's params to the new reference shape, even if an older shape was persisted", async () => {

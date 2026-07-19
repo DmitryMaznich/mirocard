@@ -1191,12 +1191,6 @@ const DEFAULT_MODES = {
           default: 3,
           label: { ru: "Максимум десятков" },
         },
-        numericBlocks: {
-          type: "visual_boolean",
-          default: false,
-          offLabel: { ru: "Десятки" },
-          label: { ru: "Блоки с цифрами вместо кубиков" },
-        },
       },
     },
     {
