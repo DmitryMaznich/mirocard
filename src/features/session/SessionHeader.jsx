@@ -1,8 +1,23 @@
 import { useRef, useState } from "react";
 import StarBar from "@/shared/components/StarBar";
+import { useOnlineStatus } from "@/shared/hooks/useOnlineStatus";
 
 const PULL_THRESHOLD = 14; // px of vertical drag before it commits to opening/closing
 const PULL_MAX = 26;       // px of drag travel used for the live stretch, then it's clamped
+
+// A classic dot+arcs wifi glyph, not an emoji — renders identically across
+// platforms/fonts, which matters since this is the one status cue still
+// visible when iOS's own status bar is hidden (Guided Access / pinned app).
+function NetworkStatusIcon({ online }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="15.5" r="1.4" fill="currentColor" />
+      <path d="M6.8 12.3a4.6 4.6 0 016.4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M3.8 9a8.8 8.8 0 0112.4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      {!online && <path d="M2.5 2.5l15 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />}
+    </svg>
+  );
+}
 
 function useTonguePull(isDrawerOpen, onSetDrawerOpen) {
   const [pullProgress, setPullProgress] = useState(0);
@@ -80,6 +95,7 @@ export default function SessionHeader({
   hasUndonePlanItems,
 }) {
   const tonguePull = useTonguePull(isDrawerOpen, onSetDrawerOpen);
+  const isOnline = useOnlineStatus();
 
   const rightCluster = (
     <div className="session-topbar-right">
@@ -91,6 +107,13 @@ export default function SessionHeader({
           )}
         </div>
       )}
+      <span
+        className={`session-network-status${isOnline ? "" : " session-network-status--offline"}`}
+        role="status"
+        aria-label={isOnline ? "Есть подключение к интернету" : "Нет подключения к интернету"}
+      >
+        <NetworkStatusIcon online={isOnline} />
+      </span>
       <button className="session-finish-btn" onClick={onClose}>✕</button>
     </div>
   );

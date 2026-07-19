@@ -12478,6 +12478,23 @@ button {
   border: none; border-radius: 8px;
   background: #f5f5f5; cursor: pointer; font-size: 1rem;
 }
+
+/* Always-on connectivity glyph — the one status cue still visible when
+   iOS hides its own status bar (Guided Access / pinned single-app mode).
+   Muted grey when online (ambient, not competing for attention); a
+   distinct warm-red only kicks in once there's actually nothing to sync. */
+.session-network-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #a9b3b0;
+}
+.session-network-status--offline {
+  color: #c0392b;
+}
 .session-feedback {
   text-align: center;
   padding: 8px;
