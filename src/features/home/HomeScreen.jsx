@@ -567,7 +567,7 @@ function PlannerTab({ student, setScreen }) {
           actions={
             <>
               <Button variant="secondary" onClick={() => setConfirmNewMenu(false)}>Нет</Button>
-              <Button variant="danger" onClick={handleStartNewMenu}>Заново</Button>
+              <Button variant="danger" onClick={handleStartNewMenu}>Начать</Button>
             </>
           }
         >

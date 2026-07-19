@@ -1,4 +1,4 @@
-import { RefreshIcon } from '@/shared/components/ArrowIcons';
+import { NewDocIcon } from '@/shared/components/ArrowIcons';
 
 function BookIcon() {
   return (
@@ -63,8 +63,8 @@ export default function PlannerActionBar({
         </button>
         <div className="planner-navbar__cook-slot" />
         <button type="button" className="planner-navbar__item" onClick={onRestart} disabled={!hasSelection}>
-          <RefreshIcon />
-          <span>Заново</span>
+          <NewDocIcon />
+          <span>Новое меню</span>
         </button>
         <button type="button" className="planner-navbar__item" onClick={onHistory}>
           <ClockIcon />

@@ -89,7 +89,7 @@ export async function loadAllRecipes(topicRecords) {
 // Clears the whole downstream shopping-list lifecycle for a student: the
 // generated category list, what's checked, what's bought, where it's been
 // put away, and which checks were menu-managed. Used both when starting a
-// brand-new menu (Меню's "Начать меню заново") and when regenerating the
+// brand-new menu (hub's "Новое меню") and when regenerating the
 // list from the current menu (Покупки's "Пересоставить из рецептов") — the
 // store list and shopping history are untouched by this on purpose.
 export async function resetShoppingData(studentId) {

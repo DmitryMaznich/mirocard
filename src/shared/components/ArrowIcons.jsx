@@ -30,6 +30,19 @@ export function RefreshIcon({ size = 18 }) {
   );
 }
 
+// A blank page with a "+" — starting a new, empty menu — deliberately not a
+// circular-arrows "repeat" glyph, which read as "run the same recipe again"
+// (see PlannerActionBar's "Новое меню" button).
+export function NewDocIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M4.5 2.5h6l3 3v10h-9v-13Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M10.5 2.5v3h3" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M9 8.5v5M6.5 11h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function ArrowUpSmallIcon({ size = 14 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" aria-hidden>
