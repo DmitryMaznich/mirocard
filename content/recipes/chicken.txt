@@ -3,11 +3,11 @@
 # tags: обед, ужин
 # portions: 1
 # adjustable:
-#   oil | Растительное масло
-#   butter | Сливочное масло
-#   sauteTime | Лук и морковь на сковороде
-#   fryTime | Курица на сковороде
-#   simmerTime | Тушение в сливках
+#   oil | ingredient | Растительное масло | ст.л.
+#   butter | ingredient | Сливочное масло | ст.л.
+#   sauteTime | time | Лук и морковь на сковороде | мин
+#   fryTime | time | Курица на сковороде | мин
+#   simmerTime | time | Тушение в сливках | мин
 # ingredients:
 #   куриная грудка | 1 | шт
 #   лук | 1 | шт

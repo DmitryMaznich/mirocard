@@ -14145,6 +14145,148 @@ kbd {
 .stepper-btn:hover { background: #e4ecea; }
 .stepper-btn:disabled { opacity: 0.3; cursor: default; }
 .stepper-value { font-size: 1.25rem; font-weight: 800; min-width: 30px; text-align: center; color: #1a2e2b; }
+
+/* ── RecipeStartParams redesign: people-pictogram portions + split ledger ── */
+.rp-people-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px 4px;
+}
+.rp-people-row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 0 8px;
+}
+.rp-person {
+  width: 27px; height: 32px;
+  flex-shrink: 0;
+  transition: transform .32s cubic-bezier(.34,1.56,.64,1), opacity .28s ease;
+  transform: scale(1) rotate(var(--rp-tilt, 0deg));
+}
+.rp-person:nth-child(odd) { --rp-tilt: -3deg; }
+.rp-person:nth-child(even) { --rp-tilt: 2.5deg; }
+.rp-person svg { width: 100%; height: 100%; overflow: visible; }
+.rp-fig-body, .rp-fig-head { transition: fill .28s ease, stroke .28s ease; }
+.rp-fig-eyes { transition: opacity .2s ease; opacity: 0; }
+.rp-person--filled .rp-fig-body, .rp-person--filled .rp-fig-head { fill: #d9a441; stroke: #b9822a; }
+.rp-person--filled .rp-fig-eyes { opacity: 1; }
+.rp-person--ghost .rp-fig-body, .rp-person--ghost .rp-fig-head { fill: none; stroke: #c8d4d2; stroke-dasharray: 2.2 2.4; }
+.rp-person--ghost { transform: scale(0.86) rotate(var(--rp-tilt, 0deg)); opacity: 0.75; }
+
+.rp-people-phrase {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1c7a6e;
+  letter-spacing: 0.01em;
+}
+
+.rp-people-control {
+  margin-top: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.rp-people-count {
+  font-size: 1.6rem;
+  font-weight: 800;
+  min-width: 30px;
+  text-align: center;
+  color: #1a2e2b;
+  font-variant-numeric: tabular-nums;
+  animation: rp-num-pulse .38s ease;
+}
+.rp-dial-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1.5px solid #c8d4d2;
+  background: #fff;
+  color: #1a2e2b;
+  font-size: 1.2rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 3px 8px rgba(0,0,0,0.03);
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+  flex-shrink: 0;
+}
+.rp-dial-btn:hover:not(:disabled) { border-color: #d9a441; background: rgba(217,164,65,0.16); }
+.rp-dial-btn:active:not(:disabled) { transform: scale(0.88); }
+.rp-dial-btn:disabled { opacity: 0.32; cursor: default; }
+
+.rp-stitch {
+  display: flex; align-items: center; gap: 8px;
+  margin: 20px 2px 6px;
+}
+.rp-stitch::before, .rp-stitch::after {
+  content: "";
+  flex: 1;
+  height: 0;
+  border-top: 1.6px dashed #d8c9a3;
+}
+.rp-stitch-icon { width: 15px; height: 15px; color: #b9822a; flex-shrink: 0; }
+.rp-stitch span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: #7a9e9a;
+  white-space: nowrap;
+}
+
+.rp-ledger { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.rp-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #ece4d3;
+}
+.rp-row:last-child { border-bottom: none; }
+.rp-row-main { flex: 1; min-width: 0; }
+.rp-row-label { font-size: 0.87rem; font-weight: 700; color: #1a2e2b; line-height: 1.3; }
+.rp-row-note { margin-left: 8px; animation: rp-rise .22s ease; }
+.rp-reset-link {
+  all: unset;
+  cursor: pointer;
+  font-style: italic;
+  font-size: 0.72rem;
+  color: #b9822a;
+  border-bottom: 1px dotted #b9822a;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.rp-row-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.rp-spoon-btn {
+  width: 27px; height: 27px; border-radius: 50%;
+  border: 1.5px solid #c8d4d2;
+  background: #fff;
+  color: #3a5c58;
+  font-size: 0.95rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform .1s ease, background .1s ease, border-color .1s ease;
+}
+.rp-spoon-btn:hover:not(:disabled) { background: rgba(74,155,143,0.12); border-color: #4a9b8f; color: #1c7a6e; }
+.rp-spoon-btn:active:not(:disabled) { transform: scale(0.86); }
+.rp-spoon-btn:disabled { opacity: 0.3; cursor: default; }
+.rp-row-value {
+  min-width: 56px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #1a2e2b;
+  font-variant-numeric: tabular-nums;
+  animation: rp-flash .5s ease;
+}
+
+@keyframes rp-num-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
+@keyframes rp-rise { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes rp-flash { 0% { color: #b9822a; } 100% { color: #1a2e2b; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-person, .rp-people-count, .rp-row-note, .rp-row-value { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
 .param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .param-enum-group--col { flex-direction: column; align-items: flex-end; }
 
@@ -17095,6 +17237,9 @@ select.account-card__input {
   .param-row { padding: 14px 16px; }
   .stepper-btn { width: 48px; height: 48px; }
   .stepper-value { font-size: 1.3rem; }
+  .rp-dial-btn { width: 44px; height: 44px; }
+  .rp-spoon-btn { width: 32px; height: 32px; }
+  .rp-row { padding: 12px 2px; }
   .enum-btn { min-height: 44px; padding: 8px 16px; }
   .param-row--checkbox { margin: 0; }
   .param-checkbox { width: 22px; height: 22px; }

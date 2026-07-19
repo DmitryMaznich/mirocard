@@ -192,6 +192,21 @@ export function formatWithUnit(val, one, few, many) {
 }
 
 /**
+ * Settings-screen readout: compact numeral + abbreviated unit ("4½ ст.л.").
+ * Deliberately NOT the grammatically-declined phrase formatWithUnit produces
+ * ("4 с половиной столовой ложки") — that phrasing is for a child to read
+ * aloud during cooking; this is a config control for the adult setting up
+ * the session, where a compact value scans faster across many rows.
+ */
+export function formatCompact(val, unit) {
+  const snapped = Math.round(val * 2) / 2;
+  const whole = Math.floor(snapped);
+  const isHalf = snapped - whole === 0.5;
+  const num = isHalf ? (whole > 0 ? `${whole}½` : '½') : `${whole}`;
+  return `${num} ${unit}`;
+}
+
+/**
  * Multiplier to pass into applyPortions() for a recipe's step text.
  *
  * Regular recipes scale with whatever portion count the user picked

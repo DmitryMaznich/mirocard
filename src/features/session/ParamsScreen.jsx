@@ -22,7 +22,7 @@ import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
 import StoveHeatModal from "@/shared/components/StoveHeatModal";
 import { GLOBAL_MAX_PORTIONS } from "@/features/planner/recipeParser.js";
 import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
-import { extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit, stepPortionsMultiplier } from "@/topics/renderers/reading/parseRecipeTxt.js";
+import { extractAdjustableTemplates, computeAdjustableDefault, formatCompact, stepPortionsMultiplier, formatPortionsPhrase } from "@/topics/renderers/reading/parseRecipeTxt.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 
@@ -92,6 +92,54 @@ function RecipeStartParams({ topicId, activeText, student }) {
     setScreen("session");
   }
 
+  function renderLedgerRow(t) {
+    const info = adjustableLabels[t.key];
+    const defaultValue = computeAdjustableDefault(t, factor);
+    const value = ingredientOverrides[t.key] ?? defaultValue;
+    const increment = t.kind === "additive" ? t.step : 1;
+    const min = Math.max(0, t.base - increment);
+    const isOverridden = ingredientOverrides[t.key] != null;
+    return (
+      <li className="rp-row" key={t.key}>
+        <span className="rp-row-main">
+          <span className="rp-row-label">{info.label}</span>
+          {isOverridden && (
+            <span className="rp-row-note">
+              <button
+                type="button"
+                className="rp-reset-link"
+                onClick={() => setIngredientOverrides((prev) => {
+                  const next = { ...prev };
+                  delete next[t.key];
+                  return next;
+                })}
+              >
+                правка · вернуть
+              </button>
+            </span>
+          )}
+        </span>
+        <span className="rp-row-control">
+          <button
+            type="button"
+            className="rp-spoon-btn"
+            disabled={value <= min}
+            onClick={() => setIngredientOverrides((prev) => ({ ...prev, [t.key]: Math.max(min, value - increment) }))}
+          >−</button>
+          <span className="rp-row-value" key={value}>{formatCompact(value, info.unit)}</span>
+          <button
+            type="button"
+            className="rp-spoon-btn"
+            onClick={() => setIngredientOverrides((prev) => ({ ...prev, [t.key]: value + increment }))}
+          >+</button>
+        </span>
+      </li>
+    );
+  }
+
+  const ingredientTemplates = adjustableTemplates.filter((t) => adjustableLabels[t.key]?.group === "ingredient");
+  const timeTemplates = adjustableTemplates.filter((t) => adjustableLabels[t.key]?.group === "time");
+
   return (
     <div className="params-layout">
       <div className="params-info-col">
@@ -113,44 +161,69 @@ function RecipeStartParams({ topicId, activeText, student }) {
 
       <div className="params-settings-col">
         <div className="params-body">
-          <div className="param-row">
-            <div className="param-label">Порций</div>
-            {fixedPortions
-              ? <span className="all-texts-portions-fixed">готовим {fixedPortions}</span>
-              : <div className="all-texts-portions">
-                  <button className="all-texts-portions-btn" onClick={() => changePortions(Math.max(1, portions - 1))} disabled={portions <= 1}>−</button>
-                  <span className="all-texts-portions-value">{portions}</span>
-                  <button className="all-texts-portions-btn" onClick={() => changePortions(Math.min(maxPortions, portions + 1))} disabled={portions >= maxPortions}>+</button>
-                </div>
-            }
-          </div>
-          {adjustableTemplates.length > 0 && (
-            <div className="param-section">
-              <div className="param-section__header">Количества</div>
-              {adjustableTemplates.map((t) => {
-                const defaultValue = computeAdjustableDefault(t, factor);
-                const value = ingredientOverrides[t.key] ?? defaultValue;
-                const increment = t.kind === "additive" ? t.step : 1;
-                const min = Math.max(0, t.base - increment);
-                return (
-                  <div className="param-row" key={t.key}>
-                    <div className="param-label">{adjustableLabels[t.key]}</div>
-                    <div className="param-stepper">
-                      <button
-                        className="stepper-btn"
-                        disabled={value <= min}
-                        onClick={() => setIngredientOverrides((prev) => ({ ...prev, [t.key]: Math.max(min, value - increment) }))}
-                      >−</button>
-                      <span className="stepper-value">{formatWithUnit(value, t.one, t.few, t.many)}</span>
-                      <button
-                        className="stepper-btn"
-                        onClick={() => setIngredientOverrides((prev) => ({ ...prev, [t.key]: value + increment }))}
-                      >+</button>
-                    </div>
-                  </div>
-                );
-              })}
+          {fixedPortions ? (
+            <div className="param-row">
+              <div className="param-label">Порций</div>
+              <span className="all-texts-portions-fixed">готовим {fixedPortions}</span>
             </div>
+          ) : (
+            <section className="rp-people-hero">
+              <div className="rp-people-row">
+                {Array.from({ length: maxPortions }, (_, i) => i + 1).map((n) => (
+                  <span key={n} className={`rp-person ${n <= portions ? "rp-person--filled" : "rp-person--ghost"}`}>
+                    <svg viewBox="0 0 26 32">
+                      <path
+                        className="rp-fig-body"
+                        strokeWidth="1.7"
+                        strokeLinejoin="round"
+                        d="M9.5,11 Q6,11.5 5,13 Q2,15 2.6,17.2 Q3.4,19.4 6.2,17.6 Q8,16.4 9,15
+                           L9,19 Q7.5,20 7,22 L6.4,29 Q6.2,31.4 8.6,31.2 Q10.6,31 10.8,29
+                           L11.6,21.5 Q12,20.2 13,20 Q14,20.2 14.4,21.5 L15.2,29
+                           Q15.4,31 17.4,31.2 Q19.8,31.4 19.6,29 L19,22 Q18.5,20 17,19
+                           L17,15 Q18,16.4 19.8,17.6 Q22.6,19.4 23.4,17.2 Q24,15 21,13
+                           Q20,11.5 16.5,11 Q15,10.2 13,10.2 Q11,10.2 9.5,11 Z"
+                      />
+                      <circle className="rp-fig-head" cx="13" cy="6.6" r="4.6" strokeWidth="1.7" />
+                      <g className="rp-fig-eyes" fill="#fffaf0">
+                        <circle cx="11.1" cy="6.4" r="0.85" />
+                        <circle cx="14.9" cy="6.4" r="0.85" />
+                      </g>
+                    </svg>
+                  </span>
+                ))}
+              </div>
+              <p className="rp-people-phrase">{formatPortionsPhrase(portions)}</p>
+              <div className="rp-people-control">
+                <button className="rp-dial-btn" onClick={() => changePortions(Math.max(1, portions - 1))} disabled={portions <= 1} aria-label="Меньше порций">−</button>
+                <span className="rp-people-count" key={portions}>{portions}</span>
+                <button className="rp-dial-btn" onClick={() => changePortions(Math.min(maxPortions, portions + 1))} disabled={portions >= maxPortions} aria-label="Больше порций">+</button>
+              </div>
+            </section>
+          )}
+          {ingredientTemplates.length > 0 && (
+            <>
+              <div className="rp-stitch">
+                <svg className="rp-stitch-icon" viewBox="0 0 22 22" aria-hidden="true">
+                  <path d="M4 9.5h14a7 6.3 0 0 1-14 0Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4.6 8c0-1 .6-1.6 1.2-1.6M17.4 8c0-1-.6-1.6-1.2-1.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+                <span>Ингредиенты</span>
+              </div>
+              <ul className="rp-ledger">{ingredientTemplates.map(renderLedgerRow)}</ul>
+            </>
+          )}
+          {timeTemplates.length > 0 && (
+            <>
+              <div className="rp-stitch">
+                <svg className="rp-stitch-icon" viewBox="0 0 22 22" aria-hidden="true">
+                  <circle cx="11" cy="12" r="7.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  <path d="M11 7.6V12l3.2 2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M8.4 2.6h5.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+                <span>Время готовки</span>
+              </div>
+              <ul className="rp-ledger">{timeTemplates.map(renderLedgerRow)}</ul>
+            </>
           )}
           <div className="param-row">
             <div className="param-label">Цифры на плите</div>
