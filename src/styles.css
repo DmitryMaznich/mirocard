@@ -14244,7 +14244,7 @@ kbd {
 .rp-row:last-child { border-bottom: none; }
 .rp-row-main { flex: 1; min-width: 0; }
 .rp-row-label { font-size: 0.87rem; font-weight: 700; color: #1a2e2b; line-height: 1.3; }
-.rp-row-note { margin-top: 1px; animation: rp-rise .22s ease; }
+.rp-row-note { margin-left: 8px; animation: rp-rise .22s ease; }
 .rp-reset-link {
   all: unset;
   cursor: pointer;
