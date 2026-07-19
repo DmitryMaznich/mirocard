@@ -303,6 +303,29 @@ function applyCoverageConditional(text, factor, overrides) {
   );
 }
 
+/**
+ * {key:base+step?singular_phrase|plural_phrase} — the additive-scaling
+ * counterpart of {N?singular|plural} / {key:/N?singular|plural}: chooses a
+ * phrasing without printing the number, using the SAME base + step*(factor-1)
+ * a {key:base+step|...} occurrence of this key elsewhere already shows the
+ * child (e.g. step 3 already said "взять 4 солёных огурца" — the slicing
+ * step just needs "Нарезать огурцы", not the count repeated). Rounds to the
+ * nearest whole unit before the singular/plural check, same as {N?...} —
+ * the exact half-unit value isn't shown here anyway, only a coarse "one vs
+ * more than one" phrasing choice.
+ */
+function applyAdditiveConditional(text, factor, overrides) {
+  return text.replace(
+    /\{([a-zA-Z]\w*):(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)\?([^|}]+)\|([^|}]+)\}/g,
+    (_, key, base, step, singular, plural) => {
+      const value = overrides[key] != null
+        ? overrides[key]
+        : parseFloat(base) + parseFloat(step) * (factor - 1);
+      return Math.round(value) === 1 ? singular.trim() : plural.trim();
+    }
+  );
+}
+
 export function applyPortions(text, portions, overrides = {}) {
   if (!text) return text ?? "";
   const factor = portions || 1;
@@ -310,6 +333,7 @@ export function applyPortions(text, portions, overrides = {}) {
   result = applyAdditiveScaling(result, factor, overrides);
   result = applyCoverageScaling(result, factor, overrides);
   result = applyCoverageConditional(result, factor, overrides);
+  result = applyAdditiveConditional(result, factor, overrides);
   result = result.replace(
     /\{(?:([a-zA-Z]\w*):)?(\d+(?:\.\d+)?)\|([^|}]+)\|([^|}]+)\|([^|}]+)\}/g,
     (_, key, n, one, few, many) => {

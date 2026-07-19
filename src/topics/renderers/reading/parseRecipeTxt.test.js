@@ -373,6 +373,30 @@ describe('applyPortions with {key:/N?singular|plural} coverage conditional', () 
   });
 });
 
+describe('applyPortions with {key:base+step?singular|plural} additive conditional', () => {
+  it('picks the singular phrase when the additive formula rounds to exactly one', () => {
+    const text = '{pickle:1+0.5?Нарезать огурец|Нарезать огурцы} вдоль на тонкие ломтики.';
+    expect(applyPortions(text, 1)).toBe('Нарезать огурец вдоль на тонкие ломтики.'); // 1 + 0.5*0 = 1
+  });
+
+  it('picks the plural phrase once the additive formula rounds above one', () => {
+    const text = '{pickle:1+0.5?Нарезать огурец|Нарезать огурцы} вдоль на тонкие ломтики.';
+    expect(applyPortions(text, 2)).toBe('Нарезать огурцы вдоль на тонкие ломтики.'); // 1 + 0.5*1 = 1.5 → rounds to 2
+    expect(applyPortions(text, 7)).toBe('Нарезать огурцы вдоль на тонкие ломтики.'); // 1 + 0.5*6 = 4
+  });
+
+  it('uses the override value instead of the additive formula when a key matches', () => {
+    const text = '{pickle:1+0.5?Нарезать огурец|Нарезать огурцы} вдоль на тонкие ломтики.';
+    expect(applyPortions(text, 7, { pickle: 1 })).toBe('Нарезать огурец вдоль на тонкие ломтики.');
+    expect(applyPortions(text, 1, { pickle: 3 })).toBe('Нарезать огурцы вдоль на тонкие ломтики.');
+  });
+
+  it('does not collide with the numbered {key:base+step|one|few|many} additive template in the same text', () => {
+    const text = 'Взять {pickle:1+0.5|солёный огурец|солёных огурца|солёных огурцов}. {pickle:1+0.5?Нарезать огурец|Нарезать огурцы}.';
+    expect(applyPortions(text, 7)).toBe('Взять 4 солёных огурца. Нарезать огурцы.');
+  });
+});
+
 describe('extractAdjustableTemplates', () => {
   it('finds an additive keyed template', () => {
     const text = 'Добавить {oil:1+0.5|столовую ложку|столовые ложки|столовых ложек} масла.';
