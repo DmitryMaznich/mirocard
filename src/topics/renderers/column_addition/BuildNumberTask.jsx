@@ -49,8 +49,9 @@ function PileSource() {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Workspace({ placed, formingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
+function Workspace({ placed, formingStack, unformingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
   const { setNodeRef, isOver } = useDroppable({ id: "cb-workspace" });
+  const pendingOnesStart = unformingStack ? placed.ones - 10 : Infinity;
   return (
     <div className="pv-zones">
       <div
@@ -76,11 +77,18 @@ function Workspace({ placed, formingStack, groupableCount, errorZones, capacityF
             className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}${capacityFlash.ones ? " cb-area--capacity" : ""}`}
             ref={looseAreaRef}
           >
-            {Array.from({ length: placed.ones }, (_, i) => (
-              <div key={i} onClick={i < groupableCount ? onGroup : onRemoveOne}>
-                <Coin numeric={numeric} groupable={i < groupableCount} />
-              </div>
-            ))}
+            {Array.from({ length: placed.ones }, (_, i) => {
+              const pending = i >= pendingOnesStart;
+              return (
+                <div
+                  key={i}
+                  className={pending ? "cb-coin-pending" : undefined}
+                  onClick={pending ? undefined : (i < groupableCount ? onGroup : onRemoveOne)}
+                >
+                  <Coin numeric={numeric} groupable={i < groupableCount} />
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -104,9 +112,37 @@ function rectCenter(rect) {
 // ordinary wrong answers, which ГОТОВО already handles.
 const ONES_CEILING = 19;
 
+// One flying coin ghost: appended to document.body, animated from `from`
+// to `to` in screen coordinates, removed and `onArrive()` called once it
+// lands. Shared by the group (10 loose coins -> 1 stack) and ungroup (1
+// stack -> 10 loose coins) animations — same visual, opposite direction.
+function flyCoinGhost(from, to, delayMs, onArrive) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+
+  const ghost = document.createElement("div");
+  ghost.className = "cb-coin-fly-ghost";
+  ghost.style.left = `${from.x}px`;
+  ghost.style.top = `${from.y}px`;
+  document.body.appendChild(ghost);
+
+  const anim = ghost.animate(
+    [
+      { transform: "translate(-50%, -50%) scale(1) rotate(0deg)", offset: 0 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.85) rotate(10deg)`, offset: 1 },
+    ],
+    { duration: 260, delay: delayMs, easing: "cubic-bezier(.35,.6,.4,1)", fill: "forwards" },
+  );
+  anim.onfinish = () => {
+    ghost.remove();
+    onArrive();
+  };
+}
+
 export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   const [placed, setPlaced] = useState({ tens: 0, ones: 0 });
   const [formingStack, setFormingStack] = useState(false);
+  const [unformingStack, setUnformingStack] = useState(false);
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [capacityFlash, setCapacityFlash] = useState({ tens: false, ones: false });
   const [solved, setSolved] = useState(false);
@@ -139,8 +175,13 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
     setPlaced((p) => ({ ...p, ones: Math.max(0, p.ones - 1) }));
   }
 
-  function removeTen() {
-    setPlaced((p) => ({ ...p, tens: Math.max(0, p.tens - 1) }));
+  // One coin's height/pitch within a rendered 10-coin TenStack, derived
+  // from the stack's own bounding rect: 10 coins overlapping by the same
+  // ratio as .cb-stack-coin's margin-top (-7 out of a 12-tall coin, i.e.
+  // each added coin contributes a 5/12 sliver) — see coins.css.
+  function stackCoinMetrics(rect) {
+    const coinHeight = rect.height / (1 + 9 * (5 / 12));
+    return { coinHeight, discPitch: coinHeight * (5 / 12) };
   }
 
   // Each of the 10 grouped coins gets its own ghost that flies from where
@@ -159,7 +200,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
   // during this window (see the JSX below) so "N десятков" doesn't tick
   // up before the coins visibly land.
   function handleGroup() {
-    if (placed.ones < 10) return;
+    if (placed.ones < 10 || formingStack || unformingStack) return;
     if (placed.tens >= tensCeiling) {
       flashCapacity("tens");
       return;
@@ -176,41 +217,48 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
       const stackEls = stacksAreaRef.current.querySelectorAll(".cb-ten-stack");
       const newStackEl = stackEls[stackEls.length - 1];
       const rect = newStackEl.getBoundingClientRect();
-      // Reverse-engineer one coin's height from the whole stack's rendered
-      // height: 10 coins overlapping by the same ratio as .cb-stack-coin's
-      // own margin-top (-7 out of a 12-tall coin, i.e. each added coin
-      // contributes a 5/12 sliver) — see coins.css.
-      const coinHeight = rect.height / (1 + 9 * (5 / 12));
-      const discPitch = coinHeight * (5 / 12);
+      const { coinHeight, discPitch } = stackCoinMetrics(rect);
       const landX = rect.left + rect.width / 2;
       const landBaseY = rect.bottom - coinHeight / 2;
 
       let remaining = froms.length;
       froms.forEach((from, i) => {
         const to = { x: landX, y: landBaseY - i * discPitch };
-        const dx = to.x - from.x;
-        const dy = to.y - from.y;
-
-        const ghost = document.createElement("div");
-        ghost.className = "cb-coin-fly-ghost";
-        ghost.style.left = `${from.x}px`;
-        ghost.style.top = `${from.y}px`;
-        document.body.appendChild(ghost);
-
-        const anim = ghost.animate(
-          [
-            { transform: "translate(-50%, -50%) scale(1) rotate(0deg)", offset: 0 },
-            { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.85) rotate(10deg)`, offset: 1 },
-          ],
-          { duration: 260, delay: i * 45, easing: "cubic-bezier(.35,.6,.4,1)", fill: "forwards" },
-        );
-        anim.onfinish = () => {
-          ghost.remove();
+        flyCoinGhost(from, to, i * 45, () => {
           remaining -= 1;
-          if (remaining === 0) {
-            setFormingStack(false);
-          }
-        };
+          if (remaining === 0) setFormingStack(false);
+        });
+      });
+    });
+  }
+
+  // Mirror of handleGroup: tapping a stack breaks it back into 10 loose
+  // coins that fly out to their real slots in the loose area, peeling off
+  // top-first (the apex coin departs first). Same hidden-until-arrived
+  // trick, in reverse — the loose area already has the 10 new coins
+  // mounted (React needs their real flex-wrapped positions to animate
+  // to), but they stay invisible via .cb-coin-pending until they land.
+  function handleUngroup(e) {
+    if (placed.tens <= 0 || formingStack || unformingStack) return;
+    const stackEl = e.currentTarget;
+    const rect = stackEl.getBoundingClientRect();
+    const { coinHeight, discPitch } = stackCoinMetrics(rect);
+    const originX = rect.left + rect.width / 2;
+    const originBaseY = rect.bottom - coinHeight / 2;
+    const froms = Array.from({ length: 10 }, (_, i) => ({ x: originX, y: originBaseY - (9 - i) * discPitch }));
+
+    setUnformingStack(true);
+    setPlaced((p) => ({ tens: p.tens - 1, ones: p.ones + 10 }));
+
+    requestAnimationFrame(() => {
+      const newCoinEls = Array.from(looseAreaRef.current.querySelectorAll(".cb-coin")).slice(-10);
+      let remaining = newCoinEls.length;
+      newCoinEls.forEach((el, i) => {
+        const to = rectCenter(el.getBoundingClientRect());
+        flyCoinGhost(froms[i], to, i * 45, () => {
+          remaining -= 1;
+          if (remaining === 0) setUnformingStack(false);
+        });
       });
     });
   }
@@ -242,6 +290,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
         <Workspace
           placed={placed}
           formingStack={formingStack}
+          unformingStack={unformingStack}
           groupableCount={groupableCount}
           errorZones={errorZones}
           capacityFlash={capacityFlash}
@@ -249,7 +298,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
           numeric={task.numericBlocks}
           onRemoveOne={removeOne}
           onGroup={handleGroup}
-          onRemoveTen={removeTen}
+          onRemoveTen={handleUngroup}
           stacksAreaRef={stacksAreaRef}
           looseAreaRef={looseAreaRef}
         />
@@ -259,7 +308,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
             {placed.tens - (formingStack ? 1 : 0)} {pluralTens(placed.tens - (formingStack ? 1 : 0))}
           </div>
           <div style={{ flex: 1 }} className="pv-zone-counter">
-            {placed.ones} {pluralOnes(placed.ones)}
+            {placed.ones - (unformingStack ? 10 : 0)} {pluralOnes(placed.ones - (unformingStack ? 10 : 0))}
           </div>
         </div>
 

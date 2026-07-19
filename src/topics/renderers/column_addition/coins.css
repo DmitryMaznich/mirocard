@@ -152,6 +152,15 @@
   visibility: hidden;
 }
 
+/* Mirror of .cb-ten-stack-pending for the ungroup direction: the 10 loose
+   coins a broken-apart stack turns into mount for real (their true
+   flex-wrapped position in .cb-loose-area) before they've actually
+   arrived, so BuildNumberTask.jsx can measure an accurate landing spot
+   for each fly-in ghost, staying invisible until it lands. */
+.cb-coin-pending {
+  visibility: hidden;
+}
+
 .cb-stack-badge {
   position: absolute;
   top: calc(-4 * var(--cb-scale));
