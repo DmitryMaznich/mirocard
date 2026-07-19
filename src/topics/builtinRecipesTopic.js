@@ -67,11 +67,14 @@ function parseOptions(txt) {
 }
 
 // "# adjustable:" declares which {key:...} template placeholders in the step
-// text get an editable stepper on the cook-start screen, and what to label
-// each one — each indented line is "key | label". A key only gets a stepper
-// if it's ALSO declared here AND appears in a {key:...} template somewhere
-// in the steps (see extractAdjustableTemplates in parseRecipeTxt.js) — this
-// block supplies the label, the step text supplies the number.
+// text get an editable stepper on the cook-start screen: which section it
+// belongs to, what to label it, and what compact unit abbreviation to show
+// next to the number. Each indented line is "key | group | label | unit" —
+// group is "ingredient" or "time" (used to sort the key into one of the two
+// ledger sections on the start-cooking screen). A key only gets a stepper if
+// it's ALSO declared here AND appears in a {key:...} template somewhere in
+// the steps (see extractAdjustableTemplates in parseRecipeTxt.js) — this
+// block supplies the group/label/unit, the step text supplies the number.
 export function parseAdjustable(txt) {
   const adjustable = {};
   let inAdjustable = false;
@@ -81,8 +84,8 @@ export function parseAdjustable(txt) {
     if (inAdjustable) {
       if (afterHash.startsWith('  ') || afterHash.startsWith('\t\t')) {
         const parts = afterHash.trim().split('|').map((p) => p.trim());
-        const [key, label] = parts;
-        if (key && label) adjustable[key] = label;
+        const [key, group, label, unit] = parts;
+        if (key && group && label && unit) adjustable[key] = { group, label, unit };
         continue;
       }
       inAdjustable = false;

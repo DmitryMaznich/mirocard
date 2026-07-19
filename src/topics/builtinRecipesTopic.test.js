@@ -62,9 +62,12 @@ describe('getBuiltinRecipeRawText', () => {
 });
 
 describe('parseAdjustable', () => {
-  it('parses key | label lines under # adjustable:', () => {
-    const content = '# adjustable:\n#   oil | Растительное масло\n#   butter | Сливочное масло\nТест\n';
-    expect(parseAdjustable(content)).toEqual({ oil: 'Растительное масло', butter: 'Сливочное масло' });
+  it('parses key | group | label | unit lines under # adjustable:', () => {
+    const content = '# adjustable:\n#   oil | ingredient | Растительное масло | ст.л.\n#   sauteTime | time | Лук и морковь | мин\nТест\n';
+    expect(parseAdjustable(content)).toEqual({
+      oil: { group: 'ingredient', label: 'Растительное масло', unit: 'ст.л.' },
+      sauteTime: { group: 'time', label: 'Лук и морковь', unit: 'мин' },
+    });
   });
 
   it('returns an empty object when there is no # adjustable: block', () => {
@@ -72,7 +75,12 @@ describe('parseAdjustable', () => {
   });
 
   it('stops the block at the next # key', () => {
-    const content = '# adjustable:\n#   oil | Масло\n# ingredients:\n#   яйца | 3 | шт\nТест\n';
-    expect(parseAdjustable(content)).toEqual({ oil: 'Масло' });
+    const content = '# adjustable:\n#   oil | ingredient | Масло | ст.л.\n# ingredients:\n#   яйца | 3 | шт\nТест\n';
+    expect(parseAdjustable(content)).toEqual({ oil: { group: 'ingredient', label: 'Масло', unit: 'ст.л.' } });
+  });
+
+  it('skips a line missing any of the four fields', () => {
+    const content = '# adjustable:\n#   oil | ingredient | Масло\nТест\n';
+    expect(parseAdjustable(content)).toEqual({});
   });
 });
