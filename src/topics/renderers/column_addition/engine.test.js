@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { generateTasks, taskNeedsBorrowTeaching } from "./engine.js";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 
@@ -87,6 +87,40 @@ describe("generateTasks – column_arithmetic", () => {
   it("sub: top > bottom always", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "mixed", digits: 2 });
     for (const t of tasks) expect(t.top).toBeGreaterThan(t.bottom);
+  });
+});
+
+// digits:"mixed" carryMode picks top/bottom independently within a range, rather than
+// deriving bottom from "how much room is left before the digit cap" — at the RNG's
+// top-of-range value that let add/mixed hand back a 2-digit result over 99 (or a 3-digit
+// result over 999). Math.random is pinned to just-under-1 so randomInt(min, max) always
+// resolves to max, deterministically reproducing the worst case instead of relying on
+// hitting it by chance.
+describe("column_arithmetic — result never exceeds the selected digit count", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("add/mixed, digits:2 — result stays within 2 digits at the RNG's top-of-range value", () => {
+    vi.spyOn(Math, "random").mockReturnValue(1 - 1e-9);
+    const tasks = generateTasks("column_arithmetic", CARDS, 1, { operation: "add", carryMode: "mixed", digits: 2 });
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].result).toBeLessThanOrEqual(99);
+  });
+
+  it("add/mixed, digits:3 — result stays within 3 digits at the RNG's top-of-range value", () => {
+    vi.spyOn(Math, "random").mockReturnValue(1 - 1e-9);
+    const tasks = generateTasks("column_arithmetic", CARDS, 1, { operation: "add", carryMode: "mixed", digits: 3 });
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].result).toBeLessThanOrEqual(999);
+  });
+
+  it("subtract/mixed, digits:2 — result stays within [0, 99] at the RNG's top-of-range value", () => {
+    vi.spyOn(Math, "random").mockReturnValue(1 - 1e-9);
+    const tasks = generateTasks("column_arithmetic", CARDS, 1, { operation: "subtract", carryMode: "mixed", digits: 2 });
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].result).toBeGreaterThanOrEqual(0);
+    expect(tasks[0].result).toBeLessThanOrEqual(99);
   });
 });
 

@@ -91,10 +91,15 @@ function generateAddTask(carryMode, digits, card, usedPairs) {
         const tT = randomInt(1, 7), bT = randomInt(1, 8 - tT);
         top = tT * 10 + tU; bottom = bT * 10 + bU;
       } else {
-        top = randomInt(11, 89); bottom = randomInt(11, 89);
+        // bottom's upper bound must leave top+bottom within the 2-digit cap (99), so
+        // top itself can't go all the way to 89 — at 89 there'd be no valid 2-digit
+        // bottom (99-89=10 < the 11 floor every other branch here uses).
+        top = randomInt(11, 88); bottom = randomInt(11, 99 - top);
       }
     } else {
-      top = randomInt(101, 899); bottom = randomInt(101, 999 - top);
+      // Same reasoning as above, one digit up: top can't reach 899, or 999-top would
+      // dip below the 101 floor and leave no valid 3-digit bottom.
+      top = randomInt(101, 898); bottom = randomInt(101, 999 - top);
     }
     const columns = buildAddColumns(top, bottom, digits);
     const hasCarry = columns.some(c => c.carryOut > 0);
