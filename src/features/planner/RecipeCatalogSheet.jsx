@@ -80,7 +80,7 @@ function CatalogRecipeDetail({ recipe, onCook, onBack }) {
           </span>
           <ul className="recipe-ingredients__list">
             {allIngredients.map((ing, i) => {
-              const scaledQty = scaleIngredientQty(ing.qty, ing.unit, scale);
+              const scaledQty = scaleIngredientQty(ing.qty, ing.unit, scale, ing.additiveStep, ing.coverDivisor);
               return (
                 <li key={i} className="recipe-ingredients__item">
                   <span className="recipe-ingredients__product">{ing.product}</span>

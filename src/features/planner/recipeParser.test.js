@@ -25,6 +25,16 @@ describe('parseRecipeMetadata', () => {
     expect(portions).toBe(1);
   });
 
+  it('extracts max_portions as an integer override', () => {
+    const { maxPortions } = parseRecipeMetadata('# max_portions: 3\nТест\n');
+    expect(maxPortions).toBe(3);
+  });
+
+  it('defaults maxPortions to null when # max_portions: is absent (falls back to GLOBAL_MAX_PORTIONS in the UI)', () => {
+    const { maxPortions } = parseRecipeMetadata('# portions: 1\nТест\n');
+    expect(maxPortions).toBeNull();
+  });
+
   it('extracts photo filename', () => {
     const { photo } = parseRecipeMetadata('# photo: soup.webp\nТест\n');
     expect(photo).toBe('soup.webp');

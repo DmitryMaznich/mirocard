@@ -1,5 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { toCanonicalQty, toShoppingQuantity, SHOPPING_UNIT_CONVERSIONS, NO_SHOPPING_QTY_PRODUCTS } from './shoppingUnitConversions.js';
+import { toCanonicalQty, toShoppingQuantity, SHOPPING_UNIT_CONVERSIONS, NO_SHOPPING_QTY_PRODUCTS, scaleIngredientQty } from './shoppingUnitConversions.js';
+
+describe('scaleIngredientQty', () => {
+  it('scales an ordinary ingredient proportionally', () => {
+    expect(scaleIngredientQty(2, 'шт', 3)).toBe(6);
+  });
+
+  it('respects additiveStep instead of multiplying (e.g. omelette butter: 1 + 0.5 per extra portion)', () => {
+    expect(scaleIngredientQty(1, 'ст.л', 3, 0.5)).toBe(2);
+  });
+
+  it('respects coverDivisor as a ceiling-division cover count (e.g. one tomato covers up to 5 burgers)', () => {
+    expect(scaleIngredientQty(1, 'шт', 7, null, 5)).toBe(2);
+  });
+
+  it('rounds a half-snap unit to the nearest half after additive scaling', () => {
+    expect(scaleIngredientQty(1, 'ст.л', 2, 0.5)).toBe(1.5);
+  });
+});
 
 describe('toCanonicalQty', () => {
   it('converts a recipe unit to grams using the product gramsPerUnit factor', () => {

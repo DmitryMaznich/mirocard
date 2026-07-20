@@ -37,6 +37,16 @@ describe('buildRecipesTopicRecord', () => {
     expect(omelet.fixedPortions).toBeUndefined();
   });
 
+  it('reads # max_portions: as a per-recipe override to the global portions ceiling', () => {
+    const omelet = record.texts.find((t) => t.file === 'recipes/omelet.txt');
+    expect(omelet.maxPortions).toBe(3);
+  });
+
+  it('leaves maxPortions unset for a recipe with no # max_portions: line', () => {
+    const soup = record.texts.find((t) => t.file === 'recipes/soup.txt');
+    expect(soup.maxPortions).toBeUndefined();
+  });
+
   it('leaves adjustable unset for a recipe with no # adjustable: block', () => {
     const soup = record.texts.find((t) => t.file === 'recipes/soup.txt');
     expect(soup.adjustable).toBeUndefined();

@@ -41,7 +41,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
   // reasoning as the menu/catalog ingredient previews). getRecipeSettings
   // below still restores whatever the cook picked last time for this recipe.
   const basePortions = 1;
-  const maxPortions = GLOBAL_MAX_PORTIONS;
+  const maxPortions = activeText.maxPortions ?? GLOBAL_MAX_PORTIONS;
   const [portions, setPortions] = useState(basePortions);
   const [ingredientOverrides, setIngredientOverrides] = useState({});
   const [stoveModalOpen, setStoveModalOpen] = useState(false);
