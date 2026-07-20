@@ -256,4 +256,28 @@
   50%       { transform: scale(1.3); box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.1);  }
 }
 
+/* Wrist zone — explicit tap target to advance from one addend to the next
+ * (no auto-timer). Sits low on the hand canvas, away from any finger dot. */
+.fng-wrist-zone {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  transform: translateX(-50%);
+  width: 46%;
+  height: 16%;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.28);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  animation: fng-wrist-pulse 1.3s ease-in-out infinite;
+  z-index: 4;
+}
+
+@keyframes fng-wrist-pulse {
+  0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(1);    }
+  50%       { opacity: 0.9;  transform: translateX(-50%) scale(1.05); }
+}
+
 /* ── end FingersCount addition ───────────────────────────────────── */

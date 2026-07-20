@@ -33,10 +33,11 @@ function FingersKeypad({ onDigit, onDelete, active }) {
 // A tap commits a dot — the hand itself swaps to the new pose (AnimatedHand's
 // own cross-fade) instead of drawing an arrow: watching the finger actually
 // appear/disappear on the hand *is* the feedback, no separate annotation
-// needed now that hand poses are cheap vector swaps. Only ONE dot is shown
-// per hand at a time, always at the exact next finger to change — recomputed
-// fresh after every tap, so it can never visually drift from the real target
-// the way one fixed-position dot per remaining finger could.
+// needed now that hand poses are cheap vector swaps. Dots are shown on EVERY
+// finger still to change (not just the next one) so a child can tap in any
+// order; every dot commits the same single canonical next-step change, since
+// the hand artwork only has one pose per count — which exact dot was tapped
+// doesn't matter, only that one was.
 
 function GestureDot({ pos, direction, onCommit }) {
   const startRef = useRef(null);
@@ -76,9 +77,10 @@ const FOLD_ORDER = {
   5: [0, 4, 3, 2, 1],
 };
 
-// Single-step lookups: called with a 1-wide [count, count±1] range, they
-// return exactly the one finger changing. (The functions also tolerate wider
-// ranges — unused now, kept general in case a wider cascade is wanted again.)
+// Tip position of every currently-raised finger that still needs to fold,
+// for startCount → endCount (both within the same hand, 0-5). All returned
+// at once — the hand is currently rendering `startCount`, so every one of
+// these tips is a real, currently-visible fingertip.
 function removalTips(startCount, endCount) {
   const removeN = startCount - endCount;
   const order   = FOLD_ORDER[startCount] ?? [];
@@ -86,27 +88,8 @@ function removalTips(startCount, endCount) {
   return order.slice(0, removeN).map(i => tips[i]).filter(Boolean);
 }
 
-// Landing knuckle position for a removed finger — where it ends up once
-// folded, i.e. its base in the END state.
-function removalBases(startCount, endCount) {
-  const removeN = startCount - endCount;
-  const order   = FOLD_ORDER[startCount] ?? [];
-  const bases   = FINGER_BASES_R[endCount] ?? [];
-  return order.slice(0, removeN).map(i => {
-    const baseIdx = startCount === 5 ? i : i + 1;
-    return bases[baseIdx] ?? null;
-  }).filter(Boolean);
-}
-
-function additionTips(startCount, endCount) {
-  if (startCount >= endCount || endCount > 5) return [];
-  const order      = FOLD_ORDER[endCount] ?? [];
-  const tips       = FINGER_TIPS_R[endCount] ?? [];
-  const raiseOrder = [...order].reverse();
-  return raiseOrder.slice(startCount, endCount).map(i => tips[i]).filter(Boolean);
-}
-
-// Knuckle position a folded finger raises from, for startCount → endCount.
+// Knuckle position of every currently-folded finger that still needs to
+// raise, for startCount → endCount (both within the same hand, 0-5).
 function additionBases(startCount, endCount) {
   if (startCount >= endCount || endCount > 5) return [];
   const order      = FOLD_ORDER[endCount] ?? [];
@@ -122,6 +105,37 @@ function additionBases(startCount, endCount) {
 // with side="left", i.e. flipped artwork) — same convention used throughout.
 function mirror(pt) {
   return pt && { x: 1 - pt.x, y: pt.y };
+}
+
+// A wide highlight near the wrist — the explicit, tap-only way to advance
+// from one addend to the next (replaces the old auto-timer). Shown once the
+// active addend is fully built; the same zone exists on both hands so either
+// can be tapped.
+function WristZone({ onTap }) {
+  return <div className="fng-wrist-zone" onClick={onTap} role="button" aria-label="Дальше" />;
+}
+
+// For an addend that may span both hands (built → target, either can exceed
+// 5), walks one unit at a time and buckets each step's knuckle position onto
+// whichever hand it lands on. Reuses getFingerConfig's own "right"/"left"
+// naming (right fills 1-5 first, left is the 6-10 overflow) — not screen
+// position; the caller mirrors the "right" set before display, same as
+// everywhere else in this file.
+function multiDotsAcrossHands(built, target) {
+  const rightBases = [];
+  const leftBases = [];
+  for (let n = built; n < target; n++) {
+    const cur = getFingerConfig(n);
+    const nxt = getFingerConfig(n + 1);
+    if (nxt.right > cur.right) {
+      const p = additionBases(cur.right, nxt.right)[0];
+      if (p) rightBases.push(p);
+    } else if (nxt.left > cur.left) {
+      const p = additionBases(cur.left, nxt.left)[0];
+      if (p) leftBases.push(p);
+    }
+  }
+  return { rightBases, leftBases };
 }
 
 // ── Subtraction (any a, b) ─────────────────────────────────────────────────
@@ -203,13 +217,10 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
   const kbdVisible = phase === "answer" || phase === "done";
 
-  const leftDot  = (phase === "reduce" && leftCount > leftEnd)
-    ? { tip: removalTips(leftCount, leftCount - 1)[0], base: removalBases(leftCount, leftCount - 1)[0] }
-    : null;
-  const rightDotR = (phase === "reduce" && rightCount > rightEnd)
-    ? { tip: removalTips(rightCount, rightCount - 1)[0], base: removalBases(rightCount, rightCount - 1)[0] }
-    : null;
-  const rightDot = rightDotR && { tip: mirror(rightDotR.tip), base: mirror(rightDotR.base) };
+  // All currently-raised fingers still to fold, shown at once — tap any of
+  // them (in any order) to fold the actual next finger in canonical order.
+  const leftTips  = (phase === "reduce" && leftCount > leftEnd)  ? removalTips(leftCount, leftEnd)   : [];
+  const rightTips = (phase === "reduce" && rightCount > rightEnd) ? removalTips(rightCount, rightEnd).map(mirror) : [];
 
   return (
     <div className="fng-add-screen">
@@ -225,9 +236,11 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={leftCount} side="right" style={{ width: "100%", height: "100%" }} />
-              {leftDot && (
+              {leftTips.length > 0 && (
                 <div className="fng-gesture-overlay">
-                  <GestureDot pos={leftDot.tip} direction="down" onCommit={() => setLeftCount(c => c - 1)} />
+                  {leftTips.map((pos, i) => (
+                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setLeftCount(c => c - 1)} />
+                  ))}
                 </div>
               )}
             </div>
@@ -235,9 +248,11 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={rightCount} side="left" style={{ width: "100%", height: "100%" }} />
-              {rightDot && (
+              {rightTips.length > 0 && (
                 <div className="fng-gesture-overlay">
-                  <GestureDot pos={rightDot.tip} direction="down" onCommit={() => setRightCount(c => c - 1)} />
+                  {rightTips.map((pos, i) => (
+                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setRightCount(c => c - 1)} />
+                  ))}
                 </div>
               )}
             </div>
@@ -260,38 +275,47 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 }
 
 // ── Addition (any a, b) ────────────────────────────────────────────────────
-// Flow: two fists → tap green dots to raise a fingers (pause) → fists again,
-// tap to raise b fingers (pause) → numpad. No merge animation — the hands
-// never need to touch, the two counts are shown one after the other.
+// Flow: two fists → tap green dots to build A on one dedicated hand → tap
+// its wrist to confirm → build B on the other hand (A stays visible, frozen)
+// → tap its wrist → numpad. When an addend needs both hands to represent
+// itself (>5), it falls back to the combined two-hand build instead of a
+// single dedicated hand.
 
 function AdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("a"); // a | b | answer | done
-  const [built, setBuilt] = useState(0);
+  const [builtA, setBuiltA] = useState(0);
+  const [builtB, setBuiltB] = useState(0);
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
-  const skipRef = useRef(null);
 
   const { a, b, result } = task;
   const resultStr = String(result);
-  const target = phase === "a" ? a : phase === "b" ? b : null;
+  // Each addend ≤5 fits on one hand — dedicate a hand per addend so A and B
+  // are never both shown on the same hand (the previous bug: FINGER_MAP
+  // always fills its "right" slot first, so two addends ≤5 landed on the
+  // exact same physical hand one after another). When either addend needs
+  // both hands to represent itself (>5), there's no hand left to dedicate to
+  // the other addend, so fall back to the combined two-hand FINGER_MAP build
+  // used for a single large number (same as before this fix).
+  const simple = a <= 5 && b <= 5;
+
+  const building = phase === "a" || phase === "b";
+  const target   = phase === "a" ? a : phase === "b" ? b : null;
+  const built    = phase === "a" ? builtA : phase === "b" ? builtB : null;
 
   useEffect(() => {
-    setPhase("a"); setBuilt(0); setInput([]); setShake(false);
+    setPhase("a"); setBuiltA(0); setBuiltB(0); setInput([]); setShake(false);
   }, [task.cardId]);
 
   function skipToNext() {
-    if (skipRef.current) { clearTimeout(skipRef.current); skipRef.current = null; }
-    if (phase === "a") { setPhase("b"); setBuilt(0); }
-    else if (phase === "b") { setPhase("answer"); }
+    if (phase === "a") setPhase("b");
+    else if (phase === "b") setPhase("answer");
   }
 
-  // Once the active addend is fully built, pause briefly then move on.
-  useEffect(() => {
-    if ((phase !== "a" && phase !== "b") || built !== target) return;
-    skipRef.current = setTimeout(skipToNext, 700);
-    return () => clearTimeout(skipRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, built, target]);
+  function commit() {
+    if (phase === "a" && builtA < a) setBuiltA(c => c + 1);
+    else if (phase === "b" && builtB < b) setBuiltB(c => c + 1);
+  }
 
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
@@ -307,9 +331,10 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
+  const settled = building && built === target;
   const hint =
-    phase === "a" ? `Покажи ${a} →` :
-    phase === "b" ? `Теперь ${b} →` :
+    phase === "a" ? (settled ? "Готово? Коснись запястья →" : `Покажи ${a} →`) :
+    phase === "b" ? (settled ? "Готово? Коснись запястья →" : `Теперь покажи ${b} →`) :
     "Введи ответ";
 
   const answerPart = phase === "done"
@@ -321,59 +346,57 @@ function AdditionTask({ task, onCorrect, onMistake }) {
       : "?";
 
   const kbdVisible = phase === "answer" || phase === "done";
-  const building    = phase === "a" || phase === "b";
-  const settled     = building && built === target; // waiting out the pause — tap skips it
-  const config      = getFingerConfig(building ? built : (phase === "answer" || phase === "done" ? b : 0));
-  const leftCount   = config.left;
-  const rightCount  = config.right;
 
-  // Which single finger raises next, and on which physical hand.
-  let dot = null;
-  if (building && built < target) {
-    const cur = getFingerConfig(built);
-    const nxt = getFingerConfig(built + 1);
-    if (nxt.right > cur.right) {
-      dot = { side: "right", tip: additionTips(cur.right, nxt.right)[0], base: additionBases(cur.right, nxt.right)[0] };
-    } else {
-      dot = { side: "left", tip: additionTips(cur.left, nxt.left)[0], base: additionBases(cur.left, nxt.left)[0] };
-    }
-  }
-  const leftDot  = dot && dot.side === "left"  ? dot : null;
-  const rightDot = dot && dot.side === "right" ? { tip: mirror(dot.tip), base: mirror(dot.base) } : null;
-
-  function commit() {
-    if (building && built < target) setBuilt(c => c + 1);
+  let leftCount, rightCount, leftBases, rightBases;
+  if (simple) {
+    // One hand per addend — both stay visible side by side once built.
+    leftCount  = builtA;
+    rightCount = builtB;
+    leftBases  = (phase === "a" && builtA < a) ? additionBases(builtA, a) : [];
+    rightBases = (phase === "b" && builtB < b) ? additionBases(builtB, b).map(mirror) : [];
+  } else {
+    const activeBuilt = building ? built : b;
+    const cfg = getFingerConfig(activeBuilt);
+    leftCount  = cfg.left;
+    rightCount = cfg.right;
+    const dots = building ? multiDotsAcrossHands(built, target) : { leftBases: [], rightBases: [] };
+    leftBases  = dots.leftBases;
+    rightBases = dots.rightBases.map(mirror);
   }
 
   return (
     <div className="fng-add-screen">
-      <div className="fng-add-top" onClick={settled ? skipToNext : undefined}
-           style={{ cursor: settled ? "pointer" : "default" }}>
+      <div className="fng-add-top">
         <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      <div className="fng-add-hands-zone" onClick={settled ? skipToNext : undefined}
-           style={{ cursor: settled ? "pointer" : "default" }}>
+      <div className="fng-add-hands-zone">
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={leftCount} side="right" style={{ width: "100%", height: "100%" }} />
-              {leftDot && (
+              {leftBases.length > 0 && (
                 <div className="fng-gesture-overlay">
-                  <GestureDot pos={leftDot.base} direction="up" onCommit={commit} />
+                  {leftBases.map((pos, i) => (
+                    <GestureDot key={i} pos={pos} direction="up" onCommit={commit} />
+                  ))}
                 </div>
               )}
+              {phase === "a" && settled && <WristZone onTap={skipToNext} />}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={rightCount} side="left" style={{ width: "100%", height: "100%" }} />
-              {rightDot && (
+              {rightBases.length > 0 && (
                 <div className="fng-gesture-overlay">
-                  <GestureDot pos={rightDot.base} direction="up" onCommit={commit} />
+                  {rightBases.map((pos, i) => (
+                    <GestureDot key={i} pos={pos} direction="up" onCommit={commit} />
+                  ))}
                 </div>
               )}
+              {phase === "b" && settled && <WristZone onTap={skipToNext} />}
             </div>
           </div>
         </div>
