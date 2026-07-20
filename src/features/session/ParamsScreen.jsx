@@ -20,7 +20,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
 import StoveHeatModal from "@/shared/components/StoveHeatModal";
-import { GLOBAL_MAX_PORTIONS } from "@/features/planner/recipeParser.js";
+import { GLOBAL_MAX_PORTIONS, scalePortionQty } from "@/features/planner/recipeParser.js";
 import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
 import { extractAdjustableTemplates, computeAdjustableDefault, formatCompact, stepPortionsMultiplier, formatPortionsPhrase } from "@/topics/renderers/reading/parseRecipeTxt.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
@@ -156,6 +156,20 @@ function RecipeStartParams({ topicId, activeText, student }) {
   const ingredientTemplates = adjustableTemplates.filter((t) => adjustableLabels[t.key]?.group === "ingredient");
   const timeTemplates = adjustableTemplates.filter((t) => adjustableLabels[t.key]?.group === "time");
 
+  // Each option choice (e.g. omelette filling: колбаса/курица/другое мясо)
+  // carries its own qty/unit in the recipe file — scaled the same way the
+  // flat ingredient ledger above is, so "1 горсть" vs "8 кружочков" shows up
+  // next to the right choice instead of silently disappearing (see
+  // OptionsPicker.jsx).
+  function withQtyLabels(choices) {
+    return choices.map((c) => ({
+      ...c,
+      qtyLabel: c.qty != null
+        ? formatCompact(scalePortionQty(c.qty, c.additiveStep, factor, c.coverDivisor), c.unit)
+        : null,
+    }));
+  }
+
   return (
     <div className="params-layout">
       <div className="params-info-col">
@@ -256,7 +270,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
               key={groupId}
               label={optionGroupsMeta[groupId]?.label ?? "Топпинг (можно несколько или ничего)"}
               mode={optionGroupsMeta[groupId]?.mode ?? "multi"}
-              choices={choices}
+              choices={withQtyLabels(choices)}
               selected={effectiveOptions[groupId] ?? []}
               onChange={(next) => setOptions((prev) => ({ ...prev, [groupId]: next }))}
             />
