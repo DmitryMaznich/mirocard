@@ -31,7 +31,7 @@ export default function PrintMaterialsRenderer({ topicRecord }) {
     };
   }, [meta.id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleDownload = useCallback(async (item, file) => {
+  const handleOpen = useCallback(async (item, file) => {
     const key = `${item.id}::${file.path}`;
     setBusy(prev => ({ ...prev, [key]: true }));
     try {
@@ -41,15 +41,14 @@ export default function PrintMaterialsRenderer({ topicRecord }) {
         alert("Файл не найден. Переустановите тему.");
         return;
       }
-      const url = URL.createObjectURL(blob);
-      const a = Object.assign(document.createElement("a"), {
-        href: url,
-        download: file.filename || file.path.split("/").pop(),
-      });
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      // PDF blobs saved with the correct MIME type open in the browser's
+      // built-in viewer, from which the user can view, print or save.
+      // A forced <a download> here would just save the file silently,
+      // with no way to open/preview it.
+      const pdfBlob = blob.type === "application/pdf" ? blob : new Blob([blob], { type: "application/pdf" });
+      const url = URL.createObjectURL(pdfBlob);
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } finally {
       setBusy(prev => ({ ...prev, [key]: false }));
     }
@@ -97,9 +96,9 @@ export default function PrintMaterialsRenderer({ topicRecord }) {
                       key={file.path}
                       className="pm-btn"
                       disabled={!!busy[key]}
-                      onClick={() => handleDownload(item, file)}
+                      onClick={() => handleOpen(item, file)}
                     >
-                      <span className="pm-btn__icon">{busy[key] ? "⏳" : "⬇"}</span>
+                      <span className="pm-btn__icon">{busy[key] ? "⏳" : "📄"}</span>
                       <span className="pm-btn__label">{file.label}</span>
                       {file.hint && (
                         <span className="pm-btn__hint">{file.hint}</span>

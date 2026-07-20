@@ -1774,6 +1774,7 @@ function inferMimeType(filename) {
   if (filename.endsWith(".mp3"))  return "audio/mpeg";
   if (filename.endsWith(".wav"))  return "audio/wav";
   if (filename.endsWith(".ogg"))  return "audio/ogg";
+  if (filename.endsWith(".pdf"))  return "application/pdf";
   return "application/octet-stream";
 }
 
