@@ -1032,7 +1032,7 @@ const DEFAULT_MODES = {
       id: "fingers_show",
       type: "fingers_show",
       evaluation: "none",
-      ui: { title: "Покажи", instruction: "Покажи число на пальцах", icon: "media/icons/column_addition_mode.svg" },
+      ui: { title: "Покажи", instruction: "Покажи число на пальцах", icon: "media/icons/fingers_show_mode.svg" },
       params: {
         hint: {
           type: "boolean",
