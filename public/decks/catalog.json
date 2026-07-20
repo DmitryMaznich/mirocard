@@ -327,14 +327,14 @@
     },
     {
       "id": "print_materials",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "title": {
         "ru": "Печатные материалы"
       },
       "description": {
         "ru": "Тетради и рабочие листы для печати"
       },
-      "url": "./decks/print_materials_v1.0.5.zip"
+      "url": "./decks/print_materials_v1.0.6.zip"
     }
   ]
 }

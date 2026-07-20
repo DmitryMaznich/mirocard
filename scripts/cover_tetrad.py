@@ -50,6 +50,11 @@ for r_path, b_path in [
     except Exception:
         pass
 
+# Nunito ExtraBold — тот же шрифт, что и в приложении (@fontsource/nunito, вес 800),
+# сконвертирован из woff2 в ttf через fontTools (assets/fonts/Nunito-ExtraBold.ttf).
+NUNITO = "NunitoExtraBold"
+pdfmetrics.registerFont(TTFont(NUNITO, os.path.join(ROOT_DIR, "assets", "fonts", "Nunito-ExtraBold.ttf")))
+
 # ── Цвета (из SortCaseView.jsx) ───────────────────────────────────────────────
 # C_LINE_BASE = "#2a82a0" — baseline (L3), тёмная
 # C_LINE_TOP  = "#6ab4cc" — верх рабочей зоны (L2), светлая
@@ -194,7 +199,9 @@ def _propis_grid(cv):
 
 def _logo_footer(cv):
     """Лого + копирайт — левый нижний угол левой страницы."""
-    logo_path = os.path.join(ROOT_DIR, "public", "icon-512.png")
+    # Инверсия icon-512.png: navy-фон + белый силуэт (вместо белый-фон + navy-силуэт),
+    # сгенерирована один раз в assets/images/mironium-icon-inverse.png.
+    logo_path = os.path.join(ROOT_DIR, "assets", "images", "mironium-icon-inverse.png")
     lx = L_X0
     ly = 9 * MM
     ls = 15 * MM
@@ -204,7 +211,7 @@ def _logo_footer(cv):
         tx = lx + ls + 3 * MM
     except Exception:
         tx = lx
-    cv.setFont(BOLD, 10)
+    cv.setFont(NUNITO, 10)
     cv.setFillColorRGB(0.290, 0.565, 0.886)   # #4a90e2 — брендовый синий Mironium
     cv.drawString(tx, ly + 9 * MM, "Mironium")
     cv.setFont(REG, 7.5)
