@@ -73,6 +73,11 @@ L_X1 = HALF_W - 8 * MM
 L_Y0 = 18 * MM
 L_Y1 = PAGE_H - 12 * MM
 
+# ── Алфавит (для варианта --variant=alphabet) ─────────────────────────────────
+ALPHABET_UPPER = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+ALPHABET_LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+ALPHABET_PAIRS = [u + l for u, l in zip(ALPHABET_UPPER, ALPHABET_LOWER)]
+
 
 # ═════════════════════════════════════════════════════════════════════════════
 # Примитивы прописей
@@ -149,67 +154,46 @@ def thumbnail_dots(cv, x0, x1, y0, y1, narrow_h, pitch, n_rows):
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# Левая страница — прописи + стихотворение
+# Левая страница — общая сетка прописей + подвал
 # ═════════════════════════════════════════════════════════════════════════════
 
-def left_page(cv):
-    cv.setFillColorRGB(1, 1, 1)
-    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
+TOTAL_ROWS = 6
+GRID_SCALE = 0.8   # все вертикальные параметры блока × 0.8
+X_RATIO    = 0.285 # xHeight/em (ClassRoomCursive)
 
-    # ── Масштаб блока: все вертикальные параметры × 0.8 ─────────────────────────
-    S           = 0.8
-    narrow_h    = NARROW_H * S      # 5mm → 4mm
-    pitch_l     = PITCH    * S      # 15mm → 12mm
-    X_RATIO     = 0.285             # xHeight/em (ClassRoomCursive)
-    FONT_POEM   = round(narrow_h / X_RATIO)   # 40pt
-    FONT_AUTHOR = round(FONT_POEM * 0.77)      # 31pt
 
-    # ── Геометрия вставки ─────────────────────────────────────────────────────
-    TOTAL_ROWS = 6
-    GRID_PAD   = 5 * MM * S         # 4mm
+def _propis_grid(cv):
+    """
+    Рисует сетку прописей (диагонали + линии) по центру левой страницы
+    и возвращает (ybase_fn, cx, max_w, font_max) для последующей раскладки текста.
+    """
+    narrow_h = NARROW_H * GRID_SCALE   # 5mm → 4mm
+    pitch_l  = PITCH    * GRID_SCALE   # 15mm → 12mm
+    grid_pad = 5 * MM * GRID_SCALE     # 4mm
 
     content_h = narrow_h + (TOTAL_ROWS - 1) * pitch_l
-    grid_h    = content_h + 2 * GRID_PAD
+    grid_h    = content_h + 2 * grid_pad
 
     grid_y_top    = PAGE_H / 2 + grid_h / 2
     grid_y_bottom = PAGE_H / 2 - grid_h / 2
-    y_first = grid_y_top - GRID_PAD - narrow_h
+    y_first = grid_y_top - grid_pad - narrow_h
 
-    # ── Рисуем вставку ────────────────────────────────────────────────────────
     diag_lines(cv, L_X0, L_X1, grid_y_bottom, grid_y_top)
     propis_rows(cv, L_X0, L_X1, y_first, TOTAL_ROWS,
                 narrow_h=narrow_h, pitch=pitch_l)
 
-    cx = (L_X0 + L_X1) / 2
-
     def ybase(row_idx):
         return y_first - row_idx * pitch_l
 
-    # ── Стихотворение ────────────────────────────────────────────────────────
+    cx      = (L_X0 + L_X1) / 2
+    max_w   = (L_X1 - L_X0) * 0.94   # небольшой запас от краёв
+    font_max = round(narrow_h / X_RATIO)   # 40pt
 
-    # Строка 0: заголовок (по центру, зелёный)
-    cv.setFont(CURSIVE, FONT_POEM)
-    cv.setFillColorRGB(0.05, 0.40, 0.08)
-    cv.drawCentredString(cx, ybase(0), "Любимая мама")
+    return ybase, cx, max_w, font_max
 
-    # Строки 1-4: стихи
-    cv.setFont(CURSIVE, FONT_POEM)
-    cv.setFillColorRGB(0.04, 0.08, 0.30)
-    poem = [
-        "Маму очень я люблю!",
-        "Я ей радость подарю,",
-        "Буду дома помогать",
-        "И пятёрки получать!",
-    ]
-    for j, line in enumerate(poem):
-        cv.drawCentredString(cx, ybase(1 + j), line)
 
-    # Строка 5: подпись — по правому краю, зелёная, чуть мельче
-    cv.setFont(CURSIVE, FONT_AUTHOR)
-    cv.setFillColorRGB(0.18, 0.38, 0.18)
-    cv.drawRightString(L_X1, ybase(5), "Екатерина Каплиева")
-
-    # Логотип + копирайт — левый нижний угол
+def _logo_footer(cv):
+    """Лого + копирайт — левый нижний угол левой страницы."""
     logo_path = "C:/Users/dmazn/Projects/Kaplieva/kaplieva_icon.png"
     lx = L_X0
     ly = 9 * MM
@@ -224,6 +208,79 @@ def left_page(cv):
     cv.setFillColorRGB(0.28, 0.28, 0.36)
     cv.drawString(tx, ly + 9 * MM,   "www.kaplieva.help")
     cv.drawString(tx, ly + 2.5 * MM, "© Kaplieva.help, 2026. Все права защищены.")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Левая страница — вариант «стихотворение»
+# ═════════════════════════════════════════════════════════════════════════════
+
+def left_page(cv):
+    cv.setFillColorRGB(1, 1, 1)
+    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
+
+    ybase, cx, _max_w, font_max = _propis_grid(cv)
+    font_author = round(font_max * 0.77)   # 31pt
+
+    # Строка 0: заголовок (по центру, зелёный)
+    cv.setFont(CURSIVE, font_max)
+    cv.setFillColorRGB(0.05, 0.40, 0.08)
+    cv.drawCentredString(cx, ybase(0), "Любимая мама")
+
+    # Строки 1-4: стихи
+    cv.setFont(CURSIVE, font_max)
+    cv.setFillColorRGB(0.04, 0.08, 0.30)
+    poem = [
+        "Маму очень я люблю!",
+        "Я ей радость подарю,",
+        "Буду дома помогать",
+        "И пятёрки получать!",
+    ]
+    for j, line in enumerate(poem):
+        cv.drawCentredString(cx, ybase(1 + j), line)
+
+    # Строка 5: подпись — по правому краю, зелёная, чуть мельче
+    cv.setFont(CURSIVE, font_author)
+    cv.setFillColorRGB(0.18, 0.38, 0.18)
+    cv.drawRightString(L_X1, ybase(5), "Екатерина Каплиева")
+
+    _logo_footer(cv)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Левая страница — вариант «алфавит»
+# ═════════════════════════════════════════════════════════════════════════════
+
+def _alphabet_rows(pairs, sizes):
+    rows, i = [], 0
+    for n in sizes:
+        rows.append(" ".join(pairs[i:i + n]))
+        i += n
+    assert i == len(pairs), f"{i} != {len(pairs)}"
+    return rows
+
+
+def left_page_alphabet(cv):
+    cv.setFillColorRGB(1, 1, 1)
+    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
+
+    ybase, cx, max_w, font_max = _propis_grid(cv)
+
+    # Строка 0: заголовок (по центру, зелёный)
+    cv.setFont(CURSIVE, font_max)
+    cv.setFillColorRGB(0.05, 0.40, 0.08)
+    cv.drawCentredString(cx, ybase(0), "Алфавит")
+
+    # Строки 1-5: 33 пары «Аа Бб Вв...» — 7/7/7/6/6 пар на строку
+    cv.setFillColorRGB(0.04, 0.08, 0.30)
+    rows = _alphabet_rows(ALPHABET_PAIRS, [7, 7, 7, 6, 6])
+    for j, row_text in enumerate(rows):
+        size = font_max
+        while size > 10 and pdfmetrics.stringWidth(row_text, CURSIVE, size) > max_w:
+            size -= 1
+        cv.setFont(CURSIVE, size)
+        cv.drawCentredString(cx, ybase(1 + j), row_text)
+
+    _logo_footer(cv)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -320,15 +377,22 @@ def right_page(cv, style="плотная"):
 # ═════════════════════════════════════════════════════════════════════════════
 
 def main():
-    style = "плотная"
+    style   = "плотная"
+    variant = "poem"
     for arg in sys.argv[1:]:
         if arg.startswith("--style="):
             style = arg.split("=", 1)[1]
+        elif arg.startswith("--variant="):
+            variant = arg.split("=", 1)[1]
 
-    out = os.path.join(ROOT_DIR, f"cover_{style}.pdf")
+    suffix = "" if variant == "poem" else f"_{variant}"
+    out = os.path.join(ROOT_DIR, f"cover_{style}{suffix}.pdf")
     cv = canvas.Canvas(out, pagesize=landscape(A4))
 
-    left_page(cv)
+    if variant == "alphabet":
+        left_page_alphabet(cv)
+    else:
+        left_page(cv)
     right_page(cv, style=style)
 
     # Линия сгиба

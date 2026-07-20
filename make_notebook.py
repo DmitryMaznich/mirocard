@@ -41,26 +41,28 @@ def build(name):
     merged.save(out_pages)
     print(f"{cfg['sheets']} листов A4 = {cfg['sheets'] * 2} страниц A5")
 
-    # 3. Генерируем обложку для данного варианта
+    # 3. Генерируем обложки для данного варианта (стих + алфавит)
     style = cfg.get("cover_style", "плотная")
     print("  Обложка...", end=" ", flush=True)
-    subprocess.run(
-        [sys.executable, os.path.join(ROOT, COVER_SCRIPT), f"--style={style}"],
-        cwd=ROOT, check=True
-    )
-    out_cover = os.path.join(out_dir, f"{name}_cover.pdf")
-    shutil.copy(os.path.join(ROOT, f"cover_{style}.pdf"), out_cover)
+    for variant, suffix in [("poem", ""), ("alphabet", "_alphabet")]:
+        subprocess.run(
+            [sys.executable, os.path.join(ROOT, COVER_SCRIPT), f"--style={style}", f"--variant={variant}"],
+            cwd=ROOT, check=True
+        )
+        out_cover = os.path.join(out_dir, f"{name}_cover{suffix}.pdf")
+        shutil.copy(os.path.join(ROOT, f"cover_{style}{suffix}.pdf"), out_cover)
     print("готово")
 
     # 4. Инструкция
     sheets = cfg["sheets"]
     print(f"""
   Файлы в папке output/:
-    {name}_cover.pdf   — обложка
-    {name}_pages.pdf   — страницы
+    {name}_cover.pdf            — обложка (стих)
+    {name}_cover_alphabet.pdf   — обложка (алфавит)
+    {name}_pages.pdf            — страницы
 
   Как печатать:
-    1. Обложка  — 1 лист, плотная бумага (180–250 г/м²), одностороннее
+    1. Обложка  — 1 лист, плотная бумага (180–250 г/м²), одностороннее (выберите один из вариантов обложки)
     2. Страницы — {sheets} листов, обычная бумага, двустороннее,
                   ориентация: альбомная, переплёт по короткому краю
     3. Сложить все листы вместе, обложка снаружи
