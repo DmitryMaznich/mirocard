@@ -142,24 +142,40 @@
   transition: opacity 0.25s ease;
 }
 
-.fng-add-hand-l,
-.fng-add-hand-r {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 40%;
-  transition: transform 0.75s ease;
-}
-.fng-add-hand-l { left: 0;  transform: translateX(0); }
-.fng-add-hand-r { right: 0; transform: translateX(0); }
-
-.fng-add-hand-l.fng-add-hand--merge { transform: translateX(40%); }
-.fng-add-hand-r.fng-add-hand--merge { transform: translateX(-40%); }
-
 /* Zone 3: keyboard — always in DOM, opacity controls visibility */
 .fng-add-kbd-zone {
   flex-shrink: 0;
   transition: opacity 0.3s ease;
+}
+
+/* kbd-zone with position:relative, so the "Ответ" button can overlay the
+ * (invisible-but-present) keypad without shifting layout. */
+.fng-kbd-relative {
+  position: relative;
+}
+
+.fng-ready-zone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fng-ready-btn {
+  padding: 14px 52px;
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(20px, 5vw, 28px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
 }
 
 /* Zone 2 inner — subtraction hands (flex, no merge animation) */
@@ -198,118 +214,13 @@
   max-height: 100%;
 }
 
-/*
- * Overlay covers the inner container exactly (inset:0).
- * Arrow left:X% now refers to the image canvas width directly.
- */
-.fng-sub-finger-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/*
- * Arrow overlay: a full 256×320-viewBox SVG exactly covering fng-sub-hand-inner
- * (same coordinate space as AnimatedHand), so a single quadratic-curve <path>
- * can connect two REAL points (finger tip ↔ its folded knuckle) — a plain
- * vertical line anchored at only one endpoint used to visibly miss whenever
- * a finger doesn't fold straight down (most don't).
- */
-.fng-sub-arrow,
-.fng-add-arrow {
-  user-select: none;
-}
-
-.fng-arrow-halo {
-  fill: none;
-  stroke: #f0f6ff;
-  stroke-width: 7;
-  stroke-linecap: round;
-}
-.fng-arrow-line {
-  fill: none;
-  stroke-width: 3.4;
-  stroke-linecap: round;
-}
-.fng-arrow-halo,
-.fng-arrow-line {
-  stroke-dasharray: 160;
-  stroke-dashoffset: 160;
-  animation: fng-arrow-draw 0.4s ease-out forwards;
-}
-
-@keyframes fng-arrow-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-/* Once drawn, the arrow stays alive with a gentle bob + colored glow pulse
- * (rehearsed in the finger-raise mockups) instead of sitting static. */
-.fng-sub-arrow {
-  animation: fng-arrow-bob 1.6s 0.45s ease-in-out infinite, fng-arrow-glow-red 1.6s 0.45s ease-in-out infinite;
-}
-.fng-add-arrow {
-  animation: fng-arrow-bob 1.6s 0.45s ease-in-out infinite, fng-arrow-glow-green 1.6s 0.45s ease-in-out infinite;
-}
-
-@keyframes fng-arrow-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
-}
-@keyframes fng-arrow-glow-red {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0)); }
-  50%      { filter: drop-shadow(0 0 5px rgba(239, 68, 68, .65)); }
-}
-@keyframes fng-arrow-glow-green {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(34, 197, 94, 0)); }
-  50%      { filter: drop-shadow(0 0 5px rgba(34, 197, 94, .65)); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fng-gesture-arrow, .fng-sub-arrow, .fng-add-arrow, .fng-arrow-halo, .fng-arrow-line {
-    animation: none !important;
-    stroke-dashoffset: 0 !important;
-  }
-}
-
-/* Numbered badge for multi-finger gesture cascades (2+ items in one overlay) */
-.fng-gesture-badge {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-family: 'Nunito', sans-serif;
-  font-size: 11px;
-  font-weight: 800;
-  pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
-  opacity: 0;
-  animation: fng-head-appear 0.2s ease-out 0.28s forwards, fng-arrow-bob 1.6s 0.55s ease-in-out infinite;
-}
-.fng-gesture-badge--down { background: #ef4444; }
-.fng-gesture-badge--up   { background: #22c55e; }
-
-
-/* ── Gesture overlay (жест-управляемые точки и стрелки) ─────────── */
-
+/* ── Gesture overlay (жест-управляемая точка) ─────────────────────── */
 /* Overlay — pointer-events: none на контейнере, auto на дочерних элементах */
 .fng-gesture-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 3;
-}
-
-/* Gesture arrow: override pointer-events для tap-to-cancel */
-.fng-gesture-arrow {
-  pointer-events: auto;
-  cursor: pointer;
-  touch-action: none;
 }
 
 /* Gesture dot: большая зона касания 44×44, видимая точка 18px */
@@ -346,185 +257,3 @@
 }
 
 /* ── end FingersCount addition ───────────────────────────────────── */
-
-.fng-hand-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.fng-hand-wrap svg {
-  overflow: visible;
-}
-
-.fng-finger {
-  transition: none;
-}
-
-.fng-finger--animated {
-  transition: transform 0.3s ease;
-}
-
-.fng-screen {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #f0f6ff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  user-select: none;
-  touch-action: none;
-  overflow: hidden;
-}
-
-.fng-number {
-  font-family: 'Primo', sans-serif;
-  font-size: 96px;
-  color: #1a2540;
-  line-height: 1;
-}
-
-.fng-hands-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 24px;
-}
-
-.fng-instruction {
-  font-size: 20px;
-  color: #4a5568;
-  text-align: center;
-  padding: 0 24px;
-  max-width: 320px;
-}
-
-.fng-btn {
-  padding: 16px 40px;
-  border: none;
-  border-radius: 16px;
-  font-size: 22px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.fng-btn--next {
-  background: #4CAF50;
-  color: #fff;
-}
-
-.fng-btn--tap {
-  background: #FF6B35;
-  color: #fff;
-  font-size: 28px;
-  padding: 20px 60px;
-}
-
-.fng-btn--merge {
-  background: #7C3AED;
-  color: #fff;
-}
-
-.fng-btn--disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* merge animation */
-.fng-hands-merge {
-  display: flex;
-  align-items: flex-end;
-  gap: 24px;
-}
-
-.fng-hand-merging-left {
-  animation: fng-slide-right 0.6s ease forwards;
-}
-
-.fng-hand-merging-right {
-  animation: fng-slide-left 0.6s ease forwards;
-}
-
-@keyframes fng-slide-right {
-  to { transform: translateX(60px); }
-}
-
-@keyframes fng-slide-left {
-  to { transform: translateX(-60px); }
-}
-
-.fng-count-dots {
-  display: flex;
-  gap: 8px;
-}
-
-.fng-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #d1d5db;
-}
-
-.fng-dot--filled {
-  background: #FF6B35;
-}
-
-.fng-expression {
-  font-family: 'Primo', sans-serif;
-  font-size: 36px;
-  color: #1a2540;
-  letter-spacing: 4px;
-}
-
-.fng-result-number {
-  color: #4CAF50;
-}
-
-/* subtraction: hand-to-remove highlight */
-.fng-hand--remove {
-  animation: fng-pulse-red 0.8s ease infinite alternate;
-}
-
-@keyframes fng-pulse-red {
-  from { filter: drop-shadow(0 0 4px rgba(239,68,68,0.4)); }
-  to   { filter: drop-shadow(0 0 12px rgba(239,68,68,0.9)); }
-}
-
-.fng-hand--removed {
-  animation: fng-slide-away 0.5s ease forwards;
-}
-
-@keyframes fng-slide-away {
-  to { transform: translateX(-140px); opacity: 0; }
-}
-
-/* counting sequence */
-.fng-count-seq {
-  display: flex;
-  gap: 10px;
-  font-family: 'Primo', sans-serif;
-  font-size: 32px;
-  color: #1a2540;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: 0 24px;
-}
-
-.fng-count-seq span {
-  opacity: 0.2;
-  transition: opacity 0.25s ease;
-}
-
-.fng-count-seq span.fng-count--active {
-  opacity: 1;
-  color: #FF6B35;
-}
-
-.fng-count-seq span.fng-count--done {
-  opacity: 1;
-}
