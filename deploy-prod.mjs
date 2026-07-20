@@ -130,6 +130,7 @@ USER = ${JSON.stringify(sshUser)}
 PASSWORD = os.environ.get("MIROCARD_DEPLOY_PASSWORD") or None
 KEY_PATH = os.environ.get("MIROCARD_DEPLOY_KEY_PATH") or None
 FILES = ${JSON.stringify(files, null, 2)}
+WIN_DIST_ROOT = ${JSON.stringify(`${remoteRoot}/dist`.replace(/\//g, "\\"))}
 
 # index.html is kept open by Caddy — must use tmp+rename to avoid SFTP Failure
 # version.json and index.html change every build — always force-upload, skip size check
@@ -152,12 +153,28 @@ def local_md5(path):
             h.update(chunk)
     return h.hexdigest().upper()
 
-def remote_md5(client, remote_path):
-    win_path = remote_path.replace("/", "\\\\")
-    cmd = "powershell -Command \\"(Get-FileHash -Algorithm MD5 -LiteralPath '{}').Hash\\"".format(win_path)
-    stdin, stdout, stderr = client.exec_command(cmd)
-    out = stdout.read().decode().strip()
-    return out.upper() if out else None
+# One remote PowerShell call that hashes every .zip already on the runtime
+# host, instead of spawning a fresh powershell.exe per file inside the
+# upload loop. With ~400 deck ZIPs (a routine deploy that doesn't touch any
+# deck leaves all of them same-size, so every one used to need a hash
+# check), the per-file version cost ~0.85s/spawn — 5+ minutes just for
+# ZIP verification. Batched, the whole tree hashes in a few seconds.
+def remote_md5_batch(client, win_dist_root):
+    ps = (
+        "powershell -NoProfile -Command \\""
+        "Get-ChildItem -Path '" + win_dist_root + "' -Filter *.zip -Recurse "
+        "| ForEach-Object { $h = Get-FileHash -Algorithm MD5 -LiteralPath $_.FullName; "
+        "Write-Output ($_.FullName + '|' + $h.Hash) }\\""
+    )
+    stdin, stdout, stderr = client.exec_command(ps, timeout=120)
+    out = stdout.read().decode()
+    hashes = {}
+    for line in out.strip().split("\\n"):
+        if "|" not in line:
+            continue
+        remote_path, digest = line.rsplit("|", 1)
+        hashes[remote_path.strip().replace("\\\\", "/").upper()] = digest.strip().upper()
+    return hashes
 
 def mkdir_p(sftp, remote_path):
     parts = remote_path.replace("\\\\", "/").split("/")
@@ -198,7 +215,7 @@ def connect():
             print(f"connect failed {host}:{PORT}: {exc}")
     raise last_error
 
-def upload_file(sftp, client, local, remote):
+def upload_file(sftp, client, local, remote, remote_zip_hashes):
     filename = posixpath.basename(remote)
     local_size = os.path.getsize(local)
     if filename not in ALWAYS_UPLOAD:
@@ -207,7 +224,7 @@ def upload_file(sftp, client, local, remote):
                 ext = os.path.splitext(filename)[1].lower()
                 if ext not in HASH_VERIFY_EXT:
                     return False  # unchanged
-                remote_hash = remote_md5(client, remote)
+                remote_hash = remote_zip_hashes.get(remote.upper())
                 if remote_hash and remote_hash == local_md5(local):
                     return False  # unchanged, confirmed by content hash
         except IOError:
@@ -229,10 +246,18 @@ client = connect()
 sftp = client.open_sftp()
 uploaded = 0
 skipped = 0
+
+remote_zip_hashes = {}
+if any(posixpath.splitext(item["remote"])[1].lower() == ".zip" for item in FILES):
+    try:
+        remote_zip_hashes = remote_md5_batch(client, WIN_DIST_ROOT)
+    except Exception as exc:
+        print(f"  warning: batch zip hash failed ({exc}) — zips will be verified individually as changed")
+
 for item in FILES:
     for attempt in range(4):
         try:
-            if upload_file(sftp, client, item["local"], item["remote"]):
+            if upload_file(sftp, client, item["local"], item["remote"], remote_zip_hashes):
                 print("uploaded", item["remote"])
                 uploaded += 1
             else:
