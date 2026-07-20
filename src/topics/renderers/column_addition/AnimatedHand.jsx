@@ -7,9 +7,11 @@ function HandLayer({ n, mirror, style }) {
   const shape = HAND_PATHS[Math.max(0, Math.min(5, n))];
   return (
     <svg
+      width="256"
+      height="320"
       viewBox="0 0 256 320"
       aria-hidden="true"
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block", ...style }}
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: "100%", height: "100%", display: "block", ...style }}
     >
       <g transform={mirror ? "translate(256,0) scale(-1,1)" : undefined}>
         <path d={shape.fill} fill="#FBBF8A" />

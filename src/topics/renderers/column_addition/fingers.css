@@ -197,6 +197,7 @@
 .fng-sub-hand-inner {
   position: relative;
   aspect-ratio: 256 / 320;
+  width: 100%;
   max-width: 100%;
   max-height: 100%;
 }
