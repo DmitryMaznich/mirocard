@@ -1,3 +1,5 @@
+import { scalePortionQty } from './recipeParser.js';
+
 /**
  * Product → purchase-conversion rules for the Покупки shopping list.
  *
@@ -67,12 +69,21 @@ export const HALF_SNAP_UNITS = new Set(['стакан', 'ст.л', 'ч.л']);
  * supports (whole count, nearest half, or two decimals). Shared by any
  * screen that shows a recipe's ingredient list at a given portion count
  * (recipe detail view, catalog preview).
+ *
+ * additiveStep/coverDivisor mirror the same fields recipeParser.js's
+ * scalePortionQty understands (a `key:base+step` or `key:/N` ingredient
+ * line) — without them here, a recipe using non-proportional scaling
+ * (e.g. omelette butter, burger's oilPan/tomato/pickle) would silently
+ * fall back to plain multiplication on this screen while the shopping
+ * list (buildSelectedIngredientsSummary, which already calls
+ * scalePortionQty) showed the correct amount.
  */
-export function scaleIngredientQty(qty, unit, scale) {
-  if (qty == null) return null;
-  if (isDiscreteUnit(unit)) return Math.ceil(qty * scale);
-  if (HALF_SNAP_UNITS.has(unit)) return Math.round(qty * scale * 2) / 2;
-  return Math.round(qty * scale * 100) / 100;
+export function scaleIngredientQty(qty, unit, scale, additiveStep = null, coverDivisor = null) {
+  const raw = scalePortionQty(qty, additiveStep, scale, coverDivisor);
+  if (raw == null) return null;
+  if (isDiscreteUnit(unit)) return Math.ceil(raw);
+  if (HALF_SNAP_UNITS.has(unit)) return Math.round(raw * 2) / 2;
+  return Math.round(raw * 100) / 100;
 }
 
 function lookup(product) {

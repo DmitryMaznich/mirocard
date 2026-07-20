@@ -129,6 +129,8 @@ function buildTextEntry(id, content) {
   const portionsRaw = parseHeaderField(content, 'portions:');
   const portions = portionsRaw ? (parseInt(portionsRaw, 10) || 1) : 1;
   const fixedPortions = type === 'fixed' ? portions : null;
+  const maxPortionsRaw = parseHeaderField(content, 'max_portions:');
+  const maxPortions = maxPortionsRaw ? (parseInt(maxPortionsRaw, 10) || null) : null;
   const title = extractTitle(content);
   const options = parseOptions(content);
   const optionGroups = parseOptionGroups(content);
@@ -142,6 +144,7 @@ function buildTextEntry(id, content) {
     image: `media/${id}.svg`,
     portions,
     ...(fixedPortions ? { fixedPortions } : {}),
+    ...(maxPortions ? { maxPortions } : {}),
     ...(Object.keys(options).length ? { options } : {}),
     ...(Object.keys(optionGroups).length ? { optionGroups } : {}),
     ...(Object.keys(adjustable).length ? { adjustable } : {}),

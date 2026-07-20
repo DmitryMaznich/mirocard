@@ -24,6 +24,12 @@
  * quantities can't be scaled below it. Absent (or any other value) means
  * the recipe scales per portion, up to GLOBAL_MAX_PORTIONS.
  *
+ * max_portions optionally lowers that ceiling for one recipe — e.g. an
+ * omelette cooked as a single pan-batch (the whole thing gets folded and
+ * flipped as one piece) realistically tops out around 3 portions per
+ * household cookware, well under the global default of 8. Absent means no
+ * override; the UI falls back to GLOBAL_MAX_PORTIONS.
+ *
  * status is 'final' or 'draft' — anything else (including missing) is
  * treated as 'draft', so an unmarked recipe is flagged rather than
  * silently assumed ready.
@@ -91,6 +97,7 @@ export function parseRecipeMetadata(content) {
   const tags = [];
   let photo = null;
   let portions = 1;
+  let maxPortions = null;
   let isFixedType = false;
   let status = 'draft';
   const ingredients = [];
@@ -178,6 +185,8 @@ export function parseRecipeMetadata(content) {
       tags.push(...raw.split(',').map((t) => t.trim()).filter(Boolean));
     } else if (kv.startsWith('type:')) {
       isFixedType = kv.slice(5).trim() === 'fixed';
+    } else if (kv.startsWith('max_portions:')) {
+      maxPortions = parseInt(kv.slice(13).trim(), 10) || null;
     } else if (kv.startsWith('portions:')) {
       portions = parseInt(kv.slice(9).trim(), 10) || 1;
     } else if (kv.startsWith('status:')) {
@@ -195,6 +204,7 @@ export function parseRecipeMetadata(content) {
     photo,
     tags,
     portions,
+    maxPortions,
     fixedPortions: isFixedType ? portions : null,
     options,
     optionGroups,
