@@ -587,6 +587,53 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(byId.identify_number.params.numericBlocks.info.ru.text).toEqual(expect.any(String));
   });
 
+  it("reorders an already-installed column_addition record's modes to the current pedagogical sequence", async () => {
+    // column_addition never had meta.cardType === "procedural" set (verified against the
+    // shipped topic.json), so a stale record's modes used to stay pinned to whatever order
+    // was persisted at install time, ignoring DEFAULT_MODES reorders — mode config here is
+    // entirely code-owned (no manifest defines its own modes array), so the persisted order
+    // is never a real customization worth preserving.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      // Old order: column_arithmetic first, column_copy second — the pre-reorder shape.
+      modes: [
+        { id: "column_arithmetic", type: "column_arithmetic", evaluation: "auto", ui: { title: "Столбик", icon: "media/icons/column_addition_mode.svg" }, params: {} },
+        { id: "column_copy", type: "column_copy", evaluation: "none", ui: { title: "Перепиши", icon: "media/icons/column_copy_mode.svg" }, params: {} },
+        { id: "fingers_show", type: "fingers_show", evaluation: "none", ui: { title: "Покажи", icon: "media/icons/column_addition_mode.svg" }, params: {} },
+        { id: "fingers_count", type: "fingers_count", evaluation: "instant", ui: { title: "Считаем на пальцах", icon: "media/icons/fingers_count_mode.svg" }, params: {} },
+        { id: "build_number", type: "build_number", evaluation: "instant", ui: { title: "Собери число", icon: "media/icons/place_value_build.svg" }, params: {} },
+        { id: "identify_number", type: "identify_number", evaluation: "instant", ui: { title: "Какое это число?", icon: "media/icons/place_value_identify.svg" }, params: {} },
+        { id: "regroup_ten", type: "regroup_ten", evaluation: "instant", ui: { title: "Разменяй десяток", icon: "media/icons/place_value_regroup.svg" }, params: {} },
+      ],
+      cards: [
+        { id: "col_add", conceptId: "col_add", renderer: "column_addition", params: { operation: "add" } },
+        { id: "col_sub", conceptId: "col_sub", renderer: "column_addition", params: { operation: "subtract" } },
+      ],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    expect(record.modes.map((m) => m.id)).toEqual([
+      "fingers_show",
+      "fingers_count",
+      "build_number",
+      "identify_number",
+      "regroup_ten",
+      "column_arithmetic",
+      "column_copy",
+    ]);
+
+    const arithmetic = record.modes.find((m) => m.id === "column_arithmetic");
+    expect(arithmetic.ui.title).toBe("Столбик — Тренажёр");
+    const copy = record.modes.find((m) => m.id === "column_copy");
+    expect(copy.ui.title).toBe("Контрольная работа");
+  });
+
   it("adds the new maxTens param to a build_number record saved before it existed", async () => {
     // Simulates a device that installed build_number before maxTens/the coin
     // mechanic existed — on the next load, the new range param and the updated
