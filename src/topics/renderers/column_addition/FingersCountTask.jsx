@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useId } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { FINGER_TIPS_R, FINGER_BASES_R } from "./handShapes.js";
@@ -136,9 +136,36 @@ function GestureDot({ pos, direction, onCommit }) {
   );
 }
 
+const ARROW_CANVAS_W = 256;
+const ARROW_CANVAS_H = 320;
+
+// Curved path between the two REAL points (not just a vertical line anchored
+// at one of them) — a straight line that only follows tip.y-base.y and
+// ignores any x-difference visibly misses its target whenever a finger
+// doesn't fold/unfold perfectly vertically (most of them don't). Bulges
+// outward from the hand's centerline for a natural, non-robotic curve,
+// matching the technique proved out in the finger-raise mockups.
+function curvedArrowPath(from, to) {
+  const fx = from.x * ARROW_CANVAS_W, fy = from.y * ARROW_CANVAS_H;
+  const tx = to.x * ARROW_CANVAS_W, ty = to.y * ARROW_CANVAS_H;
+  const mx = (fx + tx) / 2, my = (fy + ty) / 2;
+  const dx = tx - fx, dy = ty - fy;
+  const len = Math.hypot(dx, dy) || 1;
+  let nx = -dy / len, ny = dx / len;
+  if (Math.abs(mx + nx * 10 - ARROW_CANVAS_W / 2) < Math.abs(mx - ARROW_CANVAS_W / 2)) {
+    nx = -nx; ny = -ny;
+  }
+  const bulge = Math.min(len * 0.35, 45);
+  const cx = mx + nx * bulge, cy = my + ny * bulge;
+  return `M ${fx} ${fy} Q ${cx} ${cy} ${tx} ${ty}`;
+}
+
 function DrawnArrow({ tip, base, direction, onTap, order }) {
   const startRef = useRef(null);
+  const markerId = useId();
   const showBadge = order != null;
+
+  if (!base) return null;
 
   function onPointerDown(e) {
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -154,49 +181,31 @@ function DrawnArrow({ tip, base, direction, onTap, order }) {
     startRef.current = null;
   }
 
-  if (direction === "down") {
-    return (
-      <>
-        <svg
-          viewBox="0 0 40 100"
-          className="fng-sub-arrow fng-gesture-arrow"
-          style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, pointerEvents: "auto" }}
-          onPointerDown={onPointerDown}
-          onPointerUp={onPointerUp}
-        >
-          <line x1="20" y1="2" x2="20" y2="68" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
-          <line x1="20" y1="2" x2="20" y2="68" stroke="#ef4444" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
-          <polygon points="20,100 0,63 40,63" fill="white" className="fng-head-bg" />
-          <polygon points="20,96 5,66 35,66" fill="#ef4444" className="fng-head" />
-        </svg>
-        {showBadge && (
-          <div className="fng-gesture-badge fng-gesture-badge--down" style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
-            {order}
-          </div>
-        )}
-      </>
-    );
-  }
+  const color = direction === "down" ? "#ef4444" : "#22c55e";
+  const from = direction === "down" ? tip : base;
+  const to   = direction === "down" ? base : tip;
+  const d = curvedArrowPath(from, to);
+  const badgeAt = direction === "down" ? tip : base; // same point the dot sat on
 
-  // direction === "up"
-  const h = base ? (base.y - tip.y) * 100 : 0;
-  if (h <= 0) return null;
   return (
     <>
       <svg
-        viewBox="0 0 40 100"
-        className="fng-add-arrow fng-gesture-arrow"
-        style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, height: `${h}%`, pointerEvents: "auto" }}
+        viewBox={`0 0 ${ARROW_CANVAS_W} ${ARROW_CANVAS_H}`}
+        className={`fng-gesture-arrow ${direction === "down" ? "fng-sub-arrow" : "fng-add-arrow"}`}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible", pointerEvents: "auto" }}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
       >
-        <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
-        <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
-        <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
-        <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
+        <defs>
+          <marker id={markerId} viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 Z" fill={color} />
+          </marker>
+        </defs>
+        <path d={d} className="fng-arrow-halo" />
+        <path d={d} className="fng-arrow-line" style={{ stroke: color }} markerEnd={`url(#${markerId})`} />
       </svg>
       {showBadge && (
-        <div className="fng-gesture-badge fng-gesture-badge--up" style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
+        <div className={`fng-gesture-badge fng-gesture-badge--${direction}`} style={{ left: `${badgeAt.x * 100}%`, top: `${badgeAt.y * 100}%` }}>
           {order}
         </div>
       )}
@@ -249,6 +258,19 @@ function removalTips(startCount, endCount) {
   const order   = FOLD_ORDER[startCount] ?? [];
   const tips    = FINGER_TIPS_R[startCount] ?? [];
   return order.slice(0, removeN).map(i => tips[i]).filter(Boolean);
+}
+
+// Landing knuckle position for each removed finger — where it ends up once
+// folded, i.e. its base in the END state. Mirrors additionBases' index-shift
+// (FINGER_TIPS_R skips the thumb unless the pose is a full 5).
+function removalBases(startCount, endCount) {
+  const removeN = startCount - endCount;
+  const order   = FOLD_ORDER[startCount] ?? [];
+  const bases   = FINGER_BASES_R[endCount] ?? [];
+  return order.slice(0, removeN).map(i => {
+    const baseIdx = startCount === 5 ? i : i + 1;
+    return bases[baseIdx] ?? null;
+  }).filter(Boolean);
 }
 
 function additionTips(startCount, endCount) {
@@ -326,12 +348,19 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   const kbdVisible = phase === "answer" || phase === "done";
   const tappable   = phase === "result";
 
-  const leftTips   = removalTips(leftStart, leftEnd);
-  const rightTipsR = removalTips(rightStart, rightEnd);
-  const rightTips  = [...rightTipsR].reverse().map(t => ({ x: 1 - t.x, y: t.y }));
+  const leftTipsArr   = removalTips(leftStart, leftEnd);
+  const leftBasesArr  = removalBases(leftStart, leftEnd);
+  const leftItems     = leftTipsArr.map((tip, i) => ({ tip, base: leftBasesArr[i] ?? null })).filter(item => item.base);
 
-  const leftItems  = leftTips.map(tip => ({ tip, base: null }));
-  const rightItems = rightTips.map(tip => ({ tip, base: null }));
+  const rightTipsArrR  = removalTips(rightStart, rightEnd);
+  const rightBasesArrR = removalBases(rightStart, rightEnd);
+  const rightItems     = [...Array(rightTipsArrR.length).keys()]
+    .reverse()
+    .map(origIdx => ({
+      tip:  { x: 1 - rightTipsArrR[origIdx].x,  y: rightTipsArrR[origIdx].y },
+      base: rightBasesArrR[origIdx] ? { x: 1 - rightBasesArrR[origIdx].x, y: rightBasesArrR[origIdx].y } : null,
+    }))
+    .filter(item => item.base);
 
   const totalItems     = leftItems.length + rightItems.length;
   const totalCommitted = committedLeft.size + committedRight.size;
