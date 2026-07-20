@@ -85,7 +85,7 @@ function CatalogRecipeDetail({ recipe, onCook, onBack }) {
                 <li key={i} className="recipe-ingredients__item">
                   <span className="recipe-ingredients__product">{ing.product}</span>
                   <span className="recipe-ingredients__qty">
-                    {scaledQty != null ? `${scaledQty} ${ing.unit ?? ''}`.trim() : 'по вкусу'}
+                    {scaledQty != null ? `${scaledQty} ${ing.unit ?? ''}`.trim() : (ing.unit || 'по вкусу')}
                   </span>
                 </li>
               );

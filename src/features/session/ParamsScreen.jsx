@@ -164,9 +164,11 @@ function RecipeStartParams({ topicId, activeText, student }) {
   function withQtyLabels(choices) {
     return choices.map((c) => ({
       ...c,
+      // No qty (e.g. "сколько хочешь" filling amounts, not a measured
+      // dose) — the unit column doubles as the free-text label instead.
       qtyLabel: c.qty != null
         ? formatCompact(scalePortionQty(c.qty, c.additiveStep, factor, c.coverDivisor), c.unit)
-        : null,
+        : (c.unit ?? null),
     }));
   }
 

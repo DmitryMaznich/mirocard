@@ -14,9 +14,9 @@
 #   filling | single | Добавка
 #   milk | multi | Молоко
 # options:
-#   filling | колбаса | 8 | кружочков
-#   filling | курица | 1 | горсть
-#   filling | другое мясо | 1 | горсть
+#   filling | колбаса |  | сколько хочешь
+#   filling | курица |  | сколько хочешь
+#   filling | другое мясо |  | сколько хочешь
 #   milk | молоко | 2 | ст.л
 Омлет
 [omelet.webp]

@@ -85,7 +85,7 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
                 <li key={i} className="recipe-ingredients__item">
                   <span className="recipe-ingredients__product">{ing.product}</span>
                   <span className="recipe-ingredients__qty">
-                    {scaledQty != null ? `${scaledQty} ${ing.unit ?? ''}`.trim() : 'по вкусу'}
+                    {scaledQty != null ? `${scaledQty} ${ing.unit ?? ''}`.trim() : (ing.unit || 'по вкусу')}
                   </span>
                 </li>
               );
@@ -213,9 +213,11 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
   function withQtyLabels(choices) {
     return choices.map((c) => ({
       ...c,
+      // No qty (e.g. "сколько хочешь" filling amounts, not a measured
+      // dose) — the unit column doubles as the free-text label instead.
       qtyLabel: c.qty != null
         ? formatCompact(scalePortionQty(c.qty, c.additiveStep, scale, c.coverDivisor), c.unit)
-        : null,
+        : (c.unit ?? null),
     }));
   }
 
@@ -486,7 +488,7 @@ function MenuIngredientsSummary({ plan, allRecipes, onSetDecision, onSetAllDecis
             <div key={key} className="menu-ingr-row">
               <span className="menu-ingr-row__product">{item.product}</span>
               <span className="menu-ingr-row__qty">
-                {item.qty != null ? `${Math.round(item.qty * 10) / 10} ${item.unit ?? ''}`.trim() : 'по вкусу'}
+                {item.qty != null ? `${Math.round(item.qty * 10) / 10} ${item.unit ?? ''}`.trim() : (item.unit || 'по вкусу')}
               </span>
               <IngredientTriToggle
                 value={plan.ingredientDecisions[key] ?? null}

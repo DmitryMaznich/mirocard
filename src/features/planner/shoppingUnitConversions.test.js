@@ -17,6 +17,10 @@ describe('scaleIngredientQty', () => {
   it('rounds a half-snap unit to the nearest half after additive scaling', () => {
     expect(scaleIngredientQty(1, 'ст.л', 2, 0.5)).toBe(1.5);
   });
+
+  it('returns null for an unmeasured ingredient (e.g. omelette filling "сколько хочешь") regardless of scale', () => {
+    expect(scaleIngredientQty(null, 'сколько хочешь', 3)).toBeNull();
+  });
 });
 
 describe('toCanonicalQty', () => {
@@ -41,14 +45,8 @@ describe('toCanonicalQty', () => {
     expect(toCanonicalQty('гречка', 100, 'г')).toEqual({ qty: 100, unit: 'г' });
   });
 
-  it('converts колбаса кружочков/кружков to the same grams basis, so omelet and scramble_sausage sum correctly when both are in the same menu', () => {
-    expect(toCanonicalQty('колбаса', 8, 'кружочков')).toEqual({ qty: 80, unit: 'г' });
+  it('converts колбаса кружков (scramble_sausage.txt) to grams', () => {
     expect(toCanonicalQty('колбаса', 10, 'кружков')).toEqual({ qty: 100, unit: 'г' });
-  });
-
-  it('converts курица/другое мясо горсть to grams', () => {
-    expect(toCanonicalQty('курица', 1, 'горсть')).toEqual({ qty: 100, unit: 'г' });
-    expect(toCanonicalQty('другое мясо', 2, 'горсть')).toEqual({ qty: 200, unit: 'г' });
   });
 
   it('matches product name case-insensitively', () => {
