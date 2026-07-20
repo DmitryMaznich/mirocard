@@ -2,7 +2,32 @@ import React, { useState, useEffect, useRef } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { FINGER_TIPS_R, FINGER_BASES_R } from "./handShapes.js";
+import DigitKeypad from "./DigitKeypad.jsx";
+import { useTapButtonSize } from "./useTapButtonSize.js";
 import "./fingers.css";
+
+// Same hand-written-style buttons as the Столбик tap keyboard, plus a delete
+// key (needed here since results can be multi-digit and mistyped, unlike a
+// single-cell column entry). fontFamily is forced to sans-serif for the ⌫
+// glyph — Primo (the digit font) doesn't have a glyph for it.
+function FingersKeypad({ onDigit, onDelete, active }) {
+  const bs = useTapButtonSize(48);
+  const bsStr = bs + "px";
+  return (
+    <div className="col-tap-kb" style={{ pointerEvents: active ? "auto" : "none" }}>
+      <DigitKeypad onDigit={onDigit} bs={bs} />
+      <div className="col-tap-row">
+        <button
+          className="col-tap-btn col-tap-btn--line"
+          style={{ height: bsStr, flex: 1, color: "#ef4444", fontFamily: "sans-serif", fontSize: Math.round(bs * 0.5) + "px" }}
+          onClick={onDelete}
+        >
+          ⌫
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ── Addition (a ≤ 5 and b ≤ 5) ───────────────────────────────────────────────
 // Flow: show → [tap] → answer (merge animation plays)
@@ -70,28 +95,19 @@ function AdditionTask({ task, onCorrect, onMistake }) {
         </div>
       </div>
 
-      <div className="fng-add-kbd-zone">
-        <div className="col-copy-keyboard"
-             style={{ opacity: kbdVisible ? 1 : 0, pointerEvents: phase === "answer" ? "auto" : "none" }}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-            <button key={d} className="col-copy-kb-btn" onClick={() => handleDigit(d)}>
-              <span className="col-slant">{d}</span>
-            </button>
-          ))}
-          <button className="col-copy-kb-btn col-copy-kb-del" onClick={handleDelete}>⌫</button>
-          <button className="col-copy-kb-btn" onClick={() => handleDigit(0)}>
-            <span className="col-slant">0</span>
-          </button>
-          <div />
-        </div>
+      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
+        <FingersKeypad onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
       </div>
     </div>
   );
 }
 
 // ── Shared gesture system (Subtraction + Large Addition) ──────────────────────
-
-const GESTURE_THRESHOLD = 30; // px (~1 cm на планшете)
+// A tap commits a dot (color still marks intent: red = removing, green =
+// adding) — direction/distance used to matter here, but nothing distinguished
+// "how far" a correct drag was from an accidental one, so a plain tap (same
+// dx/dy<15 detection DrawnArrow already uses to tell a tap from a drag) is
+// both simpler to discover and impossible to get "wrong length" on.
 
 function GestureDot({ pos, direction, onCommit }) {
   const startRef = useRef(null);
@@ -99,23 +115,15 @@ function GestureDot({ pos, direction, onCommit }) {
   function onPointerDown(e) {
     e.currentTarget.setPointerCapture(e.pointerId);
     e.stopPropagation();
-    startRef.current = { y: e.clientY };
+    startRef.current = { x: e.clientX, y: e.clientY };
   }
 
-  function onPointerMove(e) {
+  function onPointerUp(e) {
     if (!startRef.current) return;
-    const dy = e.clientY - startRef.current.y;
-    if (direction === "down" && dy > GESTURE_THRESHOLD) {
-      startRef.current = null;
-      onCommit();
-    } else if (direction === "up" && dy < -GESTURE_THRESHOLD) {
-      startRef.current = null;
-      onCommit();
-    }
-  }
-
-  function onPointerUp() {
+    const dx = Math.abs(e.clientX - startRef.current.x);
+    const dy = Math.abs(e.clientY - startRef.current.y);
     startRef.current = null;
+    if (dx < 15 && dy < 15) onCommit();
   }
 
   return (
@@ -123,7 +131,6 @@ function GestureDot({ pos, direction, onCommit }) {
       className={`fng-gesture-dot fng-gesture-dot--${direction}`}
       style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }}
       onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     />
   );
@@ -197,12 +204,12 @@ function DrawnArrow({ tip, base, direction, onTap, order }) {
   );
 }
 
-function GestureOverlay({ items, direction }) {
-  const [committed, setCommitted] = useState(() => new Set());
+// Controlled by the parent task (not self-contained state) so it can tell
+// when every dot across BOTH hands has been resolved and advance on its own —
+// see the "auto-advance once fully committed" effect in SubtractionTask /
+// LargeAdditionTask.
+function GestureOverlay({ items, direction, committed, onCommit, onRevoke }) {
   const multi = items.length > 1;
-
-  function commit(i) { setCommitted(s => new Set([...s, i])); }
-  function revoke(i) { setCommitted(s => { const n = new Set(s); n.delete(i); return n; }); }
 
   return (
     <div className="fng-gesture-overlay">
@@ -215,36 +222,19 @@ function GestureOverlay({ items, direction }) {
             tip={item.tip}
             base={item.base}
             direction={direction}
-            onTap={() => revoke(i)}
+            onTap={() => onRevoke(i)}
             order={multi ? i + 1 : null}
           />
         ) : (
-          <GestureDot key={i} pos={dotPos} direction={direction} onCommit={() => commit(i)} />
+          <GestureDot key={i} pos={dotPos} direction={direction} onCommit={() => onCommit(i)} />
         );
       })}
     </div>
   );
 }
 
-function Keyboard({ onDigit, onDelete, active }) {
-  return (
-    <div className="col-copy-keyboard" style={{ pointerEvents: active ? "auto" : "none" }}>
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => (
-        <button key={d} className="col-copy-kb-btn" onClick={() => onDigit(d)}>
-          <span className="col-slant">{d}</span>
-        </button>
-      ))}
-      <button className="col-copy-kb-btn col-copy-kb-del" onClick={onDelete}>⌫</button>
-      <button className="col-copy-kb-btn" onClick={() => onDigit(0)}>
-        <span className="col-slant">0</span>
-      </button>
-      <div />
-    </div>
-  );
-}
-
 // ── Subtraction ───────────────────────────────────────────────────────────────
-// Flow: show (dots + Готово) → result [tap] → answer
+// Flow: show (tap the dots) → auto-advance → result [tap] → answer
 
 const FOLD_ORDER = {
   1: [0],
@@ -291,9 +281,12 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   const resultStr    = String(result);
   const startConfig  = getFingerConfig(a);
   const resultConfig = getFingerConfig(result);
+  const [committedLeft, setCommittedLeft]   = useState(() => new Set());
+  const [committedRight, setCommittedRight] = useState(() => new Set());
 
   useEffect(() => {
     setPhase("show"); setInput([]); setShake(false);
+    setCommittedLeft(new Set()); setCommittedRight(new Set());
   }, [task.cardId]);
 
   function handleDigit(d) {
@@ -340,6 +333,17 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   const leftItems  = leftTips.map(tip => ({ tip, base: null }));
   const rightItems = rightTips.map(tip => ({ tip, base: null }));
 
+  const totalItems     = leftItems.length + rightItems.length;
+  const totalCommitted = committedLeft.size + committedRight.size;
+
+  // Once every dot's been tapped, move on by itself — no separate "done"
+  // button to hunt for once the hands already show the change happened.
+  useEffect(() => {
+    if (phase !== "show" || totalItems === 0 || totalCommitted < totalItems) return;
+    const t = setTimeout(() => setPhase("result"), 500);
+    return () => clearTimeout(t);
+  }, [phase, totalCommitted, totalItems]);
+
   return (
     <div className="fng-add-screen">
       <div className="fng-add-top"
@@ -357,7 +361,14 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
               {phase === "show" && leftItems.length > 0 && (
-                <GestureOverlay key={task.cardId + "-L"} items={leftItems} direction="down" />
+                <GestureOverlay
+                  key={task.cardId + "-L"}
+                  items={leftItems}
+                  direction="down"
+                  committed={committedLeft}
+                  onCommit={(i) => setCommittedLeft(s => new Set([...s, i]))}
+                  onRevoke={(i) => setCommittedLeft(s => { const n = new Set(s); n.delete(i); return n; })}
+                />
               )}
             </div>
           </div>
@@ -365,29 +376,29 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
               {phase === "show" && rightItems.length > 0 && (
-                <GestureOverlay key={task.cardId + "-R"} items={rightItems} direction="down" />
+                <GestureOverlay
+                  key={task.cardId + "-R"}
+                  items={rightItems}
+                  direction="down"
+                  committed={committedRight}
+                  onCommit={(i) => setCommittedRight(s => new Set([...s, i]))}
+                  onRevoke={(i) => setCommittedRight(s => { const n = new Set(s); n.delete(i); return n; })}
+                />
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="fng-add-kbd-zone fng-kbd-relative">
-        <div style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
-          <Keyboard onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
-        </div>
-        {phase === "show" && (
-          <div className="fng-ready-zone">
-            <button className="fng-ready-btn" onClick={() => setPhase("result")}>Готово</button>
-          </div>
-        )}
+      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
+        <FingersKeypad onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
       </div>
     </div>
   );
 }
 
 // ── Large Addition (a > 5 or b > 5) ──────────────────────────────────────────
-// Flow: show (dots + Готово) → result [tap] → answer
+// Flow: show (tap the dots) → auto-advance → result [tap] → answer
 
 function LargeAdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show");
@@ -399,8 +410,12 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
   const aConfig   = getFingerConfig(a);
   const resConfig = getFingerConfig(result);
 
+  const [committedLeft, setCommittedLeft]   = useState(() => new Set());
+  const [committedRight, setCommittedRight] = useState(() => new Set());
+
   useEffect(() => {
     setPhase("show"); setInput([]); setShake(false);
+    setCommittedLeft(new Set()); setCommittedRight(new Set());
   }, [task.cardId]);
 
   function handleDigit(d) {
@@ -455,6 +470,17 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
     }))
     .filter(item => item.base);
 
+  const totalItems     = leftItems.length + rightItems.length;
+  const totalCommitted = committedLeft.size + committedRight.size;
+
+  // Once every dot's been tapped, move on by itself — no separate "done"
+  // button to hunt for once the hands already show the change happened.
+  useEffect(() => {
+    if (phase !== "show" || totalItems === 0 || totalCommitted < totalItems) return;
+    const t = setTimeout(() => setPhase("result"), 500);
+    return () => clearTimeout(t);
+  }, [phase, totalCommitted, totalItems]);
+
   return (
     <div className="fng-add-screen">
       <div className="fng-add-top"
@@ -472,7 +498,14 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
               {phase === "show" && leftItems.length > 0 && (
-                <GestureOverlay key={task.cardId + "-L"} items={leftItems} direction="up" />
+                <GestureOverlay
+                  key={task.cardId + "-L"}
+                  items={leftItems}
+                  direction="up"
+                  committed={committedLeft}
+                  onCommit={(i) => setCommittedLeft(s => new Set([...s, i]))}
+                  onRevoke={(i) => setCommittedLeft(s => { const n = new Set(s); n.delete(i); return n; })}
+                />
               )}
             </div>
           </div>
@@ -480,22 +513,22 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
             <div className="fng-sub-hand-inner">
               <AnimatedHand count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
               {phase === "show" && rightItems.length > 0 && (
-                <GestureOverlay key={task.cardId + "-R"} items={rightItems} direction="up" />
+                <GestureOverlay
+                  key={task.cardId + "-R"}
+                  items={rightItems}
+                  direction="up"
+                  committed={committedRight}
+                  onCommit={(i) => setCommittedRight(s => new Set([...s, i]))}
+                  onRevoke={(i) => setCommittedRight(s => { const n = new Set(s); n.delete(i); return n; })}
+                />
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="fng-add-kbd-zone fng-kbd-relative">
-        <div style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
-          <Keyboard onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
-        </div>
-        {phase === "show" && (
-          <div className="fng-ready-zone">
-            <button className="fng-ready-btn" onClick={() => setPhase("result")}>Готово</button>
-          </div>
-        )}
+      <div className="fng-add-kbd-zone" style={{ opacity: kbdVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
+        <FingersKeypad onDigit={handleDigit} onDelete={handleDelete} active={phase === "answer"} />
       </div>
     </div>
   );
