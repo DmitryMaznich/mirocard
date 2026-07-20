@@ -28,6 +28,9 @@ export const DEPLOY_FRONTEND_DIR =
   readEnv("MIROCARD_DEPLOY_FRONTEND_DIR") ||
   path.resolve(BACKEND_DIR, "../dist");
 
+// Only Railway (no Caddy in front) needs the backend to serve the built SPA itself.
+export const SERVE_STATIC = readEnv("SERVE_STATIC") === "1";
+
 // Email (password reset)
 export const SMTP_HOST    = readEnv("SMTP_HOST");
 export const SMTP_PORT    = Number(readEnv("SMTP_PORT") || 587);

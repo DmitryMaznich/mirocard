@@ -6,7 +6,7 @@ import path from "node:path";
 
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
-  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT,
+  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC,
 } from "./lib/config.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
@@ -1064,6 +1064,53 @@ async function handleSetActiveTask(req, res, studentId) {
   return writeNoContent(res);
 }
 
+// ─── Static SPA (Railway only — Caddy handles this on the primary host) ───────
+
+const STATIC_CONTENT_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".webmanifest": "application/manifest+json",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".ico": "image/x-icon",
+  ".ttf": "font/ttf",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".mp3": "audio/mpeg",
+  ".wav": "audio/wav",
+  ".zip": "application/zip",
+  ".txt": "text/plain; charset=utf-8",
+};
+
+function serveStaticFile(res, absPath) {
+  const stat = statSync(absPath);
+  const contentType = STATIC_CONTENT_TYPES[path.extname(absPath).toLowerCase()] || "application/octet-stream";
+  res.writeHead(200, { "Content-Type": contentType, "Content-Length": stat.size });
+  createReadStream(absPath).pipe(res);
+}
+
+function trySpaFallback(req, res, pathname) {
+  if (!SERVE_STATIC || req.method !== "GET") return false;
+
+  const relative = path.normalize(pathname).replace(/^([.][.][/\\])+/, "");
+  const candidate = path.join(DEPLOY_FRONTEND_DIR, relative);
+  if (candidate.startsWith(DEPLOY_FRONTEND_DIR) && existsSync(candidate) && statSync(candidate).isFile()) {
+    serveStaticFile(res, candidate);
+    return true;
+  }
+
+  const indexPath = path.join(DEPLOY_FRONTEND_DIR, "index.html");
+  if (!existsSync(indexPath)) return false;
+  serveStaticFile(res, indexPath);
+  return true;
+}
+
 // ─── Router ────────────────────────────────────────────────────────────────────
 
 async function router(req, res) {
@@ -1165,6 +1212,8 @@ async function router(req, res) {
       const m4 = p.match(/^\/students\/([^/]+)\/active-task$/);
       if (method === "PATCH"  && m4) return await handleSetActiveTask(req, res, m4[1]);
     }
+
+    if (!url.pathname.startsWith("/api/") && trySpaFallback(req, res, url.pathname)) return;
 
     writeJson(res, 404, { error: "Not found" });
   } catch (err) {
