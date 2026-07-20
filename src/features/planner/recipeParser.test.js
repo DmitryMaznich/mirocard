@@ -129,6 +129,26 @@ describe('parseRecipeMetadata', () => {
     expect(ingredients).toEqual([{ product: 'помидоры', unit: 'шт', key: 'tomato', qty: 1, coverDivisor: 5 }]);
   });
 
+  it('parses # option_groups: into { groupId: { mode, label } }', () => {
+    const content = '# option_groups:\n#   filling | single | Начинка\nТест\n';
+    const { optionGroups } = parseRecipeMetadata(content);
+    expect(optionGroups).toEqual({ filling: { mode: 'single', label: 'Начинка' } });
+  });
+
+  it('parses multiple # option_groups: entries', () => {
+    const content = '# option_groups:\n#   filling | single | Начинка\n#   milk | multi | Молоко\nТест\n';
+    const { optionGroups } = parseRecipeMetadata(content);
+    expect(optionGroups).toEqual({
+      filling: { mode: 'single', label: 'Начинка' },
+      milk: { mode: 'multi', label: 'Молоко' },
+    });
+  });
+
+  it('returns an empty object for optionGroups when no # option_groups: block is present', () => {
+    const { optionGroups } = parseRecipeMetadata('Тест без опций\n');
+    expect(optionGroups).toEqual({});
+  });
+
   it('extracts status: final', () => {
     const { status } = parseRecipeMetadata('# status: final\nТест\n');
     expect(status).toBe('final');

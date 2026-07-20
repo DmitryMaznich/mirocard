@@ -110,8 +110,11 @@ describe('parseOptionGroups', () => {
     expect(parseOptionGroups(oatmeal)).toEqual({});
   });
 
-  it("omelet's filling group is single-mode with a custom label", () => {
+  it("omelet's filling group is single-mode and its milk group is multi-mode, both with custom labels", () => {
     const omelet = getBuiltinRecipeRawText('recipes/omelet.txt') ?? '';
-    expect(parseOptionGroups(omelet)).toEqual({ filling: { mode: 'single', label: 'Начинка' } });
+    expect(parseOptionGroups(omelet)).toEqual({
+      filling: { mode: 'single', label: 'Начинка' },
+      milk: { mode: 'multi', label: 'Молоко' },
+    });
   });
 });

@@ -95,13 +95,16 @@ export function parseRecipeMetadata(content) {
   let status = 'draft';
   const ingredients = [];
   const options = {};
+  const optionGroups = {};
   let inIngredients = false;
   let inOptions = false;
+  let inOptionGroups = false;
 
   for (const line of lines) {
     if (!line.startsWith('#')) {
       inIngredients = false;
       inOptions = false;
+      inOptionGroups = false;
       continue;
     }
 
@@ -151,6 +154,22 @@ export function parseRecipeMetadata(content) {
       inOptions = false;
     }
 
+    if (inOptionGroups) {
+      // Option-group lines: "#   groupId | mode | label" — mode is "single"
+      // (exactly one choice always selected, e.g. swapping the one filling
+      // in an omelette) or "multi" (any subset or none, e.g. porridge
+      // toppings). Mirrors parseOptionGroups in builtinRecipesTopic.js so
+      // the planner's add-to-menu picker respects the same per-group mode
+      // the cook-start screen already does.
+      if (afterHash.startsWith('  ') || afterHash.startsWith('\t\t')) {
+        const parts = afterHash.trim().split('|').map((p) => p.trim());
+        const [groupId, mode, label] = parts;
+        if (groupId && mode && label) optionGroups[groupId] = { mode, label };
+        continue;
+      }
+      inOptionGroups = false;
+    }
+
     const kv = afterHash.trim();
     if (kv.startsWith('photo:')) {
       photo = kv.slice(6).trim() || null;
@@ -167,6 +186,8 @@ export function parseRecipeMetadata(content) {
       inIngredients = true;
     } else if (kv === 'options:') {
       inOptions = true;
+    } else if (kv === 'option_groups:') {
+      inOptionGroups = true;
     }
   }
 
@@ -176,6 +197,7 @@ export function parseRecipeMetadata(content) {
     portions,
     fixedPortions: isFixedType ? portions : null,
     options,
+    optionGroups,
     status,
     ingredients,
   };

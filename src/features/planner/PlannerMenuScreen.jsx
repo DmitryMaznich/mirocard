@@ -6,7 +6,7 @@ import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons'
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe,
   setMealAssignment, setSelectedPortions, resolveChosenPortions,
-  setSelectedOptions,
+  setSelectedOptions, getSelectedOptions,
   setIngredientDecision, setAllIngredientDecisions, buildSelectedIngredientsSummary, isMenuFullyDecided,
   needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS, MEAL_ICONS,
@@ -36,7 +36,7 @@ function keyIngredients(ingredients) {
 // ─── Recipe ingredients (what you need, no step-by-step) ─────────────────────
 
 function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
-  const { topicId, text, ingredients, fixedPortions } = recipe;
+  const { topicId, text, ingredients, options, optionGroups, fixedPortions } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
   const selected = isRecipeSelected(plan, text.id);
   // Before the recipe is added to the menu, no portion count has actually
@@ -49,6 +49,21 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
   const { chosenPortions, scale } = selected || fixedPortions
     ? resolved
     : { chosenPortions: 1, scale: 1 / resolved.basePortions };
+
+  // A recipe's fixed # ingredients: list doesn't include option-group
+  // choices (e.g. omelette filling, optional milk) — those live separately
+  // in # options:. Resolve what's actually chosen (or, for a required
+  // "single" group nothing has been picked for yet, its default first
+  // choice — mirrors PortionsPromptSheet's effectiveOptions) so the
+  // ingredient list shown here matches what the recipe will actually use.
+  const optionGroupsMeta = optionGroups ?? {};
+  const selectedOptionIngredients = Object.entries(options ?? {}).flatMap(([groupId, choices]) => {
+    const chosen = getSelectedOptions(plan, text.id, groupId);
+    if (chosen.length) return choices.filter((c) => chosen.includes(c.product));
+    if (optionGroupsMeta[groupId]?.mode === 'single') return choices[0] ? [choices[0]] : [];
+    return [];
+  });
+  const allIngredients = [...ingredients, ...selectedOptionIngredients];
 
   return (
     <div className="screen planner-screen">
@@ -68,7 +83,7 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
             {chosenPortions} {pluralizePortionsAccusative(chosenPortions)}
           </span>
           <ul className="recipe-ingredients__list">
-            {ingredients.map((ing, i) => {
+            {allIngredients.map((ing, i) => {
               const scaledQty = scaleIngredientQty(ing.qty, ing.unit, scale);
               return (
                 <li key={i} className="recipe-ingredients__item">
@@ -173,6 +188,19 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
   const [portions, setPortions] = useState(1);
   const [options, setOptions] = useState({}); // { groupId: string[] }
   const optionGroups = Object.entries(recipe.options ?? {});
+  const optionGroupsMeta = recipe.optionGroups ?? {}; // { groupId: { mode, label } }
+
+  // A "single" group (exclusive swap, e.g. omelette filling) always needs
+  // exactly one selection — default to the first choice when nothing was
+  // touched yet, so confirming without opening the picker still saves a
+  // valid choice instead of nothing at all (mirrors ParamsScreen.jsx's
+  // effectiveOptions).
+  const effectiveOptions = { ...options };
+  for (const [groupId, choices] of optionGroups) {
+    if (optionGroupsMeta[groupId]?.mode === "single" && !(effectiveOptions[groupId]?.length)) {
+      effectiveOptions[groupId] = choices[0] ? [choices[0].product] : [];
+    }
+  }
 
   return (
     <div className="portions-sheet-backdrop" onClick={onClose}>
@@ -202,9 +230,10 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
         {optionGroups.map(([groupId, choices]) => (
           <OptionsPicker
             key={groupId}
-            label="Топпинг (можно несколько или ничего)"
+            label={optionGroupsMeta[groupId]?.label ?? "Топпинг (можно несколько или ничего)"}
+            mode={optionGroupsMeta[groupId]?.mode ?? "multi"}
             choices={choices}
-            selected={options[groupId] ?? []}
+            selected={effectiveOptions[groupId] ?? []}
             onChange={(next) => setOptions((prev) => ({ ...prev, [groupId]: next }))}
           />
         ))}
@@ -212,7 +241,7 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
           <button type="button" className="portions-sheet__cancel" onClick={onClose}>
             Отменить
           </button>
-          <button type="button" className="portions-sheet__confirm" onClick={() => onConfirm(portions, options)}>
+          <button type="button" className="portions-sheet__confirm" onClick={() => onConfirm(portions, effectiveOptions)}>
             Добавить в меню
           </button>
         </div>
