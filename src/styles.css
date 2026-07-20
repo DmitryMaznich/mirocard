@@ -18239,12 +18239,18 @@ body { background: #eef0ef; }
 }
 
 .global-timer-tab--suggested {
-  animation: gt-suggest-glow 1.8s ease-in-out infinite;
+  animation: gt-suggest-glow 1.4s ease-in-out infinite;
 }
 
 @keyframes gt-suggest-glow {
-  0%, 100% { box-shadow: 3px 3px 8px rgba(200, 75, 42, 0.18), -3px 3px 8px rgba(200, 75, 42, 0.18); }
-  50%      { box-shadow: 3px 3px 20px rgba(200, 75, 42, 0.55), -3px 3px 20px rgba(200, 75, 42, 0.55); }
+  0%, 100% {
+    background: #fffdf9;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.13), -3px 3px 10px rgba(0, 0, 0, 0.13);
+  }
+  50% {
+    background: #f5c842;
+    box-shadow: 3px 3px 22px rgba(245, 200, 66, 0.9), -3px 3px 22px rgba(245, 200, 66, 0.9);
+  }
 }
 
 /* ── analog-timer-inner (replaces analog-timer-overlay) ───── */
