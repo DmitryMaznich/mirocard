@@ -10606,6 +10606,15 @@ button {
   padding-bottom: 8px;
 }
 
+.analog-timer-drag-label__text {
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+  color: #c84b2a;
+  font-family: Nunito, sans-serif;
+  text-shadow: 0 2px 8px rgba(200, 75, 42, 0.25);
+}
+
 @keyframes drag-label-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }

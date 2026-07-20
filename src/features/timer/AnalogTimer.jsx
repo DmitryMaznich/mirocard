@@ -54,16 +54,6 @@ function getMinuteLabel(value) {
   return "минут";
 }
 
-function getSecondLabel(value) {
-  const safeValue = Math.max(0, Math.floor(value));
-  const lastDigit = safeValue % 10;
-  const lastTwoDigits = safeValue % 100;
-  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return "секунд";
-  if (lastDigit === 1) return "секунда";
-  if (lastDigit >= 2 && lastDigit <= 4) return "секунды";
-  return "секунд";
-}
-
 export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes, pendingLabel } = useTimer();
   const [setMinutes, setSetMinutes] = useState(0);
@@ -423,7 +413,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   const timeDisplayString = running
     ? (
       remainingSeconds > 0 && remainingSeconds < 60
-        ? `Осталось ${remainingSeconds} ${getSecondLabel(remainingSeconds)}`
+        ? "Осталось меньше минуты"
         : (sectorMin > 0 ? `${leftWord} ${displayMin} ${minuteWord}` : "0 минут")
     )
     : idleDisplayString;
@@ -640,10 +630,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
               <div className="analog-timer-drag-label__row">
                 {running ? (
                   remainingSeconds < 60 ? (
-                    <>
-                      <span className="analog-timer-drag-label__value">{remainingSeconds}</span>
-                      <span className="analog-timer-drag-label__unit">{getSecondLabel(remainingSeconds)}</span>
-                    </>
+                    <span className="analog-timer-drag-label__text">меньше минуты</span>
                   ) : (
                     <>
                       <span className="analog-timer-drag-label__value">{displayMin}</span>
