@@ -113,7 +113,7 @@ describe('parseOptionGroups', () => {
   it("omelet's filling group is single-mode and its milk group is multi-mode, both with custom labels", () => {
     const omelet = getBuiltinRecipeRawText('recipes/omelet.txt') ?? '';
     expect(parseOptionGroups(omelet)).toEqual({
-      filling: { mode: 'single', label: 'Начинка' },
+      filling: { mode: 'single', label: 'Добавка' },
       milk: { mode: 'multi', label: 'Молоко' },
     });
   });

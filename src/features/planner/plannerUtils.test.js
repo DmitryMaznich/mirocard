@@ -761,7 +761,7 @@ describe('resolveOptionIngredients', () => {
       milk: [{ product: 'молоко', qty: 2, unit: 'ст.л' }],
     },
     optionGroups: {
-      filling: { mode: 'single', label: 'Начинка' },
+      filling: { mode: 'single', label: 'Добавка' },
       milk: { mode: 'multi', label: 'Молоко' },
     },
   };
@@ -770,7 +770,7 @@ describe('resolveOptionIngredients', () => {
     const plan = createPlan('s1');
     const { ingredients, notes } = resolveOptionIngredients(omelet, plan);
     expect(ingredients).toEqual([]);
-    expect(notes).toContainEqual({ groupId: 'filling', text: 'Начинка на выбор: колбаса, курица или другое мясо' });
+    expect(notes).toContainEqual({ groupId: 'filling', text: 'Добавка на выбор: колбаса, курица или другое мясо' });
   });
 
   it('turns an undecided "multi" group into an on-offer note too', () => {

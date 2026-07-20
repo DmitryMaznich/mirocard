@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions, extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit, formatCompact } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions, applyOptionValueConditional, extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit, formatCompact } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -292,6 +292,64 @@ describe('filterStepsByOptions', () => {
   it('keeps steps with no option placeholder regardless of selections', () => {
     const steps = [{ id: 's1', type: 'action', text: 'Перемешать.' }];
     expect(filterStepsByOptions(steps, {})).toEqual(steps);
+  });
+
+  it('drops an individual checklist item whose option group has nothing selected, keeping the rest', () => {
+    const steps = [{
+      id: 's1', type: 'checklist', text: 'Подготовить продукты:',
+      items: ['взять яйца', 'взять {milk}', 'взять соль'],
+    }];
+    const [filtered] = filterStepsByOptions(steps, { milk: [] });
+    expect(filtered.items).toEqual(['взять яйца', 'взять соль']);
+  });
+
+  it('keeps a checklist item (unresolved) whose option group has a selection', () => {
+    const steps = [{
+      id: 's1', type: 'checklist', text: 'Подготовить продукты:',
+      items: ['взять яйца', 'взять {milk}', 'взять соль'],
+    }];
+    const [filtered] = filterStepsByOptions(steps, { milk: ['молоко'] });
+    expect(filtered.items).toEqual(['взять яйца', 'взять {milk}', 'взять соль']);
+  });
+
+  it('keeps itemSubgroups aligned with items after dropping an unfulfilled one', () => {
+    const steps = [{
+      id: 's1', type: 'checklist', text: 'Подготовить продукты:',
+      items: ['взять яйца', 'взять {milk}', 'взять соль'],
+      itemSubgroups: ['группа1', null, 'группа2'],
+    }];
+    const [filtered] = filterStepsByOptions(steps, { milk: [] });
+    expect(filtered.items).toEqual(['взять яйца', 'взять соль']);
+    expect(filtered.itemSubgroups).toEqual(['группа1', 'группа2']);
+  });
+
+  it('leaves a checklist with no option placeholders in its items untouched', () => {
+    const steps = [{ id: 's1', type: 'checklist', text: 'Подготовить посуду:', items: ['взять миску', 'взять вилку'] }];
+    expect(filterStepsByOptions(steps, {})).toEqual(steps);
+  });
+});
+
+describe('applyOptionValueConditional', () => {
+  it('picks the match phrase when the named product is among the group selections', () => {
+    const text = 'Нарезать добавку {filling:колбаса?кружочками|небольшими кусочками}.';
+    expect(applyOptionValueConditional(text, { filling: ['колбаса'] })).toBe('Нарезать добавку кружочками.');
+  });
+
+  it('picks the otherwise phrase when a different product from the same group was selected', () => {
+    const text = 'Нарезать добавку {filling:колбаса?кружочками|небольшими кусочками}.';
+    expect(applyOptionValueConditional(text, { filling: ['курица'] })).toBe('Нарезать добавку небольшими кусочками.');
+    expect(applyOptionValueConditional(text, { filling: ['другое мясо'] })).toBe('Нарезать добавку небольшими кусочками.');
+  });
+
+  it('picks the otherwise phrase when nothing was selected for the group at all', () => {
+    const text = '{filling:колбаса?кружочками|небольшими кусочками}';
+    expect(applyOptionValueConditional(text, {})).toBe('небольшими кусочками');
+  });
+
+  it('leaves a bare {groupId} placeholder in the same text untouched (a separate pass handles it)', () => {
+    const text = 'Взять добавку: {filling}. Нарезать {filling:колбаса?кружочками|небольшими кусочками}.';
+    expect(applyOptionValueConditional(text, { filling: ['колбаса'] }))
+      .toBe('Взять добавку: {filling}. Нарезать кружочками.');
   });
 });
 

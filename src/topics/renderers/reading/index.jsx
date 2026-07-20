@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, applyOptionSelections, filterStepsByOptions } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
 import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping, getRecipeOptionSelections } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
@@ -769,7 +769,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
               <div className="instruction-phase-complete-badge">Этап пройден! 👍</div>
             )}
             <div className="instruction-step-text">{(() => {
-              const text = applyFireEmoji(applyOptionSelections(applyPortions(step.text, portions, ingredientOverrides), optionSelections), stoveHeatMapping);
+              const text = applyFireEmoji(applyOptionValueConditional(applyOptionSelections(applyPortions(step.text, portions, ingredientOverrides), optionSelections), optionSelections), stoveHeatMapping);
               const parts = text.split(/(?<=[.!]) (?=[А-ЯЁа-яёA-Za-z(])/g);
               if (parts.length === 1) return text;
               return parts.map((s, i) => (
@@ -800,7 +800,7 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
                       onClick={() => toggleItem(i)}
                     >
                       <span className="instruction-checkbox">{done ? "✓" : ""}</span>
-                      <span className="instruction-check-label">{applyFireEmoji(applyOptionSelections(applyPortions(item, portions, ingredientOverrides), optionSelections), stoveHeatMapping)}</span>
+                      <span className="instruction-check-label">{applyFireEmoji(applyOptionValueConditional(applyOptionSelections(applyPortions(item, portions, ingredientOverrides), optionSelections), optionSelections), stoveHeatMapping)}</span>
                       {!done && <span className="instruction-check-tap-hint">нажми</span>}
                     </li>
                   );

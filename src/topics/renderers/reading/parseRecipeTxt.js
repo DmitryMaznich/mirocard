@@ -516,16 +516,61 @@ export function applyOptionSelections(text, selections) {
   return text.replace(OPTION_PLACEHOLDER_RE, (_, groupId) => joinOptionChoices(selections?.[groupId]));
 }
 
+function isFulfilled(token, selections) {
+  return (selections?.[token.slice(1, -1)]?.length ?? 0) > 0;
+}
+
 /**
  * Drops any step referencing an option group with nothing selected (e.g.
  * "Добавить в тарелку по вкусу: {topping}." when no topping was chosen) —
  * a bare, un-decorated "по вкусу: " line would make no sense to read.
  * Steps with no option placeholder at all pass through unaffected.
+ *
+ * Also filters individual checklist items the same way (e.g. step 3's
+ * "взять {milk}" gathering line should vanish when milk wasn't chosen,
+ * without dropping the rest of that checklist's items) — a step's own
+ * `.text` is checked at the whole-step level above, but `.items` need
+ * per-item filtering since one unfulfilled item shouldn't take its
+ * unrelated siblings down with it. `.itemSubgroups`, when present, is
+ * filtered in lockstep so it stays index-aligned with `.items`.
  */
 export function filterStepsByOptions(steps, selections) {
-  return steps.filter((step) => {
-    const matches = step.text?.match(OPTION_PLACEHOLDER_RE);
-    if (!matches) return true;
-    return matches.every((token) => (selections?.[token.slice(1, -1)]?.length ?? 0) > 0);
-  });
+  return steps
+    .filter((step) => {
+      const matches = step.text?.match(OPTION_PLACEHOLDER_RE);
+      if (!matches) return true;
+      return matches.every((token) => isFulfilled(token, selections));
+    })
+    .map((step) => {
+      if (!step.items) return step;
+      const keep = step.items.map((item) => {
+        const matches = item.match(OPTION_PLACEHOLDER_RE);
+        return !matches || matches.every((token) => isFulfilled(token, selections));
+      });
+      if (keep.every(Boolean)) return step;
+      return {
+        ...step,
+        items: step.items.filter((_, i) => keep[i]),
+        ...(step.itemSubgroups ? { itemSubgroups: step.itemSubgroups.filter((_, i) => keep[i]) } : {}),
+      };
+    });
+}
+
+/**
+ * {groupId:product?matchPhrase|otherwisePhrase} — chooses a phrase based on
+ * whether `product` is among the choices selected for `groupId`, instead of
+ * substituting the raw chosen name via the bare {groupId} placeholder.
+ * Needed when different choices genuinely need different instructions, not
+ * just a different noun — e.g. an omelette's добавка is sliced into rounds
+ * when it's sausage, but small pieces for chicken or other meat. Always
+ * resolves to one of the two phrases (never "nothing to show"), so unlike
+ * a bare {groupId} it never triggers filterStepsByOptions's step-dropping.
+ */
+export function applyOptionValueConditional(text, selections) {
+  if (!text) return text ?? "";
+  return text.replace(
+    /\{([a-zA-Zа-яёА-ЯЁ]\w*):([^?|}]+)\?([^|}]+)\|([^|}]+)\}/g,
+    (_, groupId, product, matchPhrase, otherwisePhrase) =>
+      (selections?.[groupId] ?? []).includes(product.trim()) ? matchPhrase.trim() : otherwisePhrase.trim()
+  );
 }
