@@ -467,6 +467,42 @@ html.app-ios-standalone {
   flex-shrink: 0;
 }
 
+/* Portrait: the recipe's progress bar is the seam between the session's
+   main header and the card screen below it — it should reach the true
+   screen edges and sit flush against .session-topbar's bottom border, with
+   zero gap.
+   .session-body's own top/side padding is removed at its source (not just
+   overridden on the header via negative margin) because .instruction-body
+   is a scroll container (overflow-y: auto above) — a negative margin
+   meant to bleed a child past a scrollable ancestor's padding gets
+   silently clamped back to 0 by the browser instead of shifting the
+   child, so that approach doesn't work here. The removed inset is
+   restored individually on .instruction-step and .instruction-nav so the
+   card and nav buttons keep their usual 16px side margin.
+   Landscape has its own, separate padding scheme (set further down) and
+   is intentionally untouched by this block. */
+@media (orientation: portrait) {
+  .session-body.reading-body.instruction-body {
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .instruction-body .instruction-header .instruction-phase-label {
+    padding: 8px 16px 0;
+  }
+
+  .instruction-body .instruction-step {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .instruction-body .instruction-nav {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
 .instruction-header-row {
   display: flex;
   align-items: center;
@@ -18512,9 +18548,17 @@ body { background: #eef0ef; }
     font-style: italic;
   }
 
-  /* Main content area */
+  /* Main content area. Top/side inset moved off this element and onto
+     .instruction-step/.instruction-nav/.instruction-phase-label instead
+     (see the "Running phase: landscape full-width fixes" block below) so
+     .instruction-header — the recipe's progress bar — can reach this
+     pane's true top/left/right edges and sit flush on the seam with
+     .session-topbar, the same reasoning as the portrait fix above:
+     .instruction-main is a scroll container (overflow-y: auto), where a
+     negative margin meant to bleed a child past its padding gets silently
+     clamped back to 0 by the browser instead of shifting the child. */
   .instruction-main {
-    padding: 8px 14px 6px;
+    padding: 0 0 6px;
     gap: 6px;
   }
 
@@ -18618,13 +18662,16 @@ body { background: #eef0ef; }
 
 /* ─── Running phase: landscape full-width fixes ──────────────────────────────── */
 @media (orientation: landscape) {
-  /* Remove the 640px cap — step must use full available column width */
+  /* Remove the 640px cap — step must use full available column width.
+     Side padding (14px) restores the inset .instruction-main used to
+     provide before it was moved onto .instruction-step/.instruction-nav/
+     .instruction-header directly — see .instruction-main above. */
   .instruction-step {
     max-width: none;
     margin: 0;
     text-align: center;
     gap: 10px;
-    padding: 4px 0;
+    padding: 4px 14px;
   }
 
   .instruction-step-text {
@@ -18632,14 +18679,20 @@ body { background: #eef0ef; }
     font-size: clamp(18px, 4.5vh, 34px) !important;
   }
 
-  /* Header: compact in landscape */
+  /* Header: compact in landscape, and flush on all sides — it's the seam
+     against .session-topbar, and .instruction-main no longer contributes
+     any inset for it to sit inside of (see .instruction-main above). */
   .instruction-header {
-    padding: 4px 0;
+    padding: 0;
+  }
+
+  .instruction-body .instruction-header .instruction-phase-label {
+    padding: 0 14px;
   }
 
   /* Nav buttons: compact */
   .instruction-nav {
-    padding: 4px 0;
+    padding: 4px 14px;
   }
 
   /* Checklist: two columns in landscape */
