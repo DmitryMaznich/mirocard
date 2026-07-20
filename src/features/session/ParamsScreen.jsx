@@ -392,13 +392,10 @@ function BooleanParam({ label, hint, value, onChange, disabled, info, onShowInfo
 // Two-segment switch: left side is a text label (the "off" state), right side is a
 // small preview of the actual visual it turns on — used where the setting IS a choice
 // between two concrete looks, so showing the look directly reads faster than a label.
-function VisualBooleanParam({ label, offLabel, value, onChange, disabled }) {
+function VisualBooleanParam({ label, offLabel, value, onChange, disabled, info, onShowInfo }) {
   return (
-    <div
-      className={`param-row param-row--visual-toggle${disabled ? " param-row--disabled" : ""}`}
-      role="group"
-      aria-label={label}
-    >
+    <div className={`param-row${disabled ? " param-row--disabled" : ""}`}>
+      <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
       <div className="param-visual-toggle">
         <button
           type="button"
@@ -1113,6 +1110,8 @@ export default function ParamsScreen() {
                 value={params[key] ?? def.default ?? false}
                 disabled={def.dependsOn ? !params[def.dependsOn] : false}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                info={def.info?.ru}
+                onShowInfo={setActiveInfo}
               />
             );
           }

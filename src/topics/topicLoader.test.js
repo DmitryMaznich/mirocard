@@ -518,6 +518,75 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(mode.params.operation.info.ru.tip).toEqual(expect.any(String));
   });
 
+  it("refreshes the rest of column_addition's modes to the reference screen shape", async () => {
+    // Same reference-screen rollout as column_arithmetic, applied to the topic's other
+    // modes: column_copy/build_number/identify_number/regroup_ten hide the decorative
+    // concept picker (only one relevant card exists among the topic's 88), fingers_show's
+    // hint switches from an enum to a real boolean, and every param picks up (i) info text.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "column_copy",
+          type: "column_copy",
+          evaluation: "none",
+          ui: { title: "Перепиши", icon: "media/icons/column_copy_mode.svg" },
+          params: {
+            count: { type: "enum", values: [6, 8, 10], labels: { ru: { "6": "6", "8": "8", "10": "10" } }, default: 6, label: { ru: "Примеров на экране" } },
+            operation: { type: "enum", values: ["add", "subtract", "mixed"], labels: { ru: { add: "Только +", subtract: "Только −", mixed: "Микс" } }, default: "add", label: { ru: "Операция" } },
+          },
+        },
+        {
+          id: "fingers_show",
+          type: "fingers_show",
+          evaluation: "none",
+          ui: { title: "Покажи", icon: "media/icons/column_addition_mode.svg" },
+          params: {
+            hint: { type: "enum", values: [true, false], labels: { ru: { "true": "С руками (подсказка)", "false": "Только цифра" } }, default: true, label: { ru: "Подсказка" } },
+          },
+        },
+        {
+          id: "identify_number",
+          type: "identify_number",
+          evaluation: "instant",
+          ui: { title: "Какое это число?", icon: "media/icons/place_value_identify.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+            showCounters: { type: "boolean", default: true, label: { ru: "Показывать счётчики" } },
+            numericBlocks: { type: "visual_boolean", default: false, offLabel: { ru: "Десятки" }, label: { ru: "Блоки с цифрами вместо кубиков" } },
+          },
+        },
+      ],
+      cards: [
+        { id: "column_copy", conceptId: "column_copy", renderer: "column_addition", params: { operation: "add" } },
+        { id: "fshow_0", conceptId: "fshow_0", renderer: "column_addition", params: { mode: "fingers_show", n: 0 } },
+        { id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } },
+      ],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const byId = Object.fromEntries(record.modes.map((m) => [m.id, m]));
+
+    expect(byId.column_copy.hideConceptPicker).toBe(true);
+    expect(byId.column_copy.params.operation.section).toBe("Что решаем");
+    expect(byId.column_copy.params.operation.info.ru.text).toEqual(expect.any(String));
+
+    expect(byId.fingers_show.hideConceptPicker).toBeUndefined();
+    expect(byId.fingers_show.params.hint.type).toBe("boolean");
+    expect(byId.fingers_show.params.hint.info.ru.tip).toEqual(expect.any(String));
+
+    expect(byId.identify_number.hideConceptPicker).toBe(true);
+    expect(byId.identify_number.params.numericBlocks.label.ru).toBe("Блоки с цифрами");
+    expect(byId.identify_number.params.numericBlocks.section).toBe("Отображение");
+    expect(byId.identify_number.params.numericBlocks.info.ru.text).toEqual(expect.any(String));
+  });
+
   it("adds the new maxTens param to a build_number record saved before it existed", async () => {
     // Simulates a device that installed build_number before maxTens/the coin
     // mechanic existed — on the next load, the new range param and the updated
@@ -547,7 +616,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
     const record = await getTopicRecord(db, "column_addition");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
-    expect(buildNumber.params.maxTens).toEqual({
+    expect(buildNumber.params.maxTens).toMatchObject({
       type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" },
     });
     expect(buildNumber.ui.instruction).toBe("Перетаскивай монетки, пока не наберёшь число");
