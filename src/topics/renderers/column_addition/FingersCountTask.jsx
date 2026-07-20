@@ -115,16 +115,19 @@ function WristZone({ onTap }) {
   return <div className="fng-wrist-zone" onClick={onTap} role="button" aria-label="Дальше" />;
 }
 
-// For an addend that may span both hands (built → target, either can exceed
-// 5), walks one unit at a time and buckets each step's knuckle position onto
-// whichever hand it lands on. Reuses getFingerConfig's own "right"/"left"
-// naming (right fills 1-5 first, left is the 6-10 overflow) — not screen
-// position; the caller mirrors the "right" set before display, same as
-// everywhere else in this file.
-function multiDotsAcrossHands(built, target) {
+// For an addend that may span both hands, walks one unit at a time from
+// `built` up to full two-hand capacity (10) and buckets each step's knuckle
+// position onto whichever hand it lands on. Deliberately NOT capped at the
+// real target: how many dots are on screen must never reveal what the
+// target number is (a child could just count the dots instead of the
+// number). commit() alone enforces the real stopping point. Reuses
+// getFingerConfig's own "right"/"left" naming (right fills 1-5 first, left
+// is the 6-10 overflow) — not screen position; the caller mirrors the
+// "right" set before display, same as everywhere else in this file.
+function multiDotsAcrossHands(built) {
   const rightBases = [];
   const leftBases = [];
-  for (let n = built; n < target; n++) {
+  for (let n = built; n < 10; n++) {
     const cur = getFingerConfig(n);
     const nxt = getFingerConfig(n + 1);
     if (nxt.right > cur.right) {
@@ -217,10 +220,12 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
   const kbdVisible = phase === "answer" || phase === "done";
 
-  // All currently-raised fingers still to fold, shown at once — tap any of
-  // them (in any order) to fold the actual next finger in canonical order.
-  const leftTips  = (phase === "reduce" && leftCount > leftEnd)  ? removalTips(leftCount, leftEnd)   : [];
-  const rightTips = (phase === "reduce" && rightCount > rightEnd) ? removalTips(rightCount, rightEnd).map(mirror) : [];
+  // Every currently-raised finger gets a dot — not just the ones that need
+  // to fold — so the dot count never reveals how many to remove; the child
+  // has to know when to stop. Extra taps past the result are no-ops (the
+  // setters below clamp at leftEnd/rightEnd).
+  const leftTips  = (phase === "reduce" && leftCount > leftEnd)  ? removalTips(leftCount, 0)  : [];
+  const rightTips = (phase === "reduce" && rightCount > rightEnd) ? removalTips(rightCount, 0).map(mirror) : [];
 
   return (
     <div className="fng-add-screen">
@@ -239,7 +244,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
               {leftTips.length > 0 && (
                 <div className="fng-gesture-overlay">
                   {leftTips.map((pos, i) => (
-                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setLeftCount(c => c - 1)} />
+                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setLeftCount(c => Math.max(leftEnd, c - 1))} />
                   ))}
                 </div>
               )}
@@ -251,7 +256,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
               {rightTips.length > 0 && (
                 <div className="fng-gesture-overlay">
                   {rightTips.map((pos, i) => (
-                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setRightCount(c => c - 1)} />
+                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setRightCount(c => Math.max(rightEnd, c - 1))} />
                   ))}
                 </div>
               )}
@@ -347,19 +352,23 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   const kbdVisible = phase === "answer" || phase === "done";
 
+  // Dots always span the hand's full remaining capacity (up to 5, or 10
+  // across both hands), never just "target − built" — otherwise counting
+  // the dots would hand the child the answer instead of the number itself.
+  // commit() alone stops the count at the real target once reached.
   let leftCount, rightCount, leftBases, rightBases;
   if (simple) {
     // One hand per addend — both stay visible side by side once built.
     leftCount  = builtA;
     rightCount = builtB;
-    leftBases  = (phase === "a" && builtA < a) ? additionBases(builtA, a) : [];
-    rightBases = (phase === "b" && builtB < b) ? additionBases(builtB, b).map(mirror) : [];
+    leftBases  = (phase === "a" && builtA < a) ? additionBases(builtA, 5) : [];
+    rightBases = (phase === "b" && builtB < b) ? additionBases(builtB, 5).map(mirror) : [];
   } else {
     const activeBuilt = building ? built : b;
     const cfg = getFingerConfig(activeBuilt);
     leftCount  = cfg.left;
     rightCount = cfg.right;
-    const dots = building ? multiDotsAcrossHands(built, target) : { leftBases: [], rightBases: [] };
+    const dots = (building && built < target) ? multiDotsAcrossHands(built) : { leftBases: [], rightBases: [] };
     leftBases  = dots.leftBases;
     rightBases = dots.rightBases.map(mirror);
   }
