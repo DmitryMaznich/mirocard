@@ -194,7 +194,7 @@ def _propis_grid(cv):
 
 def _logo_footer(cv):
     """Лого + копирайт — левый нижний угол левой страницы."""
-    logo_path = "C:/Users/dmazn/Projects/Kaplieva/kaplieva_icon.png"
+    logo_path = os.path.join(ROOT_DIR, "public", "icon-512.png")
     lx = L_X0
     ly = 9 * MM
     ls = 15 * MM
@@ -204,10 +204,12 @@ def _logo_footer(cv):
         tx = lx + ls + 3 * MM
     except Exception:
         tx = lx
+    cv.setFont(BOLD, 10)
+    cv.setFillColorRGB(0.290, 0.565, 0.886)   # #4a90e2 — брендовый синий Mironium
+    cv.drawString(tx, ly + 9 * MM, "Mironium")
     cv.setFont(REG, 7.5)
     cv.setFillColorRGB(0.28, 0.28, 0.36)
-    cv.drawString(tx, ly + 9 * MM,   "www.kaplieva.help")
-    cv.drawString(tx, ly + 2.5 * MM, "© Kaplieva.help, 2026. Все права защищены.")
+    cv.drawString(tx, ly + 2.5 * MM, "© Mironium, 2026. Все права защищены.")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
