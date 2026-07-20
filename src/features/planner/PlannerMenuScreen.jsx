@@ -6,7 +6,7 @@ import { BackArrowIcon, ForwardArrowIcon } from '@/shared/components/ArrowIcons'
 import {
   createPlan, isRecipeSelected, selectRecipe, deselectRecipe,
   setMealAssignment, setSelectedPortions, resolveChosenPortions,
-  setSelectedOptions, getSelectedOptions,
+  setSelectedOptions, resolveOptionIngredients,
   setIngredientDecision, setAllIngredientDecisions, buildSelectedIngredientsSummary, isMenuFullyDecided,
   needsMealMismatchWarning,
   MEAL_TYPES, RECIPE_TAGS, MEAL_ICONS,
@@ -36,7 +36,7 @@ function keyIngredients(ingredients) {
 // ─── Recipe ingredients (what you need, no step-by-step) ─────────────────────
 
 function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
-  const { topicId, text, ingredients, options, optionGroups, fixedPortions } = recipe;
+  const { topicId, text, ingredients, fixedPortions } = recipe;
   const coverUrl = useTopicFile(topicId, text.photo);
   const selected = isRecipeSelected(plan, text.id);
   // Before the recipe is added to the menu, no portion count has actually
@@ -52,18 +52,13 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
 
   // A recipe's fixed # ingredients: list doesn't include option-group
   // choices (e.g. omelette filling, optional milk) — those live separately
-  // in # options:. Resolve what's actually chosen (or, for a required
-  // "single" group nothing has been picked for yet, its default first
-  // choice — mirrors PortionsPromptSheet's effectiveOptions) so the
-  // ingredient list shown here matches what the recipe will actually use.
-  const optionGroupsMeta = optionGroups ?? {};
-  const selectedOptionIngredients = Object.entries(options ?? {}).flatMap(([groupId, choices]) => {
-    const chosen = getSelectedOptions(plan, text.id, groupId);
-    if (chosen.length) return choices.filter((c) => chosen.includes(c.product));
-    if (optionGroupsMeta[groupId]?.mode === 'single') return choices[0] ? [choices[0]] : [];
-    return [];
-  });
-  const allIngredients = [...ingredients, ...selectedOptionIngredients];
+  // in # options:. A group with a real choice already made (persisted in
+  // the plan) renders as an actual ingredient row; one still undecided
+  // renders as an informational "on offer" note instead — silently
+  // guessing a default and showing it as a real ingredient would be
+  // misleading before the cook has actually chosen anything.
+  const { ingredients: optionIngredients, notes: optionNotes } = resolveOptionIngredients(recipe, plan);
+  const allIngredients = [...ingredients, ...optionIngredients];
 
   return (
     <div className="screen planner-screen">
@@ -95,6 +90,13 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
               );
             })}
           </ul>
+          {optionNotes.length > 0 && (
+            <ul className="recipe-ingredients__notes">
+              {optionNotes.map((n) => (
+                <li key={n.groupId} className="recipe-ingredients__note">{n.text}</li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 

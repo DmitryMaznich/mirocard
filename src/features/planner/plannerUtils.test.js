@@ -21,6 +21,8 @@ import {
   isReadyToCook,
   isRecipeCookedThisCycle,
   needsMealMismatchWarning,
+  setSelectedOptions,
+  resolveOptionIngredients,
 } from './plannerUtils.js';
 
 describe('MEAL_TYPES', () => {
@@ -744,5 +746,65 @@ describe('needsMealMismatchWarning', () => {
   it('is true for a recipe with no meal-type tags at all (defensive case)', () => {
     const recipe = { tags: [] };
     expect(needsMealMismatchWarning(recipe, 'завтрак')).toBe(true);
+  });
+});
+
+describe('resolveOptionIngredients', () => {
+  const omelet = {
+    text: { id: 'omelet_01' },
+    options: {
+      filling: [
+        { product: 'колбаса', qty: 80, unit: 'гр' },
+        { product: 'курица', qty: 80, unit: 'гр' },
+        { product: 'другое мясо', qty: 80, unit: 'гр' },
+      ],
+      milk: [{ product: 'молоко', qty: 2, unit: 'ст.л' }],
+    },
+    optionGroups: {
+      filling: { mode: 'single', label: 'Начинка' },
+      milk: { mode: 'multi', label: 'Молоко' },
+    },
+  };
+
+  it('turns an undecided "single" group into an on-offer note listing every choice, not a silent default', () => {
+    const plan = createPlan('s1');
+    const { ingredients, notes } = resolveOptionIngredients(omelet, plan);
+    expect(ingredients).toEqual([]);
+    expect(notes).toContainEqual({ groupId: 'filling', text: 'Начинка на выбор: колбаса, курица или другое мясо' });
+  });
+
+  it('turns an undecided "multi" group into an on-offer note too', () => {
+    const plan = createPlan('s1');
+    const { notes } = resolveOptionIngredients(omelet, plan);
+    expect(notes).toContainEqual({ groupId: 'milk', text: 'Молоко по желанию: молоко' });
+  });
+
+  it('renders a real chosen "single" selection as an actual ingredient row, not a note', () => {
+    const plan = setSelectedOptions(createPlan('s1'), 'omelet_01', 'filling', ['курица']);
+    const { ingredients, notes } = resolveOptionIngredients(omelet, plan);
+    expect(ingredients).toEqual([{ product: 'курица', qty: 80, unit: 'гр' }]);
+    expect(notes.find((n) => n.groupId === 'filling')).toBeUndefined();
+  });
+
+  it('renders a real chosen "multi" selection as an actual ingredient row', () => {
+    const plan = setSelectedOptions(createPlan('s1'), 'omelet_01', 'milk', ['молоко']);
+    const { ingredients, notes } = resolveOptionIngredients(omelet, plan);
+    expect(ingredients).toEqual([{ product: 'молоко', qty: 2, unit: 'ст.л' }]);
+    expect(notes.find((n) => n.groupId === 'milk')).toBeUndefined();
+  });
+
+  it('falls back to a generic label and multi mode for a recipe with no # option_groups: block', () => {
+    const oatmeal = {
+      text: { id: 'oatmeal_01' },
+      options: { topping: [{ product: 'мёд', qty: 1, unit: 'ч.л' }, { product: 'ягоды', qty: 1, unit: 'горсть' }] },
+      optionGroups: {},
+    };
+    const { notes } = resolveOptionIngredients(oatmeal, createPlan('s1'));
+    expect(notes).toContainEqual({ groupId: 'topping', text: 'Топпинг по желанию: мёд или ягоды' });
+  });
+
+  it('returns empty ingredients and notes for a recipe with no options at all', () => {
+    const soup = { text: { id: 'soup_01' }, options: {}, optionGroups: {} };
+    expect(resolveOptionIngredients(soup, createPlan('s1'))).toEqual({ ingredients: [], notes: [] });
   });
 });

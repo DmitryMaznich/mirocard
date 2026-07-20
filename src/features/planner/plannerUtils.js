@@ -122,6 +122,48 @@ export function getSelectedOptions(plan, textId, groupId) {
   return plan.selectedOptions?.[textId]?.[groupId] ?? [];
 }
 
+function joinChoiceNames(names) {
+  if (names.length <= 1) return names[0] ?? '';
+  return `${names.slice(0, -1).join(', ')} или ${names[names.length - 1]}`;
+}
+
+/**
+ * Splits a recipe's option groups (e.g. omelette filling, optional milk)
+ * into two buckets for an ingredient-preview screen:
+ *   - ingredients: a real choice exists (persisted in `plan`) — rendered
+ *     exactly like a regular ingredient, same {product, qty, unit} shape.
+ *   - notes: nothing decided yet — an informational sentence naming every
+ *     possible choice, instead of silently picking one and passing it off
+ *     as a real ingredient (misleading at a glance, before the cook has
+ *     actually committed to anything). A required "single" group reads
+ *     "X на выбор: ...", an optional "multi" group reads "X по желанию: ...".
+ * Used by both PlannerMenuScreen's recipe detail (plan-aware — a recipe
+ * already added to the menu shows its real selection) and the standalone
+ * recipe catalog (never plan-aware — always shows the on-offer notes).
+ */
+export function resolveOptionIngredients(recipe, plan) {
+  const { text, options, optionGroups } = recipe;
+  const optionGroupsMeta = optionGroups ?? {};
+  const ingredients = [];
+  const notes = [];
+  for (const [groupId, choices] of Object.entries(options ?? {})) {
+    const chosen = getSelectedOptions(plan, text.id, groupId);
+    if (chosen.length) {
+      ingredients.push(...choices.filter((c) => chosen.includes(c.product)));
+      continue;
+    }
+    const meta = optionGroupsMeta[groupId];
+    const label = meta?.label ?? 'Топпинг';
+    const mode = meta?.mode ?? 'multi';
+    const joined = joinChoiceNames(choices.map((c) => c.product));
+    notes.push({
+      groupId,
+      text: `${label} ${mode === 'single' ? 'на выбор' : 'по желанию'}: ${joined}`,
+    });
+  }
+  return { ingredients, notes };
+}
+
 export function resetPlan(studentId) {
   return createPlan(studentId);
 }

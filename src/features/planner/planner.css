@@ -1182,6 +1182,26 @@
   white-space: nowrap;
 }
 
+/* Informational "on offer" notes (undecided option groups, e.g. omelette
+   filling) — deliberately NOT styled like .recipe-ingredients__item's
+   bordered rows with a bold teal qty, so they never read as a real,
+   already-decided ingredient. */
+.recipe-ingredients__notes {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recipe-ingredients__note {
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.4;
+  color: #7a8c88;
+}
+
 .recipe-detail-add {
   width: 100%;
   padding: 14px;

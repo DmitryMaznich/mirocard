@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BackArrowIcon } from '@/shared/components/ArrowIcons';
 import { getTopicTitle } from '@/shared/utils/format';
 import { useTopicFile } from '@/shared/hooks/useTopicFile';
-import { RECIPE_TAGS, MEAL_ICONS, resolveChosenPortions, pluralizePortionsAccusative } from './plannerUtils.js';
+import { RECIPE_TAGS, MEAL_ICONS, resolveChosenPortions, pluralizePortionsAccusative, resolveOptionIngredients } from './plannerUtils.js';
 import { scaleIngredientQty } from './shoppingUnitConversions.js';
 import './planner.css';
 
@@ -58,6 +58,11 @@ function CatalogRecipeDetail({ recipe, onCook, onBack }) {
   const { chosenPortions, scale } = fixedPortions
     ? resolved
     : { chosenPortions: 1, scale: 1 / resolved.basePortions };
+  // The catalog is never plan-aware (NO_PLAN), so any option group (e.g.
+  // omelette filling, optional milk) always renders as an on-offer note
+  // here — see resolveOptionIngredients in plannerUtils.js.
+  const { ingredients: optionIngredients, notes: optionNotes } = resolveOptionIngredients(recipe, NO_PLAN);
+  const allIngredients = [...ingredients, ...optionIngredients];
 
   return (
     <div className="screen planner-screen">
@@ -74,7 +79,7 @@ function CatalogRecipeDetail({ recipe, onCook, onBack }) {
             {chosenPortions} {pluralizePortionsAccusative(chosenPortions)}
           </span>
           <ul className="recipe-ingredients__list">
-            {ingredients.map((ing, i) => {
+            {allIngredients.map((ing, i) => {
               const scaledQty = scaleIngredientQty(ing.qty, ing.unit, scale);
               return (
                 <li key={i} className="recipe-ingredients__item">
@@ -86,6 +91,13 @@ function CatalogRecipeDetail({ recipe, onCook, onBack }) {
               );
             })}
           </ul>
+          {optionNotes.length > 0 && (
+            <ul className="recipe-ingredients__notes">
+              {optionNotes.map((n) => (
+                <li key={n.groupId} className="recipe-ingredients__note">{n.text}</li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
