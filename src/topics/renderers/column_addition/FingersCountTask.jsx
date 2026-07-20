@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import HandImg from "./HandImg.jsx";
+import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
+import { FINGER_TIPS_R, FINGER_BASES_R } from "./handShapes.js";
 import "./fingers.css";
 
 // ── Addition (a ≤ 5 and b ≤ 5) ───────────────────────────────────────────────
@@ -62,10 +63,10 @@ function AdditionTask({ task, onCorrect, onMistake }) {
       <div className="fng-add-hands-zone" onClick={advance}
            style={{ cursor: tappable ? "pointer" : "default" }}>
         <div className={`fng-add-hand-l${handsMerged ? " fng-add-hand--merge" : ""}`}>
-          <HandImg count={a} side="right" style={{ width: "100%", height: "100%" }} />
+          <AnimatedHand count={a} side="right" style={{ width: "100%", height: "100%" }} />
         </div>
         <div className={`fng-add-hand-r${handsMerged ? " fng-add-hand--merge" : ""}`}>
-          <HandImg count={b} side="left"  style={{ width: "100%", height: "100%" }} />
+          <AnimatedHand count={b} side="left"  style={{ width: "100%", height: "100%" }} />
         </div>
       </div>
 
@@ -128,8 +129,9 @@ function GestureDot({ pos, direction, onCommit }) {
   );
 }
 
-function DrawnArrow({ tip, base, direction, onTap }) {
+function DrawnArrow({ tip, base, direction, onTap, order }) {
   const startRef = useRef(null);
+  const showBadge = order != null;
 
   function onPointerDown(e) {
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -147,18 +149,25 @@ function DrawnArrow({ tip, base, direction, onTap }) {
 
   if (direction === "down") {
     return (
-      <svg
-        viewBox="0 0 40 100"
-        className="fng-sub-arrow fng-gesture-arrow"
-        style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, pointerEvents: "auto" }}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-      >
-        <line x1="20" y1="2" x2="20" y2="68" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
-        <line x1="20" y1="2" x2="20" y2="68" stroke="#ef4444" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
-        <polygon points="20,100 0,63 40,63" fill="white" className="fng-head-bg" />
-        <polygon points="20,96 5,66 35,66" fill="#ef4444" className="fng-head" />
-      </svg>
+      <>
+        <svg
+          viewBox="0 0 40 100"
+          className="fng-sub-arrow fng-gesture-arrow"
+          style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, pointerEvents: "auto" }}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+        >
+          <line x1="20" y1="2" x2="20" y2="68" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
+          <line x1="20" y1="2" x2="20" y2="68" stroke="#ef4444" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
+          <polygon points="20,100 0,63 40,63" fill="white" className="fng-head-bg" />
+          <polygon points="20,96 5,66 35,66" fill="#ef4444" className="fng-head" />
+        </svg>
+        {showBadge && (
+          <div className="fng-gesture-badge fng-gesture-badge--down" style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
+            {order}
+          </div>
+        )}
+      </>
     );
   }
 
@@ -166,23 +175,31 @@ function DrawnArrow({ tip, base, direction, onTap }) {
   const h = base ? (base.y - tip.y) * 100 : 0;
   if (h <= 0) return null;
   return (
-    <svg
-      viewBox="0 0 40 100"
-      className="fng-add-arrow fng-gesture-arrow"
-      style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, height: `${h}%`, pointerEvents: "auto" }}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-    >
-      <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
-      <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
-      <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
-      <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
-    </svg>
+    <>
+      <svg
+        viewBox="0 0 40 100"
+        className="fng-add-arrow fng-gesture-arrow"
+        style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%`, height: `${h}%`, pointerEvents: "auto" }}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+      >
+        <polygon points="20,0 0,37 40,37" fill="white" className="fng-head-bg" />
+        <polygon points="20,4 5,34 35,34" fill="#22c55e" className="fng-head" />
+        <line x1="20" y1="98" x2="20" y2="32" stroke="white" strokeWidth="12" strokeLinecap="round" className="fng-stem-bg" />
+        <line x1="20" y1="98" x2="20" y2="32" stroke="#22c55e" strokeWidth="7" strokeLinecap="round" className="fng-stem" />
+      </svg>
+      {showBadge && (
+        <div className="fng-gesture-badge fng-gesture-badge--up" style={{ left: `${tip.x * 100}%`, top: `${tip.y * 100}%` }}>
+          {order}
+        </div>
+      )}
+    </>
   );
 }
 
 function GestureOverlay({ items, direction }) {
   const [committed, setCommitted] = useState(() => new Set());
+  const multi = items.length > 1;
 
   function commit(i) { setCommitted(s => new Set([...s, i])); }
   function revoke(i) { setCommitted(s => { const n = new Set(s); n.delete(i); return n; }); }
@@ -193,7 +210,14 @@ function GestureOverlay({ items, direction }) {
         const dotPos = direction === "down" ? item.tip : item.base;
         if (!dotPos) return null;
         return committed.has(i) ? (
-          <DrawnArrow key={i} tip={item.tip} base={item.base} direction={direction} onTap={() => revoke(i)} />
+          <DrawnArrow
+            key={i}
+            tip={item.tip}
+            base={item.base}
+            direction={direction}
+            onTap={() => revoke(i)}
+            order={multi ? i + 1 : null}
+          />
         ) : (
           <GestureDot key={i} pos={dotPos} direction={direction} onCommit={() => commit(i)} />
         );
@@ -222,30 +246,12 @@ function Keyboard({ onDigit, onDelete, active }) {
 // ── Subtraction ───────────────────────────────────────────────────────────────
 // Flow: show (dots + Готово) → result [tap] → answer
 
-const FINGER_TIPS_R = {
-  1: [{ x: 0.375, y: 0.113 }],
-  2: [{ x: 0.344, y: 0.151 }, { x: 0.555, y: 0.101 }],
-  3: [{ x: 0.320, y: 0.159 }, { x: 0.531, y: 0.090 }, { x: 0.711, y: 0.152 }],
-  4: [{ x: 0.344, y: 0.147 }, { x: 0.539, y: 0.104 }, { x: 0.719, y: 0.147 }, { x: 0.852, y: 0.272 }],
-  5: [{ x: 0.148, y: 0.486 }, { x: 0.336, y: 0.174 }, { x: 0.523, y: 0.117 }, { x: 0.711, y: 0.161 }, { x: 0.867, y: 0.286 }],
-};
-
 const FOLD_ORDER = {
   1: [0],
   2: [1, 0],
   3: [2, 1, 0],
   4: [3, 2, 1, 0],
   5: [0, 4, 3, 2, 1],
-};
-
-// Knuckle positions of folded fingers when hand shows N raised fingers.
-// Indexed [thumb=0, index=1, middle=2, ring=3, pinky=4]. null = finger is raised.
-const FINGER_BASES_R = {
-  0: [{ x: 0.494, y: 0.530 }, { x: 0.394, y: 0.550 }, { x: 0.431, y: 0.460 }, { x: 0.725, y: 0.540 }, { x: 0.619, y: 0.535 }],
-  1: [{ x: 0.619, y: 0.542 }, null,                   { x: 0.719, y: 0.552 }, { x: 0.594, y: 0.462 }, { x: 0.513, y: 0.552 }],
-  2: [{ x: 0.625, y: 0.484 }, null,                   null,                   { x: 0.594, y: 0.539 }, { x: 0.669, y: 0.594 }],
-  3: [{ x: 0.606, y: 0.511 }, null,                   null,                   null,                   { x: 0.688, y: 0.531 }],
-  4: [{ x: 0.488, y: 0.477 }, null,                   null,                   null,                   null                  ],
 };
 
 function removalTips(startCount, endCount) {
@@ -349,7 +355,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
-              <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
+              <AnimatedHand count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
               {phase === "show" && leftItems.length > 0 && (
                 <GestureOverlay key={task.cardId + "-L"} items={leftItems} direction="down" />
               )}
@@ -357,7 +363,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
           </div>
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
-              <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
+              <AnimatedHand count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
               {phase === "show" && rightItems.length > 0 && (
                 <GestureOverlay key={task.cardId + "-R"} items={rightItems} direction="down" />
               )}
@@ -464,7 +470,7 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
-              <HandImg count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
+              <AnimatedHand count={leftCount}  side="right" style={{ width: "100%", height: "100%" }} />
               {phase === "show" && leftItems.length > 0 && (
                 <GestureOverlay key={task.cardId + "-L"} items={leftItems} direction="up" />
               )}
@@ -472,7 +478,7 @@ function LargeAdditionTask({ task, onCorrect, onMistake }) {
           </div>
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
-              <HandImg count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
+              <AnimatedHand count={rightCount} side="left"  style={{ width: "100%", height: "100%" }} />
               {phase === "show" && rightItems.length > 0 && (
                 <GestureOverlay key={task.cardId + "-R"} items={rightItems} direction="up" />
               )}

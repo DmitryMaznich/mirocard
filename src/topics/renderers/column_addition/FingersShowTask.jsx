@@ -1,5 +1,5 @@
 import React from "react";
-import HandImg from "./HandImg.jsx";
+import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { BackArrowIcon, ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import "./fingers.css";
@@ -16,8 +16,8 @@ export default function FingersShowTask({ task, sessionParams, onCorrect, onPrev
 
       {hint && (
         <div className="fng-show-hands">
-          <HandImg count={left}  side="right" style={{ flex: 1, minWidth: 0, height: "100%" }} />
-          <HandImg count={right} side="left"  style={{ flex: 1, minWidth: 0, height: "100%" }} />
+          <AnimatedHand count={left}  side="right" style={{ flex: 1, minWidth: 0, height: "100%" }} />
+          <AnimatedHand count={right} side="left"  style={{ flex: 1, minWidth: 0, height: "100%" }} />
         </div>
       )}
 

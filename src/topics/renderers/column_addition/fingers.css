@@ -262,6 +262,54 @@
   to   { opacity: 1; }
 }
 
+/* Once drawn, the arrow stays alive with a gentle bob + colored glow pulse
+ * (rehearsed in the finger-raise mockups) instead of sitting static. */
+.fng-sub-arrow {
+  animation: fng-arrow-bob 1.6s 0.55s ease-in-out infinite, fng-arrow-glow-red 1.6s 0.55s ease-in-out infinite;
+}
+.fng-add-arrow {
+  animation: fng-arrow-bob 1.6s 0.55s ease-in-out infinite, fng-arrow-glow-green 1.6s 0.55s ease-in-out infinite;
+}
+
+@keyframes fng-arrow-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-4px); }
+}
+@keyframes fng-arrow-glow-red {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0)); }
+  50%      { filter: drop-shadow(0 0 5px rgba(239, 68, 68, .65)); }
+}
+@keyframes fng-arrow-glow-green {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(34, 197, 94, 0)); }
+  50%      { filter: drop-shadow(0 0 5px rgba(34, 197, 94, .65)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fng-gesture-arrow, .fng-sub-arrow, .fng-add-arrow { animation: none !important; }
+}
+
+/* Numbered badge for multi-finger gesture cascades (2+ items in one overlay) */
+.fng-gesture-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+  opacity: 0;
+  animation: fng-head-appear 0.2s ease-out 0.28s forwards, fng-arrow-bob 1.6s 0.55s ease-in-out infinite;
+}
+.fng-gesture-badge--down { background: #ef4444; }
+.fng-gesture-badge--up   { background: #22c55e; }
+
 
 /* ── Gesture overlay (жест-управляемые точки и стрелки) ─────────── */
 
