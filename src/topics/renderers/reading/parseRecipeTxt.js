@@ -581,20 +581,29 @@ export function filterStepsByOptions(steps, selections) {
 }
 
 /**
- * {groupId:product?matchPhrase|otherwisePhrase} — chooses a phrase based on
- * whether `product` is among the choices selected for `groupId`, instead of
- * substituting the raw chosen name via the bare {groupId} placeholder.
- * Needed when different choices genuinely need different instructions, not
- * just a different noun — e.g. an omelette's добавка is sliced into rounds
- * when it's sausage, but small pieces for chicken or other meat. Always
- * resolves to one of the two phrases (never "nothing to show"), so unlike
- * a bare {groupId} it never triggers filterStepsByOptions's step-dropping.
+ * {groupId:product1?phrase1|product2?phrase2|...|defaultPhrase} — chooses a
+ * phrase based on WHICH specific product is selected for `groupId`, instead
+ * of substituting the raw chosen name via the bare {groupId} placeholder.
+ * Needed when different choices genuinely need different wording, not just
+ * a different noun dropped into an otherwise-fixed sentence — e.g. every
+ * step that names an omelette's добавка needs the actual accusative noun
+ * ("колбасу" / "курицу" / "мясо"), not a generic label. Each "product?phrase"
+ * segment is tried against the group's actual selection, first match wins;
+ * a final segment with no "?" is the fallback if nothing else matched (also
+ * used with only one branch — the original two-way "product?match|otherwise"
+ * shape is just the one-branch-plus-fallback case of this same syntax).
+ * Always resolves to some phrase (never "nothing to show"), so unlike a
+ * bare {groupId} it never triggers filterStepsByOptions's step-dropping.
  */
 export function applyOptionValueConditional(text, selections) {
   if (!text) return text ?? "";
-  return text.replace(
-    /\{([a-zA-Zа-яёА-ЯЁ]\w*):([^?|}]+)\?([^|}]+)\|([^|}]+)\}/g,
-    (_, groupId, product, matchPhrase, otherwisePhrase) =>
-      (selections?.[groupId] ?? []).includes(product.trim()) ? matchPhrase.trim() : otherwisePhrase.trim()
-  );
+  return text.replace(/\{([a-zA-Zа-яёА-ЯЁ]\w*):([^{}]*\?[^{}]*)\}/g, (_, groupId, clause) => {
+    const chosen = selections?.[groupId] ?? [];
+    for (const segment of clause.split("|")) {
+      const qIndex = segment.indexOf("?");
+      if (qIndex === -1) return segment.trim(); // trailing default, no product to match
+      if (chosen.includes(segment.slice(0, qIndex).trim())) return segment.slice(qIndex + 1).trim();
+    }
+    return "";
+  });
 }

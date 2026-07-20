@@ -375,6 +375,24 @@ describe('applyOptionValueConditional', () => {
     expect(applyOptionValueConditional(text, { filling: ['колбаса'] }))
       .toBe('Взять добавку: {filling}. Нарезать кружочками.');
   });
+
+  it('supports more than two branches, picking the first matching product', () => {
+    const text = '{filling:колбаса?Нарезать колбасу|курица?Нарезать курицу|Нарезать мясо}.';
+    expect(applyOptionValueConditional(text, { filling: ['колбаса'] })).toBe('Нарезать колбасу.');
+    expect(applyOptionValueConditional(text, { filling: ['курица'] })).toBe('Нарезать курицу.');
+    expect(applyOptionValueConditional(text, { filling: ['другое мясо'] })).toBe('Нарезать мясо.');
+  });
+
+  it('falls back to the trailing no-"?" segment as the default in a multi-branch template', () => {
+    const text = '{filling:колбаса?A|курица?B|C}';
+    expect(applyOptionValueConditional(text, { filling: ['другое мясо'] })).toBe('C');
+    expect(applyOptionValueConditional(text, {})).toBe('C');
+  });
+
+  it('resolves two independent multi-branch templates in the same sentence', () => {
+    const text = 'Нарезать {filling:колбаса?колбасу|курица?курицу|мясо} {filling:колбаса?кружочками|небольшими кусочками}.';
+    expect(applyOptionValueConditional(text, { filling: ['курица'] })).toBe('Нарезать курицу небольшими кусочками.');
+  });
 });
 
 describe('applyPortions with key: overrides', () => {
