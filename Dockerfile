@@ -12,4 +12,6 @@ COPY . .
 RUN npm run build
 
 ENV NODE_ENV=production
+ENV PORT=3012
+EXPOSE 3012
 CMD ["node", "backend/server.mjs"]
