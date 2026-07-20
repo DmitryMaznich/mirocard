@@ -41,6 +41,16 @@ describe('toCanonicalQty', () => {
     expect(toCanonicalQty('гречка', 100, 'г')).toEqual({ qty: 100, unit: 'г' });
   });
 
+  it('converts колбаса кружочков/кружков to the same grams basis, so omelet and scramble_sausage sum correctly when both are in the same menu', () => {
+    expect(toCanonicalQty('колбаса', 8, 'кружочков')).toEqual({ qty: 80, unit: 'г' });
+    expect(toCanonicalQty('колбаса', 10, 'кружков')).toEqual({ qty: 100, unit: 'г' });
+  });
+
+  it('converts курица/другое мясо горсть to grams', () => {
+    expect(toCanonicalQty('курица', 1, 'горсть')).toEqual({ qty: 100, unit: 'г' });
+    expect(toCanonicalQty('другое мясо', 2, 'горсть')).toEqual({ qty: 200, unit: 'г' });
+  });
+
   it('matches product name case-insensitively', () => {
     expect(toCanonicalQty('КАРТОШКА', 1, 'шт')).toEqual({ qty: 150, unit: 'г' });
   });

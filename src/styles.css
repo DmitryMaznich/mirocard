@@ -11351,11 +11351,21 @@ button {
   background: #fff;
   color: #4f6864;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.15;
 }
 .options-picker__choice--active {
   background: rgba(74, 155, 143, 0.16);
   border-color: #4a9b8f;
   color: #2f5b57;
+}
+.options-picker__choice-qty {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.65;
 }
 
 /* ─── Button ─────────────────────────────────────────────────────────────────── */

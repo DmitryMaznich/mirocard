@@ -12,9 +12,10 @@ import {
   MEAL_TYPES, RECIPE_TAGS, MEAL_ICONS,
   pluralizePortions, pluralizePortionsAccusative,
 } from './plannerUtils.js';
-import { GLOBAL_MAX_PORTIONS } from './recipeParser.js';
+import { GLOBAL_MAX_PORTIONS, scalePortionQty } from './recipeParser.js';
 import { loadPlan, savePlan, sendPlanToStudent, loadAllRecipes, PANTRY_ITEMS } from './plannerApi.js';
 import { scaleIngredientQty } from './shoppingUnitConversions.js';
+import { formatCompact } from '@/topics/renderers/reading/parseRecipeTxt.js';
 import StoveHeatModal from '@/shared/components/StoveHeatModal';
 import OptionsPicker from '@/shared/components/OptionsPicker';
 import './planner.css';
@@ -205,6 +206,19 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
     }
   }
 
+  // Same scaling formula resolveChosenPortions uses for the flat ingredient
+  // list — each option choice's own qty/unit needs it too, or the picker
+  // silently shows no quantity at all (see OptionsPicker.jsx).
+  const scale = portions / (recipe.portions || 1);
+  function withQtyLabels(choices) {
+    return choices.map((c) => ({
+      ...c,
+      qtyLabel: c.qty != null
+        ? formatCompact(scalePortionQty(c.qty, c.additiveStep, scale, c.coverDivisor), c.unit)
+        : null,
+    }));
+  }
+
   return (
     <div className="portions-sheet-backdrop" onClick={onClose}>
       <div className="portions-sheet" onClick={(e) => e.stopPropagation()}>
@@ -235,7 +249,7 @@ function PortionsPromptSheet({ recipe, onConfirm, onClose }) {
             key={groupId}
             label={optionGroupsMeta[groupId]?.label ?? "Топпинг (можно несколько или ничего)"}
             mode={optionGroupsMeta[groupId]?.mode ?? "multi"}
-            choices={choices}
+            choices={withQtyLabels(choices)}
             selected={effectiveOptions[groupId] ?? []}
             onChange={(next) => setOptions((prev) => ({ ...prev, [groupId]: next }))}
           />

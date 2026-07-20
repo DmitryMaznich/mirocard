@@ -32,7 +32,9 @@ export const SHOPPING_UNIT_CONVERSIONS = {
   'сливки 20%': { gramsPerUnit: { 'ст.л': 15 }, roundStepG: 100, minG: 100, buyUnit: 'мл' },
   'сыр твёрдый': { roundStepG: 50, minG: 50 },
   'фарш': { roundStepG: 500, minG: 500 },
-  'колбаса': { roundStepG: 100, minG: 100 },
+  'колбаса': { gramsPerUnit: { 'кружочков': 10, 'кружков': 10 }, roundStepG: 100, minG: 100 },
+  'курица': { gramsPerUnit: { 'горсть': 100 }, roundStepG: 100, minG: 100 },
+  'другое мясо': { gramsPerUnit: { 'горсть': 100 }, roundStepG: 100, minG: 100 },
   'кофейные зёрна': { roundStepG: 250, minG: 250 },
   'креветки': { roundStepG: 100, minG: 100 },
 };
