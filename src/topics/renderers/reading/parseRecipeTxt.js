@@ -473,6 +473,30 @@ export function parseTimerMinutesFromText(text) {
   return last ? durationToMinutes(last[1], last[2]) : null;
 }
 
+const TIMER_MARKER_PAREN_RE = /\(\s*установить\s+таймер[^)]*\)/i;
+const TIMER_LABEL_MAX_LENGTH = 50;
+
+/**
+ * Build a short label for the currently-running timer from the recipe step
+ * text that triggered it, e.g. "Обжаривать 4 минуты (установить таймер)."
+ * → "Обжаривать 4 минуты." — used so a running timer can say what it's
+ * timing instead of a generic "Таймер".
+ */
+export function buildTimerLabel(text) {
+  if (!text) return null;
+  const stripped = text
+    .replace(TIMER_MARKER_PAREN_RE, "")
+    .replace(/\s+([.,!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!stripped) return null;
+  if (stripped.length <= TIMER_LABEL_MAX_LENGTH) return stripped;
+  const truncated = stripped.slice(0, TIMER_LABEL_MAX_LENGTH);
+  const lastSpace = truncated.lastIndexOf(" ");
+  const cut = lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated;
+  return `${cut}…`;
+}
+
 /**
  * Group a recipe's parsed steps into phase segments for the progress bar.
  * A new segment starts at every `heading` step; steps before the first

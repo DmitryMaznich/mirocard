@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, applyFireEmoji, applyOptionSelections, filterStepsByOptions, applyOptionValueConditional, extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit, formatCompact } from './parseRecipeTxt.js';
+import { stepPortionsMultiplier, applyPortions, formatPortionsPhrase, computeStepSegments, parseTimerMinutesFromText, buildTimerLabel, applyFireEmoji, applyOptionSelections, filterStepsByOptions, applyOptionValueConditional, extractAdjustableTemplates, computeAdjustableDefault, formatWithUnit, formatCompact } from './parseRecipeTxt.js';
 
 describe('stepPortionsMultiplier', () => {
   it('scales a regular recipe by chosen/base portions', () => {
@@ -211,6 +211,30 @@ describe('parseTimerMinutesFromText', () => {
 
   it('ignores durations mentioned after the timer marker', () => {
     expect(parseTimerMinutesFromText('Варить 8 минут, часто помешивать ложкой (установить таймер). Потом добавить 2 ложки соли.')).toBe(8);
+  });
+});
+
+describe('buildTimerLabel', () => {
+  it('returns null for empty input', () => {
+    expect(buildTimerLabel(null)).toBeNull();
+    expect(buildTimerLabel('')).toBeNull();
+  });
+
+  it('strips the "(установить таймер)" marker and tidies the trailing punctuation', () => {
+    expect(buildTimerLabel('Обжаривать 4 минуты (установить таймер).')).toBe('Обжаривать 4 минуты.');
+  });
+
+  it('strips an "установить таймер на N минут" override marker the same way', () => {
+    expect(buildTimerLabel('Запекать 1 час (установить таймер на 60 минут).')).toBe('Запекать 1 час.');
+  });
+
+  it('returns text unchanged (just trimmed) when under the length limit and there is no marker', () => {
+    expect(buildTimerLabel('Нарезать лук мелким кубиком.')).toBe('Нарезать лук мелким кубиком.');
+  });
+
+  it('truncates long labels on a word boundary with an ellipsis', () => {
+    const text = 'Обжаривать морковку и лук вместе на среднем огне пока не станет мягким (установить таймер).';
+    expect(buildTimerLabel(text)).toBe('Обжаривать морковку и лук вместе на среднем огне…');
   });
 });
 
