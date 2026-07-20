@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTimer } from "./TimerContext";
+import { getMinuteLabel } from "./timerFormat";
 import { makeYoutubeEmbedUrl } from "@/shared/utils/format";
 import { normalizeRewardVideoIds, pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 
@@ -44,22 +45,11 @@ function formatClockDuration(totalSeconds) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-function getMinuteLabel(value) {
-  const safeValue = Math.max(0, Math.floor(value));
-  const lastDigit = safeValue % 10;
-  const lastTwoDigits = safeValue % 100;
-  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return "минут";
-  if (lastDigit === 1) return "минута";
-  if (lastDigit >= 2 && lastDigit <= 4) return "минуты";
-  return "минут";
-}
-
 export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
-  const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes, pendingLabel } = useTimer();
+  const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes, pendingLabel, activeLabel, setActiveLabel } = useTimer();
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [running, setRunning] = useState(false);
-  const [activeLabel, setActiveLabel] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [listenMode, setListenMode] = useState(false);
   const [sensitivity, setSensitivity] = useState(4);

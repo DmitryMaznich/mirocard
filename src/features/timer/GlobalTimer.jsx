@@ -1,14 +1,23 @@
 import { useEffect, useRef } from "react";
 import { useTimer } from "./TimerContext";
 import AnalogTimer from "./AnalogTimer";
+import { getMinuteLabel } from "./timerFormat";
 
 export default function GlobalTimer({ rewardVideos = [] }) {
-  const { isOpen, setIsOpen, isRunning, timerSuggested, acknowledgeTimerSuggestion } = useTimer();
+  const { isOpen, setIsOpen, isRunning, timeLeft, activeLabel, timerSuggested, acknowledgeTimerSuggestion } = useTimer();
   const clockRef = useRef(null);
   const tabRef = useRef(null);
   const swipeRef = useRef(null);
 
   const tabState = isRunning ? "running" : (timerSuggested ? "suggested" : "idle");
+
+  let runningTimeText = null;
+  if (isRunning) {
+    const remainingSeconds = Math.max(0, Math.ceil(timeLeft));
+    runningTimeText = remainingSeconds > 0 && remainingSeconds < 60
+      ? "меньше минуты"
+      : `${Math.ceil(remainingSeconds / 60)} ${getMinuteLabel(Math.ceil(remainingSeconds / 60))}`;
+  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,7 +59,14 @@ export default function GlobalTimer({ rewardVideos = [] }) {
         onClick={handleTabClick}
         aria-label="Таймер"
       >
-        <span className="global-timer-tab__icon">⏱</span>
+        {isRunning ? (
+          <>
+            <span className="global-timer-tab__running-label">{activeLabel}</span>
+            <span className="global-timer-tab__running-time">{runningTimeText}</span>
+          </>
+        ) : (
+          <span className="global-timer-tab__icon">⏱</span>
+        )}
       </button>
 
       <div

@@ -11,6 +11,7 @@ export function TimerProvider({ children }) {
   const [sessionSeconds, setSessionSeconds] = useState(0);
   const [timerSuggested, setTimerSuggested] = useState(false);
   const [pendingLabel, setPendingLabel] = useState(null);
+  const [activeLabel, setActiveLabel] = useState(null);
   const sessionStart = useRef(null);
 
   function requestTimer(label) {
@@ -52,6 +53,7 @@ export function TimerProvider({ children }) {
       configMinutes, setConfigMinutes,
       sessionSeconds,
       timerSuggested, pendingLabel, requestTimer, acknowledgeTimerSuggestion,
+      activeLabel, setActiveLabel,
       markSessionStart,
       resetSession,
     }}>

@@ -18229,8 +18229,32 @@ body { background: #eef0ef; }
 .global-timer-tab--idle { background: #fffdf9; }
 
 .global-timer-tab--running {
+  width: 210px;
+  height: 68px;
+  gap: 3px;
+  padding: 8px 16px;
+  border-radius: 0 0 26px 26px;
   background: #f5c842;
   animation: gt-breathe 2.2s ease-in-out infinite;
+}
+
+.global-timer-tab__running-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(58, 44, 32, 0.75);
+  font-family: Nunito, sans-serif;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.global-timer-tab__running-time {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #3a2e22;
+  font-family: Nunito, sans-serif;
 }
 
 @keyframes gt-breathe {
