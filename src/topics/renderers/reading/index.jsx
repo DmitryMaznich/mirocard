@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
+import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
 import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping, getRecipeOptionSelections } from "@/core/groupStore";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
@@ -636,8 +636,9 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
     // or the raw, unresolved template text (which still contains every
     // candidate duration as a literal substring) would let the wrong one
     // win the "last duration mentioned" pick.
-    const minutes = parseTimerMinutesFromText(applyOptionValueConditional(applyOptionSelections(applyPortions(step?.text, portions, ingredientOverrides), optionSelections), optionSelections));
-    if (minutes && requestTimer) requestTimer(minutes);
+    const resolvedText = applyOptionValueConditional(applyOptionSelections(applyPortions(step?.text, portions, ingredientOverrides), optionSelections), optionSelections);
+    const minutes = parseTimerMinutesFromText(resolvedText);
+    if (minutes && requestTimer) requestTimer(buildTimerLabel(resolvedText));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIndex, portions, ingredientOverrides, optionSelections]); // step derived from stepIndex; portions loads asynchronously and may not be settled yet on the first render for this step
 

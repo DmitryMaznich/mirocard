@@ -65,10 +65,11 @@ function getSecondLabel(value) {
 }
 
 export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
-  const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes, timerRequest } = useTimer();
+  const { setIsOpen, setTimeLeft, setIsRunning, setConfigMinutes, pendingLabel } = useTimer();
   const [setMinutes, setSetMinutes] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [running, setRunning] = useState(false);
+  const [activeLabel, setActiveLabel] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [listenMode, setListenMode] = useState(false);
   const [sensitivity, setSensitivity] = useState(4);
@@ -97,17 +98,6 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   useEffect(() => { setTimeLeft(secondsLeft); }, [secondsLeft, setTimeLeft]);
   useEffect(() => { setIsRunning(running); }, [running, setIsRunning]);
   useEffect(() => { setConfigMinutes(setMinutes); }, [setMinutes, setConfigMinutes]);
-
-  // A recipe step asked for a specific duration (parseTimerMinutesFromText).
-  // Pre-fill the dial so the child only has to press play — but never
-  // clobber a countdown that's already running.
-  useEffect(() => {
-    if (!timerRequest || running) return;
-    hardReset();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing the dial to an external request from the recipe engine, not derived local state
-    setSetMinutes(Math.max(1, Math.min(59, Math.round(timerRequest.minutes))));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timerRequest]);
 
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
@@ -325,6 +315,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
     setSetMinutes(0);
     setListenState("idle");
     setCenterPressed(false);
+    setActiveLabel(null);
     resetRewardState();
     if (close) {
       setTimeLeft(0);
@@ -338,6 +329,7 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
     setListenState("idle");
     setFinished(false);
     resetRewardState();
+    setActiveLabel(pendingLabel || "Таймер");
     setSecondsLeft(setMinutes * 60);
     setRunning(true);
     if (listenMode) startMicMonitor(sensitivity);
@@ -642,24 +634,29 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
         <div className="analog-timer-clock-only-wrap">
           {(running || setMinutes > 0) && listenState !== "success" && (
             <div className="analog-timer-drag-label">
-              {running ? (
-                remainingSeconds < 60 ? (
-                  <>
-                    <span className="analog-timer-drag-label__value">{remainingSeconds}</span>
-                    <span className="analog-timer-drag-label__unit">{getSecondLabel(remainingSeconds)}</span>
-                  </>
+              {running && activeLabel && (
+                <span className="analog-timer-drag-label__step">{activeLabel}</span>
+              )}
+              <div className="analog-timer-drag-label__row">
+                {running ? (
+                  remainingSeconds < 60 ? (
+                    <>
+                      <span className="analog-timer-drag-label__value">{remainingSeconds}</span>
+                      <span className="analog-timer-drag-label__unit">{getSecondLabel(remainingSeconds)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="analog-timer-drag-label__value">{displayMin}</span>
+                      <span className="analog-timer-drag-label__unit">{minuteWord}</span>
+                    </>
+                  )
                 ) : (
                   <>
-                    <span className="analog-timer-drag-label__value">{displayMin}</span>
-                    <span className="analog-timer-drag-label__unit">{minuteWord}</span>
+                    <span className="analog-timer-drag-label__value">{setMinutes}</span>
+                    <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
                   </>
-                )
-              ) : (
-                <>
-                  <span className="analog-timer-drag-label__value">{setMinutes}</span>
-                  <span className="analog-timer-drag-label__unit">{getMinuteLabel(setMinutes)}</span>
-                </>
-              )}
+                )}
+              </div>
             </div>
           )}
           {clockSvg}

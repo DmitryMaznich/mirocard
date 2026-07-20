@@ -2,28 +2,13 @@ import { useEffect, useRef } from "react";
 import { useTimer } from "./TimerContext";
 import AnalogTimer from "./AnalogTimer";
 
-function pad(n) { return String(n).padStart(2, "0"); }
-
 export default function GlobalTimer({ rewardVideos = [] }) {
-  const { isOpen, setIsOpen, timeLeft, isRunning, sessionSeconds } = useTimer();
+  const { isOpen, setIsOpen, isRunning, timerSuggested, acknowledgeTimerSuggestion } = useTimer();
   const clockRef = useRef(null);
   const tabRef = useRef(null);
   const swipeRef = useRef(null);
 
-  let tabState, tabMM, tabSS;
-  if (isRunning) {
-    tabState = "running";
-    tabMM = pad(Math.floor(timeLeft / 60));
-    tabSS = pad(timeLeft % 60);
-  } else if (sessionSeconds > 0) {
-    tabState = "session";
-    tabMM = pad(Math.floor(sessionSeconds / 60));
-    tabSS = pad(sessionSeconds % 60);
-  } else {
-    tabState = "idle";
-    tabMM = null;
-    tabSS = null;
-  }
+  const tabState = isRunning ? "running" : (timerSuggested ? "suggested" : "idle");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -49,23 +34,23 @@ export default function GlobalTimer({ rewardVideos = [] }) {
     if (dy < -40) setIsOpen(false);
   }
 
+  function handleTabClick() {
+    setIsOpen((v) => {
+      const next = !v;
+      if (next) acknowledgeTimerSuggestion();
+      return next;
+    });
+  }
+
   return (
     <>
       <button
         ref={tabRef}
         className={`global-timer-tab global-timer-tab--${tabState}`}
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={handleTabClick}
         aria-label="Таймер"
       >
-        {tabMM !== null ? (
-          <span className="global-timer-tab__time">
-            <span className="global-timer-tab__mm">{tabMM}</span>
-            <span className="global-timer-tab__sep">:</span>
-            <span className="global-timer-tab__ss">{tabSS}</span>
-          </span>
-        ) : (
-          <span className="global-timer-tab__icon">⏱</span>
-        )}
+        <span className="global-timer-tab__icon">⏱</span>
       </button>
 
       <div

@@ -9,12 +9,17 @@ export function TimerProvider({ children }) {
   const [isRunning, setIsRunning] = useState(false);
   const [configMinutes, setConfigMinutes] = useState(0);
   const [sessionSeconds, setSessionSeconds] = useState(0);
-  const [timerRequest, setTimerRequest] = useState(null);
+  const [timerSuggested, setTimerSuggested] = useState(false);
+  const [pendingLabel, setPendingLabel] = useState(null);
   const sessionStart = useRef(null);
 
-  function requestTimer(minutes) {
-    setTimerRequest({ minutes, nonce: Date.now() + Math.random() });
-    setIsOpen(true);
+  function requestTimer(label) {
+    setPendingLabel(label);
+    setTimerSuggested(true);
+  }
+
+  function acknowledgeTimerSuggestion() {
+    setTimerSuggested(false);
   }
 
   useEffect(() => {
@@ -35,6 +40,8 @@ export function TimerProvider({ children }) {
   function resetSession() {
     sessionStart.current = null;
     setSessionSeconds(0);
+    setTimerSuggested(false);
+    setPendingLabel(null);
   }
 
   return (
@@ -44,7 +51,7 @@ export function TimerProvider({ children }) {
       isRunning, setIsRunning,
       configMinutes, setConfigMinutes,
       sessionSeconds,
-      timerRequest, requestTimer,
+      timerSuggested, pendingLabel, requestTimer, acknowledgeTimerSuggestion,
       markSessionStart,
       resetSession,
     }}>

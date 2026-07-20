@@ -10561,12 +10561,31 @@ button {
   left: 0;
   width: 100%;
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   pointer-events: none;
   animation: drag-label-in 0.12s ease both;
   z-index: 10;
+}
+
+.analog-timer-drag-label__step {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(58, 44, 32, 0.6);
+  font-family: Nunito, sans-serif;
+  max-width: min(84vw, var(--gt-clock-size, 260px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 14px;
+}
+
+.analog-timer-drag-label__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
 }
 
 .analog-timer-drag-label__value {
@@ -18198,69 +18217,7 @@ body { background: #eef0ef; }
   line-height: 1;
 }
 
-.global-timer-tab__time {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  gap: 0;
-}
-
-.global-timer-tab__mm,
-.global-timer-tab__ss {
-  font-family: ui-monospace, "Courier New", monospace;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1;
-  color: #3a2e22;
-  letter-spacing: -0.5px;
-  transition: font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.global-timer-tab__sep {
-  font-family: ui-monospace, "Courier New", monospace;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1;
-  color: #3a2e22;
-  letter-spacing: -0.5px;
-  transition: font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.global-timer-tab--running .global-timer-tab__sep {
-  animation: gt-colon-blink 1s step-start infinite;
-}
-
-@keyframes gt-colon-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-
 .global-timer-tab--idle { background: #fffdf9; }
-
-.global-timer-tab--session { background: #fffdf9; }
-.global-timer-tab--session .global-timer-tab__mm,
-.global-timer-tab--session .global-timer-tab__ss { color: rgba(58, 46, 34, 0.45); }
-
-.global-timer-tab--set { background: #fffdf9; }
-.global-timer-tab--set .global-timer-tab__mm,
-.global-timer-tab--set .global-timer-tab__ss { color: #c84b2a; }
-
-.global-timer-tab--set,
-.global-timer-tab--running {
-  width: 240px;
-  height: 102px;
-  border-radius: 0 0 42px 42px;
-}
-
-.global-timer-tab--set .global-timer-tab__mm,
-.global-timer-tab--set .global-timer-tab__ss,
-.global-timer-tab--set .global-timer-tab__sep,
-.global-timer-tab--running .global-timer-tab__mm,
-.global-timer-tab--running .global-timer-tab__ss,
-.global-timer-tab--running .global-timer-tab__sep {
-  font-size: 45px;
-  letter-spacing: -1px;
-}
 
 .global-timer-tab--running {
   background: #f5c842;
@@ -18270,6 +18227,15 @@ body { background: #eef0ef; }
 @keyframes gt-breathe {
   0%, 100% { box-shadow: 3px 3px 6px rgba(245, 200, 66, 0.4), -3px 3px 6px rgba(245, 200, 66, 0.4); }
   50%       { box-shadow: 3px 3px 18px rgba(245, 200, 66, 0.8), -3px 3px 18px rgba(245, 200, 66, 0.8); }
+}
+
+.global-timer-tab--suggested {
+  animation: gt-suggest-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes gt-suggest-glow {
+  0%, 100% { box-shadow: 3px 3px 8px rgba(200, 75, 42, 0.18), -3px 3px 8px rgba(200, 75, 42, 0.18); }
+  50%      { box-shadow: 3px 3px 20px rgba(200, 75, 42, 0.55), -3px 3px 20px rgba(200, 75, 42, 0.55); }
 }
 
 /* ── analog-timer-inner (replaces analog-timer-overlay) ───── */
