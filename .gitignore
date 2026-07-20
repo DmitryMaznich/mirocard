@@ -80,6 +80,11 @@ verify-*.mjs
 output/
 primo.ttf
 *.ttf
+
+# Allow tracked build-time fonts (needed to regenerate print_materials PDFs)
+!/ClassRoomCursive.ttf
+!/assets/fonts/*.ttf
+
 primo_glyphs.svg
 primo_test.html
 public/letter_A.svg
