@@ -631,12 +631,15 @@ function InstructionTask({ task, topicId, onAdvance, soundEnabled }) {
   useEffect(() => {
     // Duration can be templated ({N|минуту|минуты|минут}) to scale with
     // portions (e.g. "подогревать 3 минуты" for 1 stakan of milk becomes
-    // "6 минут" for 2) — parse the portion-substituted text, not the raw
-    // step text, or a scaled duration would never be recognized.
-    const minutes = parseTimerMinutesFromText(applyPortions(step?.text, portions, ingredientOverrides));
+    // "6 минут" for 2), or depend on which option was chosen
+    // ({filling:колбаса?1 минуту|4 минуты}) — resolve both before parsing,
+    // or the raw, unresolved template text (which still contains every
+    // candidate duration as a literal substring) would let the wrong one
+    // win the "last duration mentioned" pick.
+    const minutes = parseTimerMinutesFromText(applyOptionValueConditional(applyOptionSelections(applyPortions(step?.text, portions, ingredientOverrides), optionSelections), optionSelections));
     if (minutes && requestTimer) requestTimer(minutes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIndex, portions, ingredientOverrides]); // step derived from stepIndex; portions loads asynchronously and may not be settled yet on the first render for this step
+  }, [stepIndex, portions, ingredientOverrides, optionSelections]); // step derived from stepIndex; portions loads asynchronously and may not be settled yet on the first render for this step
 
   const [locked, setLocked] = useState(false);
 
