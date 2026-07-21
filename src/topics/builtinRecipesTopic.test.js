@@ -58,6 +58,12 @@ describe('buildRecipesTopicRecord', () => {
     expect(omelet.adjustable.milk).toEqual({ group: 'ingredient', label: 'Молоко', unit: 'ст.л.', optionGroup: 'milk' });
   });
 
+  it('parses a keyed additive option qty (e.g. omelette herbs\' "herbs:0.5+0.25")', () => {
+    const omelet = record.texts.find((t) => t.file === 'recipes/omelet.txt');
+    expect(omelet.options.herbs).toEqual([{ product: 'укроп', qty: 0.5, unit: 'пучок', key: 'herbs', additiveStep: 0.25 }]);
+    expect(omelet.adjustable.herbs).toEqual({ group: 'ingredient', label: 'Зелень', unit: 'пучок', optionGroup: 'herbs' });
+  });
+
   it('gives every text entry a media/ prefixed photo and image path', () => {
     for (const text of record.texts) {
       expect(text.photo).toMatch(/^media\//);
@@ -138,11 +144,12 @@ describe('parseOptionGroups', () => {
     expect(parseOptionGroups(oatmeal)).toEqual({});
   });
 
-  it("omelet's filling group is single-mode and its milk group is multi-mode, both with custom labels", () => {
+  it("omelet's filling group is single-mode and its milk/herbs groups are multi-mode, all with custom labels", () => {
     const omelet = getBuiltinRecipeRawText('recipes/omelet.txt') ?? '';
     expect(parseOptionGroups(omelet)).toEqual({
       filling: { mode: 'single', label: 'Добавка' },
       milk: { mode: 'multi', label: 'Молоко' },
+      herbs: { mode: 'multi', label: 'Зелень' },
     });
   });
 });

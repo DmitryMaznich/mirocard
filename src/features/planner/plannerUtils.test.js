@@ -770,13 +770,13 @@ describe('resolveOptionIngredients', () => {
     const plan = createPlan('s1');
     const { ingredients, notes } = resolveOptionIngredients(omelet, plan);
     expect(ingredients).toEqual([]);
-    expect(notes).toContainEqual({ groupId: 'filling', text: 'Добавка на выбор: колбаса, курица или другое мясо' });
+    expect(notes).toContainEqual({ groupId: 'filling', label: 'Добавка', mode: 'single', choices: ['колбаса', 'курица', 'другое мясо'] });
   });
 
   it('turns an undecided "multi" group into an on-offer note too', () => {
     const plan = createPlan('s1');
     const { notes } = resolveOptionIngredients(omelet, plan);
-    expect(notes).toContainEqual({ groupId: 'milk', text: 'Молоко по желанию: молоко' });
+    expect(notes).toContainEqual({ groupId: 'milk', label: 'Молоко', mode: 'multi', choices: ['молоко'] });
   });
 
   it('renders a real chosen "single" selection as an actual ingredient row, not a note', () => {
@@ -800,7 +800,7 @@ describe('resolveOptionIngredients', () => {
       optionGroups: {},
     };
     const { notes } = resolveOptionIngredients(oatmeal, createPlan('s1'));
-    expect(notes).toContainEqual({ groupId: 'topping', text: 'Топпинг по желанию: мёд или ягоды' });
+    expect(notes).toContainEqual({ groupId: 'topping', label: 'Топпинг', mode: 'multi', choices: ['мёд', 'ягоды'] });
   });
 
   it('returns empty ingredients and notes for a recipe with no options at all', () => {
