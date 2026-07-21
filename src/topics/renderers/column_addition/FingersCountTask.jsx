@@ -117,40 +117,26 @@ function WristZone({ onTap }) {
   return <div className="fng-wrist-zone" onClick={onTap} role="button" aria-label="Дальше" />;
 }
 
-// Like getFingerConfig, but the caller picks which hand fills first (1-5)
-// before the other takes the 6-10 overflow — getFingerConfig always fills
-// "right" first, which is wrong for addend A: a 2-in-2+8 would build
-// entirely on the physically-right hand (since 2 ≤ 5 never needs to
-// overflow), the exact same physical hand addend B later uses too. Addend A
-// always prefers the physically-left hand, B the physically-right one, so
-// the two addends never default onto the same hand — even when one of them
-// is large enough to need both.
-function splitAddend(n, preferLeft) {
-  const primary = Math.min(n, 5);
-  const overflow = Math.max(0, n - 5);
-  return preferLeft ? { left: primary, right: overflow } : { right: primary, left: overflow };
-}
-
-// For an addend that may span both hands: dots live on the primary hand
-// (left for A, right for B) until IT physically fills up (5), only then
-// switching to the overflow hand — never both at once. Showing the overflow
-// hand's dots early (before the primary hand is even full) was the actual
-// 2+8 bug: a "future" dot on the not-yet-active hand still committed the
-// same canonical next finger on the PRIMARY hand when tapped, so a finger
-// meant for the left hand visibly rose while the child was tapping what
-// looked like a dot on the right. Deliberately NOT capped at the real
-// target either — how many dots are on screen must never reveal the target
-// number, and tapping past it is no longer blocked; only the wrist check
-// (confirmAndAdvance) validates the real count. The caller mirrors the
-// "right" set before display, same as everywhere else in this file.
-function multiDotsAcrossHands(built, preferLeft) {
+// When an addend needs both hands (>5), the ten fingers are ONE combined
+// quantity, not two independent per-hand blocks — so building it (and later
+// continuing past it toward a+b) always follows getFingerConfig's own
+// "right fills 1-5 first, left is the 6-10 overflow" order, same as every
+// other single-number hand display in this file (e.g. Subtraction's minuend).
+// Dots live on the currently-fillable hand only — the "right" primary hand
+// until it physically maxes at 5, only then switching to "left" overflow —
+// never both at once: showing the overflow hand's dots before the primary
+// hand is even full would let a tap on the not-yet-active hand commit the
+// canonical next finger on the OTHER hand instead. Deliberately not capped
+// at the real target either — how many dots are on screen must never reveal
+// the target number, and tapping past it is no longer blocked; only the
+// wrist check (confirmAndAdvance) validates the real count. The caller
+// mirrors the "right" set before display, same as everywhere else here.
+function multiDotsAcrossHands(built) {
   const primaryCount  = Math.min(built, 5);
   const overflowCount = Math.max(0, built - 5);
   const primaryDots  = primaryCount < 5 ? additionBases(primaryCount, 5) : [];
   const overflowDots = primaryCount === 5 ? additionBases(overflowCount, 5) : [];
-  return preferLeft
-    ? { leftBases: primaryDots, rightBases: overflowDots }
-    : { rightBases: primaryDots, leftBases: overflowDots };
+  return { rightBases: primaryDots, leftBases: overflowDots };
 }
 
 // ── Subtraction (any a, b) ─────────────────────────────────────────────────
@@ -310,15 +296,21 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 }
 
 // ── Addition (any a, b) ────────────────────────────────────────────────────
-// Flow: two fists → tap green dots to build A on one dedicated hand → tap
-// its wrist to confirm → build B on the other hand (A stays visible, frozen)
-// → tap its wrist → numpad. When an addend needs both hands to represent
-// itself (>5), it falls back to the combined two-hand build instead of a
-// single dedicated hand.
+// When both addends are ≤5, they get one dedicated hand each — two genuinely
+// separate numbers shown side by side (fixing an earlier bug where they both
+// landed on the same hand). When either addend needs both hands (>5), the
+// ten fingers are ONE combined, continuously-growing quantity: build up to
+// `a`, tap a wrist to confirm, then KEEP GOING — without ever resetting to
+// fists — up to `a + b`, then tap again → numpad. (An earlier version reset
+// to two fresh fists for B in this case, which is wrong: a raised finger is
+// not a per-addend object, it's part of one running count across both hands.)
 
 function AdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("a"); // a | b | answer | done
   const [builtA, setBuiltA] = useState(0);
+  // In "simple" mode this is B's own independent hand count (0..b). In
+  // "combined" mode it's how much has been added PAST the `a` checkpoint —
+  // the displayed total is a + builtB, continuing the same running count.
   const [builtB, setBuiltB] = useState(0);
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
@@ -328,15 +320,7 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   const { a, b, result } = task;
   const resultStr = String(result);
-  // Each addend ≤5 fits on one hand — dedicate a hand per addend so A and B
-  // are never both shown on the same hand (the previous bug: FINGER_MAP
-  // always fills its "right" slot first, so two addends ≤5 landed on the
-  // exact same physical hand one after another). When either addend needs
-  // both hands to represent itself (>5), there's no hand left to dedicate to
-  // the other addend, so fall back to the combined two-hand FINGER_MAP build
-  // used for a single large number (same as before this fix).
   const simple = a <= 5 && b <= 5;
-  const cap = simple ? 5 : 10; // physical ceiling for a free (uncapped-at-target) tap
 
   const building = phase === "a" || phase === "b";
   const target   = phase === "a" ? a : phase === "b" ? b : null;
@@ -348,8 +332,10 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   // The wrist is always tappable while building — its availability must
   // never itself signal correctness. A tap checks the real built count
-  // against the real addend: right → advance, wrong → shake and reset this
-  // hand to a fist so the child tries again.
+  // against the real addend: right → advance, wrong → shake and reset.
+  // Resetting builtB to 0 in "combined" mode falls back to `a` (the last
+  // confirmed checkpoint), not all the way to zero — the first addend was
+  // already right, only the continuation needs redoing.
   function confirmAndAdvance() {
     if (built !== target) {
       setHandShake(true);
@@ -366,9 +352,15 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   // Uncapped at the real target — reaching (or overshooting) `a`/`b` no
   // longer blocks further taps, otherwise the block itself would be a hint.
+  // The physical ceiling differs by mode: each hand maxes at 5 in "simple"
+  // mode; in "combined" mode builtB is capped by how much room is left in
+  // the shared 10-finger space after `a` already used some of it.
   function commit() {
-    if (phase === "a") setBuiltA(c => Math.min(cap, c + 1));
-    else if (phase === "b") setBuiltB(c => Math.min(cap, c + 1));
+    if (phase === "a") {
+      setBuiltA(c => Math.min(simple ? 5 : 10, c + 1));
+    } else if (phase === "b") {
+      setBuiltB(c => Math.min(simple ? 5 : 10 - a, c + 1));
+    }
   }
 
   function handleDigit(d) {
@@ -387,7 +379,7 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   const hint =
     phase === "a" ? `Покажи ${a} →` :
-    phase === "b" ? `Теперь покажи ${b} →` :
+    phase === "b" ? (simple ? `Теперь покажи ${b} →` : `Прибавь ещё ${b} →`) :
     "Введи ответ";
 
   const answerPart = phase === "done"
@@ -413,16 +405,14 @@ function AdditionTask({ task, onCorrect, onMistake }) {
     leftBases  = (phase === "a") ? additionBases(builtA, 5) : [];
     rightBases = (phase === "b") ? additionBases(builtB, 5).map(mirror) : [];
   } else {
-    // Either addend needs both hands to represent itself, so they can't stay
-    // frozen side by side — but each still prefers its own hand first (A
-    // left, B right, via splitAddend) so a small addend paired with a large
-    // one doesn't default onto the same physical hand the other one uses.
-    const preferLeft = phase === "a";
-    const activeBuilt = building ? built : b;
-    const cfg = splitAddend(activeBuilt, preferLeft);
+    // One combined, continuously-growing quantity across both hands: phase
+    // "a" shows builtA (0..a); phase "b" and beyond keep going from there —
+    // a + builtB — never resetting back to fists.
+    const combinedBuilt = phase === "a" ? builtA : Math.min(10, a + builtB);
+    const cfg = getFingerConfig(combinedBuilt);
     leftCount  = cfg.left;
     rightCount = cfg.right;
-    const dots = building ? multiDotsAcrossHands(built, preferLeft) : { leftBases: [], rightBases: [] };
+    const dots = building ? multiDotsAcrossHands(combinedBuilt) : { leftBases: [], rightBases: [] };
     leftBases  = dots.leftBases;
     rightBases = dots.rightBases.map(mirror);
   }
