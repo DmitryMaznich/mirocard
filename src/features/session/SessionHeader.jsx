@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import StarBar from "@/shared/components/StarBar";
 import { useOnlineStatus } from "@/shared/hooks/useOnlineStatus";
+import { getTonguePillState } from "./tonguePillState";
 
 const PULL_THRESHOLD = 14; // px of vertical drag before it commits to opening/closing
 const PULL_MAX = 26;       // px of drag travel used for the live stretch, then it's clamped
@@ -93,9 +94,16 @@ export default function SessionHeader({
   isDrawerOpen,
   onSetDrawerOpen,
   hasUndonePlanItems,
+  answerStatus,
 }) {
   const tonguePull = useTonguePull(isDrawerOpen, onSetDrawerOpen);
   const isOnline = useOnlineStatus();
+
+  const pillState = getTonguePillState({ isDrawerOpen, answerStatus, hasUndonePlanItems });
+  const pillAriaLabel =
+    pillState.mode === "correct" ? "Правильно, открыть меню"
+    : pillState.mode === "incorrect" ? "Неправильно, открыть меню"
+    : tongueLabel;
 
   const rightCluster = (
     <div className="session-topbar-right">
@@ -143,19 +151,27 @@ export default function SessionHeader({
       )}
       <button
         type="button"
-        className={`session-plan-tongue${isDrawerOpen ? " session-plan-tongue--open" : ""}${!isDrawerOpen && hasUndonePlanItems ? " session-plan-tongue--pulse" : ""}`}
+        className={`session-plan-tongue${pillState.mode === "open" ? " session-plan-tongue--open" : ""}${pillState.mode === "correct" ? " session-plan-tongue--correct" : ""}${pillState.mode === "incorrect" ? " session-plan-tongue--incorrect" : ""}${pillState.pulse ? " session-plan-tongue--pulse" : ""}`}
         style={{ "--tongue-pull": tonguePull.pullProgress }}
         onPointerDown={tonguePull.onPointerDown}
         onPointerMove={tonguePull.onPointerMove}
         onPointerUp={tonguePull.onPointerUp}
         onPointerCancel={tonguePull.onPointerCancel}
         onClick={tonguePull.onClick}
-        aria-label={tongueLabel}
+        aria-label={pillAriaLabel}
         aria-expanded={isDrawerOpen}
       >
-        <span className="session-plan-tongue__bar" aria-hidden="true" />
-        <span className="session-plan-tongue__bar" aria-hidden="true" />
-        <span className="session-plan-tongue__bar" aria-hidden="true" />
+        {pillState.mode === "correct" || pillState.mode === "incorrect" ? (
+          <span className="session-plan-tongue__emoji" aria-hidden="true">
+            {pillState.mode === "correct" ? "😊" : "😢"}
+          </span>
+        ) : (
+          <>
+            <span className="session-plan-tongue__bar" aria-hidden="true" />
+            <span className="session-plan-tongue__bar" aria-hidden="true" />
+            <span className="session-plan-tongue__bar" aria-hidden="true" />
+          </>
+        )}
       </button>
     </div>
   );
