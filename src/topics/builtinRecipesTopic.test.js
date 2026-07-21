@@ -14,8 +14,8 @@ describe('buildRecipesTopicRecord', () => {
     expect(record.meta.hidden).toBe(true);
   });
 
-  it('produces exactly 32 instruction texts', () => {
-    expect(record.texts).toHaveLength(32);
+  it('produces exactly 36 instruction texts', () => {
+    expect(record.texts).toHaveLength(36);
     expect(record.texts.every((t) => t.kind === 'instruction')).toBe(true);
   });
 

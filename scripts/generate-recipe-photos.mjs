@@ -86,6 +86,10 @@ const RECIPES = {
   burger: "juicy cheeseburger on a wooden board, toasted bun, melted cheddar cheese, fresh lettuce, tomato and pickle slices visible, sesame seed bun, appetizing home-cooked burger",
   fiskesuppe: "creamy Norwegian fish soup in a white bowl, pale golden broth with visible chunks of white fish, shrimp, potato and broccoli and cauliflower florets, fresh dill sprinkled on top, cozy Scandinavian soup, overhead shot",
   rice_porridge: "creamy sweet rice porridge in a white bowl, glossy milky rice pudding texture, pat of melting butter on top, sprinkle of sugar and a few raisins, cozy warm breakfast",
+  green_beans_garlic: "sautéed green beans with minced garlic on a white plate, vivid green color, glossy sheen from oil, lightly charred spots, garlic flecks visible, simple rustic side dish, overhead shot",
+  chicken_thighs_beans_oven: "roasted chicken thighs with golden crispy skin next to tender green beans on a foil-lined baking tray, home-cooked rustic dinner, natural light, overhead shot",
+  pork_neck_steak_oven: "oven-roasted pork neck steak with a golden caramelized crust, garlic and herb seasoning visible, resting on a white plate, juicy sliced cross-section, rustic home-cooked dinner",
+  salmon_oven_vegetables: "oven-baked salmon steak surrounded by halved cherry tomatoes and thin lemon slices on a plate, glistening with olive oil, fresh and appetizing, overhead shot",
 
   // Chemex step-by-step illustrations
   chemex_s06: "pouring clear filtered water from a glass pitcher or glass carafe into a black electric gooseneck coffee kettle on a kitchen counter, clean white countertop, morning light, no tap or faucet visible",
