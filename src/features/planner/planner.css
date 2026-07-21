@@ -1182,24 +1182,66 @@
   white-space: nowrap;
 }
 
-/* Informational "on offer" notes (undecided option groups, e.g. omelette
-   filling) — deliberately NOT styled like .recipe-ingredients__item's
-   bordered rows with a bold teal qty, so they never read as a real,
-   already-decided ingredient. */
-.recipe-ingredients__notes {
+/* "На выбор" block (undecided option groups, e.g. omelette filling/milk/
+   herbs) — same row weight as .recipe-ingredients__item's confirmed rows
+   (so it doesn't read as easy-to-miss fine print) but a dashed border and
+   the app's established "needs a decision" amber (see
+   .recipe-gallery-card__status--draft) instead of the solid border/teal
+   qty used for already-decided ingredients — noticeable, but never
+   confusable with a real, already-decided ingredient. */
+.recipe-ingredients__choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.recipe-ingredients__choices-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #d68910;
+}
+
+.recipe-ingredients__choices-list {
   list-style: none;
-  margin: 8px 0 0;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1.5px dashed rgba(214, 137, 16, 0.45);
 }
 
-.recipe-ingredients__note {
+.recipe-ingredients__choice-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  background: rgba(214, 137, 16, 0.07);
+  border-bottom: 1.5px dashed rgba(214, 137, 16, 0.45);
+}
+
+.recipe-ingredients__choice-row:last-child {
+  border-bottom: none;
+}
+
+.recipe-ingredients__choice-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #263131;
+}
+
+.recipe-ingredients__choice-options {
+  flex-shrink: 0;
   font-size: 13px;
-  font-style: italic;
-  line-height: 1.4;
-  color: #7a8c88;
+  font-weight: 600;
+  color: #b3762c;
+  text-align: right;
 }
 
 .recipe-detail-add {

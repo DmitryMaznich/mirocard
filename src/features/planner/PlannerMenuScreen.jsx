@@ -92,11 +92,19 @@ function RecipeIngredients({ recipe, plan, onToggleSelect, onBack }) {
             })}
           </ul>
           {optionNotes.length > 0 && (
-            <ul className="recipe-ingredients__notes">
-              {optionNotes.map((n) => (
-                <li key={n.groupId} className="recipe-ingredients__note">{n.text}</li>
-              ))}
-            </ul>
+            <div className="recipe-ingredients__choices">
+              <span className="recipe-ingredients__choices-title">На выбор</span>
+              <ul className="recipe-ingredients__choices-list">
+                {optionNotes.map((n) => (
+                  <li key={n.groupId} className="recipe-ingredients__choice-row">
+                    <span className="recipe-ingredients__choice-label">{n.label}</span>
+                    {n.choices.length > 1 && (
+                      <span className="recipe-ingredients__choice-options">{n.choices.join(', ')}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </div>
