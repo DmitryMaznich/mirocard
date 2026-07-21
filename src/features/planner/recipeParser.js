@@ -54,7 +54,7 @@ export const GLOBAL_MAX_PORTIONS = 8;
 // parseRecipeTxt.js so a recipe's shopping-list quantity always matches what
 // the step actually says to use — see
 // docs/superpowers/specs/2026-07-18-recipe-portion-scaling-design.md.
-function parseQtyField(raw) {
+export function parseQtyField(raw) {
   if (!raw) return { qty: null, key: null, additiveStep: null, coverDivisor: null };
   const keyMatch = raw.match(/^([a-zA-Z]\w*):(.+)$/);
   const key = keyMatch ? keyMatch[1] : null;

@@ -3,6 +3,8 @@
 // catalog entry, no install step. See docs/superpowers/specs/
 // 2026-07-08-recipe-architecture-simplification-design.md.
 
+import { parseQtyField } from '@/features/planner/recipeParser.js';
+
 const rawRecipeFiles = import.meta.glob('../../content/recipes/*.txt', {
   eager: true,
   query: '?raw',
@@ -39,6 +41,11 @@ function parseHeaderField(txt, prefix) {
 // is "groupId | product | qty | unit". Used by the cook-start screen to
 // render a picker and by the reading engine to fill in {groupId} in step
 // text (see parseRecipeTxt.js's applyOptionSelections/filterStepsByOptions).
+// qty supports the same `key:value` / `key:base+step` / `key:/N` syntax as
+// flat # ingredients: lines (see parseQtyField in recipeParser.js) — an
+// option like omelette milk needs its own adjustable stepper, which reads
+// that key straight out of the step text's {key:...} template, not from
+// this metadata block.
 function parseOptions(txt) {
   const options = {};
   let inOptions = false;
@@ -51,10 +58,14 @@ function parseOptions(txt) {
         const [groupId, product] = parts;
         if (groupId && product) {
           if (!options[groupId]) options[groupId] = [];
+          const { qty, key, additiveStep, coverDivisor } = parseQtyField(parts[2]);
           options[groupId].push({
             product,
-            qty: parts[2] ? parseFloat(parts[2]) || null : null,
+            qty,
             unit: parts[3] || null,
+            ...(key != null ? { key } : {}),
+            ...(additiveStep != null ? { additiveStep } : {}),
+            ...(coverDivisor != null ? { coverDivisor } : {}),
           });
         }
         continue;
@@ -75,6 +86,12 @@ function parseOptions(txt) {
 // it's ALSO declared here AND appears in a {key:...} template somewhere in
 // the steps (see extractAdjustableTemplates in parseRecipeTxt.js) — this
 // block supplies the group/label/unit, the step text supplies the number.
+//
+// An optional 5th column, "key | group | label | unit | optionGroup", ties
+// the stepper to an "# options:" group (e.g. omelette milk) — the stepper
+// only appears once that group has an actual selection (see ParamsScreen.jsx),
+// instead of always showing regardless of whether the ingredient is even
+// part of the dish this time.
 export function parseAdjustable(txt) {
   const adjustable = {};
   let inAdjustable = false;
@@ -84,8 +101,10 @@ export function parseAdjustable(txt) {
     if (inAdjustable) {
       if (afterHash.startsWith('  ') || afterHash.startsWith('\t\t')) {
         const parts = afterHash.trim().split('|').map((p) => p.trim());
-        const [key, group, label, unit] = parts;
-        if (key && group && label && unit) adjustable[key] = { group, label, unit };
+        const [key, group, label, unit, optionGroup] = parts;
+        if (key && group && label && unit) {
+          adjustable[key] = { group, label, unit, ...(optionGroup ? { optionGroup } : {}) };
+        }
         continue;
       }
       inAdjustable = false;
