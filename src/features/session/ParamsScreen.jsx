@@ -67,12 +67,22 @@ function RecipeStartParams({ topicId, activeText, student }) {
   // string) — filtering the small resulting array against the labels object
   // every render is cheap and avoids depending on a `?? {}` object literal
   // that would get a new identity on every render.
+  //
+  // A key whose adjustable entry names an optionGroup (e.g. omelette milk)
+  // only gets a stepper once that group actually has a selection — showing
+  // "Молоко" in the ingredient ledger before the cook has even turned milk
+  // on would be adjusting something that isn't part of the dish yet.
   const adjustableLabels = activeText.adjustable ?? {};
   const allTemplates = useMemo(
     () => extractAdjustableTemplates(getBuiltinRecipeRawText(activeText.file) ?? ""),
     [activeText.file]
   );
-  const adjustableTemplates = allTemplates.filter((t) => adjustableLabels[t.key] != null);
+  const adjustableTemplates = allTemplates.filter((t) => {
+    const info = adjustableLabels[t.key];
+    if (info == null) return false;
+    if (info.optionGroup) return (effectiveOptions[info.optionGroup]?.length ?? 0) > 0;
+    return true;
+  });
   const factor = stepPortionsMultiplier(activeText.portions, fixedPortions, portions);
 
   useEffect(() => {
@@ -161,7 +171,13 @@ function RecipeStartParams({ topicId, activeText, student }) {
   // flat ingredient ledger above is, so "1 горсть" vs "8 кружочков" shows up
   // next to the right choice instead of silently disappearing (see
   // OptionsPicker.jsx).
-  function withQtyLabels(choices) {
+  function withQtyLabels(choices, groupId) {
+    // A group with its own adjustable ledger stepper (e.g. omelette milk)
+    // already shows and controls the real, overridable quantity above —
+    // repeating a second, non-overridable number under the picker pill
+    // would just go stale the moment the cook nudges the stepper.
+    const hasLedgerStepper = Object.values(adjustableLabels).some((info) => info.optionGroup === groupId);
+    if (hasLedgerStepper) return choices.map((c) => ({ ...c, qtyLabel: null }));
     return choices.map((c) => ({
       ...c,
       // No qty (e.g. "сколько хочешь" filling amounts, not a measured
@@ -272,7 +288,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
               key={groupId}
               label={optionGroupsMeta[groupId]?.label ?? "Топпинг (можно несколько или ничего)"}
               mode={optionGroupsMeta[groupId]?.mode ?? "multi"}
-              choices={withQtyLabels(choices)}
+              choices={withQtyLabels(choices, groupId)}
               selected={effectiveOptions[groupId] ?? []}
               onChange={(next) => setOptions((prev) => ({ ...prev, [groupId]: next }))}
             />

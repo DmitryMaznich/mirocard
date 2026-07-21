@@ -52,6 +52,12 @@ describe('buildRecipesTopicRecord', () => {
     expect(soup.adjustable).toBeUndefined();
   });
 
+  it('parses a keyed option qty (e.g. omelette milk\'s "milk:2") the same way flat ingredients do, not as a bare number', () => {
+    const omelet = record.texts.find((t) => t.file === 'recipes/omelet.txt');
+    expect(omelet.options.milk).toEqual([{ product: 'молоко', qty: 2, unit: 'ст.л', key: 'milk' }]);
+    expect(omelet.adjustable.milk).toEqual({ group: 'ingredient', label: 'Молоко', unit: 'ст.л.', optionGroup: 'milk' });
+  });
+
   it('gives every text entry a media/ prefixed photo and image path', () => {
     for (const text of record.texts) {
       expect(text.photo).toMatch(/^media\//);
@@ -92,6 +98,18 @@ describe('parseAdjustable', () => {
   it('skips a line missing any of the four fields', () => {
     const content = '# adjustable:\n#   oil | ingredient | Масло\nТест\n';
     expect(parseAdjustable(content)).toEqual({});
+  });
+
+  it('parses an optional 5th column linking the key to an option group (e.g. omelette milk)', () => {
+    const content = '# adjustable:\n#   milk | ingredient | Молоко | ст.л. | milk\nТест\n';
+    expect(parseAdjustable(content)).toEqual({
+      milk: { group: 'ingredient', label: 'Молоко', unit: 'ст.л.', optionGroup: 'milk' },
+    });
+  });
+
+  it('omits optionGroup entirely when the 5th column is absent', () => {
+    const content = '# adjustable:\n#   oil | ingredient | Масло | ст.л.\nТест\n';
+    expect(parseAdjustable(content)).toEqual({ oil: { group: 'ingredient', label: 'Масло', unit: 'ст.л.' } });
   });
 });
 
