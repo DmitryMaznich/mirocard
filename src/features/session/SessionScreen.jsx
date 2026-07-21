@@ -138,7 +138,6 @@ export default function SessionScreen() {
 
   const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState ?? {};
   const isCorrectFeedback   = status === "answer_correct";
-  const isIncorrectFeedback = status === "answer_incorrect";
   const advanceGateKey = `${taskIndex ?? "none"}:${status ?? "none"}`;
   const defaultAdvanceGate = adultConfirmAdvance && isCorrectFeedback
     ? ADVANCE_GATE_WAITING
@@ -237,6 +236,7 @@ export default function SessionScreen() {
           total={total}
           correctCount={correctCount}
           incorrectCount={incorrectCount}
+          answerStatus={status}
           evaluation={mode.evaluation}
           onClose={openSessionExitPrompt}
           tongueLabel={formatPlanTongueLabel(lessonPlan?.activeSessionPlan ?? null)}
@@ -307,24 +307,6 @@ export default function SessionScreen() {
         </div>
       ) : (
         <div className="screen-center">Неизвестный рендерер: {topicRecord.meta.renderer}</div>
-      )}
-
-      {isIncorrectFeedback && !ownsFeedback && (
-        <div className="session-fb-overlay session-fb-overlay--incorrect" aria-hidden="true">
-          <span className="session-fb-overlay__icon">✕</span>
-        </div>
-      )}
-
-      {isCorrectFeedback && !ownsFeedback && (
-        <div
-          className={`session-fb-overlay session-fb-overlay--correct${!adultConfirmAdvance || isAdvanceReady ? " session-fb-overlay--ready" : ""}`}
-          onClick={requestAdvance}
-        >
-          <span className="session-fb-overlay__icon">✓</span>
-          {(!adultConfirmAdvance || isAdvanceReady) && (
-            <span className="session-fb-overlay__hint">Нажмите, чтобы продолжить</span>
-          )}
-        </div>
       )}
 
       {showStandaloneGate && (
