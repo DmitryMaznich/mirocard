@@ -11,7 +11,10 @@ import "./fingers.css";
 // single-cell column entry). fontFamily is forced to sans-serif for the ⌫
 // glyph — Primo (the digit font) doesn't have a glyph for it.
 function FingersKeypad({ onDigit, onDelete, active }) {
-  const bs = useTapButtonSize(48);
+  // 48 is the shared col-tap-kb base — 15% smaller here specifically,
+  // since this keypad felt oversized on phone; passed locally rather than
+  // changed in useTapButtonSize itself so the Столбик keyboard is untouched.
+  const bs = useTapButtonSize(41);
   const bsStr = bs + "px";
   return (
     <div className="col-tap-kb" style={{ pointerEvents: active ? "auto" : "none" }}>
@@ -132,7 +135,7 @@ function ConfirmZone({ onTap }) {
 // container resize, on any font finishing loading (the Nunito stylesheet
 // loads async — see index.html), and via two delayed safety-net passes for
 // any layout that only settles a little after mount.
-function useFitOneLine(text, { min = 18, max = 62, step = 2 } = {}) {
+function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
   const ref = useRef(null);
   const [fontSize, setFontSize] = useState(max);
 
