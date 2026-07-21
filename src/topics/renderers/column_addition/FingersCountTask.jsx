@@ -123,7 +123,16 @@ function ConfirmZone({ onTap }) {
 // Shrinks font-size just enough to keep `text` on one line inside its
 // parent's content box — vw-based clamp() alone can't do this, since the
 // same font-size wraps a long hint ("Прибавь ещё 8") but not a short one
-// ("Убери 2"). Recalculates on text change and on container resize.
+// ("Убери 2"). Recalculates on text change, on container resize, and again
+// whenever a font finishes loading. Nunito comes from a Google Fonts
+// stylesheet loaded via the media="print"→"all" async trick (see
+// index.html) with display=swap, so the very first measurement can run
+// against the fallback font — sized narrower than real Nunito — and the
+// stylesheet may not even be attached yet, which is why this listens for
+// the fonts API's own "loadingdone" event rather than just fonts.ready
+// (ready only covers @font-face rules already registered at the time it's
+// read). A small safety margin (0.98) absorbs fractional rounding slack
+// between scrollWidth and clientWidth.
 function useFitOneLine(text, { min = 22, max = 78 } = {}) {
   const ref = useRef(null);
   const [fontSize, setFontSize] = useState(max);
@@ -140,13 +149,18 @@ function useFitOneLine(text, { min = 22, max = 78 } = {}) {
         setFontSize(max);
         return;
       }
-      setFontSize(Math.max(min, Math.floor((containerWidth / naturalWidth) * max)));
+      setFontSize(Math.max(min, Math.floor((containerWidth / naturalWidth) * max * 0.98)));
     }
 
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el.parentElement);
-    return () => ro.disconnect();
+    const fontsApi = typeof document !== "undefined" ? document.fonts : null;
+    fontsApi?.addEventListener?.("loadingdone", fit);
+    return () => {
+      ro.disconnect();
+      fontsApi?.removeEventListener?.("loadingdone", fit);
+    };
   }, [text, min, max]);
 
   return { ref, fontSize };

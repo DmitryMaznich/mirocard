@@ -278,11 +278,14 @@
 }
 
 /* Confirm button — one shared explicit tap target (not per-hand), centered
- * between the two wrists at wrist height, away from any finger dot. */
+ * between the two wrists at wrist height, away from any finger dot. The
+ * hand SVG's own viewBox (256×320) matches fng-sub-hand-inner's aspect-ratio
+ * exactly, so the wrist (bottom of the artwork) sits right at that box's
+ * bottom edge — bottom:0 here lines the button up with it. */
 .fng-confirm-zone {
   position: absolute;
   left: 50%;
-  bottom: 6%;
+  bottom: 0;
   transform: translateX(-50%);
   z-index: 5;
   padding: 10px 20px;
