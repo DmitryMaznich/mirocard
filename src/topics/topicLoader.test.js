@@ -404,38 +404,14 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(regroupTen.ui.icon).toBe("media/icons/place_value_regroup.svg");
   });
 
-  it("refreshes a mode's param widget type to the current default, even if an older shape was persisted", async () => {
-    // Simulates a device that installed identify_number back when numericBlocks was a
-    // plain boolean checkbox — on the next load, the param definition must switch to
-    // the current visual_boolean toggle instead of staying pinned to the old shape.
-    const db = await freshDb();
-    const staleRecord = {
-      id: "column_addition",
-      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
-      modes: [
-        {
-          id: "identify_number",
-          type: "identify_number",
-          evaluation: "instant",
-          ui: { title: "Какое это число?", icon: "media/icons/place_value_identify.svg" },
-          params: {
-            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
-            numericBlocks: { type: "boolean", default: false, label: { ru: "Блоки с цифрами вместо кубиков" } },
-          },
-        },
-      ],
-      cards: [{ id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } }],
-      installedAt: new Date().toISOString(),
-    };
-
-    await kv.set(db, "topic:column_addition", staleRecord);
-    await kv.set(db, "installedTopicIds", ["column_addition"]);
-
-    const record = await getTopicRecord(db, "column_addition");
-    const identifyNumber = record.modes.find((m) => m.id === "identify_number");
-    expect(identifyNumber.params.numericBlocks.type).toBe("visual_boolean");
-    expect(identifyNumber.params.numericBlocks.offLabel.ru).toBe("Десятки");
-  });
+  // Widget-type migration (a param's `type` changing between what a stale
+  // record persisted and the current default) is still covered — see
+  // "refreshes column_arithmetic's params to the new reference shape" below,
+  // which exercises showHelper/showCompare's enum → boolean change. The
+  // dedicated boolean → visual_boolean example that used to live here
+  // (identify_number's numericBlocks) no longer applies: visual_boolean isn't
+  // used by any current default mode after the "drops ... numericBlocks"
+  // tests below removed the only three params that had it.
 
   it("drops build_number's numericBlocks param now that only Десятки is offered", async () => {
     // build_number used to offer a "10" numeric-block visual alongside "Десятки" — the
@@ -470,6 +446,58 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params).not.toHaveProperty("numericBlocks");
     expect(buildNumber.params).toHaveProperty("maxOnes");
     expect(buildNumber.params).toHaveProperty("maxTens");
+  });
+
+  it("drops identify_number's and regroup_ten's numericBlocks param, same as build_number", async () => {
+    // Same "10" vs "Десятки" choice build_number used to offer, removed for the
+    // same reason — a stale device that saved the old param shape must have it
+    // dropped on the next load.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "column_addition",
+      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      modes: [
+        {
+          id: "identify_number",
+          type: "identify_number",
+          evaluation: "instant",
+          ui: { title: "Какое это число?", icon: "media/icons/place_value_identify.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+            showCounters: { type: "boolean", default: true, label: { ru: "Показывать счётчики" } },
+            numericBlocks: { type: "visual_boolean", default: false, offLabel: { ru: "Десятки" }, label: { ru: "Блоки с цифрами" } },
+          },
+        },
+        {
+          id: "regroup_ten",
+          type: "regroup_ten",
+          evaluation: "instant",
+          ui: { title: "Разменяй десяток", icon: "media/icons/place_value_regroup.svg" },
+          params: {
+            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
+            numericBlocks: { type: "visual_boolean", default: false, offLabel: { ru: "Десятки" }, label: { ru: "Блоки с цифрами" } },
+          },
+        },
+      ],
+      cards: [
+        { id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } },
+        { id: "regroup_ten", conceptId: "regroup_ten", renderer: "column_addition", params: { mode: "regroup_ten" } },
+      ],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:column_addition", staleRecord);
+    await kv.set(db, "installedTopicIds", ["column_addition"]);
+
+    const record = await getTopicRecord(db, "column_addition");
+    const byId = Object.fromEntries(record.modes.map((m) => [m.id, m]));
+
+    expect(byId.identify_number.params).not.toHaveProperty("numericBlocks");
+    expect(byId.identify_number.params).toHaveProperty("maxOnes");
+    expect(byId.identify_number.params).toHaveProperty("showCounters");
+
+    expect(byId.regroup_ten.params).not.toHaveProperty("numericBlocks");
+    expect(byId.regroup_ten.params).toHaveProperty("maxOnes");
   });
 
   it("refreshes column_arithmetic's params to the new reference shape, even if an older shape was persisted", async () => {
@@ -555,7 +583,6 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           params: {
             maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
             showCounters: { type: "boolean", default: true, label: { ru: "Показывать счётчики" } },
-            numericBlocks: { type: "visual_boolean", default: false, offLabel: { ru: "Десятки" }, label: { ru: "Блоки с цифрами вместо кубиков" } },
           },
         },
       ],
@@ -582,9 +609,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(byId.fingers_show.params.hint.info.ru.tip).toEqual(expect.any(String));
 
     expect(byId.identify_number.hideConceptPicker).toBe(true);
-    expect(byId.identify_number.params.numericBlocks.label.ru).toBe("Блоки с цифрами");
-    expect(byId.identify_number.params.numericBlocks.section).toBe("Отображение");
-    expect(byId.identify_number.params.numericBlocks.info.ru.text).toEqual(expect.any(String));
+    expect(byId.identify_number.params.showCounters.section).toBe("Отображение");
+    expect(byId.identify_number.params.showCounters.info.ru.text).toEqual(expect.any(String));
   });
 
   it("reorders an already-installed column_addition record's modes to the current pedagogical sequence", async () => {
