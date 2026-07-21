@@ -12285,7 +12285,7 @@ button {
   cursor: pointer;
   touch-action: none;
   z-index: 22;
-  transition: transform 0.08s ease, box-shadow 0.12s ease;
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.15s ease;
 }
 .session-plan-tongue:active {
   transform:
@@ -12320,6 +12320,29 @@ button {
 }
 .session-plan-tongue--pulse {
   animation: sessionPlanTonguePulse 2.4s ease-in-out infinite;
+}
+.session-plan-tongue--correct {
+  background: linear-gradient(180deg, #eafaf0 0%, #d3f3de 55%, #b9ecc9 100%);
+}
+.session-plan-tongue--incorrect {
+  background: linear-gradient(180deg, #fdecea 0%, #fbd6d2 55%, #f7c0ba 100%);
+}
+.session-plan-tongue__emoji {
+  font-size: 13px;
+  line-height: 1;
+  animation: sessionPlanTonguePop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.session-plan-tongue__bar {
+  animation: sessionPlanTongueBarsIn 0.15s ease;
+}
+@keyframes sessionPlanTonguePop {
+  0%   { transform: scale(0.9); }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+@keyframes sessionPlanTongueBarsIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── StarBar ─────────────────────────────────────── */
