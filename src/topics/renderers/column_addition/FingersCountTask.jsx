@@ -123,45 +123,50 @@ function ConfirmZone({ onTap }) {
 // Shrinks font-size just enough to keep `text` on one line inside its
 // parent's content box — vw-based clamp() alone can't do this, since the
 // same font-size wraps a long hint ("Прибавь ещё 8") but not a short one
-// ("Убери 2"). Recalculates on text change, on container resize, and again
-// whenever a font finishes loading. Nunito comes from a Google Fonts
-// stylesheet loaded via the media="print"→"all" async trick (see
-// index.html) with display=swap, so the very first measurement can run
-// against the fallback font — sized narrower than real Nunito — and the
-// stylesheet may not even be attached yet, which is why this listens for
-// the fonts API's own "loadingdone" event rather than just fonts.ready
-// (ready only covers @font-face rules already registered at the time it's
-// read). A small safety margin (0.98) absorbs fractional rounding slack
-// between scrollWidth and clientWidth.
-function useFitOneLine(text, { min = 22, max = 78 } = {}) {
+// ("Убери 2"). Unlike a one-shot proportional calculation (containerWidth /
+// naturalWidth * max), this steps the size DOWN and re-measures after every
+// step, verifying the actual fit directly each time rather than trusting a
+// single formula — immune to whatever measurement quirk (font metrics,
+// rounding, a not-yet-settled layout) made the proportional version report
+// "already fits" when it visibly didn't on real devices. Re-runs on
+// container resize, on any font finishing loading (the Nunito stylesheet
+// loads async — see index.html), and via two delayed safety-net passes for
+// any layout that only settles a little after mount.
+function useFitOneLine(text, { min = 22, max = 78, step = 2 } = {}) {
   const ref = useRef(null);
   const [fontSize, setFontSize] = useState(max);
 
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !el.parentElement) return;
+    const parent = el.parentElement;
 
     function fit() {
-      el.style.fontSize = max + "px";
-      const containerWidth = el.parentElement.clientWidth;
-      const naturalWidth = el.scrollWidth;
-      if (containerWidth === 0 || naturalWidth <= containerWidth) {
-        setFontSize(max);
-        return;
+      const containerWidth = parent.clientWidth;
+      if (containerWidth === 0) return;
+      let size = max;
+      el.style.fontSize = size + "px";
+      while (size > min && el.scrollWidth > containerWidth) {
+        size -= step;
+        el.style.fontSize = size + "px";
       }
-      setFontSize(Math.max(min, Math.floor((containerWidth / naturalWidth) * max * 0.98)));
+      setFontSize(size);
     }
 
     fit();
     const ro = new ResizeObserver(fit);
-    ro.observe(el.parentElement);
+    ro.observe(parent);
     const fontsApi = typeof document !== "undefined" ? document.fonts : null;
     fontsApi?.addEventListener?.("loadingdone", fit);
+    const t1 = setTimeout(fit, 300);
+    const t2 = setTimeout(fit, 1200);
     return () => {
       ro.disconnect();
       fontsApi?.removeEventListener?.("loadingdone", fit);
+      clearTimeout(t1);
+      clearTimeout(t2);
     };
-  }, [text, min, max]);
+  }, [text, min, max, step]);
 
   return { ref, fontSize };
 }
