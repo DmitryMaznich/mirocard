@@ -127,6 +127,10 @@
   75%       { transform: translateX(6px); }
 }
 
+/* Wrist-check found the hands don't match the example — same shake, applied
+ * to the whole hands zone instead of the numeric answer. */
+.fng-hands-shake { animation: fng-answer-shake 0.4s ease; }
+
 /* Zone 2: hands — always in DOM, opacity controls visibility.
  * Each hand is absolutely positioned at 40% width so it NEVER changes size.
  * translateX slides them from spread (20% gap) to touching (0 gap):

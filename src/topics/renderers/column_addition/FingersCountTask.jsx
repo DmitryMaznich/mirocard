@@ -107,10 +107,12 @@ function mirror(pt) {
   return pt && { x: 1 - pt.x, y: pt.y };
 }
 
-// A wide highlight near the wrist — the explicit, tap-only way to advance
-// from one addend to the next (replaces the old auto-timer). Shown once the
-// active addend is fully built; the same zone exists on both hands so either
-// can be tapped.
+// A wide highlight near the wrist — always available while building/reducing
+// (never gated on having the right count, or its mere presence would be a
+// hint), doubling as both "I'm done" and "check my answer". A tap compares
+// the real hands against the real example: right → advance; wrong → shake
+// and reset, same wrong-answer language as the numpad. The same zone exists
+// on both hands so either can be tapped.
 function WristZone({ onTap }) {
   return <div className="fng-wrist-zone" onClick={onTap} role="button" aria-label="Дальше" />;
 }
@@ -120,7 +122,8 @@ function WristZone({ onTap }) {
 // position onto whichever hand it lands on. Deliberately NOT capped at the
 // real target: how many dots are on screen must never reveal what the
 // target number is (a child could just count the dots instead of the
-// number). commit() alone enforces the real stopping point. Reuses
+// number), and tapping past it is no longer blocked either — only the wrist
+// check (see confirmAndAdvance) validates the real count. Reuses
 // getFingerConfig's own "right"/"left" naming (right fills 1-5 first, left
 // is the 6-10 overflow) — not screen position; the caller mirrors the
 // "right" set before display, same as everywhere else in this file.
@@ -142,9 +145,10 @@ function multiDotsAcrossHands(built) {
 }
 
 // ── Subtraction (any a, b) ─────────────────────────────────────────────────
-// Flow: show a (pause, tap-skippable) → tap red dots to fold b fingers
-// (hand cross-fades on every tap) → tap a wrist to confirm → "Ответ" button
-// → numpad.
+// Flow: show a (pause, tap-skippable) → tap red dots to fold fingers (hand
+// cross-fades on every tap, uncapped — folding too many or too few is
+// possible) → tap a wrist to check → correct advances to "Ответ" → numpad;
+// wrong shakes and resets the hands to try again.
 
 function SubtractionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show"); // show | reduce | readyAnswer | answer | done
@@ -155,6 +159,9 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   const [rightCount, setRightCount] = useState(() => getFingerConfig(task.a).right);
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
+  // Separate from `shake` (the numpad's own wrong-digit shake) — this one
+  // fires when the wrist check finds the hands don't match the example.
+  const [handShake, setHandShake] = useState(false);
   const skipRef = useRef(null);
 
   const { a, b, result } = task;
@@ -168,7 +175,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
     setPhase("show");
     setLeftCount(startConfig.left);
     setRightCount(startConfig.right);
-    setInput([]); setShake(false);
+    setInput([]); setShake(false); setHandShake(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task.cardId]);
 
@@ -184,6 +191,24 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
     return () => clearTimeout(skipRef.current);
   }, [phase]);
 
+  // The wrist is always tappable during "reduce", whatever the hands
+  // currently show — its availability must never itself signal correctness.
+  // A tap checks the real hands against the real result: right → advance,
+  // wrong → shake and reset to the starting pose so the child tries again.
+  function confirmReduce() {
+    if (leftCount === leftEnd && rightCount === rightEnd) {
+      setPhase("readyAnswer");
+      return;
+    }
+    setHandShake(true);
+    setTimeout(() => {
+      setHandShake(false);
+      setLeftCount(startConfig.left);
+      setRightCount(startConfig.right);
+    }, 500);
+    onMistake?.();
+  }
+
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
     const next = [...input, String(d)];
@@ -198,13 +223,9 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
-  // True once both hands have reached the result — but this only reveals the
-  // wrist zone and hint text, never the dots themselves (see below).
-  const settled = phase === "reduce" && leftCount === leftEnd && rightCount === rightEnd;
-
   const hint =
     phase === "show"        ? `Было ${a} →` :
-    phase === "reduce"      ? (settled ? "Готово? Коснись запястья →" : `Убери ${b} →`) :
+    phase === "reduce"      ? `Убери ${b} →` :
     phase === "readyAnswer" ? "Готово? →" :
     "Введи ответ";
 
@@ -218,12 +239,10 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
   const kbdVisible = phase === "answer" || phase === "done";
 
-  // Every currently-raised finger gets a dot — not just the ones that still
-  // need to fold — for as long as we're in "reduce", including after the
-  // result is reached. Neither the dot count nor the moment they vanish may
-  // reveal how many to remove or that the child is done; only the explicit
-  // wrist tap (below) advances and clears them. Extra taps past the result
-  // are no-ops (the setters clamp at leftEnd/rightEnd).
+  // Every currently-raised finger gets a dot, always down to 0 — folding
+  // isn't capped at the real result, so a child really can show the wrong
+  // count. Only the wrist tap (always available during "reduce", see
+  // confirmReduce above) checks correctness.
   const leftTips  = (phase === "reduce" && leftCount > 0)  ? removalTips(leftCount, 0)  : [];
   const rightTips = (phase === "reduce" && rightCount > 0) ? removalTips(rightCount, 0).map(mirror) : [];
 
@@ -235,7 +254,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      <div className="fng-add-hands-zone" onClick={phase === "show" ? goReduce : undefined}
+      <div className={`fng-add-hands-zone${handShake ? " fng-hands-shake" : ""}`} onClick={phase === "show" ? goReduce : undefined}
            style={{ cursor: phase === "show" ? "pointer" : "default" }}>
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
@@ -244,11 +263,11 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
               {leftTips.length > 0 && (
                 <div className="fng-gesture-overlay">
                   {leftTips.map((pos, i) => (
-                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setLeftCount(c => Math.max(leftEnd, c - 1))} />
+                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setLeftCount(c => Math.max(0, c - 1))} />
                   ))}
                 </div>
               )}
-              {settled && <WristZone onTap={() => setPhase("readyAnswer")} />}
+              {phase === "reduce" && <WristZone onTap={confirmReduce} />}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
@@ -257,11 +276,11 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
               {rightTips.length > 0 && (
                 <div className="fng-gesture-overlay">
                   {rightTips.map((pos, i) => (
-                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setRightCount(c => Math.max(rightEnd, c - 1))} />
+                    <GestureDot key={i} pos={pos} direction="down" onCommit={() => setRightCount(c => Math.max(0, c - 1))} />
                   ))}
                 </div>
               )}
-              {settled && <WristZone onTap={() => setPhase("readyAnswer")} />}
+              {phase === "reduce" && <WristZone onTap={confirmReduce} />}
             </div>
           </div>
         </div>
@@ -294,6 +313,9 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   const [builtB, setBuiltB] = useState(0);
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
+  // Separate from `shake` (the numpad's own wrong-digit shake) — this one
+  // fires when the wrist check finds the hands don't match the example.
+  const [handShake, setHandShake] = useState(false);
 
   const { a, b, result } = task;
   const resultStr = String(result);
@@ -305,23 +327,39 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   // the other addend, so fall back to the combined two-hand FINGER_MAP build
   // used for a single large number (same as before this fix).
   const simple = a <= 5 && b <= 5;
+  const cap = simple ? 5 : 10; // physical ceiling for a free (uncapped-at-target) tap
 
   const building = phase === "a" || phase === "b";
   const target   = phase === "a" ? a : phase === "b" ? b : null;
   const built    = phase === "a" ? builtA : phase === "b" ? builtB : null;
 
   useEffect(() => {
-    setPhase("a"); setBuiltA(0); setBuiltB(0); setInput([]); setShake(false);
+    setPhase("a"); setBuiltA(0); setBuiltB(0); setInput([]); setShake(false); setHandShake(false);
   }, [task.cardId]);
 
-  function skipToNext() {
+  // The wrist is always tappable while building — its availability must
+  // never itself signal correctness. A tap checks the real built count
+  // against the real addend: right → advance, wrong → shake and reset this
+  // hand to a fist so the child tries again.
+  function confirmAndAdvance() {
+    if (built !== target) {
+      setHandShake(true);
+      setTimeout(() => {
+        setHandShake(false);
+        if (phase === "a") setBuiltA(0); else setBuiltB(0);
+      }, 500);
+      onMistake?.();
+      return;
+    }
     if (phase === "a") setPhase("b");
     else if (phase === "b") setPhase("answer");
   }
 
+  // Uncapped at the real target — reaching (or overshooting) `a`/`b` no
+  // longer blocks further taps, otherwise the block itself would be a hint.
   function commit() {
-    if (phase === "a" && builtA < a) setBuiltA(c => c + 1);
-    else if (phase === "b" && builtB < b) setBuiltB(c => c + 1);
+    if (phase === "a") setBuiltA(c => Math.min(cap, c + 1));
+    else if (phase === "b") setBuiltB(c => Math.min(cap, c + 1));
   }
 
   function handleDigit(d) {
@@ -338,10 +376,9 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
-  const settled = building && built === target;
   const hint =
-    phase === "a" ? (settled ? "Готово? Коснись запястья →" : `Покажи ${a} →`) :
-    phase === "b" ? (settled ? "Готово? Коснись запястья →" : `Теперь покажи ${b} →`) :
+    phase === "a" ? `Покажи ${a} →` :
+    phase === "b" ? `Теперь покажи ${b} →` :
     "Введи ответ";
 
   const answerPart = phase === "done"
@@ -357,10 +394,8 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   // Dots always span the hand's full remaining capacity (up to 5, or 10
   // across both hands), never just "target − built" — otherwise counting
   // the dots would hand the child the answer instead of the number itself.
-  // They also stay put once the target is reached — hiding them exactly on
-  // completion would itself be a "you're done" hint. commit() clamps the
-  // real count, so extra taps on the untapped leftovers are no-ops; only the
-  // wrist tap actually clears them (by changing phase).
+  // They track the real (now uncapped) built count continuously; only the
+  // wrist tap clears them, by changing phase.
   let leftCount, rightCount, leftBases, rightBases;
   if (simple) {
     // One hand per addend — both stay visible side by side once built.
@@ -385,7 +420,7 @@ function AdditionTask({ task, onCorrect, onMistake }) {
         <div className="fng-add-hint">{hint}</div>
       </div>
 
-      <div className="fng-add-hands-zone">
+      <div className={`fng-add-hands-zone${handShake ? " fng-hands-shake" : ""}`}>
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
@@ -397,7 +432,7 @@ function AdditionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
-              {phase === "a" && settled && <WristZone onTap={skipToNext} />}
+              {phase === "a" && <WristZone onTap={confirmAndAdvance} />}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
@@ -410,7 +445,7 @@ function AdditionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
-              {phase === "b" && settled && <WristZone onTap={skipToNext} />}
+              {phase === "b" && <WristZone onTap={confirmAndAdvance} />}
             </div>
           </div>
         </div>
