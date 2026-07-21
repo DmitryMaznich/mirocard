@@ -132,7 +132,7 @@ function ConfirmZone({ onTap }) {
 // container resize, on any font finishing loading (the Nunito stylesheet
 // loads async — see index.html), and via two delayed safety-net passes for
 // any layout that only settles a little after mount.
-function useFitOneLine(text, { min = 22, max = 78, step = 2 } = {}) {
+function useFitOneLine(text, { min = 18, max = 62, step = 2 } = {}) {
   const ref = useRef(null);
   const [fontSize, setFontSize] = useState(max);
 
