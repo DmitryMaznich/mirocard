@@ -97,8 +97,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding-bottom: 10px;
 }
 
 .fng-count-expr {
@@ -107,15 +105,20 @@
   color: #1a2540;
   letter-spacing: 4px;
   line-height: 1;
+  margin-top: 1em; /* shifted down one line from the screen edge */
 }
 
+/* Sits between the expression and the hands zone (i.e. roughly level with
+ * where raised fingertips are) rather than crammed under the expression. */
 .fng-add-hint {
+  flex-shrink: 0;
   font-family: 'Nunito', sans-serif;
-  font-size: clamp(18px, 5vw, 26px);
+  font-size: clamp(54px, 15vw, 78px);
   font-weight: 700;
   color: #4a5568;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.15;
+  padding: clamp(16px, 5vh, 48px) 16px;
 }
 
 .fng-count-answer { color: #3b82f6; display: inline-block; min-width: 0.6em; }

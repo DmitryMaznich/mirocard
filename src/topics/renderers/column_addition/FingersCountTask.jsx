@@ -197,9 +197,9 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
   const hint =
-    phase === "show"        ? `Было ${a} →` :
-    phase === "reduce"      ? `Убери ${b} →` :
-    phase === "readyAnswer" ? "Готово? →" :
+    phase === "show"        ? `Было ${a}` :
+    phase === "reduce"      ? `Убери ${b}` :
+    phase === "readyAnswer" ? "Готово?" :
     "Введи ответ";
 
   const answerPart = phase === "done"
@@ -224,7 +224,11 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
       <div className="fng-add-top" onClick={phase === "show" ? goReduce : undefined}
            style={{ cursor: phase === "show" ? "pointer" : "default" }}>
         <div className="fng-count-expr">{a} − {b} = {answerPart}</div>
-        <div className="fng-add-hint">{hint}</div>
+      </div>
+
+      <div className="fng-add-hint" onClick={phase === "show" ? goReduce : undefined}
+           style={{ cursor: phase === "show" ? "pointer" : "default" }}>
+        {hint}
       </div>
 
       <div className={`fng-add-hands-zone${handShake ? " fng-hands-shake" : ""}`} onClick={phase === "show" ? goReduce : undefined}
@@ -393,8 +397,8 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
   const hint =
-    phase === "a" ? `Покажи ${a} →` :
-    phase === "b" ? (simple ? `Теперь покажи ${b} →` : `Прибавь ещё ${b} →`) :
+    phase === "a" ? `Покажи ${a}` :
+    phase === "b" ? (simple ? `Теперь покажи ${b}` : `Прибавь ещё ${b}`) :
     "Введи ответ";
 
   const answerPart = phase === "done"
@@ -433,8 +437,9 @@ function AdditionTask({ task, onCorrect, onMistake }) {
     <div className="fng-add-screen">
       <div className="fng-add-top">
         <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
-        <div className="fng-add-hint">{hint}</div>
       </div>
+
+      <div className="fng-add-hint">{hint}</div>
 
       <div className={`fng-add-hands-zone${handShake ? " fng-hands-shake" : ""}`}>
         <div className="fng-sub-hands">
