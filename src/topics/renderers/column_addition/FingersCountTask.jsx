@@ -117,28 +117,6 @@ function WristZone({ onTap }) {
   return <div className="fng-wrist-zone" onClick={onTap} role="button" aria-label="Дальше" />;
 }
 
-// When an addend needs both hands (>5), the ten fingers are ONE combined
-// quantity, not two independent per-hand blocks — so building it (and later
-// continuing past it toward a+b) always follows getFingerConfig's own
-// "right fills 1-5 first, left is the 6-10 overflow" order, same as every
-// other single-number hand display in this file (e.g. Subtraction's minuend).
-// Dots live on the currently-fillable hand only — the "right" primary hand
-// until it physically maxes at 5, only then switching to "left" overflow —
-// never both at once: showing the overflow hand's dots before the primary
-// hand is even full would let a tap on the not-yet-active hand commit the
-// canonical next finger on the OTHER hand instead. Deliberately not capped
-// at the real target either — how many dots are on screen must never reveal
-// the target number, and tapping past it is no longer blocked; only the
-// wrist check (confirmAndAdvance) validates the real count. The caller
-// mirrors the "right" set before display, same as everywhere else here.
-function multiDotsAcrossHands(built) {
-  const primaryCount  = Math.min(built, 5);
-  const overflowCount = Math.max(0, built - 5);
-  const primaryDots  = primaryCount < 5 ? additionBases(primaryCount, 5) : [];
-  const overflowDots = primaryCount === 5 ? additionBases(overflowCount, 5) : [];
-  return { rightBases: primaryDots, leftBases: overflowDots };
-}
-
 // ── Subtraction (any a, b) ─────────────────────────────────────────────────
 // Flow: show a (pause, tap-skippable) → tap red dots to fold fingers (hand
 // cross-fades on every tap, uncapped — folding too many or too few is
@@ -307,11 +285,19 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
 function AdditionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("a"); // a | b | answer | done
+  // "simple" mode (both addends ≤5): builtA/builtB are each hand's own
+  // dedicated count, gated by phase (only the active hand's dots show).
   const [builtA, setBuiltA] = useState(0);
-  // In "simple" mode this is B's own independent hand count (0..b). In
-  // "combined" mode it's how much has been added PAST the `a` checkpoint —
-  // the displayed total is a + builtB, continuing the same running count.
   const [builtB, setBuiltB] = useState(0);
+  // "combined" mode (either addend >5): handLeft/handRight are the ACTUAL
+  // physical finger counts on each hand, free for the child to distribute
+  // however they like — no fixed fill order. checkpointRef remembers the
+  // exact split once `a` is confirmed, so a wrong second check can restore
+  // that specific combination rather than some other split that also sums
+  // to `a`.
+  const [handLeft, setHandLeft] = useState(0);
+  const [handRight, setHandRight] = useState(0);
+  const checkpointRef = useRef({ left: 0, right: 0 });
   const [input, setInput] = useState([]);
   const [shake, setShake] = useState(false);
   // Separate from `shake` (the numpad's own wrong-digit shake) — this one
@@ -327,40 +313,69 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   const built    = phase === "a" ? builtA : phase === "b" ? builtB : null;
 
   useEffect(() => {
-    setPhase("a"); setBuiltA(0); setBuiltB(0); setInput([]); setShake(false); setHandShake(false);
+    setPhase("a");
+    setBuiltA(0); setBuiltB(0);
+    setHandLeft(0); setHandRight(0);
+    checkpointRef.current = { left: 0, right: 0 };
+    setInput([]); setShake(false); setHandShake(false);
   }, [task.cardId]);
 
   // The wrist is always tappable while building — its availability must
-  // never itself signal correctness. A tap checks the real built count
-  // against the real addend: right → advance, wrong → shake and reset.
-  // Resetting builtB to 0 in "combined" mode falls back to `a` (the last
-  // confirmed checkpoint), not all the way to zero — the first addend was
-  // already right, only the continuation needs redoing.
+  // never itself signal correctness. A tap checks the real hands against
+  // the real example: right → advance, wrong → shake and reset.
   function confirmAndAdvance() {
-    if (built !== target) {
+    if (simple) {
+      if (built !== target) {
+        setHandShake(true);
+        setTimeout(() => {
+          setHandShake(false);
+          if (phase === "a") setBuiltA(0); else setBuiltB(0);
+        }, 500);
+        onMistake?.();
+        return;
+      }
+      if (phase === "a") setPhase("b");
+      else if (phase === "b") setPhase("answer");
+      return;
+    }
+
+    // combined mode: check the SUM of both hands, whatever split the child
+    // chose. Wrong on the first checkpoint resets both hands to 0; wrong on
+    // the second restores the exact split that was confirmed for `a` — the
+    // first addend was already right, only the continuation needs redoing.
+    const total = handLeft + handRight;
+    const goal = phase === "a" ? a : a + b;
+    if (total !== goal) {
       setHandShake(true);
       setTimeout(() => {
         setHandShake(false);
-        if (phase === "a") setBuiltA(0); else setBuiltB(0);
+        if (phase === "a") { setHandLeft(0); setHandRight(0); }
+        else { setHandLeft(checkpointRef.current.left); setHandRight(checkpointRef.current.right); }
       }, 500);
       onMistake?.();
       return;
     }
-    if (phase === "a") setPhase("b");
-    else if (phase === "b") setPhase("answer");
+    if (phase === "a") {
+      checkpointRef.current = { left: handLeft, right: handRight };
+      setPhase("b");
+    } else if (phase === "b") {
+      setPhase("answer");
+    }
   }
 
-  // Uncapped at the real target — reaching (or overshooting) `a`/`b` no
-  // longer blocks further taps, otherwise the block itself would be a hint.
-  // The physical ceiling differs by mode: each hand maxes at 5 in "simple"
-  // mode; in "combined" mode builtB is capped by how much room is left in
-  // the shared 10-finger space after `a` already used some of it.
-  function commit() {
-    if (phase === "a") {
-      setBuiltA(c => Math.min(simple ? 5 : 10, c + 1));
-    } else if (phase === "b") {
-      setBuiltB(c => Math.min(simple ? 5 : 10 - a, c + 1));
-    }
+  // Uncapped at the real target — reaching (or overshooting) it no longer
+  // blocks further taps, otherwise the block itself would be a hint. Each
+  // commit function always raises the finger on the hand its dot is on —
+  // in "simple" mode only the phase-active hand ever has dots, so there's
+  // no ambiguity; in "combined" mode both hands can have dots at once and
+  // each tap moves exactly the hand it was tapped on.
+  function commitLeft() {
+    if (simple) { if (phase === "a") setBuiltA(c => Math.min(5, c + 1)); }
+    else setHandLeft(c => Math.min(5, c + 1));
+  }
+  function commitRight() {
+    if (simple) { if (phase === "b") setBuiltB(c => Math.min(5, c + 1)); }
+    else setHandRight(c => Math.min(5, c + 1));
   }
 
   function handleDigit(d) {
@@ -392,29 +407,26 @@ function AdditionTask({ task, onCorrect, onMistake }) {
 
   const kbdVisible = phase === "answer" || phase === "done";
 
-  // Dots always span the hand's full remaining capacity (up to 5, or 10
-  // across both hands), never just "target − built" — otherwise counting
-  // the dots would hand the child the answer instead of the number itself.
-  // They track the real (now uncapped) built count continuously; only the
-  // wrist tap clears them, by changing phase.
+  // Dots always span each hand's full remaining capacity (up to 5), never
+  // just "target − built" — otherwise counting the dots would hand the
+  // child the answer instead of the number itself. They track the real
+  // (now uncapped) hand counts continuously; only the wrist tap clears them.
   let leftCount, rightCount, leftBases, rightBases;
   if (simple) {
-    // One hand per addend — both stay visible side by side once built.
+    // One hand per addend — both stay visible side by side once built, dots
+    // only on the phase-active hand (the other addend isn't being built).
     leftCount  = builtA;
     rightCount = builtB;
     leftBases  = (phase === "a") ? additionBases(builtA, 5) : [];
     rightBases = (phase === "b") ? additionBases(builtB, 5).map(mirror) : [];
   } else {
-    // One combined, continuously-growing quantity across both hands: phase
-    // "a" shows builtA (0..a); phase "b" and beyond keep going from there —
-    // a + builtB — never resetting back to fists.
-    const combinedBuilt = phase === "a" ? builtA : Math.min(10, a + builtB);
-    const cfg = getFingerConfig(combinedBuilt);
-    leftCount  = cfg.left;
-    rightCount = cfg.right;
-    const dots = building ? multiDotsAcrossHands(combinedBuilt) : { leftBases: [], rightBases: [] };
-    leftBases  = dots.leftBases;
-    rightBases = dots.rightBases.map(mirror);
+    // Combined mode: both hands are just the real physical finger counts,
+    // free for the child to split however they want — dots on BOTH hands
+    // at once (whichever still has room), no fixed fill order between them.
+    leftCount  = handLeft;
+    rightCount = handRight;
+    leftBases  = building && handLeft  < 5 ? additionBases(handLeft, 5)  : [];
+    rightBases = building && handRight < 5 ? additionBases(handRight, 5).map(mirror) : [];
   }
 
   return (
@@ -432,11 +444,11 @@ function AdditionTask({ task, onCorrect, onMistake }) {
               {leftBases.length > 0 && (
                 <div className="fng-gesture-overlay">
                   {leftBases.map((pos, i) => (
-                    <GestureDot key={i} pos={pos} direction="up" onCommit={commit} />
+                    <GestureDot key={i} pos={pos} direction="up" onCommit={commitLeft} />
                   ))}
                 </div>
               )}
-              {phase === "a" && <WristZone onTap={confirmAndAdvance} />}
+              {(simple ? phase === "a" : building) && <WristZone onTap={confirmAndAdvance} />}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
@@ -445,11 +457,11 @@ function AdditionTask({ task, onCorrect, onMistake }) {
               {rightBases.length > 0 && (
                 <div className="fng-gesture-overlay">
                   {rightBases.map((pos, i) => (
-                    <GestureDot key={i} pos={pos} direction="up" onCommit={commit} />
+                    <GestureDot key={i} pos={pos} direction="up" onCommit={commitRight} />
                   ))}
                 </div>
               )}
-              {phase === "b" && <WristZone onTap={confirmAndAdvance} />}
+              {(simple ? phase === "b" : building) && <WristZone onTap={confirmAndAdvance} />}
             </div>
           </div>
         </div>
