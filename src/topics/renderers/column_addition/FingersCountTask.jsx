@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import { getFingerConfig } from "./FingerSystem.js";
 import { FINGER_TIPS_R, FINGER_BASES_R } from "./handShapes.js";
@@ -107,14 +107,49 @@ function mirror(pt) {
   return pt && { x: 1 - pt.x, y: pt.y };
 }
 
-// A wide highlight near the wrist — always available while building/reducing
-// (never gated on having the right count, or its mere presence would be a
-// hint), doubling as both "I'm done" and "check my answer". A tap compares
-// the real hands against the real example: right → advance; wrong → shake
-// and reset, same wrong-answer language as the numpad. The same zone exists
-// on both hands so either can be tapped.
-function WristZone({ onTap }) {
-  return <div className="fng-wrist-zone" onClick={onTap} role="button" aria-label="Дальше" />;
+// One button, centered between both hands at wrist height — always
+// available while building/reducing (never gated on having the right
+// count, or its mere presence would be a hint), doubling as both "I'm
+// done" and "check my answer". A tap compares the real hands against the
+// real example: right → advance; wrong → shake and reset.
+function ConfirmZone({ onTap }) {
+  return (
+    <button type="button" className="fng-confirm-zone" onClick={onTap}>
+      Сделал!
+    </button>
+  );
+}
+
+// Shrinks font-size just enough to keep `text` on one line inside its
+// parent's content box — vw-based clamp() alone can't do this, since the
+// same font-size wraps a long hint ("Прибавь ещё 8") but not a short one
+// ("Убери 2"). Recalculates on text change and on container resize.
+function useFitOneLine(text, { min = 22, max = 78 } = {}) {
+  const ref = useRef(null);
+  const [fontSize, setFontSize] = useState(max);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !el.parentElement) return;
+
+    function fit() {
+      el.style.fontSize = max + "px";
+      const containerWidth = el.parentElement.clientWidth;
+      const naturalWidth = el.scrollWidth;
+      if (containerWidth === 0 || naturalWidth <= containerWidth) {
+        setFontSize(max);
+        return;
+      }
+      setFontSize(Math.max(min, Math.floor((containerWidth / naturalWidth) * max)));
+    }
+
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el.parentElement);
+    return () => ro.disconnect();
+  }, [text, min, max]);
+
+  return { ref, fontSize };
 }
 
 // ── Subtraction (any a, b) ─────────────────────────────────────────────────
@@ -218,6 +253,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
   // confirmReduce above) checks correctness.
   const leftTips  = (phase === "reduce" && leftCount > 0)  ? removalTips(leftCount, 0)  : [];
   const rightTips = (phase === "reduce" && rightCount > 0) ? removalTips(rightCount, 0).map(mirror) : [];
+  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(hint);
 
   return (
     <div className="fng-add-screen">
@@ -228,7 +264,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
       <div className="fng-add-hint" onClick={phase === "show" ? goReduce : undefined}
            style={{ cursor: phase === "show" ? "pointer" : "default" }}>
-        {hint}
+        <span ref={hintRef} className="fng-add-hint-text" style={{ fontSize: hintFontSize }}>{hint}</span>
       </div>
 
       <div className={`fng-add-hands-zone${handShake ? " fng-hands-shake" : ""}`} onClick={phase === "show" ? goReduce : undefined}
@@ -244,7 +280,6 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
-              {phase === "reduce" && <WristZone onTap={confirmReduce} />}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
@@ -257,9 +292,9 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
-              {phase === "reduce" && <WristZone onTap={confirmReduce} />}
             </div>
           </div>
+          {phase === "reduce" && <ConfirmZone onTap={confirmReduce} />}
         </div>
       </div>
 
@@ -433,13 +468,17 @@ function AdditionTask({ task, onCorrect, onMistake }) {
     rightBases = building && handRight < 5 ? additionBases(handRight, 5).map(mirror) : [];
   }
 
+  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(hint);
+
   return (
     <div className="fng-add-screen">
       <div className="fng-add-top">
         <div className="fng-count-expr">{a} + {b} = {answerPart}</div>
       </div>
 
-      <div className="fng-add-hint">{hint}</div>
+      <div className="fng-add-hint">
+        <span ref={hintRef} className="fng-add-hint-text" style={{ fontSize: hintFontSize }}>{hint}</span>
+      </div>
 
       <div className={`fng-add-hands-zone${handShake ? " fng-hands-shake" : ""}`}>
         <div className="fng-sub-hands">
@@ -453,7 +492,6 @@ function AdditionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
-              {(simple ? phase === "a" : building) && <WristZone onTap={confirmAndAdvance} />}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
@@ -466,9 +504,9 @@ function AdditionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
-              {(simple ? phase === "b" : building) && <WristZone onTap={confirmAndAdvance} />}
             </div>
           </div>
+          {building && <ConfirmZone onTap={confirmAndAdvance} />}
         </div>
       </div>
 
