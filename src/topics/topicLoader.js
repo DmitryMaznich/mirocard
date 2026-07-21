@@ -1033,6 +1033,7 @@ const DEFAULT_MODES = {
       type: "fingers_show",
       evaluation: "none",
       ui: { title: "Покажи", instruction: "Покажи число на пальцах", icon: "media/icons/fingers_show_mode.svg" },
+      hideConceptPicker: true,
       params: {
         hint: {
           type: "boolean",
@@ -1052,6 +1053,7 @@ const DEFAULT_MODES = {
       type: "fingers_count",
       evaluation: "instant",
       ui: { title: "Считаем на пальцах", instruction: "Поднимай пальцы и считай", icon: "media/icons/fingers_count_mode.svg" },
+      hideConceptPicker: true,
       params: {
         op: {
           type: "enum",

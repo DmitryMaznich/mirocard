@@ -1053,21 +1053,37 @@ export default function ParamsScreen() {
                 />
               ))}
             </div>
-            {showRangeFilter && (
-              <div className="param-enum-group" style={{ marginTop: 4 }}>
-                {[{ key: "all", label: "Все" }, { key: "le5", label: "≤5" }, { key: "gt5", label: ">5" }].map(({ key, label }) => (
-                  <button key={key}
-                    className={`enum-btn enum-btn--compact ${activeCFilter === key ? "enum-btn--active" : ""}`}
-                    onClick={() => applyConceptFilter(key)}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
             <div className="param-concept-row">
               <span className="param-hint">{selectedConceptIds.length} из {allConcepts.length} выбрано</span>
               <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* fingers_count's quick range filter still narrows selectedConceptIds under the
+          hood, but stands on its own now that hideConceptPicker hides the full concept
+          picker (dots grid) for this mode — the parent never needs to see 88 topic-wide
+          concept dots to pick "small numbers only". showRangeFilter is only ever true
+          for fingers_count (see fcountCards above), which always sets hideConceptPicker,
+          so this is the only place it can still render. */}
+      {showRangeFilter && (
+        <div className="param-row param-row--block">
+          <ParamLabel
+            label="Диапазон чисел"
+            info={{
+              text: "Сужает примеры до пар чисел ≤5 или пар, где хотя бы одно число больше 5 — быстрый выбор вместо ручного отбора карточек-понятий.",
+              tip: "Начните с «≤5», пока ребёнок считает на одной руке; переходите на «>5», когда счёт с переходом через пятёрку освоен.",
+            }}
+            onShowInfo={setActiveInfo}
+          />
+          <div className="param-enum-group">
+            {[{ key: "all", label: "Все" }, { key: "le5", label: "≤5" }, { key: "gt5", label: ">5" }].map(({ key, label }) => (
+              <button key={key}
+                className={`enum-btn enum-btn--compact ${activeCFilter === key ? "enum-btn--active" : ""}`}
+                onClick={() => applyConceptFilter(key)}>
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       )}

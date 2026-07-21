@@ -548,9 +548,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
   it("refreshes the rest of column_addition's modes to the reference screen shape", async () => {
     // Same reference-screen rollout as column_arithmetic, applied to the topic's other
-    // modes: column_copy/build_number/identify_number/regroup_ten hide the decorative
-    // concept picker (only one relevant card exists among the topic's 88), fingers_show's
-    // hint switches from an enum to a real boolean, and every param picks up (i) info text.
+    // modes: every mode in the topic hides the concept picker now (parents don't want
+    // it as an option here at all — fingers_count's quick ≤5/>5 filter is a separate
+    // standalone control, not gated by this), fingers_show's hint switches from an enum
+    // to a real boolean, and every param picks up (i) info text.
     const db = await freshDb();
     const staleRecord = {
       id: "column_addition",
@@ -576,6 +577,15 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           },
         },
         {
+          id: "fingers_count",
+          type: "fingers_count",
+          evaluation: "instant",
+          ui: { title: "Считаем на пальцах", icon: "media/icons/fingers_count_mode.svg" },
+          params: {
+            op: { type: "enum", values: ["add", "sub", "mixed"], labels: { ru: { add: "Сложение", sub: "Вычитание", mixed: "Микс" } }, default: "add", label: { ru: "Операция" } },
+          },
+        },
+        {
           id: "identify_number",
           type: "identify_number",
           evaluation: "instant",
@@ -589,6 +599,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
       cards: [
         { id: "column_copy", conceptId: "column_copy", renderer: "column_addition", params: { operation: "add" } },
         { id: "fshow_0", conceptId: "fshow_0", renderer: "column_addition", params: { mode: "fingers_show", n: 0 } },
+        { id: "fcount_a_1_1", conceptId: "fcount_a_1_1", renderer: "column_addition", params: { mode: "fingers_count", op: "add", a: 1, b: 1 } },
         { id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } },
       ],
       installedAt: new Date().toISOString(),
@@ -604,9 +615,11 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(byId.column_copy.params.operation.section).toBe("Что решаем");
     expect(byId.column_copy.params.operation.info.ru.text).toEqual(expect.any(String));
 
-    expect(byId.fingers_show.hideConceptPicker).toBeUndefined();
+    expect(byId.fingers_show.hideConceptPicker).toBe(true);
     expect(byId.fingers_show.params.hint.type).toBe("boolean");
     expect(byId.fingers_show.params.hint.info.ru.tip).toEqual(expect.any(String));
+
+    expect(byId.fingers_count.hideConceptPicker).toBe(true);
 
     expect(byId.identify_number.hideConceptPicker).toBe(true);
     expect(byId.identify_number.params.showCounters.section).toBe("Отображение");
