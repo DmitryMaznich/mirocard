@@ -143,7 +143,8 @@ function multiDotsAcrossHands(built) {
 
 // ── Subtraction (any a, b) ─────────────────────────────────────────────────
 // Flow: show a (pause, tap-skippable) → tap red dots to fold b fingers
-// (hand cross-fades on every tap) → "Ответ" button → numpad.
+// (hand cross-fades on every tap) → tap a wrist to confirm → "Ответ" button
+// → numpad.
 
 function SubtractionTask({ task, onCorrect, onMistake }) {
   const [phase, setPhase] = useState("show"); // show | reduce | readyAnswer | answer | done
@@ -183,13 +184,6 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
     return () => clearTimeout(skipRef.current);
   }, [phase]);
 
-  // "reduce": once both hands reached the target count, show the answer button.
-  useEffect(() => {
-    if (phase !== "reduce" || leftCount !== leftEnd || rightCount !== rightEnd) return;
-    const t = setTimeout(() => setPhase("readyAnswer"), 450);
-    return () => clearTimeout(t);
-  }, [phase, leftCount, rightCount, leftEnd, rightEnd]);
-
   function handleDigit(d) {
     if (phase !== "answer" || shake) return;
     const next = [...input, String(d)];
@@ -204,9 +198,13 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
+  // True once both hands have reached the result — but this only reveals the
+  // wrist zone and hint text, never the dots themselves (see below).
+  const settled = phase === "reduce" && leftCount === leftEnd && rightCount === rightEnd;
+
   const hint =
-    phase === "show"       ? `Было ${a} →` :
-    phase === "reduce"     ? `Убери ${b} →` :
+    phase === "show"        ? `Было ${a} →` :
+    phase === "reduce"      ? (settled ? "Готово? Коснись запястья →" : `Убери ${b} →`) :
     phase === "readyAnswer" ? "Готово? →" :
     "Введи ответ";
 
@@ -220,12 +218,14 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
 
   const kbdVisible = phase === "answer" || phase === "done";
 
-  // Every currently-raised finger gets a dot — not just the ones that need
-  // to fold — so the dot count never reveals how many to remove; the child
-  // has to know when to stop. Extra taps past the result are no-ops (the
-  // setters below clamp at leftEnd/rightEnd).
-  const leftTips  = (phase === "reduce" && leftCount > leftEnd)  ? removalTips(leftCount, 0)  : [];
-  const rightTips = (phase === "reduce" && rightCount > rightEnd) ? removalTips(rightCount, 0).map(mirror) : [];
+  // Every currently-raised finger gets a dot — not just the ones that still
+  // need to fold — for as long as we're in "reduce", including after the
+  // result is reached. Neither the dot count nor the moment they vanish may
+  // reveal how many to remove or that the child is done; only the explicit
+  // wrist tap (below) advances and clears them. Extra taps past the result
+  // are no-ops (the setters clamp at leftEnd/rightEnd).
+  const leftTips  = (phase === "reduce" && leftCount > 0)  ? removalTips(leftCount, 0)  : [];
+  const rightTips = (phase === "reduce" && rightCount > 0) ? removalTips(rightCount, 0).map(mirror) : [];
 
   return (
     <div className="fng-add-screen">
@@ -248,6 +248,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
+              {settled && <WristZone onTap={() => setPhase("readyAnswer")} />}
             </div>
           </div>
           <div className="fng-sub-hand-wrap">
@@ -260,6 +261,7 @@ function SubtractionTask({ task, onCorrect, onMistake }) {
                   ))}
                 </div>
               )}
+              {settled && <WristZone onTap={() => setPhase("readyAnswer")} />}
             </div>
           </div>
         </div>
@@ -355,20 +357,23 @@ function AdditionTask({ task, onCorrect, onMistake }) {
   // Dots always span the hand's full remaining capacity (up to 5, or 10
   // across both hands), never just "target − built" — otherwise counting
   // the dots would hand the child the answer instead of the number itself.
-  // commit() alone stops the count at the real target once reached.
+  // They also stay put once the target is reached — hiding them exactly on
+  // completion would itself be a "you're done" hint. commit() clamps the
+  // real count, so extra taps on the untapped leftovers are no-ops; only the
+  // wrist tap actually clears them (by changing phase).
   let leftCount, rightCount, leftBases, rightBases;
   if (simple) {
     // One hand per addend — both stay visible side by side once built.
     leftCount  = builtA;
     rightCount = builtB;
-    leftBases  = (phase === "a" && builtA < a) ? additionBases(builtA, 5) : [];
-    rightBases = (phase === "b" && builtB < b) ? additionBases(builtB, 5).map(mirror) : [];
+    leftBases  = (phase === "a") ? additionBases(builtA, 5) : [];
+    rightBases = (phase === "b") ? additionBases(builtB, 5).map(mirror) : [];
   } else {
     const activeBuilt = building ? built : b;
     const cfg = getFingerConfig(activeBuilt);
     leftCount  = cfg.left;
     rightCount = cfg.right;
-    const dots = (building && built < target) ? multiDotsAcrossHands(built) : { leftBases: [], rightBases: [] };
+    const dots = building ? multiDotsAcrossHands(built) : { leftBases: [], rightBases: [] };
     leftBases  = dots.leftBases;
     rightBases = dots.rightBases.map(mirror);
   }
