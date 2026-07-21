@@ -117,31 +117,40 @@ function WristZone({ onTap }) {
   return <div className="fng-wrist-zone" onClick={onTap} role="button" aria-label="Дальше" />;
 }
 
-// For an addend that may span both hands, walks one unit at a time from
-// `built` up to full two-hand capacity (10) and buckets each step's knuckle
-// position onto whichever hand it lands on. Deliberately NOT capped at the
-// real target: how many dots are on screen must never reveal what the
-// target number is (a child could just count the dots instead of the
-// number), and tapping past it is no longer blocked either — only the wrist
-// check (see confirmAndAdvance) validates the real count. Reuses
-// getFingerConfig's own "right"/"left" naming (right fills 1-5 first, left
-// is the 6-10 overflow) — not screen position; the caller mirrors the
+// Like getFingerConfig, but the caller picks which hand fills first (1-5)
+// before the other takes the 6-10 overflow — getFingerConfig always fills
+// "right" first, which is wrong for addend A: a 2-in-2+8 would build
+// entirely on the physically-right hand (since 2 ≤ 5 never needs to
+// overflow), the exact same physical hand addend B later uses too. Addend A
+// always prefers the physically-left hand, B the physically-right one, so
+// the two addends never default onto the same hand — even when one of them
+// is large enough to need both.
+function splitAddend(n, preferLeft) {
+  const primary = Math.min(n, 5);
+  const overflow = Math.max(0, n - 5);
+  return preferLeft ? { left: primary, right: overflow } : { right: primary, left: overflow };
+}
+
+// For an addend that may span both hands: dots live on the primary hand
+// (left for A, right for B) until IT physically fills up (5), only then
+// switching to the overflow hand — never both at once. Showing the overflow
+// hand's dots early (before the primary hand is even full) was the actual
+// 2+8 bug: a "future" dot on the not-yet-active hand still committed the
+// same canonical next finger on the PRIMARY hand when tapped, so a finger
+// meant for the left hand visibly rose while the child was tapping what
+// looked like a dot on the right. Deliberately NOT capped at the real
+// target either — how many dots are on screen must never reveal the target
+// number, and tapping past it is no longer blocked; only the wrist check
+// (confirmAndAdvance) validates the real count. The caller mirrors the
 // "right" set before display, same as everywhere else in this file.
-function multiDotsAcrossHands(built) {
-  const rightBases = [];
-  const leftBases = [];
-  for (let n = built; n < 10; n++) {
-    const cur = getFingerConfig(n);
-    const nxt = getFingerConfig(n + 1);
-    if (nxt.right > cur.right) {
-      const p = additionBases(cur.right, nxt.right)[0];
-      if (p) rightBases.push(p);
-    } else if (nxt.left > cur.left) {
-      const p = additionBases(cur.left, nxt.left)[0];
-      if (p) leftBases.push(p);
-    }
-  }
-  return { rightBases, leftBases };
+function multiDotsAcrossHands(built, preferLeft) {
+  const primaryCount  = Math.min(built, 5);
+  const overflowCount = Math.max(0, built - 5);
+  const primaryDots  = primaryCount < 5 ? additionBases(primaryCount, 5) : [];
+  const overflowDots = primaryCount === 5 ? additionBases(overflowCount, 5) : [];
+  return preferLeft
+    ? { leftBases: primaryDots, rightBases: overflowDots }
+    : { rightBases: primaryDots, leftBases: overflowDots };
 }
 
 // ── Subtraction (any a, b) ─────────────────────────────────────────────────
@@ -404,11 +413,16 @@ function AdditionTask({ task, onCorrect, onMistake }) {
     leftBases  = (phase === "a") ? additionBases(builtA, 5) : [];
     rightBases = (phase === "b") ? additionBases(builtB, 5).map(mirror) : [];
   } else {
+    // Either addend needs both hands to represent itself, so they can't stay
+    // frozen side by side — but each still prefers its own hand first (A
+    // left, B right, via splitAddend) so a small addend paired with a large
+    // one doesn't default onto the same physical hand the other one uses.
+    const preferLeft = phase === "a";
     const activeBuilt = building ? built : b;
-    const cfg = getFingerConfig(activeBuilt);
+    const cfg = splitAddend(activeBuilt, preferLeft);
     leftCount  = cfg.left;
     rightCount = cfg.right;
-    const dots = building ? multiDotsAcrossHands(built) : { leftBases: [], rightBases: [] };
+    const dots = building ? multiDotsAcrossHands(built, preferLeft) : { leftBases: [], rightBases: [] };
     leftBases  = dots.leftBases;
     rightBases = dots.rightBases.map(mirror);
   }
