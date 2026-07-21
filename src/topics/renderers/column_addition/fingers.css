@@ -209,34 +209,39 @@
   width: 100%;
   max-width: 100%;
   max-height: 100%;
+  /* Lets the arrows below size themselves in cqw — a fraction of THIS
+   * box's own rendered width — instead of a fixed px or a phone/tablet
+   * breakpoint, so the same proportion holds at any hand size. */
+  container-type: inline-size;
 }
 
 /* ── Hand arrows (raise / lower) ──────────────────────────────────── */
-/* Two big arrows centered on the palm, replacing the old per-finger dots —
+/* Two big arrows at the wrist, replacing the old per-finger dots —
  * AnimatedHand only needs a count, not a specific finger's position, so
  * these never move; only their disabled state changes at the 0/5 bounds. */
 .fng-hand-arrows {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  bottom: 3%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
+  gap: 4cqw;
   z-index: 4;
   pointer-events: none;
 }
 
 .fng-arrow {
   pointer-events: auto;
-  width: 52px;
-  height: 52px;
+  width: 14cqw;
+  aspect-ratio: 1;
   border: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 6cqw;
   line-height: 1;
   color: #fff;
   cursor: pointer;
