@@ -12285,7 +12285,9 @@ button {
   cursor: pointer;
   touch-action: none;
   z-index: 22;
-  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.15s ease;
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.15s ease,
+    width 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-radius 0.18s ease;
 }
 .session-plan-tongue:active {
   transform:
@@ -12321,6 +12323,12 @@ button {
 .session-plan-tongue--pulse {
   animation: sessionPlanTonguePulse 2.4s ease-in-out infinite;
 }
+.session-plan-tongue--correct,
+.session-plan-tongue--incorrect {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+}
 .session-plan-tongue--correct {
   background: linear-gradient(180deg, #eafaf0 0%, #d3f3de 55%, #b9ecc9 100%);
 }
@@ -12331,6 +12339,10 @@ button {
   font-size: 13px;
   line-height: 1;
   animation: sessionPlanTonguePop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.session-plan-tongue--correct .session-plan-tongue__emoji,
+.session-plan-tongue--incorrect .session-plan-tongue__emoji {
+  font-size: 44px;
 }
 .session-plan-tongue__bar {
   animation: sessionPlanTongueBarsIn 0.15s ease;
