@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 import { formatRewardTime } from "@/shared/utils/format";
 
@@ -19,16 +19,26 @@ export default function RewardVideoModal({
   const [videoUrl, setVideoUrl] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
 
+  // Some callers (e.g. column_addition's "Контрольная работа") pass an
+  // inline onDismiss that's a new function on every one of their renders.
+  // Keeping onDismiss out of the interval effect's deps — reading it via a
+  // ref instead — means a caller re-rendering faster than once a second
+  // can't keep tearing down and restarting this interval before it ever
+  // gets a full 1000ms tick in, which used to leave the countdown frozen
+  // and the video playing with no time limit.
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => { onDismissRef.current = onDismiss; }, [onDismiss]);
+
   useEffect(() => {
-    if (!videoUrl || secondsLeft <= 0) return undefined;
+    if (!videoUrl) return undefined;
     const t = setInterval(() => {
       setSecondsLeft((prev) => {
-        if (prev <= 1) { clearInterval(t); onDismiss(); return 0; }
+        if (prev <= 1) { clearInterval(t); onDismissRef.current?.(); return 0; }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [videoUrl, onDismiss]);
+  }, [videoUrl]);
 
   function handleWatch() {
     const videoId = pickStoredRewardVideoId(rewardVideos, `student:${studentId ?? "unknown"}`);

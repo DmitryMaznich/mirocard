@@ -763,6 +763,13 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
     setShowReward(false);
   }
 
+  // Stable identity so a re-render of this view while the reward video is
+  // showing doesn't hand RewardVideoModal a new onDismiss every time.
+  const handleRewardDismiss = useCallback(() => {
+    setShowReward(false);
+    onCorrect?.();
+  }, [onCorrect]);
+
   const cs      = cellSize;
   const csStr   = cs + "px";
   const pt      = Math.round(cs * 0.5) + "px";
@@ -815,7 +822,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
         <RewardVideoModal
           rewardVideos={student?.rewardVideos ?? []}
           studentId={student?.id}
-          onDismiss={() => { setShowReward(false); onCorrect?.(); }}
+          onDismiss={handleRewardDismiss}
         />
       )}
 
