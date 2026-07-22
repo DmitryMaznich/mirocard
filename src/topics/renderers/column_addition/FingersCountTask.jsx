@@ -30,16 +30,36 @@ function FingersKeypad({ onDigit, onDelete, active }) {
   );
 }
 
-// One button, centered between both hands at wrist height — always
-// available while building/applying (never gated on having the right
-// count, or its mere presence would be a hint), doubling as both "I'm
-// done" and "check my answer". A tap compares the real hands against the
-// real example: right → advance; wrong → shake and reset.
-function ConfirmZone({ onTap }) {
+function CheckIcon() {
   return (
-    <button type="button" className="fng-confirm-zone" onClick={onTap}>
-      Сделал!
-    </button>
+    <svg viewBox="0 0 24 24" className="fng-check-icon" fill="none" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// A checklist row doubling as the confirm button — replaces the old
+// floating "Сделал!" pill between the hands, which kids kept missing
+// entirely since it wasn't visually tied to the instruction they'd just
+// read. The instruction itself is now the tap target: a checkbox that
+// fills in once tapped correctly. Completed rows STAY on screen (frozen,
+// green, un-tappable) instead of being replaced by the next instruction —
+// the child can see the whole path so far, not just the current step.
+function ChecklistItem({ text, state, onTap, textRef, fontSize }) {
+  const done = state === "done";
+  const wrong = state === "wrong";
+  return (
+    <div
+      className={`fng-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}`}
+      onClick={done ? undefined : onTap}
+      role={done ? undefined : "button"}
+      tabIndex={done ? undefined : 0}
+    >
+      <span className="fng-checklist-box">{done && <CheckIcon />}</span>
+      <span ref={textRef} className="fng-checklist-text" style={fontSize ? { fontSize } : undefined}>
+        {text}
+      </span>
+    </div>
   );
 }
 
@@ -129,6 +149,37 @@ function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
   return { ref, fontSize };
 }
 
+// Watches the checklist zone's own rendered height and returns a font-size
+// ceiling so `rowsBudget` (3) stacked rows — each with its checkbox,
+// padding, and inter-row gap — would still fit inside it, even though only
+// one or two rows actually exist most of the time. Feeds into
+// useFitOneLine as the upper bound (its `max`): the active row's text
+// still shrinks further from there if it's too WIDE to fit on one line,
+// but it can never grow taller than this per-row height budget.
+function useRowsHeightCap(rowsBudget = 3, { floor = 14, ceiling = 32, rowChrome = 1.9 } = {}) {
+  const ref = useRef(null);
+  const [cap, setCap] = useState(ceiling);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    function measure() {
+      const h = el.clientHeight;
+      if (!h) return;
+      const perRow = h / rowsBudget / rowChrome;
+      setCap(Math.max(floor, Math.min(ceiling, Math.floor(perRow))));
+    }
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [rowsBudget, floor, ceiling, rowChrome]);
+
+  return { ref, cap };
+}
+
 // ── Shared two-phase flow (addition and subtraction) ────────────────────────
 // Both hands are just free-standing 0-5 counters the child distributes
 // however they like — no dedicated "this hand is addend A" rule, no fixed
@@ -204,10 +255,12 @@ function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
 
   function handleDelete() { if (shake) return; setInput(p => p.slice(0, -1)); }
 
-  const hint =
-    phase === "build" ? `Покажи ${a}` :
-    phase === "apply" ? (op === "sub" ? `Убери ${b}` : `Прибавь ещё ${b}`) :
-    "Введи ответ";
+  const item1Text = `Покажи ${a}`;
+  const item2Text = op === "sub" ? `Убери ${b}` : `Прибавь ещё ${b}`;
+  const activeText = phase === "build" ? item1Text : phase === "apply" ? item2Text : "";
+
+  const item1State = phase === "build" ? (handShake ? "wrong" : "active") : "done";
+  const item2State = phase === "apply" ? (handShake ? "wrong" : "active") : "done";
 
   const expr = op === "sub" ? `${a} − ${b}` : `${a} + ${b}`;
 
@@ -220,7 +273,8 @@ function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
       : "?";
 
   const kbdVisible = phase === "answer" || phase === "done";
-  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(hint);
+  const { ref: rowsCapRef, cap: rowsCap } = useRowsHeightCap(3);
+  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(activeText, { max: rowsCap, min: 14 });
 
   return (
     <div className="fng-add-screen">
@@ -228,11 +282,26 @@ function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
         <div className="fng-count-expr">{expr} = {answerPart}</div>
       </div>
 
-      <div className="fng-add-hint">
-        <span ref={hintRef} className="fng-add-hint-text" style={{ fontSize: hintFontSize }}>{hint}</span>
+      <div className="fng-checklist" ref={rowsCapRef}>
+        <ChecklistItem
+          text={item1Text}
+          state={item1State}
+          onTap={phase === "build" ? confirm : undefined}
+          textRef={phase === "build" ? hintRef : undefined}
+          fontSize={phase === "build" ? hintFontSize : undefined}
+        />
+        {phase !== "build" && (
+          <ChecklistItem
+            text={item2Text}
+            state={item2State}
+            onTap={phase === "apply" ? confirm : undefined}
+            textRef={phase === "apply" ? hintRef : undefined}
+            fontSize={phase === "apply" ? hintFontSize : undefined}
+          />
+        )}
       </div>
 
-      <div className={`fng-add-hands-zone${handShake ? " fng-hands-shake" : ""}`}>
+      <div className="fng-add-hands-zone">
         <div className="fng-sub-hands">
           <div className="fng-sub-hand-wrap">
             <div className="fng-sub-hand-inner">
@@ -246,7 +315,6 @@ function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
               {building && <HandArrows count={handRight} onRaise={raiseRight} onLower={lowerRight} />}
             </div>
           </div>
-          {building && <ConfirmZone onTap={confirm} />}
         </div>
       </div>
 

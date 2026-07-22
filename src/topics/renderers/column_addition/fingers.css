@@ -110,26 +110,88 @@
 
 /* Sits between the expression and the hands zone (i.e. roughly level with
  * where raised fingertips are) rather than crammed under the expression.
- * The text itself is a separate element (fng-add-hint-text) whose font-size
- * is set inline by useFitOneLine — vw-based clamp() alone can't guarantee a
- * single line across arbitrary hint lengths, only this element's own width. */
-.fng-add-hint {
+ * Fixed (viewport-relative, not content-driven) height — useRowsHeightCap
+ * measures THIS box to size the active row's text, so the box's own height
+ * can't depend on that text or the two would fight in a circle. Budgeted
+ * for 3 stacked rows even though only 1-2 are ever shown at once. */
+.fng-checklist {
   flex-shrink: 0;
   width: 100%;
   box-sizing: border-box;
+  height: clamp(120px, 26vh, 210px);
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  padding: clamp(16px, 5vh, 48px) 16px;
+  gap: 8px;
+  padding: 8px 14px;
   overflow: hidden;
 }
 
-.fng-add-hint-text {
+/* One row — the whole thing is the tap target while active; doubles as the
+ * old floating "Сделал!" pill, but now visually attached to the exact
+ * instruction it confirms instead of floating separately between the hands. */
+.fng-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 2px solid #dbe4f3;
+  border-radius: 18px;
+  padding: 10px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.fng-checklist-item:active { transform: scale(0.98); }
+
+.fng-checklist-item.is-done {
+  background: #dcfce7;
+  border-color: #16a34a;
+  cursor: default;
+  padding: 7px 16px;
+}
+
+.fng-checklist-item.is-wrong {
+  border-color: #ef4444;
+  animation: fng-answer-shake 0.4s ease;
+}
+
+.fng-checklist-box {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 2.5px solid #b9c3d9;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.25s cubic-bezier(.34,1.4,.64,1);
+}
+
+.is-done .fng-checklist-box {
+  background: #22c55e;
+  border-color: #16a34a;
+}
+
+.fng-check-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.fng-checklist-text {
   font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  color: #4a5568;
+  font-weight: 800;
+  color: #1a2540;
   line-height: 1.15;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Done rows shrink so the growing list still fits the fixed-height
+   * checklist box comfortably even with an active row below them. */
+  font-size: clamp(13px, 3.6vw, 17px);
   /* Android Chrome auto-inflates ("font-boosts") text it judges too small
    * to read, overriding the exact px size useFitOneLine just computed —
    * this opts the element out so our own measurement is what actually
@@ -146,10 +208,6 @@
   25%       { transform: translateX(-6px); }
   75%       { transform: translateX(6px); }
 }
-
-/* Wrist-check found the hands don't match the example — same shake, applied
- * to the whole hands zone instead of the numeric answer. */
-.fng-hands-shake { animation: fng-answer-shake 0.4s ease; }
 
 /* Zone 2: hands — always in DOM, opacity controls visibility.
  * Each hand is absolutely positioned at 40% width so it NEVER changes size.
@@ -172,11 +230,8 @@
   transition: opacity 0.3s ease;
 }
 
-/* Zone 2 inner — subtraction hands (flex, no merge animation).
- * position:relative so .fng-confirm-zone can center itself between the two
- * hands (left:50% of this element lands right in the gap between them). */
+/* Zone 2 inner — subtraction hands (flex, no merge animation). */
 .fng-sub-hands {
-  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -260,38 +315,6 @@
   opacity: 0.22;
   box-shadow: none;
   pointer-events: none;
-}
-
-/* Confirm button — one shared explicit tap target (not per-hand), centered
- * between the two wrists at wrist height, away from any finger dot. The
- * hand SVG's own viewBox (256×320) matches fng-sub-hand-inner's aspect-ratio
- * exactly, so the wrist (bottom of the artwork) sits right at that box's
- * bottom edge — bottom:0 here lines the button up with it. */
-.fng-confirm-zone {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  z-index: 5;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 999px;
-  background: #22c55e;
-  color: #fff;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  font-size: clamp(15px, 4vw, 20px);
-  white-space: nowrap;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
-  animation: fng-confirm-pulse 1.3s ease-in-out infinite;
-}
-
-@keyframes fng-confirm-pulse {
-  0%, 100% { transform: translateX(-50%) scale(1);     box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35); }
-  50%       { transform: translateX(-50%) scale(1.06);  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.5);  }
 }
 
 /* ── end FingersCount addition ───────────────────────────────────── */
