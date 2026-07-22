@@ -92,6 +92,13 @@ export default function SessionScreen() {
   const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
   const [manualAdvanceGate, setManualAdvanceGate] = useState({ key: null, state: null });
   const [isPlanDrawerOpen, setIsPlanDrawerOpen] = useState(false);
+  const [pillFlash, setPillFlash] = useState(null);
+
+  useEffect(() => {
+    if (!pillFlash) return undefined;
+    const timer = setTimeout(() => setPillFlash(null), 900);
+    return () => clearTimeout(timer);
+  }, [pillFlash]);
 
   function handleOpenModeSettings() {
     setIsPlanDrawerOpen(false);
@@ -119,6 +126,7 @@ export default function SessionScreen() {
 
   function handleCorrect(conceptId, cardId) {
     if (!ownsFeedback) playFeedback("correct");
+    if (mode?.evaluation === "instant") setPillFlash("correct");
     onCorrect(conceptId, cardId);
   }
 
@@ -130,6 +138,10 @@ export default function SessionScreen() {
   function handleMistake(conceptId, cardId) {
     if (!ownsFeedback) playFeedback("incorrect");
     onMistake(conceptId, cardId);
+  }
+
+  function handleFlashIncorrect() {
+    setPillFlash("incorrect");
   }
 
   function handleQualityAnswer(quality, conceptId, cardId) {
@@ -236,7 +248,7 @@ export default function SessionScreen() {
           total={total}
           correctCount={correctCount}
           incorrectCount={incorrectCount}
-          answerStatus={status}
+          answerStatus={pillFlash ? (pillFlash === "correct" ? "answer_correct" : "answer_incorrect") : status}
           evaluation={mode.evaluation}
           onClose={openSessionExitPrompt}
           tongueLabel={formatPlanTongueLabel(lessonPlan?.activeSessionPlan ?? null)}
@@ -281,6 +293,7 @@ export default function SessionScreen() {
             onPrevious={onPrevious}
             onIncorrect={isAdvanceGateActive ? noop : handleIncorrect}
             onMistake={isAdvanceGateActive ? noop : handleMistake}
+            onFlashIncorrect={isAdvanceGateActive ? noop : handleFlashIncorrect}
             onAdvance={requestAdvance}
             onQualityAnswer={isAdvanceGateActive ? noop : handleQualityAnswer}
             onClose={openSessionExitPrompt}
