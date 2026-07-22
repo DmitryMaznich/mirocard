@@ -81,9 +81,10 @@
 }
 
 /* Distinct amber (not the red .cb-area--error) — this fires when a
-   generous safety ceiling (BuildNumberTask.jsx's ONES_CEILING/tensCeiling)
-   rejects a drop, not when ГОТОВО judges the answer wrong. Different
-   color on purpose, so it never reads as "that's the wrong answer". */
+   generous safety ceiling (BuildNumberTask.jsx's onesCeiling/tensCeiling)
+   rejects a drop, not when a checklist row judges the answer wrong.
+   Different color on purpose, so it never reads as "that's the wrong
+   answer". */
 .cb-area--capacity {
   animation: pv-shake 0.4s ease-in-out;
   outline: 2px solid #d97706;

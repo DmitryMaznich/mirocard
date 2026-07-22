@@ -1,12 +1,14 @@
 import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import Button from "@/shared/components/Button";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
-import { pluralTens, pluralOnes } from "./placeValueLabels.js";
+import { pluralTens, pluralOnes, pluralCoins } from "./placeValueLabels.js";
+import { useFitOneLine, useRowsHeightCap } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
+
+const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
 // Every coin in the pyramid is its own draggable (not just the apex), so a
 // child can pull any coin out of the heap. Each keeps rendering at its
@@ -100,18 +102,6 @@ function rectCenter(rect) {
   return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 }
 
-// A generous safety ceiling, not a per-task one: capping loose/stacked
-// coins exactly at the target would double as revealing the answer (the
-// zone would visibly "stop accepting" right at the correct count), which
-// this app's other training modes deliberately never do. ONES_CEILING is
-// a flat number since maxOnes never exceeds 9 by design, so 19 is already
-// generous for every task; the tens ceiling is relative to the session's
-// own maxTens (task.maxTens) so a deliberately-larger configured range
-// never gets blocked as "too many". Both exist only to catch an
-// unsupervised child dragging hundreds of coins in — not to referee
-// ordinary wrong answers, which ГОТОВО already handles.
-const ONES_CEILING = 19;
-
 // One flying coin ghost: appended to document.body, animated from `from`
 // to `to` in screen coordinates, removed and `onArrive()` called once it
 // lands. Shared by the group (10 loose coins -> 1 stack) and ungroup (1
@@ -139,17 +129,77 @@ function flyCoinGhost(from, to, delayMs, onArrive) {
   };
 }
 
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="pv-check-icon" fill="none" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Same checklist-row-doubles-as-confirm-button idiom as fingers_count's
+// ChecklistItem (FingersCountTask.jsx) — kept as a separate copy with its
+// own pv-checklist-* classes rather than a shared component so the two
+// families' visuals stay independently tunable. `clickable=false` is for
+// the two "Сколько...?" rows: they tick themselves off once the numpad
+// gets the right digit, not from a tap on the row.
+function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
+  const done = state === "done";
+  const wrong = state === "wrong";
+  const interactive = clickable && !done;
+  return (
+    <div
+      className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!clickable ? " is-pending" : ""}`}
+      onClick={interactive ? onTap : undefined}
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+    >
+      <span className="pv-checklist-box">{done && <CheckIcon />}</span>
+      <span ref={textRef} className="pv-checklist-text" style={fontSize ? { fontSize } : undefined}>
+        {text}
+      </span>
+    </div>
+  );
+}
+
 export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+  // collect: drag out exactly task.number loose coins (grouping into tens
+  // is allowed along the way, freely, same as before) -> confirm.
+  // group: finish grouping everything groupable (no more full ten left
+  // loose) -> confirm.
+  // answerTens / answerOnes: report back what was actually built, one
+  // digit each, via the shared numpad — this is the step that was missing
+  // before: the old single "ГОТОВО" button re-checked both piles at once
+  // with no per-step guidance and no way to tell a child which side was
+  // wrong.
+  const [phase, setPhase] = useState("collect");
   const [placed, setPlaced] = useState({ tens: 0, ones: 0 });
   const [formingStack, setFormingStack] = useState(false);
   const [unformingStack, setUnformingStack] = useState(false);
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [capacityFlash, setCapacityFlash] = useState({ tens: false, ones: false });
-  const [solved, setSolved] = useState(false);
+  const [rowWrong, setRowWrong] = useState({ collect: false, group: false, tens: false, ones: false });
   const { speak } = useSpeech();
   const stacksAreaRef = useRef(null);
   const looseAreaRef = useRef(null);
-  const tensCeiling = (task.maxTens ?? 3) + 2;
+
+  // Tied to THIS task's own target instead of a flat constant: a flat 19
+  // used to block reaching a target of 20+ entirely if a child preferred
+  // not to group early. Still deliberately generous PAST the target (not
+  // capped exactly at it) — capping right at the right answer would double
+  // as revealing it, which this app's other training modes never do; this
+  // is only a safety net against an unsupervised child dragging in
+  // hundreds of coins, not a referee for wrong answers (the checklist
+  // confirms already handle that).
+  const onesCeiling = task.number + 5;
+  const tensCeiling = Math.ceil(task.number / 10) + 2;
+
+  // Only "collect" may change the TOTAL (drag in / remove a loose coin);
+  // grouping/ungrouping stays available through "group" too (pure
+  // 10-for-1 conversion, so the total the child already confirmed never
+  // silently drifts once they've moved past collecting).
+  const canAdjustTotal = phase === "collect";
+  const canGroup = phase === "collect" || phase === "group";
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -162,8 +212,8 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   }
 
   function handleDragEnd({ over }) {
-    if (!over) return;
-    if (placed.ones >= ONES_CEILING) {
+    if (!over || !canAdjustTotal) return;
+    if (placed.ones >= onesCeiling) {
       flashCapacity("ones");
       return;
     }
@@ -172,6 +222,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   }
 
   function removeOne() {
+    if (!canAdjustTotal) return;
     setPlaced((p) => ({ ...p, ones: Math.max(0, p.ones - 1) }));
   }
 
@@ -200,6 +251,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // during this window (see the JSX below) so "N десятков" doesn't tick
   // up before the coins visibly land.
   function handleGroup() {
+    if (!canGroup) return;
     if (placed.ones < 10 || formingStack || unformingStack) return;
     if (placed.tens >= tensCeiling) {
       flashCapacity("tens");
@@ -207,6 +259,8 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     }
     const looseCoinEls = Array.from(looseAreaRef.current.querySelectorAll(".cb-coin")).slice(0, 10);
     if (looseCoinEls.length < 10) return;
+
+    speak("Десять единиц — это один десяток!");
 
     const froms = looseCoinEls.map((el) => rectCenter(el.getBoundingClientRect()));
 
@@ -239,6 +293,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // mounted (React needs their real flex-wrapped positions to animate
   // to), but they stay invisible via .cb-coin-pending until they land.
   function handleUngroup(e) {
+    if (!canGroup) return;
     if (placed.tens <= 0 || formingStack || unformingStack) return;
     const stackEl = e.currentTarget;
     const rect = stackEl.getBoundingClientRect();
@@ -263,30 +318,102 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     });
   }
 
-  function handleDone() {
-    const okTens = placed.tens === task.target.tens;
-    const okOnes = placed.ones === task.target.ones;
-    if (okTens && okOnes) {
+  function flashRowWrong(key, extra) {
+    setRowWrong((w) => ({ ...w, [key]: true }));
+    if (extra) extra(true);
+    onMistake?.(task.conceptId, task.cardId);
+    onFlashIncorrect?.();
+    setTimeout(() => {
+      setRowWrong((w) => ({ ...w, [key]: false }));
+      if (extra) extra(false);
+    }, 500);
+  }
+
+  function confirmCollect() {
+    const total = placed.ones + placed.tens * 10;
+    if (total !== task.number) {
+      flashRowWrong("collect", (on) => setErrorZones({ tens: on, ones: on }));
+      return;
+    }
+    setPhase("group");
+  }
+
+  function confirmGroup() {
+    if (placed.ones >= 10) {
+      flashRowWrong("group", (on) => setErrorZones((z) => ({ ...z, ones: on })));
+      return;
+    }
+    setPhase("answerTens");
+  }
+
+  function handleTensDigit(d) {
+    if (phase !== "answerTens") return;
+    if (d === task.target.tens) {
       speak("Верно!");
-      setSolved(true);
+      setPhase("answerOnes");
     } else {
-      setErrorZones({ tens: !okTens, ones: !okOnes });
-      onMistake?.(task.conceptId, task.cardId);
-      onFlashIncorrect?.();
+      flashRowWrong("tens");
     }
   }
 
-  function handleContinue() {
-    onCorrect(task.conceptId, task.cardId);
+  function handleOnesDigit(d) {
+    if (phase !== "answerOnes") return;
+    if (d === task.target.ones) {
+      speak(`Верно! ${task.target.tens} ${pluralTens(task.target.tens)} и ${task.target.ones} ${pluralOnes(task.target.ones)}!`);
+      setPhase("done");
+      setTimeout(() => onCorrect(task.conceptId, task.cardId), 900);
+    } else {
+      flashRowWrong("ones");
+    }
   }
 
-  const groupableCount = placed.ones >= 10 ? 10 : 0;
+  const groupableCount = canGroup && placed.ones >= 10 ? 10 : 0;
+  const collectText = `Собери ${task.number} ${pluralCoins(task.number)}`;
+  const activeText = phase === "collect" ? collectText : phase === "group" ? "Собери десятки" : "";
+  const { ref: rowsCapRef, cap: rowsCap } = useRowsHeightCap(4);
+  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(activeText, { max: rowsCap, min: 14 });
+
+  const tensDisplay = placed.tens - (formingStack ? 1 : 0);
+  const onesDisplay = placed.ones - (unformingStack ? 10 : 0);
+  const building = canGroup; // collect or group — the piles are still being worked on
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        <div className="pv-instruction">Собери число</div>
         <div className="pv-number">{task.number}</div>
+
+        <div className="pv-checklist" ref={rowsCapRef}>
+          <ChecklistItem
+            text={collectText}
+            state={phase === "collect" ? (rowWrong.collect ? "wrong" : "active") : "done"}
+            onTap={phase === "collect" ? confirmCollect : undefined}
+            textRef={phase === "collect" ? hintRef : undefined}
+            fontSize={phase === "collect" ? hintFontSize : undefined}
+          />
+          {phase !== "collect" && (
+            <ChecklistItem
+              text="Собери десятки"
+              state={phase === "group" ? (rowWrong.group ? "wrong" : "active") : "done"}
+              onTap={phase === "group" ? confirmGroup : undefined}
+              textRef={phase === "group" ? hintRef : undefined}
+              fontSize={phase === "group" ? hintFontSize : undefined}
+            />
+          )}
+          {(phase === "answerTens" || phase === "answerOnes" || phase === "done") && (
+            <ChecklistItem
+              text="Сколько десятков?"
+              state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
+              clickable={false}
+            />
+          )}
+          {(phase === "answerOnes" || phase === "done") && (
+            <ChecklistItem
+              text="Сколько единиц?"
+              state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
+              clickable={false}
+            />
+          )}
+        </div>
 
         <Workspace
           placed={placed}
@@ -295,7 +422,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           groupableCount={groupableCount}
           errorZones={errorZones}
           capacityFlash={capacityFlash}
-          solved={solved}
+          solved={phase === "done"}
           numeric={task.numericBlocks}
           onRemoveOne={removeOne}
           onGroup={handleGroup}
@@ -304,29 +431,40 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           looseAreaRef={looseAreaRef}
         />
 
-        <div className="pv-zones" style={{ flex: 0 }}>
-          <div style={{ flex: 1 }} className="pv-zone-counter">
-            {placed.tens - (formingStack ? 1 : 0)} {pluralTens(placed.tens - (formingStack ? 1 : 0))}
+        {building && (
+          <div className="pv-zones" style={{ flex: 0 }}>
+            <div style={{ flex: 1 }} className="pv-zone-counter">
+              {tensDisplay} {pluralTens(tensDisplay)}
+            </div>
+            <div style={{ flex: 1 }} className="pv-zone-counter">
+              {onesDisplay} {pluralOnes(onesDisplay)}
+            </div>
           </div>
-          <div style={{ flex: 1 }} className="pv-zone-counter">
-            {placed.ones - (unformingStack ? 10 : 0)} {pluralOnes(placed.ones - (unformingStack ? 10 : 0))}
-          </div>
-        </div>
+        )}
 
         <div className="pv-spacer" />
 
-        <div className="pv-tray">
+        <div
+          className="pv-tray"
+          style={{ opacity: phase === "collect" ? 1 : 0, pointerEvents: phase === "collect" ? "auto" : "none", transition: "opacity 0.3s ease" }}
+        >
           <PileSource />
         </div>
-        <div className="pv-caption">тяни монету из кучи</div>
+        {phase === "collect" && <div className="pv-caption">тяни монету из кучи</div>}
 
-        <div className="pv-footer">
-          {solved ? (
-            <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
-          ) : (
-            <Button variant="primary" onClick={handleDone}>ГОТОВО</Button>
-          )}
-        </div>
+        {(phase === "answerTens" || phase === "answerOnes") && (
+          <div className="pv-numpad">
+            {DIGITS.map((d) => (
+              <button
+                key={d}
+                className="pv-numkey"
+                onClick={() => (phase === "answerTens" ? handleTensDigit(d) : handleOnesDigit(d))}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </DndContext>
   );

@@ -329,3 +329,96 @@
   from { transform: scale(0.3); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* ── Checklist rows (build_number's phased flow) ──────────────────────────
+   Same "tap-the-instruction-to-confirm, completed rows stay on screen
+   frozen/struck-through" pattern as fingers_count's fng-checklist (see
+   textFit.js for the shared font-fit/row-height-cap hooks both use) — kept
+   as its own pv-* rule set rather than a shared class so retouching one
+   family's checklist visuals never touches the other's. */
+.pv-checklist {
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 0 10px;
+}
+
+.pv-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 2px solid #dbe4f3;
+  border-radius: 14px;
+  padding: 8px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.pv-checklist-item:active { transform: scale(0.98); }
+
+.pv-checklist-item.is-done {
+  background: #dcfce7;
+  border-color: #16a34a;
+  cursor: default;
+  padding: 6px 14px;
+}
+
+.pv-checklist-item.is-wrong {
+  border-color: #ef4444;
+  animation: pv-shake 0.4s ease;
+}
+
+/* The two "Сколько...?" rows aren't tapped themselves — the numpad ticks
+   them off — so no pointer cursor / press feedback, same reasoning as
+   fng-checklist-item.is-pending. */
+.pv-checklist-item.is-pending {
+  cursor: default;
+}
+.pv-checklist-item.is-pending:active { transform: none; }
+
+.pv-checklist-box {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2.5px solid #b9c3d9;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.is-done .pv-checklist-box {
+  background: #22c55e;
+  border-color: #16a34a;
+}
+
+.pv-check-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.pv-checklist-text {
+  font-weight: 800;
+  color: #1a1a2e;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.is-done .pv-checklist-text {
+  text-decoration: line-through;
+  text-decoration-color: #16a34a;
+  text-decoration-thickness: 2px;
+}

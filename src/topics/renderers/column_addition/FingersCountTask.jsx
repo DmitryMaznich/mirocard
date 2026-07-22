@@ -1,7 +1,8 @@
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
 import DigitKeypad from "./DigitKeypad.jsx";
 import { useTapButtonSize } from "./useTapButtonSize.js";
+import { useFitOneLine, useRowsHeightCap } from "./textFit.js";
 import "./fingers.css";
 
 // Same hand-written-style buttons as the Столбик tap keyboard, plus a delete
@@ -100,88 +101,6 @@ function HandArrows({ count, onRaise, onLower }) {
       </button>
     </div>
   );
-}
-
-// Shrinks font-size just enough to keep `text` on one line inside its
-// parent's content box — vw-based clamp() alone can't do this, since the
-// same font-size wraps a long hint ("Прибавь ещё 8") but not a short one
-// ("Убери 2"). Unlike a one-shot proportional calculation (containerWidth /
-// naturalWidth * max), this steps the size DOWN and re-measures after every
-// step, verifying the actual fit directly each time rather than trusting a
-// single formula — immune to whatever measurement quirk (font metrics,
-// rounding, a not-yet-settled layout) made the proportional version report
-// "already fits" when it visibly didn't on real devices. Re-runs on
-// container resize, on any font finishing loading (the Nunito stylesheet
-// loads async — see index.html), and via two delayed safety-net passes for
-// any layout that only settles a little after mount.
-function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
-  const ref = useRef(null);
-  const [fontSize, setFontSize] = useState(max);
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el || !el.parentElement) return;
-    const parent = el.parentElement;
-
-    function fit() {
-      const containerWidth = parent.clientWidth;
-      if (containerWidth === 0) return;
-      let size = max;
-      el.style.fontSize = size + "px";
-      while (size > min && el.scrollWidth > containerWidth) {
-        size -= step;
-        el.style.fontSize = size + "px";
-      }
-      setFontSize(size);
-    }
-
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(parent);
-    const fontsApi = typeof document !== "undefined" ? document.fonts : null;
-    fontsApi?.addEventListener?.("loadingdone", fit);
-    const t1 = setTimeout(fit, 300);
-    const t2 = setTimeout(fit, 1200);
-    return () => {
-      ro.disconnect();
-      fontsApi?.removeEventListener?.("loadingdone", fit);
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [text, min, max, step]);
-
-  return { ref, fontSize };
-}
-
-// Watches the checklist zone's own rendered height and returns a font-size
-// ceiling so `rowsBudget` (3) stacked rows — each with its checkbox,
-// padding, and inter-row gap — would still fit inside it, even though only
-// one or two rows actually exist most of the time. Feeds into
-// useFitOneLine as the upper bound (its `max`): the active row's text
-// still shrinks further from there if it's too WIDE to fit on one line,
-// but it can never grow taller than this per-row height budget.
-function useRowsHeightCap(rowsBudget = 3, { floor = 14, ceiling = 32, rowChrome = 1.9 } = {}) {
-  const ref = useRef(null);
-  const [cap, setCap] = useState(ceiling);
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    function measure() {
-      const h = el.clientHeight;
-      if (!h) return;
-      const perRow = h / rowsBudget / rowChrome;
-      setCap(Math.max(floor, Math.min(ceiling, Math.floor(perRow))));
-    }
-
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [rowsBudget, floor, ceiling, rowChrome]);
-
-  return { ref, cap };
 }
 
 // ── Shared two-phase flow (addition and subtraction) ────────────────────────
