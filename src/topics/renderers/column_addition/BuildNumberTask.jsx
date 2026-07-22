@@ -139,7 +139,7 @@ function flyCoinGhost(from, to, delayMs, onArrive) {
   };
 }
 
-export default function BuildNumberTask({ task, onCorrect, onMistake }) {
+export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const [placed, setPlaced] = useState({ tens: 0, ones: 0 });
   const [formingStack, setFormingStack] = useState(false);
   const [unformingStack, setUnformingStack] = useState(false);
@@ -272,6 +272,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake }) {
     } else {
       setErrorZones({ tens: !okTens, ones: !okOnes });
       onMistake?.(task.conceptId, task.cardId);
+      onFlashIncorrect?.();
     }
   }
 

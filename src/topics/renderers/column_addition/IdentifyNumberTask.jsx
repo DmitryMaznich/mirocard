@@ -7,7 +7,7 @@ import "./place_value.css";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
-export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
+export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const [val, setVal] = useState({ tens: null, ones: null });
   const [shake, setShake] = useState({ tens: false, ones: false });
   const [solved, setSolved] = useState(false);
@@ -23,6 +23,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake }) {
     }
     setShake({ tens: !okTens, ones: !okOnes });
     onMistake?.(task.conceptId, task.cardId);
+    onFlashIncorrect?.();
     setTimeout(() => {
       setShake({ tens: false, ones: false });
       setVal({ tens: null, ones: null });

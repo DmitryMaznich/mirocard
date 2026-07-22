@@ -141,7 +141,7 @@ function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
 // continuation needs redoing). Subtraction used to pre-show the minuend
 // automatically — now the child builds it themselves too, same as addition,
 // so the two operations share this one component entirely.
-function TwoPhaseTask({ task, onCorrect, onMistake }) {
+function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const { a, b, result, op } = task;
   const [phase, setPhase] = useState("build"); // build | apply | answer | done
   const [handLeft, setHandLeft] = useState(0);
@@ -198,6 +198,7 @@ function TwoPhaseTask({ task, onCorrect, onMistake }) {
     } else {
       setShake(true); setTimeout(() => { setShake(false); setInput([]); }, 500);
       onMistake?.();
+      onFlashIncorrect?.();
     }
   }
 
@@ -258,6 +259,6 @@ function TwoPhaseTask({ task, onCorrect, onMistake }) {
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
-export default function FingersCountTask({ task, onCorrect, onMistake }) {
-  return <TwoPhaseTask task={task} onCorrect={onCorrect} onMistake={onMistake} />;
+export default function FingersCountTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+  return <TwoPhaseTask task={task} onCorrect={onCorrect} onMistake={onMistake} onFlashIncorrect={onFlashIncorrect} />;
 }
