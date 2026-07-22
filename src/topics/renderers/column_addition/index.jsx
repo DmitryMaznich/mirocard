@@ -826,7 +826,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
-export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, onPrevious, student, onMistake }) {
+export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, onPrevious, student, onMistake, onFlashIncorrect }) {
   const strictMistake = sessionParams?.strictStars ? onMistake : undefined;
   if (mode?.type === "column_copy") {
     return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
@@ -835,7 +835,7 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
     return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
   }
   if (task?.type === "fingers_count") {
-    return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={strictMistake} />;
+    return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={strictMistake} onFlashIncorrect={onFlashIncorrect} />;
   }
   if (task?.type === "build_number") {
     return (
@@ -844,6 +844,7 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
         task={task}
         onCorrect={onCorrect}
         onMistake={strictMistake}
+        onFlashIncorrect={onFlashIncorrect}
       />
     );
   }
@@ -854,6 +855,7 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
         task={task}
         onCorrect={onCorrect}
         onMistake={strictMistake}
+        onFlashIncorrect={onFlashIncorrect}
       />
     );
   }
