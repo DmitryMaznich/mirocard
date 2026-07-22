@@ -43,17 +43,21 @@ function CheckIcon() {
 // entirely since it wasn't visually tied to the instruction they'd just
 // read. The instruction itself is now the tap target: a checkbox that
 // fills in once tapped correctly. Completed rows STAY on screen (frozen,
-// green, un-tappable) instead of being replaced by the next instruction —
-// the child can see the whole path so far, not just the current step.
-function ChecklistItem({ text, state, onTap, textRef, fontSize }) {
+// green, checked, struck through) instead of being replaced by the next
+// instruction — the child can see the whole path so far, not just the
+// current step. `clickable=false` is for the final "Введи ответ" row: it
+// still shows pending → done, but ticks itself off once the numpad gets
+// the right digits, not from a tap on the row.
+function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
   const done = state === "done";
   const wrong = state === "wrong";
+  const interactive = clickable && !done;
   return (
     <div
-      className={`fng-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}`}
-      onClick={done ? undefined : onTap}
-      role={done ? undefined : "button"}
-      tabIndex={done ? undefined : 0}
+      className={`fng-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!clickable ? " is-pending" : ""}`}
+      onClick={interactive ? onTap : undefined}
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
     >
       <span className="fng-checklist-box">{done && <CheckIcon />}</span>
       <span ref={textRef} className="fng-checklist-text" style={fontSize ? { fontSize } : undefined}>
@@ -297,6 +301,13 @@ function TwoPhaseTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
             onTap={phase === "apply" ? confirm : undefined}
             textRef={phase === "apply" ? hintRef : undefined}
             fontSize={phase === "apply" ? hintFontSize : undefined}
+          />
+        )}
+        {kbdVisible && (
+          <ChecklistItem
+            text="Введи ответ"
+            state={phase === "done" ? "done" : "active"}
+            clickable={false}
           />
         )}
       </div>

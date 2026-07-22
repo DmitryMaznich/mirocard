@@ -158,6 +158,14 @@
   animation: fng-answer-shake 0.4s ease;
 }
 
+/* "Введи ответ" — visible but not itself tappable, since the numpad (not
+ * a tap on this row) is what ticks it off. No pointer cursor / press
+ * feedback so it doesn't look like a dead button. */
+.fng-checklist-item.is-pending {
+  cursor: default;
+}
+.fng-checklist-item.is-pending:active { transform: none; }
+
 .fng-checklist-box {
   flex-shrink: 0;
   width: 30px;
@@ -198,6 +206,12 @@
    * renders. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+.is-done .fng-checklist-text {
+  text-decoration: line-through;
+  text-decoration-color: #16a34a;
+  text-decoration-thickness: 2px;
 }
 
 .fng-count-answer { color: #3b82f6; display: inline-block; min-width: 0.6em; }
