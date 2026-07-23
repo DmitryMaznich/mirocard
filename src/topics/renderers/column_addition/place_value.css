@@ -483,14 +483,26 @@
   .pv-check-icon { animation: none; }
 }
 
+/* Neucha: a Cyrillic-native handwriting font (Google Fonts, loaded in
+   index.html alongside Nunito/DM Serif Display) — reads like a child's
+   natural pencil print, fitting the "written directly on the grid"
+   checklist. NOT Primo (this app's other "handwritten" font): Primo is
+   missing several Cyrillic glyphs (е, с and others silently vanish) —
+   it was only ever traced for single digits/letters, not full sentences,
+   and renders full checklist text visibly broken. Single-weight font, so
+   font-weight stays normal rather than requesting a synthetic-bold the
+   font doesn't have (that distorts script letterforms); sized up from
+   the old bold-sans 15px since a lighter script reads smaller at the
+   same size. */
 .pv-checklist-text {
-  font-weight: 800;
+  font-family: 'Neucha', cursive;
+  font-weight: 400;
   color: #1a1a2e;
-  line-height: 1.15;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 15px;
+  font-size: 20px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
