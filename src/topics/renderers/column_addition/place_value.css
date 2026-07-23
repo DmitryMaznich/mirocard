@@ -371,8 +371,13 @@
    no fill, no border, no shadow behind the text itself. State is carried
    entirely by the checkbox + text color (see .pv-checklist-box /
    .pv-checklist-text below), same as ink on a worksheet rather than a
-   button-like pill. */
+   button-like pill. A thin vertical connector threads the checkboxes
+   together top-to-bottom (see .pv-checklist-item::after below) — a
+   stepper/timeline read, so the growing history feels like one
+   continuous path rather than a stack of unrelated lines; each new row
+   also eases in (see pv-checklist-item-in) instead of just appearing. */
 .pv-checklist-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -381,6 +386,29 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   transition: transform 0.15s ease;
+  animation: pv-checklist-item-in 0.4s cubic-bezier(.34, 1.2, .64, 1) both;
+}
+
+@keyframes pv-checklist-item-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bridges exactly the .pv-checklist gap (6px) between this row's checkbox
+   and the next one's, centered on the 30px box (2px left padding + half
+   its width). Grey ahead of progress, green behind it — same colors as
+   the done/active states below. */
+.pv-checklist-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 100%;
+  width: 2px;
+  height: 6px;
+  background: #cbd5e1;
+}
+.pv-checklist-item.is-done:not(:last-child)::after {
+  background: #16a34a;
 }
 
 .pv-checklist-item:active { transform: translateY(2px); }
@@ -414,6 +442,20 @@
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
+/* The one row that's neither done nor (temporarily) wrong is always
+   exactly the current step — rows only ever mount once their phase is
+   reached, and the prior one is marked done in that same instant — so a
+   gentle breathing ring here reads unambiguously as "this one, now"
+   without needing a separate is-active class. */
+.pv-checklist-item:not(.is-done):not(.is-wrong) .pv-checklist-box {
+  animation: pv-checklist-box-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pv-checklist-box-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.35); }
+  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0); }
+}
+
 .is-done .pv-checklist-box {
   background: #22c55e;
   border-color: #16a34a;
@@ -426,6 +468,19 @@
 .pv-check-icon {
   width: 16px;
   height: 16px;
+  animation: pv-check-pop 0.35s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+@keyframes pv-check-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-checklist-item { animation: none; }
+  .pv-checklist-item:not(.is-done):not(.is-wrong) .pv-checklist-box { animation: none; }
+  .pv-check-icon { animation: none; }
 }
 
 .pv-checklist-text {
