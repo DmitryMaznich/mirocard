@@ -389,7 +389,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // the longer instructions ("Собери 47 монет", "Сколько десятков?") no
   // longer fit on one line at 20px on a narrow (~320px) phone.
   const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
-  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Собери десятки", { max: 45, min: 13 });
+  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Выдели десятки", { max: 45, min: 13 });
   const { ref: tensRef, fontSize: tensFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
   const { ref: onesRef, fontSize: onesFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
 
@@ -406,7 +406,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           />
           {phase !== "collect" && (
             <ChecklistItem
-              text="Собери десятки"
+              text="Выдели десятки"
               state={phase === "group" ? (rowWrong.group ? "wrong" : "active") : "done"}
               onTap={phase === "group" ? confirmGroup : undefined}
               textRef={groupRef}
