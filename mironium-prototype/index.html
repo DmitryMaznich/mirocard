@@ -100,6 +100,12 @@ img{max-width:100%;display:block}
 .site-footer .brand img{height:28px;display:block}
 .site-footer__link{color:var(--deep);font-weight:900}
 .site-footer__link:focus-visible,.site-footer .brand:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.reveal.is-visible{opacity:1;transform:translateY(0)}
+@media(prefers-reduced-motion:reduce){
+  .hero__copy>*{animation:none;opacity:1;transform:none}
+  .reveal{opacity:1;transform:none;transition:none}
+}
 </style>
 </head>
 <body>
@@ -131,7 +137,7 @@ img{max-width:100%;display:block}
   </div>
 </section>
 <section class="story" id="why">
-  <div class="wrap story__grid">
+  <div class="wrap story__grid reveal">
     <aside class="story__aside">
       Знакомая история?
       <span>«Сначала найди хорошие карточки. Потом распечатай. Потом разложи…»</span>
@@ -148,7 +154,7 @@ img{max-width:100%;display:block}
     </div>
   </div>
 </section>
-<section class="wrap principle" id="how">
+<section class="wrap principle reveal" id="how">
   <div class="principle-card">
     <div class="principle-card__quote">“</div>
     <p>Экран не заменяет действие руками. Он помогает тренировать навык, когда реальные материалы не под рукой.</p>
@@ -166,7 +172,7 @@ img{max-width:100%;display:block}
   </div>
 </section>
 <section class="about" id="about">
-  <div class="wrap about__grid">
+  <div class="wrap about__grid reveal">
     <div class="about__intro">
       <p class="eyebrow">Кто стоит за Mironium</p>
       <h2>Идея выросла из одной семьи.</h2>
@@ -191,7 +197,7 @@ img{max-width:100%;display:block}
     </div>
   </div>
 </section>
-<section class="wrap final" id="final">
+<section class="wrap final reveal" id="final">
   <h2>Время заниматься — не искать материалы.</h2>
   <a class="button" href="https://app.mironium.com">Открыть приложение</a>
 </section>
@@ -201,5 +207,24 @@ img{max-width:100%;display:block}
   <span>Занятия со смыслом, дома.</span>
   <a class="site-footer__link" href="https://app.mironium.com">Открыть приложение</a>
 </footer>
+<script>
+(function(){
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var targets = document.querySelectorAll('.reveal');
+  if(prefersReduced || !('IntersectionObserver' in window)){
+    targets.forEach(function(el){ el.classList.add('is-visible'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('is-visible');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  targets.forEach(function(el){ io.observe(el); });
+})();
+</script>
 </body>
 </html>
