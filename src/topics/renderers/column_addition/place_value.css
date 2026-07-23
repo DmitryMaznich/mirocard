@@ -367,37 +367,29 @@
    they shrink from is the same for all of them): a completed step
    shouldn't visually shrink away just because it's no longer the one
    being worked. */
-/* Same raised "3D" formula as .btn/.pv-numkey (flat fill + a solid bottom
-   shadow that collapses on press) — previously these rows were flat
-   (border only, no shadow), which read as bare/paper-thin next to actual
-   buttons elsewhere in the app that all use this press-feedback shape. */
+/* Written directly on the screen's own grid background, not on a card —
+   no fill, no border, no shadow behind the text itself. State is carried
+   entirely by the checkbox + text color (see .pv-checklist-box /
+   .pv-checklist-text below), same as ink on a worksheet rather than a
+   button-like pill. */
 .pv-checklist-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #fff;
-  border: 2px solid #cddcf7;
-  border-radius: 14px;
-  padding: 14px 18px;
+  padding: 8px 2px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  box-shadow: 0 5px 0 #b9cef2, 0 8px 16px rgba(37, 99, 235, 0.16);
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  transition: transform 0.15s ease;
 }
 
-.pv-checklist-item:active { transform: translateY(4px); box-shadow: 0 1px 0 #b9cef2, 0 2px 6px rgba(37, 99, 235, 0.12); }
+.pv-checklist-item:active { transform: translateY(2px); }
 
 .pv-checklist-item.is-done {
-  background: #dcfce7;
-  border-color: #86d69c;
   cursor: default;
-  box-shadow: 0 5px 0 #86d69c, 0 8px 16px rgba(22, 163, 74, 0.18);
 }
 
 .pv-checklist-item.is-wrong {
-  border-color: #ef4444;
-  box-shadow: 0 5px 0 #f0a3a3, 0 8px 16px rgba(239, 68, 68, 0.20);
   animation: pv-shake 0.4s ease;
 }
 
@@ -411,21 +403,24 @@
 
 .pv-checklist-box {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 2.5px solid #b9c3d9;
-  background: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 2.5px solid #7fa8e0;
+  background: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.08);
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .is-done .pv-checklist-box {
   background: #22c55e;
   border-color: #16a34a;
+}
+
+.is-wrong .pv-checklist-box {
+  border-color: #ef4444;
 }
 
 .pv-check-icon {
@@ -446,9 +441,14 @@
 }
 
 .is-done .pv-checklist-text {
+  color: #16a34a;
   text-decoration: line-through;
   text-decoration-color: #16a34a;
   text-decoration-thickness: 2px;
+}
+
+.is-wrong .pv-checklist-text {
+  color: #ef4444;
 }
 
 /* Highlights the target number inside the "Собери N монет" instruction —
