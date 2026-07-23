@@ -1,9 +1,8 @@
 import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { useSpeech } from "@/shared/hooks/useSpeech";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
-import { pluralTens, pluralOnes, pluralCoins } from "./placeValueLabels.js";
+import { pluralCoins } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
@@ -198,7 +197,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [capacityFlash, setCapacityFlash] = useState({ tens: false, ones: false });
   const [rowWrong, setRowWrong] = useState({ collect: false, group: false, tens: false, ones: false });
-  const { speak } = useSpeech();
   const stacksAreaRef = useRef(null);
   const looseAreaRef = useRef(null);
 
@@ -265,10 +263,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // of them. So the tens count (and ones count) update immediately —
   // React mounts the new TenStack at its true flex position right away —
   // but it stays hidden (formingStack + .cb-ten-stack-pending, see
-  // Workspace) until every ghost has actually arrived, then it's
-  // revealed. The counter text is deliberately still held back by one
-  // during this window (see the JSX below) so "N десятков" doesn't tick
-  // up before the coins visibly land.
+  // Workspace) until every ghost has actually arrived, then it's revealed.
   function handleGroup() {
     if (!canGroup) return;
     if (placed.ones < 10 || formingStack || unformingStack) return;
@@ -278,8 +273,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     }
     const looseCoinEls = Array.from(looseAreaRef.current.querySelectorAll(".cb-coin")).slice(0, 10);
     if (looseCoinEls.length < 10) return;
-
-    speak("Десять единиц — это один десяток!");
 
     const froms = looseCoinEls.map((el) => rectCenter(el.getBoundingClientRect()));
 
@@ -368,7 +361,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   function handleTensDigit(d) {
     if (phase !== "answerTens") return;
     if (d === task.target.tens) {
-      speak("Верно!");
       setPhase("answerOnes");
     } else {
       flashRowWrong("tens");
@@ -378,7 +370,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   function handleOnesDigit(d) {
     if (phase !== "answerOnes") return;
     if (d === task.target.ones) {
-      speak(`Верно! ${task.target.tens} ${pluralTens(task.target.tens)} и ${task.target.ones} ${pluralOnes(task.target.ones)}!`);
       setPhase("done");
       setTimeout(() => onCorrect(task.conceptId, task.cardId), 900);
     } else {
@@ -397,10 +388,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Собери десятки", { max: 45, min: 20 });
   const { ref: tensRef, fontSize: tensFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 20 });
   const { ref: onesRef, fontSize: onesFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 20 });
-
-  const tensDisplay = placed.tens - (formingStack ? 1 : 0);
-  const onesDisplay = placed.ones - (unformingStack ? 10 : 0);
-  const building = canGroup; // collect or group — the piles are still being worked on
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
@@ -448,7 +435,19 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
             space AND (via justify-content) splits it evenly above/below.
             The raised .pv-*-mat panels (here, the tray, and the numpad)
             all share one "card" treatment so none of them read as bare
-            content floating on the background grid. */}
+            content floating on the background grid.
+
+            No live "N десятков / M единиц" readout here (unlike the
+            earlier version of this screen): the whole point of collecting
+            and grouping is for the child to build a felt sense of the
+            quantity by handling it, then read it back themselves at the
+            end from the physical stacks/coins — a running digit counter
+            would let them just watch it tick to the target instead of
+            counting, and would already answer the question this screen
+            asks moments later. fingers_count never showed one either
+            (a hand's raised-finger count is read from the hand itself,
+            not a number next to it) — this brings build_number in line
+            with that. */}
         <div className="pv-workspace-center">
           <div className="pv-workspace-mat">
             <Workspace
@@ -466,17 +465,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               stacksAreaRef={stacksAreaRef}
               looseAreaRef={looseAreaRef}
             />
-
-            {building && (
-              <div className="pv-zones" style={{ flex: 0 }}>
-                <div style={{ flex: 1 }} className="pv-zone-counter">
-                  {tensDisplay} {pluralTens(tensDisplay)}
-                </div>
-                <div style={{ flex: 1 }} className="pv-zone-counter">
-                  {onesDisplay} {pluralOnes(onesDisplay)}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
