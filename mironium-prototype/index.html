@@ -81,6 +81,19 @@ img{max-width:100%;display:block}
 .mini-list{margin-top:28px;display:grid;gap:13px}
 .mini-list div{padding:13px 0;border-top:1px solid var(--line);font-size:15px}
 .mini-list b{color:var(--coral);margin-right:10px;font-weight:900}
+.about{background:var(--cream)}
+.about__grid{padding:104px 0}
+.about__intro{max-width:640px}
+.about__intro h2{font:900 clamp(36px,4vw,54px)/1.03 Nunito,Arial,sans-serif;letter-spacing:-2.5px;margin-top:14px}
+.about__lead{margin-top:16px;font-size:18px;line-height:1.6;color:var(--copy)}
+.about__people{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.about__person{background:#fffaf2;border:1px solid var(--line);border-radius:20px;padding:26px}
+.about__avatar{display:grid;place-items:center;width:54px;height:54px;border-radius:50%;color:#fff;font:26px "DM Serif Display",serif;margin-bottom:16px}
+.about__avatar--mint{background:var(--mint)}
+.about__avatar--coral{background:var(--coral)}
+.about__avatar--deep{background:var(--deep)}
+.about__person h3{font-size:17px;margin-bottom:8px}
+.about__person p{font-size:14px;line-height:1.55;color:var(--copy)}
 </style>
 </head>
 <body>
@@ -146,7 +159,32 @@ img{max-width:100%;display:block}
     </div>
   </div>
 </section>
-<section id="about"></section>
+<section class="about" id="about">
+  <div class="wrap about__grid">
+    <div class="about__intro">
+      <p class="eyebrow">Кто стоит за Mironium</p>
+      <h2>Идея выросла из одной семьи.</h2>
+      <p class="about__lead">Mironium придумал родитель, который сам искал способ заниматься с сыном регулярно и без перегрузки. Каждую тему проверяет и корректирует логопед — так материалы остаются понятными и подходящими разным детям.</p>
+    </div>
+    <div class="about__people">
+      <article class="about__person">
+        <span class="about__avatar about__avatar--mint">Р</span>
+        <h3>Родитель-создатель</h3>
+        <p>Придумал Mironium, чтобы находить время и силы заниматься с сыном регулярно, без ежедневного поиска материалов.</p>
+      </article>
+      <article class="about__person">
+        <span class="about__avatar about__avatar--coral">М</span>
+        <h3>Мирон</h3>
+        <p>Сын создателя и главный тестировщик — если задание не держит его внимание, оно не попадает в приложение.</p>
+      </article>
+      <article class="about__person">
+        <span class="about__avatar about__avatar--deep">Л</span>
+        <h3>Логопед</h3>
+        <p>Проверяет и корректирует темы и задания, чтобы подача была понятной и подходящей разным детям.</p>
+      </article>
+    </div>
+  </div>
+</section>
 <section id="final"></section>
 </main>
 <footer id="site-footer"></footer>
