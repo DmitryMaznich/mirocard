@@ -542,33 +542,54 @@
    rows: the target number branches — a straight line down to the tens
    slot, a diagonal down to the ones slot — so the two digits the child
    reports read as parts of that number, not two disconnected questions.
-   Sized off --cb-scale (defined on .cb-screen in coins.css) like the coins
+   The number sits in a gold medallion echoing the coins on this exact
+   screen (same radial gradient/stroke as .cb-coin) rather than plain text
+   floating above the diagram — ties the "report what you counted" step
+   back to the coins that were actually counted. Branch lines and slots use
+   the same raised "3D" formula as every button/checklist row elsewhere in
+   this app (flat fill + solid bottom shadow) instead of a thin flat
+   border, which is what read as generic/unfinished before. Sized off
+   --cb-scale (defined on .cb-screen in coins.css) like the coins
    themselves, so it grows on tablet the same way; a fallback of 1px keeps
    this rule harmless if it's ever reused somewhere without that scale var. */
 .pv-bond {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(4 * var(--cb-scale, 1px));
-  padding: calc(4 * var(--cb-scale, 1px)) 16px calc(10 * var(--cb-scale, 1px));
+  gap: calc(2 * var(--cb-scale, 1px));
+  padding: calc(6 * var(--cb-scale, 1px)) 16px calc(10 * var(--cb-scale, 1px));
   animation: pv-checklist-item-in 0.4s cubic-bezier(.34, 1.2, .64, 1) both;
+}
+
+.pv-bond-medallion {
+  width: calc(88 * var(--cb-scale, 1px));
+  height: calc(88 * var(--cb-scale, 1px));
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff6da, #f6c94e 55%, #e0a72c 100%);
+  border: 3px solid #fff;
+  box-shadow: 0 5px 0 #b8791f, 0 8px 18px rgba(154, 100, 20, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pv-bond-number {
   font-family: 'Neucha', cursive;
-  font-size: calc(56 * var(--cb-scale, 1px));
-  color: #1a1a2e;
+  font-size: calc(40 * var(--cb-scale, 1px));
+  color: #5b3a0a;
   line-height: 1;
 }
 
 .pv-bond-svg {
   width: calc(220 * var(--cb-scale, 1px));
-  height: calc(70 * var(--cb-scale, 1px));
+  height: calc(64 * var(--cb-scale, 1px));
   display: block;
+  margin-top: calc(-4 * var(--cb-scale, 1px));
+  filter: drop-shadow(0 2px 1px rgba(59, 101, 201, 0.15));
 }
 .pv-bond-svg line {
-  stroke: #7fa8e0;
-  stroke-width: 3;
+  stroke: #5b8ce0;
+  stroke-width: 5;
   stroke-linecap: round;
 }
 
@@ -580,32 +601,36 @@
 .pv-bond-row {
   display: flex;
   gap: calc(40 * var(--cb-scale, 1px));
+  margin-top: calc(2 * var(--cb-scale, 1px));
 }
 
 .pv-bond-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(6 * var(--cb-scale, 1px));
+  gap: calc(8 * var(--cb-scale, 1px));
 }
 
 .pv-bond-slot {
-  width: calc(60 * var(--cb-scale, 1px));
-  height: calc(60 * var(--cb-scale, 1px));
-  border: 2.5px solid #7fa8e0;
-  border-radius: calc(10 * var(--cb-scale, 1px));
+  width: calc(64 * var(--cb-scale, 1px));
+  height: calc(64 * var(--cb-scale, 1px));
+  border: 2px solid #cddcf7;
+  border-radius: calc(14 * var(--cb-scale, 1px));
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Neucha', cursive;
-  font-size: calc(30 * var(--cb-scale, 1px));
+  font-size: calc(32 * var(--cb-scale, 1px));
   color: #1a1a2e;
-  background: #fff;
-  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  background: linear-gradient(180deg, #ffffff, #f4f8ff);
+  box-shadow: 0 5px 0 #b9cef2, 0 8px 16px rgba(37, 99, 235, 0.16);
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pv-bond-slot--pending {
-  opacity: 0.4;
+  opacity: 0.45;
+  box-shadow: none;
+  border-color: #dbe4f3;
 }
 
 .pv-bond-slot--active {
@@ -614,19 +639,25 @@
 
 .pv-bond-slot--wrong {
   border-color: #ef4444;
+  box-shadow: 0 5px 0 #f0a3a3, 0 8px 16px rgba(239, 68, 68, 0.20);
   animation: pv-shake 0.4s ease;
 }
 
 .pv-bond-slot--done {
-  border-color: #16a34a;
-  background: #f0fdf4;
+  border-color: #86d69c;
   color: #16a34a;
+  background: linear-gradient(180deg, #f0fdf4, #e6fbec);
+  box-shadow: 0 5px 0 #86d69c, 0 8px 16px rgba(22, 163, 74, 0.18);
 }
 
 .pv-bond-label {
   font-family: 'Neucha', cursive;
-  font-size: calc(18 * var(--cb-scale, 1px));
-  color: #1a1a2e;
+  font-size: calc(19 * var(--cb-scale, 1px));
+  color: #3a4a63;
+}
+
+.pv-bond-label--pending {
+  color: #9aa8c0;
 }
 
 @media (prefers-reduced-motion: reduce) {

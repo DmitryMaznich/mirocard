@@ -175,10 +175,11 @@ function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true
 // intended 60/160 exactly when slotWidth+gap=100, not approximately).
 function BondSlot({ value, label, state }) {
   const stateClass = state ? ` pv-bond-slot--${state}` : "";
+  const labelClass = state === "pending" ? " pv-bond-label--pending" : "";
   return (
     <div className="pv-bond-col">
       <div className={`pv-bond-slot${stateClass}`}>{value ?? "?"}</div>
-      <div className="pv-bond-label">{label}</div>
+      <div className={`pv-bond-label${labelClass}`}>{label}</div>
     </div>
   );
 }
@@ -186,10 +187,12 @@ function BondSlot({ value, label, state }) {
 function NumberBond({ number, tensValue, onesValue, tensLabel, onesLabel, tensState, onesState }) {
   return (
     <div className="pv-bond">
-      <div className="pv-bond-number">{number}</div>
-      <svg className="pv-bond-svg" viewBox="0 0 220 70" aria-hidden="true">
-        <line x1="60" y1="0" x2="60" y2="70" />
-        <line x1="60" y1="0" x2="160" y2="70" />
+      <div className="pv-bond-medallion">
+        <div className="pv-bond-number">{number}</div>
+      </div>
+      <svg className="pv-bond-svg" viewBox="0 0 220 64" aria-hidden="true">
+        <line x1="60" y1="0" x2="60" y2="64" />
+        <line x1="60" y1="0" x2="160" y2="64" />
       </svg>
       <div className="pv-bond-row">
         <BondSlot value={tensValue} label={tensLabel} state={tensState} />
