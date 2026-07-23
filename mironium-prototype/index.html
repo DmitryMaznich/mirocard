@@ -94,6 +94,12 @@ img{max-width:100%;display:block}
 .about__avatar--deep{background:var(--deep)}
 .about__person h3{font-size:17px;margin-bottom:8px}
 .about__person p{font-size:14px;line-height:1.55;color:var(--copy)}
+.final{max-width:760px;padding:120px 0;text-align:center}
+.final h2{font:900 clamp(38px,4.6vw,58px)/1.08 Nunito,Arial,sans-serif;letter-spacing:-2px;margin-bottom:26px}
+.site-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;padding:28px 0 36px;border-top:1px solid var(--line);color:var(--copy);font-size:13px}
+.site-footer .brand img{height:28px;display:block}
+.site-footer__link{color:var(--deep);font-weight:900}
+.site-footer__link:focus-visible,.site-footer .brand:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -185,8 +191,15 @@ img{max-width:100%;display:block}
     </div>
   </div>
 </section>
-<section id="final"></section>
+<section class="wrap final" id="final">
+  <h2>Время заниматься — не искать материалы.</h2>
+  <a class="button" href="https://app.mironium.com">Открыть приложение</a>
+</section>
 </main>
-<footer id="site-footer"></footer>
+<footer class="wrap site-footer">
+  <a class="brand" href="#top"><img src="../public/brand/mironium-logo.svg" alt="Mironium"></a>
+  <span>Занятия со смыслом, дома.</span>
+  <a class="site-footer__link" href="https://app.mironium.com">Открыть приложение</a>
+</footer>
 </body>
 </html>
