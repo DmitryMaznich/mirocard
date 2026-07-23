@@ -106,6 +106,25 @@ img{max-width:100%;display:block}
   .hero__copy>*{animation:none;opacity:1;transform:none}
   .reveal{opacity:1;transform:none;transition:none}
 }
+@media(max-width:780px){
+  .site-header{height:auto;min-height:64px;padding:12px 0}
+  .site-header nav{display:none}
+  .site-header .button{padding:10px 16px;font-size:13px;white-space:nowrap}
+  .hero{grid-template-columns:1fr;gap:32px;padding-top:28px;min-height:auto}
+  .hero:before{display:none}
+  .hero__copy{padding-bottom:0;max-width:none}
+  .hero__visual{height:420px;margin-left:0}
+  .hero__photo{clip-path:polygon(0 8%,100% 0,100% 100%,0 100%)}
+  .hero__actions{flex-direction:column;align-items:stretch}
+  .hero__actions .button,.hero__actions .quiet-link{width:100%;justify-content:center}
+  .story__grid{grid-template-columns:1fr;gap:36px;padding:64px 0}
+  .story__facts{grid-template-columns:1fr}
+  .principle{grid-template-columns:1fr;gap:40px;padding:72px 0}
+  .about__grid{padding:72px 0}
+  .about__people{grid-template-columns:1fr}
+  .final{padding:80px 0}
+  .site-footer{flex-direction:column;align-items:flex-start;text-align:left}
+}
 </style>
 </head>
 <body>
