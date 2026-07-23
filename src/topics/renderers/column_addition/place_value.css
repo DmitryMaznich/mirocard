@@ -536,3 +536,101 @@
 .pv-checklist-number {
   color: #1d4ed8;
 }
+
+/* ── Number bond (build_number's answer step) ──────────────────────────────
+   Replaces the old pair of "Сколько десятков?"/"Сколько единиц?" checklist
+   rows: the target number branches — a straight line down to the tens
+   slot, a diagonal down to the ones slot — so the two digits the child
+   reports read as parts of that number, not two disconnected questions.
+   Sized off --cb-scale (defined on .cb-screen in coins.css) like the coins
+   themselves, so it grows on tablet the same way; a fallback of 1px keeps
+   this rule harmless if it's ever reused somewhere without that scale var. */
+.pv-bond {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4 * var(--cb-scale, 1px));
+  padding: calc(4 * var(--cb-scale, 1px)) 16px calc(10 * var(--cb-scale, 1px));
+  animation: pv-checklist-item-in 0.4s cubic-bezier(.34, 1.2, .64, 1) both;
+}
+
+.pv-bond-number {
+  font-family: 'Neucha', cursive;
+  font-size: calc(56 * var(--cb-scale, 1px));
+  color: #1a1a2e;
+  line-height: 1;
+}
+
+.pv-bond-svg {
+  width: calc(220 * var(--cb-scale, 1px));
+  height: calc(70 * var(--cb-scale, 1px));
+  display: block;
+}
+.pv-bond-svg line {
+  stroke: #7fa8e0;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* Slot width + row gap sum to 100 (of the same 220-wide reference the svg's
+   viewBox uses) — that's what makes each slot's center land exactly under
+   its line's endpoint (60 / 160) once .pv-bond-svg and .pv-bond-row are
+   centered as sibling flex children of the same column, not a coincidence
+   to preserve if these numbers ever change. */
+.pv-bond-row {
+  display: flex;
+  gap: calc(40 * var(--cb-scale, 1px));
+}
+
+.pv-bond-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(6 * var(--cb-scale, 1px));
+}
+
+.pv-bond-slot {
+  width: calc(60 * var(--cb-scale, 1px));
+  height: calc(60 * var(--cb-scale, 1px));
+  border: 2.5px solid #7fa8e0;
+  border-radius: calc(10 * var(--cb-scale, 1px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Neucha', cursive;
+  font-size: calc(30 * var(--cb-scale, 1px));
+  color: #1a1a2e;
+  background: #fff;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.pv-bond-slot--pending {
+  opacity: 0.4;
+}
+
+.pv-bond-slot--active {
+  animation: pv-checklist-box-pulse 1.8s ease-in-out infinite;
+}
+
+.pv-bond-slot--wrong {
+  border-color: #ef4444;
+  animation: pv-shake 0.4s ease;
+}
+
+.pv-bond-slot--done {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.pv-bond-label {
+  font-family: 'Neucha', cursive;
+  font-size: calc(18 * var(--cb-scale, 1px));
+  color: #1a1a2e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-bond { animation: none; }
+  .pv-bond-slot--active { animation: none; }
+  .pv-bond-slot--wrong { animation: none; }
+}

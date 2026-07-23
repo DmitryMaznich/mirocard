@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
-import { pluralCoins } from "./placeValueLabels.js";
+import { pluralCoins, pluralTens, pluralOnes } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
@@ -157,6 +157,44 @@ function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true
       <span ref={textRef} className="pv-checklist-text" style={fontSize ? { fontSize } : undefined}>
         {text}
       </span>
+    </div>
+  );
+}
+
+// A number-bond diagram (number on top, a straight branch down to the tens
+// slot and a diagonal branch down to the ones slot) replacing the old pair
+// of "Сколько десятков?"/"Сколько единиц?" checklist rows — asked the same
+// question, but visually ties the two answers back to the number they came
+// from instead of reading as two disconnected lines of text. The 60/160
+// line endpoints (in the 220-wide viewBox) land exactly under the two
+// slots below only because slot width + row gap sums to 100 of those same
+// units (60 + (100-60)... concretely: centering .pv-bond-svg and
+// .pv-bond-row as sibling flex children of the same align-items:center
+// column means the row's own center sits under the viewBox's x=110; each
+// slot's center is then centered_x ± (slotWidth+gap)/2 — which equals the
+// intended 60/160 exactly when slotWidth+gap=100, not approximately).
+function BondSlot({ value, label, state }) {
+  const stateClass = state ? ` pv-bond-slot--${state}` : "";
+  return (
+    <div className="pv-bond-col">
+      <div className={`pv-bond-slot${stateClass}`}>{value ?? "?"}</div>
+      <div className="pv-bond-label">{label}</div>
+    </div>
+  );
+}
+
+function NumberBond({ number, tensValue, onesValue, tensLabel, onesLabel, tensState, onesState }) {
+  return (
+    <div className="pv-bond">
+      <div className="pv-bond-number">{number}</div>
+      <svg className="pv-bond-svg" viewBox="0 0 220 70" aria-hidden="true">
+        <line x1="60" y1="0" x2="60" y2="70" />
+        <line x1="60" y1="0" x2="160" y2="70" />
+      </svg>
+      <div className="pv-bond-row">
+        <BondSlot value={tensValue} label={tensLabel} state={tensState} />
+        <BondSlot value={onesValue} label={onesLabel} state={onesState} />
+      </div>
     </div>
   );
 }
@@ -386,12 +424,14 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // instead of shrinking away just because it's no longer the active one.
   // min lowered from 20 to 13: the checklist's left inset (see .pv-checklist
   // in place_value.css) leaves much less width for text than before, and
-  // the longer instructions ("Собери 47 монет", "Сколько десятков?") no
-  // longer fit on one line at 20px on a narrow (~320px) phone.
+  // "Собери 47 монет" no longer fits on one line at 20px on a narrow
+  // (~320px) phone.
   const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
   const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Выдели десятки", { max: 45, min: 13 });
-  const { ref: tensRef, fontSize: tensFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
-  const { ref: onesRef, fontSize: onesFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
+
+  const showBond = phase === "answerTens" || phase === "answerOnes" || phase === "done";
+  const tensState = phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done";
+  const onesState = phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : phase === "done" ? "done" : "pending";
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
@@ -413,25 +453,26 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               fontSize={groupFontSize}
             />
           )}
-          {(phase === "answerTens" || phase === "answerOnes" || phase === "done") && (
-            <ChecklistItem
-              text="Сколько десятков?"
-              state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
-              clickable={false}
-              textRef={tensRef}
-              fontSize={tensFontSize}
-            />
-          )}
-          {(phase === "answerOnes" || phase === "done") && (
-            <ChecklistItem
-              text="Сколько единиц?"
-              state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
-              clickable={false}
-              textRef={onesRef}
-              fontSize={onesFontSize}
-            />
-          )}
         </div>
+
+        {/* Replaces the old pair of "Сколько десятков?"/"Сколько единиц?"
+            checklist rows with a number-bond diagram: the target number,
+            branching down to the same two answer slots, so the two digits
+            the child reports read as parts of the number above them
+            instead of two disconnected questions. Labels default to the
+            question form ("десятков"/"единиц") until answered, then switch
+            to the grammatically correct form for the actual digit. */}
+        {showBond && (
+          <NumberBond
+            number={task.number}
+            tensValue={tensState === "done" ? task.target.tens : null}
+            onesValue={onesState === "done" ? task.target.ones : null}
+            tensLabel={tensState === "done" ? pluralTens(task.target.tens) : "десятков"}
+            onesLabel={onesState === "done" ? pluralOnes(task.target.ones) : "единиц"}
+            tensState={tensState}
+            onesState={onesState}
+          />
+        )}
 
         {/* Centers the coin zone in whatever vertical space is left between
             the checklist and the pile/numpad below, rather than it sitting
