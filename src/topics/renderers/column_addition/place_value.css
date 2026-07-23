@@ -561,6 +561,26 @@
   animation: pv-checklist-item-in 0.4s cubic-bezier(.34, 1.2, .64, 1) both;
 }
 
+/* First-few-times-only onboarding hint (see BOND_HINT_LIMIT in
+   BuildNumberTask.jsx) — a soft pill rather than plain caption text, so it
+   reads as a distinct "explaining itself" tag rather than a permanent
+   fixture, and a light amber tint (not the medallion's own gold, a paler
+   tint of it) ties it to the coin/medallion theme without competing with
+   it for attention. */
+.pv-bond-hint {
+  font-family: 'Neucha', cursive;
+  font-size: calc(17 * var(--cb-scale, 1px));
+  color: #92600e;
+  background: #fff8e8;
+  border: 1.5px solid #f3dba3;
+  border-radius: calc(16 * var(--cb-scale, 1px));
+  padding: calc(5 * var(--cb-scale, 1px)) calc(14 * var(--cb-scale, 1px));
+  margin-bottom: calc(4 * var(--cb-scale, 1px));
+  max-width: calc(240 * var(--cb-scale, 1px));
+  text-align: center;
+  line-height: 1.25;
+}
+
 .pv-bond-medallion {
   width: calc(88 * var(--cb-scale, 1px));
   height: calc(88 * var(--cb-scale, 1px));

@@ -9,6 +9,34 @@ import "./coins.css";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
+// The number-bond diagram dropped the old "Сколько десятков?"/"Сколько
+// единиц?" sentences in favour of a purely visual "?" — clearer once a
+// child already knows the convention, but the very first few times it
+// could just look like an unlabeled box. A short caption fills that gap
+// only until the child has actually completed it a few times, then gets
+// out of the way permanently. Persisted (not per-session): once learned,
+// it stays learned — re-showing it every session would be patronizing.
+// Same localStorage-with-try/catch shape as rewardVideoPicker.js's
+// shown-tracking, the closest existing precedent in this codebase.
+const BOND_HINT_KEY = "mirocard:buildNumberBondHintCount";
+const BOND_HINT_LIMIT = 3;
+
+function getBondHintCount() {
+  try {
+    return Number(window.localStorage?.getItem(BOND_HINT_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function bumpBondHintCount() {
+  try {
+    window.localStorage?.setItem(BOND_HINT_KEY, String(getBondHintCount() + 1));
+  } catch {
+    // Worst case the hint just doesn't fade across sessions — harmless.
+  }
+}
+
 // Every coin in the pyramid is its own draggable (not just the apex), so a
 // child can pull any coin out of the heap. Each keeps rendering at its
 // fixed spot after a drag ends (nothing is removed from PILE_LAYOUT), so
@@ -184,9 +212,10 @@ function BondSlot({ value, label, state }) {
   );
 }
 
-function NumberBond({ number, tensValue, onesValue, tensLabel, onesLabel, tensState, onesState }) {
+function NumberBond({ number, tensValue, onesValue, tensLabel, onesLabel, tensState, onesState, showHint }) {
   return (
     <div className="pv-bond">
+      {showHint && <div className="pv-bond-hint">Сколько десятков и единиц получилось?</div>}
       <div className="pv-bond-medallion">
         <div className="pv-bond-number">{number}</div>
       </div>
@@ -238,6 +267,9 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [capacityFlash, setCapacityFlash] = useState({ tens: false, ones: false });
   const [rowWrong, setRowWrong] = useState({ collect: false, group: false, tens: false, ones: false });
+  // Decided once per task, not re-checked live: the hint shouldn't vanish
+  // mid-task just because this same completion is about to bump the count.
+  const [showBondHint] = useState(() => getBondHintCount() < BOND_HINT_LIMIT);
   const stacksAreaRef = useRef(null);
   const looseAreaRef = useRef(null);
 
@@ -411,6 +443,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   function handleOnesDigit(d) {
     if (phase !== "answerOnes") return;
     if (d === task.target.ones) {
+      bumpBondHintCount();
       setPhase("done");
       setTimeout(() => onCorrect(task.conceptId, task.cardId), 900);
     } else {
@@ -474,6 +507,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
             onesLabel={onesState === "done" ? pluralOnes(task.target.ones) : "единиц"}
             tensState={tensState}
             onesState={onesState}
+            showHint={showBondHint && phase === "answerTens"}
           />
         )}
 
