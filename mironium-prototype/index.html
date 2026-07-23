@@ -39,6 +39,7 @@ img{max-width:100%;display:block}
 
 .site-header{height:96px;display:flex;align-items:center;justify-content:space-between}
 .site-header .brand img{display:block;height:42px;width:auto}
+.site-header .brand:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
 .site-header nav{display:flex;gap:26px;font-size:14px;color:#657773;font-weight:700}
 .site-header nav a:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
 .hero{display:grid;grid-template-columns:.88fr 1.12fr;gap:0;min-height:600px;position:relative;padding:52px 0 88px;align-items:center}
@@ -98,7 +99,7 @@ img{max-width:100%;display:block}
 .final h2{font:900 clamp(38px,4.6vw,58px)/1.08 Nunito,Arial,sans-serif;letter-spacing:-2px;margin-bottom:26px}
 .site-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;padding:28px 0 36px;border-top:1px solid var(--line);color:var(--copy);font-size:13px}
 .site-footer .brand img{height:28px;display:block}
-.site-footer__link{color:var(--deep);font-weight:900}
+.site-footer__link{display:inline-flex;align-items:center;min-height:44px;color:var(--deep);font-weight:900}
 .site-footer__link:focus-visible,.site-footer .brand:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
 .reveal.is-visible{opacity:1;transform:translateY(0)}
