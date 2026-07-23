@@ -60,6 +60,16 @@ img{max-width:100%;display:block}
 .hero__photo{position:absolute;inset:0 -24px 0 0;background:var(--cream);clip-path:polygon(16% 0,100% 0,100% 100%,0 100%,0 68%,10% 46%,4% 21%);overflow:hidden}
 .hero__photo img{width:100%;height:100%;object-fit:cover;object-position:60% 42%;filter:saturate(.92) contrast(.98)}
 .hero__photo:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--paper) 0%,rgba(247,241,231,.65) 10%,rgba(247,241,231,0) 28%)}
+.story{background:var(--deep);color:#fff}
+.story__grid{display:grid;grid-template-columns:.75fr 1.25fr;gap:64px;padding:92px 0}
+.story__aside{border-top:1px solid rgba(255,255,255,.35);padding-top:14px;color:#bcdad4;font-size:14px}
+.story__aside span{display:block;font:italic 26px/1.2 "DM Serif Display",serif;color:#fff;margin-top:16px}
+.story__main h2{font:900 clamp(38px,4.2vw,60px)/1.03 Nunito,Arial,sans-serif;letter-spacing:-2.5px}
+.story__main p{font-size:18px;line-height:1.6;color:#cfe3de;max-width:610px;margin-top:20px}
+.story__rule{height:1px;background:rgba(255,255,255,.25);margin:32px 0 18px}
+.story__facts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.story__facts b{display:block;font-size:15px;color:#fff}
+.story__facts span{font-size:13px;color:#bcdad4;display:block;margin-top:4px}
 </style>
 </head>
 <body>
@@ -90,7 +100,24 @@ img{max-width:100%;display:block}
     </div>
   </div>
 </section>
-<section id="why"></section>
+<section class="story" id="why">
+  <div class="wrap story__grid">
+    <aside class="story__aside">
+      Знакомая история?
+      <span>«Сначала найди хорошие карточки. Потом распечатай. Потом разложи…»</span>
+    </aside>
+    <div class="story__main">
+      <h2>Не тратить вечер на поиск материалов — а начать занятие за пару минут.</h2>
+      <p>Темы, задания и порядок уже собраны в приложении. Вы остаётесь главным человеком рядом с ребёнком: обсуждаете, направляете и замечаете маленькие успехи.</p>
+      <div class="story__rule"></div>
+      <div class="story__facts">
+        <div><b>Меньше поиска</b><span>Нужная тема — в одном месте.</span></div>
+        <div><b>Меньше бумаги</b><span>Не нужно печатать и хранить листы.</span></div>
+        <div><b>Понятный порядок</b><span>Один и тот же формат каждый раз — ребёнку легче включиться.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
 <section id="how"></section>
 <section id="about"></section>
 <section id="final"></section>
