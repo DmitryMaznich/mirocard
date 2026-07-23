@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Mironium — приложение для домашних занятий с ребёнком, темы проверяет логопед.">
+<title>Mironium — занятия дома без хаоса</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f7f1e7;
+  --cream:#f2ebe2;
+  --ink:#1c3634;
+  --copy:#526562;
+  --mint:#4a9b8f;
+  --deep:#2f5b57;
+  --coral:#ef6f5e;
+  --sun:#f3c969;
+  --line:#e6ddd0;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:600 16px/1.5 Nunito,Arial,sans-serif}
+.wrap{width:min(1240px,calc(100% - 52px));margin:auto}
+a{text-decoration:none;color:inherit}
+h1,h2,h3,p{margin:0}
+img{max-width:100%;display:block}
+
+.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:13px 22px;border-radius:13px;background:var(--mint);color:#fff;font-weight:900;font-size:15px;box-shadow:0 10px 20px -8px rgba(47,114,104,.55);transition:.18s ease}
+.button:hover{transform:translateY(-1px);box-shadow:0 12px 22px -8px rgba(47,114,104,.6)}
+.button:focus-visible{outline:3px solid var(--deep);outline-offset:2px}
+.quiet-link{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;font-weight:800;color:var(--deep)}
+.quiet-link:after{content:"↘";margin-left:8px;color:var(--coral)}
+.quiet-link:focus-visible{outline:3px solid var(--deep);outline-offset:2px;border-radius:4px}
+.eyebrow{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--deep);font-weight:900}
+.eyebrow:before{content:"✦";color:var(--coral);font-size:15px;margin-right:8px}
+
+.site-header{height:96px;display:flex;align-items:center;justify-content:space-between}
+.site-header .brand img{display:block;height:42px;width:auto}
+.site-header nav{display:flex;gap:26px;font-size:14px;color:#657773;font-weight:700}
+.site-header nav a:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
+</style>
+</head>
+<body>
+<header class="wrap site-header">
+  <a class="brand" href="#top" aria-label="Mironium — на главную"><img src="../public/brand/mironium-logo.svg" alt="Mironium"></a>
+  <nav>
+    <a href="#why">Зачем это нужно</a>
+    <a href="#how">Как это работает</a>
+    <a href="#about">О нас</a>
+  </nav>
+  <a class="button" href="https://app.mironium.com">Открыть приложение</a>
+</header>
+<main>
+<section id="top"></section>
+<section id="why"></section>
+<section id="how"></section>
+<section id="about"></section>
+<section id="final"></section>
+</main>
+<footer id="site-footer"></footer>
+</body>
+</html>
