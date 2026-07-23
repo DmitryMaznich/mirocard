@@ -25,6 +25,13 @@
    1px (today's phone sizing, unchanged); it only grows past that. */
 .cb-screen {
   --cb-scale: clamp(1px, calc(100vw / 400), 2px);
+  /* A soft white highlight over the shared .pv-screen grid — same
+     background-color, just less flat behind the new raised panels below. */
+  background-image:
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255, 255, 255, 0.6), transparent 60%),
+    linear-gradient(rgba(140, 190, 255, 0.28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 190, 255, 0.28) 1px, transparent 1px);
+  background-size: auto, 32px 32px, 32px 32px;
 }
 
 /* build_number-only override of the shared place_value.css counter text
@@ -241,4 +248,77 @@
   pointer-events: none;
   z-index: 200;
   transform: translate(-50%, -50%);
+}
+
+/* ── Raised "card" panels ─────────────────────────────────────────────────
+   The workspace, the coin tray, and the numpad used to sit as bare content
+   directly on the screen's grid background — no depth, and (the tray
+   specifically) reserved its layout space even while invisible outside the
+   collect phase, leaving a dead gap above the numpad. All three now share
+   one raised-panel treatment (soft gradient fill + a "3D" bottom shadow,
+   same formula as .btn/.pv-numkey) so the screen doesn't read as flat
+   cards floating on a grid; the tray is also now fully unmounted (not just
+   opacity-hidden) once collecting is done, so no gap is left behind. */
+.cb-screen .pv-workspace-mat,
+.cb-screen .pv-tray-mat,
+.cb-screen .pv-numpad-mat {
+  background: linear-gradient(180deg, #ffffff, #f4f8ff);
+  border: 2px solid #dbe8fb;
+  border-radius: 24px;
+  box-shadow: 0 6px 0 #d7e6fb, 0 10px 22px rgba(37, 99, 235, 0.14);
+}
+
+.cb-screen .pv-workspace-mat {
+  padding: calc(10 * var(--cb-scale));
+  width: 100%;
+  box-sizing: border-box;
+  /* .pv-workspace-center centers this panel in whatever space is left, but
+     with several ten-stacks collected (a coin stack's height is fixed, not
+     flex-shrinkable) the panel's natural content height can exceed that
+     space on a short device — without a cap it would silently overflow
+     past its own box and visually collide with the numpad rendered right
+     below it. max-height (against the parent's own definite, flex:1-
+     resolved height) + overflow-y turns that into an internal scroll
+     instead. */
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.cb-screen .pv-tray-mat {
+  flex-shrink: 0;
+  padding: 10px 14px 6px;
+  margin-top: 10px;
+}
+
+.cb-screen .pv-tray-mat .pv-tray {
+  padding: 8px 0 2px;
+}
+
+.cb-screen .pv-tray-mat .pv-caption {
+  margin-top: 0;
+}
+
+.cb-screen .pv-numpad-mat {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  margin-top: 10px;
+}
+
+.cb-screen .pv-numpad-mat .pv-numpad {
+  padding: 0;
+}
+
+/* Grounds the coin pile with a soft contact shadow instead of it looking
+   like it's floating inside the tray card (.cb-pile-wrap's own
+   position:relative is already declared above, near PILE_LAYOUT). */
+.cb-pile-wrap::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(-4 * var(--cb-scale));
+  width: 70%;
+  height: calc(12 * var(--cb-scale));
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(154, 100, 20, 0.30), transparent 70%);
+  border-radius: 50%;
 }

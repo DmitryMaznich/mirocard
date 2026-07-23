@@ -367,30 +367,37 @@
    they shrink from is the same for all of them): a completed step
    shouldn't visually shrink away just because it's no longer the one
    being worked. */
+/* Same raised "3D" formula as .btn/.pv-numkey (flat fill + a solid bottom
+   shadow that collapses on press) — previously these rows were flat
+   (border only, no shadow), which read as bare/paper-thin next to actual
+   buttons elsewhere in the app that all use this press-feedback shape. */
 .pv-checklist-item {
   display: flex;
   align-items: center;
   gap: 10px;
   background: #fff;
-  border: 2px solid #dbe4f3;
+  border: 2px solid #cddcf7;
   border-radius: 14px;
   padding: 14px 18px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+  box-shadow: 0 5px 0 #b9cef2, 0 8px 16px rgba(37, 99, 235, 0.16);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.pv-checklist-item:active { transform: scale(0.98); }
+.pv-checklist-item:active { transform: translateY(4px); box-shadow: 0 1px 0 #b9cef2, 0 2px 6px rgba(37, 99, 235, 0.12); }
 
 .pv-checklist-item.is-done {
   background: #dcfce7;
-  border-color: #16a34a;
+  border-color: #86d69c;
   cursor: default;
+  box-shadow: 0 5px 0 #86d69c, 0 8px 16px rgba(22, 163, 74, 0.18);
 }
 
 .pv-checklist-item.is-wrong {
   border-color: #ef4444;
+  box-shadow: 0 5px 0 #f0a3a3, 0 8px 16px rgba(239, 68, 68, 0.20);
   animation: pv-shake 0.4s ease;
 }
 
@@ -412,6 +419,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.08);
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 

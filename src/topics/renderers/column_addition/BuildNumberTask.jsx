@@ -445,55 +445,67 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
         {/* Centers the coin zone in whatever vertical space is left between
             the checklist and the pile/numpad below, rather than it sitting
             right under the checklist — flex:1 both absorbs the leftover
-            space AND (via justify-content) splits it evenly above/below. */}
+            space AND (via justify-content) splits it evenly above/below.
+            The raised .pv-*-mat panels (here, the tray, and the numpad)
+            all share one "card" treatment so none of them read as bare
+            content floating on the background grid. */}
         <div className="pv-workspace-center">
-          <Workspace
-            placed={placed}
-            formingStack={formingStack}
-            unformingStack={unformingStack}
-            groupableCount={groupableCount}
-            errorZones={errorZones}
-            capacityFlash={capacityFlash}
-            solved={phase === "done"}
-            numeric={task.numericBlocks}
-            onRemoveOne={removeOne}
-            onGroup={handleGroup}
-            onRemoveTen={handleUngroup}
-            stacksAreaRef={stacksAreaRef}
-            looseAreaRef={looseAreaRef}
-          />
+          <div className="pv-workspace-mat">
+            <Workspace
+              placed={placed}
+              formingStack={formingStack}
+              unformingStack={unformingStack}
+              groupableCount={groupableCount}
+              errorZones={errorZones}
+              capacityFlash={capacityFlash}
+              solved={phase === "done"}
+              numeric={task.numericBlocks}
+              onRemoveOne={removeOne}
+              onGroup={handleGroup}
+              onRemoveTen={handleUngroup}
+              stacksAreaRef={stacksAreaRef}
+              looseAreaRef={looseAreaRef}
+            />
 
-          {building && (
-            <div className="pv-zones" style={{ flex: 0 }}>
-              <div style={{ flex: 1 }} className="pv-zone-counter">
-                {tensDisplay} {pluralTens(tensDisplay)}
+            {building && (
+              <div className="pv-zones" style={{ flex: 0 }}>
+                <div style={{ flex: 1 }} className="pv-zone-counter">
+                  {tensDisplay} {pluralTens(tensDisplay)}
+                </div>
+                <div style={{ flex: 1 }} className="pv-zone-counter">
+                  {onesDisplay} {pluralOnes(onesDisplay)}
+                </div>
               </div>
-              <div style={{ flex: 1 }} className="pv-zone-counter">
-                {onesDisplay} {pluralOnes(onesDisplay)}
-              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Fully unmounted (not just opacity-hidden) once collecting is
+            over — an opacity-hidden tray would still reserve its layout
+            space, leaving a dead gap between the workspace and whatever
+            renders below it (the numpad) for the rest of the task. */}
+        {phase === "collect" && (
+          <div className="pv-tray-mat">
+            <div className="pv-tray">
+              <PileSource />
             </div>
-          )}
-        </div>
-
-        <div
-          className="pv-tray"
-          style={{ opacity: phase === "collect" ? 1 : 0, pointerEvents: phase === "collect" ? "auto" : "none", transition: "opacity 0.3s ease" }}
-        >
-          <PileSource />
-        </div>
-        {phase === "collect" && <div className="pv-caption">тяни монету из кучи</div>}
+            <div className="pv-caption">тяни монету из кучи</div>
+          </div>
+        )}
 
         {(phase === "answerTens" || phase === "answerOnes") && (
-          <div className="pv-numpad">
-            {DIGITS.map((d) => (
-              <button
-                key={d}
-                className="pv-numkey"
-                onClick={() => (phase === "answerTens" ? handleTensDigit(d) : handleOnesDigit(d))}
-              >
-                {d}
-              </button>
-            ))}
+          <div className="pv-numpad-mat">
+            <div className="pv-numpad">
+              {DIGITS.map((d) => (
+                <button
+                  key={d}
+                  className="pv-numkey"
+                  onClick={() => (phase === "answerTens" ? handleTensDigit(d) : handleOnesDigit(d))}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
