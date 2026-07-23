@@ -356,7 +356,14 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 2px 0 10px;
+  /* Left inset (rows stay full-width — default align-items:stretch, so
+     the whole row is still tappable, not just the text — but their
+     content starts flush at that inset instead of at the screen edge).
+     A third of the screen width was tried first but left too little room
+     for the longer instructions to still fit on one line on a narrow
+     phone (~320px) even at the smallest legible size; a quarter keeps
+     the same idea with room to spare. */
+  padding: 2px 16px 10px 25vw;
   /* Roughly two lines of the screen's own body text, so the checklist
      starts a bit below the very top edge instead of hugging it. */
   margin-top: clamp(28px, 6vh, 52px);
@@ -401,7 +408,7 @@
 .pv-checklist-item:not(:last-child)::after {
   content: "";
   position: absolute;
-  left: 17px;
+  left: 18px;
   top: 100%;
   width: 2px;
   height: 6px;
@@ -429,11 +436,15 @@
 }
 .pv-checklist-item.is-pending:active { transform: none; }
 
+/* Sized to exactly one square of the screen's own grid (.pv-screen's
+   background-size is 32px 32px) with sharp corners — reads as "this is
+   one cell of the grid, not a rounded UI chip" — the active element (the
+   checkmark, once done) sits inside that same cell outline. */
 .pv-checklist-box {
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
   border: 2.5px solid #7fa8e0;
   background: none;
   display: flex;

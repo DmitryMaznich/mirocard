@@ -384,10 +384,14 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // Every row gets its own fit call, all sharing the same 45px ceiling
   // (3x the old compact 15px row) — a completed row keeps the same size
   // instead of shrinking away just because it's no longer the active one.
-  const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 20 });
-  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Собери десятки", { max: 45, min: 20 });
-  const { ref: tensRef, fontSize: tensFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 20 });
-  const { ref: onesRef, fontSize: onesFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 20 });
+  // min lowered from 20 to 13: the checklist's left inset (see .pv-checklist
+  // in place_value.css) leaves much less width for text than before, and
+  // the longer instructions ("Собери 47 монет", "Сколько десятков?") no
+  // longer fit on one line at 20px on a narrow (~320px) phone.
+  const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
+  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Собери десятки", { max: 45, min: 13 });
+  const { ref: tensRef, fontSize: tensFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
+  const { ref: onesRef, fontSize: onesFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
