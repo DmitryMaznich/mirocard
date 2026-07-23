@@ -41,6 +41,25 @@ img{max-width:100%;display:block}
 .site-header .brand img{display:block;height:42px;width:auto}
 .site-header nav{display:flex;gap:26px;font-size:14px;color:#657773;font-weight:700}
 .site-header nav a:focus-visible{outline:3px solid var(--deep);outline-offset:3px;border-radius:4px}
+.hero{display:grid;grid-template-columns:.88fr 1.12fr;gap:0;min-height:600px;position:relative;padding:52px 0 88px;align-items:center}
+.hero:before{content:"";position:absolute;z-index:0;width:190px;height:190px;border-radius:50%;background:var(--sun);right:6%;bottom:56px;opacity:.92}
+.hero__copy{position:relative;z-index:2;padding:20px 0 40px;max-width:560px}
+.hero__copy>*{opacity:0;transform:translateY(14px);animation:heroIn .6s ease forwards}
+.hero__copy .eyebrow{animation-delay:.05s}
+.hero__copy h1{animation-delay:.15s}
+.hero__copy .lead{animation-delay:.25s}
+.hero__copy .hero__actions{animation-delay:.35s}
+.hero__copy .hero__note{animation-delay:.45s}
+@keyframes heroIn{to{opacity:1;transform:translateY(0)}}
+.hero h1{font:900 clamp(52px,5.4vw,80px)/.97 Nunito,Arial,sans-serif;letter-spacing:-3px;margin:18px 0 20px}
+.hero h1 .accent{color:var(--mint)}
+.hero .lead{font-size:19px;line-height:1.55;color:var(--copy);max-width:480px}
+.hero__actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:30px}
+.hero__note{font:italic 22px/1.25 "DM Serif Display",serif;color:#4f6863;margin-top:34px;max-width:400px}
+.hero__visual{position:relative;z-index:1;height:560px;margin-left:-60px;overflow:hidden}
+.hero__photo{position:absolute;inset:0 -24px 0 0;background:var(--cream);clip-path:polygon(16% 0,100% 0,100% 100%,0 100%,0 68%,10% 46%,4% 21%);overflow:hidden}
+.hero__photo img{width:100%;height:100%;object-fit:cover;object-position:60% 42%;filter:saturate(.92) contrast(.98)}
+.hero__photo:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--paper) 0%,rgba(247,241,231,.65) 10%,rgba(247,241,231,0) 28%)}
 </style>
 </head>
 <body>
@@ -54,7 +73,23 @@ img{max-width:100%;display:block}
   <a class="button" href="https://app.mironium.com">Открыть приложение</a>
 </header>
 <main>
-<section id="top"></section>
+<section class="wrap hero" id="top">
+  <div class="hero__copy">
+    <p class="eyebrow">Занятия дома без хаоса</p>
+    <h1>Всё для занятия — <span class="accent">под рукой.</span></h1>
+    <p class="lead">Mironium помогает родителю меньше искать и готовить материалы, а больше быть рядом с ребёнком и заниматься регулярно.</p>
+    <div class="hero__actions">
+      <a class="button" href="https://app.mironium.com">Попробовать Mironium</a>
+      <a class="quiet-link" href="#how">Посмотреть, как это работает</a>
+    </div>
+    <p class="hero__note">Планшет, тетрадь, ручка и немного времени вместе.</p>
+  </div>
+  <div class="hero__visual">
+    <div class="hero__photo">
+      <img src="mironium-hero-v2.png" alt="Родитель и ребёнок вместе занимаются за столом с планшетом, блокнотом и карандашами">
+    </div>
+  </div>
+</section>
 <section id="why"></section>
 <section id="how"></section>
 <section id="about"></section>
