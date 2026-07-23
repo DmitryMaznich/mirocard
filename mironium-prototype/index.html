@@ -70,6 +70,17 @@ img{max-width:100%;display:block}
 .story__facts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .story__facts b{display:block;font-size:15px;color:#fff}
 .story__facts span{font-size:13px;color:#bcdad4;display:block;margin-top:4px}
+.principle{display:grid;grid-template-columns:.94fr 1.06fr;gap:76px;align-items:center;padding:104px 0}
+.principle-card{background:#dbeee4;padding:42px;border-radius:28px;position:relative;min-height:300px;overflow:hidden}
+.principle-card:after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;background:var(--sun);opacity:.5;right:-44px;bottom:-58px}
+.principle-card__quote{font:60px/1 "DM Serif Display",serif;color:var(--coral);position:relative;z-index:1}
+.principle-card p{position:relative;z-index:1;font:28px/1.22 "DM Serif Display",serif;max-width:400px;margin-top:12px;color:var(--ink)}
+.principle-text h2{font:900 clamp(36px,4vw,54px)/1.03 Nunito,Arial,sans-serif;letter-spacing:-2.5px;margin-top:14px}
+.principle-lead{margin-top:16px;font-size:18px;line-height:1.6;color:var(--copy);max-width:520px}
+.principle-note{font-size:15px;color:var(--deep);border-top:1px solid var(--line);padding-top:14px;margin-top:22px;max-width:480px}
+.mini-list{margin-top:28px;display:grid;gap:13px}
+.mini-list div{padding:13px 0;border-top:1px solid var(--line);font-size:15px}
+.mini-list b{color:var(--coral);margin-right:10px;font-weight:900}
 </style>
 </head>
 <body>
@@ -118,7 +129,23 @@ img{max-width:100%;display:block}
     </div>
   </div>
 </section>
-<section id="how"></section>
+<section class="wrap principle" id="how">
+  <div class="principle-card">
+    <div class="principle-card__quote">“</div>
+    <p>Экран не заменяет действие руками. Он помогает тренировать навык, когда реальные материалы не под рукой.</p>
+  </div>
+  <div class="principle-text">
+    <p class="eyebrow">Наша позиция</p>
+    <h2>Гаджет — дополнение, а не замена живой игры.</h2>
+    <p class="principle-lead">Mironium бережно использует мотивацию ребёнка к планшету: короткое полезное задание — затем небольшой выбранный родителем бонус.</p>
+    <p class="principle-note">Темы и подачу заданий проверяет и корректирует логопед — так материалы остаются понятными и подходящими разным детям.</p>
+    <div class="mini-list">
+      <div><b>01</b>Вы выбираете тему и сложность.</div>
+      <div><b>02</b>Ребёнок проходит короткое занятие рядом с вами.</div>
+      <div><b>03</b>Вы решаете, что будет дальше.</div>
+    </div>
+  </div>
+</section>
 <section id="about"></section>
 <section id="final"></section>
 </main>
