@@ -209,6 +209,19 @@
   min-height: 0;
 }
 
+/* build_number only: absorbs the leftover space between the checklist and
+   the pile/numpad below AND centers the coin workspace within it (rather
+   than the workspace just sitting pinned under the checklist, which is
+   what a plain .pv-spacer placed after it would do). */
+.pv-workspace-center {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
 .pv-tray {
   display: flex;
   justify-content: center;
@@ -344,8 +357,16 @@
   flex-direction: column;
   gap: 6px;
   padding: 2px 0 10px;
+  /* Roughly two lines of the screen's own body text, so the checklist
+     starts a bit below the very top edge instead of hugging it. */
+  margin-top: clamp(28px, 6vh, 52px);
 }
 
+/* All rows — done, active, pending — share one size (each row runs its
+   own useFitOneLine so a long row still shrinks to fit, but the CEILING
+   they shrink from is the same for all of them): a completed step
+   shouldn't visually shrink away just because it's no longer the one
+   being worked. */
 .pv-checklist-item {
   display: flex;
   align-items: center;
@@ -353,7 +374,7 @@
   background: #fff;
   border: 2px solid #dbe4f3;
   border-radius: 14px;
-  padding: 8px 14px;
+  padding: 14px 18px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -366,25 +387,11 @@
   background: #dcfce7;
   border-color: #16a34a;
   cursor: default;
-  padding: 6px 14px;
 }
 
 .pv-checklist-item.is-wrong {
   border-color: #ef4444;
   animation: pv-shake 0.4s ease;
-}
-
-/* The one row currently being worked (active, or mid-shake after a wrong
-   tap) gets roomier chrome to match its enlarged text — done/pending rows
-   stay at the compact default so the accumulating history doesn't grow the
-   screen taller with every step. */
-.pv-checklist-item.is-active {
-  padding: 14px 18px;
-}
-.pv-checklist-item.is-active .pv-checklist-box {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
 }
 
 /* The two "Сколько...?" rows aren't tapped themselves — the numpad ticks
@@ -397,9 +404,9 @@
 
 .pv-checklist-box {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   border: 2.5px solid #b9c3d9;
   background: #fff;
   display: flex;

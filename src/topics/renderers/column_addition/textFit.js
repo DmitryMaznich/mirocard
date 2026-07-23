@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 // Shrinks font-size just enough to keep `text` on one line inside its own
 // box — vw-based clamp() alone can't do this, since the same font-size
@@ -21,12 +21,30 @@ import { useLayoutEffect, useRef, useState } from "react";
 // Re-runs on container resize, on any font finishing loading (the Nunito
 // stylesheet loads async — see index.html), and via two delayed
 // safety-net passes for any layout that only settles a little after mount.
+//
+// The ref is a callback rather than the usual plain object ref: build_number
+// gives every checklist row its own useFitOneLine call so they can all
+// share one size ceiling, but rows beyond the first mount well after this
+// hook's initial run (once the phase they belong to is reached) — a plain
+// ref's `.current` changing doesn't re-trigger the effect, so a row that
+// mounted late would keep whatever fontSize the hook computed before it
+// existed (the unmeasured `max`) forever. `mountTick` (a plain counter, not
+// the DOM node itself) is the reactive dependency that makes the node's
+// arrival re-trigger the effect; the node itself stays in a plain ref
+// (elRef) since mutating .style on a value sourced from useState directly
+// isn't allowed.
 export function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
-  const ref = useRef(null);
+  const elRef = useRef(null);
+  const [mountTick, setMountTick] = useState(0);
   const [fontSize, setFontSize] = useState(max);
 
+  const setRef = useCallback((node) => {
+    elRef.current = node;
+    setMountTick((t) => t + 1);
+  }, []);
+
   useLayoutEffect(() => {
-    const el = ref.current;
+    const el = elRef.current;
     if (!el || !el.parentElement) return;
     const parent = el.parentElement;
 
@@ -54,9 +72,9 @@ export function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [text, min, max, step]);
+  }, [mountTick, text, min, max, step]);
 
-  return { ref, fontSize };
+  return { ref: setRef, fontSize };
 }
 
 // Watches a checklist zone's own rendered height and returns a font-size

@@ -146,15 +146,10 @@ function CheckIcon() {
 function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
   const done = state === "done";
   const wrong = state === "wrong";
-  // "active" and "wrong" are the same row, mid-shake or not — both get the
-  // enlarged is-active chrome, so a wrong tap doesn't visibly shrink the
-  // row back down for the duration of the shake and then grow again once
-  // it clears.
-  const active = state === "active" || wrong;
   const interactive = clickable && !done;
   return (
     <div
-      className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${active ? " is-active" : ""}${!clickable ? " is-pending" : ""}`}
+      className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!clickable ? " is-pending" : ""}`}
       onClick={interactive ? onTap : undefined}
       role={interactive ? "button" : undefined}
       tabIndex={interactive ? 0 : undefined}
@@ -394,15 +389,14 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const groupableCount = canGroup && placed.ones >= 10 ? 10 : 0;
   const collectText = `Собери ${task.number} ${pluralCoins(task.number)}`;
   const collectContent = withHighlightedNumber(collectText, task.number);
-  const activeText = phase === "collect" ? collectText : phase === "group" ? "Собери десятки" : "";
-  // 3x the compact list-row size (15px, see .pv-checklist-text) — this row
-  // used to just be a small line under the separate huge pv-number display;
-  // now that the number itself lives inside this text (highlighted by
-  // colour below), the instruction carries that same visual weight instead.
-  // A fixed max (not tied to the checklist's own rendered height, unlike
-  // fingers_count's rowsCap) is enough here since only ONE row is ever this
-  // large at a time — the rest sit at the compact default size.
-  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(activeText, { max: 45, min: 20 });
+
+  // Every row gets its own fit call, all sharing the same 45px ceiling
+  // (3x the old compact 15px row) — a completed row keeps the same size
+  // instead of shrinking away just because it's no longer the active one.
+  const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 20 });
+  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Собери десятки", { max: 45, min: 20 });
+  const { ref: tensRef, fontSize: tensFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 20 });
+  const { ref: onesRef, fontSize: onesFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 20 });
 
   const tensDisplay = placed.tens - (formingStack ? 1 : 0);
   const onesDisplay = placed.ones - (unformingStack ? 10 : 0);
@@ -416,16 +410,16 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
             text={collectContent}
             state={phase === "collect" ? (rowWrong.collect ? "wrong" : "active") : "done"}
             onTap={phase === "collect" ? confirmCollect : undefined}
-            textRef={phase === "collect" ? hintRef : undefined}
-            fontSize={phase === "collect" ? hintFontSize : undefined}
+            textRef={collectRef}
+            fontSize={collectFontSize}
           />
           {phase !== "collect" && (
             <ChecklistItem
               text="Собери десятки"
               state={phase === "group" ? (rowWrong.group ? "wrong" : "active") : "done"}
               onTap={phase === "group" ? confirmGroup : undefined}
-              textRef={phase === "group" ? hintRef : undefined}
-              fontSize={phase === "group" ? hintFontSize : undefined}
+              textRef={groupRef}
+              fontSize={groupFontSize}
             />
           )}
           {(phase === "answerTens" || phase === "answerOnes" || phase === "done") && (
@@ -433,6 +427,8 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               text="Сколько десятков?"
               state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
               clickable={false}
+              textRef={tensRef}
+              fontSize={tensFontSize}
             />
           )}
           {(phase === "answerOnes" || phase === "done") && (
@@ -440,38 +436,44 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               text="Сколько единиц?"
               state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
               clickable={false}
+              textRef={onesRef}
+              fontSize={onesFontSize}
             />
           )}
         </div>
 
-        <Workspace
-          placed={placed}
-          formingStack={formingStack}
-          unformingStack={unformingStack}
-          groupableCount={groupableCount}
-          errorZones={errorZones}
-          capacityFlash={capacityFlash}
-          solved={phase === "done"}
-          numeric={task.numericBlocks}
-          onRemoveOne={removeOne}
-          onGroup={handleGroup}
-          onRemoveTen={handleUngroup}
-          stacksAreaRef={stacksAreaRef}
-          looseAreaRef={looseAreaRef}
-        />
+        {/* Centers the coin zone in whatever vertical space is left between
+            the checklist and the pile/numpad below, rather than it sitting
+            right under the checklist — flex:1 both absorbs the leftover
+            space AND (via justify-content) splits it evenly above/below. */}
+        <div className="pv-workspace-center">
+          <Workspace
+            placed={placed}
+            formingStack={formingStack}
+            unformingStack={unformingStack}
+            groupableCount={groupableCount}
+            errorZones={errorZones}
+            capacityFlash={capacityFlash}
+            solved={phase === "done"}
+            numeric={task.numericBlocks}
+            onRemoveOne={removeOne}
+            onGroup={handleGroup}
+            onRemoveTen={handleUngroup}
+            stacksAreaRef={stacksAreaRef}
+            looseAreaRef={looseAreaRef}
+          />
 
-        {building && (
-          <div className="pv-zones" style={{ flex: 0 }}>
-            <div style={{ flex: 1 }} className="pv-zone-counter">
-              {tensDisplay} {pluralTens(tensDisplay)}
+          {building && (
+            <div className="pv-zones" style={{ flex: 0 }}>
+              <div style={{ flex: 1 }} className="pv-zone-counter">
+                {tensDisplay} {pluralTens(tensDisplay)}
+              </div>
+              <div style={{ flex: 1 }} className="pv-zone-counter">
+                {onesDisplay} {pluralOnes(onesDisplay)}
+              </div>
             </div>
-            <div style={{ flex: 1 }} className="pv-zone-counter">
-              {onesDisplay} {pluralOnes(onesDisplay)}
-            </div>
-          </div>
-        )}
-
-        <div className="pv-spacer" />
+          )}
+        </div>
 
         <div
           className="pv-tray"
