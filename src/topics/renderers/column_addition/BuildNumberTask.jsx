@@ -4,7 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
 import { pluralTens, pluralOnes, pluralCoins } from "./placeValueLabels.js";
-import { useFitOneLine, useRowsHeightCap } from "./textFit.js";
+import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
 
@@ -146,10 +146,15 @@ function CheckIcon() {
 function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
   const done = state === "done";
   const wrong = state === "wrong";
+  // "active" and "wrong" are the same row, mid-shake or not — both get the
+  // enlarged is-active chrome, so a wrong tap doesn't visibly shrink the
+  // row back down for the duration of the shake and then grow again once
+  // it clears.
+  const active = state === "active" || wrong;
   const interactive = clickable && !done;
   return (
     <div
-      className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!clickable ? " is-pending" : ""}`}
+      className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${active ? " is-active" : ""}${!clickable ? " is-pending" : ""}`}
       onClick={interactive ? onTap : undefined}
       role={interactive ? "button" : undefined}
       tabIndex={interactive ? 0 : undefined}
@@ -159,6 +164,25 @@ function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true
         {text}
       </span>
     </div>
+  );
+}
+
+// The target number used to live in its own huge standalone pv-number
+// display above the checklist, duplicating what row 1's instruction text
+// already said ("Собери 23 монеты"). Folding it into the instruction
+// itself (highlighted by colour, not by an oversized nested span — that
+// would throw off useFitOneLine's own width measurement) removes that
+// duplication instead of just shrinking one of the two copies.
+function withHighlightedNumber(text, number) {
+  const numStr = String(number);
+  const idx = text.indexOf(numStr);
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <span className="pv-checklist-number">{numStr}</span>
+      {text.slice(idx + numStr.length)}
+    </>
   );
 }
 
@@ -369,9 +393,16 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
 
   const groupableCount = canGroup && placed.ones >= 10 ? 10 : 0;
   const collectText = `Собери ${task.number} ${pluralCoins(task.number)}`;
+  const collectContent = withHighlightedNumber(collectText, task.number);
   const activeText = phase === "collect" ? collectText : phase === "group" ? "Собери десятки" : "";
-  const { ref: rowsCapRef, cap: rowsCap } = useRowsHeightCap(4);
-  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(activeText, { max: rowsCap, min: 14 });
+  // 3x the compact list-row size (15px, see .pv-checklist-text) — this row
+  // used to just be a small line under the separate huge pv-number display;
+  // now that the number itself lives inside this text (highlighted by
+  // colour below), the instruction carries that same visual weight instead.
+  // A fixed max (not tied to the checklist's own rendered height, unlike
+  // fingers_count's rowsCap) is enough here since only ONE row is ever this
+  // large at a time — the rest sit at the compact default size.
+  const { ref: hintRef, fontSize: hintFontSize } = useFitOneLine(activeText, { max: 45, min: 20 });
 
   const tensDisplay = placed.tens - (formingStack ? 1 : 0);
   const onesDisplay = placed.ones - (unformingStack ? 10 : 0);
@@ -380,11 +411,9 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        <div className="pv-number">{task.number}</div>
-
-        <div className="pv-checklist" ref={rowsCapRef}>
+        <div className="pv-checklist">
           <ChecklistItem
-            text={collectText}
+            text={collectContent}
             state={phase === "collect" ? (rowWrong.collect ? "wrong" : "active") : "done"}
             onTap={phase === "collect" ? confirmCollect : undefined}
             textRef={phase === "collect" ? hintRef : undefined}

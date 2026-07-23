@@ -374,6 +374,19 @@
   animation: pv-shake 0.4s ease;
 }
 
+/* The one row currently being worked (active, or mid-shake after a wrong
+   tap) gets roomier chrome to match its enlarged text — done/pending rows
+   stay at the compact default so the accumulating history doesn't grow the
+   screen taller with every step. */
+.pv-checklist-item.is-active {
+  padding: 14px 18px;
+}
+.pv-checklist-item.is-active .pv-checklist-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
 /* The two "Сколько...?" rows aren't tapped themselves — the numpad ticks
    them off — so no pointer cursor / press feedback, same reasoning as
    fng-checklist-item.is-pending. */
@@ -421,4 +434,12 @@
   text-decoration: line-through;
   text-decoration-color: #16a34a;
   text-decoration-thickness: 2px;
+}
+
+/* Highlights the target number inside the "Собери N монет" instruction —
+   this used to be its own separate huge pv-number display above the
+   checklist; colour (not an oversized nested span) keeps it from throwing
+   off useFitOneLine's own width measurement of the row. */
+.pv-checklist-number {
+  color: #1d4ed8;
 }

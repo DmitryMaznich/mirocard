@@ -1,17 +1,26 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
-// Shrinks font-size just enough to keep `text` on one line inside its
-// parent's content box — vw-based clamp() alone can't do this, since the
-// same font-size wraps a long hint ("Прибавь ещё 8") but not a short one
-// ("Убери 2"). Unlike a one-shot proportional calculation (containerWidth /
-// naturalWidth * max), this steps the size DOWN and re-measures after every
-// step, verifying the actual fit directly each time rather than trusting a
+// Shrinks font-size just enough to keep `text` on one line inside its own
+// box — vw-based clamp() alone can't do this, since the same font-size
+// wraps a long hint ("Прибавь ещё 8") but not a short one ("Убери 2").
+// Unlike a one-shot proportional calculation (containerWidth / naturalWidth
+// * max), this steps the size DOWN and re-measures after every step,
+// verifying the actual fit directly each time rather than trusting a
 // single formula — immune to whatever measurement quirk (font metrics,
 // rounding, a not-yet-settled layout) made the proportional version report
-// "already fits" when it visibly didn't on real devices. Re-runs on
-// container resize, on any font finishing loading (the Nunito stylesheet
-// loads async — see index.html), and via two delayed safety-net passes for
-// any layout that only settles a little after mount.
+// "already fits" when it visibly didn't on real devices.
+//
+// Compares the element's OWN scrollWidth against its OWN clientWidth, not
+// against its parent's — the parent (a checklist row) is wider than what's
+// actually left for this text once a sibling checkbox + gap + padding are
+// accounted for, so measuring against the parent let the loop conclude
+// "fits" while the text was still overflowing its own (flex-shrunk) box,
+// silently ellipsis-truncating it. That went unnoticed at fingers_count's
+// modest 13-17px rows; it became visible once build_number needed a much
+// larger (45px) instruction row for a longer phrase on a narrow phone.
+// Re-runs on container resize, on any font finishing loading (the Nunito
+// stylesheet loads async — see index.html), and via two delayed
+// safety-net passes for any layout that only settles a little after mount.
 export function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
   const ref = useRef(null);
   const [fontSize, setFontSize] = useState(max);
@@ -22,11 +31,10 @@ export function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
     const parent = el.parentElement;
 
     function fit() {
-      const containerWidth = parent.clientWidth;
-      if (containerWidth === 0) return;
+      if (parent.clientWidth === 0) return;
       let size = max;
       el.style.fontSize = size + "px";
-      while (size > min && el.scrollWidth > containerWidth) {
+      while (size > min && el.scrollWidth > el.clientWidth) {
         size -= step;
         el.style.fontSize = size + "px";
       }
