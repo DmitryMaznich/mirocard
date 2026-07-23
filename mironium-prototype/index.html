@@ -93,17 +93,17 @@ img{max-width:100%;display:block}
 .steps-section__intro{max-width:620px;margin:0 auto;text-align:center}
 .steps-section__intro h2{font:600 clamp(30px,3.4vw,44px)/1.12 var(--font-display);letter-spacing:-0.01em;margin-top:14px}
 .steps-section__lead{margin-top:16px;font-size:17px;line-height:1.6;color:var(--copy)}
-.steps{display:grid;grid-template-columns:1fr 90px 1fr 90px 1fr;align-items:start;gap:4px;padding:56px 0 96px}
+.steps{display:grid;grid-template-columns:1fr 90px 1fr 90px 1fr 56px;align-items:start;gap:4px;padding:56px 0 96px}
 .step{text-align:center;max-width:240px;justify-self:center}
-.step__icon{position:relative;width:82px;height:82px;border-radius:50%;display:grid;place-items:center;margin:0 auto 18px;color:#fff}
-.step__icon svg{width:30px;height:30px}
-.step__icon--mint{background:var(--mint)}
-.step__icon--coral{background:var(--coral)}
-.step__icon--sun{background:var(--sun);color:var(--ink)}
-.step__num{position:absolute;top:-4px;left:-4px;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--ink);font:700 12px var(--font-display);display:grid;place-items:center;box-shadow:0 2px 6px rgba(28,54,52,.2)}
+.step__icon{position:relative;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;margin:0 auto 22px;background:#fffaf2;border:1.6px solid var(--line);color:var(--ink)}
+.step__icon svg{width:34px;height:34px}
+.step__num{position:absolute;top:-8px;left:-8px;width:30px;height:30px;border-radius:50%;color:var(--ink);font:700 14px var(--font-display);display:grid;place-items:center;box-shadow:0 3px 6px rgba(28,54,52,.2)}
+.step__num--mint{background:#aee0c4}
+.step__num--sky{background:#a8cdec}
+.step__num--sun{background:var(--sun)}
 .step h3{font:600 19px var(--font-display);margin-bottom:6px}
 .step p{font-size:14px;color:var(--copy);line-height:1.5}
-.step__connector{align-self:center;margin-top:41px;color:var(--line)}
+.step__connector{align-self:center;margin-top:48px;color:#d8c3a0}
 
 .topics{background:var(--cream);padding:96px 0}
 .topics__intro{max-width:600px;margin:0 auto;text-align:center}
@@ -262,31 +262,32 @@ img{max-width:100%;display:block}
   </div>
   <div class="wrap steps reveal">
     <div class="step">
-      <div class="step__icon step__icon--mint">
-        <span class="step__num">1</span>
+      <div class="step__icon">
+        <span class="step__num step__num--mint">1</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
       </div>
       <h3>Выберите тему</h3>
       <p>Вы решаете, что сейчас важно и интересно ребёнку.</p>
     </div>
-    <svg class="step__connector" viewBox="0 0 90 40" width="90" height="40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,20 Q45,0 90,20" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 6"/></svg>
+    <svg class="step__connector" viewBox="0 0 90 44" width="90" height="44" preserveAspectRatio="none" aria-hidden="true"><path d="M0,26 Q14,6 24,22 Q28,29 22,25 Q17,21 24,18 Q40,8 50,24 Q60,38 70,22 Q78,10 90,22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 7"/></svg>
     <div class="step">
-      <div class="step__icon step__icon--coral">
-        <span class="step__num">2</span>
+      <div class="step__icon">
+        <span class="step__num step__num--sky">2</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 13l2 2 4-4"/></svg>
       </div>
       <h3>Позанимайтесь вместе</h3>
       <p>Ребёнок проходит короткое занятие рядом с вами.</p>
     </div>
-    <svg class="step__connector" viewBox="0 0 90 40" width="90" height="40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,20 Q45,40 90,20" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 6"/></svg>
+    <svg class="step__connector" viewBox="0 0 90 44" width="90" height="44" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 Q10,10 20,24 Q30,38 40,20 Q44,13 38,17 Q33,21 40,24 Q56,32 66,18 Q74,7 90,22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 7"/></svg>
     <div class="step">
-      <div class="step__icon step__icon--sun">
-        <span class="step__num">3</span>
+      <div class="step__icon">
+        <span class="step__num step__num--sun">3</span>
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7z"/></svg>
       </div>
       <h3>Решите, что дальше</h3>
       <p>Вы управляете тем, каким будет следующий шаг.</p>
     </div>
+    <svg class="step__connector" viewBox="0 0 56 44" width="56" height="44" aria-hidden="true"><path d="M0,22 Q14,4 24,22 Q30,33 38,22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 7"/><path d="M30,14 L40,22 L30,30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </div>
 </section>
 
