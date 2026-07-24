@@ -14,4 +14,14 @@
     });
   }, { threshold: 0.15 });
   targets.forEach(function(el){ io.observe(el); });
+
+  var steps = document.querySelector('.steps');
+  if(steps){
+    var stepsIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        steps.classList.toggle('is-playing', entry.isIntersecting);
+      });
+    }, { threshold: 0.3 });
+    stepsIO.observe(steps);
+  }
 })();
