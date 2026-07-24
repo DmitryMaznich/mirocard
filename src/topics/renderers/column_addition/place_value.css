@@ -268,6 +268,21 @@
   background: #eff6ff;
 }
 
+/* Marks which slot the currently-asked checklist question ("Сколько
+   десятков?"/"Сколько единиц?") refers to, so the child doesn't have to
+   guess which of the two zones to type into — same breathing-ring pulse
+   already used for the checklist's own active row (pv-checklist-box-pulse
+   in this file), reused here rather than inventing a second pulse style. */
+.pv-answer-slot--active {
+  border-style: solid;
+  border-color: #3b82f6;
+  animation: pv-checklist-box-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-answer-slot--active { animation: none; }
+}
+
 .pv-answer-slot--shake {
   border-color: #ef4444;
   animation: pv-shake 0.4s ease-in-out;

@@ -420,17 +420,19 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // (~320px) phone.
   const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
   const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Выдели десятки", { max: 45, min: 13 });
+  const { ref: tensQRef, fontSize: tensQFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
+  const { ref: onesQRef, fontSize: onesQFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
 
   const showAnswerSlots = phase === "answerTens" || phase === "answerOnes" || phase === "done";
   const tensDone = phase === "answerOnes" || phase === "done";
   const onesDone = phase === "done";
   const tensAnswer = {
     value: tensDone ? task.target.tens : null,
-    state: tensDone ? "filled correct" : rowWrong.tens ? "shake" : undefined,
+    state: tensDone ? "filled correct" : rowWrong.tens ? "shake" : phase === "answerTens" ? "active" : undefined,
   };
   const onesAnswer = {
     value: onesDone ? task.target.ones : null,
-    state: onesDone ? "filled correct" : rowWrong.ones ? "shake" : undefined,
+    state: onesDone ? "filled correct" : rowWrong.ones ? "shake" : phase === "answerOnes" ? "active" : undefined,
   };
 
   return (
@@ -451,6 +453,31 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               onTap={phase === "group" ? confirmGroup : undefined}
               textRef={groupRef}
               fontSize={groupFontSize}
+            />
+          )}
+          {/* These two appear one at a time, same as the rows above — the
+              numpad ticks them off (clickable=false), not a tap on the row
+              itself. The matching answer slot pulses (see AnswerSlot's
+              "active" state, nested under its own Десятки/Единицы column)
+              at the same time its question is the active one here, so the
+              question and where to type the answer are visually tied
+              together instead of the child having to hunt for the field. */}
+          {showAnswerSlots && (
+            <ChecklistItem
+              text="Сколько десятков?"
+              state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
+              clickable={false}
+              textRef={tensQRef}
+              fontSize={tensQFontSize}
+            />
+          )}
+          {(phase === "answerOnes" || phase === "done") && (
+            <ChecklistItem
+              text="Сколько единиц?"
+              state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
+              clickable={false}
+              textRef={onesQRef}
+              fontSize={onesQFontSize}
             />
           )}
         </div>
