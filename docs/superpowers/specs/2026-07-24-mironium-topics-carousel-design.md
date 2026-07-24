@@ -48,8 +48,18 @@ The old `app-*.jpg` files are no longer referenced from this section. They are n
 ## Files touched
 
 - `mironium-prototype/index.html` — replace the `#topics` section markup (`.topics__grid` / `.topic-card` structure) with the new carousel markup.
-- `mironium-prototype/styles.css` — replace `.topics__grid`/`.topic-card` rules with new carousel styles (main photo, caption, thumbnail row, active/progress states, reduced-motion override).
-- `mironium-prototype/script.js` — add a small self-contained carousel controller (timer, crossfade class toggling, swipe gesture handling, thumbnail click, arrow-key handling, progress-bar reset). No new dependencies.
+- `mironium-prototype/en/index.html`, `mironium-prototype/sl/index.html` — mirror the same carousel markup with translated captions/alt text (see Addendum below).
+- `mironium-prototype/styles.css` — replace `.topics__grid`/`.topic-card` rules with new carousel styles (main photo, caption, thumbnail row, active/progress states, reduced-motion override). Shared by all three language pages.
+- `mironium-prototype/script.js` — add a small self-contained carousel controller (timer, crossfade class toggling, swipe gesture handling, thumbnail click, arrow-key handling, progress-bar reset). No new dependencies. Shared by all three language pages.
+
+## Addendum: language variants
+
+`mironium-prototype/en/index.html` and `mironium-prototype/sl/index.html` both link the same shared `styles.css`/`script.js` as the Russian page (`<link rel="stylesheet" href="../styles.css">`, `<script src="../script.js"></script>`) and currently mirror the same `#topics` grid markup with translated captions/alt text. Removing the old `.topics__grid`/`.topic-card` CSS (shared) without migrating these two files would break them visually. Scope is therefore extended to include:
+
+- `mironium-prototype/en/index.html` — same carousel markup, English captions/alt text/`aria-label`s.
+- `mironium-prototype/sl/index.html` — same carousel markup, Slovenian captions/alt text/`aria-label`s.
+
+No new translation content beyond the 6 existing captions (already translated on the current grid) plus the one new topic (`🧮 Плюс и минус` / `🧮 Plus and minus` / `🧮 Plus in minus`) and its `alt` text, describing the same photo in each language.
 
 ## Out of scope
 
