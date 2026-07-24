@@ -9,7 +9,15 @@
  * toppings. mode "single": clicking a choice always replaces the selection
  * with just that one product — never toggles off, never empties — used for
  * an exclusive swap like "which filling" where exactly one must be chosen.
- * Same pill visuals in both modes; only the click behavior differs.
+ * mode "single-optional": same replace-on-click behavior as "single", but
+ * clicking the currently-selected choice again clears it back to empty —
+ * used when at most one choice makes sense at a time (so no combining two
+ * different prep instructions in one step) but skipping entirely is also a
+ * valid choice (e.g. porridge topping — see oatmeal.txt). Callers relying on
+ * a "single" group always resolving to some value (ParamsScreen.jsx /
+ * PlannerMenuScreen.jsx's forced-default-to-first-choice) key off the exact
+ * string "single", so "single-optional" deliberately does not trigger it.
+ * Same pill visuals in every mode; only the click behavior differs.
  *
  * Each choice may carry a `qtyLabel` (e.g. "8 кружочков", "1 горсть") —
  * already scaled and formatted by the caller (see ParamsScreen.jsx /
@@ -23,6 +31,10 @@ export default function OptionsPicker({ label, choices, selected, onChange, mode
   function toggle(product) {
     if (mode === "single") {
       onChange([product]);
+      return;
+    }
+    if (mode === "single-optional") {
+      onChange(selectedSet.has(product) ? [] : [product]);
       return;
     }
     const next = selectedSet.has(product)

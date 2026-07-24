@@ -139,9 +139,11 @@ describe('parseOptionGroups', () => {
     expect(parseOptionGroups(content)).toEqual({});
   });
 
-  it('a recipe with no # option_groups: (e.g. porridge toppings) yields no metadata', () => {
+  it("oatmeal's topping group is single-optional (at most one topping, skippable)", () => {
     const oatmeal = getBuiltinRecipeRawText('recipes/oatmeal.txt') ?? '';
-    expect(parseOptionGroups(oatmeal)).toEqual({});
+    expect(parseOptionGroups(oatmeal)).toEqual({
+      topping: { mode: 'single-optional', label: 'Топпинг' },
+    });
   });
 
   it("omelet's filling group is single-mode and its milk/herbs groups are multi-mode, all with custom labels", () => {
