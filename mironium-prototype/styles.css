@@ -122,55 +122,49 @@ img{max-width:100%;display:block}
 .step__num--sun{animation:numPulse3 7s var(--ease-in-out) infinite}
 
 @keyframes ringPop1{
-  0%,4%{opacity:0;transform:scale(.85)}
-  9%,29%{opacity:1;transform:scale(1)}
-  33%{animation-timing-function:var(--ease-in)}
-  33%,100%{opacity:0;transform:scale(.9)}
+  0%{opacity:0;transform:scale(.85)}
+  6%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
+  91%,100%{opacity:0;transform:scale(.9)}
 }
 @keyframes ringPop2{
-  0%,29%{opacity:0;transform:scale(.85)}
-  34%,54%{opacity:1;transform:scale(1)}
-  58%{animation-timing-function:var(--ease-in)}
-  58%,100%{opacity:0;transform:scale(.9)}
+  0%,18%{opacity:0;transform:scale(.85)}
+  24%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
+  91%,100%{opacity:0;transform:scale(.9)}
 }
 @keyframes ringPop3{
-  0%,54%{opacity:0;transform:scale(.85)}
-  59%,94%{opacity:1;transform:scale(1)}
-  98%{animation-timing-function:var(--ease-in)}
-  98%,100%{opacity:0;transform:scale(.9)}
+  0%,36%{opacity:0;transform:scale(.85)}
+  42%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
+  91%,100%{opacity:0;transform:scale(.9)}
 }
 @keyframes connectorDraw1{
-  0%,19%{clip-path:inset(0 100% 0 0)}
-  29%,94%{clip-path:inset(0 0 0 0)}
-  94%{animation-timing-function:var(--ease-in)}
-  98%,100%{clip-path:inset(0 100% 0 0)}
+  0%,8%{clip-path:inset(0 100% 0 0)}
+  16%,87%{clip-path:inset(0 0 0 0);animation-timing-function:var(--ease-in)}
+  91%,100%{clip-path:inset(0 100% 0 0)}
 }
 @keyframes connectorDraw2{
-  0%,44%{clip-path:inset(0 100% 0 0)}
-  54%,94%{clip-path:inset(0 0 0 0)}
-  94%{animation-timing-function:var(--ease-in)}
-  98%,100%{clip-path:inset(0 100% 0 0)}
+  0%,26%{clip-path:inset(0 100% 0 0)}
+  34%,87%{clip-path:inset(0 0 0 0);animation-timing-function:var(--ease-in)}
+  91%,100%{clip-path:inset(0 100% 0 0)}
 }
 @keyframes connectorDraw3{
-  0%,69%{clip-path:inset(0 100% 0 0)}
-  79%,94%{clip-path:inset(0 0 0 0)}
-  94%{animation-timing-function:var(--ease-in)}
-  98%,100%{clip-path:inset(0 100% 0 0)}
+  0%,44%{clip-path:inset(0 100% 0 0)}
+  52%,87%{clip-path:inset(0 0 0 0);animation-timing-function:var(--ease-in)}
+  91%,100%{clip-path:inset(0 100% 0 0)}
 }
 @keyframes numPulse1{
-  0%,4%{transform:scale(1)}
-  7%{transform:scale(1.15)}
-  11%,100%{transform:scale(1)}
+  0%,1%{transform:scale(1)}
+  3%{transform:scale(1.15)}
+  6%,100%{transform:scale(1)}
 }
 @keyframes numPulse2{
-  0%,29%{transform:scale(1)}
-  32%{transform:scale(1.15)}
-  36%,100%{transform:scale(1)}
+  0%,19%{transform:scale(1)}
+  21%{transform:scale(1.15)}
+  24%,100%{transform:scale(1)}
 }
 @keyframes numPulse3{
-  0%,54%{transform:scale(1)}
-  57%{transform:scale(1.15)}
-  61%,100%{transform:scale(1)}
+  0%,37%{transform:scale(1)}
+  39%{transform:scale(1.15)}
+  42%,100%{transform:scale(1)}
 }
 
 .topics{background:var(--cream);padding:96px 0}
