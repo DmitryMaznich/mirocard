@@ -44,8 +44,25 @@
   min-height: calc(68 * var(--cb-scale));
 }
 
-.cb-stacks-area {
+/* Each column is now labeled (Десятки/Единицы, see .pv-zone-label reused
+   from identify_number) above its coins, so the width split that used to
+   live on .cb-stacks-area/.cb-loose-area directly now lives one level up
+   on their .cb-col wrapper — the label sits above the same width the
+   coins below it occupy, not stretched to some other proportion. */
+.cb-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cb-col--tens {
   width: 40%;
+}
+.cb-col--ones {
+  flex: 1;
+}
+
+.cb-stacks-area {
+  flex: 1;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;

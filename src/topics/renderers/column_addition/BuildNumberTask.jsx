@@ -2,40 +2,12 @@ import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
-import { pluralCoins, pluralTens, pluralOnes } from "./placeValueLabels.js";
+import { pluralCoins } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-
-// The number-bond diagram dropped the old "Сколько десятков?"/"Сколько
-// единиц?" sentences in favour of a purely visual "?" — clearer once a
-// child already knows the convention, but the very first few times it
-// could just look like an unlabeled box. A short caption fills that gap
-// only until the child has actually completed it a few times, then gets
-// out of the way permanently. Persisted (not per-session): once learned,
-// it stays learned — re-showing it every session would be patronizing.
-// Same localStorage-with-try/catch shape as rewardVideoPicker.js's
-// shown-tracking, the closest existing precedent in this codebase.
-const BOND_HINT_KEY = "mirocard:buildNumberBondHintCount";
-const BOND_HINT_LIMIT = 3;
-
-function getBondHintCount() {
-  try {
-    return Number(window.localStorage?.getItem(BOND_HINT_KEY)) || 0;
-  } catch {
-    return 0;
-  }
-}
-
-function bumpBondHintCount() {
-  try {
-    window.localStorage?.setItem(BOND_HINT_KEY, String(getBondHintCount() + 1));
-  } catch {
-    // Worst case the hint just doesn't fade across sessions — harmless.
-  }
-}
 
 // Every coin in the pyramid is its own draggable (not just the apex), so a
 // child can pull any coin out of the heap. Each keeps rendering at its
@@ -88,36 +60,42 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
         className={`pv-zone${solved ? " pv-zone--correct" : ""}${isOver ? " pv-zone--drag-over" : ""}`}
       >
         <div className="cb-zone-split">
-          <div
-            className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}${capacityFlash.tens ? " cb-area--capacity" : ""}`}
-            ref={stacksAreaRef}
-          >
-            {Array.from({ length: placed.tens }, (_, i) => (
-              <div
-                key={i}
-                className={formingStack && i === placed.tens - 1 ? "cb-ten-stack-pending" : undefined}
-                onClick={onRemoveTen}
-              >
-                <TenStack numeric={numeric} />
-              </div>
-            ))}
-          </div>
-          <div
-            className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}${capacityFlash.ones ? " cb-area--capacity" : ""}`}
-            ref={looseAreaRef}
-          >
-            {Array.from({ length: placed.ones }, (_, i) => {
-              const pending = i >= pendingOnesStart;
-              return (
+          <div className="cb-col cb-col--tens">
+            <div className="pv-zone-label">Десятки</div>
+            <div
+              className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}${capacityFlash.tens ? " cb-area--capacity" : ""}`}
+              ref={stacksAreaRef}
+            >
+              {Array.from({ length: placed.tens }, (_, i) => (
                 <div
                   key={i}
-                  className={pending ? "cb-coin-pending" : undefined}
-                  onClick={pending ? undefined : (i < groupableCount ? onGroup : onRemoveOne)}
+                  className={formingStack && i === placed.tens - 1 ? "cb-ten-stack-pending" : undefined}
+                  onClick={onRemoveTen}
                 >
-                  <Coin numeric={numeric} groupable={i < groupableCount} />
+                  <TenStack numeric={numeric} />
                 </div>
-              );
-            })}
+              ))}
+            </div>
+          </div>
+          <div className="cb-col cb-col--ones">
+            <div className="pv-zone-label">Единицы</div>
+            <div
+              className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}${capacityFlash.ones ? " cb-area--capacity" : ""}`}
+              ref={looseAreaRef}
+            >
+              {Array.from({ length: placed.ones }, (_, i) => {
+                const pending = i >= pendingOnesStart;
+                return (
+                  <div
+                    key={i}
+                    className={pending ? "cb-coin-pending" : undefined}
+                    onClick={pending ? undefined : (i < groupableCount ? onGroup : onRemoveOne)}
+                  >
+                    <Coin numeric={numeric} groupable={i < groupableCount} />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
@@ -189,48 +167,6 @@ function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true
   );
 }
 
-// A number-bond diagram (number on top, a straight branch down to the tens
-// slot and a diagonal branch down to the ones slot) replacing the old pair
-// of "Сколько десятков?"/"Сколько единиц?" checklist rows — asked the same
-// question, but visually ties the two answers back to the number they came
-// from instead of reading as two disconnected lines of text. The 60/160
-// line endpoints (in the 220-wide viewBox) land exactly under the two
-// slots below only because slot width + row gap sums to 100 of those same
-// units (60 + (100-60)... concretely: centering .pv-bond-svg and
-// .pv-bond-row as sibling flex children of the same align-items:center
-// column means the row's own center sits under the viewBox's x=110; each
-// slot's center is then centered_x ± (slotWidth+gap)/2 — which equals the
-// intended 60/160 exactly when slotWidth+gap=100, not approximately).
-function BondSlot({ value, label, state }) {
-  const stateClass = state ? ` pv-bond-slot--${state}` : "";
-  const labelClass = state === "pending" ? " pv-bond-label--pending" : "";
-  return (
-    <div className="pv-bond-col">
-      <div className={`pv-bond-slot${stateClass}`}>{value ?? "?"}</div>
-      <div className={`pv-bond-label${labelClass}`}>{label}</div>
-    </div>
-  );
-}
-
-function NumberBond({ number, tensValue, onesValue, tensLabel, onesLabel, tensState, onesState, showHint }) {
-  return (
-    <div className="pv-bond">
-      {showHint && <div className="pv-bond-hint">Сколько десятков и единиц получилось?</div>}
-      <div className="pv-bond-medallion">
-        <div className="pv-bond-number">{number}</div>
-      </div>
-      <svg className="pv-bond-svg" viewBox="0 0 220 64" aria-hidden="true">
-        <line x1="60" y1="0" x2="60" y2="64" />
-        <line x1="60" y1="0" x2="160" y2="64" />
-      </svg>
-      <div className="pv-bond-row">
-        <BondSlot value={tensValue} label={tensLabel} state={tensState} />
-        <BondSlot value={onesValue} label={onesLabel} state={onesState} />
-      </div>
-    </div>
-  );
-}
-
 // The target number used to live in its own huge standalone pv-number
 // display above the checklist, duplicating what row 1's instruction text
 // already said ("Собери 23 монеты"). Folding it into the instruction
@@ -267,9 +203,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [capacityFlash, setCapacityFlash] = useState({ tens: false, ones: false });
   const [rowWrong, setRowWrong] = useState({ collect: false, group: false, tens: false, ones: false });
-  // Decided once per task, not re-checked live: the hint shouldn't vanish
-  // mid-task just because this same completion is about to bump the count.
-  const [showBondHint] = useState(() => getBondHintCount() < BOND_HINT_LIMIT);
   const stacksAreaRef = useRef(null);
   const looseAreaRef = useRef(null);
 
@@ -443,7 +376,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   function handleOnesDigit(d) {
     if (phase !== "answerOnes") return;
     if (d === task.target.ones) {
-      bumpBondHintCount();
       setPhase("done");
       setTimeout(() => onCorrect(task.conceptId, task.cardId), 900);
     } else {
@@ -465,7 +397,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
   const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Выдели десятки", { max: 45, min: 13 });
 
-  const showBond = phase === "answerTens" || phase === "answerOnes" || phase === "done";
+  const showAnswerRow = phase === "answerTens" || phase === "answerOnes" || phase === "done";
   const tensState = phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done";
   const onesState = phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : phase === "done" ? "done" : "pending";
 
@@ -490,26 +422,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
             />
           )}
         </div>
-
-        {/* Replaces the old pair of "Сколько десятков?"/"Сколько единиц?"
-            checklist rows with a number-bond diagram: the target number,
-            branching down to the same two answer slots, so the two digits
-            the child reports read as parts of the number above them
-            instead of two disconnected questions. Labels default to the
-            question form ("десятков"/"единиц") until answered, then switch
-            to the grammatically correct form for the actual digit. */}
-        {showBond && (
-          <NumberBond
-            number={task.number}
-            tensValue={tensState === "done" ? task.target.tens : null}
-            onesValue={onesState === "done" ? task.target.ones : null}
-            tensLabel={tensState === "done" ? pluralTens(task.target.tens) : "десятков"}
-            onesLabel={onesState === "done" ? pluralOnes(task.target.ones) : "единиц"}
-            tensState={tensState}
-            onesState={onesState}
-            showHint={showBondHint && phase === "answerTens"}
-          />
-        )}
 
         {/* Centers the coin zone in whatever vertical space is left between
             the checklist and the pile/numpad below, rather than it sitting
@@ -549,6 +461,25 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
             />
           </div>
         </div>
+
+        {/* Replaces the earlier number-bond diagram — plain answer slots
+            directly under the labeled zones above (ДЕСЯТКИ/ЕДИНИЦЫ), same
+            .pv-answer-row/.pv-answer-slot pattern IdentifyNumberTask
+            already uses, filled by the same shared numpad below. */}
+        {showAnswerRow && (
+          <div className="pv-answer-row">
+            <div
+              className={`pv-answer-slot${tensState === "done" ? " pv-answer-slot--filled pv-answer-slot--correct" : ""}${tensState === "wrong" ? " pv-answer-slot--shake" : ""}`}
+            >
+              {tensState === "done" ? task.target.tens : "?"}
+            </div>
+            <div
+              className={`pv-answer-slot${onesState === "done" ? " pv-answer-slot--filled pv-answer-slot--correct" : ""}${onesState === "wrong" ? " pv-answer-slot--shake" : ""}`}
+            >
+              {onesState === "done" ? task.target.ones : "?"}
+            </div>
+          </div>
+        )}
 
         {/* Fully unmounted (not just opacity-hidden) once collecting is
             over — an opacity-hidden tray would still reserve its layout
