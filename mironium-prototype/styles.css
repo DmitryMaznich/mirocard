@@ -157,14 +157,14 @@ img{max-width:100%;display:block}
   6%,100%{transform:scale(1)}
 }
 @keyframes numPulse2{
-  0%,19%{transform:scale(1)}
-  21%{transform:scale(1.15)}
-  24%,100%{transform:scale(1)}
+  0%,14%{transform:scale(1)}
+  16%{transform:scale(1.15)}
+  19%,100%{transform:scale(1)}
 }
 @keyframes numPulse3{
-  0%,37%{transform:scale(1)}
-  39%{transform:scale(1.15)}
-  42%,100%{transform:scale(1)}
+  0%,32%{transform:scale(1)}
+  34%{transform:scale(1.15)}
+  37%,100%{transform:scale(1)}
 }
 
 .topics{background:var(--cream);padding:96px 0}
@@ -172,14 +172,14 @@ img{max-width:100%;display:block}
 .topics__intro h2{font:600 clamp(30px,3.4vw,44px)/1.12 var(--font-display);letter-spacing:-0.01em;margin-top:14px}
 .topics__more{text-align:center;margin-top:36px}
 
-.topics-carousel{margin:48px auto 0;max-width:360px;outline:none}
+.topics-carousel{margin:48px auto 0;max-width:480px;outline:none}
 .topics-carousel__stage{position:relative;aspect-ratio:3/4;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 18px 36px -16px rgba(28,54,52,.32);border:1px solid var(--line)}
 .topics-carousel__slide{position:absolute;inset:0;opacity:0;transform:scale(1.03);transition:opacity .5s ease,transform .5s ease;pointer-events:none}
 .topics-carousel__slide.is-active{opacity:1;transform:scale(1);pointer-events:auto}
 .topics-carousel__slide img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 .topics-carousel__caption{margin-top:16px;text-align:center;font-size:15px;font-weight:800;color:var(--ink)}
 .topics-carousel__thumbs{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap}
-.topics-carousel__thumb{position:relative;width:52px;height:52px;border-radius:12px;overflow:hidden;border:2px solid transparent;padding:0;background:none;opacity:.55;transition:opacity .2s ease,border-color .2s ease;cursor:pointer}
+.topics-carousel__thumb{position:relative;width:60px;height:60px;border-radius:12px;overflow:hidden;border:2px solid transparent;padding:0;background:none;opacity:.55;transition:opacity .2s ease,border-color .2s ease;cursor:pointer}
 .topics-carousel__thumb.is-active{opacity:1;border-color:var(--ink)}
 .topics-carousel__thumb:focus-visible{outline:3px solid var(--deep);outline-offset:2px}
 .topics-carousel__thumb img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
