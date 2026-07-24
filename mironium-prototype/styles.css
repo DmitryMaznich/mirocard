@@ -241,7 +241,6 @@ img{max-width:100%;display:block}
   .step__num{animation:none;transform:scale(1)}
 }
 @media(max-width:940px){
-  .topics__grid{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:780px){
   .site-header{height:auto;min-height:64px;padding:12px 0}
@@ -265,7 +264,8 @@ img{max-width:100%;display:block}
   .step{max-width:none}
   .step__connector{display:none}
   .topics{padding:64px 0}
-  .topics__grid{grid-template-columns:repeat(2,1fr)}
+  .topics-carousel{max-width:300px}
+  .topics-carousel__thumb{width:40px;height:40px}
   .about__grid{grid-template-columns:1fr;gap:36px;padding:64px 0}
   .about__people{grid-template-columns:1fr;gap:20px}
   .studio__card{grid-template-columns:1fr;text-align:center}
