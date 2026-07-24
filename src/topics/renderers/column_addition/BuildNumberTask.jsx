@@ -50,7 +50,29 @@ function PileSource() {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Workspace({ placed, formingStack, unformingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
+// The tens/ones answer slots render INSIDE their matching column, right
+// under that column's own coins — not as a separate row elsewhere on
+// screen that merely tries to line up with the columns above it via
+// matching widths. Nesting them here means they're structurally
+// guaranteed to sit under the right section (same parent, same width) —
+// no separate padding/gap values to keep in sync with .cb-zone-split's,
+// which would silently drift out of alignment if either one changed
+// later. The trade-off: if the workspace ever needs its scroll safety net
+// (many ten-stacks on a short device — see .pv-workspace-mat), the slot
+// scrolls together with that column's coins instead of staying pinned —
+// same reachable-by-scrolling behavior as the coins themselves, not
+// actually hidden.
+function AnswerSlot({ show, state, value }) {
+  if (!show) return null;
+  // `state` may carry more than one modifier word (e.g. "filled correct")
+  // — each becomes its own pv-answer-slot--x class, not one bogus
+  // "pv-answer-slot--filled correct" (a real bug caught while building the
+  // visual mockup for this exact change, before it reached this file).
+  const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-answer-slot--${s}`).join("");
+  return <div className={`pv-answer-slot${cls}`}>{value ?? "?"}</div>;
+}
+
+function Workspace({ placed, formingStack, unformingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef, showAnswerSlots, tensAnswer, onesAnswer }) {
   const { setNodeRef, isOver } = useDroppable({ id: "cb-workspace" });
   const pendingOnesStart = unformingStack ? placed.ones - 10 : Infinity;
   return (
@@ -76,6 +98,7 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
                 </div>
               ))}
             </div>
+            <AnswerSlot show={showAnswerSlots} state={tensAnswer.state} value={tensAnswer.value} />
           </div>
           <div className="cb-col cb-col--ones">
             <div className="pv-zone-label">Единицы</div>
@@ -96,6 +119,7 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
                 );
               })}
             </div>
+            <AnswerSlot show={showAnswerSlots} state={onesAnswer.state} value={onesAnswer.value} />
           </div>
         </div>
       </div>
@@ -397,9 +421,17 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
   const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Выдели десятки", { max: 45, min: 13 });
 
-  const showAnswerRow = phase === "answerTens" || phase === "answerOnes" || phase === "done";
-  const tensState = phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done";
-  const onesState = phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : phase === "done" ? "done" : "pending";
+  const showAnswerSlots = phase === "answerTens" || phase === "answerOnes" || phase === "done";
+  const tensDone = phase === "answerOnes" || phase === "done";
+  const onesDone = phase === "done";
+  const tensAnswer = {
+    value: tensDone ? task.target.tens : null,
+    state: tensDone ? "filled correct" : rowWrong.tens ? "shake" : undefined,
+  };
+  const onesAnswer = {
+    value: onesDone ? task.target.ones : null,
+    state: onesDone ? "filled correct" : rowWrong.ones ? "shake" : undefined,
+  };
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
@@ -458,28 +490,12 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               onRemoveTen={handleUngroup}
               stacksAreaRef={stacksAreaRef}
               looseAreaRef={looseAreaRef}
+              showAnswerSlots={showAnswerSlots}
+              tensAnswer={tensAnswer}
+              onesAnswer={onesAnswer}
             />
           </div>
         </div>
-
-        {/* Replaces the earlier number-bond diagram — plain answer slots
-            directly under the labeled zones above (ДЕСЯТКИ/ЕДИНИЦЫ), same
-            .pv-answer-row/.pv-answer-slot pattern IdentifyNumberTask
-            already uses, filled by the same shared numpad below. */}
-        {showAnswerRow && (
-          <div className="pv-answer-row">
-            <div
-              className={`pv-answer-slot${tensState === "done" ? " pv-answer-slot--filled pv-answer-slot--correct" : ""}${tensState === "wrong" ? " pv-answer-slot--shake" : ""}`}
-            >
-              {tensState === "done" ? task.target.tens : "?"}
-            </div>
-            <div
-              className={`pv-answer-slot${onesState === "done" ? " pv-answer-slot--filled pv-answer-slot--correct" : ""}${onesState === "wrong" ? " pv-answer-slot--shake" : ""}`}
-            >
-              {onesState === "done" ? task.target.ones : "?"}
-            </div>
-          </div>
-        )}
 
         {/* Fully unmounted (not just opacity-hidden) once collecting is
             over — an opacity-hidden tray would still reserve its layout

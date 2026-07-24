@@ -328,3 +328,35 @@
   background: radial-gradient(ellipse, rgba(154, 100, 20, 0.30), transparent 70%);
   border-radius: 50%;
 }
+
+/* build_number-only overrides of the shared place_value.css defaults
+   (13px label, 52x60px/32px answer slot), tied to --cb-scale like the
+   coins so the *original* size is what multiplies by it — --cb-scale
+   itself is what caps at 2 (tablet, ~800px viewport) and is ~1 (near-
+   unchanged) around phone widths, so multiplying by the original number
+   here is what makes "2x" land specifically at tablet width instead of
+   already being 2x on a phone. (An earlier version of this rule
+   multiplied the already-doubled numbers instead of the originals —
+   caught visually: at phone width it was already full-size, not
+   adaptively smaller, and "Десятки"/"Единицы" nearly touched each
+   other.) Scoped under .cb-screen so identify_number/regroup_ten's own
+   zone labels and answer slots are untouched. */
+.cb-screen .pv-zone-label {
+  font-size: calc(13 * var(--cb-scale));
+}
+
+.cb-screen .pv-answer-slot {
+  width: calc(52 * var(--cb-scale));
+  height: calc(60 * var(--cb-scale));
+  font-size: calc(32 * var(--cb-scale));
+  border-radius: calc(8 * var(--cb-scale));
+}
+
+/* The slot now lives inside its column (see AnswerSlot in
+   BuildNumberTask.jsx) instead of a separate centered row — this centers
+   it under that column's own coins and gives it breathing room from
+   whatever's above it (the coin area) without needing a wrapping row. */
+.cb-col .pv-answer-slot {
+  align-self: center;
+  margin-top: calc(10 * var(--cb-scale));
+}
