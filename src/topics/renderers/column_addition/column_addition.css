@@ -90,17 +90,40 @@
 .col-sign--minus { margin-top: 6px; }
 
 .col-digit--top-borrowed {
-  /* No CSS line-through here — the cross-out line is the child's own
-     hand-drawn gesture (.col-crossout-mark), not an automatic decoration. */
+  /* No CSS line-through here — the cross-out mark (.col-crossout-mark) is
+     drawn once the child taps .col-crossout-gesture, not an automatic
+     decoration. */
   color: #9ca3af;
 }
 
+/* A real button now (was an invisible drag-capture overlay) — highlighted
+   and pulsing so it reads the same as every other "tap what's lit up"
+   active cell in this mode, instead of looking like an ordinary digit. */
 .col-crossout-gesture {
   position: absolute;
   top: 0;
   left: 0;
-  touch-action: none;
-  cursor: crosshair;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.12);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.45) inset;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  animation: col-pulse-crossout 1.1s ease-in-out infinite;
+}
+
+@keyframes col-pulse-crossout {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35) inset; }
+  50%       { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.7) inset; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .col-crossout-gesture {
+    animation: none;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.55) inset;
+  }
 }
 
 .col-crossout-mark {
