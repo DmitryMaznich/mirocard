@@ -465,7 +465,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        <div className="pv-checklist">
+        <div className={`pv-checklist${showAnswerSlots ? " pv-checklist--focused" : ""}`}>
           <ChecklistItem
             text={collectContent}
             state={phase === "collect" ? (rowWrong.collect ? "wrong" : "active") : "done"}

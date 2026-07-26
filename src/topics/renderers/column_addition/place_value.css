@@ -436,8 +436,17 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, opacity 0.25s ease;
   animation: pv-checklist-item-in 0.4s cubic-bezier(.34, 1.2, .64, 1) both;
+}
+
+/* Once the answer step (Сколько десятков?/единиц?) begins, the earlier
+   done rows recede — still readable (they stay struck-through, not
+   hidden), just no longer competing for attention with the counting the
+   child is doing right now. */
+.pv-checklist--focused .pv-checklist-item.is-done {
+  opacity: 0.5;
+  transform: scale(0.92);
 }
 
 @keyframes pv-checklist-item-in {
