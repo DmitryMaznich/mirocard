@@ -62,14 +62,19 @@ function PileSource() {
 // scrolls together with that column's coins instead of staying pinned —
 // same reachable-by-scrolling behavior as the coins themselves, not
 // actually hidden.
-function AnswerSlot({ show, state, value }) {
+function AnswerSlot({ show, state, value, hint }) {
   if (!show) return null;
   // `state` may carry more than one modifier word (e.g. "filled correct")
   // — each becomes its own pv-answer-slot--x class, not one bogus
   // "pv-answer-slot--filled correct" (a real bug caught while building the
   // visual mockup for this exact change, before it reached this file).
   const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-answer-slot--${s}`).join("");
-  return <div className={`pv-answer-slot${cls}`}>{value ?? "?"}</div>;
+  return (
+    <div className={`pv-answer-slot${cls}`}>
+      {value ?? "?"}
+      {hint && <div className="pv-answer-hint">{hint === "more" ? "Больше ↑" : "Меньше ↓"}</div>}
+    </div>
+  );
 }
 
 function Workspace({ placed, formingStack, unformingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef, showAnswerSlots, tensAnswer, onesAnswer }) {
@@ -98,7 +103,7 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
                 </div>
               ))}
             </div>
-            <AnswerSlot show={showAnswerSlots} state={tensAnswer.state} value={tensAnswer.value} />
+            <AnswerSlot show={showAnswerSlots} state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
           </div>
           <div className="cb-col cb-col--ones">
             <div className="pv-zone-label">Единицы</div>
@@ -119,7 +124,7 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
                 );
               })}
             </div>
-            <AnswerSlot show={showAnswerSlots} state={onesAnswer.state} value={onesAnswer.value} />
+            <AnswerSlot show={showAnswerSlots} state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
           </div>
         </div>
       </div>
@@ -210,6 +215,12 @@ function withHighlightedNumber(text, number) {
   );
 }
 
+// Exported for its own unit test — direction is purely a function of the
+// wrong digit vs the target, no component state involved.
+export function hintDirectionFor(guess, target) {
+  return guess < target ? "more" : "less";
+}
+
 export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   // collect: drag out exactly task.number loose coins (grouping into tens
   // is allowed along the way, freely, same as before) -> confirm.
@@ -227,6 +238,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const [errorZones, setErrorZones] = useState({ tens: false, ones: false });
   const [capacityFlash, setCapacityFlash] = useState({ tens: false, ones: false });
   const [rowWrong, setRowWrong] = useState({ collect: false, group: false, tens: false, ones: false });
+  const [hintDirection, setHintDirection] = useState({ tens: null, ones: null });
   const stacksAreaRef = useRef(null);
   const looseAreaRef = useRef(null);
 
@@ -360,15 +372,28 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     });
   }
 
-  function flashRowWrong(key, extra) {
+  // `direction` is only ever passed for the two digit-answer rows
+  // ("tens"/"ones") — "collect"/"group" calls omit it, and the hint state
+  // update is skipped entirely for those (there's no single wrong "digit"
+  // to give a direction for when the mistake is a coin total/grouping
+  // mismatch). The hint clears on its own longer timer (1300ms) than the
+  // row shake (500ms) — the shake is a quick flash, the hint needs to
+  // actually be read.
+  function flashRowWrong(key, extra, direction) {
     setRowWrong((w) => ({ ...w, [key]: true }));
     if (extra) extra(true);
+    if (direction) setHintDirection((h) => ({ ...h, [key]: direction }));
     onMistake?.(task.conceptId, task.cardId);
     onFlashIncorrect?.();
     setTimeout(() => {
       setRowWrong((w) => ({ ...w, [key]: false }));
       if (extra) extra(false);
     }, 500);
+    if (direction) {
+      setTimeout(() => {
+        setHintDirection((h) => ({ ...h, [key]: null }));
+      }, 1300);
+    }
   }
 
   function confirmCollect() {
@@ -393,7 +418,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     if (d === task.target.tens) {
       setPhase("answerOnes");
     } else {
-      flashRowWrong("tens");
+      flashRowWrong("tens", undefined, hintDirectionFor(d, task.target.tens));
     }
   }
 
@@ -403,7 +428,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
       setPhase("done");
       setTimeout(() => onCorrect(task.conceptId, task.cardId), 900);
     } else {
-      flashRowWrong("ones");
+      flashRowWrong("ones", undefined, hintDirectionFor(d, task.target.ones));
     }
   }
 
@@ -429,10 +454,12 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const tensAnswer = {
     value: tensDone ? task.target.tens : null,
     state: tensDone ? "filled correct" : rowWrong.tens ? "shake" : phase === "answerTens" ? "active" : undefined,
+    hint: hintDirection.tens,
   };
   const onesAnswer = {
     value: onesDone ? task.target.ones : null,
     state: onesDone ? "filled correct" : rowWrong.ones ? "shake" : phase === "answerOnes" ? "active" : undefined,
+    hint: hintDirection.ones,
   };
 
   return (
