@@ -1,96 +1,147 @@
 import { useState } from "react";
-import Button from "@/shared/components/Button";
-import { useSpeech } from "@/shared/hooks/useSpeech";
-import { UnitCube, TenCard } from "./PlaceValueBlocks.jsx";
-import { pluralTens, pluralOnes } from "./placeValueLabels.js";
+import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { hintDirectionFor } from "./placeValueLabels.js";
+import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
+import "./coins.css";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
-export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
-  const [val, setVal] = useState({ tens: null, ones: null });
-  const [shake, setShake] = useState({ tens: false, ones: false });
-  const [solved, setSolved] = useState(false);
-  const { speak } = useSpeech();
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="pv-check-icon" fill="none" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
-  function checkAnswer(next) {
-    const okTens = next.tens === task.model.tens;
-    const okOnes = next.ones === task.model.ones;
-    if (okTens && okOnes) {
-      speak("Верно!");
-      setSolved(true);
-      return;
-    }
-    setShake({ tens: !okTens, ones: !okOnes });
+// Same tap-to-confirm-row idiom as BuildNumberTask's ChecklistItem, kept as
+// its own copy (not a shared import) so retouching one mode's checklist
+// never touches the other's. Both rows here are ticked by the numpad, not
+// by tapping the row itself, so unlike BuildNumberTask's collect/group rows
+// there's no onTap/clickable path at all — a row is always "is-pending"
+// until it's done or (briefly) wrong.
+function ChecklistItem({ text, state, textRef, fontSize }) {
+  const done = state === "done";
+  const wrong = state === "wrong";
+  return (
+    <div className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!done && !wrong ? " is-pending" : ""}`}>
+      <span className="pv-checklist-box">{done && <CheckIcon />}</span>
+      <span ref={textRef} className="pv-checklist-text" style={fontSize ? { fontSize } : undefined}>
+        {text}
+      </span>
+    </div>
+  );
+}
+
+function AnswerSlot({ state, value, hint }) {
+  const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-answer-slot--${s}`).join("");
+  return (
+    <div className={`pv-answer-slot${cls}`}>
+      {value ?? "?"}
+      {hint && <div className="pv-answer-hint">{hint === "more" ? "Больше ↑" : "Меньше ↓"}</div>}
+    </div>
+  );
+}
+
+export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+  // answerTens -> answerOnes -> done. No collect/group phase here (unlike
+  // build_number): the tens/ones blocks are already laid out for the child
+  // to read, not assembled by them first.
+  const [phase, setPhase] = useState("answerTens");
+  const [rowWrong, setRowWrong] = useState({ tens: false, ones: false });
+  const [hintDirection, setHintDirection] = useState({ tens: null, ones: null });
+
+  // Same shape as BuildNumberTask's flashRowWrong, minus the zone-error
+  // callback build_number needs for its drag/drop error zones — this mode
+  // only ever flashes a checklist row + its answer slot.
+  function flashRowWrong(key, direction) {
+    setRowWrong((w) => ({ ...w, [key]: true }));
+    setHintDirection((h) => ({ ...h, [key]: direction }));
     onMistake?.(task.conceptId, task.cardId);
     onFlashIncorrect?.();
-    setTimeout(() => {
-      setShake({ tens: false, ones: false });
-      setVal({ tens: null, ones: null });
-    }, 500);
+    setTimeout(() => setRowWrong((w) => ({ ...w, [key]: false })), 500);
+    setTimeout(() => setHintDirection((h) => ({ ...h, [key]: null })), 1300);
   }
 
   function handleDigit(d) {
-    if (solved) return;
-    if (val.tens === null) {
-      setVal({ tens: d, ones: null });
+    if (phase === "answerTens") {
+      if (d === task.model.tens) {
+        setPhase("answerOnes");
+      } else {
+        flashRowWrong("tens", hintDirectionFor(d, task.model.tens));
+      }
       return;
     }
-    if (val.ones === null) {
-      const next = { tens: val.tens, ones: d };
-      setVal(next);
-      checkAnswer(next);
+    if (phase === "answerOnes") {
+      if (d === task.model.ones) {
+        setPhase("done");
+        setTimeout(() => onCorrect(task.conceptId, task.cardId), 900);
+      } else {
+        flashRowWrong("ones", hintDirectionFor(d, task.model.ones));
+      }
     }
   }
 
-  function handleClear() {
-    setVal({ tens: null, ones: null });
-  }
+  const tensDone = phase === "answerOnes" || phase === "done";
+  const onesDone = phase === "done";
+  const tensAnswer = {
+    value: tensDone ? task.model.tens : null,
+    state: tensDone ? "filled correct" : rowWrong.tens ? "shake" : phase === "answerTens" ? "active" : undefined,
+    hint: hintDirection.tens,
+  };
+  const onesAnswer = {
+    value: onesDone ? task.model.ones : null,
+    state: onesDone ? "filled correct" : rowWrong.ones ? "shake" : phase === "answerOnes" ? "active" : undefined,
+    hint: hintDirection.ones,
+  };
 
-  function handleContinue() {
-    onCorrect(task.conceptId, task.cardId);
-  }
+  const { ref: tensQRef, fontSize: tensQFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
+  const { ref: onesQRef, fontSize: onesQFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
 
   return (
-    <div className="pv-screen">
+    <div className="pv-screen cb-screen">
       <div className="pv-instruction">Какое это число?</div>
 
+      <div className="pv-checklist pv-checklist--focused">
+        <ChecklistItem
+          text="Сколько десятков?"
+          state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
+          textRef={tensQRef}
+          fontSize={tensQFontSize}
+        />
+        {(phase === "answerOnes" || phase === "done") && (
+          <ChecklistItem
+            text="Сколько единиц?"
+            state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
+            textRef={onesQRef}
+            fontSize={onesQFontSize}
+          />
+        )}
+      </div>
+
+      {/* Zone highlight (cb-area--focus) marks which side the currently-
+          asked question refers to — same pulse AnswerSlot's own "active"
+          state uses, so the question, the zone, and where to type the
+          answer are all visually tied together. */}
       <div className="pv-zones">
-        <div className="pv-zone">
+        <div className={`pv-zone${tensAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "done" ? " pv-zone--correct" : ""}`}>
           <div className="pv-zone-label">ДЕСЯТКИ</div>
           <div className="pv-zone-body">
             {Array.from({ length: task.model.tens }, (_, i) => (
-              <TenCard key={i} numeric={task.numericBlocks} />
+              <TenStack key={i} />
             ))}
           </div>
+          <AnswerSlot state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
         </div>
-        <div className="pv-zone">
+        <div className={`pv-zone${onesAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "done" ? " pv-zone--correct" : ""}`}>
           <div className="pv-zone-label">ЕДИНИЦЫ</div>
           <div className="pv-zone-body">
             {Array.from({ length: task.model.ones }, (_, i) => (
-              <UnitCube key={i} numeric={task.numericBlocks} />
+              <Coin key={i} />
             ))}
           </div>
-        </div>
-      </div>
-
-      {task.showCounters && (
-        <div className="pv-zones" style={{ flex: 0 }}>
-          <div style={{ flex: 1 }} className="pv-zone-counter">
-            {task.model.tens} {pluralTens(task.model.tens)}
-          </div>
-          <div style={{ flex: 1 }} className="pv-zone-counter">
-            {task.model.ones} {pluralOnes(task.model.ones)}
-          </div>
-        </div>
-      )}
-
-      <div className="pv-answer-row">
-        <div className={`pv-answer-slot${val.tens !== null ? " pv-answer-slot--filled" : ""}${solved ? " pv-answer-slot--correct" : ""}${shake.tens ? " pv-answer-slot--shake" : ""}`}>
-          {val.tens ?? "?"}
-        </div>
-        <div className={`pv-answer-slot${val.ones !== null ? " pv-answer-slot--filled" : ""}${solved ? " pv-answer-slot--correct" : ""}${shake.ones ? " pv-answer-slot--shake" : ""}`}>
-          {val.ones ?? "?"}
+          <AnswerSlot state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
         </div>
       </div>
 
@@ -98,17 +149,10 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
 
       <div className="pv-numpad">
         {DIGITS.map((d) => (
-          <button key={d} className="pv-numkey" onClick={() => handleDigit(d)} disabled={solved}>
+          <button key={d} className="pv-numkey" onClick={() => handleDigit(d)} disabled={phase === "done"}>
             {d}
           </button>
         ))}
-      </div>
-      <div className="pv-footer">
-        {solved ? (
-          <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
-        ) : (
-          <Button variant="secondary" onClick={handleClear}>Стереть</Button>
-        )}
       </div>
     </div>
   );
