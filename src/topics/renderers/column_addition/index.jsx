@@ -233,14 +233,28 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         activeStep?.position === pos;
       const adjustKey = `adjust:${pos}`;
       const adjustFilled = wasBorrowedFrom && filledCells[adjustKey] !== undefined;
+      // Once a digit has already been reduced by an earlier borrow, the
+      // value that matters for THIS column's own compare (and everything
+      // else from here on) is the small adjusted number, not the big
+      // crossed-out original — so the comparing highlight goes on the
+      // adjusted badge itself instead of the whole cell. Highlighting the
+      // whole cell here would draw the eye to the bigger (now-irrelevant)
+      // original digit instead of the one actually being compared.
+      const isComparingHere = pos === comparingPosition;
+      const highlightWholeCell = isComparingHere && !adjustFilled;
+      const highlightAdjustedBadge = isComparingHere && adjustFilled;
       cells.push(
         <div
           key={`top:${pos}`}
-          className={["col-digit", wasBorrowedFrom ? "col-digit--top-borrowed" : "", pos === comparingPosition ? "col-digit--comparing" : ""].filter(Boolean).join(" ")}
+          className={["col-digit", wasBorrowedFrom ? "col-digit--top-borrowed" : "", highlightWholeCell ? "col-digit--comparing" : ""].filter(Boolean).join(" ")}
           style={{ ...digitStyle, gridColumn: gridCol, gridRow: 2 }}
         >
           {col.topDigit}
-          {adjustFilled && <span className="col-digit-adjusted">{filledCells[adjustKey]}</span>}
+          {adjustFilled && (
+            <span className={["col-digit-adjusted", highlightAdjustedBadge ? "col-digit-adjusted--comparing" : ""].filter(Boolean).join(" ")}>
+              {filledCells[adjustKey]}
+            </span>
+          )}
           {isCrossoutActive && (
             <CrossoutGesture cellWidth={cs} cellHeight={cs} onComplete={onCrossoutComplete} />
           )}

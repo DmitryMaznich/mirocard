@@ -152,6 +152,44 @@ describe("ColumnArithmeticTask — compareMode", () => {
     expect(borrowCell.classList.contains("col-carry-cell--active")).toBe(true);
   });
 
+  it("comparing an already-adjusted column highlights the adjusted badge, not the crossed-out original", async () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 60, { operation: "subtract", carryMode: "carry", digits: 3 });
+    // topDigit >= 1 on the tens column sidesteps a separate, pre-existing
+    // engine edge case (borrowing FROM a digit that's already 0 needs its
+    // own further cascading borrow, which buildSubSteps doesn't model) —
+    // out of scope here; this test is only about the highlight placement.
+    const task = tasks.find((t) => t.columns[0].borrowOut > 0 && t.columns[1].borrowOut > 0 && t.columns[1].topDigit >= 1);
+    expect(task).toBeDefined();
+    const tensAdjustDigit = task.columns[1].topDigit - 1;
+
+    mount(task, "always");
+    await fillForm(task);
+
+    // Resolve the units column's own compare question, then walk through its
+    // full borrow ritual (borrow count, crossout gesture, adjusted digit,
+    // result) — this is what leaves the tens column already crossed out and
+    // adjusted by the time its own compare question comes up below.
+    tapCompareSign("<");
+    tapDigit(1); // borrow:units
+    const crossoutBtn = container.querySelector(".col-crossout-gesture");
+    expect(crossoutBtn, "crossout gesture button not found").toBeTruthy();
+    act(() => crossoutBtn.click());
+    tapDigit(tensAdjustDigit); // adjust:tens
+    tapDigit(task.columns[0].writeDigit); // result:units
+
+    // Now the tens column's own borrow question is active — tens is already
+    // shown crossed out with tensAdjustDigit above it. The comparing
+    // highlight must land on that small adjusted badge (the number actually
+    // being compared), not on the whole cell (which would draw the eye to
+    // the bigger, now-irrelevant original digit instead).
+    expect(container.querySelector(".col-compare-panel")).toBeTruthy();
+    const badge = container.querySelector(".col-digit-adjusted");
+    expect(badge, "adjusted digit badge not found").toBeTruthy();
+    expect(badge.textContent.trim()).toBe(String(tensAdjustDigit));
+    expect(badge.classList.contains("col-digit-adjusted--comparing")).toBe(true);
+    expect(badge.parentElement.classList.contains("col-digit--comparing")).toBe(false);
+  });
+
   it("onBorrow: does NOT show the compare strip on a no-borrow column (parity with pre-change default)", async () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 1, { operation: "subtract", carryMode: "none", digits: 2 });
     const task = tasks[0];
