@@ -617,6 +617,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           cellSize={cellSize}
           crossoutPaths={crossoutPaths}
           onCrossoutComplete={handleCrossoutComplete}
+          compareColumn={compareColumn}
+          onCompareResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.position))}
         />
       </div>
 
@@ -627,10 +629,13 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
       )}
 
       {/* TapKeyboard stays mounted (just visually hidden) whenever the compare
-          strip or the crossout gesture takes over — this reserves its exact
+          panel or the crossout gesture takes over — this reserves its exact
           footprint so the column above never reflows when .col-screen
-          re-centers its flex content. BorrowCompareStrip overlays on top of
-          that reserved space instead of adding its own. */}
+          re-centers its flex content. The compare panel itself now renders
+          inside ColumnGrid, next to the column — it no longer reuses this
+          reserved space, but the keyboard still has to stay hidden while a
+          compare question is pending (tapping a digit shouldn't register
+          against the not-yet-resolved borrow/result step underneath). */}
       <div className="col-controls-area">
         <TapKeyboard
           phase={phase}
@@ -641,13 +646,6 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           btnSize={cellSize}
           hidden={showingCompare || showingCrossout}
         />
-        {showingCompare && compareColumn && (
-          <BorrowCompareStrip
-            topDigit={compareColumn.compareTopDigit}
-            bottomDigit={compareColumn.bottomDigit}
-            onResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.position))}
-          />
-        )}
       </div>
 
       {!showHelper && !showingCompare && !showingCrossout && !!sessionParams?.showHelper && (
