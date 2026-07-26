@@ -173,6 +173,12 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       const key = `${step.cellType}:${step.position}`;
       const filled = filledCells[key] !== undefined;
       const active = activeStep?.cellType === step.cellType && activeStep?.position === step.position;
+      // Not yet reached, or reached but still gated by an unresolved compare
+      // question (the child hasn't answered "нужен ли заём" for this exact
+      // column yet) — stay invisible. Otherwise the empty box itself would
+      // give the borrow answer away before the child decides, and every
+      // later column's box would already be sitting on screen at once.
+      if (!filled && !(active && !compareColumn)) continue;
       cells.push(
         <div
           key={`aux:${key}`}

@@ -110,6 +110,31 @@ describe("ColumnArithmeticTask — compareMode", () => {
     expect(resultCell.classList.contains("col-result-cell--filled")).toBe(true);
   });
 
+  it("aux borrow boxes stay hidden until their own step is reached and its compare is resolved", async () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 40, { operation: "subtract", carryMode: "carry", digits: 3 });
+    const task = tasks.find((t) => t.columns[0].borrowOut > 0 && t.columns[1].borrowOut > 0);
+    expect(task).toBeDefined();
+
+    mount(task, "always");
+    await fillForm(task);
+
+    // Solve phase just started: the units borrow step is active but its own
+    // compare question hasn't been answered yet, and the tens borrow step
+    // hasn't been reached at all — neither box may be visible yet. If either
+    // is, its mere presence gives away "a borrow is needed here" before the
+    // child has done any comparing.
+    expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeFalsy();
+    expect(container.querySelector('[data-cell-key="borrow:tens"]')).toBeFalsy();
+
+    tapCompareSign("<"); // resolve the units column's compare question
+
+    // Now the units borrow box may appear (its own turn has come and its
+    // compare is resolved), but the tens borrow box (a later column,
+    // untouched) must still stay hidden.
+    expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeTruthy();
+    expect(container.querySelector('[data-cell-key="borrow:tens"]')).toBeFalsy();
+  });
+
   it("always: still shows the compare strip before a borrow step (existing behavior preserved)", async () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
     const task = tasks.find((t) => t.columns[0].borrowOut > 0);
