@@ -15,6 +15,12 @@ import "./column_addition.css";
 const POSITIONS = ["units", "tens", "hundreds"];
 const POS_INDEX = { units: 0, tens: 1, hundreds: 2 };
 
+// The notebook (Expression + ColumnGrid) and the compare panel render
+// larger than the tap keyboard, which stays at today's size — see
+// ColumnArithmeticTask's cellSize/gridBaseSize computation below.
+const GRID_SCALE = 1.3;
+const PANEL_SCALE = 1.5;
+
 function getDigitAt(n, position) {
   return Math.floor(n / 10 ** POS_INDEX[position]) % 10;
 }
@@ -96,7 +102,7 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidde
 // panel varies (units/tens/hundreds), so the shared purple color is what
 // ties panel and digits together, not a measured connector.
 
-function ColumnComparePanel({ topDigit, bottomDigit, onResolve, top }) {
+function ColumnComparePanel({ topDigit, bottomDigit, onResolve, top, panelCellSize = 66 }) {
   const [shakeSign, setShakeSign] = useState(null);
   const correctSign = topDigit < bottomDigit ? "<" : topDigit > bottomDigit ? ">" : "=";
 
@@ -109,14 +115,31 @@ function ColumnComparePanel({ topDigit, bottomDigit, onResolve, top }) {
     onResolve();
   }
 
+  // Ratios reproduce today's fixed 38px/16px/8px-10px/6px/12px/18px values
+  // at panelCellSize=66 (gridBaseSize 44 × PANEL_SCALE 1.5) — the panel
+  // scales from there exactly like the notebook scales from cellSize.
+  const pcs = panelCellSize;
+  const btnSize = Math.round(pcs * 0.576) + "px";
+  const btnFontSize = Math.round(pcs * 0.242) + "px";
+  const qFontSize = Math.round(pcs * 0.182) + "px";
+  const panelStyle = {
+    top,
+    marginLeft: Math.round(pcs * 0.273) + "px",
+    padding: `${Math.round(pcs * 0.121)}px ${Math.round(pcs * 0.152)}px`,
+    gap: Math.round(pcs * 0.091) + "px",
+  };
+  const btnsStyle = { gap: Math.round(pcs * 0.091) + "px" };
+  const btnStyle = { width: btnSize, height: btnSize, fontSize: btnFontSize };
+
   return (
-    <div className="col-compare-panel" style={{ top }}>
-      <div className="col-compare-panel-q">?</div>
-      <div className="col-compare-panel-btns">
+    <div className="col-compare-panel" style={panelStyle}>
+      <div className="col-compare-panel-q" style={{ fontSize: qFontSize }}>?</div>
+      <div className="col-compare-panel-btns" style={btnsStyle}>
         {["<", ">", "="].map((sign) => (
           <button
             key={sign}
             className={["col-compare-panel-btn", shakeSign === sign ? "col-compare-panel-btn--shake" : ""].filter(Boolean).join(" ")}
+            style={btnStyle}
             onClick={() => handleTap(sign)}
           >
             <span className="col-slant">{sign}</span>
@@ -129,7 +152,7 @@ function ColumnComparePanel({ topDigit, bottomDigit, onResolve, top }) {
 
 // ── Column grid ───────────────────────────────────────────────────────────────
 
-function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, formActiveKey, shakeCell, cellSize = 44, crossoutPaths = {}, onCrossoutComplete, compareColumn, onCompareResolve }) {
+function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, formActiveKey, shakeCell, cellSize = 44, panelCellSize, crossoutPaths = {}, onCrossoutComplete, compareColumn, onCompareResolve }) {
   const { digits, operation } = task;
   const totalCols = digits + 2;
   const cells = [];
@@ -416,6 +439,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           bottomDigit={compareColumn.bottomDigit}
           top={`${comparePanelTop}px`}
           onResolve={onCompareResolve}
+          panelCellSize={panelCellSize}
         />
       )}
     </div>
@@ -439,6 +463,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [crossoutPaths, setCrossoutPaths] = useState({});
   const [showHelper, setShowHelper] = useState(false);
   const [cellSize, setCellSize] = useState(44);
+  const [gridBaseSize, setGridBaseSize] = useState(44);
 
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
@@ -463,7 +488,12 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const activeStep = phase === "solve" && stepIdx < task.steps.length ? task.steps[stepIdx] : null;
 
   // Compute adaptive cell and button sizes after layout.
-  // Single cellSize used for both expression and column grid so both snap to the same grid.
+  // cellSize drives the tap keyboard only, unchanged from before. The
+  // notebook (Expression + ColumnGrid) renders GRID_SCALE× bigger — its own
+  // base (gridBaseSize) is computed so that, once multiplied by GRID_SCALE,
+  // it still fits the exact same available width cellSize's formula targets
+  // — on a narrow screen the pre-multiplication base shrinks accordingly,
+  // so the notebook doesn't overflow.
   // Constrained by the expression width: top_digits + sign + bottom_digits + eq + result_digits.
   useLayoutEffect(() => {
     function compute() {
@@ -475,25 +505,30 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
       const exprCols = 2 * digits + 2 + resultDigits;
       const cs = Math.min(52, Math.max(28, Math.floor(avail / exprCols)));
       setCellSize(cs);
+      const gridBase = Math.min(52, Math.max(28, Math.floor(avail / (GRID_SCALE * exprCols))));
+      setGridBaseSize(gridBase);
     }
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
   }, [task.digits, task.result]);
 
+  const gridCellSize = gridBaseSize * GRID_SCALE;
+  const panelCellSize = gridBaseSize * PANEL_SCALE;
+
   // Align full-screen background grid with notebook cell boundaries.
   useLayoutEffect(() => {
     const screen = rootRef.current;
     const notebook = notebookRef.current;
     if (!screen || !notebook) return;
-    const cs = cellSize;
+    const cs = gridCellSize;
     screen.style.backgroundSize = `${cs}px ${cs}px`;
     const sr = screen.getBoundingClientRect();
     const nr = notebook.getBoundingClientRect();
     const offX = ((nr.left - sr.left) % cs + cs) % cs;
     const offY = ((nr.top - sr.top) % cs + cs) % cs;
     screen.style.backgroundPosition = `${offX}px ${offY}px`;
-  }, [cellSize, phase, solved]);
+  }, [gridCellSize, phase, solved]);
 
   useEffect(() => {
     setPhase("form");
@@ -616,8 +651,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
 
   return (
     <div className="col-screen" ref={rootRef}>
-      <div className="col-notebook" ref={notebookRef} style={{ gap: `${2 * cellSize}px` }}>
-        <Expression task={task} result={solved ? task.result : null} cellSize={cellSize} />
+      <div className="col-notebook" ref={notebookRef} style={{ gap: `${2 * gridCellSize}px` }}>
+        <Expression task={task} result={solved ? task.result : null} cellSize={gridCellSize} />
         <ColumnGrid
           task={task}
           phase={phase}
@@ -629,7 +664,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           activeStep={activeStep}
           formActiveKey={formActiveKey}
           shakeCell={shakeCell}
-          cellSize={cellSize}
+          cellSize={gridCellSize}
+          panelCellSize={panelCellSize}
           crossoutPaths={crossoutPaths}
           onCrossoutComplete={handleCrossoutComplete}
           compareColumn={compareColumn}
