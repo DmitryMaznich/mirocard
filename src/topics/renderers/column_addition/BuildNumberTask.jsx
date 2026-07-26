@@ -216,8 +216,8 @@ function withHighlightedNumber(text, number) {
 }
 
 export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
-  // collect: drag out exactly task.number loose coins (grouping into tens
-  // is allowed along the way, freely, same as before) -> confirm.
+  // collect: drag out exactly task.number loose coins (no grouping yet,
+  // even past 10 — that only unlocks in the next step) -> confirm.
   // group: finish grouping everything groupable (no more full ten left
   // loose) -> confirm.
   // answerTens / answerOnes: report back what was actually built, one
@@ -247,12 +247,14 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const onesCeiling = task.number + 5;
   const tensCeiling = Math.ceil(task.number / 10) + 2;
 
-  // Only "collect" may change the TOTAL (drag in / remove a loose coin);
-  // grouping/ungrouping stays available through "group" too (pure
-  // 10-for-1 conversion, so the total the child already confirmed never
-  // silently drifts once they've moved past collecting).
+  // "collect" only changes the TOTAL (drag in / remove a loose coin) — no
+  // grouping there, even if 10+ loose coins pile up, so the highlight and
+  // the tens conversion don't appear until the child has actually
+  // confirmed the count and moved to "group". Grouping/ungrouping is then
+  // a pure 10-for-1 conversion, so the total the child already confirmed
+  // never silently drifts.
   const canAdjustTotal = phase === "collect";
-  const canGroup = phase === "collect" || phase === "group";
+  const canGroup = phase === "group";
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -438,7 +440,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // "Собери 47 монет" no longer fits on one line at 20px on a narrow
   // (~320px) phone.
   const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
-  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Выдели десятки", { max: 45, min: 13 });
+  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Сложи десятки", { max: 45, min: 13 });
   const { ref: tensQRef, fontSize: tensQFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
   const { ref: onesQRef, fontSize: onesQFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
 
@@ -469,7 +471,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           />
           {phase !== "collect" && (
             <ChecklistItem
-              text="Выдели десятки"
+              text="Сложи десятки"
               state={phase === "group" ? (rowWrong.group ? "wrong" : "active") : "done"}
               onTap={phase === "group" ? confirmGroup : undefined}
               textRef={groupRef}
