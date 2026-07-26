@@ -72,9 +72,9 @@ describe("ColumnArithmeticTask — compareMode", () => {
   }
 
   function tapCompareSign(sign) {
-    const btn = Array.from(container.querySelectorAll(".col-borrow-compare-btn"))
+    const btn = Array.from(container.querySelectorAll(".col-compare-panel-btn"))
       .find((b) => b.textContent.trim() === sign);
-    expect(btn, `compare-strip button "${sign}" not found`).toBeTruthy();
+    expect(btn, `compare-panel button "${sign}" not found`).toBeTruthy();
     act(() => btn.click());
   }
 
@@ -96,14 +96,14 @@ describe("ColumnArithmeticTask — compareMode", () => {
     mount(task, "always");
     await fillForm(task);
 
-    expect(container.querySelector(".col-borrow-compare-expr")).toBeTruthy();
+    expect(container.querySelector(".col-compare-panel")).toBeTruthy();
     // No borrow/crossout/adjust cell exists for this column — the strip is the new "always" branch.
     expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeFalsy();
 
     const correctSign = unitsCol.compareTopDigit > unitsCol.bottomDigit ? ">" : "=";
     tapCompareSign(correctSign);
 
-    expect(container.querySelector(".col-borrow-compare-expr")).toBeFalsy();
+    expect(container.querySelector(".col-compare-panel")).toBeFalsy();
 
     tapDigit(unitsCol.writeDigit);
     const resultCell = container.querySelector('[data-cell-key="result:units"]');
@@ -118,10 +118,10 @@ describe("ColumnArithmeticTask — compareMode", () => {
     mount(task, "always");
     await fillForm(task);
 
-    expect(container.querySelector(".col-borrow-compare-expr")).toBeTruthy();
+    expect(container.querySelector(".col-compare-panel")).toBeTruthy();
     tapCompareSign("<");
 
-    expect(container.querySelector(".col-borrow-compare-expr")).toBeFalsy();
+    expect(container.querySelector(".col-compare-panel")).toBeFalsy();
     const borrowCell = container.querySelector('[data-cell-key="borrow:units"]');
     expect(borrowCell).toBeTruthy();
     expect(borrowCell.classList.contains("col-carry-cell--active")).toBe(true);
@@ -134,7 +134,7 @@ describe("ColumnArithmeticTask — compareMode", () => {
     mount(task, "onBorrow");
     await fillForm(task);
 
-    expect(container.querySelector(".col-borrow-compare-expr")).toBeFalsy();
+    expect(container.querySelector(".col-compare-panel")).toBeFalsy();
   });
 
   it("off: never shows the compare strip, even on a borrow column", async () => {
@@ -145,7 +145,7 @@ describe("ColumnArithmeticTask — compareMode", () => {
     mount(task, "off");
     await fillForm(task);
 
-    expect(container.querySelector(".col-borrow-compare-expr")).toBeFalsy();
+    expect(container.querySelector(".col-compare-panel")).toBeFalsy();
     const borrowCell = container.querySelector('[data-cell-key="borrow:units"]');
     expect(borrowCell).toBeTruthy();
     expect(borrowCell.classList.contains("col-carry-cell--active")).toBe(true);
