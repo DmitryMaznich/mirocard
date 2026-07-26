@@ -181,32 +181,22 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
   const resultCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const carryStyle = { width: carryW, height: carryH, fontSize: carryFS };
 
-  // ── Carry / borrow / adjust row (phase 2 only) ───────────────────────────
-  // Driven directly by whichever aux steps exist in task.steps, rather than a
-  // fixed position range — this is what lets "borrow" (now at the receiving
-  // column) and "adjust" (at the source column) coexist without assuming
-  // where either one lives.
+  // ── Carry row (addition only, phase 2) ───────────────────────────────────
+  // Subtraction's "borrow"/"adjust" no longer render here — they render as a
+  // corner mark on the relevant column's own top digit cell instead (see the
+  // top-row loop below), so this row is addition-only now.
   if (phase === "solve") {
-    const auxSteps = task.steps.filter(
-      (s) => s.cellType === "carry" || s.cellType === "borrow" || s.cellType === "adjust"
-    );
+    const auxSteps = task.steps.filter((s) => s.cellType === "carry");
     for (const step of auxSteps) {
       const i = POS_INDEX[step.position];
       const gridCol = digits + 2 - i;
       const key = `${step.cellType}:${step.position}`;
       const filled = filledCells[key] !== undefined;
       const active = activeStep?.cellType === step.cellType && activeStep?.position === step.position;
-      // Not yet reached, or reached but still gated by an unresolved compare
-      // question (the child hasn't answered "нужен ли заём" for this exact
-      // column yet) — stay invisible. Otherwise the empty box itself would
-      // give the borrow answer away before the child decides, and every
-      // later column's box would already be sitting on screen at once.
-      if (!filled && !(active && !compareColumn)) continue;
-      // This is the "adjust" box for the column we're now comparing (its
-      // own later borrow decision) — the number in it is exactly what the
-      // compare buttons refer to, so the highlight lands here rather than
-      // on the (now-irrelevant) crossed-out digit above.
-      const isComparingAdjust = step.cellType === "adjust" && step.position === comparingPosition;
+      // Not yet reached — stays invisible, same reasoning as the corner mark:
+      // an empty box sitting on screen ahead of time would give away that a
+      // carry is coming before the child gets there.
+      if (!filled && !active) continue;
       cells.push(
         <div
           key={`aux:${key}`}
@@ -215,7 +205,6 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
             "col-carry-cell",
             active ? "col-carry-cell--active" : "",
             filled ? "col-carry-cell--filled" : "",
-            isComparingAdjust ? "col-carry-cell--comparing" : "",
           ].filter(Boolean).join(" ")}
           style={{ ...carryStyle, gridColumn: gridCol, gridRow: 1 }}
         >
@@ -260,12 +249,46 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
         operation === "subtract" &&
         activeStep?.cellType === "crossout" &&
         activeStep?.position === pos;
+
+      // Corner mark: "borrow" (this column received a ten — reads like a
+      // small tens-digit tucked before the main digit, e.g. small "1" +
+      // main "2" = "12") and "adjust" (this column was a source and got
+      // reduced) both land here, in the SAME upper-left corner of this
+      // column's own top digit cell — no separate row. If a column is ever
+      // both (a cascading borrow: reduced as a source, then later needs its
+      // own borrow), "borrow" simply overwrites "adjust" once typed — see
+      // cornerFilledValue below.
+      const borrowKey = `borrow:${pos}`;
+      const borrowFilled = operation === "subtract" && filledCells[borrowKey] !== undefined;
+      const borrowActive =
+        operation === "subtract" && activeStep?.cellType === "borrow" && activeStep?.position === pos;
+      const adjustKey = `adjust:${pos}`;
+      const adjustFilled = operation === "subtract" && filledCells[adjustKey] !== undefined;
+      const adjustActive =
+        operation === "subtract" && activeStep?.cellType === "adjust" && activeStep?.position === pos;
+
+      const cornerActive = borrowActive || adjustActive;
+      // Only "borrow" is ever gated by an unresolved compare question
+      // ("adjust" never is) — while gated, the corner must not jump ahead
+      // to an empty/pulsing "ready to type" state; it just keeps showing
+      // whatever was already settled (or nothing, on a first-time borrow).
+      const cornerGatedByCompare = borrowActive && !!compareColumn;
+      const cornerReady = cornerActive && !cornerGatedByCompare;
+      const cornerFilledValue = borrowFilled
+        ? filledCells[borrowKey]
+        : adjustFilled
+          ? filledCells[adjustKey]
+          : null;
+      const showCornerPulsing = cornerReady;
+      const showCornerValue = !cornerReady && cornerFilledValue !== null;
+      const showCorner = showCornerPulsing || showCornerValue;
       // Once a digit has already been reduced by an earlier borrow, its
-      // current value lives only in the yellow "adjust" aux box above (see
-      // the aux-row loop below) — no small badge duplicates it here — so
-      // the comparing highlight only goes on the whole cell when this
-      // column was never borrowed from (nothing else claims that number).
+      // current value lives in this corner mark — so the comparing
+      // highlight goes on the corner (when it's showing a settled value) or
+      // on the whole cell (a first-time borrow, nothing in the corner yet).
+      const isComparingCorner = pos === comparingPosition && wasBorrowedFrom && showCornerValue;
       const isComparingHere = pos === comparingPosition && !wasBorrowedFrom;
+
       cells.push(
         <div
           key={`top:${pos}`}
@@ -273,6 +296,19 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
           style={{ ...digitStyle, gridColumn: gridCol, gridRow: 2 }}
         >
           {col.topDigit}
+          {showCorner && (
+            <div
+              data-cell-key={`corner:${pos}`}
+              className={[
+                "col-digit-corner",
+                showCornerPulsing ? "col-digit-corner--active" : "",
+                showCornerValue ? "col-digit-corner--filled" : "",
+                isComparingCorner ? "col-digit-corner--comparing" : "",
+              ].filter(Boolean).join(" ")}
+            >
+              {showCornerValue ? <span className="col-slant">{cornerFilledValue}</span> : ""}
+            </div>
+          )}
           {isCrossoutActive && (
             <CrossoutGesture cellWidth={cs} cellHeight={cs} onComplete={onCrossoutComplete} />
           )}

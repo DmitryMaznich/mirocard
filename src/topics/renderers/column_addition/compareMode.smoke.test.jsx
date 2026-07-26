@@ -97,8 +97,8 @@ describe("ColumnArithmeticTask — compareMode", () => {
     await fillForm(task);
 
     expect(container.querySelector(".col-compare-panel")).toBeTruthy();
-    // No borrow/crossout/adjust cell exists for this column — the strip is the new "always" branch.
-    expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeFalsy();
+    // No corner mark exists for this column — the strip is the new "always" branch.
+    expect(container.querySelector('[data-cell-key="corner:units"]')).toBeFalsy();
 
     const correctSign = unitsCol.compareTopDigit > unitsCol.bottomDigit ? ">" : "=";
     tapCompareSign(correctSign);
@@ -118,21 +118,21 @@ describe("ColumnArithmeticTask — compareMode", () => {
     mount(task, "always");
     await fillForm(task);
 
-    // Solve phase just started: the units borrow step is active but its own
-    // compare question hasn't been answered yet, and the tens borrow step
-    // hasn't been reached at all — neither box may be visible yet. If either
-    // is, its mere presence gives away "a borrow is needed here" before the
+    // Solve phase just started: the units corner mark is active but its own
+    // compare question hasn't been answered yet, and the tens corner mark
+    // hasn't been reached at all — neither may be visible yet. If either is,
+    // its mere presence gives away "a borrow is needed here" before the
     // child has done any comparing.
-    expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeFalsy();
-    expect(container.querySelector('[data-cell-key="borrow:tens"]')).toBeFalsy();
+    expect(container.querySelector('[data-cell-key="corner:units"]')).toBeFalsy();
+    expect(container.querySelector('[data-cell-key="corner:tens"]')).toBeFalsy();
 
     tapCompareSign("<"); // resolve the units column's compare question
 
-    // Now the units borrow box may appear (its own turn has come and its
-    // compare is resolved), but the tens borrow box (a later column,
+    // Now the units corner mark may appear (its own turn has come and its
+    // compare is resolved), but the tens corner mark (a later column,
     // untouched) must still stay hidden.
-    expect(container.querySelector('[data-cell-key="borrow:units"]')).toBeTruthy();
-    expect(container.querySelector('[data-cell-key="borrow:tens"]')).toBeFalsy();
+    expect(container.querySelector('[data-cell-key="corner:units"]')).toBeTruthy();
+    expect(container.querySelector('[data-cell-key="corner:tens"]')).toBeFalsy();
   });
 
   it("always: still shows the compare strip before a borrow step (existing behavior preserved)", async () => {
@@ -147,17 +147,17 @@ describe("ColumnArithmeticTask — compareMode", () => {
     tapCompareSign("<");
 
     expect(container.querySelector(".col-compare-panel")).toBeFalsy();
-    const borrowCell = container.querySelector('[data-cell-key="borrow:units"]');
-    expect(borrowCell).toBeTruthy();
-    expect(borrowCell.classList.contains("col-carry-cell--active")).toBe(true);
+    const corner = container.querySelector('[data-cell-key="corner:units"]');
+    expect(corner).toBeTruthy();
+    expect(corner.classList.contains("col-digit-corner--active")).toBe(true);
   });
 
-  it("comparing an already-adjusted column highlights the yellow adjust box, not the crossed-out digit", async () => {
+  it("cascading borrow: the corner mark updates from the adjusted digit to the new borrow digit", async () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 60, { operation: "subtract", carryMode: "carry", digits: 3 });
     // topDigit >= 1 on the tens column sidesteps a separate, pre-existing
     // engine edge case (borrowing FROM a digit that's already 0 needs its
     // own further cascading borrow, which buildSubSteps doesn't model) —
-    // out of scope here; this test is only about the highlight placement.
+    // out of scope here; this test is only about the corner-mark display.
     const task = tasks.find((t) => t.columns[0].borrowOut > 0 && t.columns[1].borrowOut > 0 && t.columns[1].topDigit >= 1);
     expect(task).toBeDefined();
     const tensAdjustDigit = task.columns[1].topDigit - 1;
@@ -178,20 +178,34 @@ describe("ColumnArithmeticTask — compareMode", () => {
     act(() => crossoutBtn.click());
     tapDigit(tensAdjustDigit); // adjust:tens
 
-    // Now the tens column's own borrow question is active — tens is already
-    // shown crossed out, with its reduced value sitting only in the yellow
-    // "adjust" aux box (no duplicate badge on the digit itself). The
-    // comparing highlight must land on that yellow box, not on the crossed-
-    // out digit cell (which would draw the eye to the bigger, now-
-    // irrelevant original digit instead of the number actually compared).
+    // Tens is now crossed out, corner mark shows the adjusted digit — no
+    // separate row, no duplicate badge, just this one corner on the cell.
+    let corner = container.querySelector('[data-cell-key="corner:tens"]');
+    expect(corner, "tens corner mark not found").toBeTruthy();
+    expect(corner.textContent.trim()).toBe(String(tensAdjustDigit));
+    expect(corner.classList.contains("col-digit-corner--filled")).toBe(true);
+
+    // Now the tens column's own borrow question is active — the compare
+    // panel refers to exactly this adjusted value, so while it's pending the
+    // corner keeps showing it (highlighted purple), not the crossed-out
+    // original digit underneath.
     expect(container.querySelector(".col-compare-panel")).toBeTruthy();
-    const adjustBox = container.querySelector('[data-cell-key="adjust:tens"]');
-    expect(adjustBox, "adjust aux box not found").toBeTruthy();
-    expect(adjustBox.textContent.trim()).toBe(String(tensAdjustDigit));
-    expect(adjustBox.classList.contains("col-carry-cell--comparing")).toBe(true);
+    corner = container.querySelector('[data-cell-key="corner:tens"]');
+    expect(corner.textContent.trim()).toBe(String(tensAdjustDigit));
+    expect(corner.classList.contains("col-digit-corner--comparing")).toBe(true);
     const tensDigitCell = container.querySelector(".col-digit--top-borrowed");
     expect(tensDigitCell, "crossed-out tens digit cell not found").toBeTruthy();
     expect(tensDigitCell.classList.contains("col-digit--comparing")).toBe(false);
+
+    // Resolve tens' own compare and type its borrow digit — the corner must
+    // now show "1" instead, overwriting the adjusted "4".
+    tapCompareSign("<");
+    corner = container.querySelector('[data-cell-key="corner:tens"]');
+    expect(corner.classList.contains("col-digit-corner--active")).toBe(true);
+    tapDigit(1); // borrow:tens
+    corner = container.querySelector('[data-cell-key="corner:tens"]');
+    expect(corner.textContent.trim()).toBe("1");
+    expect(corner.classList.contains("col-digit-corner--filled")).toBe(true);
   });
 
   it("onBorrow: does NOT show the compare strip on a no-borrow column (parity with pre-change default)", async () => {
@@ -213,8 +227,8 @@ describe("ColumnArithmeticTask — compareMode", () => {
     await fillForm(task);
 
     expect(container.querySelector(".col-compare-panel")).toBeFalsy();
-    const borrowCell = container.querySelector('[data-cell-key="borrow:units"]');
-    expect(borrowCell).toBeTruthy();
-    expect(borrowCell.classList.contains("col-carry-cell--active")).toBe(true);
+    const corner = container.querySelector('[data-cell-key="corner:units"]');
+    expect(corner).toBeTruthy();
+    expect(corner.classList.contains("col-digit-corner--active")).toBe(true);
   });
 });
