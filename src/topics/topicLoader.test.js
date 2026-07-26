@@ -494,7 +494,9 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
     expect(byId.identify_number.params).not.toHaveProperty("numericBlocks");
     expect(byId.identify_number.params).toHaveProperty("maxOnes");
-    expect(byId.identify_number.params).toHaveProperty("showCounters");
+    // showCounters (identify_number's live tens/ones counter) was dropped on 2026-07-26
+    // along with the manipulative/checklist redesign that removed the counter entirely.
+    expect(byId.identify_number.params).not.toHaveProperty("showCounters");
 
     expect(byId.regroup_ten.params).not.toHaveProperty("numericBlocks");
     expect(byId.regroup_ten.params).toHaveProperty("maxOnes");
@@ -596,7 +598,6 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           ui: { title: "Какое это число?", icon: "media/icons/place_value_identify.svg" },
           params: {
             maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
-            showCounters: { type: "boolean", default: true, label: { ru: "Показывать счётчики" } },
           },
         },
       ],
@@ -626,8 +627,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(byId.fingers_count.hideConceptPicker).toBe(true);
 
     expect(byId.identify_number.hideConceptPicker).toBe(true);
-    expect(byId.identify_number.params.showCounters.section).toBe("Отображение");
-    expect(byId.identify_number.params.showCounters.info.ru.text).toEqual(expect.any(String));
+    expect(byId.identify_number.params.maxOnes.info.ru.text).toEqual(expect.any(String));
   });
 
   it("reorders an already-installed column_addition record's modes to the current pedagogical sequence", async () => {
