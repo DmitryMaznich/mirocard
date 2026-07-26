@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateTasks, taskNeedsBorrowTeaching } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns } from "./engine.js";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 
 const CARDS = [
@@ -87,6 +87,35 @@ describe("generateTasks – column_arithmetic", () => {
   it("sub: top > bottom always", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "mixed", digits: 2 });
     for (const t of tasks) expect(t.top).toBeGreaterThan(t.bottom);
+  });
+});
+
+describe("buildSubColumns compareTopDigit", () => {
+  it("equals topDigit when no borrow flows in from the right (units column)", () => {
+    const cols = buildSubColumns(652, 357, 3);
+    expect(cols[0].position).toBe("units");
+    expect(cols[0].borrowIn).toBe(0);
+    expect(cols[0].compareTopDigit).toBe(cols[0].topDigit);
+  });
+
+  it("is reduced by 1 when a borrow flows in from the column to the right", () => {
+    const cols = buildSubColumns(652, 357, 3);
+    const tens = cols[1];
+    expect(tens.position).toBe("tens");
+    expect(tens.borrowIn).toBe(1);
+    expect(tens.topDigit).toBe(5);
+    expect(tens.compareTopDigit).toBe(4);
+  });
+
+  it("regression: raw topDigit equals bottomDigit, but compareTopDigit still correctly signals a borrow is needed", () => {
+    const cols = buildSubColumns(652, 357, 3);
+    const tens = cols[1];
+    // Raw digits look equal — a naive comparison would say "=", no borrow needed.
+    expect(tens.topDigit).toBe(tens.bottomDigit);
+    // The engine's own decision says a borrow IS needed for this column.
+    expect(tens.borrowOut).toBe(1);
+    // compareTopDigit is what must be compared instead — and it correctly says "<".
+    expect(tens.compareTopDigit).toBeLessThan(tens.bottomDigit);
   });
 });
 

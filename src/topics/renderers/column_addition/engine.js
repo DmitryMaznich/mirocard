@@ -25,7 +25,7 @@ function buildAddColumns(top, bottom, digits) {
   return cols;
 }
 
-function buildSubColumns(top, bottom, digits) {
+export function buildSubColumns(top, bottom, digits) {
   const td = getDigits(top, digits);
   const bd = getDigits(bottom, digits);
   const cols = [];
@@ -36,7 +36,7 @@ function buildSubColumns(top, bottom, digits) {
     const borrowOut = needsBorrow ? 1 : 0;
     const effectiveTopDigit = effective + (needsBorrow ? 10 : 0);
     const writeDigit = effectiveTopDigit - bd[i];
-    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], borrowIn: borrow, borrowOut, effectiveTopDigit, writeDigit });
+    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], borrowIn: borrow, borrowOut, effectiveTopDigit, compareTopDigit: effective, writeDigit });
     borrow = borrowOut;
   }
   return cols;
