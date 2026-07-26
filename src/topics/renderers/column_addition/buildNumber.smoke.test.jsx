@@ -1,7 +1,8 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach } from "vitest";
-import BuildNumberTask, { hintDirectionFor } from "./BuildNumberTask.jsx";
+import BuildNumberTask from "./BuildNumberTask.jsx";
+import { hintDirectionFor } from "./placeValueLabels.js";
 
 // jsdom has no ResizeObserver; useFitOneLine (textFit.js, used by every
 // checklist row's text sizing) needs one. A no-op stub is enough — this

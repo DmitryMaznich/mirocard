@@ -19,3 +19,10 @@ export function pluralCoins(n) {
   if (mod10 >= 2 && mod10 <= 4) return "монеты";
   return "монет";
 }
+
+// Shared by every place-value mode with a digit-entry answer step
+// (BuildNumberTask, IdentifyNumberTask): direction is purely a function of
+// the wrong digit vs the target, no component state involved.
+export function hintDirectionFor(guess, target) {
+  return guess < target ? "more" : "less";
+}

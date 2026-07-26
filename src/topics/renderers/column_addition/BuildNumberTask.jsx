@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
-import { pluralCoins } from "./placeValueLabels.js";
+import { pluralCoins, hintDirectionFor } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
@@ -213,12 +213,6 @@ function withHighlightedNumber(text, number) {
       {text.slice(idx + numStr.length)}
     </>
   );
-}
-
-// Exported for its own unit test — direction is purely a function of the
-// wrong digit vs the target, no component state involved.
-export function hintDirectionFor(guess, target) {
-  return guess < target ? "more" : "less";
 }
 
 export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
