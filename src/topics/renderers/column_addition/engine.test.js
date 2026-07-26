@@ -171,10 +171,10 @@ describe("buildSubSteps borrow/adjust step shape", () => {
     expect(adjustStep.digit).toBe(t.columns[1].topDigit - 1);
   });
 
-  it("step order is borrow, crossout, adjust, result(lower), result(higher)", () => {
+  it("step order is borrow, result(lower) — finish the current column — then crossout, adjust, result(higher)", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
     const t = tasks.find((task) => task.columns[0].borrowOut > 0);
-    expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "crossout", "adjust", "result", "result"]);
+    expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "result", "crossout", "adjust", "result"]);
   });
 
   it("crossout step sits at the source column's position, between borrow and adjust", () => {

@@ -64,6 +64,13 @@ function buildSubSteps(columns) {
       // "borrow" sits at the column that RECEIVES the extra ten (the one that
       // was short) — the child types "1" here to acknowledge the borrow.
       steps.push({ cellType: "borrow", position: col.position, digit: 1 });
+    }
+    // The current column is finished — borrowed if it needed to, then its
+    // own result — BEFORE touching the source column at all. Only once this
+    // column is fully done does work move to the source (crossout+adjust
+    // below), which doubles as the first step of "moving on" to that column.
+    steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
+    if (col.borrowOut > 0 && next) {
       // "crossout" sits at the SOURCE column (one place higher), same
       // position "adjust" uses — the child must draw a left-to-right swipe
       // across that digit themselves before it counts as crossed out.
@@ -73,7 +80,6 @@ function buildSubSteps(columns) {
       // types its own reduced digit (topDigit - 1) themselves.
       steps.push({ cellType: "adjust", position: next.position, digit: next.topDigit - 1 });
     }
-    steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
   }
   return steps;
 }

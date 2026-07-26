@@ -166,16 +166,17 @@ describe("ColumnArithmeticTask — compareMode", () => {
     await fillForm(task);
 
     // Resolve the units column's own compare question, then walk through its
-    // full borrow ritual (borrow count, crossout gesture, adjusted digit,
-    // result) — this is what leaves the tens column already crossed out and
-    // adjusted by the time its own compare question comes up below.
+    // full borrow ritual: borrow count, THEN the units result (the current
+    // column is finished first), and only then crossout + adjust on tens —
+    // this is what leaves the tens column already crossed out and adjusted
+    // by the time its own compare question comes up below.
     tapCompareSign("<");
     tapDigit(1); // borrow:units
+    tapDigit(task.columns[0].writeDigit); // result:units
     const crossoutBtn = container.querySelector(".col-crossout-gesture");
     expect(crossoutBtn, "crossout gesture button not found").toBeTruthy();
     act(() => crossoutBtn.click());
     tapDigit(tensAdjustDigit); // adjust:tens
-    tapDigit(task.columns[0].writeDigit); // result:units
 
     // Now the tens column's own borrow question is active — tens is already
     // shown crossed out, with its reduced value sitting only in the yellow
