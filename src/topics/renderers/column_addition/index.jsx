@@ -82,19 +82,21 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidde
   );
 }
 
-// ── Borrow comparison strip ───────────────────────────────────────────────
-// Shown under the column, gated by the "Сравнение" (compareMode) param.
-// "onBorrow" and "always" both show it right before a "borrow" step (a
-// column where a заём is already known to be needed). "always" additionally
-// shows it before a plain "result" step on a column that does NOT need a
-// borrow — the child must correctly answer ">" or "=" themselves before the
-// result keyboard reappears, so "is a borrow needed here" is never a
-// decision the app makes silently on the child's behalf. Reuses the same
-// tap-a-sign interaction as the "Сравнение чисел" topic's ComparePutSign,
-// scaled down. The child's own answer is what unlocks the next input —
-// nothing here is decided for them.
+// ── Column compare panel ────────────────────────────────────────────────
+// Sits to the right of the column (absolutely positioned inside
+// .col-problem, rendered from ColumnGrid below), vertically centered on
+// the digit rows via the `top` prop. Shown whenever "Сравнение"
+// (compareMode) requires the child to judge whether this column needs a
+// заём — gating logic lives entirely in ColumnArithmeticTask's
+// showingCompare/showingCompareAlways, unchanged by this component.
+// The two digits it refers to are highlighted directly in the column
+// (.col-digit--comparing, same purple) instead of being repeated as text
+// here. The tail is a fixed part of the panel (CSS ::before), not a line
+// drawn to the specific column — the active column's distance from the
+// panel varies (units/tens/hundreds), so the shared purple color is what
+// ties panel and digits together, not a measured connector.
 
-function BorrowCompareStrip({ topDigit, bottomDigit, onResolve }) {
+function ColumnComparePanel({ topDigit, bottomDigit, onResolve, top }) {
   const [shakeSign, setShakeSign] = useState(null);
   const correctSign = topDigit < bottomDigit ? "<" : topDigit > bottomDigit ? ">" : "=";
 
@@ -108,17 +110,13 @@ function BorrowCompareStrip({ topDigit, bottomDigit, onResolve }) {
   }
 
   return (
-    <div className="col-borrow-compare">
-      <div className="col-borrow-compare-expr">
-        <span className="col-slant">{topDigit}</span>
-        <span className="col-borrow-compare-blank">?</span>
-        <span className="col-slant">{bottomDigit}</span>
-      </div>
-      <div className="col-borrow-compare-btns">
+    <div className="col-compare-panel" style={{ top }}>
+      <div className="col-compare-panel-q">?</div>
+      <div className="col-compare-panel-btns">
         {["<", ">", "="].map((sign) => (
           <button
             key={sign}
-            className={["col-borrow-compare-btn", shakeSign === sign ? "col-borrow-compare-btn--shake" : ""].filter(Boolean).join(" ")}
+            className={["col-compare-panel-btn", shakeSign === sign ? "col-compare-panel-btn--shake" : ""].filter(Boolean).join(" ")}
             onClick={() => handleTap(sign)}
           >
             <span className="col-slant">{sign}</span>
@@ -131,7 +129,7 @@ function BorrowCompareStrip({ topDigit, bottomDigit, onResolve }) {
 
 // ── Column grid ───────────────────────────────────────────────────────────────
 
-function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, formActiveKey, shakeCell, cellSize = 44, crossoutPaths = {}, onCrossoutComplete }) {
+function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFilled, filledCells, activeStep, formActiveKey, shakeCell, cellSize = 44, crossoutPaths = {}, onCrossoutComplete, compareColumn, onCompareResolve }) {
   const { digits, operation } = task;
   const totalCols = digits + 2;
   const cells = [];
@@ -140,6 +138,15 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
   const csStr = cs + "px";
   const carryH = Math.max(20, Math.round(cs * 0.59)) + "px";
   const carryW = Math.max(22, Math.round(cs * 0.64)) + "px";
+  // Vertical center of the top+bottom digit rows (grid rows 2-3), used to
+  // anchor .col-compare-panel at the same height regardless of which column
+  // (units/tens/hundreds) is currently being compared. Every non-line grid
+  // row (including row 1, the carry/borrow row) is sized to the full `cs`
+  // via the inline gridTemplateRows below — NOT carryH, which is only the
+  // smaller carry *cell's* own height within that full-height row. Row 1
+  // spans 0..cs, rows 2-3 span cs..3*cs, so their midpoint is cs + cs = 2*cs.
+  const comparePanelTop = 2 * cs;
+  const comparingPosition = compareColumn?.position ?? null;
   const carryFS = Math.max(12, Math.round(cs * 0.36)) + "px";
   const digitPT = Math.round(cs * 0.45) + "px";
   const digitFS = Math.round(cs * 1.02) + "px";
@@ -223,7 +230,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       cells.push(
         <div
           key={`top:${pos}`}
-          className={["col-digit", wasBorrowedFrom ? "col-digit--top-borrowed" : ""].filter(Boolean).join(" ")}
+          className={["col-digit", wasBorrowedFrom ? "col-digit--top-borrowed" : "", pos === comparingPosition ? "col-digit--comparing" : ""].filter(Boolean).join(" ")}
           style={{ ...digitStyle, gridColumn: gridCol, gridRow: 2 }}
         >
           {col.topDigit}
@@ -308,7 +315,7 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       cells.push(
         <div
           key={`bot:${pos}`}
-          className="col-digit"
+          className={["col-digit", pos === comparingPosition ? "col-digit--comparing" : ""].filter(Boolean).join(" ")}
           style={{ ...digitStyle, gridColumn: gridCol, gridRow: 3 }}
         >
           {col.bottomDigit}
@@ -388,6 +395,14 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
       }}
     >
       {cells}
+      {compareColumn && (
+        <ColumnComparePanel
+          topDigit={compareColumn.compareTopDigit}
+          bottomDigit={compareColumn.bottomDigit}
+          top={`${comparePanelTop}px`}
+          onResolve={onCompareResolve}
+        />
+      )}
     </div>
   );
 }
