@@ -613,7 +613,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         />
         {showingCompare && compareColumn && (
           <BorrowCompareStrip
-            topDigit={compareColumn.topDigit}
+            topDigit={compareColumn.compareTopDigit}
             bottomDigit={compareColumn.bottomDigit}
             onResolve={() => setResolvedCompares((prev) => new Set(prev).add(activeStep.position))}
           />
