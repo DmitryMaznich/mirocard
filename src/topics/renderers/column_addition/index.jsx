@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
-import { generateExamples, taskNeedsBorrowTeaching } from "./engine.js";
+import { generateExamples, taskNeedsBorrowTeaching, resolveCompareMode } from "./engine.js";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import FingersShowTask from "./FingersShowTask.jsx";
 import FingersCountTask from "./FingersCountTask.jsx";
@@ -557,11 +557,11 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     }
   }, [activeStep, stepIdx, task.steps, onCorrect]);
 
-  const showCompareParam = sessionParams?.showCompare ?? true;
+  const compareMode = resolveCompareMode(sessionParams);
   const showingCompare =
     phase === "solve" &&
     activeStep?.cellType === "borrow" &&
-    showCompareParam &&
+    compareMode !== "off" &&
     taskNeedsBorrowTeaching(task) &&
     !resolvedCompares.has(activeStep.position);
 

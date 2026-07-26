@@ -539,7 +539,11 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(mode.hideConceptPicker).toBe(true);
     expect(mode.rewardDefaults).toEqual({ strictStars: false });
     expect(mode.params.showHelper.type).toBe("boolean");
-    expect(mode.params.showCompare.type).toBe("boolean");
+    // showCompare was renamed to compareMode (2026-07-26) — the stale record above still
+    // has the old key, but the refresh must drop it entirely and hand back the new one.
+    expect(mode.params).not.toHaveProperty("showCompare");
+    expect(mode.params.compareMode.type).toBe("enum");
+    expect(mode.params.compareMode.values).toEqual(["onBorrow", "always", "off"]);
     expect(mode.params.operation.section).toBe("Что решаем");
     expect(mode.params.showHelper.section).toBe("Отображение в занятии");
     expect(mode.params.operation.info.ru.text).toEqual(expect.any(String));
