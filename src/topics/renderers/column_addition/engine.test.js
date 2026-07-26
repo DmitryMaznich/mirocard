@@ -417,22 +417,6 @@ describe("generateTasks – identify_number", () => {
     }
   });
 
-  it("showCounters follows the showCounters param, independent of maxOnes", () => {
-    const withCounters = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, showCounters: true });
-    const withoutCounters = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, showCounters: false });
-    expect(withCounters.every(t => t.showCounters === true)).toBe(true);
-    expect(withoutCounters.every(t => t.showCounters === false)).toBe(true);
-  });
-
-  it("showCounters defaults to true when not specified", () => {
-    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9 });
-    expect(tasks.every(t => t.showCounters === true)).toBe(true);
-  });
-
-  it("numericBlocks follows the numericBlocks param, independent of showCounters", () => {
-    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, numericBlocks: true });
-    expect(tasks.every(t => t.numericBlocks === true)).toBe(true);
-  });
 });
 
 describe("generateTasks – regroup_ten", () => {
@@ -446,10 +430,5 @@ describe("generateTasks – regroup_ten", () => {
       expect(t.after.ones).toBe(t.initial.ones + 10);
       expect(t.after.tens * 10 + t.after.ones).toBe(t.number);
     }
-  });
-
-  it("numericBlocks follows the numericBlocks param", () => {
-    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 5, { maxOnes: 9, numericBlocks: true });
-    expect(tasks.every(t => t.numericBlocks === true)).toBe(true);
   });
 });

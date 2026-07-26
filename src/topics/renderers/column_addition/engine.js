@@ -219,28 +219,25 @@ export function generateBuildNumberTask(card, maxOnes, maxTens, numericBlocks) {
   };
 }
 
-export function generateIdentifyNumberTask(card, maxOnes, showCounters, numericBlocks) {
+export function generateIdentifyNumberTask(card, maxOnes) {
   const { tens, ones } = randomPlaceValueNumber(maxOnes);
   return {
     type: "identify_number",
     cardId: card.id,
     conceptId: card.conceptId,
     maxOnes: Number(maxOnes),
-    numericBlocks: Boolean(numericBlocks),
     number: tens * 10 + ones,
     model: { tens, ones },
-    showCounters: Boolean(showCounters),
   };
 }
 
-export function generateRegroupTask(card, maxOnes, numericBlocks) {
+export function generateRegroupTask(card, maxOnes) {
   const { tens, ones } = randomPlaceValueNumber(maxOnes);
   return {
     type: "regroup_ten",
     cardId: card.id,
     conceptId: card.conceptId,
     maxOnes: Number(maxOnes),
-    numericBlocks: Boolean(numericBlocks),
     number: tens * 10 + ones,
     initial: { tens, ones },
     after: { tens: tens - 1, ones: ones + 10 },
@@ -338,11 +335,9 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (mode === "identify_number") {
     if (!identifyNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
-    const showCounters = params.showCounters ?? true;
-    const numericBlocks = params.numericBlocks ?? false;
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, showCounters, numericBlocks));
+      tasks.push(generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes));
     }
     return tasks;
   }
@@ -350,10 +345,9 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (mode === "regroup_ten") {
     if (!regroupTenCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
-    const numericBlocks = params.numericBlocks ?? false;
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateRegroupTask(regroupTenCards[i % regroupTenCards.length], maxOnes, numericBlocks));
+      tasks.push(generateRegroupTask(regroupTenCards[i % regroupTenCards.length], maxOnes));
     }
     return tasks;
   }
