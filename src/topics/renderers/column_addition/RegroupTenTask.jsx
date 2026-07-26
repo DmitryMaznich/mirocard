@@ -2,12 +2,12 @@ import { useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
-import { useSpeech } from "@/shared/hooks/useSpeech";
-import { UnitCube, TenCard } from "./PlaceValueBlocks.jsx";
-import { pluralTens, pluralOnes } from "./placeValueLabels.js";
+import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
+import "./coins.css";
 
-function DraggableTenCard({ id, numeric }) {
+function DraggableTenStack({ id }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id, data: { kind: "ten" } });
   return (
     <div
@@ -16,7 +16,30 @@ function DraggableTenCard({ id, numeric }) {
       {...listeners}
       {...attributes}
     >
-      <TenCard numeric={numeric} />
+      <TenStack />
+    </div>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="pv-check-icon" fill="none" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Single-row checklist: this mode has exactly one action (drag the ten into
+// ЕДИНИЦЫ), so there's no active/wrong state to track — only pending until
+// the drag succeeds, then done. The row's own text replaces what used to be
+// a separate .pv-caption line below the zones.
+function ChecklistItem({ text, done, textRef, fontSize }) {
+  return (
+    <div className={`pv-checklist-item${done ? " is-done" : " is-pending"}`}>
+      <span className="pv-checklist-box">{done && <CheckIcon />}</span>
+      <span ref={textRef} className="pv-checklist-text" style={fontSize ? { fontSize } : undefined}>
+        {text}
+      </span>
     </div>
   );
 }
@@ -25,7 +48,7 @@ function DraggableTenCard({ id, numeric }) {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-function Zones({ tens, ones, exchanged, initialOnes, numeric }) {
+function Zones({ tens, ones, exchanged, initialOnes }) {
   const { setNodeRef, isOver } = useDroppable({ id: "pv-ones-zone" });
   return (
     <div className="pv-zones">
@@ -34,9 +57,9 @@ function Zones({ tens, ones, exchanged, initialOnes, numeric }) {
         <div className="pv-zone-body">
           {Array.from({ length: tens }, (_, i) =>
             !exchanged && i === tens - 1 ? (
-              <DraggableTenCard key={i} id={`ten-${i}`} numeric={numeric} />
+              <DraggableTenStack key={i} id={`ten-${i}`} />
             ) : (
-              <TenCard key={i} numeric={numeric} />
+              <TenStack key={i} />
             )
           )}
         </div>
@@ -52,7 +75,7 @@ function Zones({ tens, ones, exchanged, initialOnes, numeric }) {
                 className={isNew ? "pv-cube-pop" : undefined}
                 style={isNew ? { animationDelay: `${(i - initialOnes) * 45}ms` } : undefined}
               >
-                <UnitCube numeric={numeric} />
+                <Coin />
               </div>
             );
           })}
@@ -66,7 +89,6 @@ export default function RegroupTenTask({ task, onCorrect }) {
   const [tens, setTens] = useState(task.initial.tens);
   const [ones, setOnes] = useState(task.initial.ones);
   const [exchanged, setExchanged] = useState(false);
-  const { speak } = useSpeech();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -78,34 +100,28 @@ export default function RegroupTenTask({ task, onCorrect }) {
     setTens((t) => t - 1);
     setOnes((o) => o + 10);
     setExchanged(true);
-    speak("Один десяток разменяли на десять единиц");
   }
 
   function handleContinue() {
     onCorrect(task.conceptId, task.cardId);
   }
 
+  const { ref: checklistRef, fontSize: checklistFontSize } = useFitOneLine("Разменяй десяток в единицы", { max: 45, min: 13 });
+
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="pv-screen">
-        <div className="pv-instruction">Разменяй один десяток на единицы</div>
-        <div className="pv-number">{task.number}</div>
-
-        <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} numeric={task.numericBlocks} />
-
-        <div className="pv-zones" style={{ flex: 0 }}>
-          <div style={{ flex: 1 }} className="pv-zone-counter">
-            {tens} {pluralTens(tens)}
-          </div>
-          <div style={{ flex: 1 }} className="pv-zone-counter">
-            {ones} {pluralOnes(ones)}
-          </div>
+      <div className="pv-screen cb-screen">
+        <div className="pv-checklist">
+          <ChecklistItem text="Разменяй десяток в единицы" done={exchanged} textRef={checklistRef} fontSize={checklistFontSize} />
         </div>
 
-        {!exchanged && <div className="pv-caption">перетащи десяток в ЕДИНИЦЫ, чтобы разменять</div>}
+        <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} />
 
         <div className="pv-spacer" />
 
+        {/* Kept as a deliberate exception to "auto-advance like
+            build_number": the point of this mode is for the child to see
+            and read the before/after equation, not to be swept past it. */}
         {exchanged && (
           <div className="pv-result-panel">
             <div className="pv-result-line">
