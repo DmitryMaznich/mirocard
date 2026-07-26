@@ -267,6 +267,18 @@ export function taskNeedsBorrowTeaching(task) {
   return task?.operation === "subtract" && (task?.columns ?? []).some((c) => c.borrowOut > 0);
 }
 
+// Resolves the "Сравнение" setting into one of the three compareMode values.
+// Falls back to the pre-2026-07-26 boolean `showCompare` key so links saved
+// before this change keep their chosen behavior instead of silently
+// resetting to the default.
+export function resolveCompareMode(sessionParams) {
+  if (sessionParams?.compareMode) return sessionParams.compareMode;
+  if (typeof sessionParams?.showCompare === "boolean") {
+    return sessionParams.showCompare ? "onBorrow" : "off";
+  }
+  return "onBorrow";
+}
+
 export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const mode = typeof modeOrObj === "string" ? modeOrObj : (modeOrObj?.type ?? modeOrObj?.id ?? "");
   const count = typeof countOrParams === "number" ? countOrParams : 15;

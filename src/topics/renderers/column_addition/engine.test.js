@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode } from "./engine.js";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 
 const CARDS = [
@@ -215,6 +215,30 @@ describe("taskNeedsBorrowTeaching", () => {
   it("false for subtraction tasks without a borrow", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "none", digits: 2 });
     expect(tasks.every((t) => !taskNeedsBorrowTeaching(t))).toBe(true);
+  });
+});
+
+describe("resolveCompareMode", () => {
+  it("returns sessionParams.compareMode when present", () => {
+    expect(resolveCompareMode({ compareMode: "always" })).toBe("always");
+    expect(resolveCompareMode({ compareMode: "off" })).toBe("off");
+  });
+
+  it("migrates legacy showCompare: true to onBorrow when compareMode is absent", () => {
+    expect(resolveCompareMode({ showCompare: true })).toBe("onBorrow");
+  });
+
+  it("migrates legacy showCompare: false to off when compareMode is absent", () => {
+    expect(resolveCompareMode({ showCompare: false })).toBe("off");
+  });
+
+  it("defaults to onBorrow when neither compareMode nor showCompare is set", () => {
+    expect(resolveCompareMode({})).toBe("onBorrow");
+    expect(resolveCompareMode(undefined)).toBe("onBorrow");
+  });
+
+  it("compareMode takes priority over a stale legacy showCompare value", () => {
+    expect(resolveCompareMode({ compareMode: "always", showCompare: false })).toBe("always");
   });
 });
 
