@@ -157,41 +157,6 @@
   pointer-events: none;
 }
 
-.col-digit-adjusted {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #2563eb;
-  line-height: 1;
-}
-
-/* When this column's own compare question is what's active, the highlight
-   moves here instead of the whole cell — see .col-digit--comparing usage
-   in index.jsx for why (this badge is the number actually being compared,
-   the big crossed-out digit underneath no longer matters). */
-.col-digit-adjusted--comparing {
-  background: #ede9fe;
-  color: #6d28d9;
-  border-radius: 6px;
-  padding: 0 3px;
-  box-shadow: 0 0 0 2px #7c3aed;
-  animation: col-pulse-compare-badge 1.4s ease-in-out infinite;
-}
-
-@keyframes col-pulse-compare-badge {
-  0%, 100% { box-shadow: 0 0 0 2px #7c3aed; }
-  50%       { box-shadow: 0 0 0 3px #ddd6fe, 0 0 0 2px #7c3aed; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .col-digit-adjusted--comparing {
-    animation: none;
-    box-shadow: 0 0 0 3px #7c3aed;
-  }
-}
-
 /* ── Horizontal line ───────────────────────── */
 
 /* row 4 = 3px exactly — line fills it completely */
@@ -239,6 +204,23 @@
 @keyframes col-pulse-carry {
   0%, 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); }
   50%       { box-shadow: 0 0 12px rgba(245, 158, 11, 0.8); }
+}
+
+/* This "adjust" box already shows the reduced digit (.col-carry-cell--filled,
+   amber) — when that same column's own later borrow decision is what's being
+   compared, a purple ring layers on top of the amber fill so the child can
+   see which yellow number the compare buttons refer to, without duplicating
+   the digit anywhere else. */
+.col-carry-cell--comparing {
+  box-shadow: 0 0 0 3px #7c3aed;
+  animation: col-pulse-compare 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .col-carry-cell--comparing {
+    animation: none;
+    box-shadow: 0 0 0 4px #7c3aed;
+  }
 }
 
 /* ── Result empty cells ────────────────────── */

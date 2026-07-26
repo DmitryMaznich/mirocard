@@ -152,7 +152,7 @@ describe("ColumnArithmeticTask — compareMode", () => {
     expect(borrowCell.classList.contains("col-carry-cell--active")).toBe(true);
   });
 
-  it("comparing an already-adjusted column highlights the adjusted badge, not the crossed-out original", async () => {
+  it("comparing an already-adjusted column highlights the yellow adjust box, not the crossed-out digit", async () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 60, { operation: "subtract", carryMode: "carry", digits: 3 });
     // topDigit >= 1 on the tens column sidesteps a separate, pre-existing
     // engine edge case (borrowing FROM a digit that's already 0 needs its
@@ -178,16 +178,19 @@ describe("ColumnArithmeticTask — compareMode", () => {
     tapDigit(task.columns[0].writeDigit); // result:units
 
     // Now the tens column's own borrow question is active — tens is already
-    // shown crossed out with tensAdjustDigit above it. The comparing
-    // highlight must land on that small adjusted badge (the number actually
-    // being compared), not on the whole cell (which would draw the eye to
-    // the bigger, now-irrelevant original digit instead).
+    // shown crossed out, with its reduced value sitting only in the yellow
+    // "adjust" aux box (no duplicate badge on the digit itself). The
+    // comparing highlight must land on that yellow box, not on the crossed-
+    // out digit cell (which would draw the eye to the bigger, now-
+    // irrelevant original digit instead of the number actually compared).
     expect(container.querySelector(".col-compare-panel")).toBeTruthy();
-    const badge = container.querySelector(".col-digit-adjusted");
-    expect(badge, "adjusted digit badge not found").toBeTruthy();
-    expect(badge.textContent.trim()).toBe(String(tensAdjustDigit));
-    expect(badge.classList.contains("col-digit-adjusted--comparing")).toBe(true);
-    expect(badge.parentElement.classList.contains("col-digit--comparing")).toBe(false);
+    const adjustBox = container.querySelector('[data-cell-key="adjust:tens"]');
+    expect(adjustBox, "adjust aux box not found").toBeTruthy();
+    expect(adjustBox.textContent.trim()).toBe(String(tensAdjustDigit));
+    expect(adjustBox.classList.contains("col-carry-cell--comparing")).toBe(true);
+    const tensDigitCell = container.querySelector(".col-digit--top-borrowed");
+    expect(tensDigitCell, "crossed-out tens digit cell not found").toBeTruthy();
+    expect(tensDigitCell.classList.contains("col-digit--comparing")).toBe(false);
   });
 
   it("onBorrow: does NOT show the compare strip on a no-borrow column (parity with pre-change default)", async () => {
