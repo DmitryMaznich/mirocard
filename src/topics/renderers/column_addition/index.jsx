@@ -20,6 +20,11 @@ const POS_INDEX = { units: 0, tens: 1, hundreds: 2 };
 // ColumnArithmeticTask's cellSize/gridBaseSize computation below.
 const GRID_SCALE = 1.3;
 const PANEL_SCALE = 1.5;
+// Tap keyboard sizing budget: a fixed 5-button row plus a bit of breathing
+// room, independent of how many digits/result columns the current problem
+// happens to have — the keyboard is always 5 keys wide regardless of
+// whether the task is 2-digit or 3-digit, so its size shouldn't be either.
+const KEYBOARD_COLS = 6;
 
 function getDigitAt(n, position) {
   return Math.floor(n / 10 ** POS_INDEX[position]) % 10;
@@ -524,24 +529,32 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const activeStep = phase === "solve" && stepIdx < task.steps.length ? task.steps[stepIdx] : null;
 
   // Compute adaptive cell and button sizes after layout.
-  // cellSize drives the tap keyboard only, unchanged from before. The
-  // notebook (Expression + ColumnGrid) renders GRID_SCALE× bigger — its own
-  // base (gridBaseSize) is computed so that, once multiplied by GRID_SCALE,
-  // it still fits the exact same available width cellSize's formula targets
-  // — on a narrow screen the pre-multiplication base shrinks accordingly,
-  // so the notebook doesn't overflow.
-  // Constrained by the expression width: top_digits + sign + bottom_digits + eq + result_digits.
+  // cellSize (tap keyboard) has its OWN scaling now — a fixed 5-button-row
+  // budget, completely independent of how many digits/result columns the
+  // current problem has, so the keyboard never changes size between a
+  // 2-digit and a 3-digit task.
+  // gridBaseSize (notebook: Expression + ColumnGrid, rendered GRID_SCALE×
+  // bigger) is the one that must fit the actual expression width —
+  // top_digits + sign + bottom_digits + eq + result_digits — including the
+  // final result once solved, which is why the floor here is low (18, not
+  // 28): a 3-digit example with a carried result can need up to 11 columns
+  // (2*3 + 2 + 3), and a 28px floor was wide enough on its own — once
+  // multiplied by GRID_SCALE — to overflow every common phone width (e.g.
+  // 11 × 28 × 1.3 ≈ 400px, wider than the ~340-360px a 375-390px-wide
+  // screen actually has available).
   useLayoutEffect(() => {
     function compute() {
       if (!rootRef.current) return;
       const w = rootRef.current.clientWidth;
       const avail = w - 32;
+
+      const cs = Math.min(52, Math.max(28, Math.floor(avail / KEYBOARD_COLS)));
+      setCellSize(cs);
+
       const digits = task.digits;
       const resultDigits = String(task.result).length;
       const exprCols = 2 * digits + 2 + resultDigits;
-      const cs = Math.min(52, Math.max(28, Math.floor(avail / exprCols)));
-      setCellSize(cs);
-      const gridBase = Math.min(52, Math.max(28, Math.floor(avail / (GRID_SCALE * exprCols))));
+      const gridBase = Math.min(52, Math.max(18, Math.floor(avail / (GRID_SCALE * exprCols))));
       setGridBaseSize(gridBase);
     }
     compute();
