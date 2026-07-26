@@ -45,4 +45,39 @@ describe("BuildNumberTask", () => {
     });
     expect(container.querySelector(".pv-checklist-item")).toBeTruthy();
   });
+
+  it("applies pv-checklist--focused from the start, so a done row recedes immediately", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 23, target: { tens: 2, ones: 3 } };
+    act(() => {
+      root.render(<BuildNumberTask task={task} onCorrect={() => {}} onMistake={() => {}} onFlashIncorrect={() => {}} />);
+    });
+    // Even in "collect" (before any row is done yet), the recede rule must
+    // already be in effect — it used to only turn on once the answer step
+    // began, which left every earlier "done" row (e.g. after confirming
+    // collect) showing just green+strikethrough with no shrink/fade.
+    expect(container.querySelector(".pv-checklist").className).toContain("pv-checklist--focused");
+  });
+
+  it("gives every visible checklist row the same font size", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    // number: 0 lets confirming "collect" succeed with zero coins placed,
+    // reaching "group" (and its second checklist row) without needing to
+    // simulate a dnd-kit drag.
+    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 0, target: { tens: 0, ones: 0 } };
+    act(() => {
+      root.render(<BuildNumberTask task={task} onCorrect={() => {}} onMistake={() => {}} onFlashIncorrect={() => {}} />);
+    });
+    act(() => {
+      container.querySelector(".pv-checklist-item").click();
+    });
+    const rows = container.querySelectorAll(".pv-checklist-text");
+    expect(rows.length).toBe(2);
+    const sizes = Array.from(rows).map((el) => el.style.fontSize);
+    expect(sizes[0]).toBe(sizes[1]);
+  });
 });

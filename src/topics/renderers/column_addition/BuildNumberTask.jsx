@@ -443,6 +443,15 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Сложи десятки", { max: 45, min: 13 });
   const { ref: tensQRef, fontSize: tensQFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
   const { ref: onesQRef, fontSize: onesQFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
+  // One shared size for every row instead of each row keeping its own
+  // independently-fitted size: a not-yet-mounted row's hook stays at its
+  // initial `max` (its useLayoutEffect never ran, since it isn't in the
+  // DOM to measure), so this only pulls the shared size down to whatever
+  // the currently-visible rows actually need — a row that mounts later
+  // and needs less room doesn't shrink the others further than necessary,
+  // but "Собери N монет" (often the tightest fit) no longer renders
+  // visibly smaller than a short neighboring row like "Сложи десятки".
+  const checklistFontSize = Math.min(collectFontSize, groupFontSize, tensQFontSize, onesQFontSize);
 
   const showAnswerSlots = phase === "answerTens" || phase === "answerOnes" || phase === "done";
   const tensDone = phase === "answerOnes" || phase === "done";
@@ -461,13 +470,17 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        <div className={`pv-checklist${showAnswerSlots ? " pv-checklist--focused" : ""}`}>
+        {/* --focused is unconditional (unlike the earlier version, which only
+            added it once showAnswerSlots): a done row should recede as soon
+            as it's done, not wait for the answer step — same as
+            IdentifyNumberTask.jsx, which applies it unconditionally too. */}
+        <div className="pv-checklist pv-checklist--focused">
           <ChecklistItem
             text={collectContent}
             state={phase === "collect" ? (rowWrong.collect ? "wrong" : "active") : "done"}
             onTap={phase === "collect" ? confirmCollect : undefined}
             textRef={collectRef}
-            fontSize={collectFontSize}
+            fontSize={checklistFontSize}
           />
           {phase !== "collect" && (
             <ChecklistItem
@@ -475,7 +488,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               state={phase === "group" ? (rowWrong.group ? "wrong" : "active") : "done"}
               onTap={phase === "group" ? confirmGroup : undefined}
               textRef={groupRef}
-              fontSize={groupFontSize}
+              fontSize={checklistFontSize}
             />
           )}
           {/* These two appear one at a time, same as the rows above — the
@@ -491,7 +504,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
               clickable={false}
               textRef={tensQRef}
-              fontSize={tensQFontSize}
+              fontSize={checklistFontSize}
             />
           )}
           {(phase === "answerOnes" || phase === "done") && (
@@ -500,7 +513,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
               clickable={false}
               textRef={onesQRef}
-              fontSize={onesQFontSize}
+              fontSize={checklistFontSize}
             />
           )}
         </div>
