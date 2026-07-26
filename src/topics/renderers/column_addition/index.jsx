@@ -83,11 +83,16 @@ function TapKeyboard({ phase, operation, onDigit, onSign, onLine, btnSize, hidde
 }
 
 // ── Borrow comparison strip ───────────────────────────────────────────────
-// Shown under the column, gated by the "Сравнение" param, right before the
-// child is expected to fill a "borrow" step. Reuses the same tap-a-sign
-// interaction as the "Сравнение чисел" topic's ComparePutSign, scaled down.
-// The child's own answer is what unlocks the borrow square below — nothing
-// here is decided for them.
+// Shown under the column, gated by the "Сравнение" (compareMode) param.
+// "onBorrow" and "always" both show it right before a "borrow" step (a
+// column where a заём is already known to be needed). "always" additionally
+// shows it before a plain "result" step on a column that does NOT need a
+// borrow — the child must correctly answer ">" or "=" themselves before the
+// result keyboard reappears, so "is a borrow needed here" is never a
+// decision the app makes silently on the child's behalf. Reuses the same
+// tap-a-sign interaction as the "Сравнение чисел" topic's ComparePutSign,
+// scaled down. The child's own answer is what unlocks the next input —
+// nothing here is decided for them.
 
 function BorrowCompareStrip({ topDigit, bottomDigit, onResolve }) {
   const [shakeSign, setShakeSign] = useState(null);
@@ -558,12 +563,22 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   }, [activeStep, stepIdx, task.steps, onCorrect]);
 
   const compareMode = resolveCompareMode(sessionParams);
-  const showingCompare =
+
+  const showingCompareOnBorrow =
     phase === "solve" &&
     activeStep?.cellType === "borrow" &&
     compareMode !== "off" &&
     taskNeedsBorrowTeaching(task) &&
     !resolvedCompares.has(activeStep.position);
+
+  const showingCompareAlways =
+    phase === "solve" &&
+    compareMode === "always" &&
+    task.operation === "subtract" &&
+    activeStep?.cellType === "result" &&
+    !resolvedCompares.has(activeStep.position);
+
+  const showingCompare = showingCompareOnBorrow || showingCompareAlways;
 
   const compareColumn = showingCompare ? task.columns[POS_INDEX[activeStep.position]] : null;
 
