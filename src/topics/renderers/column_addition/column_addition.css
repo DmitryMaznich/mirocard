@@ -171,39 +171,36 @@
 
 /* ── Carry / borrow aux cells ──────────────── */
 
+/* Same corner-triangle language as .col-digit-corner (borrow/adjust), just
+   bottom-right instead of top-left and living in its own row-1 cell rather
+   than overlaid on a bigger digit — there's no main digit sharing this
+   grid cell to leave room for, so the triangle can be bigger. */
 .col-carry-cell {
-  width: 28px;
-  height: 26px;
-  border: 1.5px dashed #f59e0b;
-  border-radius: 4px;
+  clip-path: polygon(100% 100%, 100% 25%, 25% 100%);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 8% 6% 0;
   font-weight: 700;
-  color: #92400e;
-  background: transparent;
   font-family: 'Primo', cursive;
+  line-height: 1;
 }
 
 .col-carry-cell--active {
-  border-color: #f59e0b;
-  border-style: solid;
-  background: #fef9c3;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.55);
-  animation: col-pulse-carry 1.1s ease-in-out infinite;
+  background: #fde68a;
+  color: #92400e;
+  animation: col-pulse-corner 1.1s ease-in-out infinite;
 }
 
 .col-carry-cell--filled {
-  border-style: solid;
-  border-color: #d97706;
   background: #fef3c7;
   color: #92400e;
 }
 
-@keyframes col-pulse-carry {
-  0%, 100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); }
-  50%       { box-shadow: 0 0 12px rgba(245, 158, 11, 0.8); }
+@media (prefers-reduced-motion: reduce) {
+  .col-carry-cell--active {
+    animation: none;
+  }
 }
 
 /* ── Corner mark (заём/adjust, on the digit cell itself) ───── */

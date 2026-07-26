@@ -159,27 +159,27 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
 
   const cs = cellSize;
   const csStr = cs + "px";
-  const carryH = Math.max(20, Math.round(cs * 0.59)) + "px";
-  const carryW = Math.max(22, Math.round(cs * 0.64)) + "px";
   // Vertical center of the top+bottom digit rows (grid rows 2-3), used to
   // anchor .col-compare-panel at the same height regardless of which column
   // (units/tens/hundreds) is currently being compared. Every non-line grid
-  // row (including row 1, the carry/borrow row) is sized to the full `cs`
-  // via the inline gridTemplateRows below — NOT carryH, which is only the
-  // smaller carry *cell's* own height within that full-height row. Row 1
-  // spans 0..cs, rows 2-3 span cs..3*cs, so their midpoint is cs + cs = 2*cs.
+  // row (including row 1, the carry row) is sized to the full `cs` via the
+  // inline gridTemplateRows below. Row 1 spans 0..cs, rows 2-3 span
+  // cs..3*cs, so their midpoint is cs + cs = 2*cs.
   const comparePanelTop = 2 * cs;
   const comparingPosition = compareColumn?.position ?? null;
-  const carryFS = Math.max(12, Math.round(cs * 0.36)) + "px";
   const digitPT = Math.round(cs * 0.45) + "px";
   const digitFS = Math.round(cs * 1.02) + "px";
   const signFS = Math.round(cs * 1.14) + "px";
+  // Same ratio .col-digit-corner uses (0.42em of the digit's own font-size)
+  // — the carry corner has no big digit to sit next to in its own row, so
+  // it's computed directly off `cs` instead of inherited via em.
+  const carryCornerFS = Math.round(cs * 0.42) + "px";
 
   const digitStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const signCellStyle = { width: csStr, height: csStr, fontSize: signFS };
   const formCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
   const resultCellStyle = { width: csStr, height: csStr, paddingTop: digitPT, fontSize: digitFS };
-  const carryStyle = { width: carryW, height: carryH, fontSize: carryFS };
+  const carryStyle = { width: csStr, height: csStr, fontSize: carryCornerFS };
 
   // ── Carry row (addition only, phase 2) ───────────────────────────────────
   // Subtraction's "borrow"/"adjust" no longer render here — they render as a
