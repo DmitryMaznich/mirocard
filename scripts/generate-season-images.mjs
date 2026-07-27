@@ -8,12 +8,13 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
+import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.join(__dirname, "season_output");
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-const API_KEY = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
+const API_KEY = getGeminiApiKey();
 
 // Same park scene in all 4 seasons:
 // A large deciduous tree (oak) centered, a wooden bench beside it,

@@ -1,7 +1,8 @@
 import fs from "fs";
 import sharp from "sharp";
+import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 
-const API_KEY = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
+const API_KEY = getGeminiApiKey();
 const MODEL   = "gemini-3.1-flash-image";
 
 const PROMPT =

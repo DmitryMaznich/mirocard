@@ -12,12 +12,13 @@ import path from "path";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
 import JSZip from "jszip";
+import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT = path.join(__dirname, "..");
 const DECKS_DIR = path.join(PROJECT, "public", "decks");
 
-const API_KEY = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
+const API_KEY = getGeminiApiKey();
 const MODEL = "gemini-3.1-flash-image";
 
 const S =

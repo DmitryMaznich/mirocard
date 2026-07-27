@@ -9,6 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import JSZip from "jszip";
+import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, "..");
@@ -18,7 +19,7 @@ const TOPIC_ID  = "word_formation_jam";
 const VERSION   = "1.0.0";
 const ZIP_PATH  = path.join(ROOT, "public", "decks", `${TOPIC_ID}_v${VERSION}.zip`);
 
-const GEMINI_KEY   = "AIzaSyAfKpjiMTIMGugV-WYRN_Rhk7vRKyXl-_k";
+const GEMINI_KEY   = getGeminiApiKey();
 const GEMINI_MODEL = "gemini-2.5-flash-image";
 
 const TTS_SA_PATH = "c:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
