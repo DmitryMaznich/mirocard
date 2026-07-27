@@ -49,15 +49,16 @@
    inline style on this same element. min-height:0 is required for a flex
    item to actually shrink below its content's natural height instead of
    overflowing its own flex-allocated box; overflow:hidden is the backstop
-   if the scale estimate ever runs slightly short. align-items:center (not
-   the base rule's flex-start) keeps the zone pair vertically centered in
-   whatever leftover room there is once a small tens/ones count doesn't
-   need the full height. */
+   if the scale estimate ever runs slightly short. align-items:flex-start
+   keeps ДЕСЯТКИ/ЕДИНИЦЫ pinned to the same top line as each other and as
+   the answer row above, instead of centering the pair in whatever
+   leftover room there is (the base rule already defaults to flex-start —
+   this override exists so the intent stays explicit for this variant). */
 .pv-zones--flex-fit {
   flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .pv-zone {
@@ -272,10 +273,13 @@
    (see IdentifyNumberTask.jsx's playMergeAnimation) real horizontal
    distance to travel, so "digits flying toward each other" actually
    reads as motion instead of a small twitch. position:relative anchors
-   .pv-merged-number, which overlays this row once the two ghosts land. */
+   .pv-merged-number, which overlays this row once the two ghosts land.
+   Bottom margin trimmed from the base rule's 6px to 2px so the slots sit
+   right on the zones' top edge instead of floating above it. */
 .pv-answer-row--split {
   position: relative;
   gap: 0;
+  margin-bottom: 2px;
 }
 .pv-answer-row--split .pv-answer-col {
   flex: 1;
@@ -378,10 +382,10 @@
    green (matches .pv-answer-slot--correct's own color) so the digit reads
    as "still that same confirmed answer" while it travels, not a new
    element appearing from nowhere. Same scaled size as the AnswerSlot it
-   lifted off from (.cb-screen .pv-answer-slot's own
-   calc(32 * var(--cb-scale)) — not a flat 32px, which would visibly
-   mismatch that slot's size on a tablet-width --cb-scale) — the digit
-   must read as staying the same size while it travels, not shrinking. The
+   lifted off from (coins.css's identify_number-only override, 48px base —
+   not a flat 48px here either, still calc()'d by --cb-scale so it matches
+   that slot's size on a tablet-width --cb-scale too) — the digit must
+   read as staying the same size while it travels, not shrinking. The
    `, 1px` fallback matters here: appended to document.body, this element
    sits OUTSIDE .cb-screen's own subtree and has nothing to inherit
    --cb-scale from. */
@@ -389,7 +393,7 @@
   position: fixed;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  font-size: calc(32 * var(--cb-scale, 1px));
+  font-size: calc(48 * var(--cb-scale, 1px));
   color: #065f46;
   pointer-events: none;
   z-index: 500;
@@ -400,18 +404,18 @@
    parent), always rendered with its final two-digit text so its real,
    laid-out position is measurable before the merge starts — --visible is
    what actually reveals it once both ghosts land. Same font-size as the
-   AnswerSlot digits that flew here (.cb-screen .pv-answer-slot's own
-   calc(32 * var(--cb-scale))) — the point is that the two separate
-   answers become one real, established number, not that the number grows
-   bigger than they were. The landing bounce (see playMergeAnimation)
-   starts its scale at 1, never below — dipping to a smaller scale first
-   read as the digits shrinking, not landing. */
+   AnswerSlot digits that flew here (coins.css's identify_number-only
+   override, 48px base) — the point is that the two separate answers
+   become one real, established number, not that the number grows bigger
+   than they were. The landing bounce (see playMergeAnimation) starts its
+   scale at 1, never below — dipping to a smaller scale first read as the
+   digits shrinking, not landing. */
 .pv-merged-number {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%) scale(1);
-  font-size: calc(32 * var(--cb-scale, 1px));
+  font-size: calc(48 * var(--cb-scale, 1px));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
