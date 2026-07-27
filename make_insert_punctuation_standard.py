@@ -155,17 +155,28 @@ c.drawString(150*mm, 1*mm, description)
 row_pairs.sort(key=lambda pair: pair[0], reverse=True)  # сверху вниз (по убыванию y)
 total_rows = len(row_pairs)
 font_size = round((narrow_spacing * mm) / X_RATIO)
+DOT_SCALE = 1.5   # точки/запятые плохо видно - увеличиваем их на 50%
+font_size_dot = round(font_size * DOT_SCALE)
 
 right_x0 = center + sign_gap * mm
 right_x1 = right_bound - sign_gap * mm
 
 c.setFillColorRGB(*sign_color)
-c.setFont(CURSIVE, font_size)
 for i, (y_base, _y_top) in enumerate(row_pairs):
     sign = SIGNS[i * 4 // total_rows]
     x = right_x0
     while x <= right_x1:
-        c.drawCentredString(x, y_base, sign)
+        if sign in (".", ","):
+            # Точка и запятая целиком рисуются увеличенным шрифтом.
+            c.setFont(CURSIVE, font_size_dot)
+            c.drawCentredString(x, y_base, sign)
+        else:
+            # "!" и "?" остаются исходного размера, а точка в их основании
+            # дополнительно обводится увеличенной точкой поверх штриха/завитка.
+            c.setFont(CURSIVE, font_size)
+            c.drawCentredString(x, y_base, sign)
+            c.setFont(CURSIVE, font_size_dot)
+            c.drawCentredString(x, y_base, ".")
         x += sign_step * mm
 
 c.save()
