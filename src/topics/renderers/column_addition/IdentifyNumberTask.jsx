@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { hintDirectionFor } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
@@ -6,33 +7,6 @@ import "./place_value.css";
 import "./coins.css";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="pv-check-icon" fill="none" aria-hidden="true">
-      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// Same tap-to-confirm-row idiom as BuildNumberTask's ChecklistItem, kept as
-// its own copy (not a shared import) so retouching one mode's checklist
-// never touches the other's. Both rows here are ticked by the numpad, not
-// by tapping the row itself, so unlike BuildNumberTask's collect/group rows
-// there's no onTap/clickable path at all — a row is always "is-pending"
-// until it's done or (briefly) wrong.
-function ChecklistItem({ text, state, textRef, fontSize }) {
-  const done = state === "done";
-  const wrong = state === "wrong";
-  return (
-    <div className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!done && !wrong ? " is-pending" : ""}`}>
-      <span className="pv-checklist-box">{done && <CheckIcon />}</span>
-      <span ref={textRef} className="pv-checklist-text" style={fontSize ? { fontSize } : undefined}>
-        {text}
-      </span>
-    </div>
-  );
-}
 
 function AnswerSlot({ state, value, hint, slotRef }) {
   const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-answer-slot--${s}`).join("");
@@ -184,7 +158,9 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   // made them land exactly on top of each other, a visible collide-then-
   // snap-apart glitch the instant the real "23" replaced them. Same
   // "measure the real thing, don't guess" rule flyCoinGhost follows for
-  // its own landing spot.
+  // its own landing spot. Doesn't call onCorrect itself — advancing is now
+  // a deliberate tap on "Далее →" (see handleContinue), not an automatic
+  // timeout, so the child has as long as they want to look at the result.
   function playMergeAnimation() {
     const tensEl = tensSlotRef.current;
     const onesEl = onesSlotRef.current;
@@ -195,7 +171,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setMerging(true);
       setMerged(true);
-      setTimeout(() => onCorrect(task.conceptId, task.cardId), 500);
       return;
     }
 
@@ -209,10 +184,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     let arrived = 0;
     function onArrive() {
       arrived += 1;
-      if (arrived === 2) {
-        setMerged(true);
-        setTimeout(() => onCorrect(task.conceptId, task.cardId), 550);
-      }
+      if (arrived === 2) setMerged(true);
     }
     flyDigitGhost(rectCenter(tensRect), rectCenter(targetTensRect), String(task.model.tens), 0, onArrive);
     flyDigitGhost(rectCenter(onesRect), rectCenter(targetOnesRect), String(task.model.ones), 60, onArrive);
@@ -240,6 +212,10 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     }
   }
 
+  function handleContinue() {
+    onCorrect(task.conceptId, task.cardId);
+  }
+
   const tensDone = phase === "answerOnes" || phase === "done";
   const onesDone = phase === "done";
   const tensAnswer = {
@@ -253,32 +229,21 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     hint: hintDirection.ones,
   };
 
-  const { ref: tensQRef, fontSize: tensQFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
-  const { ref: onesQRef, fontSize: onesQFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
+  // A checklist was overkill for a two-step question: the digit landing in
+  // its own slot (above the matching ДЕСЯТКИ/ЕДИНИЦЫ zone) is already the
+  // confirmation, so this is just the current prompt — text swaps in
+  // place, not a growing list of rows. useFitOneLine re-fits on its own
+  // whenever `text` changes (it's in the hook's own dependency array), so
+  // one call handles all three phases.
+  const questionText = phase === "answerTens" ? "Сколько десятков?" : phase === "answerOnes" ? "Сколько единиц?" : "Правильно!";
+  const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine(questionText, { max: 40, min: 16 });
 
   return (
     <div className="pv-screen cb-screen">
       <div className="pv-instruction">Какое это число?</div>
 
-      {/* pv-checklist--reserve-2 reserves room for BOTH question rows from
-          the start, even while only the first is mounted — otherwise
-          revealing "Сколько единиц?" grows the checklist and pushes the
-          answer row / coin zones down the screen the moment it appears. */}
-      <div className="pv-checklist pv-checklist--focused pv-checklist--reserve-2">
-        <ChecklistItem
-          text="Сколько десятков?"
-          state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
-          textRef={tensQRef}
-          fontSize={tensQFontSize}
-        />
-        {(phase === "answerOnes" || phase === "done") && (
-          <ChecklistItem
-            text="Сколько единиц?"
-            state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
-            textRef={onesQRef}
-            fontSize={onesQFontSize}
-          />
-        )}
+      <div className={`pv-question${phase === "done" ? " pv-question--correct" : ""}`}>
+        <span ref={questionRef} style={{ fontSize: questionFontSize }}>{questionText}</span>
       </div>
 
       {/* Split into two zone-width columns so each slot centers over its
@@ -338,13 +303,24 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         </div>
       </div>
 
-      <div className="pv-numpad">
-        {DIGITS.map((d) => (
-          <button key={d} className="pv-numkey" onClick={() => handleDigit(d)} disabled={phase === "done"}>
-            {d}
-          </button>
-        ))}
-      </div>
+      {/* The numpad stays up (disabled) through the merge animation itself
+          — swapping it for the button only once `merged` settles avoids a
+          layout jump mid-flight, since the button is much shorter than the
+          5x2 numpad grid. Advancing is a deliberate tap now, not a timer:
+          the child sets the pace for how long they look at the result. */}
+      {merged ? (
+        <div className="pv-footer">
+          <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
+        </div>
+      ) : (
+        <div className="pv-numpad">
+          {DIGITS.map((d) => (
+            <button key={d} className="pv-numkey" onClick={() => handleDigit(d)} disabled={phase === "done"}>
+              {d}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -515,29 +515,30 @@
   margin-top: clamp(28px, 6vh, 52px);
 }
 
-/* identify_number only: reserves room for BOTH question rows from the
-   start, even while only the first is mounted — without this, revealing
-   "Сколько единиц?" grows the checklist and pushes the answer row / coin
-   zones down the screen at that exact moment. Derived from the same
-   numbers the rows themselves render with (45px max font-size, 1.2
-   line-height, 8px vertical item padding × 2 rows, 6px inter-row gap,
-   plus .pv-checklist's own 2px+10px top/bottom padding — box-sizing:
-   border-box means min-height must include that padding itself, not just
-   the rows' content, verified against the real rendered height via a
-   static-HTML mockup) rather than a guessed pixel figure — on a screen
-   narrow enough to shrink the text below the 45px ceiling, this reserves
-   a little more than the rows end up needing, which just leaves breathing
-   room instead of letting the zones shift again. */
-.pv-checklist--reserve-2 {
-  min-height: calc(2 * (45px * 1.2 + 2 * 8px) + 6px + 2px + 10px);
-  /* Reclaims most of the base rule's clamp(28px, 6vh, 52px) top gap — that
-     spacing was pure breathing room ("don't hug the top edge"), not
-     anything load-bearing, and identify_number needs the room more than
-     the aesthetic: every px recovered here is a px the coin zones below
-     don't have to shrink for (IdentifyNumberTask.jsx's zoneScale sizes
-     the zones from whatever's actually left over, so freeing space here
-     flows straight through to them without any JS change). */
+/* identify_number only: the single current-step prompt ("Сколько
+   десятков?" → "Сколько единиц?" → "Правильно!") that replaces what used
+   to be a two-row checklist — a checklist was overkill for a two-step
+   question where the digit landing in its own slot already confirms it.
+   Text swaps in place (no growing row count), so unlike the old
+   .pv-checklist--reserve-2 this needs no height reservation. Small top
+   margin on purpose: that space is better spent on the coin zones below,
+   which flex to fill whatever's left (IdentifyNumberTask.jsx's
+   zoneScale). Neucha keeps the same "handwritten prompt" language as the
+   rest of this family's checklists, even though this isn't one. */
+.pv-question {
+  text-align: center;
+  font-family: 'Neucha', cursive;
+  font-weight: 400;
+  color: #1a1a2e;
+  line-height: 1.2;
   margin-top: clamp(8px, 2vh, 18px);
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.pv-question--correct {
+  color: #16a34a;
+  font-weight: 700;
 }
 
 /* All rows — done, active, pending — share one size (each row runs its
