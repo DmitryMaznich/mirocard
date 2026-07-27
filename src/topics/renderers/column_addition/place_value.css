@@ -41,6 +41,25 @@
   flex: 0 0 auto;
 }
 
+/* identify_number only: fills whatever vertical space is left between the
+   answer row and the numpad (instead of sizing to its own content and
+   leaving a separate .pv-spacer to absorb the rest) — the actual coin/
+   ten-stack sizing then shrinks to fit THAT measured space via
+   IdentifyNumberTask.jsx's zoneScale, which overrides --cb-scale as an
+   inline style on this same element. min-height:0 is required for a flex
+   item to actually shrink below its content's natural height instead of
+   overflowing its own flex-allocated box; overflow:hidden is the backstop
+   if the scale estimate ever runs slightly short. align-items:center (not
+   the base rule's flex-start) keeps the zone pair vertically centered in
+   whatever leftover room there is once a small tens/ones count doesn't
+   need the full height. */
+.pv-zones--flex-fit {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  align-items: center;
+}
+
 .pv-zone {
   flex: 1;
   display: flex;

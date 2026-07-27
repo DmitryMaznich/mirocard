@@ -49,6 +49,21 @@ describe("IdentifyNumberTask", () => {
     expect(container.querySelectorAll(".pv-checklist-item").length).toBe(1);
   });
 
+  it("marks the coin zones to flex-fit the remaining screen height, even with a large tens/ones count", () => {
+    // jsdom reports 0 for clientHeight/clientWidth (no real layout), so the
+    // zoneScale computation's own early-return guard always fires here —
+    // this only confirms the mechanism is wired up (the flex-fit class and
+    // a --cb-scale inline style are present), not the actual fitted
+    // scale value, which needs a real viewport — verified separately via
+    // a static-HTML mockup across a matrix of device heights/counts.
+    mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 99, model: { tens: 9, ones: 9 } });
+    const zones = container.querySelector(".pv-zones");
+    expect(zones.className).toContain("pv-zones--flex-fit");
+    expect(zones.style.getPropertyValue("--cb-scale")).toBeTruthy();
+    expect(container.querySelectorAll(".cb-ten-stack").length).toBe(9);
+    expect(container.querySelectorAll(".cb-coin").length).toBe(9);
+  });
+
   it("keeps the tens row marked done after a wrong ones digit", () => {
     mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 23, model: { tens: 2, ones: 3 } });
 
