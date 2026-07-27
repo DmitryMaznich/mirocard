@@ -522,6 +522,16 @@ export function computeStepSegments(steps) {
 // portion-scaling syntax (applyPortions), which always starts with a number.
 const OPTION_PLACEHOLDER_RE = /\{([a-zA-Zа-яёА-ЯЁ]\w*)\}/g;
 
+// Matches a "{groupId=value}" step-gate token — pure filtering marker, never
+// rendered (see applyOptionSelections, which strips it to ""). Unlike a bare
+// "{groupId}" (fulfilled by ANY selection in the group) or
+// "{groupId:value?phrase|...}" (always resolves to *some* phrase, never
+// drops the step), this gates a whole step/item on one EXACT chosen value —
+// needed when different picks need different NUMBERS of steps, not just
+// different wording in the same step (e.g. peeling+coring only exists for
+// an apple topping, not for berries or honey — see oatmeal.txt).
+const OPTION_VALUE_GATE_RE = /\{([a-zA-Zа-яёА-ЯЁ]\w*)=([^{}=]+)\}/g;
+
 function joinOptionChoices(choices) {
   if (!choices || choices.length === 0) return "";
   if (choices.length === 1) return choices[0];
@@ -537,11 +547,18 @@ function joinOptionChoices(choices) {
  */
 export function applyOptionSelections(text, selections) {
   if (!text) return text ?? "";
-  return text.replace(OPTION_PLACEHOLDER_RE, (_, groupId) => joinOptionChoices(selections?.[groupId]));
+  return text
+    .replace(OPTION_VALUE_GATE_RE, "")
+    .replace(OPTION_PLACEHOLDER_RE, (_, groupId) => joinOptionChoices(selections?.[groupId]));
 }
 
 function isFulfilled(token, selections) {
   return (selections?.[token.slice(1, -1)]?.length ?? 0) > 0;
+}
+
+function isValueGateFulfilled(token, selections) {
+  const match = /^\{([a-zA-Zа-яёА-ЯЁ]\w*)=([^{}=]+)\}$/.exec(token);
+  return !!match && (selections?.[match[1]] ?? []).includes(match[2]);
 }
 
 /**
@@ -558,19 +575,20 @@ function isFulfilled(token, selections) {
  * unrelated siblings down with it. `.itemSubgroups`, when present, is
  * filtered in lockstep so it stays index-aligned with `.items`.
  */
+function passesOptionFilters(text, selections) {
+  const bareMatches = text?.match(OPTION_PLACEHOLDER_RE);
+  if (bareMatches && !bareMatches.every((token) => isFulfilled(token, selections))) return false;
+  const gateMatches = text?.match(OPTION_VALUE_GATE_RE);
+  if (gateMatches && !gateMatches.every((token) => isValueGateFulfilled(token, selections))) return false;
+  return true;
+}
+
 export function filterStepsByOptions(steps, selections) {
   return steps
-    .filter((step) => {
-      const matches = step.text?.match(OPTION_PLACEHOLDER_RE);
-      if (!matches) return true;
-      return matches.every((token) => isFulfilled(token, selections));
-    })
+    .filter((step) => passesOptionFilters(step.text, selections))
     .map((step) => {
       if (!step.items) return step;
-      const keep = step.items.map((item) => {
-        const matches = item.match(OPTION_PLACEHOLDER_RE);
-        return !matches || matches.every((token) => isFulfilled(token, selections));
-      });
+      const keep = step.items.map((item) => passesOptionFilters(item, selections));
       if (keep.every(Boolean)) return step;
       return {
         ...step,

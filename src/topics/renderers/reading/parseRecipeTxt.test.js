@@ -292,6 +292,11 @@ describe('applyOptionSelections', () => {
   it('leaves unrelated text untouched when selections is empty/undefined', () => {
     expect(applyOptionSelections('Обычный шаг без опций.', {})).toBe('Обычный шаг без опций.');
   });
+
+  it('strips a "{groupId=value}" gate token to nothing (its job is filtering, done by filterStepsByOptions)', () => {
+    expect(applyOptionSelections('{topping=яблоко}Почистить яблоко от кожуры.', { topping: ['яблоко'] }))
+      .toBe('Почистить яблоко от кожуры.');
+  });
 });
 
 describe('filterStepsByOptions', () => {
@@ -350,6 +355,30 @@ describe('filterStepsByOptions', () => {
   it('leaves a checklist with no option placeholders in its items untouched', () => {
     const steps = [{ id: 's1', type: 'checklist', text: 'Подготовить посуду:', items: ['взять миску', 'взять вилку'] }];
     expect(filterStepsByOptions(steps, {})).toEqual(steps);
+  });
+
+  it('keeps a step gated by "{groupId=value}" when that exact value is selected', () => {
+    const steps = [{ id: 's1', type: 'action', text: '{topping=яблоко}Почистить яблоко от кожуры.' }];
+    expect(filterStepsByOptions(steps, { topping: ['яблоко'] })).toEqual(steps);
+  });
+
+  it('drops a step gated by "{groupId=value}" when a different value is selected', () => {
+    const steps = [{ id: 's1', type: 'action', text: '{topping=яблоко}Почистить яблоко от кожуры.' }];
+    expect(filterStepsByOptions(steps, { topping: ['банан'] })).toEqual([]);
+  });
+
+  it('drops a step gated by "{groupId=value}" when nothing at all is selected', () => {
+    const steps = [{ id: 's1', type: 'action', text: '{topping=яблоко}Почистить яблоко от кожуры.' }];
+    expect(filterStepsByOptions(steps, {})).toEqual([]);
+  });
+
+  it('drops a checklist item gated by "{groupId=value}" for a non-matching selection, keeping the rest', () => {
+    const steps = [{
+      id: 's1', type: 'checklist', text: 'Подготовить топпинг:',
+      items: ['{topping=яблоко}почистить кожуру', '{topping=банан}почистить кожуру', 'взять доску'],
+    }];
+    const [filtered] = filterStepsByOptions(steps, { topping: ['яблоко'] });
+    expect(filtered.items).toEqual(['{topping=яблоко}почистить кожуру', 'взять доску']);
   });
 });
 
