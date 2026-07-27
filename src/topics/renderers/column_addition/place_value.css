@@ -358,12 +358,19 @@
    same reasoning as coins.css's .cb-coin-fly-ghost. Uses the correct-state
    green (matches .pv-answer-slot--correct's own color) so the digit reads
    as "still that same confirmed answer" while it travels, not a new
-   element appearing from nowhere. */
+   element appearing from nowhere. Same scaled size as the AnswerSlot it
+   lifted off from (.cb-screen .pv-answer-slot's own
+   calc(32 * var(--cb-scale)) — not a flat 32px, which would visibly
+   mismatch that slot's size on a tablet-width --cb-scale) — the digit
+   must read as staying the same size while it travels, not shrinking. The
+   `, 1px` fallback matters here: appended to document.body, this element
+   sits OUTSIDE .cb-screen's own subtree and has nothing to inherit
+   --cb-scale from. */
 .pv-digit-ghost {
   position: fixed;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  font-size: 32px;
+  font-size: calc(32 * var(--cb-scale, 1px));
   color: #065f46;
   pointer-events: none;
   z-index: 500;
@@ -373,15 +380,19 @@
 /* Sits centered over .pv-answer-row--split (position:relative on the
    parent), always rendered with its final two-digit text so its real,
    laid-out position is measurable before the merge starts — --visible is
-   what actually reveals it once both ghosts land. Same big/bold/no-border
-   treatment as .pv-number: this is the moment the two separate answers
-   become one real, established number. */
+   what actually reveals it once both ghosts land. Same font-size as the
+   AnswerSlot digits that flew here (.cb-screen .pv-answer-slot's own
+   calc(32 * var(--cb-scale))) — the point is that the two separate
+   answers become one real, established number, not that the number grows
+   bigger than they were. The landing bounce (see playMergeAnimation)
+   starts its scale at 1, never below — dipping to a smaller scale first
+   read as the digits shrinking, not landing. */
 .pv-merged-number {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%) scale(0.7);
-  font-size: 44px;
+  transform: translate(-50%, -50%) scale(1);
+  font-size: calc(32 * var(--cb-scale, 1px));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
