@@ -96,6 +96,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const tensSlotRef = useRef(null);
   const onesSlotRef = useRef(null);
   const mergedRef = useRef(null);
+  const mergedTensRef = useRef(null);
+  const mergedOnesRef = useRef(null);
 
   // Same shape as BuildNumberTask's flashRowWrong, minus the zone-error
   // callback build_number needs for its drag/drop error zones — this mode
@@ -113,15 +115,19 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   // the two confirmed-correct digits, then they fly toward each other and
   // land as one two-digit number — see the approved design in
   // docs/superpowers/specs (place-value visual unification follow-up).
-  // Positions are measured from the REAL slots and the REAL (already
-  // laid-out, just invisible) merged-number spot, not guessed — same
-  // "measure the real thing" rule flyCoinGhost follows for its landing
-  // spot.
+  // Each ghost targets its OWN digit's real position inside the merged
+  // number (mergedTensRef / mergedOnesRef — two separate spans, not the
+  // shared container's center) — aiming both at one shared center point
+  // made them land exactly on top of each other, a visible collide-then-
+  // snap-apart glitch the instant the real "23" replaced them. Same
+  // "measure the real thing, don't guess" rule flyCoinGhost follows for
+  // its own landing spot.
   function playMergeAnimation() {
     const tensEl = tensSlotRef.current;
     const onesEl = onesSlotRef.current;
-    const targetEl = mergedRef.current;
-    if (!tensEl || !onesEl || !targetEl) return;
+    const targetTensEl = mergedTensRef.current;
+    const targetOnesEl = mergedOnesRef.current;
+    if (!tensEl || !onesEl || !targetTensEl || !targetOnesEl) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setMerging(true);
@@ -132,7 +138,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
 
     const tensRect = tensEl.getBoundingClientRect();
     const onesRect = onesEl.getBoundingClientRect();
-    const targetRect = targetEl.getBoundingClientRect();
+    const targetTensRect = targetTensEl.getBoundingClientRect();
+    const targetOnesRect = targetOnesEl.getBoundingClientRect();
 
     setMerging(true);
 
@@ -144,8 +151,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         setTimeout(() => onCorrect(task.conceptId, task.cardId), 550);
       }
     }
-    flyDigitGhost(rectCenter(tensRect), rectCenter(targetRect), String(task.model.tens), 0, onArrive);
-    flyDigitGhost(rectCenter(onesRect), rectCenter(targetRect), String(task.model.ones), 60, onArrive);
+    flyDigitGhost(rectCenter(tensRect), rectCenter(targetTensRect), String(task.model.tens), 0, onArrive);
+    flyDigitGhost(rectCenter(onesRect), rectCenter(targetOnesRect), String(task.model.ones), 60, onArrive);
   }
 
   function handleDigit(d) {
@@ -234,12 +241,14 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
           />
         </div>
         {/* Always rendered with its final text (not just once merged) so
-            its real, laid-out position is measurable the moment the merge
-            starts — same "measure the real thing, don't guess" rule as
-            flyDigitGhost's targets above. --visible is what actually
-            reveals it. */}
+            each digit's real, laid-out position is measurable the moment
+            the merge starts — same "measure the real thing, don't guess"
+            rule as flyDigitGhost's targets above. Two separate spans (not
+            one text node) so each incoming ghost can target its OWN
+            digit's spot, landing them adjacent rather than on top of each
+            other. --visible is what actually reveals it. */}
         <div ref={mergedRef} className={`pv-merged-number${merged ? " pv-merged-number--visible" : ""}`}>
-          {task.model.tens}{task.model.ones}
+          <span ref={mergedTensRef}>{task.model.tens}</span><span ref={mergedOnesRef}>{task.model.ones}</span>
         </div>
       </div>
 
