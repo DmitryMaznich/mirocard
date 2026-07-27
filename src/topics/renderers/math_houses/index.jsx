@@ -466,6 +466,14 @@ function HouseGrow({ task, onCorrect }) {
   const [messageType, setMessageType] = useState("");
   const [done, setDone] = useState(false);
 
+  useEffect(() => {
+    setCompletedPairs([]);
+    setDraft([]);
+    setMessage("");
+    setMessageType("");
+    setDone(false);
+  }, [task.cardId]);
+
   const options = useMemo(
     () => Array.from({ length: task.number + 1 }, (_, i) => i),
     [task.number]

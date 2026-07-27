@@ -316,6 +316,12 @@ async function verify(expectedVersion) {
   console.log(`verified ${publicUrl}/api/version -> ${apiVersion.version || "unknown"}`);
 }
 
+function pushToOrigin() {
+  const branch = output("git rev-parse --abbrev-ref HEAD");
+  console.log(`pushing ${branch} to origin...`);
+  execSync(`git push origin ${branch}`, { cwd: root, stdio: "inherit" });
+}
+
 async function main() {
   let version = null;
   if (!verifyOnly) {
@@ -335,6 +341,8 @@ async function main() {
 
   await verify(version);
   console.log("deploy target is consistent.");
+
+  if (!verifyOnly) pushToOrigin();
 }
 
 main().catch((error) => {
