@@ -103,7 +103,11 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     <div className="pv-screen cb-screen">
       <div className="pv-instruction">Какое это число?</div>
 
-      <div className="pv-checklist pv-checklist--focused">
+      {/* pv-checklist--reserve-2 reserves room for BOTH question rows from
+          the start, even while only the first is mounted — otherwise
+          revealing "Сколько единиц?" grows the checklist and pushes the
+          answer row / coin zones down the screen the moment it appears. */}
+      <div className="pv-checklist pv-checklist--focused pv-checklist--reserve-2">
         <ChecklistItem
           text="Сколько десятков?"
           state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
@@ -120,6 +124,15 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         )}
       </div>
 
+      {/* Both slots sit together right under the questions, not nested
+          under their own coin zone below — so they read as "answer the
+          question here", on one line, before the eye moves down to the
+          coins. */}
+      <div className="pv-answer-row">
+        <AnswerSlot state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
+        <AnswerSlot state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
+      </div>
+
       {/* Zone highlight (cb-area--focus) marks which side the currently-
           asked question refers to — same pulse AnswerSlot's own "active"
           state uses, so the question, the zone, and where to type the
@@ -132,7 +145,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
               <TenStack key={i} />
             ))}
           </div>
-          <AnswerSlot state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
         </div>
         <div className={`pv-zone${onesAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "done" ? " pv-zone--correct" : ""}`}>
           <div className="pv-zone-label">ЕДИНИЦЫ</div>
@@ -141,7 +153,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
               <Coin key={i} />
             ))}
           </div>
-          <AnswerSlot state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
         </div>
       </div>
 
