@@ -39,7 +39,12 @@ if ($existing -and $Force) {
 $action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c $PythonExe `"$botScript`"" -WorkingDirectory (Split-Path $botScript -Parent)
 $trigger = New-ScheduledTaskTrigger -AtStartup
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero)
-$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+# S4U (not Interactive): survives logoff/disconnect and runs without an active
+# session. An Interactive-logon task silently stops firing once the session
+# that started it ends and never recovers until someone logs back in and
+# restarts it by hand - this is what caused the bot to sit dead 2026-07-17
+# through 2026-07-27 (see feedback-bot outage in project memory).
+$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType S4U -RunLevel Limited
 
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description 'Mirocard testers-group feedback bot (persistent)' | Out-Null
 
