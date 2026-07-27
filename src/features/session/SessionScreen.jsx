@@ -12,10 +12,8 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import SessionHeader from "./SessionHeader";
 import SessionPlanDrawer from "@/features/lessonPlan/SessionPlanDrawer";
 import { formatPlanTongueLabel } from "@/features/lessonPlan/lessonPlanUtils";
+import { ADVANCE_GATE_IDLE, ADVANCE_GATE_WAITING, ADVANCE_GATE_READY, resolveTapAdvanceGate } from "./advanceGate";
 
-const ADVANCE_GATE_IDLE = "idle";
-const ADVANCE_GATE_WAITING = "waiting";
-const ADVANCE_GATE_READY = "ready";
 const noop = () => {};
 
 function isEditableTarget(target) {
@@ -180,13 +178,12 @@ export default function SessionScreen() {
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
 
-    if (!adultConfirmAdvance || advanceGate === ADVANCE_GATE_READY || mode?.type === "follow_instruction" || mode?.type === "daily_sentences" || mode?.type === "listen_write_letters" || mode?.type === "magnetic_sentence" || mode?.type === "magnetic_sentence_audio" || mode?.type === "sort_letters" || mode?.type === "story_sequence" || mode?.type === "letter_demo" || mode?.type === "letter_follow" || mode?.type === "letter_trace" || mode?.type === "safe_code") {
-      setManualAdvanceGate({ key: null, state: null });
-      onAdvance();
-      return;
-    }
-
-    setManualAdvanceGate({ key: advanceGateKey, state: ADVANCE_GATE_WAITING });
+    const { gate, shouldAdvance } = resolveTapAdvanceGate(advanceGate, {
+      adultConfirmAdvance,
+      modeType: mode?.type,
+    });
+    setManualAdvanceGate(gate ? { key: advanceGateKey, state: gate } : { key: null, state: null });
+    if (shouldAdvance) onAdvance();
   }, [adultConfirmAdvance, advanceGate, advanceGateKey, mode?.type, onAdvance]);
 
   // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
