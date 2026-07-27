@@ -122,29 +122,35 @@ export default function SessionScreen() {
 
   const ownsFeedback = currentTask?.type === "choose_action" || currentTask?.type === "scene_function";
 
-  function handleCorrect(conceptId, cardId) {
+  // useCallback here isn't a perf nicety: some renderers (e.g. HouseGrow) key a
+  // completion useEffect's setTimeout on this callback's identity via a `[done,
+  // onCorrect, ...]` dependency array. A fresh function every render made that
+  // effect tear down and refire on every SessionScreen re-render triggered by
+  // its own onCorrect() call — a self-sustaining loop that ran correctCount
+  // into the hundreds while the task never advanced (2026-07-27).
+  const handleCorrect = useCallback((conceptId, cardId) => {
     if (!ownsFeedback) playFeedback("correct");
     if (mode?.evaluation === "instant") setPillFlash("correct");
     onCorrect(conceptId, cardId);
-  }
+  }, [ownsFeedback, mode?.evaluation, playFeedback, onCorrect]);
 
-  function handleIncorrect(conceptId, cardId) {
+  const handleIncorrect = useCallback((conceptId, cardId) => {
     if (!ownsFeedback) playFeedback("incorrect");
     onIncorrect(conceptId, cardId);
-  }
+  }, [ownsFeedback, playFeedback, onIncorrect]);
 
-  function handleMistake(conceptId, cardId) {
+  const handleMistake = useCallback((conceptId, cardId) => {
     if (!ownsFeedback) playFeedback("incorrect");
     onMistake(conceptId, cardId);
-  }
+  }, [ownsFeedback, playFeedback, onMistake]);
 
-  function handleFlashIncorrect() {
+  const handleFlashIncorrect = useCallback(() => {
     setPillFlash("incorrect");
-  }
+  }, []);
 
-  function handleQualityAnswer(quality, conceptId, cardId) {
+  const handleQualityAnswer = useCallback((quality, conceptId, cardId) => {
     onQualityAnswer(quality, conceptId, cardId);
-  }
+  }, [onQualityAnswer]);
 
   const { status, taskIndex, tasks, correctCount, incorrectCount } = sessionState ?? {};
   const isCorrectFeedback   = status === "answer_correct";
