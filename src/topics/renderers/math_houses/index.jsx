@@ -537,6 +537,7 @@ function HouseGrow({ task, onCorrect }) {
       }}
     >
       <div className="math-house-wrap">
+        <div className="math-house-grow-caption">Собери домик числа {task.number}</div>
         <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
           <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
           <g className={done ? "math-house-roof-badge--done" : undefined}>
@@ -565,11 +566,6 @@ function HouseGrow({ task, onCorrect }) {
             </div>
           )}
         </div>
-      </div>
-
-      <div className={`math-house-grow-pill${done ? " math-house-grow-pill--done" : ""}`}>
-        <span className="math-house-grow-pill-dot" />
-        {completedPairs.length} из {totalPairs}
       </div>
 
       {!done && (

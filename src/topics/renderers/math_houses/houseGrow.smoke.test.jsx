@@ -59,6 +59,11 @@ describe("HouseGrow (math_houses_grow)", () => {
     number: 3, total: 3, pairs: [[0, 3], [1, 2], [2, 1], [3, 0]],
   };
 
+  it("shows a caption naming the current house's number", () => {
+    mount(HOUSE_2, { onCorrect: () => {} });
+    expect(container.querySelector(".math-house-grow-caption").textContent).toBe("Собери домик числа 2");
+  });
+
   it("resets to an interactive, empty house after moving to the next card", () => {
     vi.useFakeTimers();
     mount(HOUSE_2, { onCorrect: () => {} });
@@ -68,7 +73,7 @@ describe("HouseGrow (math_houses_grow)", () => {
     clickOption(1); clickOption(1);
     clickOption(2); clickOption(0);
 
-    expect(container.querySelector(".math-house-grow-pill--done")).toBeTruthy();
+    expect(container.querySelector(".math-house-roof-badge--done")).toBeTruthy();
     act(() => { vi.advanceTimersByTime(700); });
 
     const onCorrect2 = vi.fn();
