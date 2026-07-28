@@ -163,39 +163,6 @@ function flyCoinGhost(from, to, delayMs, onArrive) {
   };
 }
 
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="pv-check-icon" fill="none" aria-hidden="true">
-      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// Same checklist-row-doubles-as-confirm-button idiom as fingers_count's
-// ChecklistItem (FingersCountTask.jsx) — kept as a separate copy with its
-// own pv-checklist-* classes rather than a shared component so the two
-// families' visuals stay independently tunable. `clickable=false` is for
-// the two "Сколько...?" rows: they tick themselves off once the numpad
-// gets the right digit, not from a tap on the row.
-function ChecklistItem({ text, state, onTap, textRef, fontSize, clickable = true }) {
-  const done = state === "done";
-  const wrong = state === "wrong";
-  const interactive = clickable && !done;
-  return (
-    <div
-      className={`pv-checklist-item${done ? " is-done" : ""}${wrong ? " is-wrong" : ""}${!clickable ? " is-pending" : ""}`}
-      onClick={interactive ? onTap : undefined}
-      role={interactive ? "button" : undefined}
-      tabIndex={interactive ? 0 : undefined}
-    >
-      <span className="pv-checklist-box">{done && <CheckIcon />}</span>
-      <span ref={textRef} className="pv-checklist-text" style={fontSize ? { fontSize } : undefined}>
-        {text}
-      </span>
-    </div>
-  );
-}
-
 // The target number used to live in its own huge standalone pv-number
 // display above the checklist, duplicating what row 1's instruction text
 // already said ("Собери 23 монеты"). Folding it into the instruction
@@ -209,7 +176,7 @@ function withHighlightedNumber(text, number) {
   return (
     <>
       {text.slice(0, idx)}
-      <span className="pv-checklist-number">{numStr}</span>
+      <span className="pv-question-number">{numStr}</span>
       {text.slice(idx + numStr.length)}
     </>
   );
@@ -432,26 +399,21 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const collectText = `Собери ${task.number} ${pluralCoins(task.number)}`;
   const collectContent = withHighlightedNumber(collectText, task.number);
 
-  // Every row gets its own fit call, all sharing the same 45px ceiling
-  // (3x the old compact 15px row) — a completed row keeps the same size
-  // instead of shrinking away just because it's no longer the active one.
-  // min lowered from 20 to 13: the checklist's left inset (see .pv-checklist
-  // in place_value.css) leaves much less width for text than before, and
-  // "Собери 47 монет" no longer fits on one line at 20px on a narrow
-  // (~320px) phone.
-  const { ref: collectRef, fontSize: collectFontSize } = useFitOneLine(collectText, { max: 45, min: 13 });
-  const { ref: groupRef, fontSize: groupFontSize } = useFitOneLine("Сложи десятки", { max: 45, min: 13 });
-  const { ref: tensQRef, fontSize: tensQFontSize } = useFitOneLine("Сколько десятков?", { max: 45, min: 13 });
-  const { ref: onesQRef, fontSize: onesQFontSize } = useFitOneLine("Сколько единиц?", { max: 45, min: 13 });
-  // One shared size for every row instead of each row keeping its own
-  // independently-fitted size: a not-yet-mounted row's hook stays at its
-  // initial `max` (its useLayoutEffect never ran, since it isn't in the
-  // DOM to measure), so this only pulls the shared size down to whatever
-  // the currently-visible rows actually need — a row that mounts later
-  // and needs less room doesn't shrink the others further than necessary,
-  // but "Собери N монет" (often the tightest fit) no longer renders
-  // visibly smaller than a short neighboring row like "Сложи десятки".
-  const checklistFontSize = Math.min(collectFontSize, groupFontSize, tensQFontSize, onesQFontSize);
+  // Only one instruction is ever visible at a time now (matching
+  // IdentifyNumberTask.jsx's own pv-question), so there's no longer a need
+  // to fit multiple simultaneously-visible rows to one shared size — a
+  // single useFitOneLine call on whichever text is current is enough.
+  const questionText = phase === "collect" ? collectText
+    : phase === "group" ? "Сложи десятки"
+    : phase === "answerTens" ? "Сколько десятков?"
+    : phase === "answerOnes" ? "Сколько единиц?"
+    : "Правильно!";
+  const questionContent = phase === "collect" ? collectContent : questionText;
+  const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine(questionText, { max: 45, min: 13 });
+
+  const questionTappable = phase === "collect" || phase === "group";
+  const questionTap = phase === "collect" ? confirmCollect : phase === "group" ? confirmGroup : undefined;
+  const questionWrong = (phase === "collect" && rowWrong.collect) || (phase === "group" && rowWrong.group);
 
   const showAnswerSlots = phase === "answerTens" || phase === "answerOnes" || phase === "done";
   const tensDone = phase === "answerOnes" || phase === "done";
@@ -470,52 +432,13 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        {/* --focused is unconditional (unlike the earlier version, which only
-            added it once showAnswerSlots): a done row should recede as soon
-            as it's done, not wait for the answer step — same as
-            IdentifyNumberTask.jsx, which applies it unconditionally too. */}
-        <div className="pv-checklist pv-checklist--focused">
-          <ChecklistItem
-            text={collectContent}
-            state={phase === "collect" ? (rowWrong.collect ? "wrong" : "active") : "done"}
-            onTap={phase === "collect" ? confirmCollect : undefined}
-            textRef={collectRef}
-            fontSize={checklistFontSize}
-          />
-          {phase !== "collect" && (
-            <ChecklistItem
-              text="Сложи десятки"
-              state={phase === "group" ? (rowWrong.group ? "wrong" : "active") : "done"}
-              onTap={phase === "group" ? confirmGroup : undefined}
-              textRef={groupRef}
-              fontSize={checklistFontSize}
-            />
-          )}
-          {/* These two appear one at a time, same as the rows above — the
-              numpad ticks them off (clickable=false), not a tap on the row
-              itself. The matching answer slot pulses (see AnswerSlot's
-              "active" state, nested under its own Десятки/Единицы column)
-              at the same time its question is the active one here, so the
-              question and where to type the answer are visually tied
-              together instead of the child having to hunt for the field. */}
-          {showAnswerSlots && (
-            <ChecklistItem
-              text="Сколько десятков?"
-              state={phase === "answerTens" ? (rowWrong.tens ? "wrong" : "active") : "done"}
-              clickable={false}
-              textRef={tensQRef}
-              fontSize={checklistFontSize}
-            />
-          )}
-          {(phase === "answerOnes" || phase === "done") && (
-            <ChecklistItem
-              text="Сколько единиц?"
-              state={phase === "answerOnes" ? (rowWrong.ones ? "wrong" : "active") : "done"}
-              clickable={false}
-              textRef={onesQRef}
-              fontSize={checklistFontSize}
-            />
-          )}
+        <div
+          className={`pv-question${phase === "done" ? " pv-question--correct" : ""}${questionWrong ? " pv-question--shake" : ""}`}
+          onClick={questionTappable ? questionTap : undefined}
+          role={questionTappable ? "button" : undefined}
+          tabIndex={questionTappable ? 0 : undefined}
+        >
+          <span ref={questionRef} style={{ fontSize: questionFontSize }}>{questionContent}</span>
         </div>
 
         {/* Centers the coin zone in whatever vertical space is left between
