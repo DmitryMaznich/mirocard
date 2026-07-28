@@ -99,15 +99,15 @@
 
 /* Directs attention to the zone the currently-active "Сколько...?"
    question refers to — same pulse .pv-answer-slot--active already uses
-   (pv-checklist-box-pulse, defined in place_value.css, loaded alongside
-   this file), not a new animation. Outline (not border/box-shadow alone)
+   (pv-answer-pulse, defined in place_value.css, loaded alongside this
+   file), not a new animation. Outline (not border/box-shadow alone)
    matches the .cb-area--error/--capacity pattern above so all three read
    as the same family of zone-state marker. */
 .cb-area--focus {
   border-radius: 10px;
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
-  animation: pv-checklist-box-pulse 1.8s ease-in-out infinite;
+  animation: pv-answer-pulse 1.8s ease-in-out infinite;
 }
 
 .cb-coin {

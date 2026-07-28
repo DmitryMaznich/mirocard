@@ -342,15 +342,20 @@
   background: #eff6ff;
 }
 
-/* Marks which slot the currently-asked checklist question ("Сколько
+/* Marks which slot the currently-asked question ("Сколько
    десятков?"/"Сколько единиц?") refers to, so the child doesn't have to
-   guess which of the two zones to type into — same breathing-ring pulse
-   already used for the checklist's own active row (pv-checklist-box-pulse
-   in this file), reused here rather than inventing a second pulse style. */
+   guess which of the two zones to type into — a gentle breathing-ring
+   pulse (formerly shared with the now-removed checklist's own active-row
+   indicator, kept here since this is its only remaining user). */
 .pv-answer-slot--active {
   border-style: solid;
   border-color: #3b82f6;
-  animation: pv-checklist-box-pulse 1.8s ease-in-out infinite;
+  animation: pv-answer-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pv-answer-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.35); }
+  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -518,45 +523,15 @@
   to { transform: scale(1); opacity: 1; }
 }
 
-/* ── Checklist rows (build_number's phased flow) ──────────────────────────
-   Same "tap-the-instruction-to-confirm, completed rows stay on screen
-   frozen/struck-through" pattern as fingers_count's fng-checklist (see
-   textFit.js for the shared font-fit/row-height-cap hooks both use) — kept
-   as its own pv-* rule set rather than a shared class so retouching one
-   family's checklist visuals never touches the other's. */
-.pv-checklist {
-  flex-shrink: 0;
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  /* Left inset (rows stay full-width — default align-items:stretch, so
-     the whole row is still tappable, not just the text — but their
-     content starts flush at that inset instead of at the screen edge).
-     A third of the screen width was tried first but left too little room
-     for the longer instructions to still fit on one line on a narrow
-     phone (~320px) even at the smallest legible size; a quarter keeps
-     the same idea with room to spare. */
-  padding: 2px 16px 10px 25vw;
-  /* Roughly two lines of the screen's own body text, so the checklist
-     starts a bit below the very top edge instead of hugging it. */
-  margin-top: clamp(28px, 6vh, 52px);
-}
-
-/* identify_number only: the single current-step prompt ("Сколько
-   десятков?" → "Сколько единиц?" → "Правильно!") that replaces what used
-   to be a two-row checklist — a checklist was overkill for a two-step
-   question where the digit landing in its own slot already confirms it.
-   Text swaps in place (no growing row count), so unlike the old
-   .pv-checklist--reserve-2 this needs no height reservation. Small top
-   margin on purpose: that space is better spent on the coin zones below,
-   which flex to fill whatever's left (IdentifyNumberTask.jsx's
-   zoneScale). Neucha keeps the same "handwritten prompt" language as the
-   rest of this family's checklists, even though this isn't one. */
+/* Shared by all three place-value modes (build_number, identify_number,
+   regroup_ten): the single current-phase instruction, swapping in place
+   with no growing history — a checklist was overkill once each phase's
+   own confirmation (digit landing in its slot, a drag succeeding, a tap
+   on this very line) already shows the child they got it right. Small
+   top margin on purpose: that space is better spent on the coin zones
+   below, which flex to fill whatever's left. */
 .pv-question {
   text-align: center;
-  font-family: 'Neucha', cursive;
   font-weight: 400;
   color: #1a1a2e;
   line-height: 1.2;
@@ -570,179 +545,17 @@
   font-weight: 700;
 }
 
-/* All rows — done, active, pending — share one size (each row runs its
-   own useFitOneLine so a long row still shrinks to fit, but the CEILING
-   they shrink from is the same for all of them): a completed step
-   shouldn't visually shrink away just because it's no longer the one
-   being worked. */
-/* Written directly on the plain screen background, not on a card —
-   no fill, no border, no shadow behind the text itself. State is carried
-   entirely by the checkbox + text color (see .pv-checklist-box /
-   .pv-checklist-text below), same as ink on a worksheet rather than a
-   button-like pill. A thin vertical connector threads the checkboxes
-   together top-to-bottom (see .pv-checklist-item::after below) — a
-   stepper/timeline read, so the growing history feels like one
-   continuous path rather than a stack of unrelated lines; each new row
-   also eases in (see pv-checklist-item-in) instead of just appearing. */
-.pv-checklist-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 2px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform 0.15s ease, opacity 0.25s ease;
-  animation: pv-checklist-item-in 0.4s cubic-bezier(.34, 1.2, .64, 1) both;
-}
-
-/* Once the answer step (Сколько десятков?/единиц?) begins, the earlier
-   done rows recede — still readable (they stay struck-through, not
-   hidden), just no longer competing for attention with the counting the
-   child is doing right now. */
-.pv-checklist--focused .pv-checklist-item.is-done {
-  opacity: 0.5;
-  transform: scale(0.92);
-}
-
-@keyframes pv-checklist-item-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Bridges exactly the .pv-checklist gap (6px) between this row's checkbox
-   and the next one's, centered on the 30px box (2px left padding + half
-   its width). Grey ahead of progress, green behind it — same colors as
-   the done/active states below. */
-.pv-checklist-item:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 18px;
-  top: 100%;
-  width: 2px;
-  height: 6px;
-  background: #cbd5e1;
-}
-.pv-checklist-item.is-done:not(:last-child)::after {
-  background: #16a34a;
-}
-
-.pv-checklist-item:active { transform: translateY(2px); }
-
-.pv-checklist-item.is-done {
-  cursor: default;
-}
-
-.pv-checklist-item.is-wrong {
-  animation: pv-shake 0.4s ease;
-}
-
-/* The two "Сколько...?" rows aren't tapped themselves — the numpad ticks
-   them off — so no pointer cursor / press feedback, same reasoning as
-   fng-checklist-item.is-pending. */
-.pv-checklist-item.is-pending {
-  cursor: default;
-}
-.pv-checklist-item.is-pending:active { transform: none; }
-
-/* 32px square with sharp corners — reads as "this is a cell on a
-   worksheet, not a rounded UI chip" — the active element (the
-   checkmark, once done) sits inside that same cell outline. */
-.pv-checklist-box {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 0;
-  border: 2.5px solid #7fa8e0;
-  background: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-/* The one row that's neither done nor (temporarily) wrong is always
-   exactly the current step — rows only ever mount once their phase is
-   reached, and the prior one is marked done in that same instant — so a
-   gentle breathing ring here reads unambiguously as "this one, now"
-   without needing a separate is-active class. */
-.pv-checklist-item:not(.is-done):not(.is-wrong) .pv-checklist-box {
-  animation: pv-checklist-box-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes pv-checklist-box-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.35); }
-  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0); }
-}
-
-.is-done .pv-checklist-box {
-  background: #22c55e;
-  border-color: #16a34a;
-}
-
-.is-wrong .pv-checklist-box {
-  border-color: #ef4444;
-}
-
-.pv-check-icon {
-  width: 16px;
-  height: 16px;
-  animation: pv-check-pop 0.35s cubic-bezier(.34, 1.56, .64, 1) both;
-}
-
-@keyframes pv-check-pop {
-  0% { transform: scale(0); }
-  60% { transform: scale(1.25); }
-  100% { transform: scale(1); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pv-checklist-item { animation: none; }
-  .pv-checklist-item:not(.is-done):not(.is-wrong) .pv-checklist-box { animation: none; }
-  .pv-check-icon { animation: none; }
-}
-
-/* Neucha: a Cyrillic-native handwriting font (Google Fonts, loaded in
-   index.html alongside Nunito/DM Serif Display) — reads like a child's
-   natural pencil print, fitting the "written directly on the grid"
-   checklist. NOT Primo (this app's other "handwritten" font): Primo is
-   missing several Cyrillic glyphs (е, с and others silently vanish) —
-   it was only ever traced for single digits/letters, not full sentences,
-   and renders full checklist text visibly broken. Single-weight font, so
-   font-weight stays normal rather than requesting a synthetic-bold the
-   font doesn't have (that distorts script letterforms); sized up from
-   the old bold-sans 15px since a lighter script reads smaller at the
-   same size. */
-.pv-checklist-text {
-  font-family: 'Neucha', cursive;
-  font-weight: 400;
-  color: #1a1a2e;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 20px;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-.is-done .pv-checklist-text {
-  color: #16a34a;
-  text-decoration: line-through;
-  text-decoration-color: #16a34a;
-  text-decoration-thickness: 2px;
-}
-
-.is-wrong .pv-checklist-text {
-  color: #ef4444;
+/* build_number only: collect/group are tappable (the line itself is the
+   confirm button), so a wrong tap needs the same shake every other wrong
+   answer in this family gets — reuses the shared pv-shake keyframe. */
+.pv-question--shake {
+  animation: pv-shake 0.4s ease-in-out;
 }
 
 /* Highlights the target number inside the "Собери N монет" instruction —
-   this used to be its own separate huge pv-number display above the
-   checklist; colour (not an oversized nested span) keeps it from throwing
-   off useFitOneLine's own width measurement of the row. */
-.pv-checklist-number {
+   colour only (not an oversized nested span), so it doesn't throw off
+   useFitOneLine's own width measurement of the line. */
+.pv-question-number {
   color: #1d4ed8;
 }
 
