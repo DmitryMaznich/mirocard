@@ -462,15 +462,13 @@ function HouseLegacy({ task, onCorrect, onMistake }) {
 function HouseGrow({ task, onCorrect }) {
   const [completedPairs, setCompletedPairs] = useState([]);
   const [draft, setDraft] = useState([]);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("");
+  const [wrongDraft, setWrongDraft] = useState(null);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
     setCompletedPairs([]);
     setDraft([]);
-    setMessage("");
-    setMessageType("");
+    setWrongDraft(null);
     setDone(false);
   }, [task.cardId]);
 
@@ -483,8 +481,6 @@ function HouseGrow({ task, onCorrect }) {
     [completedPairs]
   );
   const totalPairs = task.pairs.length;
-  const activeLeft = draft[0] ?? "?";
-  const activeRight = draft[1] ?? "?";
 
   useEffect(() => {
     if (!done) return undefined;
@@ -492,32 +488,21 @@ function HouseGrow({ task, onCorrect }) {
     return () => window.clearTimeout(timeout);
   }, [done, onCorrect, task.conceptId]);
 
-  function setFeedback(text, type) {
-    setMessage(text);
-    setMessageType(type);
-  }
-
   function handleNumber(value) {
-    if (done) return;
+    if (done || wrongDraft) return;
 
     if (draft.length === 0) {
       setDraft([value]);
-      setFeedback("", "");
       return;
     }
 
     const pair = [draft[0], value];
     const pairKey = `${pair[0]}:${pair[1]}`;
 
-    if (pair[0] + pair[1] !== task.number) {
+    if (pair[0] + pair[1] !== task.number || completedKeys.has(pairKey)) {
       setDraft([]);
-      setFeedback(`Эта пара не даёт ${task.number}`, "wrong");
-      return;
-    }
-
-    if (completedKeys.has(pairKey)) {
-      setDraft([]);
-      setFeedback("Такая пара уже есть", "duplicate");
+      setWrongDraft(pair);
+      window.setTimeout(() => setWrongDraft(null), 650);
       return;
     }
 
@@ -525,59 +510,78 @@ function HouseGrow({ task, onCorrect }) {
     setCompletedPairs(nextPairs);
     setDraft([]);
 
-    if (nextPairs.length >= totalPairs) {
-      setFeedback("Домик собран", "correct");
-      setDone(true);
-    } else {
-      setFeedback(`${nextPairs.length} из ${totalPairs}`, "correct");
-    }
+    if (nextPairs.length >= totalPairs) setDone(true);
+  }
+
+  function boxClass(slot) {
+    if (wrongDraft) return "math-house-box";
+    const value = slot === "left" ? draft[0] : draft[1];
+    if (value != null) return "math-house-box";
+    const isActive = (slot === "left" && draft.length === 0) || (slot === "right" && draft.length === 1);
+    return isActive ? "math-house-box math-house-box--focus" : "math-house-box math-house-box--empty";
+  }
+
+  function boxContent(slot) {
+    if (wrongDraft) return slot === "left" ? wrongDraft[0] : wrongDraft[1];
+    const value = slot === "left" ? draft[0] : draft[1];
+    return value ?? "?";
   }
 
   return (
-    <div className="house-body house-body--grow">
-      <div className="house-roof">
-        <div className="house-number">{task.number}</div>
-      </div>
-      <div className="house-rooms house-rooms--grow">
-        {completedPairs.map(([left, right], idx) => (
-          <div key={`${left}:${right}:${idx}`} className="house-row house-row--done">
-            <div className="house-cell">{left}</div>
-            <div className="house-divider" />
-            <div className="house-cell">{right}</div>
-          </div>
-        ))}
-        {!done && (
-          <div className="house-row house-row--active">
-            <button
-              className={`house-cell house-cell--hidden ${draft.length === 0 ? "house-cell--focus" : ""}`}
-              onClick={() => setDraft([])}
-            >
-              {activeLeft}
-            </button>
-            <div className="house-divider" />
-            <button
-              className={`house-cell house-cell--hidden ${draft.length === 1 ? "house-cell--focus" : ""}`}
-              onClick={() => draft.length === 1 && setDraft([draft[0]])}
-            >
-              {activeRight}
-            </button>
-          </div>
-        )}
+    <div
+      className="math-house-stage"
+      style={{
+        "--house-color": task.color || "#2d6fb5",
+        "--num-floors": totalPairs,
+        "--numpad-columns": Math.ceil(options.length / 2),
+      }}
+    >
+      <div className="math-house-wrap">
+        <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
+          <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
+          <g className={done ? "math-house-roof-badge--done" : undefined}>
+            <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
+            <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
+              {task.number}
+            </text>
+          </g>
+        </svg>
+
+        <div className="math-house-body">
+          {completedPairs.map(([left, right], idx) => (
+            <div key={`${left}:${right}:${idx}`} className="math-house-floor math-house-floor--grow-enter">
+              <div className="math-house-box">{left}</div>
+              <div className="math-house-operator">+</div>
+              <div className="math-house-box">{right}</div>
+              <div className="math-house-equals">= {task.number}</div>
+            </div>
+          ))}
+          {!done && (
+            <div className={`math-house-floor${wrongDraft ? " math-house-floor--wrong" : ""}`}>
+              <div className={boxClass("left")}>{boxContent("left")}</div>
+              <div className="math-house-operator">+</div>
+              <div className={boxClass("right")}>{boxContent("right")}</div>
+              <div className="math-house-equals">= {task.number}</div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="house-grow-status">
-        <span>{done ? `${totalPairs} из ${totalPairs}` : `Осталось ${totalPairs - completedPairs.length}`}</span>
-        {message && (
-          <span className={`house-grow-message house-grow-message--${messageType}`}>
-            {message}
-          </span>
-        )}
+      <div className={`math-house-grow-pill${done ? " math-house-grow-pill--done" : ""}`}>
+        <span className="math-house-grow-pill-dot" />
+        {completedPairs.length} из {totalPairs}
       </div>
 
       {!done && (
-        <div className="house-options house-options--grow">
+        <div className="math-house-numpad">
           {options.map((n) => (
-            <button key={n} className="house-option-btn" onClick={() => handleNumber(n)}>
+            <button
+              key={n}
+              className="math-house-num-btn"
+              type="button"
+              disabled={!!wrongDraft}
+              onClick={() => handleNumber(n)}
+            >
               {n}
             </button>
           ))}

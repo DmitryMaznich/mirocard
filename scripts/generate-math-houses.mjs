@@ -1,7 +1,23 @@
 import JSZip from "jszip";
 import { writeFileSync, readFileSync } from "node:fs";
 
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
+
+// One color per house so numbers 2-10 read as distinct houses on the street.
+// The roof stays blue (hardcoded in the renderer's SVG) regardless of this —
+// only the house body uses --house-color. Kept clear of green/red/amber,
+// which are reserved for correct/wrong/focus feedback.
+const HOUSE_COLORS = {
+  2: "#7c6fd6",  // violet
+  3: "#d1637f",  // rose
+  4: "#c97a3d",  // burnt orange
+  5: "#2f9e8f",  // teal
+  6: "#a756b0",  // orchid
+  7: "#a97449",  // clay
+  8: "#2f8f9e",  // cyan-teal
+  9: "#8c3d5e",  // mulberry
+  10: "#5b4d9e", // indigo
+};
 
 const manifest = {
   meta: {
@@ -19,7 +35,7 @@ const manifest = {
     conceptId: `house_${n}`,
     primary: true,
     label: `Домик ${n}`,
-    params: { number: n },
+    params: { number: n, color: HOUSE_COLORS[n] },
   })),
   modes: [
     {
@@ -76,8 +92,8 @@ const manifest = {
   ],
 };
 
-// Copy SVG assets from the old ZIP
-const oldBuf = readFileSync("public/decks/math_houses_v1.0.1.zip");
+// Copy SVG assets from the previous ZIP
+const oldBuf = readFileSync("public/decks/math_houses_v1.1.0.zip");
 const oldZip = await JSZip.loadAsync(oldBuf);
 
 const zip = new JSZip();

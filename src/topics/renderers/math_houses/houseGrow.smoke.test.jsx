@@ -42,7 +42,7 @@ describe("HouseGrow (math_houses_grow)", () => {
   }
 
   function optionButtons() {
-    return Array.from(container.querySelectorAll(".house-option-btn"));
+    return Array.from(container.querySelectorAll(".math-house-num-btn"));
   }
 
   function clickOption(value) {
@@ -68,7 +68,7 @@ describe("HouseGrow (math_houses_grow)", () => {
     clickOption(1); clickOption(1);
     clickOption(2); clickOption(0);
 
-    expect(container.querySelector(".house-body--grow").textContent).toContain("Домик собран");
+    expect(container.querySelector(".math-house-grow-pill--done")).toBeTruthy();
     act(() => { vi.advanceTimersByTime(700); });
 
     const onCorrect2 = vi.fn();
@@ -77,7 +77,7 @@ describe("HouseGrow (math_houses_grow)", () => {
     // Bug: stale `done` state hides the option pad and the completed-pairs
     // list still shows house_2's leftover rows instead of a fresh house_3.
     expect(optionButtons().length).toBeGreaterThan(0);
-    expect(container.querySelectorAll(".house-row--done").length).toBe(0);
+    expect(container.querySelectorAll(".math-house-floor--grow-enter").length).toBe(0);
 
     // And it must not auto-complete house_3 without any user interaction.
     act(() => { vi.advanceTimersByTime(700); });

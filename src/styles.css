@@ -7314,6 +7314,75 @@ button {
   cursor: default;
 }
 
+/* ─── math_houses_grow: growth-themed additions to the shared house family ── */
+
+/* Each newly completed pair "sprouts" into place instead of popping in —
+   the one visual idea the mode's own name promises. */
+@keyframes math-house-grow-sprout {
+  from { opacity: 0; transform: scaleY(0.4) translateY(10px); }
+  to   { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+
+.math-house-floor--grow-enter {
+  transform-origin: bottom center;
+  animation: math-house-grow-sprout 320ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes math-house-grow-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+
+.math-house-floor--wrong {
+  animation: math-house-grow-shake 0.4s ease;
+}
+
+.math-house-floor--wrong .math-house-box {
+  background: #fef2f2;
+  color: #991b1b;
+  outline: 2px solid #ef4444;
+}
+
+.math-house-grow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(45, 111, 181, 0.1);
+  color: #2d6fb5;
+  font-weight: 800;
+  font-size: clamp(13px, 2.6vw, 16px);
+}
+
+.math-house-grow-pill .math-house-grow-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.math-house-grow-pill--done {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Completion celebration on the roof badge — occasional (once per house), so a
+   small bounce is appropriate rather than intrusive. */
+@keyframes math-house-grow-celebrate {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  60%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+.math-house-roof-badge--done {
+  animation: math-house-grow-celebrate 480ms cubic-bezier(0.23, 1, 0.32, 1);
+  transform-origin: center;
+}
+
 .vowel-consonant-stage {
   display: flex;
   flex: 1;
@@ -13874,144 +13943,6 @@ kbd {
   margin: 8px 0 4px;
 }
 
-/* ─── Math Houses renderer ───────────────────────────────────────────────── */
-.house-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  flex: 1;
-  padding: 16px;
-  justify-content: center;
-}
-.house-body--grow {
-  justify-content: flex-start;
-  padding-top: clamp(12px, 3dvh, 28px);
-}
-.house-roof {
-  width: 160px;
-  background: #ef9a9a;
-  border-radius: 12px 12px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-}
-.house-number { font-size: 2rem; font-weight: 800; }
-.house-rooms {
-  border: 3px solid #e0e0e0;
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  overflow: hidden;
-  width: 160px;
-}
-.house-rooms--grow {
-  transition: min-height 0.18s ease;
-}
-.house-row {
-  display: flex;
-  border-top: 2px solid #e0e0e0;
-}
-.house-row--active {
-  box-shadow: inset 0 0 0 2px #f59e0b;
-}
-.house-row--done .house-cell {
-  background: #f8fafc;
-}
-.house-cell {
-  flex: 1;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  font-weight: 600;
-  background: #fff;
-}
-.house-cell--hidden {
-  background: #fff9c4;
-  border: none;
-  cursor: pointer;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #888;
-  flex: 1;
-  height: 44px;
-}
-.house-cell--active {
-  outline: 3px solid #4a90e2;
-  outline-offset: -3px;
-  color: #1f4f7f;
-}
-.house-cell--correct {
-  background: #dff4df;
-  color: #23673b;
-}
-.house-cell--wrong {
-  background: #fde2e2;
-  color: #b83232;
-}
-.house-cell--focus {
-  background: #fef3c7;
-  box-shadow: inset 0 0 0 3px #f59e0b;
-  color: #111827;
-}
-.house-divider { width: 2px; background: #e0e0e0; }
-.house-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 16px;
-  max-width: 280px;
-}
-.house-options--grow {
-  margin-top: 12px;
-}
-.house-option-btn {
-  width: 44px;
-  height: 44px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  background: #fff;
-  font-size: 1.2rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.house-option-btn:active { background: #e8f0fd; border-color: #4a90e2; }
-.house-grow-status {
-  min-height: 44px;
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-weight: 800;
-  color: #475569;
-}
-.house-grow-message {
-  font-size: 0.95rem;
-}
-.house-grow-message--correct {
-  color: #15803d;
-}
-.house-grow-message--wrong,
-.house-grow-message--duplicate {
-  color: #b45309;
-}
-
-@media (max-height: 760px) {
-  .house-body--grow .house-cell,
-  .house-body--grow .house-cell--hidden {
-    height: 36px;
-    font-size: 1.1rem;
-  }
-  .house-body--grow .house-option-btn {
-    width: 40px;
-    height: 40px;
-  }
-}
 
 /* ─── Mode picker ────────────────────────────────────────────────────────── */
 .mode-item-row { display: flex; align-items: stretch; gap: 6px; }
