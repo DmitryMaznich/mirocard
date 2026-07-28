@@ -66,45 +66,47 @@ function HouseTask({ task, onCorrect, onMistake }) {
         "--numpad-columns": Math.ceil(options.length / 2),
       }}
     >
-      <div className="math-house-wrap">
-        <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
-          <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
-          <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
-          <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
-            {total}
-          </text>
-        </svg>
+      <div className="math-house-content">
+        <div className="math-house-wrap">
+          <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
+            <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
+            <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
+            <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
+              {total}
+            </text>
+          </svg>
 
-        <div className="math-house-body">
-          {task.pairs.map(([left, right], pairIndex) => {
-            const leftKey  = `${pairIndex}:left`;
-            const rightKey = `${pairIndex}:right`;
-            const leftHidden  = Boolean(hiddenCellByKey[leftKey]);
-            const rightHidden = Boolean(hiddenCellByKey[rightKey]);
-            const floorClass  = [
-              "math-house-floor",
-              activePairIndex === pairIndex ? "math-house-floor--active" : "",
-            ].filter(Boolean).join(" ");
+          <div className="math-house-body">
+            {task.pairs.map(([left, right], pairIndex) => {
+              const leftKey  = `${pairIndex}:left`;
+              const rightKey = `${pairIndex}:right`;
+              const leftHidden  = Boolean(hiddenCellByKey[leftKey]);
+              const rightHidden = Boolean(hiddenCellByKey[rightKey]);
+              const floorClass  = [
+                "math-house-floor",
+                activePairIndex === pairIndex ? "math-house-floor--active" : "",
+              ].filter(Boolean).join(" ");
 
-            return (
-              <div key={pairIndex} className={floorClass}>
-                <div
-                  className={cellClass(leftHidden, leftKey)}
-                  onClick={() => leftHidden && answers[leftKey] == null && setActiveCellKey(leftKey)}
-                >
-                  {leftHidden ? (answers[leftKey] ?? "?") : left}
+              return (
+                <div key={pairIndex} className={floorClass}>
+                  <div
+                    className={cellClass(leftHidden, leftKey)}
+                    onClick={() => leftHidden && answers[leftKey] == null && setActiveCellKey(leftKey)}
+                  >
+                    {leftHidden ? (answers[leftKey] ?? "?") : left}
+                  </div>
+                  <div className="math-house-operator">+</div>
+                  <div
+                    className={cellClass(rightHidden, rightKey)}
+                    onClick={() => rightHidden && answers[rightKey] == null && setActiveCellKey(rightKey)}
+                  >
+                    {rightHidden ? (answers[rightKey] ?? "?") : right}
+                  </div>
+                  <div className="math-house-equals">= {total}</div>
                 </div>
-                <div className="math-house-operator">+</div>
-                <div
-                  className={cellClass(rightHidden, rightKey)}
-                  onClick={() => rightHidden && answers[rightKey] == null && setActiveCellKey(rightKey)}
-                >
-                  {rightHidden ? (answers[rightKey] ?? "?") : right}
-                </div>
-                <div className="math-house-equals">= {total}</div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -360,79 +362,81 @@ function HouseLegacy({ task, onCorrect, onMistake }) {
         "--numpad-columns": Math.ceil(padValues.length / 2),
       }}
     >
-      <div className="math-house-wrap">
-        <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
-          <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
-          <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
-          <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
-            {total}
-          </text>
-        </svg>
+      <div className="math-house-content">
+        <div className="math-house-wrap">
+          <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
+            <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
+            <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
+            <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
+              {total}
+            </text>
+          </svg>
 
-        <div className="math-house-body">
-          {pairs.map((pair, pairIndex) => {
-            const answer = houseAnswers[pairIndex];
-            const previewRecallLeft = isRecall && pairIndex === activeFloor ? recallLeft : null;
-            const floorClassName = [
-              "math-house-floor",
-              pairIndex === activeFloor ? "math-house-floor--active" : "",
-              !answer && pairIndex > activeFloor ? "math-house-floor--future" : "",
-            ].filter(Boolean).join(" ");
-            const leftBoxClassName = [
-              "math-house-box",
-              isRead ? "math-house-box--known" : "",
-              isRecall && pairIndex === activeFloor && recallStep === 0 ? "math-house-box--focus" : "",
-              !isRead && !answer && previewRecallLeft == null ? "math-house-box--empty" : "",
-              answer?.correct ? "math-house-box--correct" : "",
-              answer && !answer.correct ? "math-house-box--wrong" : "",
-            ].filter(Boolean).join(" ");
-            const rightBoxClassName = [
-              "math-house-box",
-              isRead ? "math-house-box--known" : "",
-              isFill ? "math-house-box--empty" : "",
-              isRecall && pairIndex === activeFloor && recallStep === 1 ? "math-house-box--focus" : "",
-              !isRead && answer?.right == null ? "math-house-box--empty" : "",
-              answer?.correct ? "math-house-box--correct" : "",
-              answer && !answer.correct ? "math-house-box--wrong" : "",
-            ].filter(Boolean).join(" ");
-            const leftValue = isRead
-              ? pair.left
-              : isRecall
-                ? (answer?.left ?? previewRecallLeft ?? "?")
-                : pair.left;
-            const rightValue = isRead
-              ? pair.right
-              : isRecall
-                ? (answer?.right ?? "?")
-                : (answer ? answer.value : "?");
+          <div className="math-house-body">
+            {pairs.map((pair, pairIndex) => {
+              const answer = houseAnswers[pairIndex];
+              const previewRecallLeft = isRecall && pairIndex === activeFloor ? recallLeft : null;
+              const floorClassName = [
+                "math-house-floor",
+                pairIndex === activeFloor ? "math-house-floor--active" : "",
+                !answer && pairIndex > activeFloor ? "math-house-floor--future" : "",
+              ].filter(Boolean).join(" ");
+              const leftBoxClassName = [
+                "math-house-box",
+                isRead ? "math-house-box--known" : "",
+                isRecall && pairIndex === activeFloor && recallStep === 0 ? "math-house-box--focus" : "",
+                !isRead && !answer && previewRecallLeft == null ? "math-house-box--empty" : "",
+                answer?.correct ? "math-house-box--correct" : "",
+                answer && !answer.correct ? "math-house-box--wrong" : "",
+              ].filter(Boolean).join(" ");
+              const rightBoxClassName = [
+                "math-house-box",
+                isRead ? "math-house-box--known" : "",
+                isFill ? "math-house-box--empty" : "",
+                isRecall && pairIndex === activeFloor && recallStep === 1 ? "math-house-box--focus" : "",
+                !isRead && answer?.right == null ? "math-house-box--empty" : "",
+                answer?.correct ? "math-house-box--correct" : "",
+                answer && !answer.correct ? "math-house-box--wrong" : "",
+              ].filter(Boolean).join(" ");
+              const leftValue = isRead
+                ? pair.left
+                : isRecall
+                  ? (answer?.left ?? previewRecallLeft ?? "?")
+                  : pair.left;
+              const rightValue = isRead
+                ? pair.right
+                : isRecall
+                  ? (answer?.right ?? "?")
+                  : (answer ? answer.value : "?");
 
-            return (
-              <div key={`${task.cardId}-${pairIndex}`} className={floorClassName}>
-                <div className={leftBoxClassName}>{leftValue}</div>
-                {!isRead && <div className="math-house-operator">+</div>}
-                <div className={rightBoxClassName}>{rightValue}</div>
-                {!isRead && <div className="math-house-equals">= {total}</div>}
+              return (
+                <div key={`${task.cardId}-${pairIndex}`} className={floorClassName}>
+                  <div className={leftBoxClassName}>{leftValue}</div>
+                  {!isRead && <div className="math-house-operator">+</div>}
+                  <div className={rightBoxClassName}>{rightValue}</div>
+                  {!isRead && <div className="math-house-equals">= {total}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="math-house-phase-label">{phaseLabel}</div>
+        <div className={`math-house-hint${isRead ? " math-house-hint--compact" : ""}`}>{hintText}</div>
+
+        {isRead && (
+          <div className="math-house-read-inputs" aria-label="Читаю">
+            {readInputValues.map((slotValue, slotIndex) => (
+              <div
+                key={`read-slot-${slotIndex}`}
+                className={`math-house-read-box${readInputStep === slotIndex ? " math-house-read-box--active" : ""}${slotValue === "+" || slotValue === "=" ? " math-house-read-box--operator" : ""}`}
+              >
+                {slotValue ?? ""}
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      <div className="math-house-phase-label">{phaseLabel}</div>
-      <div className={`math-house-hint${isRead ? " math-house-hint--compact" : ""}`}>{hintText}</div>
-
-      {isRead && (
-        <div className="math-house-read-inputs" aria-label="Читаю">
-          {readInputValues.map((slotValue, slotIndex) => (
-            <div
-              key={`read-slot-${slotIndex}`}
-              className={`math-house-read-box${readInputStep === slotIndex ? " math-house-read-box--active" : ""}${slotValue === "+" || slotValue === "=" ? " math-house-read-box--operator" : ""}`}
-            >
-              {slotValue ?? ""}
-            </div>
-          ))}
-        </div>
-      )}
 
       <div className="math-house-numpad">
         {padValues.map((value) => (
@@ -536,35 +540,37 @@ function HouseGrow({ task, onCorrect }) {
         "--numpad-columns": Math.ceil(options.length / 2),
       }}
     >
-      <div className="math-house-wrap">
-        <div className="math-house-grow-caption">Собери домик числа {task.number}</div>
-        <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
-          <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
-          <g className={done ? "math-house-roof-badge--done" : undefined}>
-            <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
-            <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
-              {task.number}
-            </text>
-          </g>
-        </svg>
+      <div className="math-house-content">
+        <div className="math-house-wrap">
+          <div className="math-house-grow-caption">Собери домик числа {task.number}</div>
+          <svg className="math-house-roof-svg" viewBox="0 0 220 92" aria-hidden="true">
+            <polygon points="33,0 187,0 220,92 0,92" fill="#2d6fb5" />
+            <g className={done ? "math-house-roof-badge--done" : undefined}>
+              <circle cx="110" cy="46" r="29" fill="#fbbf24" stroke="white" strokeWidth="3" />
+              <text x="110" y="47" textAnchor="middle" dominantBaseline="middle" fontSize="28" fontWeight="900" fill="#422006">
+                {task.number}
+              </text>
+            </g>
+          </svg>
 
-        <div className="math-house-body">
-          {completedPairs.map(([left, right], idx) => (
-            <div key={`${left}:${right}:${idx}`} className="math-house-floor math-house-floor--grow-enter">
-              <div className="math-house-box">{left}</div>
-              <div className="math-house-operator">+</div>
-              <div className="math-house-box">{right}</div>
-              <div className="math-house-equals">= {task.number}</div>
-            </div>
-          ))}
-          {!done && (
-            <div className={`math-house-floor${wrongDraft ? " math-house-floor--wrong" : ""}`}>
-              <div className={boxClass("left")}>{boxContent("left")}</div>
-              <div className="math-house-operator">+</div>
-              <div className={boxClass("right")}>{boxContent("right")}</div>
-              <div className="math-house-equals">= {task.number}</div>
-            </div>
-          )}
+          <div className="math-house-body">
+            {completedPairs.map(([left, right], idx) => (
+              <div key={`${left}:${right}:${idx}`} className="math-house-floor math-house-floor--grow-enter">
+                <div className="math-house-box">{left}</div>
+                <div className="math-house-operator">+</div>
+                <div className="math-house-box">{right}</div>
+                <div className="math-house-equals">= {task.number}</div>
+              </div>
+            ))}
+            {!done && (
+              <div className={`math-house-floor${wrongDraft ? " math-house-floor--wrong" : ""}`}>
+                <div className={boxClass("left")}>{boxContent("left")}</div>
+                <div className="math-house-operator">+</div>
+                <div className={boxClass("right")}>{boxContent("right")}</div>
+                <div className="math-house-equals">= {task.number}</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

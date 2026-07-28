@@ -7131,9 +7131,23 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: var(--stage-gap);
   padding: clamp(10px, 1.6vw, 20px);
+}
+
+/* Everything above the numpad centers itself in whatever space it's given —
+   the numpad itself stays outside this wrapper so it always sits flush at
+   the bottom of the stage, regardless of house height (task number/floor
+   count varies a lot between houses). */
+.math-house-content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--stage-gap);
 }
 
 .math-house-wrap {
