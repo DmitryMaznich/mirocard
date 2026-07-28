@@ -21,29 +21,6 @@ function DraggableTenStack({ id }) {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="pv-check-icon" fill="none" aria-hidden="true">
-      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// Single-row checklist: this mode has exactly one action (drag the ten into
-// ЕДИНИЦЫ), so there's no active/wrong state to track — only pending until
-// the drag succeeds, then done. The row's own text replaces what used to be
-// a separate .pv-caption line below the zones.
-function ChecklistItem({ text, done, textRef, fontSize }) {
-  return (
-    <div className={`pv-checklist-item${done ? " is-done" : " is-pending"}`}>
-      <span className="pv-checklist-box">{done && <CheckIcon />}</span>
-      <span ref={textRef} className="pv-checklist-text" style={fontSize ? { fontSize } : undefined}>
-        {text}
-      </span>
-    </div>
-  );
-}
-
 // Must be a child of <DndContext>, not a sibling call in the component that renders
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
@@ -106,13 +83,13 @@ export default function RegroupTenTask({ task, onCorrect }) {
     onCorrect(task.conceptId, task.cardId);
   }
 
-  const { ref: checklistRef, fontSize: checklistFontSize } = useFitOneLine("Разменяй десяток в единицы", { max: 45, min: 13 });
+  const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine("Разменяй десяток в единицы", { max: 45, min: 13 });
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        <div className="pv-checklist">
-          <ChecklistItem text="Разменяй десяток в единицы" done={exchanged} textRef={checklistRef} fontSize={checklistFontSize} />
+        <div className="pv-question">
+          <span ref={questionRef} style={{ fontSize: questionFontSize }}>Разменяй десяток в единицы</span>
         </div>
 
         <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} />

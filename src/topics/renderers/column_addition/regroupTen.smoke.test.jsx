@@ -4,7 +4,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import RegroupTenTask from "./RegroupTenTask.jsx";
 
 // jsdom has no ResizeObserver; useFitOneLine (textFit.js, used by the
-// checklist row's text sizing) needs one. No-op stub.
+// instruction line's text sizing) needs one. No-op stub.
 if (typeof window.ResizeObserver === "undefined") {
   window.ResizeObserver = class {
     observe() {}
@@ -23,7 +23,7 @@ describe("RegroupTenTask", () => {
     root = null; container = null;
   });
 
-  it("mounts without crashing, showing one pending checklist row", () => {
+  it("mounts showing the instruction as a single non-interactive line", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -31,8 +31,8 @@ describe("RegroupTenTask", () => {
     act(() => {
       root.render(<RegroupTenTask task={task} onCorrect={() => {}} />);
     });
-    const items = container.querySelectorAll(".pv-checklist-item");
-    expect(items.length).toBe(1);
-    expect(items[0].className).toContain("is-pending");
+    const question = container.querySelector(".pv-question");
+    expect(question.textContent).toBe("Разменяй десяток в единицы");
+    expect(question.getAttribute("role")).toBeNull();
   });
 });
