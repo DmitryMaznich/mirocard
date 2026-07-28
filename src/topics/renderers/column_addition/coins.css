@@ -374,7 +374,7 @@
 .cb-screen .pv-answer-row--split .pv-answer-slot {
   width: calc(78 * var(--cb-scale));
   height: calc(90 * var(--cb-scale));
-  font-size: calc(48 * var(--cb-scale));
+  font-size: calc(38.4 * var(--cb-scale));
   border-radius: calc(12 * var(--cb-scale));
 }
 

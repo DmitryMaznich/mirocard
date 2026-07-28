@@ -276,8 +276,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
 
   return (
     <div className="pv-screen cb-screen">
-      <div className="pv-instruction">Какое это число?</div>
-
       <div className={`pv-question${phase === "done" ? " pv-question--correct" : ""}`}>
         <span ref={questionRef} style={{ fontSize: questionFontSize }}>{questionText}</span>
       </div>
@@ -316,43 +314,55 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         </div>
       </div>
 
+      {/* Zone highlight (cb-area--focus) marks which side the currently-
+          asked question refers to — same pulse AnswerSlot's own "active"
+          state uses, so the question, the zone, and where to type the
+          answer are all visually tied together. The outer flex-fit div
+          keeps its own flex:1 sizing (zoneScale reads its clientHeight as
+          the available budget to fit coins into) — align-items:flex-start
+          here just pins the (now equal-height, see .pv-zones-row below)
+          pair to the top of that space, it doesn't stretch them to fill
+          it. */}
+      <div ref={zonesRef} className="pv-zones pv-zones--flex-fit" style={{ "--cb-scale": `${zoneScale}px` }}>
+        {/* Equal-height pair: align-items:stretch here (not on the outer
+            flex-fit div) makes the two zones match whichever of them
+            naturally needs more room for its content — e.g. ЕДИНИЦЫ
+            wrapping to 2 coin rows while ДЕСЯТКИ only needs 1 — instead of
+            each sizing to its own content and ending at mismatched
+            heights. This inner row is itself only as tall as that content
+            needs (not stretched to the outer's full available height), so
+            it doesn't fight zoneScale's own measurement of the outer. */}
+        <div className="pv-zones-row">
+          <div className={`pv-zone${tensAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
+            <div className="pv-zone-label">ДЕСЯТКИ</div>
+            <div className="pv-zone-body">
+              {Array.from({ length: task.model.tens }, (_, i) => (
+                <TenStack key={i} />
+              ))}
+            </div>
+          </div>
+          <div className={`pv-zone${onesAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
+            <div className="pv-zone-label">ЕДИНИЦЫ</div>
+            <div className="pv-zone-body">
+              {Array.from({ length: task.model.ones }, (_, i) => (
+                <Coin key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* The third question ("Какое это число?") — the child types the full
-          two-digit number here. Rendered as its own row BELOW the tens/ones
-          answer row (not overlaid on top of it like .pv-merged-number),
-          because unlike the merge animation's target spot — which only
-          becomes visible once the tens/ones slots are simultaneously hidden
-          — the tens/ones slots stay visibly confirmed (green) throughout
-          this phase, so an overlaid guess row would sit right on top of
-          them. */}
+          two-digit number here, below the coin zones (not between the
+          tens/ones answer row and the zones — that used to push the zones
+          down away from their answer slots whenever this phase was
+          active). */}
       {phase === "answerNumber" && (
         <div className="pv-guess-row">
           <AnswerSlot state={numberSlotState(0)} value={numberInput[0] ?? null} />
           <AnswerSlot state={numberSlotState(1)} value={numberInput[1] ?? null} />
         </div>
       )}
-
-      {/* Zone highlight (cb-area--focus) marks which side the currently-
-          asked question refers to — same pulse AnswerSlot's own "active"
-          state uses, so the question, the zone, and where to type the
-          answer are all visually tied together. */}
-      <div ref={zonesRef} className="pv-zones pv-zones--flex-fit" style={{ "--cb-scale": `${zoneScale}px` }}>
-        <div className={`pv-zone${tensAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
-          <div className="pv-zone-label">ДЕСЯТКИ</div>
-          <div className="pv-zone-body">
-            {Array.from({ length: task.model.tens }, (_, i) => (
-              <TenStack key={i} />
-            ))}
-          </div>
-        </div>
-        <div className={`pv-zone${onesAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
-          <div className="pv-zone-label">ЕДИНИЦЫ</div>
-          <div className="pv-zone-body">
-            {Array.from({ length: task.model.ones }, (_, i) => (
-              <Coin key={i} />
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* The numpad stays up (disabled) through the merge animation itself
           — swapping it for the button only once `merged` settles avoids a

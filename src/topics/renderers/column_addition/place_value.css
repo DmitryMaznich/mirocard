@@ -10,14 +10,6 @@
   overflow-y: auto;
 }
 
-.pv-instruction {
-  text-align: center;
-  font-size: 16px;
-  color: #475569;
-  margin-bottom: 2px;
-  flex-shrink: 0;
-}
-
 .pv-number {
   text-align: center;
   font-size: 54px;
@@ -55,6 +47,21 @@
   min-height: 0;
   overflow: hidden;
   align-items: flex-start;
+}
+
+/* identify_number only: the actual ДЕСЯТКИ/ЕДИНИЦЫ pair, nested one level
+   inside .pv-zones--flex-fit specifically so the two .pv-zone boxes can be
+   equal-height to EACH OTHER (align-items:stretch — whichever needs more
+   room for its wrapped coin rows) without being equal-height to the
+   flex-fit container's own much larger flex:1 budget (which would leave
+   both zones mostly-empty for small tens/ones counts). width:100% carries
+   over the flex-fit container's own width, since this row (not the two
+   .pv-zone divs directly) is now its only flex child. */
+.pv-zones-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
 }
 
 .pv-zone {
@@ -383,18 +390,18 @@
    green (matches .pv-answer-slot--correct's own color) so the digit reads
    as "still that same confirmed answer" while it travels, not a new
    element appearing from nowhere. Same scaled size as the AnswerSlot it
-   lifted off from (coins.css's identify_number-only override, 48px base —
-   not a flat 48px here either, still calc()'d by --cb-scale so it matches
-   that slot's size on a tablet-width --cb-scale too) — the digit must
-   read as staying the same size while it travels, not shrinking. The
-   `, 1px` fallback matters here: appended to document.body, this element
-   sits OUTSIDE .cb-screen's own subtree and has nothing to inherit
-   --cb-scale from. */
+   lifted off from (coins.css's identify_number-only override, 38.4px
+   base — not a flat 38.4px here either, still calc()'d by --cb-scale so
+   it matches that slot's size on a tablet-width --cb-scale too) — the
+   digit must read as staying the same size while it travels, not
+   shrinking. The `, 1px` fallback matters here: appended to
+   document.body, this element sits OUTSIDE .cb-screen's own subtree and
+   has nothing to inherit --cb-scale from. */
 .pv-digit-ghost {
   position: fixed;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  font-size: calc(48 * var(--cb-scale, 1px));
+  font-size: calc(38.4 * var(--cb-scale, 1px));
   color: #065f46;
   pointer-events: none;
   z-index: 500;
@@ -406,7 +413,7 @@
    laid-out position is measurable before the merge starts — --visible is
    what actually reveals it once both ghosts land. Same font-size as the
    AnswerSlot digits that flew here (coins.css's identify_number-only
-   override, 48px base) — the point is that the two separate answers
+   override, 38.4px base) — the point is that the two separate answers
    become one real, established number, not that the number grows bigger
    than they were. The landing bounce (see playMergeAnimation) starts its
    scale at 1, never below — dipping to a smaller scale first read as the
@@ -416,7 +423,7 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%) scale(1);
-  font-size: calc(48 * var(--cb-scale, 1px));
+  font-size: calc(38.4 * var(--cb-scale, 1px));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
@@ -431,19 +438,17 @@
 }
 
 /* The child's in-progress guess for "Какое это число?" (IdentifyNumberTask's
-   answerNumber phase) — a normal-flow row below .pv-answer-row--split, not
-   overlaid on top of it: the tens/ones slots stay visibly confirmed (green)
-   through this phase, so overlaying this row on top of them (the way
-   .pv-merged-number does, which only works because the tens/ones slots are
-   simultaneously hidden by then) would sit right on top of those digits.
-   Two ordinary AnswerSlot boxes (not scaled up like .pv-merged-number's
-   finished-number typography) since this is still a guess, not the
-   confirmed result. */
+   answerNumber phase) — a normal-flow row below the coin zones, right
+   above the numpad: the tens/ones answer slots stay flush with the zones
+   right below them in every phase (including this one) instead of the
+   zones being pushed down whenever this phase is active. Two ordinary
+   AnswerSlot boxes (not scaled up like .pv-merged-number's finished-number
+   typography) since this is still a guess, not the confirmed result. */
 .pv-guess-row {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin: 4px 0 10px;
+  margin: 8px 0 10px;
 }
 
 .pv-numpad {
