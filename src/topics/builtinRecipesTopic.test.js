@@ -139,10 +139,11 @@ describe('parseOptionGroups', () => {
     expect(parseOptionGroups(content)).toEqual({});
   });
 
-  it("oatmeal's topping group is single-optional (at most one topping, skippable)", () => {
+  it("oatmeal's topping group is single-optional (at most one topping, skippable), honey is its own independent multi/toggle group", () => {
     const oatmeal = getBuiltinRecipeRawText('recipes/oatmeal.txt') ?? '';
     expect(parseOptionGroups(oatmeal)).toEqual({
       topping: { mode: 'single-optional', label: 'Топпинг' },
+      honey: { mode: 'multi', label: 'Мёд' },
     });
   });
 
