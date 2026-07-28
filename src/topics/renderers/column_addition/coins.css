@@ -25,13 +25,9 @@
    1px (today's phone sizing, unchanged); it only grows past that. */
 .cb-screen {
   --cb-scale: clamp(1px, calc(100vw / 400), 2px);
-  /* A soft white highlight over the shared .pv-screen grid — same
+  /* A soft white highlight over the plain .pv-screen background — same
      background-color, just less flat behind the new raised panels below. */
-  background-image:
-    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255, 255, 255, 0.6), transparent 60%),
-    linear-gradient(rgba(140, 190, 255, 0.28) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(140, 190, 255, 0.28) 1px, transparent 1px);
-  background-size: auto, 32px 32px, 32px 32px;
+  background-image: radial-gradient(ellipse 120% 60% at 50% 0%, rgba(255, 255, 255, 0.6), transparent 60%);
 }
 
 .cb-zone-split {
