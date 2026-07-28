@@ -453,6 +453,19 @@
   flex-shrink: 0;
 }
 
+/* Tablet gets the classic phone-dial layout instead of two rows of 5: same
+   DIGITS order (1-9, 0 last, see IdentifyNumberTask.jsx/BuildNumberTask.jsx),
+   a 3-column grid wraps it into 1-2-3 / 4-5-6 / 7-8-9 / 0 with no JS/array
+   change needed. Phones keep the compact 5x2 grid — narrower screens have
+   less headroom for a taller 4-row pad. 768px matches this codebase's
+   existing tablet breakpoint (see the many @media (min-width: 768px) rules
+   in src/styles.css). */
+@media (min-width: 768px) {
+  .pv-numpad {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .pv-numkey {
   font-family: inherit;
   font-size: 20px;

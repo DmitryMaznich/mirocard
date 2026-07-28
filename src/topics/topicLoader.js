@@ -1118,7 +1118,7 @@ const DEFAULT_MODES = {
           type: "number",
           min: 0,
           max: 9,
-          default: 2,
+          default: 9,
           label: { ru: "Максимум единиц" },
           info: {
             ru: {
