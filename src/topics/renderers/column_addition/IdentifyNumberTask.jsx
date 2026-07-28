@@ -314,18 +314,22 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         <div ref={mergedRef} className={`pv-merged-number${merged ? " pv-merged-number--visible" : ""}`}>
           <span ref={mergedTensRef}>{task.model.tens}</span><span ref={mergedOnesRef}>{task.model.ones}</span>
         </div>
-
-        {/* The third question ("Какое это число?") — the child types the
-            full two-digit number here, in the same spot the merged result
-            will occupy once this phase is answered correctly, so the
-            fly-in below lands exactly where the child's own guess was. */}
-        {phase === "answerNumber" && (
-          <div className="pv-guess-row">
-            <AnswerSlot state={numberSlotState(0)} value={numberInput[0] ?? null} />
-            <AnswerSlot state={numberSlotState(1)} value={numberInput[1] ?? null} />
-          </div>
-        )}
       </div>
+
+      {/* The third question ("Какое это число?") — the child types the full
+          two-digit number here. Rendered as its own row BELOW the tens/ones
+          answer row (not overlaid on top of it like .pv-merged-number),
+          because unlike the merge animation's target spot — which only
+          becomes visible once the tens/ones slots are simultaneously hidden
+          — the tens/ones slots stay visibly confirmed (green) throughout
+          this phase, so an overlaid guess row would sit right on top of
+          them. */}
+      {phase === "answerNumber" && (
+        <div className="pv-guess-row">
+          <AnswerSlot state={numberSlotState(0)} value={numberInput[0] ?? null} />
+          <AnswerSlot state={numberSlotState(1)} value={numberInput[1] ?? null} />
+        </div>
+      )}
 
       {/* Zone highlight (cb-area--focus) marks which side the currently-
           asked question refers to — same pulse AnswerSlot's own "active"

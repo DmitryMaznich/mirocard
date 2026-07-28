@@ -430,19 +430,19 @@
 }
 
 /* The child's in-progress guess for "Какое это число?" (IdentifyNumberTask's
-   answerNumber phase) — sits in the exact same centered spot .pv-merged-number
-   occupies (same position:relative parent, .pv-answer-row--split), so once
-   the guess is confirmed correct and this unmounts, the merge animation's
-   flying digits land right where the child's own guess was. Two ordinary
-   AnswerSlot boxes (not scaled up like .pv-merged-number's finished-number
-   typography) since this is still a guess, not the confirmed result. */
+   answerNumber phase) — a normal-flow row below .pv-answer-row--split, not
+   overlaid on top of it: the tens/ones slots stay visibly confirmed (green)
+   through this phase, so overlaying this row on top of them (the way
+   .pv-merged-number does, which only works because the tens/ones slots are
+   simultaneously hidden by then) would sit right on top of those digits.
+   Two ordinary AnswerSlot boxes (not scaled up like .pv-merged-number's
+   finished-number typography) since this is still a guess, not the
+   confirmed result. */
 .pv-guess-row {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
+  justify-content: center;
   gap: 8px;
+  margin: 4px 0 10px;
 }
 
 .pv-numpad {
