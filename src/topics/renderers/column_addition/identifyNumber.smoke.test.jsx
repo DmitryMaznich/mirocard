@@ -48,6 +48,10 @@ describe("IdentifyNumberTask", () => {
     return container.querySelector(".pv-question");
   }
 
+  function guessSlots() {
+    return container.querySelectorAll(".pv-guess-row .pv-answer-slot");
+  }
+
   it("mounts without crashing, asking for tens first", () => {
     mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 23, model: { tens: 2, ones: 3 } });
     expect(question().textContent).toBe("Сколько десятков?");
@@ -75,10 +79,58 @@ describe("IdentifyNumberTask", () => {
     expect(question().textContent).toBe("Сколько единиц?");
 
     act(() => { digitButton(9).click(); }); // wrong ones
-    const slots = container.querySelectorAll(".pv-answer-slot");
+    const slots = container.querySelectorAll(".pv-answer-row--split > .pv-answer-col .pv-answer-slot");
     expect(slots[0].textContent).toBe("2"); // tens digit persists
     expect(slots[0].className).toContain("pv-answer-slot--correct");
     expect(slots[1].className).toContain("pv-answer-slot--shake");
+  });
+
+  it("asks 'Какое это число?' after tens and ones are both answered, before merging", () => {
+    mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 23, model: { tens: 2, ones: 3 } });
+
+    act(() => { digitButton(2).click(); }); // correct tens
+    act(() => { digitButton(3).click(); }); // correct ones
+
+    expect(question().textContent).toBe("Какое это число?");
+    // Tens/ones stay visibly confirmed while the child answers the third question.
+    const topSlots = container.querySelectorAll(".pv-answer-row--split > .pv-answer-col .pv-answer-slot");
+    expect(topSlots[0].textContent).toBe("2");
+    expect(topSlots[0].className).toContain("pv-answer-slot--correct");
+    expect(topSlots[1].textContent).toBe("3");
+    expect(topSlots[1].className).toContain("pv-answer-slot--correct");
+
+    const guesses = guessSlots();
+    expect(guesses.length).toBe(2);
+    expect(guesses[0].textContent).toBe("?");
+    expect(guesses[1].textContent).toBe("?");
+  });
+
+  it("shakes and clears a wrong two-digit guess without advancing past answerNumber", () => {
+    vi.useFakeTimers();
+    try {
+      const onMistake = vi.fn();
+      mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 23, model: { tens: 2, ones: 3 } }, { onMistake });
+
+      act(() => { digitButton(2).click(); }); // correct tens
+      act(() => { digitButton(3).click(); }); // correct ones
+      act(() => { digitButton(9).click(); }); // wrong guess, digit 1 of 2
+      act(() => { digitButton(9).click(); }); // wrong guess, digit 2 of 2 -> 99 !== 23
+
+      expect(onMistake).toHaveBeenCalledTimes(1);
+      let guesses = guessSlots();
+      expect(guesses[0].className).toContain("pv-answer-slot--shake");
+      expect(guesses[1].className).toContain("pv-answer-slot--shake");
+
+      act(() => { vi.advanceTimersByTime(500); });
+
+      guesses = guessSlots();
+      expect(guesses[0].textContent).toBe("?");
+      expect(guesses[1].textContent).toBe("?");
+      // Still on the same question — a wrong whole-number guess doesn't advance the phase.
+      expect(question().textContent).toBe("Какое это число?");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("shows 'Правильно!' and waits for a tap on Далее before calling onCorrect", () => {
@@ -100,6 +152,8 @@ describe("IdentifyNumberTask", () => {
 
       act(() => { digitButton(2).click(); }); // correct tens
       act(() => { digitButton(3).click(); }); // correct ones
+      act(() => { digitButton(2).click(); }); // correct number guess, digit 1 of 2
+      act(() => { digitButton(3).click(); }); // correct number guess, digit 2 of 2 -> 23 === 23
       act(() => { vi.advanceTimersByTime(180); }); // pre-merge beat
 
       expect(question().textContent).toBe("Правильно!");

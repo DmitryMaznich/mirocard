@@ -56,8 +56,14 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   // build_number): the tens/ones blocks are already laid out for the child
   // to read, not assembled by them first.
   const [phase, setPhase] = useState("answerTens");
-  const [rowWrong, setRowWrong] = useState({ tens: false, ones: false });
-  const [hintDirection, setHintDirection] = useState({ tens: null, ones: null });
+  const [rowWrong, setRowWrong] = useState({ tens: false, ones: false, number: false });
+  const [hintDirection, setHintDirection] = useState({ tens: null, ones: null, number: null });
+  // The child's in-progress two-digit guess for "Какое это число?" (phase
+  // answerNumber) — an array of typed digit strings, max length 2. Not
+  // checked against the target until both are in, mirroring the
+  // accumulate-then-validate pattern column_addition's own "copy" mode
+  // (index.jsx's handleDigit) already uses for its multi-digit answer.
+  const [numberInput, setNumberInput] = useState([]);
   // merging: the two real AnswerSlots are hidden and their digits are
   // flying (as ghosts) toward the merged-number spot. merged: the ghosts
   // have arrived and the real two-digit number is shown in their place.
@@ -201,13 +207,31 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     }
     if (phase === "answerOnes") {
       if (d === task.model.ones) {
+        setPhase("answerNumber");
+      } else {
+        flashRowWrong("ones", hintDirectionFor(d, task.model.ones));
+      }
+      return;
+    }
+    if (phase === "answerNumber") {
+      const next = [...numberInput, d];
+      setNumberInput(next);
+      if (next.length < 2) return;
+      const guess = Number(next.join(""));
+      if (guess === task.model.tens * 10 + task.model.ones) {
         setPhase("done");
         // A short beat on the confirmed-correct digits before they merge —
         // long enough to register "that's right", short enough to still
         // feel like one continuous moment.
         setTimeout(playMergeAnimation, 180);
       } else {
-        flashRowWrong("ones", hintDirectionFor(d, task.model.ones));
+        // Whole-number guess, not a single digit — no directional hint
+        // here (unlike tens/ones), just shake and let the child retry.
+        // Keeps the wrong guess visible for the same 500ms shake window
+        // flashRowWrong already uses elsewhere before clearing it, so the
+        // child can see what they typed was wrong, not just a blank flash.
+        flashRowWrong("number");
+        setTimeout(() => setNumberInput([]), 500);
       }
     }
   }
@@ -216,8 +240,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     onCorrect(task.conceptId, task.cardId);
   }
 
-  const tensDone = phase === "answerOnes" || phase === "done";
-  const onesDone = phase === "done";
+  const tensDone = phase === "answerOnes" || phase === "answerNumber" || phase === "done";
+  const onesDone = phase === "answerNumber" || phase === "done";
   const tensAnswer = {
     value: tensDone ? task.model.tens : null,
     state: tensDone ? "filled correct" : rowWrong.tens ? "shake" : phase === "answerTens" ? "active" : undefined,
@@ -229,13 +253,25 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     hint: hintDirection.ones,
   };
 
+  // Guess-row slot state: mirrors tensAnswer/onesAnswer's own single-branch
+  // ternary style (never combines "filled" and "shake" on one slot) — a
+  // typed-but-unconfirmed digit reads as provisionally filled (blue), a
+  // wrong final pair reads as shake (red) regardless of what was typed.
+  function numberSlotState(idx) {
+    if (rowWrong.number) return "shake";
+    return numberInput[idx] != null ? "filled" : undefined;
+  }
+
   // A checklist was overkill for a two-step question: the digit landing in
   // its own slot (above the matching ДЕСЯТКИ/ЕДИНИЦЫ zone) is already the
   // confirmation, so this is just the current prompt — text swaps in
   // place, not a growing list of rows. useFitOneLine re-fits on its own
   // whenever `text` changes (it's in the hook's own dependency array), so
   // one call handles all three phases.
-  const questionText = phase === "answerTens" ? "Сколько десятков?" : phase === "answerOnes" ? "Сколько единиц?" : "Правильно!";
+  const questionText = phase === "answerTens" ? "Сколько десятков?"
+    : phase === "answerOnes" ? "Сколько единиц?"
+    : phase === "answerNumber" ? "Какое это число?"
+    : "Правильно!";
   const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine(questionText, { max: 40, min: 16 });
 
   return (
@@ -278,6 +314,17 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         <div ref={mergedRef} className={`pv-merged-number${merged ? " pv-merged-number--visible" : ""}`}>
           <span ref={mergedTensRef}>{task.model.tens}</span><span ref={mergedOnesRef}>{task.model.ones}</span>
         </div>
+
+        {/* The third question ("Какое это число?") — the child types the
+            full two-digit number here, in the same spot the merged result
+            will occupy once this phase is answered correctly, so the
+            fly-in below lands exactly where the child's own guess was. */}
+        {phase === "answerNumber" && (
+          <div className="pv-guess-row">
+            <AnswerSlot state={numberSlotState(0)} value={numberInput[0] ?? null} />
+            <AnswerSlot state={numberSlotState(1)} value={numberInput[1] ?? null} />
+          </div>
+        )}
       </div>
 
       {/* Zone highlight (cb-area--focus) marks which side the currently-
@@ -285,7 +332,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
           state uses, so the question, the zone, and where to type the
           answer are all visually tied together. */}
       <div ref={zonesRef} className="pv-zones pv-zones--flex-fit" style={{ "--cb-scale": `${zoneScale}px` }}>
-        <div className={`pv-zone${tensAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "done" ? " pv-zone--correct" : ""}`}>
+        <div className={`pv-zone${tensAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
           <div className="pv-zone-label">ДЕСЯТКИ</div>
           <div className="pv-zone-body">
             {Array.from({ length: task.model.tens }, (_, i) => (
@@ -293,7 +340,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
             ))}
           </div>
         </div>
-        <div className={`pv-zone${onesAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "done" ? " pv-zone--correct" : ""}`}>
+        <div className={`pv-zone${onesAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
           <div className="pv-zone-label">ЕДИНИЦЫ</div>
           <div className="pv-zone-body">
             {Array.from({ length: task.model.ones }, (_, i) => (
