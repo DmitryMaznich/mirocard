@@ -314,15 +314,14 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         </div>
       </div>
 
-      {/* Zone highlight (cb-area--focus) marks which side the currently-
-          asked question refers to — same pulse AnswerSlot's own "active"
-          state uses, so the question, the zone, and where to type the
-          answer are all visually tied together. The outer flex-fit div
-          keeps its own flex:1 sizing (zoneScale reads its clientHeight as
-          the available budget to fit coins into) — align-items:flex-start
-          here just pins the (now equal-height, see .pv-zones-row below)
-          pair to the top of that space, it doesn't stretch them to fill
-          it. */}
+      {/* The outer flex-fit div keeps its own flex:1 sizing (zoneScale
+          reads its clientHeight as the available budget to fit coins
+          into) — align-items:flex-start here just pins the (now
+          equal-height, see .pv-zones-row below) pair to the top of that
+          space, it doesn't stretch them to fill it. No zone highlight
+          during answerTens/answerOnes anymore — only the answer slot
+          itself (AnswerSlot's own "active" pulse) marks which question is
+          current, the coin zones stay neutral. */}
       <div ref={zonesRef} className="pv-zones pv-zones--flex-fit" style={{ "--cb-scale": `${zoneScale}px` }}>
         {/* Equal-height pair: align-items:stretch here (not on the outer
             flex-fit div) makes the two zones match whichever of them
@@ -333,7 +332,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
             needs (not stretched to the outer's full available height), so
             it doesn't fight zoneScale's own measurement of the outer. */}
         <div className="pv-zones-row">
-          <div className={`pv-zone${tensAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
+          <div className={`pv-zone${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
             <div className="pv-zone-label">ДЕСЯТКИ</div>
             <div className="pv-zone-body">
               {Array.from({ length: task.model.tens }, (_, i) => (
@@ -341,7 +340,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
               ))}
             </div>
           </div>
-          <div className={`pv-zone${onesAnswer.state === "active" ? " cb-area--focus" : ""}${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
+          <div className={`pv-zone${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
             <div className="pv-zone-label">ЕДИНИЦЫ</div>
             <div className="pv-zone-body">
               {Array.from({ length: task.model.ones }, (_, i) => (

@@ -97,19 +97,6 @@
   background: rgba(217, 119, 6, 0.08);
 }
 
-/* Directs attention to the zone the currently-active "Сколько...?"
-   question refers to — same pulse .pv-answer-slot--active already uses
-   (pv-answer-pulse, defined in place_value.css, loaded alongside this
-   file), not a new animation. Outline (not border/box-shadow alone)
-   matches the .cb-area--error/--capacity pattern above so all three read
-   as the same family of zone-state marker. */
-.cb-area--focus {
-  border-radius: 10px;
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-  animation: pv-answer-pulse 1.8s ease-in-out infinite;
-}
-
 .cb-coin {
   width: calc(30 * var(--cb-scale));
   height: calc(30 * var(--cb-scale));
@@ -235,7 +222,6 @@
 @media (prefers-reduced-motion: reduce) {
   .cb-pile-coin--top { animation: none; }
   .cb-coin--groupable { animation: pv-pop 0.22s ease-out both; }
-  .cb-area--focus { animation: none; }
 }
 
 /* One ghost per grouped coin for the tap-to-group animation: each of the

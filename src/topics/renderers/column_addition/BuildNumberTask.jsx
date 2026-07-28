@@ -90,7 +90,7 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
           <div className="cb-col cb-col--tens">
             <div className="pv-zone-label">Десятки</div>
             <div
-              className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}${capacityFlash.tens ? " cb-area--capacity" : ""}${tensAnswer.state === "active" ? " cb-area--focus" : ""}`}
+              className={`cb-stacks-area${errorZones.tens ? " cb-area--error" : ""}${capacityFlash.tens ? " cb-area--capacity" : ""}`}
               ref={stacksAreaRef}
             >
               {Array.from({ length: placed.tens }, (_, i) => (
@@ -108,7 +108,7 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
           <div className="cb-col cb-col--ones">
             <div className="pv-zone-label">Единицы</div>
             <div
-              className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}${capacityFlash.ones ? " cb-area--capacity" : ""}${onesAnswer.state === "active" ? " cb-area--focus" : ""}`}
+              className={`cb-loose-area${errorZones.ones ? " cb-area--error" : ""}${capacityFlash.ones ? " cb-area--capacity" : ""}`}
               ref={looseAreaRef}
             >
               {Array.from({ length: placed.ones }, (_, i) => {
