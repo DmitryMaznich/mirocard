@@ -37,16 +37,23 @@
    inline style on this same element. min-height:0 is required for a flex
    item to actually shrink below its content's natural height instead of
    overflowing its own flex-allocated box; overflow:hidden is the backstop
-   if the scale estimate ever runs slightly short. align-items:flex-start
-   keeps ДЕСЯТКИ/ЕДИНИЦЫ pinned to the same top line as each other and as
-   the answer row above, instead of centering the pair in whatever
-   leftover room there is (the base rule already defaults to flex-start —
-   this override exists so the intent stays explicit for this variant). */
+   if the scale estimate ever runs slightly short.
+
+   flex-direction:column (overriding the base .pv-zones row layout) stacks
+   .pv-zones-row above .pv-recap-fit — the leftover room below the zones,
+   once the tens/ones pair is done phase="answerNumber"/"done", is spent on
+   centering the recap sentence instead of sitting blank: see .pv-recap-fit
+   below. align-items:stretch (not the base rule's flex-start) lets
+   .pv-zones-row span this container's full width for its own row layout
+   to work; .pv-zones-row's own flex-shrink:0 is what keeps the ДЕСЯТКИ/
+   ЕДИНИЦЫ pair pinned to its natural top-of-box size regardless. */
 .pv-zones--flex-fit {
   flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
-  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 /* identify_number only: the actual ДЕСЯТКИ/ЕДИНИЦЫ pair, nested one level
@@ -56,12 +63,31 @@
    flex-fit container's own much larger flex:1 budget (which would leave
    both zones mostly-empty for small tens/ones counts). width:100% carries
    over the flex-fit container's own width, since this row (not the two
-   .pv-zone divs directly) is now its only flex child. */
+   .pv-zone divs directly) is now its only flex child. flex-shrink:0
+   because .pv-zones--flex-fit is now a column with a second flex item
+   (.pv-recap-fit) — without this, a tight fit could squeeze the zones
+   instead of the (more elastic) recap area taking the difference. */
 .pv-zones-row {
   display: flex;
   align-items: stretch;
+  flex-shrink: 0;
   gap: 10px;
   width: 100%;
+}
+
+/* Claims whatever room .pv-zones-row doesn't use (min-height:0 so it can
+   collapse to nothing pre-merge, when it isn't rendered at all) and
+   centers .pv-recap both ways inside it — this IS "the space between the
+   coin zones and the bottom of the screen" the recap sentence belongs in,
+   not a separate area after the zones: .pv-zones--flex-fit's own height is
+   fixed by zoneScale's own needs, so this only redistributes room already
+   inside that same box. */
+.pv-recap-fit {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pv-zone {

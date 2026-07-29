@@ -314,16 +314,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         </div>
       </div>
 
-      {/* Closes the loop back from the assembled number to the tens/ones
-          it came from — read aloud together by the child and the adult
-          (no TTS on this screen, by design). Only appears once merged (not
-          the instant phase becomes "done"), same gate .pv-merged-number
-          itself uses, so it doesn't show up while the digits are still
-          mid-flight. */}
-      {merged && (
-        <div className="pv-recap">{placeValueSentence(task.model.tens, task.model.ones, task.number)}</div>
-      )}
-
       {/* The outer flex-fit div keeps its own flex:1 sizing (zoneScale
           reads its clientHeight as the available budget to fit coins
           into) — align-items:flex-start here just pins the (now
@@ -359,6 +349,23 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
             </div>
           </div>
         </div>
+
+        {/* Closes the loop back from the assembled number to the tens/ones
+            it came from — read aloud together by the child and the adult
+            (no TTS on this screen, by design). Lives inside the same
+            flex-fit box the zones do (not a sibling after it) because the
+            leftover room below the zones IS inside that box — flex-fit's
+            own height is fixed by zoneScale's measurement need, so this
+            just claims the space .pv-zones-row doesn't use instead of
+            leaving it blank. Only appears once merged (not the instant
+            phase becomes "done"), same gate .pv-merged-number itself
+            uses, so it doesn't show up while the digits are still
+            mid-flight. */}
+        {merged && (
+          <div className="pv-recap-fit">
+            <div className="pv-recap">{placeValueSentence(task.model.tens, task.model.ones, task.number)}</div>
+          </div>
+        )}
       </div>
 
       {/* The third question ("Какое это число?") — the child types the full
