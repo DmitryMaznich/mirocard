@@ -422,14 +422,6 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const questionContent = phase === "collect" ? collectContent : questionText;
   const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine(questionText, { max: 45, min: 13 });
 
-  // collect no longer taps the question itself — it has its own "Сделано"
-  // button now (next to the coin pile), so the two don't compete as
-  // redundant ways to confirm the same thing. group still has no visual
-  // pile to hang a button off, so it keeps the tap-the-question idiom.
-  const questionTappable = phase === "group";
-  const questionTap = phase === "group" ? confirmGroup : undefined;
-  const questionWrong = phase === "group" && rowWrong.group;
-
   const showAnswerSlots = phase === "answerTens" || phase === "answerOnes" || phase === "done";
   const tensDone = phase === "answerOnes" || phase === "done";
   const onesDone = phase === "done";
@@ -447,12 +439,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        <div
-          className={`pv-question${phase === "done" ? " pv-question--correct" : ""}${questionWrong ? " pv-question--shake" : ""}`}
-          onClick={questionTappable ? questionTap : undefined}
-          role={questionTappable ? "button" : undefined}
-          tabIndex={questionTappable ? 0 : undefined}
-        >
+        <div className={`pv-question${phase === "done" ? " pv-question--correct" : ""}`}>
           <span ref={questionRef} style={{ fontSize: questionFontSize }}>{questionContent}</span>
         </div>
 
@@ -516,13 +503,28 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               <div className="pv-tray">
                 <PileSource />
               </div>
-              <div className={`pv-tray-done${rowWrong.collect ? " pv-tray-done--shake" : ""}`}>
+              <div className={`pv-confirm-btn${rowWrong.collect ? " pv-confirm-btn--shake" : ""}`}>
                 <Button variant="primary" onClick={confirmCollect} aria-label="Сделано">
                   <CheckmarkIcon />
                 </Button>
               </div>
             </div>
             <div className="pv-caption">тяни монету из кучи</div>
+          </div>
+        )}
+
+        {/* group has no pile to flank with buttons the way collect does —
+            just the same "Сделано" confirm, centered at the bottom like
+            IdentifyNumberTask/RegroupTenTask's own "Далее →" footer. No
+            more tap-the-question here either, for the same reason collect
+            dropped it: one obvious way to confirm, not two. */}
+        {phase === "group" && (
+          <div className="pv-footer">
+            <div className={`pv-confirm-btn${rowWrong.group ? " pv-confirm-btn--shake" : ""}`}>
+              <Button variant="primary" onClick={confirmGroup} aria-label="Сделано">
+                <CheckmarkIcon />
+              </Button>
+            </div>
           </div>
         )}
 

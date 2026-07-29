@@ -55,6 +55,13 @@ describe("BuildNumberTask", () => {
     return container.querySelector(".pv-question");
   }
 
+  // "Сделано" is mounted in exactly one place at a time — next to the
+  // pile during collect, in .pv-footer during group — so a single
+  // container-wide lookup covers both phases.
+  function doneButton() {
+    return container.querySelector('button[aria-label="Сделано"]');
+  }
+
   function trayButton(label) {
     return container.querySelector(`.pv-tray-mat button[aria-label="${label}"]`);
   }
@@ -68,7 +75,7 @@ describe("BuildNumberTask", () => {
     expect(trayButton("Сделано")).toBeTruthy();
   });
 
-  it("advances collect -> group -> answerTens: Сделано confirms collect, tapping the question confirms group", () => {
+  it("advances collect -> group -> answerTens, confirming each step with its own Сделано button", () => {
     // number: 0 lets confirming "collect" succeed with zero coins placed,
     // and confirming "group" succeed with zero grouping needed, reaching
     // answerTens without simulating a dnd-kit drag.
@@ -76,14 +83,16 @@ describe("BuildNumberTask", () => {
     mount(task);
 
     expect(question().textContent).toBe("Перенеси 0 монет");
-    act(() => { trayButton("Сделано").click(); });
+    act(() => { doneButton().click(); });
     expect(question().textContent).toBe("Собери десятки");
-    // group has no pile to hang a button off, so it still confirms via a
-    // tap on the question itself.
-    expect(question().getAttribute("role")).toBe("button");
-    act(() => { question().click(); });
-    expect(question().textContent).toBe("Сколько десятков?");
+    // group has no pile to flank — Сделано moves into .pv-footer instead —
+    // but the question itself is plain text now, not tappable, same as
+    // collect.
     expect(question().getAttribute("role")).toBeNull();
+    expect(doneButton().closest(".pv-footer")).toBeTruthy();
+    act(() => { doneButton().click(); });
+    expect(question().textContent).toBe("Сколько десятков?");
+    expect(container.querySelector('button[aria-label="Сделано"]')).toBeNull();
   });
 
   it("shakes the Сделано button on a wrong collect tap, without advancing or calling onMistake more than once", () => {
@@ -94,8 +103,8 @@ describe("BuildNumberTask", () => {
 
     // No coins placed yet, so the collected total (0) doesn't match the
     // target (5) — tapping "Сделано" should shake it, not advance.
-    act(() => { trayButton("Сделано").click(); });
-    expect(trayButton("Сделано").closest(".pv-tray-done--shake")).toBeTruthy();
+    act(() => { doneButton().click(); });
+    expect(doneButton().closest(".pv-confirm-btn--shake")).toBeTruthy();
     expect(question().textContent).toBe("Перенеси 5 монет");
     expect(onMistakeCalls).toBe(1);
   });

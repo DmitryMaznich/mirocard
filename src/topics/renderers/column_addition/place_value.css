@@ -268,9 +268,11 @@
 
 /* Wraps "Сделано" (not the shared Button component itself, which takes no
    className) so a wrong tap can shake it exactly like every other wrong
-   answer in this family — the same feedback confirmCollect used to give
-   the tappable question text before it became a dedicated button. */
-.pv-tray-done--shake {
+   answer in this family — the same feedback confirmCollect/confirmGroup
+   used to give the tappable question text before each got its own
+   dedicated button. Shared by both collect's (next to the pile) and
+   group's (in .pv-footer) confirm buttons. */
+.pv-confirm-btn--shake {
   animation: pv-shake 0.4s ease-in-out;
 }
 
