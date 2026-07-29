@@ -271,6 +271,15 @@
   gap: 8px;
 }
 
+/* "done" only: pins the mat to the top of this same flex:1 box instead of
+   centering it, freeing up the room below for .pv-recap-fit (see
+   BuildNumberTask.jsx) to center the recap sentence in — "the space
+   between the coins and the bottom of the screen", same as
+   identify_number's own .pv-zones--flex-fit/.pv-recap-fit pair. */
+.pv-workspace-center--done {
+  justify-content: flex-start;
+}
+
 .pv-tray {
   display: flex;
   justify-content: center;
@@ -309,14 +318,6 @@
   gap: 10px;
   padding-top: 10px;
   flex-shrink: 0;
-}
-
-/* build_number's "done" footer: the recap sentence stacked above the
-   "Далее →" button instead of side by side — the row layout above assumes
-   one short row of controls, not a full sentence plus a button. */
-.pv-footer--column {
-  flex-direction: column;
-  gap: 6px;
 }
 
 .pv-answer-row {

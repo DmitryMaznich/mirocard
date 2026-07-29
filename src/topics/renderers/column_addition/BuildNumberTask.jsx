@@ -465,7 +465,11 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
             (a hand's raised-finger count is read from the hand itself,
             not a number next to it) — this brings build_number in line
             with that. */}
-        <div className="pv-workspace-center">
+        {/* --done pins the mat to the top of this box instead of centering
+            it (the base behavior, kept for every other phase) — once
+            .pv-recap-fit joins as a second child, only "done" needs the
+            room below the mat freed up for it. */}
+        <div className={`pv-workspace-center${phase === "done" ? " pv-workspace-center--done" : ""}`}>
           <div className="pv-workspace-mat">
             <Workspace
               placed={placed}
@@ -486,6 +490,17 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               onesAnswer={onesAnswer}
             />
           </div>
+
+          {/* Same .pv-recap-fit IdentifyNumberTask uses: claims whatever
+              room the mat (now pinned to the top) doesn't use and centers
+              the recap sentence inside it — "the space between the coins
+              and the bottom of the screen", not squeezed right under the
+              mat. */}
+          {phase === "done" && (
+            <div className="pv-recap-fit">
+              <div className="pv-recap">{placeValueSentence(task.target.tens, task.target.ones, task.number)}</div>
+            </div>
+          )}
         </div>
 
         {/* Fully unmounted (not just opacity-hidden) once collecting is
@@ -548,11 +563,13 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
         )}
 
         {/* Used to auto-advance 900ms after the last correct digit — too
-            fast to read the recap sentence below. Now a deliberate tap,
-            same as identify_number/regroup_ten's own "Далее →". */}
+            fast to read the recap sentence above. Now a deliberate tap,
+            same as identify_number/regroup_ten's own "Далее →". The recap
+            itself lives inside .pv-workspace-center now (see above), not
+            here — this stays a plain single-button footer, pinned at the
+            true bottom same as group's "Сделано" footer. */}
         {phase === "done" && (
-          <div className="pv-footer pv-footer--column">
-            <div className="pv-recap">{placeValueSentence(task.target.tens, task.target.ones, task.number)}</div>
+          <div className="pv-footer">
             <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
           </div>
         )}
