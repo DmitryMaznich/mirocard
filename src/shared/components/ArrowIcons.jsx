@@ -22,6 +22,14 @@ export function ChevronRightIcon({ size = 16 }) {
   );
 }
 
+export function CheckmarkIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M3.5 9.5l3.5 3.5 7-8.5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function RefreshIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden>

@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
+import { CheckmarkIcon, RefreshIcon } from "@/shared/components/ArrowIcons";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
 import { pluralCoins, hintDirectionFor } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
@@ -509,12 +510,16 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
         {phase === "collect" && (
           <div className="pv-tray-mat">
             <div className="pv-tray-row">
-              <Button variant="secondary" onClick={resetCollect}>Сначала</Button>
+              <Button variant="secondary" onClick={resetCollect} aria-label="Сначала">
+                <RefreshIcon />
+              </Button>
               <div className="pv-tray">
                 <PileSource />
               </div>
               <div className={`pv-tray-done${rowWrong.collect ? " pv-tray-done--shake" : ""}`}>
-                <Button variant="primary" onClick={confirmCollect}>Сделано</Button>
+                <Button variant="primary" onClick={confirmCollect} aria-label="Сделано">
+                  <CheckmarkIcon />
+                </Button>
               </div>
             </div>
             <div className="pv-caption">тяни монету из кучи</div>

@@ -56,10 +56,10 @@ describe("BuildNumberTask", () => {
   }
 
   function trayButton(label) {
-    return Array.from(container.querySelectorAll(".pv-tray-mat button")).find((b) => b.textContent === label);
+    return container.querySelector(`.pv-tray-mat button[aria-label="${label}"]`);
   }
 
-  it("mounts showing the collect instruction (not tappable) plus Сначала/Сделано buttons flanking the pile", () => {
+  it("mounts showing the collect instruction (not tappable) plus icon-only Сначала/Сделано buttons flanking the pile", () => {
     const task = { cardId: "x", conceptId: "x", type: "build_number", number: 23, target: { tens: 2, ones: 3 } };
     mount(task);
     expect(question().textContent).toBe("Перенеси 23 монеты");

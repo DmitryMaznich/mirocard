@@ -5,12 +5,13 @@ export default function Button({
   disabled = false,
   fullWidth = false,
   type = "button",
+  ...rest
 }) {
   const cls = ["btn", `btn-${variant}`, fullWidth ? "btn-full" : ""]
     .filter(Boolean)
     .join(" ");
   return (
-    <button className={cls} onClick={onClick} disabled={disabled} type={type}>
+    <button className={cls} onClick={onClick} disabled={disabled} type={type} {...rest}>
       {children}
     </button>
   );
