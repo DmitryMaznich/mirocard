@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import Button from "@/shared/components/Button";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
 import { pluralCoins, hintDirectionFor } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
@@ -368,6 +369,15 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     setPhase("group");
   }
 
+  // "Сначала" — for when the child loses count mid-drag: clears the loose
+  // pile back to 0 without leaving "collect" (tens is always 0 here
+  // already, canAdjustTotal only lets ones change during this phase), so
+  // they can start counting the same target over again.
+  function resetCollect() {
+    setPlaced({ tens: 0, ones: 0 });
+    setErrorZones({ tens: false, ones: false });
+  }
+
   function confirmGroup() {
     if (placed.ones >= 10) {
       flashRowWrong("group", (on) => setErrorZones((z) => ({ ...z, ones: on })));
@@ -396,7 +406,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   }
 
   const groupableCount = canGroup && placed.ones >= 10 ? 10 : 0;
-  const collectText = `Собери ${task.number} ${pluralCoins(task.number)}`;
+  const collectText = `Перенеси ${task.number} ${pluralCoins(task.number)}`;
   const collectContent = withHighlightedNumber(collectText, task.number);
 
   // Only one instruction is ever visible at a time now (matching
@@ -404,16 +414,20 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   // to fit multiple simultaneously-visible rows to one shared size — a
   // single useFitOneLine call on whichever text is current is enough.
   const questionText = phase === "collect" ? collectText
-    : phase === "group" ? "Сложи десятки"
+    : phase === "group" ? "Собери десятки"
     : phase === "answerTens" ? "Сколько десятков?"
     : phase === "answerOnes" ? "Сколько единиц?"
     : "Правильно!";
   const questionContent = phase === "collect" ? collectContent : questionText;
   const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine(questionText, { max: 45, min: 13 });
 
-  const questionTappable = phase === "collect" || phase === "group";
-  const questionTap = phase === "collect" ? confirmCollect : phase === "group" ? confirmGroup : undefined;
-  const questionWrong = (phase === "collect" && rowWrong.collect) || (phase === "group" && rowWrong.group);
+  // collect no longer taps the question itself — it has its own "Сделано"
+  // button now (next to the coin pile), so the two don't compete as
+  // redundant ways to confirm the same thing. group still has no visual
+  // pile to hang a button off, so it keeps the tap-the-question idiom.
+  const questionTappable = phase === "group";
+  const questionTap = phase === "group" ? confirmGroup : undefined;
+  const questionWrong = phase === "group" && rowWrong.group;
 
   const showAnswerSlots = phase === "answerTens" || phase === "answerOnes" || phase === "done";
   const tensDone = phase === "answerOnes" || phase === "done";
@@ -486,11 +500,22 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
         {/* Fully unmounted (not just opacity-hidden) once collecting is
             over — an opacity-hidden tray would still reserve its layout
             space, leaving a dead gap between the workspace and whatever
-            renders below it (the numpad) for the rest of the task. */}
+            renders below it (the numpad) for the rest of the task.
+            "Сначала" (left) clears a miscounted pile back to 0 without
+            leaving this phase; "Сделано" (right) is confirmCollect —
+            the same check that used to live on a tap of the question
+            text above, now a dedicated button instead so there isn't a
+            second, less obvious way to confirm the same thing. */}
         {phase === "collect" && (
           <div className="pv-tray-mat">
-            <div className="pv-tray">
-              <PileSource />
+            <div className="pv-tray-row">
+              <Button variant="secondary" onClick={resetCollect}>Сначала</Button>
+              <div className="pv-tray">
+                <PileSource />
+              </div>
+              <div className={`pv-tray-done${rowWrong.collect ? " pv-tray-done--shake" : ""}`}>
+                <Button variant="primary" onClick={confirmCollect}>Сделано</Button>
+              </div>
             </div>
             <div className="pv-caption">тяни монету из кучи</div>
           </div>
