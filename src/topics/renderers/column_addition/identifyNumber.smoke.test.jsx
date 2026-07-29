@@ -2,6 +2,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
+import { placeValueSentence } from "./placeValueLabels.js";
 
 // jsdom has no ResizeObserver; useFitOneLine (textFit.js, used by the
 // current-question prompt's text sizing) needs one. No-op stub — this
@@ -162,6 +163,8 @@ describe("IdentifyNumberTask", () => {
       const merged = container.querySelector(".pv-merged-number");
       expect(merged.textContent).toBe("23");
       expect(merged.className).toContain("pv-merged-number--visible");
+
+      expect(container.querySelector(".pv-recap").textContent).toBe(placeValueSentence(2, 3, 23));
 
       // Reaching the merged result does not advance on its own.
       expect(onCorrect).not.toHaveBeenCalled();

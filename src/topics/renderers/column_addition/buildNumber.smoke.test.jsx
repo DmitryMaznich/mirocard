@@ -2,7 +2,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach } from "vitest";
 import BuildNumberTask from "./BuildNumberTask.jsx";
-import { hintDirectionFor } from "./placeValueLabels.js";
+import { hintDirectionFor, placeValueSentence } from "./placeValueLabels.js";
 
 // jsdom has no ResizeObserver; useFitOneLine (textFit.js, used by the
 // instruction line's text sizing) needs one. A no-op stub is enough — this
@@ -66,6 +66,10 @@ describe("BuildNumberTask", () => {
     return container.querySelector(`.pv-tray-mat button[aria-label="${label}"]`);
   }
 
+  function numpadDigit(d) {
+    return Array.from(container.querySelectorAll(".pv-numkey")).find((b) => b.textContent === String(d));
+  }
+
   it("mounts showing the collect instruction (not tappable) plus icon-only Сначала/Сделано buttons flanking the pile", () => {
     const task = { cardId: "x", conceptId: "x", type: "build_number", number: 23, target: { tens: 2, ones: 3 } };
     mount(task);
@@ -107,6 +111,29 @@ describe("BuildNumberTask", () => {
     expect(doneButton().closest(".pv-confirm-btn--shake")).toBeTruthy();
     expect(question().textContent).toBe("Перенеси 5 монет");
     expect(onMistakeCalls).toBe(1);
+  });
+
+  it("shows the recap sentence and waits for a tap on Далее before calling onCorrect", () => {
+    // number: 0 lets collect/group confirm trivially (see above); answerTens
+    // and answerOnes are then driven by the shared numpad.
+    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 0, target: { tens: 0, ones: 0 } };
+    const onCorrect = () => { onCorrectCalls += 1; };
+    let onCorrectCalls = 0;
+    mount(task, { onCorrect });
+
+    act(() => { doneButton().click(); }); // collect
+    act(() => { doneButton().click(); }); // group
+    act(() => { numpadDigit(0).click(); }); // answerTens
+    act(() => { numpadDigit(0).click(); }); // answerOnes
+
+    expect(question().textContent).toBe("Правильно!");
+    expect(container.querySelector(".pv-recap").textContent).toBe(placeValueSentence(0, 0, 0));
+    expect(onCorrectCalls).toBe(0);
+
+    const nextButton = Array.from(container.querySelectorAll("button")).find((b) => b.textContent.includes("Далее"));
+    expect(nextButton).toBeTruthy();
+    act(() => { nextButton.click(); });
+    expect(onCorrectCalls).toBe(1);
   });
 
   it("Сначала stays on the collect phase without crashing", () => {

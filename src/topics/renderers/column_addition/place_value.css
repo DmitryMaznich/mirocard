@@ -285,6 +285,14 @@
   flex-shrink: 0;
 }
 
+/* build_number's "done" footer: the recap sentence stacked above the
+   "Далее →" button instead of side by side — the row layout above assumes
+   one short row of controls, not a full sentence plus a button. */
+.pv-footer--column {
+  flex-direction: column;
+  gap: 6px;
+}
+
 .pv-answer-row {
   display: flex;
   justify-content: center;
@@ -458,6 +466,21 @@
 
 .pv-merged-number--visible {
   opacity: 1;
+}
+
+/* The closing recap sentence ("22 — это 2 десятка и 2 единицы") — a third,
+   smaller tier below the "Правильно!" headline and the big merged number,
+   same confirmation green as both. Meant to be read aloud by the child and
+   the adult together (see IdentifyNumberTask.jsx/BuildNumberTask.jsx for
+   why there's no TTS here), not skimmed — normal weight, not bold, so it
+   doesn't compete with the number above it for attention. */
+.pv-recap {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #16a34a;
+  margin-top: 4px;
+  flex-shrink: 0;
 }
 
 /* The child's in-progress guess for "Какое это число?" (IdentifyNumberTask's

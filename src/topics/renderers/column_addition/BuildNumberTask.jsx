@@ -4,7 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
 import { CheckmarkIcon, RefreshIcon } from "@/shared/components/ArrowIcons";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
-import { pluralCoins, hintDirectionFor } from "./placeValueLabels.js";
+import { pluralCoins, hintDirectionFor, placeValueSentence } from "./placeValueLabels.js";
 import { useFitOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
@@ -400,10 +400,13 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     if (phase !== "answerOnes") return;
     if (d === task.target.ones) {
       setPhase("done");
-      setTimeout(() => onCorrect(task.conceptId, task.cardId), 900);
     } else {
       flashRowWrong("ones", undefined, hintDirectionFor(d, task.target.ones));
     }
+  }
+
+  function handleContinue() {
+    onCorrect(task.conceptId, task.cardId);
   }
 
   const groupableCount = canGroup && placed.ones >= 10 ? 10 : 0;
@@ -541,6 +544,16 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Used to auto-advance 900ms after the last correct digit — too
+            fast to read the recap sentence below. Now a deliberate tap,
+            same as identify_number/regroup_ten's own "Далее →". */}
+        {phase === "done" && (
+          <div className="pv-footer pv-footer--column">
+            <div className="pv-recap">{placeValueSentence(task.target.tens, task.target.ones, task.number)}</div>
+            <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
           </div>
         )}
       </div>
