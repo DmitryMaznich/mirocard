@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { hintDirectionFor, placeValueSentence } from "./placeValueLabels.js";
@@ -78,69 +78,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const mergedRef = useRef(null);
   const mergedTensRef = useRef(null);
   const mergedOnesRef = useRef(null);
-  const zonesRef = useRef(null);
-  // Overrides --cb-scale (normally just a width-based clamp on .cb-screen,
-  // 1px on phones up to 2px on tablets) for the coin zones ONLY, so that
-  // however many tens/ones a task has (up to 9 and 9 — 0-9 is maxOnes'
-  // whole range, and generateIdentifyNumberTask draws tens from the same
-  // 1-9 range), and however tall the device actually is, the wrapped
-  // TenStack/Coin grid always fits the space .pv-zones is flexed to fill
-  // (see .pv-zones--flex-fit in place_value.css) instead of clipping or
-  // forcing the screen to scroll.
-  const [zoneScale, setZoneScale] = useState(1);
-
-  // Estimates the row count each zone needs at the AMBIENT (unshrunk)
-  // scale, then solves for the scale that fits that many rows into the
-  // real measured height — a one-pass approximation, not an iterative
-  // solver: shrinking a zone can only ever let MORE items fit per row
-  // (never fewer), so estimating row count at the larger, ambient scale
-  // is always a safe upper bound. The constants below are copied from
-  // coins.css's own values (.cb-stack-coin/.cb-coin widths, .cb-ten-stack's
-  // padding-top, .pv-zone-body's 14px gap — itself NOT scaled by
-  // --cb-scale, inherited unchanged from the pre-coins .pv-zone-body rule)
-  // and place_value.css (.pv-zone's 8px vertical padding, .pv-zone-label's
-  // ~22px including its own margin) rather than measured live, since the
-  // zone is often empty of any *other* sibling to measure against at the
-  // moment this needs to run.
-  useLayoutEffect(() => {
-    const el = zonesRef.current;
-    if (!el) return;
-
-    const GAP = 14; // .pv-zone-body's own gap, between items inside one zone
-    const ZONES_GAP = 10; // .pv-zones' gap, between the two zone boxes themselves
-    const ZONE_CHROME = 40; // 8px*2 padding + ~22px label+margin, rounded up as a safety margin
-    const TEN_STACK_W = 34;
-    const TEN_STACK_H = 63; // padding-top(6) + first coin(12) + 9 more at a 5px visible sliver each
-    const COIN = 30;
-
-    function neededScale(count, itemW, itemH, zoneWidth, availH, ambientScale) {
-      if (count === 0) return 2;
-      const perRow = Math.max(1, Math.floor((zoneWidth + GAP) / (itemW * ambientScale + GAP)));
-      const rows = Math.ceil(count / perRow);
-      const fitsAlready = rows * itemH * ambientScale + (rows - 1) * GAP + ZONE_CHROME <= availH;
-      if (fitsAlready) return ambientScale;
-      return Math.max(0.45, (availH - ZONE_CHROME - (rows - 1) * GAP) / (rows * itemH));
-    }
-
-    function compute() {
-      const availH = el.clientHeight;
-      const availW = el.clientWidth;
-      if (availH === 0 || availW === 0) return;
-
-      // Mirrors .cb-screen's own --cb-scale: clamp(1px, 100vw/400, 2px).
-      const ambientScale = Math.min(2, Math.max(1, window.innerWidth / 400));
-      const zoneWidth = (availW - ZONES_GAP) / 2 - 12; // two zones, .pv-zones' own gap, each zone's 6px*2 padding
-
-      const sTens = neededScale(task.model.tens, TEN_STACK_W, TEN_STACK_H, zoneWidth, availH, ambientScale);
-      const sOnes = neededScale(task.model.ones, COIN, COIN, zoneWidth, availH, ambientScale);
-      setZoneScale(Math.min(sTens, sOnes));
-    }
-
-    compute();
-    const ro = new ResizeObserver(compute);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [task.model.tens, task.model.ones]);
 
   // Same shape as BuildNumberTask's flashRowWrong, minus the zone-error
   // callback build_number needs for its drag/drop error zones — this mode
@@ -314,23 +251,27 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         </div>
       </div>
 
-      {/* The outer flex-fit div keeps its own flex:1 sizing (zoneScale
-          reads its clientHeight as the available budget to fit coins
-          into) — align-items:flex-start here just pins the (now
-          equal-height, see .pv-zones-row below) pair to the top of that
-          space, it doesn't stretch them to fill it. No zone highlight
-          during answerTens/answerOnes anymore — only the answer slot
-          itself (AnswerSlot's own "active" pulse) marks which question is
-          current, the coin zones stay neutral. */}
-      <div ref={zonesRef} className="pv-zones pv-zones--flex-fit" style={{ "--cb-scale": `${zoneScale}px` }}>
+      {/* The outer flex-fit div grows to fill whatever vertical space is
+          left (used by .pv-recap-fit below) but never SHRINKS the zones
+          to fit — no scale computation happens here anymore, coins/stacks
+          render at the same ambient --cb-scale every other place-value
+          screen uses. If the two zones (plus everything above them) are
+          taller than the viewport, .pv-screen's own overflow-y:auto
+          scrolls the whole page rather than squeezing the coins smaller.
+          align-items:flex-start pins the (equal-height, see .pv-zones-row
+          below) pair to the top of that space, it doesn't stretch them to
+          fill it. No zone highlight during answerTens/answerOnes anymore —
+          only the answer slot itself (AnswerSlot's own "active" pulse)
+          marks which question is current, the coin zones stay neutral. */}
+      <div className="pv-zones pv-zones--flex-fit">
         {/* Equal-height pair: align-items:stretch here (not on the outer
-            flex-fit div) makes the two zones match whichever of them
-            naturally needs more room for its content — e.g. ЕДИНИЦЫ
-            wrapping to 2 coin rows while ДЕСЯТКИ only needs 1 — instead of
-            each sizing to its own content and ending at mismatched
-            heights. This inner row is itself only as tall as that content
-            needs (not stretched to the outer's full available height), so
-            it doesn't fight zoneScale's own measurement of the outer. */}
+            flex-fit div) makes the two zones match each other's height —
+            a TenStack is naturally taller than a single Coin, so ДЕСЯТКИ
+            and ЕДИНИЦЫ would otherwise end at different heights even
+            though each is always exactly one un-wrapped row now (see
+            .pv-zone-body's flex-wrap:nowrap). This inner row is itself
+            only as tall as that content needs (not stretched to the
+            outer's full available height). */}
         <div className="pv-zones-row">
           <div className={`pv-zone${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
             <div className="pv-zone-label">ДЕСЯТКИ</div>
@@ -354,10 +295,9 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
             it came from — read aloud together by the child and the adult
             (no TTS on this screen, by design). Lives inside the same
             flex-fit box the zones do (not a sibling after it) because the
-            leftover room below the zones IS inside that box — flex-fit's
-            own height is fixed by zoneScale's measurement need, so this
-            just claims the space .pv-zones-row doesn't use instead of
-            leaving it blank. Only appears once merged (not the instant
+            leftover room below the zones IS inside that box — this just
+            claims the space .pv-zones-row doesn't use instead of leaving
+            it blank. Only appears once merged (not the instant
             phase becomes "done"), same gate .pv-merged-number itself
             uses, so it doesn't show up while the digits are still
             mid-flight. */}

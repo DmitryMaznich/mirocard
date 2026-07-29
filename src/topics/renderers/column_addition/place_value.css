@@ -31,13 +31,13 @@
 
 /* identify_number only: fills whatever vertical space is left between the
    answer row and the numpad (instead of sizing to its own content and
-   leaving a separate .pv-spacer to absorb the rest) — the actual coin/
-   ten-stack sizing then shrinks to fit THAT measured space via
-   IdentifyNumberTask.jsx's zoneScale, which overrides --cb-scale as an
-   inline style on this same element. min-height:0 is required for a flex
-   item to actually shrink below its content's natural height instead of
-   overflowing its own flex-allocated box; overflow:hidden is the backstop
-   if the scale estimate ever runs slightly short.
+   leaving a separate .pv-spacer to absorb the rest) — coins/stacks
+   themselves render at the plain ambient --cb-scale (no per-instance
+   shrinking to fit: see .pv-zone-body's flex-wrap:nowrap below). If the
+   zones plus everything above/below them add up to more than the
+   viewport, .pv-screen's own overflow-y:auto scrolls the page instead of
+   this box squeezing anything smaller. min-height:0 is standard flexbox
+   practice for a column flex item with flex-shrinking children.
 
    flex-direction:column (overriding the base .pv-zones row layout) stacks
    .pv-zones-row above .pv-recap-fit — the leftover room below the zones,
@@ -50,7 +50,6 @@
 .pv-zones--flex-fit {
   flex: 1 1 0;
   min-height: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -79,9 +78,7 @@
    collapse to nothing pre-merge, when it isn't rendered at all) and
    centers .pv-recap both ways inside it — this IS "the space between the
    coin zones and the bottom of the screen" the recap sentence belongs in,
-   not a separate area after the zones: .pv-zones--flex-fit's own height is
-   fixed by zoneScale's own needs, so this only redistributes room already
-   inside that same box. */
+   not a separate area after the zones. */
 .pv-recap-fit {
   flex: 1;
   min-height: 0;
@@ -130,10 +127,16 @@
   margin-bottom: 6px;
 }
 
+/* One row, never wrapping to a second — the zone's own height is then
+   always just that single row's natural height (a TenStack or a Coin at
+   ambient scale), never shrunk to fit a measured budget. overflow-x:auto
+   is the fallback for a wide count (up to 9 tens/ones) that doesn't fit
+   the zone's own width at ambient scale — a horizontal scroll within just
+   that zone, not a squeeze. */
 .pv-zone-body {
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   justify-content: center;
   gap: 14px;
   min-height: 60px;
@@ -508,6 +511,11 @@
   color: #16a34a;
   margin-top: 4px;
   flex-shrink: 0;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* The child's in-progress guess for "Какое это число?" (IdentifyNumberTask's
@@ -616,6 +624,9 @@
   margin-top: clamp(8px, 2vh, 18px);
   margin-bottom: 2px;
   flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pv-question--correct {
