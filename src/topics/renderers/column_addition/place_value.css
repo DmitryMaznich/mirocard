@@ -127,16 +127,18 @@
   margin-bottom: 6px;
 }
 
-/* One row, never wrapping to a second — the zone's own height is then
-   always just that single row's natural height (a TenStack or a Coin at
-   ambient scale), never shrunk to fit a measured budget. overflow-x:auto
-   is the fallback for a wide count (up to 9 tens/ones) that doesn't fit
-   the zone's own width at ambient scale — a horizontal scroll within just
-   that zone, not a squeeze. */
+/* Wraps onto as many rows as a wide count (up to 9 tens/ones) needs at
+   ambient scale — never shrunk to fit a measured budget (no zoneScale-style
+   computation anymore), and never squeezed into one un-wrapped row with a
+   horizontal scrollbar either. The zone's own top edge stays put (see
+   .pv-zones--flex-fit's align-items:flex-start); its BOTTOM edge is just
+   whatever a taller (2-3 row) zone naturally needs — .pv-screen's own
+   overflow-y:auto is still there as a last-resort safety net for a
+   genuinely extreme case, not the normal way this is handled. */
 .pv-zone-body {
   display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  align-content: flex-start;
   justify-content: center;
   gap: 14px;
   min-height: 60px;
