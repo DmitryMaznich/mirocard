@@ -61,7 +61,7 @@
   flex: 1;
   display: flex;
   align-items: flex-end;
-  justify-content: flex-start;
+  justify-content: center;
   flex-wrap: wrap;
   gap: calc(10 * var(--cb-scale));
   border-right: 1.5px dashed rgba(148, 163, 184, 0.6);
@@ -73,6 +73,7 @@
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
+  justify-content: center;
   gap: calc(8 * var(--cb-scale));
 }
 
