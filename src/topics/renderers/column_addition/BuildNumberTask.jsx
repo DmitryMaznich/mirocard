@@ -52,18 +52,6 @@ function PileSource() {
 // <DndContext> itself — useDroppable() only registers with the nearest DndContext
 // ancestor found via React context, which doesn't exist yet while the parent's own
 // render body is still executing.
-// The tens/ones answer slots render INSIDE their matching column, right
-// under that column's own coins — not as a separate row elsewhere on
-// screen that merely tries to line up with the columns above it via
-// matching widths. Nesting them here means they're structurally
-// guaranteed to sit under the right section (same parent, same width) —
-// no separate padding/gap values to keep in sync with .cb-zone-split's,
-// which would silently drift out of alignment if either one changed
-// later. The trade-off: if the workspace ever needs its scroll safety net
-// (many ten-stacks on a short device — see .pv-workspace-mat), the slot
-// scrolls together with that column's coins instead of staying pinned —
-// same reachable-by-scrolling behavior as the coins themselves, not
-// actually hidden.
 function AnswerSlot({ show, state, value, hint }) {
   if (!show) return null;
   // `state` may carry more than one modifier word (e.g. "filled correct")
@@ -79,7 +67,7 @@ function AnswerSlot({ show, state, value, hint }) {
   );
 }
 
-function Workspace({ placed, formingStack, unformingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef, showAnswerSlots, tensAnswer, onesAnswer }) {
+function Workspace({ placed, formingStack, unformingStack, groupableCount, errorZones, capacityFlash, solved, numeric, onRemoveOne, onGroup, onRemoveTen, stacksAreaRef, looseAreaRef }) {
   const { setNodeRef, isOver } = useDroppable({ id: "cb-workspace" });
   const pendingOnesStart = unformingStack ? placed.ones - 10 : Infinity;
   return (
@@ -127,21 +115,6 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
             </div>
           </div>
         </div>
-
-        {/* Step 3's answer fields sit below the whole coin zone (not
-            inside each column, above the fold) — same width split as the
-            columns above (.cb-col--tens/--ones reused directly) so each
-            slot still lines up under its own zone. */}
-        {showAnswerSlots && (
-          <div className="cb-answer-split">
-            <div className="cb-col cb-col--tens">
-              <AnswerSlot show state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
-            </div>
-            <div className="cb-col cb-col--ones">
-              <AnswerSlot show state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -499,10 +472,23 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
               onRemoveTen={handleUngroup}
               stacksAreaRef={stacksAreaRef}
               looseAreaRef={looseAreaRef}
-              showAnswerSlots={showAnswerSlots}
-              tensAnswer={tensAnswer}
-              onesAnswer={onesAnswer}
             />
+
+            {/* Step 3's answer fields: a row of their own BELOW the coin
+                zone's dashed border (not inside each column, above the
+                fold) — same width split as the zone's own columns
+                (.cb-col--tens/--ones reused directly) so each slot still
+                lines up under its matching zone. */}
+            {showAnswerSlots && (
+              <div className="cb-answer-split">
+                <div className="cb-col cb-col--tens">
+                  <AnswerSlot show state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
+                </div>
+                <div className="cb-col cb-col--ones">
+                  <AnswerSlot show state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Same .pv-recap-fit IdentifyNumberTask uses: claims whatever
