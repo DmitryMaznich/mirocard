@@ -76,6 +76,15 @@
   gap: calc(8 * var(--cb-scale));
 }
 
+/* Step 3's answer row, below .cb-zone-split — reuses .cb-col/--tens/--ones
+   directly (not a fresh 40%/60% split of its own) so each slot lines up
+   under its own zone regardless of viewport width. */
+.cb-answer-split {
+  display: flex;
+  gap: calc(10 * var(--cb-scale));
+  margin-top: calc(10 * var(--cb-scale));
+}
+
 .cb-area--error {
   animation: pv-shake 0.4s ease-in-out;
   outline: 2px solid #ef4444;
@@ -348,11 +357,10 @@
   border-radius: calc(8 * var(--cb-scale));
 }
 
-/* The slot now lives inside its column (see AnswerSlot in
-   BuildNumberTask.jsx) instead of a separate centered row — this centers
-   it under that column's own coins and gives it breathing room from
-   whatever's above it (the coin area) without needing a wrapping row. */
+/* Centers the slot within its (reused) .cb-col--tens/--ones width — the
+   row-level gap (.cb-answer-split's own margin-top) already provides
+   breathing room from the coin zone above, so this needs no margin of
+   its own. */
 .cb-col .pv-answer-slot {
   align-self: center;
-  margin-top: calc(10 * var(--cb-scale));
 }

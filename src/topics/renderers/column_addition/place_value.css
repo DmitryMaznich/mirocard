@@ -264,25 +264,19 @@
 }
 
 /* build_number only: absorbs the leftover space between the checklist and
-   the pile/numpad below AND centers the coin workspace within it (rather
-   than the workspace just sitting pinned under the checklist, which is
-   what a plain .pv-spacer placed after it would do). */
+   the pile/numpad below. Top edge fixed (justify-content:flex-start) so
+   the mat's own top never moves as coins are added and the workspace
+   grows taller — only its bottom edge grows downward, same as
+   identify_number's .pv-zones--flex-fit. Leaves the room below the mat
+   (once it stops growing) for .pv-recap-fit (see BuildNumberTask.jsx) to
+   center the recap sentence in, once done. */
 .pv-workspace-center {
   flex: 1 1 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* "done" only: pins the mat to the top of this same flex:1 box instead of
-   centering it, freeing up the room below for .pv-recap-fit (see
-   BuildNumberTask.jsx) to center the recap sentence in — "the space
-   between the coins and the bottom of the screen", same as
-   identify_number's own .pv-zones--flex-fit/.pv-recap-fit pair. */
-.pv-workspace-center--done {
   justify-content: flex-start;
+  gap: 8px;
 }
 
 .pv-tray {

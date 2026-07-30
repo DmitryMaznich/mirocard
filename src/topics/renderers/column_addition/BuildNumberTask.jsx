@@ -105,7 +105,6 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
                 </div>
               ))}
             </div>
-            <AnswerSlot show={showAnswerSlots} state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
           </div>
           <div className="cb-col cb-col--ones">
             <div className="pv-zone-label">Единицы</div>
@@ -126,9 +125,23 @@ function Workspace({ placed, formingStack, unformingStack, groupableCount, error
                 );
               })}
             </div>
-            <AnswerSlot show={showAnswerSlots} state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
           </div>
         </div>
+
+        {/* Step 3's answer fields sit below the whole coin zone (not
+            inside each column, above the fold) — same width split as the
+            columns above (.cb-col--tens/--ones reused directly) so each
+            slot still lines up under its own zone. */}
+        {showAnswerSlots && (
+          <div className="cb-answer-split">
+            <div className="cb-col cb-col--tens">
+              <AnswerSlot show state={tensAnswer.state} value={tensAnswer.value} hint={tensAnswer.hint} />
+            </div>
+            <div className="cb-col cb-col--ones">
+              <AnswerSlot show state={onesAnswer.state} value={onesAnswer.value} hint={onesAnswer.hint} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -451,10 +464,10 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           <span ref={questionRef} style={{ fontSize: questionFontSize }}>{questionContent}</span>
         </div>
 
-        {/* Centers the coin zone in whatever vertical space is left between
-            the checklist and the pile/numpad below, rather than it sitting
-            right under the checklist — flex:1 both absorbs the leftover
-            space AND (via justify-content) splits it evenly above/below.
+        {/* Top edge fixed right under the question, growing only downward
+            as coins are added — flex:1 absorbs the leftover space between
+            the question and the pile/numpad below without centering the
+            mat inside it (see .pv-workspace-center's justify-content).
             The raised .pv-*-mat panels (here, the tray, and the numpad)
             all share one "card" treatment so none of them read as bare
             content floating on the background grid.
@@ -470,11 +483,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
             (a hand's raised-finger count is read from the hand itself,
             not a number next to it) — this brings build_number in line
             with that. */}
-        {/* --done pins the mat to the top of this box instead of centering
-            it (the base behavior, kept for every other phase) — once
-            .pv-recap-fit joins as a second child, only "done" needs the
-            room below the mat freed up for it. */}
-        <div className={`pv-workspace-center${phase === "done" ? " pv-workspace-center--done" : ""}`}>
+        <div className="pv-workspace-center">
           <div className="pv-workspace-mat">
             <Workspace
               placed={placed}
