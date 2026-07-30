@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
-import { placeValueSentence } from "./placeValueLabels.js";
+import { placeValueAnswerSentence } from "./placeValueLabels.js";
 import { useFitLongestOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
@@ -90,7 +90,9 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
 
         {phase === "done" && (
           <div className="pv-recap-fit">
-            <div className="pv-recap">{placeValueSentence(task.model.tens, task.model.ones, task.number)}</div>
+            <div className="pv-recap pv-recap--answer">
+              {placeValueAnswerSentence(task.model.tens, task.model.ones, task.number)}
+            </div>
           </div>
         )}
       </div>

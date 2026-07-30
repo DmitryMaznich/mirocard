@@ -427,6 +427,26 @@
   text-overflow: ellipsis;
 }
 
+/* identify_number only: this recap IS the answer to "Какое это число?",
+   not a footnote under "Правильно!" — a pill of its own, big enough to
+   read at a glance, so it's unmistakably the result rather than
+   secondary detail. Spelled-out words run much longer than the base
+   rule's digit-based sentence, so this overrides the base's one-line
+   ellipsis truncation with a wrap — cutting off the number itself
+   ("...это восемьдесят") would defeat the point. */
+.pv-recap--answer {
+  font-size: 26px;
+  font-weight: 800;
+  padding: 8px 20px;
+  border-radius: 14px;
+  background: #dcfce7;
+  border: 2px solid #16a34a;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.3;
+}
+
 /* The child's whole-number guess for "Какое это число?" — a normal-flow
    row below the coin zones, right above the numpad. */
 .pv-guess-row {

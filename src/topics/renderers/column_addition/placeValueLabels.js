@@ -43,3 +43,35 @@ export function pluralOnes(n) {
 export function placeValueSentence(tens, ones, number) {
   return `${number} — это ${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)}`;
 }
+
+const ONES_WORDS_M = ["", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"];
+const ONES_WORDS_F = ["", "одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"];
+const TEEN_WORDS = ["десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать",
+  "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"];
+const TENS_WORDS = ["", "", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто"];
+
+// Spells a number 0-99 out in Russian words (masculine by default —
+// "один", "два" — the form numbers take on their own; `gender: "f"`
+// switches the 1/2 forms to "одна"/"две" for agreement with a feminine
+// noun, e.g. единица).
+function numberWords(n, gender = "m") {
+  const ones = gender === "f" ? ONES_WORDS_F : ONES_WORDS_M;
+  if (n === 0) return "ноль";
+  if (n < 10) return ones[n];
+  if (n < 20) return TEEN_WORDS[n - 10];
+  const tens = Math.floor(n / 10);
+  const rest = n % 10;
+  return rest === 0 ? TENS_WORDS[tens] : `${TENS_WORDS[tens]} ${ones[rest]}`;
+}
+
+// IdentifyNumberTask's own recap: this mode asks "Какое это число?", so
+// the answer reads decomposition-first, number-second — the reverse of
+// placeValueSentence's order, which fits BuildNumberTask's opposite
+// direction (parts already confirmed, revealing the number they make).
+// Spelled-out words throughout (not digit + plural word) so it reads as
+// a real sentence, with одна/две agreeing with единица's feminine gender.
+export function placeValueAnswerSentence(tens, ones, number) {
+  const tensWord = numberWords(tens, "m");
+  const onesWord = numberWords(ones, "f");
+  return `${tensWord} ${pluralTens(tens)} и ${onesWord} ${pluralOnes(ones)} — это ${numberWords(number, "m")}`;
+}

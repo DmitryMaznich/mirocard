@@ -2,7 +2,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
-import { placeValueSentence } from "./placeValueLabels.js";
+import { placeValueAnswerSentence } from "./placeValueLabels.js";
 
 // jsdom has no ResizeObserver; useFitLongestOneLine (textFit.js, used by
 // the question prompt's text sizing) needs one. No-op stub — this test
@@ -111,7 +111,7 @@ describe("IdentifyNumberTask", () => {
     expect(guesses[1].textContent).toBe("3");
     expect(guesses[1].className).toContain("pv-answer-slot--correct");
 
-    expect(container.querySelector(".pv-recap").textContent).toBe(placeValueSentence(2, 3, 23));
+    expect(container.querySelector(".pv-recap").textContent).toBe(placeValueAnswerSentence(2, 3, 23));
 
     expect(onCorrect).not.toHaveBeenCalled();
     expect(container.querySelector(".pv-numpad")).toBeNull();
