@@ -5,7 +5,7 @@ import Button from "@/shared/components/Button";
 import { CheckmarkIcon, RefreshIcon } from "@/shared/components/ArrowIcons";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
 import { pluralCoins, hintDirectionFor, placeValueSentence } from "./placeValueLabels.js";
-import { useFitOneLine } from "./textFit.js";
+import { useFitLongestOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
 
@@ -169,7 +169,7 @@ function flyCoinGhost(from, to, delayMs, onArrive) {
 // display above the checklist, duplicating what row 1's instruction text
 // already said ("Собери 23 монеты"). Folding it into the instruction
 // itself (highlighted by colour, not by an oversized nested span — that
-// would throw off useFitOneLine's own width measurement) removes that
+// would throw off useFitLongestOneLine's own width measurement) removes that
 // duplication instead of just shrinking one of the two copies.
 function withHighlightedNumber(text, number) {
   const numStr = String(number);
@@ -414,16 +414,21 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   const collectContent = withHighlightedNumber(collectText, task.number);
 
   // Only one instruction is ever visible at a time now (matching
-  // IdentifyNumberTask.jsx's own pv-question), so there's no longer a need
-  // to fit multiple simultaneously-visible rows to one shared size — a
-  // single useFitOneLine call on whichever text is current is enough.
+  // IdentifyNumberTask.jsx's own pv-question). Fit once against whichever
+  // of these five is widest (collectText is task-specific — its own length
+  // varies with task.number/pluralCoins — the other four are fixed), not
+  // the current one each time, so the font size doesn't grow/shrink as
+  // phase swaps to a shorter/longer instruction.
   const questionText = phase === "collect" ? collectText
     : phase === "group" ? "Собери десятки"
     : phase === "answerTens" ? "Сколько десятков?"
     : phase === "answerOnes" ? "Сколько единиц?"
     : "Правильно!";
   const questionContent = phase === "collect" ? collectContent : questionText;
-  const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine(questionText, { max: 45, min: 13 });
+  const { ref: questionRef, fontSize: questionFontSize } = useFitLongestOneLine(
+    [collectText, "Собери десятки", "Сколько десятков?", "Сколько единиц?", "Правильно!"],
+    { max: 45, min: 13 }
+  );
 
   const showAnswerSlots = phase === "answerTens" || phase === "answerOnes" || phase === "done";
   const tensDone = phase === "answerOnes" || phase === "done";

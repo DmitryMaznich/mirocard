@@ -77,6 +77,78 @@ export function useFitOneLine(text, { min = 16, max = 56, step = 2 } = {}) {
   return { ref: setRef, fontSize };
 }
 
+// Like useFitOneLine, but for a slot whose text SWAPS between several known
+// strings over time (a phase's prompt, a mode's instruction) instead of
+// being fit fresh on every change — fitting each phase's text independently
+// means a short one ("Правильно!") renders bigger than a long one ("Сколько
+// десятков?") since it has more room to grow, so the font size visibly
+// jumps between phases. This measures once against whichever `candidates`
+// string is WIDEST and keeps that same size for all of them.
+//
+// The measurement itself never touches the visible element: a temporary
+// clone (same tag, appended to the same parent so font-family/weight
+// cascade from the caller's own CSS) holds the candidate text off-screen
+// (visibility:hidden, positioned out of flow) while it's stepped down and
+// re-measured — the real element only ever shows the actual current text,
+// so nothing flashes. `candidates` is expected to be a stable array
+// reference (or change only when the true candidate set changes, e.g.
+// build_number's task-specific collect line) — it's a dependency of the
+// fit effect, same as useFitOneLine's own `text`.
+export function useFitLongestOneLine(candidates, { min = 16, max = 56, step = 2 } = {}) {
+  const elRef = useRef(null);
+  const [mountTick, setMountTick] = useState(0);
+  const [fontSize, setFontSize] = useState(max);
+  const longest = candidates.reduce((a, b) => (b.length > a.length ? b : a), "");
+
+  const setRef = useCallback((node) => {
+    elRef.current = node;
+    setMountTick((t) => t + 1);
+  }, []);
+
+  useLayoutEffect(() => {
+    const el = elRef.current;
+    if (!el || !el.parentElement) return;
+    const parent = el.parentElement;
+
+    function fit() {
+      if (parent.clientWidth === 0) return;
+      const probe = el.cloneNode(false);
+      probe.textContent = longest;
+      probe.style.position = "absolute";
+      probe.style.visibility = "hidden";
+      probe.style.whiteSpace = "nowrap";
+      probe.style.left = "-9999px";
+      probe.style.top = "0";
+      parent.appendChild(probe);
+
+      let size = max;
+      probe.style.fontSize = size + "px";
+      while (size > min && probe.scrollWidth > parent.clientWidth) {
+        size -= step;
+        probe.style.fontSize = size + "px";
+      }
+      parent.removeChild(probe);
+      setFontSize(size);
+    }
+
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(parent);
+    const fontsApi = typeof document !== "undefined" ? document.fonts : null;
+    fontsApi?.addEventListener?.("loadingdone", fit);
+    const t1 = setTimeout(fit, 300);
+    const t2 = setTimeout(fit, 1200);
+    return () => {
+      ro.disconnect();
+      fontsApi?.removeEventListener?.("loadingdone", fit);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [mountTick, longest, min, max, step]);
+
+  return { ref: setRef, fontSize };
+}
+
 // Watches a checklist zone's own rendered height and returns a font-size
 // ceiling so `rowsBudget` stacked rows — each with its checkbox, padding,
 // and inter-row gap — would still fit inside it, even though usually only

@@ -2,11 +2,17 @@ import { useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { hintDirectionFor, placeValueSentence } from "./placeValueLabels.js";
-import { useFitOneLine } from "./textFit.js";
+import { useFitLongestOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
 
 const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+
+// All four possible pv-question strings this screen ever shows — fitting
+// against whichever is widest (not the current one) once, on mount/resize,
+// keeps the font size constant as phase swaps the text instead of it
+// growing/shrinking with each phase's own length.
+const QUESTION_TEXTS = ["Сколько десятков?", "Сколько единиц?", "Какое это число?", "Правильно!"];
 
 function AnswerSlot({ state, value, hint, slotRef }) {
   const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-answer-slot--${s}`).join("");
@@ -202,14 +208,12 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   // A checklist was overkill for a two-step question: the digit landing in
   // its own slot (above the matching ДЕСЯТКИ/ЕДИНИЦЫ zone) is already the
   // confirmation, so this is just the current prompt — text swaps in
-  // place, not a growing list of rows. useFitOneLine re-fits on its own
-  // whenever `text` changes (it's in the hook's own dependency array), so
-  // one call handles all three phases.
+  // place, not a growing list of rows.
   const questionText = phase === "answerTens" ? "Сколько десятков?"
     : phase === "answerOnes" ? "Сколько единиц?"
     : phase === "answerNumber" ? "Какое это число?"
     : "Правильно!";
-  const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine(questionText, { max: 40, min: 16 });
+  const { ref: questionRef, fontSize: questionFontSize } = useFitLongestOneLine(QUESTION_TEXTS, { max: 40, min: 16 });
 
   return (
     <div className="pv-screen cb-screen">
