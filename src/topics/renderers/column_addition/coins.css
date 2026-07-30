@@ -348,22 +348,6 @@
   border-radius: calc(8 * var(--cb-scale));
 }
 
-/* identify_number only, 1.5x the size above: its two digits ARE the whole
-   answer (not a running count beside a pile of manipulatives), so they
-   carry more weight and read better larger. .pv-answer-row--split is a
-   wrapper only IdentifyNumberTask's AnswerSlot ever sits inside (see
-   place_value.css), so this can't leak into build_number's own slots,
-   which stay at the 52/60/32/8 numbers above. Extra .cb-screen in the
-   selector (matching that rule's own specificity plus one) guarantees
-   this wins regardless of source order, not just because it's declared
-   later. */
-.cb-screen .pv-answer-row--split .pv-answer-slot {
-  width: calc(78 * var(--cb-scale));
-  height: calc(90 * var(--cb-scale));
-  font-size: calc(38.4 * var(--cb-scale));
-  border-radius: calc(12 * var(--cb-scale));
-}
-
 /* The slot now lives inside its column (see AnswerSlot in
    BuildNumberTask.jsx) instead of a separate centered row — this centers
    it under that column's own coins and gives it breathing room from

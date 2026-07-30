@@ -325,34 +325,6 @@
   flex-shrink: 0;
 }
 
-.pv-answer-row {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin: 10px 0 6px;
-  flex-shrink: 0;
-}
-
-/* identify_number only: splits the row into two zone-width columns so
-   each slot centers over its own zone below, instead of sitting as a
-   compact pair centered on the screen — also gives the merge animation
-   (see IdentifyNumberTask.jsx's playMergeAnimation) real horizontal
-   distance to travel, so "digits flying toward each other" actually
-   reads as motion instead of a small twitch. position:relative anchors
-   .pv-merged-number, which overlays this row once the two ghosts land.
-   Bottom margin trimmed from the base rule's 6px to 2px so the slots sit
-   right on the zones' top edge instead of floating above it. */
-.pv-answer-row--split {
-  position: relative;
-  gap: 0;
-  margin-bottom: 2px;
-}
-.pv-answer-row--split .pv-answer-col {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
 .pv-answer-slot {
   position: relative;
   width: 52px;
@@ -368,15 +340,6 @@
   background: rgba(255, 255, 255, 0.6);
   color: #1a1a2e;
   transition: opacity 0.15s ease;
-}
-
-/* The digit "lifts off" this box during the merge animation: the box
-   fades out here while a flying ghost (spawned from its last known
-   position, see .pv-digit-ghost) carries the digit onward — hiding it
-   this way (not unmounting it) keeps .pv-answer-row's layout stable
-   while it happens. */
-.pv-answer-slot--hidden {
-  opacity: 0;
 }
 
 /* Directional hint on a wrong digit — never names the digit itself, only
@@ -444,62 +407,6 @@
   color: #065f46;
 }
 
-/* identify_number's merge animation: one flying digit, spawned from a
-   confirmed-correct AnswerSlot's last known position and animated via the
-   Web Animations API (see flyDigitGhost in IdentifyNumberTask.jsx) toward
-   .pv-merged-number below — appended directly to document.body (outside
-   .cb-screen's subtree, so it can render above everything mid-flight),
-   same reasoning as coins.css's .cb-coin-fly-ghost. Uses the correct-state
-   green (matches .pv-answer-slot--correct's own color) so the digit reads
-   as "still that same confirmed answer" while it travels, not a new
-   element appearing from nowhere. Same scaled size as the AnswerSlot it
-   lifted off from (coins.css's identify_number-only override, 38.4px
-   base — not a flat 38.4px here either, still calc()'d by --cb-scale so
-   it matches that slot's size on a tablet-width --cb-scale too) — the
-   digit must read as staying the same size while it travels, not
-   shrinking. The `, 1px` fallback matters here: appended to
-   document.body, this element sits OUTSIDE .cb-screen's own subtree and
-   has nothing to inherit --cb-scale from. */
-.pv-digit-ghost {
-  position: fixed;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  font-size: calc(38.4 * var(--cb-scale, 1px));
-  color: #065f46;
-  pointer-events: none;
-  z-index: 500;
-  transform: translate(-50%, -50%);
-}
-
-/* Sits centered over .pv-answer-row--split (position:relative on the
-   parent), always rendered with its final two-digit text so its real,
-   laid-out position is measurable before the merge starts — --visible is
-   what actually reveals it once both ghosts land. Same font-size as the
-   AnswerSlot digits that flew here (coins.css's identify_number-only
-   override, 38.4px base) — the point is that the two separate answers
-   become one real, established number, not that the number grows bigger
-   than they were. The landing bounce (see playMergeAnimation) starts its
-   scale at 1, never below — dipping to a smaller scale first read as the
-   digits shrinking, not landing. */
-.pv-merged-number {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  font-size: calc(38.4 * var(--cb-scale, 1px));
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-  color: #1a1a2e;
-  line-height: 1;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.pv-merged-number--visible {
-  opacity: 1;
-}
-
 /* The closing recap sentence ("22 — это 2 десятка и 2 единицы") — a third,
    smaller tier below the "Правильно!" headline and the big merged number,
    same confirmation green as both. Meant to be read aloud by the child and
@@ -520,13 +427,8 @@
   text-overflow: ellipsis;
 }
 
-/* The child's in-progress guess for "Какое это число?" (IdentifyNumberTask's
-   answerNumber phase) — a normal-flow row below the coin zones, right
-   above the numpad: the tens/ones answer slots stay flush with the zones
-   right below them in every phase (including this one) instead of the
-   zones being pushed down whenever this phase is active. Two ordinary
-   AnswerSlot boxes (not scaled up like .pv-merged-number's finished-number
-   typography) since this is still a guess, not the confirmed result. */
+/* The child's whole-number guess for "Какое это число?" — a normal-flow
+   row below the coin zones, right above the numpad. */
 .pv-guess-row {
   display: flex;
   justify-content: center;
