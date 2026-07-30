@@ -221,20 +221,35 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         <span ref={questionRef} style={{ fontSize: questionFontSize }}>{questionText}</span>
       </div>
 
-      {/* Hosts only the merged-number overlay now — the tens/ones answer
-          slots themselves moved down into their own zones below (see
-          .pv-zone). Kept as its own position:relative row, in the same
-          spot the old split answer-row occupied, so the merge animation's
-          landing spot stays where it already was ("оставь как есть") —
-          only the FROM side of that flight got farther away, the TO side
-          didn't move. Always rendered with its final text (not just once
-          merged) so its real, laid-out position is measurable the moment
-          the merge starts — same "measure the real thing, don't guess"
-          rule as flyDigitGhost's targets above. Two separate spans (not
-          one text node) so each incoming ghost can target its OWN digit's
-          spot, landing them adjacent rather than on top of each other.
-          --visible is what actually reveals it. */}
-      <div className="pv-merged-host">
+      {/* Split into two zone-width columns so each slot centers over its
+          own zone below, right under the questions — not a compact pair
+          centered on the screen. The merge animation depends on this too:
+          the two digits need real horizontal separation to visibly travel
+          toward each other once "Сколько единиц?" is answered. */}
+      <div className="pv-answer-row pv-answer-row--split">
+        <div className="pv-answer-col">
+          <AnswerSlot
+            slotRef={tensSlotRef}
+            state={merging ? "hidden" : tensAnswer.state}
+            value={tensAnswer.value}
+            hint={tensAnswer.hint}
+          />
+        </div>
+        <div className="pv-answer-col">
+          <AnswerSlot
+            slotRef={onesSlotRef}
+            state={merging ? "hidden" : onesAnswer.state}
+            value={onesAnswer.value}
+            hint={onesAnswer.hint}
+          />
+        </div>
+        {/* Always rendered with its final text (not just once merged) so
+            each digit's real, laid-out position is measurable the moment
+            the merge starts — same "measure the real thing, don't guess"
+            rule as flyDigitGhost's targets above. Two separate spans (not
+            one text node) so each incoming ghost can target its OWN
+            digit's spot, landing them adjacent rather than on top of each
+            other. --visible is what actually reveals it. */}
         <div ref={mergedRef} className={`pv-merged-number${merged ? " pv-merged-number--visible" : ""}`}>
           <span ref={mergedTensRef}>{task.model.tens}</span><span ref={mergedOnesRef}>{task.model.ones}</span>
         </div>
@@ -269,16 +284,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
                 <TenStack key={i} />
               ))}
             </div>
-            {/* The tens answer slot itself, now living under its own zone
-                (moved down from the shared row above the zones) — same
-                idiom BuildNumberTask's own AnswerSlot already uses inside
-                its coin columns. */}
-            <AnswerSlot
-              slotRef={tensSlotRef}
-              state={merging ? "hidden" : tensAnswer.state}
-              value={tensAnswer.value}
-              hint={tensAnswer.hint}
-            />
           </div>
           <div className={`pv-zone${phase === "answerNumber" || phase === "done" ? " pv-zone--correct" : ""}`}>
             <div className="pv-zone-label">ЕДИНИЦЫ</div>
@@ -287,12 +292,6 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
                 <Coin key={i} />
               ))}
             </div>
-            <AnswerSlot
-              slotRef={onesSlotRef}
-              state={merging ? "hidden" : onesAnswer.state}
-              value={onesAnswer.value}
-              hint={onesAnswer.hint}
-            />
           </div>
         </div>
 

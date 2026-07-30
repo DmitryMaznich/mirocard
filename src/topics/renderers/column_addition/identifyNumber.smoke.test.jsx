@@ -73,7 +73,7 @@ describe("IdentifyNumberTask", () => {
     expect(question().textContent).toBe("Сколько единиц?");
 
     act(() => { digitButton(9).click(); }); // wrong ones
-    const slots = container.querySelectorAll(".pv-zone .pv-answer-slot");
+    const slots = container.querySelectorAll(".pv-answer-row--split > .pv-answer-col .pv-answer-slot");
     expect(slots[0].textContent).toBe("2"); // tens digit persists
     expect(slots[0].className).toContain("pv-answer-slot--correct");
     expect(slots[1].className).toContain("pv-answer-slot--shake");
@@ -87,7 +87,7 @@ describe("IdentifyNumberTask", () => {
 
     expect(question().textContent).toBe("Какое это число?");
     // Tens/ones stay visibly confirmed while the child answers the third question.
-    const topSlots = container.querySelectorAll(".pv-zone .pv-answer-slot");
+    const topSlots = container.querySelectorAll(".pv-answer-row--split > .pv-answer-col .pv-answer-slot");
     expect(topSlots[0].textContent).toBe("2");
     expect(topSlots[0].className).toContain("pv-answer-slot--correct");
     expect(topSlots[1].textContent).toBe("3");
