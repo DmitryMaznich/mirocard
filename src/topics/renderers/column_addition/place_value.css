@@ -323,32 +323,19 @@
   flex-shrink: 0;
 }
 
-.pv-answer-row {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin: 10px 0 6px;
-  flex-shrink: 0;
-}
-
-/* identify_number only: splits the row into two zone-width columns so
-   each slot centers over its own zone below, instead of sitting as a
-   compact pair centered on the screen — also gives the merge animation
-   (see IdentifyNumberTask.jsx's playMergeAnimation) real horizontal
-   distance to travel, so "digits flying toward each other" actually
-   reads as motion instead of a small twitch. position:relative anchors
-   .pv-merged-number, which overlays this row once the two ghosts land.
-   Bottom margin trimmed from the base rule's 6px to 2px so the slots sit
-   right on the zones' top edge instead of floating above it. */
-.pv-answer-row--split {
+/* Hosts just the merged-number overlay now (the tens/ones answer slots
+   themselves moved into their own zones — see .pv-zone in
+   IdentifyNumberTask.jsx). position:relative anchors .pv-merged-number's
+   left:50%/top:50%; min-height keeps this row occupying the same vertical
+   space the old split answer-row did (the merged number is
+   position:absolute, contributing zero flow height on its own — without
+   an explicit height here this row would collapse to nothing). Scaled
+   version (matching the AnswerSlot size the digits fly FROM) in coins.css. */
+.pv-merged-host {
   position: relative;
-  gap: 0;
-  margin-bottom: 2px;
-}
-.pv-answer-row--split .pv-answer-col {
-  flex: 1;
-  display: flex;
-  justify-content: center;
+  min-height: 90px;
+  margin: 10px 0 2px;
+  flex-shrink: 0;
 }
 
 .pv-answer-slot {
@@ -371,8 +358,8 @@
 /* The digit "lifts off" this box during the merge animation: the box
    fades out here while a flying ghost (spawned from its last known
    position, see .pv-digit-ghost) carries the digit onward — hiding it
-   this way (not unmounting it) keeps .pv-answer-row's layout stable
-   while it happens. */
+   this way (not unmounting it) keeps its zone's layout stable while it
+   happens. */
 .pv-answer-slot--hidden {
   opacity: 0;
 }
@@ -469,7 +456,7 @@
   transform: translate(-50%, -50%);
 }
 
-/* Sits centered over .pv-answer-row--split (position:relative on the
+/* Sits centered over .pv-merged-host (position:relative on the
    parent), always rendered with its final two-digit text so its real,
    laid-out position is measurable before the merge starts — --visible is
    what actually reveals it once both ghosts land. Same font-size as the

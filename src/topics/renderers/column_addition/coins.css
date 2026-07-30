@@ -350,25 +350,35 @@
 
 /* identify_number only, 1.5x the size above: its two digits ARE the whole
    answer (not a running count beside a pile of manipulatives), so they
-   carry more weight and read better larger. .pv-answer-row--split is a
-   wrapper only IdentifyNumberTask's AnswerSlot ever sits inside (see
-   place_value.css), so this can't leak into build_number's own slots,
-   which stay at the 52/60/32/8 numbers above. Extra .cb-screen in the
-   selector (matching that rule's own specificity plus one) guarantees
-   this wins regardless of source order, not just because it's declared
-   later. */
-.cb-screen .pv-answer-row--split .pv-answer-slot {
+   carry more weight and read better larger. .pv-zone is shared with
+   regroup_ten's own zones too, but that mode never renders an AnswerSlot
+   inside one (no digit entry there, just a drag), so this can't leak into
+   it. Extra .cb-screen in the selector (matching that rule's own
+   specificity plus one) guarantees this wins regardless of source order,
+   not just because it's declared later. */
+.cb-screen .pv-zone .pv-answer-slot {
   width: calc(78 * var(--cb-scale));
   height: calc(90 * var(--cb-scale));
   font-size: calc(38.4 * var(--cb-scale));
   border-radius: calc(12 * var(--cb-scale));
 }
 
-/* The slot now lives inside its column (see AnswerSlot in
-   BuildNumberTask.jsx) instead of a separate centered row — this centers
-   it under that column's own coins and gives it breathing room from
-   whatever's above it (the coin area) without needing a wrapping row. */
-.cb-col .pv-answer-slot {
+/* The slot lives inside its column/zone (see AnswerSlot in
+   BuildNumberTask.jsx and IdentifyNumberTask.jsx) instead of a separate
+   centered row — this centers it under that column's own coins and gives
+   it breathing room from whatever's above it (the coin area) without
+   needing a wrapping row. Shared by both .cb-col (build_number) and
+   .pv-zone (identify_number). */
+.cb-col .pv-answer-slot,
+.pv-zone .pv-answer-slot {
   align-self: center;
   margin-top: calc(10 * var(--cb-scale));
+}
+
+/* Scaled counterpart of place_value.css's .pv-merged-host — keeps that
+   row occupying the same vertical space the AnswerSlot it hosts (well,
+   used to host directly) needs, now that the real slots live in the
+   zones below and this is just the merge-animation's landing spot. */
+.cb-screen .pv-merged-host {
+  min-height: calc(90 * var(--cb-scale));
 }
