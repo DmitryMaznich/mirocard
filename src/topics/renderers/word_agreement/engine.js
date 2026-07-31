@@ -1,18 +1,32 @@
 import { shuffle } from "@/shared/utils/shuffle";
 
-// Fixed 6-word option pools for the "мяч" lexical set, shared by every
-// case_agreement card via card.optionSet. Prototype uses one word family;
-// more families will get their own pools once this mode is validated.
-export const OPTION_SETS = {
-  singular: ["мяч", "мяча", "мячу", "мячом", "мяче", "мячей"],
-  plural:   ["мячи", "мячей", "мячам", "мячами", "мячах", "мяч"],
+// Fixed 6-word option pools per lexical set, keyed by word id + grammatical
+// number. Each case_agreement card names its word (card.word) and which pool
+// applies (card.optionSet: "singular" | "plural").
+export const FORMS_BY_WORD = {
+  myach: {
+    singular: ["мяч", "мяча", "мячу", "мячом", "мяче", "мячей"],
+    plural:   ["мячи", "мячей", "мячам", "мячами", "мячах", "мяч"],
+  },
+  karandash: {
+    singular: ["карандаш", "карандаша", "карандашу", "карандашом", "карандаше", "карандашей"],
+    plural:   ["карандаши", "карандашей", "карандашам", "карандашами", "карандашах", "карандаш"],
+  },
+  mashinka: {
+    singular: ["машинка", "машинки", "машинке", "машинку", "машинкой", "машинок"],
+    plural:   ["машинки", "машинок", "машинкам", "машинками", "машинках", "машинка"],
+  },
+  yabloko: {
+    singular: ["яблоко", "яблока", "яблоку", "яблоком", "яблоке", "яблок"],
+    plural:   ["яблоки", "яблок", "яблокам", "яблоками", "яблоках", "яблоко"],
+  },
 };
 
 function buildCaseAgreementTasks(cards) {
   return shuffle(cards.map((card) => ({
     type: "case_agreement",
     card,
-    options: OPTION_SETS[card.optionSet] ?? OPTION_SETS.singular,
+    options: FORMS_BY_WORD[card.word]?.[card.optionSet] ?? [],
   })));
 }
 
