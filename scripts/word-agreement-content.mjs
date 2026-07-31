@@ -1,0 +1,118 @@
+// Shared content for the "Языковой тренажёр" (word_agreement) topic.
+// Used by both build-word-agreement-deck.mjs (packages the deck) and
+// generate-word-agreement-audio.mjs (synthesizes one mp3 per card's full
+// sentence). Keeping the sentences in one place avoids the two scripts
+// drifting apart.
+
+// Four lexical sets for the case_agreement mode. Each card targets a form
+// that's actually distinct from a form already covered elsewhere in the same
+// set — for inanimate masc./neuter nouns (мяч, карандаш, яблоко) accusative
+// is spelled identically to nominative, so no separate accusative card is
+// needed there; машина (fem.) gets one, since its accusative genuinely
+// differs from nominative (машина → машину).
+// See src/topics/renderers/word_agreement/engine.js: FORMS_BY_WORD.
+export const CASE_AGREEMENT_CARDS = [
+  // Иван и мяч
+  { id: "myach_01", word: "myach", sentence: "У Ивана один {blank}.",                                answer: "мяч",    optionSet: "singular" },
+  { id: "myach_02", word: "myach", context: "Иван потерял мяч.",   sentence: "Теперь у него нет {blank}.",   answer: "мяча",   optionSet: "singular", marker: "нет" },
+  { id: "myach_03", word: "myach", sentence: "Иван пришёл во двор без {blank}.",                      answer: "мяча",   optionSet: "singular", marker: "без" },
+  { id: "myach_04", word: "myach", context: "На полу лежит мяч.", sentence: "Иван подошёл к {blank}.",      answer: "мячу",   optionSet: "singular", marker: "к" },
+  { id: "myach_05", word: "myach", context: "Иван вышел во двор.", sentence: "Он играет с {blank}.",        answer: "мячом",  optionSet: "singular", marker: "с" },
+  { id: "myach_06", word: "myach", context: "Иван посмотрел на мяч.", sentence: "На {blank} было пятно.",   answer: "мяче",   optionSet: "singular", marker: "на" },
+  { id: "myach_07", word: "myach", sentence: "Папа купил Ивану новые {blank}.",                       answer: "мячи",   optionSet: "plural" },
+  { id: "myach_08", word: "myach", sentence: "У Ивана много {blank}.",                                answer: "мячей",  optionSet: "plural", marker: "много" },
+  { id: "myach_09", word: "myach", context: "В углу лежат мячи.", sentence: "Иван подошёл к {blank}.",      answer: "мячам",  optionSet: "plural", marker: "к" },
+  { id: "myach_10", word: "myach", context: "В коробке лежат мячи.", sentence: "Иван играет с {blank}.",    answer: "мячами", optionSet: "plural", marker: "с" },
+  { id: "myach_11", word: "myach", context: "В комнате лежат разные мячи.", sentence: "Иван рассказывает о {blank}.", answer: "мячах", optionSet: "plural", marker: "о" },
+
+  // Алина и карандаш
+  { id: "karandash_01", word: "karandash", sentence: "У Алины один {blank}.",                              answer: "карандаш",    optionSet: "singular" },
+  { id: "karandash_02", word: "karandash", context: "Алина потеряла карандаш.", sentence: "Теперь у неё нет {blank}.", answer: "карандаша",   optionSet: "singular", marker: "нет" },
+  { id: "karandash_03", word: "karandash", sentence: "Алина пришла в школу без {blank}.",                  answer: "карандаша",   optionSet: "singular", marker: "без" },
+  { id: "karandash_04", word: "karandash", context: "На столе лежит карандаш.", sentence: "Алина подошла к {blank}.", answer: "карандашу",   optionSet: "singular", marker: "к" },
+  { id: "karandash_05", word: "karandash", context: "Алина села за стол.", sentence: "Она рисует {blank}.",         answer: "карандашом",  optionSet: "singular" },
+  { id: "karandash_06", word: "karandash", context: "Алина посмотрела на карандаш.", sentence: "На {blank} было пятно.", answer: "карандаше", optionSet: "singular", marker: "на" },
+  { id: "karandash_07", word: "karandash", sentence: "Папа купил Алине новые {blank}.",                    answer: "карандаши",   optionSet: "plural" },
+  { id: "karandash_08", word: "karandash", sentence: "У Алины много {blank}.",                             answer: "карандашей",  optionSet: "plural", marker: "много" },
+  { id: "karandash_09", word: "karandash", context: "В коробке лежат карандаши.", sentence: "Алина подошла к {blank}.", answer: "карандашам",  optionSet: "plural", marker: "к" },
+  { id: "karandash_10", word: "karandash", context: "В коробке лежат карандаши.", sentence: "Алина рисует {blank}.",   answer: "карандашами", optionSet: "plural" },
+  { id: "karandash_11", word: "karandash", context: "В шкафу лежат разные карандаши.", sentence: "Алина рассказывает о {blank}.", answer: "карандашах", optionSet: "plural", marker: "о" },
+
+  // Папа, Иван и машина (настоящая машина, не игрушка)
+  { id: "mashina_01", word: "mashina", sentence: "У папы есть {blank}.",                                answer: "машина",   optionSet: "singular" },
+  { id: "mashina_02", word: "mashina", sentence: "Папа моет свою {blank}.",                             answer: "машину",   optionSet: "singular" },
+  { id: "mashina_03", word: "mashina", context: "Машина в ремонте.", sentence: "У папы сейчас нет {blank}.", answer: "машины",   optionSet: "singular", marker: "нет" },
+  { id: "mashina_04", word: "mashina", sentence: "Папа пошёл на работу пешком, без {blank}.",           answer: "машины",   optionSet: "singular", marker: "без" },
+  { id: "mashina_05", word: "mashina", context: "Машина стоит во дворе.", sentence: "Папа подошёл к {blank}.", answer: "машине",   optionSet: "singular", marker: "к" },
+  { id: "mashina_06", word: "mashina", context: "Папа едет на работу.", sentence: "Он едет на {blank}.",      answer: "машине",   optionSet: "singular", marker: "на" },
+  { id: "mashina_07", word: "mashina", context: "Папа купил новую машину.", sentence: "Иван любуется {blank}.", answer: "машиной",  optionSet: "singular" },
+  { id: "mashina_08", word: "mashina", sentence: "Во дворе стоят разные {blank}.",                      answer: "машины",   optionSet: "plural" },
+  { id: "mashina_09", word: "mashina", sentence: "На парковке много {blank}.",                          answer: "машин",    optionSet: "plural", marker: "много" },
+  { id: "mashina_10", word: "mashina", context: "Мы пришли на парковку.", sentence: "Папа подошёл к {blank}.", answer: "машинам",  optionSet: "plural", marker: "к" },
+  { id: "mashina_11", word: "mashina", sentence: "Папа паркуется рядом с другими {blank}.",             answer: "машинами", optionSet: "plural", marker: "с" },
+  { id: "mashina_12", word: "mashina", context: "Иван любит машины.", sentence: "Он рассказывает о {blank}.", answer: "машинах",  optionSet: "plural", marker: "о" },
+
+  // Мама, папа и яблоко
+  { id: "yabloko_01", word: "yabloko", sentence: "У папы одно {blank}.",                               answer: "яблоко",   optionSet: "singular" },
+  { id: "yabloko_02", word: "yabloko", context: "Папа уронил яблоко.", sentence: "Теперь у него нет {blank}.", answer: "яблока",   optionSet: "singular", marker: "нет" },
+  { id: "yabloko_03", word: "yabloko", sentence: "Мама пришла домой без {blank}.",                     answer: "яблока",   optionSet: "singular", marker: "без" },
+  { id: "yabloko_04", word: "yabloko", context: "На столе лежит яблоко.", sentence: "Папа подошёл к {blank}.", answer: "яблоку",   optionSet: "singular", marker: "к" },
+  { id: "yabloko_05", word: "yabloko", context: "Мама угощает всех.", sentence: "Она делится {blank}.",       answer: "яблоком",  optionSet: "singular" },
+  { id: "yabloko_06", word: "yabloko", context: "Мама посмотрела на яблоко.", sentence: "На {blank} было пятно.", answer: "яблоке", optionSet: "singular", marker: "на" },
+  { id: "yabloko_07", word: "yabloko", sentence: "Мама купила детям новые {blank}.",                   answer: "яблоки",   optionSet: "plural" },
+  { id: "yabloko_08", word: "yabloko", sentence: "У мамы много {blank}.",                              answer: "яблок",    optionSet: "plural", marker: "много" },
+  { id: "yabloko_09", word: "yabloko", context: "В корзине лежат яблоки.", sentence: "Папа подошёл к {blank}.", answer: "яблокам",  optionSet: "plural", marker: "к" },
+  { id: "yabloko_10", word: "yabloko", context: "Мама испекла пирог.", sentence: "Пирог получился с {blank}.", answer: "яблоками", optionSet: "plural", marker: "с" },
+  { id: "yabloko_11", word: "yabloko", context: "В саду растут разные яблоки.", sentence: "Мама рассказывает о {blank}.", answer: "яблоках", optionSet: "plural", marker: "о" },
+].map((c) => ({
+  ...c,
+  skill:   "case_agreement",
+  context: c.context ?? null,
+  marker:  c.marker ?? null,
+  label:   c.sentence.replace("{blank}", c.answer),
+}));
+
+// verb_number_agreement: subject noun is already spelled out in the
+// sentence (singular or plural) — the child looks at it and picks the
+// matching verb form. Each pair below expands into two cards (singular
+// subject / plural subject); the marker highlighted after 2 wrong attempts
+// is the subject itself, drawing attention to its ending.
+const VERB_NUMBER_PAIRS = [
+  // Предметы
+  { word: "Мяч",      wordPl: "Мячи",      place: "на полу",      sing: "лежит",   pl: "лежат" },
+  { word: "Мяч",      wordPl: "Мячи",      place: "по двору",     sing: "катится", pl: "катятся" },
+  { word: "Мяч",      wordPl: "Мячи",      place: "с полки",      sing: "падает",  pl: "падают" },
+  { word: "Карандаш", wordPl: "Карандаши", place: "в коробке",    sing: "лежит",   pl: "лежат" },
+  { word: "Карандаш", wordPl: "Карандаши", place: "со стола",     sing: "падает",  pl: "падают" },
+  { word: "Машина",   wordPl: "Машины",    place: "во дворе",     sing: "стоит",   pl: "стоят" },
+  { word: "Машина",   wordPl: "Машины",    place: "по дороге",    sing: "едет",    pl: "едут" },
+  { word: "Яблоко",   wordPl: "Яблоки",    place: "в корзине",    sing: "лежит",   pl: "лежат" },
+  { word: "Яблоко",   wordPl: "Яблоки",    place: "на дереве",    sing: "висит",   pl: "висят" },
+  { word: "Яблоко",   wordPl: "Яблоки",    place: "с дерева",     sing: "падает",  pl: "падают" },
+  // Люди (собирательное множественное — «дети», «родители»)
+  { word: "Иван",  wordPl: "Дети",     place: "во дворе", sing: "играет", pl: "играют" },
+  { word: "Алина", wordPl: "Дети",     place: "за столом", sing: "рисует", pl: "рисуют" },
+  { word: "Мама",  wordPl: "Родители", place: "домой",     sing: "идёт",   pl: "идут" },
+  { word: "Папа",  wordPl: "Родители", place: "в парке",   sing: "гуляет", pl: "гуляют" },
+];
+
+export const VERB_NUMBER_CARDS = VERB_NUMBER_PAIRS.flatMap((p, i) => {
+  const n = String(i + 1).padStart(2, "0");
+  const options = [p.sing, p.pl];
+  return [
+    {
+      id: `verbnum_${n}_sing`, skill: "verb_number_agreement",
+      sentence: `${p.word} {blank} ${p.place}.`, answer: p.sing, options, marker: p.word,
+    },
+    {
+      id: `verbnum_${n}_pl`, skill: "verb_number_agreement",
+      sentence: `${p.wordPl} {blank} ${p.place}.`, answer: p.pl, options, marker: p.wordPl,
+    },
+  ];
+}).map((c) => ({
+  ...c,
+  context: null,
+  label: c.sentence.replace("{blank}", c.answer),
+}));
+
+export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS];

@@ -43,9 +43,20 @@ function BlankSentence({ card, filledWord, showMarker }) {
   );
 }
 
-export default function CaseAgreementTask({ task, onCorrect, onMistake, onAdvance, onCardShown, onTap }) {
+export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect, onMistake, onAdvance, onCardShown, onTap }) {
   const { card, options } = task;
   const { speak } = useSpeech();
+
+  // Prefer the deck's recorded audio (Google Cloud TTS, generated offline —
+  // see scripts/generate-word-agreement-audio.mjs); fall back to the
+  // browser's speech synthesis for cards that don't have it yet.
+  function playCorrectAudio() {
+    if (card.audio && topicId && playTopicFile) {
+      playTopicFile(topicId, card.audio);
+    } else {
+      speak(fillSentence(card, card.answer));
+    }
+  }
 
   const [shownOptions, setShownOptions] = useState(() => shuffle(options));
   const [wrongCount, setWrongCount]     = useState(0);
@@ -74,7 +85,7 @@ export default function CaseAgreementTask({ task, onCorrect, onMistake, onAdvanc
 
     if (isCorrect) {
       setStatus("correct");
-      speak(fillSentence(card, word));
+      playCorrectAudio();
       advanceTimerRef.current = setTimeout(() => onCorrect?.(card.id, card.id), 1200);
       return;
     }
@@ -85,7 +96,7 @@ export default function CaseAgreementTask({ task, onCorrect, onMistake, onAdvanc
 
     if (nextWrongCount >= MAX_ATTEMPTS) {
       setStatus("revealed");
-      speak(fillSentence(card, card.answer));
+      playCorrectAudio();
       onMistake?.(card.id, card.id);
       revealTimerRef.current = setTimeout(() => onAdvance?.(), 2200);
       return;

@@ -338,14 +338,14 @@
     },
     {
       "id": "word_agreement_ru",
-      "version": "1.1.0",
-      "url": "./decks/word_agreement_ru_v1.1.0.zip",
-      "zipUrl": "word_agreement_ru_v1.1.0.zip",
+      "version": "1.2.0",
+      "url": "./decks/word_agreement_ru_v1.2.0.zip",
+      "zipUrl": "word_agreement_ru_v1.2.0.zip",
       "title": {
         "ru": "Языковой тренажёр"
       },
       "description": {
-        "ru": "Согласование слов и окончаний в предложениях. Первый режим: падеж существительного (мяч, карандаш, машинка, яблоко). Остальные режимы — скоро."
+        "ru": "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, машина, яблоко) и число глагола. Остальные режимы — скоро."
       },
       "renderer": "word_agreement",
       "status": "release",

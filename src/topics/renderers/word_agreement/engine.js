@@ -12,9 +12,9 @@ export const FORMS_BY_WORD = {
     singular: ["карандаш", "карандаша", "карандашу", "карандашом", "карандаше", "карандашей"],
     plural:   ["карандаши", "карандашей", "карандашам", "карандашами", "карандашах", "карандаш"],
   },
-  mashinka: {
-    singular: ["машинка", "машинки", "машинке", "машинку", "машинкой", "машинок"],
-    plural:   ["машинки", "машинок", "машинкам", "машинками", "машинках", "машинка"],
+  mashina: {
+    singular: ["машина", "машины", "машине", "машину", "машиной", "машин"],
+    plural:   ["машины", "машин", "машинам", "машинами", "машинах", "машина"],
   },
   yabloko: {
     singular: ["яблоко", "яблока", "яблоку", "яблоком", "яблоке", "яблок"],
@@ -23,11 +23,30 @@ export const FORMS_BY_WORD = {
 };
 
 function buildCaseAgreementTasks(cards) {
-  return shuffle(cards.map((card) => ({
-    type: "case_agreement",
-    card,
-    options: FORMS_BY_WORD[card.word]?.[card.optionSet] ?? [],
-  })));
+  return shuffle(
+    cards
+      .filter((c) => c.skill === "case_agreement")
+      .map((card) => ({
+        type: "case_agreement",
+        card,
+        options: FORMS_BY_WORD[card.word]?.[card.optionSet] ?? [],
+      }))
+  );
+}
+
+// verb_number cards carry their own two-option pool directly (card.options:
+// [singular verb, plural verb]) since it's specific to that one sentence,
+// not a reusable per-word paradigm like case_agreement's noun forms.
+function buildVerbNumberTasks(cards) {
+  return shuffle(
+    cards
+      .filter((c) => c.skill === "verb_number_agreement")
+      .map((card) => ({
+        type: "verb_number",
+        card,
+        options: card.options ?? [],
+      }))
+  );
 }
 
 export function generateTasks(mode, cards) {
@@ -35,7 +54,10 @@ export function generateTasks(mode, cards) {
   if (modeType === "case_agreement") {
     return buildCaseAgreementTasks(cards);
   }
-  // Placeholder modes (verb agreement, adjective agreement, etc.) aren't
-  // built yet — a single task is enough for the renderer to show "Скоро".
+  if (modeType === "verb_number_agreement") {
+    return buildVerbNumberTasks(cards);
+  }
+  // Placeholder modes (verb gender, adjective agreement, etc.) aren't built
+  // yet — a single task is enough for the renderer to show "Скоро".
   return [{ type: modeType }];
 }
