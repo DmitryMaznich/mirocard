@@ -335,6 +335,21 @@
         "ru": "Тетради и рабочие листы для печати"
       },
       "url": "./decks/print_materials_v1.0.10.zip"
+    },
+    {
+      "id": "word_agreement_ru",
+      "version": "1.0.0",
+      "url": "./decks/word_agreement_ru_v1.0.0.zip",
+      "zipUrl": "word_agreement_ru_v1.0.0.zip",
+      "title": {
+        "ru": "Языковой тренажёр"
+      },
+      "description": {
+        "ru": "Согласование слов и окончаний в предложениях. Первый режим: падеж существительного (набор «Иван и мяч»). Остальные режимы — скоро."
+      },
+      "renderer": "word_agreement",
+      "status": "release",
+      "access": "free"
     }
   ]
 }
