@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { ALL_CARDS } from "./word-agreement-content.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.2.0";
+const VERSION    = "1.2.1";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs writes synthesized mp3s. A card
 // gets its `audio` field only if the file actually exists here — until then
