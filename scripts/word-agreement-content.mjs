@@ -79,34 +79,33 @@ export const CASE_AGREEMENT_CARDS = [
 // is the subject itself, drawing attention to its ending.
 const VERB_NUMBER_PAIRS = [
   // Предметы
-  { word: "Мяч",      wordPl: "Мячи",      place: "на полу",      sing: "лежит",   pl: "лежат" },
-  { word: "Мяч",      wordPl: "Мячи",      place: "по двору",     sing: "катится", pl: "катятся" },
-  { word: "Мяч",      wordPl: "Мячи",      place: "с полки",      sing: "падает",  pl: "падают" },
-  { word: "Карандаш", wordPl: "Карандаши", place: "в коробке",    sing: "лежит",   pl: "лежат" },
-  { word: "Карандаш", wordPl: "Карандаши", place: "со стола",     sing: "падает",  pl: "падают" },
-  { word: "Машина",   wordPl: "Машины",    place: "во дворе",     sing: "стоит",   pl: "стоят" },
-  { word: "Машина",   wordPl: "Машины",    place: "по дороге",    sing: "едет",    pl: "едут" },
-  { word: "Яблоко",   wordPl: "Яблоки",    place: "в корзине",    sing: "лежит",   pl: "лежат" },
-  { word: "Яблоко",   wordPl: "Яблоки",    place: "на дереве",    sing: "висит",   pl: "висят" },
-  { word: "Яблоко",   wordPl: "Яблоки",    place: "с дерева",     sing: "падает",  pl: "падают" },
+  { word: "Мяч",      wordPl: "Мячи",      place: "на полу",      verb: "lezhat",   sing: "лежит",   pl: "лежат" },
+  { word: "Мяч",      wordPl: "Мячи",      place: "по двору",     verb: "katitsya", sing: "катится", pl: "катятся" },
+  { word: "Мяч",      wordPl: "Мячи",      place: "с полки",      verb: "padat",    sing: "падает",  pl: "падают" },
+  { word: "Карандаш", wordPl: "Карандаши", place: "в коробке",    verb: "lezhat",   sing: "лежит",   pl: "лежат" },
+  { word: "Карандаш", wordPl: "Карандаши", place: "со стола",     verb: "padat",    sing: "падает",  pl: "падают" },
+  { word: "Машина",   wordPl: "Машины",    place: "во дворе",     verb: "stoyat",   sing: "стоит",   pl: "стоят" },
+  { word: "Машина",   wordPl: "Машины",    place: "по дороге",    verb: "ekhat",    sing: "едет",    pl: "едут" },
+  { word: "Яблоко",   wordPl: "Яблоки",    place: "в корзине",    verb: "lezhat",   sing: "лежит",   pl: "лежат" },
+  { word: "Яблоко",   wordPl: "Яблоки",    place: "на дереве",    verb: "viset",    sing: "висит",   pl: "висят" },
+  { word: "Яблоко",   wordPl: "Яблоки",    place: "с дерева",     verb: "padat",    sing: "падает",  pl: "падают" },
   // Люди (собирательное множественное — «дети», «родители»)
-  { word: "Иван",  wordPl: "Дети",     place: "во дворе", sing: "играет", pl: "играют" },
-  { word: "Алина", wordPl: "Дети",     place: "за столом", sing: "рисует", pl: "рисуют" },
-  { word: "Мама",  wordPl: "Родители", place: "домой",     sing: "идёт",   pl: "идут" },
-  { word: "Папа",  wordPl: "Родители", place: "в парке",   sing: "гуляет", pl: "гуляют" },
+  { word: "Иван",  wordPl: "Дети",     place: "во дворе",  verb: "igrat",   sing: "играет", pl: "играют" },
+  { word: "Алина", wordPl: "Дети",     place: "за столом", verb: "risovat", sing: "рисует", pl: "рисуют" },
+  { word: "Мама",  wordPl: "Родители", place: "домой",     verb: "idti",    sing: "идёт",   pl: "идут" },
+  { word: "Папа",  wordPl: "Родители", place: "в парке",   verb: "gulyat",  sing: "гуляет", pl: "гуляют" },
 ];
 
 export const VERB_NUMBER_CARDS = VERB_NUMBER_PAIRS.flatMap((p, i) => {
   const n = String(i + 1).padStart(2, "0");
-  const options = [p.sing, p.pl];
   return [
     {
-      id: `verbnum_${n}_sing`, skill: "verb_number_agreement",
-      sentence: `${p.word} {blank} ${p.place}.`, answer: p.sing, options, marker: p.word,
+      id: `verbnum_${n}_sing`, skill: "verb_number_agreement", verb: p.verb,
+      sentence: `${p.word} {blank} ${p.place}.`, answer: p.sing, marker: p.word,
     },
     {
-      id: `verbnum_${n}_pl`, skill: "verb_number_agreement",
-      sentence: `${p.wordPl} {blank} ${p.place}.`, answer: p.pl, options, marker: p.wordPl,
+      id: `verbnum_${n}_pl`, skill: "verb_number_agreement", verb: p.verb,
+      sentence: `${p.wordPl} {blank} ${p.place}.`, answer: p.pl, marker: p.wordPl,
     },
   ];
 }).map((c) => ({

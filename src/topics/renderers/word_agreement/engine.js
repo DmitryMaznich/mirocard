@@ -34,9 +34,25 @@ function buildCaseAgreementTasks(cards) {
   );
 }
 
-// verb_number cards carry their own two-option pool directly (card.options:
-// [singular verb, plural verb]) since it's specific to that one sentence,
-// not a reusable per-word paradigm like case_agreement's noun forms.
+// Full present-tense conjugation (я/ты/он/мы/вы/они) per verb — six options,
+// same size as the case_agreement pools, so a wrong pick can't be narrowed
+// down to "the other button" by elimination. The child still only needs to
+// look at the subject's number; the other four forms are wrong on person,
+// not just number, but that's fine — nothing in the sentence is 1st/2nd
+// person, so they're never a plausible fit either way.
+const VERB_FORMS = {
+  lezhat:    ["лежу",   "лежишь",   "лежит",   "лежим",   "лежите",   "лежат"],
+  katitsya:  ["качусь", "катишься", "катится", "катимся", "катитесь", "катятся"],
+  padat:     ["падаю",  "падаешь",  "падает",  "падаем",  "падаете",  "падают"],
+  stoyat:    ["стою",   "стоишь",   "стоит",   "стоим",   "стоите",   "стоят"],
+  ekhat:     ["еду",    "едешь",    "едет",    "едем",    "едете",    "едут"],
+  viset:     ["вишу",   "висишь",   "висит",   "висим",   "висите",   "висят"],
+  igrat:     ["играю",  "играешь",  "играет",  "играем",  "играете",  "играют"],
+  risovat:   ["рисую",  "рисуешь",  "рисует",  "рисуем",  "рисуете",  "рисуют"],
+  idti:      ["иду",    "идёшь",    "идёт",    "идём",    "идёте",    "идут"],
+  gulyat:    ["гуляю",  "гуляешь",  "гуляет",  "гуляем",  "гуляете",  "гуляют"],
+};
+
 function buildVerbNumberTasks(cards) {
   return shuffle(
     cards
@@ -44,7 +60,7 @@ function buildVerbNumberTasks(cards) {
       .map((card) => ({
         type: "verb_number",
         card,
-        options: card.options ?? [],
+        options: VERB_FORMS[card.verb] ?? [],
       }))
   );
 }
