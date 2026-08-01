@@ -33,8 +33,27 @@ const VERB_NUMBER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12
   <rect x="72" y="80" width="40" height="16" rx="8" fill="#2c2c2c"/>
 </svg>`;
 
-// Shared "not built yet" icon for the four placeholder modes — muted grey
-// clock, visually distinct from the two working modes above.
+// verb_gender_agreement: same "shape + verb bar" language as verb_number,
+// but three differently-shaped, differently-coloured subjects (circle/
+// triangle/square standing in for masc./fem./neut.) each get their own
+// coloured ending block — one action word, three different endings.
+const VERB_GENDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f3eefb"/>
+  <circle cx="34" cy="40" r="10" fill="#3b82c4"/>
+  <rect x="52" y="32" width="40" height="16" rx="8" fill="#2c2c2c"/>
+  <rect x="94" y="32" width="14" height="16" rx="4" fill="#3b82c4"/>
+
+  <path d="M34 74 l9 15 h-18 z" fill="#d1487a"/>
+  <rect x="52" y="74" width="40" height="16" rx="8" fill="#2c2c2c"/>
+  <rect x="94" y="74" width="14" height="16" rx="4" fill="#d1487a"/>
+
+  <rect x="26" y="102" width="16" height="16" rx="3" fill="#e0a800"/>
+  <rect x="52" y="102" width="40" height="16" rx="8" fill="#2c2c2c"/>
+  <rect x="94" y="102" width="14" height="16" rx="4" fill="#e0a800"/>
+</svg>`;
+
+// Shared "not built yet" icon for the remaining placeholder modes — muted
+// grey clock, visually distinct from the working modes above.
 const COMING_SOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f0f0f0"/>
   <circle cx="64" cy="64" r="34" fill="none" stroke="#b0b0b0" stroke-width="8"/>
@@ -45,7 +64,7 @@ const COMING_SOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12
 export const MODE_ICONS = {
   case_agreement:        { path: "media/icons/case_agreement.svg",       svg: CASE_AGREEMENT_SVG },
   verb_number_agreement: { path: "media/icons/verb_number.svg",          svg: VERB_NUMBER_SVG },
-  verb_gender_agreement: { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
+  verb_gender_agreement: { path: "media/icons/verb_gender.svg",          svg: VERB_GENDER_SVG },
   adjective_agreement:   { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
   numeral_agreement:     { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
   possessive_agreement:  { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },

@@ -89,9 +89,49 @@ function buildVerbNumberTasks(cards, params) {
   );
 }
 
+// Past-tense forms for the verb_gender_agreement mode: masc/fem/neut are
+// spelled differently, plural is shared across genders. Distractors mix the
+// same verb's other genders (the actual skill being tested) with the same
+// gender's forms of other verbs (used to fill out larger option counts).
+const VERB_GENDER_FORMS = {
+  poyti:      { masc: "пошёл",     fem: "пошла",     neut: "пошло",     plural: "пошли" },
+  priti:      { masc: "пришёл",    fem: "пришла",    neut: "пришло",    plural: "пришли" },
+  upast:      { masc: "упал",      fem: "упала",      neut: "упало",     plural: "упали" },
+  lezhat:     { masc: "лежал",     fem: "лежала",     neut: "лежало",    plural: "лежали" },
+  stoyat:     { masc: "стоял",     fem: "стояла",     neut: "стояло",    plural: "стояли" },
+  pokatitsya: { masc: "покатился", fem: "покатилась", neut: "покатилось", plural: "покатились" },
+};
+
+const GENDERS = ["masc", "fem", "neut", "plural"];
+
+function buildVerbGenderOptions(card, count) {
+  const forms = VERB_GENDER_FORMS[card.verb] ?? {};
+  const answerGender = GENDERS.find((gender) => forms[gender] === card.answer);
+  const sameVerbOtherGenders = GENDERS.filter((gender) => gender !== answerGender).map((gender) => forms[gender]);
+  const sameGenderOtherVerbs = Object.entries(VERB_GENDER_FORMS)
+    .filter(([verb]) => verb !== card.verb)
+    .map(([, verbForms]) => verbForms[answerGender]);
+
+  return limitedOptions([...sameVerbOtherGenders, ...sameGenderOtherVerbs], card.answer, count);
+}
+
+function buildVerbGenderTasks(cards, params) {
+  const optionCount = getOptionCount(params);
+  return shuffle(
+    cards
+      .filter((card) => card.skill === "verb_gender_agreement")
+      .map((card) => ({
+        type: "verb_gender",
+        card,
+        options: buildVerbGenderOptions(card, optionCount),
+      }))
+  );
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const modeType = mode?.type ?? mode?.id;
   if (modeType === "case_agreement") return buildCaseAgreementTasks(cards, params);
   if (modeType === "verb_number_agreement") return buildVerbNumberTasks(cards, params);
+  if (modeType === "verb_gender_agreement") return buildVerbGenderTasks(cards, params);
   return [{ type: modeType }];
 }

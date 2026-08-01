@@ -4,7 +4,7 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.3.3";
+const VERSION    = "1.4.0";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
 // .wav files. A card gets its `audio` field only if the file actually
@@ -12,7 +12,6 @@ const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const AUDIO_SRC_DIR = `public/decks/_audio_src/${TOPIC_ID}`;
 
 const PLACEHOLDER_MODES = [
-  { id: "verb_gender_agreement",  title: "Род глагола в прошедшем времени (скоро)" },
   { id: "adjective_agreement",    title: "Прилагательное + существительное (скоро)" },
   { id: "numeral_agreement",      title: "Числительное + существительное (скоро)" },
   { id: "possessive_agreement",   title: "Притяжательные местоимения (скоро)" },
@@ -81,6 +80,23 @@ const topic = {
         },
       },
     },
+    {
+      id:          "verb_gender_agreement",
+      type:        "verb_gender_agreement",
+      evaluation:  "auto",
+      requirePin:  false,
+      ui: {
+        title:       { ru: "Род глагола в прошедшем времени" },
+        instruction: { ru: "Прочитай предложение и выбери верную форму глагола" },
+        icon:        MODE_ICONS.verb_gender_agreement.path,
+      },
+      params: {
+        optionCount: {
+          type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
+          labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+        },
+      },
+    },
     ...PLACEHOLDER_MODES,
   ],
   cards: ALL_CARDS.map((card) => {
@@ -119,7 +135,7 @@ const entry = {
   zipUrl:   `${TOPIC_ID}_v${VERSION}.zip`,
   title:    { ru: "Языковой тренажёр" },
   description: {
-    ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, машина, яблоко) и число глагола. Настраиваемая сложность: от двух вариантов ответа.",
+    ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, машина, яблоко), число глагола и род глагола в прошедшем времени. Настраиваемая сложность: от двух вариантов ответа.",
   },
   renderer: "word_agreement",
   status:   "release",

@@ -123,4 +123,38 @@ export const VERB_NUMBER_CARDS = VERB_NUMBER_PAIRS.flatMap((p, i) => {
   label: fullLabel(c),
 }));
 
-export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS];
+// verb_gender_agreement: past-tense verbs agree with the subject's gender
+// (and have a separate plural form). Six verbs across the established
+// vocabulary (Иван/Алина/мама/папа/дети, мяч, карандаш, машина, яблоко)
+// give 15 cards balanced across masc/fem/neut/plural (4/4/3/4) — neuter is
+// one card lighter than the rest because яблоко is the only neuter noun in
+// the vocabulary so far; a second neuter word would be needed to close it.
+const VERB_GENDER_ITEMS = [
+  { id: "verbgen_01", verb: "poyti",      subject: "Иван",         rest: "в школу",     answer: "пошёл" },
+  { id: "verbgen_02", verb: "poyti",      subject: "Алина",        rest: "в школу",     answer: "пошла" },
+  { id: "verbgen_03", verb: "poyti",      subject: "Мама и папа",  rest: "гулять",      answer: "пошли" },
+  { id: "verbgen_04", verb: "priti",      subject: "Папа",         rest: "с работы",    answer: "пришёл" },
+  { id: "verbgen_05", verb: "priti",      subject: "Мама",         rest: "с работы",    answer: "пришла" },
+  { id: "verbgen_06", verb: "priti",      subject: "Дети",         rest: "из школы",    answer: "пришли" },
+  { id: "verbgen_07", verb: "upast",      subject: "Мяч",          rest: "со стола",    answer: "упал" },
+  { id: "verbgen_08", verb: "lezhat",     subject: "Карандаш",     rest: "на столе",    answer: "лежал" },
+  { id: "verbgen_09", verb: "upast",      subject: "Алина",        rest: "на льду",     answer: "упала" },
+  { id: "verbgen_10", verb: "stoyat",     subject: "Машина",       rest: "в гараже",    answer: "стояла" },
+  { id: "verbgen_11", verb: "upast",      subject: "Яблоко",       rest: "с дерева",    answer: "упало" },
+  { id: "verbgen_12", verb: "lezhat",     subject: "Яблоко",       rest: "в корзине",   answer: "лежало" },
+  { id: "verbgen_13", verb: "pokatitsya", subject: "Яблоко",       rest: "по столу",    answer: "покатилось" },
+  { id: "verbgen_14", verb: "upast",      subject: "Карандаши",    rest: "со стола",    answer: "упали" },
+  { id: "verbgen_15", verb: "lezhat",     subject: "Мячи",         rest: "в коробке",   answer: "лежали" },
+];
+
+export const VERB_GENDER_CARDS = VERB_GENDER_ITEMS.map((item) => ({
+  id: item.id,
+  skill: "verb_gender_agreement",
+  verb: item.verb,
+  sentence: `${item.subject} {blank} ${item.rest}.`,
+  answer: item.answer,
+  marker: item.subject,
+  context: null,
+})).map((c) => ({ ...c, label: fullLabel(c) }));
+
+export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS];
