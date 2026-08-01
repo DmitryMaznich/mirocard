@@ -32,14 +32,26 @@ describe("word agreement task generation", () => {
     expect(tasks.every((task) => task.options.length === 4)).toBe(true);
   });
 
-  it("offers only the singular and plural forms of the same verb", () => {
-    const tasks = generateTasks({ type: "verb_number_agreement" }, VERB_CARDS, 500, { optionCount: 6 });
+  it("uses two third-person forms at the basic verb level", () => {
+    const tasks = generateTasks({ type: "verb_number_agreement" }, VERB_CARDS, 500, { optionCount: 2 });
 
-    expect(tasks).toHaveLength(2);
     for (const task of tasks) {
-      expect(task.options).toHaveLength(2);
-      expect(task.options).toContain(task.card.answer);
       expect(new Set(task.options)).toEqual(new Set(["лежит", "лежат"]));
+    }
+  });
+
+  it("adds only same-verb present-tense forms at higher levels", () => {
+    const fourOptions = generateTasks({ type: "verb_number_agreement" }, VERB_CARDS, 500, { optionCount: 4 });
+    const sixOptions = generateTasks({ type: "verb_number_agreement" }, VERB_CARDS, 500, { optionCount: 6 });
+    const allForms = new Set(["лежу", "лежишь", "лежит", "лежим", "лежите", "лежат"]);
+
+    for (const task of fourOptions) {
+      expect(new Set(task.options)).toEqual(new Set(["лежу", "лежит", "лежим", "лежат"]));
+      expect(task.options).toContain(task.card.answer);
+    }
+    for (const task of sixOptions) {
+      expect(new Set(task.options)).toEqual(allForms);
+      expect(task.options).toContain(task.card.answer);
     }
   });
 });
