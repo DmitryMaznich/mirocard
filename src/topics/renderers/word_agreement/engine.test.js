@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateTasks } from "./engine";
+import { generateTasks, FORMS_BY_WORD } from "./engine";
 
 const CASE_CARDS = [
   { id: "basic", skill: "case_agreement", word: "myach", optionSet: "singular", answer: "мяча" },
@@ -25,6 +25,13 @@ describe("word agreement task generation", () => {
     expect(tasks).toHaveLength(1);
     expect(tasks[0].options).toHaveLength(2);
     expect(tasks[0].options).toContain("мяча");
+  });
+
+  it("has a valid 6-form pool for every newly added lexical set", () => {
+    for (const word of ["stol", "kniga", "kukla", "okno", "yaytso"]) {
+      expect(FORMS_BY_WORD[word].singular).toHaveLength(6);
+      expect(FORMS_BY_WORD[word].plural).toHaveLength(6);
+    }
   });
 
   it("includes advanced case cards only when the setting is enabled", () => {
