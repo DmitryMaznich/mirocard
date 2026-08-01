@@ -33,11 +33,18 @@ export default function PrintMaterialsRenderer({ topicRecord }) {
 
   const handleOpen = useCallback(async (item, file) => {
     const key = `${item.id}::${file.path}`;
+    // iOS Safari only allows window.open() synchronously inside the click
+    // handler's own call stack; opened *after* an await it's silently
+    // blocked as a popup (tap does nothing, no error). So the tab is opened
+    // blank right here, before any await, and pointed at the real URL once
+    // the blob is ready - same fix as PlannerShoppingScreen.jsx.
+    const win = window.open("", "_blank");
     setBusy(prev => ({ ...prev, [key]: true }));
     try {
       const db = await getDb();
       const blob = await topics.getFile(db, meta.id, file.path);
       if (!blob) {
+        win?.close();
         alert("Файл не найден. Переустановите тему.");
         return;
       }
@@ -47,7 +54,11 @@ export default function PrintMaterialsRenderer({ topicRecord }) {
       // with no way to open/preview it.
       const pdfBlob = blob.type === "application/pdf" ? blob : new Blob([blob], { type: "application/pdf" });
       const url = URL.createObjectURL(pdfBlob);
-      window.open(url, "_blank");
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, "_blank");
+      }
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } finally {
       setBusy(prev => ({ ...prev, [key]: false }));
