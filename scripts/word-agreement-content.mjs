@@ -64,7 +64,7 @@ export const CASE_AGREEMENT_CARDS = [
   // Мама, папа и яблоко
   { id: "yabloko_01", word: "yabloko", sentence: "У папы одно {blank}.",                               answer: "яблоко",   optionSet: "singular" },
   { id: "yabloko_02", word: "yabloko", context: "Папа уронил яблоко.", sentence: "Теперь у него нет {blank}.", answer: "яблока",   optionSet: "singular", marker: "нет" },
-  { id: "yabloko_03", word: "yabloko", sentence: "Мама пришла домой без своего {blank}.",               answer: "яблока",   optionSet: "singular", marker: "без" },
+  { id: "yabloko_03", word: "yabloko", sentence: "Иван пришёл в школу без своего {blank}.",             answer: "яблока",   optionSet: "singular", marker: "без" },
   { id: "yabloko_04", word: "yabloko", context: "На столе лежит яблоко.", sentence: "Папа потянулся к {blank}.", answer: "яблоку",   optionSet: "singular", marker: "к" },
   { id: "yabloko_05", word: "yabloko", context: "У мамы одно яблоко.", sentence: "Она делится {blank}.",      answer: "яблоком",  optionSet: "singular" },
   { id: "yabloko_06", word: "yabloko", context: "Мама посмотрела на яблоко.", sentence: "На {blank} было пятно.", answer: "яблоке", optionSet: "singular", marker: "на" },
