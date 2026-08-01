@@ -1,9 +1,10 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { ALL_CARDS } from "./word-agreement-content.mjs";
+import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.2.1";
+const VERSION    = "1.2.2";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs writes synthesized mp3s. A card
 // gets its `audio` field only if the file actually exists here — until then
@@ -20,7 +21,11 @@ const PLACEHOLDER_MODES = [
   type: m.id,
   evaluation: "none",
   requirePin: false,
-  ui: { title: { ru: m.title }, instruction: { ru: "Этот режим появится в одном из следующих обновлений" } },
+  ui: {
+    title:       { ru: m.title },
+    instruction: { ru: "Этот режим появится в одном из следующих обновлений" },
+    icon:        MODE_ICONS[m.id].path,
+  },
 }));
 
 const topic = {
@@ -29,6 +34,7 @@ const topic = {
     renderer: "word_agreement",
     version:  VERSION,
     title:    { ru: "Языковой тренажёр" },
+    avatar:   AVATAR_PATH,
     about: {
       description: {
         ru: "Закрепляем согласование слов и окончаний в предложениях: ребёнок читает короткий текст с пропуском и выбирает верную форму слова по смыслу, без падежных терминов и правил.",
@@ -45,6 +51,7 @@ const topic = {
       ui: {
         title:       { ru: "Падеж существительного" },
         instruction: { ru: "Прочитай предложение и выбери верное слово" },
+        icon:        MODE_ICONS.case_agreement.path,
       },
     },
     {
@@ -55,6 +62,7 @@ const topic = {
       ui: {
         title:       { ru: "Число глагола" },
         instruction: { ru: "Прочитай предложение и выбери верную форму глагола" },
+        icon:        MODE_ICONS.verb_number_agreement.path,
       },
     },
     ...PLACEHOLDER_MODES,
@@ -67,6 +75,13 @@ const topic = {
 
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(topic, null, 2));
+zip.file(AVATAR_PATH, AVATAR_SVG);
+const seenIconPaths = new Set();
+for (const { path, svg } of Object.values(MODE_ICONS)) {
+  if (seenIconPaths.has(path)) continue; // coming_soon.svg is shared across 4 modes
+  zip.file(path, svg);
+  seenIconPaths.add(path);
+}
 
 let audioCount = 0;
 for (const card of topic.cards) {
