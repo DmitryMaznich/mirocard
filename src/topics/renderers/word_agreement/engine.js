@@ -1,8 +1,7 @@
 import { shuffle } from "@/shared/utils/shuffle";
 
-// Fixed 6-word option pools per lexical set, keyed by word id + grammatical
-// number. Each case_agreement card names its word (card.word) and which pool
-// applies (card.optionSet: "singular" | "plural").
+// Fixed grammatical forms for each lexical set. The exercise starts with two
+// variants and can gradually introduce up to the full six-form set.
 export const FORMS_BY_WORD = {
   myach: {
     singular: ["мяч", "мяча", "мячу", "мячом", "мяче", "мячей"],
@@ -22,24 +21,37 @@ export const FORMS_BY_WORD = {
   },
 };
 
-function buildCaseAgreementTasks(cards) {
+const OPTION_COUNTS = new Set([2, 3, 4, 6]);
+
+function getOptionCount(params) {
+  const value = Number(params?.optionCount);
+  return OPTION_COUNTS.has(value) ? value : 2;
+}
+
+function limitedOptions(pool, answer, count) {
+  const distractors = shuffle(pool.filter((word) => word !== answer));
+  return shuffle([answer, ...distractors.slice(0, count - 1)]);
+}
+
+function buildCaseAgreementTasks(cards, params) {
+  const optionCount = getOptionCount(params);
+  const includeAdvancedCards = params?.includeAdvancedCards === true;
+
   return shuffle(
     cards
-      .filter((c) => c.skill === "case_agreement")
+      .filter((card) => card.skill === "case_agreement")
+      .filter((card) => includeAdvancedCards || card.difficulty !== "advanced")
       .map((card) => ({
         type: "case_agreement",
         card,
-        options: FORMS_BY_WORD[card.word]?.[card.optionSet] ?? [],
+        options: limitedOptions(FORMS_BY_WORD[card.word]?.[card.optionSet] ?? [], card.answer, optionCount),
       }))
   );
 }
 
-// Full present-tense conjugation (я/ты/он/мы/вы/они) per verb — six options,
-// same size as the case_agreement pools, so a wrong pick can't be narrowed
-// down to "the other button" by elimination. The child still only needs to
-// look at the subject's number; the other four forms are wrong on person,
-// not just number, but that's fine — nothing in the sentence is 1st/2nd
-// person, so they're never a plausible fit either way.
+// Full present-tense conjugation is retained as source data, but the child is
+// only offered third-person forms. This keeps the stated goal focused on number
+// rather than introducing irrelevant first- and second-person endings.
 const VERB_FORMS = {
   lezhat:    ["лежу",   "лежишь",   "лежит",   "лежим",   "лежите",   "лежат"],
   katitsya:  ["качусь", "катишься", "катится", "катимся", "катитесь", "катятся"],
@@ -53,27 +65,33 @@ const VERB_FORMS = {
   gulyat:    ["гуляю",  "гуляешь",  "гуляет",  "гуляем",  "гуляете",  "гуляют"],
 };
 
-function buildVerbNumberTasks(cards) {
+function buildVerbOptions(card, count) {
+  const forms = VERB_FORMS[card.verb] ?? [];
+  const isPlural = card.answer === forms[5];
+  const otherNumber = forms[isPlural ? 2 : 5];
+  const sameNumberOtherVerbs = Object.entries(VERB_FORMS)
+    .filter(([verb]) => verb !== card.verb)
+    .map(([, verbForms]) => verbForms[isPlural ? 5 : 2]);
+
+  return limitedOptions([otherNumber, ...sameNumberOtherVerbs], card.answer, count);
+}
+
+function buildVerbNumberTasks(cards, params) {
+  const optionCount = getOptionCount(params);
   return shuffle(
     cards
-      .filter((c) => c.skill === "verb_number_agreement")
+      .filter((card) => card.skill === "verb_number_agreement")
       .map((card) => ({
         type: "verb_number",
         card,
-        options: VERB_FORMS[card.verb] ?? [],
+        options: buildVerbOptions(card, optionCount),
       }))
   );
 }
 
-export function generateTasks(mode, cards) {
+export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const modeType = mode?.type ?? mode?.id;
-  if (modeType === "case_agreement") {
-    return buildCaseAgreementTasks(cards);
-  }
-  if (modeType === "verb_number_agreement") {
-    return buildVerbNumberTasks(cards);
-  }
-  // Placeholder modes (verb gender, adjective agreement, etc.) aren't built
-  // yet — a single task is enough for the renderer to show "Скоро".
+  if (modeType === "case_agreement") return buildCaseAgreementTasks(cards, params);
+  if (modeType === "verb_number_agreement") return buildVerbNumberTasks(cards, params);
   return [{ type: modeType }];
 }

@@ -4,7 +4,7 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.2.5";
+const VERSION    = "1.3.2";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
 // .wav files. A card gets its `audio` field only if the file actually
@@ -53,6 +53,16 @@ const topic = {
         instruction: { ru: "Прочитай предложение и выбери верное слово" },
         icon:        MODE_ICONS.case_agreement.path,
       },
+      params: {
+        optionCount: {
+          type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
+          labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+        },
+        includeAdvancedCards: {
+          type: "boolean", label: { ru: "Сложные сюжеты" },
+          hint: { ru: "Карточки со значением «рассказывает о…»" }, default: false,
+        },
+      },
     },
     {
       id:          "verb_number_agreement",
@@ -63,6 +73,12 @@ const topic = {
         title:       { ru: "Число глагола" },
         instruction: { ru: "Прочитай предложение и выбери верную форму глагола" },
         icon:        MODE_ICONS.verb_number_agreement.path,
+      },
+      params: {
+        optionCount: {
+          type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
+          labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+        },
       },
     },
     ...PLACEHOLDER_MODES,
@@ -103,7 +119,7 @@ const entry = {
   zipUrl:   `${TOPIC_ID}_v${VERSION}.zip`,
   title:    { ru: "Языковой тренажёр" },
   description: {
-    ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, машина, яблоко) и число глагола. Остальные режимы — скоро.",
+    ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, машина, яблоко) и число глагола. Настраиваемая сложность: от двух вариантов ответа.",
   },
   renderer: "word_agreement",
   status:   "release",
