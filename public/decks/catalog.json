@@ -338,9 +338,9 @@
     },
     {
       "id": "word_agreement_ru",
-      "version": "1.3.1",
-      "url": "./decks/word_agreement_ru_v1.3.1.zip",
-      "zipUrl": "word_agreement_ru_v1.3.1.zip",
+      "version": "1.3.2",
+      "url": "./decks/word_agreement_ru_v1.3.2.zip",
+      "zipUrl": "word_agreement_ru_v1.3.2.zip",
       "title": {
         "ru": "Языковой тренажёр"
       },

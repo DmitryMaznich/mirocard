@@ -1,8 +1,8 @@
 // Shared content for the "Языковой тренажёр" (word_agreement) topic.
 // Used by both build-word-agreement-deck.mjs (packages the deck) and
-// generate-word-agreement-audio.mjs (synthesizes one mp3 per card's full
-// sentence). Keeping the sentences in one place avoids the two scripts
-// drifting apart.
+// generate-word-agreement-audio.mjs (synthesizes one .wav per card's full
+// sentence via Gemini TTS). Keeping the sentences in one place avoids the
+// two scripts drifting apart.
 
 // Full spoken text for a card (context + sentence with the blank filled in)
 // — matches FillBlankTask's fillSentence() at runtime. Used both for the
@@ -32,7 +32,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "myach_08", word: "myach", sentence: "У Ивана много {blank}.",                                answer: "мячей",  optionSet: "plural", marker: "много" },
   { id: "myach_09", word: "myach", context: "Во дворе лежат мячи.", sentence: "Иван подошёл к {blank}, чтобы выбрать один.",      answer: "мячам",  optionSet: "plural", marker: "к" },
   { id: "myach_10", word: "myach", context: "В коробке лежат мячи.", sentence: "Иван играет с {blank}.",    answer: "мячами", optionSet: "plural", marker: "с" },
-  { id: "myach_11", word: "myach", context: "Иван показывает папе разные мячи.", sentence: "Он рассказывает папе о {blank}.", answer: "мячах", optionSet: "plural", marker: "о", difficulty: "advanced" },
+  { id: "myach_11", word: "myach", context: "В комнате лежат разные мячи.", sentence: "Иван думает о {blank}.", answer: "мячах", optionSet: "plural", marker: "о", difficulty: "advanced" },
 
   // Алина и карандаш
   { id: "karandash_01", word: "karandash", sentence: "У Алины один {blank}.",                              answer: "карандаш",    optionSet: "singular" },
@@ -45,7 +45,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "karandash_08", word: "karandash", sentence: "У Алины много {blank}.",                             answer: "карандашей",  optionSet: "plural", marker: "много" },
   { id: "karandash_09", word: "karandash", sentence: "Папа приклеил к {blank} наклейки с именами.", answer: "карандашам",  optionSet: "plural", marker: "к" },
   { id: "karandash_10", word: "karandash", context: "В коробке лежат карандаши.", sentence: "Алина рисует {blank}.",   answer: "карандашами", optionSet: "plural" },
-  { id: "karandash_11", word: "karandash", context: "Алина показывает папе разные карандаши.", sentence: "Она рассказывает папе о {blank}.", answer: "карандашах", optionSet: "plural", marker: "о", difficulty: "advanced" },
+  { id: "karandash_11", word: "karandash", context: "В шкафу лежат разные карандаши.", sentence: "Алина думает о {blank}.", answer: "карандашах", optionSet: "plural", marker: "о", difficulty: "advanced" },
 
   // Папа, Иван и машина (настоящая машина, не игрушка)
   { id: "mashina_01", word: "mashina", sentence: "У папы одна {blank}.",                                answer: "машина",   optionSet: "singular" },
@@ -59,12 +59,12 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "mashina_09", word: "mashina", sentence: "На парковке много {blank}.",                          answer: "машин",    optionSet: "plural", marker: "много" },
   { id: "mashina_10", word: "mashina", context: "На парковке стоят машины.", sentence: "Папа идёт к {blank}, чтобы найти свою.", answer: "машинам", optionSet: "plural", marker: "к" },
   { id: "mashina_11", word: "mashina", sentence: "Папа паркуется рядом с другими {blank}.",             answer: "машинами", optionSet: "plural", marker: "с" },
-  { id: "mashina_12", word: "mashina", context: "Иван показывает папе картинки машин.", sentence: "Он рассказывает папе о {blank}.", answer: "машинах", optionSet: "plural", marker: "о", difficulty: "advanced" },
+  { id: "mashina_12", word: "mashina", context: "Иван любит машины.", sentence: "Он думает о {blank}.", answer: "машинах",  optionSet: "plural", marker: "о", difficulty: "advanced" },
 
   // Мама, папа и яблоко
   { id: "yabloko_01", word: "yabloko", sentence: "У папы одно {blank}.",                               answer: "яблоко",   optionSet: "singular" },
   { id: "yabloko_02", word: "yabloko", context: "Папа уронил яблоко.", sentence: "Теперь у него нет {blank}.", answer: "яблока",   optionSet: "singular", marker: "нет" },
-  { id: "yabloko_03", word: "yabloko", sentence: "Мама хотела испечь пирог, но пришла из магазина без {blank}.",               answer: "яблока",   optionSet: "singular", marker: "без" },
+  { id: "yabloko_03", word: "yabloko", sentence: "Иван пришёл в школу без своего {blank}.",             answer: "яблока",   optionSet: "singular", marker: "без" },
   { id: "yabloko_04", word: "yabloko", context: "На столе лежит яблоко.", sentence: "Папа потянулся к {blank}.", answer: "яблоку",   optionSet: "singular", marker: "к" },
   { id: "yabloko_05", word: "yabloko", sentence: "Мама угостила папу {blank}.",      answer: "яблоком",  optionSet: "singular" },
   { id: "yabloko_06", word: "yabloko", context: "Мама посмотрела на яблоко.", sentence: "На {blank} было пятно.", answer: "яблоке", optionSet: "singular", marker: "на" },
@@ -72,7 +72,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "yabloko_08", word: "yabloko", sentence: "У мамы много {blank}.",                              answer: "яблок",    optionSet: "plural", marker: "много" },
   { id: "yabloko_09", word: "yabloko", context: "В корзине лежат яблоки.", sentence: "Папа потянулся к {blank}, чтобы взять два.", answer: "яблокам",  optionSet: "plural", marker: "к" },
   { id: "yabloko_10", word: "yabloko", sentence: "Мама испекла пирог с {blank}.", answer: "яблоками", optionSet: "plural", marker: "с" },
-  { id: "yabloko_11", word: "yabloko", context: "Мама показывает детям яблоки в саду.", sentence: "Она рассказывает детям о {blank}.", answer: "яблоках", optionSet: "plural", marker: "о", difficulty: "advanced" },
+  { id: "yabloko_11", word: "yabloko", context: "В саду растут разные яблоки.", sentence: "Мама думает о {blank}.", answer: "яблоках", optionSet: "plural", marker: "о", difficulty: "advanced" },
 ].map((c) => ({
   ...c,
   skill:   "case_agreement",
