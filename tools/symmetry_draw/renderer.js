@@ -41,6 +41,41 @@
     return points.map((point, index) => `${index ? "L" : "M"} ${point.col} ${point.row}`).join(" ");
   }
 
+  // Pointer sampling rarely crosses the X and Y grid-line thresholds on the same event,
+  // so a hand-drawn 45deg stroke usually comes in as a horizontal+vertical "staircase".
+  // Collapse any such single-cell staircase back into one diagonal step.
+  function isUnitOrthoStep(dCol, dRow) {
+    return (Math.abs(dCol) === 1 && dRow === 0) || (dCol === 0 && Math.abs(dRow) === 1);
+  }
+
+  function simplifyDiagonalSteps(points) {
+    const result = [];
+    for (const point of points) {
+      result.push(point);
+      while (result.length >= 3) {
+        const n = result.length;
+        const a = result[n - 3];
+        const b = result[n - 2];
+        const c = result[n - 1];
+        const abCol = b.col - a.col, abRow = b.row - a.row;
+        const bcCol = c.col - b.col, bcRow = c.row - b.row;
+        if (!isUnitOrthoStep(abCol, abRow) || !isUnitOrthoStep(bcCol, bcRow)) break;
+        const abHorizontal = abRow === 0;
+        const bcHorizontal = bcRow === 0;
+        if (abHorizontal === bcHorizontal) break;
+        // If "a" was reached by continuing the same direction as a->b, that's a real
+        // multi-cell edge turning a corner at "b" - not diagonal noise. Leave it alone.
+        const before = result[n - 4];
+        if (before) {
+          const paCol = a.col - before.col, paRow = a.row - before.row;
+          if (isUnitOrthoStep(paCol, paRow) && (paRow === 0) === abHorizontal) break;
+        }
+        result.splice(n - 2, 1);
+      }
+    }
+    return result;
+  }
+
   function GridTask({ task, onCorrect }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
@@ -92,7 +127,7 @@
         const current = paths.at(-1);
         const previous = current?.at(-1);
         if (!previous || (previous.col === point.col && previous.row === point.row)) return paths;
-        return [...paths.slice(0, -1), [...current, point]];
+        return [...paths.slice(0, -1), simplifyDiagonalSteps([...current, point])];
       });
     }
 
