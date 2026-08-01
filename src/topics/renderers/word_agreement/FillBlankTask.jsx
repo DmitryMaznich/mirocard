@@ -1,14 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { shuffle } from "@/shared/utils/shuffle";
-import { useSpeech } from "@/shared/hooks/useSpeech";
 
 const MAX_ATTEMPTS = 3;
 const MARKER_ATTEMPT_THRESHOLD = 2;
-
-function fillSentence(card, word) {
-  const sentence = card.sentence.replace("{blank}", word);
-  return card.context ? `${card.context} ${sentence}` : sentence;
-}
 
 function withMarker(text, marker, active) {
   if (!marker || !active || !text) return text;
@@ -45,16 +39,14 @@ function BlankSentence({ card, filledWord, showMarker }) {
 
 export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect, onMistake, onAdvance, onCardShown, onTap }) {
   const { card, options } = task;
-  const { speak } = useSpeech();
 
-  // Prefer the deck's recorded audio (Google Cloud TTS, generated offline —
-  // see scripts/generate-word-agreement-audio.mjs); fall back to the
-  // browser's speech synthesis for cards that don't have it yet.
+  // Only the deck's recorded audio (Gemini TTS, generated offline — see
+  // scripts/generate-word-agreement-audio.mjs) is good enough for this
+  // content; browser speech synthesis mis-stresses Russian words and reads
+  // too flat, so cards without recorded audio just stay silent for now.
   function playCorrectAudio() {
     if (card.audio && topicId && playTopicFile) {
       playTopicFile(topicId, card.audio);
-    } else {
-      speak(fillSentence(card, card.answer));
     }
   }
 
