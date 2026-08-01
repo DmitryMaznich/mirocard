@@ -137,24 +137,36 @@ const VERB_GENDER_ITEMS = [
   { id: "verbgen_05", verb: "priti",      subject: "Мама",         rest: "с работы",    answer: "пришла" },
   { id: "verbgen_06", verb: "priti",      subject: "Дети",         rest: "из школы",    answer: "пришли" },
   { id: "verbgen_07", verb: "upast",      subject: "Мяч",          rest: "со стола",    answer: "упал" },
-  { id: "verbgen_08", verb: "lezhat",     subject: "Карандаш",     rest: "на столе",    answer: "лежал" },
+  // 08/10/12/15 use stative verbs (лежать/стоять), which read equally
+  // naturally in present tense ("лежит"/"стоит") without any cue — unlike
+  // the one-time events above (пошёл/упал/...), past tense here isn't
+  // self-evident, so a "Вчера" anchor makes it explicit.
+  { id: "verbgen_08", verb: "lezhat",     subject: "Карандаш",     rest: "на столе",    answer: "лежал",       lead: "Вчера" },
   { id: "verbgen_09", verb: "upast",      subject: "Алина",        rest: "на льду",     answer: "упала" },
-  { id: "verbgen_10", verb: "stoyat",     subject: "Машина",       rest: "в гараже",    answer: "стояла" },
+  { id: "verbgen_10", verb: "stoyat",     subject: "Машина",       rest: "в гараже",    answer: "стояла",      lead: "Вчера" },
   { id: "verbgen_11", verb: "upast",      subject: "Яблоко",       rest: "с дерева",    answer: "упало" },
-  { id: "verbgen_12", verb: "lezhat",     subject: "Яблоко",       rest: "в корзине",   answer: "лежало" },
-  { id: "verbgen_13", verb: "pokatitsya", subject: "Яблоко",       rest: "по столу",    answer: "покатилось" },
+  { id: "verbgen_12", verb: "lezhat",     subject: "Яблоко",       rest: "в корзине",   answer: "лежало",      lead: "Вчера" },
+  // покатилось implies an unstated cause (apples don't roll on their own) —
+  // a one-line context supplies it instead of a temporal marker.
+  { id: "verbgen_13", verb: "pokatitsya", subject: "Яблоко",       rest: "по столу",    answer: "покатилось", context: "Иван задел яблоко локтем." },
   { id: "verbgen_14", verb: "upast",      subject: "Карандаши",    rest: "со стола",    answer: "упали" },
-  { id: "verbgen_15", verb: "lezhat",     subject: "Мячи",         rest: "в коробке",   answer: "лежали" },
+  { id: "verbgen_15", verb: "lezhat",     subject: "Мячи",         rest: "в коробке",   answer: "лежали",      lead: "Вчера" },
 ];
 
-export const VERB_GENDER_CARDS = VERB_GENDER_ITEMS.map((item) => ({
-  id: item.id,
-  skill: "verb_gender_agreement",
-  verb: item.verb,
-  sentence: `${item.subject} {blank} ${item.rest}.`,
-  answer: item.answer,
-  marker: item.subject,
-  context: null,
-})).map((c) => ({ ...c, label: fullLabel(c) }));
+export const VERB_GENDER_CARDS = VERB_GENDER_ITEMS.map((item) => {
+  const leadSubject = item.lead ? item.subject.charAt(0).toLowerCase() + item.subject.slice(1) : item.subject;
+  const sentence = item.lead
+    ? `${item.lead} ${leadSubject} {blank} ${item.rest}.`
+    : `${item.subject} {blank} ${item.rest}.`;
+  return {
+    id: item.id,
+    skill: "verb_gender_agreement",
+    verb: item.verb,
+    sentence,
+    answer: item.answer,
+    marker: item.subject,
+    context: item.context ?? null,
+  };
+}).map((c) => ({ ...c, label: fullLabel(c) }));
 
 export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS];
