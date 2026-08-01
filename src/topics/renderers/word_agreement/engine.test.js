@@ -32,19 +32,14 @@ describe("word agreement task generation", () => {
     expect(tasks.every((task) => task.options.length === 4)).toBe(true);
   });
 
-  it("uses only third-person verb forms while increasing options", () => {
-    const tasks = generateTasks({ type: "verb_number_agreement" }, VERB_CARDS, 500, { optionCount: 4 });
-    const thirdPersonForms = new Set([
-      "лежит", "лежат", "катится", "катятся", "падает", "падают", "стоит", "стоят",
-      "едет", "едут", "висит", "висят", "играет", "играют", "рисует", "рисуют",
-      "идёт", "идут", "гуляет", "гуляют",
-    ]);
+  it("offers only the singular and plural forms of the same verb", () => {
+    const tasks = generateTasks({ type: "verb_number_agreement" }, VERB_CARDS, 500, { optionCount: 6 });
 
     expect(tasks).toHaveLength(2);
     for (const task of tasks) {
-      expect(task.options).toHaveLength(4);
+      expect(task.options).toHaveLength(2);
       expect(task.options).toContain(task.card.answer);
-      expect(task.options.every((option) => thirdPersonForms.has(option))).toBe(true);
+      expect(new Set(task.options)).toEqual(new Set(["лежит", "лежат"]));
     }
   });
 });

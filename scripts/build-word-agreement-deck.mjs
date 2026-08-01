@@ -71,14 +71,8 @@ const topic = {
       requirePin:  false,
       ui: {
         title:       { ru: "Число глагола" },
-        instruction: { ru: "Прочитай предложение и выбери верную форму глагола" },
+        instruction: { ru: "Прочитай предложение и выбери форму глагола" },
         icon:        MODE_ICONS.verb_number_agreement.path,
-      },
-      params: {
-        optionCount: {
-          type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
-          labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
-        },
       },
     },
     ...PLACEHOLDER_MODES,

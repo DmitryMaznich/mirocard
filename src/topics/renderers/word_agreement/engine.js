@@ -49,42 +49,30 @@ function buildCaseAgreementTasks(cards, params) {
   );
 }
 
-// Full present-tense conjugation is retained as source data, but the child is
-// only offered third-person forms. This keeps the stated goal focused on number
-// rather than introducing irrelevant first- and second-person endings.
+// This mode targets only singular/plural agreement. Keeping the two
+// third-person forms of the same verb makes every incorrect answer unambiguously
+// grammatical-number related, rather than a guess about a different action.
 const VERB_FORMS = {
-  lezhat:    ["лежу",   "лежишь",   "лежит",   "лежим",   "лежите",   "лежат"],
-  katitsya:  ["качусь", "катишься", "катится", "катимся", "катитесь", "катятся"],
-  padat:     ["падаю",  "падаешь",  "падает",  "падаем",  "падаете",  "падают"],
-  stoyat:    ["стою",   "стоишь",   "стоит",   "стоим",   "стоите",   "стоят"],
-  ekhat:     ["еду",    "едешь",    "едет",    "едем",    "едете",    "едут"],
-  viset:     ["вишу",   "висишь",   "висит",   "висим",   "висите",   "висят"],
-  igrat:     ["играю",  "играешь",  "играет",  "играем",  "играете",  "играют"],
-  risovat:   ["рисую",  "рисуешь",  "рисует",  "рисуем",  "рисуете",  "рисуют"],
-  idti:      ["иду",    "идёшь",    "идёт",    "идём",    "идёте",    "идут"],
-  gulyat:    ["гуляю",  "гуляешь",  "гуляет",  "гуляем",  "гуляете",  "гуляют"],
+  lezhat:   ["лежит", "лежат"],
+  katitsya: ["катится", "катятся"],
+  padat:    ["падает", "падают"],
+  stoyat:   ["стоит", "стоят"],
+  ekhat:    ["едет", "едут"],
+  viset:    ["висит", "висят"],
+  igrat:    ["играет", "играют"],
+  risovat:  ["рисует", "рисуют"],
+  idti:     ["идёт", "идут"],
+  gulyat:   ["гуляет", "гуляют"],
 };
 
-function buildVerbOptions(card, count) {
-  const forms = VERB_FORMS[card.verb] ?? [];
-  const isPlural = card.answer === forms[5];
-  const otherNumber = forms[isPlural ? 2 : 5];
-  const sameNumberOtherVerbs = Object.entries(VERB_FORMS)
-    .filter(([verb]) => verb !== card.verb)
-    .map(([, verbForms]) => verbForms[isPlural ? 5 : 2]);
-
-  return limitedOptions([otherNumber, ...sameNumberOtherVerbs], card.answer, count);
-}
-
-function buildVerbNumberTasks(cards, params) {
-  const optionCount = getOptionCount(params);
+function buildVerbNumberTasks(cards) {
   return shuffle(
     cards
       .filter((card) => card.skill === "verb_number_agreement")
       .map((card) => ({
         type: "verb_number",
         card,
-        options: buildVerbOptions(card, optionCount),
+        options: shuffle(VERB_FORMS[card.verb] ?? []),
       }))
   );
 }
@@ -92,6 +80,6 @@ function buildVerbNumberTasks(cards, params) {
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const modeType = mode?.type ?? mode?.id;
   if (modeType === "case_agreement") return buildCaseAgreementTasks(cards, params);
-  if (modeType === "verb_number_agreement") return buildVerbNumberTasks(cards, params);
+  if (modeType === "verb_number_agreement") return buildVerbNumberTasks(cards);
   return [{ type: modeType }];
 }
