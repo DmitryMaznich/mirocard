@@ -49,9 +49,9 @@ function buildCaseAgreementTasks(cards, params) {
   );
 }
 
-// Full present-tense conjugation is retained as source data, but the child is
-// only offered third-person forms. This keeps the stated goal focused on number
-// rather than introducing irrelevant first- and second-person endings.
+// All choices remain forms of the same verb. The basic level isolates
+// singular/plural in the third person; higher levels progressively add the
+// first- and second-person forms, so a correct answer cannot be a coin flip.
 const VERB_FORMS = {
   lezhat:    ["лежу",   "лежишь",   "лежит",   "лежим",   "лежите",   "лежат"],
   katitsya:  ["качусь", "катишься", "катится", "катимся", "катитесь", "катятся"],
@@ -65,19 +65,17 @@ const VERB_FORMS = {
   gulyat:    ["гуляю",  "гуляешь",  "гуляет",  "гуляем",  "гуляете",  "гуляют"],
 };
 
-function buildVerbOptions(card, count) {
+function buildVerbOptions(card, optionCount) {
   const forms = VERB_FORMS[card.verb] ?? [];
-  const isPlural = card.answer === forms[5];
-  const otherNumber = forms[isPlural ? 2 : 5];
-  const sameNumberOtherVerbs = Object.entries(VERB_FORMS)
-    .filter(([verb]) => verb !== card.verb)
-    .map(([, verbForms]) => verbForms[isPlural ? 5 : 2]);
-
-  return limitedOptions([otherNumber, ...sameNumberOtherVerbs], card.answer, count);
+  if (optionCount === 2) return shuffle([forms[2], forms[5]].filter(Boolean));
+  if (optionCount === 4) return shuffle([forms[0], forms[2], forms[3], forms[5]].filter(Boolean));
+  return shuffle(forms);
 }
 
 function buildVerbNumberTasks(cards, params) {
-  const optionCount = getOptionCount(params);
+  const optionCount = [2, 4, 6].includes(Number(params?.optionCount))
+    ? Number(params.optionCount)
+    : 2;
   return shuffle(
     cards
       .filter((card) => card.skill === "verb_number_agreement")
