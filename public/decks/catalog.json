@@ -350,6 +350,21 @@
       "renderer": "word_agreement",
       "status": "release",
       "access": "free"
+    },
+    {
+      "id": "symmetry_draw",
+      "version": "1.0.0",
+      "url": "./decks/symmetry_draw_v1.0.0.zip",
+      "zipUrl": "symmetry_draw_v1.0.0.zip",
+      "title": {
+        "ru": "Симметричный рисунок"
+      },
+      "description": {
+        "ru": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси."
+      },
+      "renderer": "flashcards",
+      "status": "release",
+      "access": "free"
     }
   ]
 }
