@@ -4,9 +4,31 @@ import { shuffle } from "@/shared/utils/shuffle";
 const MAX_ATTEMPTS = 3;
 const MARKER_ATTEMPT_THRESHOLD = 2;
 
+// JS's \b word boundary only recognizes [A-Za-z0-9_], not Cyrillic, so a
+// plain indexOf/regex search for a short marker like "о" or "с" would also
+// match that letter sequence inside an unrelated word (e.g. "о" inside
+// "комнате"). Walk occurrences manually and keep only ones flanked by a
+// non-letter (or string start/end) on both sides.
+const LETTER_RE = /[a-zа-яё]/i;
+
+function findStandaloneIndex(text, marker) {
+  const lowerText = text.toLowerCase();
+  const lowerMarker = marker.toLowerCase();
+  let from = 0;
+  while (from <= lowerText.length) {
+    const idx = lowerText.indexOf(lowerMarker, from);
+    if (idx === -1) return -1;
+    const before = lowerText[idx - 1];
+    const after = lowerText[idx + lowerMarker.length];
+    if (!LETTER_RE.test(before ?? "") && !LETTER_RE.test(after ?? "")) return idx;
+    from = idx + 1;
+  }
+  return -1;
+}
+
 function withMarker(text, marker, active) {
   if (!marker || !active || !text) return text;
-  const idx = text.toLowerCase().indexOf(marker.toLowerCase());
+  const idx = findStandaloneIndex(text, marker);
   if (idx === -1) return text;
   return (
     <>
