@@ -76,7 +76,7 @@
     return result;
   }
 
-  function GridTask({ task, onCorrect }) {
+  function GridTask({ task, mode, onCorrect }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const [drawnPaths, setDrawnPaths] = useState([]);
@@ -156,38 +156,55 @@
     for (let row = 0; row <= rows; row += 1) gridLines.push(h("line", { key: `h-${row}`, className: "symmetry-draw__line", x1: 0, y1: row, x2: columns, y2: row }));
     const nodes = [];
     for (let col = 0; col <= columns; col += 1) {
-      for (let row = 0; row <= rows; row += 1) nodes.push(h("circle", { key: `p-${col}-${row}`, className: "symmetry-draw__point", cx: col, cy: row, r: "0.045" }));
+      for (let row = 0; row <= rows; row += 1) nodes.push(h("circle", { key: `p-${col}-${row}`, className: "symmetry-draw__point", cx: col, cy: row, r: "0.05" }));
     }
 
+    const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
+
     return h("section", { className: "symmetry-draw", "aria-label": shape.label ?? "Симметричный рисунок" },
-      h("svg", {
-        ref: svgRef,
-        className: "symmetry-draw__grid",
-        viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`,
-        onPointerDown: startDrawing,
-        onPointerMove: continueDrawing,
-        onPointerUp: stopDrawing,
-        onPointerCancel: stopDrawing,
-        onPointerLeave: stopDrawing,
-      },
-        h("rect", { className: "symmetry-draw__paper", x: "-0.5", y: "-0.72", width: columns + 1, height: rows + 1.45, rx: "0.12" }),
-        gridLines,
-        Array.from({ length: columns + 1 }, (_, col) => h("text", { key: `col-${col}`, className: "symmetry-draw__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, String.fromCharCode(65 + col))),
-        Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)),
-        nodes,
-        h("line", { className: "symmetry-draw__axis", x1: axisCol, y1: 0, x2: axisCol, y2: rows }),
-        sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
-        drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
-        showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
-        showHint ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.16" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
+      h("span", { className: "symmetry-draw__tape", "aria-hidden": "true" }),
+      h("div", { className: "symmetry-draw__head" },
+        h("div", { className: "symmetry-draw__head-text" },
+          h("div", { className: "symmetry-draw__title" }, shape.label ?? "Фигура"),
+          h("div", { className: "symmetry-draw__instruction" }, instruction),
+        ),
+        h("span", { className: "symmetry-draw__mirror-chip" }, "↔ зеркало"),
+      ),
+      h("div", { className: "symmetry-draw__canvas" },
+        h("svg", {
+          ref: svgRef,
+          className: "symmetry-draw__grid",
+          viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`,
+          onPointerDown: startDrawing,
+          onPointerMove: continueDrawing,
+          onPointerUp: stopDrawing,
+          onPointerCancel: stopDrawing,
+          onPointerLeave: stopDrawing,
+        },
+          h("rect", { className: "symmetry-draw__paper", x: "-0.5", y: "-0.72", width: columns + 1, height: rows + 1.45, rx: "0.12" }),
+          gridLines,
+          Array.from({ length: columns + 1 }, (_, col) => h("text", { key: `col-${col}`, className: "symmetry-draw__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, String.fromCharCode(65 + col))),
+          Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)),
+          nodes,
+          h("line", { className: "symmetry-draw__mirror-line", x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
+          h("path", { className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
+          h("path", { className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
+          sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
+          drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),
+          drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
+          showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
+          showHint ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.17" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
+        ),
       ),
       h("div", { className: "symmetry-draw__controls" },
-        h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths((paths) => paths.slice(0, -1)); setNotice(""); }, disabled: !drawnPaths.length || resolved }, "← Отменить"),
+        h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths((paths) => paths.slice(0, -1)); setNotice(""); }, disabled: !drawnPaths.length || resolved }, "↩ Отменить"),
         h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths([]); setNotice(""); }, disabled: !drawnPaths.length || resolved }, "Очистить"),
-        h("button", { type: "button", className: "symmetry-draw__button", onClick: () => setShowHint((shown) => !shown), disabled: resolved }, showHint ? "Скрыть подсказку" : "Подсказка"),
+        h("button", { type: "button", className: `symmetry-draw__button symmetry-draw__button--hint${showHint ? " symmetry-draw__button--hint-on" : ""}`, onClick: () => setShowHint((shown) => !shown), disabled: resolved }, showHint ? "✦ Скрыть" : "✦ Подсказка"),
         h("button", { type: "button", className: "symmetry-draw__button symmetry-draw__button--primary", onClick: checkDrawing, disabled: resolved }, "Готово"),
       ),
-      h("p", { className: `symmetry-draw__notice${notice ? " symmetry-draw__notice--visible" : ""}`, "aria-live": "polite" }, notice || " "),
+      h("div", { className: "symmetry-draw__notice-wrap" },
+        h("p", { className: `symmetry-draw__notice${notice ? " symmetry-draw__notice--visible" : ""}${resolved ? " symmetry-draw__notice--good" : ""}`, "aria-live": "polite" }, notice || " "),
+      ),
     );
   }
 
