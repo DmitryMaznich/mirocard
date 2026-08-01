@@ -46,10 +46,6 @@ function BlankSentence({ card, filledWord, showMarker }) {
 export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect, onMistake, onAdvance, onCardShown, onTap }) {
   const { card, options } = task;
   const { speak } = useSpeech();
-
-  // Prefer the deck's recorded audio (Google Cloud TTS, generated offline —
-  // see scripts/generate-word-agreement-audio.mjs); fall back to the
-  // browser's speech synthesis for cards that don't have it yet.
   function playCorrectAudio() {
     if (card.audio && topicId && playTopicFile) {
       playTopicFile(topicId, card.audio);
@@ -59,22 +55,14 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
   }
 
   const [shownOptions, setShownOptions] = useState(() => shuffle(options));
-  const [wrongCount, setWrongCount]     = useState(0);
-  const [wrongIdx, setWrongIdx]         = useState(null);
-  const [status, setStatus]             = useState("active"); // active | correct | revealed
-  const revealTimerRef = useRef(null);
-  const advanceTimerRef = useRef(null);
+  const [wrongCount, setWrongCount] = useState(0);
+  const [wrongIdx, setWrongIdx] = useState(null);
+  const [status, setStatus] = useState("active");
+  const wrongTimerRef = useRef(null);
 
   useEffect(() => {
-    setShownOptions(shuffle(options));
-    setWrongCount(0);
-    setWrongIdx(null);
-    setStatus("active");
     onCardShown?.(card.id, card.id);
-    return () => {
-      clearTimeout(revealTimerRef.current);
-      clearTimeout(advanceTimerRef.current);
-    };
+    return () => clearTimeout(wrongTimerRef.current);
   }, [card.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handlePick(idx) {
@@ -86,7 +74,7 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
     if (isCorrect) {
       setStatus("correct");
       playCorrectAudio();
-      advanceTimerRef.current = setTimeout(() => onCorrect?.(card.id, card.id), 1200);
+      onCorrect?.(card.id, card.id);
       return;
     }
 
@@ -98,13 +86,12 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
       setStatus("revealed");
       playCorrectAudio();
       onMistake?.(card.id, card.id);
-      revealTimerRef.current = setTimeout(() => onAdvance?.(), 2200);
       return;
     }
 
-    setTimeout(() => {
+    wrongTimerRef.current = setTimeout(() => {
       setWrongIdx(null);
-      setShownOptions((opts) => shuffle(opts));
+      setShownOptions((currentOptions) => shuffle(currentOptions));
     }, 500);
   }
 
@@ -115,7 +102,7 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
     <div className="wa-task">
       <BlankSentence card={card} filledWord={filledWord} showMarker={showMarker} />
 
-      <div className="wa-options">
+      <div className={`wa-options wa-options--${shownOptions.length}`}>
         {shownOptions.map((word, i) => {
           let mod = "";
           if (status !== "active" && word === card.answer) mod = "wa-option--correct";
@@ -133,6 +120,12 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
           );
         })}
       </div>
+
+      {status === "revealed" && (
+        <button className="wa-next-button" type="button" onClick={onAdvance}>
+          Дальше
+        </button>
+      )}
     </div>
   );
 }
