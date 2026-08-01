@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "id": "symmetry_draw",
+    "version": "1.0.0",
+    "renderer": "flashcards",
+    "title": "Симметричный рисунок",
+    "avatar": "media/avatar.svg",
+    "about": {
+      "description": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси.",
+      "goals": [
+        "Развивать зрительно-пространственное восприятие и представление симметрии.",
+        "Закреплять формы: квадрат, треугольник, круг, овал и ромб."
+      ],
+      "finalGoal": "Ребёнок самостоятельно дорисовывает симметричную фигуру по клеточкам без подсказок."
+    }
+  },
+  "modes": [
+    {
+      "id": "symmetry_draw",
+      "type": "intro",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Симметричный рисунок",
+        "instruction": "Дорисуй вторую половину фигуры",
+        "icon": "media/avatar.svg"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "symmetry_house",
+      "conceptId": "symmetry_house",
+      "primary": true,
+      "label": "Дом",
+      "columns": 10,
+      "rows": 8,
+      "axisCol": 5,
+      "sourcePaths": [
+        [
+          { "col": 5, "row": 1 },
+          { "col": 3, "row": 3 },
+          { "col": 3, "row": 7 },
+          { "col": 5, "row": 7 }
+        ]
+      ]
+    }
+  ]
+}
