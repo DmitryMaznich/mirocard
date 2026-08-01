@@ -1,8 +1,8 @@
 // Shared content for the "Языковой тренажёр" (word_agreement) topic.
 // Used by both build-word-agreement-deck.mjs (packages the deck) and
-// generate-word-agreement-audio.mjs (synthesizes one mp3 per card's full
-// sentence). Keeping the sentences in one place avoids the two scripts
-// drifting apart.
+// generate-word-agreement-audio.mjs (synthesizes one .wav per card's full
+// sentence via Gemini TTS). Keeping the sentences in one place avoids the
+// two scripts drifting apart.
 
 // Full spoken text for a card (context + sentence with the blank filled in)
 // — matches FillBlankTask's fillSentence() at runtime. Used both for the
@@ -32,7 +32,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "myach_08", word: "myach", sentence: "У Ивана много {blank}.",                                answer: "мячей",  optionSet: "plural", marker: "много" },
   { id: "myach_09", word: "myach", context: "В углу лежат мячи.", sentence: "Иван подошёл к {blank}.",      answer: "мячам",  optionSet: "plural", marker: "к" },
   { id: "myach_10", word: "myach", context: "В коробке лежат мячи.", sentence: "Иван играет с {blank}.",    answer: "мячами", optionSet: "plural", marker: "с" },
-  { id: "myach_11", word: "myach", context: "В комнате лежат разные мячи.", sentence: "Иван рассказывает о {blank}.", answer: "мячах", optionSet: "plural", marker: "о" },
+  { id: "myach_11", word: "myach", context: "В комнате лежат разные мячи.", sentence: "Иван думает о {blank}.", answer: "мячах", optionSet: "plural", marker: "о" },
 
   // Алина и карандаш
   { id: "karandash_01", word: "karandash", sentence: "У Алины один {blank}.",                              answer: "карандаш",    optionSet: "singular" },
@@ -45,7 +45,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "karandash_08", word: "karandash", sentence: "У Алины много {blank}.",                             answer: "карандашей",  optionSet: "plural", marker: "много" },
   { id: "karandash_09", word: "karandash", context: "В коробке лежат карандаши.", sentence: "Алина потянулась к {blank}.", answer: "карандашам",  optionSet: "plural", marker: "к" },
   { id: "karandash_10", word: "karandash", context: "В коробке лежат карандаши.", sentence: "Алина рисует {blank}.",   answer: "карандашами", optionSet: "plural" },
-  { id: "karandash_11", word: "karandash", context: "В шкафу лежат разные карандаши.", sentence: "Алина рассказывает о {blank}.", answer: "карандашах", optionSet: "plural", marker: "о" },
+  { id: "karandash_11", word: "karandash", context: "В шкафу лежат разные карандаши.", sentence: "Алина думает о {blank}.", answer: "карандашах", optionSet: "plural", marker: "о" },
 
   // Папа, Иван и машина (настоящая машина, не игрушка)
   { id: "mashina_01", word: "mashina", sentence: "У папы одна {blank}.",                                answer: "машина",   optionSet: "singular" },
@@ -59,7 +59,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "mashina_09", word: "mashina", sentence: "На парковке много {blank}.",                          answer: "машин",    optionSet: "plural", marker: "много" },
   { id: "mashina_10", word: "mashina", context: "Мы пришли на парковку.", sentence: "Папа подошёл к {blank}.", answer: "машинам",  optionSet: "plural", marker: "к" },
   { id: "mashina_11", word: "mashina", sentence: "Папа паркуется рядом с другими {blank}.",             answer: "машинами", optionSet: "plural", marker: "с" },
-  { id: "mashina_12", word: "mashina", context: "Иван любит машины.", sentence: "Он рассказывает о {blank}.", answer: "машинах",  optionSet: "plural", marker: "о" },
+  { id: "mashina_12", word: "mashina", context: "Иван любит машины.", sentence: "Он думает о {blank}.", answer: "машинах",  optionSet: "plural", marker: "о" },
 
   // Мама, папа и яблоко
   { id: "yabloko_01", word: "yabloko", sentence: "У папы одно {blank}.",                               answer: "яблоко",   optionSet: "singular" },
@@ -72,7 +72,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "yabloko_08", word: "yabloko", sentence: "У мамы много {blank}.",                              answer: "яблок",    optionSet: "plural", marker: "много" },
   { id: "yabloko_09", word: "yabloko", context: "В корзине лежат яблоки.", sentence: "Папа потянулся к {blank}.", answer: "яблокам",  optionSet: "plural", marker: "к" },
   { id: "yabloko_10", word: "yabloko", context: "Мама испекла пирог.", sentence: "Пирог получился с {blank}.", answer: "яблоками", optionSet: "plural", marker: "с" },
-  { id: "yabloko_11", word: "yabloko", context: "В саду растут разные яблоки.", sentence: "Мама рассказывает о {blank}.", answer: "яблоках", optionSet: "plural", marker: "о" },
+  { id: "yabloko_11", word: "yabloko", context: "В саду растут разные яблоки.", sentence: "Мама думает о {blank}.", answer: "яблоках", optionSet: "plural", marker: "о" },
 ].map((c) => ({
   ...c,
   skill:   "case_agreement",
