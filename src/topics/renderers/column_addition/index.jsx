@@ -9,6 +9,7 @@ import RegroupTenTask from "./RegroupTenTask.jsx";
 import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
 import DigitKeypad from "./DigitKeypad.jsx";
+import ColumnHints from "./ColumnHints.jsx";
 import { useTapButtonSize } from "./useTapButtonSize.js";
 import "./column_addition.css";
 
@@ -25,6 +26,7 @@ const PANEL_SCALE = 1.5;
 // happens to have — the keyboard is always 5 keys wide regardless of
 // whether the task is 2-digit or 3-digit, so its size shouldn't be either.
 const KEYBOARD_COLS = 6;
+const COLUMN_HINTS_SEEN_KEY = "mirocard:column-arithmetic-hints:v1";
 
 function getDigitAt(n, position) {
   return Math.floor(n / 10 ** POS_INDEX[position]) % 10;
@@ -505,9 +507,21 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [showHelper, setShowHelper] = useState(false);
   const [cellSize, setCellSize] = useState(44);
   const [gridBaseSize, setGridBaseSize] = useState(44);
+  const [showHints, setShowHints] = useState(false);
+  const [firstHintRun, setFirstHintRun] = useState(false);
 
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      if (!window.localStorage.getItem(COLUMN_HINTS_SEEN_KEY)) {
+        window.localStorage.setItem(COLUMN_HINTS_SEEN_KEY, "1");
+        setFirstHintRun(true);
+        setShowHints(true);
+      }
+    } catch { /* Help remains available manually. */ }
+  }, []);
 
   // Sequential form-fill order: top left→right, sign, bottom left→right, line.
   const formSteps = useMemo(() => {
@@ -698,6 +712,11 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
 
   const showingCrossout = phase === "solve" && activeStep?.cellType === "crossout";
 
+  const closeHints = useCallback(() => {
+    setShowHints(false);
+    setFirstHintRun(false);
+  }, []);
+
   return (
     <div className="col-screen" ref={rootRef}>
       <div className="col-notebook" ref={notebookRef} style={{ gap: `${2 * gridCellSize}px` }}>
@@ -758,6 +777,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           🧮
         </button>
       )}
+      {!showHints && <button type="button" className="col-hint-toggle" onClick={() => { setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">?</button>}
+      {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} />}
     </div>
   );
 }
