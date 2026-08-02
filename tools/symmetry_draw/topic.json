@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "renderer": "flashcards",
     "title": "Симметричный рисунок",
     "avatar": "media/avatar.svg",
@@ -37,10 +37,22 @@
       "axisCol": 5,
       "sourcePaths": [
         [
-          { "col": 5, "row": 1 },
-          { "col": 3, "row": 3 },
-          { "col": 3, "row": 7 },
-          { "col": 5, "row": 7 }
+          {
+            "col": 5,
+            "row": 1
+          },
+          {
+            "col": 3,
+            "row": 3
+          },
+          {
+            "col": 3,
+            "row": 7
+          },
+          {
+            "col": 5,
+            "row": 7
+          }
         ]
       ]
     },
@@ -53,21 +65,66 @@
       "axisCol": 6,
       "sourcePaths": [
         [
-          { "col": 6, "row": 3 },
-          { "col": 4.9, "row": 3.1 },
-          { "col": 3.8, "row": 3.3 },
-          { "col": 2.9, "row": 3.7 },
-          { "col": 2.1, "row": 4.1 },
-          { "col": 1.5, "row": 4.7 },
-          { "col": 1.1, "row": 5.3 },
-          { "col": 1, "row": 6 },
-          { "col": 1.1, "row": 6.7 },
-          { "col": 1.5, "row": 7.3 },
-          { "col": 2.1, "row": 7.9 },
-          { "col": 2.9, "row": 8.4 },
-          { "col": 3.8, "row": 8.7 },
-          { "col": 4.9, "row": 8.9 },
-          { "col": 6, "row": 9 }
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 4.9,
+            "row": 3.1
+          },
+          {
+            "col": 3.8,
+            "row": 3.3
+          },
+          {
+            "col": 2.9,
+            "row": 3.7
+          },
+          {
+            "col": 2.1,
+            "row": 4.1
+          },
+          {
+            "col": 1.5,
+            "row": 4.7
+          },
+          {
+            "col": 1.1,
+            "row": 5.3
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 1.1,
+            "row": 6.7
+          },
+          {
+            "col": 1.5,
+            "row": 7.3
+          },
+          {
+            "col": 2.1,
+            "row": 7.9
+          },
+          {
+            "col": 2.9,
+            "row": 8.4
+          },
+          {
+            "col": 3.8,
+            "row": 8.7
+          },
+          {
+            "col": 4.9,
+            "row": 8.9
+          },
+          {
+            "col": 6,
+            "row": 9
+          }
         ]
       ]
     },
@@ -80,11 +137,26 @@
       "axisCol": 6,
       "sourcePaths": [
         [
-          { "col": 6, "row": 1 },
-          { "col": 4, "row": 4.5 },
-          { "col": 1, "row": 6 },
-          { "col": 4, "row": 7.5 },
-          { "col": 6, "row": 11 }
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 4.5
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 4,
+            "row": 7.5
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
         ]
       ]
     },
@@ -97,23 +169,588 @@
       "axisCol": 6,
       "sourcePaths": [
         [
-          { "col": 6, "row": 2 },
-          { "col": 6, "row": 1.8 },
-          { "col": 5.7, "row": 1.2 },
-          { "col": 5.2, "row": 0.5 },
-          { "col": 4.3, "row": 0 },
-          { "col": 3.2, "row": 0 },
-          { "col": 2.2, "row": 0.4 },
-          { "col": 1.5, "row": 1.2 },
-          { "col": 1.2, "row": 2.3 },
-          { "col": 1.5, "row": 3.4 },
-          { "col": 2.2, "row": 4.5 },
-          { "col": 3.2, "row": 5.5 },
-          { "col": 4.3, "row": 6.4 },
-          { "col": 5.2, "row": 7.2 },
-          { "col": 5.7, "row": 7.9 },
-          { "col": 6, "row": 8.4 },
-          { "col": 6, "row": 8.6 }
+          {
+            "col": 6,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 1.8
+          },
+          {
+            "col": 5.7,
+            "row": 1.2
+          },
+          {
+            "col": 5.2,
+            "row": 0.5
+          },
+          {
+            "col": 4.3,
+            "row": 0
+          },
+          {
+            "col": 3.2,
+            "row": 0
+          },
+          {
+            "col": 2.2,
+            "row": 0.4
+          },
+          {
+            "col": 1.5,
+            "row": 1.2
+          },
+          {
+            "col": 1.2,
+            "row": 2.3
+          },
+          {
+            "col": 1.5,
+            "row": 3.4
+          },
+          {
+            "col": 2.2,
+            "row": 4.5
+          },
+          {
+            "col": 3.2,
+            "row": 5.5
+          },
+          {
+            "col": 4.3,
+            "row": 6.4
+          },
+          {
+            "col": 5.2,
+            "row": 7.2
+          },
+          {
+            "col": 5.7,
+            "row": 7.9
+          },
+          {
+            "col": 6,
+            "row": 8.4
+          },
+          {
+            "col": 6,
+            "row": 8.6
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_square",
+      "conceptId": "symmetry_square",
+      "label": "Квадрат",
+      "columns": 8,
+      "rows": 8,
+      "axisCol": 4,
+      "sourcePaths": [
+        [
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 1,
+            "row": 1
+          },
+          {
+            "col": 1,
+            "row": 7
+          },
+          {
+            "col": 4,
+            "row": 7
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_triangle",
+      "conceptId": "symmetry_triangle",
+      "label": "Треугольник",
+      "columns": 8,
+      "rows": 4,
+      "axisCol": 4,
+      "sourcePaths": [
+        [
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 4
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_rhombus",
+      "conceptId": "symmetry_rhombus",
+      "label": "Ромб",
+      "columns": 8,
+      "rows": 6,
+      "axisCol": 4,
+      "sourcePaths": [
+        [
+          {
+            "col": 4,
+            "row": 0
+          },
+          {
+            "col": 1,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 6
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_hexagon",
+      "conceptId": "symmetry_hexagon",
+      "label": "Шестиугольник",
+      "columns": 12,
+      "rows": 14,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 0
+          },
+          {
+            "col": 0,
+            "row": 6
+          },
+          {
+            "col": 0,
+            "row": 8
+          },
+          {
+            "col": 6,
+            "row": 14
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_arrow",
+      "conceptId": "symmetry_arrow",
+      "label": "Стрелка",
+      "columns": 10,
+      "rows": 9,
+      "axisCol": 5,
+      "sourcePaths": [
+        [
+          {
+            "col": 5,
+            "row": 0
+          },
+          {
+            "col": 0,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 9
+          },
+          {
+            "col": 5,
+            "row": 9
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_house_window",
+      "conceptId": "symmetry_house_window",
+      "label": "Дом с окном",
+      "columns": 16,
+      "rows": 9,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 8,
+            "row": 0
+          },
+          {
+            "col": 3,
+            "row": 5
+          },
+          {
+            "col": 3,
+            "row": 9
+          },
+          {
+            "col": 8,
+            "row": 9
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 6
+          },
+          {
+            "col": 7,
+            "row": 6
+          },
+          {
+            "col": 7,
+            "row": 8
+          },
+          {
+            "col": 5,
+            "row": 8
+          },
+          {
+            "col": 5,
+            "row": 6
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_boat",
+      "conceptId": "symmetry_boat",
+      "label": "Кораблик",
+      "columns": 10,
+      "rows": 7,
+      "axisCol": 5,
+      "sourcePaths": [
+        [
+          {
+            "col": 5,
+            "row": 0
+          },
+          {
+            "col": 2,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 3
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 1,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 7
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_car",
+      "conceptId": "symmetry_car",
+      "label": "Машина",
+      "columns": 20,
+      "rows": 10,
+      "axisCol": 10,
+      "sourcePaths": [
+        [
+          {
+            "col": 10,
+            "row": 0
+          },
+          {
+            "col": 8,
+            "row": 0
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 6
+          },
+          {
+            "col": 3,
+            "row": 8
+          },
+          {
+            "col": 10,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 8,
+            "row": 3
+          },
+          {
+            "col": 8,
+            "row": 5
+          },
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 6,
+            "row": 3
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 10
+          },
+          {
+            "col": 2,
+            "row": 10
+          },
+          {
+            "col": 2,
+            "row": 8
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_lightning",
+      "conceptId": "symmetry_lightning",
+      "label": "Молния",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 6,
+            "row": 9
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_bracket",
+      "conceptId": "symmetry_bracket",
+      "label": "Скобка",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 11
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_stairs",
+      "conceptId": "symmetry_stairs",
+      "label": "Лесенка",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 11
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_little_car",
+      "conceptId": "symmetry_little_car",
+      "label": "Машинка",
+      "columns": 12,
+      "rows": 9,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 3
+          },
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 0,
+            "row": 5
+          },
+          {
+            "col": 0,
+            "row": 8
+          },
+          {
+            "col": 6,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 7
+          },
+          {
+            "col": 3,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 9
+          },
+          {
+            "col": 1,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 7
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_crown",
+      "conceptId": "symmetry_crown",
+      "label": "Зигзаг-корона",
+      "columns": 12,
+      "rows": 6,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 0,
+            "row": 6
+          },
+          {
+            "col": 2,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 4
+          }
+        ]
+      ]
+    },
+    {
+      "id": "symmetry_slingshot",
+      "conceptId": "symmetry_slingshot",
+      "label": "Рогатка",
+      "columns": 12,
+      "rows": 9,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 3,
+            "row": 1
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 8
+          },
+          {
+            "col": 6,
+            "row": 9
+          }
         ]
       ]
     }
