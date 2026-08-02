@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Симметричный рисунок",

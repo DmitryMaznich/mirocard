@@ -75,11 +75,12 @@
     return points.map((point, index) => `${index ? "L" : "M"} ${point.col} ${point.row}`).join(" ");
   }
 
-  function GridTask({ task, mode, onCorrect }) {
+  function GridTask({ task, mode, onCorrect, onAdvance }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const [drawnPaths, setDrawnPaths] = useState([]);
     const [showHint, setShowHint] = useState(false);
+    const [hintUsed, setHintUsed] = useState(false);
     const [result, setResult] = useState(null); // { percent, complete } | null
     const [resolved, setResolved] = useState(false);
     const shape = task.card ?? task;
@@ -146,7 +147,11 @@
       if (coverage.complete) {
         setResolved(true);
         setResult({ percent: 100, complete: true });
-        onCorrect?.(task.conceptId, shape.id);
+        // A card solved with the hint showing still counts as done for the
+        // child, but shouldn't earn a star - skip onCorrect (which drives the
+        // streak/reward count) and just move on ourselves instead.
+        if (hintUsed) setTimeout(() => onAdvance?.(), 1200);
+        else onCorrect?.(task.conceptId, shape.id);
         return;
       }
       setResult({ percent, complete: false });
@@ -199,7 +204,7 @@
       ),
       h("div", { className: "symmetry-draw__controls" },
         h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths([]); setResult(null); }, disabled: !drawnPaths.length || resolved }, "Очистить"),
-        h("button", { type: "button", className: `symmetry-draw__button symmetry-draw__button--hint${showHint ? " symmetry-draw__button--hint-on" : ""}`, onClick: () => setShowHint((shown) => !shown), disabled: resolved }, showHint ? "✦ Скрыть" : "✦ Подсказка"),
+        h("button", { type: "button", className: `symmetry-draw__button symmetry-draw__button--hint${showHint ? " symmetry-draw__button--hint-on" : ""}`, onClick: () => { setShowHint((shown) => !shown); setHintUsed(true); }, disabled: resolved }, showHint ? "✦ Скрыть" : "✦ Подсказка"),
         h("button", { type: "button", className: "symmetry-draw__button symmetry-draw__button--primary", onClick: checkDrawing, disabled: resolved }, "Готово"),
       ),
       h("div", { className: "symmetry-draw__result-wrap" },
