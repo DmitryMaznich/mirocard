@@ -60,7 +60,7 @@
     const drawingRef = useRef(false);
     const [drawnPaths, setDrawnPaths] = useState([]);
     const [showHint, setShowHint] = useState(false);
-    const [notice, setNotice] = useState("");
+    const [result, setResult] = useState(null); // { percent, complete } | null
     const [resolved, setResolved] = useState(false);
     const shape = task.card ?? task;
     const columns = Number(shape.columns ?? 10);
@@ -94,7 +94,7 @@
       if (!point) return;
       event.currentTarget.setPointerCapture?.(event.pointerId);
       drawingRef.current = true;
-      setNotice("");
+      setResult(null);
       setDrawnPaths((paths) => [...paths, [point]]);
     }
 
@@ -121,14 +121,15 @@
 
     function checkDrawing() {
       if (resolved) return;
-      const result = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE);
-      if (result.complete) {
+      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE);
+      const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
+      if (coverage.complete) {
         setResolved(true);
-        setNotice("Верно! Ты дорисовал фигуру правильно.");
+        setResult({ percent: 100, complete: true });
         onCorrect?.(task.conceptId, shape.id);
         return;
       }
-      setNotice(`Совпадает ${result.covered} из ${result.total} отрезков. Попробуй дорисовать ещё раз.`);
+      setResult({ percent, complete: false });
     }
 
     const gridLines = [];
@@ -177,13 +178,17 @@
         ),
       ),
       h("div", { className: "symmetry-draw__controls" },
-        h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths((paths) => paths.slice(0, -1)); setNotice(""); }, disabled: !drawnPaths.length || resolved }, "↩ Отменить"),
-        h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths([]); setNotice(""); }, disabled: !drawnPaths.length || resolved }, "Очистить"),
+        h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths([]); setResult(null); }, disabled: !drawnPaths.length || resolved }, "Очистить"),
         h("button", { type: "button", className: `symmetry-draw__button symmetry-draw__button--hint${showHint ? " symmetry-draw__button--hint-on" : ""}`, onClick: () => setShowHint((shown) => !shown), disabled: resolved }, showHint ? "✦ Скрыть" : "✦ Подсказка"),
         h("button", { type: "button", className: "symmetry-draw__button symmetry-draw__button--primary", onClick: checkDrawing, disabled: resolved }, "Готово"),
       ),
-      h("div", { className: "symmetry-draw__notice-wrap" },
-        h("p", { className: `symmetry-draw__notice${notice ? " symmetry-draw__notice--visible" : ""}${resolved ? " symmetry-draw__notice--good" : ""}`, "aria-live": "polite" }, notice || " "),
+      h("div", { className: "symmetry-draw__result-wrap" },
+        result
+          ? h("div", { className: `symmetry-draw__result${result.complete ? " symmetry-draw__result--good" : " symmetry-draw__result--bad"}`, "aria-live": "polite" },
+              h("span", { className: "symmetry-draw__result-percent" }, `${result.percent}%`),
+              h("span", { className: "symmetry-draw__result-text" }, result.complete ? "Совпало! Отличная работа." : "Похоже, ещё не совпадает. Попробуй ещё раз."),
+            )
+          : null,
       ),
     );
   }

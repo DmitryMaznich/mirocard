@@ -1,8 +1,9 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "renderer": "flashcards",
+    "customModesOnly": true,
     "title": "Симметричный рисунок",
     "avatar": "media/avatar.svg",
     "about": {
