@@ -45,8 +45,28 @@
     return true;
   }
 
+  // Straight-line samples bridging a pen lift between two strokes - lets a child
+  // who taps point-to-point (e.g. following the numbered hint dots) instead of
+  // dragging one continuous line still have that gap read as "connect A to B".
+  function connectingSamples(a, b) {
+    const length = distance(a, b);
+    if (length === 0) return [a];
+    const samples = Math.max(2, Math.ceil(length * 3));
+    const points = [];
+    for (let i = 0; i <= samples; i += 1) {
+      const t = i / samples;
+      points.push({ col: a.col + (b.col - a.col) * t, row: a.row + (b.row - a.row) * t });
+    }
+    return points;
+  }
+
   function evaluateCoverage(drawnPaths, targetSegments, tolerance) {
     const drawnPoints = drawnPaths.flat();
+    for (let i = 1; i < drawnPaths.length; i += 1) {
+      const prevEnd = drawnPaths[i - 1]?.at(-1);
+      const curStart = drawnPaths[i]?.[0];
+      if (prevEnd && curStart) drawnPoints.push(...connectingSamples(prevEnd, curStart));
+    }
     const covered = targetSegments.filter((segment) => isSegmentCovered(drawnPoints, segment, tolerance)).length;
     return { covered, total: targetSegments.length, complete: targetSegments.length > 0 && covered === targetSegments.length };
   }
