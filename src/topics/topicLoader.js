@@ -735,6 +735,10 @@ const DEFAULT_MODE_METHODOLOGY = {
 };
 
 function buildFlashcardModes(meta, existingModes) {
+  // Opt-out for decks that define their own complete mode list (e.g. symmetry_draw)
+  // and never want the generic find_n/yes_no/choose_word_by_picture/choose_all set
+  // merged in alongside it.
+  if (meta.customModesOnly) return existingModes ?? [];
   const base = existingModes?.length
     ? mergeDefaultModes(existingModes, DEFAULT_FLASHCARD_MODES)
     : DEFAULT_FLASHCARD_MODES;
@@ -1898,6 +1902,13 @@ function migrateRecord(record) {
 
   // Flashcard deck already has renderer set — patch missing modes, fix sort order, backfill params
   if (record.meta.renderer === "flashcards") {
+    if (record.meta.customModesOnly) {
+      return {
+        ...record,
+        meta:  mergeDefaultMeta({ ...record.meta }, "flashcards"),
+        modes: ensureModeIcons(record.modes ?? [], "flashcards"),
+      };
+    }
     const existingIds  = new Set(record.modes?.map((m) => m.id) ?? []);
     const missing      = DEFAULT_FLASHCARD_MODES.filter((m) => !existingIds.has(m.id));
     const defaultById  = Object.fromEntries(DEFAULT_FLASHCARD_MODES.map((m) => [m.id, m]));

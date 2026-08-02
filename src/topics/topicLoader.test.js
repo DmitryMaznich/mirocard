@@ -199,6 +199,20 @@ describe("importTopic — valid cases", () => {
     expect(record.meta.id).toBe("emotions_v1");
   });
 
+  it("meta.customModesOnly skips the default flashcards mode set on install", async () => {
+    const zip = new JSZip();
+    const manifest = {
+      meta: { id: "test_custom_modes", version: "1.0.0", language: "ru", renderer: "flashcards", customModesOnly: true, title: "Custom" },
+      modes: [{ id: "only_mode", type: "intro", evaluation: "auto", ui: { title: "Only mode" } }],
+      cards: [{ id: "c1", conceptId: "c1", primary: true, label: "one" }],
+    };
+    zip.file("topic.json", JSON.stringify(manifest));
+    const buf = await zip.generateAsync({ type: "arraybuffer" });
+    const db = await freshDb();
+    const record = await importTopic(db, buf, "2.0.0");
+    expect(record.modes.map((m) => m.id)).toEqual(["only_mode"]);
+  });
+
   it("re-importing same topic replaces it", async () => {
     const db = await freshDb();
     const buf1 = await makeObjectTopicZip({ version: "1.0.0" });
@@ -322,6 +336,24 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(record.meta.renderer).toBe("flashcards");
     expect(record.meta.avatar).toBe("media/avatar_flashcards.svg");
     expect(record.modes.every((mode) => mode.ui?.icon)).toBe(true);
+  });
+
+  it("meta.customModesOnly stays free of default flashcards modes on every re-read", async () => {
+    // Confirms the migrateRecord path (every getTopicRecord/listTopicRecords call), not
+    // just the one-time install path covered by the importTopic test above.
+    const db = await freshDb();
+    const record = {
+      id: "custom_modes_topic",
+      meta: { id: "custom_modes_topic", renderer: "flashcards", customModesOnly: true, version: "1.0.0", title: "Custom" },
+      modes: [{ id: "only_mode", type: "intro", evaluation: "auto", ui: { title: "Only mode" } }],
+      cards: [{ id: "c1", conceptId: "c1", primary: true, label: "one" }],
+      installedAt: new Date().toISOString(),
+    };
+    await kv.set(db, "topic:custom_modes_topic", record);
+    await kv.set(db, "installedTopicIds", ["custom_modes_topic"]);
+
+    const loaded = await getTopicRecord(db, "custom_modes_topic");
+    expect(loaded.modes.map((m) => m.id)).toEqual(["only_mode"]);
   });
 
   it("drops a mode param that no longer exists in the current default, keeping the new one", async () => {
