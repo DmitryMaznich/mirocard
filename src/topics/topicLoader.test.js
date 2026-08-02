@@ -356,6 +356,33 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(loaded.modes.map((m) => m.id)).toEqual(["only_mode"]);
   });
 
+  it("meta.customModesOnly retroactively strips default modes merged in before the flag existed", async () => {
+    // Simulates a device that installed the topic before customModesOnly was added,
+    // so its stored record still carries the generic find_n/yes_no/... set alongside
+    // the topic's own mode — those must be stripped on read, not just kept out of
+    // future installs.
+    const db = await freshDb();
+    const record = {
+      id: "custom_modes_topic_legacy",
+      meta: { id: "custom_modes_topic_legacy", renderer: "flashcards", customModesOnly: true, version: "1.0.0", title: "Custom" },
+      modes: [
+        { id: "intro", type: "intro", evaluation: "none", ui: { title: "Знакомство" } },
+        { id: "find_n", type: "find_n", evaluation: "auto", ui: { title: "Найди картинку" } },
+        { id: "yes_no", type: "yes_no", evaluation: "auto", ui: { title: "Да / Нет" } },
+        { id: "choose_word_by_picture", type: "choose_word_by_picture", evaluation: "auto", ui: { title: "Выбери слово" } },
+        { id: "choose_all", type: "choose_all", evaluation: "auto", ui: { title: "Выбери все" } },
+        { id: "only_mode", type: "intro", evaluation: "auto", ui: { title: "Only mode" } },
+      ],
+      cards: [{ id: "c1", conceptId: "c1", primary: true, label: "one" }],
+      installedAt: new Date().toISOString(),
+    };
+    await kv.set(db, "topic:custom_modes_topic_legacy", record);
+    await kv.set(db, "installedTopicIds", ["custom_modes_topic_legacy"]);
+
+    const loaded = await getTopicRecord(db, "custom_modes_topic_legacy");
+    expect(loaded.modes.map((m) => m.id)).toEqual(["only_mode"]);
+  });
+
   it("drops a mode param that no longer exists in the current default, keeping the new one", async () => {
     // Simulates a device that saved build_number's old "level" param before it was
     // renamed to "maxOnes" — on the next load, the stale key must not linger forever.
