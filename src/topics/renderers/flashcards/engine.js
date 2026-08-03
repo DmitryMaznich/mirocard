@@ -17,6 +17,18 @@ function generateIntroTasks(concepts) {
   return shuffle(tasks);
 }
 
+function filterByTaskKind(concepts, kind) {
+  return concepts.filter((concept) => concept.cards.some((card) => card.taskKind === kind));
+}
+
+function generateMirrorDrawTasks(concepts) {
+  return generateIntroTasks(filterByTaskKind(concepts, "mirror")).map((t) => ({ ...t, type: "mirror_draw" }));
+}
+
+function generateRepeatDrawTasks(concepts) {
+  return generateIntroTasks(filterByTaskKind(concepts, "repeat")).map((t) => ({ ...t, type: "repeat_draw" }));
+}
+
 function generateYesNoTasks(concepts, params) {
   const reps = params.repsPerConcept ?? 1;
   const tasks = [];
@@ -135,6 +147,8 @@ function generateChooseAllTasks(concepts, params) {
 export function generateTasks(modeType, concepts, allCards, params = {}) {
   switch (modeType) {
     case "intro":                  return generateIntroTasks(concepts);
+    case "mirror_draw":            return generateMirrorDrawTasks(concepts);
+    case "repeat_draw":            return generateRepeatDrawTasks(concepts);
     case "question_answer":        return generateIntroTasks(concepts).map((t) => ({ ...t, type: "question_answer" }));
     case "yes_no":                 return generateYesNoTasks(concepts, params);
     case "find_n":                 return generateFindNTasks(concepts, params);

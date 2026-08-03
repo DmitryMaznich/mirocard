@@ -24,6 +24,34 @@ describe("generateTasks — intro", () => {
   });
 });
 
+describe("generateTasks — mirror_draw / repeat_draw", () => {
+  const MIXED_CARDS = [
+    { id: "m1", conceptId: "m1", primary: true, label: "Дом",   taskKind: "mirror", sourcePaths: [] },
+    { id: "m2", conceptId: "m2", primary: true, label: "Лодка", taskKind: "mirror", sourcePaths: [] },
+    { id: "r1", conceptId: "r1", primary: true, label: "Ракета", taskKind: "repeat", sourcePaths: [] },
+  ];
+  const MIXED_CONCEPTS = deriveConcepts(MIXED_CARDS);
+
+  it("mirror_draw only includes taskKind:mirror cards", () => {
+    const tasks = generateTasks("mirror_draw", MIXED_CONCEPTS, MIXED_CARDS, {});
+    expect(tasks).toHaveLength(2);
+    expect(tasks.every((t) => t.type === "mirror_draw")).toBe(true);
+    expect(tasks.every((t) => t.card.taskKind === "mirror")).toBe(true);
+  });
+
+  it("repeat_draw only includes taskKind:repeat cards", () => {
+    const tasks = generateTasks("repeat_draw", MIXED_CONCEPTS, MIXED_CARDS, {});
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]).toMatchObject({ type: "repeat_draw", conceptId: "r1" });
+    expect(tasks[0].card.taskKind).toBe("repeat");
+  });
+
+  it("each generator still returns conceptId, card, and label", () => {
+    const tasks = generateTasks("repeat_draw", MIXED_CONCEPTS, MIXED_CARDS, {});
+    expect(tasks[0]).toMatchObject({ conceptId: expect.any(String), card: expect.any(Object), label: expect.any(String) });
+  });
+});
+
 describe("generateTasks — yes_no", () => {
   it("generates repsPerConcept tasks per concept", () => {
     const tasks = generateTasks("yes_no", ALL_CONCEPTS, CARDS, { repsPerConcept: 2 });
