@@ -509,6 +509,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [gridBaseSize, setGridBaseSize] = useState(44);
   const [showHints, setShowHints] = useState(false);
   const [firstHintRun, setFirstHintRun] = useState(false);
+  const hintUsedRef = useRef(false);
 
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
@@ -517,6 +518,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     try {
       if (!window.localStorage.getItem(COLUMN_HINTS_SEEN_KEY)) {
         window.localStorage.setItem(COLUMN_HINTS_SEEN_KEY, "1");
+        hintUsedRef.current = true;
         setFirstHintRun(true);
         setShowHints(true);
       }
@@ -673,7 +675,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     setStepIdx(next);
     if (next >= task.steps.length) {
       setSolved(true);
-      setTimeout(() => onCorrect?.(), 1200);
+      setTimeout(() => onCorrect?.(undefined, undefined, { assisted: hintUsedRef.current }), 1200);
     }
   }, [activeStep, stepIdx, task.steps, triggerShake, onMistake, onCorrect]);
 
@@ -686,7 +688,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     setStepIdx(next);
     if (next >= task.steps.length) {
       setSolved(true);
-      setTimeout(() => onCorrect?.(), 1200);
+      setTimeout(() => onCorrect?.(undefined, undefined, { assisted: hintUsedRef.current }), 1200);
     }
   }, [activeStep, stepIdx, task.steps, onCorrect]);
 
@@ -713,9 +715,19 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const showingCrossout = phase === "solve" && activeStep?.cellType === "crossout";
 
   const closeHints = useCallback(() => {
+    hintUsedRef.current = true;
     setShowHints(false);
     setFirstHintRun(false);
   }, []);
+
+  const hintTargetSelector = useMemo(() => {
+    if (showingCompare) return ".col-compare-panel";
+    if (showingCrossout) return ".col-crossout-gesture";
+    if (phase === "form") return formActiveKey ? `[data-cell-key="${formActiveKey}"]` : null;
+    if (!activeStep) return null;
+    if (activeStep.cellType === "borrow" || activeStep.cellType === "adjust") return `[data-cell-key="corner:${activeStep.position}"]`;
+    return `[data-cell-key="${activeStep.cellType}:${activeStep.position}"]`;
+  }, [activeStep, formActiveKey, phase, showingCompare, showingCrossout]);
 
   return (
     <div className="col-screen" ref={rootRef}>
@@ -777,8 +789,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           🧮
         </button>
       )}
-      {!showHints && <button type="button" className="col-hint-toggle" onClick={() => { setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">?</button>}
-      {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} />}
+      {!showHints && <button type="button" className="col-hint-toggle" onClick={() => { setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">💡</button>}
+      {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} onShown={() => { hintUsedRef.current = true; }} screenElement={rootRef.current} targetSelector={hintTargetSelector} />}
     </div>
   );
 }

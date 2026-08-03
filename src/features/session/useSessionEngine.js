@@ -319,7 +319,16 @@ export function useSessionEngine() {
     });
   }, []);
 
-  const onCorrect = useCallback((conceptId, cardId) => {
+  const onCorrect = useCallback((conceptId, cardId, options = {}) => {
+    if (options.assisted) {
+      setSessionState((s) => {
+        const next = handleAdvance(s);
+        if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
+        if (next.status === "completed") finishSession(next);
+        return next;
+      });
+      return;
+    }
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
         return handleInstantCorrect(s, conceptId, cardId);
