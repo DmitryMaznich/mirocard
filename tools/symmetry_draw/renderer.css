@@ -5,6 +5,7 @@
   --sd-ink: #1e3a6e;
   --sd-ink-soft: #7c8a85;
   --sd-mirror: #e8664f;
+  --sd-repeat: #0d9488;
   --sd-given: #1e3faa;
   --sd-drawn: #6c4fd6;
   --sd-hint: #9c86e8;
@@ -57,6 +58,7 @@
   padding: 5px 10px;
   border-radius: 999px;
 }
+.symmetry-draw__mirror-chip--repeat { color: var(--sd-repeat); background: rgba(13, 148, 136, 0.1); border-color: rgba(13, 148, 136, 0.22); }
 
 .symmetry-draw__canvas {
   padding: 4px clamp(4px, 1.2vw, 10px) 0;
@@ -78,7 +80,9 @@
 /* The axis of symmetry reads as an explicit "mirror" - dashed, with a chevron
    marker facing inward at each end - instead of an unexplained solid line. */
 .symmetry-draw__mirror-line { stroke: var(--sd-mirror); stroke-width: 0.05; stroke-dasharray: 0.05 0.13; stroke-linecap: round; pointer-events: none; }
+.symmetry-draw__mirror-line--repeat { stroke: var(--sd-repeat); stroke-dasharray: none; }
 .symmetry-draw__mirror-chevron { fill: var(--sd-mirror); pointer-events: none; }
+.symmetry-draw__repeat-arrow { fill: var(--sd-repeat); pointer-events: none; }
 
 .symmetry-draw__source, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line {
   fill: none;

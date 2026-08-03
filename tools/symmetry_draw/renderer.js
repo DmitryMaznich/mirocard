@@ -14,6 +14,10 @@
     return (paths ?? []).map((path) => path.map((point) => ({ col: 2 * axisCol - point.col, row: point.row })));
   }
 
+  function translatePaths(paths, axisCol) {
+    return (paths ?? []).map((path) => path.map((point) => ({ col: point.col + axisCol, row: point.row })));
+  }
+
   function pathsToSegments(paths) {
     const segments = [];
     for (const path of paths ?? []) {
@@ -88,7 +92,11 @@
     const rows = Number(shape.rows ?? 8);
     const axisCol = Number(shape.axisCol ?? 5);
     const sourcePaths = shape.sourcePaths ?? [];
-    const targetPaths = useMemo(() => mirrorPaths(sourcePaths, axisCol), [sourcePaths, axisCol]);
+    const isRepeat = shape.taskKind === "repeat";
+    const targetPaths = useMemo(
+      () => (isRepeat ? translatePaths(sourcePaths, axisCol) : mirrorPaths(sourcePaths, axisCol)),
+      [sourcePaths, axisCol, isRepeat],
+    );
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
     const hintPoints = useMemo(() => targetPaths.flat(), [targetPaths]);
 
@@ -174,7 +182,7 @@
           h("div", { className: "symmetry-draw__title" }, shape.label ?? "Фигура"),
           h("div", { className: "symmetry-draw__instruction" }, instruction),
         ),
-        h("span", { className: "symmetry-draw__mirror-chip" }, "↔ зеркало"),
+        h("span", { className: `symmetry-draw__mirror-chip${isRepeat ? " symmetry-draw__mirror-chip--repeat" : ""}` }, isRepeat ? "→ повтори" : "↔ зеркало"),
       ),
       h("div", { className: "symmetry-draw__canvas" },
         h("svg", {
@@ -192,9 +200,13 @@
           Array.from({ length: columns + 1 }, (_, col) => h("text", { key: `col-${col}`, className: "symmetry-draw__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, String.fromCharCode(65 + col))),
           Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)),
           nodes,
-          h("line", { className: "symmetry-draw__mirror-line", x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
-          h("path", { className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
-          h("path", { className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
+          h("line", { className: `symmetry-draw__mirror-line${isRepeat ? " symmetry-draw__mirror-line--repeat" : ""}`, x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
+          isRepeat
+            ? h("path", { className: "symmetry-draw__repeat-arrow", d: `M ${axisCol - 0.28} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.6} L ${axisCol + 0.62} ${rows / 2} L ${axisCol + 0.22} ${rows / 2 + 0.6} L ${axisCol + 0.22} ${rows / 2 + 0.32} L ${axisCol - 0.28} ${rows / 2 + 0.32} Z` })
+            : [
+                h("path", { key: "chev-top", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
+                h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
+              ],
           sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
