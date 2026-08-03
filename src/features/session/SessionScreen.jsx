@@ -304,6 +304,7 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
+            answersPerStar={answersPerStar}
           />
         </div>
       ) : !rendererReady ? (

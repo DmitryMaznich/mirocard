@@ -32,14 +32,6 @@ export const BUILTIN_TOPICS = [
           instruction: { ru: "Отмечайте ответы ребёнка" },
           icon: "media/avatar_streak_tracker.svg",
         },
-        params: {
-          starsTarget: {
-            type: "enum",
-            label: { ru: "Количество звёзд" },
-            values: [5, 10, 15],
-            default: 5,
-          },
-        },
       },
     ],
     cards: [{ id: "streak_task", conceptId: "streak_task", primary: true }],

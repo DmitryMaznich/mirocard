@@ -6,12 +6,7 @@ function generateId() {
 const ADVANCE_ONLY_TYPES = new Set(["pair_intro", "season_overview"]);
 
 export function createSessionState(tasks, mode, studentId, topicId, topicVersion, conceptIds, textId = null, isDeckMode = false, answersPerStar = 1, strictStars = true) {
-  // Capped at 9 (not the "Серия для видеонаграды" UI's own 1-3 range) so
-  // streak_tracker's own "Количество звёзд" param (5/10/15 stars, see
-  // useSessionEngine.js) can request up to (15/5)² = 9 — every other topic's
-  // own param UI still only ever offers 1-3, so this can't change their
-  // behavior.
-  const rawAps = Math.max(1, Math.min(9, Math.round(answersPerStar ?? 1)));
+  const rawAps = Math.max(1, Math.min(3, Math.round(answersPerStar ?? 1)));
   const evaluableCount = tasks.filter(t => !ADVANCE_ONLY_TYPES.has(t.type)).length;
   // Cap so 5 stars can always be earned within the available evaluable tasks.
   // Math.floor(evaluableCount / 5) = 0 when there are fewer than 5 tasks → cap to 1.
