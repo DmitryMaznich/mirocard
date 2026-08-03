@@ -899,126 +899,126 @@
       "id": "situation_joy_1",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Друг пригласил тебя в гости поиграть в новую игру.",
+      "label": "Купили вкусное мороженое.",
       "answerKey": "радость"
     },
     {
       "id": "situation_joy_2",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Учительница похвалила тебя перед всем классом за хорошую работу.",
+      "label": "Папа похвалил.",
       "answerKey": "радость"
     },
     {
       "id": "situation_joy_3",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Ты наконец прошёл уровень в игре, который не получался целую неделю.",
+      "label": "Мама подарила новую игрушку.",
       "answerKey": "радость"
     },
     {
       "id": "situation_sadness_1",
       "conceptId": "sadness",
       "cardType": "situation",
-      "label": "Твой лучший друг переехал в другой город.",
+      "label": "Папа уехал на работу.",
       "answerKey": "грусть"
     },
     {
       "id": "situation_sadness_2",
       "conceptId": "sadness",
       "cardType": "situation",
-      "label": "Ты забыл дома тетрадь с домашним заданием, и учитель поставил замечание.",
+      "label": "Мама забрала планшет.",
       "answerKey": "грусть"
     },
     {
       "id": "situation_sadness_3",
       "conceptId": "sadness",
       "cardType": "situation",
-      "label": "Дождь испортил прогулку, которую ты ждал весь день.",
+      "label": "Папа не разрешил гулять.",
       "answerKey": "грусть"
     },
     {
       "id": "situation_anger_1",
       "conceptId": "anger",
       "cardType": "situation",
-      "label": "Младший брат сломал твою модель, которую ты собирал два часа.",
+      "label": "Не получается решить пример.",
       "answerKey": "злость"
     },
     {
       "id": "situation_anger_2",
       "conceptId": "anger",
       "cardType": "situation",
-      "label": "Одноклассник взял твою вещь без разрешения и не хочет отдавать.",
+      "label": "Папа не хочет покупать колу.",
       "answerKey": "злость"
     },
     {
       "id": "situation_anger_3",
       "conceptId": "anger",
       "cardType": "situation",
-      "label": "Тебя обвинили в том, чего ты не делал.",
+      "label": "Сестра обзывается.",
       "answerKey": "злость"
     },
     {
       "id": "situation_fear_1",
       "conceptId": "fear",
       "cardType": "situation",
-      "label": "Свет в комнате внезапно погас, и стало совсем темно.",
+      "label": "На улице страшная гроза.",
       "answerKey": "страх"
     },
     {
       "id": "situation_fear_2",
       "conceptId": "fear",
       "cardType": "situation",
-      "label": "Завтра контрольная работа, а ты ничего не повторил.",
+      "label": "Большая собака рычит.",
       "answerKey": "страх"
     },
     {
       "id": "situation_fear_3",
       "conceptId": "fear",
       "cardType": "situation",
-      "label": "Собака соседей громко залаяла и побежала в твою сторону.",
+      "label": "Ночью по крыше кто-то ходит.",
       "answerKey": "страх"
     },
     {
       "id": "situation_surprise_1",
       "conceptId": "surprise",
       "cardType": "situation",
-      "label": "Ты открыл дверь, а там друзья устроили тебе сюрприз на день рождения.",
+      "label": "Папа с мамой устроили сюрприз.",
       "answerKey": "удивление"
     },
     {
       "id": "situation_surprise_2",
       "conceptId": "surprise",
       "cardType": "situation",
-      "label": "Учитель неожиданно отменил контрольную работу.",
+      "label": "Дверь открылась сама.",
       "answerKey": "удивление"
     },
     {
       "id": "situation_surprise_3",
       "conceptId": "surprise",
       "cardType": "situation",
-      "label": "Ты нашёл под кроватью старую игрушку, о которой совсем забыл.",
+      "label": "Неожиданно заиграла любимая музыка.",
       "answerKey": "удивление"
     },
     {
       "id": "situation_calm_1",
       "conceptId": "calm",
       "cardType": "situation",
-      "label": "Ты лежишь в кровати вечером и слушаешь тихую музыку.",
+      "label": "Смотрит на спокойное море.",
       "answerKey": "спокойствие"
     },
     {
       "id": "situation_calm_2",
       "conceptId": "calm",
       "cardType": "situation",
-      "label": "Все уроки сделаны, и впереди целый свободный вечер.",
+      "label": "Все дела сегодня сделаны.",
       "answerKey": "спокойствие"
     },
     {
       "id": "situation_calm_3",
       "conceptId": "calm",
       "cardType": "situation",
-      "label": "Ты гуляешь в парке, и вокруг тихо и спокойно.",
+      "label": "Гуляет в тихом парке.",
       "answerKey": "спокойствие"
     }
   ]
