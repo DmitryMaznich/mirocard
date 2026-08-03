@@ -13025,6 +13025,20 @@ button {
   opacity: 1;
   transform: translateY(0);
 }
+.situation-intro__reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+.situation-intro__reveal--shown {
+  opacity: 1;
+  transform: translateY(0);
+}
 .qa-btn:disabled {
   opacity: 0.45;
   cursor: default;

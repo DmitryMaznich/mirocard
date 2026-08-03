@@ -101,6 +101,57 @@ describe("generateTasks — situation_emotion", () => {
   });
 });
 
+describe("generateTasks — situation_intro", () => {
+  const EMOTION_CARDS = [
+    { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
+    { id: "joy_situation_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку." },
+    { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
+    { id: "sad_situation_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел." },
+  ];
+  const EMOTION_CONCEPTS = deriveConcepts(EMOTION_CARDS);
+
+  it("produces one no-evaluation task per situation card", () => {
+    const tasks = generateTasks("situation_intro", EMOTION_CONCEPTS, EMOTION_CARDS, {});
+    expect(tasks).toHaveLength(2);
+    const joyTask = tasks.find((t) => t.conceptId === "joy");
+    expect(joyTask).toMatchObject({
+      type: "situation_intro",
+      situationText: "Друг подарил тебе игрушку.",
+      label: "радость",
+    });
+    expect(joyTask.card.cardType).not.toBe("situation");
+  });
+});
+
+describe("generateTasks — emotion_situation", () => {
+  const EMOTION_CARDS = [
+    { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
+    { id: "joy_situation_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку." },
+    { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
+    { id: "sad_situation_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел." },
+    { id: "anger_1", conceptId: "anger", primary: true, label: "злость", image: "media/anger_1.webp" },
+    { id: "anger_situation_1", conceptId: "anger", cardType: "situation", label: "Брат сломал твою игрушку." },
+  ];
+  const EMOTION_CONCEPTS = deriveConcepts(EMOTION_CARDS);
+
+  it("produces one task per situation card, stimulus card belongs to the target emotion", () => {
+    const tasks = generateTasks("emotion_situation", EMOTION_CONCEPTS, EMOTION_CARDS, { optionCount: 2 });
+    expect(tasks).toHaveLength(3);
+    const joyTask = tasks.find((t) => t.conceptId === "joy");
+    expect(joyTask.card.conceptId).toBe("joy");
+    expect(joyTask.card.cardType).not.toBe("situation");
+  });
+
+  it("options are situation sentences (not emotion words), exactly one isTarget matching the source text", () => {
+    const tasks = generateTasks("emotion_situation", EMOTION_CONCEPTS, EMOTION_CARDS, { optionCount: 2 });
+    const joyTask = tasks.find((t) => t.conceptId === "joy");
+    const targets = joyTask.options.filter((o) => o.isTarget);
+    expect(targets).toHaveLength(1);
+    expect(targets[0].label).toBe("Друг подарил тебе игрушку.");
+    expect(joyTask.options.every((o) => !["радость", "грусть", "злость"].includes(o.label))).toBe(true);
+  });
+});
+
 describe("generateTasks — yes_no", () => {
   it("generates repsPerConcept tasks per concept", () => {
     const tasks = generateTasks("yes_no", ALL_CONCEPTS, CARDS, { repsPerConcept: 2 });

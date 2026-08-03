@@ -56,6 +56,27 @@ function IntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
   );
 }
 
+function SituationIntroTask({ task, topicId, onAdvance }) {
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => { setRevealed(false); }, [task]);
+
+  function handleTap() {
+    if (!revealed) { setRevealed(true); return; }
+    onAdvance();
+  }
+
+  return (
+    <button className="session-full-tap situation-intro" onClick={handleTap}>
+      <div className="session-instruction">{task.situationText}</div>
+      <div className={`situation-intro__reveal${revealed ? " situation-intro__reveal--shown" : ""}`}>
+        <CardArea topicId={topicId} card={task.card} />
+        <div className="session-label">{task.label}</div>
+      </div>
+      {!revealed && <div className="session-hint">Нажми, чтобы узнать эмоцию</div>}
+    </button>
+  );
+}
+
 const QA_BUTTONS = [
   { value: "fail",     label: "Не ответил",   mod: "fail"     },
   { value: "prompted", label: "С подсказкой", mod: "prompted" },
@@ -327,6 +348,8 @@ const TASK_RENDERERS = {
   yes_no:                 YesNoTask,
   find_n:                 FindNTask,
   situation_emotion:      FindNTask,
+  situation_intro:        SituationIntroTask,
+  emotion_situation:      ChooseWordTask,
   choose_word_by_picture: ChooseWordTask,
   choose_all:             ChooseAllTask,
 };

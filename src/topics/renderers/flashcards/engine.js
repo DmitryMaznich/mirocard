@@ -54,6 +54,52 @@ function generateSituationEmotionTasks(displayConcepts, allCards, params) {
   return shuffle(tasks);
 }
 
+function generateSituationIntroTasks(displayConcepts, allCards) {
+  const situationCards = allCards.filter((c) => c.cardType === "situation");
+  const tasks = [];
+  for (const situationCard of situationCards) {
+    const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);
+    if (!targetConcept) continue;
+    tasks.push({
+      type: "situation_intro",
+      conceptId: situationCard.conceptId,
+      situationText: situationCard.label,
+      card: pickVariation(targetConcept),
+      label: targetConcept.primary?.label ?? targetConcept.conceptId,
+    });
+  }
+  return shuffle(tasks);
+}
+
+function generateEmotionSituationTasks(displayConcepts, allCards, params) {
+  const optionCount = params.optionCount ?? 4;
+  const difficulty = params.distractorLevel ?? "medium";
+  const situationCards = allCards.filter((c) => c.cardType === "situation");
+  const tasks = [];
+  for (const situationCard of situationCards) {
+    const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);
+    if (!targetConcept) continue;
+    const distractorCount = Math.min(optionCount - 1, displayConcepts.length - 1);
+    const distractorIds = selectDistractorConceptIds(situationCard.conceptId, displayConcepts, distractorCount, difficulty);
+    const distractorOptions = distractorIds
+      .map((cid) => {
+        const candidates = situationCards.filter((sc) => sc.conceptId === cid);
+        if (candidates.length === 0) return null;
+        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        return { label: pick.label, conceptId: cid, isTarget: false };
+      })
+      .filter(Boolean);
+    const targetOption = { label: situationCard.label, conceptId: situationCard.conceptId, isTarget: true };
+    tasks.push({
+      type: "emotion_situation",
+      conceptId: situationCard.conceptId,
+      card: pickVariation(targetConcept),
+      options: shuffle([targetOption, ...distractorOptions]),
+    });
+  }
+  return shuffle(tasks);
+}
+
 function generateYesNoTasks(concepts, params) {
   const reps = params.repsPerConcept ?? 1;
   const tasks = [];
@@ -185,6 +231,8 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
+    case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards);
+    case "emotion_situation":      return generateEmotionSituationTasks(displayConcepts, allCards, params);
     case "question_answer":        return generateIntroTasks(displayConcepts).map((t) => ({ ...t, type: "question_answer" }));
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
     case "find_n":                 return generateFindNTasks(displayConcepts, params);
