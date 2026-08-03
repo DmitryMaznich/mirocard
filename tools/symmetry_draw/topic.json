@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Симметричный рисунок",
@@ -33,7 +33,7 @@
       "ui": {
         "title": "Повтори рисунок",
         "instruction": "Повтори рисунок целиком справа",
-        "icon": "media/avatar.svg"
+        "icon": "media/repeat_avatar.svg"
       }
     }
   ],

@@ -353,9 +353,9 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.1.1",
-      "url": "./decks/symmetry_draw_v1.1.1.zip",
-      "zipUrl": "symmetry_draw_v1.1.1.zip",
+      "version": "1.1.2",
+      "url": "./decks/symmetry_draw_v1.1.2.zip",
+      "zipUrl": "symmetry_draw_v1.1.2.zip",
       "title": {
         "ru": "Симметричный рисунок"
       },
