@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.2.0",
+    "version": "1.3.0",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -190,6 +190,32 @@
           "Принимайте приближённые ответы — важно движение к слову"
         ],
         "duration": "5–7 минут"
+      }
+    },
+    {
+      "id": "situation_emotion",
+      "type": "situation_emotion",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Ситуация → эмоция",
+        "instruction": "Прочитай ситуацию и выбери подходящую эмоцию"
+      },
+      "methodology": {
+        "text": "Ребёнок читает короткое описание ситуации и выбирает картинку с подходящей эмоцией среди вариантов. В отличие от «Найди картинку», здесь нет слова-подсказки — нужно самому понять, что почувствовал бы человек в этой ситуации. Первый шаг от узнавания эмоции к пониманию её причины.",
+        "tips": [
+          "После ответа обсудите: «А ты сам как бы себя чувствовал в такой ситуации?»",
+          "Если ребёнок ошибся, проговорите ситуацию ещё раз медленно, выделяя ключевые слова",
+          "Не торопите — на осмысление ситуации нужно больше времени, чем на узнавание лица"
+        ],
+        "duration": "5-8 минут"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": { "ru": "Вариантов" },
+          "values": [2, 4, 6],
+          "default": 4
+        }
       }
     }
   ],
@@ -1302,6 +1328,132 @@
         "group3": "postural"
       },
       "answerKey": "усталость"
+    },
+    {
+      "id": "situation_joy_1",
+      "conceptId": "joy",
+      "cardType": "situation",
+      "label": "Друг пригласил тебя в гости поиграть в новую игру.",
+      "answerKey": "радость"
+    },
+    {
+      "id": "situation_joy_2",
+      "conceptId": "joy",
+      "cardType": "situation",
+      "label": "Учительница похвалила тебя перед всем классом за хорошую работу.",
+      "answerKey": "радость"
+    },
+    {
+      "id": "situation_joy_3",
+      "conceptId": "joy",
+      "cardType": "situation",
+      "label": "Ты наконец прошёл уровень в игре, который не получался целую неделю.",
+      "answerKey": "радость"
+    },
+    {
+      "id": "situation_sadness_1",
+      "conceptId": "sadness",
+      "cardType": "situation",
+      "label": "Твой лучший друг переехал в другой город.",
+      "answerKey": "грусть"
+    },
+    {
+      "id": "situation_sadness_2",
+      "conceptId": "sadness",
+      "cardType": "situation",
+      "label": "Ты забыл дома тетрадь с домашним заданием, и учитель поставил замечание.",
+      "answerKey": "грусть"
+    },
+    {
+      "id": "situation_sadness_3",
+      "conceptId": "sadness",
+      "cardType": "situation",
+      "label": "Дождь испортил прогулку, которую ты ждал весь день.",
+      "answerKey": "грусть"
+    },
+    {
+      "id": "situation_anger_1",
+      "conceptId": "anger",
+      "cardType": "situation",
+      "label": "Младший брат сломал твою модель, которую ты собирал два часа.",
+      "answerKey": "злость"
+    },
+    {
+      "id": "situation_anger_2",
+      "conceptId": "anger",
+      "cardType": "situation",
+      "label": "Одноклассник взял твою вещь без разрешения и не хочет отдавать.",
+      "answerKey": "злость"
+    },
+    {
+      "id": "situation_anger_3",
+      "conceptId": "anger",
+      "cardType": "situation",
+      "label": "Тебя обвинили в том, чего ты не делал.",
+      "answerKey": "злость"
+    },
+    {
+      "id": "situation_fear_1",
+      "conceptId": "fear",
+      "cardType": "situation",
+      "label": "Свет в комнате внезапно погас, и стало совсем темно.",
+      "answerKey": "страх"
+    },
+    {
+      "id": "situation_fear_2",
+      "conceptId": "fear",
+      "cardType": "situation",
+      "label": "Завтра контрольная работа, а ты ничего не повторил.",
+      "answerKey": "страх"
+    },
+    {
+      "id": "situation_fear_3",
+      "conceptId": "fear",
+      "cardType": "situation",
+      "label": "Собака соседей громко залаяла и побежала в твою сторону.",
+      "answerKey": "страх"
+    },
+    {
+      "id": "situation_surprise_1",
+      "conceptId": "surprise",
+      "cardType": "situation",
+      "label": "Ты открыл дверь, а там друзья устроили тебе сюрприз на день рождения.",
+      "answerKey": "удивление"
+    },
+    {
+      "id": "situation_surprise_2",
+      "conceptId": "surprise",
+      "cardType": "situation",
+      "label": "Учитель неожиданно отменил контрольную работу.",
+      "answerKey": "удивление"
+    },
+    {
+      "id": "situation_surprise_3",
+      "conceptId": "surprise",
+      "cardType": "situation",
+      "label": "Ты нашёл под кроватью старую игрушку, о которой совсем забыл.",
+      "answerKey": "удивление"
+    },
+    {
+      "id": "situation_calm_1",
+      "conceptId": "calm",
+      "cardType": "situation",
+      "label": "Ты лежишь в кровати вечером и слушаешь тихую музыку.",
+      "answerKey": "спокойствие"
+    },
+    {
+      "id": "situation_calm_2",
+      "conceptId": "calm",
+      "cardType": "situation",
+      "label": "Все уроки сделаны, и впереди целый свободный вечер.",
+      "answerKey": "спокойствие"
+    },
+    {
+      "id": "situation_calm_3",
+      "conceptId": "calm",
+      "cardType": "situation",
+      "label": "Ты гуляешь в парке, и вокруг тихо и спокойно.",
+      "answerKey": "спокойствие"
     }
   ]
 }
