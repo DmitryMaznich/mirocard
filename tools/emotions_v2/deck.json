@@ -5,13 +5,13 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.3.1",
+    "version": "1.3.2",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
     "answerPrefix": "Чувствует",
     "about": {
-      "text": "Колода знакомит детей с 10 базовыми эмоциями. 4 вариации каждого понятия развивают генерализацию — ребёнок учится узнавать эмоцию на фото, в жизненной сцене, в иллюстрации и в портретной зарисовке. Подходит для детей до 16 лет, работы с логопедом, дефектологом, родителями.",
+      "text": "Колода знакомит детей с 10 базовыми эмоциями. 3 вариации каждого понятия (все — детские лица) развивают генерализацию — ребёнок учится узнавать эмоцию на фото, в жизненной сцене и в иллюстрации. Подходит для детей до 16 лет, работы с логопедом, дефектологом, родителями.",
       "tips": [
         "Начинайте с 2–3 самых знакомых эмоций — радость, грусть, злость",
         "Обсуждайте ситуации: «Когда ты так себя чувствуешь?»",
@@ -226,7 +226,7 @@
     }
   ],
   "annotation": {
-    "ru": "Основные эмоции с 4 вариациями каждого понятия для развития генерализации. Для детей до 16 лет, логопеды и родители.",
+    "ru": "Основные эмоции с 3 вариациями каждого понятия (только детские лица) для развития генерализации. Для детей до 16 лет, логопеды и родители.",
     "en": ""
   },
   "semanticSchema": {
@@ -302,28 +302,6 @@
       "answerKey": "радость"
     },
     {
-      "id": "joy_5",
-      "conceptId": "joy",
-      "primary": false,
-      "label": "радость",
-      "image": "media/joy_5.webp",
-      "audio": {
-        "ru": "audio/joy.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "positive",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "positive",
-        "group2": "high",
-        "group3": "postural"
-      },
-      "answerKey": "радость"
-    },
-    {
       "id": "sadness_1",
       "conceptId": "sadness",
       "primary": true,
@@ -386,28 +364,6 @@
         "group1": "negative",
         "group2": "low",
         "group3": "facial"
-      },
-      "answerKey": "грусть"
-    },
-    {
-      "id": "sadness_5",
-      "conceptId": "sadness",
-      "primary": false,
-      "label": "грусть",
-      "image": "media/sadness_5.webp",
-      "audio": {
-        "ru": "audio/sadness.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "negative",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "negative",
-        "group2": "low",
-        "group3": "postural"
       },
       "answerKey": "грусть"
     },
@@ -478,28 +434,6 @@
       "answerKey": "злость"
     },
     {
-      "id": "anger_5",
-      "conceptId": "anger",
-      "primary": false,
-      "label": "злость",
-      "image": "media/anger_5.webp",
-      "audio": {
-        "ru": "audio/anger.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "negative",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "negative",
-        "group2": "high",
-        "group3": "postural"
-      },
-      "answerKey": "злость"
-    },
-    {
       "id": "fear_1",
       "conceptId": "fear",
       "primary": true,
@@ -562,28 +496,6 @@
         "group1": "negative",
         "group2": "high",
         "group3": "mixed"
-      },
-      "answerKey": "страх"
-    },
-    {
-      "id": "fear_5",
-      "conceptId": "fear",
-      "primary": false,
-      "label": "страх",
-      "image": "media/fear_5.webp",
-      "audio": {
-        "ru": "audio/fear.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "negative",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "negative",
-        "group2": "high",
-        "group3": "postural"
       },
       "answerKey": "страх"
     },
@@ -654,28 +566,6 @@
       "answerKey": "удивление"
     },
     {
-      "id": "surprise_5",
-      "conceptId": "surprise",
-      "primary": false,
-      "label": "удивление",
-      "image": "media/surprise_5.webp",
-      "audio": {
-        "ru": "audio/surprise.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "neutral",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "neutral",
-        "group2": "high",
-        "group3": "postural"
-      },
-      "answerKey": "удивление"
-    },
-    {
       "id": "disgust_1",
       "conceptId": "disgust",
       "primary": true,
@@ -738,28 +628,6 @@
         "group1": "negative",
         "group2": "medium",
         "group3": "facial"
-      },
-      "answerKey": "отвращение"
-    },
-    {
-      "id": "disgust_5",
-      "conceptId": "disgust",
-      "primary": false,
-      "label": "отвращение",
-      "image": "media/disgust_5.webp",
-      "audio": {
-        "ru": "audio/disgust.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "negative",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "negative",
-        "group2": "medium",
-        "group3": "postural"
       },
       "answerKey": "отвращение"
     },
@@ -830,28 +698,6 @@
       "answerKey": "спокойствие"
     },
     {
-      "id": "calm_5",
-      "conceptId": "calm",
-      "primary": false,
-      "label": "спокойствие",
-      "image": "media/calm_5.webp",
-      "audio": {
-        "ru": "audio/calm.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "positive",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "positive",
-        "group2": "low",
-        "group3": "postural"
-      },
-      "answerKey": "спокойствие"
-    },
-    {
       "id": "shame_1",
       "conceptId": "shame",
       "primary": true,
@@ -914,28 +760,6 @@
         "group1": "negative",
         "group2": "low",
         "group3": "mixed"
-      },
-      "answerKey": "стыд"
-    },
-    {
-      "id": "shame_5",
-      "conceptId": "shame",
-      "primary": false,
-      "label": "стыд",
-      "image": "media/shame_5.webp",
-      "audio": {
-        "ru": "audio/shame.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "negative",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "negative",
-        "group2": "low",
-        "group3": "postural"
       },
       "answerKey": "стыд"
     },
@@ -1006,28 +830,6 @@
       "answerKey": "скука"
     },
     {
-      "id": "boredom_5",
-      "conceptId": "boredom",
-      "primary": false,
-      "label": "скука",
-      "image": "media/boredom_5.webp",
-      "audio": {
-        "ru": "audio/boredom.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "negative",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "negative",
-        "group2": "low",
-        "group3": "postural"
-      },
-      "answerKey": "скука"
-    },
-    {
       "id": "tiredness_1",
       "conceptId": "tiredness",
       "primary": true,
@@ -1090,28 +892,6 @@
         "group1": "negative",
         "group2": "low",
         "group3": "mixed"
-      },
-      "answerKey": "усталость"
-    },
-    {
-      "id": "tiredness_5",
-      "conceptId": "tiredness",
-      "primary": false,
-      "label": "усталость",
-      "image": "media/tiredness_5.webp",
-      "audio": {
-        "ru": "audio/tiredness.mp3"
-      },
-      "category": "emotions",
-      "tags": [
-        "emotions",
-        "negative",
-        "variation_silhouette"
-      ],
-      "semantic": {
-        "group1": "negative",
-        "group2": "low",
-        "group3": "postural"
       },
       "answerKey": "усталость"
     },
