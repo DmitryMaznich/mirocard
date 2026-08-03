@@ -47,7 +47,7 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
@@ -56,7 +56,7 @@
         "ru": "10 эмоций × 5 вариаций. Аудио произношение. Для детей до 16 лет.",
         "en": "10 emotions × 5 variations each. Audio pronunciation included."
       },
-      "url": "./decks/emotions_v2_v1.2.0.zip",
+      "url": "./decks/emotions_v2_v1.3.0.zip",
       "status": "release",
       "access": "free"
     },
