@@ -68,11 +68,11 @@ function SituationIntroTask({ task, topicId, onAdvance }) {
   return (
     <button className="session-full-tap situation-intro" onClick={handleTap}>
       <div className="session-instruction">{task.situationText}</div>
+      <div className="session-hint">Что чувствует?</div>
       <div className={`situation-intro__reveal${revealed ? " situation-intro__reveal--shown" : ""}`}>
         <CardArea topicId={topicId} card={task.card} />
-        <div className="session-label">{task.label}</div>
+        <div className="situation-intro__label">{task.label}</div>
       </div>
-      {!revealed && <div className="session-hint">Нажми, чтобы узнать эмоцию</div>}
     </button>
   );
 }

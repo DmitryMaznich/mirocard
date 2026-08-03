@@ -13039,6 +13039,15 @@ button {
   opacity: 1;
   transform: translateY(0);
 }
+/* Own label class, not .session-label - that one carries a
+   translateY(-5dvh) tuned for IntroTask's flex-fill layout, which
+   pulled this label up onto the picture instead of sitting under it. */
+.situation-intro__label {
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  flex-shrink: 0;
+}
 .qa-btn:disabled {
   opacity: 0.45;
   cursor: default;

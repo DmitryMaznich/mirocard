@@ -33,14 +33,15 @@ describe("situation_intro — mounted through the real SituationIntroTask", () =
     });
   }
 
-  it("shows the situation text, hides the emotion label until the first tap", () => {
+  it("shows the situation text and the 'Что чувствует?' question, hides the emotion label until the first tap", () => {
     const [task] = generateTasks("situation_intro", CONCEPTS, CARDS, {});
     mount(task, () => {});
     expect(container.querySelector(".session-instruction")?.textContent).toBe("Друг подарил тебе игрушку.");
+    expect(container.querySelector(".session-hint")?.textContent).toBe("Что чувствует?");
     expect(container.querySelector(".situation-intro__reveal")?.className).not.toContain("--shown");
   });
 
-  it("first tap reveals the emotion, does not advance; second tap advances", () => {
+  it("first tap reveals the emotion directly under the picture, does not advance; second tap advances", () => {
     const [task] = generateTasks("situation_intro", CONCEPTS, CARDS, {});
     let advanceCalls = 0;
     mount(task, () => { advanceCalls++; });
@@ -48,7 +49,8 @@ describe("situation_intro — mounted through the real SituationIntroTask", () =
     const btn = container.querySelector("button.situation-intro");
     act(() => btn.click());
     expect(container.querySelector(".situation-intro__reveal")?.className).toContain("--shown");
-    expect(container.querySelector(".session-label")?.textContent).toBe("радость");
+    const reveal = container.querySelector(".situation-intro__reveal");
+    expect(reveal.querySelector(".card-area + .situation-intro__label")?.textContent).toBe("радость");
     expect(advanceCalls).toBe(0);
 
     act(() => btn.click());
