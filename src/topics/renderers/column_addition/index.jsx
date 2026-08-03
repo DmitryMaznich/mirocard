@@ -790,7 +790,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
         </button>
       )}
       {!showHints && <button type="button" className="col-hint-toggle" onClick={() => { setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">💡</button>}
-      {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} onShown={() => { hintUsedRef.current = true; }} screenElement={rootRef.current} targetSelector={hintTargetSelector} />}
+      {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} onShown={() => { hintUsedRef.current = true; }} screenElement={rootRef.current} targetSelector={hintTargetSelector} avoidSelector=".col-notebook .col-digit, .col-notebook [data-cell-key], .col-expression, .col-controls-area" />}
     </div>
   );
 }
