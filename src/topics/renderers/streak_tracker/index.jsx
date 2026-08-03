@@ -10,14 +10,27 @@ export default function StreakTrackerRenderer({ task, onCorrect, onIncorrect, st
   if (!task) return null;
   const starsTarget = 5 * answersPerStar;
   const litCount = Math.min(starsTarget, streakCount);
+  // Explicit rows of 5 (1/2/3 rows for the 5/10/15 options) instead of
+  // leaving a single flex-wrap row to break wherever the screen width
+  // happens to allow — keeps the "5" grouping visible and the layout the
+  // same on every screen size, not just whichever count fits per line.
+  const rows = [];
+  for (let start = 0; start < starsTarget; start += 5) rows.push(start);
   return (
     <div className="operation-stage operation-stage--manual">
-      <div className={`operation-manual__stars${starsTarget > 5 ? " operation-manual__stars--compact" : ""}`}>
-        {Array.from({ length: starsTarget }, (_, i) => (
-          <span
-            key={i}
-            className={`operation-manual__star${i < litCount ? " operation-manual__star--lit" : ""}`}
-          >★</span>
+      <div className={`operation-manual__stars-rows${starsTarget > 5 ? " operation-manual__stars-rows--compact" : ""}`}>
+        {rows.map((start) => (
+          <div key={start} className="operation-manual__stars">
+            {Array.from({ length: 5 }, (_, j) => {
+              const i = start + j;
+              return (
+                <span
+                  key={i}
+                  className={`operation-manual__star${i < litCount ? " operation-manual__star--lit" : ""}`}
+                >★</span>
+              );
+            })}
+          </div>
         ))}
       </div>
       <div className="operation-manual__btns">
