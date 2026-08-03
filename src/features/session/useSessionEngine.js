@@ -104,6 +104,20 @@ function buildGeneratedSessionState({
     }
   }
 
+  // streak_tracker ("5 из 5") has its own "Количество звёзд" param (5/10/15
+  // stars, not the shared "Серия для видеонаграды" selector) — its star
+  // count times its own per-star cost (N/5 answers, same ratio every other
+  // topic's answersPerStar already uses) gives the real streak target, via
+  // the same 5*answersPerStar formula createSessionState always applies:
+  // 5*(N/5)² = N²/5. 10 stars → answersPerStar 4 → target 20; 15 stars →
+  // answersPerStar 9 → target 45.
+  const streakStarsTarget = renderer === "streak_tracker"
+    ? ([5, 10, 15].includes(Number(sessionParams.starsTarget)) ? Number(sessionParams.starsTarget) : 5)
+    : null;
+  const answersPerStarForEngine = streakStarsTarget != null
+    ? (streakStarsTarget / 5) ** 2
+    : (link.answersPerStar ?? 1);
+
   const baseState = createSessionState(
     tasks,
     mode,
@@ -113,7 +127,7 @@ function buildGeneratedSessionState({
     selectedConceptIds,
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
-    link.answersPerStar ?? 1,
+    answersPerStarForEngine,
     link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true,
   );
 

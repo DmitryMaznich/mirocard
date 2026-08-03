@@ -16480,6 +16480,19 @@ button.operation-dot {
   text-shadow: 0 0 24px rgba(245, 196, 44, 0.9), 0 0 40px rgba(255, 200, 0, 0.4);
 }
 
+/* streak_tracker only: the base 5-star row's size assumes exactly 5 stars
+   never wrapping (addition_subtraction's own manual mode always renders
+   exactly 5 — untouched). 10/15-star counts need to wrap and shrink instead
+   of overflowing the screen width. */
+.operation-manual__stars--compact {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+.operation-manual__stars--compact .operation-manual__star {
+  font-size: clamp(2.4rem, 9vw, 4rem);
+}
+
 .operation-manual__btns {
   display: flex;
   justify-content: center;
