@@ -29,6 +29,31 @@ function generateRepeatDrawTasks(concepts) {
   return generateIntroTasks(filterByTaskKind(concepts, "repeat")).map((t) => ({ ...t, type: "repeat_draw" }));
 }
 
+function generateSituationEmotionTasks(displayConcepts, allCards, params) {
+  const optionCount = params.optionCount ?? 4;
+  const difficulty = params.distractorLevel ?? "medium";
+  const situationCards = allCards.filter((c) => c.cardType === "situation");
+  const tasks = [];
+  for (const situationCard of situationCards) {
+    const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);
+    if (!targetConcept) continue;
+    const distractorCount = Math.min(optionCount - 1, displayConcepts.length - 1);
+    const distractorIds = selectDistractorConceptIds(situationCard.conceptId, displayConcepts, distractorCount, difficulty);
+    const distractorOptions = distractorIds.map((cid) => {
+      const dc = displayConcepts.find((c) => c.conceptId === cid);
+      return { conceptId: cid, card: pickVariation(dc), isTarget: false };
+    });
+    const targetOption = { conceptId: situationCard.conceptId, card: pickVariation(targetConcept), isTarget: true };
+    tasks.push({
+      type: "situation_emotion",
+      targetConceptId: situationCard.conceptId,
+      targetLabel: situationCard.label,
+      options: shuffle([targetOption, ...distractorOptions]),
+    });
+  }
+  return shuffle(tasks);
+}
+
 function generateYesNoTasks(concepts, params) {
   const reps = params.repsPerConcept ?? 1;
   const tasks = [];
@@ -145,15 +170,26 @@ function generateChooseAllTasks(concepts, params) {
 }
 
 export function generateTasks(modeType, concepts, allCards, params = {}) {
+  // Cards tagged with a cardType (e.g. "situation") aren't an ordinary
+  // picture/word variation and must never surface as one - strip them from
+  // every mode's card pool except the mode built specifically to consume
+  // them. A card that never sets cardType passes through unchanged, so this
+  // is a no-op for every flashcards topic other than emotions_v2.
+  const displayConcepts = concepts.map((c) => {
+    const displayCards = c.cards.filter((card) => !card.cardType);
+    if (displayCards.length === c.cards.length) return c;
+    return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
+  });
   switch (modeType) {
-    case "intro":                  return generateIntroTasks(concepts);
-    case "mirror_draw":            return generateMirrorDrawTasks(concepts);
-    case "repeat_draw":            return generateRepeatDrawTasks(concepts);
-    case "question_answer":        return generateIntroTasks(concepts).map((t) => ({ ...t, type: "question_answer" }));
-    case "yes_no":                 return generateYesNoTasks(concepts, params);
-    case "find_n":                 return generateFindNTasks(concepts, params);
-    case "choose_word_by_picture": return generateChooseWordTasks(concepts, params);
-    case "choose_all":             return generateChooseAllTasks(concepts, params);
+    case "intro":                  return generateIntroTasks(displayConcepts);
+    case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
+    case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
+    case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
+    case "question_answer":        return generateIntroTasks(displayConcepts).map((t) => ({ ...t, type: "question_answer" }));
+    case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
+    case "find_n":                 return generateFindNTasks(displayConcepts, params);
+    case "choose_word_by_picture": return generateChooseWordTasks(displayConcepts, params);
+    case "choose_all":             return generateChooseAllTasks(displayConcepts, params);
     default:                       return [];
   }
 }

@@ -326,6 +326,7 @@ const TASK_RENDERERS = {
   question_answer:        QuestionAnswerTask,
   yes_no:                 YesNoTask,
   find_n:                 FindNTask,
+  situation_emotion:      FindNTask,
   choose_word_by_picture: ChooseWordTask,
   choose_all:             ChooseAllTask,
 };
