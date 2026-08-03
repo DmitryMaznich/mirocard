@@ -1,0 +1,1560 @@
+{
+  "builtAt": "2026-05-06T10:51:47.006Z",
+  "sourceProject": "emotions_v2",
+  "cardCount": 50,
+  "modelUsage": [
+    "gemini-3.1-flash-image-preview"
+  ],
+  "cards": [
+    {
+      "id": "joy_1",
+      "label": {
+        "ru": "радость",
+        "en": "joy_1"
+      },
+      "filename": "joy_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child with a wide joyful smile and bright sparkling eyes, plain white background, maximum focus on face expressing happiness, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:08:20.517Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "радость",
+      "notes": ""
+    },
+    {
+      "id": "joy_2",
+      "label": {
+        "ru": "радость",
+        "en": "joy_2"
+      },
+      "filename": "joy_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child laughing and jumping with joy at a birthday party, colorful scene, pure happiness in a real-life context, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:08:37.923Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "радость",
+      "notes": ""
+    },
+    {
+      "id": "joy_3",
+      "label": {
+        "ru": "радость",
+        "en": "joy_3"
+      },
+      "filename": "joy_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a joyful child with a big smile and sparkling eyes, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:08:54.355Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "радость",
+      "notes": ""
+    },
+    {
+      "id": "joy_4",
+      "label": {
+        "ru": "радость",
+        "en": "joy_4"
+      },
+      "filename": "joy_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a happy puppy jumping with excitement, tail wagging, big joyful smile, playful cheerful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:09:23.396Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "радость",
+      "notes": ""
+    },
+    {
+      "id": "joy_5",
+      "label": {
+        "ru": "радость",
+        "en": "joy_5"
+      },
+      "filename": "joy_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a wide joyful smile and bright happy eyes, portrait bust, neutral light background, maximum focus on face expressing joy, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:42:41.788Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "радость",
+      "notes": ""
+    },
+    {
+      "id": "sadness_1",
+      "label": {
+        "ru": "грусть",
+        "en": "sadness_1"
+      },
+      "filename": "sadness_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a person with a sad expression, downturned mouth, drooping posture, plain white background, maximum focus on face expressing sadness, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:27:19.582Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "грусть",
+      "notes": ""
+    },
+    {
+      "id": "sadness_2",
+      "label": {
+        "ru": "грусть",
+        "en": "sadness_2"
+      },
+      "filename": "sadness_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a sad child sitting alone on a bench, head down, hunched posture, lonely atmosphere, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:10:30.145Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "грусть",
+      "notes": ""
+    },
+    {
+      "id": "sadness_3",
+      "label": {
+        "ru": "грусть",
+        "en": "sadness_3"
+      },
+      "filename": "sadness_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a sad child with a small frown and a single teardrop rolling down cheek, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:10:53.024Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "грусть",
+      "notes": ""
+    },
+    {
+      "id": "sadness_4",
+      "label": {
+        "ru": "грусть",
+        "en": "sadness_4"
+      },
+      "filename": "sadness_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a sad little bear sitting alone with drooping ears and a small frown, looking downward, lonely posture, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:11:12.616Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "грусть",
+      "notes": ""
+    },
+    {
+      "id": "sadness_5",
+      "label": {
+        "ru": "грусть",
+        "en": "sadness_5"
+      },
+      "filename": "sadness_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a sad expression, downturned mouth and furrowed brow, portrait bust, neutral light background, maximum focus on face expressing sadness, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:43:06.030Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "грусть",
+      "notes": ""
+    },
+    {
+      "id": "anger_1",
+      "label": {
+        "ru": "злость",
+        "en": "anger_1"
+      },
+      "filename": "anger_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, an angry child with furrowed brows, clenched jaw and tense expression, plain white background, maximum focus on face, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:11:56.561Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "злость",
+      "notes": ""
+    },
+    {
+      "id": "anger_2",
+      "label": {
+        "ru": "злость",
+        "en": "anger_2"
+      },
+      "filename": "anger_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, an angry child stomping foot and crossing arms in frustration, visibly upset, tense whole-body posture, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:12:19.231Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "злость",
+      "notes": ""
+    },
+    {
+      "id": "anger_3",
+      "label": {
+        "ru": "злость",
+        "en": "anger_3"
+      },
+      "filename": "anger_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, an angry child with deeply furrowed brows and red cheeks, steam coming from ears, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:12:42.883Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "злость",
+      "notes": ""
+    },
+    {
+      "id": "anger_4",
+      "label": {
+        "ru": "злость",
+        "en": "anger_4"
+      },
+      "filename": "anger_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, an angry cartoon cat with puffed fur, squinting eyes and bared teeth, aggressive defensive posture, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:12:56.049Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "злость",
+      "notes": ""
+    },
+    {
+      "id": "anger_5",
+      "label": {
+        "ru": "злость",
+        "en": "anger_5"
+      },
+      "filename": "anger_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with an angry expression, furrowed brows and tense jaw, portrait bust, neutral light background, maximum focus on face expressing anger, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:43:30.142Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "злость",
+      "notes": ""
+    },
+    {
+      "id": "fear_1",
+      "label": {
+        "ru": "страх",
+        "en": "fear_1"
+      },
+      "filename": "fear_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a frightened child with wide open eyes and slightly open mouth, pale tense face, plain white background, maximum focus on face, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:13:28.486Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "страх",
+      "notes": ""
+    },
+    {
+      "id": "fear_2",
+      "label": {
+        "ru": "страх",
+        "en": "fear_2"
+      },
+      "filename": "fear_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a scared child hiding behind a pillow on a sofa, peeking out with wide frightened eyes, tense protective posture, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:13:51.079Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "страх",
+      "notes": ""
+    },
+    {
+      "id": "fear_3",
+      "label": {
+        "ru": "страх",
+        "en": "fear_3"
+      },
+      "filename": "fear_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a frightened child with huge round eyes, eyebrows raised high, hands covering mouth, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:14:11.295Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "страх",
+      "notes": ""
+    },
+    {
+      "id": "fear_4",
+      "label": {
+        "ru": "страх",
+        "en": "fear_4"
+      },
+      "filename": "fear_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a scared cartoon rabbit trembling with wide eyes, ears pressed flat back, tail tucked, frozen in fear, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:14:31.232Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "страх",
+      "notes": ""
+    },
+    {
+      "id": "fear_5",
+      "label": {
+        "ru": "страх",
+        "en": "fear_5"
+      },
+      "filename": "fear_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a fearful expression, wide eyes and slightly open mouth, portrait bust, neutral light background, maximum focus on face expressing fear, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:43:48.042Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "страх",
+      "notes": ""
+    },
+    {
+      "id": "surprise_1",
+      "label": {
+        "ru": "удивление",
+        "en": "surprise_1"
+      },
+      "filename": "surprise_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a surprised child with raised eyebrows and wide open mouth in astonishment, plain white background, maximum focus on face, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:15:13.194Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "удивление",
+      "notes": ""
+    },
+    {
+      "id": "surprise_2",
+      "label": {
+        "ru": "удивление",
+        "en": "surprise_2"
+      },
+      "filename": "surprise_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a surprised child opening an unexpected gift, eyes wide with amazement and mouth open, delighted shock reaction, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:15:29.091Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "удивление",
+      "notes": ""
+    },
+    {
+      "id": "surprise_3",
+      "label": {
+        "ru": "удивление",
+        "en": "surprise_3"
+      },
+      "filename": "surprise_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a surprised child with wide eyes and a perfect O-shaped mouth, hands raised to cheeks in amazement, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:15:48.109Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "удивление",
+      "notes": ""
+    },
+    {
+      "id": "surprise_4",
+      "label": {
+        "ru": "удивление",
+        "en": "surprise_4"
+      },
+      "filename": "surprise_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a surprised cartoon owl with huge round eyes wide open and ruffled feathers, beak slightly open in amazement, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:16:12.774Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "удивление",
+      "notes": ""
+    },
+    {
+      "id": "surprise_5",
+      "label": {
+        "ru": "удивление",
+        "en": "surprise_5"
+      },
+      "filename": "surprise_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a surprised expression, raised eyebrows and open mouth, portrait bust, neutral light background, maximum focus on face expressing surprise, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:44:01.743Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "удивление",
+      "notes": ""
+    },
+    {
+      "id": "disgust_1",
+      "label": {
+        "ru": "отвращение",
+        "en": "disgust_1"
+      },
+      "filename": "disgust_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child with a disgusted expression, nose wrinkled and upper lip pulled back, plain white background, maximum focus on face, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:16:49.098Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "facial"
+      },
+      "answerKey": "отвращение",
+      "notes": ""
+    },
+    {
+      "id": "disgust_2",
+      "label": {
+        "ru": "отвращение",
+        "en": "disgust_2"
+      },
+      "filename": "disgust_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child making a disgusted face while turning away from unpleasant food on a plate, body leaning back in rejection, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:17:07.060Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "mixed"
+      },
+      "answerKey": "отвращение",
+      "notes": ""
+    },
+    {
+      "id": "disgust_3",
+      "label": {
+        "ru": "отвращение",
+        "en": "disgust_3"
+      },
+      "filename": "disgust_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child with deeply wrinkled nose, squinting eyes and tongue slightly out in disgust, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:17:28.486Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "facial"
+      },
+      "answerKey": "отвращение",
+      "notes": ""
+    },
+    {
+      "id": "disgust_4",
+      "label": {
+        "ru": "отвращение",
+        "en": "disgust_4"
+      },
+      "filename": "disgust_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a cartoon dog turning away with wrinkled snout, eyes squinting and ears back, reacting to something unpleasant, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:17:50.535Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "mixed"
+      },
+      "answerKey": "отвращение",
+      "notes": ""
+    },
+    {
+      "id": "disgust_5",
+      "label": {
+        "ru": "отвращение",
+        "en": "disgust_5"
+      },
+      "filename": "disgust_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a disgusted expression, wrinkled nose and raised upper lip, portrait bust, neutral light background, maximum focus on face expressing disgust, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:44:14.466Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "postural"
+      },
+      "answerKey": "отвращение",
+      "notes": ""
+    },
+    {
+      "id": "calm_1",
+      "label": {
+        "ru": "спокойствие",
+        "en": "calm_1"
+      },
+      "filename": "calm_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a calm child with a relaxed gentle expression and soft smile, neutral peaceful face, plain white background, maximum focus on face, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:18:19.647Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "спокойствие",
+      "notes": ""
+    },
+    {
+      "id": "calm_2",
+      "label": {
+        "ru": "спокойствие",
+        "en": "calm_2"
+      },
+      "filename": "calm_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a peaceful child sitting quietly reading a book, relaxed posture, content and serene atmosphere, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:18:38.838Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "спокойствие",
+      "notes": ""
+    },
+    {
+      "id": "calm_3",
+      "label": {
+        "ru": "спокойствие",
+        "en": "calm_3"
+      },
+      "filename": "calm_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a calm child with closed eyes and a gentle serene smile, relaxed shoulders, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:18:57.086Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "спокойствие",
+      "notes": ""
+    },
+    {
+      "id": "calm_4",
+      "label": {
+        "ru": "спокойствие",
+        "en": "calm_4"
+      },
+      "filename": "calm_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a calm cat curled up peacefully, eyes half closed in contentment, completely relaxed and still posture, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:19:21.669Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "спокойствие",
+      "notes": ""
+    },
+    {
+      "id": "calm_5",
+      "label": {
+        "ru": "спокойствие",
+        "en": "calm_5"
+      },
+      "filename": "calm_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a calm and relaxed expression, soft eyes and gentle closed-mouth smile, portrait bust, neutral light background, maximum focus on face expressing calmness, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:44:36.783Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "спокойствие",
+      "notes": ""
+    },
+    {
+      "id": "shame_1",
+      "label": {
+        "ru": "стыд",
+        "en": "shame_1"
+      },
+      "filename": "shame_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child with a shameful expression, eyes cast downward and cheeks slightly flushed, avoiding eye contact, plain white background, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:25:57.647Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "стыд",
+      "notes": ""
+    },
+    {
+      "id": "shame_2",
+      "label": {
+        "ru": "стыд",
+        "en": "shame_2"
+      },
+      "filename": "shame_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child looking down and covering face with both hands in embarrassment, shoulders hunched, hiding from view, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:20:43.716Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "стыд",
+      "notes": ""
+    },
+    {
+      "id": "shame_3",
+      "label": {
+        "ru": "стыд",
+        "en": "shame_3"
+      },
+      "filename": "shame_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a shy ashamed child with bright red cheeks, eyes looking down and away, shoulders raised protectively, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:20:59.108Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "стыд",
+      "notes": ""
+    },
+    {
+      "id": "shame_4",
+      "label": {
+        "ru": "стыд",
+        "en": "shame_4"
+      },
+      "filename": "shame_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a puppy with ears flat down and tail tucked between legs, head lowered, looking away in shame, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:21:15.510Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "стыд",
+      "notes": ""
+    },
+    {
+      "id": "shame_5",
+      "label": {
+        "ru": "стыд",
+        "en": "shame_5"
+      },
+      "filename": "shame_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a shameful expression, lowered gaze and slightly flushed cheeks, portrait bust, neutral light background, maximum focus on face expressing shame, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:44:56.981Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "стыд",
+      "notes": ""
+    },
+    {
+      "id": "boredom_1",
+      "label": {
+        "ru": "скука",
+        "en": "boredom_1"
+      },
+      "filename": "boredom_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a bored child with a blank flat expression, chin resting on hand, heavy eyelids, plain white background, maximum focus on face, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:21:58.573Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "скука",
+      "notes": ""
+    },
+    {
+      "id": "boredom_2",
+      "label": {
+        "ru": "скука",
+        "en": "boredom_2"
+      },
+      "filename": "boredom_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a bored child sitting at a table doing nothing, staring blankly into space, chin propped on hand, slouching, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:22:20.373Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "скука",
+      "notes": ""
+    },
+    {
+      "id": "boredom_3",
+      "label": {
+        "ru": "скука",
+        "en": "boredom_3"
+      },
+      "filename": "boredom_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a bored child with droopy eyelids, flat mouth and a tiny yawn, leaning on elbow, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:22:41.335Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "скука",
+      "notes": ""
+    },
+    {
+      "id": "boredom_4",
+      "label": {
+        "ru": "скука",
+        "en": "boredom_4"
+      },
+      "filename": "boredom_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a bored cartoon sloth hanging lazily from a branch, half-closed sleepy eyes, completely limp and uninterested, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:23:10.901Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "скука",
+      "notes": ""
+    },
+    {
+      "id": "boredom_5",
+      "label": {
+        "ru": "скука",
+        "en": "boredom_5"
+      },
+      "filename": "boredom_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a bored expression, flat affect and unfocused gaze, portrait bust, neutral light background, maximum focus on face expressing boredom, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:45:18.084Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "скука",
+      "notes": ""
+    },
+    {
+      "id": "tiredness_1",
+      "label": {
+        "ru": "усталость",
+        "en": "tiredness_1"
+      },
+      "filename": "tiredness_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a tired child with heavy drooping eyelids and mouth open in a yawn, exhausted face, plain white background, maximum focus on face, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:23:45.273Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "усталость",
+      "notes": ""
+    },
+    {
+      "id": "tiredness_2",
+      "label": {
+        "ru": "усталость",
+        "en": "tiredness_2"
+      },
+      "filename": "tiredness_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, an exhausted child falling asleep at a desk, head drooping forward with eyes closed, completely spent, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:24:00.494Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "усталость",
+      "notes": ""
+    },
+    {
+      "id": "tiredness_3",
+      "label": {
+        "ru": "усталость",
+        "en": "tiredness_3"
+      },
+      "filename": "tiredness_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a sleepy tired child with half-closed eyes, dark circles, and a wide yawn, slumping forward, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:24:22.564Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "усталость",
+      "notes": ""
+    },
+    {
+      "id": "tiredness_4",
+      "label": {
+        "ru": "усталость",
+        "en": "tiredness_4"
+      },
+      "filename": "tiredness_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a yawning cartoon bear with heavy drooping eyelids, slumped posture, paw raised to mouth mid-yawn, utterly exhausted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:24:43.811Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "усталость",
+      "notes": ""
+    },
+    {
+      "id": "tiredness_5",
+      "label": {
+        "ru": "усталость",
+        "en": "tiredness_5"
+      },
+      "filename": "tiredness_5.webp",
+      "prompt": "semi-realistic digital portrait illustration, clean soft neutral background, warm natural lighting, detailed expressive face, portrait bust crop, professional educational illustration style, consistent style across the entire deck, an adult person with a tired expression, heavy eyelids and relaxed drooping posture, portrait bust, neutral light background, maximum focus on face expressing tiredness, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-14T18:45:33.140Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "усталость",
+      "notes": ""
+    }
+  ]
+}

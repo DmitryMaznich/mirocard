@@ -1,0 +1,1307 @@
+{
+  "meta": {
+    "id": "emotions_v2",
+    "title": {
+      "ru": "Эмоции",
+      "en": "Emotions"
+    },
+    "version": "1.2.0",
+    "renderer": "flashcards",
+    "conceptCount": 10,
+    "questionKey": "Что чувствует?",
+    "answerPrefix": "Чувствует",
+    "about": {
+      "text": "Колода знакомит детей с 10 базовыми эмоциями. 5 вариаций каждого понятия развивают генерализацию — ребёнок учится узнавать эмоцию на фото, иллюстрации, в мультяшном и схематичном виде. Подходит для детей до 16 лет, работы с логопедом, дефектологом, родителями.",
+      "tips": [
+        "Начинайте с 2–3 самых знакомых эмоций — радость, грусть, злость",
+        "Обсуждайте ситуации: «Когда ты так себя чувствуешь?»",
+        "Используйте зеркало — попросите ребёнка показать эмоцию на лице",
+        "Для невербальных детей используйте режим «Найди картинку» как основной"
+      ]
+    }
+  },
+  "modes": [
+    {
+      "id": "intro",
+      "type": "intro",
+      "evaluation": "none",
+      "ui": {
+        "title": "Знакомство",
+        "instruction": "Нажмите на карточку чтобы продолжить"
+      },
+      "methodology": {
+        "text": "Пассивное знакомство с материалом. Ребёнок видит карточку и слышит название — без задания и оценки. Активирует пассивный словарь и снижает тревожность перед новой темой.",
+        "tips": [
+          "Называйте понятия вслух вместе с ребёнком",
+          "Не торопите — пусть ребёнок рассматривает каждую карточку столько, сколько хочет",
+          "Используйте в начале работы с новой темой или после перерыва"
+        ],
+        "duration": "2–4 минуты"
+      }
+    },
+    {
+      "id": "find_n",
+      "type": "find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Найди картинку",
+        "instruction": "Нажми на нужную картинку"
+      },
+      "methodology": {
+        "text": "Слово показывается вверху — ребёнок находит карточку среди 2, 4 или 6 вариантов. Чистое рецептивное задание: услышал слово — нашёл образ. Первый шаг от пассивного восприятия к активному ответу.",
+        "tips": [
+          "Начните с 2 вариантов — переходите к 4 и 6 по мере уверенности",
+          "Убедитесь что дистракторы понятны ребёнку — иначе выбор неосознанный",
+          "При ошибке назовите правильный вариант, не акцентируйте ошибку"
+        ],
+        "duration": "4–6 минут"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариантов"
+          },
+          "values": [
+            2,
+            4,
+            6
+          ],
+          "default": 4
+        },
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        }
+      }
+    },
+    {
+      "id": "yes_no",
+      "type": "yes_no",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Да / Нет",
+        "instruction": "Правильное ли слово?"
+      },
+      "methodology": {
+        "text": "Карточка показывается с подписью — иногда верной, иногда ложной. Ребёнок нажимает ДА или НЕТ. Требует уже сформированной связи слово↔образ: ребёнок не просто находит, а оценивает правильность.",
+        "tips": [
+          "Хвалите за ДА и за НЕТ одинаково — оба ответа равнозначны",
+          "Если ребёнок часто нажимает ДА вслепую — сделайте паузу перед показом кнопок",
+          "Используйте после «Найди картинку» — связь слово-образ уже должна быть сформирована"
+        ],
+        "duration": "3–5 минут"
+      },
+      "params": {
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 5
+        }
+      }
+    },
+    {
+      "id": "choose_word_by_picture",
+      "type": "choose_word_by_picture",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Выбери слово",
+        "instruction": "Нажми на правильное слово"
+      },
+      "methodology": {
+        "text": "Карточка показывается — ребёнок выбирает правильное слово из четырёх. Тренирует связь образа со словом, готовит к чтению.",
+        "tips": [
+          "Следите: некоторые дети угадывают по длине слова, не читая",
+          "Для неграмотных детей этот режим может быть преждевременным",
+          "Переходите после уверенного прохождения «Найди картинку» и «Да / Нет»"
+        ],
+        "duration": "4–6 минут"
+      },
+      "params": {
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        },
+        "concepts": {
+          "type": "concept_selector"
+        }
+      }
+    },
+    {
+      "id": "choose_all",
+      "type": "choose_all",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Выбери все",
+        "instruction": "Найди все подходящие карточки"
+      },
+      "methodology": {
+        "text": "Называется целевая категория — ребёнок нажимает все подходящие карточки в сетке. Тренирует обобщение и категориальное мышление.",
+        "tips": [
+          "Перед началом убедитесь что ребёнок понимает задание — покажите пример",
+          "Хвалите за каждое верное нажатие, а не только за итоговый результат",
+          "Используйте только после освоения предыдущих режимов"
+        ],
+        "duration": "5–8 минут"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Карточек в сетке"
+          },
+          "values": [
+            2,
+            4,
+            6,
+            9
+          ],
+          "default": 4
+        }
+      }
+    },
+    {
+      "id": "question_answer",
+      "type": "question_answer",
+      "evaluation": "none",
+      "ui": {
+        "title": "Вопрос",
+        "instruction": "Вопрос"
+      },
+      "methodology": {
+        "text": "Специалист задаёт вопрос к карточке — ребёнок отвечает устно. Оценка выставляется вручную. Развивает активный словарь и самостоятельное называние.",
+        "tips": [
+          "Задавайте вопрос всегда одинаково — это создаёт предсказуемость",
+          "Подсказывайте первый звук если ребёнок молчит более 5 секунд",
+          "Принимайте приближённые ответы — важно движение к слову"
+        ],
+        "duration": "5–7 минут"
+      }
+    }
+  ],
+  "annotation": {
+    "ru": "Основные эмоции с 5 вариациями каждого понятия для развития генерализации. Для детей до 16 лет, логопеды и родители.",
+    "en": ""
+  },
+  "semanticSchema": {
+    "group1": "valence",
+    "group2": "arousal",
+    "group3": "expression"
+  },
+  "cards": [
+    {
+      "id": "joy_1",
+      "conceptId": "joy",
+      "primary": true,
+      "label": "радость",
+      "image": "media/joy_1.webp",
+      "audio": {
+        "ru": "audio/joy.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "радость"
+    },
+    {
+      "id": "joy_2",
+      "conceptId": "joy",
+      "primary": false,
+      "label": "радость",
+      "image": "media/joy_2.webp",
+      "audio": {
+        "ru": "audio/joy.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "радость"
+    },
+    {
+      "id": "joy_3",
+      "conceptId": "joy",
+      "primary": false,
+      "label": "радость",
+      "image": "media/joy_3.webp",
+      "audio": {
+        "ru": "audio/joy.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "радость"
+    },
+    {
+      "id": "joy_4",
+      "conceptId": "joy",
+      "primary": false,
+      "label": "радость",
+      "image": "media/joy_4.webp",
+      "audio": {
+        "ru": "audio/joy.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "радость"
+    },
+    {
+      "id": "joy_5",
+      "conceptId": "joy",
+      "primary": false,
+      "label": "радость",
+      "image": "media/joy_5.webp",
+      "audio": {
+        "ru": "audio/joy.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "радость"
+    },
+    {
+      "id": "sadness_1",
+      "conceptId": "sadness",
+      "primary": true,
+      "label": "грусть",
+      "image": "media/sadness_1.webp",
+      "audio": {
+        "ru": "audio/sadness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "грусть"
+    },
+    {
+      "id": "sadness_2",
+      "conceptId": "sadness",
+      "primary": false,
+      "label": "грусть",
+      "image": "media/sadness_2.webp",
+      "audio": {
+        "ru": "audio/sadness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "грусть"
+    },
+    {
+      "id": "sadness_3",
+      "conceptId": "sadness",
+      "primary": false,
+      "label": "грусть",
+      "image": "media/sadness_3.webp",
+      "audio": {
+        "ru": "audio/sadness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "грусть"
+    },
+    {
+      "id": "sadness_4",
+      "conceptId": "sadness",
+      "primary": false,
+      "label": "грусть",
+      "image": "media/sadness_4.webp",
+      "audio": {
+        "ru": "audio/sadness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "грусть"
+    },
+    {
+      "id": "sadness_5",
+      "conceptId": "sadness",
+      "primary": false,
+      "label": "грусть",
+      "image": "media/sadness_5.webp",
+      "audio": {
+        "ru": "audio/sadness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "грусть"
+    },
+    {
+      "id": "anger_1",
+      "conceptId": "anger",
+      "primary": true,
+      "label": "злость",
+      "image": "media/anger_1.webp",
+      "audio": {
+        "ru": "audio/anger.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "злость"
+    },
+    {
+      "id": "anger_2",
+      "conceptId": "anger",
+      "primary": false,
+      "label": "злость",
+      "image": "media/anger_2.webp",
+      "audio": {
+        "ru": "audio/anger.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "злость"
+    },
+    {
+      "id": "anger_3",
+      "conceptId": "anger",
+      "primary": false,
+      "label": "злость",
+      "image": "media/anger_3.webp",
+      "audio": {
+        "ru": "audio/anger.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "злость"
+    },
+    {
+      "id": "anger_4",
+      "conceptId": "anger",
+      "primary": false,
+      "label": "злость",
+      "image": "media/anger_4.webp",
+      "audio": {
+        "ru": "audio/anger.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "злость"
+    },
+    {
+      "id": "anger_5",
+      "conceptId": "anger",
+      "primary": false,
+      "label": "злость",
+      "image": "media/anger_5.webp",
+      "audio": {
+        "ru": "audio/anger.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "злость"
+    },
+    {
+      "id": "fear_1",
+      "conceptId": "fear",
+      "primary": true,
+      "label": "страх",
+      "image": "media/fear_1.webp",
+      "audio": {
+        "ru": "audio/fear.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "страх"
+    },
+    {
+      "id": "fear_2",
+      "conceptId": "fear",
+      "primary": false,
+      "label": "страх",
+      "image": "media/fear_2.webp",
+      "audio": {
+        "ru": "audio/fear.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "страх"
+    },
+    {
+      "id": "fear_3",
+      "conceptId": "fear",
+      "primary": false,
+      "label": "страх",
+      "image": "media/fear_3.webp",
+      "audio": {
+        "ru": "audio/fear.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "страх"
+    },
+    {
+      "id": "fear_4",
+      "conceptId": "fear",
+      "primary": false,
+      "label": "страх",
+      "image": "media/fear_4.webp",
+      "audio": {
+        "ru": "audio/fear.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "страх"
+    },
+    {
+      "id": "fear_5",
+      "conceptId": "fear",
+      "primary": false,
+      "label": "страх",
+      "image": "media/fear_5.webp",
+      "audio": {
+        "ru": "audio/fear.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "страх"
+    },
+    {
+      "id": "surprise_1",
+      "conceptId": "surprise",
+      "primary": true,
+      "label": "удивление",
+      "image": "media/surprise_1.webp",
+      "audio": {
+        "ru": "audio/surprise.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "удивление"
+    },
+    {
+      "id": "surprise_2",
+      "conceptId": "surprise",
+      "primary": false,
+      "label": "удивление",
+      "image": "media/surprise_2.webp",
+      "audio": {
+        "ru": "audio/surprise.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "удивление"
+    },
+    {
+      "id": "surprise_3",
+      "conceptId": "surprise",
+      "primary": false,
+      "label": "удивление",
+      "image": "media/surprise_3.webp",
+      "audio": {
+        "ru": "audio/surprise.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "mixed"
+      },
+      "answerKey": "удивление"
+    },
+    {
+      "id": "surprise_4",
+      "conceptId": "surprise",
+      "primary": false,
+      "label": "удивление",
+      "image": "media/surprise_4.webp",
+      "audio": {
+        "ru": "audio/surprise.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "facial"
+      },
+      "answerKey": "удивление"
+    },
+    {
+      "id": "surprise_5",
+      "conceptId": "surprise",
+      "primary": false,
+      "label": "удивление",
+      "image": "media/surprise_5.webp",
+      "audio": {
+        "ru": "audio/surprise.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "neutral",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "neutral",
+        "group2": "high",
+        "group3": "postural"
+      },
+      "answerKey": "удивление"
+    },
+    {
+      "id": "disgust_1",
+      "conceptId": "disgust",
+      "primary": true,
+      "label": "отвращение",
+      "image": "media/disgust_1.webp",
+      "audio": {
+        "ru": "audio/disgust.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "facial"
+      },
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "disgust_2",
+      "conceptId": "disgust",
+      "primary": false,
+      "label": "отвращение",
+      "image": "media/disgust_2.webp",
+      "audio": {
+        "ru": "audio/disgust.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "mixed"
+      },
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "disgust_3",
+      "conceptId": "disgust",
+      "primary": false,
+      "label": "отвращение",
+      "image": "media/disgust_3.webp",
+      "audio": {
+        "ru": "audio/disgust.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "facial"
+      },
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "disgust_4",
+      "conceptId": "disgust",
+      "primary": false,
+      "label": "отвращение",
+      "image": "media/disgust_4.webp",
+      "audio": {
+        "ru": "audio/disgust.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "mixed"
+      },
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "disgust_5",
+      "conceptId": "disgust",
+      "primary": false,
+      "label": "отвращение",
+      "image": "media/disgust_5.webp",
+      "audio": {
+        "ru": "audio/disgust.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "medium",
+        "group3": "postural"
+      },
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "calm_1",
+      "conceptId": "calm",
+      "primary": true,
+      "label": "спокойствие",
+      "image": "media/calm_1.webp",
+      "audio": {
+        "ru": "audio/calm.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "спокойствие"
+    },
+    {
+      "id": "calm_2",
+      "conceptId": "calm",
+      "primary": false,
+      "label": "спокойствие",
+      "image": "media/calm_2.webp",
+      "audio": {
+        "ru": "audio/calm.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "спокойствие"
+    },
+    {
+      "id": "calm_3",
+      "conceptId": "calm",
+      "primary": false,
+      "label": "спокойствие",
+      "image": "media/calm_3.webp",
+      "audio": {
+        "ru": "audio/calm.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "спокойствие"
+    },
+    {
+      "id": "calm_4",
+      "conceptId": "calm",
+      "primary": false,
+      "label": "спокойствие",
+      "image": "media/calm_4.webp",
+      "audio": {
+        "ru": "audio/calm.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "спокойствие"
+    },
+    {
+      "id": "calm_5",
+      "conceptId": "calm",
+      "primary": false,
+      "label": "спокойствие",
+      "image": "media/calm_5.webp",
+      "audio": {
+        "ru": "audio/calm.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "positive",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "positive",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "спокойствие"
+    },
+    {
+      "id": "shame_1",
+      "conceptId": "shame",
+      "primary": true,
+      "label": "стыд",
+      "image": "media/shame_1.webp",
+      "audio": {
+        "ru": "audio/shame.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "стыд"
+    },
+    {
+      "id": "shame_2",
+      "conceptId": "shame",
+      "primary": false,
+      "label": "стыд",
+      "image": "media/shame_2.webp",
+      "audio": {
+        "ru": "audio/shame.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "стыд"
+    },
+    {
+      "id": "shame_3",
+      "conceptId": "shame",
+      "primary": false,
+      "label": "стыд",
+      "image": "media/shame_3.webp",
+      "audio": {
+        "ru": "audio/shame.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "стыд"
+    },
+    {
+      "id": "shame_4",
+      "conceptId": "shame",
+      "primary": false,
+      "label": "стыд",
+      "image": "media/shame_4.webp",
+      "audio": {
+        "ru": "audio/shame.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "стыд"
+    },
+    {
+      "id": "shame_5",
+      "conceptId": "shame",
+      "primary": false,
+      "label": "стыд",
+      "image": "media/shame_5.webp",
+      "audio": {
+        "ru": "audio/shame.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "стыд"
+    },
+    {
+      "id": "boredom_1",
+      "conceptId": "boredom",
+      "primary": true,
+      "label": "скука",
+      "image": "media/boredom_1.webp",
+      "audio": {
+        "ru": "audio/boredom.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "скука"
+    },
+    {
+      "id": "boredom_2",
+      "conceptId": "boredom",
+      "primary": false,
+      "label": "скука",
+      "image": "media/boredom_2.webp",
+      "audio": {
+        "ru": "audio/boredom.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "скука"
+    },
+    {
+      "id": "boredom_3",
+      "conceptId": "boredom",
+      "primary": false,
+      "label": "скука",
+      "image": "media/boredom_3.webp",
+      "audio": {
+        "ru": "audio/boredom.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "скука"
+    },
+    {
+      "id": "boredom_4",
+      "conceptId": "boredom",
+      "primary": false,
+      "label": "скука",
+      "image": "media/boredom_4.webp",
+      "audio": {
+        "ru": "audio/boredom.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "скука"
+    },
+    {
+      "id": "boredom_5",
+      "conceptId": "boredom",
+      "primary": false,
+      "label": "скука",
+      "image": "media/boredom_5.webp",
+      "audio": {
+        "ru": "audio/boredom.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "скука"
+    },
+    {
+      "id": "tiredness_1",
+      "conceptId": "tiredness",
+      "primary": true,
+      "label": "усталость",
+      "image": "media/tiredness_1.webp",
+      "audio": {
+        "ru": "audio/tiredness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "facial"
+      },
+      "answerKey": "усталость"
+    },
+    {
+      "id": "tiredness_2",
+      "conceptId": "tiredness",
+      "primary": false,
+      "label": "усталость",
+      "image": "media/tiredness_2.webp",
+      "audio": {
+        "ru": "audio/tiredness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "усталость"
+    },
+    {
+      "id": "tiredness_3",
+      "conceptId": "tiredness",
+      "primary": false,
+      "label": "усталость",
+      "image": "media/tiredness_3.webp",
+      "audio": {
+        "ru": "audio/tiredness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "усталость"
+    },
+    {
+      "id": "tiredness_4",
+      "conceptId": "tiredness",
+      "primary": false,
+      "label": "усталость",
+      "image": "media/tiredness_4.webp",
+      "audio": {
+        "ru": "audio/tiredness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "mixed"
+      },
+      "answerKey": "усталость"
+    },
+    {
+      "id": "tiredness_5",
+      "conceptId": "tiredness",
+      "primary": false,
+      "label": "усталость",
+      "image": "media/tiredness_5.webp",
+      "audio": {
+        "ru": "audio/tiredness.mp3"
+      },
+      "category": "emotions",
+      "tags": [
+        "emotions",
+        "negative",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "negative",
+        "group2": "low",
+        "group3": "postural"
+      },
+      "answerKey": "усталость"
+    }
+  ]
+}
