@@ -10,6 +10,13 @@
   // deliberately different line is never mistaken for it.
   const COVERAGE_TOLERANCE = 0.7;
 
+  // How many grid cells the whole drawn figure may sit left/right of the
+  // exact target and still count as correct, as long as its shape is
+  // otherwise accurate - a child who draws a perfect figure but starts it a
+  // cell or two off from the axis shouldn't be marked wrong for that alone.
+  // Vertical position is NOT forgiven this way; only horizontal.
+  const HORIZONTAL_SHIFT_TOLERANCE = 2;
+
   function mirrorPaths(paths, axisCol) {
     return (paths ?? []).map((path) => path.map((point) => ({ col: 2 * axisCol - point.col, row: point.row })));
   }
@@ -64,15 +71,25 @@
     return points;
   }
 
-  function evaluateCoverage(drawnPaths, targetSegments, tolerance) {
+  function evaluateCoverage(drawnPaths, targetSegments, tolerance, maxHorizontalShift) {
     const drawnPoints = drawnPaths.flat();
     for (let i = 1; i < drawnPaths.length; i += 1) {
       const prevEnd = drawnPaths[i - 1]?.at(-1);
       const curStart = drawnPaths[i]?.[0];
       if (prevEnd && curStart) drawnPoints.push(...connectingSamples(prevEnd, curStart));
     }
-    const covered = targetSegments.filter((segment) => isSegmentCovered(drawnPoints, segment, tolerance)).length;
-    return { covered, total: targetSegments.length, complete: targetSegments.length > 0 && covered === targetSegments.length };
+    const total = targetSegments.length;
+    let best = { covered: 0, total, complete: false };
+    // Try every whole-figure horizontal shift in range and keep whichever
+    // position covers the most segments - a systematic left/right offset in
+    // the child's stroke shouldn't hide how accurate the shape itself is.
+    for (let dx = -maxHorizontalShift; dx <= maxHorizontalShift; dx += 1) {
+      const shiftedPoints = dx === 0 ? drawnPoints : drawnPoints.map((p) => ({ col: p.col - dx, row: p.row }));
+      const covered = targetSegments.filter((segment) => isSegmentCovered(shiftedPoints, segment, tolerance)).length;
+      if (covered > best.covered) best = { covered, total, complete: total > 0 && covered === total };
+      if (best.complete) break;
+    }
+    return best;
   }
 
   function pathToD(points) {
@@ -150,7 +167,7 @@
 
     function checkDrawing() {
       if (resolved) return;
-      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE);
+      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE, HORIZONTAL_SHIFT_TOLERANCE);
       const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
       if (coverage.complete) {
         setResolved(true);
