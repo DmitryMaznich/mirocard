@@ -4,7 +4,7 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.5.0";
+const VERSION    = "1.5.1";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
 // .wav files. A card gets its `audio` field only if the file actually
