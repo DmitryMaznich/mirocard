@@ -1,0 +1,1389 @@
+{
+  "meta": {
+    "id": "symmetry_draw",
+    "version": "1.1.2",
+    "renderer": "flashcards",
+    "customModesOnly": true,
+    "title": "Симметричный рисунок",
+    "avatar": "media/avatar.svg",
+    "about": {
+      "description": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси.",
+      "goals": [
+        "Развивать зрительно-пространственное восприятие и представление симметрии.",
+        "Закреплять формы: квадрат, треугольник, круг, овал и ромб."
+      ],
+      "finalGoal": "Ребёнок самостоятельно дорисовывает симметричную фигуру по клеточкам без подсказок."
+    }
+  },
+  "modes": [
+    {
+      "id": "symmetry_draw",
+      "type": "mirror_draw",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Симметричный рисунок",
+        "instruction": "Дорисуй вторую половину фигуры",
+        "icon": "media/avatar.svg"
+      }
+    },
+    {
+      "id": "repeat_draw",
+      "type": "repeat_draw",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Повтори рисунок",
+        "instruction": "Повтори рисунок целиком справа",
+        "icon": "media/repeat_avatar.svg"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "symmetry_house",
+      "conceptId": "symmetry_house",
+      "primary": true,
+      "label": "Дом",
+      "columns": 10,
+      "rows": 8,
+      "axisCol": 5,
+      "sourcePaths": [
+        [
+          {
+            "col": 5,
+            "row": 1
+          },
+          {
+            "col": 3,
+            "row": 3
+          },
+          {
+            "col": 3,
+            "row": 7
+          },
+          {
+            "col": 5,
+            "row": 7
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_arc",
+      "conceptId": "symmetry_arc",
+      "label": "Дуга",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 4.9,
+            "row": 3.1
+          },
+          {
+            "col": 3.8,
+            "row": 3.3
+          },
+          {
+            "col": 2.9,
+            "row": 3.7
+          },
+          {
+            "col": 2.1,
+            "row": 4.1
+          },
+          {
+            "col": 1.5,
+            "row": 4.7
+          },
+          {
+            "col": 1.1,
+            "row": 5.3
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 1.1,
+            "row": 6.7
+          },
+          {
+            "col": 1.5,
+            "row": 7.3
+          },
+          {
+            "col": 2.1,
+            "row": 7.9
+          },
+          {
+            "col": 2.9,
+            "row": 8.4
+          },
+          {
+            "col": 3.8,
+            "row": 8.7
+          },
+          {
+            "col": 4.9,
+            "row": 8.9
+          },
+          {
+            "col": 6,
+            "row": 9
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_zigzag_arrow",
+      "conceptId": "symmetry_zigzag_arrow",
+      "label": "Зигзаг-стрелка",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 4.5
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 4,
+            "row": 7.5
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_heart",
+      "conceptId": "symmetry_heart",
+      "label": "Сердечко",
+      "columns": 12,
+      "rows": 9,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 1.8
+          },
+          {
+            "col": 5.7,
+            "row": 1.2
+          },
+          {
+            "col": 5.2,
+            "row": 0.5
+          },
+          {
+            "col": 4.3,
+            "row": 0
+          },
+          {
+            "col": 3.2,
+            "row": 0
+          },
+          {
+            "col": 2.2,
+            "row": 0.4
+          },
+          {
+            "col": 1.5,
+            "row": 1.2
+          },
+          {
+            "col": 1.2,
+            "row": 2.3
+          },
+          {
+            "col": 1.5,
+            "row": 3.4
+          },
+          {
+            "col": 2.2,
+            "row": 4.5
+          },
+          {
+            "col": 3.2,
+            "row": 5.5
+          },
+          {
+            "col": 4.3,
+            "row": 6.4
+          },
+          {
+            "col": 5.2,
+            "row": 7.2
+          },
+          {
+            "col": 5.7,
+            "row": 7.9
+          },
+          {
+            "col": 6,
+            "row": 8.4
+          },
+          {
+            "col": 6,
+            "row": 8.6
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_square",
+      "conceptId": "symmetry_square",
+      "label": "Квадрат",
+      "columns": 8,
+      "rows": 8,
+      "axisCol": 4,
+      "sourcePaths": [
+        [
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 1,
+            "row": 1
+          },
+          {
+            "col": 1,
+            "row": 7
+          },
+          {
+            "col": 4,
+            "row": 7
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_triangle",
+      "conceptId": "symmetry_triangle",
+      "label": "Треугольник",
+      "columns": 8,
+      "rows": 4,
+      "axisCol": 4,
+      "sourcePaths": [
+        [
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 4
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_rhombus",
+      "conceptId": "symmetry_rhombus",
+      "label": "Ромб",
+      "columns": 8,
+      "rows": 6,
+      "axisCol": 4,
+      "sourcePaths": [
+        [
+          {
+            "col": 4,
+            "row": 0
+          },
+          {
+            "col": 1,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 6
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_hexagon",
+      "conceptId": "symmetry_hexagon",
+      "label": "Шестиугольник",
+      "columns": 12,
+      "rows": 14,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 0
+          },
+          {
+            "col": 0,
+            "row": 6
+          },
+          {
+            "col": 0,
+            "row": 8
+          },
+          {
+            "col": 6,
+            "row": 14
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_arrow",
+      "conceptId": "symmetry_arrow",
+      "label": "Стрелка",
+      "columns": 10,
+      "rows": 9,
+      "axisCol": 5,
+      "sourcePaths": [
+        [
+          {
+            "col": 5,
+            "row": 0
+          },
+          {
+            "col": 0,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 9
+          },
+          {
+            "col": 5,
+            "row": 9
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_house_window",
+      "conceptId": "symmetry_house_window",
+      "label": "Дом с окном",
+      "columns": 16,
+      "rows": 9,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 8,
+            "row": 0
+          },
+          {
+            "col": 3,
+            "row": 5
+          },
+          {
+            "col": 3,
+            "row": 9
+          },
+          {
+            "col": 8,
+            "row": 9
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 6
+          },
+          {
+            "col": 7,
+            "row": 6
+          },
+          {
+            "col": 7,
+            "row": 8
+          },
+          {
+            "col": 5,
+            "row": 8
+          },
+          {
+            "col": 5,
+            "row": 6
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_boat",
+      "conceptId": "symmetry_boat",
+      "label": "Кораблик",
+      "columns": 10,
+      "rows": 7,
+      "axisCol": 5,
+      "sourcePaths": [
+        [
+          {
+            "col": 5,
+            "row": 0
+          },
+          {
+            "col": 2,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 3
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 1,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 7
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_car",
+      "conceptId": "symmetry_car",
+      "label": "Машина",
+      "columns": 20,
+      "rows": 10,
+      "axisCol": 10,
+      "sourcePaths": [
+        [
+          {
+            "col": 10,
+            "row": 0
+          },
+          {
+            "col": 8,
+            "row": 0
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 6
+          },
+          {
+            "col": 3,
+            "row": 8
+          },
+          {
+            "col": 10,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 8,
+            "row": 3
+          },
+          {
+            "col": 8,
+            "row": 5
+          },
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 6,
+            "row": 3
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 10
+          },
+          {
+            "col": 2,
+            "row": 10
+          },
+          {
+            "col": 2,
+            "row": 8
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_lightning",
+      "conceptId": "symmetry_lightning",
+      "label": "Молния",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 6,
+            "row": 9
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_bracket",
+      "conceptId": "symmetry_bracket",
+      "label": "Скобка",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 11
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_stairs",
+      "conceptId": "symmetry_stairs",
+      "label": "Лесенка",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 11
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_little_car",
+      "conceptId": "symmetry_little_car",
+      "label": "Машинка",
+      "columns": 12,
+      "rows": 9,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 3
+          },
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 0,
+            "row": 5
+          },
+          {
+            "col": 0,
+            "row": 8
+          },
+          {
+            "col": 6,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 7
+          },
+          {
+            "col": 3,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 9
+          },
+          {
+            "col": 1,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 7
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_crown",
+      "conceptId": "symmetry_crown",
+      "label": "Зигзаг-корона",
+      "columns": 12,
+      "rows": 6,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 0,
+            "row": 6
+          },
+          {
+            "col": 2,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 4
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_slingshot",
+      "conceptId": "symmetry_slingshot",
+      "label": "Рогатка",
+      "columns": 12,
+      "rows": 9,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 3,
+            "row": 1
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 8
+          },
+          {
+            "col": 6,
+            "row": 9
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_sigma",
+      "conceptId": "symmetry_sigma",
+      "label": "Сигма",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 2,
+            "row": 1
+          },
+          {
+            "col": 2.68,
+            "row": 1.1
+          },
+          {
+            "col": 3.34,
+            "row": 1.38
+          },
+          {
+            "col": 3.94,
+            "row": 1.84
+          },
+          {
+            "col": 4.47,
+            "row": 2.46
+          },
+          {
+            "col": 4.91,
+            "row": 3.22
+          },
+          {
+            "col": 5.23,
+            "row": 4.09
+          },
+          {
+            "col": 5.43,
+            "row": 5.02
+          },
+          {
+            "col": 5.5,
+            "row": 6
+          },
+          {
+            "col": 5.43,
+            "row": 6.98
+          },
+          {
+            "col": 5.23,
+            "row": 7.91
+          },
+          {
+            "col": 4.91,
+            "row": 8.78
+          },
+          {
+            "col": 4.47,
+            "row": 9.54
+          },
+          {
+            "col": 3.94,
+            "row": 10.16
+          },
+          {
+            "col": 3.34,
+            "row": 10.62
+          },
+          {
+            "col": 2.68,
+            "row": 10.9
+          },
+          {
+            "col": 2,
+            "row": 11
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_fig8",
+      "conceptId": "symmetry_fig8",
+      "label": "Восьмёрка",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 5.12,
+            "row": 1.15
+          },
+          {
+            "col": 4.37,
+            "row": 1.59
+          },
+          {
+            "col": 3.88,
+            "row": 2.23
+          },
+          {
+            "col": 3.7,
+            "row": 3
+          },
+          {
+            "col": 3.88,
+            "row": 3.77
+          },
+          {
+            "col": 4.37,
+            "row": 4.41
+          },
+          {
+            "col": 5.12,
+            "row": 4.85
+          },
+          {
+            "col": 6,
+            "row": 5
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 4.61,
+            "row": 5.15
+          },
+          {
+            "col": 3.35,
+            "row": 5.57
+          },
+          {
+            "col": 2.36,
+            "row": 6.24
+          },
+          {
+            "col": 1.72,
+            "row": 7.07
+          },
+          {
+            "col": 1.5,
+            "row": 8
+          },
+          {
+            "col": 1.72,
+            "row": 8.93
+          },
+          {
+            "col": 2.36,
+            "row": 9.76
+          },
+          {
+            "col": 3.35,
+            "row": 10.43
+          },
+          {
+            "col": 4.61,
+            "row": 10.85
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_eye",
+      "conceptId": "symmetry_eye",
+      "label": "Глаз",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4.5,
+            "row": 1.2
+          },
+          {
+            "col": 3.1,
+            "row": 2
+          },
+          {
+            "col": 2,
+            "row": 3.1
+          },
+          {
+            "col": 1.2,
+            "row": 4.5
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 1.2,
+            "row": 7.5
+          },
+          {
+            "col": 2,
+            "row": 8.9
+          },
+          {
+            "col": 3.1,
+            "row": 10
+          },
+          {
+            "col": 4.5,
+            "row": 10.8
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_nested",
+      "conceptId": "symmetry_nested",
+      "label": "Вложенные дуги",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 4.5,
+            "row": 1.2
+          },
+          {
+            "col": 3.1,
+            "row": 2
+          },
+          {
+            "col": 2,
+            "row": 3.1
+          },
+          {
+            "col": 1.2,
+            "row": 4.5
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 1.2,
+            "row": 7.5
+          },
+          {
+            "col": 2,
+            "row": 8.9
+          },
+          {
+            "col": 3.1,
+            "row": 10
+          },
+          {
+            "col": 4.5,
+            "row": 10.8
+          },
+          {
+            "col": 6,
+            "row": 11
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 2.9
+          },
+          {
+            "col": 4.8,
+            "row": 3.1
+          },
+          {
+            "col": 3.8,
+            "row": 3.8
+          },
+          {
+            "col": 3.1,
+            "row": 4.8
+          },
+          {
+            "col": 2.9,
+            "row": 6
+          },
+          {
+            "col": 3.1,
+            "row": 7.2
+          },
+          {
+            "col": 3.8,
+            "row": 8.2
+          },
+          {
+            "col": 4.8,
+            "row": 8.9
+          },
+          {
+            "col": 6,
+            "row": 9.1
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "symmetry_circles",
+      "conceptId": "symmetry_circles",
+      "label": "Касающиеся круги",
+      "columns": 12,
+      "rows": 12,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
+            "col": 5.7,
+            "row": 7
+          },
+          {
+            "col": 5,
+            "row": 7.7
+          },
+          {
+            "col": 4,
+            "row": 8
+          },
+          {
+            "col": 3,
+            "row": 7.7
+          },
+          {
+            "col": 2.3,
+            "row": 7
+          },
+          {
+            "col": 2,
+            "row": 6
+          },
+          {
+            "col": 2.3,
+            "row": 5
+          },
+          {
+            "col": 3,
+            "row": 4.3
+          },
+          {
+            "col": 4,
+            "row": 4
+          },
+          {
+            "col": 5,
+            "row": 4.3
+          },
+          {
+            "col": 5.7,
+            "row": 5
+          },
+          {
+            "col": 6,
+            "row": 6
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
+            "col": 5.8,
+            "row": 6.7
+          },
+          {
+            "col": 5.2,
+            "row": 7.1
+          },
+          {
+            "col": 4.4,
+            "row": 7.1
+          },
+          {
+            "col": 3.8,
+            "row": 6.7
+          },
+          {
+            "col": 3.6,
+            "row": 6
+          },
+          {
+            "col": 3.8,
+            "row": 5.3
+          },
+          {
+            "col": 4.4,
+            "row": 4.9
+          },
+          {
+            "col": 5.2,
+            "row": 4.9
+          },
+          {
+            "col": 5.8,
+            "row": 5.3
+          },
+          {
+            "col": 6,
+            "row": 6
+          }
+        ]
+      ],
+      "taskKind": "mirror"
+    },
+    {
+      "id": "repeat_rocket",
+      "conceptId": "repeat_rocket",
+      "primary": true,
+      "label": "Ракета",
+      "taskKind": "repeat",
+      "columns": 18,
+      "rows": 14,
+      "axisCol": 9,
+      "sourcePaths": [
+        [{"col":4,"row":0},{"col":6,"row":3},{"col":6,"row":10},{"col":2,"row":10},{"col":2,"row":3},{"col":4,"row":0}],
+        [{"col":2,"row":10},{"col":0,"row":13},{"col":2,"row":13}],
+        [{"col":6,"row":10},{"col":8,"row":13},{"col":6,"row":13}],
+        [{"col":3,"row":4},{"col":4,"row":3},{"col":5,"row":4},{"col":4,"row":5},{"col":3,"row":4}]
+      ]
+    },
+    {
+      "id": "repeat_robot",
+      "conceptId": "repeat_robot",
+      "primary": true,
+      "label": "Робот",
+      "taskKind": "repeat",
+      "columns": 18,
+      "rows": 14,
+      "axisCol": 9,
+      "sourcePaths": [
+        [{"col":2,"row":1},{"col":6,"row":1},{"col":6,"row":4},{"col":2,"row":4},{"col":2,"row":1}],
+        [{"col":4,"row":1},{"col":4,"row":0}],
+        [{"col":1,"row":4},{"col":7,"row":4},{"col":7,"row":10},{"col":1,"row":10},{"col":1,"row":4}],
+        [{"col":1,"row":5},{"col":0,"row":5},{"col":0,"row":8}],
+        [{"col":7,"row":5},{"col":8,"row":5},{"col":8,"row":8}],
+        [{"col":3,"row":10},{"col":3,"row":13},{"col":2,"row":13}],
+        [{"col":5,"row":10},{"col":5,"row":13},{"col":6,"row":13}]
+      ]
+    },
+    {
+      "id": "repeat_train",
+      "conceptId": "repeat_train",
+      "primary": true,
+      "label": "Поезд",
+      "taskKind": "repeat",
+      "columns": 20,
+      "rows": 12,
+      "axisCol": 10,
+      "sourcePaths": [
+        [{"col":1,"row":4},{"col":9,"row":4},{"col":9,"row":8},{"col":1,"row":8},{"col":1,"row":4}],
+        [{"col":1,"row":1},{"col":5,"row":1},{"col":5,"row":4},{"col":1,"row":4},{"col":1,"row":1}],
+        [{"col":3,"row":1},{"col":3,"row":0}],
+        [{"col":2,"row":8},{"col":3,"row":9},{"col":2,"row":10},{"col":1,"row":9},{"col":2,"row":8}],
+        [{"col":6,"row":8},{"col":7,"row":9},{"col":6,"row":10},{"col":5,"row":9},{"col":6,"row":8}],
+        [{"col":2,"row":2},{"col":4,"row":2},{"col":4,"row":3},{"col":2,"row":3},{"col":2,"row":2}]
+      ]
+    },
+    {
+      "id": "repeat_crane",
+      "conceptId": "repeat_crane",
+      "primary": true,
+      "label": "Кран",
+      "taskKind": "repeat",
+      "columns": 18,
+      "rows": 16,
+      "axisCol": 9,
+      "sourcePaths": [
+        [{"col":1,"row":15},{"col":1,"row":2}],
+        [{"col":0,"row":15},{"col":3,"row":15}],
+        [{"col":1,"row":2},{"col":8,"row":2}],
+        [{"col":1,"row":3},{"col":0,"row":3},{"col":0,"row":2}],
+        [{"col":7,"row":2},{"col":7,"row":6}],
+        [{"col":6,"row":6},{"col":7,"row":7},{"col":8,"row":6}],
+        [{"col":1,"row":10},{"col":3,"row":15}]
+      ]
+    },
+    {
+      "id": "repeat_gear",
+      "conceptId": "repeat_gear",
+      "primary": true,
+      "label": "Шестерёнка",
+      "taskKind": "repeat",
+      "columns": 24,
+      "rows": 13,
+      "axisCol": 12,
+      "sourcePaths": [
+        [{"col":4,"row":2},{"col":8,"row":2},{"col":10,"row":4},{"col":10,"row":8},{"col":8,"row":10},{"col":4,"row":10},{"col":2,"row":8},{"col":2,"row":4},{"col":4,"row":2}],
+        [{"col":4,"row":2},{"col":4,"row":0},{"col":8,"row":0},{"col":8,"row":2}],
+        [{"col":4,"row":10},{"col":4,"row":12},{"col":8,"row":12},{"col":8,"row":10}],
+        [{"col":2,"row":4},{"col":0,"row":4},{"col":0,"row":8},{"col":2,"row":8}],
+        [{"col":10,"row":4},{"col":12,"row":4},{"col":12,"row":8},{"col":10,"row":8}],
+        [{"col":6,"row":5},{"col":7,"row":6},{"col":6,"row":7},{"col":5,"row":6},{"col":6,"row":5}]
+      ]
+    },
+    {
+      "id": "repeat_bridge",
+      "conceptId": "repeat_bridge",
+      "primary": true,
+      "label": "Мост",
+      "taskKind": "repeat",
+      "columns": 20,
+      "rows": 9,
+      "axisCol": 10,
+      "sourcePaths": [
+        [{"col":0,"row":5},{"col":9,"row":5}],
+        [{"col":1,"row":5},{"col":2,"row":7},{"col":5,"row":8},{"col":8,"row":7},{"col":9,"row":5}],
+        [{"col":2,"row":5},{"col":2,"row":4}],
+        [{"col":4,"row":5},{"col":4,"row":4}],
+        [{"col":6,"row":5},{"col":6,"row":4}],
+        [{"col":8,"row":5},{"col":8,"row":4}]
+      ]
+    },
+    {
+      "id": "repeat_skyscraper",
+      "conceptId": "repeat_skyscraper",
+      "primary": true,
+      "label": "Небоскрёб",
+      "taskKind": "repeat",
+      "columns": 16,
+      "rows": 16,
+      "axisCol": 8,
+      "sourcePaths": [
+        [{"col":1,"row":2},{"col":7,"row":2},{"col":7,"row":15},{"col":1,"row":15},{"col":1,"row":2}],
+        [{"col":4,"row":2},{"col":4,"row":0}],
+        [{"col":2,"row":4},{"col":3,"row":4},{"col":3,"row":5},{"col":2,"row":5},{"col":2,"row":4}],
+        [{"col":5,"row":4},{"col":6,"row":4},{"col":6,"row":5},{"col":5,"row":5},{"col":5,"row":4}],
+        [{"col":2,"row":7},{"col":3,"row":7},{"col":3,"row":8},{"col":2,"row":8},{"col":2,"row":7}],
+        [{"col":5,"row":7},{"col":6,"row":7},{"col":6,"row":8},{"col":5,"row":8},{"col":5,"row":7}],
+        [{"col":2,"row":10},{"col":3,"row":10},{"col":3,"row":11},{"col":2,"row":11},{"col":2,"row":10}],
+        [{"col":5,"row":10},{"col":6,"row":10},{"col":6,"row":11},{"col":5,"row":11},{"col":5,"row":10}]
+      ]
+    },
+    {
+      "id": "repeat_star",
+      "conceptId": "repeat_star",
+      "primary": true,
+      "label": "Звезда",
+      "taskKind": "repeat",
+      "columns": 18,
+      "rows": 9,
+      "axisCol": 9,
+      "sourcePaths": [
+        [{"col":4,"row":0},{"col":5,"row":3},{"col":8,"row":3},{"col":6,"row":5},{"col":7,"row":8},{"col":4,"row":6},{"col":1,"row":8},{"col":2,"row":5},{"col":0,"row":3},{"col":3,"row":3},{"col":4,"row":0}]
+      ]
+    }
+  ]
+}

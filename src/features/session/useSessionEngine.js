@@ -54,7 +54,7 @@ function buildGeneratedSessionState({
     const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
     const deckPos = link.deckPosition ?? 0;
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
-    const concepts = shuffle(safeStart === 0 ? selected : selected.slice(safeStart));
+    const concepts = shuffle(safeStart === 0 ? selected : [...selected.slice(safeStart), ...selected.slice(0, safeStart)]);
     const generateTasks = ENGINE_REGISTRY.flashcards;
     tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
     isDeckMode = true;
@@ -63,7 +63,7 @@ function buildGeneratedSessionState({
     const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
     const deckPos = link.deckPosition ?? 0;
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
-    const concepts = shuffle(safeStart === 0 ? selected : selected.slice(safeStart));
+    const concepts = shuffle(safeStart === 0 ? selected : [...selected.slice(safeStart), ...selected.slice(0, safeStart)]);
     const generateTasks = ENGINE_REGISTRY.function_cards;
     tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
     isDeckMode = true;
@@ -228,14 +228,13 @@ export function useSessionEngine() {
     const cardEvents = cardLogger.getCardEvents();
     cardLogger.resetCardEvents();
 
-    if (state.isDeckMode) {
-      const reps = link.repsPerConcept ?? 1;
-      const conceptsDone = Math.max(0, Math.floor(state.taskIndex / reps));
-      const currentDeckPos = link.deckPosition ?? 0;
-      const totalSelected = selectedConceptIds.length;
-      const newPos = totalSelected > 0 ? (currentDeckPos + conceptsDone) % totalSelected : 0;
-      await persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: newPos });
-    }
+    // Deck-mode sessions only ever reach "completed" via handleFinishDeck, which is
+    // only reachable after "deck_exhausted" (the whole deck was already shown) - it
+    // already persists deckPosition:0 itself. Recomputing it here from taskIndex used
+    // to clobber that reset with a wrong, near-the-end position (taskIndex counts
+    // tasks, not concepts, and isn't advanced past the last valid index on exhaustion),
+    // which made the next session's `selected.slice(deckPos)` start from just the last
+    // concept or two instead of the full deck.
 
     const record = {
       ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents),
@@ -320,7 +319,16 @@ export function useSessionEngine() {
     });
   }, []);
 
-  const onCorrect = useCallback((conceptId, cardId) => {
+  const onCorrect = useCallback((conceptId, cardId, options = {}) => {
+    if (options.assisted) {
+      setSessionState((s) => {
+        const next = handleAdvance(s);
+        if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
+        if (next.status === "completed") finishSession(next);
+        return next;
+      });
+      return;
+    }
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
         return handleInstantCorrect(s, conceptId, cardId);

@@ -128,10 +128,10 @@ export default function SessionScreen() {
   // effect tear down and refire on every SessionScreen re-render triggered by
   // its own onCorrect() call — a self-sustaining loop that ran correctCount
   // into the hundreds while the task never advanced (2026-07-27).
-  const handleCorrect = useCallback((conceptId, cardId) => {
+  const handleCorrect = useCallback((conceptId, cardId, options) => {
     if (!ownsFeedback) playFeedback("correct");
     if (mode?.evaluation === "instant") setPillFlash("correct");
-    onCorrect(conceptId, cardId);
+    onCorrect(conceptId, cardId, options);
   }, [ownsFeedback, mode?.evaluation, playFeedback, onCorrect]);
 
   const handleIncorrect = useCallback((conceptId, cardId) => {
@@ -304,6 +304,7 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
+            answersPerStar={answersPerStar}
           />
         </div>
       ) : !rendererReady ? (

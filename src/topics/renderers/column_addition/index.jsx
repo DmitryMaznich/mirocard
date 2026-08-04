@@ -9,6 +9,7 @@ import RegroupTenTask from "./RegroupTenTask.jsx";
 import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
 import DigitKeypad from "./DigitKeypad.jsx";
+import ColumnHints from "./ColumnHints.jsx";
 import { useTapButtonSize } from "./useTapButtonSize.js";
 import "./column_addition.css";
 
@@ -25,6 +26,7 @@ const PANEL_SCALE = 1.5;
 // happens to have — the keyboard is always 5 keys wide regardless of
 // whether the task is 2-digit or 3-digit, so its size shouldn't be either.
 const KEYBOARD_COLS = 6;
+const COLUMN_HINTS_SEEN_KEY = "mirocard:column-arithmetic-hints:v1";
 
 function getDigitAt(n, position) {
   return Math.floor(n / 10 ** POS_INDEX[position]) % 10;
@@ -505,9 +507,23 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const [showHelper, setShowHelper] = useState(false);
   const [cellSize, setCellSize] = useState(44);
   const [gridBaseSize, setGridBaseSize] = useState(44);
+  const [showHints, setShowHints] = useState(false);
+  const [firstHintRun, setFirstHintRun] = useState(false);
+  const hintUsedRef = useRef(false);
 
   const rootRef = useRef(null);
   const notebookRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      if (!window.localStorage.getItem(COLUMN_HINTS_SEEN_KEY)) {
+        window.localStorage.setItem(COLUMN_HINTS_SEEN_KEY, "1");
+        hintUsedRef.current = true;
+        setFirstHintRun(true);
+        setShowHints(true);
+      }
+    } catch { /* Help remains available manually. */ }
+  }, []);
 
   // Sequential form-fill order: top left→right, sign, bottom left→right, line.
   const formSteps = useMemo(() => {
@@ -659,7 +675,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     setStepIdx(next);
     if (next >= task.steps.length) {
       setSolved(true);
-      setTimeout(() => onCorrect?.(), 1200);
+      setTimeout(() => onCorrect?.(undefined, undefined, { assisted: hintUsedRef.current }), 1200);
     }
   }, [activeStep, stepIdx, task.steps, triggerShake, onMistake, onCorrect]);
 
@@ -672,7 +688,7 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     setStepIdx(next);
     if (next >= task.steps.length) {
       setSolved(true);
-      setTimeout(() => onCorrect?.(), 1200);
+      setTimeout(() => onCorrect?.(undefined, undefined, { assisted: hintUsedRef.current }), 1200);
     }
   }, [activeStep, stepIdx, task.steps, onCorrect]);
 
@@ -697,6 +713,21 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
   const compareColumn = showingCompare ? task.columns[POS_INDEX[activeStep.position]] : null;
 
   const showingCrossout = phase === "solve" && activeStep?.cellType === "crossout";
+
+  const closeHints = useCallback(() => {
+    hintUsedRef.current = true;
+    setShowHints(false);
+    setFirstHintRun(false);
+  }, []);
+
+  const hintTargetSelector = useMemo(() => {
+    if (showingCompare) return ".col-compare-panel";
+    if (showingCrossout) return ".col-crossout-gesture";
+    if (phase === "form") return formActiveKey ? `[data-cell-key="${formActiveKey}"]` : null;
+    if (!activeStep) return null;
+    if (activeStep.cellType === "borrow" || activeStep.cellType === "adjust") return `[data-cell-key="corner:${activeStep.position}"]`;
+    return `[data-cell-key="${activeStep.cellType}:${activeStep.position}"]`;
+  }, [activeStep, formActiveKey, phase, showingCompare, showingCrossout]);
 
   return (
     <div className="col-screen" ref={rootRef}>
@@ -758,6 +789,8 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
           🧮
         </button>
       )}
+      {!showHints && <button type="button" className="col-hint-toggle" onClick={() => { hintUsedRef.current = true; setFirstHintRun(false); setShowHints(true); }} aria-label="Показать подсказку">💡</button>}
+      {showHints && <ColumnHints task={task} phase={phase} formActiveStep={formActiveStep} activeStep={activeStep} showingCompare={showingCompare} solved={solved} isFirstRun={firstHintRun} onClose={closeHints} onShown={() => { hintUsedRef.current = true; }} screenElement={rootRef.current} targetSelector={hintTargetSelector} avoidSelector=".col-notebook .col-digit, .col-notebook [data-cell-key], .col-expression, .col-controls-area" />}
     </div>
   );
 }

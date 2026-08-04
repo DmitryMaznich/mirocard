@@ -47,16 +47,16 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.2.0",
+      "version": "1.4.0",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
       },
       "description": {
-        "ru": "10 эмоций × 5 вариаций. Аудио произношение. Для детей до 16 лет.",
-        "en": "10 emotions × 5 variations each. Audio pronunciation included."
+        "ru": "10 эмоций × 3 вариации (детские лица). Аудио произношение. Для детей до 16 лет.",
+        "en": "10 emotions × 3 variations each (children only). Audio pronunciation included."
       },
-      "url": "./decks/emotions_v2_v1.2.0.zip",
+      "url": "./decks/emotions_v2_v1.4.0.zip",
       "status": "release",
       "access": "free"
     },
@@ -348,6 +348,21 @@
         "ru": "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, стол, машина, книга, кукла, яблоко, окно, яйцо), число глагола и род глагола в прошедшем времени. Настраиваемая сложность: от двух до шести вариантов ответа."
       },
       "renderer": "word_agreement",
+      "status": "release",
+      "access": "free"
+    },
+    {
+      "id": "symmetry_draw",
+      "version": "1.1.2",
+      "url": "./decks/symmetry_draw_v1.1.2.zip",
+      "zipUrl": "symmetry_draw_v1.1.2.zip",
+      "title": {
+        "ru": "Симметричный рисунок"
+      },
+      "description": {
+        "ru": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси."
+      },
+      "renderer": "flashcards",
       "status": "release",
       "access": "free"
     }

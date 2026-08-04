@@ -72,6 +72,7 @@ scripts/*.svg
 # Allow tracked media assets
 !content/media/*.webp
 !content/media/*.jpg
+!tools/emotions_v2/media/*.webp
 !public/hands/*.webp
 
 # Verification scripts and output

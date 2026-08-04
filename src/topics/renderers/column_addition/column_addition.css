@@ -365,6 +365,13 @@
   bottom: calc(12px + var(--app-safe-bottom, 0px));
   right: calc(12px + var(--app-safe-right, 0px));
 }
+.col-hint-toggle { position:absolute; z-index:12; top:calc(12px + var(--app-safe-top,0px)); right:calc(12px + var(--app-safe-right,0px)); width:42px; height:42px; border:0; border-radius:50%; background:#2563eb; color:#fff; box-shadow:0 4px 12px rgba(37,99,235,.32); cursor:pointer; }
+.col-hint-toggle svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+.col-hint { position:absolute; z-index:13; max-width:390px; padding:13px 38px 12px 15px; border:2px solid #bfdbfe; border-radius:16px; background:rgba(255,255,255,.97); color:#172554; box-shadow:0 8px 22px rgba(30,64,175,.18); font-family:Nunito,sans-serif; transition:top .32s cubic-bezier(.2,.9,.25,1.15),left .32s cubic-bezier(.2,.9,.25,1.15); }.col-hint strong{display:block;font-size:17px}.col-hint p{margin:4px 0 7px;font-size:14px}.col-hint__eyebrow{display:block;color:#2563eb;font-size:10px;font-weight:900}.col-hint__reassurance{color:#64748b;font-size:11px;font-weight:700}.col-hint__close{position:absolute;top:7px;right:9px;width:28px;height:28px;border:0;border-radius:50%;background:#eff6ff;color:#2563eb;font-size:25px;cursor:pointer}
+.col-hint-dimmer { position:absolute; z-index:10; inset:0; background:rgba(15,23,42,.48); pointer-events:none; }
+.col-hint-target { position:relative !important; z-index:12 !important; filter:none; box-shadow:0 0 0 4px #fff,0 0 0 7px #60a5fa,0 0 18px 8px rgba(96,165,250,.65) !important; border-radius:10px; }
+@media (prefers-reduced-motion:reduce){.col-hint{transition:none}.col-hint-target{box-shadow:0 0 0 4px #fff,0 0 0 7px #60a5fa!important}}
+.col-hint-onboarding{position:absolute;z-index:20;inset:0;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.42);font-family:Nunito,sans-serif}.col-hint-onboarding__card{width:min(360px,100%);padding:24px;border-radius:22px;background:#fff;color:#172554}.col-hint-onboarding__card h2{margin:0 0 8px;font-size:24px}.col-hint-onboarding__card p{margin:0 0 10px;font-size:16px}.col-hint__actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.col-hint__actions button{min-height:42px;padding:0 16px;border:0;border-radius:12px;font:800 15px Nunito,sans-serif;cursor:pointer}.col-hint__primary{background:#2563eb;color:#fff}.col-hint__secondary{background:#eff6ff;color:#2563eb}
 
 /* ── Tap keyboard ───────────────────────────── */
 
