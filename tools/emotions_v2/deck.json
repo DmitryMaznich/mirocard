@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.4.0",
+    "version": "1.5.3",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -949,14 +949,14 @@
       "id": "situation_joy_1",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Купили вкусное мороженое.",
+      "label": "На прогулке купили вкусное мороженое.",
       "answerKey": "радость"
     },
     {
       "id": "situation_joy_2",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Папа похвалил.",
+      "label": "Папа похвалил после занятия.",
       "answerKey": "радость"
     },
     {
@@ -1070,6 +1070,97 @@
       "cardType": "situation",
       "label": "Гуляет в тихом парке.",
       "answerKey": "спокойствие"
+    },
+    {
+      "id": "situation_boredom_1",
+      "conceptId": "boredom",
+      "cardType": "situation",
+      "label": "Стоит в длинной очереди.",
+      "answerKey": "скука"
+    },
+    {
+      "id": "situation_shame_1",
+      "conceptId": "shame",
+      "cardType": "situation",
+      "label": "Случайно громко пукнул.",
+      "answerKey": "стыд"
+    },
+    {
+      "id": "situation_tiredness_1",
+      "conceptId": "tiredness",
+      "cardType": "situation",
+      "label": "Целый день ехали в машине в путешествие.",
+      "answerKey": "усталость"
+    },
+    {
+      "id": "situation_disgust_1",
+      "conceptId": "disgust",
+      "cardType": "situation",
+      "label": "Кто-то пукнул рядом.",
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "situation_shame_2",
+      "conceptId": "shame",
+      "cardType": "situation",
+      "label": "Он громко сказал неправильный ответ.",
+      "answerKey": "стыд"
+    },
+    {
+      "id": "situation_shame_3",
+      "conceptId": "shame",
+      "cardType": "situation",
+      "label": "Он нечаянно толкнул друга и сделал ему больно.",
+      "answerKey": "стыд"
+    },
+    {
+      "id": "situation_shame_4",
+      "conceptId": "shame",
+      "cardType": "situation",
+      "label": "Он забыл поздороваться с бабушкой.",
+      "answerKey": "стыд"
+    },
+    {
+      "id": "situation_disgust_2",
+      "conceptId": "disgust",
+      "cardType": "situation",
+      "label": "В стакане оказалось прокисшее молоко.",
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "situation_disgust_3",
+      "conceptId": "disgust",
+      "cardType": "situation",
+      "label": "На обувь залез слизень.",
+      "answerKey": "отвращение"
+    },
+    {
+      "id": "situation_boredom_2",
+      "conceptId": "boredom",
+      "cardType": "situation",
+      "label": "За окном дождь, а играть дома надоело.",
+      "answerKey": "скука"
+    },
+    {
+      "id": "situation_boredom_3",
+      "conceptId": "boredom",
+      "cardType": "situation",
+      "label": "Дорога в машине кажется очень долгой.",
+      "answerKey": "скука"
+    },
+    {
+      "id": "situation_tiredness_2",
+      "conceptId": "tiredness",
+      "cardType": "situation",
+      "label": "Он весь день был в гостях и много играл.",
+      "answerKey": "усталость"
+    },
+    {
+      "id": "situation_tiredness_3",
+      "conceptId": "tiredness",
+      "cardType": "situation",
+      "label": "Уже поздно, и глаза сами закрываются.",
+      "answerKey": "усталость"
     }
   ]
 }
