@@ -52,6 +52,16 @@ const VERB_GENDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12
   <rect x="94" y="102" width="14" height="16" rx="4" fill="#e0a800"/>
 </svg>`;
 
+// numeral_agreement: a numeral paired with the word's changing ending boxed
+// off, same visual language as case_agreement's dashed box — the numeral is
+// the new trigger, the boxed ending is still the point.
+const NUMERAL_AGREEMENT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef3fb"/>
+  <text x="34" y="80" text-anchor="middle" font-family="${FONT}" font-size="52" font-weight="800" fill="#3b5bdb">5</text>
+  <text x="90" y="80" text-anchor="middle" font-family="${FONT}" font-size="24" font-weight="800" fill="#2c2c2c">мяч<tspan fill="#3b5bdb">ей</tspan></text>
+  <rect x="100" y="52" width="24" height="30" rx="6" fill="none" stroke="#3b5bdb" stroke-width="3" stroke-dasharray="4 4"/>
+</svg>`;
+
 // Shared "not built yet" icon for the remaining placeholder modes — muted
 // grey clock, visually distinct from the working modes above.
 const COMING_SOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -66,7 +76,7 @@ export const MODE_ICONS = {
   verb_number_agreement: { path: "media/icons/verb_number.svg",          svg: VERB_NUMBER_SVG },
   verb_gender_agreement: { path: "media/icons/verb_gender.svg",          svg: VERB_GENDER_SVG },
   adjective_agreement:   { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
-  numeral_agreement:     { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
+  numeral_agreement:     { path: "media/icons/numeral_agreement.svg",    svg: NUMERAL_AGREEMENT_SVG },
   possessive_agreement:  { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
 };
 
