@@ -50,6 +50,7 @@ function BlankSentence({ card, filledWord, showMarker }) {
       )}
       <div className="wa-task__sentence">
         {withMarker(before, card.marker, showMarker)}
+        {showMarker && card.question && <em className="wa-question">({card.question})</em>}
         <span className={`wa-blank${filledWord ? " wa-blank--filled" : ""}`}>
           {filledWord ?? "···"}
         </span>

@@ -19,6 +19,12 @@
   border-radius: 6px; padding: 0 4px;
 }
 
+.wa-question {
+  font-style: italic; font-weight: 400;
+  font-size: 0.7em; color: #8a8a8a;
+  margin: 0 2px;
+}
+
 .wa-blank {
   display: inline-block; min-width: 2.4em;
   border-bottom: 3px solid #bdbdbd;

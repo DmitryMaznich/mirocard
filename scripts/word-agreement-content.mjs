@@ -13,6 +13,27 @@ function fullLabel(card) {
   return card.context ? `${card.context} ${sentence}` : sentence;
 }
 
+// Case-question hint shown next to the blank once the marker unlocks (see
+// FillBlankTask's MARKER_ATTEMPT_THRESHOLD) — derived from the preposition
+// that already marks the sentence, since that preposition deterministically
+// picks the case in every sentence below. A handful of cards put the noun in
+// an oblique case without any preposition at all (e.g. "рисует карандашом",
+// "угостила яблоком") — those set `question` explicitly since there's no
+// marker to derive it from.
+const MARKER_TO_QUESTION = {
+  "нет": "чего?", "без": "чего?", "много": "чего?",
+  "к": "чему?",
+  "на": "на чём?",
+  "с": "с чем?",
+  "за": "за чем?",
+  "между": "между чем?",
+  "о": "о чём?", "об": "о чём?",
+};
+
+function questionFor(card) {
+  return card.question ?? MARKER_TO_QUESTION[card.marker] ?? "что?";
+}
+
 // Four lexical sets for the case_agreement mode. Each card targets a form
 // that's actually distinct from a form already covered elsewhere in the same
 // set — for inanimate masc./neuter nouns (мяч, карандаш, яблоко) accusative
@@ -39,12 +60,12 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "karandash_02", word: "karandash", context: "Алина потеряла карандаш.", sentence: "Теперь у неё нет {blank}.", answer: "карандаша",   optionSet: "singular", marker: "нет" },
   { id: "karandash_03", word: "karandash", sentence: "Алина пришла в школу без своего {blank}.",           answer: "карандаша",   optionSet: "singular", marker: "без" },
   { id: "karandash_04", word: "karandash", sentence: "Папа приклеил к {blank} наклейку с именем Алины.", answer: "карандашу",   optionSet: "singular", marker: "к" },
-  { id: "karandash_05", word: "karandash", context: "Алина села за стол.", sentence: "Она рисует {blank}.",         answer: "карандашом",  optionSet: "singular" },
+  { id: "karandash_05", word: "karandash", context: "Алина села за стол.", sentence: "Она рисует {blank}.",         answer: "карандашом",  optionSet: "singular", question: "чем?" },
   { id: "karandash_06", word: "karandash", context: "Алина посмотрела на карандаш.", sentence: "На {blank} было пятно.", answer: "карандаше", optionSet: "singular", marker: "на" },
   { id: "karandash_07", word: "karandash", sentence: "Папа купил Алине новые {blank}.",                    answer: "карандаши",   optionSet: "plural" },
   { id: "karandash_08", word: "karandash", sentence: "У Алины много {blank}.",                             answer: "карандашей",  optionSet: "plural", marker: "много" },
   { id: "karandash_09", word: "karandash", sentence: "Папа приклеил к {blank} наклейки с именами.", answer: "карандашам",  optionSet: "plural", marker: "к" },
-  { id: "karandash_10", word: "karandash", context: "В коробке лежат карандаши.", sentence: "Алина рисует {blank}.",   answer: "карандашами", optionSet: "plural" },
+  { id: "karandash_10", word: "karandash", context: "В коробке лежат карандаши.", sentence: "Алина рисует {blank}.",   answer: "карандашами", optionSet: "plural", question: "чем?" },
   { id: "karandash_11", word: "karandash", context: "В шкафу лежат разные карандаши.", sentence: "Алина думает о {blank}.", answer: "карандашах", optionSet: "plural", marker: "о", difficulty: "advanced" },
 
   // Папа, Иван и машина (настоящая машина, не игрушка)
@@ -66,7 +87,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "yabloko_02", word: "yabloko", context: "Папа уронил яблоко.", sentence: "Теперь у него нет {blank}.", answer: "яблока",   optionSet: "singular", marker: "нет" },
   { id: "yabloko_03", word: "yabloko", sentence: "Иван пришёл в школу без своего {blank}.",             answer: "яблока",   optionSet: "singular", marker: "без" },
   { id: "yabloko_04", word: "yabloko", context: "На столе лежит яблоко.", sentence: "Папа потянулся к {blank}.", answer: "яблоку",   optionSet: "singular", marker: "к" },
-  { id: "yabloko_05", word: "yabloko", sentence: "Мама угостила папу {blank}.",      answer: "яблоком",  optionSet: "singular" },
+  { id: "yabloko_05", word: "yabloko", sentence: "Мама угостила папу {blank}.",      answer: "яблоком",  optionSet: "singular", question: "чем?" },
   { id: "yabloko_06", word: "yabloko", context: "Мама посмотрела на яблоко.", sentence: "На {blank} было пятно.", answer: "яблоке", optionSet: "singular", marker: "на" },
   { id: "yabloko_07", word: "yabloko", sentence: "Мама купила детям {blank}.",                   answer: "яблоки",   optionSet: "plural" },
   { id: "yabloko_08", word: "yabloko", sentence: "У мамы много {blank}.",                              answer: "яблок",    optionSet: "plural", marker: "много" },
@@ -79,7 +100,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "stol_02", word: "stol", context: "Папа забрал стол на дачу.", sentence: "Теперь в комнате нет {blank}.", answer: "стола",   optionSet: "singular", marker: "нет" },
   { id: "stol_03", word: "stol", sentence: "Иван делает уроки без {blank}, прямо на полу.",                       answer: "стола",   optionSet: "singular", marker: "без" },
   { id: "stol_04", word: "stol", context: "Стол стоит у окна.", sentence: "Иван подошёл к {blank}.",              answer: "столу",   optionSet: "singular", marker: "к" },
-  { id: "stol_05", word: "stol", sentence: "Алина проголодалась и села за {blank}.",                              answer: "столом",  optionSet: "singular", marker: "за" },
+  { id: "stol_05", word: "stol", context: "Алина проголодалась.", sentence: "Она сидела за {blank} и ждала обед.", answer: "столом",  optionSet: "singular", marker: "за" },
   { id: "stol_06", word: "stol", context: "Иван посмотрел на стол.", sentence: "На {blank} лежала книга.",        answer: "столе",   optionSet: "singular", marker: "на" },
   { id: "stol_07", word: "stol", sentence: "В школе стоят новые {blank}.",                                        answer: "столы",   optionSet: "plural" },
   { id: "stol_08", word: "stol", sentence: "В школе много {blank}.",                                              answer: "столов",  optionSet: "plural", marker: "много" },
@@ -92,7 +113,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "kniga_02", word: "kniga", context: "Алина отдала книгу подруге.", sentence: "Теперь у неё нет {blank}.", answer: "книги",   optionSet: "singular", marker: "нет" },
   { id: "kniga_03", word: "kniga", sentence: "Алина пришла в школу без своей {blank}.",                   answer: "книги",   optionSet: "singular", marker: "без" },
   { id: "kniga_04", word: "kniga", context: "Книга лежит на полке.", sentence: "Иван потянулся к {blank}.", answer: "книге",   optionSet: "singular", marker: "к" },
-  { id: "kniga_05", word: "kniga", sentence: "Алина поменялась {blank} с Иваном.",                        answer: "книгой",  optionSet: "singular" },
+  { id: "kniga_05", word: "kniga", sentence: "Алина поменялась {blank} с Иваном.",                        answer: "книгой",  optionSet: "singular", question: "чем?" },
   { id: "kniga_06", word: "kniga", context: "Алина посмотрела на книгу.", sentence: "На {blank} была картинка.", answer: "книге", optionSet: "singular", marker: "на" },
   { id: "kniga_07", word: "kniga", sentence: "Мама купила Алине новые {blank}.",                          answer: "книги",   optionSet: "plural" },
   { id: "kniga_08", word: "kniga", sentence: "У Алины много {blank}.",                                    answer: "книг",    optionSet: "plural", marker: "много" },
@@ -131,7 +152,7 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "yaytso_02", word: "yaytso", context: "Мама разбила яйцо на завтрак.", sentence: "Теперь у неё нет {blank}.", answer: "яйца",   optionSet: "singular", marker: "нет" },
   { id: "yaytso_03", word: "yaytso", sentence: "Мама печёт пирог без {blank}, потому что у Ивана аллергия.", answer: "яйца",   optionSet: "singular", marker: "без" },
   { id: "yaytso_04", word: "yaytso", context: "Яйцо лежит на столе.", sentence: "Мама потянулась к {blank}.", answer: "яйцу",   optionSet: "singular", marker: "к" },
-  { id: "yaytso_05", word: "yaytso", context: "Мама печёт пирог.", sentence: "Она смазывает тесто {blank}.", answer: "яйцом",  optionSet: "singular" },
+  { id: "yaytso_05", word: "yaytso", context: "Мама печёт пирог.", sentence: "Она смазывает тесто {blank}.", answer: "яйцом",  optionSet: "singular", question: "чем?" },
   { id: "yaytso_06", word: "yaytso", context: "Мама посмотрела на яйцо.", sentence: "На {blank} была трещинка.", answer: "яйце", optionSet: "singular", marker: "на" },
   { id: "yaytso_07", word: "yaytso", sentence: "Мама купила свежие {blank}.",                              answer: "яйца",   optionSet: "plural" },
   { id: "yaytso_08", word: "yaytso", sentence: "У мамы много {blank}.",                                    answer: "яиц",    optionSet: "plural", marker: "много" },
@@ -140,10 +161,11 @@ export const CASE_AGREEMENT_CARDS = [
   { id: "yaytso_11", word: "yaytso", context: "В корзине лежат разные яйца.", sentence: "Мама думает о {blank}.", answer: "яйцах",  optionSet: "plural", marker: "о", difficulty: "advanced" },
 ].map((c) => ({
   ...c,
-  skill:   "case_agreement",
-  context: c.context ?? null,
-  marker:  c.marker ?? null,
-  label:   fullLabel(c),
+  skill:    "case_agreement",
+  context:  c.context ?? null,
+  marker:   c.marker ?? null,
+  question: questionFor(c),
+  label:    fullLabel(c),
 }));
 
 // verb_number_agreement: subject noun is already spelled out in the
