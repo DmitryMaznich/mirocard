@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.5.2",
+    "version": "1.5.3",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -949,14 +949,14 @@
       "id": "situation_joy_1",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Купили вкусное мороженое.",
+      "label": "На прогулке купили вкусное мороженое.",
       "answerKey": "радость"
     },
     {
       "id": "situation_joy_2",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Папа похвалил.",
+      "label": "Папа похвалил после занятия.",
       "answerKey": "радость"
     },
     {
@@ -1075,71 +1075,29 @@
       "id": "situation_boredom_1",
       "conceptId": "boredom",
       "cardType": "situation",
-      "label": "Он долго ждёт своей очереди.",
+      "label": "Стоит в длинной очереди.",
       "answerKey": "скука"
-    },
-    {
-      "id": "situation_sadness_4",
-      "conceptId": "sadness",
-      "cardType": "situation",
-      "label": "Любимая игрушка сломалась.",
-      "answerKey": "грусть"
-    },
-    {
-      "id": "situation_joy_4",
-      "conceptId": "joy",
-      "cardType": "situation",
-      "label": "Друг пришёл играть.",
-      "answerKey": "радость"
     },
     {
       "id": "situation_shame_1",
       "conceptId": "shame",
       "cardType": "situation",
-      "label": "Он случайно пролил сок и не извинился.",
+      "label": "Случайно громко пукнул.",
       "answerKey": "стыд"
     },
     {
       "id": "situation_tiredness_1",
       "conceptId": "tiredness",
       "cardType": "situation",
-      "label": "После тренировки ему хочется отдохнуть.",
+      "label": "Целый день ехали в машине в путешествие.",
       "answerKey": "усталость"
     },
     {
       "id": "situation_disgust_1",
       "conceptId": "disgust",
       "cardType": "situation",
-      "label": "Он почувствовал неприятный запах.",
+      "label": "Кто-то пукнул рядом.",
       "answerKey": "отвращение"
-    },
-    {
-      "id": "situation_surprise_4",
-      "conceptId": "surprise",
-      "cardType": "situation",
-      "label": "Он нашёл подарок там, где не ожидал.",
-      "answerKey": "удивление"
-    },
-    {
-      "id": "situation_fear_4",
-      "conceptId": "fear",
-      "cardType": "situation",
-      "label": "Он потерял маму из виду в магазине.",
-      "answerKey": "страх"
-    },
-    {
-      "id": "situation_anger_4",
-      "conceptId": "anger",
-      "cardType": "situation",
-      "label": "Сестра сломала его башню из кубиков.",
-      "answerKey": "злость"
-    },
-    {
-      "id": "situation_calm_4",
-      "conceptId": "calm",
-      "cardType": "situation",
-      "label": "Он удобно устроился с книгой.",
-      "answerKey": "спокойствие"
     },
     {
       "id": "situation_shame_2",
@@ -1173,21 +1131,14 @@
       "id": "situation_disgust_3",
       "conceptId": "disgust",
       "cardType": "situation",
-      "label": "Он увидел слизня на своей руке.",
-      "answerKey": "отвращение"
-    },
-    {
-      "id": "situation_disgust_4",
-      "conceptId": "disgust",
-      "cardType": "situation",
-      "label": "На бутерброде появилась плесень.",
+      "label": "На обувь залез слизень.",
       "answerKey": "отвращение"
     },
     {
       "id": "situation_boredom_2",
       "conceptId": "boredom",
       "cardType": "situation",
-      "label": "За окном дождь, а играть дома нечем.",
+      "label": "За окном дождь, а играть дома надоело.",
       "answerKey": "скука"
     },
     {
@@ -1195,13 +1146,6 @@
       "conceptId": "boredom",
       "cardType": "situation",
       "label": "Дорога в машине кажется очень долгой.",
-      "answerKey": "скука"
-    },
-    {
-      "id": "situation_boredom_4",
-      "conceptId": "boredom",
-      "cardType": "situation",
-      "label": "Он уже несколько раз посмотрел одну и ту же передачу.",
       "answerKey": "скука"
     },
     {
@@ -1216,13 +1160,6 @@
       "conceptId": "tiredness",
       "cardType": "situation",
       "label": "Уже поздно, и глаза сами закрываются.",
-      "answerKey": "усталость"
-    },
-    {
-      "id": "situation_tiredness_4",
-      "conceptId": "tiredness",
-      "cardType": "situation",
-      "label": "Он помогал на даче весь день.",
       "answerKey": "усталость"
     }
   ]
