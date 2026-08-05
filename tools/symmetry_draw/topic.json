@@ -1,10 +1,10 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.1.2",
+    "version": "1.3.0",
     "renderer": "flashcards",
     "customModesOnly": true,
-    "title": "Симметричный рисунок",
+    "title": "Рисуем по клеткам",
     "avatar": "media/avatar.svg",
     "about": {
       "description": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси.",
@@ -35,6 +35,16 @@
         "instruction": "Повтори рисунок целиком справа",
         "icon": "media/repeat_avatar.svg"
       }
+    },
+    {
+      "id": "graphic_dictation",
+      "type": "graphic_dictation",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Графический диктант",
+        "instruction": "Слушай команду и веди линию от активной точки",
+        "icon": "media/dictation_avatar.svg"
+      }
     }
   ],
   "cards": [
@@ -63,79 +73,6 @@
           {
             "col": 5,
             "row": 7
-          }
-        ]
-      ],
-      "taskKind": "mirror"
-    },
-    {
-      "id": "symmetry_arc",
-      "conceptId": "symmetry_arc",
-      "label": "Дуга",
-      "columns": 12,
-      "rows": 12,
-      "axisCol": 6,
-      "sourcePaths": [
-        [
-          {
-            "col": 6,
-            "row": 3
-          },
-          {
-            "col": 4.9,
-            "row": 3.1
-          },
-          {
-            "col": 3.8,
-            "row": 3.3
-          },
-          {
-            "col": 2.9,
-            "row": 3.7
-          },
-          {
-            "col": 2.1,
-            "row": 4.1
-          },
-          {
-            "col": 1.5,
-            "row": 4.7
-          },
-          {
-            "col": 1.1,
-            "row": 5.3
-          },
-          {
-            "col": 1,
-            "row": 6
-          },
-          {
-            "col": 1.1,
-            "row": 6.7
-          },
-          {
-            "col": 1.5,
-            "row": 7.3
-          },
-          {
-            "col": 2.1,
-            "row": 7.9
-          },
-          {
-            "col": 2.9,
-            "row": 8.4
-          },
-          {
-            "col": 3.8,
-            "row": 8.7
-          },
-          {
-            "col": 4.9,
-            "row": 8.9
-          },
-          {
-            "col": 6,
-            "row": 9
           }
         ]
       ],
@@ -1039,101 +976,6 @@
       "taskKind": "mirror"
     },
     {
-      "id": "symmetry_nested",
-      "conceptId": "symmetry_nested",
-      "label": "Вложенные дуги",
-      "columns": 12,
-      "rows": 12,
-      "axisCol": 6,
-      "sourcePaths": [
-        [
-          {
-            "col": 6,
-            "row": 1
-          },
-          {
-            "col": 4.5,
-            "row": 1.2
-          },
-          {
-            "col": 3.1,
-            "row": 2
-          },
-          {
-            "col": 2,
-            "row": 3.1
-          },
-          {
-            "col": 1.2,
-            "row": 4.5
-          },
-          {
-            "col": 1,
-            "row": 6
-          },
-          {
-            "col": 1.2,
-            "row": 7.5
-          },
-          {
-            "col": 2,
-            "row": 8.9
-          },
-          {
-            "col": 3.1,
-            "row": 10
-          },
-          {
-            "col": 4.5,
-            "row": 10.8
-          },
-          {
-            "col": 6,
-            "row": 11
-          }
-        ],
-        [
-          {
-            "col": 6,
-            "row": 2.9
-          },
-          {
-            "col": 4.8,
-            "row": 3.1
-          },
-          {
-            "col": 3.8,
-            "row": 3.8
-          },
-          {
-            "col": 3.1,
-            "row": 4.8
-          },
-          {
-            "col": 2.9,
-            "row": 6
-          },
-          {
-            "col": 3.1,
-            "row": 7.2
-          },
-          {
-            "col": 3.8,
-            "row": 8.2
-          },
-          {
-            "col": 4.8,
-            "row": 8.9
-          },
-          {
-            "col": 6,
-            "row": 9.1
-          }
-        ]
-      ],
-      "taskKind": "mirror"
-    },
-    {
       "id": "symmetry_circles",
       "conceptId": "symmetry_circles",
       "label": "Касающиеся круги",
@@ -1384,6 +1226,256 @@
       "sourcePaths": [
         [{"col":4,"row":0},{"col":5,"row":3},{"col":8,"row":3},{"col":6,"row":5},{"col":7,"row":8},{"col":4,"row":6},{"col":1,"row":8},{"col":2,"row":5},{"col":0,"row":3},{"col":3,"row":3},{"col":4,"row":0}]
       ]
-    }
-  ]
+    },
+    {
+      "id": "dictation_house",
+      "conceptId": "dictation_house",
+      "primary": true,
+      "label": "Дом",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 9,
+      "start": { "col": 2, "row": 7 },
+      "commands": [
+        { "type": "move", "direction": "up", "cells": 4 },
+        { "type": "move", "direction": "right", "cells": 3 },
+        { "type": "move", "direction": "up_right", "cells": 2 },
+        { "type": "move", "direction": "down_right", "cells": 2 },
+        { "type": "move", "direction": "down", "cells": 4 },
+        { "type": "move", "direction": "left", "cells": 7 }
+      ]
+    },
+    {
+      "id": "dictation_kite",
+      "conceptId": "dictation_kite",
+      "primary": true,
+      "label": "Воздушный змей",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": { "col": 5, "row": 2 },
+      "commands": [
+        { "type": "move", "direction": "down_right", "cells": 3 },
+        { "type": "move", "direction": "down_left", "cells": 3 },
+        { "type": "move", "direction": "up_left", "cells": 3 },
+        { "type": "move", "direction": "up_right", "cells": 3 }
+      ]
+    },
+    {
+      "id": "dictation_stairs",
+      "conceptId": "dictation_stairs",
+      "primary": true,
+      "label": "Лестница",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": { "col": 1, "row": 8 },
+      "commands": [
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "up", "cells": 2 },
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "up", "cells": 2 },
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "up", "cells": 2 }
+      ]
+    },
+    {
+      "id": "dictation_lightning",
+      "conceptId": "dictation_lightning",
+      "primary": true,
+      "label": "Молния",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": { "col": 3, "row": 1 },
+      "commands": [
+        { "type": "move", "direction": "right", "cells": 4 },
+        { "type": "move", "direction": "down_left", "cells": 3 },
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "down_left", "cells": 4 },
+        { "type": "move", "direction": "right", "cells": 3 }
+      ]
+    },
+    {
+      "id": "dictation_crown",
+      "conceptId": "dictation_crown",
+      "primary": true,
+      "label": "Корона",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": { "col": 1, "row": 8 },
+      "commands": [
+        { "type": "move", "direction": "up", "cells": 4 },
+        { "type": "move", "direction": "down_right", "cells": 2 },
+        { "type": "move", "direction": "up_right", "cells": 2 },
+        { "type": "move", "direction": "down_right", "cells": 2 },
+        { "type": "move", "direction": "up_right", "cells": 2 },
+        { "type": "move", "direction": "down", "cells": 4 },
+        { "type": "move", "direction": "left", "cells": 8 }
+      ]
+    },
+    {
+      "id": "dictation_spiral",
+      "conceptId": "dictation_spiral",
+      "primary": true,
+      "label": "Спираль",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": { "col": 1, "row": 1 },
+      "commands": [
+        { "type": "move", "direction": "right", "cells": 7 },
+        { "type": "move", "direction": "down", "cells": 7 },
+        { "type": "move", "direction": "left", "cells": 5 },
+        { "type": "move", "direction": "up", "cells": 5 },
+        { "type": "move", "direction": "right", "cells": 3 },
+        { "type": "move", "direction": "down", "cells": 3 },
+        { "type": "move", "direction": "left", "cells": 1 }
+      ]
+    },
+    {
+      "id": "dictation_hexagon",
+      "conceptId": "dictation_hexagon",
+      "primary": true,
+      "label": "Шестиугольник",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": { "col": 3, "row": 2 },
+      "commands": [
+        { "type": "move", "direction": "right", "cells": 3 },
+        { "type": "move", "direction": "down_right", "cells": 3 },
+        { "type": "move", "direction": "down_left", "cells": 3 },
+        { "type": "move", "direction": "left", "cells": 3 },
+        { "type": "move", "direction": "up_left", "cells": 3 },
+        { "type": "move", "direction": "up_right", "cells": 3 }
+      ]
+    },
+    {
+      "id": "dictation_flag",
+      "conceptId": "dictation_flag",
+      "primary": true,
+      "label": "Флажок",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": { "col": 2, "row": 9 },
+      "commands": [
+        { "type": "move", "direction": "up", "cells": 7 },
+        { "type": "move", "direction": "right", "cells": 5 },
+        { "type": "move", "direction": "down_left", "cells": 2 },
+        { "type": "move", "direction": "left", "cells": 3 }
+      ]
+    },
+    {
+      "id": "dictation_wave",
+      "conceptId": "dictation_wave",
+      "primary": true,
+      "label": "Волна",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": { "col": 1, "row": 7 },
+      "commands": [
+        { "type": "move", "direction": "up_right", "cells": 2 },
+        { "type": "move", "direction": "down_right", "cells": 2 },
+        { "type": "move", "direction": "up_right", "cells": 2 },
+        { "type": "move", "direction": "down_right", "cells": 2 },
+        { "type": "move", "direction": "up_right", "cells": 2 }
+      ]
+    },
+    {
+      "id": "dictation_maze",
+      "conceptId": "dictation_maze",
+      "primary": true,
+      "label": "Лабиринт",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": { "col": 1, "row": 1 },
+      "commands": [
+        { "type": "move", "direction": "right", "cells": 7 },
+        { "type": "move", "direction": "down", "cells": 2 },
+        { "type": "move", "direction": "left", "cells": 5 },
+        { "type": "move", "direction": "down", "cells": 3 },
+        { "type": "move", "direction": "right", "cells": 3 },
+        { "type": "move", "direction": "down", "cells": 2 }
+      ]
+    },
+    {
+      "id": "dictation_dog",
+      "conceptId": "dictation_dog",
+      "primary": true,
+      "label": "Собака",
+      "taskKind": "dictation",
+      "columns": 18,
+      "rows": 16,
+      "start": { "col": 9, "row": 6 },
+      "commands": [
+        { "type": "move", "direction": "right", "cells": 4 },
+        { "type": "move", "direction": "down_right", "cells": 1 },
+        { "type": "move", "direction": "up", "cells": 1 },
+        { "type": "move", "direction": "up_right", "cells": 1 },
+        { "type": "move", "direction": "up", "cells": 2 },
+        { "type": "move", "direction": "down_right", "cells": 2 },
+        { "type": "move", "direction": "down", "cells": 1 },
+        { "type": "move", "direction": "left", "cells": 1 },
+        { "type": "move", "direction": "down", "cells": 1 },
+        { "type": "move", "direction": "left", "cells": 1 },
+        { "type": "move", "direction": "down", "cells": 8 },
+        { "type": "move", "direction": "left", "cells": 2 },
+        { "type": "move", "direction": "up_right", "cells": 1 },
+        { "type": "move", "direction": "up_left", "cells": 2 },
+        { "type": "move", "direction": "left", "cells": 4 },
+        { "type": "move", "direction": "down_left", "cells": 2 },
+        { "type": "move", "direction": "down", "cells": 1 },
+        { "type": "move", "direction": "left", "cells": 2 },
+        { "type": "move", "direction": "up_right", "cells": 1 },
+        { "type": "move", "direction": "up", "cells": 2 },
+        { "type": "move", "direction": "up_left", "cells": 1 },
+        { "type": "move", "direction": "up", "cells": 3 },
+        { "type": "move", "direction": "left", "cells": 3 },
+        { "type": "move", "direction": "up_right", "cells": 3 },
+        { "type": "move", "direction": "up", "cells": 2 },
+        { "type": "move", "direction": "right", "cells": 3 },
+        { "type": "move", "direction": "up_right", "cells": 2 },
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "down_right", "cells": 3 },
+        { "type": "move", "direction": "down", "cells": 1 },
+        { "type": "move", "direction": "down_right", "cells": 1 },
+        { "type": "move", "direction": "down", "cells": 2 },
+        { "type": "move", "direction": "down_left", "cells": 1 },
+        { "type": "move", "direction": "left", "cells": 2 },
+        { "type": "move", "direction": "up_left", "cells": 1 },
+        { "type": "move", "direction": "up", "cells": 4 }
+      ]
+    },
+    {
+      "id": "dictation_mouse",
+      "conceptId": "dictation_mouse",
+      "primary": true,
+      "label": "Мышь",
+      "taskKind": "dictation",
+      "columns": 13,
+      "rows": 10,
+      "start": { "col": 1, "row": 8 },
+      "commands": [
+        { "type": "move", "direction": "up_right", "cells": 3 },
+        { "type": "move", "direction": "up", "cells": 2 },
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "up_right", "cells": 1 },
+        { "type": "move", "direction": "down_right", "cells": 1 },
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "down_right", "cells": 1 },
+        { "type": "move", "direction": "down_left", "cells": 1 },
+        { "type": "move", "direction": "down", "cells": 2 },
+        { "type": "move", "direction": "left", "cells": 3 },
+        { "type": "move", "direction": "down_left", "cells": 1 },
+        { "type": "move", "direction": "left", "cells": 2 },
+        { "type": "move", "direction": "down_left", "cells": 2 },
+        { "type": "move", "direction": "right", "cells": 2 },
+        { "type": "move", "direction": "up", "cells": 2 }
+      ]
+    }  ]
 }
