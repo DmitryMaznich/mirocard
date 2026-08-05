@@ -4,7 +4,7 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.5.1";
+const VERSION    = "1.6.0";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
 // .wav files. A card gets its `audio` field only if the file actually
@@ -13,7 +13,6 @@ const AUDIO_SRC_DIR = `public/decks/_audio_src/${TOPIC_ID}`;
 
 const PLACEHOLDER_MODES = [
   { id: "adjective_agreement",    title: "Прилагательное + существительное (скоро)" },
-  { id: "numeral_agreement",      title: "Числительное + существительное (скоро)" },
   { id: "possessive_agreement",   title: "Притяжательные местоимения (скоро)" },
 ].map((m) => ({
   id: m.id,
@@ -97,6 +96,23 @@ const topic = {
         },
       },
     },
+    {
+      id:          "numeral_agreement",
+      type:        "numeral_agreement",
+      evaluation:  "auto",
+      requirePin:  false,
+      ui: {
+        title:       { ru: "Числительное + существительное" },
+        instruction: { ru: "Прочитай предложение и выбери верное слово" },
+        icon:        MODE_ICONS.numeral_agreement.path,
+      },
+      params: {
+        optionCount: {
+          type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
+          labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+        },
+      },
+    },
     ...PLACEHOLDER_MODES,
   ],
   cards: ALL_CARDS.map((card) => {
@@ -135,7 +151,7 @@ const entry = {
   zipUrl:   `${TOPIC_ID}_v${VERSION}.zip`,
   title:    { ru: "Языковой тренажёр" },
   description: {
-    ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, стол, машина, книга, кукла, яблоко, окно, яйцо), число глагола и род глагола в прошедшем времени. Настраиваемая сложность: от двух до шести вариантов ответа.",
+    ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, стол, машина, книга, кукла, яблоко, окно, яйцо), число и род глагола, числительное + существительное. Настраиваемая сложность: от двух до шести вариантов ответа.",
   },
   renderer: "word_agreement",
   status:   "release",

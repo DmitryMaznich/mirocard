@@ -18,6 +18,11 @@ const VERB_GENDER_CARDS = [
   { id: "plural", skill: "verb_gender_agreement", verb: "upast", answer: "упали" },
 ];
 
+const NUMERAL_CARDS = [
+  { id: "few", skill: "numeral_agreement", word: "myach", optionSet: "singular", answer: "мяча" },
+  { id: "many", skill: "numeral_agreement", word: "myach", optionSet: "plural", answer: "мячей" },
+];
+
 describe("word agreement task generation", () => {
   it("starts case agreement with two options and hides advanced cards by default", () => {
     const tasks = generateTasks({ type: "case_agreement" }, CASE_CARDS, 500, { optionCount: 2 });
@@ -85,6 +90,16 @@ describe("word agreement task generation", () => {
       expect(task.options).toHaveLength(4);
       expect(task.options).toContain(task.card.answer);
       expect(task.options.every((option) => pastTenseForms.has(option))).toBe(true);
+    }
+  });
+
+  it("draws numeral agreement options from the same singular/plural pools as case agreement", () => {
+    const tasks = generateTasks({ type: "numeral_agreement" }, NUMERAL_CARDS, 500, { optionCount: 3 });
+
+    expect(tasks).toHaveLength(2);
+    for (const task of tasks) {
+      expect(task.options).toHaveLength(3);
+      expect(task.options).toContain(task.card.answer);
     }
   });
 });

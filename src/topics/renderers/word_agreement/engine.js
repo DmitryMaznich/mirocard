@@ -53,6 +53,23 @@ function limitedOptions(pool, answer, count) {
   return shuffle([answer, ...distractors.slice(0, count - 1)]);
 }
 
+// numeral_agreement reuses the exact same word/optionSet/FORMS_BY_WORD pool
+// as case_agreement — 2-4 need genitive singular, 5+ need genitive plural,
+// both already present in that table — only the trigger (a numeral instead
+// of a preposition) and the card set differ.
+function buildNumeralAgreementTasks(cards, params) {
+  const optionCount = getOptionCount(params);
+  return shuffle(
+    cards
+      .filter((card) => card.skill === "numeral_agreement")
+      .map((card) => ({
+        type: "numeral_agreement",
+        card,
+        options: limitedOptions(FORMS_BY_WORD[card.word]?.[card.optionSet] ?? [], card.answer, optionCount),
+      }))
+  );
+}
+
 function buildCaseAgreementTasks(cards, params) {
   const optionCount = getOptionCount(params);
   const includeAdvancedCards = params?.includeAdvancedCards === true;
@@ -151,5 +168,6 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
   if (modeType === "case_agreement") return buildCaseAgreementTasks(cards, params);
   if (modeType === "verb_number_agreement") return buildVerbNumberTasks(cards, params);
   if (modeType === "verb_gender_agreement") return buildVerbGenderTasks(cards, params);
+  if (modeType === "numeral_agreement") return buildNumeralAgreementTasks(cards, params);
   return [{ type: modeType }];
 }

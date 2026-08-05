@@ -256,4 +256,46 @@ export const VERB_GENDER_CARDS = VERB_GENDER_ITEMS.map((item) => {
   };
 }).map((c) => ({ ...c, label: fullLabel(c) }));
 
-export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS];
+// numeral_agreement: 2-4 govern genitive singular, 5+ govern genitive
+// plural — both forms already exist in FORMS_BY_WORD (built for
+// case_agreement), so this mode reuses the same word/optionSet/answer shape
+// and just swaps the trigger from a preposition to a numeral. "один"
+// (nominative) isn't retested here — it's already the very first
+// case_agreement card for every word ("У Ивана один мяч"), so a numeral card
+// with the same answer would just duplicate that skill under a new mode.
+// "два/две" is picked to agree with each word's gender; три/четыре/5+ don't
+// change by gender, so those are free to vary for exposure.
+const NUMERAL_AGREEMENT_ITEMS = [
+  { id: "numeral_myach_few",      word: "myach",     numeral: "два",    sentence: "Папа купил Ивану два {blank}.",              answer: "мяча",     optionSet: "singular" },
+  { id: "numeral_myach_many",     word: "myach",     numeral: "пять",   sentence: "У Ивана в шкафу пять {blank}.",              answer: "мячей",    optionSet: "plural" },
+  { id: "numeral_karandash_few",  word: "karandash", numeral: "три",    sentence: "У Алины в рюкзаке три {blank}.",             answer: "карандаша", optionSet: "singular" },
+  { id: "numeral_karandash_many", word: "karandash", numeral: "восемь", sentence: "В коробке лежит восемь {blank}.",            answer: "карандашей", optionSet: "plural" },
+  { id: "numeral_stol_few",       word: "stol",      numeral: "четыре", sentence: "В классе стоят четыре {blank}.",             answer: "стола",    optionSet: "singular" },
+  { id: "numeral_stol_many",      word: "stol",      numeral: "десять", sentence: "В школе десять {blank}.",                    answer: "столов",   optionSet: "plural" },
+  { id: "numeral_mashina_few",    word: "mashina",   numeral: "две",    sentence: "На парковке стоят две {blank}.",             answer: "машины",   optionSet: "singular" },
+  { id: "numeral_mashina_many",   word: "mashina",   numeral: "шесть",  sentence: "На парковке стоит шесть {blank}.",           answer: "машин",    optionSet: "plural" },
+  { id: "numeral_kniga_few",      word: "kniga",     numeral: "четыре", sentence: "Мама купила Алине четыре {blank}.",          answer: "книги",    optionSet: "singular" },
+  { id: "numeral_kniga_many",     word: "kniga",     numeral: "семь",   sentence: "На полке стоит семь {blank}.",               answer: "книг",     optionSet: "plural" },
+  { id: "numeral_kukla_few",      word: "kukla",     numeral: "три",    sentence: "У Алины три {blank}.",                       answer: "куклы",    optionSet: "singular" },
+  { id: "numeral_kukla_many",     word: "kukla",     numeral: "девять", sentence: "В коробке лежит девять {blank}.",            answer: "кукол",    optionSet: "plural" },
+  { id: "numeral_yabloko_few",    word: "yabloko",   numeral: "два",    sentence: "Мама купила два {blank}.",                   answer: "яблока",   optionSet: "singular" },
+  { id: "numeral_yabloko_many",   word: "yabloko",   numeral: "шесть",  sentence: "В корзине лежит шесть {blank}.",             answer: "яблок",    optionSet: "plural" },
+  { id: "numeral_okno_few",       word: "okno",      numeral: "четыре", sentence: "В комнате Ивана четыре {blank}.",            answer: "окна",     optionSet: "singular" },
+  { id: "numeral_okno_many",      word: "okno",      numeral: "восемь", sentence: "В новом доме восемь {blank}.",               answer: "окон",     optionSet: "plural" },
+  { id: "numeral_yaytso_few",     word: "yaytso",    numeral: "три",    sentence: "Мама взяла три {blank}.",                    answer: "яйца",     optionSet: "singular" },
+  { id: "numeral_yaytso_many",    word: "yaytso",    numeral: "десять", sentence: "В коробке лежит десять {blank}.",            answer: "яиц",      optionSet: "plural" },
+];
+
+export const NUMERAL_AGREEMENT_CARDS = NUMERAL_AGREEMENT_ITEMS.map((item) => ({
+  id: item.id,
+  skill: "numeral_agreement",
+  word: item.word,
+  optionSet: item.optionSet,
+  sentence: item.sentence,
+  answer: item.answer,
+  marker: item.numeral,
+  question: "чего?",
+  context: null,
+})).map((c) => ({ ...c, label: fullLabel(c) }));
+
+export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS, ...NUMERAL_AGREEMENT_CARDS];
