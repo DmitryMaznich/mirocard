@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveConcepts, getPrimaryCard } from "./topicUtils";
+import { deriveConcepts, getConceptCards, getPrimaryCard } from "./topicUtils";
 
 const CARDS = [
   { id: "tshirt_1", conceptId: "tshirt", primary: true,  label: "футболка", image: "media/tshirt_1.webp", tags: ["top", "casual"] },
@@ -31,6 +31,31 @@ describe("deriveConcepts", () => {
     const reversed = [...CARDS].reverse();
     const concepts = deriveConcepts(reversed);
     expect(concepts[0].conceptId).toBe("skirt");
+  });
+});
+
+describe("getConceptCards", () => {
+  const wordAgreementRecord = {
+    meta: { renderer: "word_agreement" },
+    cards: [
+      { id: "case_1", skill: "case_agreement" },
+      { id: "case_2", skill: "case_agreement" },
+      { id: "numeral_1", skill: "numeral_agreement" },
+    ],
+  };
+
+  it("filters word_agreement cards down to the current mode's skill", () => {
+    const cards = getConceptCards(wordAgreementRecord, { type: "numeral_agreement" });
+    expect(cards.map((c) => c.id)).toEqual(["numeral_1"]);
+  });
+
+  it("returns all cards for other renderers unchanged", () => {
+    const record = { meta: { renderer: "flashcards" }, cards: CARDS };
+    expect(getConceptCards(record, { type: "anything" })).toBe(CARDS);
+  });
+
+  it("returns all cards when mode is missing (e.g. still loading)", () => {
+    expect(getConceptCards(wordAgreementRecord, undefined)).toBe(wordAgreementRecord.cards);
   });
 });
 

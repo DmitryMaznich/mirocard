@@ -12,7 +12,7 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
@@ -912,7 +912,7 @@ export default function ParamsScreen() {
     );
   }
 
-  const allConcepts        = deriveConcepts(topicRecord.cards);
+  const allConcepts        = deriveConcepts(getConceptCards(topicRecord, mode));
   const selectedConceptIds = link.selectedConceptIds?.length ? link.selectedConceptIds : allConcepts.map((c) => c.conceptId);
 
   // Concept range filter — only in "Считаем на пальцах" mode
