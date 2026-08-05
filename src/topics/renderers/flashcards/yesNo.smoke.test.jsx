@@ -55,4 +55,20 @@ describe("yes_no — mounted through the real YesNoTask", () => {
     const label = container.querySelector(".yn-label");
     expect(label?.textContent).toBe(`Это ${task.displayLabel.toLowerCase()}?`);
   });
+
+  it("declines a card's accusative form correctly (скука -> скуку), not the nominative", () => {
+    const cards = [
+      { id: "boredom_1", conceptId: "boredom", primary: true, label: "скука", accusative: "скуку", image: "boredom_1.webp" },
+      { id: "fear_1",    conceptId: "fear",    primary: true, label: "страх",  image: "fear_1.webp" },
+    ];
+    const concepts = deriveConcepts(cards);
+    let task = null;
+    for (let i = 0; i < 40 && !task; i++) {
+      const tasks = generateTasks("yes_no", concepts, cards, {});
+      task = tasks.find((t) => t.conceptId === "boredom" && t.isLabelCorrect);
+    }
+    mount(task, { type: "yes_no", answerPrefix: "Чувствует" });
+    const label = container.querySelector(".yn-label");
+    expect(label?.textContent).toBe("Чувствует скуку?");
+  });
 });
