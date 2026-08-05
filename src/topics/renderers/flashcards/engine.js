@@ -100,6 +100,12 @@ function generateEmotionSituationTasks(displayConcepts, allCards, params) {
   return shuffle(tasks);
 }
 
+// Most nouns share their nominative and accusative forms, but not all
+// (e.g. "скука" -> "скуку"). Cards may set `accusative` to override.
+function accusativeLabel(card) {
+  return card?.accusative ?? card?.label;
+}
+
 function generateYesNoTasks(concepts, params) {
   const reps = params.repsPerConcept ?? 1;
   const tasks = [];
@@ -108,18 +114,18 @@ function generateYesNoTasks(concepts, params) {
       const useCorrect = Math.random() < 0.5;
       let displayLabel;
       if (useCorrect) {
-        displayLabel = concept.primary?.label ?? concept.conceptId;
+        displayLabel = accusativeLabel(concept.primary) ?? concept.conceptId;
       } else {
         const others = concepts.filter((c) => c.conceptId !== concept.conceptId);
         const distractor = others[Math.floor(Math.random() * others.length)];
-        displayLabel = distractor?.primary?.label ?? concept.primary?.label;
+        displayLabel = accusativeLabel(distractor?.primary) ?? accusativeLabel(concept.primary);
       }
       tasks.push({
         type: "yes_no",
         conceptId: concept.conceptId,
         card: pickVariation(concept),
         displayLabel,
-        correctLabel: concept.primary?.label ?? concept.conceptId,
+        correctLabel: accusativeLabel(concept.primary) ?? concept.conceptId,
         isLabelCorrect: useCorrect,
       });
     }

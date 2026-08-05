@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.5.6",
+    "version": "1.5.7",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -801,6 +801,7 @@
       "conceptId": "boredom",
       "primary": true,
       "label": "скука",
+      "accusative": "скуку",
       "image": "media/boredom_1.webp",
       "audio": {
         "ru": "audio/boredom.mp3"

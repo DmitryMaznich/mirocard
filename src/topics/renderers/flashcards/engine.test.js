@@ -170,6 +170,19 @@ describe("generateTasks — yes_no", () => {
     expect(correct).toBeGreaterThan(0);
     expect(incorrect).toBeGreaterThan(0);
   });
+
+  it("uses a card's accusative field instead of label when present", () => {
+    const cards = [
+      { id: "b1", conceptId: "boredom", primary: true, label: "скука", accusative: "скуку", image: "b1.webp" },
+      { id: "f1", conceptId: "fear",    primary: true, label: "страх", image: "f1.webp" },
+    ];
+    const concepts = deriveConcepts(cards);
+    const tasks = generateTasks("yes_no", concepts, cards, { repsPerConcept: 20 });
+    const boredomTasks = tasks.filter((t) => t.correctLabel === "скуку");
+    expect(boredomTasks.length).toBeGreaterThan(0);
+    expect(tasks.some((t) => t.correctLabel === "скука")).toBe(false);
+    expect(tasks.some((t) => t.displayLabel === "скука")).toBe(false);
+  });
 });
 
 describe("generateTasks — find_n", () => {
