@@ -109,3 +109,6 @@ mirocard-db-*.db-wal
 
 # Telegram testers feedback backlog (working data, not source)
 feedback/
+
+# Grid-figure tracing scratch files (never committed)
+tools/symmetry_draw/.trace-scratch/
