@@ -353,14 +353,14 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.1.2",
-      "url": "./decks/symmetry_draw_v1.1.2.zip",
-      "zipUrl": "symmetry_draw_v1.1.2.zip",
+      "version": "1.3.1",
+      "url": "./decks/symmetry_draw_v1.3.1.zip",
+      "zipUrl": "symmetry_draw_v1.3.1.zip",
       "title": {
-        "ru": "Симметричный рисунок"
+        "ru": "Рисуем по клеткам"
       },
       "description": {
-        "ru": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси."
+        "ru": "Симметрия, повтор и графический диктант на клетчатом поле."
       },
       "renderer": "flashcards",
       "status": "release",
