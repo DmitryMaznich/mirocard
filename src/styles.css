@@ -12794,9 +12794,16 @@ button {
 .card-img            { border-radius: 16px; object-fit: cover; }
 .card-img--loading   { background: #f0f0f0; min-width: 120px; min-height: 120px; }
 
-.session-label       { font-size: 1.8rem; font-weight: 700; text-align: center; flex-shrink: 0; transform: translateY(-5dvh); }
+.session-label        { font-size: 1.8rem; font-weight: 700; text-align: center; flex-shrink: 0; transform: translateY(-5dvh); }
+.session-label__prefix { font-weight: 400; }
 .session-hint        { font-size: 0.85rem; color: #aaa; flex-shrink: 0; }
 .session-instruction { font-size: 1.4rem; font-weight: 600; text-align: center; flex-shrink: 0; }
+/* find_n's photo grid centers itself inside a flex:1 area, leaving empty
+   space above the actual thumbnails that grows with fewer rows (2/4 options).
+   Nudge the instruction down into that slack instead of hugging the top edge -
+   tuned to stay clear of the thumbnails even at 6 options (3 rows), where the
+   slack is smallest. */
+.session-body--find-n .session-instruction { transform: translateY(8dvh); }
 
 /* yes/no */
 .yes-no-row {

@@ -40,7 +40,7 @@ function AudioButton({ topicId, audioPath, playTopicFile, soundEnabled }) {
   );
 }
 
-function IntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
+function IntroTask({ task, mode, topicId, soundEnabled, playTopicFile, onAdvance }) {
   const audioPath = getTaskAudioPath(task);
 
   useEffect(() => {
@@ -50,7 +50,10 @@ function IntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
   return (
     <button className="session-full-tap" onClick={onAdvance}>
       <CardArea topicId={topicId} card={task.card} />
-      <div className="session-label">{task.label}</div>
+      <div className="session-label">
+        {mode?.answerPrefix && <span className="session-label__prefix">{mode.answerPrefix} </span>}
+        {task.label}
+      </div>
       <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
     </button>
   );
@@ -232,7 +235,7 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
   const rows = Math.ceil(task.options.length / cols);
 
   return (
-    <div className="session-body">
+    <div className="session-body session-body--find-n">
       <div className="session-instruction">{task.targetLabel}</div>
       <div className="find-n-grid" style={{ "--cols": cols, "--rows": rows }}>
         <div className="find-n-inner">

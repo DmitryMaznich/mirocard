@@ -47,7 +47,7 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.5.7",
+      "version": "1.5.9",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
@@ -56,7 +56,7 @@
         "ru": "10 эмоций × 3 вариации (крупные портреты разных детей) и ситуации для всех эмоций. Аудио произношение.",
         "en": "10 emotions × 3 close-up portraits of different children, with situations for every emotion. Audio included."
       },
-      "url": "./decks/emotions_v2_v1.5.7.zip",
+      "url": "./decks/emotions_v2_v1.5.9.zip",
       "status": "release",
       "access": "free"
     },
