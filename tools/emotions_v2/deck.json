@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.5.5",
+    "version": "1.5.6",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -84,6 +84,7 @@
       "id": "yes_no",
       "type": "yes_no",
       "evaluation": "auto",
+      "answerPrefix": "Чувствует",
       "ui": {
         "title": "Да / Нет",
         "instruction": "Правильное ли слово?"
