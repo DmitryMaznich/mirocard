@@ -163,11 +163,45 @@ function buildVerbGenderTasks(cards, params) {
   );
 }
 
+// adjective_agreement: same masc/fem/neut/plural shape as verb gender —
+// distractors mix the same adjective's other genders (the actual skill)
+// with the same gender's forms of other adjectives (for larger counts).
+const ADJECTIVE_FORMS = {
+  malenkiy: { masc: "маленький", fem: "маленькая", neut: "маленькое", plural: "маленькие" },
+  novy:     { masc: "новый",     fem: "новая",     neut: "новое",     plural: "новые" },
+  bolshoy:  { masc: "большой",   fem: "большая",   neut: "большое",   plural: "большие" },
+};
+
+function buildAdjectiveOptions(card, count) {
+  const forms = ADJECTIVE_FORMS[card.adjective] ?? {};
+  const answerGender = GENDERS.find((gender) => forms[gender] === card.answer);
+  const sameAdjectiveOtherGenders = GENDERS.filter((gender) => gender !== answerGender).map((gender) => forms[gender]);
+  const sameGenderOtherAdjectives = Object.entries(ADJECTIVE_FORMS)
+    .filter(([adjective]) => adjective !== card.adjective)
+    .map(([, adjForms]) => adjForms[answerGender]);
+
+  return limitedOptions([...sameAdjectiveOtherGenders, ...sameGenderOtherAdjectives], card.answer, count);
+}
+
+function buildAdjectiveAgreementTasks(cards, params) {
+  const optionCount = getOptionCount(params);
+  return shuffle(
+    cards
+      .filter((card) => card.skill === "adjective_agreement")
+      .map((card) => ({
+        type: "adjective_agreement",
+        card,
+        options: buildAdjectiveOptions(card, optionCount),
+      }))
+  );
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const modeType = mode?.type ?? mode?.id;
   if (modeType === "case_agreement") return buildCaseAgreementTasks(cards, params);
   if (modeType === "verb_number_agreement") return buildVerbNumberTasks(cards, params);
   if (modeType === "verb_gender_agreement") return buildVerbGenderTasks(cards, params);
   if (modeType === "numeral_agreement") return buildNumeralAgreementTasks(cards, params);
+  if (modeType === "adjective_agreement") return buildAdjectiveAgreementTasks(cards, params);
   return [{ type: modeType }];
 }

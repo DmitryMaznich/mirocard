@@ -298,4 +298,44 @@ export const NUMERAL_AGREEMENT_CARDS = NUMERAL_AGREEMENT_ITEMS.map((item) => ({
   context: null,
 })).map((c) => ({ ...c, label: fullLabel(c) }));
 
-export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS, ...NUMERAL_AGREEMENT_CARDS];
+// adjective_agreement: three adjective roots (маленький — velar stem, новый
+// — unstressed hard stem, большой — stressed hushing stem, so the three
+// common masc.sg spelling patterns are all represented), each shown once
+// against a masc/fem/neut noun from the existing vocabulary plus once in
+// plural — the same descriptive word, four different endings depending on
+// what it describes. No new nouns needed.
+const GENDER_QUESTION = { masc: "какой?", fem: "какая?", neut: "какое?", plural: "какие?" };
+
+const ADJECTIVE_AGREEMENT_ITEMS = [
+  { id: "adjagr_myach_sg",     adjective: "malenkiy", gender: "masc",   noun: "мяч",      sentence: "У Ивана {blank} мяч.",              answer: "маленький" },
+  { id: "adjagr_myach_pl",     adjective: "malenkiy", gender: "plural", noun: "мячи",     sentence: "У Ивана {blank} мячи.",             answer: "маленькие" },
+  { id: "adjagr_kukla_sg",     adjective: "malenkiy", gender: "fem",    noun: "кукла",    sentence: "У Алины {blank} кукла.",            answer: "маленькая" },
+  { id: "adjagr_kukla_pl",     adjective: "malenkiy", gender: "plural", noun: "куклы",    sentence: "У Алины {blank} куклы.",            answer: "маленькие" },
+  { id: "adjagr_yaytso_sg",    adjective: "malenkiy", gender: "neut",   noun: "яйцо",     sentence: "У мамы {blank} яйцо.",              answer: "маленькое" },
+  { id: "adjagr_yaytso_pl",    adjective: "malenkiy", gender: "plural", noun: "яйца",     sentence: "У мамы {blank} яйца.",              answer: "маленькие" },
+  { id: "adjagr_karandash_sg", adjective: "novy",     gender: "masc",   noun: "карандаш", sentence: "У Алины {blank} карандаш.",         answer: "новый" },
+  { id: "adjagr_karandash_pl", adjective: "novy",     gender: "plural", noun: "карандаши", sentence: "У Алины {blank} карандаши.",       answer: "новые" },
+  { id: "adjagr_kniga_sg",     adjective: "novy",     gender: "fem",    noun: "книга",    sentence: "У Алины {blank} книга.",            answer: "новая" },
+  { id: "adjagr_kniga_pl",     adjective: "novy",     gender: "plural", noun: "книги",    sentence: "У Алины {blank} книги.",            answer: "новые" },
+  { id: "adjagr_okno_sg",      adjective: "novy",     gender: "neut",   noun: "окно",     sentence: "В доме {blank} окно.",              answer: "новое" },
+  { id: "adjagr_okno_pl",      adjective: "novy",     gender: "plural", noun: "окна",     sentence: "В доме {blank} окна.",              answer: "новые" },
+  { id: "adjagr_stol_sg",      adjective: "bolshoy",  gender: "masc",   noun: "стол",     sentence: "В классе {blank} стол.",            answer: "большой" },
+  { id: "adjagr_stol_pl",      adjective: "bolshoy",  gender: "plural", noun: "столы",    sentence: "В классе {blank} столы.",           answer: "большие" },
+  { id: "adjagr_mashina_sg",   adjective: "bolshoy",  gender: "fem",    noun: "машина",   sentence: "У папы {blank} машина.",            answer: "большая" },
+  { id: "adjagr_mashina_pl",   adjective: "bolshoy",  gender: "plural", noun: "машины",   sentence: "На парковке стоят {blank} машины.", answer: "большие" },
+  { id: "adjagr_yabloko_sg",   adjective: "bolshoy",  gender: "neut",   noun: "яблоко",   sentence: "На столе лежит {blank} яблоко.",    answer: "большое" },
+  { id: "adjagr_yabloko_pl",   adjective: "bolshoy",  gender: "plural", noun: "яблоки",   sentence: "В корзине лежат {blank} яблоки.",   answer: "большие" },
+];
+
+export const ADJECTIVE_AGREEMENT_CARDS = ADJECTIVE_AGREEMENT_ITEMS.map((item) => ({
+  id: item.id,
+  skill: "adjective_agreement",
+  adjective: item.adjective,
+  sentence: item.sentence,
+  answer: item.answer,
+  marker: item.noun,
+  question: GENDER_QUESTION[item.gender],
+  context: null,
+})).map((c) => ({ ...c, label: fullLabel(c) }));
+
+export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS, ...NUMERAL_AGREEMENT_CARDS, ...ADJECTIVE_AGREEMENT_CARDS];

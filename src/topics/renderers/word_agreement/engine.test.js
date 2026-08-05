@@ -23,6 +23,13 @@ const NUMERAL_CARDS = [
   { id: "many", skill: "numeral_agreement", word: "myach", optionSet: "plural", answer: "мячей" },
 ];
 
+const ADJECTIVE_CARDS = [
+  { id: "masc", skill: "adjective_agreement", adjective: "bolshoy", answer: "большой" },
+  { id: "fem", skill: "adjective_agreement", adjective: "bolshoy", answer: "большая" },
+  { id: "neut", skill: "adjective_agreement", adjective: "bolshoy", answer: "большое" },
+  { id: "plural", skill: "adjective_agreement", adjective: "bolshoy", answer: "большие" },
+];
+
 describe("word agreement task generation", () => {
   it("starts case agreement with two options and hides advanced cards by default", () => {
     const tasks = generateTasks({ type: "case_agreement" }, CASE_CARDS, 500, { optionCount: 2 });
@@ -100,6 +107,22 @@ describe("word agreement task generation", () => {
     for (const task of tasks) {
       expect(task.options).toHaveLength(3);
       expect(task.options).toContain(task.card.answer);
+    }
+  });
+
+  it("offers adjective forms for gender agreement, keyed to the correct answer", () => {
+    const tasks = generateTasks({ type: "adjective_agreement" }, ADJECTIVE_CARDS, 500, { optionCount: 4 });
+    const adjectiveForms = new Set([
+      "большой", "большая", "большое", "большие",
+      "маленький", "маленькая", "маленькое", "маленькие",
+      "новый", "новая", "новое", "новые",
+    ]);
+
+    expect(tasks).toHaveLength(4);
+    for (const task of tasks) {
+      expect(task.options).toHaveLength(4);
+      expect(task.options).toContain(task.card.answer);
+      expect(task.options.every((option) => adjectiveForms.has(option))).toBe(true);
     }
   });
 });

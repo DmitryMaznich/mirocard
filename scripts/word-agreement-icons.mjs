@@ -62,6 +62,16 @@ const NUMERAL_AGREEMENT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="
   <rect x="100" y="52" width="24" height="30" rx="6" fill="none" stroke="#3b5bdb" stroke-width="3" stroke-dasharray="4 4"/>
 </svg>`;
 
+// adjective_agreement: same "one root, three coloured endings" language as
+// the topic avatar, but for an adjective instead of a noun — the point is
+// the same descriptive word changing shape with what it describes.
+const ADJECTIVE_AGREEMENT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fdeef0"/>
+  <text x="64" y="46" text-anchor="middle" font-family="${FONT}" font-size="22" font-weight="800" fill="#2c2c2c">больш<tspan fill="#c23a5e">ой</tspan></text>
+  <text x="64" y="74" text-anchor="middle" font-family="${FONT}" font-size="22" font-weight="800" fill="#2c2c2c">больш<tspan fill="#c23a5e">ая</tspan></text>
+  <text x="64" y="102" text-anchor="middle" font-family="${FONT}" font-size="22" font-weight="800" fill="#2c2c2c">больш<tspan fill="#c23a5e">ое</tspan></text>
+</svg>`;
+
 // Shared "not built yet" icon for the remaining placeholder modes — muted
 // grey clock, visually distinct from the working modes above.
 const COMING_SOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -75,7 +85,7 @@ export const MODE_ICONS = {
   case_agreement:        { path: "media/icons/case_agreement.svg",       svg: CASE_AGREEMENT_SVG },
   verb_number_agreement: { path: "media/icons/verb_number.svg",          svg: VERB_NUMBER_SVG },
   verb_gender_agreement: { path: "media/icons/verb_gender.svg",          svg: VERB_GENDER_SVG },
-  adjective_agreement:   { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
+  adjective_agreement:   { path: "media/icons/adjective_agreement.svg",  svg: ADJECTIVE_AGREEMENT_SVG },
   numeral_agreement:     { path: "media/icons/numeral_agreement.svg",    svg: NUMERAL_AGREEMENT_SVG },
   possessive_agreement:  { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
 };
