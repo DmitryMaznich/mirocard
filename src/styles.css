@@ -13036,6 +13036,14 @@ button {
   opacity: 1;
   transform: translateY(0);
 }
+/* Pin the question to the photo: .session-full-tap's flex `gap: 12px`
+   already puts 12px between them, so add just enough extra margin to bring
+   the total up to 0.95em (~70% of this line's own rendered line-height,
+   measured at ~1.357x its font-size) - scales with the responsive
+   font-size instead of a fixed px gap. */
+.situation-intro__question {
+  margin-top: calc(0.95em - 12px);
+}
 .situation-intro__reveal {
   display: flex;
   flex-direction: column;
