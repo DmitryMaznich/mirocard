@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.5.3",
+    "version": "1.5.4",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -1082,7 +1082,7 @@
       "id": "situation_shame_1",
       "conceptId": "shame",
       "cardType": "situation",
-      "label": "Случайно громко пукнул.",
+      "label": "Папа спросил, кто пукнул в машине.",
       "answerKey": "стыд"
     },
     {
@@ -1103,21 +1103,14 @@
       "id": "situation_shame_2",
       "conceptId": "shame",
       "cardType": "situation",
-      "label": "Он громко сказал неправильный ответ.",
+      "label": "Друзья сказали, что от меня плохо пахнет.",
       "answerKey": "стыд"
     },
     {
       "id": "situation_shame_3",
       "conceptId": "shame",
       "cardType": "situation",
-      "label": "Он нечаянно толкнул друга и сделал ему больно.",
-      "answerKey": "стыд"
-    },
-    {
-      "id": "situation_shame_4",
-      "conceptId": "shame",
-      "cardType": "situation",
-      "label": "Он забыл поздороваться с бабушкой.",
+      "label": "Мама ругает, что я не смываю за собой в туалете.",
       "answerKey": "стыд"
     },
     {
@@ -1131,7 +1124,7 @@
       "id": "situation_disgust_3",
       "conceptId": "disgust",
       "cardType": "situation",
-      "label": "На обувь залез слизень.",
+      "label": "На обувь залез огромный слизень.",
       "answerKey": "отвращение"
     },
     {
@@ -1152,7 +1145,7 @@
       "id": "situation_tiredness_2",
       "conceptId": "tiredness",
       "cardType": "situation",
-      "label": "Он весь день был в гостях и много играл.",
+      "label": "Целый день играли с друзьями на улице.",
       "answerKey": "усталость"
     },
     {
