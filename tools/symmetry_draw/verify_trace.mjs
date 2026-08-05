@@ -87,7 +87,9 @@ async function runOverlay(imagePath, dataPath, { cellPx, originX, originY, out }
 }
 
 function parseArgs(argv) {
-  const [command, imagePath, maybeDataPath, ...rest] = argv;
+  const [command, imagePath, ...afterImage] = argv;
+  const maybeDataPath = command === "overlay" ? afterImage[0] : undefined;
+  const rest = command === "overlay" ? afterImage.slice(1) : afterImage;
   const options = {};
   for (const arg of rest) {
     const match = /^--([^=]+)=(.*)$/.exec(arg);
