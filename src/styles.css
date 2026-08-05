@@ -13036,6 +13036,14 @@ button {
   opacity: 1;
   transform: translateY(0);
 }
+/* .card-area is a flex:1 box taller than the (square, width-capped) photo it
+   holds, and centers the photo inside it - so the photo's real bottom edge
+   sits well above .card-area's own box edge. Bottom-align it here so the
+   photo's actual edge is what the margin below is measured from; the leftover
+   slack collects above the photo (next to the situation text) instead. */
+.situation-intro .card-area {
+  align-items: flex-end;
+}
 /* Pin the question to the photo: .session-full-tap's flex `gap: 12px`
    already puts 12px between them, so add just enough extra margin to bring
    the total up to 0.95em (~70% of this line's own rendered line-height,
