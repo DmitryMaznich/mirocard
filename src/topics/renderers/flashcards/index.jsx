@@ -157,7 +157,7 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   );
 }
 
-function YesNoTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+function YesNoTask({ task, mode, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
   const [result, setResult] = useState(null); // null | "correct" | "incorrect"
 
   useEffect(() => {
@@ -179,11 +179,12 @@ function YesNoTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
 
   const displayLower  = task.displayLabel?.toLowerCase() ?? "";
   const correctLower  = task.correctLabel?.toLowerCase()  ?? displayLower;
-  const question      = `Это ${displayLower}?`;
+  const prefix        = mode?.answerPrefix ?? "Это";
+  const question      = `${prefix} ${displayLower}?`;
   const feedbackText  = result === "correct"
-    ? `Правильно! Это ${correctLower}!`
+    ? `Правильно! ${prefix} ${correctLower}!`
     : result === "incorrect"
-      ? `Нет! Это ${correctLower}!`
+      ? `Нет! ${prefix} ${correctLower}!`
       : null;
 
   return (
