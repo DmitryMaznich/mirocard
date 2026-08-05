@@ -13036,13 +13036,15 @@ button {
   opacity: 1;
   transform: translateY(0);
 }
-/* .card-area is a flex:1 box taller than the (square, width-capped) photo it
-   holds, and centers the photo inside it - so the photo's real bottom edge
-   sits well above .card-area's own box edge. Bottom-align it here so the
-   photo's actual edge is what the margin below is measured from; the leftover
-   slack collects above the photo (next to the situation text) instead. */
+/* .card-area is normally flex:1, growing to fill the leftover column space
+   and centering the (smaller, width-capped) photo inside that oversized box -
+   which pushed the photo way down when bottom-aligned instead of just
+   closing the gap to the question below. Drop the grow here so the box
+   shrinks to the photo's own size; .session-full-tap's `justify-content:
+   center` then centers the whole [text, photo, question, label] stack as
+   one group, keeping the photo at a normal height. */
 .situation-intro .card-area {
-  align-items: flex-end;
+  flex: 0 1 auto;
 }
 /* Pin the question to the photo: .session-full-tap's flex `gap: 12px`
    already puts 12px between them, so add just enough extra margin to bring
