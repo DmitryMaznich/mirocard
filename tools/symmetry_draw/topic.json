@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.3.1",
+    "version": "1.3.2",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -1497,7 +1497,7 @@
         { "type": "move", "direction": "down", "cells": 1 },
         { "type": "move", "direction": "down_left", "cells": 1 },
         { "type": "move", "direction": "left", "cells": 7 },
-        { "type": "move", "direction": "up_right", "cells": 1 }
+        { "type": "move", "direction": "up_left", "cells": 1 }
       ]
     }  ]
 }
