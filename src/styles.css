@@ -12799,11 +12799,15 @@ button {
 .session-hint        { font-size: 0.85rem; color: #aaa; flex-shrink: 0; }
 .session-instruction { font-size: 1.4rem; font-weight: 600; text-align: center; flex-shrink: 0; }
 /* find_n's photo grid centers itself inside a flex:1 area, leaving empty
-   space above the actual thumbnails that grows with fewer rows (2/4 options).
-   Nudge the instruction down into that slack instead of hugging the top edge -
-   tuned to stay clear of the thumbnails even at 6 options (3 rows), where the
-   slack is smallest. */
-.session-body--find-n .session-instruction { transform: translateY(8dvh); }
+   space above the actual thumbnails that shrinks as more rows are needed
+   (2/4/6 options -> 1/2/3 rows). A flat offset overlapped the thumbnails at
+   6 options on shorter phones (iPhone SE), because dvh is relative to the
+   whole screen, not this area - the session header eats a fixed chunk of a
+   short screen's height, so a %-of-viewport nudge doesn't shrink to match.
+   cqh is relative to .session-body itself (after the header), so it tracks
+   the actual available room on any screen height. */
+.session-body--find-n { container-type: size; }
+.session-body--find-n .session-instruction { transform: translateY(calc(14cqh - var(--rows, 2) * 4cqh)); }
 
 /* yes/no */
 .yes-no-row {

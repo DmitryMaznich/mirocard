@@ -235,9 +235,9 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
   const rows = Math.ceil(task.options.length / cols);
 
   return (
-    <div className="session-body session-body--find-n">
+    <div className="session-body session-body--find-n" style={{ "--rows": rows }}>
       <div className="session-instruction">{task.targetLabel}</div>
-      <div className="find-n-grid" style={{ "--cols": cols, "--rows": rows }}>
+      <div className="find-n-grid" style={{ "--cols": cols }}>
         <div className="find-n-inner">
           {task.options.map((option) => (
             <FindNOption key={option.card.id} option={option} topicId={topicId} onClick={handleOption} />
