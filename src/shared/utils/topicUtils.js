@@ -17,6 +17,18 @@ export function deriveConcepts(cards) {
   return [...map.values()];
 }
 
+// symmetry_draw bundles three unrelated task kinds (mirror, repeat,
+// dictation) as one card array with a `taskKind` field per card, one mode
+// per kind. Same reasoning as word_agreement below: without this, every
+// mode's concept picker would list all three kinds' concepts mixed
+// together, and picking concepts for "Симметричный рисунок" would also
+// offer repeat/dictation figures that mode never draws.
+const TASK_KIND_BY_MODE_TYPE = {
+  mirror_draw: "mirror",
+  repeat_draw: "repeat",
+  graphic_dictation: "dictation",
+};
+
 // word_agreement bundles several unrelated skills (case, verb number, verb
 // gender, ...) as one big card array with a `skill` field per card, one
 // mode per skill. Without this, the concept picker would list every card in
@@ -28,6 +40,10 @@ export function getConceptCards(topicRecord, mode) {
   const cards = topicRecord?.cards ?? [];
   if (topicRecord?.meta?.renderer === "word_agreement" && mode?.type) {
     return cards.filter((c) => c.skill === mode.type);
+  }
+  const taskKind = mode?.type ? TASK_KIND_BY_MODE_TYPE[mode.type] : undefined;
+  if (taskKind) {
+    return cards.filter((c) => c.taskKind === taskKind);
   }
   return cards;
 }

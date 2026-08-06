@@ -29,6 +29,10 @@ function generateRepeatDrawTasks(concepts) {
   return generateIntroTasks(filterByTaskKind(concepts, "repeat")).map((t) => ({ ...t, type: "repeat_draw" }));
 }
 
+function generateGraphicDictationTasks(concepts) {
+  return generateIntroTasks(filterByTaskKind(concepts, "dictation")).map((t) => ({ ...t, type: "graphic_dictation" }));
+}
+
 function generateSituationEmotionTasks(displayConcepts, allCards, params) {
   const optionCount = params.optionCount ?? 4;
   const difficulty = params.distractorLevel ?? "medium";
@@ -236,6 +240,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "intro":                  return generateIntroTasks(displayConcepts);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
+    case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts);
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
     case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards);
     case "emotion_situation":      return generateEmotionSituationTasks(displayConcepts, allCards, params);
