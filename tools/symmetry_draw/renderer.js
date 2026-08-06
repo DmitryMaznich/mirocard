@@ -25,6 +25,32 @@
     return (paths ?? []).map((path) => path.map((point) => ({ col: point.col + axisCol, row: point.row })));
   }
 
+  const DICTATION_DIRECTION = {
+    up: { col: 0, row: -1 },
+    down: { col: 0, row: 1 },
+    right: { col: 1, row: 0 },
+    left: { col: -1, row: 0 },
+    up_right: { col: 1, row: -1 },
+    down_right: { col: 1, row: 1 },
+    up_left: { col: -1, row: -1 },
+    down_left: { col: -1, row: 1 },
+  };
+
+  function commandsToPath(start, commands) {
+    const points = [{ col: start.col, row: start.row }];
+    let current = { col: start.col, row: start.row };
+    for (const command of commands ?? []) {
+      const direction = DICTATION_DIRECTION[command.direction];
+      if (!direction) continue;
+      current = {
+        col: current.col + direction.col * command.cells,
+        row: current.row + direction.row * command.cells,
+      };
+      points.push(current);
+    }
+    return points;
+  }
+
   function pathsToSegments(paths) {
     const segments = [];
     for (const path of paths ?? []) {
@@ -110,10 +136,12 @@
     const axisCol = Number(shape.axisCol ?? 5);
     const sourcePaths = shape.sourcePaths ?? [];
     const isRepeat = shape.taskKind === "repeat";
-    const targetPaths = useMemo(
-      () => (isRepeat ? translatePaths(sourcePaths, axisCol) : mirrorPaths(sourcePaths, axisCol)),
-      [sourcePaths, axisCol, isRepeat],
-    );
+    const isDictation = shape.taskKind === "dictation";
+    const dictationStart = shape.start ?? { col: 0, row: 0 };
+    const targetPaths = useMemo(() => {
+      if (isDictation) return [commandsToPath(dictationStart, shape.commands)];
+      return isRepeat ? translatePaths(sourcePaths, axisCol) : mirrorPaths(sourcePaths, axisCol);
+    }, [sourcePaths, axisCol, isRepeat, isDictation, dictationStart.col, dictationStart.row, shape.commands]);
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
     const hintPoints = useMemo(() => targetPaths.flat(), [targetPaths]);
 
@@ -167,7 +195,11 @@
 
     function checkDrawing() {
       if (resolved) return;
-      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE, HORIZONTAL_SHIFT_TOLERANCE);
+      // Dictation figures are anchored to a marked start point on the grid - unlike
+      // mirror/repeat, a horizontal offset here means the child began from the wrong
+      // cell, which is exactly what this task checks, so no shift tolerance applies.
+      const maxHorizontalShift = isDictation ? 0 : HORIZONTAL_SHIFT_TOLERANCE;
+      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE, maxHorizontalShift);
       const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
       if (coverage.complete) {
         setResolved(true);
@@ -199,7 +231,9 @@
           h("div", { className: "symmetry-draw__title" }, shape.label ?? "Фигура"),
           h("div", { className: "symmetry-draw__instruction" }, instruction),
         ),
-        h("span", { className: `symmetry-draw__mirror-chip${isRepeat ? " symmetry-draw__mirror-chip--repeat" : ""}` }, isRepeat ? "→ повтори" : "↔ зеркало"),
+        h("span", {
+          className: `symmetry-draw__mirror-chip${isRepeat ? " symmetry-draw__mirror-chip--repeat" : ""}${isDictation ? " symmetry-draw__mirror-chip--dictation" : ""}`,
+        }, isDictation ? "✎ диктант" : isRepeat ? "→ повтори" : "↔ зеркало"),
       ),
       h("div", { className: "symmetry-draw__canvas" },
         h("svg", {
@@ -217,12 +251,19 @@
           Array.from({ length: columns + 1 }, (_, col) => h("text", { key: `col-${col}`, className: "symmetry-draw__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, String.fromCharCode(65 + col))),
           Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)),
           nodes,
-          h("line", { className: `symmetry-draw__mirror-line${isRepeat ? " symmetry-draw__mirror-line--repeat" : ""}`, x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
-          isRepeat
-            ? h("path", { className: "symmetry-draw__repeat-arrow", d: `M ${axisCol - 0.28} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.6} L ${axisCol + 0.62} ${rows / 2} L ${axisCol + 0.22} ${rows / 2 + 0.6} L ${axisCol + 0.22} ${rows / 2 + 0.32} L ${axisCol - 0.28} ${rows / 2 + 0.32} Z` })
+          isDictation
+            ? h("g", { className: "symmetry-draw__start-point" },
+                h("circle", { cx: dictationStart.col, cy: dictationStart.row, r: "0.22" }),
+                h("circle", { className: "symmetry-draw__start-point-ring", cx: dictationStart.col, cy: dictationStart.row, r: "0.34" }),
+              )
             : [
-                h("path", { key: "chev-top", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
-                h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
+                h("line", { key: "axis", className: `symmetry-draw__mirror-line${isRepeat ? " symmetry-draw__mirror-line--repeat" : ""}`, x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
+                isRepeat
+                  ? h("path", { key: "repeat-arrow", className: "symmetry-draw__repeat-arrow", d: `M ${axisCol - 0.28} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.6} L ${axisCol + 0.62} ${rows / 2} L ${axisCol + 0.22} ${rows / 2 + 0.6} L ${axisCol + 0.22} ${rows / 2 + 0.32} L ${axisCol - 0.28} ${rows / 2 + 0.32} Z` })
+                  : [
+                      h("path", { key: "chev-top", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
+                      h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
+                    ],
               ],
           sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),

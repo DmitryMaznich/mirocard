@@ -57,6 +57,30 @@ describe("getConceptCards", () => {
   it("returns all cards when mode is missing (e.g. still loading)", () => {
     expect(getConceptCards(wordAgreementRecord, undefined)).toBe(wordAgreementRecord.cards);
   });
+
+  const symmetryDrawRecord = {
+    meta: { renderer: "flashcards", customModesOnly: true },
+    cards: [
+      { id: "m1", conceptId: "m1", taskKind: "mirror" },
+      { id: "r1", conceptId: "r1", taskKind: "repeat" },
+      { id: "d1", conceptId: "d1", taskKind: "dictation" },
+    ],
+  };
+
+  it("scopes mirror_draw to taskKind:mirror cards only", () => {
+    const cards = getConceptCards(symmetryDrawRecord, { type: "mirror_draw" });
+    expect(cards.map((c) => c.id)).toEqual(["m1"]);
+  });
+
+  it("scopes repeat_draw to taskKind:repeat cards only", () => {
+    const cards = getConceptCards(symmetryDrawRecord, { type: "repeat_draw" });
+    expect(cards.map((c) => c.id)).toEqual(["r1"]);
+  });
+
+  it("scopes graphic_dictation to taskKind:dictation cards only", () => {
+    const cards = getConceptCards(symmetryDrawRecord, { type: "graphic_dictation" });
+    expect(cards.map((c) => c.id)).toEqual(["d1"]);
+  });
 });
 
 describe("getPrimaryCard", () => {
