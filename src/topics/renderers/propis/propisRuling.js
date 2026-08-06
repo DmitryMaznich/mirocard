@@ -45,8 +45,12 @@ export function buildDiagonalLines(heightMm, widthMm, spacingMm = DIAGONAL_MM) {
   const angleRad = ((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180;
   const dx = heightMm * Math.tan(angleRad);
   const lines = [];
+  // Callers draw these as (x1,y=0 top) -> (x2,y=heightMm bottom). Cyrillic cursive leans
+  // right — a "/" shape, top further right than bottom — so x1 (top) must be the larger
+  // value. The reference PDF script computed this in bottom-up PDF coordinates; naively
+  // reusing its (x, x+dx) pair for SVG's top-down y axis mirrors the slant, hence the swap.
   for (let x = -dx; x < widthMm + dx; x += spacingMm) {
-    lines.push({ x1: x, x2: x + dx });
+    lines.push({ x1: x + dx, x2: x });
   }
   return lines;
 }
