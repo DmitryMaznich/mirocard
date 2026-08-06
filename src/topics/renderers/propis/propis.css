@@ -100,11 +100,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* card sits near the top; the paper-colored space below it before the keyboard
-     reads as open writing room on the page, not dead space */
-  justify-content: flex-start;
+  justify-content: center;
   gap: 16px;
-  padding: calc(28px + var(--app-safe-top, 0px)) calc(20px + var(--app-safe-right, 0px)) 8px calc(20px + var(--app-safe-left, 0px));
+  padding: calc(16px + var(--app-safe-top, 0px)) calc(20px + var(--app-safe-right, 0px)) 16px calc(20px + var(--app-safe-left, 0px));
 }
 
 .propis-practice-card-svg {
