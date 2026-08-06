@@ -16,6 +16,7 @@ import PrintMaterialsRenderer       from "./renderers/print_materials/index.jsx"
 import WordFormationRenderer        from "./renderers/word_formation/index.jsx";
 import PhoneticAnalysisRenderer      from "./renderers/phonetic_analysis/index.jsx";
 import WordAgreementRenderer        from "./renderers/word_agreement/index.jsx";
+import PropisRenderer               from "./renderers/propis/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -36,4 +37,5 @@ export const RENDERER_REGISTRY = {
   word_formation:        WordFormationRenderer,
   phonetic_analysis:     PhoneticAnalysisRenderer,
   word_agreement:        WordAgreementRenderer,
+  propis:                PropisRenderer,
 };

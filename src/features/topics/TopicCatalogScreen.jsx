@@ -15,6 +15,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 const CATALOG_CATEGORIES = {
   letter_writing:           "Чтение",
+  propis:                   "Чтение",
   reading_dad_poems:        "Чтение",
   reading_dad_instructions: "Чтение",
   sentence_puzzle:          "Чтение",

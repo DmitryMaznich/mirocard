@@ -3,7 +3,7 @@ import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards } from "@/shared/utils/topicUtils";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
@@ -42,12 +42,14 @@ function ConceptCard({ concept, topicId, level, selected, onToggle }) {
 export default function ConceptPickerScreen() {
   const setScreen          = useAppStore((s) => s.setScreen);
   const activeTopicId      = useAppStore((s) => s.activeTopicId);
+  const activeModeId       = useAppStore((s) => s.activeModeId);
   const activeStudentId    = useAppStore((s) => s.activeStudentId);
   const topicRecords       = useAppStore((s) => s.topicRecords);
   const sessions           = useAppStore((s) => s.sessions);
   const studentTopicLinks  = useAppStore((s) => s.studentTopicLinks);
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
-  const concepts    = topicRecord ? deriveConcepts(topicRecord.cards) : [];
+  const mode         = topicRecord?.modes?.find((m) => m.id === activeModeId);
+  const concepts    = topicRecord ? deriveConcepts(getConceptCards(topicRecord, mode)) : [];
 
   const groupMeta      = topicRecord?.meta?.groups ?? null;
   const availableGroups = groupMeta ? Object.keys(groupMeta) : [];
