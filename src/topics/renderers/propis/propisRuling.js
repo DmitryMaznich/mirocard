@@ -27,6 +27,13 @@ export const ANGLE_FROM_HORIZONTAL_DEG = 65;
 // using this constant, instead of relying on their baked-in position lining up with it.
 export const LETTER_BASELINE_UNIT = 88;
 
+// The letter's own x-height span in that same native system: L2=62 to L3=88 = 26 units —
+// i.e. the height of the letter's main body, excluding ascenders/descenders. Used to scale
+// letters so this span matches the ruling's узкая строка exactly, instead of naively scaling
+// the whole 150-unit box to the whole row height (which underscales the body since a
+// letter's ascenders/descenders eat into that 150 units too).
+export const LETTER_XHEIGHT_UNIT_SPAN = 88 - 62;
+
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
 // Quartered (not just halved) for the same reason the ruling stroke-widths are:

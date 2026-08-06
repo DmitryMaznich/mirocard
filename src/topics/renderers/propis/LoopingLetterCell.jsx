@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
-import { LINE_MM, UNIT_H, L3, LETTER_BASELINE_UNIT, INK_COLOR, NIB_COLOR, STROKE_W, TIP_R, SPEED, easeInOut } from "./propisRuling.js";
+import { LINE_MM, UNIT_H, L2, L3, LETTER_BASELINE_UNIT, LETTER_XHEIGHT_UNIT_SPAN, INK_COLOR, NIB_COLOR, STROKE_W, TIP_R, SPEED, easeInOut } from "./propisRuling.js";
 
 // One item's animated sample, looping forever until unmounted.
 export default function LoopingLetterCell({ item, delayMs = 0, loopPauseMs = 1400 }) {
@@ -87,12 +87,17 @@ export default function LoopingLetterCell({ item, delayMs = 0, loopPauseMs = 140
     rafRef.current = requestAnimationFrame(frame);
   }
 
-  const [vbMinX, vbMinY, , vbH] = (item.viewBox || "0 0 100 150").split(" ").map(Number);
-  const scale = LINE_MM / vbH; // item height always maps to exactly one propis row
+  const [vbMinX, vbMinY] = (item.viewBox || "0 0 100 150").split(" ").map(Number);
+
+  // Scale so the letter's own x-height body (LETTER_XHEIGHT_UNIT_SPAN, its main body
+  // excluding ascenders/descenders) matches the ruling's узкая строка exactly — not the
+  // letter's whole 150-unit box against the whole row, which underscales the body.
+  const rulingNarrowMm = ((L3 - L2) / UNIT_H) * LINE_MM;
+  const scale = rulingNarrowMm / LETTER_XHEIGHT_UNIT_SPAN;
 
   // Re-anchor onto the ruling's actual baseline guide (L3) instead of relying on the
   // letter's baked-in baseline (LETTER_BASELINE_UNIT, from the original font-formation
-  // system) to already land there — the two diverge under the current 1:1:2:1 row zones.
+  // system) to already land there — the two diverge under the current row zones.
   const targetBaselineMm = (L3 / UNIT_H) * LINE_MM;
   const naiveBaselineMm  = LETTER_BASELINE_UNIT * scale;
   const baselineShiftMm  = targetBaselineMm - naiveBaselineMm;
