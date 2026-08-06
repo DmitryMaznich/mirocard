@@ -1,26 +1,22 @@
 // Real Russian school "пропись" geometry, shared by every propis view.
-// One row, top to bottom: надстрочная зона (N) | узкая строка (N) | широкая строка (2N) |
-// подстрочная зона (N) — N = 5mm, so one full row = 5+5+10+5 = 25mm. Letters are still
-// rendered in their own 150-unit box scaled uniformly to LINE_MM (matching
-// written_letters/letterPaths.js, tools/letter_capture) — their baked-in baseline
-// (unit 88/150) does not land exactly on L3 under these proportions.
+// One row is 4 lines bounding 3 gaps, top to bottom: line, 10mm, line, 5mm ("узкая
+// строка"), line, 10mm, line. The baseline is the line at the BOTTOM of the 5mm узкая
+// строка gap — that's where every letter starts being written. No margin before the
+// first line or after the last — the row is exactly bounded by them.
 export const UNIT_H = 150;
 
-// Zone heights in mm, top to bottom: надстрочная(N) | узкая(N) | широкая(2N) | подстрочная(N).
-const N = 5;
-const NADSTROCHNAYA_MM = N;
-const UZKAYA_MM         = N;
-const SHIROKAYA_MM      = 2 * N;
-const PODSTROCHNAYA_MM  = N;
-export const LINE_MM = NADSTROCHNAYA_MM + UZKAYA_MM + SHIROKAYA_MM + PODSTROCHNAYA_MM; // 25mm
+const ASCENDER_GAP_MM  = 10; // row top -> x-height top
+const NARROW_GAP_MM    = 5;  // узкая строка: x-height top -> baseline
+const DESCENDER_GAP_MM = 10; // baseline -> row bottom
+export const LINE_MM = ASCENDER_GAP_MM + NARROW_GAP_MM + DESCENDER_GAP_MM; // 25mm
 
-// Cumulative zone boundaries, expressed as "units" out of UNIT_H (same convention L1-L4
+// Cumulative line positions, expressed as "units" out of UNIT_H (same convention L1-L4
 // always used) so the rest of the ruling/letter-scaling code doesn't need to change.
 const mmToUnit = (mm) => (mm / LINE_MM) * UNIT_H;
-export const L1 = mmToUnit(NADSTROCHNAYA_MM);                                    // end of надстрочная
-export const L2 = mmToUnit(NADSTROCHNAYA_MM + UZKAYA_MM);                        // end of узкая
-export const L3 = mmToUnit(NADSTROCHNAYA_MM + UZKAYA_MM + SHIROKAYA_MM);         // end of широкая (baseline, bold)
-export const L4 = mmToUnit(NADSTROCHNAYA_MM + UZKAYA_MM + SHIROKAYA_MM + PODSTROCHNAYA_MM); // row bottom
+export const L1 = mmToUnit(0);                                                   // row top
+export const L2 = mmToUnit(ASCENDER_GAP_MM);                                     // x-height top
+export const L3 = mmToUnit(ASCENDER_GAP_MM + NARROW_GAP_MM);                     // baseline (bold)
+export const L4 = mmToUnit(ASCENDER_GAP_MM + NARROW_GAP_MM + DESCENDER_GAP_MM);  // row bottom
 export const DIAGONAL_MM = 20; // "стандарт российских школ"
 export const ANGLE_FROM_HORIZONTAL_DEG = 65;
 
