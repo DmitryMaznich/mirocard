@@ -1,0 +1,46 @@
+// Real Russian school "пропись" geometry, shared by every propis view.
+// The vertical ruling per row is the actual letter-formation "2:1:2" system every
+// captured letter is drawn against (written_letters/letterPaths.js, tools/letter_capture):
+// a 150-unit cell with guides at L1=10, L2=62, L3=88 (baseline, bold), L4=140.
+export const UNIT_H = 150;
+export const L1 = 10, L2 = 62, L3 = 88, L4 = 140; // propis 2:1:2
+export const LINE_MM = 12; // one working row, real-world height (Russian school standard)
+export const DIAGONAL_MM = 20; // "стандарт российских школ"
+export const ANGLE_FROM_HORIZONTAL_DEG = 65;
+
+export const INK_COLOR = "#1d4ed8";
+export const NIB_COLOR = "#fbbf24";
+export const STROKE_W  = 8;
+export const TIP_R     = 4.5;
+export const SPEED     = 48; // font-units/sec — gentle pace for a continuously looping demo
+
+export function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
+
+// One row's L1/L2/L3(bold baseline)/L4 guides, tiled `rowCount` times, in mm.
+export function buildRowGuideLines(rowCount) {
+  const toMm = (u) => (u / UNIT_H) * LINE_MM;
+  const guides = [
+    { u: L1, bold: false },
+    { u: L2, bold: false },
+    { u: L3, bold: true }, // baseline
+    { u: L4, bold: false },
+  ];
+  const lines = [];
+  for (let row = 0; row < rowCount; row++) {
+    for (const g of guides) lines.push({ y: row * LINE_MM + toMm(g.u), bold: g.bold });
+  }
+  return lines;
+}
+
+// 65°-from-horizontal diagonal guides, spaced every 20mm, covering `widthMm` at `heightMm` tall.
+export function buildDiagonalLines(heightMm, widthMm) {
+  const angleRad = ((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180;
+  const dx = heightMm * Math.tan(angleRad);
+  const lines = [];
+  for (let x = -dx; x < widthMm + dx; x += DIAGONAL_MM) {
+    lines.push({ x1: x, x2: x + dx });
+  }
+  return lines;
+}

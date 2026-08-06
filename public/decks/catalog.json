@@ -245,16 +245,16 @@
     },
     {
       "id": "propis",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
       },
       "description": {
-        "ru": "Полноэкранная имитация страницы тетради-прописи с настоящей разлиновкой. В начале каждой строки — зацикленная анимация написания буквы.",
-        "en": "Fullscreen simulation of a real copybook page with authentic ruling. Each line starts with a looping handwriting animation."
+        "ru": "Тренажёр рукописного письма: клавиатура алфавита внизу, крупный зацикленный образец написания выбранной буквы сверху.",
+        "en": "Handwriting practice: an alphabet keyboard at the bottom, a large looping handwriting animation for the selected letter above."
       },
-      "url": "./decks/propis_v1.0.0.zip",
+      "url": "./decks/propis_v1.1.0.zip",
       "status": "beta",
       "access": "free"
     },
