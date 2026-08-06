@@ -10,8 +10,11 @@ export const ANGLE_FROM_HORIZONTAL_DEG = 65;
 
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
-export const STROKE_W  = 8;
-export const TIP_R     = 4.5;
+// Quartered (not just halved) for the same reason the ruling stroke-widths are:
+// PropisPracticeView's 2x crop zoom already doubles on-screen thickness by itself,
+// so this needs to be a quarter of the original to land at half the original on screen.
+export const STROKE_W  = 2;
+export const TIP_R     = 1.125;
 export const SPEED     = 48; // font-units/sec — gentle pace for a continuously looping demo
 
 export function easeInOut(t) {
