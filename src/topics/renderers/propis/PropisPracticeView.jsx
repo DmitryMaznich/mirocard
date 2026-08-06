@@ -11,8 +11,8 @@ const ABV_ROWS = [
 ];
 const ALL_LETTERS = ABV_ROWS.flat();
 
-const CARD_W_MM    = 26;  // stylised zoomed-in strip, not the real page width
-const CARD_MARGIN_MM = 6;
+const CARD_W_MM    = 13;  // stylised zoomed-in strip, not the real page width — 2x zoom
+const CARD_MARGIN_MM = 3;
 
 const CARD_LINES = buildRowGuideLines(1);
 const CARD_DIAG  = buildDiagonalLines(LINE_MM, CARD_W_MM);

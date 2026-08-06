@@ -20,10 +20,10 @@
 }
 
 .propis-paper    { fill: #fffdf8; }
-.propis-line-thin { stroke: #bcd8ec; stroke-width: 0.28; }
-.propis-line-bold { stroke: #6fa3e0; stroke-width: 0.5; }
-.propis-line-diag { stroke: #6fa3e0; stroke-width: 0.16; opacity: 0.55; }
-.propis-line-red  { stroke: #c0392b; stroke-width: 0.35; opacity: 0.65; }
+.propis-line-thin { stroke: #bcd8ec; stroke-width: 0.14; }
+.propis-line-bold { stroke: #6fa3e0; stroke-width: 0.25; }
+.propis-line-diag { stroke: #6fa3e0; stroke-width: 0.08; opacity: 0.55; }
+.propis-line-red  { stroke: #c0392b; stroke-width: 0.175; opacity: 0.65; }
 
 .propis-empty-hint {
   position: absolute;
