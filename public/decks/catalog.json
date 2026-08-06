@@ -244,6 +244,21 @@
       "access": "free"
     },
     {
+      "id": "propis",
+      "version": "1.0.0",
+      "title": {
+        "ru": "Прописи",
+        "en": "Copybook"
+      },
+      "description": {
+        "ru": "Полноэкранная имитация страницы тетради-прописи с настоящей разлиновкой. В начале каждой строки — зацикленная анимация написания буквы.",
+        "en": "Fullscreen simulation of a real copybook page with authentic ruling. Each line starts with a looping handwriting animation."
+      },
+      "url": "./decks/propis_v1.0.0.zip",
+      "status": "beta",
+      "access": "free"
+    },
+    {
       "id": "vowel_consonant_ru",
       "version": "1.0.0",
       "title": {
