@@ -15,7 +15,9 @@ const CARD_W_MM    = 13;  // stylised zoomed-in strip, not the real page width â
 const CARD_MARGIN_MM = 3;
 
 const CARD_LINES = buildRowGuideLines(1);
-const CARD_DIAG  = buildDiagonalLines(LINE_MM, CARD_W_MM);
+// The real 20mm diagonal spacing rarely lands inside a crop this narrow â€” space them
+// relative to the crop width instead, purely for this zoomed-in card.
+const CARD_DIAG  = buildDiagonalLines(LINE_MM, CARD_W_MM, CARD_W_MM / 2);
 
 function keyFor(letterUpper, caseMode) {
   return caseMode === "upper" ? letterUpper : letterUpper.toLowerCase();

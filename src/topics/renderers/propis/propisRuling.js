@@ -37,12 +37,15 @@ export function buildRowGuideLines(rowCount) {
   return lines;
 }
 
-// 65°-from-horizontal diagonal guides, spaced every 20mm, covering `widthMm` at `heightMm` tall.
-export function buildDiagonalLines(heightMm, widthMm) {
+// 65°-from-horizontal diagonal guides, covering `widthMm` at `heightMm` tall. Spaced every
+// real 20mm by default; callers cropped much narrower than that (e.g. a zoomed single-letter
+// card) should pass a smaller `spacingMm`, or the real spacing can fall entirely between two
+// lines and never land inside such a narrow strip at all.
+export function buildDiagonalLines(heightMm, widthMm, spacingMm = DIAGONAL_MM) {
   const angleRad = ((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180;
   const dx = heightMm * Math.tan(angleRad);
   const lines = [];
-  for (let x = -dx; x < widthMm + dx; x += DIAGONAL_MM) {
+  for (let x = -dx; x < widthMm + dx; x += spacingMm) {
     lines.push({ x1: x, x2: x + dx });
   }
   return lines;
