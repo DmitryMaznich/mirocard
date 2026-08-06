@@ -20,6 +20,11 @@
 }
 
 .propis-paper    { fill: #fffdf8; }
+/* Default weights are tuned for the real full-page scale (PropisShowView, PAGE_W_MM=148.5).
+   PropisPracticeView's much-more-zoomed card overrides these via inline stroke-width, scaled
+   to its own crop width — see STROKE_SCALE there. Do not "thin these out" directly here,
+   that was the bug: an absolute value tuned for one crop went stale when the other crop's
+   real-world width changed and its zoom level moved (2026-08-06). */
 .propis-line-thin { stroke: #bcd8ec; stroke-width: 0.28; }
 .propis-line-bold { stroke: #6fa3e0; stroke-width: 0.5; }
 .propis-line-diag { stroke: #6fa3e0; stroke-width: 0.16; opacity: 0.55; }

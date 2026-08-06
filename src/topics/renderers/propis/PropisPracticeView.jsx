@@ -11,11 +11,24 @@ const ABV_ROWS = [
 ];
 const ALL_LETTERS = ABV_ROWS.flat();
 
-const CARD_W_MM    = 26;  // stylised zoomed-in strip, not the real page width
-const CARD_MARGIN_MM = 6;
+// Stylised zoomed-in strip, not the real page width — ~2x zoom on the row, kept
+// proportional to LINE_MM so this stays consistent if the row height ever changes again.
+const CARD_W_MM      = LINE_MM * 1.0833;
+const CARD_MARGIN_MM = LINE_MM * 0.25;
 
 const CARD_LINES = buildRowGuideLines(1);
-const CARD_DIAG  = buildDiagonalLines(LINE_MM, CARD_W_MM);
+// The real 20mm diagonal spacing rarely lands inside a crop this narrow — space them
+// relative to the crop width instead, purely for this zoomed-in card.
+const CARD_DIAG  = buildDiagonalLines(LINE_MM, CARD_W_MM, CARD_W_MM / 2);
+
+// The shared .propis-line-* stroke-widths in propis.css are tuned for the real full-page
+// scale, not this much-more-zoomed card. Scale them here so they stay visually correct
+// no matter how CARD_W_MM changes (validated good at CARD_W_MM=13mm — see propis.css).
+const STROKE_SCALE  = CARD_W_MM / 13;
+const LINE_THIN_W = 0.035 * STROKE_SCALE;
+const LINE_BOLD_W = 0.06  * STROKE_SCALE;
+const LINE_DIAG_W = 0.02  * STROKE_SCALE;
+const LINE_RED_W  = 0.045 * STROKE_SCALE;
 
 function keyFor(letterUpper, caseMode) {
   return caseMode === "upper" ? letterUpper : letterUpper.toLowerCase();
@@ -58,13 +71,16 @@ export default function PropisPracticeView({ task, onClose }) {
           >
             <rect x="0" y="0" width={CARD_W_MM} height={LINE_MM} className="propis-paper" />
             {CARD_DIAG.map((l, i) => (
-              <line key={`d${i}`} x1={l.x1} y1={0} x2={l.x2} y2={LINE_MM} className="propis-line-diag" />
+              <line key={`d${i}`} x1={l.x1} y1={0} x2={l.x2} y2={LINE_MM} className="propis-line-diag"
+                style={{ strokeWidth: LINE_DIAG_W }} />
             ))}
             {CARD_LINES.map((l, i) => (
               <line key={`h${i}`} x1={0} y1={l.y} x2={CARD_W_MM} y2={l.y}
-                className={l.bold ? "propis-line-bold" : "propis-line-thin"} />
+                className={l.bold ? "propis-line-bold" : "propis-line-thin"}
+                style={{ strokeWidth: l.bold ? LINE_BOLD_W : LINE_THIN_W }} />
             ))}
-            <line x1={CARD_MARGIN_MM} y1={0} x2={CARD_MARGIN_MM} y2={LINE_MM} className="propis-line-red" />
+            <line x1={CARD_MARGIN_MM} y1={0} x2={CARD_MARGIN_MM} y2={LINE_MM} className="propis-line-red"
+              style={{ strokeWidth: LINE_RED_W }} />
 
             {activeItem && (
               <g transform={`translate(${CARD_MARGIN_MM} 0)`}>
