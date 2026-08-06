@@ -24,6 +24,13 @@ export const L4 = mmToUnit(NADSTROCHNAYA_MM + UZKAYA_MM + SHIROKAYA_MM + PODSTRO
 export const DIAGONAL_MM = 20; // "стандарт российских школ"
 export const ANGLE_FROM_HORIZONTAL_DEG = 65;
 
+// The baseline every captured letter's own path data was extracted/drawn against (the
+// original "2:1:2" font-formation system, written_letters/letterPaths.js, tools/letter_capture).
+// This is a property of the LETTER data, not the ruling — L3 above is the ruling's own
+// (now different) baseline guide position. LoopingLetterCell re-anchors letters onto L3
+// using this constant, instead of relying on their baked-in position lining up with it.
+export const LETTER_BASELINE_UNIT = 88;
+
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
 // Quartered (not just halved) for the same reason the ruling stroke-widths are:

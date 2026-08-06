@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
-import { LINE_MM, INK_COLOR, NIB_COLOR, STROKE_W, TIP_R, SPEED, easeInOut } from "./propisRuling.js";
+import { LINE_MM, UNIT_H, L3, LETTER_BASELINE_UNIT, INK_COLOR, NIB_COLOR, STROKE_W, TIP_R, SPEED, easeInOut } from "./propisRuling.js";
 
 // One item's animated sample, looping forever until unmounted.
 export default function LoopingLetterCell({ item, delayMs = 0, loopPauseMs = 1400 }) {
@@ -90,8 +90,15 @@ export default function LoopingLetterCell({ item, delayMs = 0, loopPauseMs = 140
   const [vbMinX, vbMinY, , vbH] = (item.viewBox || "0 0 100 150").split(" ").map(Number);
   const scale = LINE_MM / vbH; // item height always maps to exactly one propis row
 
+  // Re-anchor onto the ruling's actual baseline guide (L3) instead of relying on the
+  // letter's baked-in baseline (LETTER_BASELINE_UNIT, from the original font-formation
+  // system) to already land there — the two diverge under the current 1:1:2:1 row zones.
+  const targetBaselineMm = (L3 / UNIT_H) * LINE_MM;
+  const naiveBaselineMm  = LETTER_BASELINE_UNIT * scale;
+  const baselineShiftMm  = targetBaselineMm - naiveBaselineMm;
+
   return (
-    <g ref={gRef} transform={`scale(${scale}) translate(${-vbMinX} ${-vbMinY})`}>
+    <g ref={gRef} transform={`translate(0 ${baselineShiftMm}) scale(${scale}) translate(${-vbMinX} ${-vbMinY})`}>
       {item.strokes.map((s, i) => (
         <path key={`g${i}`} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={STROKE_W}
           strokeLinecap="round" strokeLinejoin="round" opacity={0.15} />
