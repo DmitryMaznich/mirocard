@@ -1,0 +1,67 @@
+/* ─── Прописи · «Показ» ──────────────────────────────────────────────────
+   Paper/ink colors are intentionally NOT tied to any theme toggle — this is a
+   physical white sheet of paper, it does not go dark. */
+
+.propis-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #cabfa9;
+  touch-action: none;
+}
+
+.propis-page-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.propis-paper    { fill: #fffdf8; }
+.propis-line-thin { stroke: #bcd8ec; stroke-width: 0.28; }
+.propis-line-bold { stroke: #6fa3e0; stroke-width: 0.5; }
+.propis-line-diag { stroke: #6fa3e0; stroke-width: 0.16; opacity: 0.55; }
+.propis-line-red  { stroke: #c0392b; stroke-width: 0.35; opacity: 0.65; }
+
+.propis-empty-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 32px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.propis-controls {
+  position: absolute;
+  top: calc(12px + var(--app-safe-top, 0px));
+  right: calc(12px + var(--app-safe-right, 0px));
+  display: flex;
+  gap: 8px;
+  z-index: 1;
+}
+
+.propis-ctrl-btn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 8px 16px;
+  background: rgba(20, 20, 20, 0.55);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+}
+
+.propis-ctrl-btn--done { background: #1d4ed8; }
