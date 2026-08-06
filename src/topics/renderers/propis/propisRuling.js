@@ -1,10 +1,26 @@
 // Real Russian school "пропись" geometry, shared by every propis view.
-// The vertical ruling per row is the actual letter-formation "2:1:2" system every
-// captured letter is drawn against (written_letters/letterPaths.js, tools/letter_capture):
-// a 150-unit cell with guides at L1=10, L2=62, L3=88 (baseline, bold), L4=140.
+// One row, top to bottom: надстрочная зона (N) | узкая строка (N) | широкая строка (2N) |
+// подстрочная зона (N) — N = 5mm, so one full row = 5+5+10+5 = 25mm. Letters are still
+// rendered in their own 150-unit box scaled uniformly to LINE_MM (matching
+// written_letters/letterPaths.js, tools/letter_capture) — their baked-in baseline
+// (unit 88/150) does not land exactly on L3 under these proportions.
 export const UNIT_H = 150;
-export const L1 = 10, L2 = 62, L3 = 88, L4 = 140; // propis 2:1:2
-export const LINE_MM = 12; // one working row, real-world height (Russian school standard)
+
+// Zone heights in mm, top to bottom: надстрочная(N) | узкая(N) | широкая(2N) | подстрочная(N).
+const N = 5;
+const NADSTROCHNAYA_MM = N;
+const UZKAYA_MM         = N;
+const SHIROKAYA_MM      = 2 * N;
+const PODSTROCHNAYA_MM  = N;
+export const LINE_MM = NADSTROCHNAYA_MM + UZKAYA_MM + SHIROKAYA_MM + PODSTROCHNAYA_MM; // 25mm
+
+// Cumulative zone boundaries, expressed as "units" out of UNIT_H (same convention L1-L4
+// always used) so the rest of the ruling/letter-scaling code doesn't need to change.
+const mmToUnit = (mm) => (mm / LINE_MM) * UNIT_H;
+export const L1 = mmToUnit(NADSTROCHNAYA_MM);                                    // end of надстрочная
+export const L2 = mmToUnit(NADSTROCHNAYA_MM + UZKAYA_MM);                        // end of узкая
+export const L3 = mmToUnit(NADSTROCHNAYA_MM + UZKAYA_MM + SHIROKAYA_MM);         // end of широкая (baseline, bold)
+export const L4 = mmToUnit(NADSTROCHNAYA_MM + UZKAYA_MM + SHIROKAYA_MM + PODSTROCHNAYA_MM); // row bottom
 export const DIAGONAL_MM = 20; // "стандарт российских школ"
 export const ANGLE_FROM_HORIZONTAL_DEG = 65;
 

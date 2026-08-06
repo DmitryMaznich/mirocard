@@ -11,8 +11,10 @@ const ABV_ROWS = [
 ];
 const ALL_LETTERS = ABV_ROWS.flat();
 
-const CARD_W_MM    = 13;  // stylised zoomed-in strip, not the real page width — 2x zoom
-const CARD_MARGIN_MM = 3;
+// Stylised zoomed-in strip, not the real page width — ~2x zoom on the row, kept
+// proportional to LINE_MM so this stays consistent if the row height ever changes again.
+const CARD_W_MM      = LINE_MM * 1.0833;
+const CARD_MARGIN_MM = LINE_MM * 0.25;
 
 const CARD_LINES = buildRowGuideLines(1);
 // The real 20mm diagonal spacing rarely lands inside a crop this narrow — space them
