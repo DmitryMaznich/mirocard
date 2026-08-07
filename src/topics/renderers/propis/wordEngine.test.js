@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { classifyLine, getConnectionInfo, buildWordTrajectory } from "./wordEngine.js";
+import { classifyLine, getConnectionInfo, buildWordTrajectory, LETTER_GAP } from "./wordEngine.js";
 
 const LETTER_A = {
   id: "а",
   type: "letter",
+  viewBox: "0 0 100 150",
   strokes: [{ d: "M 10 75 C 12 74 14 74 16 75 C 18 76 20 76 22 75" }],
 };
 
@@ -11,6 +12,7 @@ const LETTER_A = {
 const LETTER_B_HIGH_ENTRY = {
   id: "б",
   type: "letter",
+  viewBox: "0 0 100 150",
   strokes: [{ d: "M 10 37 C 12 50 14 60 16 75 C 18 78 20 78 22 75" }],
 };
 
@@ -82,9 +84,16 @@ describe("buildWordTrajectory", () => {
     expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
   });
 
-  it("offsets the second letter's strokes by one slot width (100 units)", () => {
+  it("spaces a same-line bridge exactly LETTER_GAP units — the propis norm (gap = width of «и»)", () => {
     const result = buildWordTrajectory("аа", letters, new Map());
-    expect(result.strokes[2].d).toContain("110.000"); // second а's M x=10 + 100
+    const [, x1, x2] = result.strokes[1].d.match(/^M ([\d.]+) [\d.]+ L ([\d.]+) [\d.]+$/).map(Number);
+    expect(x2 - x1).toBeCloseTo(LETTER_GAP, 3);
+  });
+
+  it("places the second letter's entry point exactly LETTER_GAP after the first letter's exit point", () => {
+    const result = buildWordTrajectory("аа", letters, new Map());
+    // а exits at world x=22 (offset 0); second а's own entry x=10 lands at 22 + LETTER_GAP = 56
+    expect(result.strokes[2].d).toContain(`${(22 + LETTER_GAP).toFixed(3)}`);
   });
 
   it("uses a matching connector's (translated + x-scaled) strokes when lines differ", () => {
@@ -108,10 +117,13 @@ describe("buildWordTrajectory", () => {
     expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
   });
 
-  it("reports total width as letterCount * 100 and a matching viewBox", () => {
+  it("reports total width as the last letter's own box reaching past its (now dynamic) offset", () => {
+    // б(offset 0) -> а(offset 46) -> б(offset 92) -> а(offset 138), each own box 100 wide:
+    // offsets follow from LETTER_GAP=34 between each letter's real exit/entry points, not a
+    // fixed per-letter slot — see the two tests above for the single-gap arithmetic this chains.
     const result = buildWordTrajectory("баба", new Map([["б", LETTER_B_HIGH_ENTRY], ["а", LETTER_A]]), new Map());
-    expect(result.totalWidthUnits).toBe(400);
-    expect(result.viewBox).toBe("0 0 400 150");
+    expect(result.totalWidthUnits).toBe(238);
+    expect(result.viewBox).toBe("0 0 238 150");
   });
 
   it("returns empty output for an empty word", () => {

@@ -1,7 +1,17 @@
 import { getPathEndpoints, transformPathD } from "./pathGeometry.js";
 import { GUIDE_LINES } from "./propisRuling.js";
 
-const SLOT_WIDTH = 100; // matches the fixed per-letter slot already used in the capture tool
+// Russian propis norm: the gap between letters inside a word equals the width of the
+// letter "и" (a standard taught across Илюхина/Горецкий/Нечаева-style copybooks). Measured
+// from the real ClassRoomCursive glyph data (written_letters/letterPaths.js, same 100-unit
+// per-letter coordinate system as everything here): и=33.8, н=32.7, о=28.1, а=35.5,
+// п=34.5 — averages to ~34 units. This is the target distance between one letter's own
+// exit point and the next letter's own entry point, not a fixed per-letter slot pitch.
+export const LETTER_GAP = 34;
+
+// Fallback box width for a letter with no viewBox, and the unit every captured
+// letter/connector's canvas already uses (tools/letter_capture/handwriting_capture.html).
+const DEFAULT_LETTER_BOX_WIDTH = 100;
 
 export function classifyLine(y) {
   let bestLine = GUIDE_LINES[0].line;
@@ -59,6 +69,12 @@ function fitConnectorStrokes(connector, fromPoint, toPoint) {
   }));
 }
 
+function letterBoxWidth(letter) {
+  const parts = (letter.viewBox || "").split(" ");
+  const w = Number(parts[2]);
+  return Number.isFinite(w) && w > 0 ? w : DEFAULT_LETTER_BOX_WIDTH;
+}
+
 export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
   const chars = Array.from(word);
   if (chars.length === 0) {
@@ -68,14 +84,18 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
   const strokes = [];
   let prevExitLine = null;
   let prevExitPointWorld = null;
+  let rightEdge = 0;
 
-  chars.forEach((ch, index) => {
+  chars.forEach((ch) => {
     const letter = lettersByLabel.get(ch);
     if (!letter) {
       throw new Error(`buildWordTrajectory: letter "${ch}" is not in the letter library`);
     }
-    const offset = index * SLOT_WIDTH;
     const info = getConnectionInfo(letter);
+    // First letter starts at 0; every next letter is placed so its own entry point lands
+    // exactly LETTER_GAP after the previous letter's own exit point — the propis norm,
+    // not a fixed slot pitch (letters vary in how far into their own box they draw).
+    const offset = prevExitPointWorld ? prevExitPointWorld[0] + LETTER_GAP - info.entryPoint[0] : 0;
     const entryPointWorld = [info.entryPoint[0] + offset, info.entryPoint[1]];
     const exitPointWorld = [info.exitPoint[0] + offset, info.exitPoint[1]];
 
@@ -95,8 +115,8 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     strokes.push(...translateStrokes(letter.strokes, offset));
     prevExitLine = info.exitLine;
     prevExitPointWorld = exitPointWorld;
+    rightEdge = Math.max(rightEdge, offset + letterBoxWidth(letter));
   });
 
-  const totalWidthUnits = chars.length * SLOT_WIDTH;
-  return { strokes, totalWidthUnits, viewBox: `0 0 ${totalWidthUnits} 150` };
+  return { strokes, totalWidthUnits: rightEdge, viewBox: `0 0 ${rightEdge} 150` };
 }
