@@ -238,6 +238,8 @@
 .dictation__coordinate { fill: #5f7896; font: 700 0.22px/1 Nunito, sans-serif; pointer-events: none; }
 .dictation__fixed, .dictation__preview, .dictation__guide { fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .dictation__fixed { stroke: #294e9a; stroke-width: .1; }
+.dictation__decoration-dot { fill: #294e9a; pointer-events: none; }
+.dictation__decoration-rect { fill: none; stroke: #294e9a; stroke-width: .07; pointer-events: none; }
 .dictation__preview { stroke: #8c77d8; stroke-width: .09; opacity: .78; }
 .dictation__active { fill: #2563eb; stroke: #fff; stroke-width: .07; pointer-events: none; }
 .dictation__target { fill: #f4c95d; stroke: #9a6b11; stroke-width: .05; pointer-events: none; }

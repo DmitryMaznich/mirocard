@@ -241,6 +241,17 @@
       coordinates.push(h("text", { key: `row-${row}`, className: "dictation__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1));
     }
 
+    const decorations = (shape.decorations ?? []).map((decoration, index) => {
+      if (decoration.type === "rect") {
+        return h("rect", { key: `deco-${index}`, className: "dictation__decoration-rect", x: decoration.col, y: decoration.row, width: decoration.width ?? 1, height: decoration.height ?? 1 });
+      }
+      if (decoration.type === "polygon") {
+        return h("path", { key: `deco-${index}`, className: "dictation__decoration-rect", d: `${pathToD(decoration.points)} Z` });
+      }
+      return h("circle", { key: `deco-${index}`, className: "dictation__decoration-dot", cx: decoration.col, cy: decoration.row, r: "0.12" });
+    }
+    );
+
     const previewEnd = preview?.at(-1)
       ? { col: Math.max(0, Math.min(columns, Math.round(preview.at(-1).col))), row: Math.max(0, Math.min(rows, Math.round(preview.at(-1).row))) }
       : null;
@@ -260,6 +271,7 @@
           grid,
           coordinates,
           dots,
+          decorations,
           completed.map((line, index) => h("line", { key: `fixed-${index}`, className: "dictation__fixed", x1: line.start.col, y1: line.start.row, x2: commandEnd(line.start, line.command).col, y2: commandEnd(line.start, line.command).row })),
           previewPath ? h("path", { className: "dictation__preview", d: previewPath }) : null,
           showTargetHint && target ? h("circle", { className: "dictation__target", cx: target.col, cy: target.row, r: "0.18" },
