@@ -115,6 +115,17 @@ Production DB protection:
 
 Restore and scheduling details: `docs/backup-restore.md`.
 
+## Прописи (propis) topic
+
+Handwriting-practice topic under active development (`src/topics/renderers/propis/`,
+`tools/propis/`). Independent from `letter_writing` ("Написание букв") — don't touch
+that topic while working on this one. Mode 1 ("Учим буквы") is shipped; mode 2 (PDF
+export for print) is not started.
+
+Before touching anything in this topic, read `docs/propis.md` first — it has the file
+map, the ruling geometry's design decisions (and why), and pitfalls already hit once
+(don't repeat them).
+
 ## Important
 
 - Synology/SmartNAS is allowed only as backup storage, not as a backend/runtime target.
