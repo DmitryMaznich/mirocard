@@ -3,7 +3,7 @@ import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import Button from "@/shared/components/Button";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, readModeSelectedConceptIds, writeModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
@@ -56,7 +56,8 @@ export default function ConceptPickerScreen() {
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
   const allIds  = concepts.map((c) => c.conceptId);
-  const savedIds = studentTopicLinks[linkKey]?.selectedConceptIds;
+  const rawSavedIds = studentTopicLinks[linkKey]?.selectedConceptIds;
+  const savedIds = readModeSelectedConceptIds(topicRecord, mode, rawSavedIds);
   // merge saved with any new concepts not yet in selection (new groups added after last save)
   const saved = savedIds
     ? [...new Set([...savedIds.filter((id) => allIds.includes(id)), ...allIds.filter((id) => !savedIds.includes(id))])]
@@ -91,7 +92,7 @@ export default function ConceptPickerScreen() {
 
   function confirm() {
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      selectedConceptIds: [...selected],
+      selectedConceptIds: writeModeSelectedConceptIds(topicRecord, mode, rawSavedIds, [...selected]),
       selectionMode: "manual",
     });
     setScreen("params");
