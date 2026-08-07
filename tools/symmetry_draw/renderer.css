@@ -6,7 +6,6 @@
   --sd-ink-soft: #7c8a85;
   --sd-mirror: #e8664f;
   --sd-repeat: #0d9488;
-  --sd-dictation: #d97706;
   --sd-given: #1e3faa;
   --sd-drawn: #6c4fd6;
   --sd-hint: #9c86e8;
@@ -19,7 +18,9 @@
   --sd-info-tint: #eef4ff;
   --sd-info-ink: #2c4b8a;
   position: relative;
-  width: min(100%, 1020px);
+  width: 100%;
+  max-width: 1020px;
+  min-width: 0;
   margin: 0 auto;
   padding: clamp(4px, 1.2vw, 12px) clamp(8px, 2vw, 20px) 0;
 }
@@ -44,9 +45,12 @@
   justify-content: space-between;
   gap: 10px;
   padding: 10px clamp(10px, 2.4vw, 18px) 2px;
+  width: 100%;
+  min-width: 0;
 }
+.symmetry-draw__head-text { flex: 1 1 auto; min-width: 0; }
 .symmetry-draw__title { font: 800 clamp(14px, 2.4vw, 17px)/1.15 Nunito, sans-serif; color: var(--sd-ink); }
-.symmetry-draw__instruction { margin-top: 1px; font: 700 clamp(10.5px, 1.8vw, 12px)/1.2 Nunito, sans-serif; color: var(--sd-accent); text-transform: uppercase; letter-spacing: 0.04em; }
+.symmetry-draw__instruction { margin-top: 1px; font: 700 clamp(10.5px, 1.8vw, 12px)/1.2 Nunito, sans-serif; color: var(--sd-accent); text-transform: uppercase; letter-spacing: 0.04em; overflow-wrap: anywhere; }
 .symmetry-draw__mirror-chip {
   flex-shrink: 0;
   display: inline-flex;
@@ -60,27 +64,11 @@
   border-radius: 999px;
 }
 .symmetry-draw__mirror-chip--repeat { color: var(--sd-repeat); background: rgba(13, 148, 136, 0.1); border-color: rgba(13, 148, 136, 0.22); }
-.symmetry-draw__mirror-chip--dictation { color: var(--sd-dictation); background: rgba(217, 119, 6, 0.1); border-color: rgba(217, 119, 6, 0.22); }
-
-/* The one command currently being dictated - arrow on the left showing the
-   direction, text on the right spelling it out ("2 клетки вправо-вверх"),
-   so the child can follow along with either cue. */
-.symmetry-draw__dictation-command {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 6px clamp(10px, 2.4vw, 18px) 0;
-  padding: 8px 14px;
-  background: rgba(217, 119, 6, 0.08);
-  border: 1px solid rgba(217, 119, 6, 0.22);
-  border-radius: 12px;
-}
-.symmetry-draw__dictation-arrow { width: 26px; height: 26px; flex-shrink: 0; stroke: var(--sd-dictation); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.symmetry-draw__dictation-text { display: flex; flex-direction: column; gap: 1px; }
-.symmetry-draw__dictation-step { font: 700 clamp(9.5px, 1.6vw, 11px)/1.2 Nunito, sans-serif; color: var(--sd-ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
-.symmetry-draw__dictation-command-text { font: 800 clamp(14px, 2.6vw, 18px)/1.2 Nunito, sans-serif; color: var(--sd-dictation); }
 
 .symmetry-draw__canvas {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 4px clamp(4px, 1.2vw, 10px) 0;
   background:
     radial-gradient(circle at 92% 4%, rgba(37, 99, 235, 0.05), transparent 45%),
@@ -88,14 +76,14 @@
   border-radius: 18px;
   box-shadow: inset 0 0 0 1px rgba(30, 50, 90, 0.06);
 }
-.symmetry-draw__grid { display: block; width: 100%; max-height: min(64vh, 660px); touch-action: none; user-select: none; cursor: crosshair; }
+.symmetry-draw__grid { display: block; width: 100%; max-width: 100%; height: auto; max-height: min(64vh, 660px); touch-action: none; user-select: none; cursor: crosshair; }
 .symmetry-draw__paper { fill: transparent; }
 
 /* Grid: hairline lines regardless of viewBox scale (non-scaling-stroke), soft
    powder-blue dots at every intersection. */
-.symmetry-draw__line { stroke: var(--sd-grid); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.symmetry-draw__line { stroke: #bdd7f0; stroke-width: 1; vector-effect: non-scaling-stroke; }
 .symmetry-draw__point { fill: var(--sd-point); pointer-events: none; }
-.symmetry-draw__coordinate { fill: #93a9c4; font: 700 0.2px/1 Nunito, sans-serif; pointer-events: none; }
+.symmetry-draw__coordinate { fill: #5f7896; font: 700 0.22px/1 Nunito, sans-serif; pointer-events: none; }
 
 /* The axis of symmetry reads as an explicit "mirror" - dashed, with a chevron
    marker facing inward at each end - instead of an unexplained solid line. */
@@ -104,22 +92,13 @@
 .symmetry-draw__mirror-chevron { fill: var(--sd-mirror); pointer-events: none; }
 .symmetry-draw__repeat-arrow { fill: var(--sd-repeat); pointer-events: none; }
 
-/* Marks the cell a graphic-dictation figure starts from - a filled dot with a
-   soft outer ring, since there's no half-drawn shape to anchor against. */
-.symmetry-draw__start-point { pointer-events: none; }
-.symmetry-draw__start-point circle:first-child { fill: var(--sd-dictation); }
-.symmetry-draw__start-point-ring { fill: none; stroke: var(--sd-dictation); stroke-width: 0.04; opacity: 0.45; }
-
-.symmetry-draw__source, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line, .symmetry-draw__dictation-confirmed {
+.symmetry-draw__source, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
 }
 .symmetry-draw__source { stroke: var(--sd-given); stroke-width: 0.09; }
-/* A command already dictated and drawn correctly - locked in as solid ink so
-   progress accumulates on screen instead of vanishing between commands. */
-.symmetry-draw__dictation-confirmed { stroke: var(--sd-dictation); stroke-width: 0.1; }
 /* The child's own stroke gets a soft low-opacity halo underneath a bold core -
    reads like felt-tip marker ink instead of a thin debug vector. */
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }
@@ -128,7 +107,7 @@
 .symmetry-draw__hint-point { fill: var(--sd-hint); pointer-events: none; }
 .symmetry-draw__hint-point text { fill: white; font: 800 0.17px/1 Nunito, sans-serif; pointer-events: none; }
 
-.symmetry-draw__controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
+.symmetry-draw__controls { display: flex; width: 100%; min-width: 0; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
 
 /* Same tactile formula as the rest of the app's buttons: flat fill + a bottom
    "lip" that collapses on press, instead of a flat bordered rectangle. */
@@ -173,9 +152,120 @@
 }
 
 @media (max-width: 560px) {
-  .symmetry-draw { padding-inline: 2px; }
+  .symmetry-draw { width: 100%; padding: 4px 4px 0; }
+  .symmetry-draw__head { gap: 6px; padding: 8px 6px 2px; }
+  .symmetry-draw__mirror-chip { padding: 4px 6px; font-size: 10px; }
   .symmetry-draw__grid { max-height: 56vh; }
-  .symmetry-draw__controls { gap: 6px; }
-  .symmetry-draw__button { min-height: 38px; padding: 7px 10px; }
+  .symmetry-draw__controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 6px; }
+  .symmetry-draw__button { width: 100%; min-width: 0; min-height: 36px; padding: 6px 3px; font-size: clamp(11px, 3.2vw, 13px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .symmetry-draw__result { flex-direction: column; align-items: center; gap: 2px; text-align: center; padding: 8px 14px; }
+}
+/* ── Graphic dictation ───────────────────────────────────────────── */
+.dictation {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: clamp(8px, 1.8vw, 18px);
+  color: #1e3a6e;
+}
+.dictation__command {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2.8vw, 28px);
+  min-height: 104px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border: 1px solid #d9e5f3;
+  border-radius: 14px;
+  background: #fffef8;
+}
+.dictation__arrow-wrap {
+  width: 76px;
+  height: 76px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 2px solid #cbd9ea;
+  border-radius: 14px;
+  background: #eef4ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+.dictation__arrow {
+  width: 60px;
+  height: 60px;
+  color: #285da8;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  font: 900 54px/1 Nunito, sans-serif;
+  text-align: center;
+  display: grid;
+  place-items: center;
+}
+.dictation__arrow marker path { fill: currentColor; stroke: none; }
+.dictation__command-copy { min-width: 0; flex: 1 1 auto; }
+.dictation__text { font: 900 clamp(23px, 4vw, 34px)/1.1 Nunito, sans-serif; transition: color .2s, transform .2s; }
+.dictation__text--lit { color: #285da8; transform: scale(1.02); }
+.dictation__repeat, .dictation__hint {
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px solid #cbd9ea;
+  border-radius: 9px;
+  color: #285da8;
+  background: #fff;
+  font: 800 14px/1 Nunito, sans-serif;
+  cursor: pointer;
+}
+.dictation__repeat {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 27px;
+}
+.dictation__repeat:hover, .dictation__hint:hover { background: #f3f7fd; }
+.dictation__canvas { padding: 6px; border-radius: 16px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30, 58, 110, .08); }
+.dictation__grid { display: block; width: 100%; max-height: min(60vh, 620px); touch-action: none; user-select: none; cursor: crosshair; }
+.dictation__paper { fill: #fffef8; }
+.dictation__grid-line { stroke: #9fc4e8; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.dictation__grid-dot { fill: #9fc3e8; pointer-events: none; }
+.dictation__coordinate { fill: #5f7896; font: 700 0.22px/1 Nunito, sans-serif; pointer-events: none; }
+.dictation__fixed, .dictation__preview, .dictation__guide { fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.dictation__fixed { stroke: #294e9a; stroke-width: .1; }
+.dictation__preview { stroke: #8c77d8; stroke-width: .09; opacity: .78; }
+.dictation__active { fill: #2563eb; stroke: #fff; stroke-width: .07; pointer-events: none; }
+.dictation__target { fill: #f4c95d; stroke: #9a6b11; stroke-width: .05; pointer-events: none; }
+.dictation__guide { stroke: #9c86e8; stroke-width: .045; stroke-dasharray: .1 .12; }
+.dictation__guide--demo { animation: dictationDemo 1.2s linear infinite; }
+.dictation__helpers { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; margin-top: 9px; }
+.dictation__hint { color: #5d4aa5; border-color: #d7cdf3; }
+.dictation__hint[aria-pressed="true"] { color: #7a5b00; border-color: #e7c55e; background: #fff8db; }
+.dictation__hint-text { color: #536b89; font: 700 14px/1.3 Nunito, sans-serif; }
+.dictation__notice, .dictation__done { margin: 9px 0 0; text-align: center; font: 700 16px/1.35 Nunito, sans-serif; }
+.dictation__notice { color: #536b89; }
+.dictation__done { color: #2f7a54; }
+@keyframes dictationDemo { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@media (max-width: 560px) {
+  .dictation { width: 100%; min-width: 0; padding: 4px; }
+  .dictation__command {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 44px;
+    gap: 6px;
+    min-height: 0;
+    margin-bottom: 6px;
+    padding: 8px;
+  }
+  .dictation__command-copy { min-width: 0; }
+  .dictation__arrow-wrap { width: 52px; height: 52px; border-width: 1.5px; }
+  .dictation__arrow { width: 42px; height: 42px; font-size: 36px; }
+  .dictation__text { font-size: clamp(18px, 6vw, 24px); }
+  .dictation__repeat { grid-column: auto; width: 44px; min-width: 44px; height: 44px; min-height: 44px; font-size: 24px; }
+  .dictation__grid { max-height: 54vh; }
+  .dictation__helpers { flex-direction: row; flex-wrap: wrap; gap: 5px 8px; }
 }
