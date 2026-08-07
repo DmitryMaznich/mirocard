@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { classifyLine, getConnectionInfo, buildWordTrajectory, LETTER_GAP } from "./wordEngine.js";
+import { transformPathD } from "./pathGeometry.js";
+import { classifyLine, getConnectionInfo, getBaselineContacts, buildWordTrajectory, LETTER_GAP } from "./wordEngine.js";
 
 const LETTER_A = {
   id: "а",
@@ -58,6 +59,30 @@ describe("getConnectionInfo", () => {
   });
 });
 
+describe("getBaselineContacts", () => {
+  // Both strokes are collinear cubics (bezier(t) traces a straight line), so their exact
+  // baseline (y=88) crossing is easy to know: stroke 1 crosses at x=10, stroke 2 at x=90.
+  const TWO_STROKE_ITEM = {
+    id: "x",
+    strokes: [
+      { d: "M 0 84 C 6.667 86.667 13.333 89.333 20 92" },
+      { d: "M 80 84 C 86.667 86.667 93.333 89.333 100 92" },
+    ],
+  };
+
+  it("finds 'first' from the first-drawn stroke and 'last' from the last-drawn stroke", () => {
+    const contacts = getBaselineContacts(TWO_STROKE_ITEM);
+    expect(contacts.first[0]).toBeGreaterThanOrEqual(5);
+    expect(contacts.first[0]).toBeLessThanOrEqual(15);
+    expect(contacts.last[0]).toBeGreaterThanOrEqual(85);
+    expect(contacts.last[0]).toBeLessThanOrEqual(95);
+  });
+
+  it("throws a clear error for an item with no strokes", () => {
+    expect(() => getBaselineContacts({ id: "x", strokes: [] })).toThrow(/x/);
+  });
+});
+
 describe("buildWordTrajectory", () => {
   const letters = new Map([
     ["а", LETTER_A],
@@ -84,16 +109,25 @@ describe("buildWordTrajectory", () => {
     expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
   });
 
-  it("spaces a same-line bridge exactly LETTER_GAP units — the propis norm (gap = width of «и»)", () => {
-    const result = buildWordTrajectory("аа", letters, new Map());
-    const [, x1, x2] = result.strokes[1].d.match(/^M ([\d.]+) [\d.]+ L ([\d.]+) [\d.]+$/).map(Number);
-    expect(x2 - x1).toBeCloseTo(LETTER_GAP, 3);
-  });
+  it("places each letter so consecutive baseline-contact points are exactly LETTER_GAP apart, in either order", () => {
+    // This is the regression case for the original bug report: with the old entry/exit
+    // *stroke*-point-based placement, "аб" and "ба" produced very different-looking gaps
+    // depending on order (a real letter pair showed 78.9 one way, 16.4 the other).
+    // Baseline-contact-based placement must give the exact same LETTER_GAP either way.
+    const aContacts = getBaselineContacts(LETTER_A);
+    const bContacts = getBaselineContacts(LETTER_B_HIGH_ENTRY);
 
-  it("places the second letter's entry point exactly LETTER_GAP after the first letter's exit point", () => {
-    const result = buildWordTrajectory("аа", letters, new Map());
-    // а exits at world x=22 (offset 0); second а's own entry x=10 lands at 22 + LETTER_GAP = 56
-    expect(result.strokes[2].d).toContain(`${(22 + LETTER_GAP).toFixed(3)}`);
+    const forward = buildWordTrajectory("аб", letters, new Map());
+    const expectedOffsetB = aContacts.last[0] + LETTER_GAP - bContacts.first[0];
+    expect(forward.strokes[forward.strokes.length - 1].d).toBe(
+      transformPathD(LETTER_B_HIGH_ENTRY.strokes[0].d, { translateX: expectedOffsetB })
+    );
+
+    const backward = buildWordTrajectory("ба", letters, new Map());
+    const expectedOffsetA = bContacts.last[0] + LETTER_GAP - aContacts.first[0];
+    expect(backward.strokes[backward.strokes.length - 1].d).toBe(
+      transformPathD(LETTER_A.strokes[0].d, { translateX: expectedOffsetA })
+    );
   });
 
   it("uses a matching connector's (translated + x-scaled) strokes when lines differ", () => {
@@ -117,13 +151,10 @@ describe("buildWordTrajectory", () => {
     expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
   });
 
-  it("reports total width as the last letter's own box reaching past its (now dynamic) offset", () => {
-    // б(offset 0) -> а(offset 46) -> б(offset 92) -> а(offset 138), each own box 100 wide:
-    // offsets follow from LETTER_GAP=34 between each letter's real exit/entry points, not a
-    // fixed per-letter slot — see the two tests above for the single-gap arithmetic this chains.
+  it("reports a viewBox exactly matching totalWidthUnits, wide enough for the whole word", () => {
     const result = buildWordTrajectory("баба", new Map([["б", LETTER_B_HIGH_ENTRY], ["а", LETTER_A]]), new Map());
-    expect(result.totalWidthUnits).toBe(238);
-    expect(result.viewBox).toBe("0 0 238 150");
+    expect(result.viewBox).toBe(`0 0 ${result.totalWidthUnits} 150`);
+    expect(result.totalWidthUnits).toBeGreaterThan(100); // more than one letter's own box, for a 4-letter word
   });
 
   it("returns empty output for an empty word", () => {

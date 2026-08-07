@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPathEndpoints, transformPathD } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
 
 // Real captured stroke, first M-only-then-C path from tools/propis/topic.json ("Б", stroke 0)
 const REAL_STROKE_D =
@@ -57,5 +57,50 @@ describe("transformPathD", () => {
     const { start, end } = getPathEndpoints(moved);
     expect(start).toEqual([131.58, 45.29]);
     expect(end).toEqual([118.16, 81.84]);
+  });
+});
+
+describe("samplePath", () => {
+  it("includes the M point as the first sample", () => {
+    const points = samplePath("M 5 10 C 6 11 7 12 8 13");
+    expect(points[0]).toEqual([5, 10]);
+  });
+
+  it("ends exactly at the last C command's endpoint", () => {
+    const points = samplePath("M 5 10 C 6 11 7 12 8 13");
+    expect(points[points.length - 1]).toEqual([8, 13]);
+  });
+
+  it("for a collinear (straight-line) cubic, every sample lies on that line", () => {
+    // p0=(0,84) p3=(20,92), control points collinear -> bezier(t) traces the straight line
+    const points = samplePath("M 0 84 C 6.667 86.667 13.333 89.333 20 92", 10);
+    for (const [x, y] of points) {
+      const expectedY = 84 + (x / 20) * 8;
+      expect(y).toBeCloseTo(expectedY, 1);
+    }
+  });
+});
+
+describe("findClosestApproach", () => {
+  it("returns the first and last points within tolerance of the closest approach to targetY", () => {
+    const points = [[0, 80], [5, 85], [10, 88], [15, 91], [20, 96]];
+    const result = findClosestApproach(points, 88, 3);
+    expect(result.first).toEqual([5, 85]); // |85-88|=3, within tolerance of the exact-0 min
+    expect(result.last).toEqual([15, 91]); // |91-88|=3, within tolerance
+  });
+
+  it("returns the same single point for first and last when only one point is near", () => {
+    const points = [[0, 0], [1, 88], [2, 200]];
+    const result = findClosestApproach(points, 88, 0);
+    expect(result.first).toEqual([1, 88]);
+    expect(result.last).toEqual([1, 88]);
+  });
+
+  it("generalizes to a trajectory that never exactly touches targetY", () => {
+    const points = [[0, 60], [1, 70], [2, 76], [3, 70], [4, 60]];
+    const result = findClosestApproach(points, 88, 5);
+    // closest approach is y=76 (dist 12); tolerance 5 -> only the y=76 sample qualifies
+    expect(result.first).toEqual([2, 76]);
+    expect(result.last).toEqual([2, 76]);
   });
 });

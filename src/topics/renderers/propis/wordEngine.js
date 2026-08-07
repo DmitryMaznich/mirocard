@@ -1,13 +1,23 @@
-import { getPathEndpoints, transformPathD } from "./pathGeometry.js";
-import { GUIDE_LINES } from "./propisRuling.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
+import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 
-// Russian propis norm: the gap between letters inside a word equals the width of the
-// letter "и" (a standard taught across Илюхина/Горецкий/Нечаева-style copybooks). Measured
-// from the real ClassRoomCursive glyph data (written_letters/letterPaths.js, same 100-unit
-// per-letter coordinate system as everything here): и=33.8, н=32.7, о=28.1, а=35.5,
-// п=34.5 — averages to ~34 units. This is the target distance between one letter's own
-// exit point and the next letter's own entry point, not a fixed per-letter slot pitch.
-export const LETTER_GAP = 34;
+// Target distance between the previous letter's own baseline-contact point (last place its
+// trajectory sits on the writing line) and the next letter's own baseline-contact point
+// (first such place) — see getBaselineContacts below. NOT a target for the entry/exit
+// *stroke* points, which vary far more per letter shape (в's stroke ends well short of
+// where в's ink actually sits on the line) and produced wildly order-dependent gaps when
+// used directly (e.g. "бв" vs "вб" looked nothing alike). Calibrated empirically: 34 (the
+// letter-width norm for printed/disconnected letters) was measured, applied, and visibly
+// too wide for this connected-cursive animation; 17 was chosen instead after comparing
+// against a hand-picked "looks right" reference pair (в→б) — see
+// docs/superpowers/plans/2026-08-07-propis-word-writing.md history for the discarded 34
+// derivation, kept here only as a cautionary note against re-deriving it the same way.
+export const LETTER_GAP = 17;
+
+// Points within this margin of a letter's closest approach to the baseline are treated as
+// part of its baseline-contact zone — needed because most letters never sample to a
+// distance of exactly 0 (the sampled points hit close to, not exactly on, NATIVE_L3).
+const BASELINE_CONTACT_TOLERANCE = 1.5;
 
 // Fallback box width for a letter with no viewBox, and the unit every captured
 // letter/connector's canvas already uses (tools/letter_capture/handwriting_capture.html).
@@ -39,6 +49,21 @@ export function getConnectionInfo(item) {
     entryLine: classifyLine(entry.start[1]),
     exitLine: classifyLine(exit.end[1]),
   };
+}
+
+// Where a letter's trajectory last "sits" on the baseline before the previous letter's
+// stroke lifts off (last), and where it first sits on the baseline as the next letter's
+// stroke touches down (first) — this is what determines visual letter-to-letter spacing in
+// connected cursive, independent of where the pen happens to actually start/end (which can
+// be well above or below the line, mid-loop). Samples across ALL of the item's strokes in
+// order, so "first" always comes from the first-drawn stroke and "last" from the last.
+export function getBaselineContacts(item) {
+  const strokes = item.strokes ?? [];
+  if (strokes.length === 0) {
+    throw new Error(`getBaselineContacts: item "${item.id}" has no strokes`);
+  }
+  const points = strokes.flatMap((s) => samplePath(s.d));
+  return findClosestApproach(points, NATIVE_L3, BASELINE_CONTACT_TOLERANCE);
 }
 
 function translateStrokes(strokes, dx) {
@@ -84,6 +109,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
   const strokes = [];
   let prevExitLine = null;
   let prevExitPointWorld = null;
+  let prevExitContactX = null;
   let rightEdge = 0;
 
   chars.forEach((ch) => {
@@ -92,10 +118,12 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       throw new Error(`buildWordTrajectory: letter "${ch}" is not in the letter library`);
     }
     const info = getConnectionInfo(letter);
-    // First letter starts at 0; every next letter is placed so its own entry point lands
-    // exactly LETTER_GAP after the previous letter's own exit point — the propis norm,
-    // not a fixed slot pitch (letters vary in how far into their own box they draw).
-    const offset = prevExitPointWorld ? prevExitPointWorld[0] + LETTER_GAP - info.entryPoint[0] : 0;
+    const contacts = getBaselineContacts(letter);
+    // First letter starts at 0; every next letter is placed so its own baseline-contact
+    // point lands exactly LETTER_GAP after the previous letter's own baseline-contact
+    // point. The bridge itself still connects the real entry/exit *stroke* points below —
+    // placement and bridge-drawing intentionally use two different reference points.
+    const offset = prevExitContactX !== null ? prevExitContactX + LETTER_GAP - contacts.first[0] : 0;
     const entryPointWorld = [info.entryPoint[0] + offset, info.entryPoint[1]];
     const exitPointWorld = [info.exitPoint[0] + offset, info.exitPoint[1]];
 
@@ -115,6 +143,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     strokes.push(...translateStrokes(letter.strokes, offset));
     prevExitLine = info.exitLine;
     prevExitPointWorld = exitPointWorld;
+    prevExitContactX = contacts.last[0] + offset;
     rightEdge = Math.max(rightEdge, offset + letterBoxWidth(letter));
   });
 
