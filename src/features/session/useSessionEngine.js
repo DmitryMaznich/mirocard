@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
-import { deriveConcepts } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
@@ -165,10 +165,13 @@ export function useSessionEngine() {
     hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
   };
   const isReading = topicRecord?.meta.renderer === "reading";
+  const modeSelectedConceptIds = mode
+    ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null)
+    : (link.selectedConceptIds?.length ? link.selectedConceptIds : null);
   const selectedConceptIds = isReading
     ? (activeTextId ? [activeTextId] : [])
-    : (link.selectedConceptIds?.length ? link.selectedConceptIds : null)
-      ?? topicRecord?.cards.filter((c) => c.primary).map((c) => c.conceptId)
+    : modeSelectedConceptIds
+      ?? getConceptCards(topicRecord, mode).filter((c) => c.primary).map((c) => c.conceptId)
       ?? [];
   const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true };
   const cardLogger = useCardEventLogger();

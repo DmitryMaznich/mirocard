@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { deriveConcepts, getConceptCards, getPrimaryCard } from "./topicUtils";
+import {
+  deriveConcepts, getConceptCards, getPrimaryCard,
+  isConceptSelectionScopedByMode, readModeSelectedConceptIds, writeModeSelectedConceptIds,
+} from "./topicUtils";
 
 const CARDS = [
   { id: "tshirt_1", conceptId: "tshirt", primary: true,  label: "футболка", image: "media/tshirt_1.webp", tags: ["top", "casual"] },
@@ -80,6 +83,63 @@ describe("getConceptCards", () => {
   it("scopes graphic_dictation to taskKind:dictation cards only", () => {
     const cards = getConceptCards(symmetryDrawRecord, { type: "graphic_dictation" });
     expect(cards.map((c) => c.id)).toEqual(["d1"]);
+  });
+});
+
+describe("mode-scoped concept selection", () => {
+  const symmetryDrawRecord = {
+    meta: { renderer: "flashcards", customModesOnly: true },
+    cards: [
+      { id: "m1", conceptId: "m1", taskKind: "mirror" },
+      { id: "m2", conceptId: "m2", taskKind: "mirror" },
+      { id: "d1", conceptId: "d1", taskKind: "dictation" },
+      { id: "d2", conceptId: "d2", taskKind: "dictation" },
+    ],
+  };
+  const mirrorMode = { id: "symmetry_draw", type: "mirror_draw" };
+  const dictationMode = { id: "graphic_dictation", type: "graphic_dictation" };
+  const genericRecord = { meta: { renderer: "flashcards" }, cards: CARDS };
+  const genericMode = { id: "only_mode", type: "anything" };
+
+  it("isConceptSelectionScopedByMode is true when the mode only sees part of the topic", () => {
+    expect(isConceptSelectionScopedByMode(symmetryDrawRecord, mirrorMode)).toBe(true);
+  });
+
+  it("isConceptSelectionScopedByMode is false for topics with one shared card pool", () => {
+    expect(isConceptSelectionScopedByMode(genericRecord, genericMode)).toBe(false);
+  });
+
+  it("readModeSelectedConceptIds returns raw ids unchanged for a non-scoped topic", () => {
+    expect(readModeSelectedConceptIds(genericRecord, genericMode, ["tshirt"])).toEqual(["tshirt"]);
+  });
+
+  it("writeModeSelectedConceptIds passes ids through unchanged for a non-scoped topic", () => {
+    expect(writeModeSelectedConceptIds(genericRecord, genericMode, ["tshirt"], ["jacket"])).toEqual(["jacket"]);
+  });
+
+  it("writing a mode's selection does not clobber another mode's previously saved selection", () => {
+    // Dictation mode saves first.
+    const afterDictation = writeModeSelectedConceptIds(symmetryDrawRecord, dictationMode, null, ["d1"]);
+    expect(afterDictation).toEqual(["graphic_dictation::d1"]);
+
+    // Mirror mode then saves its own selection on top of the stored array.
+    const afterMirror = writeModeSelectedConceptIds(symmetryDrawRecord, mirrorMode, afterDictation, ["m1", "m2"]);
+    expect(afterMirror).toEqual(expect.arrayContaining(["graphic_dictation::d1", "symmetry_draw::m1", "symmetry_draw::m2"]));
+    expect(afterMirror).toHaveLength(3);
+
+    // Reading each mode back out of the combined array only returns its own ids.
+    expect(readModeSelectedConceptIds(symmetryDrawRecord, dictationMode, afterMirror)).toEqual(["d1"]);
+    expect(readModeSelectedConceptIds(symmetryDrawRecord, mirrorMode, afterMirror)).toEqual(["m1", "m2"]);
+  });
+
+  it("readModeSelectedConceptIds returns null when nothing has been saved for this mode yet", () => {
+    const afterDictation = writeModeSelectedConceptIds(symmetryDrawRecord, dictationMode, null, ["d1"]);
+    expect(readModeSelectedConceptIds(symmetryDrawRecord, mirrorMode, afterDictation)).toBeNull();
+  });
+
+  it("readModeSelectedConceptIds returns null for an empty/missing raw selection", () => {
+    expect(readModeSelectedConceptIds(symmetryDrawRecord, mirrorMode, null)).toBeNull();
+    expect(readModeSelectedConceptIds(symmetryDrawRecord, mirrorMode, [])).toBeNull();
   });
 });
 

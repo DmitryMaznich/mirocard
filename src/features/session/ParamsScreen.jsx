@@ -12,7 +12,7 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
@@ -913,7 +913,8 @@ export default function ParamsScreen() {
   }
 
   const allConcepts        = deriveConcepts(getConceptCards(topicRecord, mode));
-  const selectedConceptIds = link.selectedConceptIds?.length ? link.selectedConceptIds : allConcepts.map((c) => c.conceptId);
+  const modeSelectedConceptIds = readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null);
+  const selectedConceptIds = modeSelectedConceptIds ?? allConcepts.map((c) => c.conceptId);
 
   // Concept range filter — only in "Считаем на пальцах" mode
   const fcountCards    = activeModeId === "fingers_count"
