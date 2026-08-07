@@ -51,6 +51,35 @@
     return points;
   }
 
+  const DICTATION_DIRECTION_LABEL = {
+    up: "вверх",
+    down: "вниз",
+    left: "влево",
+    right: "вправо",
+    up_right: "вправо-вверх",
+    down_right: "вправо-вниз",
+    up_left: "влево-вверх",
+    down_left: "влево-вниз",
+  };
+
+  // Russian noun-after-number agreement for "клетка": 1 клетка, 2-4 клетки,
+  // 5-20 клеток, then the pattern repeats (21 клетка, 22 клетки, 25 клеток...).
+  function pluralizeCells(n) {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return `${n} клетка`;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} клетки`;
+    return `${n} клеток`;
+  }
+
+  // Angle (degrees) to rotate a rightward-pointing arrow so it faces this
+  // direction, in the SVG's y-down coordinate space.
+  function directionArrowDeg(direction) {
+    const vector = DICTATION_DIRECTION[direction];
+    if (!vector) return 0;
+    return (Math.atan2(vector.row, vector.col) * 180) / Math.PI;
+  }
+
   function pathsToSegments(paths) {
     const segments = [];
     for (const path of paths ?? []) {
@@ -137,13 +166,31 @@
     const sourcePaths = shape.sourcePaths ?? [];
     const isRepeat = shape.taskKind === "repeat";
     const isDictation = shape.taskKind === "dictation";
-    const dictationStart = shape.start ?? { col: 0, row: 0 };
     const targetPaths = useMemo(() => {
-      if (isDictation) return [commandsToPath(dictationStart, shape.commands)];
+      if (isDictation) return [];
       return isRepeat ? translatePaths(sourcePaths, axisCol) : mirrorPaths(sourcePaths, axisCol);
-    }, [sourcePaths, axisCol, isRepeat, isDictation, dictationStart.col, dictationStart.row, shape.commands]);
+    }, [sourcePaths, axisCol, isRepeat, isDictation]);
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
     const hintPoints = useMemo(() => targetPaths.flat(), [targetPaths]);
+
+    // Graphic dictation is dictated one command at a time - the child hears/reads
+    // "2 клетки вправо-вверх", draws just that segment from the active point, and
+    // only once it's covered does the next command appear. dictationPoints is the
+    // full waypoint list (start + one point per command); confirmedSegments are the
+    // ones already drawn correctly, kept on screen as solid ink.
+    const dictationStart = shape.start ?? { col: 0, row: 0 };
+    const dictationPoints = useMemo(
+      () => (isDictation ? commandsToPath(dictationStart, shape.commands) : []),
+      [isDictation, dictationStart.col, dictationStart.row, shape.commands],
+    );
+    const totalCommands = shape.commands?.length ?? 0;
+    const [currentStep, setCurrentStep] = useState(0);
+    const [confirmedSegments, setConfirmedSegments] = useState([]);
+    const activeCommand = isDictation ? shape.commands?.[currentStep] : null;
+    const activeSegment = isDictation && currentStep < totalCommands
+      ? { a: dictationPoints[currentStep], b: dictationPoints[currentStep + 1] }
+      : null;
+    const activeStartPoint = isDictation ? (dictationPoints[currentStep] ?? dictationStart) : null;
 
     function pointFromEvent(event) {
       const svg = svgRef.current;
@@ -193,13 +240,48 @@
       if (event?.currentTarget?.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
+    function checkDictationStep() {
+      // Guards against a double-tap re-running this while the success flash
+      // from the previous tap is still on screen and mid-transition.
+      if (result?.complete || !activeSegment) return;
+      // Anchored to the active point marked on the grid - unlike mirror/repeat,
+      // a horizontal offset here means the child started from the wrong cell,
+      // which is exactly what this task checks, so no shift tolerance applies.
+      const coverage = evaluateCoverage(drawnPaths, [activeSegment], COVERAGE_TOLERANCE, 0);
+      if (!coverage.complete) {
+        setResult({ percent: 0, complete: false });
+        return;
+      }
+      const nextStep = currentStep + 1;
+      const isLastStep = nextStep >= totalCommands;
+      setResult({ percent: 100, complete: true });
+      if (isLastStep) setResolved(true);
+      // Let the child see the green flash before locking the segment in and
+      // revealing the next command.
+      setTimeout(() => {
+        setConfirmedSegments((segments) => [...segments, activeSegment]);
+        setDrawnPaths([]);
+        setShowHint(false);
+        if (isLastStep) {
+          // A card solved with the hint showing still counts as done for the
+          // child, but shouldn't earn a star - skip onCorrect (which drives
+          // the streak/reward count) and just move on ourselves instead.
+          if (hintUsed) onAdvance?.();
+          else onCorrect?.(task.conceptId, shape.id);
+        } else {
+          setResult(null);
+          setCurrentStep(nextStep);
+        }
+      }, 600);
+    }
+
     function checkDrawing() {
       if (resolved) return;
-      // Dictation figures are anchored to a marked start point on the grid - unlike
-      // mirror/repeat, a horizontal offset here means the child began from the wrong
-      // cell, which is exactly what this task checks, so no shift tolerance applies.
-      const maxHorizontalShift = isDictation ? 0 : HORIZONTAL_SHIFT_TOLERANCE;
-      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE, maxHorizontalShift);
+      if (isDictation) {
+        checkDictationStep();
+        return;
+      }
+      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE, HORIZONTAL_SHIFT_TOLERANCE);
       const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
       if (coverage.complete) {
         setResolved(true);
@@ -235,6 +317,19 @@
           className: `symmetry-draw__mirror-chip${isRepeat ? " symmetry-draw__mirror-chip--repeat" : ""}${isDictation ? " symmetry-draw__mirror-chip--dictation" : ""}`,
         }, isDictation ? "✎ диктант" : isRepeat ? "→ повтори" : "↔ зеркало"),
       ),
+      isDictation
+        ? h("div", { className: "symmetry-draw__dictation-command" },
+            h("svg", { className: "symmetry-draw__dictation-arrow", viewBox: "0 0 24 24", "aria-hidden": "true" },
+              h("path", { d: "M3 12h14M12 5l7 7-7 7", transform: `rotate(${directionArrowDeg(activeCommand?.direction)} 12 12)` }),
+            ),
+            h("div", { className: "symmetry-draw__dictation-text" },
+              h("span", { className: "symmetry-draw__dictation-step" }, `Команда ${Math.min(currentStep + 1, totalCommands)} из ${totalCommands}`),
+              h("span", { className: "symmetry-draw__dictation-command-text" },
+                activeCommand ? `${pluralizeCells(activeCommand.cells)} ${DICTATION_DIRECTION_LABEL[activeCommand.direction] ?? ""}` : "",
+              ),
+            ),
+          )
+        : null,
       h("div", { className: "symmetry-draw__canvas" },
         h("svg", {
           ref: svgRef,
@@ -252,10 +347,15 @@
           Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)),
           nodes,
           isDictation
-            ? h("g", { className: "symmetry-draw__start-point" },
-                h("circle", { cx: dictationStart.col, cy: dictationStart.row, r: "0.22" }),
-                h("circle", { className: "symmetry-draw__start-point-ring", cx: dictationStart.col, cy: dictationStart.row, r: "0.34" }),
-              )
+            ? [
+                confirmedSegments.map((segment, index) => h("path", { key: `confirmed-${index}`, className: "symmetry-draw__dictation-confirmed", d: pathToD([segment.a, segment.b]) })),
+                activeStartPoint
+                  ? h("g", { key: "start-point", className: "symmetry-draw__start-point" },
+                      h("circle", { cx: activeStartPoint.col, cy: activeStartPoint.row, r: "0.22" }),
+                      h("circle", { className: "symmetry-draw__start-point-ring", cx: activeStartPoint.col, cy: activeStartPoint.row, r: "0.34" }),
+                    )
+                  : null,
+              ]
             : [
                 h("line", { key: "axis", className: `symmetry-draw__mirror-line${isRepeat ? " symmetry-draw__mirror-line--repeat" : ""}`, x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
                 isRepeat
@@ -268,8 +368,14 @@
           sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
-          showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
-          showHint ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.17" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
+          showHint && isDictation && activeSegment
+            ? [
+                h("path", { key: "dict-hint-line", className: "symmetry-draw__hint-line", d: pathToD([activeSegment.a, activeSegment.b]) }),
+                h("g", { key: "dict-hint-point", className: "symmetry-draw__hint-point" }, h("circle", { cx: activeSegment.b.col, cy: activeSegment.b.row, r: "0.17" })),
+              ]
+            : null,
+          showHint && !isDictation ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
+          showHint && !isDictation ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.17" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
         ),
       ),
       h("div", { className: "symmetry-draw__controls" },
