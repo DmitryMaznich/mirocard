@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.3.5",
+    "version": "1.3.6",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -1409,9 +1409,9 @@
       "primary": true,
       "label": "Собака",
       "taskKind": "dictation",
-      "columns": 18,
+      "columns": 21,
       "rows": 16,
-      "start": { "col": 9, "row": 6 },
+      "start": { "col": 12, "row": 6 },
       "commands": [
         { "type": "move", "direction": "right", "cells": 4 },
         { "type": "move", "direction": "down_right", "cells": 1 },
@@ -1436,7 +1436,7 @@
         { "type": "move", "direction": "up_left", "cells": 1 },
         { "type": "move", "direction": "up", "cells": 3 },
         { "type": "move", "direction": "left", "cells": 3 },
-        { "type": "move", "direction": "up_right", "cells": 3 },
+        { "type": "move", "direction": "up_left", "cells": 3 },
         { "type": "move", "direction": "up", "cells": 2 },
         { "type": "move", "direction": "right", "cells": 3 },
         { "type": "move", "direction": "up_right", "cells": 2 },
