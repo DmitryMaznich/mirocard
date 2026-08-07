@@ -85,7 +85,7 @@ than as a hint or an active-point marker:
 ```
 
 This is additive only — no existing card gets a `decorations` field, so all
-8 current dictation cards render byte-for-byte identical to today.
+16 current dictation cards render byte-for-byte identical to today.
 
 ## Per-figure content plan
 
@@ -133,7 +133,7 @@ already in `topic.json`.
 
 - Not touching `mirror_draw` / `repeat_draw` cards or their `sourcePaths`
   schema — `decorations` is scoped to `taskKind: "dictation"` only.
-- Not re-verifying any of the 8 existing dictation cards — only the 7 new
+- Not re-verifying any of the 16 existing dictation cards — only the 7 new
   ones are being added.
 - Not packaging a new ZIP / bumping `topic.json`'s version / touching
   `catalog.json` — per project convention (`feedback_deploy_versioning`),
