@@ -62,6 +62,24 @@
 .symmetry-draw__mirror-chip--repeat { color: var(--sd-repeat); background: rgba(13, 148, 136, 0.1); border-color: rgba(13, 148, 136, 0.22); }
 .symmetry-draw__mirror-chip--dictation { color: var(--sd-dictation); background: rgba(217, 119, 6, 0.1); border-color: rgba(217, 119, 6, 0.22); }
 
+/* The one command currently being dictated - arrow on the left showing the
+   direction, text on the right spelling it out ("2 клетки вправо-вверх"),
+   so the child can follow along with either cue. */
+.symmetry-draw__dictation-command {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px clamp(10px, 2.4vw, 18px) 0;
+  padding: 8px 14px;
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px solid rgba(217, 119, 6, 0.22);
+  border-radius: 12px;
+}
+.symmetry-draw__dictation-arrow { width: 26px; height: 26px; flex-shrink: 0; stroke: var(--sd-dictation); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.symmetry-draw__dictation-text { display: flex; flex-direction: column; gap: 1px; }
+.symmetry-draw__dictation-step { font: 700 clamp(9.5px, 1.6vw, 11px)/1.2 Nunito, sans-serif; color: var(--sd-ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.symmetry-draw__dictation-command-text { font: 800 clamp(14px, 2.6vw, 18px)/1.2 Nunito, sans-serif; color: var(--sd-dictation); }
+
 .symmetry-draw__canvas {
   padding: 4px clamp(4px, 1.2vw, 10px) 0;
   background:
@@ -92,13 +110,16 @@
 .symmetry-draw__start-point circle:first-child { fill: var(--sd-dictation); }
 .symmetry-draw__start-point-ring { fill: none; stroke: var(--sd-dictation); stroke-width: 0.04; opacity: 0.45; }
 
-.symmetry-draw__source, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line {
+.symmetry-draw__source, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line, .symmetry-draw__dictation-confirmed {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
 }
 .symmetry-draw__source { stroke: var(--sd-given); stroke-width: 0.09; }
+/* A command already dictated and drawn correctly - locked in as solid ink so
+   progress accumulates on screen instead of vanishing between commands. */
+.symmetry-draw__dictation-confirmed { stroke: var(--sd-dictation); stroke-width: 0.1; }
 /* The child's own stroke gets a soft low-opacity halo underneath a bold core -
    reads like felt-tip marker ink instead of a thin debug vector. */
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }
