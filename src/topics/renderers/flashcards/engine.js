@@ -145,25 +145,30 @@ function generateFindNTasks(concepts, params) {
 
   for (const concept of concepts) {
     for (let i = 0; i < reps; i++) {
-      const distractorCount = Math.min(optionCount - 1, concepts.length - 1);
-      const distractorIds   = selectDistractorConceptIds(
-        concept.conceptId, concepts, distractorCount, difficulty
-      );
-      const distractorOptions = distractorIds.map((cid) => {
-        const dc = concepts.find((c) => c.conceptId === cid);
-        return { conceptId: cid, card: pickVariation(dc), isTarget: false };
-      });
-      const targetOption = {
-        conceptId: concept.conceptId,
-        card: pickVariation(concept),
-        isTarget: true,
-      };
-      tasks.push({
-        type: "find_n",
-        targetConceptId: concept.conceptId,
-        targetLabel: concept.primary?.label ?? concept.conceptId,
-        options: shuffle([targetOption, ...distractorOptions]),
-      });
+      // One task per photo variation, not one random pick per rep - a concept
+      // with 3 images must produce 3 find_n tasks (x reps), otherwise most of
+      // its variations never appear in a session at all.
+      for (const targetCard of concept.cards) {
+        const distractorCount = Math.min(optionCount - 1, concepts.length - 1);
+        const distractorIds   = selectDistractorConceptIds(
+          concept.conceptId, concepts, distractorCount, difficulty
+        );
+        const distractorOptions = distractorIds.map((cid) => {
+          const dc = concepts.find((c) => c.conceptId === cid);
+          return { conceptId: cid, card: pickVariation(dc), isTarget: false };
+        });
+        const targetOption = {
+          conceptId: concept.conceptId,
+          card: targetCard,
+          isTarget: true,
+        };
+        tasks.push({
+          type: "find_n",
+          targetConceptId: concept.conceptId,
+          targetLabel: concept.primary?.label ?? concept.conceptId,
+          options: shuffle([targetOption, ...distractorOptions]),
+        });
+      }
     }
   }
   return shuffle(tasks);

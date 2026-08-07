@@ -194,9 +194,29 @@ describe("generateTasks — yes_no", () => {
 });
 
 describe("generateTasks — find_n", () => {
-  it("generates repsPerConcept tasks per concept", () => {
+  it("generates one task per photo variation (not one random pick per concept)", () => {
     const tasks = generateTasks("find_n", ALL_CONCEPTS, CARDS, { optionCount: 4 });
-    expect(tasks).toHaveLength(ALL_CONCEPTS.length);
+    expect(tasks).toHaveLength(CARDS.length);
+  });
+
+  it("covers every variation of a concept with multiple photos, not just one", () => {
+    const cards = [
+      { id: "joy_1", conceptId: "joy", primary: true,  label: "радость", image: "joy_1.webp" },
+      { id: "joy_2", conceptId: "joy", primary: false, image: "joy_2.webp" },
+      { id: "joy_3", conceptId: "joy", primary: false, image: "joy_3.webp" },
+      { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "sad_1.webp" },
+      { id: "sad_2", conceptId: "sadness", primary: false, image: "sad_2.webp" },
+      { id: "sad_3", conceptId: "sadness", primary: false, image: "sad_3.webp" },
+    ];
+    const concepts = deriveConcepts(cards);
+    const tasks = generateTasks("find_n", concepts, cards, { optionCount: 4 });
+    const targetIds = tasks.map((t) => t.options.find((o) => o.isTarget).card.id).sort();
+    expect(targetIds).toEqual(["joy_1", "joy_2", "joy_3", "sad_1", "sad_2", "sad_3"]);
+  });
+
+  it("repeats the full set of variations repsPerConcept times", () => {
+    const tasks = generateTasks("find_n", ALL_CONCEPTS, CARDS, { optionCount: 4, repsPerConcept: 2 });
+    expect(tasks).toHaveLength(CARDS.length * 2);
   });
 
   it("each task has optionCount options", () => {
