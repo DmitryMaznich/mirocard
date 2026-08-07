@@ -157,6 +157,7 @@
   .rule-line.bold { stroke: var(--nb-line-bold); stroke-width: 0.9; }
   .rule-red-h { stroke: var(--nb-red); stroke-width: 0.4; stroke-dasharray: 2 1.4; }
   .rule-red-v { stroke: var(--nb-red); stroke-width: 0.3; opacity: 0.55; }
+  .rule-label { fill: var(--ink-soft); font-size: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
   .guide-path { fill: rgba(20, 30, 50, 0.12); stroke: none; }
   .raw-stroke { fill: none; stroke: var(--pen-raw); stroke-width: 0.35; stroke-linecap: round; stroke-linejoin: round; }
   .smooth-stroke { fill: none; stroke: var(--pen-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
@@ -522,6 +523,12 @@
     parts.push('<line class="rule-red-h" x1="0" y1="' + TOP_MID + '" x2="' + CANVAS_W + '" y2="' + TOP_MID + '"/>');
     parts.push('<line class="rule-red-h" x1="0" y1="' + BOT_MID + '" x2="' + CANVAS_W + '" y2="' + BOT_MID + '"/>');
     parts.push('<line class="rule-red-h" x1="0" y1="' + NARROW_MID + '" x2="' + CANVAS_W + '" y2="' + NARROW_MID + '"/>');
+    // numbered labels for every horizontal guide, top to bottom, so a specific line can be
+    // referenced by number (e.g. "line 4" = NARROW_MID, where most letter strokes start/end)
+    const H_GUIDES = [L1, TOP_MID, L2, NARROW_MID, L3, BOT_MID, L4].sort((a, b) => a - b);
+    H_GUIDES.forEach((y, i) => {
+      parts.push('<text class="rule-label" x="1" y="' + (y - 1.2) + '">' + (i + 1) + '</text>');
+    });
     // red width guides — vertical, same pitch as the slant lines, to keep letters a consistent width
     for (let x0 = 0; x0 <= CANVAS_W + 0.001; x0 += SPACING) {
       parts.push('<line class="rule-red-v" x1="' + x0.toFixed(2) + '" y1="0" x2="' + x0.toFixed(2) + '" y2="' + VB_H + '"/>');
