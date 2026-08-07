@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -59,6 +59,19 @@
     }
   ],
   "cards": [
+    {
+      "id": "conn_5_4",
+      "type": "connector",
+      "label": "5→4",
+      "fromLine": 5,
+      "toLine": 4,
+      "viewBox": "0 0 100 150",
+      "strokes": [
+        {
+          "d": "M 12.41 86.69 C 13.55 86.49 14.35 86.58 15.82 86.08 C 17.29 85.59 19.37 84.91 21.23 83.71 C 23.08 82.51 25.59 80.23 26.97 78.90 C 28.36 77.56 28.68 76.77 29.54 75.71"
+        }
+      ]
+    },
     {
       "id": "Б",
       "type": "letter",
