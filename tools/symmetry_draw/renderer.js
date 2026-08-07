@@ -241,10 +241,15 @@
       coordinates.push(h("text", { key: `row-${row}`, className: "dictation__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1));
     }
 
-    const decorations = (shape.decorations ?? []).map((decoration, index) =>
-      decoration.type === "rect"
-        ? h("rect", { key: `deco-${index}`, className: "dictation__decoration-rect", x: decoration.col, y: decoration.row, width: decoration.width ?? 1, height: decoration.height ?? 1 })
-        : h("circle", { key: `deco-${index}`, className: "dictation__decoration-dot", cx: decoration.col, cy: decoration.row, r: "0.12" })
+    const decorations = (shape.decorations ?? []).map((decoration, index) => {
+      if (decoration.type === "rect") {
+        return h("rect", { key: `deco-${index}`, className: "dictation__decoration-rect", x: decoration.col, y: decoration.row, width: decoration.width ?? 1, height: decoration.height ?? 1 });
+      }
+      if (decoration.type === "polygon") {
+        return h("path", { key: `deco-${index}`, className: "dictation__decoration-rect", d: `${pathToD(decoration.points)} Z` });
+      }
+      return h("circle", { key: `deco-${index}`, className: "dictation__decoration-dot", cx: decoration.col, cy: decoration.row, r: "0.12" });
+    }
     );
 
     const previewEnd = preview?.at(-1)
