@@ -506,6 +506,10 @@
     // ascenders are tall, so this line sits closer to the baseline than to L4.
     const TOP_MID = (L1 + L2) / 2; // = 36
     const BOT_MID = 110;
+    // Vertical center of the узкая строка (x-height band, L2-L3) — a fixed reference point
+    // for where a stroke should start/end so consecutive letters connect at a consistent
+    // height when a whole word is animated later, not just when each letter loops alone.
+    const NARROW_MID = (L2 + L3) / 2; // = 75
     let parts = [];
     for (let x0 = -offset - SPACING; x0 < CANVAS_W + SPACING; x0 += SPACING) {
       parts.push('<line class="rule-slant" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offset).toFixed(2) + '" y2="0"/>');
@@ -517,6 +521,7 @@
     // red height guides — mid-band lines to keep ascenders/descenders a consistent height
     parts.push('<line class="rule-red-h" x1="0" y1="' + TOP_MID + '" x2="' + CANVAS_W + '" y2="' + TOP_MID + '"/>');
     parts.push('<line class="rule-red-h" x1="0" y1="' + BOT_MID + '" x2="' + CANVAS_W + '" y2="' + BOT_MID + '"/>');
+    parts.push('<line class="rule-red-h" x1="0" y1="' + NARROW_MID + '" x2="' + CANVAS_W + '" y2="' + NARROW_MID + '"/>');
     // red width guides — vertical, same pitch as the slant lines, to keep letters a consistent width
     for (let x0 = 0; x0 <= CANVAS_W + 0.001; x0 += SPACING) {
       parts.push('<line class="rule-red-v" x1="' + x0.toFixed(2) + '" y1="0" x2="' + x0.toFixed(2) + '" y2="' + VB_H + '"/>');
