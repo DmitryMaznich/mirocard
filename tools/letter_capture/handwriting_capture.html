@@ -375,11 +375,22 @@
             <select id="typeSelect">
               <option value="letter">Буква(ы)</option>
               <option value="element">Элемент</option>
+              <option value="connector">Соединитель</option>
             </select>
           </div>
-          <div class="field label-field">
+          <div class="field label-field" id="labelFieldWrap">
             <label for="labelInput" id="labelFieldLabel">Буквы</label>
             <input type="text" id="labelInput" maxlength="3" placeholder="Аба" autocomplete="off" />
+          </div>
+        </div>
+        <div class="field-row" id="connectorFieldWrap" style="display:none;">
+          <div class="field">
+            <label for="fromLineSelect">От линии</label>
+            <select id="fromLineSelect"></select>
+          </div>
+          <div class="field">
+            <label for="toLineSelect">До линии</label>
+            <select id="toLineSelect"></select>
           </div>
         </div>
         <button class="primary" id="addToSetBtn" disabled>
@@ -463,6 +474,20 @@
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
   const labelFieldLabel = document.getElementById("labelFieldLabel");
+  const labelFieldWrap = document.getElementById("labelFieldWrap");
+  const connectorFieldWrap = document.getElementById("connectorFieldWrap");
+  const fromLineSelect = document.getElementById("fromLineSelect");
+  const toLineSelect = document.getElementById("toLineSelect");
+
+  for (const sel of [fromLineSelect, toLineSelect]) {
+    for (let n = 1; n <= 7; n += 1) {
+      const opt = document.createElement("option");
+      opt.value = String(n);
+      opt.textContent = String(n);
+      sel.appendChild(opt);
+    }
+  }
+  toLineSelect.value = "4"; // most common target line, per the propis ruling analysis
   const formHint = document.getElementById("formHint");
   const addedMsg = document.getElementById("addedMsg");
 
@@ -859,6 +884,16 @@
   };
 
   function applyTypeUI() {
+    const isConnector = typeSelect.value === "connector";
+    labelFieldWrap.style.display = isConnector ? "none" : "";
+    connectorFieldWrap.style.display = isConnector ? "flex" : "none";
+    if (isConnector) {
+      formHint.textContent =
+        "Соединитель между линией \"от\" (где заканчивается предыдущая буква) и линией " +
+        "\"до\" (где начинается следующая) — см. пронумерованные направляющие на холсте. " +
+        "Нарисуйте штрих(и) выше и добавьте в набор.";
+      return;
+    }
     const t = TYPE_COPY[typeSelect.value];
     labelInput.placeholder = t.placeholder;
     labelInput.maxLength = t.maxlength;
@@ -937,7 +972,7 @@
       const cell = document.createElement("div");
       cell.className = "gallery-item";
       const displayLabel = item.label ?? item.letter ?? "?";
-      const typeTag = item.type === "element" ? " · эл." : (item.case === "lower" ? " (стр.)" : "");
+      const typeTag = item.type === "element" ? " · эл." : item.type === "connector" ? " · соед." : (item.case === "lower" ? " (стр.)" : "");
       cell.innerHTML = thumbnailSvg(item) +
         '<button class="del" data-i="' + i + '" title="Удалить">✕</button>' +
         '<div class="label">' + displayLabel + typeTag + '</div>';
@@ -954,15 +989,32 @@
   renderGallery();
 
   addToSetBtn.addEventListener("click", () => {
-    const label = labelInput.value.trim();
-    if (!label || strokes.length === 0) return;
-    collection.push({
-      type: typeSelect.value,
-      label,
-      viewBox: "0 0 " + CANVAS_W + " " + VB_H,
-      strokes: strokes.map(s => ({ d: s.smoothD })),
-      meta: { capturedAt: new Date().toISOString(), strokeCount: strokes.length }
-    });
+    if (strokes.length === 0) return;
+    const isConnector = typeSelect.value === "connector";
+
+    if (isConnector) {
+      const fromLine = Number(fromLineSelect.value);
+      const toLine = Number(toLineSelect.value);
+      collection.push({
+        type: "connector",
+        label: fromLine + "→" + toLine,
+        fromLine,
+        toLine,
+        viewBox: "0 0 " + CANVAS_W + " " + VB_H,
+        strokes: strokes.map(s => ({ d: s.smoothD })),
+        meta: { capturedAt: new Date().toISOString(), strokeCount: strokes.length }
+      });
+    } else {
+      const label = labelInput.value.trim();
+      if (!label) return;
+      collection.push({
+        type: typeSelect.value,
+        label,
+        viewBox: "0 0 " + CANVAS_W + " " + VB_H,
+        strokes: strokes.map(s => ({ d: s.smoothD })),
+        meta: { capturedAt: new Date().toISOString(), strokeCount: strokes.length }
+      });
+    }
     saveCollection();
     renderGallery();
 
@@ -970,9 +1022,11 @@
     undoBtn.disabled = true;
     clearBtn.disabled = true;
     redrawAll();
-    labelInput.value = "";
-    updateGuideFromLabel();
-    labelInput.focus();
+    if (!isConnector) {
+      labelInput.value = "";
+      updateGuideFromLabel();
+      labelInput.focus();
+    }
 
     addedMsg.classList.add("show");
     setTimeout(() => addedMsg.classList.remove("show"), 1400);

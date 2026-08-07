@@ -17,6 +17,34 @@ export const L1 = mmToUnit(0);                                                  
 export const L2 = mmToUnit(ASCENDER_GAP_MM);                                     // x-height top
 export const L3 = mmToUnit(ASCENDER_GAP_MM + NARROW_GAP_MM);                     // baseline (bold)
 export const L4 = mmToUnit(ASCENDER_GAP_MM + NARROW_GAP_MM + DESCENDER_GAP_MM);  // row bottom
+
+// The coordinate system every captured letter/connector's own stroke data is drawn in —
+// same as handwriting_capture.html's canvas/drawRuling() (viewBox "0 0 100 150"). NOT the
+// same system as this file's own L1-L4 above (see note in the implementation plan this
+// was introduced from — docs/superpowers/plans/2026-08-07-propis-word-writing.md). Kept
+// under a NATIVE_ prefix specifically so the two can never be accidentally interchanged.
+export const NATIVE_L1 = 10;         // row top
+export const NATIVE_TOP_MID = 36;    // tall ascenders (Й,Г,П,Н...) top out here
+export const NATIVE_L2 = 62;         // x-height top / top of узкая строка
+export const NATIVE_NARROW_MID = 75; // vertical center of узкая строка — most letters' own start/end point
+export const NATIVE_L3 = 88;         // baseline (bold) — same value as LETTER_BASELINE_UNIT above
+export const NATIVE_BOT_MID = 110;   // real descenders are shallower than ascenders are tall, not simply symmetric
+export const NATIVE_L4 = 140;        // row bottom
+
+// The same 7 numbered ruling lines shown in handwriting_capture.html's drawRuling(), in
+// the same top-to-bottom numbering (1-7) — the shared vocabulary a letter's entry/exit
+// line and a connector's fromLine/toLine are expressed in. Keep this in sync by hand with
+// drawRuling()'s H_GUIDES array if either ever changes.
+export const GUIDE_LINES = [
+  { line: 1, y: NATIVE_L1 },
+  { line: 2, y: NATIVE_TOP_MID },
+  { line: 3, y: NATIVE_L2 },
+  { line: 4, y: NATIVE_NARROW_MID },
+  { line: 5, y: NATIVE_L3 },
+  { line: 6, y: NATIVE_BOT_MID },
+  { line: 7, y: NATIVE_L4 },
+];
+
 export const DIAGONAL_MM = 20; // "стандарт российских школ"
 export const ANGLE_FROM_HORIZONTAL_DEG = 65;
 
