@@ -161,14 +161,20 @@ describe("generateTasks — emotion_situation", () => {
 });
 
 describe("generateTasks — yes_no", () => {
-  it("generates repsPerConcept tasks per concept", () => {
+  it("generates repsPerConcept tasks per photo variation", () => {
     const tasks = generateTasks("yes_no", ALL_CONCEPTS, CARDS, { repsPerConcept: 2 });
-    expect(tasks).toHaveLength(ALL_CONCEPTS.length * 2);
+    expect(tasks).toHaveLength(CARDS.length * 2);
   });
 
-  it("defaults to 1 rep per concept", () => {
+  it("defaults to 1 rep per photo variation", () => {
     const tasks = generateTasks("yes_no", ALL_CONCEPTS, CARDS, {});
-    expect(tasks).toHaveLength(ALL_CONCEPTS.length);
+    expect(tasks).toHaveLength(CARDS.length);
+  });
+
+  it("covers every variation of a multi-photo concept, not just one", () => {
+    const tasks = generateTasks("yes_no", ALL_CONCEPTS, CARDS, {});
+    const tshirtCardIds = tasks.filter((t) => t.conceptId === "tshirt").map((t) => t.card.id).sort();
+    expect(tshirtCardIds).toEqual(["t1", "t2"]);
   });
 
   it("each task has isLabelCorrect field", () => {
@@ -248,9 +254,15 @@ describe("generateTasks — find_n", () => {
 });
 
 describe("generateTasks — choose_word_by_picture", () => {
-  it("generates one task per concept (1 rep default)", () => {
+  it("generates one task per photo variation (1 rep default)", () => {
     const tasks = generateTasks("choose_word_by_picture", ALL_CONCEPTS, CARDS, {});
-    expect(tasks).toHaveLength(ALL_CONCEPTS.length);
+    expect(tasks).toHaveLength(CARDS.length);
+  });
+
+  it("covers every variation of a multi-photo concept, not just one", () => {
+    const tasks = generateTasks("choose_word_by_picture", ALL_CONCEPTS, CARDS, {});
+    const tshirtCardIds = tasks.filter((t) => t.conceptId === "tshirt").map((t) => t.card.id).sort();
+    expect(tshirtCardIds).toEqual(["t1", "t2"]);
   });
 
   it("each task has 4 label options by default", () => {
@@ -263,5 +275,28 @@ describe("generateTasks — choose_word_by_picture", () => {
     for (const t of tasks) {
       expect(t.options.filter((o) => o.isTarget)).toHaveLength(1);
     }
+  });
+});
+
+describe("generateTasks — choose_all", () => {
+  it("generates one task per concept when all its variations fit in one grid", () => {
+    const tasks = generateTasks("choose_all", ALL_CONCEPTS, CARDS, { optionCount: 6 });
+    expect(tasks).toHaveLength(ALL_CONCEPTS.length);
+  });
+
+  it("splits a concept's variations across multiple rounds instead of dropping the ones past the first grid", () => {
+    const cards = [
+      { id: "j1", conceptId: "joy", primary: true,  label: "радость", image: "j1.webp" },
+      { id: "j2", conceptId: "joy", primary: false, image: "j2.webp" },
+      { id: "j3", conceptId: "joy", primary: false, image: "j3.webp" },
+      { id: "s1", conceptId: "sadness", primary: true, label: "грусть", image: "s1.webp" },
+    ];
+    const concepts = deriveConcepts(cards);
+    // optionCount 4 -> maxTargets 2, joy has 3 variations -> 2 rounds (2 + 1)
+    const tasks = generateTasks("choose_all", concepts, cards, { optionCount: 4 });
+    const joyTasks = tasks.filter((t) => t.conceptId === "joy");
+    expect(joyTasks.length).toBeGreaterThan(1);
+    const coveredIds = joyTasks.flatMap((t) => t.targetCardIds).sort();
+    expect(coveredIds).toEqual(["j1", "j2", "j3"]);
   });
 });
