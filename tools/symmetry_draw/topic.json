@@ -4466,6 +4466,351 @@
           "cells": 2
         }
       ]
+    },
+    {
+      "id": "dictation_airplane",
+      "conceptId": "dictation_airplane",
+      "primary": true,
+      "label": "Самолёт",
+      "taskKind": "dictation",
+      "columns": 21,
+      "rows": 19,
+      "start": {
+        "col": 1,
+        "row": 10
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        }
+      ],
+      "decorations": [
+        {
+          "type": "rect",
+          "col": 4,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        },
+        {
+          "type": "rect",
+          "col": 6,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        },
+        {
+          "type": "rect",
+          "col": 8,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        },
+        {
+          "type": "rect",
+          "col": 10,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        }
+      ]
     }
   ]
 }
