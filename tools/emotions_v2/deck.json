@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.5.9",
+    "version": "1.6.0",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -938,210 +938,240 @@
       "conceptId": "joy",
       "cardType": "situation",
       "label": "На прогулке купили вкусное мороженое.",
-      "answerKey": "радость"
+      "answerKey": "радость",
+      "primary": false
     },
     {
       "id": "situation_joy_2",
       "conceptId": "joy",
       "cardType": "situation",
       "label": "Папа похвалил после занятия.",
-      "answerKey": "радость"
+      "answerKey": "радость",
+      "primary": false
     },
     {
       "id": "situation_joy_3",
       "conceptId": "joy",
       "cardType": "situation",
       "label": "Мама подарила новую игрушку.",
-      "answerKey": "радость"
+      "answerKey": "радость",
+      "primary": false
     },
     {
       "id": "situation_sadness_1",
       "conceptId": "sadness",
       "cardType": "situation",
       "label": "Папа уехал на работу.",
-      "answerKey": "грусть"
+      "answerKey": "грусть",
+      "primary": false
     },
     {
       "id": "situation_sadness_2",
       "conceptId": "sadness",
       "cardType": "situation",
       "label": "Мама забрала планшет.",
-      "answerKey": "грусть"
+      "answerKey": "грусть",
+      "primary": false
     },
     {
       "id": "situation_sadness_3",
       "conceptId": "sadness",
       "cardType": "situation",
       "label": "Папа не разрешил гулять.",
-      "answerKey": "грусть"
+      "answerKey": "грусть",
+      "primary": false
     },
     {
       "id": "situation_anger_1",
       "conceptId": "anger",
       "cardType": "situation",
       "label": "Не получается решить пример.",
-      "answerKey": "злость"
+      "answerKey": "злость",
+      "primary": false
     },
     {
       "id": "situation_anger_2",
       "conceptId": "anger",
       "cardType": "situation",
       "label": "Папа не хочет покупать колу.",
-      "answerKey": "злость"
+      "answerKey": "злость",
+      "primary": false
     },
     {
       "id": "situation_anger_3",
       "conceptId": "anger",
       "cardType": "situation",
       "label": "Сестра обзывается.",
-      "answerKey": "злость"
+      "answerKey": "злость",
+      "primary": false
     },
     {
       "id": "situation_fear_1",
       "conceptId": "fear",
       "cardType": "situation",
       "label": "На улице страшная гроза.",
-      "answerKey": "страх"
+      "answerKey": "страх",
+      "primary": false
     },
     {
       "id": "situation_fear_2",
       "conceptId": "fear",
       "cardType": "situation",
       "label": "Большая собака рычит.",
-      "answerKey": "страх"
+      "answerKey": "страх",
+      "primary": false
     },
     {
       "id": "situation_fear_3",
       "conceptId": "fear",
       "cardType": "situation",
       "label": "Ночью по крыше кто-то ходит.",
-      "answerKey": "страх"
+      "answerKey": "страх",
+      "primary": false
     },
     {
       "id": "situation_surprise_1",
       "conceptId": "surprise",
       "cardType": "situation",
       "label": "Папа с мамой устроили сюрприз.",
-      "answerKey": "удивление"
+      "answerKey": "удивление",
+      "primary": false
     },
     {
       "id": "situation_surprise_2",
       "conceptId": "surprise",
       "cardType": "situation",
       "label": "Дверь открылась сама.",
-      "answerKey": "удивление"
+      "answerKey": "удивление",
+      "primary": false
     },
     {
       "id": "situation_surprise_3",
       "conceptId": "surprise",
       "cardType": "situation",
       "label": "Неожиданно заиграла любимая музыка.",
-      "answerKey": "удивление"
+      "answerKey": "удивление",
+      "primary": false
     },
     {
       "id": "situation_calm_1",
       "conceptId": "calm",
       "cardType": "situation",
       "label": "Смотрит на спокойное море.",
-      "answerKey": "спокойствие"
+      "answerKey": "спокойствие",
+      "primary": false
     },
     {
       "id": "situation_calm_2",
       "conceptId": "calm",
       "cardType": "situation",
       "label": "Все дела сегодня сделаны.",
-      "answerKey": "спокойствие"
+      "answerKey": "спокойствие",
+      "primary": false
     },
     {
       "id": "situation_calm_3",
       "conceptId": "calm",
       "cardType": "situation",
       "label": "Гуляет в тихом парке.",
-      "answerKey": "спокойствие"
+      "answerKey": "спокойствие",
+      "primary": false
     },
     {
       "id": "situation_boredom_1",
       "conceptId": "boredom",
       "cardType": "situation",
       "label": "Стоит в длинной очереди.",
-      "answerKey": "скука"
+      "answerKey": "скука",
+      "primary": false
     },
     {
       "id": "situation_shame_1",
       "conceptId": "shame",
       "cardType": "situation",
       "label": "Папа спросил, кто пукнул в машине.",
-      "answerKey": "стыд"
+      "answerKey": "стыд",
+      "primary": false
     },
     {
       "id": "situation_tiredness_1",
       "conceptId": "tiredness",
       "cardType": "situation",
       "label": "Целый день ехали в машине в путешествие.",
-      "answerKey": "усталость"
+      "answerKey": "усталость",
+      "primary": false
     },
     {
       "id": "situation_disgust_1",
       "conceptId": "disgust",
       "cardType": "situation",
       "label": "Кто-то пукнул рядом.",
-      "answerKey": "отвращение"
+      "answerKey": "отвращение",
+      "primary": false
     },
     {
       "id": "situation_shame_2",
       "conceptId": "shame",
       "cardType": "situation",
       "label": "Друзья сказали, что от меня плохо пахнет.",
-      "answerKey": "стыд"
+      "answerKey": "стыд",
+      "primary": false
     },
     {
       "id": "situation_shame_3",
       "conceptId": "shame",
       "cardType": "situation",
       "label": "Мама ругает, что я не смываю за собой в туалете.",
-      "answerKey": "стыд"
+      "answerKey": "стыд",
+      "primary": false
     },
     {
       "id": "situation_disgust_2",
       "conceptId": "disgust",
       "cardType": "situation",
       "label": "В стакане оказалось прокисшее молоко.",
-      "answerKey": "отвращение"
+      "answerKey": "отвращение",
+      "primary": false
     },
     {
       "id": "situation_disgust_3",
       "conceptId": "disgust",
       "cardType": "situation",
       "label": "На обувь залез огромный слизень.",
-      "answerKey": "отвращение"
+      "answerKey": "отвращение",
+      "primary": false
     },
     {
       "id": "situation_boredom_2",
       "conceptId": "boredom",
       "cardType": "situation",
       "label": "За окном дождь, а играть дома надоело.",
-      "answerKey": "скука"
+      "answerKey": "скука",
+      "primary": false
     },
     {
       "id": "situation_boredom_3",
       "conceptId": "boredom",
       "cardType": "situation",
       "label": "Дорога в машине кажется очень долгой.",
-      "answerKey": "скука"
+      "answerKey": "скука",
+      "primary": false
     },
     {
       "id": "situation_tiredness_2",
       "conceptId": "tiredness",
       "cardType": "situation",
       "label": "Целый день играли с друзьями на улице.",
-      "answerKey": "усталость"
+      "answerKey": "усталость",
+      "primary": false
     },
     {
       "id": "situation_tiredness_3",
       "conceptId": "tiredness",
       "cardType": "situation",
       "label": "Уже поздно, и глаза сами закрываются.",
-      "answerKey": "усталость"
+      "answerKey": "усталость",
+      "primary": false
     }
   ]
 }
