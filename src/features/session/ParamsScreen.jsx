@@ -24,6 +24,7 @@ import { GLOBAL_MAX_PORTIONS, scalePortionQty } from "@/features/planner/recipeP
 import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
 import { extractAdjustableTemplates, computeAdjustableDefault, formatCompact, stepPortionsMultiplier, formatPortionsPhrase } from "@/topics/renderers/reading/parseRecipeTxt.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
+import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 
@@ -787,6 +788,7 @@ export default function ParamsScreen() {
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
+  const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw";
   const modeHasCategoryParam  = !!mode?.params?.category;
 
   const [showShare, setShowShare] = useState(false);
@@ -1039,6 +1041,8 @@ export default function ParamsScreen() {
     <WrittenLettersPairParams params={params} onChange={setParams} />
   ) : isComparison ? (
     <ComparisonParams params={params} onChange={setParams} />
+  ) : isSymmetryDrawPrint ? (
+    <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
   ) : (
     <>
       {!isPhraseMatch && !modeHasCategoryParam && !mode?.hideConceptPicker && (
