@@ -528,8 +528,15 @@
   (function drawRuling() {
     const ANGLE_DEG = 65; // matches make_lined_paper_landscape_standard.py (65° from horizontal / 25° from vertical)
     const SPACING = 8;
+    // A connector stroke between two letters travels a shallow diagonal (mostly sideways,
+    // a little up), nothing like a letter's own steep 65° internal stroke slant — measured
+    // from the two real captured connectors in topic.json: conn_5_4 rises 10.98/17.13 units
+    // (32.7°), conn_4_3 rises 8.10/19.76 (22.3°); 28° sits between them as a usable average.
+    // Revisit this number once more connectors are captured and the spread narrows.
+    const ANGLE_DEG_BOLD = 28;
     const SPACING_BOLD = 50; // sparse enough to trace by eye, unlike the dense SPACING=8 pitch grid
     const offset = VB_H / Math.tan(ANGLE_DEG * Math.PI / 180);
+    const offsetBold = VB_H / Math.tan(ANGLE_DEG_BOLD * Math.PI / 180);
     // Measured from every real glyph in written_letters/letterPaths.js (ClassRoomCursive.ttf),
     // not assumed symmetric: tallest ascenders (Й,Г,П,Н,З,б,А,Р…) cluster at y≈36 — exactly
     // (L1+L2)/2, matching the documented CAP_TOP=36. Deepest descenders (ф,з,д,у,р) cluster at
@@ -545,8 +552,8 @@
     for (let x0 = -offset - SPACING; x0 < CANVAS_W + SPACING; x0 += SPACING) {
       parts.push('<line class="rule-slant" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offset).toFixed(2) + '" y2="0"/>');
     }
-    for (let x0 = -offset - SPACING_BOLD; x0 < CANVAS_W + SPACING_BOLD; x0 += SPACING_BOLD) {
-      parts.push('<line class="rule-slant-bold" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offset).toFixed(2) + '" y2="0"/>');
+    for (let x0 = -offsetBold - SPACING_BOLD; x0 < CANVAS_W + SPACING_BOLD; x0 += SPACING_BOLD) {
+      parts.push('<line class="rule-slant-bold" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offsetBold).toFixed(2) + '" y2="0"/>');
     }
     parts.push('<line class="rule-line" x1="0" y1="' + L1 + '" x2="' + CANVAS_W + '" y2="' + L1 + '"/>');
     parts.push('<line class="rule-line" x1="0" y1="' + L2 + '" x2="' + CANVAS_W + '" y2="' + L2 + '"/>');
