@@ -67,7 +67,7 @@ const EXIT_LINE_OVERRIDES = {
   "б": 5, "в": 5, "ф": 5, "о": 5, "э": 5, "ю": 5, "ь": 5, "ъ": 5,
 };
 const ENTRY_LINE_OVERRIDES = {
-  "о": 3,
+  "б": 3, "а": 3, "о": 3, "ф": 3,
 };
 
 // getConnectionInfo plus the fixed per-letter type overrides above, applied only to
