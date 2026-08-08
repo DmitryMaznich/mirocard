@@ -160,7 +160,10 @@
   .rule-line { stroke: var(--nb-line); stroke-width: 0.5; }
   .rule-line.bold { stroke: var(--nb-line-bold); stroke-width: 0.9; }
   .rule-red-h { stroke: var(--nb-red); stroke-width: 0.4; stroke-dasharray: 2 1.4; }
-  .rule-red-v { stroke: var(--nb-red); stroke-width: 0.3; opacity: 0.55; }
+  /* Distinct from .rule-red-h on purpose — marks the letter-start reference height
+     (NARROW_UPPER_QUARTER/NARROW_LOWER_QUARTER), a different kind of guide than the
+     ascender/descender mid-band lines even though both are dashed horizontals. */
+  .rule-green-h { stroke: rgba(46, 163, 89, 0.6); stroke-width: 0.4; stroke-dasharray: 2 1.4; }
   .rule-label { fill: var(--ink-soft); font-size: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
   .guide-path { fill: rgba(20, 30, 50, 0.12); stroke: none; }
   .raw-stroke { fill: none; stroke: var(--pen-raw); stroke-width: 0.35; stroke-linecap: round; stroke-linejoin: round; }
@@ -567,11 +570,8 @@
     // across the two captured connectors) came out much shallower than the stroke visually
     // reads as, since a connector's curve isn't a straight line and most of its visible
     // length runs steeper than its net start-to-end displacement. Close to but a bit less
-    // than the letter-internal ANGLE_DEG=65. (58° still read as too steep; 50° next.)
+    // than the letter-internal ANGLE_DEG=65. (58° still read as too steep; 50° settled on.)
     const ANGLE_DEG_BOLD = 50;
-    const SPACING_BOLD = 50; // sparse enough to trace by eye, unlike the dense SPACING=8 pitch grid
-    const offset = VB_H / Math.tan(ANGLE_DEG * Math.PI / 180);
-    const offsetBold = VB_H / Math.tan(ANGLE_DEG_BOLD * Math.PI / 180);
     // Measured from every real glyph in written_letters/letterPaths.js (ClassRoomCursive.ttf),
     // not assumed symmetric: tallest ascenders (Й,Г,П,Н,З,б,А,Р…) cluster at y≈36 — exactly
     // (L1+L2)/2, matching the documented CAP_TOP=36. Deepest descenders (ф,з,д,у,р) cluster at
@@ -580,12 +580,28 @@
     const TOP_MID = (L1 + L2) / 2; // = 36
     const BOT_MID = 110;
     // NARROW_MID (x-height band center, = 75) is declared in the outer scope above.
+    // Where the old vertical width-pitch guides crossed the 65° slant lines turned out to be
+    // exactly halfway between NARROW_MID and the x-height band's own top/bottom edges (L2,
+    // L3) — a real, useful "where a letter's stroke tends to start" reference on its own,
+    // independent of any vertical line. These replace the verticals for that purpose.
+    const NARROW_UPPER_QUARTER = (NARROW_MID + L2) / 2; // = 68.5
+    const NARROW_LOWER_QUARTER = (NARROW_MID + L3) / 2; // = 81.5
     let parts = [];
-    for (let x0 = -offset - SPACING; x0 < CANVAS_W + SPACING; x0 += SPACING) {
-      parts.push('<line class="rule-slant" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offset).toFixed(2) + '" y2="0"/>');
-    }
-    for (let x0 = -offsetBold - SPACING_BOLD; x0 < CANVAS_W + SPACING_BOLD; x0 += SPACING_BOLD) {
-      parts.push('<line class="rule-slant-bold" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offsetBold).toFixed(2) + '" y2="0"/>');
+    // Every slant line (thin 65° pitch grid and bold 50° connector guide alike) is anchored
+    // at its own crossing of the baseline (L3), not at the canvas bottom edge — so a thin and
+    // a bold line sharing the same x0 baseline point are guaranteed to cross exactly there,
+    // regardless of how their differing angles make them diverge above/below it. Both share
+    // the same x0 grid (SPACING) per the artist's own reference: the bold connector guide
+    // should sit at the same pitch as the ordinary pitch grid, not its own sparser one.
+    const belowThin = (VB_H - L3) / Math.tan(ANGLE_DEG * Math.PI / 180);
+    const aboveThin = L3 / Math.tan(ANGLE_DEG * Math.PI / 180);
+    const belowBold = (VB_H - L3) / Math.tan(ANGLE_DEG_BOLD * Math.PI / 180);
+    const aboveBold = L3 / Math.tan(ANGLE_DEG_BOLD * Math.PI / 180);
+    const loopFrom = -Math.max(belowThin, belowBold) - SPACING;
+    const loopTo = CANVAS_W + Math.max(aboveThin, aboveBold) + SPACING;
+    for (let x0 = loopFrom; x0 < loopTo; x0 += SPACING) {
+      parts.push('<line class="rule-slant" x1="' + (x0 - belowThin).toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + aboveThin).toFixed(2) + '" y2="0"/>');
+      parts.push('<line class="rule-slant-bold" x1="' + (x0 - belowBold).toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + aboveBold).toFixed(2) + '" y2="0"/>');
     }
     parts.push('<line class="rule-line" x1="0" y1="' + L1 + '" x2="' + CANVAS_W + '" y2="' + L1 + '"/>');
     parts.push('<line class="rule-line" x1="0" y1="' + L2 + '" x2="' + CANVAS_W + '" y2="' + L2 + '"/>');
@@ -595,16 +611,16 @@
     parts.push('<line class="rule-red-h" x1="0" y1="' + TOP_MID + '" x2="' + CANVAS_W + '" y2="' + TOP_MID + '"/>');
     parts.push('<line class="rule-red-h" x1="0" y1="' + BOT_MID + '" x2="' + CANVAS_W + '" y2="' + BOT_MID + '"/>');
     parts.push('<line class="rule-red-h" x1="0" y1="' + NARROW_MID + '" x2="' + CANVAS_W + '" y2="' + NARROW_MID + '"/>');
+    // green height guides — the letter-start reference discovered via the (now removed)
+    // vertical/slant intersections, kept in a distinct color from the red mid-band lines
+    parts.push('<line class="rule-green-h" x1="0" y1="' + NARROW_UPPER_QUARTER + '" x2="' + CANVAS_W + '" y2="' + NARROW_UPPER_QUARTER + '"/>');
+    parts.push('<line class="rule-green-h" x1="0" y1="' + NARROW_LOWER_QUARTER + '" x2="' + CANVAS_W + '" y2="' + NARROW_LOWER_QUARTER + '"/>');
     // numbered labels for every horizontal guide, top to bottom, so a specific line can be
     // referenced by number (e.g. "line 4" = NARROW_MID, where most letter strokes start/end)
-    const H_GUIDES = [L1, TOP_MID, L2, NARROW_MID, L3, BOT_MID, L4].sort((a, b) => a - b);
+    const H_GUIDES = [L1, TOP_MID, L2, NARROW_UPPER_QUARTER, NARROW_MID, NARROW_LOWER_QUARTER, L3, BOT_MID, L4].sort((a, b) => a - b);
     H_GUIDES.forEach((y, i) => {
       parts.push('<text class="rule-label" x="1" y="' + (y - 1.2) + '">' + (i + 1) + '</text>');
     });
-    // red width guides — vertical, same pitch as the slant lines, to keep letters a consistent width
-    for (let x0 = 0; x0 <= CANVAS_W + 0.001; x0 += SPACING) {
-      parts.push('<line class="rule-red-v" x1="' + x0.toFixed(2) + '" y1="0" x2="' + x0.toFixed(2) + '" y2="' + VB_H + '"/>');
-    }
     // slot dividers — faint, mark where each of the up-to-3 letter cells starts
     for (let i = 1; i < SLOTS; i++) {
       parts.push('<line class="rule-line" x1="' + (i * VB_W) + '" y1="0" x2="' + (i * VB_W) + '" y2="' + VB_H + '" stroke-dasharray="3 2"/>');
