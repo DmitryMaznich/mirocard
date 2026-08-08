@@ -207,18 +207,21 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
     );
   });
 
-  it("attaches the next letter so its own raw entry point exactly meets the connector's translated end", () => {
+  it("attaches the next letter so its own raw entry point exactly meets the connector's translated end (both axes)", () => {
     const connectors = new Map([["2_4", EXIT_CONNECTOR_2]]);
     const result = buildWordTrajectory(WORD, letters, connectors);
 
     const exit2Contacts = getBaselineContacts(LETTER_EXIT_2);
     const connInfo = getConnectionInfo(EXIT_CONNECTOR_2);
     const dx = exit2Contacts.last[0] - connInfo.entryPoint[0];
-    const connectorEndX = connInfo.exitPoint[0] + dx;
+    const dy = exit2Contacts.last[1] - connInfo.entryPoint[1];
+    const connectorEnd = [connInfo.exitPoint[0] + dx, connInfo.exitPoint[1] + dy];
 
-    const expectedOffset = connectorEndX - getConnectionInfo(LETTER_A).entryPoint[0];
+    const aEntry = getConnectionInfo(LETTER_A).entryPoint;
+    const expectedDx = connectorEnd[0] - aEntry[0];
+    const expectedDy = connectorEnd[1] - aEntry[1];
     expect(result.strokes[2].d).toBe(
-      transformPathD(LETTER_A.strokes[0].d, { translateX: expectedOffset })
+      transformPathD(LETTER_A.strokes[0].d, { translateX: expectedDx, translateY: expectedDy })
     );
   });
 

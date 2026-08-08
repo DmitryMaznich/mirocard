@@ -33,7 +33,8 @@ export default function WordAnimatedCard({ trajectory }) {
             strokeLinecap="round" strokeLinejoin="round" opacity={0.15} />
         ))}
         {trajectory.strokes.map((s, i) => (
-          <path key={`a${i}`} data-pr-anim={i} d={s.d} fill="none" stroke={INK_COLOR}
+          <path key={`a${i}`} data-pr-anim={i} data-pr-continuous={s.continuous ? "1" : undefined}
+            d={s.d} fill="none" stroke={INK_COLOR}
             strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
         ))}
         <circle data-pr-tip r={TIP_R} cx="0" cy="0" fill={NIB_COLOR} opacity="0" />

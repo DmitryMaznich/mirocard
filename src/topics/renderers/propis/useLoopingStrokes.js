@@ -60,12 +60,17 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
         timersRef.current.push(t);
         return;
       }
+      // A stroke marked continuous (wordEngine.js: a connector/bridge piece, or the letter
+      // stroke it feeds into) is the same unbroken pen motion as the one before it — no
+      // pause, unlike a genuine pen-lift between a letter's own separate strokes. The pause
+      // (or lack of it) belongs entirely here, gating entry into stroke i — animStroke's
+      // onDone goes straight to runStroke(i + 1) so a continuous i + 1 never picks up a
+      // second, redundant pause on top of this one.
+      const el = g.querySelector(`[data-pr-anim="${i}"]`);
+      const pause = el?.getAttribute("data-pr-continuous") === "1" ? 0 : PAUSE;
       const t = setTimeout(() => {
-        animStroke(g, i, tip, () => {
-          const t2 = setTimeout(() => runStroke(i + 1), PAUSE);
-          timersRef.current.push(t2);
-        });
-      }, PAUSE);
+        animStroke(g, i, tip, () => runStroke(i + 1));
+      }, pause);
       timersRef.current.push(t);
     }
 

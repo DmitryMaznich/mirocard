@@ -99,8 +99,17 @@ export function getBaselineContacts(item) {
   return findClosestApproach(points, NATIVE_L3, BASELINE_CONTACT_TOLERANCE);
 }
 
-function translateStrokes(strokes, dx) {
-  return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
+function translateStrokes(strokes, dx, dy = 0) {
+  return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) }));
+}
+
+// Marks strokes as part of one continuous pen motion with whatever comes immediately
+// before them — the animation player (useLoopingStrokes) skips its usual inter-stroke
+// pause for these, since a real connecting stroke between letters in a word is never a
+// pen-lift the way a letter's own separate strokes are (e.g. "Б"'s crossbar, which stays
+// unmarked and keeps the normal pause).
+function markContinuous(strokes) {
+  return strokes.map((s) => ({ ...s, continuous: true }));
 }
 
 function straightBridge(fromPoint, toPoint) {
@@ -179,54 +188,63 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     const info = resolveConnectionInfo(letter);
     const contacts = getBaselineContacts(letter);
 
-    let offset;
+    let dx = 0;
+    let dy = 0;
+    const bridging = !!prev; // was anything (connector or straight bridge) placed before this letter?
 
-    if (!prev) {
-      offset = 0;
-    } else {
+    if (prev) {
       const exitConnector = findExitConnector(connectorsByKey, prev.exitLine);
       if (exitConnector) {
         // Real captured connector: place it as-is against where the previous letter
         // actually sits on the baseline — no LETTER_GAP involved, the connector's own
         // length is the distance (see placeExitConnector).
         const placed = placeExitConnector(exitConnector, prev.baselineContactWorld);
-        strokes.push(...placed.strokes);
+        strokes.push(...markContinuous(placed.strokes));
 
         const entryConnector = findEntryConnector(connectorsByKey, info.entryLine);
         if (entryConnector) {
           // This letter needs its own lead-in stroke too: chain it directly onto the
-          // exit connector's own end (both translate-only — the two pieces meet
-          // wherever they naturally do, never stretched to force an exact join), then
-          // place the letter so its raw entry point lands at the lead-in's own end.
-          // X-only frame shift, matching every other letter placement in this function —
-          // placeEntryConnectorLocal already anchored the connector's own end to this
-          // letter's real entry point in both axes, so shifting the whole local group by
-          // dx alone keeps that relationship intact; only the join to the exit connector's
-          // end is allowed the same small vertical give every other transition already has.
+          // exit connector's own end (both translate-only — the two pieces meet exactly,
+          // full x/y match, never stretched to force a join). placeEntryConnectorLocal
+          // already anchored the connector's own end to this letter's real entry point in
+          // both axes, so shifting the whole local group by the same (dx,dy) keeps that
+          // relationship intact too.
           const localEntry = placeEntryConnectorLocal(entryConnector, info.entryPoint);
-          const dx = placed.endPoint[0] - localEntry.startPoint[0];
-          strokes.push(...localEntry.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) })));
-          offset = dx;
+          dx = placed.endPoint[0] - localEntry.startPoint[0];
+          dy = placed.endPoint[1] - localEntry.startPoint[1];
+          strokes.push(...markContinuous(translateStrokes(localEntry.strokes, dx, dy)));
         } else {
-          offset = placed.endPoint[0] - info.entryPoint[0];
+          // No lead-in needed: the letter's own raw entry point moves to meet the
+          // connector's end exactly, in both axes.
+          dx = placed.endPoint[0] - info.entryPoint[0];
+          dy = placed.endPoint[1] - info.entryPoint[1];
         }
       } else {
         // No captured connector for this letter's exit type yet: fall back to the
         // baseline-contact-based LETTER_GAP norm, bridged with a plain straight stroke
-        // between the real entry/exit *points* (not the baseline-contact points).
-        offset = prev.baselineContactWorld[0] + LETTER_GAP - contacts.first[0];
-        const entryPointWorld = [info.entryPoint[0] + offset, info.entryPoint[1]];
-        strokes.push(straightBridge(prev.exitPointWorld, entryPointWorld));
+        // between the real entry/exit *points* (not the baseline-contact points). Purely
+        // horizontal, same as the letter placement it feeds.
+        dx = prev.baselineContactWorld[0] + LETTER_GAP - contacts.first[0];
+        const entryPointWorld = [info.entryPoint[0] + dx, info.entryPoint[1]];
+        strokes.push({ ...straightBridge(prev.exitPointWorld, entryPointWorld), continuous: true });
       }
     }
 
-    strokes.push(...translateStrokes(letter.strokes, offset));
+    const placedLetterStrokes = translateStrokes(letter.strokes, dx, dy);
+    // Only the letter's own FIRST stroke continues the incoming connector/bridge without a
+    // pause — any further strokes of this same letter (e.g. "Б"'s separate crossbar) are a
+    // genuine pen-lift and keep the normal pause between them.
+    if (bridging && placedLetterStrokes.length > 0) {
+      placedLetterStrokes[0] = { ...placedLetterStrokes[0], continuous: true };
+    }
+    strokes.push(...placedLetterStrokes);
+
     prev = {
       exitLine: info.exitLine,
-      exitPointWorld: [info.exitPoint[0] + offset, info.exitPoint[1]],
-      baselineContactWorld: [contacts.last[0] + offset, contacts.last[1]],
+      exitPointWorld: [info.exitPoint[0] + dx, info.exitPoint[1] + dy],
+      baselineContactWorld: [contacts.last[0] + dx, contacts.last[1] + dy],
     };
-    rightEdge = Math.max(rightEdge, offset + letterBoxWidth(letter));
+    rightEdge = Math.max(rightEdge, dx + letterBoxWidth(letter));
   });
 
   return { strokes, totalWidthUnits: rightEdge, viewBox: `0 0 ${rightEdge} 150` };
