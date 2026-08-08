@@ -51,6 +51,37 @@ export function getConnectionInfo(item) {
   };
 }
 
+// A letter's exit/entry "type" (which numbered guide line its connecting stroke belongs
+// to) is a fixed property of the letter itself, per Russian cursive methodology — б, в, ф
+// all finish with the same loop-back-to-the-line hook regardless of which specific captured
+// sample you look at. It is NOT reliably the guide line closest to where one particular
+// hand-drawn sample's stroke happens to end: real captures vary (this exact б sample's own
+// stroke ends at line 2, в's at line 3, purely from where each artist's pen lifted), so
+// classifying by raw geometry alone put б and в in different connector buckets even though
+// they take the same connector. Letters confirmed here override classifyLine's geometric
+// guess; anything not listed falls back to it. Keyed by `label` (not `id`) to match how the
+// rest of the engine identifies which character a card represents (see WriteWordsView's
+// lettersByLabel) — test fixtures below intentionally omit `label` so they never collide
+// with this table.
+const EXIT_LINE_OVERRIDES = {
+  "б": 5, "в": 5, "ф": 5, "о": 5, "э": 5, "ю": 5, "ь": 5, "ъ": 5,
+};
+const ENTRY_LINE_OVERRIDES = {};
+
+// getConnectionInfo plus the fixed per-letter type overrides above, applied only to
+// entryLine/exitLine (the classification used to pick a connector) — entryPoint/exitPoint
+// stay the letter's own real geometry either way, since bridges must still connect to
+// where the pen actually is, not to an abstract type.
+export function resolveConnectionInfo(item) {
+  const info = getConnectionInfo(item);
+  const label = item.label;
+  return {
+    ...info,
+    entryLine: ENTRY_LINE_OVERRIDES[label] ?? info.entryLine,
+    exitLine: EXIT_LINE_OVERRIDES[label] ?? info.exitLine,
+  };
+}
+
 // Where a letter's trajectory last "sits" on the baseline before the previous letter's
 // stroke lifts off (last), and where it first sits on the baseline as the next letter's
 // stroke touches down (first) — this is what determines visual letter-to-letter spacing in
@@ -117,7 +148,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     if (!letter) {
       throw new Error(`buildWordTrajectory: letter "${ch}" is not in the letter library`);
     }
-    const info = getConnectionInfo(letter);
+    const info = resolveConnectionInfo(letter);
     const contacts = getBaselineContacts(letter);
     // First letter starts at 0; every next letter is placed so its own baseline-contact
     // point lands exactly LETTER_GAP after the previous letter's own baseline-contact

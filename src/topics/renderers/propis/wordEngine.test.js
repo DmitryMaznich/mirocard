@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { transformPathD } from "./pathGeometry.js";
-import { classifyLine, getConnectionInfo, getBaselineContacts, buildWordTrajectory, LETTER_GAP } from "./wordEngine.js";
+import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, LETTER_GAP } from "./wordEngine.js";
 
 const LETTER_A = {
   id: "а",
@@ -56,6 +56,29 @@ describe("getConnectionInfo", () => {
 
   it("throws a clear error for an item with no strokes", () => {
     expect(() => getConnectionInfo({ id: "x", strokes: [] })).toThrow(/x/);
+  });
+});
+
+describe("resolveConnectionInfo", () => {
+  it("overrides exitLine for a letter in the fixed type table, ignoring this sample's own geometry", () => {
+    // This stroke's own exit y=75 would geometrically classify to line 4, but "б" is a
+    // fixed-type letter (line 5) regardless of where any one captured sample happens to end.
+    const item = { id: "custom", label: "б", strokes: [{ d: "M 10 75 C 12 74 14 74 16 75 C 18 76 20 76 22 75" }] };
+    expect(resolveConnectionInfo(item).exitLine).toBe(5);
+  });
+
+  it("falls back to geometric classification for a letter with no override", () => {
+    const item = { id: "custom", label: "щ", strokes: [{ d: "M 10 75 C 12 74 14 74 16 75 C 18 76 20 76 22 75" }] };
+    expect(resolveConnectionInfo(item).exitLine).toBe(4);
+  });
+
+  it("falls back to geometric classification when the item has no label at all", () => {
+    expect(resolveConnectionInfo(LETTER_B_HIGH_ENTRY).exitLine).toBe(classifyLine(75));
+  });
+
+  it("leaves the real entry/exit points unaffected by the override", () => {
+    const item = { id: "custom", label: "б", strokes: [{ d: "M 10 75 C 12 74 14 74 16 75 C 18 76 20 76 22 75" }] };
+    expect(resolveConnectionInfo(item).exitPoint).toEqual([22, 75]);
   });
 });
 
