@@ -292,5 +292,27 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     rightEdge = Math.max(rightEdge, dx + letterBoxWidth(letter));
   });
 
+  // A captured letter/connector's own raw geometry can dip a few units below x=0 (hand
+  // tremor just before a capture slot's left boundary) — harmless for any letter placed
+  // mid-word (dx already shifts it right), but the WORD's first letter renders at dx=0, its
+  // own native coordinates untouched, so a negative sliver there clips visibly off the left
+  // edge of the SVG viewBox (which always starts at x=0). Confirmed to happen in production
+  // for "а"/"д" after a capture upload — topic.json has since been corrected too, but this
+  // is the durable fix: shift the whole trajectory right by whatever's needed so nothing
+  // ever renders left of x=0, regardless of what any future capture's raw data does.
+  let minX = 0;
+  for (const s of strokes) {
+    for (const p of samplePath(s.d)) {
+      if (p[0] < minX) minX = p[0];
+    }
+  }
+  if (minX < 0) {
+    const shift = -minX;
+    for (let i = 0; i < strokes.length; i += 1) {
+      strokes[i] = { ...strokes[i], d: transformPathD(strokes[i].d, { translateX: shift }) };
+    }
+    rightEdge += shift;
+  }
+
   return { strokes, totalWidthUnits: rightEdge, viewBox: `0 0 ${rightEdge} 150` };
 }
