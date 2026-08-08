@@ -300,3 +300,41 @@ describe("buildWordTrajectory — entry connectors chained after exit connectors
     expect(placedEntry.end[0] - placedEntry.start[0]).toBeCloseTo(ownEntry.end[0] - ownEntry.start[0], 6);
   });
 });
+
+describe("buildWordTrajectory — entry connector fires even without a matching exit connector", () => {
+  // Regression case: б/а/о/ф each have their own entry connector (line 4 → line 3), but the
+  // original implementation only ever looked up the entry connector *inside* the branch
+  // where the previous letter's own exit connector was found — so following a letter with
+  // no captured exit type (e.g. "д", which has no EXIT_LINE_OVERRIDES entry) silently fell
+  // back to a plain straight bridge, skipping the entry connector entirely.
+  const PREV_LETTER = { id: "prev2", label: "в", strokes: [{ d: "M 10 70 C 12 71 14 72 16 73" }] };
+  const NEXT_LETTER = { id: "next2", label: "о", strokes: [{ d: "M 50 60 C 52 61 54 62 56 63" }] };
+  const ENTRY_CONNECTOR = { id: "conn_4_3", type: "connector", fromLine: 4, toLine: 3, strokes: [{ d: "M 20 75 C 22 70 24 65 26 60" }] };
+  const letters = new Map([["в", PREV_LETTER], ["о", NEXT_LETTER]]);
+  // Deliberately no "5_4" exit connector registered — "в" overrides to exitLine 5 in
+  // production, but nothing here can satisfy findExitConnector for it.
+  const connectorsNoExit = new Map([["4_3", ENTRY_CONNECTOR]]);
+
+  it("still attaches the entry connector as a lead-in, bridged with the plain LETTER_GAP straight bridge", () => {
+    const result = buildWordTrajectory("во", letters, connectorsNoExit);
+    // prev letter, straight bridge (to entry connector's start), entry connector, next letter
+    expect(result.strokes).toHaveLength(4);
+    expect(result.strokes[1].d).toMatch(/^M [\d.-]+ [\d.-]+ L [\d.-]+ [\d.-]+$/);
+  });
+
+  it("chains the straight bridge into the entry connector's start with no gap", () => {
+    const result = buildWordTrajectory("во", letters, connectorsNoExit);
+    const bridgeEnd = getPathEndpoints(result.strokes[1].d).end;
+    const entryStart = getPathEndpoints(result.strokes[2].d).start;
+    expect(bridgeEnd[0]).toBeCloseTo(entryStart[0], 6);
+    expect(bridgeEnd[1]).toBeCloseTo(entryStart[1], 6);
+  });
+
+  it("places the next letter's own raw entry point exactly at the entry connector's translated end", () => {
+    const result = buildWordTrajectory("во", letters, connectorsNoExit);
+    const entryConnectorEnd = getPathEndpoints(result.strokes[2].d).end;
+    const letterStart = getPathEndpoints(result.strokes[3].d).start;
+    expect(letterStart[0]).toBeCloseTo(entryConnectorEnd[0], 6);
+    expect(letterStart[1]).toBeCloseTo(entryConnectorEnd[1], 6);
+  });
+});

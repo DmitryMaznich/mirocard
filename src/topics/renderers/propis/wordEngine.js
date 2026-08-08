@@ -220,6 +220,15 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
 
     if (prev) {
       const exitConnector = findExitConnector(connectorsByKey, prev.exitLine);
+      // Looked up regardless of whether the previous letter had its own captured exit
+      // connector — a letter's lead-in stroke is its own property (e.g. б/а/о/ф all lead
+      // in from line 4 down to line 3), not something that only exists when chained onto a
+      // specific predecessor. Gating this behind `if (exitConnector)` (the original design)
+      // meant а/б/о/ф only got their lead-in when preceded by one of the few letters with a
+      // captured exit type (е.g. after "д", which has no exit override, it silently fell
+      // back to a plain straight bridge with no entry connector at all).
+      const entryConnector = findEntryConnector(connectorsByKey, info.entryLine);
+
       if (exitConnector) {
         // Real captured connector: place it as-is against where the previous letter
         // actually sits on the baseline — no LETTER_GAP involved, the connector's own
@@ -227,7 +236,6 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
         const placed = placeExitConnector(exitConnector, prev.baselineContactWorld);
         strokes.push(...markContinuous(placed.strokes));
 
-        const entryConnector = findEntryConnector(connectorsByKey, info.entryLine);
         if (entryConnector) {
           // This letter needs its own lead-in stroke too. placeEntryConnectorLocal already
           // anchored the connector's own end to this letter's real (unshifted) entry point,
@@ -246,6 +254,16 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
           const shiftedEntryPoint = [info.entryPoint[0] + dx, info.entryPoint[1]];
           strokes.push(...residualBridge(placed.endPoint, shiftedEntryPoint));
         }
+      } else if (entryConnector) {
+        // No captured exit connector for the previous letter's type, but this letter still
+        // has its own lead-in stroke: bridge with the same LETTER_GAP norm and reference
+        // points as the plain fallback below (so spacing stays consistent either way), then
+        // let the entry connector lead into the letter as usual.
+        const localEntry = placeEntryConnectorLocal(entryConnector, info.entryPoint);
+        dx = prev.baselineContactWorld[0] + LETTER_GAP - contacts.first[0];
+        const shiftedStart = [localEntry.startPoint[0] + dx, localEntry.startPoint[1]];
+        strokes.push({ ...straightBridge(prev.exitPointWorld, shiftedStart), continuous: true });
+        strokes.push(...markContinuous(translateStrokes(localEntry.strokes, dx, 0)));
       } else {
         // No captured connector for this letter's exit type yet: fall back to the
         // baseline-contact-based LETTER_GAP norm, bridged with a plain straight stroke
