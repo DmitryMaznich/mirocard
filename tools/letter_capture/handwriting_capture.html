@@ -153,6 +153,10 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.28);
   }
   .rule-slant { stroke: var(--nb-slant); stroke-width: 0.35; }
+  /* Bold, sparse, same 65° angle as .rule-slant — a second, clearly visible guide (unlike
+     the thin/dense .rule-slant pitch grid) meant for freehanding a connector stroke at a
+     consistent angle, not for the letter-width pitch .rule-slant already serves. */
+  .rule-slant-bold { stroke: rgba(46, 163, 89, 0.55); stroke-width: 1; }
   .rule-line { stroke: var(--nb-line); stroke-width: 0.5; }
   .rule-line.bold { stroke: var(--nb-line-bold); stroke-width: 0.9; }
   .rule-red-h { stroke: var(--nb-red); stroke-width: 0.4; stroke-dasharray: 2 1.4; }
@@ -524,6 +528,7 @@
   (function drawRuling() {
     const ANGLE_DEG = 65; // matches make_lined_paper_landscape_standard.py (65° from horizontal / 25° from vertical)
     const SPACING = 8;
+    const SPACING_BOLD = 50; // sparse enough to trace by eye, unlike the dense SPACING=8 pitch grid
     const offset = VB_H / Math.tan(ANGLE_DEG * Math.PI / 180);
     // Measured from every real glyph in written_letters/letterPaths.js (ClassRoomCursive.ttf),
     // not assumed symmetric: tallest ascenders (Й,Г,П,Н,З,б,А,Р…) cluster at y≈36 — exactly
@@ -539,6 +544,9 @@
     let parts = [];
     for (let x0 = -offset - SPACING; x0 < CANVAS_W + SPACING; x0 += SPACING) {
       parts.push('<line class="rule-slant" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offset).toFixed(2) + '" y2="0"/>');
+    }
+    for (let x0 = -offset - SPACING_BOLD; x0 < CANVAS_W + SPACING_BOLD; x0 += SPACING_BOLD) {
+      parts.push('<line class="rule-slant-bold" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offset).toFixed(2) + '" y2="0"/>');
     }
     parts.push('<line class="rule-line" x1="0" y1="' + L1 + '" x2="' + CANVAS_W + '" y2="' + L1 + '"/>');
     parts.push('<line class="rule-line" x1="0" y1="' + L2 + '" x2="' + CANVAS_W + '" y2="' + L2 + '"/>');
