@@ -153,22 +153,7 @@ describe("buildWordTrajectory", () => {
     );
   });
 
-  it("uses a matching connector's (translated + x-scaled) strokes when lines differ", () => {
-    const connector = {
-      id: "conn_4_2",
-      type: "connector",
-      fromLine: 4,
-      toLine: 2,
-      strokes: [{ d: "M 0 75 C 1 60 2 50 3 37" }],
-    };
-    const connectors = new Map([["4_2", connector]]);
-    const result = buildWordTrajectory("аб", letters, connectors);
-    expect(result.strokes).toHaveLength(3); // letter а, connector bridge, letter б
-    expect(result.strokes[1].d).not.toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
-    expect(result.strokes[1].d.startsWith("M 22.000")).toBe(true); // connector start snapped to а's exit point
-  });
-
-  it("falls back to a straight bridge when the needed connector is missing", () => {
+  it("falls back to a straight bridge when no exit connector matches the previous letter's type", () => {
     const result = buildWordTrajectory("аб", letters, new Map());
     expect(result.strokes).toHaveLength(3);
     expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
@@ -184,5 +169,54 @@ describe("buildWordTrajectory", () => {
     const result = buildWordTrajectory("", letters, new Map());
     expect(result.strokes).toEqual([]);
     expect(result.totalWidthUnits).toBe(0);
+  });
+});
+
+describe("buildWordTrajectory — exit connectors (real, hand-drawn, never rescaled)", () => {
+  const letters = new Map([["а", LETTER_A]]);
+  // LETTER_A's exitLine is geometrically 4 (no label -> no type override), so a connector
+  // keyed "4_4" is what a captured connector for this exit type would look like.
+  const EXIT_CONNECTOR_4 = {
+    id: "conn_4_4",
+    type: "connector",
+    fromLine: 4,
+    toLine: 4,
+    strokes: [{ d: "M 0 75 C 5 74 10 74 15 75" }],
+  };
+
+  it("places the connector translated (never rescaled) so its own start lands on the previous letter's baseline-contact point", () => {
+    const connectors = new Map([["4_4", EXIT_CONNECTOR_4]]);
+    const result = buildWordTrajectory("аа", letters, connectors);
+
+    const aContacts = getBaselineContacts(LETTER_A);
+    const connInfo = getConnectionInfo(EXIT_CONNECTOR_4);
+    const dx = aContacts.last[0] - connInfo.entryPoint[0];
+    const dy = aContacts.last[1] - connInfo.entryPoint[1];
+
+    expect(result.strokes).toHaveLength(3); // letter, connector, letter — no separate bridge
+    expect(result.strokes[1].d).toBe(
+      transformPathD(EXIT_CONNECTOR_4.strokes[0].d, { translateX: dx, translateY: dy })
+    );
+  });
+
+  it("attaches the next letter so its own raw entry point exactly meets the connector's translated end", () => {
+    const connectors = new Map([["4_4", EXIT_CONNECTOR_4]]);
+    const result = buildWordTrajectory("аа", letters, connectors);
+
+    const aContacts = getBaselineContacts(LETTER_A);
+    const connInfo = getConnectionInfo(EXIT_CONNECTOR_4);
+    const dx = aContacts.last[0] - connInfo.entryPoint[0];
+    const connectorEndX = connInfo.exitPoint[0] + dx;
+
+    const expectedOffset = connectorEndX - getConnectionInfo(LETTER_A).entryPoint[0];
+    expect(result.strokes[2].d).toBe(
+      transformPathD(LETTER_A.strokes[0].d, { translateX: expectedOffset })
+    );
+  });
+
+  it("does not touch the connector at all when no exit connector matches this letter's type", () => {
+    const result = buildWordTrajectory("аа", letters, new Map());
+    expect(result.strokes).toHaveLength(3);
+    expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/); // plain straight bridge instead
   });
 });

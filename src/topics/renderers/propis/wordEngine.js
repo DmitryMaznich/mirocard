@@ -109,20 +109,30 @@ function straightBridge(fromPoint, toPoint) {
   return { d: `M ${x1} ${y1} L ${x2} ${y2}` };
 }
 
-// Snaps the connector's own start point onto fromPoint and its own end point onto
-// toPoint. Only x is rescaled (the connector's own shape/height is authored to already
-// match its fromLine/toLine y values) — y is only translated, per the design spec.
-function fitConnectorStrokes(connector, fromPoint, toPoint) {
+// A hand-captured connector's own start point moves to `anchor` — translation only, never
+// rescaled. The connector's own drawn length and shape ARE the correct distance and shape
+// for this letter's exit type; stretching it to hit some independently computed target
+// point (the earlier approach) defeats the point of having a real captured connector at
+// all. Returns the translated strokes plus where its own end point landed, which becomes
+// the anchor the next letter (or, once one exists, that letter's own entry connector)
+// attaches to in turn.
+function placeExitConnector(connector, anchor) {
   const info = getConnectionInfo(connector);
-  const connStart = info.entryPoint;
-  const connEnd = info.exitPoint;
-  const dx = connEnd[0] - connStart[0];
-  const scaleX = dx === 0 ? 1 : (toPoint[0] - fromPoint[0]) / dx;
-  const translateX = fromPoint[0] - scaleX * connStart[0];
-  const translateY = fromPoint[1] - connStart[1];
-  return connector.strokes.map((s) => ({
-    d: transformPathD(s.d, { scaleX, translateX, translateY }),
-  }));
+  const dx = anchor[0] - info.entryPoint[0];
+  const dy = anchor[1] - info.entryPoint[1];
+  return {
+    strokes: connector.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) })),
+    endPoint: [info.exitPoint[0] + dx, info.exitPoint[1] + dy],
+  };
+}
+
+// A captured exit connector is keyed by the letter type it attaches to, always ending on
+// line 4 (see propisRuling.js's NATIVE_NARROW_MID — the height most letters naturally sit
+// at, so it's the universal hand-off point). Entry connectors (for letters like а/о that
+// need their own lead-in from that hand-off point) would be the mirror case, keyed
+// `4_${entryType}` — none captured yet, so next letters always attach directly for now.
+function findExitConnector(connectorsByKey, exitType) {
+  return connectorsByKey.get(`${exitType}_4`);
 }
 
 function letterBoxWidth(letter) {
@@ -138,9 +148,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
   }
 
   const strokes = [];
-  let prevExitLine = null;
-  let prevExitPointWorld = null;
-  let prevExitContactX = null;
+  let prev = null; // { exitLine, exitPointWorld, baselineContactWorld }
   let rightEdge = 0;
 
   chars.forEach((ch) => {
@@ -150,31 +158,37 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     }
     const info = resolveConnectionInfo(letter);
     const contacts = getBaselineContacts(letter);
-    // First letter starts at 0; every next letter is placed so its own baseline-contact
-    // point lands exactly LETTER_GAP after the previous letter's own baseline-contact
-    // point. The bridge itself still connects the real entry/exit *stroke* points below —
-    // placement and bridge-drawing intentionally use two different reference points.
-    const offset = prevExitContactX !== null ? prevExitContactX + LETTER_GAP - contacts.first[0] : 0;
-    const entryPointWorld = [info.entryPoint[0] + offset, info.entryPoint[1]];
-    const exitPointWorld = [info.exitPoint[0] + offset, info.exitPoint[1]];
 
-    if (prevExitPointWorld) {
-      if (prevExitLine === info.entryLine) {
-        strokes.push(straightBridge(prevExitPointWorld, entryPointWorld));
+    let offset;
+
+    if (!prev) {
+      offset = 0;
+    } else {
+      const exitConnector = findExitConnector(connectorsByKey, prev.exitLine);
+      if (exitConnector) {
+        // Real captured connector: place it as-is against where the previous letter
+        // actually sits on the baseline, then attach this letter directly at wherever
+        // the connector's own reach ends — no LETTER_GAP involved, the connector's own
+        // length is the distance (see placeExitConnector).
+        const placed = placeExitConnector(exitConnector, prev.baselineContactWorld);
+        strokes.push(...placed.strokes);
+        offset = placed.endPoint[0] - info.entryPoint[0];
       } else {
-        const connector = connectorsByKey.get(`${prevExitLine}_${info.entryLine}`);
-        if (connector) {
-          strokes.push(...fitConnectorStrokes(connector, prevExitPointWorld, entryPointWorld));
-        } else {
-          strokes.push(straightBridge(prevExitPointWorld, entryPointWorld));
-        }
+        // No captured connector for this letter's exit type yet: fall back to the
+        // baseline-contact-based LETTER_GAP norm, bridged with a plain straight stroke
+        // between the real entry/exit *points* (not the baseline-contact points).
+        offset = prev.baselineContactWorld[0] + LETTER_GAP - contacts.first[0];
+        const entryPointWorld = [info.entryPoint[0] + offset, info.entryPoint[1]];
+        strokes.push(straightBridge(prev.exitPointWorld, entryPointWorld));
       }
     }
 
     strokes.push(...translateStrokes(letter.strokes, offset));
-    prevExitLine = info.exitLine;
-    prevExitPointWorld = exitPointWorld;
-    prevExitContactX = contacts.last[0] + offset;
+    prev = {
+      exitLine: info.exitLine,
+      exitPointWorld: [info.exitPoint[0] + offset, info.exitPoint[1]],
+      baselineContactWorld: [contacts.last[0] + offset, contacts.last[1]],
+    };
     rightEdge = Math.max(rightEdge, offset + letterBoxWidth(letter));
   });
 
