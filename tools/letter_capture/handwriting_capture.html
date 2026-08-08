@@ -357,6 +357,16 @@
             Показывать образец по буквам из поля ниже
           </label>
         </div>
+        <div class="toggle-row">
+          <label class="guide-toggle-label" title="При завершении штриха обрежет его начало ровно по линии 4, вместо того чтобы оставить как рука довела">
+            <input type="checkbox" id="trimStartChk" />
+            Обрезать начало штриха по линии 4
+          </label>
+          <label class="guide-toggle-label" title="При завершении штриха обрежет его конец ровно по линии 4, вместо того чтобы оставить как рука довела">
+            <input type="checkbox" id="trimEndChk" />
+            Обрезать конец штриха по линии 4
+          </label>
+        </div>
 
         <div class="stats">
           <span>Штрихов: <b id="statStrokes">0</b></span>
@@ -474,6 +484,8 @@
   const fsClearBtn = document.getElementById("fsClearBtn");
   const fsExitBtn = document.getElementById("fsExitBtn");
   const guideToggle = document.getElementById("guideToggle");
+  const trimStartChk = document.getElementById("trimStartChk");
+  const trimEndChk = document.getElementById("trimEndChk");
   const typeSelect = document.getElementById("typeSelect");
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
@@ -499,6 +511,11 @@
   const SLOTS = 3;
   const CANVAS_W = VB_W * SLOTS; // 300 — up to 3 letters/elements per line
   const L1 = 10, L2 = 62, L3 = 88, L4 = 140; // propis 2:1:2, matches written_letters/letterPaths.js
+  // Vertical center of the узкая строка (x-height band, L2-L3) — the universal hand-off
+  // point a connector's own captured strokes always end/start on (see wordEngine.js's
+  // findExitConnector/findEntryConnector). Hoisted out of drawRuling() below so the
+  // trim-to-line-4 checkboxes (trimStartChk/trimEndChk) can use the same constant.
+  const NARROW_MID = (L2 + L3) / 2; // = 75
 
   // Full ClassRoomCursive.ttf alphabet, already in the exact 0 0 100 150 propis
   // coordinate system (same source as written_letters/letterPaths.js) — no transform needed.
@@ -545,10 +562,7 @@
     // ascenders are tall, so this line sits closer to the baseline than to L4.
     const TOP_MID = (L1 + L2) / 2; // = 36
     const BOT_MID = 110;
-    // Vertical center of the узкая строка (x-height band, L2-L3) — a fixed reference point
-    // for where a stroke should start/end so consecutive letters connect at a consistent
-    // height when a whole word is animated later, not just when each letter loops alone.
-    const NARROW_MID = (L2 + L3) / 2; // = 75
+    // NARROW_MID (x-height band center, = 75) is declared in the outer scope above.
     let parts = [];
     for (let x0 = -offset - SPACING; x0 < CANVAS_W + SPACING; x0 += SPACING) {
       parts.push('<line class="rule-slant" x1="' + x0.toFixed(2) + '" y1="' + VB_H + '" x2="' + (x0 + offset).toFixed(2) + '" y2="0"/>');
@@ -671,6 +685,40 @@
     return d.trim();
   }
 
+  // Cuts a finished stroke's point list exactly at y=targetY, discarding whichever side
+  // trimStartChk/trimEndChk asked to drop — for a connector meant to end (or begin) exactly
+  // on line 4 (the universal hand-off point), instead of wherever hand tremor happened to
+  // lift the pen past or short of it. Runs on the EMA-filtered points, before RDP
+  // simplification and spline fitting, so the trimmed point just becomes the new first/last
+  // anchor the existing pipeline already knows how to fit — no separate path-math needed.
+  // side: "start" cuts from the beginning up to the first crossing; "end" cuts from the
+  // last crossing to the end. If the stroke never crosses targetY at all (e.g. it stays
+  // entirely above or below the line), returns the points unchanged.
+  function trimToLine(points, targetY, side) {
+    if (points.length < 2) return points;
+    function crossingX(a, b) {
+      const t = (targetY - a.y) / (b.y - a.y);
+      return a.x + t * (b.x - a.x);
+    }
+    if (side === "start") {
+      for (let i = 0; i < points.length - 1; i += 1) {
+        const a = points[i], b = points[i + 1];
+        if ((a.y - targetY) * (b.y - targetY) <= 0 && a.y !== b.y) {
+          return [{ x: crossingX(a, b), y: targetY }, ...points.slice(i + 1)];
+        }
+      }
+      return points;
+    }
+    // side === "end"
+    for (let i = points.length - 1; i > 0; i -= 1) {
+      const a = points[i - 1], b = points[i];
+      if ((a.y - targetY) * (b.y - targetY) <= 0 && a.y !== b.y) {
+        return [...points.slice(0, i), { x: crossingX(a, b), y: targetY }];
+      }
+    }
+    return points;
+  }
+
   function updateEmptyHint() {
     emptyHint.style.display = (strokes.length === 0 && !currentRaw) ? "flex" : "none";
   }
@@ -785,7 +833,10 @@
       currentRaw.push({ x: currentRaw[0].x + 0.2, y: currentRaw[0].y + 0.2, t: 10 });
       currentFiltered.push({ x: currentFiltered[0].x + 0.2, y: currentFiltered[0].y + 0.2 });
     }
-    const simplified = rdp(currentFiltered, RDP_EPSILON);
+    let trimmed = currentFiltered;
+    if (trimStartChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "start");
+    if (trimEndChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "end");
+    const simplified = rdp(trimmed, RDP_EPSILON);
     const d = fitSpline(simplified);
     strokes.push({ raw: currentRaw, smoothD: d, simplifiedCount: simplified.length });
     currentRaw = null;
