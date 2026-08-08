@@ -533,8 +533,8 @@
     // across the two captured connectors) came out much shallower than the stroke visually
     // reads as, since a connector's curve isn't a straight line and most of its visible
     // length runs steeper than its net start-to-end displacement. Close to but a bit less
-    // than the letter-internal ANGLE_DEG=65.
-    const ANGLE_DEG_BOLD = 58;
+    // than the letter-internal ANGLE_DEG=65. (58° still read as too steep; 50° next.)
+    const ANGLE_DEG_BOLD = 50;
     const SPACING_BOLD = 50; // sparse enough to trace by eye, unlike the dense SPACING=8 pitch grid
     const offset = VB_H / Math.tan(ANGLE_DEG * Math.PI / 180);
     const offsetBold = VB_H / Math.tan(ANGLE_DEG_BOLD * Math.PI / 180);
