@@ -120,6 +120,31 @@ function straightBridge(fromPoint, toPoint) {
   return { d: `M ${x1} ${y1} L ${x2} ${y2}` };
 }
 
+// Below this distance a residual bridge (see below) would be an invisible/degenerate
+// sliver — skip it rather than push a near-zero-length path (getTotalLength() near 0
+// makes the animation's duration computation degenerate).
+const RESIDUAL_EPSILON = 0.05;
+
+// A captured connector's own shape is fixed (translate-only, never rescaled — see
+// placeExitConnector above), so translating it can make ONE of its two ends land exactly
+// on its target point, but generally not both: the vector between "where the previous
+// piece ends" and "where the next piece/letter naturally starts" varies per letter pair,
+// while the connector's own start-to-end vector does not. The remaining few units of
+// mismatch are drawn as a short straight connecting stroke — the same technique already
+// used when no captured connector exists at all (see the LETTER_GAP fallback below) —
+// instead of closing the gap by shifting the letter itself. Shifting the letter was tried
+// first and seemed cleaner for a single junction, but it makes each letter's vertical
+// position depend on the previous one's, and a repeated exit type (e.g. plain "бббб")
+// then drifts the same few units taller or shorter on every single occurrence, visibly
+// climbing or sinking across the word. A letter's own vertical position must stay fixed —
+// only its horizontal placement (dx) and the short connecting strokes around it move.
+function residualBridge(fromPoint, toPoint) {
+  const dx = toPoint[0] - fromPoint[0];
+  const dy = toPoint[1] - fromPoint[1];
+  if (Math.hypot(dx, dy) < RESIDUAL_EPSILON) return [];
+  return [{ ...straightBridge(fromPoint, toPoint), continuous: true }];
+}
+
 // A hand-captured connector's own start point moves to `anchor` — translation only, never
 // rescaled. The connector's own drawn length and shape ARE the correct distance and shape
 // for this letter's exit type; stretching it to hit some independently computed target
@@ -188,8 +213,9 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     const info = resolveConnectionInfo(letter);
     const contacts = getBaselineContacts(letter);
 
+    // A letter's own vertical position is always its native, as-captured height — never
+    // shifted by connector placement (see residualBridge above for why). Only dx moves.
     let dx = 0;
-    let dy = 0;
     const bridging = !!prev; // was anything (connector or straight bridge) placed before this letter?
 
     if (prev) {
@@ -203,21 +229,22 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
 
         const entryConnector = findEntryConnector(connectorsByKey, info.entryLine);
         if (entryConnector) {
-          // This letter needs its own lead-in stroke too: chain it directly onto the
-          // exit connector's own end (both translate-only — the two pieces meet exactly,
-          // full x/y match, never stretched to force a join). placeEntryConnectorLocal
-          // already anchored the connector's own end to this letter's real entry point in
-          // both axes, so shifting the whole local group by the same (dx,dy) keeps that
-          // relationship intact too.
+          // This letter needs its own lead-in stroke too. placeEntryConnectorLocal already
+          // anchored the connector's own end to this letter's real (unshifted) entry point,
+          // so the local group only needs a horizontal shift to bring its own start near
+          // the exit connector's end — any leftover vertical gap is closed by a short
+          // residual bridge, not by moving the letter (see residualBridge above).
           const localEntry = placeEntryConnectorLocal(entryConnector, info.entryPoint);
           dx = placed.endPoint[0] - localEntry.startPoint[0];
-          dy = placed.endPoint[1] - localEntry.startPoint[1];
-          strokes.push(...markContinuous(translateStrokes(localEntry.strokes, dx, dy)));
+          const shiftedStart = [localEntry.startPoint[0] + dx, localEntry.startPoint[1]];
+          strokes.push(...residualBridge(placed.endPoint, shiftedStart));
+          strokes.push(...markContinuous(translateStrokes(localEntry.strokes, dx, 0)));
         } else {
-          // No lead-in needed: the letter's own raw entry point moves to meet the
-          // connector's end exactly, in both axes.
+          // No lead-in needed: shift the letter horizontally to meet the connector's end,
+          // then close any remaining vertical gap with a short residual bridge.
           dx = placed.endPoint[0] - info.entryPoint[0];
-          dy = placed.endPoint[1] - info.entryPoint[1];
+          const shiftedEntryPoint = [info.entryPoint[0] + dx, info.entryPoint[1]];
+          strokes.push(...residualBridge(placed.endPoint, shiftedEntryPoint));
         }
       } else {
         // No captured connector for this letter's exit type yet: fall back to the
@@ -230,7 +257,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       }
     }
 
-    const placedLetterStrokes = translateStrokes(letter.strokes, dx, dy);
+    const placedLetterStrokes = translateStrokes(letter.strokes, dx, 0);
     // Only the letter's own FIRST stroke continues the incoming connector/bridge without a
     // pause — any further strokes of this same letter (e.g. "Б"'s separate crossbar) are a
     // genuine pen-lift and keep the normal pause between them.
@@ -241,8 +268,8 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
 
     prev = {
       exitLine: info.exitLine,
-      exitPointWorld: [info.exitPoint[0] + dx, info.exitPoint[1] + dy],
-      baselineContactWorld: [contacts.last[0] + dx, contacts.last[1] + dy],
+      exitPointWorld: [info.exitPoint[0] + dx, info.exitPoint[1]],
+      baselineContactWorld: [contacts.last[0] + dx, contacts.last[1]],
     };
     rightEdge = Math.max(rightEdge, dx + letterBoxWidth(letter));
   });

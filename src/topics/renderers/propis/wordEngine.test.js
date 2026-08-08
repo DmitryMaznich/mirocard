@@ -201,13 +201,16 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
     const dx = exit2Contacts.last[0] - connInfo.entryPoint[0];
     const dy = exit2Contacts.last[1] - connInfo.entryPoint[1];
 
-    expect(result.strokes).toHaveLength(3); // letter, connector, letter — no separate bridge
+    // letter, connector, residual bridge (closes the connector-to-letter gap), letter — the
+    // letter itself never moves vertically (see wordEngine.js's residualBridge comment: doing
+    // so used to make a repeated exit type drift a little taller/shorter on every occurrence).
+    expect(result.strokes).toHaveLength(4);
     expect(result.strokes[1].d).toBe(
       transformPathD(EXIT_CONNECTOR_2.strokes[0].d, { translateX: dx, translateY: dy })
     );
   });
 
-  it("attaches the next letter so its own raw entry point exactly meets the connector's translated end (both axes)", () => {
+  it("keeps the next letter at its own native height and bridges the leftover gap instead of moving it", () => {
     const connectors = new Map([["2_4", EXIT_CONNECTOR_2]]);
     const result = buildWordTrajectory(WORD, letters, connectors);
 
@@ -219,10 +222,18 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
 
     const aEntry = getConnectionInfo(LETTER_A).entryPoint;
     const expectedDx = connectorEnd[0] - aEntry[0];
-    const expectedDy = connectorEnd[1] - aEntry[1];
-    expect(result.strokes[2].d).toBe(
-      transformPathD(LETTER_A.strokes[0].d, { translateX: expectedDx, translateY: expectedDy })
+    // The letter is shifted horizontally only — its own native y is untouched.
+    expect(result.strokes[3].d).toBe(
+      transformPathD(LETTER_A.strokes[0].d, { translateX: expectedDx, translateY: 0 })
     );
+
+    // The residual bridge (strokes[2]) exactly closes the gap: starts where the connector
+    // ends, ends exactly where the (horizontally shifted) letter's own entry point is.
+    const bridgeEnds = getPathEndpoints(result.strokes[2].d);
+    expect(bridgeEnds.start[0]).toBeCloseTo(connectorEnd[0], 3);
+    expect(bridgeEnds.start[1]).toBeCloseTo(connectorEnd[1], 3);
+    expect(bridgeEnds.end[0]).toBeCloseTo(aEntry[0] + expectedDx, 6);
+    expect(bridgeEnds.end[1]).toBeCloseTo(aEntry[1], 6);
   });
 
   it("does not touch the connector at all when no exit connector matches this letter's type", () => {
@@ -242,21 +253,39 @@ describe("buildWordTrajectory — entry connectors chained after exit connectors
 
   it("uses both connectors when the previous letter's exit type and this letter's entry type each have one", () => {
     const result = buildWordTrajectory("во", letters, connectors);
-    expect(result.strokes).toHaveLength(4); // prev letter, exit connector, entry connector, next letter
+    // prev letter, exit connector, residual bridge (closes the exit-to-entry-connector gap),
+    // entry connector, next letter.
+    expect(result.strokes).toHaveLength(5);
   });
 
-  it("chains the exit connector's own end directly into the entry connector's own start, with no gap", () => {
+  it("chains the exit connector's own end into the entry connector's own start with no gap, via a residual bridge", () => {
     const result = buildWordTrajectory("во", letters, connectors);
     const exitEnd = getPathEndpoints(result.strokes[1].d).end;
-    const entryStart = getPathEndpoints(result.strokes[2].d).start;
-    expect(entryStart[0]).toBeCloseTo(exitEnd[0], 6);
+    const bridge = getPathEndpoints(result.strokes[2].d);
+    const entryStart = getPathEndpoints(result.strokes[3].d).start;
+
+    // The residual bridge exactly closes both ends of the gap (both axes) — it starts
+    // exactly where the exit connector ends and ends exactly where the entry connector
+    // (already translated into place) starts.
+    expect(bridge.start[0]).toBeCloseTo(exitEnd[0], 6);
+    expect(bridge.start[1]).toBeCloseTo(exitEnd[1], 6);
+    expect(bridge.end[0]).toBeCloseTo(entryStart[0], 6);
+    expect(bridge.end[1]).toBeCloseTo(entryStart[1], 6);
   });
 
   it("places the next letter's own raw entry point exactly at the entry connector's translated end", () => {
     const result = buildWordTrajectory("во", letters, connectors);
-    const entryConnectorEnd = getPathEndpoints(result.strokes[2].d).end;
-    const letterStart = getPathEndpoints(result.strokes[3].d).start;
+    const entryConnectorEnd = getPathEndpoints(result.strokes[3].d).end;
+    const letterStart = getPathEndpoints(result.strokes[4].d).start;
     expect(letterStart[0]).toBeCloseTo(entryConnectorEnd[0], 6);
+    expect(letterStart[1]).toBeCloseTo(entryConnectorEnd[1], 6);
+  });
+
+  it("keeps the next letter at its own native height — never shifted vertically by the connector chain", () => {
+    const result = buildWordTrajectory("во", letters, connectors);
+    const letterStart = getPathEndpoints(result.strokes[4].d).start;
+    const nativeY = getPathEndpoints(NEXT_LETTER.strokes[0].d).start[1];
+    expect(letterStart[1]).toBeCloseTo(nativeY, 6);
   });
 
   it("keeps both connector pieces at their own authored length — never rescaled", () => {
@@ -266,7 +295,7 @@ describe("buildWordTrajectory — entry connectors chained after exit connectors
     const ownExit = getPathEndpoints(EXIT_CONNECTOR.strokes[0].d);
     expect(placedExit.end[0] - placedExit.start[0]).toBeCloseTo(ownExit.end[0] - ownExit.start[0], 6);
 
-    const placedEntry = getPathEndpoints(result.strokes[2].d);
+    const placedEntry = getPathEndpoints(result.strokes[3].d);
     const ownEntry = getPathEndpoints(ENTRY_CONNECTOR.strokes[0].d);
     expect(placedEntry.end[0] - placedEntry.start[0]).toBeCloseTo(ownEntry.end[0] - ownEntry.start[0], 6);
   });
