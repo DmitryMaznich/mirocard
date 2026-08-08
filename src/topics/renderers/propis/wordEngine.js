@@ -66,7 +66,9 @@ export function getConnectionInfo(item) {
 const EXIT_LINE_OVERRIDES = {
   "б": 5, "в": 5, "ф": 5, "о": 5, "э": 5, "ю": 5, "ь": 5, "ъ": 5,
 };
-const ENTRY_LINE_OVERRIDES = {};
+const ENTRY_LINE_OVERRIDES = {
+  "о": 3,
+};
 
 // getConnectionInfo plus the fixed per-letter type overrides above, applied only to
 // entryLine/exitLine (the classification used to pick a connector) — entryPoint/exitPoint
@@ -128,11 +130,29 @@ function placeExitConnector(connector, anchor) {
 
 // A captured exit connector is keyed by the letter type it attaches to, always ending on
 // line 4 (see propisRuling.js's NATIVE_NARROW_MID — the height most letters naturally sit
-// at, so it's the universal hand-off point). Entry connectors (for letters like а/о that
-// need their own lead-in from that hand-off point) would be the mirror case, keyed
-// `4_${entryType}` — none captured yet, so next letters always attach directly for now.
+// at, so it's the universal hand-off point). An entry connector is the mirror case, keyed
+// `4_${entryType}` — for letters like о that need their own lead-in stroke from that
+// hand-off point rather than starting cold.
 function findExitConnector(connectorsByKey, exitType) {
   return connectorsByKey.get(`${exitType}_4`);
+}
+
+function findEntryConnector(connectorsByKey, entryType) {
+  return connectorsByKey.get(`4_${entryType}`);
+}
+
+// Mirrors placeExitConnector: translate-only, anchored by its own END point instead — an
+// entry connector leads INTO the next letter, so its end lands on that letter's own raw
+// entry point (in the letter's local, pre-placement coordinates) and its start is wherever
+// that naturally puts it, which is what an incoming exit connector then attaches to.
+function placeEntryConnectorLocal(connector, letterRawEntryPoint) {
+  const info = getConnectionInfo(connector);
+  const dx = letterRawEntryPoint[0] - info.exitPoint[0];
+  const dy = letterRawEntryPoint[1] - info.exitPoint[1];
+  return {
+    strokes: connector.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) })),
+    startPoint: [info.entryPoint[0] + dx, info.entryPoint[1] + dy],
+  };
 }
 
 function letterBoxWidth(letter) {
@@ -167,12 +187,29 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       const exitConnector = findExitConnector(connectorsByKey, prev.exitLine);
       if (exitConnector) {
         // Real captured connector: place it as-is against where the previous letter
-        // actually sits on the baseline, then attach this letter directly at wherever
-        // the connector's own reach ends — no LETTER_GAP involved, the connector's own
+        // actually sits on the baseline — no LETTER_GAP involved, the connector's own
         // length is the distance (see placeExitConnector).
         const placed = placeExitConnector(exitConnector, prev.baselineContactWorld);
         strokes.push(...placed.strokes);
-        offset = placed.endPoint[0] - info.entryPoint[0];
+
+        const entryConnector = findEntryConnector(connectorsByKey, info.entryLine);
+        if (entryConnector) {
+          // This letter needs its own lead-in stroke too: chain it directly onto the
+          // exit connector's own end (both translate-only — the two pieces meet
+          // wherever they naturally do, never stretched to force an exact join), then
+          // place the letter so its raw entry point lands at the lead-in's own end.
+          // X-only frame shift, matching every other letter placement in this function —
+          // placeEntryConnectorLocal already anchored the connector's own end to this
+          // letter's real entry point in both axes, so shifting the whole local group by
+          // dx alone keeps that relationship intact; only the join to the exit connector's
+          // end is allowed the same small vertical give every other transition already has.
+          const localEntry = placeEntryConnectorLocal(entryConnector, info.entryPoint);
+          const dx = placed.endPoint[0] - localEntry.startPoint[0];
+          strokes.push(...localEntry.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) })));
+          offset = dx;
+        } else {
+          offset = placed.endPoint[0] - info.entryPoint[0];
+        }
       } else {
         // No captured connector for this letter's exit type yet: fall back to the
         // baseline-contact-based LETTER_GAP norm, bridged with a plain straight stroke
