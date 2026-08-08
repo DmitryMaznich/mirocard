@@ -528,12 +528,13 @@
   (function drawRuling() {
     const ANGLE_DEG = 65; // matches make_lined_paper_landscape_standard.py (65° from horizontal / 25° from vertical)
     const SPACING = 8;
-    // A connector stroke between two letters travels a shallow diagonal (mostly sideways,
-    // a little up), nothing like a letter's own steep 65° internal stroke slant — measured
-    // from the two real captured connectors in topic.json: conn_5_4 rises 10.98/17.13 units
-    // (32.7°), conn_4_3 rises 8.10/19.76 (22.3°); 28° sits between them as a usable average.
-    // Revisit this number once more connectors are captured and the spread narrows.
-    const ANGLE_DEG_BOLD = 28;
+    // Set by eye against how a connector stroke actually looks, not by the secant angle
+    // between a captured connector's raw start/end points — that computation (~22-33°
+    // across the two captured connectors) came out much shallower than the stroke visually
+    // reads as, since a connector's curve isn't a straight line and most of its visible
+    // length runs steeper than its net start-to-end displacement. Close to but a bit less
+    // than the letter-internal ANGLE_DEG=65.
+    const ANGLE_DEG_BOLD = 58;
     const SPACING_BOLD = 50; // sparse enough to trace by eye, unlike the dense SPACING=8 pitch grid
     const offset = VB_H / Math.tan(ANGLE_DEG * Math.PI / 180);
     const offsetBold = VB_H / Math.tan(ANGLE_DEG_BOLD * Math.PI / 180);
