@@ -57,6 +57,36 @@ const ENTRY_LINE_OVERRIDES = {
   "б": 3, "а": 3, "о": 3, "ф": 3,
 };
 
+// Real Russian cursive methodology also classifies where a letter's OWN first stroke
+// begins into three height groups — what a PRECEDING letter needs to match when handing
+// off into it (sources: studfile.net/preview/9752060, poznayka.org/s52463t1, runninglines.ru
+// /verhnee-soedinenie — cross-referenced in conversation/commit history). Almost every
+// letter has exactly one fixed group regardless of context; о and ю are the named exception
+// — dual-natured, with no group of their own, adapting their own entry/exit shape to
+// whichever neighbor requires (this is why о is the only letter with multiple captured
+// connection variants — see DUAL_NATURE_LETTERS and buildVariantIndex below). Every other
+// letter's behavior is completely unaffected by any of this.
+const UPPER_ENTRY_LETTERS = new Set(["и", "к", "т", "р", "с", "н", "у", "ц"]);
+const MIDDLE_ENTRY_LETTERS = new Set(["е", "з", "ж", "г", "х", "ш", "ч", "э", "в"]);
+const LOWER_ENTRY_LETTERS = new Set(["а", "б", "д", "ф", "л", "м", "я"]);
+const DUAL_NATURE_LETTERS = new Set(["о", "ю"]);
+
+function entryHeightGroup(label) {
+  if (UPPER_ENTRY_LETTERS.has(label)) return "upper";
+  if (MIDDLE_ENTRY_LETTERS.has(label)) return "middle";
+  if (LOWER_ENTRY_LETTERS.has(label)) return "lower";
+  return null;
+}
+
+// No middle-height exit variant has been captured yet for any dual-nature letter (only
+// upper/lower — see topic.json's о_middle_*/о_first_* cards) — approximate "middle" as
+// "upper" until one exists, and default unclassified neighbors (an uncaptured letter, or
+// another dual-nature one) to "upper" too, since that's the documented default for most of
+// the alphabet.
+function simplifyToUpperLower(group) {
+  return group === "lower" ? "lower" : "upper";
+}
+
 // getConnectionInfo plus the fixed per-letter type overrides above, applied only to
 // entryLine/exitLine (the classification used to pick a connector) — entryPoint/exitPoint
 // stay the letter's own real geometry either way, since bridges must still connect to
@@ -147,6 +177,51 @@ function placeEntryConnectorLocal(connector, letterRawEntryPoint) {
   };
 }
 
+// Builds baseLabel -> { first: {[exitType]: card}, last: {[entryType]: card}, middle:
+// {[`${entryType}_${exitType}`]: card} } from any cards carrying the variantOf/position/
+// entryType/exitType metadata (see topic.json's о_middle_*/о_first_* cards, added via
+// tools/letter_capture/handwriting_capture.html and merged in by hand). Cards without
+// variantOf are ignored, so this is a no-op for every letter that has no variants captured.
+function buildVariantIndex(lettersByLabel) {
+  const index = new Map();
+  for (const card of lettersByLabel.values()) {
+    if (!card.variantOf) continue;
+    let entry = index.get(card.variantOf);
+    if (!entry) {
+      entry = { first: {}, last: {}, middle: {} };
+      index.set(card.variantOf, entry);
+    }
+    if (card.position === "first") entry.first[card.exitType] = card;
+    else if (card.position === "last") entry.last[card.entryType] = card;
+    else if (card.position === "middle") entry.middle[`${card.entryType}_${card.exitType}`] = card;
+  }
+  return index;
+}
+
+// A dual-nature letter (о, ю) has no fixed connection shape of its own — resolves to
+// whichever captured variant matches its position in the word and its neighbors' own height
+// classification. entryType mirrors whether the PRECEDING letter is one of the fixed
+// upper-exit letters (EXIT_LINE_OVERRIDES) — confirmed against real captures: "when о has an
+// upper entry connector, that means the previous letter's own upper exit connection is being
+// used." Returns null whenever the needed variant hasn't been captured (or this isn't a
+// dual-nature letter at all), letting the caller fall back to the plain isolated card and
+// the ordinary connector system exactly as before.
+function resolveVariant(variantIndex, label, position, prevLabel, nextLabel) {
+  const variants = variantIndex.get(label);
+  if (!variants) return null;
+
+  const exitType = nextLabel ? simplifyToUpperLower(entryHeightGroup(nextLabel)) : null;
+  const entryType = prevLabel ? (EXIT_LINE_OVERRIDES[prevLabel] ? "upper" : "lower") : null;
+
+  if (position === "first") return (exitType && variants.first[exitType]) || null;
+  if (position === "last") return (entryType && variants.last[entryType]) || null;
+  if (position === "middle") {
+    if (!entryType || !exitType) return null;
+    return variants.middle[`${entryType}_${exitType}`] || null;
+  }
+  return null;
+}
+
 function letterBoxWidth(letter) {
   const parts = (letter.viewBox || "").split(" ");
   const w = Number(parts[2]);
@@ -172,15 +247,34 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     return { strokes: [], totalWidthUnits: 0, viewBox: "0 0 0 150" };
   }
 
+  const variantIndex = buildVariantIndex(lettersByLabel);
   const strokes = [];
-  let prev = null; // { exitLine, exitPointWorld, baselineContactWorld }
+  let prev = null; // { exitLine, exitPointWorld, baselineContactWorld, usedVariant }
   let rightEdge = 0;
 
-  chars.forEach((ch) => {
-    const letter = lettersByLabel.get(ch);
+  chars.forEach((ch, i) => {
+    let letter = lettersByLabel.get(ch);
     if (!letter) {
       throw new Error(`buildWordTrajectory: letter "${ch}" is not in the letter library`);
     }
+
+    // A dual-nature letter's own captured variant already has its connecting tail(s) baked
+    // in as part of the same continuous stroke — when one resolves, this letter is treated
+    // exactly like the "no connector found" fallback below on BOTH sides of the junction
+    // (usedVariant short-circuits findExitConnector/findEntryConnector further down), so the
+    // ordinary connector system never also inserts a redundant separate piece.
+    let usedVariant = false;
+    if (DUAL_NATURE_LETTERS.has(ch)) {
+      const position = chars.length === 1 ? "isolated" : i === 0 ? "first" : i === chars.length - 1 ? "last" : "middle";
+      const prevLabel = i > 0 ? chars[i - 1] : null;
+      const nextLabel = i < chars.length - 1 ? chars[i + 1] : null;
+      const variant = resolveVariant(variantIndex, ch, position, prevLabel, nextLabel);
+      if (variant) {
+        letter = variant;
+        usedVariant = true;
+      }
+    }
+
     const info = resolveConnectionInfo(letter);
 
     let dx = 0;
@@ -188,8 +282,8 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     const bridging = !!prev; // was anything (connector) placed before this letter?
 
     if (prev) {
-      const exitConnector = findExitConnector(connectorsByKey, prev.exitLine);
-      const entryConnector = findEntryConnector(connectorsByKey, info.entryLine);
+      const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine);
+      const entryConnector = usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine);
 
       let anchorPoint;
       if (exitConnector) {
@@ -236,6 +330,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       exitLine: info.exitLine,
       exitPointWorld: [info.exitPoint[0] + dx, info.exitPoint[1] + dy],
       baselineContactWorld: [contacts.last[0] + dx, contacts.last[1] + dy],
+      usedVariant,
     };
     rightEdge = Math.max(rightEdge, dx + letterBoxWidth(letter));
   });
