@@ -126,10 +126,10 @@ describe("buildWordTrajectory", () => {
     );
   });
 
-  it("inserts a straight M/L bridge for a same-line transition with no connector needed", () => {
+  it("inserts a tangent-continuing curved bridge for a same-line transition with no connector needed", () => {
     const result = buildWordTrajectory("аа", letters, new Map());
     expect(result.strokes).toHaveLength(3); // letter, bridge, letter
-    expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
+    expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ C [\d.]+ [\d.]+ [\d.]+ [\d.]+ [\d.]+ [\d.]+$/);
   });
 
   it("places each letter so consecutive baseline-contact points are exactly LETTER_GAP apart, in either order", () => {
@@ -153,10 +153,10 @@ describe("buildWordTrajectory", () => {
     );
   });
 
-  it("falls back to a straight bridge when no exit connector matches the previous letter's type", () => {
+  it("falls back to a curved bridge when no exit connector matches the previous letter's type", () => {
     const result = buildWordTrajectory("аб", letters, new Map());
     expect(result.strokes).toHaveLength(3);
-    expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/);
+    expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ C [\d.]+ [\d.]+ [\d.]+ [\d.]+ [\d.]+ [\d.]+$/);
   });
 
   it("reports a viewBox exactly matching totalWidthUnits, wide enough for the whole word", () => {
@@ -239,7 +239,7 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
   it("does not touch the connector at all when no exit connector matches this letter's type", () => {
     const result = buildWordTrajectory(WORD, letters, new Map());
     expect(result.strokes).toHaveLength(3);
-    expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ L [\d.]+ [\d.]+$/); // plain straight bridge instead
+    expect(result.strokes[1].d).toMatch(/^M [\d.]+ [\d.]+ C [\d.]+ [\d.]+ [\d.]+ [\d.]+ [\d.]+ [\d.]+$/); // curved bridge instead
   });
 });
 
@@ -315,11 +315,11 @@ describe("buildWordTrajectory — entry connector fires even without a matching 
   // production, but nothing here can satisfy findExitConnector for it.
   const connectorsNoExit = new Map([["4_3", ENTRY_CONNECTOR]]);
 
-  it("still attaches the entry connector as a lead-in, bridged with the plain LETTER_GAP straight bridge", () => {
+  it("still attaches the entry connector as a lead-in, bridged with the plain LETTER_GAP curved bridge", () => {
     const result = buildWordTrajectory("во", letters, connectorsNoExit);
-    // prev letter, straight bridge (to entry connector's start), entry connector, next letter
+    // prev letter, curved bridge (to entry connector's start), entry connector, next letter
     expect(result.strokes).toHaveLength(4);
-    expect(result.strokes[1].d).toMatch(/^M [\d.-]+ [\d.-]+ L [\d.-]+ [\d.-]+$/);
+    expect(result.strokes[1].d).toMatch(/^M [\d.-]+ [\d.-]+ C [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+$/);
   });
 
   it("chains the straight bridge into the entry connector's start with no gap", () => {

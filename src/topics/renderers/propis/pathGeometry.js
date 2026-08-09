@@ -37,6 +37,59 @@ export function getPathEndpoints(d) {
   return { start, end };
 }
 
+// The direction the pen is moving as it leaves the path's start point, and as it arrives at
+// its end point — the vector from an endpoint to its own adjacent Bézier control point
+// (which is what actually determines a cubic curve's tangent there), not just the straight
+// chord between the two endpoints. Needed to join two independently hand-drawn pieces (an
+// exit connector into an entry connector, a connector into a letter, one letter into the
+// next with no captured connector at all) with a curve that continues the pen's existing
+// direction on both sides, instead of a plain straight segment that can arrive at a sharp,
+// unnatural angle relative to what comes right before or after it. Falls back to the
+// straight-line chord direction for a path with no C command at all (e.g. a straight
+// bridge), and to that same chord if a control point exactly coincides with its anchor
+// (a zero-length tangent has no direction of its own to contribute).
+export function getPathTangents(d) {
+  const { start, end } = getPathEndpoints(d);
+  const chord = [end[0] - start[0], end[1] - start[1]];
+  if (!d.includes("C")) {
+    return { startDir: chord, endDir: chord };
+  }
+
+  const tokens = d.match(TOKEN_RE) || [];
+  let i = 0;
+  let cmd = null;
+  let firstC1 = null;
+  let lastC2 = null;
+
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (t === "M" || t === "C") {
+      cmd = t;
+      i += 1;
+      continue;
+    }
+    if (cmd === "M") {
+      i += 2;
+    } else if (cmd === "C") {
+      const p1 = [parseFloat(tokens[i]), parseFloat(tokens[i + 1])];
+      const p2 = [parseFloat(tokens[i + 2]), parseFloat(tokens[i + 3])];
+      if (!firstC1) firstC1 = p1;
+      lastC2 = p2;
+      i += 6;
+    } else {
+      i += 1;
+    }
+  }
+
+  const EPSILON = 1e-6;
+  let startDir = [firstC1[0] - start[0], firstC1[1] - start[1]];
+  if (Math.hypot(startDir[0], startDir[1]) < EPSILON) startDir = chord;
+  let endDir = [end[0] - lastC2[0], end[1] - lastC2[1]];
+  if (Math.hypot(endDir[0], endDir[1]) < EPSILON) endDir = chord;
+
+  return { startDir, endDir };
+}
+
 function bezierPoint(p0, p1, p2, p3, t) {
   const mt = 1 - t;
   const x = mt * mt * mt * p0[0] + 3 * mt * mt * t * p1[0] + 3 * mt * t * t * p2[0] + t * t * t * p3[0];

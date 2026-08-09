@@ -1,4 +1,4 @@
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getPathTangents } from "./pathGeometry.js";
 import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 
 // Target distance between the previous letter's own baseline-contact point (last place its
@@ -112,12 +112,31 @@ function markContinuous(strokes) {
   return strokes.map((s) => ({ ...s, continuous: true }));
 }
 
-function straightBridge(fromPoint, toPoint) {
-  const x1 = fromPoint[0].toFixed(3);
-  const y1 = fromPoint[1].toFixed(3);
-  const x2 = toPoint[0].toFixed(3);
-  const y2 = toPoint[1].toFixed(3);
-  return { d: `M ${x1} ${y1} L ${x2} ${y2}` };
+function unit(v) {
+  const len = Math.hypot(v[0], v[1]);
+  return len > 1e-9 ? [v[0] / len, v[1] / len] : [0, 0];
+}
+
+// A plain "M ... L ..." straight bridge meets whatever comes before/after it at an angle
+// that has nothing to do with the direction the pen was already moving in — verified
+// against real production data: a hand-picked word ("бд") measured 143° direction changes
+// at both ends of a straight residual bridge, versus ~20° where two pieces are joined by
+// anchoring a shared point (placeExitConnector) rather than a straight segment. A cubic
+// Bézier that leaves `fromPoint` along `fromDir` and arrives at `toPoint` along `toDir`
+// keeps the pen's existing direction on both sides instead of snapping to a new one. Handle
+// length (a third of the chord) is the same standard heuristic handwriting_capture.html's
+// own fitSpline uses for Catmull-Rom-style tangent handles.
+function tangentBridge(fromPoint, fromDir, toPoint, toDir) {
+  const chord = Math.hypot(toPoint[0] - fromPoint[0], toPoint[1] - fromPoint[1]);
+  const handleLen = chord / 3;
+  const uFrom = unit(fromDir);
+  const uTo = unit(toDir);
+  const c1 = [fromPoint[0] + uFrom[0] * handleLen, fromPoint[1] + uFrom[1] * handleLen];
+  const c2 = [toPoint[0] - uTo[0] * handleLen, toPoint[1] - uTo[1] * handleLen];
+  const fmt = (n) => n.toFixed(3);
+  return {
+    d: `M ${fmt(fromPoint[0])} ${fmt(fromPoint[1])} C ${fmt(c1[0])} ${fmt(c1[1])} ${fmt(c2[0])} ${fmt(c2[1])} ${fmt(toPoint[0])} ${fmt(toPoint[1])}`,
+  };
 }
 
 // Below this distance a residual bridge (see below) would be an invisible/degenerate
@@ -130,19 +149,20 @@ const RESIDUAL_EPSILON = 0.05;
 // on its target point, but generally not both: the vector between "where the previous
 // piece ends" and "where the next piece/letter naturally starts" varies per letter pair,
 // while the connector's own start-to-end vector does not. The remaining few units of
-// mismatch are drawn as a short straight connecting stroke — the same technique already
-// used when no captured connector exists at all (see the LETTER_GAP fallback below) —
-// instead of closing the gap by shifting the letter itself. Shifting the letter was tried
-// first and seemed cleaner for a single junction, but it makes each letter's vertical
-// position depend on the previous one's, and a repeated exit type (e.g. plain "бббб")
-// then drifts the same few units taller or shorter on every single occurrence, visibly
-// climbing or sinking across the word. A letter's own vertical position must stay fixed —
-// only its horizontal placement (dx) and the short connecting strokes around it move.
-function residualBridge(fromPoint, toPoint) {
+// mismatch are drawn as a short connecting stroke that continues the pen's direction on
+// both sides (see tangentBridge) — the same technique used when no captured connector
+// exists at all (see the LETTER_GAP fallback below) — instead of closing the gap by
+// shifting the letter itself. Shifting the letter was tried first and seemed cleaner for a
+// single junction, but it makes each letter's vertical position depend on the previous
+// one's, and a repeated exit type (e.g. plain "бббб") then drifts the same few units taller
+// or shorter on every single occurrence, visibly climbing or sinking across the word. A
+// letter's own vertical position must stay fixed — only its horizontal placement (dx) and
+// the short connecting strokes around it move.
+function residualBridge(fromPoint, fromDir, toPoint, toDir) {
   const dx = toPoint[0] - fromPoint[0];
   const dy = toPoint[1] - fromPoint[1];
   if (Math.hypot(dx, dy) < RESIDUAL_EPSILON) return [];
-  return [{ ...straightBridge(fromPoint, toPoint), continuous: true }];
+  return [{ ...tangentBridge(fromPoint, fromDir, toPoint, toDir), continuous: true }];
 }
 
 // A hand-captured connector's own start point moves to `anchor` — translation only, never
@@ -229,12 +249,15 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       // back to a plain straight bridge with no entry connector at all).
       const entryConnector = findEntryConnector(connectorsByKey, info.entryLine);
 
+      const letterStartDir = getPathTangents(letter.strokes[0].d).startDir;
+
       if (exitConnector) {
         // Real captured connector: place it as-is against where the previous letter
         // actually sits on the baseline — no LETTER_GAP involved, the connector's own
         // length is the distance (see placeExitConnector).
         const placed = placeExitConnector(exitConnector, prev.baselineContactWorld);
         strokes.push(...markContinuous(placed.strokes));
+        const exitConnectorEndDir = getPathTangents(exitConnector.strokes[exitConnector.strokes.length - 1].d).endDir;
 
         if (entryConnector) {
           // This letter needs its own lead-in stroke too. placeEntryConnectorLocal already
@@ -245,14 +268,15 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
           const localEntry = placeEntryConnectorLocal(entryConnector, info.entryPoint);
           dx = placed.endPoint[0] - localEntry.startPoint[0];
           const shiftedStart = [localEntry.startPoint[0] + dx, localEntry.startPoint[1]];
-          strokes.push(...residualBridge(placed.endPoint, shiftedStart));
+          const entryConnectorStartDir = getPathTangents(entryConnector.strokes[0].d).startDir;
+          strokes.push(...residualBridge(placed.endPoint, exitConnectorEndDir, shiftedStart, entryConnectorStartDir));
           strokes.push(...markContinuous(translateStrokes(localEntry.strokes, dx, 0)));
         } else {
           // No lead-in needed: shift the letter horizontally to meet the connector's end,
           // then close any remaining vertical gap with a short residual bridge.
           dx = placed.endPoint[0] - info.entryPoint[0];
           const shiftedEntryPoint = [info.entryPoint[0] + dx, info.entryPoint[1]];
-          strokes.push(...residualBridge(placed.endPoint, shiftedEntryPoint));
+          strokes.push(...residualBridge(placed.endPoint, exitConnectorEndDir, shiftedEntryPoint, letterStartDir));
         }
       } else if (entryConnector) {
         // No captured exit connector for the previous letter's type, but this letter still
@@ -262,16 +286,17 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
         const localEntry = placeEntryConnectorLocal(entryConnector, info.entryPoint);
         dx = prev.baselineContactWorld[0] + LETTER_GAP - contacts.first[0];
         const shiftedStart = [localEntry.startPoint[0] + dx, localEntry.startPoint[1]];
-        strokes.push({ ...straightBridge(prev.exitPointWorld, shiftedStart), continuous: true });
+        const entryConnectorStartDir = getPathTangents(entryConnector.strokes[0].d).startDir;
+        strokes.push({ ...tangentBridge(prev.exitPointWorld, prev.exitDir, shiftedStart, entryConnectorStartDir), continuous: true });
         strokes.push(...markContinuous(translateStrokes(localEntry.strokes, dx, 0)));
       } else {
         // No captured connector for this letter's exit type yet: fall back to the
-        // baseline-contact-based LETTER_GAP norm, bridged with a plain straight stroke
-        // between the real entry/exit *points* (not the baseline-contact points). Purely
-        // horizontal, same as the letter placement it feeds.
+        // baseline-contact-based LETTER_GAP norm, bridged with a stroke that continues the
+        // pen's direction on both sides (not the baseline-contact points). Purely
+        // horizontal placement, same as the letter placement it feeds.
         dx = prev.baselineContactWorld[0] + LETTER_GAP - contacts.first[0];
         const entryPointWorld = [info.entryPoint[0] + dx, info.entryPoint[1]];
-        strokes.push({ ...straightBridge(prev.exitPointWorld, entryPointWorld), continuous: true });
+        strokes.push({ ...tangentBridge(prev.exitPointWorld, prev.exitDir, entryPointWorld, letterStartDir), continuous: true });
       }
     }
 
@@ -287,6 +312,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     prev = {
       exitLine: info.exitLine,
       exitPointWorld: [info.exitPoint[0] + dx, info.exitPoint[1]],
+      exitDir: getPathTangents(letter.strokes[letter.strokes.length - 1].d).endDir,
       baselineContactWorld: [contacts.last[0] + dx, contacts.last[1]],
     };
     rightEdge = Math.max(rightEdge, dx + letterBoxWidth(letter));
