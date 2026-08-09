@@ -181,7 +181,7 @@
   .stats b { color: var(--ink); font-weight: 600; }
 
   .toggle-row { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13.5px; color: var(--ink-soft); flex-wrap: wrap; }
-  .toggle-row input { accent-color: var(--accent); width: 18px; height: 18px; }
+  .toggle-row input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; }
   .guide-toggle-label { display: flex; align-items: center; gap: 6px; }
 
   .identity-form {
@@ -202,13 +202,14 @@
   }
   .field input[type="text"] { text-align: left; font-size: 18px; font-weight: 600; padding: 10px 12px; }
   #addToSetBtn { width: 100%; }
-  /* Deliberately smaller/inline vs .field input — this sits in the toggle-row alongside the
-     guideToggle checkbox, not the identity-form, and is a lightweight always-on tracing aid,
-     not the primary "what am I capturing" input (that stays labelInput in the form below). */
+  /* Sits in the toggle-row alongside the guideToggle checkbox, not the identity-form — but
+     still needs to be legible enough to actually read the typed letter(s) at a glance, so
+     it's sized close to the primary .field input, just narrower since it never holds more
+     than 3 characters. */
   .guide-label-input {
-    width: 64px; border: 1px solid var(--card-border); background: var(--paper-deep);
-    color: var(--ink); border-radius: 7px; padding: 4px 8px; font-size: 14px;
-    font-family: inherit; text-align: center;
+    width: 76px; flex: none; border: 1px solid var(--card-border); background: var(--paper-deep);
+    color: var(--ink); border-radius: 8px; padding: 8px 10px; font-size: 20px;
+    font-weight: 600; font-family: inherit; text-align: center; min-height: 40px;
   }
   /* Arrow-button cluster to nudge the guide-only silhouette by 1 canvas unit at a time —
      fine enough to line it up exactly against a specific grid crossing, unlike dragging. */
