@@ -99,17 +99,24 @@ function watermarkMarkup() {
   return `<div class="sdp-watermark" aria-hidden="true">${"<span>Mironium</span>".repeat(24)}</div>`;
 }
 
-function footerMarkup(origin) {
+// Inlined directly (not <img src="...">) so the print document has zero
+// external/same-origin resource fetches — an <img> or <link> that stalls
+// (slow network, DNS hiccup) blocks Android's print-preview generation
+// indefinitely (observed: "Preparing preview..." hangs forever). Kept in
+// sync by hand with public/brand/mironium-logo.svg.
+const MIRONIUM_LOGO_SVG = `<svg class="sdp-footer-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 15 320 60" fill="none"><title>Mironium</title><g transform="translate(2 19) scale(.115)"><path d="M 98.0 0.0 L 376.0 0.0 L 401.0 5.0 L 401.0 7.0 L 388.0 12.0 L 382.0 20.0 L 379.0 17.0 L 369.0 15.0 L 342.0 24.0 L 319.0 23.0 L 291.0 29.0 L 291.0 31.0 L 297.0 29.0 L 313.0 29.0 L 313.0 31.0 L 279.0 41.0 L 229.0 67.0 L 219.0 67.0 L 209.0 61.0 L 215.0 69.0 L 233.0 71.0 L 245.0 67.0 L 265.0 55.0 L 268.0 56.0 L 247.0 71.0 L 204.0 88.0 L 198.0 96.0 L 196.0 112.0 L 200.0 102.0 L 209.0 93.0 L 219.0 91.0 L 206.0 102.0 L 199.0 125.0 L 188.0 136.0 L 200.0 132.0 L 194.0 142.0 L 193.0 151.0 L 201.0 143.0 L 198.0 156.0 L 203.0 167.0 L 206.0 148.0 L 209.0 147.0 L 207.0 151.0 L 209.0 155.0 L 216.0 150.0 L 213.0 159.0 L 214.0 200.0 L 212.0 206.0 L 196.0 224.0 L 176.0 236.0 L 171.0 245.0 L 173.0 255.0 L 191.0 273.0 L 190.0 284.0 L 185.0 289.0 L 186.0 296.0 L 197.0 303.0 L 198.0 310.0 L 209.0 311.0 L 213.0 309.0 L 215.0 311.0 L 212.0 316.0 L 199.0 317.0 L 194.0 322.0 L 195.0 331.0 L 202.0 338.0 L 204.0 344.0 L 203.0 365.0 L 205.0 375.0 L 214.0 386.0 L 224.0 390.0 L 274.0 390.0 L 294.0 396.0 L 304.0 406.0 L 311.0 421.0 L 316.0 440.0 L 92.0 440.0 L 75.0 435.0 L 54.0 422.0 L 42.0 408.0 L 35.0 395.0 L 30.0 374.0 L 31.0 61.0 L 40.0 36.0 L 59.0 15.0 L 77.0 5.0 Z" fill="#1C3634"/></g><text x="57" y="64" fill="#1C3634" font-family="Georgia, serif" font-size="54" letter-spacing="-3">Mironi<tspan fill="#C18B22" font-size="58" font-style="italic" dx="-2">u</tspan><tspan dx="-2">m</tspan></text></svg>`;
+
+function footerMarkup() {
   return `
     <div class="sdp-footer">
-      <img src="${origin}/brand/mironium-logo.svg" alt="Mironium" class="sdp-footer-logo" />
+      ${MIRONIUM_LOGO_SVG}
       <span class="sdp-footer-tag">Ваш ребёнок может больше · mironium.com</span>
     </div>`;
 }
 
 const STYLE = `
 * { box-sizing: border-box; }
-body { margin: 0; font-family: "Nunito", sans-serif; background: #fff; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #fff; }
 @page { size: A4 portrait; margin: 15mm 12mm 20mm 12mm; }
 
 .sdp-page { break-after: page; break-inside: avoid; }
@@ -120,7 +127,7 @@ body { margin: 0; font-family: "Nunito", sans-serif; background: #fff; }
 
 .sdp-page--dictation { display: flex; flex-direction: column; height: 100%; }
 
-.sdp-title { font: 700 16pt "Nunito", sans-serif; color: #1e3a6e; text-align: center; margin: 0 0 4mm; }
+.sdp-title { font: 700 16pt -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #1e3a6e; text-align: center; margin: 0 0 4mm; }
 
 .sdp-dict-top { display: flex; gap: 6mm; align-items: flex-start; flex: 0 0 auto; }
 
@@ -134,7 +141,7 @@ body { margin: 0; font-family: "Nunito", sans-serif; background: #fff; }
   flex: 1; display: flex; flex-wrap: wrap; gap: 2mm 4mm; align-content: flex-start;
   border: 0.3mm solid #ccc; border-radius: 3mm; padding: 3mm;
 }
-.sdp-instr { font: 700 11pt "Nunito", sans-serif; color: #285da8; }
+.sdp-instr { font: 700 11pt -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #285da8; }
 
 .sdp-dict-grid, .sdp-strip-grid {
   width: calc(var(--sdp-cols) * 7mm); height: calc(var(--sdp-rows) * 7mm); max-width: 100%;
@@ -166,10 +173,10 @@ body { margin: 0; font-family: "Nunito", sans-serif; background: #fff; }
   border-top: 0.3mm solid #eee; padding-top: 2mm;
 }
 .sdp-footer-logo { height: 6mm; width: auto; }
-.sdp-footer-tag { font: 700 7pt "Nunito", sans-serif; color: #1C3634; letter-spacing: 0.02em; }
+.sdp-footer-tag { font: 700 7pt -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #1C3634; letter-spacing: 0.02em; }
 `;
 
-export function buildSymmetryDrawPrintHtml(cards, origin) {
+export function buildSymmetryDrawPrintHtml(cards) {
   const dictationCards = cards.filter((card) => card.taskKind === "dictation");
   const stripCards = cards.filter((card) => card.taskKind !== "dictation");
 
@@ -179,17 +186,20 @@ export function buildSymmetryDrawPrintHtml(cards, origin) {
     stripCards.length > 0
       ? `<section class="sdp-page sdp-page--strips">${stripCards.map(stripMarkup).join("")}</section>`
       : "",
-    footerMarkup(origin),
+    footerMarkup(),
   ].join("");
 
+  // No <link> to any font or same-origin asset here — deliberately. Android
+  // Chrome's print-preview generation waits on every resource referenced in
+  // <head> (and any <img src>) before it can render a snapshot; a slow or
+  // failed fetch of any of them hangs "Preparing preview..." indefinitely
+  // (observed on a real device). Everything the print document needs —
+  // fonts, the Mironium logo — is inlined above instead.
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="utf-8" />
 <title>Печать — Mironium</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&display=swap" />
 <style>${STYLE}</style>
 </head>
 <body>
@@ -209,7 +219,7 @@ window.addEventListener("load", function () {
 export function openSymmetryDrawPrintWindow(cards) {
   const win = window.open("about:blank", "_blank");
   if (!win) return false;
-  const html = buildSymmetryDrawPrintHtml(cards, window.location.origin);
+  const html = buildSymmetryDrawPrintHtml(cards);
   win.document.open();
   win.document.write(html);
   win.document.close();
