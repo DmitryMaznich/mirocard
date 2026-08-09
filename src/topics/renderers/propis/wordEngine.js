@@ -206,17 +206,33 @@ function buildVariantIndex(lettersByLabel) {
 // used." Returns null whenever the needed variant hasn't been captured (or this isn't a
 // dual-nature letter at all), letting the caller fall back to the plain isolated card and
 // the ordinary connector system exactly as before.
+//
+// A following letter that is itself dual-nature has no fixed height classification to hand
+// off to (entryHeightGroup returns null for it), so it gets its own "dual" exit bucket tried
+// first — captured because handing off into another о/ю draws differently than handing off
+// into a genuine upper-entry letter like к, even though both currently fall under
+// simplifyToUpperLower's "upper" default. Falls through to the ordinary upper/lower bucket
+// when no dedicated dual-exit card has been captured for this entryType.
 function resolveVariant(variantIndex, label, position, prevLabel, nextLabel) {
   const variants = variantIndex.get(label);
   if (!variants) return null;
 
-  const exitType = nextLabel ? simplifyToUpperLower(entryHeightGroup(nextLabel)) : null;
   const entryType = prevLabel ? (EXIT_LINE_OVERRIDES[prevLabel] ? "upper" : "lower") : null;
+  const nextIsDual = nextLabel ? DUAL_NATURE_LETTERS.has(nextLabel) : false;
+  const exitType = nextLabel ? simplifyToUpperLower(entryHeightGroup(nextLabel)) : null;
 
-  if (position === "first") return (exitType && variants.first[exitType]) || null;
+  if (position === "first") {
+    if (nextIsDual && variants.first.dual) return variants.first.dual;
+    return (exitType && variants.first[exitType]) || null;
+  }
   if (position === "last") return (entryType && variants.last[entryType]) || null;
   if (position === "middle") {
-    if (!entryType || !exitType) return null;
+    if (!entryType) return null;
+    if (nextIsDual) {
+      const dualVariant = variants.middle[`${entryType}_dual`];
+      if (dualVariant) return dualVariant;
+    }
+    if (!exitType) return null;
     return variants.middle[`${entryType}_${exitType}`] || null;
   }
   return null;

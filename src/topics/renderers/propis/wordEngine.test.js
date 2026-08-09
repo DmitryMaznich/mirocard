@@ -357,4 +357,55 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     // just confirms buildVariantIndex ignores cards without variantOf without erroring.
     expect(() => buildWordTrajectory("бе", letters, new Map())).not.toThrow();
   });
+
+  // "г" is a MIDDLE_ENTRY_LETTERS letter and not in EXIT_LINE_OVERRIDES -> its exit always
+  // resolves to entryType "lower" for whatever dual-nature letter follows it.
+  const LETTER_G = { id: "г", label: "г", strokes: [{ d: "M 5 70 C 7 71 9 72 11 73" }] };
+
+  it("picks the last-position variant matching the preceding letter's exit type", () => {
+    const O_LAST_LOWER = {
+      id: "о_last_l", label: "о_last_l", variantOf: "о", position: "last", entryType: "lower",
+      strokes: [{ d: "M 70 65 C 72 66 74 67 76 68" }],
+    };
+    const withLast = new Map(letters).set("г", LETTER_G).set("о_last_l", O_LAST_LOWER);
+    // "го": о is last, preceded by "г" (not in EXIT_LINE_OVERRIDES) -> entryType "lower".
+    const result = buildWordTrajectory("го", withLast, new Map());
+    const oStroke = getPathEndpoints(result.strokes[result.strokes.length - 1].d);
+    const ownLast = getPathEndpoints(O_LAST_LOWER.strokes[0].d);
+    expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownLast.end[0] - ownLast.start[0], 6);
+  });
+
+  it("prefers a dual-exit variant over the upper/lower bucket when the next letter is itself dual-nature", () => {
+    const O_MIDDLE_LOWER_UPPER = {
+      id: "о_middle_lu", label: "о_middle_lu", variantOf: "о", position: "middle", entryType: "lower", exitType: "upper",
+      strokes: [{ d: "M 80 65 C 82 66 84 67 86 68" }],
+    };
+    const O_MIDDLE_LOWER_DUAL = {
+      id: "о_middle_ld", label: "о_middle_ld", variantOf: "о", position: "middle", entryType: "lower", exitType: "dual",
+      strokes: [{ d: "M 90 65 C 92 66 94 67 96 68" }],
+    };
+    const withBoth = new Map(letters)
+      .set("г", LETTER_G)
+      .set("о_middle_lu", O_MIDDLE_LOWER_UPPER)
+      .set("о_middle_ld", O_MIDDLE_LOWER_DUAL);
+    // "гоо": first о is middle, preceded by "г" (entryType "lower"), followed by another "о"
+    // (dual-nature) -> must pick the dedicated dual-exit card, not the generic upper-exit one.
+    const result = buildWordTrajectory("гоо", withBoth, new Map());
+    const firstOStroke = getPathEndpoints(result.strokes[1].d);
+    const ownDual = getPathEndpoints(O_MIDDLE_LOWER_DUAL.strokes[0].d);
+    expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownDual.end[0] - ownDual.start[0], 6);
+  });
+
+  it("falls back to the upper/lower bucket when no dual-exit variant is captured", () => {
+    const O_MIDDLE_LOWER_UPPER = {
+      id: "о_middle_lu", label: "о_middle_lu", variantOf: "о", position: "middle", entryType: "lower", exitType: "upper",
+      strokes: [{ d: "M 80 65 C 82 66 84 67 86 68" }],
+    };
+    const withLu = new Map(letters).set("г", LETTER_G).set("о_middle_lu", O_MIDDLE_LOWER_UPPER);
+    // Same "гоо" shape, but no о_middle_ld captured here -> falls through to о_middle_lu.
+    const result = buildWordTrajectory("гоо", withLu, new Map());
+    const firstOStroke = getPathEndpoints(result.strokes[1].d);
+    const ownLu = getPathEndpoints(O_MIDDLE_LOWER_UPPER.strokes[0].d);
+    expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownLu.end[0] - ownLu.start[0], 6);
+  });
 });
