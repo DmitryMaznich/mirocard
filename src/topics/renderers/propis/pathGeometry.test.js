@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getPathTangents } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
 
 // Real captured stroke, first M-only-then-C path from tools/propis/topic.json ("Б", stroke 0)
 const REAL_STROKE_D =
@@ -78,36 +78,6 @@ describe("samplePath", () => {
       const expectedY = 84 + (x / 20) * 8;
       expect(y).toBeCloseTo(expectedY, 1);
     }
-  });
-});
-
-describe("getPathTangents", () => {
-  it("points the start tangent from the start point toward the first C command's first control point", () => {
-    const { startDir } = getPathTangents("M 0 0 C 3 4 8 8 10 10");
-    expect(startDir).toEqual([3, 4]);
-  });
-
-  it("points the end tangent from the last C command's second control point toward the end point", () => {
-    const { endDir } = getPathTangents("M 0 0 C 3 4 8 8 10 10");
-    expect(endDir).toEqual([2, 2]); // end(10,10) - c2(8,8)
-  });
-
-  it("uses the second C segment's own control points across a multi-segment path", () => {
-    const { startDir, endDir } = getPathTangents("M 0 0 C 1 0 2 0 3 0 C 3 1 3 4 5 5");
-    expect(startDir).toEqual([1, 0]); // c1(1,0) - start(0,0), from the FIRST segment
-    expect(endDir).toEqual([2, 1]); // end(5,5) - c2(3,4), from the LAST segment
-  });
-
-  it("falls back to the straight chord for a path with no C command", () => {
-    const { startDir, endDir } = getPathTangents("M 0 0 L 4 3");
-    expect(startDir).toEqual([4, 3]);
-    expect(endDir).toEqual([4, 3]);
-  });
-
-  it("falls back to the chord when a control point exactly coincides with its own anchor", () => {
-    // first control point == start point -> no direction of its own to contribute there
-    const { startDir } = getPathTangents("M 0 0 C 0 0 5 5 10 10");
-    expect(startDir).toEqual([10, 10]);
   });
 });
 
