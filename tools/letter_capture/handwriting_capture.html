@@ -651,12 +651,26 @@
     // vertical/slant intersections, kept in a distinct color from the red mid-band lines
     parts.push('<line class="rule-green-h" x1="0" y1="' + NARROW_UPPER_QUARTER + '" x2="' + CANVAS_W + '" y2="' + NARROW_UPPER_QUARTER + '"/>');
     parts.push('<line class="rule-green-h" x1="0" y1="' + NARROW_LOWER_QUARTER + '" x2="' + CANVAS_W + '" y2="' + NARROW_LOWER_QUARTER + '"/>');
-    // numbered labels for every horizontal guide, top to bottom, so a specific line can be
-    // referenced by number (e.g. "line 4" = NARROW_MID, where most letter strokes start/end)
-    const H_GUIDES = [L1, TOP_MID, L2, NARROW_UPPER_QUARTER, NARROW_MID, NARROW_LOWER_QUARTER, L3, BOT_MID, L4].sort((a, b) => a - b);
-    H_GUIDES.forEach((y, i) => {
-      parts.push('<text class="rule-label" x="1" y="' + (y - 1.2) + '">' + (i + 1) + '</text>');
-    });
+    // Fixed labels, one per line, NEVER derived from array position — the numbers 1-7 here
+    // are load-bearing: fromLineSelect/toLineSelect (the connector "от линии"/"до линии"
+    // dropdowns) and the production classifyLine()/GUIDE_LINES numbering both hard-code this
+    // same 1-7 scheme, and an artist capturing a connector aims their pen at whichever line
+    // is labeled with the number they picked. The two green quarter-lines added later once
+    // sat inside a sorted, re-indexed array — which silently renumbered every line from 4
+    // onward (old "4"/"5" became "5"/"7") the moment they were added. Any capture made after
+    // that point but aimed at the visually-still-labeled-4-or-5 line was actually drawn 6.5-
+    // 13 units off from where the production code expects that number to be — confirmed as
+    // the direct cause of a sudden, otherwise-unexplained jump in cross-letter vertical
+    // drift. These labels are hand-assigned so a future addition can never do that again.
+    parts.push('<text class="rule-label" x="1" y="' + (L1 - 1.2) + '">1</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (TOP_MID - 1.2) + '">2</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (L2 - 1.2) + '">3</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (NARROW_UPPER_QUARTER - 1.2) + '">3½</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (NARROW_MID - 1.2) + '">4</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (NARROW_LOWER_QUARTER - 1.2) + '">4½</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (L3 - 1.2) + '">5</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (BOT_MID - 1.2) + '">6</text>');
+    parts.push('<text class="rule-label" x="1" y="' + (L4 - 1.2) + '">7</text>');
     // slot dividers — faint, mark where each of the up-to-3 letter cells starts
     for (let i = 1; i < SLOTS; i++) {
       parts.push('<line class="rule-line" x1="' + (i * VB_W) + '" y1="0" x2="' + (i * VB_W) + '" y2="' + VB_H + '" stroke-dasharray="3 2"/>');
