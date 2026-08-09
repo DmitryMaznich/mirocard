@@ -169,11 +169,6 @@
   .raw-stroke { fill: none; stroke: var(--pen-raw); stroke-width: 0.35; stroke-linecap: round; stroke-linejoin: round; }
   .smooth-stroke { fill: none; stroke: var(--pen-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 
-  .empty-hint {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    text-align: center; color: var(--ink-soft); font-size: 13px; pointer-events: none; padding: 0 24px;
-  }
-
   .stats {
     display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; font-size: 11.5px; color: var(--ink-soft);
     font-variant-numeric: tabular-nums;
@@ -360,7 +355,6 @@
             <g id="rawLayer"></g>
             <g id="smoothLayer"></g>
           </svg>
-          <div class="empty-hint" id="emptyHint">Проведите линию —<br>здесь появится штрих</div>
           <div class="fs-toolbar" id="fsToolbar">
             <button id="fsUndoBtn" title="Отменить последний штрих">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
@@ -511,7 +505,6 @@
   const rawLayer = document.getElementById("rawLayer");
   const smoothLayer = document.getElementById("smoothLayer");
   const guideLayer = document.getElementById("guideLayer");
-  const emptyHint = document.getElementById("emptyHint");
   const undoBtn = document.getElementById("undoBtn");
   const clearBtn = document.getElementById("clearBtn");
   const canvasWrap = document.getElementById("canvasWrap");
@@ -569,9 +562,13 @@
   // Manual nudge, in whole canvas units — lets the guide be lined up exactly against a
   // specific grid crossing (e.g. where a connector should start) instead of only ever
   // sitting at a fixed slot boundary. Never written to the saved record, same as the guide
-  // itself; resets only via the explicit reset button, not on letter/type changes.
-  let guideOffsetX = 0;
-  let guideOffsetY = 0;
+  // itself; resets only via the explicit reset button, not on letter/type changes. Starts
+  // (and resets to) the first vertical slot divider (x=100) rather than the canvas edge —
+  // a more useful default starting point than x=0.
+  const GUIDE_OFFSET_X_DEFAULT = VB_W;
+  const GUIDE_OFFSET_Y_DEFAULT = 0;
+  let guideOffsetX = GUIDE_OFFSET_X_DEFAULT;
+  let guideOffsetY = GUIDE_OFFSET_Y_DEFAULT;
   function updateGuideOffsetLabels() {
     guideOffsetXLabel.textContent = String(guideOffsetX);
     guideOffsetYLabel.textContent = String(guideOffsetY);
@@ -791,10 +788,6 @@
     return points;
   }
 
-  function updateEmptyHint() {
-    emptyHint.style.display = (strokes.length === 0 && !currentRaw) ? "flex" : "none";
-  }
-
   function redrawAll() {
     rawLayer.innerHTML = "";
     smoothLayer.innerHTML = "";
@@ -809,7 +802,6 @@
       sp.setAttribute("d", s.smoothD);
       smoothLayer.appendChild(sp);
     });
-    updateEmptyHint();
     updateStats();
     updateExports();
     addToSetBtn.disabled = strokes.length === 0;
@@ -877,7 +869,6 @@
     currentPathEl.setAttribute("d", "M " + p.x.toFixed(2) + " " + p.y.toFixed(2));
     smoothLayer.appendChild(currentPathEl);
 
-    updateEmptyHint();
     try { svgEl.setPointerCapture(evt.pointerId); } catch (e) {}
   }
 
@@ -1052,13 +1043,14 @@
   guideNudgeLeft.addEventListener("click", () => nudgeGuide(-1, 0));
   guideNudgeRight.addEventListener("click", () => nudgeGuide(1, 0));
   guideNudgeReset.addEventListener("click", () => {
-    guideOffsetX = 0;
-    guideOffsetY = 0;
+    guideOffsetX = GUIDE_OFFSET_X_DEFAULT;
+    guideOffsetY = GUIDE_OFFSET_Y_DEFAULT;
     updateGuideOffsetLabels();
     updateGuideFromLabel();
   });
   labelInput.value = "А";
   applyTypeUI();
+  updateGuideOffsetLabels();
   updateGuideFromLabel();
 
   document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -1219,7 +1211,5 @@
     };
     reader.readAsText(file);
   });
-
-  updateEmptyHint();
 })();
 </script>
