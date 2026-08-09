@@ -19,7 +19,12 @@ export default function WriteWordsView({ task, onClose }) {
 
   const connectorsByKey = useMemo(() => {
     const map = new Map();
-    for (const item of task?.connectors ?? []) map.set(`${item.fromLine}_${item.toLine}`, item);
+    for (const item of task?.connectors ?? []) {
+      const key = `${item.fromLine}_${item.toLine}`;
+      const list = map.get(key);
+      if (list) list.push(item);
+      else map.set(key, [item]);
+    }
     return map;
   }, [task]);
 

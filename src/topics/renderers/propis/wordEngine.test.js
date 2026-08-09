@@ -187,7 +187,7 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
   const WORD = EXIT_2_KEY + LETTER_A.id;
 
   it("places the connector translated (never rescaled) so its own start lands on the previous letter's baseline-contact point", () => {
-    const connectors = new Map([["2_4", EXIT_CONNECTOR_2]]);
+    const connectors = new Map([["2_4", [EXIT_CONNECTOR_2]]]);
     const result = buildWordTrajectory(WORD, letters, connectors);
 
     const exit2Contacts = getBaselineContacts(LETTER_EXIT_2);
@@ -202,7 +202,7 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
   });
 
   it("snaps the next letter's own entry point exactly onto the connector's translated end (both axes)", () => {
-    const connectors = new Map([["2_4", EXIT_CONNECTOR_2]]);
+    const connectors = new Map([["2_4", [EXIT_CONNECTOR_2]]]);
     const result = buildWordTrajectory(WORD, letters, connectors);
 
     const connectorEnd = getPathEndpoints(result.strokes[1].d).end;
@@ -227,7 +227,7 @@ describe("buildWordTrajectory — entry connectors chained after exit connectors
   const EXIT_CONNECTOR = { id: "conn_5_4", type: "connector", fromLine: 5, toLine: 4, strokes: [{ d: "M 0 75 C 2 74 4 74 6 75" }] };
   const ENTRY_CONNECTOR = { id: "conn_4_3", type: "connector", fromLine: 4, toLine: 3, strokes: [{ d: "M 20 75 C 22 70 24 65 26 60" }] };
   const letters = new Map([["в", PREV_LETTER], ["о", NEXT_LETTER]]);
-  const connectors = new Map([["5_4", EXIT_CONNECTOR], ["4_3", ENTRY_CONNECTOR]]);
+  const connectors = new Map([["5_4", [EXIT_CONNECTOR]], ["4_3", [ENTRY_CONNECTOR]]]);
 
   it("uses both connectors when the previous letter's exit type and this letter's entry type each have one", () => {
     const result = buildWordTrajectory("во", letters, connectors);
@@ -276,7 +276,7 @@ describe("buildWordTrajectory — entry connector fires even without a matching 
   const letters = new Map([["в", PREV_LETTER], ["о", NEXT_LETTER]]);
   // Deliberately no "5_4" exit connector registered — "в" overrides to exitLine 5 in
   // production, but nothing here can satisfy findExitConnector for it.
-  const connectorsNoExit = new Map([["4_3", ENTRY_CONNECTOR]]);
+  const connectorsNoExit = new Map([["4_3", [ENTRY_CONNECTOR]]]);
 
   it("still attaches the entry connector as a lead-in, snapped directly onto the previous letter's own exit point", () => {
     const result = buildWordTrajectory("во", letters, connectorsNoExit);
@@ -298,6 +298,41 @@ describe("buildWordTrajectory — entry connector fires even without a matching 
     const letterStart = getPathEndpoints(result.strokes[2].d).start;
     expect(letterStart[0]).toBeCloseTo(entryConnectorEnd[0], 6);
     expect(letterStart[1]).toBeCloseTo(entryConnectorEnd[1], 6);
+  });
+});
+
+describe("buildWordTrajectory — multiple connectors sharing the same line pair (forLetters)", () => {
+  // Both б (LOWER_ENTRY, entry connector 4→3) and и (a straight-diagonal-entry letter, also
+  // classifies to entryLine 3 via its own raw entry point) can need an entry connector on
+  // the same "4_3" key — real production case: о/а/б/ф's looping entry connector vs a
+  // straight one captured for и/к/у/etc. `forLetters` on the card disambiguates which one
+  // a given destination letter gets.
+  const PREV_LETTER = { id: "prev3", label: "в", strokes: [{ d: "M 10 70 C 12 71 14 72 16 73" }] };
+  const LETTER_B = { id: "б3", label: "б", strokes: [{ d: "M 50 62 C 52 63 54 64 56 65" }] };
+  const LETTER_I = { id: "и3", label: "и", strokes: [{ d: "M 60 62 C 62 63 64 64 66 65" }] };
+  const letters = new Map([["в", PREV_LETTER], ["б", LETTER_B], ["и", LETTER_I]]);
+
+  const LOOPING_ENTRY = { id: "conn_4_3", type: "connector", fromLine: 4, toLine: 3, strokes: [{ d: "M 20 75 C 22 70 24 65 26 60" }] };
+  const STRAIGHT_ENTRY = {
+    id: "conn_4_3_straight", type: "connector", fromLine: 4, toLine: 3, forLetters: ["и"],
+    strokes: [{ d: "M 30 75 L 34 62" }],
+  };
+  const connectors = new Map([["4_3", [LOOPING_ENTRY, STRAIGHT_ENTRY]]]);
+
+  it("gives a letter in forLetters the dedicated connector", () => {
+    const result = buildWordTrajectory("ви", letters, connectors);
+    const placedEntry = getPathEndpoints(result.strokes[1].d);
+    const ownStraight = getPathEndpoints(STRAIGHT_ENTRY.strokes[0].d);
+    expect(placedEntry.end[0] - placedEntry.start[0]).toBeCloseTo(ownStraight.end[0] - ownStraight.start[0], 6);
+    expect(placedEntry.end[1] - placedEntry.start[1]).toBeCloseTo(ownStraight.end[1] - ownStraight.start[1], 6);
+  });
+
+  it("falls back to the connector with no forLetters for any other letter at the same key", () => {
+    const result = buildWordTrajectory("вб", letters, connectors);
+    const placedEntry = getPathEndpoints(result.strokes[1].d);
+    const ownLooping = getPathEndpoints(LOOPING_ENTRY.strokes[0].d);
+    expect(placedEntry.end[0] - placedEntry.start[0]).toBeCloseTo(ownLooping.end[0] - ownLooping.start[0], 6);
+    expect(placedEntry.end[1] - placedEntry.start[1]).toBeCloseTo(ownLooping.end[1] - ownLooping.start[1], 6);
   });
 });
 

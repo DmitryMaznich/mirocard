@@ -149,17 +149,30 @@ function placeExitConnector(connector, anchor) {
   };
 }
 
+// connectorsByKey stores an array per line-pair key (see WriteWordsView's grouping) since
+// more than one connector can share a fromLine/toLine — e.g. the о/а/б/ф looping entry and
+// a straight-diagonal-letters entry (и, к, у...) both go 4→3. A card carries its own
+// `forLetters` list (see topic.json) to say which destination letters it's for; a card with
+// no `forLetters` is the default for every letter not claimed by a more specific card.
+// `letterLabel` is the letter the connector leads into (entry) or out of (exit).
+function pickConnector(candidates, letterLabel) {
+  if (!candidates) return undefined;
+  const specific = candidates.find((c) => c.forLetters?.includes(letterLabel));
+  if (specific) return specific;
+  return candidates.find((c) => !c.forLetters);
+}
+
 // A captured exit connector is keyed by the letter type it attaches to, always ending on
 // line 4 (see propisRuling.js's NATIVE_NARROW_MID — the height most letters naturally sit
 // at, so it's the universal hand-off point). An entry connector is the mirror case, keyed
 // `4_${entryType}` — for letters like о that need their own lead-in stroke from that
 // hand-off point rather than starting cold.
-function findExitConnector(connectorsByKey, exitType) {
-  return connectorsByKey.get(`${exitType}_4`);
+function findExitConnector(connectorsByKey, exitType, letterLabel) {
+  return pickConnector(connectorsByKey.get(`${exitType}_4`), letterLabel);
 }
 
-function findEntryConnector(connectorsByKey, entryType) {
-  return connectorsByKey.get(`4_${entryType}`);
+function findEntryConnector(connectorsByKey, entryType, letterLabel) {
+  return pickConnector(connectorsByKey.get(`4_${entryType}`), letterLabel);
 }
 
 // Mirrors placeExitConnector: translate-only, anchored by its own END point instead — an
@@ -265,7 +278,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
 
   const variantIndex = buildVariantIndex(lettersByLabel);
   const strokes = [];
-  let prev = null; // { exitLine, exitPointWorld, baselineContactWorld, usedVariant }
+  let prev = null; // { exitLine, exitPointWorld, baselineContactWorld, usedVariant, label }
   let rightEdge = 0;
 
   chars.forEach((ch, i) => {
@@ -298,8 +311,8 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     const bridging = !!prev; // was anything (connector) placed before this letter?
 
     if (prev) {
-      const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine);
-      const entryConnector = usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine);
+      const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
+      const entryConnector = usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
 
       let anchorPoint;
       if (exitConnector) {
@@ -347,6 +360,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       exitPointWorld: [info.exitPoint[0] + dx, info.exitPoint[1] + dy],
       baselineContactWorld: [contacts.last[0] + dx, contacts.last[1] + dy],
       usedVariant,
+      label: ch,
     };
     rightEdge = Math.max(rightEdge, dx + letterBoxWidth(letter));
   });
