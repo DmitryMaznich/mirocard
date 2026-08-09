@@ -1,4 +1,17 @@
-.sdpp-root { padding: 12px 0; }
+.sdpp-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #cbd9ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #285da8;
+  font: 700 14px/1 Nunito, sans-serif;
+  padding: 10px 14px;
+  cursor: pointer;
+  margin: 10px 0;
+}
+.sdpp-trigger:hover { background: #f3f7fd; }
 
 .sdpp-header {
   display: flex;

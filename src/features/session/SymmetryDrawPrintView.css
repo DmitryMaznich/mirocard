@@ -13,7 +13,10 @@
     break-after: page;
     break-inside: avoid;
   }
-  .sdp-page:last-child { break-after: auto; }
+  /* All .sdp-page elements are the only <section> tags in .sdp-root (Watermark
+     and PageFooter are <div>s), so :last-of-type reliably finds the true last
+     page even though the footer div is .sdp-root's actual last DOM child. */
+  .sdp-page:last-of-type { break-after: auto; }
 
   .sdp-page--dictation {
     display: flex;

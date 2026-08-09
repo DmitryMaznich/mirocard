@@ -105,14 +105,20 @@ function PageFooter() {
 
 export default function SymmetryDrawPrintView({ cards, onDone }) {
   useEffect(() => {
+    let doneTimer = null;
     function handleAfterPrint() {
-      onDone();
+      // The browser can still be finishing its print/PDF capture of this DOM
+      // subtree when `afterprint` fires; unmounting synchronously here has been
+      // observed to produce a blank PDF (the capture loses the race). Give it a
+      // beat before tearing the print view down.
+      doneTimer = setTimeout(onDone, 500);
     }
     window.addEventListener("afterprint", handleAfterPrint);
     const raf = requestAnimationFrame(() => window.print());
     return () => {
       window.removeEventListener("afterprint", handleAfterPrint);
       cancelAnimationFrame(raf);
+      if (doneTimer) clearTimeout(doneTimer);
     };
   }, [onDone]);
 
