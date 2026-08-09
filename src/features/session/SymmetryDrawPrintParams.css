@@ -31,6 +31,16 @@
 }
 .sdpp-select-toggle:hover { background: #f3f7fd; }
 
+.sdpp-popup-warning {
+  background: #fff4e5;
+  border: 1px solid #f0c987;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: 700 13px/1.4 Nunito, sans-serif;
+  color: #7a4a06;
+  margin-bottom: 12px;
+}
+
 .sdpp-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
