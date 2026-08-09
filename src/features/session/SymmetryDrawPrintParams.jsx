@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { deriveConcepts, getConceptCards } from "@/shared/utils/topicUtils";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
-import SymmetryDrawPrintView from "./SymmetryDrawPrintView";
+import { openSymmetryDrawPrintWindow } from "./symmetryDrawPrintHtml";
 import "./SymmetryDrawPrintParams.css";
 
 export default function SymmetryDrawPrintParams({ topicRecord, mode }) {
   const concepts = deriveConcepts(getConceptCards(topicRecord, mode));
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
-  const [printCards, setPrintCards] = useState(null);
+  const [popupBlocked, setPopupBlocked] = useState(false);
 
   function toggle(cardId) {
     setSelected((current) => {
@@ -34,8 +33,9 @@ export default function SymmetryDrawPrintParams({ topicRecord, mode }) {
     const chosen = concepts
       .filter((concept) => selected.has(concept.primary.id))
       .map((concept) => concept.primary);
-    setPrintCards(chosen);
-    setModalOpen(false);
+    const opened = openSymmetryDrawPrintWindow(chosen);
+    setPopupBlocked(!opened);
+    if (opened) setModalOpen(false);
   }
 
   return (
@@ -52,6 +52,11 @@ export default function SymmetryDrawPrintParams({ topicRecord, mode }) {
               {allSelected ? "Снять всё" : "Выбрать всё"}
             </button>
           </div>
+          {popupBlocked && (
+            <div className="sdpp-popup-warning">
+              Браузер заблокировал всплывающее окно печати. Разрешите всплывающие окна для этого сайта и попробуйте ещё раз.
+            </div>
+          )}
           <div className="sdpp-grid">
             {concepts.map((concept) => {
               const card = concept.primary;
@@ -72,11 +77,6 @@ export default function SymmetryDrawPrintParams({ topicRecord, mode }) {
             Скачать PDF ({selected.size})
           </Button>
         </Modal>
-      )}
-
-      {printCards && createPortal(
-        <SymmetryDrawPrintView cards={printCards} onDone={() => setPrintCards(null)} />,
-        document.body
       )}
     </>
   );
