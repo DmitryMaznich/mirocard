@@ -131,7 +131,7 @@
   }
   .canvas-wrap svg { display: block; width: 100%; height: 100%; touch-action: none; }
 
-  /* ---- fullscreen drawing mode: forced-landscape, orientation-lock-independent ---- */
+  /* ---- fullscreen drawing mode: vertical (portrait), one symbol at a time ---- */
   .canvas-wrap.is-fullscreen {
     position: fixed; inset: 0; z-index: 2147483000;
     width: 100vw; height: 100vh; max-width: none; aspect-ratio: unset;
@@ -141,16 +141,34 @@
   .canvas-wrap.is-fullscreen svg {
     display: block; touch-action: none; width: auto; height: auto; flex: none;
   }
-  .canvas-wrap.is-fullscreen.force-rotate svg { transform: rotate(90deg); }
   .fs-toolbar {
-    display: none; position: absolute; top: 0; right: 0; z-index: 2;
-    gap: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: 60%;
-    padding: calc(10px + env(safe-area-inset-top, 0px)) calc(10px + env(safe-area-inset-right, 0px)) 10px 10px;
+    display: none; position: absolute; top: 0; z-index: 2;
+    gap: 8px; flex-wrap: wrap;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    padding-bottom: 10px;
   }
   .canvas-wrap.is-fullscreen .fs-toolbar { display: flex; }
+  .fs-toolbar--left {
+    left: 0; justify-content: flex-start; max-width: 45%;
+    padding-left: calc(10px + env(safe-area-inset-left, 0px)); padding-right: 10px;
+  }
+  .fs-toolbar--right {
+    right: 0; justify-content: flex-end; max-width: 60%;
+    padding-right: calc(10px + env(safe-area-inset-right, 0px)); padding-left: 10px;
+  }
   .fs-toolbar button {
     flex: none; min-height: 40px; min-width: 40px; padding: 8px 10px; font-size: 13px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+  }
+  /* Fine-positioning D-pad, duplicated into the fullscreen toolbar (see .guide-nudge below) —
+     bumped up from the sidebar's 26px buttons since these overlay the canvas and get tapped
+     with a finger, not clicked with a mouse. */
+  .guide-nudge--fs button {
+    min-width: 38px; min-height: 38px; font-size: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+  }
+  #fsGuideNudgeReset {
+    min-width: 62px; font-variant-numeric: tabular-nums; font-size: 10.5px;
   }
   .rule-slant { stroke: var(--nb-slant); stroke-width: 0.35; }
   /* Green, own angle (ANGLE_DEG_BOLD, currently 50°) — a second guide distinct in color
@@ -341,7 +359,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
               Очистить
             </button>
-            <button id="fullscreenBtn" title="Во весь экран, горизонтально">
+            <button id="fullscreenBtn" title="Во весь экран, вертикально">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
               Во весь экран
             </button>
@@ -355,13 +373,24 @@
             <g id="rawLayer"></g>
             <g id="smoothLayer"></g>
           </svg>
-          <div class="fs-toolbar" id="fsToolbar">
+          <div class="fs-toolbar fs-toolbar--left" id="fsToolbarLeft">
             <button id="fsUndoBtn" title="Отменить последний штрих">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
             </button>
             <button id="fsClearBtn" class="danger" title="Очистить холст">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             </button>
+          </div>
+          <div class="fs-toolbar fs-toolbar--right" id="fsToolbarRight">
+            <div class="guide-nudge guide-nudge--fs" title="Сдвиг подложки на 1 юнит холста — не влияет на сохранённые данные, только на положение образца">
+              <button type="button" id="fsGuideNudgeUp" aria-label="Сдвинуть подложку вверх">▲</button>
+              <div class="guide-nudge-row">
+                <button type="button" id="fsGuideNudgeLeft" aria-label="Сдвинуть подложку влево">◀</button>
+                <button type="button" id="fsGuideNudgeReset" title="Сбросить сдвиг подложки">X:<span id="fsGuideOffsetXLabel">0</span> Y:<span id="fsGuideOffsetYLabel">0</span></button>
+                <button type="button" id="fsGuideNudgeRight" aria-label="Сдвинуть подложку вправо">▶</button>
+              </div>
+              <button type="button" id="fsGuideNudgeDown" aria-label="Сдвинуть подложку вниз">▼</button>
+            </div>
             <button id="fsExitBtn" class="primary" title="Выйти из полноэкранного режима">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
             </button>
@@ -521,6 +550,13 @@
   const guideNudgeReset = document.getElementById("guideNudgeReset");
   const guideOffsetXLabel = document.getElementById("guideOffsetXLabel");
   const guideOffsetYLabel = document.getElementById("guideOffsetYLabel");
+  const fsGuideNudgeUp = document.getElementById("fsGuideNudgeUp");
+  const fsGuideNudgeDown = document.getElementById("fsGuideNudgeDown");
+  const fsGuideNudgeLeft = document.getElementById("fsGuideNudgeLeft");
+  const fsGuideNudgeRight = document.getElementById("fsGuideNudgeRight");
+  const fsGuideNudgeReset = document.getElementById("fsGuideNudgeReset");
+  const fsGuideOffsetXLabel = document.getElementById("fsGuideOffsetXLabel");
+  const fsGuideOffsetYLabel = document.getElementById("fsGuideOffsetYLabel");
   const trimStartChk = document.getElementById("trimStartChk");
   const trimEndChk = document.getElementById("trimEndChk");
   const typeSelect = document.getElementById("typeSelect");
@@ -572,6 +608,8 @@
   function updateGuideOffsetLabels() {
     guideOffsetXLabel.textContent = String(guideOffsetX);
     guideOffsetYLabel.textContent = String(guideOffsetY);
+    fsGuideOffsetXLabel.textContent = String(guideOffsetX);
+    fsGuideOffsetYLabel.textContent = String(guideOffsetY);
   }
 
   // Driven by guideLabelInput — a tracing-reference-only field, independent of typeSelect
@@ -703,7 +741,7 @@
   }
 
   // getScreenCTM-based mapping (not bounding-rect fractions) so pointer input stays
-  // correct even when the canvas is CSS-rotated by the fullscreen/forced-landscape mode.
+  // correct regardless of how the fullscreen canvas is sized/positioned.
   function svgPoint(evt) {
     const ctm = svgEl.getScreenCTM();
     if (!ctm) return { x: 0, y: 0 };
@@ -950,20 +988,18 @@
   fsClearBtn.addEventListener("click", doClear);
   guideToggle.addEventListener("change", updateGuideFromLabel);
 
-  // ---- fullscreen / forced-landscape drawing mode ----
+  // ---- fullscreen / vertical drawing mode ----
   // iOS Safari does not support the Fullscreen API on arbitrary elements, so the
   // actual "fullscreen" effect is a fixed-position CSS overlay (works everywhere);
   // the real Fullscreen API is attempted only as a best-effort progressive enhancement.
+  // Only one symbol is ever drawn per capture, so this stays upright/portrait (no rotation
+  // trick) rather than forcing landscape the way it used to.
   let isFullscreen = false;
 
   function layoutFullscreenCanvas() {
     if (!isFullscreen) return;
-    const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    const portrait = vh > vw;
-    canvasWrap.classList.toggle("force-rotate", portrait);
-    const availW = portrait ? vh : vw;
-    const availH = portrait ? vw : vh;
+    const availW = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const availH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     const targetRatio = CANVAS_W / VB_H; // 2:1
     let w, h;
     if (availW / availH > targetRatio) { h = availH; w = h * targetRatio; }
@@ -984,13 +1020,13 @@
       if (req) req.call(canvasWrap).catch(() => {});
     } catch (e) {}
     try {
-      if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(() => {});
+      if (screen.orientation && screen.orientation.lock) screen.orientation.lock("portrait").catch(() => {});
     } catch (e) {}
   }
 
   function exitFullscreen() {
     isFullscreen = false;
-    canvasWrap.classList.remove("is-fullscreen", "force-rotate");
+    canvasWrap.classList.remove("is-fullscreen");
     svgEl.style.width = "";
     svgEl.style.height = "";
     fullscreenBtn.innerHTML =
@@ -1057,6 +1093,16 @@
   guideNudgeLeft.addEventListener("click", () => nudgeGuide(-1, 0));
   guideNudgeRight.addEventListener("click", () => nudgeGuide(1, 0));
   guideNudgeReset.addEventListener("click", () => {
+    guideOffsetX = GUIDE_OFFSET_X_DEFAULT;
+    guideOffsetY = GUIDE_OFFSET_Y_DEFAULT;
+    updateGuideOffsetLabels();
+    updateGuideFromLabel();
+  });
+  fsGuideNudgeUp.addEventListener("click", () => nudgeGuide(0, -1));
+  fsGuideNudgeDown.addEventListener("click", () => nudgeGuide(0, 1));
+  fsGuideNudgeLeft.addEventListener("click", () => nudgeGuide(-1, 0));
+  fsGuideNudgeRight.addEventListener("click", () => nudgeGuide(1, 0));
+  fsGuideNudgeReset.addEventListener("click", () => {
     guideOffsetX = GUIDE_OFFSET_X_DEFAULT;
     guideOffsetY = GUIDE_OFFSET_Y_DEFAULT;
     updateGuideOffsetLabels();
