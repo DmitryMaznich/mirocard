@@ -181,15 +181,36 @@ exactly on the letter's real entry point. Verified in a live dev-server
 render (not just the standalone script) that repeated "а" now lands at the
 same Y every time with zero drift.
 
-**Known remaining gap, not yet fixed:** plain letter-to-letter junctions
-with *no* connector on either side (e.g. "д", which isn't in
-`EXIT_LINE_OVERRIDES`/`ENTRY_LINE_OVERRIDES`) still have zero correction —
-`"дадада"` still drifts (68.67 → 69.89 → 75.00 → 76.22 → 81.33 → 82.55,
-downward this time) because that letter's own raw entry and exit points
-genuinely differ, and nothing re-anchors it to any canonical line the way a
-connector now does. Whether that's a real capture issue (recapture so
-entry/exit heights match) or something code should also correct is an open
-question — flagged, not decided.
+**Follow-up, same day:** "д"'s drift (above) turned out to have a real fix,
+not just a flag. "д" is in `LOWER_ENTRY_LETTERS` (real methodology: same
+looping entry as а/б/ф) but wasn't in `ENTRY_LINE_OVERRIDES` — its own raw
+capture (entry ~68.67) sits only 0.34 units closer to line 4 than line 3,
+so `classifyLine`'s geometric guess missed it and it fell through to a
+plain no-connector snap. Added `"д": 3` to `ENTRY_LINE_OVERRIDES`; combined
+with the entry-connector rescale above, `"дадада"` now alternates cleanly
+between д's and а's own real entry heights (68.67/69.89) with zero
+cumulative drift.
+
+**Deliberately not extended to л/м**, despite both also being in
+`LOWER_ENTRY_LETTERS`: their own captures already sit almost exactly on
+line 4 (75.68, 75.64) — forcing `conn_4_3` onto them would rescale the
+connector down to a near-flat sliver instead of an actual loop, since
+there'd be almost no vertical distance for it to span. If л/м are ever
+recaptured with a real loop entry (i.e. their own raw entry point moves
+meaningfully away from line 4), *then* add them to `ENTRY_LINE_OVERRIDES`
+to match — don't add the override to a capture that doesn't have a loop to
+correct.
+
+**"я" not yet captured** — when it is, check its own raw entry point the
+same way before deciding whether it needs the override (it's also in
+`LOWER_ENTRY_LETTERS`, but that alone isn't sufficient, as л/м showed).
+
+**Known remaining gap, still not fixed:** any OTHER plain letter that
+should methodologically get an entry connector but isn't yet in
+`ENTRY_LINE_OVERRIDES` and doesn't happen to classify there by raw geometry
+either — the same class of bug "д" was, just not yet found. `MIDDLE_ENTRY_LETTERS`
+letters (е,з,ж,г,х,ш,ч,э,в) are NOT expected to need this — их entry
+genuinely sits at line 4 already (confirmed for е,з,ж,х: raw entry ≈75).
 
 ### Data model
 

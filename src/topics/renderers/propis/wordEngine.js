@@ -53,8 +53,17 @@ export function getConnectionInfo(item) {
 const EXIT_LINE_OVERRIDES = {
   "б": 5, "в": 5, "ф": 5, "о": 5, "э": 5, "ю": 5, "ь": 5, "ъ": 5,
 };
+// "д" added 2026-08-10: it's in LOWER_ENTRY_LETTERS below (real methodology says it takes
+// the same looping entry as а/б/ф) but its own raw capture (entry ~68.67) sits only 0.34
+// units closer to line 4 than line 3 — close enough that classifyLine's geometric guess
+// missed it, silently skipping conn_4_3 and leaving it as one of the still-uncorrected
+// no-connector junctions flagged in docs/propis.md. Not extended to л/м (also in
+// LOWER_ENTRY_LETTERS): their own captures already sit almost exactly on line 4 (75.68,
+// 75.64), so forcing a connector there would rescale conn_4_3 down to a nearly-flat sliver
+// instead of a real loop — a real mismatch to fix by recapturing them with a proper loop, not
+// by forcing this override onto a capture that doesn't have one.
 const ENTRY_LINE_OVERRIDES = {
-  "б": 3, "а": 3, "о": 3, "ф": 3,
+  "б": 3, "а": 3, "о": 3, "ф": 3, "д": 3,
 };
 
 // Real Russian cursive methodology also classifies where a letter's OWN first stroke
