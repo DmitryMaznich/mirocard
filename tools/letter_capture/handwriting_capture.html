@@ -623,6 +623,21 @@
   // and of labelInput (the actual saved identity). Shown in every capture mode (letter,
   // element, connector), since a connector needs the same letter-shape reference to draw
   // against as a letter capture does; nothing here is ever written to the saved record.
+  // Glyph ink rarely fills its whole 100-unit box (e.g. "о" is ~28 units wide, "ж" ~55) and
+  // is never centered in it to begin with (real letterforms hug the left) — without this, the
+  // guide sits flush against its slot's left edge instead of in the middle of it, which was
+  // barely visible against the full 3-slot canvas but stands out now that fullscreen crops
+  // down to a single slot (see FULLSCREEN_CROP_VB). Only used for the guide overlay; never
+  // touches captured stroke data.
+  function pathBBoxCenterX(d) {
+    const nums = d.match(/-?\d*\.?\d+/g).map(Number);
+    let minX = Infinity, maxX = -Infinity;
+    for (let i = 0; i < nums.length; i += 2) {
+      if (nums[i] < minX) minX = nums[i];
+      if (nums[i] > maxX) maxX = nums[i];
+    }
+    return (minX + maxX) / 2;
+  }
   function updateGuideFromLabel() {
     guideLayer.innerHTML = "";
     if (!guideToggle.checked) return;
@@ -630,7 +645,9 @@
     chars.forEach((ch, i) => {
       const data = LETTER_PATHS[ch];
       if (!data) return; // e.g. a space, or a character outside the alphabet — leave that slot blank
-      const g = svgNS("g", { transform: "translate(" + (i * VB_W + guideOffsetX) + "," + guideOffsetY + ")" });
+      const autoCenterX = VB_W / 2 - pathBBoxCenterX(data.path);
+      const tx = i * VB_W + guideOffsetX + autoCenterX;
+      const g = svgNS("g", { transform: "translate(" + tx + "," + guideOffsetY + ")" });
       g.innerHTML = '<path class="guide-path" fill-rule="nonzero" d="' + data.path + '"/>';
       guideLayer.appendChild(g);
     });
