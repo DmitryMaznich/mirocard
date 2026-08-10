@@ -231,7 +231,10 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
 describe("buildWordTrajectory — entry connectors chained after exit connectors", () => {
   const PREV_LETTER = { id: "prev", label: "в", strokes: [{ d: "M 10 70 C 12 71 14 72 16 73" }] };
   const NEXT_LETTER = { id: "next", label: "о", strokes: [{ d: "M 50 60 C 52 61 54 62 56 63" }] };
-  const EXIT_CONNECTOR = { id: "conn_5_4", type: "connector", fromLine: 5, toLine: 4, strokes: [{ d: "M 0 75 C 2 74 4 74 6 75" }] };
+  // Non-zero own Y-span (87 -> 75), matching a real captured exit connector — a flat (zero
+  // Y-span) fixture can't exercise placeExitConnector's rescale at all (nothing to scale),
+  // which is exactly the trap the very first version of this fixture fell into.
+  const EXIT_CONNECTOR = { id: "conn_5_4", type: "connector", fromLine: 5, toLine: 4, strokes: [{ d: "M 0 87 C 2 84 4 80 6 75" }] };
   const ENTRY_CONNECTOR = { id: "conn_4_3", type: "connector", fromLine: 4, toLine: 3, strokes: [{ d: "M 20 75 C 22 70 24 65 26 60" }] };
   const letters = new Map([["в", PREV_LETTER], ["о", NEXT_LETTER]]);
   const connectors = new Map([["5_4", [EXIT_CONNECTOR]], ["4_3", [ENTRY_CONNECTOR]]]);
@@ -258,7 +261,7 @@ describe("buildWordTrajectory — entry connectors chained after exit connectors
     expect(letterStart[1]).toBeCloseTo(entryConnectorEnd[1], 6);
   });
 
-  it("keeps both connector pieces at their own authored length — never rescaled", () => {
+  it("keeps both connector pieces at their own authored X-length (X is still translate-only)", () => {
     const result = buildWordTrajectory("во", letters, connectors);
 
     const placedExit = getPathEndpoints(result.strokes[1].d);
@@ -268,6 +271,16 @@ describe("buildWordTrajectory — entry connectors chained after exit connectors
     const placedEntry = getPathEndpoints(result.strokes[2].d);
     const ownEntry = getPathEndpoints(ENTRY_CONNECTOR.strokes[0].d);
     expect(placedEntry.end[0] - placedEntry.start[0]).toBeCloseTo(ownEntry.end[0] - ownEntry.start[0], 6);
+  });
+
+  it("lands the exit connector's end and the entry connector's start exactly on their shared canonical line (both are toLine/fromLine 4)", () => {
+    const result = buildWordTrajectory("во", letters, connectors);
+    const canonicalLine4 = GUIDE_LINES.find((g) => g.line === 4).y;
+
+    const exitEnd = getPathEndpoints(result.strokes[1].d).end;
+    const entryStart = getPathEndpoints(result.strokes[2].d).start;
+    expect(exitEnd[1]).toBeCloseTo(canonicalLine4, 3);
+    expect(entryStart[1]).toBeCloseTo(canonicalLine4, 3);
   });
 });
 
@@ -326,12 +339,15 @@ describe("buildWordTrajectory — multiple connectors sharing the same line pair
   };
   const connectors = new Map([["4_3", [LOOPING_ENTRY, STRAIGHT_ENTRY]]]);
 
+  // X-span alone is enough to tell the two connector shapes apart (4 vs 6 units) and, unlike
+  // Y-span, is unaffected by placeEntryConnectorLocal's Y-rescale (see wordEngine.js) — using
+  // it here keeps this test about *which card got picked*, not about the Y-correction that's
+  // covered separately above.
   it("gives a letter in forLetters the dedicated connector", () => {
     const result = buildWordTrajectory("ви", letters, connectors);
     const placedEntry = getPathEndpoints(result.strokes[1].d);
     const ownStraight = getPathEndpoints(STRAIGHT_ENTRY.strokes[0].d);
     expect(placedEntry.end[0] - placedEntry.start[0]).toBeCloseTo(ownStraight.end[0] - ownStraight.start[0], 6);
-    expect(placedEntry.end[1] - placedEntry.start[1]).toBeCloseTo(ownStraight.end[1] - ownStraight.start[1], 6);
   });
 
   it("falls back to the connector with no forLetters for any other letter at the same key", () => {
@@ -339,7 +355,6 @@ describe("buildWordTrajectory — multiple connectors sharing the same line pair
     const placedEntry = getPathEndpoints(result.strokes[1].d);
     const ownLooping = getPathEndpoints(LOOPING_ENTRY.strokes[0].d);
     expect(placedEntry.end[0] - placedEntry.start[0]).toBeCloseTo(ownLooping.end[0] - ownLooping.start[0], 6);
-    expect(placedEntry.end[1] - placedEntry.start[1]).toBeCloseTo(ownLooping.end[1] - ownLooping.start[1], 6);
   });
 });
 

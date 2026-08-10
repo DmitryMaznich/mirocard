@@ -166,6 +166,31 @@ exception is scoped specifically to exit connectors, because they're the
 only piece whose far endpoint becomes an anchor for whatever comes next
 without anything downstream to correct it.
 
+**Second exception, same day (`placeEntryConnectorLocal`):** entry
+connectors got the mirror-image bug and the mirror-image fix. Their END is
+correctly anchored to the next letter's own real entry point already (no
+change needed there), but their START previously landed wherever the
+connector's own captured shape put it — not on the connector's own
+canonical `fromLine`. Repeating the same entry-connector letter (e.g.
+"аааааа") silently carried a small per-repetition mismatch into every next
+junction: rebuilding the trajectory letter-by-letter showed each "а" landing
+exactly 1.01 native units higher than the last (69.89, 68.88, 67.87, …) —
+a clean, deterministic drift, not noise. Fixed the same way: START is now
+Y-rescaled to land exactly on the connector's own `fromLine`, END stays
+exactly on the letter's real entry point. Verified in a live dev-server
+render (not just the standalone script) that repeated "а" now lands at the
+same Y every time with zero drift.
+
+**Known remaining gap, not yet fixed:** plain letter-to-letter junctions
+with *no* connector on either side (e.g. "д", which isn't in
+`EXIT_LINE_OVERRIDES`/`ENTRY_LINE_OVERRIDES`) still have zero correction —
+`"дадада"` still drifts (68.67 → 69.89 → 75.00 → 76.22 → 81.33 → 82.55,
+downward this time) because that letter's own raw entry and exit points
+genuinely differ, and nothing re-anchors it to any canonical line the way a
+connector now does. Whether that's a real capture issue (recapture so
+entry/exit heights match) or something code should also correct is an open
+question — flagged, not decided.
+
 ### Data model
 
 **Plain letter card**: `{ type: "letter", id, label, category, viewBox: "0 0

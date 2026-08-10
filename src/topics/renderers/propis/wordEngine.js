@@ -186,18 +186,28 @@ function findEntryConnector(connectorsByKey, entryType, letterLabel) {
   return pickConnector(connectorsByKey.get(`4_${entryType}`), letterLabel);
 }
 
-// Mirrors placeExitConnector: translate-only, anchored by its own END point instead — an
-// entry connector leads INTO the next letter, so its end lands on that letter's own raw
-// entry point (in the letter's local, pre-placement coordinates) and its start is wherever
-// that naturally puts it, which is what an incoming exit connector (or the previous
-// letter's own exit point, if it has no captured exit connector) then snaps to exactly.
+// Mirrors placeExitConnector's Y-rescale (see its comment), swapped end-for-end: an entry
+// connector leads INTO the next letter, so its END must stay exactly on that letter's own
+// raw entry point (real, unchanged) — but its START is now corrected to land exactly on the
+// connector's own canonical fromLine, instead of wherever its captured shape happens to
+// reach. Without this, chaining the same entry-connector letter repeatedly (e.g. "аааааа")
+// drifted by a constant ~1 native unit per repetition — confirmed by rebuilding the
+// trajectory incrementally letter-by-letter: 69.89, 68.88, 67.87, 66.86, 65.85, 64.84 for
+// successive "а"s, each exactly 1.01 apart — because the connector's own start silently
+// carried a small mismatch from line 4 into the NEXT junction every single time. X stays
+// translate-only, matching placeExitConnector.
 function placeEntryConnectorLocal(connector, letterRawEntryPoint) {
   const info = getConnectionInfo(connector);
   const dx = letterRawEntryPoint[0] - info.exitPoint[0];
-  const dy = letterRawEntryPoint[1] - info.exitPoint[1];
+  const origSpanY = info.exitPoint[1] - info.entryPoint[1];
+  const canonicalLine = GUIDE_LINES.find((g) => g.line === connector.fromLine);
+  const targetStartY =
+    canonicalLine && origSpanY !== 0 ? canonicalLine.y : info.entryPoint[1] + (letterRawEntryPoint[1] - info.exitPoint[1]);
+  const scaleY = origSpanY !== 0 ? (letterRawEntryPoint[1] - targetStartY) / origSpanY : 1;
+  const translateY = letterRawEntryPoint[1] - info.exitPoint[1] * scaleY;
   return {
-    strokes: connector.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) })),
-    startPoint: [info.entryPoint[0] + dx, info.entryPoint[1] + dy],
+    strokes: connector.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, scaleY, translateY }) })),
+    startPoint: [info.entryPoint[0] + dx, targetStartY],
   };
 }
 
