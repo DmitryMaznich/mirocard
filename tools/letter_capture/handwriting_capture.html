@@ -790,6 +790,19 @@
   const JITTER_ALPHA = 0.35;
   const RDP_EPSILON = 0.25;
   const MIN_STEP = 0.12;
+  // EMA is a one-pole lag filter: applied once per raw pointer-move event, its lag is
+  // proportional to the DISTANCE covered by that one event, not to real time. A fast natural
+  // stroke only fires pointermove every few native units of travel (browser event rate is
+  // fixed in real time, not in distance) — at a sharp cusp like a loop's bottom tip, a single
+  // 3-4 unit jump gets smoothed in one 0.35 step and the filtered path cuts the corner by
+  // 2-4 units, confirmed by feeding the real font path (which touches L3=88 exactly) through
+  // this same filter at realistic raw spacing. This is the confirmed root cause of captured
+  // б/в/о's exit strokes landing short of the baseline regardless of how precisely the artist
+  // traces (see conn_5_4 drift investigation, 2026-08-10). Subdividing every raw jump into
+  // sub-steps no longer than EMA_MAX_SUBSTEP before each EMA update — instead of one lag step
+  // covering the whole jump — brings the undershoot down to ~0.1 unit at any raw spacing
+  // (verified numerically before this fix), independent of how fast the hand moves.
+  const EMA_MAX_SUBSTEP = 0.3;
 
   // ---- persisted letter collection ----
   const STORAGE_KEY = "mirocard_letterCollection_v1";
@@ -996,11 +1009,22 @@
     currentRaw.push({ x: p.x, y: p.y, t: performance.now() - currentT0 });
     currentRawPolyEl.setAttribute("points", pointsToPolyline(currentRaw));
 
-    const prevF = currentFiltered[currentFiltered.length - 1];
-    currentFiltered.push({
-      x: prevF.x + JITTER_ALPHA * (p.x - prevF.x),
-      y: prevF.y + JITTER_ALPHA * (p.y - prevF.y)
-    });
+    // Subdivide this raw jump into sub-steps (see EMA_MAX_SUBSTEP above) so the EMA filter
+    // never has to absorb more than a small distance in one lag step, regardless of how far
+    // the pointer actually moved between two consecutive events. `last` is the raw point
+    // from before this move (captured above, before currentRaw.push).
+    const jump = Math.hypot(p.x - last.x, p.y - last.y);
+    const subSteps = Math.max(1, Math.ceil(jump / EMA_MAX_SUBSTEP));
+    for (let k = 1; k <= subSteps; k += 1) {
+      const t = k / subSteps;
+      const subX = last.x + (p.x - last.x) * t;
+      const subY = last.y + (p.y - last.y) * t;
+      const prevF = currentFiltered[currentFiltered.length - 1];
+      currentFiltered.push({
+        x: prevF.x + JITTER_ALPHA * (subX - prevF.x),
+        y: prevF.y + JITTER_ALPHA * (subY - prevF.y)
+      });
+    }
     scheduleLiveUpdate();
   }
 
