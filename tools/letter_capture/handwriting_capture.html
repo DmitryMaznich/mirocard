@@ -170,6 +170,19 @@
   #fsGuideNudgeReset {
     min-width: 62px; font-variant-numeric: tabular-nums; font-size: 10.5px;
   }
+  /* Fullscreen mirror of trimStartChk/trimEndChk (see .toggle-row in the sidebar) — same
+     underlying checkboxes' worth of state, styled as pill toggles since a floating overlay
+     over the canvas has no room for the full checkbox+label text. */
+  .fs-trim-group { display: flex; gap: 6px; flex: none; }
+  .fs-trim-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 40px; padding: 8px 10px; border-radius: 9px; flex: none;
+    border: 1px solid var(--card-border); background: var(--paper-deep); color: var(--ink);
+    font-size: 12px; font-weight: 500; cursor: pointer; user-select: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+  }
+  .fs-trim-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .fs-trim-toggle.is-active { background: var(--accent); border-color: var(--accent); color: var(--surface); }
   .rule-slant { stroke: var(--nb-slant); stroke-width: 0.35; }
   /* Green, own angle (ANGLE_DEG_BOLD, currently 50°) — a second guide distinct in color
      (not weight, despite the class name kept from an earlier thicker version) from
@@ -391,6 +404,16 @@
               </div>
               <button type="button" id="fsGuideNudgeDown" aria-label="Сдвинуть подложку вниз">▼</button>
             </div>
+            <div class="fs-trim-group">
+              <label class="fs-trim-toggle" title="Обрезать начало штриха по линии 4">
+                <input type="checkbox" id="fsTrimStartChk" />
+                <span>✂ нач.</span>
+              </label>
+              <label class="fs-trim-toggle" title="Обрезать конец штриха по линии 4">
+                <input type="checkbox" id="fsTrimEndChk" />
+                <span>✂ кон.</span>
+              </label>
+            </div>
             <button id="fsExitBtn" class="primary" title="Выйти из полноэкранного режима">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
             </button>
@@ -559,6 +582,8 @@
   const fsGuideOffsetYLabel = document.getElementById("fsGuideOffsetYLabel");
   const trimStartChk = document.getElementById("trimStartChk");
   const trimEndChk = document.getElementById("trimEndChk");
+  const fsTrimStartChk = document.getElementById("fsTrimStartChk");
+  const fsTrimEndChk = document.getElementById("fsTrimEndChk");
   const typeSelect = document.getElementById("typeSelect");
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
@@ -1148,6 +1173,19 @@
     updateGuideOffsetLabels();
     updateGuideFromLabel();
   });
+  // Mirrors each trim checkbox onto its fullscreen counterpart (and back) so either one can
+  // be toggled from wherever it's reachable — doFinishStroke only ever reads the sidebar
+  // pair (trimStartChk/trimEndChk), so the fullscreen pair's job is purely to stay in sync
+  // and reflect state via its .is-active pill styling (the sidebar checkbox needs no such
+  // class, it shows its own native checked state).
+  function refreshTrimVisuals() {
+    fsTrimStartChk.closest(".fs-trim-toggle").classList.toggle("is-active", fsTrimStartChk.checked);
+    fsTrimEndChk.closest(".fs-trim-toggle").classList.toggle("is-active", fsTrimEndChk.checked);
+  }
+  trimStartChk.addEventListener("change", () => { fsTrimStartChk.checked = trimStartChk.checked; refreshTrimVisuals(); });
+  trimEndChk.addEventListener("change", () => { fsTrimEndChk.checked = trimEndChk.checked; refreshTrimVisuals(); });
+  fsTrimStartChk.addEventListener("change", () => { trimStartChk.checked = fsTrimStartChk.checked; refreshTrimVisuals(); });
+  fsTrimEndChk.addEventListener("change", () => { trimEndChk.checked = fsTrimEndChk.checked; refreshTrimVisuals(); });
   labelInput.value = "А";
   applyTypeUI();
   updateGuideOffsetLabels();
