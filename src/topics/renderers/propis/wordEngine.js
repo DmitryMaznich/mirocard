@@ -130,22 +130,33 @@ function markContinuous(strokes) {
   return strokes.map((s) => ({ ...s, continuous: true }));
 }
 
-// A hand-captured connector's own start point moves to `anchor` — translation only, never
-// rescaled. The connector's own drawn length and shape ARE the correct distance and shape
-// for this letter's exit type; stretching it to hit some independently computed target
-// point defeats the point of having a real captured connector at all. Returns the
-// translated strokes plus where its own end point landed, which becomes the anchor point
-// the next piece (entry connector, or the letter directly) snaps its own start to exactly —
-// see buildWordTrajectory. Any mismatch between two independently hand-drawn pieces is not
-// papered over in code; it's on the capture quality itself (see the exit/entry connector
-// design note there).
+// A hand-captured connector's own start point moves to `anchor` (real, measured — where the
+// previous letter actually sits) — X stays translate-only, but Y is corrected via an affine
+// map so the FAR end always lands exactly on the connector's own canonical toLine, instead of
+// wherever its captured shape happens to reach. This used to be translate-only on both axes,
+// deliberately, on the theory that any mismatch was a capture-quality problem to fix by
+// recapturing — that held up until repeated recaptures (2026-08-09/10) plus an EMA-smoothing
+// fix still left every б/в/о-led word ~2 native units off line 4, and comparing captures
+// against the reference font path showed why: some letters' own correct shape (e.g. "в")
+// never reaches the nominal guide line in the first place (font path's own closest approach
+// to L3 is 86.23, not 88) — no amount of better capturing closes that gap, because the
+// target line and the letter's real geometry are just not the same number. Scaling Y (not
+// stretching to an arbitrary computed point, but to the same canonical ruling line every
+// letter without a captured connector already lands on) restores the invariant that mattered
+// — "the next piece starts exactly on line 4" — without needing a bridge or a gap. The near
+// end (anchor) is untouched; only the reach is corrected, so a bigger anchor/target mismatch
+// makes the curve gently more/less steep, not just wrong.
 function placeExitConnector(connector, anchor) {
   const info = getConnectionInfo(connector);
   const dx = anchor[0] - info.entryPoint[0];
-  const dy = anchor[1] - info.entryPoint[1];
+  const origSpanY = info.exitPoint[1] - info.entryPoint[1];
+  const targetLine = GUIDE_LINES.find((g) => g.line === connector.toLine);
+  const targetY = targetLine && origSpanY !== 0 ? targetLine.y : info.exitPoint[1] + (anchor[1] - info.entryPoint[1]);
+  const scaleY = origSpanY !== 0 ? (targetY - anchor[1]) / origSpanY : 1;
+  const translateY = anchor[1] - info.entryPoint[1] * scaleY;
   return {
-    strokes: connector.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) })),
-    endPoint: [info.exitPoint[0] + dx, info.exitPoint[1] + dy],
+    strokes: connector.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, scaleY, translateY }) })),
+    endPoint: [info.exitPoint[0] + dx, targetY],
   };
 }
 
@@ -266,10 +277,15 @@ function letterBoxWidth(letter) {
 // since real captures rarely match perfectly, some residual is normal — and every prior
 // attempt at auto-correcting it (either by shifting the letter, or by drawing a connecting
 // stroke) produced its own visible artifact instead (vertical drift across repeated letters,
-// or a bridge whose angle doesn't continue the pen's existing direction). The artist accepts
-// full responsibility for capturing connectors and letters consistently enough that snapping
-// them together directly looks right — if "бб" drifts taller with each repetition, the fix
-// is a better-matched capture of the connector/letter pair, not a code-side correction.
+// or a bridge whose angle doesn't continue the pen's existing direction).
+//
+// One exception (2026-08-10, see placeExitConnector): an exit connector's far end IS now
+// corrected onto its own canonical toLine, because the drift there turned out not to be a
+// capture-quality problem at all — some letters' own correct shape never reaches the nominal
+// guide line (confirmed against the reference font path itself, not just hand captures), so
+// no amount of recapturing could have closed that gap. Every OTHER junction in this function
+// is still a pure exact-snap with no correction: if two independently captured pieces
+// mismatch anywhere else, that's still on the capture, not the code.
 export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
   const chars = Array.from(word);
   if (chars.length === 0) {

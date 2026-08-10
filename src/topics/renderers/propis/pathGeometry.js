@@ -96,10 +96,10 @@ export function findClosestApproach(points, targetY, toleranceMargin = 1.5) {
   return { first: near[0], last: near[near.length - 1] };
 }
 
-export function transformPathD(d, { scaleX = 1, translateX = 0, translateY = 0 } = {}) {
+export function transformPathD(d, { scaleX = 1, scaleY = 1, translateX = 0, translateY = 0 } = {}) {
   const tokens = d.match(TOKEN_RE) || [];
   const tx = (x) => (x * scaleX + translateX).toFixed(3);
-  const ty = (y) => (y + translateY).toFixed(3);
+  const ty = (y) => (y * scaleY + translateY).toFixed(3);
 
   let out = "";
   let i = 0;

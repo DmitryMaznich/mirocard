@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { transformPathD, getPathEndpoints } from "./pathGeometry.js";
 import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory } from "./wordEngine.js";
+import { GUIDE_LINES } from "./propisRuling.js";
 
 const LETTER_A = {
   id: "а",
@@ -186,19 +187,25 @@ describe("buildWordTrajectory — exit connectors (real, hand-drawn, never resca
   };
   const WORD = EXIT_2_KEY + LETTER_A.id;
 
-  it("places the connector translated (never rescaled) so its own start lands on the previous letter's baseline-contact point", () => {
+  it("places the connector's near end on the previous letter's baseline-contact point (X translated, Y unchanged there)", () => {
     const connectors = new Map([["2_4", [EXIT_CONNECTOR_2]]]);
     const result = buildWordTrajectory(WORD, letters, connectors);
 
     const exit2Contacts = getBaselineContacts(LETTER_EXIT_2);
-    const connInfo = getConnectionInfo(EXIT_CONNECTOR_2);
-    const dx = exit2Contacts.last[0] - connInfo.entryPoint[0];
-    const dy = exit2Contacts.last[1] - connInfo.entryPoint[1];
+    const connectorStart = getPathEndpoints(result.strokes[1].d).start;
 
     expect(result.strokes).toHaveLength(3); // letter, connector, letter — no bridge
-    expect(result.strokes[1].d).toBe(
-      transformPathD(EXIT_CONNECTOR_2.strokes[0].d, { translateX: dx, translateY: dy })
-    );
+    expect(connectorStart[0]).toBeCloseTo(exit2Contacts.last[0], 3);
+    expect(connectorStart[1]).toBeCloseTo(exit2Contacts.last[1], 3);
+  });
+
+  it("rescales the connector's Y so its far end lands exactly on its own canonical toLine, regardless of where the near-end anchor sits", () => {
+    const connectors = new Map([["2_4", [EXIT_CONNECTOR_2]]]);
+    const result = buildWordTrajectory(WORD, letters, connectors);
+
+    const connectorEnd = getPathEndpoints(result.strokes[1].d).end;
+    const canonicalY = GUIDE_LINES.find((g) => g.line === EXIT_CONNECTOR_2.toLine).y;
+    expect(connectorEnd[1]).toBeCloseTo(canonicalY, 3);
   });
 
   it("snaps the next letter's own entry point exactly onto the connector's translated end (both axes)", () => {
