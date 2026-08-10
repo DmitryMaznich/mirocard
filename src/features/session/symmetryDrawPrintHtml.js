@@ -217,11 +217,22 @@ window.addEventListener("load", function () {
 }
 
 export function openSymmetryDrawPrintWindow(cards) {
-  const win = window.open("about:blank", "_blank");
-  if (!win) return false;
   const html = buildSymmetryDrawPrintHtml(cards);
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  // A blob: URL navigation (a real document, real load event) rather than
+  // window.open("about:blank") + document.write() — the latter is a legacy
+  // pattern with known cross-browser quirks around load-event timing and
+  // document identity that mobile print pipelines are more likely to trip
+  // over than desktop ones.
+  const win = window.open(url, "_blank");
+  if (!win) {
+    URL.revokeObjectURL(url);
+    return false;
+  }
+  // Release the blob once the tab has had plenty of time to load and print;
+  // revoking immediately can break the tab still displaying it on some
+  // browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
   return true;
 }
