@@ -1,14 +1,25 @@
 import { dictationPath, mirrorPaths, translatePaths, pathToD } from "./symmetryDrawGeometry";
 
-// Builds the print document as a standalone HTML string, rendered into a
-// separate browser tab (see openSymmetryDrawPrintWindow below) rather than
-// mounted into the app's own React tree. A same-document React-portal +
-// `@media print` toggle was tried first, but the `afterprint`-triggered
-// unmount raced the browser's print/PDF capture of that DOM subtree and
-// produced blank pages (reproducible via Chromium headless printToPDF, and
-// reported blank on real Android Chrome too). A fully separate tab has no
-// shared DOM for our own code to tear down out from under the browser's
-// capture, which removes that race entirely.
+// Builds the print document, rendered into a separate browser tab (see
+// openSymmetryDrawPrintWindow below and the print-route handling in
+// main.jsx) rather than mounted into the app's own React tree.
+//
+// History of what didn't work, in order, all on real Android Chrome:
+// 1. Same-document React portal + `@media print` toggle: the
+//    `afterprint`-triggered unmount raced the browser's print capture of
+//    that DOM subtree and produced blank pages.
+// 2. window.open("about:blank") + document.write(), loading a Google Fonts
+//    stylesheet and the logo via <img src>: print preview generation hung
+//    forever on "Preparing preview..." — Android waits for every resource
+//    referenced in <head>/<img> before it can render a snapshot, and a
+//    slow/failed fetch blocks it indefinitely.
+// 3. Same tab-opening mechanism with a blob: URL instead of about:blank
+//    (no external resources at all): Android's print integration appears
+//    to reject blob: URLs outright — printing failed immediately with a
+//    generic error.
+// The current approach opens a real same-origin https:// URL (a route
+// within this same app, see main.jsx) — the one thing every print
+// integration is guaranteed to support, since it's just a normal page.
 
 const ARROW_BY_DIRECTION = {
   up: "↑", down: "↓", left: "←", right: "→",
@@ -114,7 +125,7 @@ function footerMarkup() {
     </div>`;
 }
 
-const STYLE = `
+export const PRINT_STYLE = `
 * { box-sizing: border-box; }
 body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #fff; }
 @page { size: A4 portrait; margin: 15mm 12mm 20mm 12mm; }
@@ -176,11 +187,11 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Ro
 .sdp-footer-tag { font: 700 7pt -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #1C3634; letter-spacing: 0.02em; }
 `;
 
-export function buildSymmetryDrawPrintHtml(cards) {
+export function buildSymmetryDrawPrintBody(cards) {
   const dictationCards = cards.filter((card) => card.taskKind === "dictation");
   const stripCards = cards.filter((card) => card.taskKind !== "dictation");
 
-  const body = [
+  return [
     watermarkMarkup(),
     dictationCards.map(dictationPageMarkup).join(""),
     stripCards.length > 0
@@ -188,51 +199,22 @@ export function buildSymmetryDrawPrintHtml(cards) {
       : "",
     footerMarkup(),
   ].join("");
-
-  // No <link> to any font or same-origin asset here — deliberately. Android
-  // Chrome's print-preview generation waits on every resource referenced in
-  // <head> (and any <img src>) before it can render a snapshot; a slow or
-  // failed fetch of any of them hangs "Preparing preview..." indefinitely
-  // (observed on a real device). Everything the print document needs —
-  // fonts, the Mironium logo — is inlined above instead.
-  return `<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8" />
-<title>Печать — Mironium</title>
-<style>${STYLE}</style>
-</head>
-<body>
-${body}
-<script>
-window.addEventListener("load", function () {
-  window.print();
-  window.addEventListener("afterprint", function () {
-    window.close();
-  });
-});
-</script>
-</body>
-</html>`;
 }
 
+export const SYMMETRY_DRAW_PRINT_ROUTE = "/print/symmetry-draw";
+export const SYMMETRY_DRAW_PRINT_STORAGE_KEY = "symmetryDrawPrintCards";
+
+// Opens the print route in a new tab with the selected cards handed off via
+// sessionStorage (window.open can't pass structured data directly). A real
+// same-origin https:// URL — not blob:/about:blank — is the one thing every
+// platform's print integration is guaranteed to support; see the file-level
+// comment above for what was tried and rejected before landing here.
 export function openSymmetryDrawPrintWindow(cards) {
-  const html = buildSymmetryDrawPrintHtml(cards);
-  const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  // A blob: URL navigation (a real document, real load event) rather than
-  // window.open("about:blank") + document.write() — the latter is a legacy
-  // pattern with known cross-browser quirks around load-event timing and
-  // document identity that mobile print pipelines are more likely to trip
-  // over than desktop ones.
-  const win = window.open(url, "_blank");
-  if (!win) {
-    URL.revokeObjectURL(url);
+  try {
+    sessionStorage.setItem(SYMMETRY_DRAW_PRINT_STORAGE_KEY, JSON.stringify(cards));
+  } catch {
     return false;
   }
-  // Release the blob once the tab has had plenty of time to load and print;
-  // revoking immediately can break the tab still displaying it on some
-  // browsers.
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-  return true;
+  const win = window.open(SYMMETRY_DRAW_PRINT_ROUTE, "_blank");
+  return Boolean(win);
 }
