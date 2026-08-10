@@ -27,6 +27,7 @@ import WrittenLettersPairParams from "@/topics/renderers/written_letters/Written
 import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams";
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
+import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -950,7 +951,8 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
-    if (mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs) {
+    const bypassPin = mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs;
+    if (!shouldRequestSessionStartPin({ videoRewardEnabled: videoReward, bypassPin })) {
       launchSession();
       return;
     }
