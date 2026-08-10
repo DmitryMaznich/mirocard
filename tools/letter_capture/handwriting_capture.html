@@ -583,6 +583,13 @@
   const VB_W = 100, VB_H = 150; // one letter-cell, unchanged propis scale
   const SLOTS = 3;
   const CANVAS_W = VB_W * SLOTS; // 300 — up to 3 letters/elements per line
+  const FULL_CANVAS_VB = "0 0 " + CANVAS_W + " " + VB_H;
+  // Fullscreen only ever captures one symbol at a time, so it crops down to the single
+  // slot the guide/pen normally sit in by default (GUIDE_OFFSET_X_DEFAULT = VB_W, i.e. the
+  // middle slot) instead of showing all 3 — this is what gives fullscreen its zoom. The
+  // duplicated rule-label set at x=101 (see drawRuling) exists specifically so line numbers
+  // stay visible inside this cropped window.
+  const FULLSCREEN_CROP_VB = VB_W + " 0 " + VB_W + " " + VB_H;
   const L1 = 10, L2 = 62, L3 = 88, L4 = 140; // propis 2:1:2, matches written_letters/letterPaths.js
   // Vertical center of the узкая строка (x-height band, L2-L3) — the universal hand-off
   // point a connector's own captured strokes always end/start on (see wordEngine.js's
@@ -709,6 +716,20 @@
     parts.push('<text class="rule-label" x="1" y="' + (L3 - 1.2) + '">5</text>');
     parts.push('<text class="rule-label" x="1" y="' + (BOT_MID - 1.2) + '">6</text>');
     parts.push('<text class="rule-label" x="1" y="' + (L4 - 1.2) + '">7</text>');
+    // Same 9 labels again, hand-typed (not derived from the set above — see the warning
+    // just above about array-derived renumbering), shifted one slot right (x=101 instead
+    // of x=1) so they stay visible when fullscreen crops the view down to the middle slot
+    // (see FULLSCREEN_CROP_VB below) — the left-edge set above would otherwise fall
+    // entirely outside that cropped viewBox.
+    parts.push('<text class="rule-label" x="102.5" y="' + (L1 - 1.2) + '">1</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (TOP_MID - 1.2) + '">2</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (L2 - 1.2) + '">3</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (NARROW_UPPER_QUARTER - 1.2) + '">3½</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (NARROW_MID - 1.2) + '">4</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (NARROW_LOWER_QUARTER - 1.2) + '">4½</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (L3 - 1.2) + '">5</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (BOT_MID - 1.2) + '">6</text>');
+    parts.push('<text class="rule-label" x="102.5" y="' + (L4 - 1.2) + '">7</text>');
     // slot dividers — faint, mark where each of the up-to-3 letter cells starts
     for (let i = 1; i < SLOTS; i++) {
       parts.push('<line class="rule-line" x1="' + (i * VB_W) + '" y1="0" x2="' + (i * VB_W) + '" y2="' + VB_H + '" stroke-dasharray="3 2"/>');
@@ -1000,7 +1021,7 @@
     if (!isFullscreen) return;
     const availW = window.visualViewport ? window.visualViewport.width : window.innerWidth;
     const availH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    const targetRatio = CANVAS_W / VB_H; // 2:1
+    const targetRatio = VB_W / VB_H; // cropped to one slot, ~0.67:1 — see FULLSCREEN_CROP_VB
     let w, h;
     if (availW / availH > targetRatio) { h = availH; w = h * targetRatio; }
     else { w = availW; h = w / targetRatio; }
@@ -1011,6 +1032,7 @@
   function enterFullscreen() {
     isFullscreen = true;
     canvasWrap.classList.add("is-fullscreen");
+    svgEl.setAttribute("viewBox", FULLSCREEN_CROP_VB);
     fullscreenBtn.textContent = "";
     fullscreenBtn.innerHTML =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>Свернуть';
@@ -1027,6 +1049,7 @@
   function exitFullscreen() {
     isFullscreen = false;
     canvasWrap.classList.remove("is-fullscreen");
+    svgEl.setAttribute("viewBox", FULL_CANVAS_VB);
     svgEl.style.width = "";
     svgEl.style.height = "";
     fullscreenBtn.innerHTML =
