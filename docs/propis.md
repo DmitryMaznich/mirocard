@@ -148,6 +148,24 @@ both an exit and an entry connector visibly drift apart or together, the fix
 is recapturing one of the two connector pieces more carefully, not adding
 smoothing code back.
 
+**Exception, 2026-08-10 (`placeExitConnector` in `wordEngine.js`):** an exit
+connector's far end is now Y-rescaled (not just translated) to land exactly
+on its own canonical `toLine`, instead of wherever its captured shape happens
+to reach. Reached after б/в/о/`conn_5_4` were recaptured twice and the
+EMA-smoothing bug in the capture tool was fixed (see its section below) and
+the drift *still* didn't close — every letter after an exit-override letter
+kept landing ~2 native units above line 4. Root cause turned out not to be
+capture quality at all: the reference font path itself for "в" only reaches
+y=86.23, never the nominal 88, so no amount of recapturing could have hit
+the old implicit target. The near end (anchored to the previous letter's
+real baseline-contact point) is untouched — only the connector's own
+internal Y-reach is corrected, via an affine scale, so its curve gets gently
+steeper/shallower rather than just landing wrong. Every *other* junction in
+`buildWordTrajectory` is still a pure exact-snap with zero correction — this
+exception is scoped specifically to exit connectors, because they're the
+only piece whose far endpoint becomes an anchor for whatever comes next
+without anything downstream to correct it.
+
 ### Data model
 
 **Plain letter card**: `{ type: "letter", id, label, category, viewBox: "0 0
