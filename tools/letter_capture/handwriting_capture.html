@@ -664,20 +664,26 @@
   // This renders the guide as real SVG <text> in the actual ClassRoomCursive.ttf font (embedded
   // via @font-face above, base64, so it still works fully offline) and lets the BROWSER's own
   // font shaping place and connect the glyphs — the way the font was actually designed to be
-  // typed. getBBox() on this font reports an identical ~93-unit height (and y) for EVERY glyph
-  // tested, even digits "0"/"1" with no cursive tail — the font apparently bakes a full-height
-  // vertical marker into every glyph outline (likely a leftover reference mark from the PDF
-  // print pipeline this font was built for; see make_insert_punctuation_standard.py /
-  // cover_tetrad.py). That's fine for calibration purposes though — this only needs ONE stable
-  // reference measurement, and every glyph gives the same one. First tried calibrating off
-  // WIDTH instead (which does vary correctly per glyph) against "о"'s known-clean width from
-  // LETTER_PATHS, on the theory that height was unusable — wrong call: the resulting letters
-  // connected perfectly but no longer matched the ruling's own x-height the way a single letter
-  // always has. Reverted to height, matching that original convention exactly: target is the
-  // same L3-L2 (26 native units, the ruling's узкая строка) a single letter's own clean height
-  // was always scaled to.
+  // typed. getBBox() on this font is NOT usable for size calibration at all, by design of the
+  // font file itself: every glyph tested (even digits "0"/"1", no cursive tail) reports an
+  // identical bbox height/y at a given font-size — confirmed by parsing the TTF's own hhea
+  // table directly: ascender=683, descender=-250 (unitsPerEm=1000), and 683+250=933, i.e.
+  // exactly the ~93.3-unit box getBBox() was returning at font-size 100. Every glyph outline
+  // apparently carries points reaching the font's full ascent/descent bounds regardless of its
+  // own ink (likely a leftover reference mark from the PDF print pipeline this font was built
+  // for; see make_insert_punctuation_standard.py / cover_tetrad.py) — so getBBox() measures the
+  // font's LINE BOX, never x-height, no matter which glyph is probed. Two prior attempts both
+  // fell into this trap: calibrating off bbox WIDTH (correct per-glyph, but wrong axis — broke
+  // the ruling-height match) and calibrating off bbox HEIGHT treated as x-height (same broken
+  // ~93-unit box, target 26 landed letters at roughly a third of their correct size).
+  //
+  // The fix: don't measure at all — the font's real x-height, as a fraction of its own em
+  // square, is a fixed constant (parsed directly from its OS/2.sxHeight table: 285/1000 =
+  // 0.285) — and this exact ratio is already named X_RATIO and used for this exact font
+  // elsewhere in the project (make_insert_punctuation_standard.py, cover_tetrad.py), so it's
+  // not a new guess, just the same known constant applied here too.
   const GUIDE_FONT_FAMILY = "PropisGuideFont";
-  const GUIDE_CALIBRATION_CHAR = "о";
+  const GUIDE_FONT_X_HEIGHT_RATIO = 0.285; // ClassRoomCursive's OS/2.sxHeight / unitsPerEm — matches X_RATIO in cover_tetrad.py
   // <text>'s y attribute is the baseline (a font-metric property, independent of the per-glyph
   // ink bbox above) — y=L3 lands the rendered word exactly on the ruling's own bold baseline
   // line for free, no separate anchoring math needed.
@@ -686,12 +692,7 @@
     if (!guideToggle.checked) return;
     const text = Array.from(guideLabelInput.value.trim()).slice(0, SLOTS).join("");
     if (!text) return;
-    const probe = svgNS("text", { "font-family": GUIDE_FONT_FAMILY, "font-size": "100", x: "0", y: "0" });
-    probe.textContent = GUIDE_CALIBRATION_CHAR;
-    guideLayer.appendChild(probe);
-    const probeHeight = probe.getBBox().height;
-    guideLayer.removeChild(probe);
-    const fontSize = probeHeight > 0 ? ((L3 - L2) / probeHeight) * 100 : 100;
+    const fontSize = (L3 - L2) / GUIDE_FONT_X_HEIGHT_RATIO;
     const el = svgNS("text", { "font-family": GUIDE_FONT_FAMILY, "font-size": String(fontSize), x: "0", y: String(L3) });
     el.setAttribute("class", "guide-text");
     el.textContent = text;
