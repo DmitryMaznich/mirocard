@@ -657,18 +657,19 @@
     }
     return { minX, maxX };
   }
-  // Real cursive connects letters with a joining stroke (zero gap); the guide has no such
-  // stroke, so a few units keeps adjacent glyphs from visually touching/overlapping at their
-  // raw bounding-box edges while still reading as one connected word, not three separate ones.
-  const GUIDE_LETTER_GAP = 4;
+  // Chaining each glyph's own path-start/path-end exactly (mirroring wordEngine.js's
+  // exact-snap for real captured letters) was tried and rejected 2026-08-11: these font-
+  // extracted glyphs are isolated letterforms, each with its own path start/end wherever the
+  // font's pen happened to lift for THAT letter in isolation — not calibrated against any
+  // neighbor the way a real capture is, so chaining them produced letters 2 and 3 landing
+  // LEFT of letter 1 and heavily overlapping (confirmed on "Аба": world X ranges 135.8–187.0,
+  // 129.0–181.2, 113.0–148.5 — each subsequent letter further left, not further right).
+  // Packing by bbox width with zero gap is the only version of "no artificial gap" that
+  // actually produces a left-to-right, non-overlapping sequence with this data.
   function updateGuideFromLabel() {
     guideLayer.innerHTML = "";
     if (!guideToggle.checked) return;
     const chars = Array.from(guideLabelInput.value.trim()).slice(0, SLOTS);
-    // Packs each letter's own bbox flush against the previous one (plus GUIDE_LETTER_GAP)
-    // instead of centering each independently in its own fixed 100-unit slot — glyph ink
-    // rarely fills its whole box (e.g. "о" is ~28 units wide, "ж" ~55), so the old per-slot
-    // layout left big empty gaps around narrow letters and read as spread out, not written.
     let cursorX = 0;
     const placements = [];
     for (const ch of chars) {
@@ -676,11 +677,12 @@
       if (!data) { placements.push(null); continue; } // e.g. a space, or a character outside the alphabet
       const { minX, maxX } = pathBBoxX(data.path);
       placements.push({ data, relX: cursorX - minX });
-      cursorX += (maxX - minX) + GUIDE_LETTER_GAP;
+      cursorX += maxX - minX;
     }
-    const groupWidth = Math.max(0, cursorX - GUIDE_LETTER_GAP);
-    // Centers the WHOLE packed group in the same [guideOffsetX, guideOffsetX+VB_W] window a
-    // single letter used to center itself in — same guideOffsetX nudge still applies on top.
+    const groupWidth = cursorX;
+    // Centers the packed group horizontally in the same [guideOffsetX, guideOffsetX+VB_W]
+    // window a single letter used to center itself in — same guideOffsetX nudge still applies
+    // on top.
     const shift = guideOffsetX + VB_W / 2 - groupWidth / 2;
     placements.forEach((p) => {
       if (!p) return;
