@@ -664,20 +664,23 @@
   // This renders the guide as real SVG <text> in the actual ClassRoomCursive.ttf font (embedded
   // via @font-face above, base64, so it still works fully offline) and lets the BROWSER's own
   // font shaping place and connect the glyphs — the way the font was actually designed to be
-  // typed. getBBox().height on this font is unusable for calibration: EVERY glyph (even digits
-  // "0"/"1", which have no cursive tail) reports the identical ~93-unit height and y at
-  // font-size 100 — the font apparently bakes an invisible full-height vertical marker into
-  // every glyph outline (likely a leftover reference mark from the PDF print pipeline this font
-  // was built for; see make_insert_punctuation_standard.py / cover_tetrad.py). getBBox().width,
-  // unlike height, DOES vary correctly per glyph, so it's used instead: font-size is calibrated
-  // against "о"'s own known-clean width from LETTER_PATHS (28.06 native units — that extraction
-  // trimmed the same invisible marker away, unlike live text shaping).
+  // typed. getBBox() on this font reports an identical ~93-unit height (and y) for EVERY glyph
+  // tested, even digits "0"/"1" with no cursive tail — the font apparently bakes a full-height
+  // vertical marker into every glyph outline (likely a leftover reference mark from the PDF
+  // print pipeline this font was built for; see make_insert_punctuation_standard.py /
+  // cover_tetrad.py). That's fine for calibration purposes though — this only needs ONE stable
+  // reference measurement, and every glyph gives the same one. First tried calibrating off
+  // WIDTH instead (which does vary correctly per glyph) against "о"'s known-clean width from
+  // LETTER_PATHS, on the theory that height was unusable — wrong call: the resulting letters
+  // connected perfectly but no longer matched the ruling's own x-height the way a single letter
+  // always has. Reverted to height, matching that original convention exactly: target is the
+  // same L3-L2 (26 native units, the ruling's узкая строка) a single letter's own clean height
+  // was always scaled to.
   const GUIDE_FONT_FAMILY = "PropisGuideFont";
   const GUIDE_CALIBRATION_CHAR = "о";
-  const GUIDE_CALIBRATION_WIDTH = 28.0609756097561; // LETTER_PATHS["о"]'s own clean bbox width
-  // <text>'s y attribute is the baseline (a font-metric property, independent of the broken
-  // per-glyph ink bbox above) — y=L3 lands the rendered word exactly on the ruling's own bold
-  // baseline line for free, no separate anchoring math needed.
+  // <text>'s y attribute is the baseline (a font-metric property, independent of the per-glyph
+  // ink bbox above) — y=L3 lands the rendered word exactly on the ruling's own bold baseline
+  // line for free, no separate anchoring math needed.
   function updateGuideFromLabel() {
     guideLayer.innerHTML = "";
     if (!guideToggle.checked) return;
@@ -686,9 +689,9 @@
     const probe = svgNS("text", { "font-family": GUIDE_FONT_FAMILY, "font-size": "100", x: "0", y: "0" });
     probe.textContent = GUIDE_CALIBRATION_CHAR;
     guideLayer.appendChild(probe);
-    const probeWidth = probe.getBBox().width;
+    const probeHeight = probe.getBBox().height;
     guideLayer.removeChild(probe);
-    const fontSize = probeWidth > 0 ? (GUIDE_CALIBRATION_WIDTH / probeWidth) * 100 : 100;
+    const fontSize = probeHeight > 0 ? ((L3 - L2) / probeHeight) * 100 : 100;
     const el = svgNS("text", { "font-family": GUIDE_FONT_FAMILY, "font-size": String(fontSize), x: "0", y: String(L3) });
     el.setAttribute("class", "guide-text");
     el.textContent = text;
