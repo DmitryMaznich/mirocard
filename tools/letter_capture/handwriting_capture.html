@@ -684,25 +684,41 @@
   // not a new guess, just the same known constant applied here too.
   const GUIDE_FONT_FAMILY = "PropisGuideFont";
   const GUIDE_FONT_X_HEIGHT_RATIO = 0.285; // ClassRoomCursive's OS/2.sxHeight / unitsPerEm — matches X_RATIO in cover_tetrad.py
-  // <text>'s y attribute is the baseline (a font-metric property, independent of the per-glyph
-  // ink bbox above) — y=L3 lands the rendered word exactly on the ruling's own bold baseline
-  // line for free, no separate anchoring math needed.
+  // The RAW font's own diagonal strokes lean at ~72° from horizontal (measured directly from
+  // the TTF's glyf outline for "р": its longest straight segment, (-51,-230)->(91,209) in font
+  // units, is 72.08°) — steeper than the ruling's own 65° (ANGLE_DEG below, and
+  // ANGLE_FROM_HORIZONTAL_DEG in propisRuling.js). letterPaths.js's separately fontTools-
+  // extracted data reads ~65.5° for the same letter, meaning IT was already de-slanted to match
+  // the ruling at extraction time — but this guide renders the live @font-face font directly,
+  // bypassing that correction entirely, which is exactly why the guide's own diagonal visibly
+  // didn't line up with the ruling's diagonal lines (confirmed against a screenshot).
+  // GUIDE_SKEW_DEG corrects for this: found by shearing the raw glyf points (x' = x + k·y, font
+  // space) and solving for the k that brings that same 72.08° segment to exactly 65.00° —
+  // k=0.1428 — then converting to a screen-space (y-down) CSS skewX via the axis flip between
+  // font space (y-up) and SVG space (y-down), which negates the sign: atan(-0.1428) ≈ -8.13°.
+  const GUIDE_SKEW_DEG = -8.13;
+  // <text>'s x=0, y=0 puts its baseline at the local origin, so skewX (applied on the wrapping
+  // <g>, first in the transform list since SVG applies right-to-left) pivots around the
+  // baseline itself — shape tilts in place, baseline doesn't shift. The outer translate then
+  // carries both x-centering and the L3 baseline placement.
   function updateGuideFromLabel() {
     guideLayer.innerHTML = "";
     if (!guideToggle.checked) return;
     const text = Array.from(guideLabelInput.value.trim()).slice(0, SLOTS).join("");
     if (!text) return;
     const fontSize = (L3 - L2) / GUIDE_FONT_X_HEIGHT_RATIO;
-    const el = svgNS("text", { "font-family": GUIDE_FONT_FAMILY, "font-size": String(fontSize), x: "0", y: String(L3) });
+    const el = svgNS("text", { "font-family": GUIDE_FONT_FAMILY, "font-size": String(fontSize), x: "0", y: "0" });
     el.setAttribute("class", "guide-text");
     el.textContent = text;
-    guideLayer.appendChild(el);
-    // Centers the rendered word horizontally in the same [guideOffsetX, guideOffsetX+VB_W]
-    // window a single letter used to center itself in — same guideOffsetX nudge still applies
-    // on top; Y is untouched beyond guideOffsetY, since y=L3 already anchors it correctly.
-    const width = el.getBBox().width;
-    const shiftX = guideOffsetX + VB_W / 2 - width / 2;
-    el.setAttribute("transform", "translate(" + shiftX + "," + guideOffsetY + ")");
+    const wrap = svgNS("g", { transform: "skewX(" + GUIDE_SKEW_DEG + ")" });
+    wrap.appendChild(el);
+    guideLayer.appendChild(wrap);
+    // Centers the rendered (already-skewed) word horizontally in the same
+    // [guideOffsetX, guideOffsetX+VB_W] window a single letter used to center itself in — same
+    // guideOffsetX nudge still applies on top.
+    const bbox = wrap.getBBox();
+    const shiftX = guideOffsetX + VB_W / 2 - (bbox.x + bbox.width / 2);
+    wrap.setAttribute("transform", "translate(" + shiftX + "," + (L3 + guideOffsetY) + ") skewX(" + GUIDE_SKEW_DEG + ")");
   }
   function svgNS(tag, attrs) {
     const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
