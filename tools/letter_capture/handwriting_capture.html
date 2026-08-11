@@ -664,20 +664,102 @@
   // neighbor the way a real capture is, so chaining them produced letters 2 and 3 landing
   // LEFT of letter 1 and heavily overlapping (confirmed on "Аба": world X ranges 135.8–187.0,
   // 129.0–181.2, 113.0–148.5 — each subsequent letter further left, not further right).
-  // Packing by bbox width with zero gap is the only version of "no artificial gap" that
-  // actually produces a left-to-right, non-overlapping sequence with this data.
+  //
+  // Plain bbox-width packing (tried next, also 2026-08-11) touches the two letters' X-EXTENTS,
+  // but their closest actual ink can sit at very different heights — bbox-touching says
+  // nothing about whether the curves are visually near each other at the seam, only that
+  // their X-projections are adjacent. Confirmed wrong on "оа": bboxes touched but the artist
+  // could see the two letters needed a small further nudge left for the strokes themselves to
+  // meet at the touch point.
+  //
+  // This samples both glyphs' actual outlines and finds, by binary search, the smallest
+  // leftward shift that brings the two POINT CLOUDS (not bboxes) within GUIDE_TOUCH_GAP of
+  // each other — i.e. the real curves nearly kiss, regardless of where each one's bbox extreme
+  // happens to be.
+  function pathSamplePoints(d, samplesPerSegment) {
+    const TOKEN_RE = /[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g;
+    const tokens = d.match(TOKEN_RE) || [];
+    let i = 0, cmd = null, cur = null;
+    const points = [];
+    function bez(p0, p1, p2, p3, t) {
+      const mt = 1 - t;
+      return [
+        mt * mt * mt * p0[0] + 3 * mt * mt * t * p1[0] + 3 * mt * t * t * p2[0] + t * t * t * p3[0],
+        mt * mt * mt * p0[1] + 3 * mt * mt * t * p1[1] + 3 * mt * t * t * p2[1] + t * t * t * p3[1],
+      ];
+    }
+    while (i < tokens.length) {
+      const t = tokens[i];
+      if (t === "M" || t === "C") { cmd = t; i += 1; continue; }
+      if (cmd === "M") {
+        cur = [parseFloat(tokens[i]), parseFloat(tokens[i + 1])];
+        i += 2;
+        points.push(cur);
+      } else if (cmd === "C") {
+        const p1 = [parseFloat(tokens[i]), parseFloat(tokens[i + 1])];
+        const p2 = [parseFloat(tokens[i + 2]), parseFloat(tokens[i + 3])];
+        const p3 = [parseFloat(tokens[i + 4]), parseFloat(tokens[i + 5])];
+        for (let k = 1; k <= samplesPerSegment; k += 1) points.push(bez(cur, p1, p2, p3, k / samplesPerSegment));
+        cur = p3;
+        i += 6;
+      } else {
+        i += 1;
+      }
+    }
+    return points;
+  }
+  function minCloudDist(ptsA, ptsB) {
+    let min = Infinity;
+    for (const a of ptsA) {
+      for (const b of ptsB) {
+        const dx = a[0] - b[0], dy = a[1] - b[1];
+        const d2 = dx * dx + dy * dy;
+        if (d2 < min) min = d2;
+      }
+    }
+    return Math.sqrt(min);
+  }
+  const GUIDE_SAMPLES_PER_SEGMENT = 18; // dense enough to find the true touch point, cheap enough for live typing
+  const GUIDE_TOUCH_GAP = 0.6; // native units — a hair of separation, not literal outline overlap
+  const GUIDE_TOUCH_SEARCH_MAX = 40; // native units of extra leftward search beyond bbox-touching
+  // Binary-searches dx (relative to the bbox-touching position, dx=0 = bboxes just touching,
+  // dx>0 = shifted further left/closer) for the smallest shift whose real point-cloud distance
+  // is <= GUIDE_TOUCH_GAP. Assumes distance decreases monotonically as dx grows, true for the
+  // simple non-self-crossing shapes cursive letters are.
+  function findTouchShift(prevPoints, nextPoints) {
+    if (minCloudDist(prevPoints, nextPoints) <= GUIDE_TOUCH_GAP) return 0; // already touching at bbox edge
+    // hi = GUIDE_TOUCH_SEARCH_MAX is the search cap: if the target gap isn't reachable within
+    // it (shapes that never get close no matter how far shifted), the binary search below just
+    // converges to hi itself as the closest achievable answer — a safe, bounded fallback.
+    let lo = 0, hi = GUIDE_TOUCH_SEARCH_MAX;
+    for (let iter = 0; iter < 24; iter += 1) {
+      const mid = (lo + hi) / 2;
+      const shifted = nextPoints.map((p) => [p[0] - mid, p[1]]);
+      if (minCloudDist(prevPoints, shifted) <= GUIDE_TOUCH_GAP) hi = mid;
+      else lo = mid;
+    }
+    return hi;
+  }
   function updateGuideFromLabel() {
     guideLayer.innerHTML = "";
     if (!guideToggle.checked) return;
     const chars = Array.from(guideLabelInput.value.trim()).slice(0, SLOTS);
     let cursorX = 0;
+    let prevWorldPoints = null;
     const placements = [];
     for (const ch of chars) {
       const data = LETTER_PATHS[ch];
       if (!data) { placements.push(null); continue; } // e.g. a space, or a character outside the alphabet
       const { minX, maxX } = pathBBoxX(data.path);
-      placements.push({ data, relX: cursorX - minX });
-      cursorX += maxX - minX;
+      let relX = cursorX - minX; // bbox-touching position, same as before
+      const ownPoints = pathSamplePoints(data.path, GUIDE_SAMPLES_PER_SEGMENT);
+      if (prevWorldPoints) {
+        const worldAtBBoxTouch = ownPoints.map((p) => [p[0] + relX, p[1]]);
+        relX -= findTouchShift(prevWorldPoints, worldAtBBoxTouch);
+      }
+      placements.push({ data, relX });
+      prevWorldPoints = ownPoints.map((p) => [p[0] + relX, p[1]]);
+      cursorX = Math.max(cursorX, relX + maxX);
     }
     const groupWidth = cursorX;
     // Centers the packed group horizontally in the same [guideOffsetX, guideOffsetX+VB_W]
