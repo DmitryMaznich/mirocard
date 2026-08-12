@@ -245,7 +245,7 @@
     },
     {
       "id": "propis",
-      "version": "1.22.27",
+      "version": "1.22.28",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -254,7 +254,7 @@
         "ru": "Тренажёр рукописного письма: клавиатура алфавита внизу, крупный зацикленный образец написания выбранной буквы сверху.",
         "en": "Handwriting practice: an alphabet keyboard at the bottom, a large looping handwriting animation for the selected letter above."
       },
-      "url": "./decks/propis_v1.22.27.zip",
+      "url": "./decks/propis_v1.22.28.zip",
       "status": "beta",
       "access": "free"
     },
