@@ -359,39 +359,40 @@ describe("buildWordTrajectory — multiple connectors sharing the same line pair
 });
 
 describe("buildWordTrajectory — dual-nature letter (о) connection variants", () => {
-  // "б" is both an EXIT_LINE_OVERRIDES letter (upper-exit) and a LOWER_ENTRY_LETTERS letter
-  // — real production classification, not a test-only fixture, since resolveVariant reads
-  // EXIT_LINE_OVERRIDES directly (see wordEngine.js).
+  // Plain fixture letters — no longer tied to any shared height-classification table (that
+  // model was replaced 2026-08-11 by explicit per-card `nextLetters` lists + an entryType
+  // that only depends on whether the PRECEDING letter is itself dual-nature). Their own
+  // identity only matters here as literal members (or non-members) of a variant's own
+  // nextLetters array.
   const LETTER_B = { id: "б", label: "б", strokes: [{ d: "M 10 70 C 12 71 14 72 16 73" }] };
-  // "е" is a MIDDLE_ENTRY_LETTERS letter (simplifies to "upper" — no middle-exit variant
-  // captured yet).
   const LETTER_E = { id: "е", label: "е", strokes: [{ d: "M 50 60 C 52 61 54 62 56 63" }] };
+  const LETTER_YU = { id: "ю", label: "ю", strokes: [{ d: "M 45 62 C 47 63 49 64 51 65" }] };
   const O_PLAIN = { id: "о", label: "о", strokes: [{ d: "M 20 68 C 22 69 24 70 26 71" }] };
   const O_FIRST_LOWER = {
-    id: "о_first_l", label: "о_first_l", variantOf: "о", position: "first", exitType: "lower",
+    id: "о_first_l", label: "о_first_l", variantOf: "о", position: "first", nextLetters: ["б"],
     strokes: [{ d: "M 30 65 C 32 66 34 67 36 68" }],
   };
   const O_MIDDLE_UU = {
-    id: "о_middle_uu", label: "о_middle_uu", variantOf: "о", position: "middle", entryType: "upper", exitType: "upper",
+    id: "о_middle_uu", label: "о_middle_uu", variantOf: "о", position: "middle", entryType: "upper", nextLetters: ["е"],
     strokes: [{ d: "M 40 64 C 42 65 44 66 46 67" }],
   };
   const letters = new Map([
-    ["б", LETTER_B], ["е", LETTER_E], ["о", O_PLAIN],
+    ["б", LETTER_B], ["е", LETTER_E], ["ю", LETTER_YU], ["о", O_PLAIN],
     ["о_first_l", O_FIRST_LOWER], ["о_middle_uu", O_MIDDLE_UU],
   ]);
 
-  it("picks the first-position variant matching the next letter's height group", () => {
-    // "об": о is first, followed by "б" (LOWER_ENTRY_LETTERS) -> exitType "lower".
+  it("picks the first-position variant whose nextLetters includes the next letter", () => {
+    // "об": о is first, followed by "б" -> matches О_FIRST_LOWER's own nextLetters list.
     const result = buildWordTrajectory("об", letters, new Map());
     expect(result.strokes[0].d).toBe(
       transformPathD(O_FIRST_LOWER.strokes[0].d, { translateX: 0, translateY: 0 })
     );
   });
 
-  it("picks the middle-position variant matching both neighbors", () => {
-    // "бое": о is in the middle, preceded by "б" (EXIT_LINE_OVERRIDES -> entryType "upper")
-    // and followed by "е" (MIDDLE_ENTRY_LETTERS, simplified to exitType "upper").
-    const result = buildWordTrajectory("бое", letters, new Map());
+  it("picks the middle-position variant matching both the dual-nature preceding letter and nextLetters", () => {
+    // "юое": о is in the middle, preceded by "ю" (itself dual-nature -> entryType "upper")
+    // and followed by "е" (matches О_MIDDLE_UU's own nextLetters list).
+    const result = buildWordTrajectory("юое", letters, new Map());
     const oStroke = getPathEndpoints(result.strokes[1].d);
     const ownO = getPathEndpoints(O_MIDDLE_UU.strokes[0].d);
     // Confirms the MIDDLE_UU variant's own shape was used (same length), not plain O_PLAIN.
@@ -399,8 +400,8 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
   });
 
   it("falls back to the plain isolated card when no matching variant is captured", () => {
-    // "ои": о is first, followed by "и" (UPPER_ENTRY_LETTERS) -> exitType "upper", but only
-    // a "lower" first-variant exists here — must not throw, must use O_PLAIN instead.
+    // "ои": о is first, followed by "и" — not in О_FIRST_LOWER's nextLetters ("б" only) ->
+    // must not throw, must use O_PLAIN instead.
     const LETTER_I = { id: "и", label: "и", strokes: [{ d: "M 60 60 C 62 61 64 62 66 63" }] };
     const withI = new Map(letters).set("и", LETTER_I);
     const result = buildWordTrajectory("ои", withI, new Map());
@@ -415,54 +416,46 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     expect(() => buildWordTrajectory("бе", letters, new Map())).not.toThrow();
   });
 
-  // "г" is a MIDDLE_ENTRY_LETTERS letter and not in EXIT_LINE_OVERRIDES -> its exit always
-  // resolves to entryType "lower" for whatever dual-nature letter follows it.
+  // "г" is an ordinary (non-dual-nature) letter -> as a preceding letter it always resolves
+  // to entryType "lower", regardless of its own identity.
   const LETTER_G = { id: "г", label: "г", strokes: [{ d: "M 5 70 C 7 71 9 72 11 73" }] };
 
-  it("picks the last-position variant matching the preceding letter's exit type", () => {
+  it("picks the last-position variant matching the preceding letter's entryType", () => {
     const O_LAST_LOWER = {
       id: "о_last_l", label: "о_last_l", variantOf: "о", position: "last", entryType: "lower",
       strokes: [{ d: "M 70 65 C 72 66 74 67 76 68" }],
     };
     const withLast = new Map(letters).set("г", LETTER_G).set("о_last_l", O_LAST_LOWER);
-    // "го": о is last, preceded by "г" (not in EXIT_LINE_OVERRIDES) -> entryType "lower".
+    // "го": о is last, preceded by "г" (not dual-nature) -> entryType "lower".
     const result = buildWordTrajectory("го", withLast, new Map());
     const oStroke = getPathEndpoints(result.strokes[result.strokes.length - 1].d);
     const ownLast = getPathEndpoints(O_LAST_LOWER.strokes[0].d);
     expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownLast.end[0] - ownLast.start[0], 6);
   });
 
-  it("prefers a dual-exit variant over the upper/lower bucket when the next letter is itself dual-nature", () => {
-    const O_MIDDLE_LOWER_UPPER = {
-      id: "о_middle_lu", label: "о_middle_lu", variantOf: "о", position: "middle", entryType: "lower", exitType: "upper",
+  it("prefers whichever middle-position candidate has the more specific (shorter) nextLetters list", () => {
+    // Two entryType-"lower" middle cards whose nextLetters both include "о" — buildVariantIndex
+    // sorts each entryType bucket by nextLetters length, so the narrower list must win even
+    // though it's registered after the broader one.
+    const O_MIDDLE_BROAD = {
+      id: "о_middle_broad", label: "о_middle_broad", variantOf: "о", position: "middle",
+      entryType: "lower", nextLetters: ["о", "е", "и", "у"],
       strokes: [{ d: "M 80 65 C 82 66 84 67 86 68" }],
     };
-    const O_MIDDLE_LOWER_DUAL = {
-      id: "о_middle_ld", label: "о_middle_ld", variantOf: "о", position: "middle", entryType: "lower", exitType: "dual",
+    const O_MIDDLE_NARROW = {
+      id: "о_middle_narrow", label: "о_middle_narrow", variantOf: "о", position: "middle",
+      entryType: "lower", nextLetters: ["о"],
       strokes: [{ d: "M 90 65 C 92 66 94 67 96 68" }],
     };
     const withBoth = new Map(letters)
       .set("г", LETTER_G)
-      .set("о_middle_lu", O_MIDDLE_LOWER_UPPER)
-      .set("о_middle_ld", O_MIDDLE_LOWER_DUAL);
+      .set("о_middle_broad", O_MIDDLE_BROAD)
+      .set("о_middle_narrow", O_MIDDLE_NARROW);
     // "гоо": first о is middle, preceded by "г" (entryType "lower"), followed by another "о"
-    // (dual-nature) -> must pick the dedicated dual-exit card, not the generic upper-exit one.
+    // -> both candidates' nextLetters include "о", the narrower one must win.
     const result = buildWordTrajectory("гоо", withBoth, new Map());
     const firstOStroke = getPathEndpoints(result.strokes[1].d);
-    const ownDual = getPathEndpoints(O_MIDDLE_LOWER_DUAL.strokes[0].d);
-    expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownDual.end[0] - ownDual.start[0], 6);
-  });
-
-  it("falls back to the upper/lower bucket when no dual-exit variant is captured", () => {
-    const O_MIDDLE_LOWER_UPPER = {
-      id: "о_middle_lu", label: "о_middle_lu", variantOf: "о", position: "middle", entryType: "lower", exitType: "upper",
-      strokes: [{ d: "M 80 65 C 82 66 84 67 86 68" }],
-    };
-    const withLu = new Map(letters).set("г", LETTER_G).set("о_middle_lu", O_MIDDLE_LOWER_UPPER);
-    // Same "гоо" shape, but no о_middle_ld captured here -> falls through to о_middle_lu.
-    const result = buildWordTrajectory("гоо", withLu, new Map());
-    const firstOStroke = getPathEndpoints(result.strokes[1].d);
-    const ownLu = getPathEndpoints(O_MIDDLE_LOWER_UPPER.strokes[0].d);
-    expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownLu.end[0] - ownLu.start[0], 6);
+    const ownNarrow = getPathEndpoints(O_MIDDLE_NARROW.strokes[0].d);
+    expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownNarrow.end[0] - ownNarrow.start[0], 6);
   });
 });

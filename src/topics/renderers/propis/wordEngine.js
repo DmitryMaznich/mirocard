@@ -66,35 +66,23 @@ const ENTRY_LINE_OVERRIDES = {
   "б": 3, "а": 3, "о": 3, "ф": 3, "д": 3,
 };
 
-// Real Russian cursive methodology also classifies where a letter's OWN first stroke
-// begins into three height groups — what a PRECEDING letter needs to match when handing
-// off into it (sources: studfile.net/preview/9752060, poznayka.org/s52463t1, runninglines.ru
-// /verhnee-soedinenie — cross-referenced in conversation/commit history). Almost every
-// letter has exactly one fixed group regardless of context; о and ю are the named exception
-// — dual-natured, with no group of their own, adapting their own entry/exit shape to
-// whichever neighbor requires (this is why о is the only letter with multiple captured
-// connection variants — see DUAL_NATURE_LETTERS and buildVariantIndex below). Every other
-// letter's behavior is completely unaffected by any of this.
-const UPPER_ENTRY_LETTERS = new Set(["и", "к", "т", "р", "с", "н", "у", "ц"]);
-const MIDDLE_ENTRY_LETTERS = new Set(["е", "з", "ж", "г", "х", "ш", "ч", "э", "в"]);
-const LOWER_ENTRY_LETTERS = new Set(["а", "б", "д", "ф", "л", "м", "я"]);
+// о and ю are dual-natured — no fixed connection shape of their own, adapting their own
+// entry/exit shape to whichever neighbor requires (this is why о is the only letter with
+// multiple captured connection variants — see buildVariantIndex/resolveVariant below).
+// Every other letter's behavior is completely unaffected by this.
+//
+// An earlier version of this file classified a captured variant's entryType (upper/lower)
+// and exitType (which neighbor triggers which variant) via three shared height-group tables
+// (UPPER/MIDDLE/LOWER_ENTRY_LETTERS) applied to ANY neighboring letter. That model was
+// replaced 2026-08-11 after checking it against real captures: entryType turned out to
+// depend on nothing but whether the PRECEDING letter is itself dual-nature (see
+// resolveVariant's entryType line) — none of б/в/ф/э/ь/ъ force an upper entry the way the
+// old model assumed, only о/ю following each other do. And exitType (which neighbor
+// triggers which variant) turned out not to reduce to a clean two-way upper/lower split at
+// all — the real letter sets per captured variant are irregular (e.g. о_first_l only takes
+// л/м/я, not the full old "lower" group) — so each variant card now carries its own explicit
+// `nextLetters` list (topic.json) instead of being bucketed through a shared classification.
 const DUAL_NATURE_LETTERS = new Set(["о", "ю"]);
-
-function entryHeightGroup(label) {
-  if (UPPER_ENTRY_LETTERS.has(label)) return "upper";
-  if (MIDDLE_ENTRY_LETTERS.has(label)) return "middle";
-  if (LOWER_ENTRY_LETTERS.has(label)) return "lower";
-  return null;
-}
-
-// No middle-height exit variant has been captured yet for any dual-nature letter (only
-// upper/lower — see topic.json's о_middle_*/о_first_* cards) — approximate "middle" as
-// "upper" until one exists, and default unclassified neighbors (an uncaptured letter, or
-// another dual-nature one) to "upper" too, since that's the documented default for most of
-// the alphabet.
-function simplifyToUpperLower(group) {
-  return group === "lower" ? "lower" : "upper";
-}
 
 // getConnectionInfo plus the fixed per-letter type overrides above, applied only to
 // entryLine/exitLine (the classification used to pick a connector) — entryPoint/exitPoint
@@ -220,63 +208,60 @@ function placeEntryConnectorLocal(connector, letterRawEntryPoint) {
   };
 }
 
-// Builds baseLabel -> { first: {[exitType]: card}, last: {[entryType]: card}, middle:
-// {[`${entryType}_${exitType}`]: card} } from any cards carrying the variantOf/position/
-// entryType/exitType metadata (see topic.json's о_middle_*/о_first_* cards, added via
-// tools/letter_capture/handwriting_capture.html and merged in by hand). Cards without
-// variantOf are ignored, so this is a no-op for every letter that has no variants captured.
+// Builds baseLabel -> { first: [card...], last: {[entryType]: card}, middle: {lower:
+// [card...], upper: [card...]} } from any cards carrying the variantOf/position/entryType/
+// nextLetters metadata (see topic.json's о_middle_*/о_first_* cards, added via
+// tools/letter_capture/handwriting_capture.html and merged in by hand). `first`/`middle`
+// arrays are sorted by nextLetters length (shortest/most specific list first) so a card with
+// a narrow explicit next-letter list is always tried before a broader one, even if two
+// cards' lists happen to overlap — real captures currently keep them disjoint, but this
+// keeps a future overlapping pair from silently landing on the wrong (registration-order)
+// card. Cards without variantOf are ignored, so this is a no-op for every letter that has no
+// variants captured.
 function buildVariantIndex(lettersByLabel) {
   const index = new Map();
   for (const card of lettersByLabel.values()) {
     if (!card.variantOf) continue;
     let entry = index.get(card.variantOf);
     if (!entry) {
-      entry = { first: {}, last: {}, middle: {} };
+      entry = { first: [], last: {}, middle: { lower: [], upper: [] } };
       index.set(card.variantOf, entry);
     }
-    if (card.position === "first") entry.first[card.exitType] = card;
+    if (card.position === "first") entry.first.push(card);
     else if (card.position === "last") entry.last[card.entryType] = card;
-    else if (card.position === "middle") entry.middle[`${card.entryType}_${card.exitType}`] = card;
+    else if (card.position === "middle") entry.middle[card.entryType]?.push(card);
+  }
+  const byNextLettersLength = (a, b) => (a.nextLetters?.length ?? Infinity) - (b.nextLetters?.length ?? Infinity);
+  for (const entry of index.values()) {
+    entry.first.sort(byNextLettersLength);
+    entry.middle.lower.sort(byNextLettersLength);
+    entry.middle.upper.sort(byNextLettersLength);
   }
   return index;
 }
 
 // A dual-nature letter (о, ю) has no fixed connection shape of its own — resolves to
-// whichever captured variant matches its position in the word and its neighbors' own height
-// classification. entryType mirrors whether the PRECEDING letter is one of the fixed
-// upper-exit letters (EXIT_LINE_OVERRIDES) — confirmed against real captures: "when о has an
-// upper entry connector, that means the previous letter's own upper exit connection is being
-// used." Returns null whenever the needed variant hasn't been captured (or this isn't a
-// dual-nature letter at all), letting the caller fall back to the plain isolated card and
-// the ordinary connector system exactly as before.
-//
-// A following letter that is itself dual-nature has no fixed height classification to hand
-// off to (entryHeightGroup returns null for it), so it gets its own "dual" exit bucket tried
-// first — captured because handing off into another о/ю draws differently than handing off
-// into a genuine upper-entry letter like к, even though both currently fall under
-// simplifyToUpperLower's "upper" default. Falls through to the ordinary upper/lower bucket
-// when no dedicated dual-exit card has been captured for this entryType.
+// whichever captured variant matches its position in the word, its entryType, and (for
+// first/middle) whose own `nextLetters` list contains the following letter. entryType is
+// "upper" specifically when the PRECEDING letter is itself dual-nature (о or ю) — confirmed
+// against real captures 2026-08-11: none of the other letters with their own upper
+// EXIT_LINE_OVERRIDES connector (б, в, ф, э, ь, ъ) force an upper entry into о the way an
+// earlier version of this function assumed; only handing off from one dual-nature letter
+// into another does. Returns null whenever no captured variant's nextLetters list matches
+// (or this isn't a dual-nature letter at all), letting the caller fall back to the plain
+// isolated card and the ordinary connector system exactly as before.
 function resolveVariant(variantIndex, label, position, prevLabel, nextLabel) {
   const variants = variantIndex.get(label);
   if (!variants) return null;
 
-  const entryType = prevLabel ? (EXIT_LINE_OVERRIDES[prevLabel] ? "upper" : "lower") : null;
-  const nextIsDual = nextLabel ? DUAL_NATURE_LETTERS.has(nextLabel) : false;
-  const exitType = nextLabel ? simplifyToUpperLower(entryHeightGroup(nextLabel)) : null;
+  const entryType = prevLabel ? (DUAL_NATURE_LETTERS.has(prevLabel) ? "upper" : "lower") : null;
+  const matchesNext = (card) => nextLabel != null && card.nextLetters?.includes(nextLabel);
 
-  if (position === "first") {
-    if (nextIsDual && variants.first.dual) return variants.first.dual;
-    return (exitType && variants.first[exitType]) || null;
-  }
+  if (position === "first") return variants.first.find(matchesNext) || null;
   if (position === "last") return (entryType && variants.last[entryType]) || null;
   if (position === "middle") {
     if (!entryType) return null;
-    if (nextIsDual) {
-      const dualVariant = variants.middle[`${entryType}_dual`];
-      if (dualVariant) return dualVariant;
-    }
-    if (!exitType) return null;
-    return variants.middle[`${entryType}_${exitType}`] || null;
+    return variants.middle[entryType].find(matchesNext) || null;
   }
   return null;
 }

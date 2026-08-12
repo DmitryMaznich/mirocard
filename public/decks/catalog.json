@@ -17,16 +17,16 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
       },
       "description": {
-        "ru": "Три коротких рассказа с иллюстрациями: совместное чтение (с показом по слогам или обычным текстом), вопросы по смыслу и сборка текста из слов.",
-        "en": "Three short illustrated stories: shared reading (syllable or normal text display), comprehension questions, and sentence assembly."
+        "ru": "Двенадцать коротких рассказов с иллюстрациями: совместное чтение (с показом по слогам или обычным текстом), вопросы по смыслу и сборка текста из слов.",
+        "en": "Twelve short illustrated stories: shared reading (syllable or normal text display), comprehension questions, and sentence assembly."
       },
-      "url": "./decks/reading_short_stories_v1.0.0.zip",
+      "url": "./decks/reading_short_stories_v1.1.0.zip",
       "status": "release",
       "access": "free"
     },
@@ -245,7 +245,7 @@
     },
     {
       "id": "propis",
-      "version": "1.22.8",
+      "version": "1.22.9",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -254,7 +254,7 @@
         "ru": "Тренажёр рукописного письма: клавиатура алфавита внизу, крупный зацикленный образец написания выбранной буквы сверху.",
         "en": "Handwriting practice: an alphabet keyboard at the bottom, a large looping handwriting animation for the selected letter above."
       },
-      "url": "./decks/propis_v1.22.8.zip",
+      "url": "./decks/propis_v1.22.9.zip",
       "status": "beta",
       "access": "free"
     },
