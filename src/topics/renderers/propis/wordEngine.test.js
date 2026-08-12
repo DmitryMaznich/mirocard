@@ -372,13 +372,16 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     id: "о_first_l", label: "о_first_l", variantOf: "о", position: "first", nextLetters: ["б"],
     strokes: [{ d: "M 30 65 C 32 66 34 67 36 68" }],
   };
-  const O_MIDDLE_UU = {
-    id: "о_middle_uu", label: "о_middle_uu", variantOf: "о", position: "middle", entryType: "upper", nextLetters: ["е"],
+  // No entryType at all -> lands in variants.middle.any (buildVariantIndex), so it's tried
+  // for о regardless of what precedes it — matches its own captured connector, which reuses
+  // the ordinary 4→3 entry connector every other letter's plain entry does too.
+  const O_MIDDLE_ANY = {
+    id: "о_middle_uu", label: "о_middle_uu", variantOf: "о", position: "middle", nextLetters: ["е"],
     strokes: [{ d: "M 40 64 C 42 65 44 66 46 67" }],
   };
   const letters = new Map([
     ["б", LETTER_B], ["е", LETTER_E], ["ю", LETTER_YU], ["о", O_PLAIN],
-    ["о_first_l", O_FIRST_LOWER], ["о_middle_uu", O_MIDDLE_UU],
+    ["о_first_l", O_FIRST_LOWER], ["о_middle_uu", O_MIDDLE_ANY],
   ]);
 
   it("picks the first-position variant whose nextLetters includes the next letter", () => {
@@ -389,14 +392,31 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     );
   });
 
-  it("picks the middle-position variant matching both the dual-nature preceding letter and nextLetters", () => {
-    // "юое": о is in the middle, preceded by "ю" (itself dual-nature -> entryType "upper")
-    // and followed by "е" (matches О_MIDDLE_UU's own nextLetters list).
-    const result = buildWordTrajectory("юое", letters, new Map());
+  it("picks the entryType-agnostic middle variant regardless of the preceding letter", () => {
+    // "бое": о is in the middle, preceded by "б" (an ordinary, non-dual-nature letter, so
+    // entryType is "lower" — but no lower-entryType card is registered here) and followed by
+    // "е" (matches О_MIDDLE_ANY's own nextLetters list) -> falls through to the entryType-
+    // agnostic `any` bucket rather than returning null.
+    const result = buildWordTrajectory("бое", letters, new Map());
     const oStroke = getPathEndpoints(result.strokes[1].d);
-    const ownO = getPathEndpoints(O_MIDDLE_UU.strokes[0].d);
-    // Confirms the MIDDLE_UU variant's own shape was used (same length), not plain O_PLAIN.
+    const ownO = getPathEndpoints(O_MIDDLE_ANY.strokes[0].d);
+    // Confirms the ANY variant's own shape was used (same length), not plain O_PLAIN.
     expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownO.end[0] - ownO.start[0], 6);
+  });
+
+  it("prefers an entryType-specific middle variant over the entryType-agnostic one", () => {
+    const O_MIDDLE_LOWER = {
+      id: "о_middle_lower_e", label: "о_middle_lower_e", variantOf: "о", position: "middle",
+      entryType: "lower", nextLetters: ["е"],
+      strokes: [{ d: "M 55 65 C 57 66 59 67 61 68" }],
+    };
+    const withLower = new Map(letters).set("о_middle_lower_e", O_MIDDLE_LOWER);
+    // "бое" again, but now a lower-entryType card ALSO matches nextLetters "е" -> the
+    // entryType-specific card must win over the entryType-agnostic О_MIDDLE_ANY.
+    const result = buildWordTrajectory("бое", withLower, new Map());
+    const oStroke = getPathEndpoints(result.strokes[1].d);
+    const ownLower = getPathEndpoints(O_MIDDLE_LOWER.strokes[0].d);
+    expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownLower.end[0] - ownLower.start[0], 6);
   });
 
   it("falls back to the plain isolated card when no matching variant is captured", () => {

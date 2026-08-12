@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.22.9",
+    "version": "1.22.10",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -362,7 +362,6 @@
       "label": "о_middle_uu",
       "variantOf": "о",
       "position": "middle",
-      "entryType": "upper",
       "exitType": "upper",
       "category": "vowel",
       "viewBox": "0 0 100 150",
@@ -373,10 +372,27 @@
       ],
       "nextLetters": [
         "г",
+        "е",
+        "ё",
         "ж",
         "з",
+        "и",
+        "й",
+        "к",
+        "н",
         "о",
-        "ч"
+        "п",
+        "р",
+        "т",
+        "у",
+        "ц",
+        "ч",
+        "ш",
+        "щ",
+        "ъ",
+        "ы",
+        "ь",
+        "ю"
       ]
     },
     {

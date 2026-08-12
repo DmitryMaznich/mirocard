@@ -209,33 +209,38 @@ function placeEntryConnectorLocal(connector, letterRawEntryPoint) {
 }
 
 // Builds baseLabel -> { first: [card...], last: {[entryType]: card}, middle: {lower:
-// [card...], upper: [card...]} } from any cards carrying the variantOf/position/entryType/
-// nextLetters metadata (see topic.json's о_middle_*/о_first_* cards, added via
-// tools/letter_capture/handwriting_capture.html and merged in by hand). `first`/`middle`
+// [card...], upper: [card...], any: [card...]} } from any cards carrying the
+// variantOf/position/entryType/nextLetters metadata (see topic.json's о_middle_*/о_first_*
+// cards, added via tools/letter_capture/handwriting_capture.html and merged in by hand). A
+// middle card with no entryType (e.g. о_middle_uu) goes in `any` — its own entry uses the
+// same generic 4→3 connector every other letter's plain entry does, so it isn't gated by
+// what precedes о at all, only by which letter follows (see resolveVariant). `first`/`middle`
 // arrays are sorted by nextLetters length (shortest/most specific list first) so a card with
 // a narrow explicit next-letter list is always tried before a broader one, even if two
-// cards' lists happen to overlap — real captures currently keep them disjoint, but this
-// keeps a future overlapping pair from silently landing on the wrong (registration-order)
-// card. Cards without variantOf are ignored, so this is a no-op for every letter that has no
-// variants captured.
+// cards' lists happen to overlap. Cards without variantOf are ignored, so this is a no-op
+// for every letter that has no variants captured.
 function buildVariantIndex(lettersByLabel) {
   const index = new Map();
   for (const card of lettersByLabel.values()) {
     if (!card.variantOf) continue;
     let entry = index.get(card.variantOf);
     if (!entry) {
-      entry = { first: [], last: {}, middle: { lower: [], upper: [] } };
+      entry = { first: [], last: {}, middle: { lower: [], upper: [], any: [] } };
       index.set(card.variantOf, entry);
     }
     if (card.position === "first") entry.first.push(card);
     else if (card.position === "last") entry.last[card.entryType] = card;
-    else if (card.position === "middle") entry.middle[card.entryType]?.push(card);
+    else if (card.position === "middle") {
+      const bucket = card.entryType === "upper" ? entry.middle.upper : card.entryType === "lower" ? entry.middle.lower : entry.middle.any;
+      bucket.push(card);
+    }
   }
   const byNextLettersLength = (a, b) => (a.nextLetters?.length ?? Infinity) - (b.nextLetters?.length ?? Infinity);
   for (const entry of index.values()) {
     entry.first.sort(byNextLettersLength);
     entry.middle.lower.sort(byNextLettersLength);
     entry.middle.upper.sort(byNextLettersLength);
+    entry.middle.any.sort(byNextLettersLength);
   }
   return index;
 }
@@ -247,9 +252,12 @@ function buildVariantIndex(lettersByLabel) {
 // against real captures 2026-08-11: none of the other letters with their own upper
 // EXIT_LINE_OVERRIDES connector (б, в, ф, э, ь, ъ) force an upper entry into о the way an
 // earlier version of this function assumed; only handing off from one dual-nature letter
-// into another does. Returns null whenever no captured variant's nextLetters list matches
-// (or this isn't a dual-nature letter at all), letting the caller fall back to the plain
-// isolated card and the ordinary connector system exactly as before.
+// into another does. A middle-position card with no entryType of its own (variants.middle.any)
+// is tried regardless of entryType — its own entry connector doesn't care what precedes о, so
+// it's checked as a fallback after the entryType-specific bucket has had first refusal.
+// Returns null whenever no captured variant's nextLetters list matches (or this isn't a
+// dual-nature letter at all), letting the caller fall back to the plain isolated card and the
+// ordinary connector system exactly as before.
 function resolveVariant(variantIndex, label, position, prevLabel, nextLabel) {
   const variants = variantIndex.get(label);
   if (!variants) return null;
@@ -261,7 +269,7 @@ function resolveVariant(variantIndex, label, position, prevLabel, nextLabel) {
   if (position === "last") return (entryType && variants.last[entryType]) || null;
   if (position === "middle") {
     if (!entryType) return null;
-    return variants.middle[entryType].find(matchesNext) || null;
+    return variants.middle[entryType].find(matchesNext) || variants.middle.any.find(matchesNext) || null;
   }
   return null;
 }
