@@ -80,7 +80,7 @@ export function getConnectionInfo(item) {
 // end, sending the next letter overlapping back into э's own body instead of following it
 // (confirmed on "поэт": "т" rendered landing inside "э" rather than after it).
 const EXIT_LINE_OVERRIDES = {
-  "б": 5, "в": 5, "ф": 5, "о": 5, "ю": 5, "ь": 5, "ъ": 5,
+  "б": 5, "в": 5, "ф": 5, "о": 5, "ю": 5, "ь": 5, "ъ": 5, "э": 5,
 };
 // "д" added 2026-08-10: it's in LOWER_ENTRY_LETTERS below (real methodology says it takes
 // the same looping entry as а/б/ф) but its own raw capture (entry ~68.67) sits only 0.34
@@ -138,18 +138,24 @@ export function resolveConnectionInfo(item) {
 // previous letter actually sits on the writing line, independent of where the pen happens
 // to actually start/end (which can be well above or below the line, mid-loop). Samples
 // across ALL of the item's strokes in order, so "first" always comes from the first-drawn
-// stroke and "last" from the last — EXCEPT when `mainStrokeIndex` is set (see
-// getConnectionInfo's comment for why some letters need one), in which case only that one
-// stroke is sampled, so a stroke that isn't the letter's real hand-off point (a decorative
-// mark for й/ё, or э's backward-curling main loop) can't be picked up here either, kept
-// consistent with whichever stroke getConnectionInfo already treats as authoritative.
+// stroke and "last" from the last, REGARDLESS of `mainStrokeIndex` — which stroke holds the
+// letter's real final hand-off point (getConnectionInfo's concern) and which stroke actually
+// touches the baseline (this function's concern) are independent questions, and restricting
+// to mainStrokeIndex here answered the wrong one for э: its baseline touch is a real dip in
+// its OWN main-body stroke (~86.5, about as deep as б's own loop bottom), but mainStrokeIndex
+// points at its crossbar (added afterward, for the unrelated question of which stroke's
+// endpoint is э's real exit point) — restricting the search to just that stroke hid the
+// dip entirely and fell back to the crossbar's own (irrelevant) endpoint instead (confirmed
+// 2026-08-12: re-enabling э's loop-back exit connector with the restricted search reproduced
+// the original "т overlapping into э" bug; searching every stroke found the real dip and
+// fixed it). Harmless for й/ё, whose excluded decorative stroke (breve, dots) was never
+// close enough to the baseline to be picked up here either way.
 export function getBaselineContacts(item) {
   const strokes = item.strokes ?? [];
   if (strokes.length === 0) {
     throw new Error(`getBaselineContacts: item "${item.id}" has no strokes`);
   }
-  const relevantStrokes = item.mainStrokeIndex != null ? [strokes[item.mainStrokeIndex]] : strokes;
-  const points = relevantStrokes.flatMap((s) => samplePath(s.d));
+  const points = strokes.flatMap((s) => samplePath(s.d));
   return findClosestApproach(points, NATIVE_L3, BASELINE_CONTACT_TOLERANCE);
 }
 
