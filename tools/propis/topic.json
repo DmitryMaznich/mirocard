@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.22.26",
+    "version": "1.22.27",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -768,7 +768,6 @@
         }
       ],
       "nextLetters": [
-        "э",
         "х",
         "ч",
         "ъ",
@@ -793,7 +792,6 @@
         }
       ],
       "nextLetters": [
-        "э",
         "х",
         "ч",
         "ъ",
