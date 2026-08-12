@@ -67,6 +67,7 @@ describe("getConceptCards", () => {
       { id: "m1", conceptId: "m1", taskKind: "mirror" },
       { id: "r1", conceptId: "r1", taskKind: "repeat" },
       { id: "d1", conceptId: "d1", taskKind: "dictation" },
+      { id: "c1", conceptId: "c1", taskKind: "coordinate" },
     ],
   };
 
@@ -83,6 +84,11 @@ describe("getConceptCards", () => {
   it("scopes graphic_dictation to taskKind:dictation cards only", () => {
     const cards = getConceptCards(symmetryDrawRecord, { type: "graphic_dictation" });
     expect(cards.map((c) => c.id)).toEqual(["d1"]);
+  });
+
+  it("scopes coordinate_dictation to taskKind:coordinate cards only", () => {
+    const cards = getConceptCards(symmetryDrawRecord, { type: "coordinate_dictation" });
+    expect(cards.map((c) => c.id)).toEqual(["c1"]);
   });
 });
 
