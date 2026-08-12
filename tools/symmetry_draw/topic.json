@@ -49,8 +49,12 @@
         "showArrow": {
           "type": "boolean",
           "default": true,
-          "label": { "ru": "Стрелка в подсказке" },
-          "hint": { "ru": "Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок" }
+          "label": {
+            "ru": "Стрелка в подсказке"
+          },
+          "hint": {
+            "ru": "Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
+          }
         }
       }
     },
@@ -6022,6 +6026,3195 @@
         {
           "type": "dot",
           "col": 3,
+          "row": 6
+        }
+      ]
+    },
+    {
+      "id": "coordinate_house",
+      "conceptId": "coordinate_house",
+      "primary": true,
+      "label": "Дом",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 2,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 2,
+          "row": 3
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 1
+        },
+        {
+          "col": 9,
+          "row": 3
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 2,
+          "row": 7
+        }
+      ]
+    },
+    {
+      "id": "coordinate_kite",
+      "conceptId": "coordinate_kite",
+      "primary": true,
+      "label": "Воздушный змей",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 5,
+        "row": 2
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 8
+        },
+        {
+          "col": 2,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 2
+        }
+      ]
+    },
+    {
+      "id": "coordinate_stairs",
+      "conceptId": "coordinate_stairs",
+      "primary": true,
+      "label": "Лестница",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 2
+        }
+      ]
+    },
+    {
+      "id": "coordinate_lightning",
+      "conceptId": "coordinate_lightning",
+      "primary": true,
+      "label": "Молния",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 3,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 7,
+          "row": 1
+        },
+        {
+          "col": 4,
+          "row": 4
+        },
+        {
+          "col": 6,
+          "row": 4
+        },
+        {
+          "col": 2,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 8
+        }
+      ]
+    },
+    {
+      "id": "coordinate_crown",
+      "conceptId": "coordinate_crown",
+      "primary": true,
+      "label": "Корона",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 1,
+          "row": 4
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 9,
+          "row": 4
+        },
+        {
+          "col": 9,
+          "row": 8
+        },
+        {
+          "col": 1,
+          "row": 8
+        }
+      ]
+    },
+    {
+      "id": "coordinate_spiral",
+      "conceptId": "coordinate_spiral",
+      "primary": true,
+      "label": "Спираль",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 6
+        }
+      ]
+    },
+    {
+      "id": "coordinate_hexagon",
+      "conceptId": "coordinate_hexagon",
+      "primary": true,
+      "label": "Шестиугольник",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 3,
+        "row": 2
+      },
+      "points": [
+        {
+          "col": 6,
+          "row": 2
+        },
+        {
+          "col": 9,
+          "row": 5
+        },
+        {
+          "col": 6,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 0,
+          "row": 5
+        },
+        {
+          "col": 3,
+          "row": 2
+        }
+      ]
+    },
+    {
+      "id": "coordinate_flag",
+      "conceptId": "coordinate_flag",
+      "primary": true,
+      "label": "Флажок",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 2,
+        "row": 9
+      },
+      "points": [
+        {
+          "col": 2,
+          "row": 2
+        },
+        {
+          "col": 7,
+          "row": 2
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 2,
+          "row": 4
+        }
+      ]
+    },
+    {
+      "id": "coordinate_wave",
+      "conceptId": "coordinate_wave",
+      "primary": true,
+      "label": "Волна",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 11,
+          "row": 5
+        }
+      ]
+    },
+    {
+      "id": "coordinate_maze",
+      "conceptId": "coordinate_maze",
+      "primary": true,
+      "label": "Лабиринт",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 8
+        }
+      ]
+    },
+    {
+      "id": "coordinate_dog",
+      "conceptId": "coordinate_dog",
+      "primary": true,
+      "label": "Собака",
+      "taskKind": "coordinate",
+      "columns": 21,
+      "rows": 16,
+      "start": {
+        "col": 12,
+        "row": 6
+      },
+      "points": [
+        {
+          "col": 16,
+          "row": 6
+        },
+        {
+          "col": 17,
+          "row": 7
+        },
+        {
+          "col": 17,
+          "row": 6
+        },
+        {
+          "col": 18,
+          "row": 5
+        },
+        {
+          "col": 18,
+          "row": 3
+        },
+        {
+          "col": 20,
+          "row": 5
+        },
+        {
+          "col": 20,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 7
+        },
+        {
+          "col": 18,
+          "row": 7
+        },
+        {
+          "col": 18,
+          "row": 15
+        },
+        {
+          "col": 16,
+          "row": 15
+        },
+        {
+          "col": 17,
+          "row": 14
+        },
+        {
+          "col": 15,
+          "row": 12
+        },
+        {
+          "col": 11,
+          "row": 12
+        },
+        {
+          "col": 9,
+          "row": 14
+        },
+        {
+          "col": 9,
+          "row": 15
+        },
+        {
+          "col": 7,
+          "row": 15
+        },
+        {
+          "col": 8,
+          "row": 14
+        },
+        {
+          "col": 8,
+          "row": 12
+        },
+        {
+          "col": 7,
+          "row": 11
+        },
+        {
+          "col": 7,
+          "row": 8
+        },
+        {
+          "col": 4,
+          "row": 8
+        },
+        {
+          "col": 1,
+          "row": 5
+        },
+        {
+          "col": 1,
+          "row": 3
+        },
+        {
+          "col": 4,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 1
+        },
+        {
+          "col": 11,
+          "row": 4
+        },
+        {
+          "col": 11,
+          "row": 5
+        },
+        {
+          "col": 12,
+          "row": 6
+        },
+        {
+          "col": 12,
+          "row": 8
+        },
+        {
+          "col": 11,
+          "row": 9
+        },
+        {
+          "col": 9,
+          "row": 9
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 8,
+          "row": 4
+        }
+      ]
+    },
+    {
+      "id": "coordinate_mouse",
+      "conceptId": "coordinate_mouse",
+      "primary": true,
+      "label": "Мышь",
+      "taskKind": "coordinate",
+      "columns": 18,
+      "rows": 20,
+      "start": {
+        "col": 3,
+        "row": 16
+      },
+      "points": [
+        {
+          "col": 4,
+          "row": 15
+        },
+        {
+          "col": 4,
+          "row": 13
+        },
+        {
+          "col": 2,
+          "row": 13
+        },
+        {
+          "col": 1,
+          "row": 14
+        },
+        {
+          "col": 1,
+          "row": 16
+        },
+        {
+          "col": 3,
+          "row": 18
+        },
+        {
+          "col": 6,
+          "row": 18
+        },
+        {
+          "col": 6,
+          "row": 15
+        },
+        {
+          "col": 9,
+          "row": 12
+        },
+        {
+          "col": 8,
+          "row": 11
+        },
+        {
+          "col": 7,
+          "row": 12
+        },
+        {
+          "col": 5,
+          "row": 12
+        },
+        {
+          "col": 3,
+          "row": 10
+        },
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 8,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 6
+        },
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 10,
+          "row": 1
+        },
+        {
+          "col": 12,
+          "row": 1
+        },
+        {
+          "col": 14,
+          "row": 3
+        },
+        {
+          "col": 14,
+          "row": 5
+        },
+        {
+          "col": 13,
+          "row": 6
+        },
+        {
+          "col": 17,
+          "row": 10
+        },
+        {
+          "col": 17,
+          "row": 11
+        },
+        {
+          "col": 16,
+          "row": 12
+        },
+        {
+          "col": 12,
+          "row": 12
+        },
+        {
+          "col": 15,
+          "row": 15
+        },
+        {
+          "col": 15,
+          "row": 16
+        },
+        {
+          "col": 14,
+          "row": 16
+        },
+        {
+          "col": 15,
+          "row": 17
+        },
+        {
+          "col": 15,
+          "row": 18
+        },
+        {
+          "col": 14,
+          "row": 19
+        },
+        {
+          "col": 7,
+          "row": 19
+        },
+        {
+          "col": 6,
+          "row": 18
+        }
+      ]
+    },
+    {
+      "id": "coordinate_parrot",
+      "conceptId": "coordinate_parrot",
+      "primary": true,
+      "label": "Попугай",
+      "taskKind": "coordinate",
+      "columns": 15,
+      "rows": 18,
+      "start": {
+        "col": 12,
+        "row": 14
+      },
+      "points": [
+        {
+          "col": 9,
+          "row": 14
+        },
+        {
+          "col": 7,
+          "row": 12
+        },
+        {
+          "col": 7,
+          "row": 10
+        },
+        {
+          "col": 9,
+          "row": 8
+        },
+        {
+          "col": 12,
+          "row": 8
+        },
+        {
+          "col": 12,
+          "row": 7
+        },
+        {
+          "col": 13,
+          "row": 7
+        },
+        {
+          "col": 14,
+          "row": 6
+        },
+        {
+          "col": 13,
+          "row": 5
+        },
+        {
+          "col": 14,
+          "row": 4
+        },
+        {
+          "col": 13,
+          "row": 3
+        },
+        {
+          "col": 12,
+          "row": 3
+        },
+        {
+          "col": 12,
+          "row": 2
+        },
+        {
+          "col": 11,
+          "row": 1
+        },
+        {
+          "col": 9,
+          "row": 3
+        },
+        {
+          "col": 11,
+          "row": 5
+        },
+        {
+          "col": 11,
+          "row": 7
+        },
+        {
+          "col": 10,
+          "row": 8
+        },
+        {
+          "col": 11,
+          "row": 9
+        },
+        {
+          "col": 11,
+          "row": 13
+        },
+        {
+          "col": 14,
+          "row": 16
+        },
+        {
+          "col": 13,
+          "row": 17
+        },
+        {
+          "col": 12,
+          "row": 17
+        },
+        {
+          "col": 10,
+          "row": 15
+        },
+        {
+          "col": 9,
+          "row": 15
+        },
+        {
+          "col": 9,
+          "row": 17
+        },
+        {
+          "col": 8,
+          "row": 17
+        },
+        {
+          "col": 9,
+          "row": 16
+        },
+        {
+          "col": 8,
+          "row": 15
+        },
+        {
+          "col": 6,
+          "row": 15
+        },
+        {
+          "col": 6,
+          "row": 17
+        },
+        {
+          "col": 5,
+          "row": 17
+        },
+        {
+          "col": 6,
+          "row": 16
+        },
+        {
+          "col": 3,
+          "row": 13
+        },
+        {
+          "col": 3,
+          "row": 9
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 3,
+          "row": 7
+        },
+        {
+          "col": 2,
+          "row": 6
+        },
+        {
+          "col": 4,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 5
+        },
+        {
+          "col": 4,
+          "row": 5
+        },
+        {
+          "col": 3,
+          "row": 4
+        },
+        {
+          "col": 1,
+          "row": 4
+        },
+        {
+          "col": 1,
+          "row": 3
+        },
+        {
+          "col": 2,
+          "row": 2
+        },
+        {
+          "col": 6,
+          "row": 2
+        },
+        {
+          "col": 7,
+          "row": 3
+        },
+        {
+          "col": 9,
+          "row": 3
+        }
+      ]
+    },
+    {
+      "id": "coordinate_fish",
+      "conceptId": "coordinate_fish",
+      "primary": true,
+      "label": "Рыбка",
+      "taskKind": "coordinate",
+      "columns": 21,
+      "rows": 17,
+      "start": {
+        "col": 14,
+        "row": 12
+      },
+      "points": [
+        {
+          "col": 15,
+          "row": 11
+        },
+        {
+          "col": 15,
+          "row": 10
+        },
+        {
+          "col": 16,
+          "row": 9
+        },
+        {
+          "col": 15,
+          "row": 8
+        },
+        {
+          "col": 15,
+          "row": 7
+        },
+        {
+          "col": 14,
+          "row": 6
+        },
+        {
+          "col": 11,
+          "row": 6
+        },
+        {
+          "col": 12,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 8
+        },
+        {
+          "col": 13,
+          "row": 9
+        },
+        {
+          "col": 12,
+          "row": 10
+        },
+        {
+          "col": 12,
+          "row": 11
+        },
+        {
+          "col": 11,
+          "row": 12
+        },
+        {
+          "col": 8,
+          "row": 12
+        },
+        {
+          "col": 9,
+          "row": 11
+        },
+        {
+          "col": 9,
+          "row": 10
+        },
+        {
+          "col": 10,
+          "row": 9
+        },
+        {
+          "col": 9,
+          "row": 8
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 3
+        },
+        {
+          "col": 10,
+          "row": 3
+        },
+        {
+          "col": 11,
+          "row": 2
+        },
+        {
+          "col": 15,
+          "row": 2
+        },
+        {
+          "col": 17,
+          "row": 4
+        },
+        {
+          "col": 17,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 8
+        },
+        {
+          "col": 20,
+          "row": 7
+        },
+        {
+          "col": 20,
+          "row": 8
+        },
+        {
+          "col": 19,
+          "row": 9
+        },
+        {
+          "col": 20,
+          "row": 9
+        },
+        {
+          "col": 20,
+          "row": 10
+        },
+        {
+          "col": 19,
+          "row": 10
+        },
+        {
+          "col": 16,
+          "row": 13
+        },
+        {
+          "col": 14,
+          "row": 13
+        },
+        {
+          "col": 14,
+          "row": 15
+        },
+        {
+          "col": 13,
+          "row": 16
+        },
+        {
+          "col": 10,
+          "row": 16
+        },
+        {
+          "col": 10,
+          "row": 15
+        },
+        {
+          "col": 12,
+          "row": 13
+        },
+        {
+          "col": 9,
+          "row": 13
+        },
+        {
+          "col": 6,
+          "row": 10
+        },
+        {
+          "col": 5,
+          "row": 11
+        },
+        {
+          "col": 5,
+          "row": 12
+        },
+        {
+          "col": 2,
+          "row": 15
+        },
+        {
+          "col": 2,
+          "row": 11
+        },
+        {
+          "col": 4,
+          "row": 9
+        },
+        {
+          "col": 2,
+          "row": 7
+        },
+        {
+          "col": 2,
+          "row": 3
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 6,
+          "row": 8
+        },
+        {
+          "col": 9,
+          "row": 5
+        },
+        {
+          "col": 16,
+          "row": 5
+        },
+        {
+          "col": 17,
+          "row": 6
+        }
+      ]
+    },
+    {
+      "id": "coordinate_fox",
+      "conceptId": "coordinate_fox",
+      "primary": true,
+      "label": "Лиса",
+      "taskKind": "coordinate",
+      "columns": 22,
+      "rows": 20,
+      "start": {
+        "col": 11,
+        "row": 10
+      },
+      "points": [
+        {
+          "col": 16,
+          "row": 15
+        },
+        {
+          "col": 16,
+          "row": 16
+        },
+        {
+          "col": 17,
+          "row": 15
+        },
+        {
+          "col": 15,
+          "row": 13
+        },
+        {
+          "col": 15,
+          "row": 10
+        },
+        {
+          "col": 17,
+          "row": 8
+        },
+        {
+          "col": 19,
+          "row": 8
+        },
+        {
+          "col": 20,
+          "row": 7
+        },
+        {
+          "col": 20,
+          "row": 9
+        },
+        {
+          "col": 19,
+          "row": 10
+        },
+        {
+          "col": 19,
+          "row": 11
+        },
+        {
+          "col": 21,
+          "row": 13
+        },
+        {
+          "col": 21,
+          "row": 15
+        },
+        {
+          "col": 20,
+          "row": 16
+        },
+        {
+          "col": 20,
+          "row": 17
+        },
+        {
+          "col": 18,
+          "row": 19
+        },
+        {
+          "col": 17,
+          "row": 19
+        },
+        {
+          "col": 16,
+          "row": 18
+        },
+        {
+          "col": 15,
+          "row": 19
+        },
+        {
+          "col": 11,
+          "row": 19
+        },
+        {
+          "col": 10,
+          "row": 18
+        },
+        {
+          "col": 9,
+          "row": 19
+        },
+        {
+          "col": 7,
+          "row": 19
+        },
+        {
+          "col": 8,
+          "row": 18
+        },
+        {
+          "col": 8,
+          "row": 15
+        },
+        {
+          "col": 7,
+          "row": 14
+        },
+        {
+          "col": 7,
+          "row": 11
+        },
+        {
+          "col": 8,
+          "row": 10
+        },
+        {
+          "col": 6,
+          "row": 10
+        },
+        {
+          "col": 3,
+          "row": 7
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 8,
+          "row": 4
+        },
+        {
+          "col": 8,
+          "row": 2
+        },
+        {
+          "col": 10,
+          "row": 4
+        },
+        {
+          "col": 11,
+          "row": 4
+        },
+        {
+          "col": 11,
+          "row": 2
+        },
+        {
+          "col": 13,
+          "row": 4
+        },
+        {
+          "col": 13,
+          "row": 8
+        },
+        {
+          "col": 11,
+          "row": 10
+        }
+      ]
+    },
+    {
+      "id": "coordinate_crab",
+      "conceptId": "coordinate_crab",
+      "primary": true,
+      "label": "Краб",
+      "taskKind": "coordinate",
+      "columns": 23,
+      "rows": 18,
+      "start": {
+        "col": 19,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 22,
+          "row": 4
+        },
+        {
+          "col": 22,
+          "row": 7
+        },
+        {
+          "col": 19,
+          "row": 10
+        },
+        {
+          "col": 16,
+          "row": 10
+        },
+        {
+          "col": 18,
+          "row": 12
+        },
+        {
+          "col": 18,
+          "row": 13
+        },
+        {
+          "col": 17,
+          "row": 12
+        },
+        {
+          "col": 16,
+          "row": 12
+        },
+        {
+          "col": 18,
+          "row": 14
+        },
+        {
+          "col": 18,
+          "row": 15
+        },
+        {
+          "col": 17,
+          "row": 14
+        },
+        {
+          "col": 16,
+          "row": 14
+        },
+        {
+          "col": 17,
+          "row": 15
+        },
+        {
+          "col": 17,
+          "row": 16
+        },
+        {
+          "col": 16,
+          "row": 17
+        },
+        {
+          "col": 16,
+          "row": 16
+        },
+        {
+          "col": 15,
+          "row": 15
+        },
+        {
+          "col": 14,
+          "row": 16
+        },
+        {
+          "col": 9,
+          "row": 16
+        },
+        {
+          "col": 8,
+          "row": 15
+        },
+        {
+          "col": 7,
+          "row": 16
+        },
+        {
+          "col": 7,
+          "row": 17
+        },
+        {
+          "col": 6,
+          "row": 16
+        },
+        {
+          "col": 6,
+          "row": 15
+        },
+        {
+          "col": 7,
+          "row": 14
+        },
+        {
+          "col": 6,
+          "row": 14
+        },
+        {
+          "col": 5,
+          "row": 15
+        },
+        {
+          "col": 5,
+          "row": 14
+        },
+        {
+          "col": 7,
+          "row": 12
+        },
+        {
+          "col": 6,
+          "row": 12
+        },
+        {
+          "col": 5,
+          "row": 13
+        },
+        {
+          "col": 5,
+          "row": 12
+        },
+        {
+          "col": 7,
+          "row": 10
+        },
+        {
+          "col": 4,
+          "row": 10
+        },
+        {
+          "col": 1,
+          "row": 7
+        },
+        {
+          "col": 1,
+          "row": 4
+        },
+        {
+          "col": 4,
+          "row": 1
+        },
+        {
+          "col": 4,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 7,
+          "row": 9
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 8,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 6
+        },
+        {
+          "col": 10,
+          "row": 6
+        },
+        {
+          "col": 11,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 7
+        },
+        {
+          "col": 13,
+          "row": 6
+        },
+        {
+          "col": 14,
+          "row": 6
+        },
+        {
+          "col": 15,
+          "row": 7
+        },
+        {
+          "col": 15,
+          "row": 8
+        },
+        {
+          "col": 16,
+          "row": 9
+        },
+        {
+          "col": 16,
+          "row": 5
+        },
+        {
+          "col": 18,
+          "row": 3
+        },
+        {
+          "col": 18,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 5
+        },
+        {
+          "col": 19,
+          "row": 1
+        }
+      ]
+    },
+    {
+      "id": "coordinate_pig",
+      "conceptId": "coordinate_pig",
+      "primary": true,
+      "label": "Свинья",
+      "taskKind": "coordinate",
+      "columns": 33,
+      "rows": 23,
+      "start": {
+        "col": 2,
+        "row": 12
+      },
+      "points": [
+        {
+          "col": 4,
+          "row": 12
+        },
+        {
+          "col": 6,
+          "row": 10
+        },
+        {
+          "col": 6,
+          "row": 8
+        },
+        {
+          "col": 4,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 7,
+          "row": 8
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 5
+        },
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 6
+        },
+        {
+          "col": 10,
+          "row": 4
+        },
+        {
+          "col": 11,
+          "row": 4
+        },
+        {
+          "col": 13,
+          "row": 2
+        },
+        {
+          "col": 25,
+          "row": 2
+        },
+        {
+          "col": 29,
+          "row": 6
+        },
+        {
+          "col": 30,
+          "row": 6
+        },
+        {
+          "col": 31,
+          "row": 5
+        },
+        {
+          "col": 30,
+          "row": 4
+        },
+        {
+          "col": 29,
+          "row": 5
+        },
+        {
+          "col": 29,
+          "row": 4
+        },
+        {
+          "col": 30,
+          "row": 3
+        },
+        {
+          "col": 31,
+          "row": 4
+        },
+        {
+          "col": 31,
+          "row": 6
+        },
+        {
+          "col": 30,
+          "row": 7
+        },
+        {
+          "col": 29,
+          "row": 7
+        },
+        {
+          "col": 29,
+          "row": 13
+        },
+        {
+          "col": 27,
+          "row": 15
+        },
+        {
+          "col": 26,
+          "row": 15
+        },
+        {
+          "col": 26,
+          "row": 20
+        },
+        {
+          "col": 25,
+          "row": 21
+        },
+        {
+          "col": 25,
+          "row": 20
+        },
+        {
+          "col": 24,
+          "row": 21
+        },
+        {
+          "col": 24,
+          "row": 15
+        },
+        {
+          "col": 23,
+          "row": 15
+        },
+        {
+          "col": 23,
+          "row": 20
+        },
+        {
+          "col": 22,
+          "row": 21
+        },
+        {
+          "col": 22,
+          "row": 20
+        },
+        {
+          "col": 21,
+          "row": 21
+        },
+        {
+          "col": 21,
+          "row": 15
+        },
+        {
+          "col": 20,
+          "row": 16
+        },
+        {
+          "col": 17,
+          "row": 16
+        },
+        {
+          "col": 16,
+          "row": 15
+        },
+        {
+          "col": 16,
+          "row": 20
+        },
+        {
+          "col": 15,
+          "row": 21
+        },
+        {
+          "col": 15,
+          "row": 20
+        },
+        {
+          "col": 14,
+          "row": 21
+        },
+        {
+          "col": 14,
+          "row": 16
+        },
+        {
+          "col": 13,
+          "row": 15
+        },
+        {
+          "col": 13,
+          "row": 20
+        },
+        {
+          "col": 12,
+          "row": 21
+        },
+        {
+          "col": 12,
+          "row": 20
+        },
+        {
+          "col": 11,
+          "row": 21
+        },
+        {
+          "col": 11,
+          "row": 16
+        },
+        {
+          "col": 10,
+          "row": 15
+        },
+        {
+          "col": 5,
+          "row": 15
+        },
+        {
+          "col": 4,
+          "row": 14
+        },
+        {
+          "col": 2,
+          "row": 14
+        },
+        {
+          "col": 2,
+          "row": 12
+        }
+      ]
+    },
+    {
+      "id": "coordinate_trex",
+      "conceptId": "coordinate_trex",
+      "primary": true,
+      "label": "Динозавр",
+      "taskKind": "coordinate",
+      "columns": 19,
+      "rows": 21,
+      "start": {
+        "col": 0,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 1,
+          "row": 8
+        },
+        {
+          "col": 1,
+          "row": 9
+        },
+        {
+          "col": 3,
+          "row": 9
+        },
+        {
+          "col": 3,
+          "row": 10
+        },
+        {
+          "col": 5,
+          "row": 10
+        },
+        {
+          "col": 5,
+          "row": 11
+        },
+        {
+          "col": 8,
+          "row": 11
+        },
+        {
+          "col": 8,
+          "row": 10
+        },
+        {
+          "col": 9,
+          "row": 10
+        },
+        {
+          "col": 9,
+          "row": 9
+        },
+        {
+          "col": 10,
+          "row": 9
+        },
+        {
+          "col": 10,
+          "row": 3
+        },
+        {
+          "col": 11,
+          "row": 3
+        },
+        {
+          "col": 11,
+          "row": 2
+        },
+        {
+          "col": 15,
+          "row": 2
+        },
+        {
+          "col": 15,
+          "row": 3
+        },
+        {
+          "col": 17,
+          "row": 3
+        },
+        {
+          "col": 17,
+          "row": 6
+        },
+        {
+          "col": 16,
+          "row": 6
+        },
+        {
+          "col": 16,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 10
+        },
+        {
+          "col": 14,
+          "row": 10
+        },
+        {
+          "col": 14,
+          "row": 12
+        },
+        {
+          "col": 13,
+          "row": 12
+        },
+        {
+          "col": 13,
+          "row": 11
+        },
+        {
+          "col": 12,
+          "row": 11
+        },
+        {
+          "col": 12,
+          "row": 14
+        },
+        {
+          "col": 11,
+          "row": 14
+        },
+        {
+          "col": 11,
+          "row": 16
+        },
+        {
+          "col": 10,
+          "row": 16
+        },
+        {
+          "col": 10,
+          "row": 18
+        },
+        {
+          "col": 11,
+          "row": 18
+        },
+        {
+          "col": 11,
+          "row": 19
+        },
+        {
+          "col": 9,
+          "row": 19
+        },
+        {
+          "col": 9,
+          "row": 17
+        },
+        {
+          "col": 7,
+          "row": 17
+        },
+        {
+          "col": 7,
+          "row": 18
+        },
+        {
+          "col": 8,
+          "row": 18
+        },
+        {
+          "col": 8,
+          "row": 19
+        },
+        {
+          "col": 6,
+          "row": 19
+        },
+        {
+          "col": 6,
+          "row": 17
+        },
+        {
+          "col": 5,
+          "row": 17
+        },
+        {
+          "col": 5,
+          "row": 16
+        },
+        {
+          "col": 4,
+          "row": 16
+        },
+        {
+          "col": 4,
+          "row": 15
+        },
+        {
+          "col": 3,
+          "row": 15
+        },
+        {
+          "col": 3,
+          "row": 14
+        },
+        {
+          "col": 2,
+          "row": 14
+        },
+        {
+          "col": 2,
+          "row": 12
+        },
+        {
+          "col": 1,
+          "row": 12
+        },
+        {
+          "col": 1,
+          "row": 10
+        },
+        {
+          "col": 0,
+          "row": 10
+        },
+        {
+          "col": 0,
+          "row": 8
+        }
+      ]
+    },
+    {
+      "id": "coordinate_airplane",
+      "conceptId": "coordinate_airplane",
+      "primary": true,
+      "label": "Самолёт",
+      "taskKind": "coordinate",
+      "columns": 21,
+      "rows": 19,
+      "start": {
+        "col": 1,
+        "row": 10
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 10
+        },
+        {
+          "col": 3,
+          "row": 9
+        },
+        {
+          "col": 7,
+          "row": 9
+        },
+        {
+          "col": 7,
+          "row": 8
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 8,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 6
+        },
+        {
+          "col": 10,
+          "row": 6
+        },
+        {
+          "col": 10,
+          "row": 5
+        },
+        {
+          "col": 11,
+          "row": 5
+        },
+        {
+          "col": 11,
+          "row": 4
+        },
+        {
+          "col": 16,
+          "row": 4
+        },
+        {
+          "col": 16,
+          "row": 5
+        },
+        {
+          "col": 14,
+          "row": 5
+        },
+        {
+          "col": 14,
+          "row": 6
+        },
+        {
+          "col": 13,
+          "row": 6
+        },
+        {
+          "col": 13,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 8
+        },
+        {
+          "col": 11,
+          "row": 8
+        },
+        {
+          "col": 11,
+          "row": 9
+        },
+        {
+          "col": 16,
+          "row": 9
+        },
+        {
+          "col": 16,
+          "row": 8
+        },
+        {
+          "col": 17,
+          "row": 8
+        },
+        {
+          "col": 17,
+          "row": 7
+        },
+        {
+          "col": 18,
+          "row": 7
+        },
+        {
+          "col": 18,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 9
+        },
+        {
+          "col": 18,
+          "row": 9
+        },
+        {
+          "col": 18,
+          "row": 10
+        },
+        {
+          "col": 17,
+          "row": 10
+        },
+        {
+          "col": 17,
+          "row": 11
+        },
+        {
+          "col": 16,
+          "row": 11
+        },
+        {
+          "col": 16,
+          "row": 12
+        },
+        {
+          "col": 12,
+          "row": 12
+        },
+        {
+          "col": 12,
+          "row": 13
+        },
+        {
+          "col": 13,
+          "row": 13
+        },
+        {
+          "col": 13,
+          "row": 14
+        },
+        {
+          "col": 14,
+          "row": 14
+        },
+        {
+          "col": 14,
+          "row": 15
+        },
+        {
+          "col": 15,
+          "row": 15
+        },
+        {
+          "col": 15,
+          "row": 16
+        },
+        {
+          "col": 17,
+          "row": 16
+        },
+        {
+          "col": 17,
+          "row": 17
+        },
+        {
+          "col": 12,
+          "row": 17
+        },
+        {
+          "col": 12,
+          "row": 16
+        },
+        {
+          "col": 11,
+          "row": 16
+        },
+        {
+          "col": 11,
+          "row": 15
+        },
+        {
+          "col": 10,
+          "row": 15
+        },
+        {
+          "col": 10,
+          "row": 14
+        },
+        {
+          "col": 9,
+          "row": 14
+        },
+        {
+          "col": 9,
+          "row": 13
+        },
+        {
+          "col": 8,
+          "row": 13
+        },
+        {
+          "col": 8,
+          "row": 12
+        },
+        {
+          "col": 2,
+          "row": 12
+        },
+        {
+          "col": 2,
+          "row": 11
+        },
+        {
+          "col": 1,
+          "row": 11
+        },
+        {
+          "col": 1,
+          "row": 10
+        }
+      ]
+    },
+    {
+      "id": "coordinate_helicopter",
+      "conceptId": "coordinate_helicopter",
+      "primary": true,
+      "label": "Вертолёт",
+      "taskKind": "coordinate",
+      "columns": 21,
+      "rows": 20,
+      "start": {
+        "col": 3,
+        "row": 14
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 11
+        },
+        {
+          "col": 4,
+          "row": 11
+        },
+        {
+          "col": 4,
+          "row": 10
+        },
+        {
+          "col": 5,
+          "row": 10
+        },
+        {
+          "col": 5,
+          "row": 9
+        },
+        {
+          "col": 7,
+          "row": 9
+        },
+        {
+          "col": 7,
+          "row": 8
+        },
+        {
+          "col": 9,
+          "row": 8
+        },
+        {
+          "col": 9,
+          "row": 6
+        },
+        {
+          "col": 1,
+          "row": 6
+        },
+        {
+          "col": 1,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 4
+        },
+        {
+          "col": 10,
+          "row": 4
+        },
+        {
+          "col": 10,
+          "row": 3
+        },
+        {
+          "col": 12,
+          "row": 3
+        },
+        {
+          "col": 12,
+          "row": 2
+        },
+        {
+          "col": 14,
+          "row": 2
+        },
+        {
+          "col": 14,
+          "row": 1
+        },
+        {
+          "col": 17,
+          "row": 1
+        },
+        {
+          "col": 17,
+          "row": 2
+        },
+        {
+          "col": 15,
+          "row": 2
+        },
+        {
+          "col": 15,
+          "row": 3
+        },
+        {
+          "col": 13,
+          "row": 3
+        },
+        {
+          "col": 13,
+          "row": 4
+        },
+        {
+          "col": 11,
+          "row": 4
+        },
+        {
+          "col": 11,
+          "row": 5
+        },
+        {
+          "col": 18,
+          "row": 5
+        },
+        {
+          "col": 18,
+          "row": 6
+        },
+        {
+          "col": 10,
+          "row": 6
+        },
+        {
+          "col": 10,
+          "row": 8
+        },
+        {
+          "col": 12,
+          "row": 8
+        },
+        {
+          "col": 12,
+          "row": 9
+        },
+        {
+          "col": 13,
+          "row": 9
+        },
+        {
+          "col": 13,
+          "row": 10
+        },
+        {
+          "col": 17,
+          "row": 10
+        },
+        {
+          "col": 17,
+          "row": 9
+        },
+        {
+          "col": 16,
+          "row": 9
+        },
+        {
+          "col": 16,
+          "row": 8
+        },
+        {
+          "col": 19,
+          "row": 8
+        },
+        {
+          "col": 19,
+          "row": 9
+        },
+        {
+          "col": 18,
+          "row": 9
+        },
+        {
+          "col": 18,
+          "row": 11
+        },
+        {
+          "col": 17,
+          "row": 11
+        },
+        {
+          "col": 17,
+          "row": 12
+        },
+        {
+          "col": 16,
+          "row": 12
+        },
+        {
+          "col": 16,
+          "row": 13
+        },
+        {
+          "col": 15,
+          "row": 13
+        },
+        {
+          "col": 15,
+          "row": 14
+        },
+        {
+          "col": 14,
+          "row": 14
+        },
+        {
+          "col": 14,
+          "row": 15
+        },
+        {
+          "col": 13,
+          "row": 15
+        },
+        {
+          "col": 13,
+          "row": 16
+        },
+        {
+          "col": 11,
+          "row": 16
+        },
+        {
+          "col": 11,
+          "row": 17
+        },
+        {
+          "col": 17,
+          "row": 17
+        },
+        {
+          "col": 17,
+          "row": 18
+        },
+        {
+          "col": 3,
+          "row": 18
+        },
+        {
+          "col": 3,
+          "row": 17
+        },
+        {
+          "col": 8,
+          "row": 17
+        },
+        {
+          "col": 8,
+          "row": 16
+        },
+        {
+          "col": 6,
+          "row": 16
+        },
+        {
+          "col": 6,
+          "row": 15
+        },
+        {
+          "col": 4,
+          "row": 15
+        },
+        {
+          "col": 4,
+          "row": 14
+        },
+        {
+          "col": 3,
+          "row": 14
+        }
+      ]
+    },
+    {
+      "id": "coordinate_car",
+      "conceptId": "coordinate_car",
+      "primary": true,
+      "label": "Машина",
+      "taskKind": "coordinate",
+      "columns": 21,
+      "rows": 17,
+      "start": {
+        "col": 1,
+        "row": 9
+      },
+      "points": [
+        {
+          "col": 2,
+          "row": 9
+        },
+        {
+          "col": 2,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 6,
+          "row": 7
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 4
+        },
+        {
+          "col": 15,
+          "row": 4
+        },
+        {
+          "col": 15,
+          "row": 5
+        },
+        {
+          "col": 16,
+          "row": 5
+        },
+        {
+          "col": 16,
+          "row": 6
+        },
+        {
+          "col": 17,
+          "row": 6
+        },
+        {
+          "col": 17,
+          "row": 7
+        },
+        {
+          "col": 18,
+          "row": 7
+        },
+        {
+          "col": 18,
+          "row": 12
+        },
+        {
+          "col": 19,
+          "row": 12
+        },
+        {
+          "col": 19,
+          "row": 13
+        },
+        {
+          "col": 16,
+          "row": 13
+        },
+        {
+          "col": 16,
+          "row": 14
+        },
+        {
+          "col": 15,
+          "row": 14
+        },
+        {
+          "col": 15,
+          "row": 15
+        },
+        {
+          "col": 13,
+          "row": 15
+        },
+        {
+          "col": 13,
+          "row": 14
+        },
+        {
+          "col": 12,
+          "row": 14
+        },
+        {
+          "col": 12,
+          "row": 13
+        },
+        {
+          "col": 8,
+          "row": 13
+        },
+        {
+          "col": 8,
+          "row": 14
+        },
+        {
+          "col": 7,
+          "row": 14
+        },
+        {
+          "col": 7,
+          "row": 15
+        },
+        {
+          "col": 5,
+          "row": 15
+        },
+        {
+          "col": 5,
+          "row": 14
+        },
+        {
+          "col": 4,
+          "row": 14
+        },
+        {
+          "col": 4,
+          "row": 13
+        },
+        {
+          "col": 2,
+          "row": 13
+        },
+        {
+          "col": 2,
+          "row": 12
+        },
+        {
+          "col": 1,
+          "row": 12
+        },
+        {
+          "col": 1,
+          "row": 9
+        }
+      ]
+    },
+    {
+      "id": "coordinate_horned_dino",
+      "conceptId": "coordinate_horned_dino",
+      "primary": true,
+      "label": "Рогатый динозавр",
+      "taskKind": "coordinate",
+      "columns": 22,
+      "rows": 14,
+      "start": {
+        "col": 8,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 9,
+          "row": 6
+        },
+        {
+          "col": 8,
+          "row": 6
+        },
+        {
+          "col": 9,
+          "row": 5
+        },
+        {
+          "col": 14,
+          "row": 5
+        },
+        {
+          "col": 15,
+          "row": 6
+        },
+        {
+          "col": 16,
+          "row": 6
+        },
+        {
+          "col": 16,
+          "row": 7
+        },
+        {
+          "col": 17,
+          "row": 7
+        },
+        {
+          "col": 17,
+          "row": 8
+        },
+        {
+          "col": 18,
+          "row": 8
+        },
+        {
+          "col": 18,
+          "row": 9
+        },
+        {
+          "col": 19,
+          "row": 9
+        },
+        {
+          "col": 19,
+          "row": 10
+        },
+        {
+          "col": 20,
+          "row": 10
+        },
+        {
+          "col": 20,
+          "row": 11
+        },
+        {
+          "col": 18,
+          "row": 11
+        },
+        {
+          "col": 18,
+          "row": 10
+        },
+        {
+          "col": 16,
+          "row": 10
+        },
+        {
+          "col": 16,
+          "row": 9
+        },
+        {
+          "col": 15,
+          "row": 9
+        },
+        {
+          "col": 15,
+          "row": 12
+        },
+        {
+          "col": 13,
+          "row": 12
+        },
+        {
+          "col": 13,
+          "row": 9
+        },
+        {
+          "col": 13,
+          "row": 12
+        },
+        {
+          "col": 12,
+          "row": 12
+        },
+        {
+          "col": 12,
+          "row": 9
+        },
+        {
+          "col": 9,
+          "row": 9
+        },
+        {
+          "col": 9,
+          "row": 12
+        },
+        {
+          "col": 7,
+          "row": 12
+        },
+        {
+          "col": 7,
+          "row": 9
+        },
+        {
+          "col": 7,
+          "row": 12
+        },
+        {
+          "col": 6,
+          "row": 12
+        },
+        {
+          "col": 6,
+          "row": 9
+        },
+        {
+          "col": 5,
+          "row": 8
+        },
+        {
+          "col": 2,
+          "row": 8
+        },
+        {
+          "col": 2,
+          "row": 7
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 4,
+          "row": 4
+        },
+        {
+          "col": 4,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 2
+        },
+        {
+          "col": 6,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 2
+        },
+        {
+          "col": 9,
+          "row": 2
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 9,
+          "row": 3
+        },
+        {
+          "col": 8,
+          "row": 4
+        },
+        {
+          "col": 9,
+          "row": 4
+        },
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 5
+        }
+      ]
+    },
+    {
+      "id": "coordinate_stegosaurus",
+      "conceptId": "coordinate_stegosaurus",
+      "primary": true,
+      "label": "Стегозавр",
+      "taskKind": "coordinate",
+      "columns": 23,
+      "rows": 10,
+      "start": {
+        "col": 2,
+        "row": 6
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 5
+        },
+        {
+          "col": 4,
+          "row": 5
+        },
+        {
+          "col": 4,
+          "row": 4
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 4
+        },
+        {
+          "col": 6,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 2
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 8,
+          "row": 2
+        },
+        {
+          "col": 9,
+          "row": 1
+        },
+        {
+          "col": 10,
+          "row": 2
+        },
+        {
+          "col": 11,
+          "row": 1
+        },
+        {
+          "col": 12,
+          "row": 2
+        },
+        {
+          "col": 13,
+          "row": 1
+        },
+        {
+          "col": 14,
+          "row": 2
+        },
+        {
+          "col": 14,
+          "row": 3
+        },
+        {
+          "col": 15,
+          "row": 2
+        },
+        {
+          "col": 16,
+          "row": 3
+        },
+        {
+          "col": 16,
+          "row": 4
+        },
+        {
+          "col": 17,
+          "row": 4
+        },
+        {
+          "col": 18,
+          "row": 5
+        },
+        {
+          "col": 18,
+          "row": 6
+        },
+        {
+          "col": 19,
+          "row": 6
+        },
+        {
+          "col": 20,
+          "row": 7
+        },
+        {
+          "col": 21,
+          "row": 6
+        },
+        {
+          "col": 21,
+          "row": 7
+        },
+        {
+          "col": 20,
+          "row": 8
+        },
+        {
+          "col": 17,
+          "row": 8
+        },
+        {
+          "col": 17,
+          "row": 7
+        },
+        {
+          "col": 16,
+          "row": 7
+        },
+        {
+          "col": 16,
+          "row": 6
+        },
+        {
+          "col": 15,
+          "row": 6
+        },
+        {
+          "col": 15,
+          "row": 8
+        },
+        {
+          "col": 13,
+          "row": 8
+        },
+        {
+          "col": 13,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 7
+        },
+        {
+          "col": 12,
+          "row": 8
+        },
+        {
+          "col": 10,
+          "row": 8
+        },
+        {
+          "col": 10,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 8
+        },
+        {
+          "col": 7,
+          "row": 8
+        },
+        {
+          "col": 7,
+          "row": 7
+        },
+        {
+          "col": 6,
+          "row": 7
+        },
+        {
+          "col": 6,
+          "row": 8
+        },
+        {
+          "col": 4,
+          "row": 8
+        },
+        {
+          "col": 4,
+          "row": 7
+        },
+        {
+          "col": 2,
+          "row": 7
+        },
+        {
+          "col": 2,
           "row": 6
         }
       ]
