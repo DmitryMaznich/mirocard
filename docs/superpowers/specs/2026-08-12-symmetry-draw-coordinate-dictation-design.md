@@ -79,7 +79,7 @@ follow-up, not a blocker.)
 
 ## Content plan — no new tracing needed
 
-All 16 existing `dictation_*` cards already encode their figure as
+All 23 existing `dictation_*` cards already encode their figure as
 `start` + relative `commands`. Their absolute vertex coordinates are fully
 determined by walking `commands` cumulatively from `start` (the same
 `commandEnd` logic `renderer.js` already has). A one-off script converts
