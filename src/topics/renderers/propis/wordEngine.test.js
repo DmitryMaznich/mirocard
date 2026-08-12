@@ -419,6 +419,30 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownLower.end[0] - ownLower.start[0], 6);
   });
 
+  it("skips the NEXT letter's own entry connector too when о resolved a variant", () => {
+    // Regression (2026-08-11, "работа"/"гот"): о_middle_uu's own captured tail already
+    // reaches out to wherever the next letter needs to start — inserting that next letter's
+    // own separate entry connector on top duplicated the motion and visibly shifted
+    // everything after it. LETTER_E's own raw entry point classifies to line 3 (see its d
+    // above), matching this connector's own "4_3" key.
+    const ENTRY_CONNECTOR = {
+      id: "conn_4_3_test", type: "connector", fromLine: 4, toLine: 3,
+      strokes: [{ d: "M 10 75 C 12 70 14 65 16 60" }],
+    };
+    const connectorsByKey = new Map([["4_3", [ENTRY_CONNECTOR]]]);
+
+    // Control: without a dual-nature letter in front of it, "е" DOES get this entry
+    // connector — proves the connector itself is real and would normally apply.
+    const control = buildWordTrajectory("бе", letters, connectorsByKey);
+    expect(control.strokes.length).toBe(3); // б, е's own entry connector, е
+
+    // "бое": б (not dual) -> о (resolves О_MIDDLE_ANY, usedVariant true) -> е. If the next
+    // letter's entry connector were still inserted, this would also be 4 strokes (о's own
+    // connector already correctly skipped) instead of 3.
+    const result = buildWordTrajectory("бое", letters, connectorsByKey);
+    expect(result.strokes.length).toBe(3); // б, о (variant), е — no separate entry connector for е
+  });
+
   it("falls back to the plain isolated card when no matching variant is captured", () => {
     // "ои": о is first, followed by "и" — not in О_FIRST_LOWER's nextLetters ("б" only) ->
     // must not throw, must use O_PLAIN instead.

@@ -320,6 +320,15 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     // exactly like the "no connector found" fallback below on BOTH sides of the junction
     // (usedVariant short-circuits findExitConnector/findEntryConnector further down), so the
     // ordinary connector system never also inserts a redundant separate piece.
+    //
+    // This also has to reach one letter further than usedVariant itself: a variant's own
+    // tail is captured all the way out to wherever the NEXT letter needs to start (e.g.
+    // о_middle_uu's own raw end point already sits right at line 3, the same height а
+    // straight-stroke letter like т enters at) — so that next letter's own entry connector
+    // must be skipped too (see `prev.usedVariant` in the entryConnector line below), or its
+    // own separate lead-in stroke duplicates the motion о's tail already made and visibly
+    // shifts everything after it (confirmed 2026-08-11 on "работа"/"гот": before this fix,
+    // т still got its own straight 4→3 connector immediately after о_middle_uu's tail).
     let usedVariant = false;
     if (DUAL_NATURE_LETTERS.has(ch)) {
       const position = chars.length === 1 ? "isolated" : i === 0 ? "first" : i === chars.length - 1 ? "last" : "middle";
@@ -340,7 +349,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
 
     if (prev) {
       const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
-      const entryConnector = usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
+      const entryConnector = usedVariant || prev.usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
 
       let anchorPoint;
       if (exitConnector) {
