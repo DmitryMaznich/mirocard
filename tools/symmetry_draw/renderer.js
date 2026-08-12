@@ -127,14 +127,56 @@
     return distance(point, { col: start.col + dx * t, row: start.row + dy * t });
   }
 
-  function isCorrectMove(points, start, command) {
-    const end = commandEnd(start, command);
+  function isCorrectMove(points, start, end) {
     if (points.length < 2 || distance(points[0], start) > 0.55 || distance(points.at(-1), end) > 0.55) return false;
     return points.every((point) => distanceToSegment(point, start, end) <= 0.8);
   }
 
   function InstructionGraphic({ command }) {
     return h("div", { className: "dictation__arrow", "aria-hidden": "true" }, DIRECTION[command.direction].arrow);
+  }
+
+  // Battleship-style column letters used only when shape.taskKind === "coordinate".
+  // Skips Ё and Й (pronunciation/visual ambiguity). Duplicated from
+  // tools/symmetry_draw/column_label.mjs — this file ships as a raw browser
+  // script inside the topic ZIP (no bundler pass, no imports), same reason
+  // DIRECTION/commandsToPath are duplicated between verify_trace.mjs and here.
+  const COORDINATE_COLUMN_LETTERS = [
+    "А", "Б", "В", "Г", "Д", "Е", "Ж", "З", "И", "К", "Л", "М", "Н",
+    "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ",
+    "Ы", "Ь", "Э", "Ю", "Я",
+  ];
+
+  function columnLabel(col) {
+    return COORDINATE_COLUMN_LETTERS[col] ?? `?${col}`;
+  }
+
+  function coordinateText(point) {
+    return `Найди точку ${columnLabel(point.col)}${point.row + 1}`;
+  }
+
+  function coordinateSpeech(point) {
+    return `Точка ${columnLabel(point.col)}, ${point.row + 1}`;
+  }
+
+  // Reduces either a dictation card's `commands` (relative direction+cells,
+  // walked cumulatively from `start`) or a coordinate card's `points`
+  // (already-absolute targets) to the same step shape, so the rest of
+  // DictationTask doesn't need to know which taskKind produced it.
+  function buildSteps(shape) {
+    if (shape.taskKind === "coordinate") {
+      return (shape.points ?? []).map((point) => ({
+        end: point,
+        text: coordinateText(point),
+        speech: coordinateSpeech(point),
+      }));
+    }
+    let current = shape.start;
+    return (shape.commands ?? []).map((command) => {
+      const end = commandEnd(current, command);
+      current = end;
+      return { end, text: commandText(command), speech: commandText(command), direction: command.direction };
+    });
   }
 
   function DictationTask({ task, onCorrect, sessionParams }) {
@@ -149,11 +191,13 @@
     const [notice, setNotice] = useState("");
     const [finished, setFinished] = useState(false);
     const shape = task.card;
+    const steps = useMemo(() => buildSteps(shape), [shape]);
+    const isCoordinate = shape.taskKind === "coordinate";
     const showArrow = sessionParams?.showArrow ?? true;
-    const command = shape.commands[stepIndex];
+    const step = steps[stepIndex];
     const columns = Number(shape.columns ?? 10);
     const rows = Number(shape.rows ?? 10);
-    const target = command ? commandEnd(activePoint, command) : null;
+    const target = step ? step.end : null;
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -169,16 +213,15 @@
     }
 
     function speakInstruction() {
-      const text = commandText(command);
-      if (!window.speechSynthesis) return;
+      if (!step || !window.speechSynthesis) return;
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(step.speech);
       utterance.lang = "ru-RU";
       window.speechSynthesis.speak(utterance);
     }
 
     function startGesture(event) {
-      if (finished || !command) return;
+      if (finished || !step) return;
       event.preventDefault();
       const point = localPoint(event);
       if (!point) return;
@@ -201,23 +244,22 @@
     }
 
     function finishGesture(event) {
-      if (!drawingRef.current || !command) return;
+      if (!drawingRef.current || !step) return;
       drawingRef.current = false;
       if (event?.currentTarget?.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
       const points = gestureRef.current;
-      const correct = isCorrectMove(points, activePoint, command);
+      const correct = isCorrectMove(points, activePoint, step.end);
       if (!correct) {
         setPreview(null);
         setNotice("Попробуй ещё раз. Начни с активной точки.");
         return;
       }
-      const nextPoint = commandEnd(activePoint, command);
-      setCompleted((lines) => [...lines, { start: activePoint, command }]);
-      setActivePoint(nextPoint);
+      setCompleted((lines) => [...lines, { start: activePoint, end: step.end }]);
+      setActivePoint(step.end);
       setPreview(null);
       setShowTargetHint(false);
       setNotice("");
-      if (stepIndex + 1 >= shape.commands.length) {
+      if (stepIndex + 1 >= steps.length) {
         setFinished(true);
         setTimeout(() => onCorrect?.(task.conceptId, shape.id), 650);
       } else {
@@ -234,7 +276,7 @@
     const coordinates = [];
     for (let col = 0; col <= columns; col += 1) {
       grid.push(h("line", { key: `v-${col}`, className: "dictation__grid-line", x1: col, y1: 0, x2: col, y2: rows }));
-      coordinates.push(h("text", { key: `col-${col}`, className: "dictation__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, col + 1));
+      coordinates.push(h("text", { key: `col-${col}`, className: "dictation__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, isCoordinate ? columnLabel(col) : col + 1));
       for (let row = 0; row <= rows; row += 1) dots.push(h("circle", { key: `p-${col}-${row}`, className: "dictation__grid-dot", cx: col, cy: row, r: "0.05" }));
     }
     for (let row = 0; row <= rows; row += 1) {
@@ -258,11 +300,11 @@
       : null;
     const previewPath = preview?.length > 1 ? `M ${activePoint.col} ${activePoint.row} L ${previewEnd.col} ${previewEnd.row}` : null;
 
-    return h("section", { className: "dictation", "aria-label": "Графический диктант" },
+    return h("section", { className: "dictation", "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
       h("div", { className: "dictation__command" },
-        command && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command })) : null,
+        step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
         h("div", { className: "dictation__command-copy" },
-          h("div", { className: "dictation__text" }, finished ? `Получился рисунок: ${shape.label}` : commandText(command)),
+          h("div", { className: "dictation__text" }, finished ? `Получился рисунок: ${shape.label}` : step?.text ?? ""),
         ),
         !finished ? h("button", { type: "button", className: "dictation__repeat", onClick: speakInstruction, "aria-label": "Повторить инструкцию", title: "Повторить инструкцию" }, "↻") : null,
       ),
@@ -273,7 +315,7 @@
           coordinates,
           dots,
           decorations,
-          completed.map((line, index) => h("line", { key: `fixed-${index}`, className: "dictation__fixed", x1: line.start.col, y1: line.start.row, x2: commandEnd(line.start, line.command).col, y2: commandEnd(line.start, line.command).row })),
+          completed.map((line, index) => h("line", { key: `fixed-${index}`, className: "dictation__fixed", x1: line.start.col, y1: line.start.row, x2: line.end.col, y2: line.end.row })),
           previewPath ? h("path", { className: "dictation__preview", d: previewPath }) : null,
           showTargetHint && target ? h("circle", { className: "dictation__target", cx: target.col, cy: target.row, r: "0.18" },
             h("animate", { attributeName: "r", values: "0.18;0.27;0.18", dur: "1s", repeatCount: "indefinite" }),
@@ -444,6 +486,7 @@
   }
 
   window.__MirocardRenderer = function SymmetryDrawRenderer(props) {
-    return props.task?.type === "graphic_dictation" ? h(DictationTask, props) : h(GridTask, props);
+    const isDictationLike = props.task?.type === "graphic_dictation" || props.task?.type === "coordinate_dictation";
+    return isDictationLike ? h(DictationTask, props) : h(GridTask, props);
   };
 })();
