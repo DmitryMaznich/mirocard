@@ -789,7 +789,11 @@ export default function ParamsScreen() {
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
-  const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw";
+  // symmetryDrawPrintHtml.js only knows how to render "dictation" cards (command
+  // table) and "mirror"/"repeat" cards (sourcePaths/axisCol strip) - a "coordinate"
+  // card has neither shape and would print as garbled/NaN output, so print stays
+  // unavailable for that mode until it gets its own print layout.
+  const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && mode?.type !== "coordinate_dictation";
   const modeHasCategoryParam  = !!mode?.params?.category;
 
   const [showShare, setShowShare] = useState(false);
