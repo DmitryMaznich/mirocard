@@ -91,8 +91,12 @@ const EXIT_LINE_OVERRIDES = {
 // 75.64), so forcing a connector there would rescale conn_4_3 down to a nearly-flat sliver
 // instead of a real loop — a real mismatch to fix by recapturing them with a proper loop, not
 // by forcing this override onto a capture that doesn't have one.
+// "э" added 2026-08-12: its own raw capture classifies to line 3 (would normally pull a
+// 4->3 entry connector, straight or looping), but neither shape fit its own backward-C body
+// well — forced to line 4 instead, matching х's own entry, so it gets no entry connector at
+// all and snaps directly onto the previous letter's own exit point, the same as х does.
 const ENTRY_LINE_OVERRIDES = {
-  "б": 3, "а": 3, "о": 3, "ф": 3, "д": 3,
+  "б": 3, "а": 3, "о": 3, "ф": 3, "д": 3, "э": 4,
 };
 
 // о and ю are dual-natured — no fixed connection shape of their own, adapting their own
