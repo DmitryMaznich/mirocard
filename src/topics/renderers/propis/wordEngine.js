@@ -114,13 +114,21 @@ export function resolveConnectionInfo(item) {
 // previous letter actually sits on the writing line, independent of where the pen happens
 // to actually start/end (which can be well above or below the line, mid-loop). Samples
 // across ALL of the item's strokes in order, so "first" always comes from the first-drawn
-// stroke and "last" from the last.
+// stroke and "last" from the last — EXCEPT when `mainStrokeIndex` is set (see
+// getConnectionInfo), in which case only that one stroke is sampled: a decorative trailing
+// mark (э's crossbar, drawn at y≈75-76 — close enough to the baseline to plausibly win
+// "closest approach" over the letter's own body) must not become the anchor an exit
+// connector gets placed against, the same reasoning that made mainStrokeIndex override the
+// exit point itself (confirmed 2026-08-12 on "поёт"/"поэт": э's own exit connector was
+// anchoring off the crossbar, sending it — and everything after it — jumping backward and
+// down instead of continuing from where э's body actually ends).
 export function getBaselineContacts(item) {
   const strokes = item.strokes ?? [];
   if (strokes.length === 0) {
     throw new Error(`getBaselineContacts: item "${item.id}" has no strokes`);
   }
-  const points = strokes.flatMap((s) => samplePath(s.d));
+  const relevantStrokes = item.mainStrokeIndex != null ? [strokes[item.mainStrokeIndex]] : strokes;
+  const points = relevantStrokes.flatMap((s) => samplePath(s.d));
   return findClosestApproach(points, NATIVE_L3, BASELINE_CONTACT_TOLERANCE);
 }
 
