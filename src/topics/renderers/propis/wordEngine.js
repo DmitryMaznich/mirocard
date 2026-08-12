@@ -29,7 +29,17 @@ export function getConnectionInfo(item) {
     throw new Error(`getConnectionInfo: item "${item.id}" has no strokes`);
   }
   const entry = getPathEndpoints(strokes[0].d);
-  const exit = getPathEndpoints(strokes[strokes.length - 1].d);
+  // Defaults to the last stroke (correct for every multi-stroke letter captured so far where
+  // every stroke is a real continuation of the glyph — к's diagonal leg, х's second crossing
+  // stroke, в's retrace). й and ё are the documented exception: their trailing stroke(s) are
+  // a separate decorative mark drawn well away from the letter (й's breve, ё's two dots), not
+  // a continuation — using ITS endpoint as "where the pen lifts off toward the next letter"
+  // sent the next letter flying up near the mark instead of following от the letter's own
+  // body (confirmed 2026-08-11 on "зайка"/"майка": к rendered detached, floating up by й's
+  // hat). `mainStrokeIndex` lets a card override which stroke is authoritative for the exit
+  // point; unset for every letter except й/ё (see topic.json).
+  const exitStrokeIndex = item.mainStrokeIndex ?? strokes.length - 1;
+  const exit = getPathEndpoints(strokes[exitStrokeIndex].d);
   return {
     entryPoint: entry.start,
     exitPoint: exit.end,

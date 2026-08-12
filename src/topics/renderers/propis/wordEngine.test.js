@@ -58,6 +58,23 @@ describe("getConnectionInfo", () => {
   it("throws a clear error for an item with no strokes", () => {
     expect(() => getConnectionInfo({ id: "x", strokes: [] })).toThrow(/x/);
   });
+
+  it("uses mainStrokeIndex for the exit point instead of the last stroke, when set", () => {
+    // Regression (2026-08-11, "зайка"/"майка"): й/ё's own trailing stroke is a decorative
+    // mark (breve, dots) drawn well away from the letter, not a continuation of it — using
+    // its endpoint as the exit point sent the next letter flying up near the mark.
+    const LETTER_WITH_MARK = {
+      id: "test-mark",
+      strokes: [
+        { d: "M 10 63 C 12 65 14 70 16 75" }, // main body, ends at the real exit point
+        { d: "M 14 56 C 15 55 16 55 17 52" }, // decorative mark, drawn separately above
+      ],
+      mainStrokeIndex: 0,
+    };
+    const info = getConnectionInfo(LETTER_WITH_MARK);
+    expect(info.exitPoint).toEqual([16, 75]);
+    expect(info.exitLine).toBe(4);
+  });
 });
 
 describe("resolveConnectionInfo", () => {
