@@ -1044,7 +1044,17 @@ export default function ParamsScreen() {
   ) : isComparison ? (
     <ComparisonParams params={params} onChange={setParams} />
   ) : isSymmetryDrawPrint ? (
-    <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
+    <>
+      {mode?.type === "graphic_dictation" && (
+        <BooleanParam
+          label="Стрелка в подсказке"
+          hint="Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
+          value={params.showArrow ?? true}
+          onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
+        />
+      )}
+      <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
+    </>
   ) : (
     <>
       {!isPhraseMatch && !modeHasCategoryParam && !mode?.hideConceptPicker && (
