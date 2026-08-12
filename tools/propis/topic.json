@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.22.10",
+    "version": "1.22.11",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -633,7 +633,7 @@
       "label": "о_middle_ul",
       "variantOf": "о",
       "position": "middle",
-      "entryType": "upper",
+      "entryType": "lower",
       "exitType": "lower",
       "category": "vowel",
       "viewBox": "0 0 100 150",
