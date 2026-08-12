@@ -137,7 +137,7 @@
     return h("div", { className: "dictation__arrow", "aria-hidden": "true" }, DIRECTION[command.direction].arrow);
   }
 
-  function DictationTask({ task, onCorrect }) {
+  function DictationTask({ task, onCorrect, sessionParams }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const gestureRef = useRef([]);
@@ -149,6 +149,7 @@
     const [notice, setNotice] = useState("");
     const [finished, setFinished] = useState(false);
     const shape = task.card;
+    const showArrow = sessionParams?.showArrow ?? true;
     const command = shape.commands[stepIndex];
     const columns = Number(shape.columns ?? 10);
     const rows = Number(shape.rows ?? 10);
@@ -259,7 +260,7 @@
 
     return h("section", { className: "dictation", "aria-label": "Графический диктант" },
       h("div", { className: "dictation__command" },
-        command ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command })) : null,
+        command && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command })) : null,
         h("div", { className: "dictation__command-copy" },
           h("div", { className: "dictation__text" }, finished ? `Получился рисунок: ${shape.label}` : commandText(command)),
         ),
