@@ -428,22 +428,9 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     strokes.push(...placedLetterStrokes);
 
     const contacts = getBaselineContacts(letter);
-    // A letter whose exitLine classifies to 4 (the universal hand-off point — no connector
-    // needed on either end) is EXPECTED to leave the pen sitting exactly on that line, same
-    // height as it started; where a raw capture is a couple of units short of it (о_middle_lm's
-    // own exit sits at 73, not 75), recording the letter's own uncorrected exitPointWorld here
-    // would compound that gap every time this exact letter recurs — each occurrence's own
-    // small miss becomes the next one's starting error too. Snapping the recorded Y to the
-    // canonical line (without touching the letter's OWN already-drawn shape — this only
-    // affects where the NEXT letter anchors) stops the drift from accumulating, the same
-    // effect placeExitConnector already gets for real connectors by correcting their far end
-    // (confirmed 2026-08-12 on "похож": о_middle_lm recurred twice, each instance shifting
-    // the rest of the word up by ~2 units before this fix).
-    const exitTargetLine = GUIDE_LINES.find((g) => g.line === 4);
-    const exitY = info.exitLine === 4 && exitTargetLine ? exitTargetLine.y : info.exitPoint[1] + dy;
     prev = {
       exitLine: info.exitLine,
-      exitPointWorld: [info.exitPoint[0] + dx, exitY],
+      exitPointWorld: [info.exitPoint[0] + dx, info.exitPoint[1] + dy],
       baselineContactWorld: [contacts.last[0] + dx, contacts.last[1] + dy],
       usedVariant,
       label: ch,
