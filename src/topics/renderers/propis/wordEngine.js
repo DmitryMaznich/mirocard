@@ -415,9 +415,18 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
         strokes.push(...markContinuous(placed.strokes));
         anchorPoint = placed.endPoint;
       } else {
-        // No captured connector for this letter's exit type: the next piece snaps directly
-        // onto the previous letter's own raw exit point.
-        anchorPoint = prev.exitPointWorld;
+        // No captured connector for this letter's exit type: snap to the previous letter's
+        // own CLASSIFIED exit line, not its raw (slightly imprecise) exit point. A real
+        // capture's exit rarely lands exactly on the guide line it classifies to — that
+        // residual is normally harmless, but with no connector to reset it, it carries
+        // straight into the next letter's own placement and compounds across the rest of the
+        // word (confirmed 2026-08-12 on "костёр": о→с→т→ё→р, none of which use a captured
+        // exit connector, drifted down by ~2.9 units total by the last letter — visibly
+        // sinking below where it should sit). Only the Y axis is corrected; X still comes
+        // from the real exit point, since horizontal spacing is letter-specific and has no
+        // "canonical" value the way a guide line does.
+        const canonicalLine = GUIDE_LINES.find((g) => g.line === prev.exitLine);
+        anchorPoint = canonicalLine ? [prev.exitPointWorld[0], canonicalLine.y] : prev.exitPointWorld;
       }
 
       if (entryConnector) {

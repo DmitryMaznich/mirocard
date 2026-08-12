@@ -171,6 +171,32 @@ describe("buildWordTrajectory — no captured connector on either side", () => {
     expect(backwardEntry[1]).toBeCloseTo(backwardExit[1], 6);
   });
 
+  it("does not let each letter's own small capture imprecision compound across a chain with no connectors", () => {
+    // Regression (2026-08-12, "костёр"): о→с→т→ё→р never use a captured exit connector (the
+    // only mechanism with a genuine world-space reset), so each hop used to just adopt
+    // whatever the previous letter's own raw exit point was — real captures rarely land
+    // EXACTLY on the guide line they classify to, so each hop's own small residual (a
+    // fraction of a unit) carried into the next and compounded, visibly sinking the word by
+    // its end. Every one of these three letters' own raw exit sits at a slightly different
+    // y (74.6, 75.4, 74.8) despite all classifying to line 4 — if residuals compounded, the
+    // third letter's own placement would drift with each hop; snapping to the classified
+    // line each time keeps it flat instead.
+    // Labels deliberately omitted (as with LETTER_A/LETTER_B_HIGH_ENTRY above) so
+    // resolveConnectionInfo falls through to plain geometric classification, not any
+    // production EXIT_LINE_OVERRIDES/ENTRY_LINE_OVERRIDES entry.
+    const wobbly = new Map([
+      ["ф", { id: "ф", strokes: [{ d: "M 10 75 C 12 74.8 14 74.7 16 74.6" }] }],
+      ["ш", { id: "ш", strokes: [{ d: "M 10 75 C 12 75.2 14 75.3 16 75.4" }] }],
+      ["ц", { id: "ц", strokes: [{ d: "M 10 75 C 12 74.9 14 74.85 16 74.8" }] }],
+    ]);
+    const result = buildWordTrajectory("фшц", wobbly, new Map());
+    const secondEntry = getPathEndpoints(result.strokes[1].d).start;
+    const thirdEntry = getPathEndpoints(result.strokes[2].d).start;
+    const canonicalLine4 = GUIDE_LINES.find((g) => g.line === 4).y;
+    expect(secondEntry[1]).toBeCloseTo(canonicalLine4, 6);
+    expect(thirdEntry[1]).toBeCloseTo(canonicalLine4, 6);
+  });
+
   it("reports a viewBox exactly matching totalWidthUnits, wide enough for the whole word", () => {
     const result = buildWordTrajectory("баба", new Map([["б", LETTER_B_HIGH_ENTRY], ["а", LETTER_A]]), new Map());
     expect(result.viewBox).toBe(`0 0 ${result.totalWidthUnits} 150`);
@@ -321,12 +347,18 @@ describe("buildWordTrajectory — entry connector fires even without a matching 
     expect(result.strokes).toHaveLength(3);
   });
 
-  it("chains the previous letter's own exit point into the entry connector's start with no gap", () => {
+  it("chains onto в's own exit X, but snaps Y to в's classified exit line (5), not в's raw (imprecise) exit point", () => {
+    // "в" overrides to exitLine 5 in production — even with no captured exit connector to
+    // realize that (this fixture's whole point), a letter with no connector at all now still
+    // anchors its Y to its own classified line rather than the raw stroke's own endpoint
+    // (which here is a deliberately different y=73, to make the two values distinguishable).
+    // See buildWordTrajectory's "no captured connector" branch.
     const result = buildWordTrajectory("во", letters, connectorsNoExit);
     const prevExit = getPathEndpoints(result.strokes[0].d).end;
     const entryStart = getPathEndpoints(result.strokes[1].d).start;
+    const canonicalLine5 = GUIDE_LINES.find((g) => g.line === 5).y;
     expect(entryStart[0]).toBeCloseTo(prevExit[0], 6);
-    expect(entryStart[1]).toBeCloseTo(prevExit[1], 6);
+    expect(entryStart[1]).toBeCloseTo(canonicalLine5, 6);
   });
 
   it("places the next letter's own raw entry point exactly at the entry connector's translated end", () => {
