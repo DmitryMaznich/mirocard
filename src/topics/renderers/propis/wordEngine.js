@@ -60,8 +60,15 @@ export function getConnectionInfo(item) {
 // rest of the engine identifies which character a card represents (see WriteWordsView's
 // lettersByLabel) — test fixtures below intentionally omit `label` so they never collide
 // with this table.
+// "э" removed 2026-08-12: it was carried over into this list without ever being checked
+// against a real capture (э didn't exist in topic.json until this session). Its own raw
+// exit point classifies to line 4 (no connector needed, plain hand-off) — forcing line 5
+// made the shared loop-back exit connector (conn_5_4) anchor against э's own baseline-
+// contact point, which for э's backward-C shape sits mid-stroke rather than near its real
+// end, sending the next letter overlapping back into э's own body instead of following it
+// (confirmed on "поэт": "т" rendered landing inside "э" rather than after it).
 const EXIT_LINE_OVERRIDES = {
-  "б": 5, "в": 5, "ф": 5, "о": 5, "э": 5, "ю": 5, "ь": 5, "ъ": 5,
+  "б": 5, "в": 5, "ф": 5, "о": 5, "ю": 5, "ь": 5, "ъ": 5,
 };
 // "д" added 2026-08-10: it's in LOWER_ENTRY_LETTERS below (real methodology says it takes
 // the same looping entry as а/б/ф) but its own raw capture (entry ~68.67) sits only 0.34
