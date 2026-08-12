@@ -30,6 +30,7 @@ describe("generateTasks — mirror_draw / repeat_draw / graphic_dictation", () =
     { id: "m2", conceptId: "m2", primary: true, label: "Лодка", taskKind: "mirror", sourcePaths: [] },
     { id: "r1", conceptId: "r1", primary: true, label: "Ракета", taskKind: "repeat", sourcePaths: [] },
     { id: "d1", conceptId: "d1", primary: true, label: "Собака", taskKind: "dictation", start: { col: 0, row: 0 }, commands: [] },
+    { id: "c1", conceptId: "c1", primary: true, label: "Ёлка", taskKind: "coordinate", start: { col: 0, row: 0 }, points: [] },
   ];
   const MIXED_CONCEPTS = deriveConcepts(MIXED_CARDS);
 
@@ -52,6 +53,13 @@ describe("generateTasks — mirror_draw / repeat_draw / graphic_dictation", () =
     expect(tasks).toHaveLength(1);
     expect(tasks[0]).toMatchObject({ type: "graphic_dictation", conceptId: "d1" });
     expect(tasks[0].card.taskKind).toBe("dictation");
+  });
+
+  it("coordinate_dictation only includes taskKind:coordinate cards", () => {
+    const tasks = generateTasks("coordinate_dictation", MIXED_CONCEPTS, MIXED_CARDS, {});
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0]).toMatchObject({ type: "coordinate_dictation", conceptId: "c1" });
+    expect(tasks[0].card.taskKind).toBe("coordinate");
   });
 
   it("each generator still returns conceptId, card, and label", () => {
