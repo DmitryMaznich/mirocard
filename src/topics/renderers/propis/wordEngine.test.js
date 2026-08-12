@@ -532,4 +532,35 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     const ownNarrow = getPathEndpoints(O_MIDDLE_NARROW.strokes[0].d);
     expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownNarrow.end[0] - ownNarrow.start[0], 6);
   });
+
+  it("an alsoFirst middle+upper card also fires at the FIRST position, but not for an ordinary (lower-entryType) preceding letter", () => {
+    // о_middle_um (2026-08-12): needs о to be either genuinely first (no preceding letter)
+    // or preceded by о/ю — unlike the entryType-agnostic `any` bucket, it must NOT fire when
+    // preceded by an ordinary letter (entryType "lower").
+    const O_MIDDLE_UPPER_MEDIUM = {
+      id: "о_middle_um", label: "о_middle_um", variantOf: "о", position: "middle",
+      entryType: "upper", alsoFirst: true, nextLetters: ["х"],
+      strokes: [{ d: "M 100 65 C 102 66 104 67 106 68" }],
+    };
+    const LETTER_X = { id: "х", label: "х", strokes: [{ d: "M 30 70 C 32 71 34 72 36 73" }] };
+    const withUm = new Map(letters).set("х", LETTER_X).set("о_middle_um", O_MIDDLE_UPPER_MEDIUM).set("г", LETTER_G);
+
+    // "ох": о is first, followed by "х" -> matches О_MIDDLE_UPPER_MEDIUM via the alsoFirst path.
+    const first = buildWordTrajectory("ох", withUm, new Map());
+    const firstOStroke = getPathEndpoints(first.strokes[0].d);
+    const ownUm = getPathEndpoints(O_MIDDLE_UPPER_MEDIUM.strokes[0].d);
+    expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownUm.end[0] - ownUm.start[0], 6);
+
+    // "юох": second о is middle, preceded by "ю" (dual-nature -> entryType "upper") -> matches too.
+    const afterYu = buildWordTrajectory("юох", withUm, new Map());
+    const midOStroke = getPathEndpoints(afterYu.strokes[1].d);
+    expect(midOStroke.end[0] - midOStroke.start[0]).toBeCloseTo(ownUm.end[0] - ownUm.start[0], 6);
+
+    // "гох": о is middle, preceded by "г" (ordinary -> entryType "lower") -> must NOT match
+    // О_MIDDLE_UPPER_MEDIUM; falls back to the plain о card instead.
+    const afterG = buildWordTrajectory("гох", withUm, new Map());
+    const oAfterG = getPathEndpoints(afterG.strokes[1].d);
+    const ownPlain = getPathEndpoints(O_PLAIN.strokes[0].d);
+    expect(oAfterG.end[0] - oAfterG.start[0]).toBeCloseTo(ownPlain.end[0] - ownPlain.start[0], 6);
+  });
 });

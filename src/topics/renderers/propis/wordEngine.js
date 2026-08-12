@@ -226,11 +226,16 @@ function placeEntryConnectorLocal(connector, letterRawEntryPoint) {
 // top-level `any` bucket, not under `middle` — its own entry uses the same generic 4→3
 // connector every other letter's plain entry does, so it doesn't care what (if anything)
 // precedes о, which makes it just as valid a candidate at position "first" (no preceding
-// letter at all) as at "middle" (see resolveVariant). `first`/`middle`/`any` arrays are
-// sorted by nextLetters length (shortest/most specific list first) so a card with a narrow
-// explicit next-letter list is always tried before a broader one, even if two cards' lists
-// happen to overlap. Cards without variantOf are ignored, so this is a no-op for every
-// letter that has no variants captured.
+// letter at all) as at "middle" (see resolveVariant). A middle+entryType:"upper" card with
+// `alsoFirst: true` (e.g. о_middle_um, captured 2026-08-12) gets pushed into BOTH `middle
+// .upper` and `first` — confirmed against real captures: unlike the generic `any` case,
+// this one specifically needs о to be either genuinely first (no preceding letter at all)
+// OR preceded by о/ю, but must NOT fire for an ordinary preceding letter (entryType
+// "lower") the way `any` would, so it can't just be reclassified into `any`. `first`/
+// `middle`/`any` arrays are sorted by nextLetters length (shortest/most specific list
+// first) so a card with a narrow explicit next-letter list is always tried before a
+// broader one, even if two cards' lists happen to overlap. Cards without variantOf are
+// ignored, so this is a no-op for every letter that has no variants captured.
 function buildVariantIndex(lettersByLabel) {
   const index = new Map();
   for (const card of lettersByLabel.values()) {
@@ -245,6 +250,7 @@ function buildVariantIndex(lettersByLabel) {
     else if (card.position === "middle") {
       const bucket = card.entryType === "upper" ? entry.middle.upper : card.entryType === "lower" ? entry.middle.lower : entry.any;
       bucket.push(card);
+      if (card.alsoFirst) entry.first.push(card);
     }
   }
   const byNextLettersLength = (a, b) => (a.nextLetters?.length ?? Infinity) - (b.nextLetters?.length ?? Infinity);
