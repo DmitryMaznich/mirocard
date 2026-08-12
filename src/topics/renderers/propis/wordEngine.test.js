@@ -372,7 +372,7 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     id: "о_first_l", label: "о_first_l", variantOf: "о", position: "first", nextLetters: ["б"],
     strokes: [{ d: "M 30 65 C 32 66 34 67 36 68" }],
   };
-  // No entryType at all -> lands in variants.middle.any (buildVariantIndex), so it's tried
+  // No entryType at all -> lands in variants.any (buildVariantIndex), so it's tried
   // for о regardless of what precedes it — matches its own captured connector, which reuses
   // the ordinary 4→3 entry connector every other letter's plain entry does too.
   const O_MIDDLE_ANY = {
@@ -401,6 +401,19 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     const oStroke = getPathEndpoints(result.strokes[1].d);
     const ownO = getPathEndpoints(O_MIDDLE_ANY.strokes[0].d);
     // Confirms the ANY variant's own shape was used (same length), not plain O_PLAIN.
+    expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownO.end[0] - ownO.start[0], 6);
+  });
+
+  it("also picks the entryType-agnostic variant at the FIRST position, when no first-position card matches", () => {
+    // "ое": о is first (no preceding letter, no entryType to gate on at all) and followed by
+    // "е" — О_FIRST_LOWER's own nextLetters is ["б"] only, so it doesn't match, but
+    // О_MIDDLE_ANY's own entry doesn't depend on there being a preceding letter either
+    // (confirmed 2026-08-11 against "отец": о_middle_uu is just as valid a first-position
+    // match as a middle one) -> falls through to the entryType-agnostic `any` bucket instead
+    // of returning null.
+    const result = buildWordTrajectory("ое", letters, new Map());
+    const oStroke = getPathEndpoints(result.strokes[0].d);
+    const ownO = getPathEndpoints(O_MIDDLE_ANY.strokes[0].d);
     expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownO.end[0] - ownO.start[0], 6);
   });
 
