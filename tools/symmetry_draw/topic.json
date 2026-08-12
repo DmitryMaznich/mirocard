@@ -53,6 +53,16 @@
           "hint": { "ru": "Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок" }
         }
       }
+    },
+    {
+      "id": "coordinate_dictation",
+      "type": "coordinate_dictation",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Точки по координатам",
+        "instruction": "Найди точку по координатам и веди линию от активной точки",
+        "icon": "media/dictation_avatar.svg"
+      }
     }
   ],
   "cards": [
