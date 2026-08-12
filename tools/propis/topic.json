@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.22.29",
+    "version": "1.22.30",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -569,7 +569,6 @@
         "ц",
         "й",
         "т",
-        "с",
         "э"
       ],
       "viewBox": "0 0 100 150",
