@@ -29,15 +29,19 @@ export function getConnectionInfo(item) {
     throw new Error(`getConnectionInfo: item "${item.id}" has no strokes`);
   }
   const entry = getPathEndpoints(strokes[0].d);
-  // Defaults to the last stroke (correct for every multi-stroke letter captured so far where
-  // every stroke is a real continuation of the glyph — к's diagonal leg, х's second crossing
-  // stroke, в's retrace). й and ё are the documented exception: their trailing stroke(s) are
-  // a separate decorative mark drawn well away from the letter (й's breve, ё's two dots), not
-  // a continuation — using ITS endpoint as "where the pen lifts off toward the next letter"
-  // sent the next letter flying up near the mark instead of following от the letter's own
-  // body (confirmed 2026-08-11 on "зайка"/"майка": к rendered detached, floating up by й's
-  // hat). `mainStrokeIndex` lets a card override which stroke is authoritative for the exit
-  // point; unset for every letter except й/ё (see topic.json).
+  // Defaults to the last stroke — correct whenever every stroke is a real continuation of
+  // the glyph (к's diagonal leg, х's second crossing stroke, в's retrace), which is also
+  // the default assumption for й/ё: their trailing mark (breve, two dots) is drawn well
+  // away from the letter and isn't meant to be the hand-off point, so `mainStrokeIndex: 0`
+  // points back at their own main body instead (confirmed 2026-08-11 on "зайка"/"майка": а
+  // following letter rendered detached, floating up by й's hat, when the mark's own
+  // endpoint was used). э is the opposite case: its main body curls backward (its own real
+  // endpoint sits LEFT of where it started — see topic.json's capture), so its trailing
+  // stroke is not decorative at all but the actual rightward-continuing tail a real cursive
+  // э needs to hand off cleanly — `mainStrokeIndex: 1` there points forward, not
+  // back (confirmed 2026-08-12 on "поэт": with the body's own endpoint used, "т" rendered
+  // overlapping back into э instead of following it). `mainStrokeIndex` lets a card name
+  // whichever stroke is authoritative for its exit point; unset for every other letter.
   const exitStrokeIndex = item.mainStrokeIndex ?? strokes.length - 1;
   const exit = getPathEndpoints(strokes[exitStrokeIndex].d);
   return {
@@ -122,13 +126,10 @@ export function resolveConnectionInfo(item) {
 // to actually start/end (which can be well above or below the line, mid-loop). Samples
 // across ALL of the item's strokes in order, so "first" always comes from the first-drawn
 // stroke and "last" from the last — EXCEPT when `mainStrokeIndex` is set (see
-// getConnectionInfo), in which case only that one stroke is sampled: a decorative trailing
-// mark (э's crossbar, drawn at y≈75-76 — close enough to the baseline to plausibly win
-// "closest approach" over the letter's own body) must not become the anchor an exit
-// connector gets placed against, the same reasoning that made mainStrokeIndex override the
-// exit point itself (confirmed 2026-08-12 on "поёт"/"поэт": э's own exit connector was
-// anchoring off the crossbar, sending it — and everything after it — jumping backward and
-// down instead of continuing from where э's body actually ends).
+// getConnectionInfo's comment for why some letters need one), in which case only that one
+// stroke is sampled, so a stroke that isn't the letter's real hand-off point (a decorative
+// mark for й/ё, or э's backward-curling main loop) can't be picked up here either, kept
+// consistent with whichever stroke getConnectionInfo already treats as authoritative.
 export function getBaselineContacts(item) {
   const strokes = item.strokes ?? [];
   if (strokes.length === 0) {

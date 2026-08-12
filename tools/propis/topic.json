@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.22.24",
+    "version": "1.22.25",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -714,7 +714,7 @@
           "d": "M 8.160 76.070 C 8.940 75.880 9.050 75.630 10.500 75.500 C 11.950 75.380 14.740 75.370 16.860 75.300"
         }
       ],
-      "mainStrokeIndex": 0
+      "mainStrokeIndex": 1
     },
     {
       "id": "ю",
