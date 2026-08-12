@@ -4,7 +4,15 @@ import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 // Points within this margin of a letter's closest approach to the baseline are treated as
 // part of its baseline-contact zone — needed because most letters never sample to a
 // distance of exactly 0 (the sampled points hit close to, not exactly on, NATIVE_L3).
-const BASELINE_CONTACT_TOLERANCE = 1.5;
+// 2.0 (not 1.5) specifically so findClosestApproach's local-minimum search for `last` can
+// still recognize a letter's own genuine final approach even when an EARLIER part of its
+// stroke happens to swing almost exactly onto the baseline first — see ф: its descender dips
+// well past the baseline and crosses back through it (distance ~0.04) on the way up, before
+// the pen ever reaches ф's real final loop (whose own bottom sits ~1.8 units farther out,
+// at ~86.2) — at the old 1.5 margin that final loop fell just outside tolerance of the
+// descender's crossing, so "last" kept landing mid-descender instead of on ф's own finishing
+// stroke (confirmed 2026-08-12 on "фото"/"флаг").
+const BASELINE_CONTACT_TOLERANCE = 2.0;
 
 // Fallback box width for a letter with no viewBox, and the unit every captured
 // letter/connector's canvas already uses (tools/letter_capture/handwriting_capture.html).

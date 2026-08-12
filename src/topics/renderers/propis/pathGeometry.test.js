@@ -82,11 +82,13 @@ describe("samplePath", () => {
 });
 
 describe("findClosestApproach", () => {
-  it("returns the first and last points within tolerance of the closest approach to targetY", () => {
+  it("returns the first tolerance-band point and the last true local-minimum point for a single clean crossing", () => {
     const points = [[0, 80], [5, 85], [10, 88], [15, 91], [20, 96]];
     const result = findClosestApproach(points, 88, 3);
     expect(result.first).toEqual([5, 85]); // |85-88|=3, within tolerance of the exact-0 min
-    expect(result.last).toEqual([15, 91]); // |91-88|=3, within tolerance
+    // "last" is the trajectory's own genuine local minimum (exact touch here), not just the
+    // last point that happens to fall inside the tolerance band around it.
+    expect(result.last).toEqual([10, 88]);
   });
 
   it("returns the same single point for first and last when only one point is near", () => {
@@ -102,5 +104,27 @@ describe("findClosestApproach", () => {
     // closest approach is y=76 (dist 12); tolerance 5 -> only the y=76 sample qualifies
     expect(result.first).toEqual([2, 76]);
     expect(result.last).toEqual([2, 76]);
+  });
+
+  it("finds the trajectory's FINAL local minimum, not a shallower dip that happens to occur later", () => {
+    // Regression (2026-08-12, "фото"): ф's own stroke is a loop, then a descender dipping
+    // well past the baseline (crossing back through it almost exactly on the way up), then a
+    // second loop whose own bottom sits a bit farther from the baseline than that crossing
+    // does. The raw final point of the whole trajectory is neither of these — it's on the far
+    // (rising) side of the second loop, past its bottom — so picking "the literal last point"
+    // overshoots, and picking "the globally closest point" lands on the earlier descender
+    // crossing instead of the second loop's own bottom. The correct anchor is the SECOND
+    // loop's own local minimum: later than the descender's crossing, and a real interior
+    // valley (unlike the trajectory's raw endpoint, which is still descending when the
+    // capture stops, never truly turning around).
+    const points = [
+      [0, 70], [2, 90], [4, 120], [6, 90], [8, 70], // loop, then a deep descender and back up
+      [10, 88.1], // descender's own near-exact crossing on the way back up
+      [12, 65], [14, 60], // continues up past the baseline into a second loop's top
+      [16, 78], [18, 86.4], [20, 84], // second loop's own bottom (a bit farther than 88.1)
+      [22, 65], // rising again, still short of the loop closing — never turns back down
+    ];
+    const result = findClosestApproach(points, 88, 1.5);
+    expect(result.last).toEqual([18, 86.4]);
   });
 });
