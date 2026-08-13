@@ -332,26 +332,55 @@
   color: #1f3152;
 }
 .navigator__timer {
-  height: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 9px;
+  min-height: 28px;
+  padding: 6px clamp(14px, 3vw, 30px);
+  background: #edf4f3;
+}
+.navigator__timer-track {
+  height: 12px;
   overflow: hidden;
-  border-radius: 0;
-  background: #bdd6d5;
-  box-shadow: inset 0 1px 2px rgba(18, 66, 74, .17);
+  border: 2px solid #90bbb9;
+  border-radius: 999px;
+  background: #d5e6e5;
+  box-shadow: inset 0 1px 3px rgba(18, 66, 74, .18), 0 1px 0 rgba(255, 255, 255, .9);
 }
 .navigator__timer i {
   display: block;
   width: 100%;
   height: 100%;
-  transform-origin: left center;
-  background: linear-gradient(90deg, #16a8aa, #0b818c);
-  box-shadow: 0 0 9px rgba(12, 143, 151, .62);
+  transform-origin: right center;
+  background: linear-gradient(90deg, #11a9ab, #18bec1);
+  box-shadow: 0 0 10px rgba(12, 161, 167, .78);
   transition: transform .05s linear;
 }
-.navigator__timer--urgent { background: #f0d4c7; }
-.navigator__timer--urgent i {
-  background: linear-gradient(90deg, #ed8a43, #d55337);
-  box-shadow: 0 0 11px rgba(213, 83, 55, .68);
+.navigator__timer-clock {
+  width: 27px;
+  height: 27px;
+  color: #0b858c;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgba(12, 97, 103, .18));
 }
+.navigator__timer--warning { background: #fff1df; }
+.navigator__timer--warning .navigator__timer-track { border-color: #e4aa55; background: #f7dfbd; }
+.navigator__timer--warning i { background: linear-gradient(90deg, #eaad46, #ffc563); box-shadow: 0 0 10px rgba(227, 151, 42, .7); }
+.navigator__timer--warning .navigator__timer-clock { color: #d48525; }
+.navigator__timer--urgent { background: #fff0eb; }
+.navigator__timer--urgent .navigator__timer-track { border-color: #e67c66; background: #f6cfc5; }
+.navigator__timer--urgent i {
+  background: linear-gradient(90deg, #e4523e, #ff7655);
+  box-shadow: 0 0 12px rgba(219, 70, 49, .8);
+  animation: navigatorTimerUrgent .62s ease-in-out infinite alternate;
+}
+.navigator__timer--urgent .navigator__timer-clock { color: #d64d39; animation: navigatorTimerUrgent .62s ease-in-out infinite alternate; }
+@keyframes navigatorTimerUrgent { to { filter: brightness(1.12) drop-shadow(0 0 7px rgba(222, 75, 51, .85)); } }
 .navigator__board {
   padding: clamp(26px, 4vw, 48px) clamp(20px, 5vw, 64px) clamp(18px, 3vw, 36px);
 }

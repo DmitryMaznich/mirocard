@@ -520,12 +520,23 @@
     });
 
     const trailPath = trail ? `M ${trail[0].x} ${trail[0].y} L ${trail[1].x} ${trail[1].y}` : null;
+    const timerState = remaining <= 1500
+      ? " navigator__timer--urgent"
+      : remaining / durationMs <= .4
+        ? " navigator__timer--warning"
+        : "";
     return h("section", { className: `navigator navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
         h("div", { className: "navigator__command" }, NAVIGATOR_LABEL[task.direction] ?? "Вверх"),
       ),
-      h("div", { className: `navigator__timer${remaining / durationMs <= .3 ? " navigator__timer--urgent" : ""}`, "aria-hidden": "true" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
+      h("div", { className: `navigator__timer${timerState}`, "aria-label": "Время на ответ" },
+        h("div", { className: "navigator__timer-track" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
+        h("svg", { className: "navigator__timer-clock", viewBox: "0 0 24 24", "aria-hidden": "true" },
+          h("circle", { cx: "12", cy: "12", r: "8.5" }),
+          h("path", { d: "M12 7.3v5.1l3.5 2" }),
+        ),
+      ),
       h("div", { className: "navigator__board" },
         h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
           arrows,
