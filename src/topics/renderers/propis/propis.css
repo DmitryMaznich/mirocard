@@ -235,6 +235,14 @@
 .propis-key--vowel     { background: #ef4444; color: #fff; }
 .propis-key--consonant { background: #3b82f6; color: #fff; }
 .propis-key--sign      { background: #9ca3af; color: #fff; }
+/* Digits/punctuation — no captured cursive stroke data yet (system-font fallback glyph in
+   the grid, see wordEngine.js's buildWordSegments), colored neutral like magnetic_alphabet's
+   own non-letter keys so they read as "not a letter" rather than an uncategorized letter. */
+.propis-key--neutral   { background: #8d8177; color: #fff; }
+.propis-key--shift     { background: #8d8177; color: #fff; flex: 1.3 1 0; }
+/* Two-class selector so this always wins over --neutral's background, regardless of
+   stylesheet order (both are otherwise equal-specificity single-class rules). */
+.propis-key--shift.propis-key--active { background: #1d4ed8; color: #fff; }
 
 .propis-key--wide { flex: 1.6 1 0; font-size: clamp(11px, 3vw, 14px); background: #eef1ec; color: #334155; }
 .propis-key--wide:disabled { opacity: 0.4; cursor: default; }

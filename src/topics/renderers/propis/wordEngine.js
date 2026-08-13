@@ -356,7 +356,7 @@ function letterBoxWidth(letter) {
 export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
   const chars = Array.from(word);
   if (chars.length === 0) {
-    return { strokes: [], totalWidthUnits: 0, viewBox: "0 0 0 150" };
+    return { strokes: [], totalWidthUnits: 0, inkWidthUnits: 0, viewBox: "0 0 0 150" };
   }
 
   const variantIndex = buildVariantIndex(lettersByLabel);
@@ -475,9 +475,11 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
   // is the durable fix: shift the whole trajectory right by whatever's needed so nothing
   // ever renders left of x=0, regardless of what any future capture's raw data does.
   let minX = 0;
+  let maxX = 0;
   for (const s of strokes) {
     for (const p of samplePath(s.d)) {
       if (p[0] < minX) minX = p[0];
+      if (p[0] > maxX) maxX = p[0];
     }
   }
   if (minX < 0) {
@@ -486,23 +488,85 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       strokes[i] = { ...strokes[i], d: transformPathD(strokes[i].d, { translateX: shift }) };
     }
     rightEdge += shift;
+    maxX += shift;
   }
 
-  return { strokes, totalWidthUnits: rightEdge, viewBox: `0 0 ${rightEdge} 150` };
+  // totalWidthUnits (rightEdge) is built from each letter's own nominal capture-canvas box
+  // width (letterBoxWidth, always 100 — see DEFAULT_LETTER_BOX_WIDTH), not from where its
+  // ink actually stops — real captured letters typically only use their box's left third to
+  // half (confirmed against topic.json: real ink right edges commonly sit around 15-55 out
+  // of a nominal 100). That's harmless for a single word's own viewBox (WordAnimatedCard
+  // just shows a bit of blank margin), but layoutTextIntoRows chains the NEXT word starting
+  // at this word's own width — using the nominal (box-based) width there was inflating the
+  // gap between every pair of words by that same 50-85 unit margin, on top of its own
+  // explicit WORD_GAP_UNITS (confirmed 2026-08-13: reported as both "huge gaps between
+  // words" and "wraps well before the row is actually full"). inkWidthUnits is the word's
+  // true rightmost ink point instead, for exactly that use.
+  return { strokes, totalWidthUnits: rightEdge, inkWidthUnits: maxX, viewBox: `0 0 ${rightEdge} 150` };
 }
 
 // Gap between two words on the same grid row, in the same native-unit space as
-// totalWidthUnits (150 units = one row's height) — no captured "space" glyph exists to
-// measure this from, so it's a fixed eyeballed constant, not derived from real capture data.
-const WORD_GAP_UNITS = 26;
+// inkWidthUnits (150 units = one row's height) — no captured "space" glyph exists to
+// measure this from, so it's a fixed constant, chosen to match the median real ink width
+// of a single captured letter (33 units, measured across all 46 letter cards in
+// topic.json 2026-08-13) so the visible gap between words reads as roughly "one letter
+// wide", per how a real notebook gap looks.
+const WORD_GAP_UNITS = 33;
+
+// Advance width for one fallback (non-cursive) character — digits/punctuation have no
+// captured cursive stroke data at all (only the 32 Cyrillic letters are captured), so they
+// render as plain system-font glyphs instead (see buildWordSegments) until they're
+// captured for real. A rough fixed estimate, same spirit as WORD_GAP_UNITS: exact
+// per-glyph measurement would need a real DOM/canvas, not available in this pure layout
+// function (also used from plain vitest).
+const FALLBACK_CHAR_WIDTH_UNITS = 24;
+
+// Splits `word` into runs of consecutive "cursive-capable" (in lettersByLabel) vs
+// "fallback" characters, and builds each run separately — a run of real letters still
+// goes through buildWordTrajectory exactly as before (so connectors within it chain
+// normally), but a digit/punctuation run (or any run buildWordTrajectory unexpectedly
+// fails on) becomes a fixed-width fallback-text placeholder instead of silently deleting
+// the whole word, letting mixed content like "стол1" render "стол" in cursive followed by
+// a plain "1". Returns segments already laid out left-to-right within the word (each with
+// its own `xOffset`), plus the word's total width for layoutTextIntoRows' own row-fit math.
+function buildWordSegments(word, lettersByLabel, connectorsByKey) {
+  const chars = Array.from(word);
+  const runs = [];
+  for (const ch of chars) {
+    const supported = lettersByLabel.has(ch);
+    const last = runs[runs.length - 1];
+    if (last && last.supported === supported) last.text += ch;
+    else runs.push({ supported, text: ch });
+  }
+
+  const segments = [];
+  let x = 0;
+  for (const run of runs) {
+    let trajectory = null;
+    if (run.supported) {
+      try {
+        trajectory = buildWordTrajectory(run.text, lettersByLabel, connectorsByKey);
+      } catch {
+        trajectory = null;
+      }
+    }
+    if (trajectory) {
+      segments.push({ type: "cursive", xOffset: x, trajectory, width: trajectory.inkWidthUnits });
+      x += trajectory.inkWidthUnits;
+    } else {
+      const width = run.text.length * FALLBACK_CHAR_WIDTH_UNITS;
+      segments.push({ type: "fallback", xOffset: x, text: run.text, width });
+      x += width;
+    }
+  }
+  return { segments, width: x };
+}
 
 // Lays a block of text (words separated by " ", manual line breaks by "\n") onto a
 // multi-row writing grid `rowWidthUnits` wide, greedily wrapping a word onto the next row
 // whenever it would no longer fit — the notebook-style layout write_text needs, which
 // buildWordTrajectory alone doesn't provide (it only ever produces one ever-widening row
-// for a single word). A word whose own letters aren't in `lettersByLabel` (or otherwise
-// fails to build) is skipped rather than aborting the whole layout, mirroring
-// WriteWordsView's existing try/catch-and-show-nothing behavior for buildWordTrajectory.
+// for a single word).
 export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits) {
   const hardLines = (text ?? "").split("\n");
   const placed = [];
@@ -514,13 +578,8 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
     let rowHasContent = false;
 
     for (const word of words) {
-      let trajectory;
-      try {
-        trajectory = buildWordTrajectory(word, lettersByLabel, connectorsByKey);
-      } catch {
-        continue;
-      }
-      const wordWidth = trajectory.totalWidthUnits;
+      const { segments, width: wordWidth } = buildWordSegments(word, lettersByLabel, connectorsByKey);
+      if (segments.length === 0) continue;
 
       // The row's first word always lands where it is, even if wider than rowWidthUnits
       // itself — otherwise a single overlong word would push rowIndex forward forever,
@@ -532,7 +591,7 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
       }
 
       if (rowHasContent) x += WORD_GAP_UNITS;
-      placed.push({ word, rowIndex, x, trajectory });
+      placed.push({ word, rowIndex, x, segments });
       x += wordWidth;
       rowHasContent = true;
     }

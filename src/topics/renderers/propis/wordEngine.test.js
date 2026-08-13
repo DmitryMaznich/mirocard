@@ -207,12 +207,21 @@ describe("buildWordTrajectory — no captured connector on either side", () => {
     const result = buildWordTrajectory("", letters, new Map());
     expect(result.strokes).toEqual([]);
     expect(result.totalWidthUnits).toBe(0);
+    expect(result.inkWidthUnits).toBe(0);
+  });
+
+  it("reports inkWidthUnits as the real rightmost ink point, separate from totalWidthUnits' nominal capture-box width", () => {
+    // LETTER_A's own path data never goes past x=22, despite its 100-unit-wide capture box.
+    const result = buildWordTrajectory("а", letters, new Map());
+    expect(result.totalWidthUnits).toBe(100);
+    expect(result.inkWidthUnits).toBeCloseTo(22, 6);
   });
 });
 
 describe("layoutTextIntoRows", () => {
-  // Both single-letter words are 100 units wide (their own viewBox width, no connector
-  // involved) — easy round numbers for reasoning about wrap thresholds against WORD_GAP_UNITS (26).
+  // Both single-letter words' real ink only reaches x=22 (their path data's own rightmost
+  // point) despite a nominal 100-wide capture box — see buildWordTrajectory's inkWidthUnits.
+  // WORD_GAP_UNITS is 33, so "а б" together measure 22+33+22=77.
   const letters = new Map([
     ["а", LETTER_A],
     ["б", LETTER_B_HIGH_ENTRY],
@@ -225,8 +234,7 @@ describe("layoutTextIntoRows", () => {
   });
 
   it("wraps the second word onto a new row when it would not fit", () => {
-    // "а" (100) + gap (26) + "б" (100) = 226, wider than a 200-unit row.
-    const result = layoutTextIntoRows("а б", letters, new Map(), 200);
+    const result = layoutTextIntoRows("а б", letters, new Map(), 70); // 77 > 70
     expect(result.placed).toHaveLength(2);
     expect(result.placed[0]).toMatchObject({ word: "а", rowIndex: 0, x: 0 });
     expect(result.placed[1]).toMatchObject({ word: "б", rowIndex: 1, x: 0 });
@@ -234,9 +242,14 @@ describe("layoutTextIntoRows", () => {
   });
 
   it("keeps both words on one row when the row is wide enough", () => {
+    // Regression (2026-08-13): word spacing used to be measured off each letter's own
+    // nominal 100-unit capture box, not its real ink — inflating both the gap between
+    // words and how early a row wrapped. 100 is exactly the OLD (wrong) per-letter width;
+    // asserting a 300-unit row now fits both words with room to spare confirms the real
+    // (much narrower) ink width is what's driving placement, not the box.
     const result = layoutTextIntoRows("а б", letters, new Map(), 300);
     expect(result.placed[0]).toMatchObject({ word: "а", rowIndex: 0, x: 0 });
-    expect(result.placed[1]).toMatchObject({ word: "б", rowIndex: 0, x: 126 }); // 100 + gap(26)
+    expect(result.placed[1]).toMatchObject({ word: "б", rowIndex: 0, x: 55 }); // 22 + gap(33)
     expect(result.rowCount).toBe(1);
   });
 
@@ -256,11 +269,24 @@ describe("layoutTextIntoRows", () => {
     expect(result.rowCount).toBe(3);
   });
 
-  it("skips a word with an uncaptured letter without breaking the rest of the layout", () => {
-    const result = layoutTextIntoRows("а х а", letters, new Map(), 500);
-    expect(result.placed).toHaveLength(2);
-    expect(result.placed.map((p) => p.word)).toEqual(["а", "а"]);
-    expect(result.placed[1].x).toBe(126); // still measured as if "х" were never there
+  it("renders a word mixing a captured letter with an uncaptured character as two segments, instead of dropping it entirely", () => {
+    // Regression (2026-08-13): a word like "стол1" used to vanish completely — the whole
+    // word was thrown away because ONE character ("1") had no captured cursive strokes.
+    // Digits/punctuation have no capture data at all yet (only the 32 Cyrillic letters
+    // are captured) — buildWordSegments now renders the capturable run in cursive and
+    // falls back to a plain-text segment for the rest, instead of losing the whole word.
+    const result = layoutTextIntoRows("ах", letters, new Map(), 500); // "а" captured, "х" is not
+    expect(result.placed).toHaveLength(1);
+    expect(result.placed[0].segments).toEqual([
+      { type: "cursive", xOffset: 0, trajectory: expect.any(Object), width: 22 },
+      { type: "fallback", xOffset: 22, text: "х", width: 24 },
+    ]);
+  });
+
+  it("renders a word with no captured letters at all as a single fallback segment", () => {
+    const result = layoutTextIntoRows("42", letters, new Map(), 500);
+    expect(result.placed).toHaveLength(1);
+    expect(result.placed[0].segments).toEqual([{ type: "fallback", xOffset: 0, text: "42", width: 48 }]);
   });
 });
 

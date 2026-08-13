@@ -2,17 +2,20 @@ import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { layoutTextIntoRows } from "./wordEngine.js";
 import { INK_COLOR, NATIVE_L1, NATIVE_L2, NATIVE_L3, NATIVE_L4, UNIT_H } from "./propisRuling.js";
 
-// Same alphabetical grouping WriteWordsView/PropisPracticeView and the app's
-// magnetic_alphabet keyboard all use, for a consistent layout across topics.
-const ABV_ROWS = [
-  ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "Й"],
-  ["К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф"],
-  ["Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ы", "Ь", "Э", "Ю", "Я"],
+const DIGIT_ROW = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
+// Same ЙЦУКЕН layout the app's magnetic_alphabet keyboard offers as an alternative to its
+// alphabetical rows — a real physical-keyboard layout, which is what this mode wants.
+const QWERTY_ROWS = [
+  ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х"],
+  ["Ф", "Ы", "В", "А", "П", "Р", "О", "Л", "Д", "Ж", "Э"],
+  ["Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "Ъ", "Ё"],
 ];
 
-// Same classification magnetic_alphabet uses — visual style only, no drag-and-drop, no
-// digit/punctuation rows (there's no captured propis stroke data for those characters, so
-// buildWordTrajectory would throw on them).
+const PUNCT_LEFT = ["!", "?"];
+const PUNCT_RIGHT = [".", ","];
+
+// Same classification magnetic_alphabet uses — visual style only, no drag-and-drop.
 const VOWELS = new Set(["А", "Е", "Ё", "И", "О", "У", "Ы", "Э", "Ю", "Я"]);
 const SIGNS = new Set(["Ъ", "Ь"]);
 function keyCategory(letter) {
@@ -35,6 +38,11 @@ const GUIDE_ROW_LINES = [
 const GUIDE_COLOR = "#6fa3e0";
 const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
+
+// Digits/punctuation render as a plain system-font glyph (see wordEngine.js's
+// buildWordSegments) until they have real captured cursive strokes — sized to roughly
+// match a cursive letter's own x-height so it doesn't look wildly out of place on the line.
+const FALLBACK_FONT_SIZE = 34;
 
 export default function WriteTextView({ task, onClose }) {
   const lettersByLabel = useMemo(() => {
@@ -87,6 +95,8 @@ export default function WriteTextView({ task, onClose }) {
     setText((t) => t + ch);
   }, [caseMode]);
 
+  const handleSymbol = useCallback((symbol) => setText((t) => t + symbol), []);
+  const toggleShift = useCallback(() => setCaseMode((m) => (m === "upper" ? "lower" : "upper")), []);
   const handleSpace = useCallback(() => setText((t) => t + " "), []);
   const handleEnter = useCallback(() => setText((t) => t + "\n"), []);
   const handleBackspace = useCallback(() => {
@@ -118,37 +128,51 @@ export default function WriteTextView({ task, onClose }) {
             )}
             {layout.placed.map((p, i) => (
               <g key={i} transform={`translate(${p.x} ${p.rowIndex * UNIT_H})`}>
-                {p.trajectory.strokes.map((s, si) => (
-                  <path key={si} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                ))}
+                {p.segments.map((seg, si) =>
+                  seg.type === "cursive" ? (
+                    <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                      {seg.trajectory.strokes.map((s, ssi) => (
+                        <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      ))}
+                    </g>
+                  ) : (
+                    <text
+                      key={si}
+                      x={seg.xOffset} y={NATIVE_L3}
+                      fontSize={FALLBACK_FONT_SIZE}
+                      fontFamily="system-ui, sans-serif"
+                      fill={INK_COLOR}
+                    >
+                      {seg.text}
+                    </text>
+                  )
+                )}
               </g>
             ))}
           </svg>
         </div>
 
         <div className="propis-practice-keyboard">
-          <div className="propis-case-toggle" role="group" aria-label="Регистр">
-            <button
-              type="button"
-              className={`propis-case-btn${caseMode === "upper" ? " propis-case-btn--active" : ""}`}
-              onClick={() => setCaseMode("upper")}
-            >
-              <span className="propis-case-arrow">▲</span>
-              ЗАГЛАВНАЯ
-            </button>
-            <button
-              type="button"
-              className={`propis-case-btn${caseMode === "lower" ? " propis-case-btn--active" : ""}`}
-              onClick={() => setCaseMode("lower")}
-            >
-              <span className="propis-case-arrow">▼</span>
-              строчная
-            </button>
-          </div>
-
           <div className="propis-key-rows">
-            {ABV_ROWS.map((row, ri) => (
+            <div className="propis-key-row">
+              {DIGIT_ROW.map((d) => (
+                <button type="button" key={d} className="propis-key propis-key--neutral" onClick={() => handleSymbol(d)}>{d}</button>
+              ))}
+            </div>
+
+            {QWERTY_ROWS.map((row, ri) => (
               <div className="propis-key-row" key={ri}>
+                {ri === QWERTY_ROWS.length - 1 && (
+                  <button
+                    type="button"
+                    className={`propis-key propis-key--shift${caseMode === "upper" ? " propis-key--active" : ""}`}
+                    onClick={toggleShift}
+                    aria-label="Регистр"
+                    aria-pressed={caseMode === "upper"}
+                  >
+                    ⇧
+                  </button>
+                )}
                 {row.map((l) => (
                   <button
                     type="button"
@@ -161,8 +185,18 @@ export default function WriteTextView({ task, onClose }) {
                 ))}
               </div>
             ))}
+
             <div className="propis-key-row">
+              {PUNCT_LEFT.map((p) => (
+                <button type="button" key={p} className="propis-key propis-key--neutral" onClick={() => handleSymbol(p)}>{p}</button>
+              ))}
               <button type="button" className="propis-key propis-key--wide" onClick={handleSpace}>пробел</button>
+              {PUNCT_RIGHT.map((p) => (
+                <button type="button" key={p} className="propis-key propis-key--neutral" onClick={() => handleSymbol(p)}>{p}</button>
+              ))}
+            </div>
+
+            <div className="propis-key-row">
               <button type="button" className="propis-key propis-key--wide" onClick={handleEnter} aria-label="Новая строка">⏎</button>
               <button type="button" className="propis-key propis-key--wide" onClick={handleBackspace} disabled={!text} aria-label="Стереть">←</button>
               <button type="button" className="propis-key propis-key--wide" onClick={handleClear} disabled={!text}>Очистить</button>
