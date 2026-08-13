@@ -31,7 +31,7 @@ export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs
           to the letter without dominating it — chosen from a 3-way screenshot mockup
           compared against a real captured letter at true scale (2026-08-13). */}
       <g data-pr-tip opacity="0">
-        <g transform="rotate(-55)">
+        <g transform="rotate(55)">
           <path d="M 0 0 L -2.6 -4.5 L -2.6 -21 Q -2.6 -24 0 -24.5 Q 2.6 -24 2.6 -21 L 2.6 -4.5 Z" fill={NIB_COLOR} />
           <path d="M -2.6 -4.5 L 0 0 L 2.6 -4.5 Z" fill={INK_COLOR} />
         </g>
