@@ -9,11 +9,15 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
 - **Mode 1 "Учим буквы" (practice) — shipped, live on `main`.** Portrait-locked,
   fullscreen: custom on-screen keyboard (not the system keyboard) at the bottom,
   a large looping handwriting-animation card in the middle.
-- **Mode "Написание слов" (write_words) — shipped, live on `main` (deck v1.22.0,
-  app v1.0.1806 as of 2026-08-10).** Auto-assembles and animates a full cursive
+- **Mode "Написание слов" (write_words) — shipped, live on `main` (deck v1.23.0,
+  app v1.0.1841 as of 2026-08-13).** Auto-assembles and animates a full cursive
   *word* from individually hand-captured letters + hand-drawn connector strokes
   between them. See the dedicated section below — this is the actively evolving
   part of the topic; read it before touching anything letter/connector-related.
+- **Mode "Пишем текст" (write_text) — shipped, live on `main` (deck v1.23.0, app
+  v1.0.1841 as of 2026-08-13).** Free-text multi-line copybook: colored keyboard
+  (magnetic_alphabet style) + a wrapping notebook grid that lays words out
+  row-by-row, no animation. See its own section below.
 - **Mode 2 (PDF export for print) — not started.** `PropisShowView.jsx` (see below)
   is a dormant starting point for it, not wired to any active mode.
 
@@ -28,7 +32,10 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   - `PropisPracticeView.jsx` — the **active** mode ("Учим буквы").
   - `PropisShowView.jsx` — **dormant**, not routed to by any mode in
     `tools/propis/topic.json`. Full-page multi-row layout, kept as the starting
-    point for the PDF-export mode.
+    point for the PDF-export mode. Its `buildRowGuideLines`-based multi-row
+    stacking pattern is what `WriteTextView.jsx` (below) reused for its grid.
+  - `WriteTextView.jsx` — the **active** "Пишем текст" (write_text) mode. See
+    its own section below.
   - `index.jsx` — routes `task.type` to the right view.
   - `engine.js` — `generateTasks(mode, cards)`; trivial, just passes filtered
     cards through as `items`.
@@ -100,7 +107,7 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
 Auto-assembles a full cursive **word** at runtime from individually
 hand-captured single letters plus hand-drawn connector strokes, and animates
 it as one continuous pen path. This is the actively evolving part of the
-topic (as of 2026-08-10) — read this whole section before adding letters,
+topic (as of 2026-08-13) — read this whole section before adding letters,
 connectors, or touching `wordEngine.js`.
 
 ### File map (write_words-specific, on top of the shared files above)
@@ -110,7 +117,7 @@ connectors, or touching `wordEngine.js`.
   (`buildWordTrajectory`, the main export). No React in this file, pure data
   in/out — that's why it's unit-tested directly rather than through the view.
 - `src/topics/renderers/propis/wordEngine.test.js` — the spec, in practice.
-  274 tests as of the last session; when in doubt about intended behavior for
+  298 tests as of the last session (2026-08-13); when in doubt about intended behavior for
   an edge case, check here before asking or re-deriving it from scratch.
 - `src/topics/renderers/propis/pathGeometry.js` — generic SVG path helpers
   used by wordEngine.js: `getPathEndpoints`, `samplePath`, `transformPathD`,
@@ -212,6 +219,32 @@ either — the same class of bug "д" was, just not yet found. `MIDDLE_ENTRY_LET
 letters (е,з,ж,г,х,ш,ч,э,в) are NOT expected to need this — их entry
 genuinely sits at line 4 already (confirmed for е,з,ж,х: raw entry ≈75).
 
+**Third exception, 2026-08-13 (`f37c8feb`, no-connector direct adjacency):**
+the same class of drift also hit the plain **no-connector** junction (two
+letters chained by pure translation, no connector piece between them at
+all — e.g. "костёр"'s к→о→с→т→ё→р). It previously anchored the next letter
+to wherever the previous letter's own raw captured stroke happened to end,
+not to the canonical guide line — so a fraction-of-a-unit capture error at
+each junction accumulated across the whole word (traced in "костёр":
+dy 0 → 0.62 → 1.59 → 1.59 → 2.87 → 2.87 by the time it reached "ё"). Fixed
+the same way as the two exceptions above: when there's no connector, the new
+letter now snaps to its canonical line (line 4) instead of the previous
+letter's raw exit point. This is the general case (far more words hit it
+than hit the connector-rescale exceptions above), verified against 100+
+words in batches with zero regressions. If a word looks like it's sinking
+toward its own end and nothing else changed, this is the first thing to
+re-check — trace per-letter `dy` (temporary debug log naming each
+letter/connector plus its accumulated dy) before guessing visually.
+
+**"э" loop-exit fix, 2026-08-13 (`149fca39`):** "э" has a real lower loop in
+its main body almost like "б"'s, but `getBaselineContacts` was reusing the
+same `mainStrokeIndex` as the exit-point lookup, so it only ever searched for
+a baseline contact inside "э"'s crossbar stroke — never finding the actual
+loop in the body. Letters that continue straight after "э" (т, м, х, ж) rode
+up onto the crossbar instead of flowing out of the loop. Fixed by having
+`getBaselineContacts` search all of the letter's strokes for the true
+baseline approach, not just the one stroke `mainStrokeIndex` points to.
+
 ### Data model
 
 **Plain letter card**: `{ type: "letter", id, label, category, viewBox: "0 0
@@ -247,7 +280,7 @@ Two **independent** classification systems, easy to conflate — don't:
    lift/land even for letters that take the same connector by methodology
    (е.g. б and в's actual sample strokes end at different raw Y, but both
    need the same exit connector). Currently: `EXIT_LINE_OVERRIDES = {б,в,ф,о,
-   э,ю,ь,ъ: 5}`, `ENTRY_LINE_OVERRIDES = {б,а,о,ф: 3}`.
+   э,ю,ь,ъ: 5}`, `ENTRY_LINE_OVERRIDES = {б,а,о,ф,д: 3}` (see "д" fix below).
 2. **`UPPER_ENTRY_LETTERS` / `MIDDLE_ENTRY_LETTERS` / `LOWER_ENTRY_LETTERS` /
    `DUAL_NATURE_LETTERS`** — real Russian cursive methodology's
    classification of where a letter's **own first stroke** begins (used only
@@ -352,7 +385,7 @@ the intended meaning with the user before writing it into the data model;
 guessing wrong here is expensive to unwind later (baked into a versioned
 deck + possibly already deployed).
 
-### Data state as of the last session (2026-08-10, deck v1.22.0)
+### Data state as of the last session (2026-08-13, deck v1.23.0)
 
 Regenerate this — don't trust it once more captures land:
 
@@ -368,39 +401,85 @@ console.log('connectors:', connectors.map(c => c.id + JSON.stringify(c.forLetter
 "
 ```
 
-As of v1.22.0:
-- **25 plain letters captured**: а б в г д е ж з и к л м н о п р с т у х ё,
-  plus uppercase А Б В Г. **Missing from the full alphabet: й ф ц ч ш щ ъ ы ь
-  э ю я** (12 letters) — words using these fall back to
-  `buildWordTrajectory` throwing (uncaught in `WriteWordsView.jsx`, which
-  just swallows the error and shows nothing — see its `try/catch`).
-- **о has 7 variant cards**: `о_first_l`, `о_first_u`, `о_middle_ll`,
-  `о_middle_lu`, `о_middle_uu`, `о_middle_ld` (dual-exit), `о_last_l`.
-  **Not yet captured**: `о_middle_ul` (entry upper, exit lower — the 4th
-  middle combo) and any `last`-position variant with `entryType: "upper"`.
-  `isolated` position never has a variant by design (falls back to plain
-  "о" always).
+As of v1.23.0:
+- **37 plain letters captured — the full lowercase alphabet (all 33) is
+  done**, plus uppercase А Б В Г (4 of 32 uppercase). **Only uppercase is
+  still a real data gap**: every uppercase letter except А/Б/В/Г falls back
+  to a system-font glyph in write_text (see below); `write_words`/`practice`
+  simply don't offer an inactive/missing uppercase key. Capturing more
+  uppercase letters is the main remaining propis data-capture task.
+- **о has 9 variant cards**: `о_first_l`, `о_first_u`, `о_middle_ll`,
+  `о_middle_lu`, `о_middle_uu`, `о_middle_ul`, `о_middle_um`, `о_middle_lm`,
+  `о_last_l`. **Still not captured**: an upper-entry `о_last` variant (the
+  last remaining gap in о's own matrix). `isolated` position never has a
+  variant by design (falls back to plain "о" always).
 - **ю has zero variant cards** — every position/neighbor combination
   currently falls back to the plain "ю" card. Same variant system already
   supports it the moment cards are captured (`DUAL_NATURE_LETTERS` already
   includes it) — no code changes needed, only capturing + ingesting.
 - **3 connectors**: `conn_5_4` (universal exit, line5→line4, no
   `forLetters`), `conn_4_3` (looping entry for о/а/б/ф family, line4→line3,
-  no `forLetters`), `conn_4_3_straight` (straight-diagonal entry for
-  и/п/р/к/у/ю/ь/ы/ш/щ/н/ц/й, line4→line3, `forLetters` set).
+  no `forLetters`), `conn_4_3_straight` (straight-diagonal entry, line4→line3,
+  `forLetters`: и,п,р,к,у,ю,ь,ы,ш,щ,н,ц,й,т,э).
 
 ### Natural next steps (not yet requested, just visible gaps)
 
-- Capture the remaining 12 letters so arbitrary words stop throwing.
+- Capture more uppercase letters — only А/Б/В/Г exist; every other
+  uppercase letter renders as a system-font fallback glyph in write_text
+  (intentional stopgap, not a bug — see write_text section).
 - Capture `ю`'s variants (same shape work as `о`, just for a different
   letter) — or decide `ю` is rare enough in practice that the fallback is
   fine indefinitely.
-- Capture `о_middle_ul` and an upper-entry `о_last` variant to close the
-  remaining gaps in о's own matrix.
+- Capture an upper-entry `о_last` variant to close the one remaining gap in
+  о's own matrix.
 - `WriteWordsView.jsx`'s `try/catch` around `buildWordTrajectory` silently
   shows nothing on error (missing letter) — no user-facing message. Minor
   polish item, not a correctness bug, low priority unless it confuses
-  testers.
+  testers. (`WriteTextView.jsx`'s per-word/per-segment handling degrades
+  more gracefully — see below — so this gap is now specific to write_words.)
+
+## Mode: Пишем текст (write_text)
+
+Free-text multi-line copybook. No animation — words appear immediately,
+laid out row-by-row on a notebook grid, wrapping to the next row when a
+word wouldn't fit on the current one. Built 2026-08-13, reusing
+`buildWordTrajectory` (word geometry) from write_words and
+`buildRowGuideLines` (multi-row ruling) from the dormant `PropisShowView.jsx`
+— the missing piece, written from scratch, is the row-packing/wrap logic.
+
+### File map (write_text-specific)
+
+- `src/topics/renderers/propis/WriteTextView.jsx` — the view: colored
+  on-screen keyboard (magnetic_alphabet-style rows/coloring, QWERTY/ЙЦУКЕН
+  layout + a single Shift key instead of separate case buttons, digit row,
+  `! ? . ,`), text buffer, calls the row-layout function per keystroke.
+- `layoutTextIntoRows` (in `wordEngine.js`, alongside `buildWordTrajectory`)
+  — given the current text and a row-width budget, buckets words into rows
+  and computes each word's `(rowIndex, xOffset)`. Unit-tested directly.
+
+### Honest ink width, not nominal glyph-box width
+
+Word spacing and line-wrapping both depend on measuring word width. The
+first version measured each letter's nominal 100-unit `viewBox` width, but
+real ink typically only occupies 15–55 of those 100 units — the rest is
+blank canvas margin baked into every captured glyph. Using the nominal
+width made inter-word gaps huge (an invisible "tail" accumulated after
+every word) and made the wrap point land a full word too early. Fixed by
+computing each letter's real `inkWidthUnits` from its actual stroke
+geometry; the inter-word gap is now the median ink width across all
+letters (≈33 units, roughly "one letter"), which reads as a normal space.
+
+### Characters without captured cursive strokes
+
+Digits (0–9) and punctuation (`! ? . ,`) have no hand-captured cursive
+strokes at all — by design, this stays a system-font fallback glyph
+rendered at the baseline, not a data-capture backlog item (confirmed with
+the user; unlike missing letters, this isn't "not captured yet"). The same
+fallback also covers any uppercase letter beyond А/Б/В/Г (a real capture
+gap, see "Natural next steps" above) so a single missing/uncaptured
+character degrades to one system-font glyph inline instead of dropping the
+whole word/segment, unlike `WriteWordsView.jsx`'s all-or-nothing
+`try/catch`.
 
 ## Verifying visual changes locally (no full app flow needed)
 
