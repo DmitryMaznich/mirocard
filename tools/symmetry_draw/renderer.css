@@ -332,13 +332,13 @@
   user-select: none;
 }
 .navigator__route { color: #2d67b4; }
-.navigator__route > line:first-child {
+.navigator__shaft {
   stroke: currentColor;
-  stroke-width: .56;
+  stroke-width: .62;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
-.navigator__route marker path { fill: currentColor; }
+.navigator__arrowhead { fill: currentColor; }
 .navigator__start { fill: #d8e8f5; stroke: #fff; stroke-width: .08; pointer-events: none; }
 .navigator__dash { fill: #e4effa; pointer-events: none; }
 .navigator__trail { fill: none; stroke: #2f837c; stroke-width: .5; stroke-linecap: round; pointer-events: none; }

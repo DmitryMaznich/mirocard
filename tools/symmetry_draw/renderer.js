@@ -357,12 +357,17 @@
     const resolvedRef = useRef(false);
     const [trail, setTrail] = useState(null);
     const [result, setResult] = useState(null);
-    const [remaining, setRemaining] = useState(3000);
+    const [remaining, setRemaining] = useState(5000);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
     const expected = { x: direction.col, y: direction.row };
     const routeStart = { x: 6 + expected.x * 1.75, y: 6 + expected.y * 1.75 };
     const routeEnd = { x: 6 + expected.x * 4.65, y: 6 + expected.y * 4.65 };
-    const streakStep = Math.min(5, Math.max(0, Math.round(streakCount / Math.max(1, answersPerStar))));
+    // The single star mirrors the shared "Серия для видеонаграды" setting:
+    // 5 / 10 / 15 answers means one ray fills after 1 / 2 / 3 correct answers.
+    // Use floor so a ray never appears before its full part of the streak.
+    const answersPerRay = Math.max(1, Math.round(answersPerStar));
+    const streakTarget = 5 * answersPerRay;
+    const filledRays = Math.min(5, Math.max(0, Math.floor(streakCount / answersPerRay)));
 
     useEffect(() => {
       resolvedRef.current = false;
@@ -370,10 +375,10 @@
       startRef.current = null;
       setTrail(null);
       setResult(null);
-      setRemaining(3000);
+      setRemaining(5000);
       const startedAt = Date.now();
       const ticker = window.setInterval(() => {
-        const next = Math.max(0, 3000 - (Date.now() - startedAt));
+        const next = Math.max(0, 5000 - (Date.now() - startedAt));
         setRemaining(next);
         if (next === 0 && !resolvedRef.current) {
           resolvedRef.current = true;
@@ -444,8 +449,18 @@
     const arrows = Object.entries(DIRECTION).map(([key, item]) => {
       const start = { x: 6 + item.col * 1.75, y: 6 + item.row * 1.75 };
       const end = { x: 6 + item.col * 4.65, y: 6 + item.row * 4.65 };
+      const length = Math.hypot(end.x - start.x, end.y - start.y);
+      const unit = { x: (end.x - start.x) / length, y: (end.y - start.y) / length };
+      const side = { x: -unit.y, y: unit.x };
+      const headBase = { x: end.x - unit.x * 0.92, y: end.y - unit.y * 0.92 };
+      const headPoints = [
+        `${end.x},${end.y}`,
+        `${headBase.x + side.x * 0.66},${headBase.y + side.y * 0.66}`,
+        `${headBase.x - side.x * 0.66},${headBase.y - side.y * 0.66}`,
+      ].join(" ");
       return h("g", { key, className: `navigator__route navigator__route--${key}` },
-        h("line", { x1: start.x, y1: start.y, x2: end.x, y2: end.y, markerEnd: "url(#navigator-head)" }),
+        h("line", { className: "navigator__shaft", x1: start.x, y1: start.y, x2: headBase.x, y2: headBase.y }),
+        h("polygon", { className: "navigator__arrowhead", points: headPoints }),
         h("circle", { className: "navigator__start", cx: start.x, cy: start.y, r: "0.22" }),
         h("circle", { className: "navigator__dash", r: "0.105" },
           h("animateMotion", { path: `M ${start.x} ${start.y} L ${end.x} ${end.y}`, dur: "1.25s", repeatCount: "indefinite" }),
@@ -456,15 +471,12 @@
     const trailPath = trail ? `M ${trail[0].x} ${trail[0].y} L ${trail[1].x} ${trail[1].y}` : null;
     return h("section", { className: `navigator navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
       h("div", { className: "navigator__instruction" },
-        h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${streakStep * 72}deg` }, "aria-label": `Серия: ${streakStep} из 5` }, "★"),
+        h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
         h("div", { className: "navigator__command" }, NAVIGATOR_LABEL[task.direction] ?? "Вверх"),
       ),
-      h("div", { className: "navigator__timer", "aria-hidden": "true" }, h("i", { style: { transform: `scaleX(${remaining / 3000})` } })),
+      h("div", { className: "navigator__timer", "aria-hidden": "true" }, h("i", { style: { transform: `scaleX(${remaining / 5000})` } })),
       h("div", { className: "navigator__board" },
         h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
-          h("defs", null,
-            h("marker", { id: "navigator-head", markerWidth: "1.15", markerHeight: "1.15", refX: "0.92", refY: "0.575", orient: "auto", markerUnits: "strokeWidth" }, h("path", { d: "M 0 0 L 1.15 .575 L 0 1.15 z" })),
-          ),
           arrows,
           trailPath ? h("path", { className: "navigator__trail", d: trailPath }) : null,
         ),
