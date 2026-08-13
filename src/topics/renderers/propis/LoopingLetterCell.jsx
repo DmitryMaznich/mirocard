@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { LINE_MM, UNIT_H, L2, L3, LETTER_BASELINE_UNIT, LETTER_XHEIGHT_UNIT_SPAN, INK_COLOR, NIB_COLOR, STROKE_W, TIP_R } from "./propisRuling.js";
+import { LINE_MM, UNIT_H, L2, L3, LETTER_BASELINE_UNIT, LETTER_XHEIGHT_UNIT_SPAN, INK_COLOR, NIB_COLOR, STROKE_W } from "./propisRuling.js";
 import { useLoopingStrokes } from "./useLoopingStrokes.js";
 
 // One item's animated sample, looping forever until unmounted.
@@ -32,7 +32,14 @@ export default function LoopingLetterCell({ item, delayMs = 0, loopPauseMs = 140
         <path key={`a${i}`} data-pr-anim={i} d={s.d} fill="none" stroke={INK_COLOR}
           strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
       ))}
-      <circle data-pr-tip r={TIP_R} cx="0" cy="0" fill={NIB_COLOR} opacity="0" />
+      {/* Small pen: a gold shaft held at a fixed writing angle, plus the actual contact
+          point in the ink color — see AnimatedStrokes.jsx for the same markup and the
+          reasoning behind this exact shape (shared visual language across the topic). */}
+      <g data-pr-tip opacity="0">
+        <line x1="0.6" y1="-0.9" x2="4.5" y2="-5.2" stroke={NIB_COLOR} strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="4.5" cy="-5.2" r="0.7" fill={NIB_COLOR} />
+        <circle cx="0" cy="0" r="0.75" fill={INK_COLOR} />
+      </g>
     </g>
   );
 }

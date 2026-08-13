@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { INK_COLOR, NIB_COLOR, STROKE_W, TIP_R } from "./propisRuling.js";
+import { INK_COLOR, NIB_COLOR, STROKE_W } from "./propisRuling.js";
 import { useLoopingStrokes } from "./useLoopingStrokes.js";
 
 // Renders one trajectory's looping handwriting animation: a faint static background copy
@@ -23,7 +23,16 @@ export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs
           d={s.d} fill="none" stroke={INK_COLOR}
           strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
       ))}
-      <circle data-pr-tip r={TIP_R} cx="0" cy="0" fill={NIB_COLOR} opacity="0" />
+      {/* Small pen: a gold shaft held at a fixed writing angle, plus the actual contact
+          point in the ink color — reads as "a pen touching the paper" even at the tiny
+          real on-screen size this animation runs at (verified via screenshot mockup,
+          2026-08-13: a plain/bigger dot or an oriented arrowhead were indistinguishable
+          blobs at true scale; this silhouette was the only one that still read as a pen). */}
+      <g data-pr-tip opacity="0">
+        <line x1="0.6" y1="-0.9" x2="4.5" y2="-5.2" stroke={NIB_COLOR} strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="4.5" cy="-5.2" r="0.7" fill={NIB_COLOR} />
+        <circle cx="0" cy="0" r="0.75" fill={INK_COLOR} />
+      </g>
     </g>
   );
 }

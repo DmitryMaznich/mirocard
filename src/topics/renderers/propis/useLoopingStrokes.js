@@ -90,8 +90,9 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
       el.setAttribute("stroke-dashoffset", len * (1 - eased));
       const pt = el.getPointAtLength(eased * len);
       if (tip) {
-        tip.setAttribute("cx", pt.x);
-        tip.setAttribute("cy", pt.y);
+        // translate, not cx/cy — the tip is a small <g> (pen shaft + contact point), not a
+        // bare <circle>, so it needs a transform to reposition all its children at once.
+        tip.setAttribute("transform", `translate(${pt.x} ${pt.y})`);
         tip.setAttribute("opacity", "0.9");
       }
       if (raw < 1) {

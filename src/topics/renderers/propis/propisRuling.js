@@ -68,7 +68,6 @@ export const NIB_COLOR = "#fbbf24";
 // PropisPracticeView's 2x crop zoom already doubles on-screen thickness by itself,
 // so this needs to be a quarter of the original to land at half the original on screen.
 export const STROKE_W  = 2;
-export const TIP_R     = 1.125;
 export const SPEED     = 48; // font-units/sec — gentle pace for a continuously looping demo
 
 export function easeInOut(t) {
