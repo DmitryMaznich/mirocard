@@ -253,6 +253,26 @@
 .dictation__notice { color: #536b89; }
 .dictation__done { color: #2f7a54; }
 @keyframes dictationDemo { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+/* ── Coordinate mode: bigger axis labels/dots, live touch feedback ─── */
+/* Coordinate cards are found by reading a letter+number off the axes and
+   tapping a specific intersection - both need to read easily at a glance
+   and be easy to hit, which the classic direction dictation's tinier grid
+   markings never had to be (it's followed by dragging a short local line,
+   not by finding a point across the whole grid). */
+.dictation--coordinate .dictation__coordinate { font-size: 0.34px; font-weight: 800; }
+.dictation--coordinate .dictation__coordinate--active { fill: #173d91; font-size: 0.4px; }
+.dictation--coordinate .dictation__grid-dot { r: 0.075; }
+
+.dictation__tap-mark {
+  fill: rgba(37, 99, 235, 0.16);
+  stroke: #2563eb;
+  stroke-width: 0.03;
+  pointer-events: none;
+}
+.dictation__tap-badge { pointer-events: none; }
+.dictation__tap-badge rect { fill: #1e3a6e; }
+.dictation__tap-badge text { fill: #fff; font: 800 0.26px/1 Nunito, sans-serif; }
 @media (max-width: 560px) {
   .dictation { width: 100%; min-width: 0; padding: 4px; }
   .dictation__command {
@@ -263,6 +283,10 @@
     margin-bottom: 6px;
     padding: 8px;
   }
+  /* No arrow icon in coordinate mode, so the 52px arrow column would just sit
+     empty - drop it so the instruction ("Найди точку Е2") fits on one line
+     instead of wrapping into the space a 2-column layout would have used. */
+  .dictation--coordinate .dictation__command { grid-template-columns: minmax(0, 1fr) 44px; }
   .dictation__command-copy { min-width: 0; }
   .dictation__arrow-wrap { width: 52px; height: 52px; border-width: 1.5px; }
   .dictation__arrow { width: 42px; height: 42px; font-size: 36px; }

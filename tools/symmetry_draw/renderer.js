@@ -212,6 +212,11 @@
     const [showTargetHint, setShowTargetHint] = useState(false);
     const [notice, setNotice] = useState("");
     const [finished, setFinished] = useState(false);
+    // Raw (unsnapped) point of the current/last touch - drives the "you
+    // touched here" marker and the live coordinate readout in coordinate
+    // mode. Distinct from `activePoint` (the fixed FROM point) and `preview`
+    // (only set while actively dragging, not for a simple tap).
+    const [tapPoint, setTapPoint] = useState(null);
     const shape = task.card;
     const steps = useMemo(() => buildSteps(shape), [shape]);
     const isCoordinate = shape.taskKind === "coordinate";
@@ -220,6 +225,9 @@
     const columns = Number(shape.columns ?? 10);
     const rows = Number(shape.rows ?? 10);
     const target = step ? step.end : null;
+    const nearestCol = tapPoint ? Math.max(0, Math.min(columns, Math.round(tapPoint.col))) : null;
+    const nearestRow = tapPoint ? Math.max(0, Math.min(rows, Math.round(tapPoint.row))) : null;
+    const tapCoordText = isCoordinate && tapPoint ? `${columnLabel(nearestCol)}${nearestRow + 1}` : null;
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -251,6 +259,7 @@
       drawingRef.current = true;
       gestureRef.current = [point];
       setPreview([point]);
+      setTapPoint(point);
       setNotice("");
     }
 
@@ -259,6 +268,7 @@
       event.preventDefault();
       const point = localPoint(event);
       if (!point) return;
+      setTapPoint(point);
       const last = gestureRef.current.at(-1);
       if (last && distance(last, point) < 0.03) return;
       gestureRef.current = [...gestureRef.current, point];
@@ -282,6 +292,7 @@
       setCompleted((lines) => [...lines, { start: activePoint, end: step.end }]);
       setActivePoint(step.end);
       setPreview(null);
+      setTapPoint(null);
       setShowTargetHint(false);
       setNotice("");
       if (stepIndex + 1 >= steps.length) {
@@ -301,12 +312,14 @@
     const coordinates = [];
     for (let col = 0; col <= columns; col += 1) {
       grid.push(h("line", { key: `v-${col}`, className: "dictation__grid-line", x1: col, y1: 0, x2: col, y2: rows }));
-      coordinates.push(h("text", { key: `col-${col}`, className: "dictation__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, isCoordinate ? columnLabel(col) : col + 1));
+      const colActive = col === nearestCol;
+      coordinates.push(h("text", { key: `col-${col}`, className: `dictation__coordinate${colActive ? " dictation__coordinate--active" : ""}`, x: col, y: "-0.31", textAnchor: "middle" }, isCoordinate ? columnLabel(col) : col + 1));
       for (let row = 0; row <= rows; row += 1) dots.push(h("circle", { key: `p-${col}-${row}`, className: "dictation__grid-dot", cx: col, cy: row, r: "0.05" }));
     }
     for (let row = 0; row <= rows; row += 1) {
       grid.push(h("line", { key: `h-${row}`, className: "dictation__grid-line", x1: 0, y1: row, x2: columns, y2: row }));
-      coordinates.push(h("text", { key: `row-${row}`, className: "dictation__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1));
+      const rowActive = row === nearestRow;
+      coordinates.push(h("text", { key: `row-${row}`, className: `dictation__coordinate${rowActive ? " dictation__coordinate--active" : ""}`, x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1));
     }
 
     const decorations = (shape.decorations ?? []).map((decoration, index) => {
@@ -325,7 +338,9 @@
       : null;
     const previewPath = preview?.length > 1 ? `M ${activePoint.col} ${activePoint.row} L ${previewEnd.col} ${previewEnd.row}` : null;
 
-    return h("section", { className: "dictation", "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
+    const tapBadgeWidth = tapCoordText ? 0.3 + tapCoordText.length * 0.26 : 0;
+
+    return h("section", { className: `dictation${isCoordinate ? " dictation--coordinate" : ""}`, "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
       h("div", { className: "dictation__command" },
         step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
         h("div", { className: "dictation__command-copy" },
@@ -349,6 +364,17 @@
           !finished ? h("circle", { className: "dictation__active", cx: activePoint.col, cy: activePoint.row, r: "0.15" },
             h("animate", { attributeName: "r", values: "0.15;0.25;0.15", dur: "1.2s", repeatCount: "indefinite" }),
             h("animate", { attributeName: "opacity", values: "1;0.58;1", dur: "1.2s", repeatCount: "indefinite" }),
+          ) : null,
+          // "You touched here" feedback: a ring right at the raw touch point,
+          // plus a floating coordinate readout above it that updates live as
+          // the finger moves - lets a child see which point a touch will
+          // register as before committing to it. Coordinate mode only: the
+          // classic direction dictation doesn't need a "which point is this"
+          // readout since it never asks the child to locate one.
+          isCoordinate && tapPoint ? h("circle", { className: "dictation__tap-mark", cx: tapPoint.col, cy: tapPoint.row, r: "0.24" }) : null,
+          isCoordinate && tapPoint ? h("g", { className: "dictation__tap-badge", transform: `translate(${tapPoint.col}, ${Math.max(tapPoint.row - 0.58, -0.5)})` },
+            h("rect", { x: -tapBadgeWidth / 2, y: -0.26, width: tapBadgeWidth, height: 0.44, rx: 0.1 }),
+            h("text", { x: 0, y: 0.08, textAnchor: "middle" }, tapCoordText),
           ) : null,
         ),
       ),
