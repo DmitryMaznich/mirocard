@@ -99,6 +99,17 @@
   background: #fffdf8;
 }
 
+/* write_text's grid benefits from the full screen width (fewer wraps, bigger writing
+   area) — unlike the single-letter/single-word cards above, it isn't capped at a
+   "phone card" width. */
+.propis-text-frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fffdf8;
+}
+
 .propis-practice-demo {
   flex: 1 1 auto;
   position: relative;
@@ -128,6 +139,22 @@
   color: #6b7280;
   font-size: 15px;
   font-weight: 600;
+}
+
+/* ─── Прописи · «Пишем текст» ────────────────────────────────────────── */
+
+.propis-text-grid-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: calc(12px + var(--app-safe-top, 0px)) calc(12px + var(--app-safe-right, 0px)) 12px calc(12px + var(--app-safe-left, 0px));
+}
+
+.propis-text-grid-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.12));
 }
 
 .propis-practice-keyboard {
@@ -201,6 +228,16 @@
 .propis-key--active { background: #1d4ed8; color: #fff; }
 
 .propis-key:disabled { background: transparent; color: #c3c8ce; cursor: default; }
+
+/* Colored keyboard style, matching magnetic_alphabet's key coloring for a shared visual
+   language across the app's keyboards — same hex values, but scoped to propis's own
+   classes since the two topics' CSS stay isolated from each other. */
+.propis-key--vowel     { background: #ef4444; color: #fff; }
+.propis-key--consonant { background: #3b82f6; color: #fff; }
+.propis-key--sign      { background: #9ca3af; color: #fff; }
+
+.propis-key--wide { flex: 1.6 1 0; font-size: clamp(11px, 3vw, 14px); background: #eef1ec; color: #334155; }
+.propis-key--wide:disabled { opacity: 0.4; cursor: default; }
 
 /* ─── Прописи · «Написание слов» ──────────────────────────────────────── */
 

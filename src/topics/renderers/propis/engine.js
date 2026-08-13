@@ -16,5 +16,9 @@ export function generateTasks(mode, cards) {
     return [{ type: "write_words", letters, connectors }];
   }
 
+  if (mode.type === "write_text") {
+    return [{ type: "write_text", letters, connectors }];
+  }
+
   return [];
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { transformPathD, getPathEndpoints } from "./pathGeometry.js";
-import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory } from "./wordEngine.js";
+import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows } from "./wordEngine.js";
 import { GUIDE_LINES } from "./propisRuling.js";
 
 const LETTER_A = {
@@ -207,6 +207,60 @@ describe("buildWordTrajectory — no captured connector on either side", () => {
     const result = buildWordTrajectory("", letters, new Map());
     expect(result.strokes).toEqual([]);
     expect(result.totalWidthUnits).toBe(0);
+  });
+});
+
+describe("layoutTextIntoRows", () => {
+  // Both single-letter words are 100 units wide (their own viewBox width, no connector
+  // involved) — easy round numbers for reasoning about wrap thresholds against WORD_GAP_UNITS (26).
+  const letters = new Map([
+    ["а", LETTER_A],
+    ["б", LETTER_B_HIGH_ENTRY],
+  ]);
+
+  it("returns one empty row for empty text", () => {
+    const result = layoutTextIntoRows("", letters, new Map(), 500);
+    expect(result.placed).toEqual([]);
+    expect(result.rowCount).toBe(1);
+  });
+
+  it("wraps the second word onto a new row when it would not fit", () => {
+    // "а" (100) + gap (26) + "б" (100) = 226, wider than a 200-unit row.
+    const result = layoutTextIntoRows("а б", letters, new Map(), 200);
+    expect(result.placed).toHaveLength(2);
+    expect(result.placed[0]).toMatchObject({ word: "а", rowIndex: 0, x: 0 });
+    expect(result.placed[1]).toMatchObject({ word: "б", rowIndex: 1, x: 0 });
+    expect(result.rowCount).toBe(2);
+  });
+
+  it("keeps both words on one row when the row is wide enough", () => {
+    const result = layoutTextIntoRows("а б", letters, new Map(), 300);
+    expect(result.placed[0]).toMatchObject({ word: "а", rowIndex: 0, x: 0 });
+    expect(result.placed[1]).toMatchObject({ word: "б", rowIndex: 0, x: 126 }); // 100 + gap(26)
+    expect(result.rowCount).toBe(1);
+  });
+
+  it("always starts a new row for the first word after the first row, even mid-width", () => {
+    // The row's own first word is never wrap-checked against rowWidthUnits — otherwise an
+    // overlong single word would never find a row it "fits" on.
+    const result = layoutTextIntoRows("а", letters, new Map(), 10);
+    expect(result.placed[0]).toMatchObject({ word: "а", rowIndex: 0, x: 0 });
+    expect(result.rowCount).toBe(1);
+  });
+
+  it("a manual line break always starts a fresh row, even leaving a blank row in between", () => {
+    const result = layoutTextIntoRows("а\n\nб", letters, new Map(), 500);
+    expect(result.placed).toHaveLength(2);
+    expect(result.placed[0]).toMatchObject({ word: "а", rowIndex: 0 });
+    expect(result.placed[1]).toMatchObject({ word: "б", rowIndex: 2 });
+    expect(result.rowCount).toBe(3);
+  });
+
+  it("skips a word with an uncaptured letter without breaking the rest of the layout", () => {
+    const result = layoutTextIntoRows("а х а", letters, new Map(), 500);
+    expect(result.placed).toHaveLength(2);
+    expect(result.placed.map((p) => p.word)).toEqual(["а", "а"]);
+    expect(result.placed[1].x).toBe(126); // still measured as if "х" were never there
   });
 });
 

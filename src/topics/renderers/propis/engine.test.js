@@ -29,6 +29,13 @@ describe("generateTasks — write_words", () => {
   });
 });
 
+describe("generateTasks — write_text", () => {
+  it("splits cards into letters and connectors by type, same as write_words", () => {
+    const tasks = generateTasks({ type: "write_text" }, [LETTER_CARD, CONNECTOR_CARD, CARD_NO_STROKES]);
+    expect(tasks).toEqual([{ type: "write_text", letters: [LETTER_CARD], connectors: [CONNECTOR_CARD] }]);
+  });
+});
+
 describe("generateTasks — unknown mode", () => {
   it("returns an empty array", () => {
     expect(generateTasks({ type: "nope" }, [LETTER_CARD])).toEqual([]);

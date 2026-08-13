@@ -490,3 +490,58 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
 
   return { strokes, totalWidthUnits: rightEdge, viewBox: `0 0 ${rightEdge} 150` };
 }
+
+// Gap between two words on the same grid row, in the same native-unit space as
+// totalWidthUnits (150 units = one row's height) — no captured "space" glyph exists to
+// measure this from, so it's a fixed eyeballed constant, not derived from real capture data.
+const WORD_GAP_UNITS = 26;
+
+// Lays a block of text (words separated by " ", manual line breaks by "\n") onto a
+// multi-row writing grid `rowWidthUnits` wide, greedily wrapping a word onto the next row
+// whenever it would no longer fit — the notebook-style layout write_text needs, which
+// buildWordTrajectory alone doesn't provide (it only ever produces one ever-widening row
+// for a single word). A word whose own letters aren't in `lettersByLabel` (or otherwise
+// fails to build) is skipped rather than aborting the whole layout, mirroring
+// WriteWordsView's existing try/catch-and-show-nothing behavior for buildWordTrajectory.
+export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits) {
+  const hardLines = (text ?? "").split("\n");
+  const placed = [];
+  let rowIndex = 0;
+
+  hardLines.forEach((line, lineIdx) => {
+    const words = line.split(" ").filter((w) => w.length > 0);
+    let x = 0;
+    let rowHasContent = false;
+
+    for (const word of words) {
+      let trajectory;
+      try {
+        trajectory = buildWordTrajectory(word, lettersByLabel, connectorsByKey);
+      } catch {
+        continue;
+      }
+      const wordWidth = trajectory.totalWidthUnits;
+
+      // The row's first word always lands where it is, even if wider than rowWidthUnits
+      // itself — otherwise a single overlong word would push rowIndex forward forever,
+      // never finding a row it "fits" on.
+      if (rowHasContent && x + WORD_GAP_UNITS + wordWidth > rowWidthUnits) {
+        rowIndex += 1;
+        x = 0;
+        rowHasContent = false;
+      }
+
+      if (rowHasContent) x += WORD_GAP_UNITS;
+      placed.push({ word, rowIndex, x, trajectory });
+      x += wordWidth;
+      rowHasContent = true;
+    }
+
+    // A manual line break always starts a fresh row, even after an empty line (two Enters
+    // in a row leaves one visibly blank ruled line, matching real notebook behavior).
+    if (lineIdx < hardLines.length - 1) rowIndex += 1;
+  });
+
+  const rowCount = Math.max(rowIndex + 1, 1);
+  return { placed, rowCount };
+}
