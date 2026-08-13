@@ -1156,6 +1156,20 @@ export default function ParamsScreen() {
               />
             );
           }
+          if (def.type === "number") {
+            return (
+              <NumberStepper
+                key={key}
+                label={def.label?.ru ?? key}
+                value={params[key] ?? def.default ?? def.min}
+                min={def.min}
+                max={def.max}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                info={def.info?.ru}
+                onShowInfo={setActiveInfo}
+              />
+            );
+          }
           if (def.type === "boolean") {
             return (
               <BooleanParam

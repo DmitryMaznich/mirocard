@@ -226,6 +226,9 @@ export default function SessionScreen() {
   const isAdvanceGateActive = adultConfirmAdvance && advanceGate !== ADVANCE_GATE_IDLE;
   const isAdvanceReady = adultConfirmAdvance && advanceGate === ADVANCE_GATE_READY;
   const showStandaloneGate = isAdvanceGateActive && !isCorrectFeedback;
+  const tongueAnswerStatus = pillFlash
+    ? (pillFlash === "correct" ? "answer_correct" : "answer_incorrect")
+    : status;
 
   const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
@@ -251,7 +254,7 @@ export default function SessionScreen() {
           total={total}
           correctCount={correctCount}
           incorrectCount={incorrectCount}
-          answerStatus={pillFlash ? (pillFlash === "correct" ? "answer_correct" : "answer_incorrect") : status}
+          answerStatus={tongueAnswerStatus}
           evaluation={mode.evaluation}
           onClose={openSessionExitPrompt}
           tongueLabel={formatPlanTongueLabel(lessonPlan?.activeSessionPlan ?? null)}

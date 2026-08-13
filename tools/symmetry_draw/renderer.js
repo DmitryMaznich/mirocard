@@ -389,14 +389,16 @@
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
-  function NavigatorTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1 }) {
+  function NavigatorTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1, sessionParams }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const startRef = useRef(null);
     const resolvedRef = useRef(false);
     const [trail, setTrail] = useState(null);
     const [result, setResult] = useState(null);
-    const [remaining, setRemaining] = useState(5000);
+    const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
+    const durationMs = responseSeconds * 1000;
+    const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
     const expected = { x: direction.col, y: direction.row };
     const inputStart = { x: 6, y: 6 };
@@ -413,10 +415,10 @@
       startRef.current = null;
       setTrail(null);
       setResult(null);
-      setRemaining(5000);
+      setRemaining(durationMs);
       const startedAt = Date.now();
       const ticker = window.setInterval(() => {
-        const next = Math.max(0, 5000 - (Date.now() - startedAt));
+        const next = Math.max(0, durationMs - (Date.now() - startedAt));
         setRemaining(next);
         if (next === 0 && !resolvedRef.current) {
           resolvedRef.current = true;
@@ -425,7 +427,7 @@
         }
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [task.id]); // Each generated task has a unique id.
+    }, [task.id, durationMs]); // Each generated task has a unique id.
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -523,7 +525,7 @@
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
         h("div", { className: "navigator__command" }, NAVIGATOR_LABEL[task.direction] ?? "Вверх"),
       ),
-      h("div", { className: "navigator__timer", "aria-hidden": "true" }, h("i", { style: { transform: `scaleX(${remaining / 5000})` } })),
+      h("div", { className: `navigator__timer${remaining / durationMs <= .3 ? " navigator__timer--urgent" : ""}`, "aria-hidden": "true" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
       h("div", { className: "navigator__board" },
         h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
           arrows,
