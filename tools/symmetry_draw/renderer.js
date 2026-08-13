@@ -143,6 +143,17 @@
     return points.every((point) => distanceToSegment(point, start, end) <= 0.8);
   }
 
+  // A tap (or short jitter) landing on the target, regardless of where it
+  // started - lets a child pick the next point directly instead of dragging a
+  // line all the way to it. Every recorded point must stay near `end`, which
+  // is what tells a genuine tap apart from a drag that merely passes near the
+  // target on its way through. Duplicated from gesture_match.mjs (see that
+  // file's header comment for why renderer.js can't just import it).
+  function isCorrectTap(points, end, tolerance = 0.55) {
+    if (!points.length) return false;
+    return points.every((point) => distance(point, end) <= tolerance);
+  }
+
   function InstructionGraphic({ command }) {
     return h("div", { className: "dictation__arrow", "aria-hidden": "true" }, DIRECTION[command.direction].arrow);
   }
@@ -259,10 +270,13 @@
       drawingRef.current = false;
       if (event?.currentTarget?.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
       const points = gestureRef.current;
-      const correct = isCorrectMove(points, activePoint, step.end);
+      // Coordinate cards also accept a plain tap on the target point - the
+      // task is "find point X", not "draw a line to it", and the jumps
+      // between points are often too long for a comfortable single drag.
+      const correct = isCorrectMove(points, activePoint, step.end) || (isCoordinate && isCorrectTap(points, step.end));
       if (!correct) {
         setPreview(null);
-        setNotice("Попробуй ещё раз. Начни с активной точки.");
+        setNotice(isCoordinate ? "Попробуй ещё раз. Нажми на точку или веди линию от активной." : "Попробуй ещё раз. Начни с активной точки.");
         return;
       }
       setCompleted((lines) => [...lines, { start: activePoint, end: step.end }]);
