@@ -12,9 +12,10 @@ test("columnLabel skips Ё between Д and Ж", () => {
   assert.equal(columnLabel(6), "Ж");
 });
 
-test("columnLabel skips Й between И and К", () => {
-  assert.equal(columnLabel(8), "И");
-  assert.equal(columnLabel(9), "К");
+test("columnLabel skips visually ambiguous З", () => {
+  assert.equal(columnLabel(7), "И");
+  assert.equal(columnLabel(8), "К");
+  assert.equal(Array.from({ length: 32 }, (_, index) => columnLabel(index)).includes("З"), false);
 });
 
 test("columnLabel covers columns 0-12 with unique, defined letters", () => {

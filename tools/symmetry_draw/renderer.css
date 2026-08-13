@@ -263,6 +263,20 @@
 .dictation--coordinate .dictation__coordinate { font-size: 0.34px; font-weight: 800; }
 .dictation--coordinate .dictation__coordinate--active { fill: #173d91; font-size: 0.4px; }
 .dictation--coordinate .dictation__grid-dot { r: 0.075; }
+.dictation--coordinate .dictation__text { display: flex; align-items: center; justify-content: center; gap: 9px; }
+.dictation__coordinate-prompt { color: #243b65; font: 800 clamp(20px, 3.2vw, 29px)/1 Nunito, sans-serif; }
+.dictation__coordinate-token {
+  min-width: 42px;
+  height: 42px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #fff;
+  font: 900 clamp(25px, 4vw, 34px)/1 Arial, sans-serif;
+  box-shadow: 0 2px 5px rgba(22, 55, 98, .22);
+}
+.dictation__coordinate-token--letter { background: #168f92; border: 2px solid #087477; }
+.dictation__coordinate-token--number { background: #347ad3; border: 2px solid #1e5da9; }
 
 .dictation__tap-mark {
   fill: rgba(37, 99, 235, 0.16);

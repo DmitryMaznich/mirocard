@@ -159,12 +159,12 @@
   }
 
   // Battleship-style column letters used only when shape.taskKind === "coordinate".
-  // Skips Ё and Й (pronunciation/visual ambiguity). Duplicated from
+  // Skips Ё, Й and З (pronunciation/visual ambiguity). Duplicated from
   // tools/symmetry_draw/column_label.mjs — this file ships as a raw browser
   // script inside the topic ZIP (no bundler pass, no imports), same reason
   // DIRECTION/commandsToPath are duplicated between verify_trace.mjs and here.
   const COORDINATE_COLUMN_LETTERS = [
-    "А", "Б", "В", "Г", "Д", "Е", "Ж", "З", "И", "К", "Л", "М", "Н",
+    "А", "Б", "В", "Г", "Д", "Е", "Ж", "И", "К", "Л", "М", "Н",
     "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ",
     "Ы", "Ь", "Э", "Ю", "Я",
   ];
@@ -191,6 +191,7 @@
         end: point,
         text: coordinateText(point),
         speech: coordinateSpeech(point),
+        coordinate: { letter: columnLabel(point.col), number: point.row + 1 },
       }));
     }
     let current = shape.start;
@@ -344,7 +345,17 @@
       h("div", { className: "dictation__command" },
         step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
         h("div", { className: "dictation__command-copy" },
-          h("div", { className: "dictation__text" }, finished ? `Получился рисунок: ${shape.label}` : step?.text ?? ""),
+          h("div", { className: "dictation__text" },
+            finished
+              ? `Получился рисунок: ${shape.label}`
+              : isCoordinate && step?.coordinate
+                ? [
+                    h("span", { key: "prompt", className: "dictation__coordinate-prompt" }, "Найди точку"),
+                    h("span", { key: "letter", className: "dictation__coordinate-token dictation__coordinate-token--letter", "aria-label": `Буква ${step.coordinate.letter}` }, step.coordinate.letter),
+                    h("span", { key: "number", className: "dictation__coordinate-token dictation__coordinate-token--number", "aria-label": `Цифра ${step.coordinate.number}` }, step.coordinate.number),
+                  ]
+                : step?.text ?? "",
+          ),
         ),
         !finished ? h("button", { type: "button", className: "dictation__repeat", onClick: speakInstruction, "aria-label": "Повторить инструкцию", title: "Повторить инструкцию" }, "↻") : null,
       ),
