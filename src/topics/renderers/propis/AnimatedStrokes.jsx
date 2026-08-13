@@ -23,15 +23,18 @@ export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs
           d={s.d} fill="none" stroke={INK_COLOR}
           strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
       ))}
-      {/* Small pen: a gold shaft held at a fixed writing angle, plus the actual contact
-          point in the ink color — reads as "a pen touching the paper" even at the tiny
-          real on-screen size this animation runs at (verified via screenshot mockup,
-          2026-08-13: a plain/bigger dot or an oriented arrowhead were indistinguishable
-          blobs at true scale; this silhouette was the only one that still read as a pen). */}
+      {/* Small pen: a rounded gold body tapering to a pointed ink-colored tip, held at a
+          fixed writing angle. First attempt (a thin shaft+dot, ~7 units) was reported as
+          reading as an invisible speck on a real phone — measured true on-screen size is
+          well under 10px there, so a bigger, bolder FILLED silhouette (not thin strokes,
+          which anti-alias away at this scale) was needed. Sized ~24 units — visible next
+          to the letter without dominating it — chosen from a 3-way screenshot mockup
+          compared against a real captured letter at true scale (2026-08-13). */}
       <g data-pr-tip opacity="0">
-        <line x1="0.6" y1="-0.9" x2="4.5" y2="-5.2" stroke={NIB_COLOR} strokeWidth="1.4" strokeLinecap="round" />
-        <circle cx="4.5" cy="-5.2" r="0.7" fill={NIB_COLOR} />
-        <circle cx="0" cy="0" r="0.75" fill={INK_COLOR} />
+        <g transform="rotate(-55)">
+          <path d="M 0 0 L -2.6 -4.5 L -2.6 -21 Q -2.6 -24 0 -24.5 Q 2.6 -24 2.6 -21 L 2.6 -4.5 Z" fill={NIB_COLOR} />
+          <path d="M -2.6 -4.5 L 0 0 L 2.6 -4.5 Z" fill={INK_COLOR} />
+        </g>
       </g>
     </g>
   );

@@ -32,13 +32,14 @@ export default function LoopingLetterCell({ item, delayMs = 0, loopPauseMs = 140
         <path key={`a${i}`} data-pr-anim={i} d={s.d} fill="none" stroke={INK_COLOR}
           strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
       ))}
-      {/* Small pen: a gold shaft held at a fixed writing angle, plus the actual contact
-          point in the ink color — see AnimatedStrokes.jsx for the same markup and the
+      {/* Small pen: a rounded gold body tapering to a pointed ink-colored tip, held at a
+          fixed writing angle — see AnimatedStrokes.jsx for the sizing rationale and the
           reasoning behind this exact shape (shared visual language across the topic). */}
       <g data-pr-tip opacity="0">
-        <line x1="0.6" y1="-0.9" x2="4.5" y2="-5.2" stroke={NIB_COLOR} strokeWidth="1.4" strokeLinecap="round" />
-        <circle cx="4.5" cy="-5.2" r="0.7" fill={NIB_COLOR} />
-        <circle cx="0" cy="0" r="0.75" fill={INK_COLOR} />
+        <g transform="rotate(-55)">
+          <path d="M 0 0 L -2.6 -4.5 L -2.6 -21 Q -2.6 -24 0 -24.5 Q 2.6 -24 2.6 -21 L 2.6 -4.5 Z" fill={NIB_COLOR} />
+          <path d="M -2.6 -4.5 L 0 0 L 2.6 -4.5 Z" fill={INK_COLOR} />
+        </g>
       </g>
     </g>
   );
