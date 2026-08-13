@@ -453,14 +453,27 @@
       const unit = { x: (end.x - start.x) / length, y: (end.y - start.y) / length };
       const side = { x: -unit.y, y: unit.x };
       const headBase = { x: end.x - unit.x * 0.92, y: end.y - unit.y * 0.92 };
-      const headPoints = [
-        `${end.x},${end.y}`,
-        `${headBase.x + side.x * 0.66},${headBase.y + side.y * 0.66}`,
-        `${headBase.x - side.x * 0.66},${headBase.y - side.y * 0.66}`,
+      const shaftHalf = 0.31;
+      const outerLeft = { x: headBase.x + side.x * 0.66, y: headBase.y + side.y * 0.66 };
+      const innerLeft = { x: headBase.x + side.x * shaftHalf, y: headBase.y + side.y * shaftHalf };
+      const tailLeft = { x: start.x + side.x * shaftHalf, y: start.y + side.y * shaftHalf };
+      const tailRight = { x: start.x - side.x * shaftHalf, y: start.y - side.y * shaftHalf };
+      const innerRight = { x: headBase.x - side.x * shaftHalf, y: headBase.y - side.y * shaftHalf };
+      const outerRight = { x: headBase.x - side.x * 0.66, y: headBase.y - side.y * 0.66 };
+      // A single filled outline keeps the broad, rounded mockup arrow intact.
+      // Unlike an SVG marker, this silhouette is supported by every deck host.
+      const arrowPath = [
+        `M ${tailLeft.x} ${tailLeft.y}`,
+        `L ${innerLeft.x} ${innerLeft.y}`,
+        `L ${outerLeft.x} ${outerLeft.y}`,
+        `L ${end.x} ${end.y}`,
+        `L ${outerRight.x} ${outerRight.y}`,
+        `L ${innerRight.x} ${innerRight.y}`,
+        `L ${tailRight.x} ${tailRight.y}`,
+        "Z",
       ].join(" ");
       return h("g", { key, className: `navigator__route navigator__route--${key}` },
-        h("line", { className: "navigator__shaft", x1: start.x, y1: start.y, x2: headBase.x, y2: headBase.y }),
-        h("polygon", { className: "navigator__arrowhead", points: headPoints }),
+        h("path", { className: "navigator__arrow", d: arrowPath }),
         h("circle", { className: "navigator__start", cx: start.x, cy: start.y, r: "0.22" }),
         h("circle", { className: "navigator__dash", r: "0.105" },
           h("animateMotion", { path: `M ${start.x} ${start.y} L ${end.x} ${end.y}`, dur: "1.25s", repeatCount: "indefinite" }),
