@@ -406,6 +406,10 @@
   user-select: none;
 }
 .navigator__route { color: #2d67b4; }
+.navigator__grid line { stroke: #afd0ea; stroke-width: .028; vector-effect: non-scaling-stroke; pointer-events: none; }
+.navigator--grid-route .navigator__board { padding: clamp(18px, 3vw, 32px) clamp(20px, 9vw, 118px) clamp(16px, 3vw, 30px); }
+.navigator--grid-route .navigator__svg { max-height: min(56vh, 560px); }
+.navigator--grid-route .navigator__input-start { fill: #f2c75b; stroke: #9a6b11; stroke-width: .09; }
 .navigator__arrow {
   fill: currentColor;
   stroke: currentColor;

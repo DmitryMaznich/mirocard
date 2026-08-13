@@ -54,6 +54,7 @@ function generateNavigatorTasks(concepts) {
     card: base,
     label: base.label,
     direction,
+    cells: (index % 3) + 1,
   }));
 }
 

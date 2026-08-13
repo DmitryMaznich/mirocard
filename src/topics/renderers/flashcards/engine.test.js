@@ -70,6 +70,8 @@ describe("generateTasks — symmetry_draw modes", () => {
     expect(new Set(tasks.map((task) => task.direction))).toEqual(new Set([
       "up", "down", "left", "right", "up_left", "up_right", "down_left", "down_right",
     ]));
+    expect(tasks.every((task) => Number.isInteger(task.cells) && task.cells >= 1 && task.cells <= 3)).toBe(true);
+    expect(new Set(tasks.map((task) => task.cells))).toEqual(new Set([1, 2, 3]));
   });
 
   it("each generator still returns conceptId, card, and label", () => {

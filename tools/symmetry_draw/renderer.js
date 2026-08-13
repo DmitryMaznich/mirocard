@@ -129,6 +129,13 @@
     return `${command.cells} ${word} ${DIRECTION[command.direction].label}`;
   }
 
+  function navigatorRouteText(direction, cells) {
+    const count = Math.max(1, Number(cells) || 1);
+    const word = count === 1 ? "клетку" : count < 5 ? "клетки" : "клеток";
+    const label = NAVIGATOR_LABEL[direction] ?? "Вверх";
+    return `${label} на ${count} ${word}`;
+  }
+
   function distanceToSegment(point, start, end) {
     const dx = end.col - start.col;
     const dy = end.row - start.row;
@@ -411,8 +418,11 @@
     const durationMs = responseSeconds * 1000;
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
+    const isGridRoute = sessionParams?.navigatorExercise === "grid_route";
+    const cells = Math.max(1, Math.min(3, Math.round(Number(task.cells) || 1)));
     const expected = { x: direction.col, y: direction.row };
     const inputStart = { x: 6, y: 6 };
+    const routeEnd = { x: inputStart.x + expected.x * cells, y: inputStart.y + expected.y * cells };
     // The single star mirrors the shared "Серия для видеонаграды" setting:
     // 5 / 10 / 15 answers means one ray fills after 1 / 2 / 3 correct answers.
     // Use floor so a ray never appears before its full part of the streak.
@@ -492,7 +502,10 @@
       const moveLength = Math.hypot(move.x, move.y);
       const startDistance = Math.hypot(start.x - inputStart.x, start.y - inputStart.y);
       const directionCosine = moveLength ? (move.x * expected.x + move.y * expected.y) / (moveLength * Math.hypot(expected.x, expected.y)) : -1;
-      const correct = startDistance <= 1.2 && moveLength >= 1.45 && directionCosine >= 0.68;
+      const endDistance = Math.hypot(end.x - routeEnd.x, end.y - routeEnd.y);
+      const correct = isGridRoute
+        ? startDistance <= .72 && moveLength >= Math.max(.8, cells * .62) && directionCosine >= .8 && endDistance <= .72
+        : startDistance <= 1.2 && moveLength >= 1.45 && directionCosine >= .68;
       resolve(correct);
     }
 
@@ -531,15 +544,22 @@
     });
 
     const trailPath = trail ? `M ${trail[0].x} ${trail[0].y} L ${trail[1].x} ${trail[1].y}` : null;
+    const routeGrid = [];
+    if (isGridRoute) {
+      for (let index = 0; index <= 12; index += 1) {
+        routeGrid.push(h("line", { key: `vertical-${index}`, x1: index, y1: 0, x2: index, y2: 12 }));
+        routeGrid.push(h("line", { key: `horizontal-${index}`, x1: 0, y1: index, x2: 12, y2: index }));
+      }
+    }
     const timerState = remaining <= 1500
       ? " navigator__timer--urgent"
       : remaining / durationMs <= .4
         ? " navigator__timer--warning"
         : "";
-    return h("section", { className: `navigator navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
+    return h("section", { className: `navigator${isGridRoute ? " navigator--grid-route" : ""} navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
-        h("div", { className: "navigator__command" }, NAVIGATOR_LABEL[task.direction] ?? "Вверх"),
+        h("div", { className: "navigator__command" }, isGridRoute ? navigatorRouteText(task.direction, cells) : (NAVIGATOR_LABEL[task.direction] ?? "Вверх")),
       ),
       h("div", { className: `navigator__timer${timerState}`, "aria-label": "Время на ответ" },
         h("div", { className: "navigator__timer-track" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
@@ -550,8 +570,10 @@
       ),
       h("div", { className: "navigator__board" },
         h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
-          arrows,
-          h("circle", { className: "navigator__input-start", cx: inputStart.x, cy: inputStart.y, r: "0.3" }),
+          isGridRoute ? h("g", { className: "navigator__grid" }, routeGrid) : arrows,
+          h("circle", { className: "navigator__input-start", cx: inputStart.x, cy: inputStart.y, r: isGridRoute ? "0.22" : "0.3" },
+            isGridRoute ? h("animate", { attributeName: "r", values: ".22;.34;.22", dur: "1.1s", repeatCount: "indefinite" }) : null,
+          ),
           trailPath ? h("path", { className: "navigator__trail", d: trailPath }) : null,
         ),
       ),

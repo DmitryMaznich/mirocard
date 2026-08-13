@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.4",
+    "version": "1.8.5",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -75,6 +75,19 @@
       "answersPerStar": 1,
       "hideConceptPicker": true,
       "params": {
+        "navigatorExercise": {
+          "type": "enum",
+          "label": { "ru": "Вариант тренировки" },
+          "values": ["direction", "grid_route"],
+          "default": "direction",
+          "labels": { "ru": { "direction": "Направление", "grid_route": "Маршрут по клеткам" } },
+          "info": {
+            "ru": {
+              "text": "«Направление» — свайп в нужную сторону. «Маршрут по клеткам» добавляет длину шага: проведи линию от центра до нужного узла сетки.",
+              "tip": "Начните с «Направления», затем переходите к маршрутам по клеткам."
+            }
+          }
+        },
         "responseSeconds": {
           "type": "number",
           "label": { "ru": "Время на ответ, сек." },
