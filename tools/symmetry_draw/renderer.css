@@ -339,7 +339,7 @@
   stroke-linejoin: round;
   stroke-linecap: round;
 }
-.navigator__start { fill: #d8e8f5; stroke: #fff; stroke-width: .08; pointer-events: none; }
+.navigator__input-start { fill: #e5f1fa; stroke: #2d67b4; stroke-width: .09; pointer-events: none; }
 .navigator__dash { fill: #e4effa; pointer-events: none; }
 .navigator__trail { fill: none; stroke: #2f837c; stroke-width: .5; stroke-linecap: round; pointer-events: none; }
 .navigator--good .navigator__route { color: #b8cbe4; opacity: .42; }

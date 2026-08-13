@@ -346,10 +346,9 @@
     );
   }
 
-  // Eight broad routes are intentionally forgiving: this is a spatial-language
-  // exercise, not a test of fine motor accuracy. A valid gesture starts near
-  // the tail, travels at least 62% of the route and stays within 32° of the
-  // requested direction.
+  // The eight arrows are visual orientation cues. The child always starts from
+  // the single centre marker, then a broad directional swipe is enough — this
+  // is a spatial-language exercise, not a test of tracing an arrow precisely.
   function NavigatorTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1 }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
@@ -360,8 +359,7 @@
     const [remaining, setRemaining] = useState(5000);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
     const expected = { x: direction.col, y: direction.row };
-    const routeStart = { x: 6 + expected.x * 1.75, y: 6 + expected.y * 1.75 };
-    const routeEnd = { x: 6 + expected.x * 4.65, y: 6 + expected.y * 4.65 };
+    const inputStart = { x: 6, y: 6 };
     // The single star mirrors the shared "Серия для видеонаграды" setting:
     // 5 / 10 / 15 answers means one ray fills after 1 / 2 / 3 correct answers.
     // Use floor so a ray never appears before its full part of the streak.
@@ -438,11 +436,10 @@
       const start = startRef.current;
       if (!end) return resolve(false);
       const move = { x: end.x - start.x, y: end.y - start.y };
-      const expectedLength = Math.hypot(routeEnd.x - routeStart.x, routeEnd.y - routeStart.y);
       const moveLength = Math.hypot(move.x, move.y);
-      const startDistance = Math.hypot(start.x - routeStart.x, start.y - routeStart.y);
+      const startDistance = Math.hypot(start.x - inputStart.x, start.y - inputStart.y);
       const directionCosine = moveLength ? (move.x * expected.x + move.y * expected.y) / (moveLength * Math.hypot(expected.x, expected.y)) : -1;
-      const correct = startDistance <= 1.05 && moveLength >= expectedLength * 0.62 && directionCosine >= 0.85;
+      const correct = startDistance <= 1.2 && moveLength >= 1.45 && directionCosine >= 0.68;
       resolve(correct);
     }
 
@@ -474,7 +471,6 @@
       ].join(" ");
       return h("g", { key, className: `navigator__route navigator__route--${key}` },
         h("path", { className: "navigator__arrow", d: arrowPath }),
-        h("circle", { className: "navigator__start", cx: start.x, cy: start.y, r: "0.22" }),
         h("circle", { className: "navigator__dash", r: "0.105" },
           h("animateMotion", { path: `M ${start.x} ${start.y} L ${end.x} ${end.y}`, dur: "1.25s", repeatCount: "indefinite" }),
         ),
@@ -489,8 +485,9 @@
       ),
       h("div", { className: "navigator__timer", "aria-hidden": "true" }, h("i", { style: { transform: `scaleX(${remaining / 5000})` } })),
       h("div", { className: "navigator__board" },
-        h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
+        h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
           arrows,
+          h("circle", { className: "navigator__input-start", cx: inputStart.x, cy: inputStart.y, r: "0.3" }),
           trailPath ? h("path", { className: "navigator__trail", d: trailPath }) : null,
         ),
       ),
