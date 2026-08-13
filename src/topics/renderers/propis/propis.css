@@ -157,6 +157,11 @@
   filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.12));
 }
 
+/* Invisible tap target covering a whole placed word — pointer-events:all is required
+   because the paths/rect it sits behind use fill="none"/"transparent", which the SVG
+   pointer-events model does NOT hit-test by default (only "painted" fills are). */
+.propis-text-word-hit { fill: transparent; pointer-events: all; cursor: pointer; }
+
 .propis-practice-keyboard {
   flex: 0 0 auto;
   display: flex;

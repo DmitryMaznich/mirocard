@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { layoutTextIntoRows } from "./wordEngine.js";
+import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import { INK_COLOR, NATIVE_L1, NATIVE_L2, NATIVE_L3, NATIVE_L4, UNIT_H } from "./propisRuling.js";
 
 const DIGIT_ROW = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -64,6 +65,8 @@ export default function WriteTextView({ task, onClose }) {
 
   const [text, setText] = useState("");
   const [caseMode, setCaseMode] = useState("lower");
+  const [activeIndex, setActiveIndex] = useState(null);
+  useEffect(() => setActiveIndex(null), [text]);
 
   const wrapRef = useRef(null);
   const [wrapW, setWrapW] = useState(320);
@@ -134,29 +137,42 @@ export default function WriteTextView({ task, onClose }) {
                 />
               ))
             )}
-            {layout.placed.map((p, i) => (
-              <g key={i} transform={`translate(${p.x} ${p.rowIndex * UNIT_H})`}>
-                {p.segments.map((seg, si) =>
-                  seg.type === "cursive" ? (
-                    <g key={si} transform={`translate(${seg.xOffset} 0)`}>
-                      {seg.trajectory.strokes.map((s, ssi) => (
-                        <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                      ))}
-                    </g>
-                  ) : (
-                    <text
-                      key={si}
-                      x={seg.xOffset} y={NATIVE_L3}
-                      fontSize={FALLBACK_FONT_SIZE}
-                      fontFamily="system-ui, sans-serif"
-                      fill={INK_COLOR}
-                    >
-                      {seg.text}
-                    </text>
-                  )
-                )}
-              </g>
-            ))}
+            {layout.placed.map((p, i) => {
+              const wordWidth = p.segments.reduce((sum, seg) => sum + seg.width, 0);
+              const isActive = i === activeIndex;
+              return (
+                <g key={i} transform={`translate(${p.x} ${p.rowIndex * UNIT_H})`}>
+                  <rect
+                    className="propis-text-word-hit"
+                    x={-4} y={0} width={wordWidth + 8} height={UNIT_H}
+                    onClick={() => setActiveIndex((cur) => (cur === i ? null : i))}
+                  />
+                  {p.segments.map((seg, si) =>
+                    seg.type === "cursive" ? (
+                      <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                        {isActive ? (
+                          <AnimatedStrokes trajectory={seg.trajectory} />
+                        ) : (
+                          seg.trajectory.strokes.map((s, ssi) => (
+                            <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          ))
+                        )}
+                      </g>
+                    ) : (
+                      <text
+                        key={si}
+                        x={seg.xOffset} y={NATIVE_L3}
+                        fontSize={FALLBACK_FONT_SIZE}
+                        fontFamily="system-ui, sans-serif"
+                        fill={INK_COLOR}
+                      >
+                        {seg.text}
+                      </text>
+                    )
+                  )}
+                </g>
+              );
+            })}
           </svg>
         </div>
 
