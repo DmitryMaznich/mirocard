@@ -28,6 +28,7 @@ const TASK_KIND_BY_MODE_TYPE = {
   repeat_draw: "repeat",
   graphic_dictation: "dictation",
   coordinate_dictation: "coordinate",
+  navigator: "navigator",
 };
 
 // word_agreement bundles several unrelated skills (case, verb number, verb

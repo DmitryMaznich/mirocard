@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -67,9 +67,28 @@
         "instruction": "Найди точку по координатам и веди линию от активной точки",
         "icon": "media/dictation_avatar.svg"
       }
+    },
+    {
+      "id": "navigator",
+      "type": "navigator",
+      "evaluation": "instant",
+      "answersPerStar": 1,
+      "hideConceptPicker": true,
+      "ui": {
+        "title": "Навигатор",
+        "instruction": "Слушай направление и проведи по нужной стрелке",
+        "icon": "media/dictation_avatar.svg"
+      }
     }
   ],
   "cards": [
+    {
+      "id": "navigator_directions",
+      "conceptId": "navigator_directions",
+      "primary": true,
+      "label": "Направления",
+      "taskKind": "navigator"
+    },
     {
       "id": "symmetry_house",
       "conceptId": "symmetry_house",

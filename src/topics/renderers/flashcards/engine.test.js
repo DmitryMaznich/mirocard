@@ -24,13 +24,14 @@ describe("generateTasks — intro", () => {
   });
 });
 
-describe("generateTasks — mirror_draw / repeat_draw / graphic_dictation", () => {
+describe("generateTasks — symmetry_draw modes", () => {
   const MIXED_CARDS = [
     { id: "m1", conceptId: "m1", primary: true, label: "Дом",   taskKind: "mirror", sourcePaths: [] },
     { id: "m2", conceptId: "m2", primary: true, label: "Лодка", taskKind: "mirror", sourcePaths: [] },
     { id: "r1", conceptId: "r1", primary: true, label: "Ракета", taskKind: "repeat", sourcePaths: [] },
     { id: "d1", conceptId: "d1", primary: true, label: "Собака", taskKind: "dictation", start: { col: 0, row: 0 }, commands: [] },
     { id: "c1", conceptId: "c1", primary: true, label: "Ёлка", taskKind: "coordinate", start: { col: 0, row: 0 }, points: [] },
+    { id: "n1", conceptId: "n1", primary: true, label: "Навигатор", taskKind: "navigator" },
   ];
   const MIXED_CONCEPTS = deriveConcepts(MIXED_CARDS);
 
@@ -60,6 +61,15 @@ describe("generateTasks — mirror_draw / repeat_draw / graphic_dictation", () =
     expect(tasks).toHaveLength(1);
     expect(tasks[0]).toMatchObject({ type: "coordinate_dictation", conceptId: "c1" });
     expect(tasks[0].card.taskKind).toBe("coordinate");
+  });
+
+  it("navigator creates a twenty-step mixed direction drill", () => {
+    const tasks = generateTasks("navigator", MIXED_CONCEPTS, MIXED_CARDS, {});
+    expect(tasks).toHaveLength(20);
+    expect(tasks.every((task) => task.type === "navigator" && task.card.taskKind === "navigator")).toBe(true);
+    expect(new Set(tasks.map((task) => task.direction))).toEqual(new Set([
+      "up", "down", "left", "right", "up_left", "up_right", "down_left", "down_right",
+    ]));
   });
 
   it("each generator still returns conceptId, card, and label", () => {

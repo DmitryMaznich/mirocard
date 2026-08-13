@@ -68,6 +68,7 @@ describe("getConceptCards", () => {
       { id: "r1", conceptId: "r1", taskKind: "repeat" },
       { id: "d1", conceptId: "d1", taskKind: "dictation" },
       { id: "c1", conceptId: "c1", taskKind: "coordinate" },
+      { id: "n1", conceptId: "n1", taskKind: "navigator" },
     ],
   };
 
@@ -89,6 +90,11 @@ describe("getConceptCards", () => {
   it("scopes coordinate_dictation to taskKind:coordinate cards only", () => {
     const cards = getConceptCards(symmetryDrawRecord, { type: "coordinate_dictation" });
     expect(cards.map((c) => c.id)).toEqual(["c1"]);
+  });
+
+  it("scopes navigator to its direction-drill metadata card", () => {
+    const cards = getConceptCards(symmetryDrawRecord, { type: "navigator" });
+    expect(cards.map((c) => c.id)).toEqual(["n1"]);
   });
 });
 

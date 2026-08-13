@@ -37,6 +37,26 @@ function generateCoordinateDictationTasks(concepts) {
   return generateIntroTasks(filterByTaskKind(concepts, "coordinate")).map((t) => ({ ...t, type: "coordinate_dictation" }));
 }
 
+// Navigator is deliberately a short, repeating reaction drill instead of a
+// finite set of picture cards. The one metadata card keeps it compatible with
+// the topic/concept picker; every generated task then carries its own direction.
+function generateNavigatorTasks(concepts) {
+  const cards = filterByTaskKind(concepts, "navigator");
+  const source = cards.flatMap((concept) => concept.cards.filter((card) => card.taskKind === "navigator"));
+  const base = source[0];
+  if (!base) return [];
+  const directions = ["up", "down", "left", "right", "up_left", "up_right", "down_left", "down_right"];
+  const sequence = Array.from({ length: 20 }, (_, index) => directions[index % directions.length]);
+  return shuffle(sequence).map((direction, index) => ({
+    type: "navigator",
+    id: `navigator_${index}_${direction}`,
+    conceptId: base.conceptId,
+    card: base,
+    label: base.label,
+    direction,
+  }));
+}
+
 function generateSituationEmotionTasks(displayConcepts, allCards, params) {
   const optionCount = params.optionCount ?? 4;
   const difficulty = params.distractorLevel ?? "medium";
@@ -264,6 +284,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts);
     case "coordinate_dictation":   return generateCoordinateDictationTasks(displayConcepts);
+    case "navigator":              return generateNavigatorTasks(displayConcepts);
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
     case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards);
     case "emotion_situation":      return generateEmotionSituationTasks(displayConcepts, allCards, params);

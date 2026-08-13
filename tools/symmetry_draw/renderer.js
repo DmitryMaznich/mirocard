@@ -2,7 +2,7 @@
   const React = window.__Mirocard?.React;
   if (!React) throw new Error("Mirocard React runtime is unavailable");
 
-  const { createElement: h, useMemo, useRef, useState } = React;
+  const { createElement: h, useEffect, useMemo, useRef, useState } = React;
 
   // How close (in grid cells) a drawn point must land to an ideal target point
   // to "cover" it. Tuned against a simulated hand trace (smooth wobble + jitter):
@@ -106,6 +106,17 @@
     down_right: { col: 1, row: 1, label: "вправо-вниз", arrow: "↘" },
     up_left: { col: -1, row: -1, label: "влево-вверх", arrow: "↖" },
     down_left: { col: -1, row: 1, label: "влево-вниз", arrow: "↙" },
+  };
+
+  const NAVIGATOR_LABEL = {
+    up: "Вверх",
+    down: "Вниз",
+    right: "Вправо",
+    left: "Влево",
+    up_right: "Вверх и вправо",
+    down_right: "Вниз и вправо",
+    up_left: "Вверх и влево",
+    down_left: "Вниз и влево",
   };
 
   function commandEnd(start, command) {
@@ -334,6 +345,130 @@
       notice ? h("p", { className: "dictation__notice", "aria-live": "polite" }, notice) : null,
     );
   }
+
+  // Eight broad routes are intentionally forgiving: this is a spatial-language
+  // exercise, not a test of fine motor accuracy. A valid gesture starts near
+  // the tail, travels at least 62% of the route and stays within 32° of the
+  // requested direction.
+  function NavigatorTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1 }) {
+    const svgRef = useRef(null);
+    const drawingRef = useRef(false);
+    const startRef = useRef(null);
+    const resolvedRef = useRef(false);
+    const [trail, setTrail] = useState(null);
+    const [result, setResult] = useState(null);
+    const [remaining, setRemaining] = useState(3000);
+    const direction = DIRECTION[task.direction] ?? DIRECTION.up;
+    const expected = { x: direction.col, y: direction.row };
+    const routeStart = { x: 6 + expected.x * 1.75, y: 6 + expected.y * 1.75 };
+    const routeEnd = { x: 6 + expected.x * 4.65, y: 6 + expected.y * 4.65 };
+    const streakStep = Math.min(5, Math.max(0, Math.round(streakCount / Math.max(1, answersPerStar))));
+
+    useEffect(() => {
+      resolvedRef.current = false;
+      drawingRef.current = false;
+      startRef.current = null;
+      setTrail(null);
+      setResult(null);
+      setRemaining(3000);
+      const startedAt = Date.now();
+      const ticker = window.setInterval(() => {
+        const next = Math.max(0, 3000 - (Date.now() - startedAt));
+        setRemaining(next);
+        if (next === 0 && !resolvedRef.current) {
+          resolvedRef.current = true;
+          setResult("miss");
+          window.setTimeout(() => onIncorrect?.(task.conceptId, task.card?.id), 360);
+        }
+      }, 50);
+      return () => window.clearInterval(ticker);
+    }, [task.id]); // Each generated task has a unique id.
+
+    function localPoint(event) {
+      const svg = svgRef.current;
+      if (!svg) return null;
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return null;
+      const local = point.matrixTransform(ctm.inverse());
+      return { x: Math.max(0, Math.min(12, local.x)), y: Math.max(0, Math.min(12, local.y)) };
+    }
+
+    function resolve(correct) {
+      if (resolvedRef.current) return;
+      resolvedRef.current = true;
+      setResult(correct ? "good" : "miss");
+      window.setTimeout(() => {
+        if (correct) onCorrect?.(task.conceptId, task.card?.id);
+        else onIncorrect?.(task.conceptId, task.card?.id);
+      }, correct ? 420 : 360);
+    }
+
+    function startGesture(event) {
+      if (resolvedRef.current) return;
+      event.preventDefault();
+      const point = localPoint(event);
+      if (!point) return;
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+      drawingRef.current = true;
+      startRef.current = point;
+      setTrail([point, point]);
+    }
+
+    function moveGesture(event) {
+      if (!drawingRef.current || resolvedRef.current) return;
+      event.preventDefault();
+      const point = localPoint(event);
+      if (!point || !startRef.current) return;
+      setTrail([startRef.current, point]);
+    }
+
+    function finishGesture(event) {
+      if (!drawingRef.current || resolvedRef.current || !startRef.current) return;
+      drawingRef.current = false;
+      if (event.currentTarget?.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      const end = localPoint(event);
+      const start = startRef.current;
+      if (!end) return resolve(false);
+      const move = { x: end.x - start.x, y: end.y - start.y };
+      const expectedLength = Math.hypot(routeEnd.x - routeStart.x, routeEnd.y - routeStart.y);
+      const moveLength = Math.hypot(move.x, move.y);
+      const startDistance = Math.hypot(start.x - routeStart.x, start.y - routeStart.y);
+      const directionCosine = moveLength ? (move.x * expected.x + move.y * expected.y) / (moveLength * Math.hypot(expected.x, expected.y)) : -1;
+      const correct = startDistance <= 1.05 && moveLength >= expectedLength * 0.62 && directionCosine >= 0.85;
+      resolve(correct);
+    }
+
+    const arrows = Object.entries(DIRECTION).map(([key, item]) => {
+      const start = { x: 6 + item.col * 1.75, y: 6 + item.row * 1.75 };
+      const end = { x: 6 + item.col * 4.65, y: 6 + item.row * 4.65 };
+      return h("g", { key, className: `navigator__route navigator__route--${key}` },
+        h("line", { x1: start.x, y1: start.y, x2: end.x, y2: end.y, markerEnd: "url(#navigator-head)" }),
+        h("circle", { className: "navigator__start", cx: start.x, cy: start.y, r: "0.22" }),
+        h("line", { className: "navigator__dash", x1: start.x, y1: start.y, x2: end.x, y2: end.y }),
+      );
+    });
+
+    const trailPath = trail ? `M ${trail[0].x} ${trail[0].y} L ${trail[1].x} ${trail[1].y}` : null;
+    return h("section", { className: `navigator navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
+      h("div", { className: "navigator__instruction" },
+        h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${streakStep * 20}%` }, "aria-label": `Серия: ${streakStep} из 5` }, "★"),
+        h("div", { className: "navigator__command" }, NAVIGATOR_LABEL[task.direction] ?? "Вверх"),
+      ),
+      h("div", { className: "navigator__timer", "aria-hidden": "true" }, h("i", { style: { transform: `scaleX(${remaining / 3000})` } })),
+      h("div", { className: "navigator__board" },
+        h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
+          h("defs", null,
+            h("marker", { id: "navigator-head", markerWidth: "0.8", markerHeight: "0.8", refX: "0.58", refY: "0.4", orient: "auto", markerUnits: "strokeWidth" }, h("path", { d: "M 0 0 L .8 .4 L 0 .8 z" })),
+          ),
+          arrows,
+          trailPath ? h("path", { className: "navigator__trail", d: trailPath }) : null,
+        ),
+      ),
+    );
+  }
   function GridTask({ task, mode, onCorrect, onAdvance }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
@@ -487,6 +622,7 @@
 
   window.__MirocardRenderer = function SymmetryDrawRenderer(props) {
     const isDictationLike = props.task?.type === "graphic_dictation" || props.task?.type === "coordinate_dictation";
+    if (props.task?.type === "navigator") return h(NavigatorTask, props);
     return isDictationLike ? h(DictationTask, props) : h(GridTask, props);
   };
 })();

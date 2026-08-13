@@ -793,7 +793,7 @@ export default function ParamsScreen() {
   // table) and "mirror"/"repeat" cards (sourcePaths/axisCol strip) - a "coordinate"
   // card has neither shape and would print as garbled/NaN output, so print stays
   // unavailable for that mode until it gets its own print layout.
-  const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && mode?.type !== "coordinate_dictation";
+  const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
   const modeHasCategoryParam  = !!mode?.params?.category;
 
   const [showShare, setShowShare] = useState(false);

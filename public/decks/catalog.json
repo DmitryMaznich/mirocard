@@ -368,14 +368,14 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.7.0",
-      "url": "./decks/symmetry_draw_v1.7.0.zip",
-      "zipUrl": "symmetry_draw_v1.7.0.zip",
+      "version": "1.8.0",
+      "url": "./decks/symmetry_draw_v1.8.0.zip",
+      "zipUrl": "symmetry_draw_v1.8.0.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },
       "description": {
-        "ru": "Симметрия, повтор, графический диктант и точки по координатам на клетчатом поле."
+        "ru": "Симметрия, повтор, графический диктант, точки по координатам и тренировка направлений."
       },
       "renderer": "flashcards",
       "status": "release",
