@@ -634,6 +634,31 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     expect(oStroke.end[0] - oStroke.start[0]).toBeCloseTo(ownLast.end[0] - ownLast.start[0], 6);
   });
 
+  it("falls back to the lower-entryType last-position variant when no upper-entryType one is captured", () => {
+    // Regression (2026-08-13): "ооо"/"оо" rendered as a garbled, wrongly-placed mess — the
+    // word-final о (preceded by another о, so entryType "upper") had no matching
+    // variants.last.upper card in the real data (only о_last_l — "lower" — is captured), so
+    // resolveVariant returned null and the letter fell all the way through to the PLAIN о
+    // card placed via a raw no-connector snap. That snap anchors to the previous variant's
+    // own (non-canonical) exit line instead of the usual line-4 hand-off, which the plain
+    // card's entry was never designed to receive directly — visually, the letter landed far
+    // off its expected position. Falling back to the captured (if entryType-mismatched)
+    // о_last_l — a real captured "о" shape with its own proper entry motion — instead of the
+    // uncaptured-for-this-case plain card is a strict improvement even though it isn't a
+    // perfect match; the real fix is still capturing о_last_u (see docs/propis.md).
+    const O_LAST_LOWER = {
+      id: "о_last_l", label: "о_last_l", variantOf: "о", position: "last", entryType: "lower",
+      strokes: [{ d: "M 70 65 C 72 66 74 67 76 68" }],
+    };
+    const withLast = new Map(letters).set("о_last_l", O_LAST_LOWER);
+    // "оо": second о is last, preceded by "о" (dual-nature) -> entryType "upper", no
+    // variants.last.upper exists -> must fall back to о_last_l, not O_PLAIN.
+    const result = buildWordTrajectory("оо", withLast, new Map());
+    const lastOStroke = getPathEndpoints(result.strokes[result.strokes.length - 1].d);
+    const ownLast = getPathEndpoints(O_LAST_LOWER.strokes[0].d);
+    expect(lastOStroke.end[0] - lastOStroke.start[0]).toBeCloseTo(ownLast.end[0] - ownLast.start[0], 6);
+  });
+
   it("prefers whichever middle-position candidate has the more specific (shorter) nextLetters list", () => {
     // Two entryType-"lower" middle cards whose nextLetters both include "о" — buildVariantIndex
     // sorts each entryType bucket by nextLetters length, so the narrower list must win even

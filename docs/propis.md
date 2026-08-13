@@ -295,29 +295,75 @@ Two **independent** classification systems, easy to conflate — don't:
 
 ### Dual-nature letter (о, ю) variant resolution
 
+**Rewritten 2026-08-11** — replaced an earlier `exitType` upper/lower/`"dual"`
+height-group model (checked against real captures and found not to hold: the
+real letter sets per variant are irregular, e.g. `о_first_l` only takes
+л/м/я, not a whole "lower" group). If you find an older description of a
+`"dual"` exitType bucket anywhere (design docs, old comments), it's stale —
+this is the current behavior:
+
 `buildVariantIndex(lettersByLabel)` scans every letter card for a
-`variantOf` field and groups them by `{ first: {exitType: card}, last:
-{entryType: card}, middle: {"entryType_exitType": card} }`.
+`variantOf` field and groups them into `{ first: [], last: {entryType:
+card}, middle: { lower: [], upper: [] }, any: [] }`. A middle-position card
+with no `entryType` of its own goes into `any` (entryType-agnostic — see
+`о_middle_uu`). Each of `first`/`middle.lower`/`middle.upper`/`any` is an
+**array**, sorted so a card with a shorter (more specific) `nextLetters`
+list is tried first. A middle+`entryType:"upper"` card with `alsoFirst:
+true` is pushed into `first` too (see `о_middle_um`).
 
 `resolveVariant(variantIndex, label, position, prevLabel, nextLabel)`:
-- `entryType` = `"upper"` if `prevLabel` is one of `EXIT_LINE_OVERRIDES`'s
-  keys, else `"lower"`.
-- `exitType` = height group of `nextLabel` simplified to upper/lower
-  (`"lower"` stays `"lower"`, everything else — including `"middle"` group
-  letters and unclassified letters — defaults to `"upper"`, since no
-  middle-height exit variant has been captured for any dual-nature letter
-  yet).
-- **Exception**: if `nextLabel` is itself dual-nature (о followed by о/ю), a
-  dedicated `"dual"` exitType bucket is tried FIRST, falling back to the
-  ordinary upper/lower bucket if no dedicated capture exists for that
-  entryType. Rationale: handing off into another dual-nature letter draws
-  differently than handing off into a genuine fixed upper-entry letter, even
-  though both currently classify the same way.
-- Returns `null` (→ caller falls back to the plain isolated card + ordinary
-  connector system) whenever the needed variant hasn't been captured, so
-  missing combinations degrade gracefully instead of crashing or looking
-  wrong in an obvious way — always safe to add letters/words without having
-  captured every variant first.
+- `entryType` = `"upper"` **only** when `prevLabel` is itself dual-nature
+  (о or ю) — not for б/в/ф/э/ь/ъ or any other letter with its own upper
+  `EXIT_LINE_OVERRIDES` entry; confirmed against real captures that none of
+  those force an upper entry into о the way an earlier model assumed. Else
+  `"lower"` (or `null` if there's no `prevLabel` at all, i.e. this is a
+  word-initial dual-nature letter).
+- Each card carries its own explicit `nextLetters` list (`topic.json`) —
+  there's no shared exitType classification of the *next* letter at all;
+  `matchesNext(card)` just checks `card.nextLetters?.includes(nextLabel)`.
+- `position === "first"`: `variants.first.find(matchesNext) ||
+  variants.any.find(matchesNext) || null`.
+- `position === "middle"`: `null` if no `entryType` (word-initial can't
+  happen here by definition, but guards it anyway); else
+  `variants.middle[entryType].find(matchesNext) ||
+  variants.any.find(matchesNext) || null`.
+- `position === "last"`: `variants.last[entryType] || variants.last.lower
+  || null`. The `|| variants.last.lower` fallback was added **2026-08-13**
+  (see the drift/mess bug below) — before that it was just
+  `variants.last[entryType] || null`.
+
+**Bug found and partially fixed, 2026-08-13: "ооо"/"оо" rendered as a
+garbled, wrongly-placed mess.** Root cause: only `о_last_l` (`entryType:
+"lower"`) has ever been captured — there is no `о_last_u`. A word ending in
+о preceded by another dual-nature letter (so `entryType` resolves to
+`"upper"`) used to get `null` from `resolveVariant`, falling all the way
+through to the **plain** о card. That's the dangerous case: the plain
+card's own entry point is designed to be reached via the ordinary
+`conn_4_3` entry connector (see `ENTRY_LINE_OVERRIDES["о"] = 3`), but
+`buildWordTrajectory`'s connector lookup unconditionally skips both the
+exit AND entry connector whenever the *previous* letter used a variant
+(`prev.usedVariant`, since a variant's own tail is supposed to already
+reach the hand-off point) — so the plain о card ended up raw-snapped onto
+whatever line the *previous variant's own raw geometry* happened to
+classify to (e.g. `о_middle_uu`'s own exit classifies to line 3, y≈62 —
+nowhere near the plain card's own baseline-ish expectations), landing the
+letter far off-position. Confirmed by instrumenting `buildWordTrajectory`
+with a temporary per-letter trace (dx/dy/world-exit) — the standard
+technique for this file, see the "костёр" drift investigation above.
+
+**Fix applied**: `variants.last[entryType] || variants.last.lower` — when
+no upper-entry last variant exists, reuse the captured `о_last_l` (a real,
+coherent о shape with its own proper entry motion) instead of falling all
+the way to the un-connectable plain card. Verified live: `"оо"` now renders
+cleanly (two well-spaced о's); `"ооо"` is dramatically better (on the
+baseline, continuously connected) but still shows mild visual overlap
+between the 2nd and 3rd о, because `о_middle_uu`'s own hand-off point was
+captured/verified for its declared `nextLetters` (plain letters like
+т/к/etc.), not specifically for connecting into `о_last_l`. **Capturing a
+real `о_last_u`** is still the correct full fix, and now matters more than
+before this was found — it's not just "one gap in a matrix" but the thing
+that makes any dual-nature-letter-then-word-final-о sequence look merely
+imperfect instead of broken.
 
 **To regenerate the exact current resolution matrix** (don't trust a
 remembered table — it drifts every time a variant is added/removed):
@@ -411,8 +457,11 @@ As of v1.23.0:
 - **о has 9 variant cards**: `о_first_l`, `о_first_u`, `о_middle_ll`,
   `о_middle_lu`, `о_middle_uu`, `о_middle_ul`, `о_middle_um`, `о_middle_lm`,
   `о_last_l`. **Still not captured**: an upper-entry `о_last` variant (the
-  last remaining gap in о's own matrix). `isolated` position never has a
-  variant by design (falls back to plain "о" always).
+  last remaining gap in о's own matrix — see the "Dual-nature letter variant
+  resolution" section above for the real bug this caused and the 2026-08-13
+  code-level mitigation; capturing `о_last_u` is still the full fix).
+  `isolated` position never has a variant by design (falls back to plain
+  "о" always).
 - **ю has zero variant cards** — every position/neighbor combination
   currently falls back to the plain "ю" card. Same variant system already
   supports it the moment cards are captured (`DUAL_NATURE_LETTERS` already
@@ -431,7 +480,11 @@ As of v1.23.0:
   letter) — or decide `ю` is rare enough in practice that the fallback is
   fine indefinitely.
 - Capture an upper-entry `о_last` variant to close the one remaining gap in
-  о's own matrix.
+  о's own matrix — no longer just cosmetic: this is what makes a word ending
+  in о preceded by another dual-nature letter (е.g. "ооо", "юо") render with
+  a real captured shape instead of the current `о_last_l`-reused-as-a-
+  fallback mitigation (fine for 2 consecutive о's, still visibly overlapping
+  for 3+ — see the resolveVariant section above).
 - `WriteWordsView.jsx`'s `try/catch` around `buildWordTrajectory` silently
   shows nothing on error (missing letter) — no user-facing message. Minor
   polish item, not a correctness bug, low priority unless it confuses

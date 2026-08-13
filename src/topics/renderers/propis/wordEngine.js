@@ -321,7 +321,7 @@ function resolveVariant(variantIndex, label, position, prevLabel, nextLabel) {
   const matchesNext = (card) => nextLabel != null && card.nextLetters?.includes(nextLabel);
 
   if (position === "first") return variants.first.find(matchesNext) || variants.any.find(matchesNext) || null;
-  if (position === "last") return (entryType && variants.last[entryType]) || null;
+  if (position === "last") return variants.last[entryType] || variants.last.lower || null;
   if (position === "middle") {
     if (!entryType) return null;
     return variants.middle[entryType].find(matchesNext) || variants.any.find(matchesNext) || null;
