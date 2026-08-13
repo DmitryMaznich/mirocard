@@ -1,16 +1,11 @@
-import { useRef } from "react";
-import { INK_COLOR, NIB_COLOR, STROKE_W, TIP_R, GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
-import { useLoopingStrokes } from "./useLoopingStrokes.js";
+import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
+import AnimatedStrokes from "./AnimatedStrokes.jsx";
 
 const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
 const GUIDE_COLOR = "#6fa3e0";
 
 export default function WordAnimatedCard({ trajectory }) {
-  const gRef = useRef(null);
-  const dependencyKey = trajectory.strokes.map((s) => s.d).join("|");
-  useLoopingStrokes(gRef, dependencyKey, { delayMs: 200, loopPauseMs: 1400 });
-
   return (
     <svg
       className="propis-practice-card-svg"
@@ -27,18 +22,7 @@ export default function WordAnimatedCard({ trajectory }) {
           strokeWidth={g.y === NATIVE_L3 ? GUIDE_BOLD_W : GUIDE_THIN_W}
         />
       ))}
-      <g ref={gRef}>
-        {trajectory.strokes.map((s, i) => (
-          <path key={`g${i}`} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={STROKE_W}
-            strokeLinecap="round" strokeLinejoin="round" opacity={0.15} />
-        ))}
-        {trajectory.strokes.map((s, i) => (
-          <path key={`a${i}`} data-pr-anim={i} data-pr-continuous={s.continuous ? "1" : undefined}
-            d={s.d} fill="none" stroke={INK_COLOR}
-            strokeWidth={STROKE_W} strokeLinecap="round" strokeLinejoin="round" />
-        ))}
-        <circle data-pr-tip r={TIP_R} cx="0" cy="0" fill={NIB_COLOR} opacity="0" />
-      </g>
+      <AnimatedStrokes trajectory={trajectory} />
     </svg>
   );
 }
