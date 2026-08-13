@@ -317,6 +317,22 @@ function resolveVariant(variantIndex, label, position, prevLabel, nextLabel) {
   const variants = variantIndex.get(label);
   if (!variants) return null;
 
+  // A run of 2+ consecutive о's (2026-08-14, user-specified rule): every о immediately
+  // followed by another о resolves the SAME way regardless of its own word position (first
+  // or middle) — whichever first-position variant's nextLetters includes "о" (in practice,
+  // о_first_u, repeated as many times as the run needs). The run's LAST о (preceded by о,
+  // not itself followed by one) returns null here on purpose, so the caller falls through to
+  // the plain card — connected into the previous letter via the ORDINARY non-variant
+  // connector system, not the raw same-height snap a resolved variant gets (see
+  // buildWordTrajectory's `standardConnectionOverride`). This sidesteps о_middle_uu/
+  // о_last_l, whose own hand-offs were only verified against their own declared nextLetters
+  // (real letters like т/к, or the generic entryType fallback) — not specifically for
+  // chaining an arbitrary number of о's into each other or into a bare final о.
+  if (label === "о") {
+    if (nextLabel === "о") return variants.first.find((c) => c.nextLetters?.includes("о")) || null;
+    if (prevLabel === "о") return null;
+  }
+
   const entryType = prevLabel ? (DUAL_NATURE_LETTERS.has(prevLabel) ? "upper" : "lower") : null;
   const matchesNext = (card) => nextLabel != null && card.nextLetters?.includes(nextLabel);
 
@@ -384,10 +400,11 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     // own separate lead-in stroke duplicates the motion о's tail already made and visibly
     // shifts everything after it (confirmed 2026-08-11 on "работа"/"гот": before this fix,
     // т still got its own straight 4→3 connector immediately after о_middle_uu's tail).
+    const prevLabel = i > 0 ? chars[i - 1] : null;
+
     let usedVariant = false;
     if (DUAL_NATURE_LETTERS.has(ch)) {
       const position = chars.length === 1 ? "isolated" : i === 0 ? "first" : i === chars.length - 1 ? "last" : "middle";
-      const prevLabel = i > 0 ? chars[i - 1] : null;
       const nextLabel = i < chars.length - 1 ? chars[i + 1] : null;
       const variant = resolveVariant(variantIndex, ch, position, prevLabel, nextLabel);
       if (variant) {
@@ -403,8 +420,16 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     const bridging = !!prev; // was anything (connector) placed before this letter?
 
     if (prev) {
-      const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
-      const entryConnector = usedVariant || prev.usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
+      // "о immediately preceded by о" (2026-08-14): both halves of this specific junction go
+      // through the ORDINARY (non-variant) connector system regardless of whether either
+      // letter resolved a variant — see resolveVariant's matching special case, which always
+      // returns either a first-position variant (repeated о_first_u) or null (plain card) for
+      // this exact pairing, never a middle/last variant whose tail assumes the usual
+      // "skip the connector, it's already baked in" treatment. Every OTHER junction keeps the
+      // existing skip.
+      const standardConnectionOverride = ch === "о" && prevLabel === "о";
+      const exitConnector = (prev.usedVariant && !standardConnectionOverride) ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
+      const entryConnector = (usedVariant || (prev.usedVariant && !standardConnectionOverride)) ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
 
       let anchorPoint;
       if (exitConnector) {

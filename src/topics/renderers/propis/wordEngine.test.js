@@ -635,51 +635,105 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
   });
 
   it("falls back to the lower-entryType last-position variant when no upper-entryType one is captured", () => {
-    // Regression (2026-08-13): "ооо"/"оо" rendered as a garbled, wrongly-placed mess — the
-    // word-final о (preceded by another о, so entryType "upper") had no matching
-    // variants.last.upper card in the real data (only о_last_l — "lower" — is captured), so
-    // resolveVariant returned null and the letter fell all the way through to the PLAIN о
-    // card placed via a raw no-connector snap. That snap anchors to the previous variant's
-    // own (non-canonical) exit line instead of the usual line-4 hand-off, which the plain
-    // card's entry was never designed to receive directly — visually, the letter landed far
-    // off its expected position. Falling back to the captured (if entryType-mismatched)
-    // о_last_l — a real captured "о" shape with its own proper entry motion — instead of the
-    // uncaptured-for-this-case plain card is a strict improvement even though it isn't a
-    // perfect match; the real fix is still capturing о_last_u (see docs/propis.md).
+    // Regression (2026-08-13): a word-final о preceded by a dual-nature letter (entryType
+    // "upper") had no matching variants.last.upper card in the real data (only о_last_l —
+    // "lower" — is captured), so resolveVariant returned null and the letter fell all the way
+    // through to the PLAIN о card placed via a raw no-connector snap. That snap anchors to the
+    // previous variant's own (non-canonical) exit line instead of the usual line-4 hand-off,
+    // which the plain card's entry was never designed to receive directly — visually, the
+    // letter landed far off its expected position. Falling back to the captured (if
+    // entryType-mismatched) о_last_l — a real captured "о" shape with its own proper entry
+    // motion — instead of the uncaptured-for-this-case plain card is a strict improvement even
+    // though it isn't a perfect match.
+    //
+    // Uses "ю" (not "о") as the preceding dual-nature letter specifically so this exercises
+    // the generic entryType fallback — "о followed directly by о" now has its own dedicated
+    // rule tested separately below (2026-08-14) and no longer reaches this fallback at all.
+    const LETTER_YU = { id: "ю", label: "ю", strokes: [{ d: "M 40 70 C 42 71 44 72 46 73" }] };
     const O_LAST_LOWER = {
       id: "о_last_l", label: "о_last_l", variantOf: "о", position: "last", entryType: "lower",
       strokes: [{ d: "M 70 65 C 72 66 74 67 76 68" }],
     };
-    const withLast = new Map(letters).set("о_last_l", O_LAST_LOWER);
-    // "оо": second о is last, preceded by "о" (dual-nature) -> entryType "upper", no
+    const withLast = new Map(letters).set("ю", LETTER_YU).set("о_last_l", O_LAST_LOWER);
+    // "юо": о is last, preceded by "ю" (dual-nature) -> entryType "upper", no
     // variants.last.upper exists -> must fall back to о_last_l, not O_PLAIN.
-    const result = buildWordTrajectory("оо", withLast, new Map());
+    const result = buildWordTrajectory("юо", withLast, new Map());
     const lastOStroke = getPathEndpoints(result.strokes[result.strokes.length - 1].d);
     const ownLast = getPathEndpoints(O_LAST_LOWER.strokes[0].d);
     expect(lastOStroke.end[0] - lastOStroke.start[0]).toBeCloseTo(ownLast.end[0] - ownLast.start[0], 6);
   });
 
+  it("uses the first-position variant for every о in a run of 2+ consecutive о's except the last, which uses the plain card via the ordinary connector system", () => {
+    // User-specified rule (2026-08-14), replacing the о_middle_uu/о_last_l-fallback mitigation
+    // for this specific pattern: every о immediately followed by another о resolves to
+    // whichever first-position variant matches "о" (о_first_u in real data) — repeated as
+    // many times as the run needs — and the run's last о uses the plain card, connected into
+    // the previous letter via the ORDINARY (non-variant) connector system, not a raw
+    // same-height snap.
+    const O_FIRST_UPPER = {
+      id: "о_first_u", label: "о_first_u", variantOf: "о", position: "first", nextLetters: ["о"],
+      strokes: [{ d: "M 20 69 C 22 70 24 71 26 72" }],
+    };
+    const ENTRY_CONNECTOR = {
+      id: "conn_4_3_test", type: "connector", fromLine: 4, toLine: 3,
+      strokes: [{ d: "M 10 75 C 12 70 14 65 16 60" }],
+    };
+    const withFirstUpper = new Map(letters).set("о_first_u", O_FIRST_UPPER);
+    const connectorsByKey = new Map([["4_3", [ENTRY_CONNECTOR]]]);
+
+    // "ооо": о's 1 and 2 each have a following "о" -> both resolve to О_FIRST_UPPER; о 3 has
+    // no following letter -> plain card, reached via the registered 4→3 entry connector
+    // (proves "standard connector rules": that lookup only fires when info.entryLine is the
+    // PLAIN card's own overridden entryLine, i.e. it wasn't skipped as a variant-tail
+    // hand-off).
+    const result = buildWordTrajectory("ооо", withFirstUpper, connectorsByKey);
+
+    const stroke0 = getPathEndpoints(result.strokes[0].d);
+    const ownFirstUpper = getPathEndpoints(O_FIRST_UPPER.strokes[0].d);
+    expect(stroke0.end[0] - stroke0.start[0]).toBeCloseTo(ownFirstUpper.end[0] - ownFirstUpper.start[0], 6);
+
+    const stroke1 = getPathEndpoints(result.strokes[1].d);
+    expect(stroke1.end[0] - stroke1.start[0]).toBeCloseTo(ownFirstUpper.end[0] - ownFirstUpper.start[0], 6);
+
+    // strokes: о_first_u, о_first_u, the 4→3 entry connector, plain о — the connector is
+    // only present at all because it was looked up via the ordinary system, not skipped.
+    expect(result.strokes).toHaveLength(4);
+    const connectorStroke = getPathEndpoints(result.strokes[2].d);
+    const ownConnector = getPathEndpoints(ENTRY_CONNECTOR.strokes[0].d);
+    expect(connectorStroke.end[0] - connectorStroke.start[0]).toBeCloseTo(ownConnector.end[0] - ownConnector.start[0], 6);
+
+    const lastStroke = getPathEndpoints(result.strokes[3].d);
+    const ownPlain = getPathEndpoints(O_PLAIN.strokes[0].d);
+    expect(lastStroke.end[0] - lastStroke.start[0]).toBeCloseTo(ownPlain.end[0] - ownPlain.start[0], 6);
+  });
+
   it("prefers whichever middle-position candidate has the more specific (shorter) nextLetters list", () => {
-    // Two entryType-"lower" middle cards whose nextLetters both include "о" — buildVariantIndex
+    // Two entryType-"lower" middle cards whose nextLetters both include "е" — buildVariantIndex
     // sorts each entryType bucket by nextLetters length, so the narrower list must win even
     // though it's registered after the broader one.
+    //
+    // Uses "е" (not "о") as the shared next letter specifically so this doesn't trip the
+    // dedicated "о followed directly by о" rule tested above (2026-08-14), which would
+    // otherwise short-circuit past this middle-bucket tie-break entirely.
+    const LETTER_E = { id: "е", label: "е", strokes: [{ d: "M 20 65 C 22 66 24 67 26 68" }] };
     const O_MIDDLE_BROAD = {
       id: "о_middle_broad", label: "о_middle_broad", variantOf: "о", position: "middle",
-      entryType: "lower", nextLetters: ["о", "е", "и", "у"],
+      entryType: "lower", nextLetters: ["е", "и", "у"],
       strokes: [{ d: "M 80 65 C 82 66 84 67 86 68" }],
     };
     const O_MIDDLE_NARROW = {
       id: "о_middle_narrow", label: "о_middle_narrow", variantOf: "о", position: "middle",
-      entryType: "lower", nextLetters: ["о"],
+      entryType: "lower", nextLetters: ["е"],
       strokes: [{ d: "M 90 65 C 92 66 94 67 96 68" }],
     };
     const withBoth = new Map(letters)
       .set("г", LETTER_G)
+      .set("е", LETTER_E)
       .set("о_middle_broad", O_MIDDLE_BROAD)
       .set("о_middle_narrow", O_MIDDLE_NARROW);
-    // "гоо": first о is middle, preceded by "г" (entryType "lower"), followed by another "о"
-    // -> both candidates' nextLetters include "о", the narrower one must win.
-    const result = buildWordTrajectory("гоо", withBoth, new Map());
+    // "гое": о is middle, preceded by "г" (entryType "lower"), followed by "е" -> both
+    // candidates' nextLetters include "е", the narrower one must win.
+    const result = buildWordTrajectory("гое", withBoth, new Map());
     const firstOStroke = getPathEndpoints(result.strokes[1].d);
     const ownNarrow = getPathEndpoints(O_MIDDLE_NARROW.strokes[0].d);
     expect(firstOStroke.end[0] - firstOStroke.start[0]).toBeCloseTo(ownNarrow.end[0] - ownNarrow.start[0], 6);
