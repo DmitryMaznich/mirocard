@@ -288,6 +288,21 @@ describe("layoutTextIntoRows", () => {
     expect(result.placed).toHaveLength(1);
     expect(result.placed[0].segments).toEqual([{ type: "fallback", xOffset: 0, text: "42", width: 48 }]);
   });
+
+  it("reuses a word's already-built segments from a shared cache instead of rebuilding them on every call", () => {
+    // Regression (2026-08-13): every keystroke in write_text re-ran layoutTextIntoRows over
+    // the FULL current text, and buildWordSegments (which calls the relatively expensive
+    // buildWordTrajectory/samplePath machinery) had no memoization — so words the user had
+    // already finished typing were rebuilt from scratch on every subsequent keystroke, an
+    // O(total text typed so far) cost per keystroke that grows unbounded as text grows.
+    // Passing a shared cache Map (keyed by word text) makes an already-seen word's segments
+    // get reused by reference, not recomputed — verified here via Object.is identity, since
+    // equal-by-value would pass even with no caching at all.
+    const cache = new Map();
+    const first = layoutTextIntoRows("а б", letters, new Map(), 500, cache);
+    const second = layoutTextIntoRows("а б а", letters, new Map(), 500, cache);
+    expect(second.placed[2].segments).toBe(first.placed[0].segments);
+  });
 });
 
 describe("buildWordTrajectory — exit connectors (real, hand-drawn, never rescaled)", () => {

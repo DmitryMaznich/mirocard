@@ -79,9 +79,17 @@ export default function WriteTextView({ task, onClose }) {
 
   const rowWidthUnits = (wrapW / ROW_HEIGHT_PX) * UNIT_H;
 
+  // Every keystroke rebuilds the layout over the FULL current text (see layoutTextIntoRows),
+  // so without this cache every already-finished word would be rebuilt from scratch (real
+  // stroke-geometry work) on every subsequent keystroke — an O(text typed so far) cost per
+  // keystroke that grew unbounded as the user kept writing, and was the real driver behind
+  // typing feeling laggy/dropping input the longer a session ran (2026-08-13). Recreated only
+  // when the letter/connector data itself changes (never mid-session in practice).
+  const segmentCache = useMemo(() => new Map(), [lettersByLabel, connectorsByKey]);
+
   const layout = useMemo(
-    () => layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits),
-    [text, lettersByLabel, connectorsByKey, rowWidthUnits]
+    () => layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache),
+    [text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache]
   );
 
   useEffect(() => {

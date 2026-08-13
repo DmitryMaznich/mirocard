@@ -529,7 +529,13 @@ const FALLBACK_CHAR_WIDTH_UNITS = 24;
 // the whole word, letting mixed content like "стол1" render "стол" in cursive followed by
 // a plain "1". Returns segments already laid out left-to-right within the word (each with
 // its own `xOffset`), plus the word's total width for layoutTextIntoRows' own row-fit math.
-function buildWordSegments(word, lettersByLabel, connectorsByKey) {
+//
+// `cache` (optional, keyed by the literal word text) lets a caller that rebuilds the whole
+// text on every keystroke (write_text) skip rebuilding words it has already built before —
+// see layoutTextIntoRows. Safe only as long as lettersByLabel/connectorsByKey stay the same
+// for the cache's whole lifetime; the caller owns clearing it when those change.
+function buildWordSegments(word, lettersByLabel, connectorsByKey, cache) {
+  if (cache && cache.has(word)) return cache.get(word);
   const chars = Array.from(word);
   const runs = [];
   for (const ch of chars) {
@@ -559,7 +565,9 @@ function buildWordSegments(word, lettersByLabel, connectorsByKey) {
       x += width;
     }
   }
-  return { segments, width: x };
+  const result = { segments, width: x };
+  if (cache) cache.set(word, result);
+  return result;
 }
 
 // Lays a block of text (words separated by " ", manual line breaks by "\n") onto a
@@ -567,7 +575,11 @@ function buildWordSegments(word, lettersByLabel, connectorsByKey) {
 // whenever it would no longer fit — the notebook-style layout write_text needs, which
 // buildWordTrajectory alone doesn't provide (it only ever produces one ever-widening row
 // for a single word).
-export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits) {
+//
+// `segmentCache` (optional) is forwarded to buildWordSegments so a caller re-running this
+// over the whole text on every keystroke (write_text's own useMemo) doesn't redo the real
+// stroke-geometry work for words it already built on an earlier call — see buildWordSegments.
+export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache) {
   const hardLines = (text ?? "").split("\n");
   const placed = [];
   let rowIndex = 0;
@@ -578,7 +590,7 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
     let rowHasContent = false;
 
     for (const word of words) {
-      const { segments, width: wordWidth } = buildWordSegments(word, lettersByLabel, connectorsByKey);
+      const { segments, width: wordWidth } = buildWordSegments(word, lettersByLabel, connectorsByKey, segmentCache);
       if (segments.length === 0) continue;
 
       // The row's first word always lands where it is, even if wider than rowWidthUnits
