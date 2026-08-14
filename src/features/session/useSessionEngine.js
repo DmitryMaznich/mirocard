@@ -52,7 +52,13 @@ function buildGeneratedSessionState({
       : [];
   } else if (renderer === "flashcards") {
     const allConcepts = deriveConcepts(topicRecord.cards);
-    const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
+    // These drills do not use parent-selectable picture concepts. Their one
+    // metadata card is part of the mode itself, so an old saved selection must
+    // never be allowed to filter it away and leave the session with no tasks.
+    const isSelfContainedDrill = ["navigator", "coordinates"].includes(mode.type);
+    const selected = isSelfContainedDrill
+      ? allConcepts.filter((c) => c.cards.some((card) => card.taskKind === mode.type))
+      : allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
     const deckPos = link.deckPosition ?? 0;
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
     const concepts = shuffle(safeStart === 0 ? selected : [...selected.slice(safeStart), ...selected.slice(0, safeStart)]);

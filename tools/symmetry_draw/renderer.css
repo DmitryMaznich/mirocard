@@ -465,6 +465,18 @@
 .navigator--miss .navigator__trail { stroke: #d28a72; }
 .navigator--paused .navigator__svg { opacity: .42; pointer-events: none; }
 .navigator__pause-overlay { position: absolute; inset: 0; display: grid; place-items: center; color: #263d56; font: 900 clamp(24px, 5vw, 38px)/1 Nunito, sans-serif; text-shadow: 0 2px 0 #fff; pointer-events: none; }
+
+/* ── Navigator learning: no timer, no answer, only word ↔ direction ───── */
+.navigator-learning { width: min(100%, 700px); margin: 0 auto; padding: clamp(18px, 4vw, 42px); text-align: center; }
+.navigator-learning__eyebrow { margin-bottom: 14px; color: #58708d; font: 800 clamp(14px, 2.5vw, 18px)/1 Nunito, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.navigator-learning__card { display: grid; place-items: center; gap: 18px; min-height: min(62vh, 580px); padding: clamp(22px, 5vw, 54px); border: 2px solid #c7dbef; border-radius: 28px; background: radial-gradient(circle at 50% 42%, #f8fcff, #eaf3fc); box-shadow: 0 7px 0 #d6e4f1, inset 0 1px 0 #fff; }
+.navigator-learning__arrow { width: min(68vw, 360px); height: min(48vh, 340px); color: #2d67b4; filter: drop-shadow(0 7px 0 rgba(32,83,151,.16)); animation: navigatorLearningPop .38s ease-out both; }
+.navigator-learning__arrow path { fill: currentColor; }
+.navigator-learning__word { color: #1f3152; font: 900 clamp(34px, 7vw, 58px)/1 Georgia, serif; animation: navigatorLearningPop .38s ease-out both; }
+.navigator-learning__dots { display: flex; justify-content: center; gap: 7px; margin-top: 20px; }
+.navigator-learning__dots i { width: 8px; height: 8px; border-radius: 99px; background: #b6cbe0; transition: transform .2s, background .2s; }
+.navigator-learning__dots i.is-active { background: #2d67b4; transform: scale(1.45); }
+@keyframes navigatorLearningPop { from { opacity: .15; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
 @media (max-width: 560px) {
   .navigator { border-radius: 14px; }
   .navigator__instruction { grid-template-columns: 32px minmax(0, 1fr) 32px; min-height: 74px; padding: 8px 12px; }

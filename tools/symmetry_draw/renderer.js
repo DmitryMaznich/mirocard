@@ -526,7 +526,7 @@
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
-  function NavigatorTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1, sessionParams }) {
+  function NavigatorPracticeTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1, sessionParams }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const startRef = useRef(null);
@@ -735,6 +735,52 @@
         paused ? h("div", { className: "navigator__pause-overlay", role: "status" }, "Пауза") : null,
       ),
     );
+  }
+
+  function NavigatorLearningArrow({ direction }) {
+    const vector = DIRECTION[direction] ?? DIRECTION.up;
+    const magnitude = Math.hypot(vector.col, vector.row);
+    const unit = { x: vector.col / magnitude, y: vector.row / magnitude };
+    const side = { x: -unit.y, y: unit.x };
+    const start = { x: 5 - unit.x * 3.1, y: 5 - unit.y * 3.1 };
+    const end = { x: 5 + unit.x * 3.1, y: 5 + unit.y * 3.1 };
+    const headBase = { x: end.x - unit.x * 1.45, y: end.y - unit.y * 1.45 };
+    const shaftHalf = .48;
+    const d = [
+      `M ${start.x + side.x * shaftHalf} ${start.y + side.y * shaftHalf}`,
+      `L ${headBase.x + side.x * shaftHalf} ${headBase.y + side.y * shaftHalf}`,
+      `L ${headBase.x + side.x * 1.18} ${headBase.y + side.y * 1.18}`,
+      `L ${end.x} ${end.y}`,
+      `L ${headBase.x - side.x * 1.18} ${headBase.y - side.y * 1.18}`,
+      `L ${headBase.x - side.x * shaftHalf} ${headBase.y - side.y * shaftHalf}`,
+      `L ${start.x - side.x * shaftHalf} ${start.y - side.y * shaftHalf}`,
+      "Z",
+    ].join(" ");
+    return h("svg", { className: "navigator-learning__arrow", viewBox: "0 0 10 10", "aria-hidden": "true" }, h("path", { d }));
+  }
+
+  function NavigatorLearningTask() {
+    const directions = Object.keys(DIRECTION);
+    const [index, setIndex] = useState(0);
+    const direction = directions[index];
+    useEffect(() => {
+      const timer = window.setInterval(() => setIndex((current) => (current + 1) % directions.length), 3000);
+      return () => window.clearInterval(timer);
+    }, [directions.length]);
+    return h("section", { className: "navigator-learning", "aria-label": "Обучалка направлений" },
+      h("div", { className: "navigator-learning__eyebrow" }, "Запоминай направление"),
+      h("div", { className: "navigator-learning__card", "aria-live": "polite" },
+        h(NavigatorLearningArrow, { direction }),
+        h("div", { className: "navigator-learning__word" }, NAVIGATOR_LABEL[direction]),
+      ),
+      h("div", { className: "navigator-learning__dots", "aria-hidden": "true" }, directions.map((item, dotIndex) => h("i", { key: item, className: dotIndex === index ? "is-active" : "" }))),
+    );
+  }
+
+  function NavigatorTask(props) {
+    return props.sessionParams?.navigatorExercise === "learning"
+      ? h(NavigatorLearningTask)
+      : h(NavigatorPracticeTask, props);
   }
   function GridTask({ task, mode, onCorrect, onAdvance, sessionParams }) {
     const svgRef = useRef(null);

@@ -328,26 +328,26 @@ function ParamLabel({ label, info, onShowInfo }) {
   );
 }
 
-function NumberStepper({ label, value, min, max, onChange, info, onShowInfo }) {
+function NumberStepper({ label, value, min, max, onChange, info, onShowInfo, disabled = false }) {
   return (
     <div className="param-row">
       <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
       <div className="param-stepper">
-        <button className="stepper-btn" disabled={value <= min} onClick={() => onChange(value - 1)}>−</button>
+        <button className="stepper-btn" disabled={disabled || value <= min} onClick={() => onChange(value - 1)}>−</button>
         <span className="stepper-value">{value}</span>
-        <button className="stepper-btn" disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
+        <button className="stepper-btn" disabled={disabled || value >= max} onClick={() => onChange(value + 1)}>+</button>
       </div>
     </div>
   );
 }
 
-function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo }) {
+function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo, disabled = false }) {
   return (
     <div className="param-row">
       <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
       <div className="param-enum-group">
         {options.map((opt) => {
-          const isDisabled = disabledValues?.includes(opt) ?? false;
+          const isDisabled = disabled || (disabledValues?.includes(opt) ?? false);
           return (
             <button
               key={opt}
@@ -1195,6 +1195,9 @@ export default function ParamsScreen() {
             const [condKey, condVal] = Object.entries(def.showWhen)[0];
             if ((params[condKey] ?? mode.params?.[condKey]?.default) !== condVal) return null;
           }
+          const isDisabled = def.disabledWhen
+            ? Object.entries(def.disabledWhen).some(([condKey, condValue]) => (params[condKey] ?? mode.params?.[condKey]?.default) === condValue)
+            : false;
           if (def.type === "number") {
             return (
               <NumberStepper
@@ -1206,6 +1209,7 @@ export default function ParamsScreen() {
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 info={def.info?.ru}
                 onShowInfo={setActiveInfo}
+                disabled={isDisabled}
               />
             );
           }
@@ -1219,6 +1223,7 @@ export default function ParamsScreen() {
                 value={params[key] ?? def.default}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 disabledValues={def.disabledValues}
+                disabled={isDisabled}
                 info={def.info?.ru}
                 onShowInfo={setActiveInfo}
               />
