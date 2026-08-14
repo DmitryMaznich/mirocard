@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.23.0",
+    "version": "1.23.1",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -73,6 +73,13 @@
           "Буквы без записанного образца в тексте пропускаются, а не ломают остальную строку."
         ],
         "duration": "5–10 минут"
+      },
+      "params": {
+        "customText": {
+          "type": "text_upload",
+          "label": { "ru": "Свой текст (.txt)" },
+          "maxLength": 200
+        }
       }
     }
   ],

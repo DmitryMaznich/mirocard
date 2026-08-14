@@ -19368,6 +19368,58 @@ body { background: #eef0ef; }
 }
 .param-sentence-textarea:focus { border-color: #4a9b8f; }
 
+/* ── TextUploadParam ── */
+.param-text-upload .param-text-upload__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.param-text-upload__trigger {
+  align-self: flex-start;
+  border: 2px dashed #d6cbbf;
+  border-radius: 8px;
+  background: #fff;
+  color: #263131;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.param-text-upload__trigger:hover { border-color: #4a9b8f; }
+
+.param-text-upload__preview {
+  border: 2px solid #d6cbbf;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #263131;
+  white-space: pre-wrap;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.param-text-upload__actions { display: flex; gap: 12px; }
+
+.param-text-upload__link {
+  border: none;
+  background: none;
+  color: #4a9b8f;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.param-text-upload__error {
+  color: #ef4444;
+  background: #fef2f2;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
 /* reward modal (pre-video choice) */
 .reward-modal-overlay {
   position: fixed;

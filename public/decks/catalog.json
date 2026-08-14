@@ -245,7 +245,7 @@
     },
     {
       "id": "propis",
-      "version": "1.23.0",
+      "version": "1.23.1",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -254,7 +254,7 @@
         "ru": "Тренажёр рукописного письма: клавиатура алфавита внизу, крупный зацикленный образец написания выбранной буквы сверху.",
         "en": "Handwriting practice: an alphabet keyboard at the bottom, a large looping handwriting animation for the selected letter above."
       },
-      "url": "./decks/propis_v1.23.0.zip",
+      "url": "./decks/propis_v1.23.1.zip",
       "status": "beta",
       "access": "free"
     },
@@ -368,9 +368,9 @@
     },
     {
       "id": "symmetry_draw",
-        "version": "1.8.7",
-        "url": "./decks/symmetry_draw_v1.8.7.zip",
-        "zipUrl": "symmetry_draw_v1.8.7.zip",
+      "version": "1.8.8",
+      "url": "./decks/symmetry_draw_v1.8.8.zip",
+      "zipUrl": "symmetry_draw_v1.8.8.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },

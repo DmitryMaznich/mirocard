@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTimer } from "@/features/timer/TimerContext";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -510,6 +510,63 @@ function SentenceListParam({ label, predefined, value, onChange }) {
   );
 }
 
+function TextUploadParam({ label, maxLength, value, onChange }) {
+  const fileRef = useRef(null);
+  const [error, setError] = useState(null);
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const raw = await file.text();
+      const normalized = raw.replace(/\r\n?/g, "\n").trim();
+      if (normalized.length > maxLength) {
+        setError(`Слишком длинный текст: ${normalized.length} символов, максимум ${maxLength}.`);
+        return;
+      }
+      setError(null);
+      onChange(normalized);
+    } catch {
+      setError("Не удалось прочитать файл. Убедитесь, что это текстовый .txt файл.");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="param-row param-row--block param-text-upload">
+      <div className="param-label">{label}</div>
+      <div className="param-text-upload__body">
+        {value ? (
+          <>
+            <div className="param-text-upload__preview">{value}</div>
+            <div className="param-text-upload__actions">
+              <button type="button" className="param-text-upload__link" onClick={() => fileRef.current?.click()}>
+                Заменить файл
+              </button>
+              <button type="button" className="param-text-upload__link" onClick={() => onChange("")}>
+                Очистить
+              </button>
+            </div>
+          </>
+        ) : (
+          <button type="button" className="param-text-upload__trigger" onClick={() => fileRef.current?.click()}>
+            📄 Загрузить .txt
+          </button>
+        )}
+        {error && <div className="param-text-upload__error">{error}</div>}
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".txt,text/plain"
+          onChange={handleFile}
+          style={{ display: "none" }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function SentencePoolSelector({ lines, value, onChange }) {
   const allSelected = value === null || value === undefined;
   const selectedSet = allSelected
@@ -789,11 +846,10 @@ export default function ParamsScreen() {
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
-  // symmetryDrawPrintHtml.js only knows how to render "dictation" cards (command
-  // table) and "mirror"/"repeat" cards (sourcePaths/axisCol strip) - a "coordinate"
-  // card has neither shape and would print as garbled/NaN output, so print stays
-  // unavailable for that mode until it gets its own print layout.
-  const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
+  // Coordinate dictations need their own printable layout, so the print panel is
+  // available for the directions variant only.
+  const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && ["mirror_draw", "repeat_draw"].includes(mode?.type);
+  const isGraphicDictation   = activeTopicId === "symmetry_draw" && mode?.type === "graphic_dictation";
   const modeHasCategoryParam  = !!mode?.params?.category;
 
   const [showShare, setShowShare] = useState(false);
@@ -887,6 +943,10 @@ export default function ParamsScreen() {
         out[key] = saved[key] ?? [];
         continue;
       }
+      if (def.type === "text_upload") {
+        out[key] = saved[key] ?? "";
+        continue;
+      }
       if (def.type === "enum_multi") {
         out[key] = saved[key] ?? def.default ?? [];
         continue;
@@ -919,8 +979,8 @@ export default function ParamsScreen() {
     );
   }
 
-  const allConcepts        = deriveConcepts(getConceptCards(topicRecord, mode));
-  const modeSelectedConceptIds = readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null);
+  const allConcepts        = deriveConcepts(getConceptCards(topicRecord, mode, params));
+  const modeSelectedConceptIds = readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, params);
   const selectedConceptIds = modeSelectedConceptIds ?? allConcepts.map((c) => c.conceptId);
 
   // Concept range filter — only in "Считаем на пальцах" mode
@@ -1047,16 +1107,31 @@ export default function ParamsScreen() {
     <WrittenLettersPairParams params={params} onChange={setParams} />
   ) : isComparison ? (
     <ComparisonParams params={params} onChange={setParams} />
+  ) : isGraphicDictation ? (
+    <>
+      <EnumParam
+        label="Как строить рисунок"
+        options={["directions", "coordinates"]}
+        labels={{ directions: "По направлениям", coordinates: "По координатам" }}
+        value={params.dictationCommand ?? "directions"}
+        onChange={(v) => setParams((p) => ({ ...p, dictationCommand: v }))}
+        info={mode?.params?.dictationCommand?.info?.ru}
+        onShowInfo={setActiveInfo}
+      />
+      {(params.dictationCommand ?? "directions") === "directions" && (
+        <>
+          <BooleanParam
+            label="Стрелка в подсказке"
+            hint="Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
+            value={params.showArrow ?? true}
+            onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
+          />
+          <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
+        </>
+      )}
+    </>
   ) : isSymmetryDrawPrint ? (
     <>
-      {mode?.type === "graphic_dictation" && (
-        <BooleanParam
-          label="Стрелка в подсказке"
-          hint="Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
-          value={params.showArrow ?? true}
-          onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
-        />
-      )}
       <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
     </>
   ) : (
@@ -1206,6 +1281,17 @@ export default function ParamsScreen() {
                 label={def.label?.ru ?? key}
                 predefined={predefined}
                 value={params[key] ?? []}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (def.type === "text_upload") {
+            return (
+              <TextUploadParam
+                key={key}
+                label={def.label?.ru ?? key}
+                maxLength={def.maxLength}
+                value={params[key] ?? ""}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               />
             );
