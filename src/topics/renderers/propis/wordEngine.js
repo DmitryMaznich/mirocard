@@ -81,6 +81,21 @@ export function getConnectionInfo(item) {
 // (confirmed on "поэт": "т" rendered landing inside "э" rather than after it).
 const EXIT_LINE_OVERRIDES = {
   "б": 5, "в": 5, "ф": 5, "о": 5, "ю": 5, "ь": 5, "ъ": 5, "э": 5,
+  // Uppercase methodology group (2026-08-14, user-specified — same reasoning as the
+  // lowercase table above, a separate hand capture): Б,В,Г,Д,З,О,Р,У,Ф,Э,Ю all take the
+  // same line5->line4 hook-back exit by real cursive methodology, even though several of
+  // them (confirmed via classifyLine on the actual 2026-08-14 capture batch) raw-classify
+  // to line 2 or 3 — a capture-quality artifact of THIS sample, not a methodology
+  // difference (this table exists precisely to correct for that, same as "б"/"в" above).
+  // Keying by the uppercase `label` is a SEPARATE lookup from the lowercase entries above
+  // (JS object keys are case-sensitive) — does not affect any lowercase letter's own
+  // classification. Requires a dedicated uppercase-scoped "5_4" connector (forLetters) to
+  // actually take effect; without one, these letters still fall through to the plain
+  // no-connector snap using this corrected line. "З" isn't captured yet (topic.json data
+  // gap) but is listed here for when it is. П/Т are NOT in this group (deliberately, per
+  // 2026-08-14 user correction) — see docs/propis.md's "Data state" for the still-open
+  // question on how those two should be fixed.
+  "Б": 5, "В": 5, "Г": 5, "Д": 5, "З": 5, "О": 5, "Р": 5, "У": 5, "Ф": 5, "Э": 5, "Ю": 5,
 };
 // "д" added 2026-08-10: it's in LOWER_ENTRY_LETTERS below (real methodology says it takes
 // the same looping entry as а/б/ф) but its own raw capture (entry ~68.67) sits only 0.34
