@@ -533,8 +533,10 @@
     const resolvedRef = useRef(false);
     const [trail, setTrail] = useState(null);
     const [result, setResult] = useState(null);
+    const [paused, setPaused] = useState(() => document.hidden || !document.hasFocus());
     const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
     const durationMs = responseSeconds * 1000;
+    const remainingRef = useRef(durationMs);
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
     const isGridRoute = sessionParams?.navigatorExercise === "grid_route";
@@ -557,9 +559,38 @@
       setTrail(null);
       setResult(null);
       setRemaining(durationMs);
+      remainingRef.current = durationMs;
+      setPaused(document.hidden || !document.hasFocus());
+    }, [task.id, durationMs]); // Each generated task has a unique id.
+
+    useEffect(() => {
+      const pause = () => {
+        drawingRef.current = false;
+        startRef.current = null;
+        setTrail(null);
+        setPaused(true);
+      };
+      const resume = () => {
+        if (!document.hidden && document.hasFocus()) setPaused(false);
+      };
+      const handleVisibilityChange = () => (document.hidden ? pause() : resume());
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      window.addEventListener("blur", pause);
+      window.addEventListener("focus", resume);
+      return () => {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        window.removeEventListener("blur", pause);
+        window.removeEventListener("focus", resume);
+      };
+    }, []);
+
+    useEffect(() => {
+      if (paused || resolvedRef.current) return undefined;
+      const remainingAtStart = remainingRef.current;
       const startedAt = Date.now();
       const ticker = window.setInterval(() => {
-        const next = Math.max(0, durationMs - (Date.now() - startedAt));
+        const next = Math.max(0, remainingAtStart - (Date.now() - startedAt));
+        remainingRef.current = next;
         setRemaining(next);
         if (next === 0 && !resolvedRef.current) {
           resolvedRef.current = true;
@@ -568,7 +599,7 @@
         }
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [task.id, durationMs]); // Each generated task has a unique id.
+    }, [paused, task.id]);
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -583,7 +614,7 @@
     }
 
     function resolve(correct) {
-      if (resolvedRef.current) return;
+      if (paused || resolvedRef.current) return;
       resolvedRef.current = true;
       setResult(correct ? "good" : "miss");
       window.setTimeout(() => {
@@ -593,7 +624,7 @@
     }
 
     function startGesture(event) {
-      if (resolvedRef.current) return;
+      if (paused || resolvedRef.current) return;
       event.preventDefault();
       const point = localPoint(event);
       if (!point) return;
@@ -604,7 +635,7 @@
     }
 
     function moveGesture(event) {
-      if (!drawingRef.current || resolvedRef.current) return;
+      if (paused || !drawingRef.current || resolvedRef.current) return;
       event.preventDefault();
       const point = localPoint(event);
       if (!point || !startRef.current) return;
@@ -612,7 +643,7 @@
     }
 
     function finishGesture(event) {
-      if (!drawingRef.current || resolvedRef.current || !startRef.current) return;
+      if (paused || !drawingRef.current || resolvedRef.current || !startRef.current) return;
       drawingRef.current = false;
       if (event.currentTarget?.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
       const end = localPoint(event);
@@ -674,12 +705,14 @@
         }
       }
     }
-    const timerState = remaining <= 1500
+    const timerState = paused
+      ? " navigator__timer--paused"
+      : remaining <= 1500
       ? " navigator__timer--urgent"
       : remaining / durationMs <= .4
         ? " navigator__timer--warning"
         : "";
-    return h("section", { className: `navigator${isGridRoute ? " navigator--grid-route" : ""} navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
+    return h("section", { className: `navigator${isGridRoute ? " navigator--grid-route" : ""}${paused ? " navigator--paused" : ""} navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
         h("div", { className: "navigator__command" }, isGridRoute ? navigatorRouteText(task.direction, cells) : (NAVIGATOR_LABEL[task.direction] ?? "Вверх")),
@@ -699,6 +732,7 @@
           ),
           trailPath ? h("path", { className: "navigator__trail", d: trailPath }) : null,
         ),
+        paused ? h("div", { className: "navigator__pause-overlay", role: "status" }, "Пауза") : null,
       ),
     );
   }

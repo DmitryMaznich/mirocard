@@ -6,6 +6,7 @@ import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/s
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
+import { useActiveSessionTimer } from "./useActiveSessionTimer";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import {
@@ -136,6 +137,7 @@ export function useSessionEngine() {
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
   const activeSessionSnapshot = useAppStore((s) => s.activeSessionSnapshot);
+  const isStudentPortal = useAppStore((s) => s.isStudentPortal);
   const setActiveSessionSnapshot = useAppStore((s) => s.setActiveSessionSnapshot);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
@@ -165,15 +167,20 @@ export function useSessionEngine() {
     hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
   };
   const isReading = topicRecord?.meta.renderer === "reading";
+  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true };
+  const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
+    .filter((c) => c.primary)
+    .map((c) => c.conceptId);
   const modeSelectedConceptIds = mode
-    ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null)
+    ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, sessionParams)
     : (link.selectedConceptIds?.length ? link.selectedConceptIds : null);
+  // A newly added scoped mode can inherit an old saved selection whose ids do
+  // not belong to its own card pool. Do not let that stale selection create an
+  // empty session: retain valid ids, otherwise start with the mode defaults.
+  const validSelectedConceptIds = modeSelectedConceptIds?.filter((id) => defaultModeConceptIds.includes(id)) ?? [];
   const selectedConceptIds = isReading
     ? (activeTextId ? [activeTextId] : [])
-    : modeSelectedConceptIds
-      ?? getConceptCards(topicRecord, mode).filter((c) => c.primary).map((c) => c.conceptId)
-      ?? [];
-  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true };
+    : (validSelectedConceptIds.length ? validSelectedConceptIds : defaultModeConceptIds);
   const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
@@ -199,6 +206,9 @@ export function useSessionEngine() {
       topicVersion: topicRecord.meta.version,
     }) ?? generatedState;
   });
+  const { getActiveDurationMs } = useActiveSessionTimer(
+    Boolean(sessionState && sessionState.status !== "completed"),
+  );
 
   // Recovery: if the session was built without adult cards (closeAdults not yet
   // in the store at mount time), rebuild as soon as the store catches up — but
@@ -240,7 +250,12 @@ export function useSessionEngine() {
     // concept or two instead of the full deck.
 
     const record = {
-      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents),
+      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents, {
+        activeDurationMs: Math.round(getActiveDurationMs()),
+        elapsedDurationMs: Math.max(0, Date.now() - new Date(state.startedAt).getTime()),
+        paramsSnapshot: sessionParams,
+        entryPoint: isStudentPortal ? "student_portal" : "therapist",
+      }),
       reward: {
         videoEnabled: Boolean(rewardConfig.videoRewardEnabled),
         videoAvailable: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
@@ -308,9 +323,11 @@ export function useSessionEngine() {
     if (earned > lastRewardEarnedCountRef.current) {
       lastRewardEarnedCountRef.current = earned;
       if (rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled) {
-        setRewardPending(true);
+        const timer = window.setTimeout(() => setRewardPending(true), 0);
+        return () => window.clearTimeout(timer);
       }
     }
+    return undefined;
   }, [sessionState?.rewardEarnedCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearRewardPending = useCallback(() => setRewardPending(false), []);

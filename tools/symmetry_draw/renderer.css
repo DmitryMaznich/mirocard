@@ -420,8 +420,13 @@
   animation: navigatorTimerUrgent .62s ease-in-out infinite alternate;
 }
 .navigator__timer--urgent .navigator__timer-clock { color: #d64d39; animation: navigatorTimerUrgent .62s ease-in-out infinite alternate; }
+.navigator__timer--paused { background: #edf1f6; }
+.navigator__timer--paused .navigator__timer-track { border-color: #9eadbd; background: #dce4ed; }
+.navigator__timer--paused i { background: #8b9caf; box-shadow: none; }
+.navigator__timer--paused .navigator__timer-clock { color: #65778b; }
 @keyframes navigatorTimerUrgent { to { filter: brightness(1.12) drop-shadow(0 0 7px rgba(222, 75, 51, .85)); } }
 .navigator__board {
+  position: relative;
   padding: clamp(26px, 4vw, 48px) clamp(20px, 5vw, 64px) clamp(18px, 3vw, 36px);
 }
 .navigator__svg {
@@ -458,6 +463,8 @@
 .navigator--good.navigator--target-down_right .navigator__route--down_right { color: #249b6c; opacity: 1; }
 .navigator--good .navigator__trail { stroke: #249b6c; }
 .navigator--miss .navigator__trail { stroke: #d28a72; }
+.navigator--paused .navigator__svg { opacity: .42; pointer-events: none; }
+.navigator__pause-overlay { position: absolute; inset: 0; display: grid; place-items: center; color: #263d56; font: 900 clamp(24px, 5vw, 38px)/1 Nunito, sans-serif; text-shadow: 0 2px 0 #fff; pointer-events: none; }
 @media (max-width: 560px) {
   .navigator { border-radius: 14px; }
   .navigator__instruction { grid-template-columns: 32px minmax(0, 1fr) 32px; min-height: 74px; padding: 8px 12px; }
