@@ -420,30 +420,20 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     const bridging = !!prev; // was anything (connector) placed before this letter?
 
     if (prev) {
-      // "о immediately preceded by о" (2026-08-14): this junction always goes through the
-      // ORDINARY (non-variant) connector system, on BOTH sides, exactly as if neither letter
-      // had resolved a variant at all — including a middle-of-run repeat (о_first_u handing
-      // off into ANOTHER о_first_u), not just the run's tail. Two things are needed together,
-      // not just one:
-      //
-      // 1. Bypass the usual "a variant's own tail is already baked in" skip — on EITHER side
-      //    — whenever this override applies, not only when prev used a variant (the original
-      //    skip only ever considered prev; o_first_u reused for a middle position has no such
-      //    baked-in entry itself, since it was captured as a genuine word-initial letter).
-      // 2. Look the connector up by the CANONICAL о line numbers (EXIT_LINE_OVERRIDES["о"]=5,
-      //    ENTRY_LINE_OVERRIDES["о"]=3), not whatever a variant card's own raw geometry
-      //    happens to classify to — variant cards are keyed by their own id as `label`
-      //    (о_first_u, о_last_l, ...), so resolveConnectionInfo's EXIT_LINE_OVERRIDES/
-      //    ENTRY_LINE_OVERRIDES lookup (keyed by label) silently never applies to them, and
-      //    their raw exit/entry classifies a line or two off from where a real "о" is defined
-      //    to sit — enough that findExitConnector/findEntryConnector's key lookup misses
-      //    entirely (confirmed live: no connector stroke rendered between two о_first_u's,
-      //    visibly different from how any other repeated letter, e.g. "аа", connects).
-      const standardConnectionOverride = ch === "о" && prevLabel === "о";
-      const exitLineForLookup = standardConnectionOverride ? EXIT_LINE_OVERRIDES["о"] : prev.exitLine;
-      const entryLineForLookup = standardConnectionOverride ? ENTRY_LINE_OVERRIDES["о"] : info.entryLine;
-      const exitConnector = (prev.usedVariant && !standardConnectionOverride) ? undefined : findExitConnector(connectorsByKey, exitLineForLookup, prev.label);
-      const entryConnector = ((usedVariant || prev.usedVariant) && !standardConnectionOverride) ? undefined : findEntryConnector(connectorsByKey, entryLineForLookup, ch);
+      // "о immediately preceded by о" (2026-08-14, revised same day per user correction):
+      // NO canonical connector card is ever inserted between two consecutive о's, however
+      // many — every о_first_u used mid-run already has its own connecting tail captured as
+      // part of the SAME continuous stroke (see the "dual-nature letter" comment above), so
+      // adding a real conn_4_3/conn_5_4 connector on top would draw a second, redundant
+      // connecting motion over one that's already there. An earlier version of this fix
+      // (same day) explicitly looked up a real connector for every о-after-о junction — wrong
+      // per the user, reverted. This junction is treated as plain exact-snap, exactly like
+      // any other "no connector" letter pair — no override needed here at all; the ordinary
+      // `prev.usedVariant`/`usedVariant` skip conditions already produce that for every
+      // variant-resolved о in the run, and the run's tail (the plain "о" card) falls through
+      // to the same exact-snap path since `prev.usedVariant` is still true there too.
+      const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
+      const entryConnector = usedVariant || prev.usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
 
       let anchorPoint;
       if (exitConnector) {
