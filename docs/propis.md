@@ -447,39 +447,39 @@ console.log('connectors:', connectors.map(c => c.id + JSON.stringify(c.forLetter
 "
 ```
 
-As of v1.23.2:
-- **63 plain letters captured — the full lowercase alphabet (all 33) is
-  done**, plus 30 of 33 uppercase (missing: З, Ъ, Ь). Ingested 2026-08-14 from
-  a batch capture (26 new + a re-capture of А), normalized the same way as
-  every other batch (see "Ingesting new captures" above) — `minX` shift per
-  card, `viewBox` set to `0 0 100 150`, no `meta` kept. Й and Ё got
-  `mainStrokeIndex: 0` (their last stroke is a decorative mark — breve/two
-  dots — not the hand-off point), same reasoning as the existing lowercase
-  й/ё cards.
-- **Uppercase→next-letter chaining — mostly fixed 2026-08-14, one group
-  still open.** An uppercase letter's own raw pen-lift point isn't
-  guaranteed to land near line 4 (y=75, the universal hand-off height every
-  lowercase letter's methodology is built around) the way lowercase letters
-  do — capital cursive flourishes often end back up near the letter's own
-  top or middle, not extending rightward toward the next letter. First
-  found via raw `classifyLine` measurement (9 letters looked "BAD": Б,Г,Д,
-  О,П,Т,Ф,Э,Ю), but the user corrected this to the real methodology
-  grouping: **Б,В,Г,Д,З,О,Р,У,Ф,Э,Ю take the same line5→line4 hook-back
-  exit** regardless of where this particular capture sample's raw stroke
-  happens to end (same reasoning as the existing lowercase б/в/ф/о/ю/ь/ъ/э
-  entries above — a capture-quality artifact, not a methodology
-  difference). Added to `EXIT_LINE_OVERRIDES` as separate (case-sensitive)
-  uppercase keys — confirmed live that "Дом"/"Юля" now chain cleanly using
-  the existing default `conn_5_4` as a stand-in. **A dedicated
-  uppercase-scoped `5_4` connector (own capture, `forLetters`-restricted)
-  is still coming** — the override is what will let it actually get picked
-  up once it lands; until then these 11 letters use the lowercase-shaped
-  default connector, which reads fine but isn't the final intended look.
-  **П and Т are deliberately NOT in this group** (excluded by the user,
-  2026-08-14) — still open: "Паша" still renders with "а" floating in the
-  ascender zone after "П". Needs its own decision (recapture vs. a
-  different fix) before it's resolved — don't guess at a grouping for these
-  two without asking.
+As of v1.23.3:
+- **64 plain letters captured — the full lowercase alphabet (all 33) is
+  done**, plus 31 of 33 uppercase (missing: Ъ, Ь). Ingested 2026-08-14 across
+  two batches (26 new + a re-capture of А, then З separately), normalized
+  the same way as every other batch (see "Ingesting new captures" above) —
+  `minX` shift per card, `viewBox` set to `0 0 100 150`, no `meta` kept. Й
+  and Ё got `mainStrokeIndex: 0` (their last stroke is a decorative mark —
+  breve/two dots — not the hand-off point), same reasoning as the existing
+  lowercase й/ё cards.
+- **Uppercase→next-letter chaining — fixed 2026-08-14 for one methodology
+  group, one letter pair still open.** An uppercase letter's own raw
+  pen-lift point isn't guaranteed to land near line 4 (y=75, the universal
+  hand-off height every lowercase letter's methodology is built around) the
+  way lowercase letters do — capital cursive flourishes often end back up
+  near the letter's own top or middle, not extending rightward toward the
+  next letter. First found via raw `classifyLine` measurement (9 letters
+  looked "BAD": Б,Г,Д,О,П,Т,Ф,Э,Ю), but the user corrected this to the real
+  methodology grouping: **Б,В,Г,Д,З,О,Р,У,Ф,Э,Ю take the same line5→line4
+  hook-back exit** regardless of where this particular capture sample's raw
+  stroke happens to end (same reasoning as the existing lowercase
+  б/в/ф/о/ю/ь/ъ/э entries above — a capture-quality artifact, not a
+  methodology difference). Added to `EXIT_LINE_OVERRIDES` as separate
+  (case-sensitive) uppercase keys, then the user captured and sent a
+  **dedicated uppercase-scoped connector, `conn_5_4_upper`** (own shape,
+  `forLetters` restricted to that exact 11-letter group — explicitly NOT a
+  replacement for the existing default `conn_5_4`, which lowercase letters
+  and any other uppercase letter still use unchanged). Confirmed live:
+  "Дом"/"Юля"/"Ваня"/"Гена"/"Забор"/"Рома" all chain cleanly now with the
+  real capital-shaped connector. **П and Т are deliberately NOT in this
+  group** (excluded by the user, 2026-08-14) — still open: "Паша" still
+  renders with "а" floating in the ascender zone after "П". Needs its own
+  decision (recapture vs. a different fix) before it's resolved — don't
+  guess at a grouping for these two without asking.
 - **о has 9 variant cards**: `о_first_l`, `о_first_u`, `о_middle_ll`,
   `о_middle_lu`, `о_middle_uu`, `о_middle_ul`, `о_middle_um`, `о_middle_lm`,
   `о_last_l`. **Still not captured**: an upper-entry `о_last` variant (the
@@ -492,19 +492,19 @@ As of v1.23.2:
   currently falls back to the plain "ю" card. Same variant system already
   supports it the moment cards are captured (`DUAL_NATURE_LETTERS` already
   includes it) — no code changes needed, only capturing + ingesting.
-- **3 connectors**: `conn_5_4` (universal exit, line5→line4, no
+- **4 connectors**: `conn_5_4` (universal exit, line5→line4, no
   `forLetters`), `conn_4_3` (looping entry for о/а/б/ф family, line4→line3,
   no `forLetters`), `conn_4_3_straight` (straight-diagonal entry, line4→line3,
-  `forLetters`: и,п,р,к,у,ю,ь,ы,ш,щ,н,ц,й,т,э).
+  `forLetters`: и,п,р,к,у,ю,ь,ы,ш,щ,н,ц,й,т,э), `conn_5_4_upper` (uppercase
+  hook-back exit, line5→line4, `forLetters`: Б,В,Г,Д,З,О,Р,У,Ф,Э,Ю — added
+  2026-08-14, does NOT replace `conn_5_4`, which every other letter still
+  uses).
 
 ### Natural next steps (not yet requested, just visible gaps)
 
-- Capture the last 3 uppercase letters — З, Ъ, Ь — to close the alphabet
-  (30/33 done as of 2026-08-14). Each still falls back to a system-font
+- Capture the last 2 uppercase letters — Ъ, Ь — to close the alphabet
+  (31/33 done as of 2026-08-14). Each still falls back to a system-font
   glyph in write_text until captured.
-- Ingest the user's own dedicated uppercase `5_4` connector capture
-  (Б,В,Г,Д,З,О,Р,У,Ф,Э,Ю group) when it arrives, replacing the temporary
-  lowercase-shaped `conn_5_4` fallback these letters currently use.
 - Decide + fix the uppercase→next-letter chaining gap for П and Т
   specifically (see "Data state" above) — still an open question, ask
   before guessing at a fix.
