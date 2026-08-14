@@ -419,9 +419,10 @@
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
     const isGridRoute = sessionParams?.navigatorExercise === "grid_route";
+    const gridSize = isGridRoute ? 8 : 12;
     const cells = Math.max(1, Math.min(3, Math.round(Number(task.cells) || 1)));
     const expected = { x: direction.col, y: direction.row };
-    const inputStart = { x: 6, y: 6 };
+    const inputStart = { x: gridSize / 2, y: gridSize / 2 };
     const routeEnd = { x: inputStart.x + expected.x * cells, y: inputStart.y + expected.y * cells };
     // The single star mirrors the shared "Серия для видеонаграды" setting:
     // 5 / 10 / 15 answers means one ray fills after 1 / 2 / 3 correct answers.
@@ -459,7 +460,7 @@
       const ctm = svg.getScreenCTM();
       if (!ctm) return null;
       const local = point.matrixTransform(ctm.inverse());
-      return { x: Math.max(0, Math.min(12, local.x)), y: Math.max(0, Math.min(12, local.y)) };
+      return { x: Math.max(0, Math.min(gridSize, local.x)), y: Math.max(0, Math.min(gridSize, local.y)) };
     }
 
     function resolve(correct) {
@@ -546,10 +547,10 @@
     const trailPath = trail ? `M ${trail[0].x} ${trail[0].y} L ${trail[1].x} ${trail[1].y}` : null;
     const routeGrid = [];
     if (isGridRoute) {
-      for (let index = 0; index <= 12; index += 1) {
-        routeGrid.push(h("line", { key: `vertical-${index}`, x1: index, y1: 0, x2: index, y2: 12 }));
-        routeGrid.push(h("line", { key: `horizontal-${index}`, x1: 0, y1: index, x2: 12, y2: index }));
-        for (let row = 0; row <= 12; row += 1) {
+      for (let index = 0; index <= gridSize; index += 1) {
+        routeGrid.push(h("line", { key: `vertical-${index}`, x1: index, y1: 0, x2: index, y2: gridSize }));
+        routeGrid.push(h("line", { key: `horizontal-${index}`, x1: 0, y1: index, x2: gridSize, y2: index }));
+        for (let row = 0; row <= gridSize; row += 1) {
           routeGrid.push(h("circle", { key: `node-${index}-${row}`, cx: index, cy: row, r: ".055" }));
         }
       }
@@ -572,7 +573,7 @@
         ),
       ),
       h("div", { className: "navigator__board" },
-        h("svg", { ref: svgRef, viewBox: "0 0 12 12", className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
+        h("svg", { ref: svgRef, viewBox: `0 0 ${gridSize} ${gridSize}`, className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
           isGridRoute ? h("g", { className: "navigator__grid" }, routeGrid) : arrows,
           h("circle", { className: "navigator__input-start", cx: inputStart.x, cy: inputStart.y, r: isGridRoute ? "0.22" : "0.3" },
             isGridRoute ? h("animate", { attributeName: "r", values: ".22;.34;.22", dur: "1.1s", repeatCount: "indefinite" }) : null,
