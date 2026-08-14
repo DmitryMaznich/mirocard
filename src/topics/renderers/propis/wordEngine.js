@@ -420,16 +420,30 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
     const bridging = !!prev; // was anything (connector) placed before this letter?
 
     if (prev) {
-      // "о immediately preceded by о" (2026-08-14): both halves of this specific junction go
-      // through the ORDINARY (non-variant) connector system regardless of whether either
-      // letter resolved a variant — see resolveVariant's matching special case, which always
-      // returns either a first-position variant (repeated о_first_u) or null (plain card) for
-      // this exact pairing, never a middle/last variant whose tail assumes the usual
-      // "skip the connector, it's already baked in" treatment. Every OTHER junction keeps the
-      // existing skip.
+      // "о immediately preceded by о" (2026-08-14): this junction always goes through the
+      // ORDINARY (non-variant) connector system, on BOTH sides, exactly as if neither letter
+      // had resolved a variant at all — including a middle-of-run repeat (о_first_u handing
+      // off into ANOTHER о_first_u), not just the run's tail. Two things are needed together,
+      // not just one:
+      //
+      // 1. Bypass the usual "a variant's own tail is already baked in" skip — on EITHER side
+      //    — whenever this override applies, not only when prev used a variant (the original
+      //    skip only ever considered prev; o_first_u reused for a middle position has no such
+      //    baked-in entry itself, since it was captured as a genuine word-initial letter).
+      // 2. Look the connector up by the CANONICAL о line numbers (EXIT_LINE_OVERRIDES["о"]=5,
+      //    ENTRY_LINE_OVERRIDES["о"]=3), not whatever a variant card's own raw geometry
+      //    happens to classify to — variant cards are keyed by their own id as `label`
+      //    (о_first_u, о_last_l, ...), so resolveConnectionInfo's EXIT_LINE_OVERRIDES/
+      //    ENTRY_LINE_OVERRIDES lookup (keyed by label) silently never applies to them, and
+      //    their raw exit/entry classifies a line or two off from where a real "о" is defined
+      //    to sit — enough that findExitConnector/findEntryConnector's key lookup misses
+      //    entirely (confirmed live: no connector stroke rendered between two о_first_u's,
+      //    visibly different from how any other repeated letter, e.g. "аа", connects).
       const standardConnectionOverride = ch === "о" && prevLabel === "о";
-      const exitConnector = (prev.usedVariant && !standardConnectionOverride) ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
-      const entryConnector = (usedVariant || (prev.usedVariant && !standardConnectionOverride)) ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
+      const exitLineForLookup = standardConnectionOverride ? EXIT_LINE_OVERRIDES["о"] : prev.exitLine;
+      const entryLineForLookup = standardConnectionOverride ? ENTRY_LINE_OVERRIDES["о"] : info.entryLine;
+      const exitConnector = (prev.usedVariant && !standardConnectionOverride) ? undefined : findExitConnector(connectorsByKey, exitLineForLookup, prev.label);
+      const entryConnector = ((usedVariant || prev.usedVariant) && !standardConnectionOverride) ? undefined : findEntryConnector(connectorsByKey, entryLineForLookup, ch);
 
       let anchorPoint;
       if (exitConnector) {

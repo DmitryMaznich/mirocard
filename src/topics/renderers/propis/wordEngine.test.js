@@ -663,13 +663,17 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     expect(lastOStroke.end[0] - lastOStroke.start[0]).toBeCloseTo(ownLast.end[0] - ownLast.start[0], 6);
   });
 
-  it("uses the first-position variant for every о in a run of 2+ consecutive о's except the last, which uses the plain card via the ordinary connector system", () => {
+  it("uses the first-position variant for every о in a run of 2+ consecutive о's except the last, which uses the plain card — with a real entry connector at EVERY о-after-о junction, not just the last", () => {
     // User-specified rule (2026-08-14), replacing the о_middle_uu/о_last_l-fallback mitigation
     // for this specific pattern: every о immediately followed by another о resolves to
     // whichever first-position variant matches "о" (о_first_u in real data) — repeated as
-    // many times as the run needs — and the run's last о uses the plain card, connected into
-    // the previous letter via the ORDINARY (non-variant) connector system, not a raw
-    // same-height snap.
+    // many times as the run needs — and the run's last о uses the plain card. EVERY junction
+    // in the run connects via the ORDINARY (non-variant) connector system, looked up by the
+    // canonical о line numbers (EXIT_LINE_OVERRIDES/ENTRY_LINE_OVERRIDES["о"]) rather than a
+    // variant card's own unclassified raw geometry — confirmed regression (2026-08-14, live):
+    // an earlier version of this fix only un-skipped the connector for the run's LAST
+    // junction, leaving repeated о_first_u's connecting to each other with no stroke at all
+    // (visibly different from how any other repeated letter, e.g. "аа", connects).
     const O_FIRST_UPPER = {
       id: "о_first_u", label: "о_first_u", variantOf: "о", position: "first", nextLetters: ["о"],
       strokes: [{ d: "M 20 69 C 22 70 24 71 26 72" }],
@@ -682,28 +686,30 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     const connectorsByKey = new Map([["4_3", [ENTRY_CONNECTOR]]]);
 
     // "ооо": о's 1 and 2 each have a following "о" -> both resolve to О_FIRST_UPPER; о 3 has
-    // no following letter -> plain card, reached via the registered 4→3 entry connector
-    // (proves "standard connector rules": that lookup only fires when info.entryLine is the
-    // PLAIN card's own overridden entryLine, i.e. it wasn't skipped as a variant-tail
-    // hand-off).
+    // no following letter -> plain card. Every junction (1→2, 2→3) reaches for the registered
+    // 4→3 entry connector.
     const result = buildWordTrajectory("ооо", withFirstUpper, connectorsByKey);
 
-    const stroke0 = getPathEndpoints(result.strokes[0].d);
     const ownFirstUpper = getPathEndpoints(O_FIRST_UPPER.strokes[0].d);
+    const ownConnector = getPathEndpoints(ENTRY_CONNECTOR.strokes[0].d);
+    const ownPlain = getPathEndpoints(O_PLAIN.strokes[0].d);
+
+    // strokes: о_first_u, entry connector, о_first_u, entry connector, plain о.
+    expect(result.strokes).toHaveLength(5);
+
+    const stroke0 = getPathEndpoints(result.strokes[0].d);
     expect(stroke0.end[0] - stroke0.start[0]).toBeCloseTo(ownFirstUpper.end[0] - ownFirstUpper.start[0], 6);
 
-    const stroke1 = getPathEndpoints(result.strokes[1].d);
-    expect(stroke1.end[0] - stroke1.start[0]).toBeCloseTo(ownFirstUpper.end[0] - ownFirstUpper.start[0], 6);
+    const connector1 = getPathEndpoints(result.strokes[1].d);
+    expect(connector1.end[0] - connector1.start[0]).toBeCloseTo(ownConnector.end[0] - ownConnector.start[0], 6);
 
-    // strokes: о_first_u, о_first_u, the 4→3 entry connector, plain о — the connector is
-    // only present at all because it was looked up via the ordinary system, not skipped.
-    expect(result.strokes).toHaveLength(4);
-    const connectorStroke = getPathEndpoints(result.strokes[2].d);
-    const ownConnector = getPathEndpoints(ENTRY_CONNECTOR.strokes[0].d);
-    expect(connectorStroke.end[0] - connectorStroke.start[0]).toBeCloseTo(ownConnector.end[0] - ownConnector.start[0], 6);
+    const stroke2 = getPathEndpoints(result.strokes[2].d);
+    expect(stroke2.end[0] - stroke2.start[0]).toBeCloseTo(ownFirstUpper.end[0] - ownFirstUpper.start[0], 6);
 
-    const lastStroke = getPathEndpoints(result.strokes[3].d);
-    const ownPlain = getPathEndpoints(O_PLAIN.strokes[0].d);
+    const connector2 = getPathEndpoints(result.strokes[3].d);
+    expect(connector2.end[0] - connector2.start[0]).toBeCloseTo(ownConnector.end[0] - ownConnector.start[0], 6);
+
+    const lastStroke = getPathEndpoints(result.strokes[4].d);
     expect(lastStroke.end[0] - lastStroke.start[0]).toBeCloseTo(ownPlain.end[0] - ownPlain.start[0], 6);
   });
 
