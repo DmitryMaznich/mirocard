@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.15",
+    "version": "1.8.16",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -32,7 +32,7 @@
       "evaluation": "auto",
       "ui": {
         "title": "Повтори рисунок",
-        "instruction": "Повтори рисунок целиком справа",
+        "instruction": "Смотри на рисунок слева и нарисуй такой же справа",
         "icon": "media/repeat_avatar.svg"
       }
     },

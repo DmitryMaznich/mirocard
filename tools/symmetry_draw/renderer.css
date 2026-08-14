@@ -65,6 +65,11 @@
 }
 .symmetry-draw__mirror-chip--repeat { color: var(--sd-repeat); background: rgba(13, 148, 136, 0.1); border-color: rgba(13, 148, 136, 0.22); }
 
+.symmetry-draw__repeat-labels { display: grid; grid-template-columns: 1fr 1fr; gap: 6%; padding: 8px 8% 1px; }
+.symmetry-draw__repeat-label { display: inline-flex; justify-content: center; align-items: center; min-height: 26px; border-radius: 9px 9px 3px 3px; font: 800 clamp(11px, 1.9vw, 13px)/1 Nunito, sans-serif; letter-spacing: .025em; }
+.symmetry-draw__repeat-label--sample { color: #1e3faa; background: #edf3ff; }
+.symmetry-draw__repeat-label--work { color: #087d76; background: #e9f8f4; }
+
 .symmetry-draw__canvas {
   min-width: 0;
   max-width: 100%;
@@ -78,6 +83,8 @@
 }
 .symmetry-draw__grid { display: block; width: 100%; max-width: 100%; height: auto; max-height: min(64vh, 660px); touch-action: none; user-select: none; cursor: crosshair; }
 .symmetry-draw__paper { fill: transparent; }
+.symmetry-draw__paper--sample { fill: #f6f9ff; stroke: #cadcf6; stroke-width: .035; }
+.symmetry-draw__paper--work { fill: #fbfffd; stroke: #9fd8ce; stroke-width: .05; }
 
 /* Grid: hairline lines regardless of viewBox scale (non-scaling-stroke), soft
    powder-blue dots at every intersection. */
@@ -91,6 +98,9 @@
 .symmetry-draw__mirror-line--repeat { stroke: var(--sd-repeat); stroke-dasharray: none; }
 .symmetry-draw__mirror-chevron { fill: var(--sd-mirror); pointer-events: none; }
 .symmetry-draw__repeat-arrow { fill: var(--sd-repeat); pointer-events: none; }
+.symmetry-draw__repeat-start { pointer-events: none; }
+.symmetry-draw__repeat-start circle:first-child { fill: rgba(16, 156, 146, .18); stroke: #0d9488; stroke-width: .05; }
+.symmetry-draw__repeat-start circle:last-child { fill: #16a89f; stroke: #fff; stroke-width: .045; }
 
 .symmetry-draw__source, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line {
   fill: none;
@@ -103,6 +113,9 @@
    reads like felt-tip marker ink instead of a thin debug vector. */
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }
 .symmetry-draw__stroke { stroke: var(--sd-drawn); stroke-width: 0.11; }
+.symmetry-draw__repeat-feedback { fill: none; stroke-width: .13; stroke-linecap: round; pointer-events: none; animation: repeatFeedbackIn .28s ease-out both; }
+.symmetry-draw__repeat-feedback--covered { stroke: #20a76b; }
+.symmetry-draw__repeat-feedback--missed { stroke: #e77949; stroke-dasharray: .08 .11; }
 .symmetry-draw__hint-line { stroke: var(--sd-hint); stroke-width: 0.035; stroke-dasharray: 0.02 0.1; }
 .symmetry-draw__hint-point { fill: var(--sd-hint); pointer-events: none; }
 .symmetry-draw__hint-point text { fill: white; font: 800 0.17px/1 Nunito, sans-serif; pointer-events: none; }
@@ -150,11 +163,14 @@
   0% { transform: scale(0.85); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
+@keyframes repeatFeedbackIn { from { opacity: 0; stroke-width: .04; } to { opacity: .92; stroke-width: .13; } }
 
 @media (max-width: 560px) {
   .symmetry-draw { width: 100%; padding: 4px 4px 0; }
   .symmetry-draw__head { gap: 6px; padding: 8px 6px 2px; }
   .symmetry-draw__mirror-chip { padding: 4px 6px; font-size: 10px; }
+  .symmetry-draw__repeat-labels { gap: 4%; padding: 6px 5% 0; }
+  .symmetry-draw__repeat-label { min-height: 23px; font-size: 10px; }
   .symmetry-draw__grid { max-height: 56vh; }
   .symmetry-draw__controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 6px; }
   .symmetry-draw__button { width: 100%; min-width: 0; min-height: 36px; padding: 6px 3px; font-size: clamp(11px, 3.2vw, 13px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

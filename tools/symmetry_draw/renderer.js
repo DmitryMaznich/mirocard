@@ -80,14 +80,17 @@
       if (prevEnd && curStart) drawnPoints.push(...connectingSamples(prevEnd, curStart));
     }
     const total = targetSegments.length;
-    let best = { covered: 0, total, complete: false };
+    let best = { covered: 0, total, complete: false, coveredIndexes: [] };
     // Try every whole-figure horizontal shift in range and keep whichever
     // position covers the most segments - a systematic left/right offset in
     // the child's stroke shouldn't hide how accurate the shape itself is.
     for (let dx = -maxHorizontalShift; dx <= maxHorizontalShift; dx += 1) {
       const shiftedPoints = dx === 0 ? drawnPoints : drawnPoints.map((p) => ({ col: p.col - dx, row: p.row }));
-      const covered = targetSegments.filter((segment) => isSegmentCovered(shiftedPoints, segment, tolerance)).length;
-      if (covered > best.covered) best = { covered, total, complete: total > 0 && covered === total };
+      const coveredIndexes = targetSegments
+        .map((segment, index) => isSegmentCovered(shiftedPoints, segment, tolerance) ? index : -1)
+        .filter((index) => index >= 0);
+      const covered = coveredIndexes.length;
+      if (covered > best.covered) best = { covered, total, complete: total > 0 && covered === total, coveredIndexes };
       if (best.complete) break;
     }
     return best;
@@ -816,9 +819,14 @@
     const axisCol = Number(shape.axisCol ?? 5);
     const sourcePaths = shape.sourcePaths || EMPTY_PATHS;
     const isRepeat = shape.taskKind === "repeat";
+    // A repeat is two separate workspaces, not two halves around an axis.
+    // Keep a narrow visual gutter so it cannot be mistaken for symmetry.
+    const repeatGap = isRepeat ? 1.5 : 0;
+    const workOrigin = isRepeat ? axisCol + repeatGap : axisCol;
+    const canvasColumns = columns + repeatGap;
     const targetPaths = useMemo(
-      () => (isRepeat ? translatePaths(sourcePaths, axisCol) : mirrorPaths(sourcePaths, axisCol)),
-      [sourcePaths, axisCol, isRepeat],
+      () => (isRepeat ? translatePaths(sourcePaths, workOrigin) : mirrorPaths(sourcePaths, axisCol)),
+      [sourcePaths, axisCol, workOrigin, isRepeat],
     );
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
     const hintPoints = useMemo(() => targetPaths.flat(), [targetPaths]);
@@ -832,7 +840,10 @@
       const ctm = svg.getScreenCTM();
       if (!ctm) return null;
       const local = point.matrixTransform(ctm.inverse());
-      if (local.x < -0.45 || local.x > columns + 0.45 || local.y < -0.45 || local.y > rows + 0.45) return null;
+      if (local.x < -0.45 || local.x > canvasColumns + 0.45 || local.y < -0.45 || local.y > rows + 0.45) return null;
+      // The model on the left is deliberately inert in "Repeat". Drawing
+      // can only begin in the clearly marked workspace on the right.
+      if (isRepeat && local.x < workOrigin - 0.35) return null;
       return {
         col: Math.max(0, Math.min(columns, local.x)),
         row: Math.max(0, Math.min(rows, local.y)),
@@ -877,7 +888,7 @@
       const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
       if (coverage.complete) {
         setResolved(true);
-        setResult({ percent: 100, complete: true });
+        setResult({ percent: 100, complete: true, coveredIndexes: coverage.coveredIndexes });
         // A card solved with the hint showing still counts as done for the
         // child, but shouldn't earn a star - skip onCorrect (which drives the
         // streak/reward count) and just move on ourselves instead.
@@ -885,54 +896,78 @@
         else onCorrect?.(task.conceptId, shape.id);
         return;
       }
-      setResult({ percent, complete: false });
+      setResult({ percent, complete: false, coveredIndexes: coverage.coveredIndexes });
     }
 
     const gridLines = [];
-    for (let col = 0; col <= columns; col += 1) gridLines.push(h("line", { key: `v-${col}`, className: "symmetry-draw__line", x1: col, y1: 0, x2: col, y2: rows }));
-    for (let row = 0; row <= rows; row += 1) gridLines.push(h("line", { key: `h-${row}`, className: "symmetry-draw__line", x1: 0, y1: row, x2: columns, y2: row }));
     const nodes = [];
-    for (let col = 0; col <= columns; col += 1) {
-      for (let row = 0; row <= rows; row += 1) nodes.push(h("circle", { key: `p-${col}-${row}`, className: "symmetry-draw__point", cx: col, cy: row, r: "0.05" }));
+    const paper = [];
+    const addGrid = (origin, width, keyPrefix, panelClass = "") => {
+      paper.push(h("rect", { key: `${keyPrefix}-paper`, className: `symmetry-draw__paper ${panelClass}`.trim(), x: origin - .5, y: "-.72", width: width + 1, height: rows + 1.45, rx: "0.12" }));
+      for (let col = 0; col <= width; col += 1) {
+        const x = origin + col;
+        gridLines.push(h("line", { key: `${keyPrefix}-v-${col}`, className: "symmetry-draw__line", x1: x, y1: 0, x2: x, y2: rows }));
+        for (let row = 0; row <= rows; row += 1) nodes.push(h("circle", { key: `${keyPrefix}-p-${col}-${row}`, className: "symmetry-draw__point", cx: x, cy: row, r: "0.05" }));
+      }
+      for (let row = 0; row <= rows; row += 1) gridLines.push(h("line", { key: `${keyPrefix}-h-${row}`, className: "symmetry-draw__line", x1: origin, y1: row, x2: origin + width, y2: row }));
+    };
+    if (isRepeat) {
+      addGrid(0, axisCol, "sample", "symmetry-draw__paper--sample");
+      addGrid(workOrigin, axisCol, "work", "symmetry-draw__paper--work");
+    } else {
+      addGrid(0, columns, "grid");
     }
 
     const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
+    const repeatStart = targetPaths[0]?.[0] ?? null;
+    const coveredSegments = new Set(result?.coveredIndexes ?? []);
 
-    return h("section", { className: "symmetry-draw", "aria-label": shape.label ?? "Симметричный рисунок" },
+    return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, "aria-label": shape.label ?? "Симметричный рисунок" },
       h("span", { className: "symmetry-draw__tape", "aria-hidden": "true" }),
       h("div", { className: "symmetry-draw__head" },
         h("div", { className: "symmetry-draw__head-text" },
           h("div", { className: "symmetry-draw__title" }, shape.label ?? "Фигура"),
           h("div", { className: "symmetry-draw__instruction" }, instruction),
         ),
-        h("span", { className: `symmetry-draw__mirror-chip${isRepeat ? " symmetry-draw__mirror-chip--repeat" : ""}` }, isRepeat ? "→ повтори" : "↔ зеркало"),
+        h("span", { className: `symmetry-draw__mirror-chip${isRepeat ? " symmetry-draw__mirror-chip--repeat" : ""}` }, isRepeat ? "↔ сделай так же" : "↔ зеркало"),
       ),
       h("div", { className: "symmetry-draw__canvas" },
+        isRepeat ? h("div", { className: "symmetry-draw__repeat-labels", "aria-hidden": "true" },
+          h("span", { className: "symmetry-draw__repeat-label symmetry-draw__repeat-label--sample" }, "Смотри"),
+          h("span", { className: "symmetry-draw__repeat-label symmetry-draw__repeat-label--work" }, "Нарисуй так же"),
+        ) : null,
         h("svg", {
           ref: svgRef,
           className: "symmetry-draw__grid",
-          viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`,
+          viewBox: `-0.55 -0.78 ${canvasColumns + 1.1} ${rows + 1.58}`,
           onPointerDown: startDrawing,
           onPointerMove: continueDrawing,
           onPointerUp: stopDrawing,
           onPointerCancel: stopDrawing,
           onPointerLeave: stopDrawing,
         },
-          h("rect", { className: "symmetry-draw__paper", x: "-0.5", y: "-0.72", width: columns + 1, height: rows + 1.45, rx: "0.12" }),
+          paper,
           gridLines,
-          Array.from({ length: columns + 1 }, (_, col) => h("text", { key: `col-${col}`, className: "symmetry-draw__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, col + 1)),
-          Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)),
+          !isRepeat ? Array.from({ length: columns + 1 }, (_, col) => h("text", { key: `col-${col}`, className: "symmetry-draw__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, col + 1)) : null,
+          !isRepeat ? Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)) : null,
           nodes,
-          h("line", { className: `symmetry-draw__mirror-line${isRepeat ? " symmetry-draw__mirror-line--repeat" : ""}`, x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
-          isRepeat
-            ? h("path", { className: "symmetry-draw__repeat-arrow", d: `M ${axisCol - 0.28} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.32} L ${axisCol + 0.22} ${rows / 2 - 0.6} L ${axisCol + 0.62} ${rows / 2} L ${axisCol + 0.22} ${rows / 2 + 0.6} L ${axisCol + 0.22} ${rows / 2 + 0.32} L ${axisCol - 0.28} ${rows / 2 + 0.32} Z` })
-            : [
+          !isRepeat ? [
+                h("line", { key: "axis", className: "symmetry-draw__mirror-line", x1: axisCol, y1: 0.15, x2: axisCol, y2: rows - 0.15 }),
                 h("path", { key: "chev-top", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
                 h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
-              ],
+              ] : null,
           sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
+          isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
+            h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
+            h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),
+          ) : null,
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
+          isRepeat && result ? targetSegments.map((segment, index) => h("line", {
+            key: `feedback-${index}`,
+            className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
+            x1: segment.a.col, y1: segment.a.row, x2: segment.b.col, y2: segment.b.row,
+          })) : null,
           showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
           showHint ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.17" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
         ),
