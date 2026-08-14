@@ -845,7 +845,9 @@
       // can only begin in the clearly marked workspace on the right.
       if (isRepeat && local.x < workOrigin - 0.35) return null;
       return {
-        col: Math.max(0, Math.min(columns, local.x)),
+        // In repeat mode the work panel is shifted to the right by the visual
+        // gutter, so its last column sits beyond the original card width.
+        col: Math.max(0, Math.min(canvasColumns, local.x)),
         row: Math.max(0, Math.min(rows, local.y)),
       };
     }
