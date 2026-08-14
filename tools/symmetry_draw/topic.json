@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.14",
+    "version": "1.8.15",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -124,6 +124,10 @@
       "type": "coordinates",
       "evaluation": "instant",
       "hideConceptPicker": true,
+      "rewardDefaults": {
+        "strictStars": true,
+        "forceStrictStars": true
+      },
       "params": {
         "coordinateExercise": {
           "type": "enum",

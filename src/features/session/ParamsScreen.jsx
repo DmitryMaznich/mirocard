@@ -964,7 +964,9 @@ export default function ParamsScreen() {
   const [params,         setParams]        = useState(getInitialParams);
   const [videoReward,   setVideoReward]   = useState(link.videoRewardEnabled ?? true);
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
-  const [strictStars,   setStrictStars]   = useState(link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true);
+  const forceStrictStars = mode?.rewardDefaults?.forceStrictStars === true;
+  const [strictStarsSetting, setStrictStars] = useState(link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true);
+  const strictStars = forceStrictStars ? true : strictStarsSetting;
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
   const [activeInfo,     setActiveInfo]      = useState(null);
@@ -1041,7 +1043,7 @@ export default function ParamsScreen() {
       params: getInitialParams(),
       videoRewardEnabled: link.videoRewardEnabled ?? true,
       answersPerStar: link.answersPerStar ?? 1,
-      strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true,
+      strictStars: forceStrictStars ? true : (link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true),
     };
     const current = { params, videoRewardEnabled: videoReward, answersPerStar, strictStars };
     if (sessionSettingsChanged(current, baseline)) {
@@ -1438,10 +1440,14 @@ export default function ParamsScreen() {
 
                   <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
                     <ParamLabel
-                      label="Строгий подсчёт"
+                      label={forceStrictStars ? "Строгий подсчёт — обязателен" : "Строгий подсчёт"}
                       info={{
-                        text: "В «Строго» любая ошибка — даже одна неверная цифра в отдельной клетке примера — сразу обнуляет серию для звёзд. В «Мягко» ошибки в клетках не сбрасывают серию, она растёт по мере решённых примеров.",
-                        tip: "Для «Столбика» рекомендуем «Мягко» — ошибка в одной цифре трёхзначного числа при «Строго» может обнулить всю серию за один случайный тап.",
+                        text: forceStrictStars
+                          ? "В этом режиме неверная точка всегда обнуляет серию звёзд: здесь важна последовательность точных ответов."
+                          : "В «Строго» любая ошибка — даже одна неверная цифра в отдельной клетке примера — сразу обнуляет серию для звёзд. В «Мягко» ошибки в клетках не сбрасывают серию, она растёт по мере решённых примеров.",
+                        tip: forceStrictStars
+                          ? "Сначала закрепляйте уверенное чтение координат короткими сериями из пяти точных ответов."
+                          : "Для «Столбика» рекомендуем «Мягко» — ошибка в одной цифре трёхзначного числа при «Строго» может обнулить всю серию за один случайный тап.",
                       }}
                       onShowInfo={setActiveInfo}
                     />
@@ -1451,7 +1457,7 @@ export default function ParamsScreen() {
                       aria-checked={strictStars}
                       aria-label="Строгий подсчёт"
                       className={`param-toggle ${strictStars ? "param-toggle--on" : ""}`}
-                      disabled={!videoReward}
+                      disabled={!videoReward || forceStrictStars}
                       onClick={() => setStrictStars((v) => !v)}
                     />
                   </div>

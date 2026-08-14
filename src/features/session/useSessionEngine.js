@@ -18,6 +18,14 @@ import {
 
 const INCORRECT_FEEDBACK_MS = 1500;
 
+function resolveStrictStars(mode, savedValue) {
+  // Some reaction drills are a true "correct answers in a row" exercise.
+  // Their progression must not inherit a soft-count setting saved in another
+  // mode of the same topic.
+  if (mode?.rewardDefaults?.forceStrictStars) return true;
+  return savedValue ?? mode?.rewardDefaults?.strictStars ?? true;
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -121,7 +129,7 @@ function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true,
+    resolveStrictStars(mode, link.strictStars),
   );
 
   if (mode.type === "assemble_text") {
@@ -173,7 +181,7 @@ export function useSessionEngine() {
     hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
   };
   const isReading = topicRecord?.meta.renderer === "reading";
-  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true };
+  const sessionParams = { ...(link.params ?? {}), strictStars: resolveStrictStars(mode, link.strictStars) };
   const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
     .filter((c) => c.primary)
     .map((c) => c.conceptId);
