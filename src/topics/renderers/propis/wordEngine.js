@@ -435,20 +435,27 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
       const entryConnector = usedVariant || prev.usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
 
-      // "о immediately preceded by о": skip the canonical-line correction below (the
-      // "костёр" drift fix) entirely — that correction exists for chains of DIFFERENT,
-      // independently-captured letters, where each one's own small classification residual
-      // compounds across the word. Two adjacent о's chained through repeated о_first_u are
-      // the SAME captured piece every time; its own raw exit point is exactly where its own
-      // next copy's raw entry point is designed to continue from — snapping instead to the
-      // canonical line (y of whichever guide line the raw exit merely classifies nearest to)
-      // pulls the join to a DIFFERENT height than the piece's own real geometry, which is
-      // exactly what produced the visible drop confirmed live 2026-08-14: о 1 (untouched,
-      // sitting at its own natural ~69) handing off to о 2 anchored at the canonical line
-      // (75) instead — a one-time ~6-unit jump right at that junction (harder to notice
-      // between о 2 and о 3, since о 2's OWN exit had already been pulled close to 75 by
-      // this same anchor logic one step earlier).
-      const standardConnectionOverride = ch === "о" && prevLabel === "о";
+      // Any letter directly preceded by a resolved о/ю variant: skip the canonical-line
+      // correction below (the "костёр" drift fix) entirely — that correction exists for
+      // chains of DIFFERENT, independently-captured letters, where each one's own small
+      // classification residual compounds across the word. A variant card's own raw exit
+      // point is, by design, exactly where the next letter is meant to continue from (see
+      // the "dual-nature letter" comment above) — snapping it instead to the canonical line
+      // (y of whichever guide line the raw exit merely classifies nearest to) pulls the join
+      // to a DIFFERENT height than the piece's own real geometry.
+      //
+      // First found 2026-08-14 for "о immediately preceded by о" (в chains like "ооо": о 1,
+      // untouched, sitting at its own natural ~69, handing off to о 2 anchored at the
+      // canonical line 75 instead — a ~6-unit jump). Generalized same day after a live
+      // report (screenshot of "продукты"/"космос") showed the identical jump for EVERY
+      // letter following any о variant, not just о-into-о: о_middle_lu/о_first_u's own raw
+      // exit (~69) was getting pulled up to line 4 (75) before а/б/ф/д/с/etc, because
+      // EXIT_LINE_OVERRIDES only matches a card's plain `label` ("о"), never a variant's own
+      // id-as-label ("о_middle_lu") — so a variant's exit always classifies (wrongly, for
+      // this purpose) via raw geometry instead of getting о's own line-5 override. Confirmed
+      // live: every junction right after a resolved о variant started at y=75.000 exactly,
+      // regardless of which letter followed.
+      const variantTailReachesHere = prev.usedVariant;
 
       let anchorPoint;
       if (exitConnector) {
@@ -458,7 +465,7 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
         const placed = placeExitConnector(exitConnector, prev.baselineContactWorld);
         strokes.push(...markContinuous(placed.strokes));
         anchorPoint = placed.endPoint;
-      } else if (standardConnectionOverride) {
+      } else if (variantTailReachesHere) {
         anchorPoint = prev.exitPointWorld;
       } else {
         // No captured connector for this letter's exit type: snap to the previous letter's

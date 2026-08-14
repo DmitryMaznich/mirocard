@@ -600,6 +600,29 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     expect(result.strokes.length).toBe(3); // б, о (variant), е — no separate entry connector for е
   });
 
+  it("anchors the letter after a resolved о variant to the variant's own raw exit point, not the canonical guide line (2026-08-14)", () => {
+    // Regression: live report on "продукты"/"космос" (real о_middle_lu/о_first_u handing off
+    // into д/с) showed a visible jog right after every о variant, for ANY following letter —
+    // not just the already-fixed о-into-о case. Root cause: EXIT_LINE_OVERRIDES only matches a
+    // card's plain `label` ("о"), never a variant's own id-as-label ("о_middle_uu" etc.), so a
+    // variant's exit always classifies via its raw (untranslated) geometry instead of getting
+    // о's own override — and the "no connector, snap to canonical line" branch then pulled the
+    // NEXT letter up/down to that classified line instead of continuing from the variant's own
+    // real (translated) exit point, which its own captured tail is designed to reach exactly.
+    //
+    // О_MIDDLE_ANY's own raw exit ends at (46, 67); classifyLine(67) rounds to line 3 (y=62) —
+    // 5 units off the raw value, enough to prove which anchor was actually used. No connector
+    // is registered for either junction, so both о's own placement and е's placement after it
+    // go through the plain "no connector" branch.
+    const result = buildWordTrajectory("бое", letters, new Map());
+    const oStroke = getPathEndpoints(result.strokes[1].d);
+    const eStroke = getPathEndpoints(result.strokes[2].d);
+    // е's own entry must land exactly on о's own placed exit point (exact-snap) ...
+    expect(eStroke.start[1]).toBeCloseTo(oStroke.end[1], 6);
+    // ... not on classifyLine(67)'s canonical line-3 y (62), which is what the bug produced.
+    expect(eStroke.start[1]).not.toBeCloseTo(62, 1);
+  });
+
   it("falls back to the plain isolated card when no matching variant is captured", () => {
     // "ои": о is first, followed by "и" — not in О_FIRST_LOWER's nextLetters ("б" only) ->
     // must not throw, must use O_PLAIN instead.

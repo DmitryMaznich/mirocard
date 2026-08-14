@@ -519,7 +519,12 @@ function TextUploadParam({ label, maxLength, value, onChange }) {
     if (!file) return;
     try {
       const raw = await file.text();
-      const normalized = raw.replace(/\r\n?/g, "\n").trim();
+      // Uploaded files are often authored with blank lines between paragraphs/list items
+      // for readability (see content/recipes/*.txt) — layoutTextIntoRows treats every "\n"
+      // as a real row break (including blank ones, to support the on-screen keyboard's
+      // double-Enter blank-line gesture), so without collapsing those here, an uploaded
+      // file renders with an empty ruled row after every single line (2026-08-14).
+      const normalized = raw.replace(/\r\n?/g, "\n").replace(/\n{2,}/g, "\n").trim();
       if (normalized.length > maxLength) {
         setError(`Слишком длинный текст: ${normalized.length} символов, максимум ${maxLength}.`);
         return;
