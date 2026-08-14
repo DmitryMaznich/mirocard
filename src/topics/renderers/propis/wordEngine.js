@@ -435,6 +435,21 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
       const exitConnector = prev.usedVariant ? undefined : findExitConnector(connectorsByKey, prev.exitLine, prev.label);
       const entryConnector = usedVariant || prev.usedVariant ? undefined : findEntryConnector(connectorsByKey, info.entryLine, ch);
 
+      // "о immediately preceded by о": skip the canonical-line correction below (the
+      // "костёр" drift fix) entirely — that correction exists for chains of DIFFERENT,
+      // independently-captured letters, where each one's own small classification residual
+      // compounds across the word. Two adjacent о's chained through repeated о_first_u are
+      // the SAME captured piece every time; its own raw exit point is exactly where its own
+      // next copy's raw entry point is designed to continue from — snapping instead to the
+      // canonical line (y of whichever guide line the raw exit merely classifies nearest to)
+      // pulls the join to a DIFFERENT height than the piece's own real geometry, which is
+      // exactly what produced the visible drop confirmed live 2026-08-14: о 1 (untouched,
+      // sitting at its own natural ~69) handing off to о 2 anchored at the canonical line
+      // (75) instead — a one-time ~6-unit jump right at that junction (harder to notice
+      // between о 2 and о 3, since о 2's OWN exit had already been pulled close to 75 by
+      // this same anchor logic one step earlier).
+      const standardConnectionOverride = ch === "о" && prevLabel === "о";
+
       let anchorPoint;
       if (exitConnector) {
         // Real captured connector: place it as-is against where the previous letter
@@ -443,6 +458,8 @@ export function buildWordTrajectory(word, lettersByLabel, connectorsByKey) {
         const placed = placeExitConnector(exitConnector, prev.baselineContactWorld);
         strokes.push(...markContinuous(placed.strokes));
         anchorPoint = placed.endPoint;
+      } else if (standardConnectionOverride) {
+        anchorPoint = prev.exitPointWorld;
       } else {
         // No captured connector for this letter's exit type: snap to the previous letter's
         // own CLASSIFIED exit line, not its raw (slightly imprecise) exit point. A real
