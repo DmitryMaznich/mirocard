@@ -291,6 +291,16 @@
 .coordinate-practice__node { fill: #8fbce6; pointer-events: none; }
 .coordinate-practice__label { fill: #4d6d91; font: 800 .34px/1 Nunito, sans-serif; pointer-events: none; }
 .coordinate-practice__target { fill: #ffbf29; stroke: #d88500; stroke-width: .06; }
+.coordinate-practice__selection { pointer-events: none; }
+.coordinate-practice__selection-ripple { fill: none; stroke-width: .075; }
+.coordinate-practice__selection-halo { stroke-width: .06; }
+.coordinate-practice__selection-core { stroke: #fff; stroke-width: .055; }
+.coordinate-practice__selection--good .coordinate-practice__selection-ripple { stroke: #1aa56d; }
+.coordinate-practice__selection--good .coordinate-practice__selection-halo { fill: rgba(51, 184, 118, .24); stroke: #168c5a; }
+.coordinate-practice__selection--good .coordinate-practice__selection-core { fill: #28b878; }
+.coordinate-practice__selection--bad .coordinate-practice__selection-ripple { stroke: #e45252; }
+.coordinate-practice__selection--bad .coordinate-practice__selection-halo { fill: rgba(239, 91, 91, .22); stroke: #c83f40; }
+.coordinate-practice__selection--bad .coordinate-practice__selection-core { fill: #ed5a5a; }
 .coordinate-practice__answers { display: grid; gap: 8px; margin: 12px auto 0; width: min(100%, 520px); }
 .coordinate-practice__answer-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
 .coordinate-practice__answer { min-width: 0; min-height: 42px; border: 2px solid #a8c7e6; border-radius: 10px; background: #f7fbff; color: #264f7f; font: 900 clamp(17px, 3.6vw, 23px)/1 Arial, sans-serif; }

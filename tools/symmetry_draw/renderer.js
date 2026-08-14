@@ -414,11 +414,16 @@
     const rows = Number(shape?.rows ?? 7);
     const isName = sessionParams?.coordinateExercise === "name";
     const [picked, setPicked] = useState({ letter: null, number: null });
+    const [selectedPoint, setSelectedPoint] = useState(null);
     const [result, setResult] = useState(null);
     const [notice, setNotice] = useState("");
 
     function resolve(point) {
       const correct = point.col === target.col && point.row === target.row;
+      // Leave a clear, animated footprint on the exact grid node the child
+      // touched. The feedback frame alone does not make the selected point
+      // obvious enough on a dense coordinate grid.
+      setSelectedPoint(point);
       setResult(correct ? "good" : "bad");
       setNotice(correct ? "Верно!" : "Проверь букву и цифру ещё раз.");
       if (correct) {
@@ -428,6 +433,7 @@
           setResult(null);
           setNotice("");
           setPicked({ letter: null, number: null });
+          setSelectedPoint(null);
         }, 700);
       }
     }
@@ -500,6 +506,20 @@
           h("rect", { className: "coordinate-practice__paper", x: "-0.52", y: "-0.72", width: columns + 1.04, height: rows + 1.44, rx: ".14" }),
           grid,
           labels,
+          !isName && selectedPoint ? h("g", {
+            key: `${selectedPoint.col}-${selectedPoint.row}-${result}`,
+            className: `coordinate-practice__selection coordinate-practice__selection--${result ?? "pending"}`,
+            "aria-hidden": "true",
+          },
+            h("circle", { className: "coordinate-practice__selection-ripple", cx: selectedPoint.col, cy: selectedPoint.row, r: ".2" },
+              h("animate", { attributeName: "r", values: ".2;.5;.62", dur: ".7s", fill: "freeze" }),
+              h("animate", { attributeName: "opacity", values: ".9;.4;0", dur: ".7s", fill: "freeze" }),
+            ),
+            h("circle", { className: "coordinate-practice__selection-halo", cx: selectedPoint.col, cy: selectedPoint.row, r: ".3" }),
+            h("circle", { className: "coordinate-practice__selection-core", cx: selectedPoint.col, cy: selectedPoint.row, r: ".16" },
+              h("animate", { attributeName: "r", values: ".08;.25;.16", dur: ".42s", fill: "freeze" }),
+            ),
+          ) : null,
           isName ? h("circle", { className: "coordinate-practice__target", cx: target.col, cy: target.row, r: ".19" },
             h("animate", { attributeName: "r", values: ".19;.29;.19", dur: "1.15s", repeatCount: "indefinite" }),
           ) : null,
