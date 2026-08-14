@@ -26,9 +26,8 @@ export function deriveConcepts(cards) {
 const TASK_KIND_BY_MODE_TYPE = {
   mirror_draw: "mirror",
   repeat_draw: "repeat",
-  graphic_dictation: "dictation",
-  coordinate_dictation: "coordinate",
   navigator: "navigator",
+  coordinates: "coordinates",
 };
 
 // word_agreement bundles several unrelated skills (case, verb number, verb
@@ -38,12 +37,14 @@ const TASK_KIND_BY_MODE_TYPE = {
 // for "Числительное + существительное" would also show all the case/verb
 // cards that mode never uses. Every other renderer keeps one card set per
 // mode already, so this is a no-op for them.
-export function getConceptCards(topicRecord, mode) {
+export function getConceptCards(topicRecord, mode, params = {}) {
   const cards = topicRecord?.cards ?? [];
   if (topicRecord?.meta?.renderer === "word_agreement" && mode?.type) {
     return cards.filter((c) => c.skill === mode.type);
   }
-  const taskKind = mode?.type ? TASK_KIND_BY_MODE_TYPE[mode.type] : undefined;
+  const taskKind = mode?.type === "graphic_dictation"
+    ? (params.dictationCommand === "coordinates" ? "coordinate" : "dictation")
+    : (mode?.type ? TASK_KIND_BY_MODE_TYPE[mode.type] : undefined);
   if (taskKind) {
     return cards.filter((c) => c.taskKind === taskKind);
   }
@@ -54,10 +55,17 @@ export function getConceptCards(topicRecord, mode) {
 // taskKind-scoped modes, word_agreement's skill-scoped modes) rather than the
 // whole topic. These modes' concept selections must be remembered separately per
 // mode - see readModeSelectedConceptIds/writeModeSelectedConceptIds below.
-export function isConceptSelectionScopedByMode(topicRecord, mode) {
+export function isConceptSelectionScopedByMode(topicRecord, mode, params) {
   if (!mode) return false;
   const allCards = topicRecord?.cards ?? [];
-  return getConceptCards(topicRecord, mode).length !== allCards.length;
+  return getConceptCards(topicRecord, mode, params).length !== allCards.length;
+}
+
+function getSelectionPrefix(mode, params) {
+  const variant = mode?.type === "graphic_dictation"
+    ? `:${params?.dictationCommand === "coordinates" ? "coordinates" : "directions"}`
+    : "";
+  return `${mode.id}${variant}::`;
 }
 
 // The student-topic link has a single shared selectedConceptIds array (one
@@ -67,19 +75,19 @@ export function isConceptSelectionScopedByMode(topicRecord, mode) {
 // would silently overwrite - and appear to ignore - whatever was chosen in
 // another. Namespacing entries as "<modeId>::<conceptId>" inside the same flat
 // array keeps every mode's choice isolated without any backend schema change.
-export function readModeSelectedConceptIds(topicRecord, mode, rawSelectedConceptIds) {
+export function readModeSelectedConceptIds(topicRecord, mode, rawSelectedConceptIds, params) {
   if (!rawSelectedConceptIds?.length) return null;
-  if (!isConceptSelectionScopedByMode(topicRecord, mode)) return rawSelectedConceptIds;
-  const prefix = `${mode.id}::`;
+  if (!isConceptSelectionScopedByMode(topicRecord, mode, params)) return rawSelectedConceptIds;
+  const prefix = getSelectionPrefix(mode, params);
   const own = rawSelectedConceptIds
     .filter((id) => id.startsWith(prefix))
     .map((id) => id.slice(prefix.length));
   return own.length ? own : null;
 }
 
-export function writeModeSelectedConceptIds(topicRecord, mode, rawSelectedConceptIds, newIdsForMode) {
-  if (!isConceptSelectionScopedByMode(topicRecord, mode)) return newIdsForMode;
-  const prefix = `${mode.id}::`;
+export function writeModeSelectedConceptIds(topicRecord, mode, rawSelectedConceptIds, newIdsForMode, params) {
+  if (!isConceptSelectionScopedByMode(topicRecord, mode, params)) return newIdsForMode;
+  const prefix = getSelectionPrefix(mode, params);
   const otherModes = (rawSelectedConceptIds ?? []).filter((id) => !id.startsWith(prefix));
   return [...otherModes, ...newIdsForMode.map((id) => `${prefix}${id}`)];
 }

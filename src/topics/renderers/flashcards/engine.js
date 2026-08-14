@@ -29,12 +29,9 @@ function generateRepeatDrawTasks(concepts) {
   return generateIntroTasks(filterByTaskKind(concepts, "repeat")).map((t) => ({ ...t, type: "repeat_draw" }));
 }
 
-function generateGraphicDictationTasks(concepts) {
-  return generateIntroTasks(filterByTaskKind(concepts, "dictation")).map((t) => ({ ...t, type: "graphic_dictation" }));
-}
-
-function generateCoordinateDictationTasks(concepts) {
-  return generateIntroTasks(filterByTaskKind(concepts, "coordinate")).map((t) => ({ ...t, type: "coordinate_dictation" }));
+function generateGraphicDictationTasks(concepts, params) {
+  const taskKind = params?.dictationCommand === "coordinates" ? "coordinate" : "dictation";
+  return generateIntroTasks(filterByTaskKind(concepts, taskKind)).map((t) => ({ ...t, type: "graphic_dictation" }));
 }
 
 // Navigator is deliberately a short, repeating reaction drill instead of a
@@ -55,6 +52,28 @@ function generateNavigatorTasks(concepts) {
     label: base.label,
     direction,
     cells: (index % 3) + 1,
+  }));
+}
+
+// A short coordinate deck uses a fresh point every time, so the child learns
+// to read the labels rather than memorising a familiar picture on the grid.
+function generateCoordinateTasks(concepts) {
+  const cards = filterByTaskKind(concepts, "coordinates");
+  const base = cards.flatMap((concept) => concept.cards).find((card) => card.taskKind === "coordinates");
+  if (!base) return [];
+  const columns = Math.max(1, Math.min(7, Math.round(Number(base.columns) || 7)));
+  const rows = Math.max(1, Math.min(7, Math.round(Number(base.rows) || 7)));
+  const points = [];
+  for (let col = 0; col <= columns; col += 1) {
+    for (let row = 0; row <= rows; row += 1) points.push({ col, row });
+  }
+  return shuffle(points).slice(0, 20).map((target, index) => ({
+    id: `coordinates-${index}-${target.col}-${target.row}`,
+    type: "coordinates",
+    conceptId: base.conceptId,
+    card: base,
+    label: base.label,
+    target,
   }));
 }
 
@@ -283,9 +302,9 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "intro":                  return generateIntroTasks(displayConcepts);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
-    case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts);
-    case "coordinate_dictation":   return generateCoordinateDictationTasks(displayConcepts);
+    case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts, params);
     case "navigator":              return generateNavigatorTasks(displayConcepts);
+    case "coordinates":            return generateCoordinateTasks(displayConcepts);
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
     case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards);
     case "emotion_situation":      return generateEmotionSituationTasks(displayConcepts, allCards, params);

@@ -69,6 +69,7 @@ describe("getConceptCards", () => {
       { id: "d1", conceptId: "d1", taskKind: "dictation" },
       { id: "c1", conceptId: "c1", taskKind: "coordinate" },
       { id: "n1", conceptId: "n1", taskKind: "navigator" },
+      { id: "p1", conceptId: "p1", taskKind: "coordinates" },
     ],
   };
 
@@ -82,19 +83,24 @@ describe("getConceptCards", () => {
     expect(cards.map((c) => c.id)).toEqual(["r1"]);
   });
 
-  it("scopes graphic_dictation to taskKind:dictation cards only", () => {
+  it("scopes graphic_dictation to taskKind:dictation cards by default", () => {
     const cards = getConceptCards(symmetryDrawRecord, { type: "graphic_dictation" });
     expect(cards.map((c) => c.id)).toEqual(["d1"]);
   });
 
-  it("scopes coordinate_dictation to taskKind:coordinate cards only", () => {
-    const cards = getConceptCards(symmetryDrawRecord, { type: "coordinate_dictation" });
+  it("scopes graphic_dictation to taskKind:coordinate cards for the coordinate option", () => {
+    const cards = getConceptCards(symmetryDrawRecord, { type: "graphic_dictation" }, { dictationCommand: "coordinates" });
     expect(cards.map((c) => c.id)).toEqual(["c1"]);
   });
 
   it("scopes navigator to its direction-drill metadata card", () => {
     const cards = getConceptCards(symmetryDrawRecord, { type: "navigator" });
     expect(cards.map((c) => c.id)).toEqual(["n1"]);
+  });
+
+  it("scopes coordinates to its point-drill metadata card", () => {
+    const cards = getConceptCards(symmetryDrawRecord, { type: "coordinates" });
+    expect(cards.map((c) => c.id)).toEqual(["p1"]);
   });
 });
 
@@ -132,11 +138,11 @@ describe("mode-scoped concept selection", () => {
   it("writing a mode's selection does not clobber another mode's previously saved selection", () => {
     // Dictation mode saves first.
     const afterDictation = writeModeSelectedConceptIds(symmetryDrawRecord, dictationMode, null, ["d1"]);
-    expect(afterDictation).toEqual(["graphic_dictation::d1"]);
+    expect(afterDictation).toEqual(["graphic_dictation:directions::d1"]);
 
     // Mirror mode then saves its own selection on top of the stored array.
     const afterMirror = writeModeSelectedConceptIds(symmetryDrawRecord, mirrorMode, afterDictation, ["m1", "m2"]);
-    expect(afterMirror).toEqual(expect.arrayContaining(["graphic_dictation::d1", "symmetry_draw::m1", "symmetry_draw::m2"]));
+    expect(afterMirror).toEqual(expect.arrayContaining(["graphic_dictation:directions::d1", "symmetry_draw::m1", "symmetry_draw::m2"]));
     expect(afterMirror).toHaveLength(3);
 
     // Reading each mode back out of the combined array only returns its own ids.
@@ -147,6 +153,23 @@ describe("mode-scoped concept selection", () => {
   it("readModeSelectedConceptIds returns null when nothing has been saved for this mode yet", () => {
     const afterDictation = writeModeSelectedConceptIds(symmetryDrawRecord, dictationMode, null, ["d1"]);
     expect(readModeSelectedConceptIds(symmetryDrawRecord, mirrorMode, afterDictation)).toBeNull();
+  });
+
+  it("keeps direction and coordinate dictation selections separate", () => {
+    const withDirections = writeModeSelectedConceptIds(symmetryDrawRecord, dictationMode, null, ["d1"]);
+    const withBoth = writeModeSelectedConceptIds(
+      symmetryDrawRecord,
+      dictationMode,
+      withDirections,
+      ["c1"],
+      { dictationCommand: "coordinates" },
+    );
+    expect(withBoth).toEqual(expect.arrayContaining([
+      "graphic_dictation:directions::d1",
+      "graphic_dictation:coordinates::c1",
+    ]));
+    expect(readModeSelectedConceptIds(symmetryDrawRecord, dictationMode, withBoth)).toEqual(["d1"]);
+    expect(readModeSelectedConceptIds(symmetryDrawRecord, dictationMode, withBoth, { dictationCommand: "coordinates" })).toEqual(["c1"]);
   });
 
   it("readModeSelectedConceptIds returns null for an empty/missing raw selection", () => {

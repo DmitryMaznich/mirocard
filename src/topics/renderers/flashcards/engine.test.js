@@ -32,6 +32,7 @@ describe("generateTasks — symmetry_draw modes", () => {
     { id: "d1", conceptId: "d1", primary: true, label: "Собака", taskKind: "dictation", start: { col: 0, row: 0 }, commands: [] },
     { id: "c1", conceptId: "c1", primary: true, label: "Ёлка", taskKind: "coordinate", start: { col: 0, row: 0 }, points: [] },
     { id: "n1", conceptId: "n1", primary: true, label: "Навигатор", taskKind: "navigator" },
+    { id: "p1", conceptId: "p1", primary: true, label: "Координаты", taskKind: "coordinates", columns: 7, rows: 7 },
   ];
   const MIXED_CONCEPTS = deriveConcepts(MIXED_CARDS);
 
@@ -49,17 +50,17 @@ describe("generateTasks — symmetry_draw modes", () => {
     expect(tasks[0].card.taskKind).toBe("repeat");
   });
 
-  it("graphic_dictation only includes taskKind:dictation cards", () => {
+  it("graphic_dictation defaults to taskKind:dictation cards", () => {
     const tasks = generateTasks("graphic_dictation", MIXED_CONCEPTS, MIXED_CARDS, {});
     expect(tasks).toHaveLength(1);
     expect(tasks[0]).toMatchObject({ type: "graphic_dictation", conceptId: "d1" });
     expect(tasks[0].card.taskKind).toBe("dictation");
   });
 
-  it("coordinate_dictation only includes taskKind:coordinate cards", () => {
-    const tasks = generateTasks("coordinate_dictation", MIXED_CONCEPTS, MIXED_CARDS, {});
+  it("graphic_dictation uses coordinate cards when the coordinate option is chosen", () => {
+    const tasks = generateTasks("graphic_dictation", MIXED_CONCEPTS, MIXED_CARDS, { dictationCommand: "coordinates" });
     expect(tasks).toHaveLength(1);
-    expect(tasks[0]).toMatchObject({ type: "coordinate_dictation", conceptId: "c1" });
+    expect(tasks[0]).toMatchObject({ type: "graphic_dictation", conceptId: "c1" });
     expect(tasks[0].card.taskKind).toBe("coordinate");
   });
 
@@ -72,6 +73,14 @@ describe("generateTasks — symmetry_draw modes", () => {
     ]));
     expect(tasks.every((task) => Number.isInteger(task.cells) && task.cells >= 1 && task.cells <= 3)).toBe(true);
     expect(new Set(tasks.map((task) => task.cells))).toEqual(new Set([1, 2, 3]));
+  });
+
+  it("coordinates creates twenty distinct points on an 8×8 node grid", () => {
+    const tasks = generateTasks("coordinates", MIXED_CONCEPTS, MIXED_CARDS, {});
+    expect(tasks).toHaveLength(20);
+    expect(tasks.every((task) => task.type === "coordinates" && task.card.taskKind === "coordinates")).toBe(true);
+    expect(tasks.every((task) => task.target.col >= 0 && task.target.col <= 7 && task.target.row >= 0 && task.target.row <= 7)).toBe(true);
+    expect(new Set(tasks.map((task) => `${task.target.col}:${task.target.row}`)).size).toBe(20);
   });
 
   it("each generator still returns conceptId, card, and label", () => {
