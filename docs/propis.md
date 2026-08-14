@@ -447,7 +447,7 @@ console.log('connectors:', connectors.map(c => c.id + JSON.stringify(c.forLetter
 "
 ```
 
-As of v1.23.3:
+As of v1.23.4:
 - **64 plain letters captured — the full lowercase alphabet (all 33) is
   done**, plus 31 of 33 uppercase (missing: Ъ, Ь). Ingested 2026-08-14 across
   two batches (26 new + a re-capture of А, then З separately), normalized
@@ -475,11 +475,24 @@ As of v1.23.3:
   replacement for the existing default `conn_5_4`, which lowercase letters
   and any other uppercase letter still use unchanged). Confirmed live:
   "Дом"/"Юля"/"Ваня"/"Гена"/"Забор"/"Рома" all chain cleanly now with the
-  real capital-shaped connector. **П and Т are deliberately NOT in this
-  group** (excluded by the user, 2026-08-14) — still open: "Паша" still
-  renders with "а" floating in the ascender zone after "П". Needs its own
-  decision (recapture vs. a different fix) before it's resolved — don't
-  guess at a grouping for these two without asking.
+  real capital-shaped connector.
+
+  **П and Т — fixed differently, same day, no new connector needed** (user
+  correction: these two don't belong in the 5→4 group at all — after them,
+  just the ordinary 4→3 connectors already used for lowercase, long/looping
+  and short/straight versions). Root cause turned out to be the same class
+  of bug as Й/Ё (see above): both are 3/4-stroke letters whose LAST-drawn
+  stroke is the decorative top crossbar, not the real hand-off point — its
+  own endpoint sits high in the ascender zone (y≈39, classifying to line 2,
+  same symptom as the original "BAD" measurement), while an EARLIER stroke
+  (the actual leg the pen lifts off from) already lands right on line 4
+  (П: stroke 1 at y=74.8; Т: stroke 2 at y=74.5) with zero correction
+  needed. Set `mainStrokeIndex: 1` (П) / `mainStrokeIndex: 2` (Т) — once
+  their exit classifies to line 4 like most other letters, the existing
+  entry-connector lookup for whatever comes next (`conn_4_3` vs
+  `conn_4_3_straight`, chosen by the NEXT letter same as always) just
+  works, no new data needed. Confirmed live: "Паша"/"Тоня" now chain
+  cleanly.
 - **о has 9 variant cards**: `о_first_l`, `о_first_u`, `о_middle_ll`,
   `о_middle_lu`, `о_middle_uu`, `о_middle_ul`, `о_middle_um`, `о_middle_lm`,
   `о_last_l`. **Still not captured**: an upper-entry `о_last` variant (the
@@ -504,10 +517,10 @@ As of v1.23.3:
 
 - Capture the last 2 uppercase letters — Ъ, Ь — to close the alphabet
   (31/33 done as of 2026-08-14). Each still falls back to a system-font
-  glyph in write_text until captured.
-- Decide + fix the uppercase→next-letter chaining gap for П and Т
-  specifically (see "Data state" above) — still an open question, ask
-  before guessing at a fix.
+  glyph in write_text until captured. **The uppercase→next-letter chaining
+  gap is now fully resolved** (5→4 group + П/Т's mainStrokeIndex fix, both
+  2026-08-14) — no remaining known chaining issue for any captured
+  uppercase letter.
 - Capture `ю`'s variants (same shape work as `о`, just for a different
   letter) — or decide `ю` is rare enough in practice that the fallback is
   fine indefinitely.
