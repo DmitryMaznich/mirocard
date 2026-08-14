@@ -456,31 +456,30 @@ As of v1.23.2:
   `mainStrokeIndex: 0` (their last stroke is a decorative mark — breve/two
   dots — not the hand-off point), same reasoning as the existing lowercase
   й/ё cards.
-- **Known gap, uppercase→next-letter chaining (found 2026-08-14, not yet
-  fixed):** an uppercase letter's own raw pen-lift point isn't guaranteed to
-  land near line 4 (y=75, the universal hand-off height every lowercase
-  letter's methodology is built around) the way lowercase letters do —
-  capital cursive flourishes often end back up near the letter's own top or
-  middle, not extending rightward toward the next letter. For letters whose
-  raw exit happens to classify near line 4 already (21 of 30: А,И,К,Л,М,Н,
-  Р,С,У,Й,Е,Ё,Х,Ч,Ц,Ш,Щ,Я,Ы,Ж, plus В via the existing `conn_5_4` exit
-  connector) this is harmless — the next letter chains normally. For **9
-  letters whose raw exit classifies to line 2 or line 3 and has no
-  matching connector card** (`Б,Г,Д,О,П,Т,Ф,Э,Ю` — no `2_4` or `3_4`
-  connector exists), the no-connector "snap to previous letter's own
-  classified exit line" fallback (see "костёр" fix above) still uses the
-  PREVIOUS letter's raw exit X — which, for these letters, sits mid-glyph
-  rather than at a rightward edge — so the next letter renders overlapping
-  the capital or floating in the ascender zone instead of following it.
-  Confirmed live: "Дом" (о overlaps Д), "Юля" (л floats above at ascender
-  height), "Паша" (first а floats above П) — reproduced via
-  `buildWordTrajectory` directly + a headless-Chrome render, not guessed
-  from source. Fix needs a decision, not a guess (docs' own "ask, don't
-  guess" rule): either recapture those 9 so the pen naturally lifts near
-  line 4 (matches how the other 21 already work), or add a code-level
-  fallback for a capital with no matching connector (e.g. anchor the next
-  letter's entry to the capital's own bounding-box right edge at line 4,
-  not its raw exit point) — not yet decided as of this session.
+- **Uppercase→next-letter chaining — mostly fixed 2026-08-14, one group
+  still open.** An uppercase letter's own raw pen-lift point isn't
+  guaranteed to land near line 4 (y=75, the universal hand-off height every
+  lowercase letter's methodology is built around) the way lowercase letters
+  do — capital cursive flourishes often end back up near the letter's own
+  top or middle, not extending rightward toward the next letter. First
+  found via raw `classifyLine` measurement (9 letters looked "BAD": Б,Г,Д,
+  О,П,Т,Ф,Э,Ю), but the user corrected this to the real methodology
+  grouping: **Б,В,Г,Д,З,О,Р,У,Ф,Э,Ю take the same line5→line4 hook-back
+  exit** regardless of where this particular capture sample's raw stroke
+  happens to end (same reasoning as the existing lowercase б/в/ф/о/ю/ь/ъ/э
+  entries above — a capture-quality artifact, not a methodology
+  difference). Added to `EXIT_LINE_OVERRIDES` as separate (case-sensitive)
+  uppercase keys — confirmed live that "Дом"/"Юля" now chain cleanly using
+  the existing default `conn_5_4` as a stand-in. **A dedicated
+  uppercase-scoped `5_4` connector (own capture, `forLetters`-restricted)
+  is still coming** — the override is what will let it actually get picked
+  up once it lands; until then these 11 letters use the lowercase-shaped
+  default connector, which reads fine but isn't the final intended look.
+  **П and Т are deliberately NOT in this group** (excluded by the user,
+  2026-08-14) — still open: "Паша" still renders with "а" floating in the
+  ascender zone after "П". Needs its own decision (recapture vs. a
+  different fix) before it's resolved — don't guess at a grouping for these
+  two without asking.
 - **о has 9 variant cards**: `о_first_l`, `о_first_u`, `о_middle_ll`,
   `о_middle_lu`, `о_middle_uu`, `о_middle_ul`, `о_middle_um`, `о_middle_lm`,
   `о_last_l`. **Still not captured**: an upper-entry `о_last` variant (the
@@ -503,9 +502,12 @@ As of v1.23.2:
 - Capture the last 3 uppercase letters — З, Ъ, Ь — to close the alphabet
   (30/33 done as of 2026-08-14). Each still falls back to a system-font
   glyph in write_text until captured.
-- Decide + fix the uppercase→next-letter chaining gap for Б,Г,Д,О,П,Т,Ф,Э,Ю
-  (see "Data state" above) — currently ships with a known visual glitch for
-  a word starting with any of these 9 capitals.
+- Ingest the user's own dedicated uppercase `5_4` connector capture
+  (Б,В,Г,Д,З,О,Р,У,Ф,Э,Ю group) when it arrives, replacing the temporary
+  lowercase-shaped `conn_5_4` fallback these letters currently use.
+- Decide + fix the uppercase→next-letter chaining gap for П and Т
+  specifically (see "Data state" above) — still an open question, ask
+  before guessing at a fix.
 - Capture `ю`'s variants (same shape work as `о`, just for a different
   letter) — or decide `ю` is rare enough in practice that the fallback is
   fine indefinitely.
