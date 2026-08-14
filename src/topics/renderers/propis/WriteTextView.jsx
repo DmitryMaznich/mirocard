@@ -63,7 +63,7 @@ export default function WriteTextView({ task, onClose }) {
     return map;
   }, [task]);
 
-  const [text, setText] = useState("");
+  const [text, setText] = useState(task?.initialText ?? "");
   const [caseMode, setCaseMode] = useState("lower");
   const [activeIndex, setActiveIndex] = useState(null);
   useEffect(() => setActiveIndex(null), [text]);

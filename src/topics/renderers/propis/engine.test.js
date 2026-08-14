@@ -30,9 +30,19 @@ describe("generateTasks — write_words", () => {
 });
 
 describe("generateTasks — write_text", () => {
-  it("splits cards into letters and connectors by type, same as write_words", () => {
+  it("splits cards into letters and connectors by type, same as write_words, with an empty initialText when no sessionParams are passed at all", () => {
     const tasks = generateTasks({ type: "write_text" }, [LETTER_CARD, CONNECTOR_CARD, CARD_NO_STROKES]);
-    expect(tasks).toEqual([{ type: "write_text", letters: [LETTER_CARD], connectors: [CONNECTOR_CARD] }]);
+    expect(tasks).toEqual([{ type: "write_text", letters: [LETTER_CARD], connectors: [CONNECTOR_CARD], initialText: "" }]);
+  });
+
+  it("defaults initialText to empty when sessionParams is passed but has no customText", () => {
+    const tasks = generateTasks({ type: "write_text" }, [LETTER_CARD], 1, {});
+    expect(tasks[0].initialText).toBe("");
+  });
+
+  it("uses sessionParams.customText as initialText when present", () => {
+    const tasks = generateTasks({ type: "write_text" }, [LETTER_CARD], 1, { customText: "мама мыла раму" });
+    expect(tasks[0].initialText).toBe("мама мыла раму");
   });
 });
 

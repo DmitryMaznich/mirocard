@@ -1,4 +1,4 @@
-export function generateTasks(mode, cards) {
+export function generateTasks(mode, cards, sessionSize, sessionParams) {
   const allCards = Array.isArray(cards) ? cards : (cards?.cards ?? []);
   const withStrokes = allCards.filter((c) => Array.isArray(c.strokes) && c.strokes.length > 0);
   const letters = withStrokes.filter((c) => c.type === "letter");
@@ -17,7 +17,7 @@ export function generateTasks(mode, cards) {
   }
 
   if (mode.type === "write_text") {
-    return [{ type: "write_text", letters, connectors }];
+    return [{ type: "write_text", letters, connectors, initialText: sessionParams?.customText ?? "" }];
   }
 
   return [];
