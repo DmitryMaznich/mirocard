@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.7",
+    "version": "1.8.9",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -46,6 +46,26 @@
         "icon": "media/dictation_avatar.svg"
       },
       "params": {
+        "dictationCommand": {
+          "type": "enum",
+          "label": {
+            "ru": "Как строить рисунок"
+          },
+          "values": ["directions", "coordinates"],
+          "default": "directions",
+          "labels": {
+            "ru": {
+              "directions": "По направлениям",
+              "coordinates": "По координатам"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "В первом варианте ребёнок читает шаг и направление. Во втором — следующую точку по её координатам.",
+              "tip": "Начните с направлений. Координатный вариант вводите после уверенной работы с координатами."
+            }
+          }
+        },
         "showArrow": {
           "type": "boolean",
           "default": true,
@@ -56,16 +76,6 @@
             "ru": "Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
           }
         }
-      }
-    },
-    {
-      "id": "coordinate_dictation",
-      "type": "coordinate_dictation",
-      "evaluation": "auto",
-      "ui": {
-        "title": "Точки по координатам",
-        "instruction": "Найди точку по координатам и веди линию от активной точки",
-        "icon": "media/dictation_avatar.svg"
       }
     },
     {
@@ -107,9 +117,44 @@
         "instruction": "Слушай направление и проведи по нужной стрелке",
         "icon": "media/dictation_avatar.svg"
       }
+    },
+    {
+      "id": "coordinates",
+      "type": "coordinates",
+      "evaluation": "instant",
+      "hideConceptPicker": true,
+      "params": {
+        "coordinateExercise": {
+          "type": "enum",
+          "label": { "ru": "Вариант тренировки" },
+          "values": ["find", "name"],
+          "default": "find",
+          "labels": { "ru": { "find": "Найди точку", "name": "Назови координаты" } },
+          "info": {
+            "ru": {
+              "text": "«Найди точку» учит читать координату. «Назови координаты» тренирует обратное действие: прочитать их с сетки.",
+              "tip": "Начните с поиска точки; обратный вариант включайте, когда ребёнок уверенно находит точки по буквам и цифрам."
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Координаты",
+        "instruction": "Находи точки по координатам или называй их",
+        "icon": "media/dictation_avatar.svg"
+      }
     }
   ],
   "cards": [
+    {
+      "id": "coordinates_practice",
+      "conceptId": "coordinates_practice",
+      "primary": true,
+      "label": "Координаты",
+      "taskKind": "coordinates",
+      "columns": 7,
+      "rows": 7
+    },
     {
       "id": "navigator_directions",
       "conceptId": "navigator_directions",

@@ -278,6 +278,32 @@
 .dictation__coordinate-token--letter { background: #168f92; border: 2px solid #087477; }
 .dictation__coordinate-token--number { background: #347ad3; border: 2px solid #1e5da9; }
 
+/* ── Coordinate training: one large point, two deliberately separate axes ── */
+.coordinate-practice { width: min(100%, 670px); margin: 0 auto; padding: 8px; }
+.coordinate-practice__instruction { min-height: 58px; display: flex; align-items: center; justify-content: center; gap: 9px; color: #243b65; text-align: center; font: 800 clamp(21px, 3.7vw, 30px)/1.1 Nunito, sans-serif; }
+.coordinate-practice__token { min-width: 42px; height: 42px; display: inline-grid; place-items: center; border-radius: 12px; color: #fff; font: 900 clamp(25px, 4vw, 34px)/1 Arial, sans-serif; box-shadow: 0 2px 5px rgba(22,55,98,.22); }
+.coordinate-practice__token--letter { background: #168f92; border: 2px solid #087477; }
+.coordinate-practice__token--number { background: #347ad3; border: 2px solid #1e5da9; }
+.coordinate-practice__canvas { padding: 7px; border-radius: 18px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30,58,110,.1); }
+.coordinate-practice__grid { display: block; width: 100%; max-height: min(54vh, 590px); touch-action: none; user-select: none; cursor: crosshair; }
+.coordinate-practice__paper { fill: #fffef8; }
+.coordinate-practice__grid-line { stroke: #8ab7e3; stroke-width: 1.15; vector-effect: non-scaling-stroke; }
+.coordinate-practice__node { fill: #8fbce6; pointer-events: none; }
+.coordinate-practice__label { fill: #4d6d91; font: 800 .34px/1 Nunito, sans-serif; pointer-events: none; }
+.coordinate-practice__target { fill: #ffbf29; stroke: #d88500; stroke-width: .06; }
+.coordinate-practice__answers { display: grid; gap: 8px; margin: 12px auto 0; width: min(100%, 520px); }
+.coordinate-practice__answer-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+.coordinate-practice__answer { min-width: 0; min-height: 42px; border: 2px solid #a8c7e6; border-radius: 10px; background: #f7fbff; color: #264f7f; font: 900 clamp(17px, 3.6vw, 23px)/1 Arial, sans-serif; }
+.coordinate-practice__answer--letter { color: #087477; border-color: #8ccfca; }
+.coordinate-practice__answer--number { color: #1e5da9; border-color: #9ec1ec; }
+.coordinate-practice__answer.is-selected { color: #fff; background: #168f92; border-color: #087477; transform: translateY(-1px); }
+.coordinate-practice__answer--number.is-selected { background: #347ad3; border-color: #1e5da9; }
+.coordinate-practice--good .coordinate-practice__canvas { box-shadow: inset 0 0 0 3px #32a66b; }
+.coordinate-practice--bad .coordinate-practice__canvas { animation: coordinateShake .35s ease-in-out; box-shadow: inset 0 0 0 3px #e85d5d; }
+.coordinate-practice__notice { min-height: 25px; margin: 8px 0 0; text-align: center; color: #2f7a54; font: 800 17px/1.35 Nunito, sans-serif; }
+.coordinate-practice--bad .coordinate-practice__notice { color: #c63838; }
+@keyframes coordinateShake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
 .dictation__tap-mark {
   fill: rgba(37, 99, 235, 0.16);
   stroke: #2563eb;

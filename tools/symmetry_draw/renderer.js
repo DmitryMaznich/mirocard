@@ -404,6 +404,125 @@
     );
   }
 
+  // A single point instead of a figure keeps the coordinate exercise honest:
+  // the child must read the axes, not recognise a memorised silhouette.
+  function CoordinatePracticeTask({ task, onCorrect, sessionParams }) {
+    const svgRef = useRef(null);
+    const target = task.target;
+    const shape = task.card;
+    const columns = Number(shape?.columns ?? 7);
+    const rows = Number(shape?.rows ?? 7);
+    const isName = sessionParams?.coordinateExercise === "name";
+    const [picked, setPicked] = useState({ letter: null, number: null });
+    const [result, setResult] = useState(null);
+    const [notice, setNotice] = useState("");
+
+    function resolve(point) {
+      const correct = point.col === target.col && point.row === target.row;
+      setResult(correct ? "good" : "bad");
+      setNotice(correct ? "Верно!" : "Проверь букву и цифру ещё раз.");
+      if (correct) {
+        window.setTimeout(() => onCorrect?.(task.conceptId, shape?.id), 480);
+      } else {
+        window.setTimeout(() => {
+          setResult(null);
+          setNotice("");
+          setPicked({ letter: null, number: null });
+        }, 700);
+      }
+    }
+
+    function localPoint(event) {
+      const svg = svgRef.current;
+      if (!svg) return null;
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return null;
+      const local = point.matrixTransform(ctm.inverse());
+      if (local.x < -0.45 || local.x > columns + 0.45 || local.y < -0.45 || local.y > rows + 0.45) return null;
+      return {
+        col: Math.max(0, Math.min(columns, Math.round(local.x))),
+        row: Math.max(0, Math.min(rows, Math.round(local.y))),
+      };
+    }
+
+    function chooseLetter(letter) {
+      if (result) return;
+      const next = { ...picked, letter };
+      setPicked(next);
+      if (next.number != null) resolve({ col: next.letter, row: next.number });
+    }
+
+    function chooseNumber(number) {
+      if (result) return;
+      const next = { ...picked, number };
+      setPicked(next);
+      if (next.letter != null) resolve({ col: next.letter, row: next.number });
+    }
+
+    const grid = [];
+    const labels = [];
+    for (let col = 0; col <= columns; col += 1) {
+      grid.push(h("line", { key: `v-${col}`, className: "coordinate-practice__grid-line", x1: col, y1: 0, x2: col, y2: rows }));
+      labels.push(h("text", { key: `c-${col}`, className: "coordinate-practice__label", x: col, y: "-0.34", textAnchor: "middle" }, columnLabel(col)));
+      for (let row = 0; row <= rows; row += 1) grid.push(h("circle", { key: `p-${col}-${row}`, className: "coordinate-practice__node", cx: col, cy: row, r: ".06" }));
+    }
+    for (let row = 0; row <= rows; row += 1) {
+      grid.push(h("line", { key: `h-${row}`, className: "coordinate-practice__grid-line", x1: 0, y1: row, x2: columns, y2: row }));
+      labels.push(h("text", { key: `r-${row}`, className: "coordinate-practice__label", x: "-0.35", y: row + 0.1, textAnchor: "middle" }, row + 1));
+    }
+
+    const targetLabel = { letter: columnLabel(target.col), number: target.row + 1 };
+    return h("section", { className: `coordinate-practice${result ? ` coordinate-practice--${result}` : ""}`, "aria-label": "Координаты" },
+      h("div", { className: "coordinate-practice__instruction" },
+        isName
+          ? "Назови координаты точки"
+          : [
+              h("span", { key: "prompt" }, "Найди точку"),
+              h("span", { key: "letter", className: "coordinate-practice__token coordinate-practice__token--letter" }, targetLabel.letter),
+              h("span", { key: "number", className: "coordinate-practice__token coordinate-practice__token--number" }, targetLabel.number),
+            ],
+      ),
+      h("div", { className: "coordinate-practice__canvas" },
+        h("svg", {
+          ref: svgRef,
+          className: "coordinate-practice__grid",
+          viewBox: `-0.58 -0.78 ${columns + 1.16} ${rows + 1.58}`,
+          onPointerUp: (event) => {
+            if (isName || result) return;
+            event.preventDefault();
+            const point = localPoint(event);
+            if (point) resolve(point);
+          },
+        },
+          h("rect", { className: "coordinate-practice__paper", x: "-0.52", y: "-0.72", width: columns + 1.04, height: rows + 1.44, rx: ".14" }),
+          grid,
+          labels,
+          isName ? h("circle", { className: "coordinate-practice__target", cx: target.col, cy: target.row, r: ".19" },
+            h("animate", { attributeName: "r", values: ".19;.29;.19", dur: "1.15s", repeatCount: "indefinite" }),
+          ) : null,
+        ),
+      ),
+      isName ? h("div", { className: "coordinate-practice__answers", "aria-label": "Выбери координаты" },
+        h("div", { className: "coordinate-practice__answer-row" }, Array.from({ length: columns + 1 }, (_, col) => h("button", {
+          key: `letter-${col}`,
+          type: "button",
+          className: `coordinate-practice__answer coordinate-practice__answer--letter${picked.letter === col ? " is-selected" : ""}`,
+          onClick: () => chooseLetter(col),
+        }, columnLabel(col)))),
+        h("div", { className: "coordinate-practice__answer-row" }, Array.from({ length: rows + 1 }, (_, row) => h("button", {
+          key: `number-${row}`,
+          type: "button",
+          className: `coordinate-practice__answer coordinate-practice__answer--number${picked.number === row ? " is-selected" : ""}`,
+          onClick: () => chooseNumber(row),
+        }, row + 1))),
+      ) : null,
+      notice ? h("p", { className: "coordinate-practice__notice", "aria-live": "polite" }, notice) : null,
+    );
+  }
+
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
@@ -583,7 +702,7 @@
       ),
     );
   }
-  function GridTask({ task, mode, onCorrect, onAdvance }) {
+  function GridTask({ task, mode, onCorrect, onAdvance, sessionParams }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const [drawnPaths, setDrawnPaths] = useState([]);
@@ -736,6 +855,7 @@
 
   window.__MirocardRenderer = function SymmetryDrawRenderer(props) {
     const isDictationLike = props.task?.type === "graphic_dictation" || props.task?.type === "coordinate_dictation";
+    if (props.task?.type === "coordinates") return h(CoordinatePracticeTask, props);
     if (props.task?.type === "navigator") return h(NavigatorTask, props);
     return isDictationLike ? h(DictationTask, props) : h(GridTask, props);
   };
