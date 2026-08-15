@@ -68,3 +68,22 @@ def test_draw_path_handles_bezier():
     fake = FakePath()
     draw_path(fake, "M 0 0 C 1 1 2 2 3 3", transform=lambda x, y: (x, y))
     assert fake.calls == [("moveTo", 0, 0), ("curveTo", 1, 1, 2, 2, 3, 3)]
+
+
+def test_parse_implicit_repeat_after_move_becomes_line():
+    # SVG spec: a bare coordinate pair with no command letter of its own
+    # repeats the previous command, and a repeated "M" specifically means
+    # "L" -- this is how the captured ё/Ё dot strokes export
+    # ("M 14.15 57.05 14.16 56.66").
+    assert parse_path("M 14.15 57.05 14.16 56.66") == [
+        ("M", (14.15, 57.05)),
+        ("L", (14.16, 56.66)),
+    ]
+
+
+def test_parse_implicit_repeat_after_line_stays_line():
+    assert parse_path("M 0 0 L 1 1 2 2") == [
+        ("M", (0.0, 0.0)),
+        ("L", (1.0, 1.0)),
+        ("L", (2.0, 2.0)),
+    ]
