@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.18",
+    "version": "1.8.19",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -54,7 +54,7 @@
       "ui": {
         "title": "Навигатор",
         "instruction": "Слушай направление и проведи по нужной стрелке",
-        "icon": "media/dictation_avatar.svg"
+        "icon": "media/navigator_avatar.svg"
       }
     },
     {
@@ -84,7 +84,7 @@
       "ui": {
         "title": "Координаты",
         "instruction": "Находи точки по координатам или называй их",
-        "icon": "media/dictation_avatar.svg"
+        "icon": "media/coordinates_avatar.svg"
       }
     },
     {
@@ -146,7 +146,7 @@
       "ui": {
         "title": "Симметричный рисунок",
         "instruction": "Дорисуй вторую половину фигуры",
-        "icon": "media/avatar.svg"
+        "icon": "media/symmetry_avatar.svg"
       }
     }
   ],
