@@ -37,12 +37,14 @@ function generateGraphicDictationTasks(concepts, params) {
 // Navigator is deliberately a short, repeating reaction drill instead of a
 // finite set of picture cards. The one metadata card keeps it compatible with
 // the topic/concept picker; every generated task then carries its own direction.
-function generateNavigatorTasks(concepts) {
+function generateNavigatorTasks(concepts, params) {
   const cards = filterByTaskKind(concepts, "navigator");
   const source = cards.flatMap((concept) => concept.cards.filter((card) => card.taskKind === "navigator"));
   const base = source[0];
   if (!base) return [];
-  const directions = ["up", "down", "left", "right", "up_left", "up_right", "down_left", "down_right"];
+  const directions = params?.navigatorDirections === "all"
+    ? ["up", "down", "left", "right", "up_left", "up_right", "down_left", "down_right"]
+    : ["up", "down", "left", "right"];
   const sequence = Array.from({ length: 20 }, (_, index) => directions[index % directions.length]);
   return shuffle(sequence).map((direction, index) => ({
     type: "navigator",
@@ -303,7 +305,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts, params);
-    case "navigator":              return generateNavigatorTasks(displayConcepts);
+    case "navigator":              return generateNavigatorTasks(displayConcepts, params);
     case "coordinates":            return generateCoordinateTasks(displayConcepts);
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
     case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards);

@@ -64,15 +64,20 @@ describe("generateTasks — symmetry_draw modes", () => {
     expect(tasks[0].card.taskKind).toBe("coordinate");
   });
 
-  it("navigator creates a twenty-step mixed direction drill", () => {
+  it("navigator starts with a twenty-step drill of four basic directions", () => {
     const tasks = generateTasks("navigator", MIXED_CONCEPTS, MIXED_CARDS, {});
     expect(tasks).toHaveLength(20);
     expect(tasks.every((task) => task.type === "navigator" && task.card.taskKind === "navigator")).toBe(true);
+    expect(new Set(tasks.map((task) => task.direction))).toEqual(new Set(["up", "down", "left", "right"]));
+    expect(tasks.every((task) => Number.isInteger(task.cells) && task.cells >= 1 && task.cells <= 3)).toBe(true);
+    expect(new Set(tasks.map((task) => task.cells))).toEqual(new Set([1, 2, 3]));
+  });
+
+  it("navigator adds diagonal directions when the full set is chosen", () => {
+    const tasks = generateTasks("navigator", MIXED_CONCEPTS, MIXED_CARDS, { navigatorDirections: "all" });
     expect(new Set(tasks.map((task) => task.direction))).toEqual(new Set([
       "up", "down", "left", "right", "up_left", "up_right", "down_left", "down_right",
     ]));
-    expect(tasks.every((task) => Number.isInteger(task.cells) && task.cells >= 1 && task.cells <= 3)).toBe(true);
-    expect(new Set(tasks.map((task) => task.cells))).toEqual(new Set([1, 2, 3]));
   });
 
   it("coordinates creates twenty distinct points on an 8×8 node grid", () => {

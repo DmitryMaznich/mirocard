@@ -122,6 +122,13 @@
     down_left: "Вниз и влево",
   };
 
+  const BASIC_NAVIGATOR_DIRECTIONS = ["up", "down", "left", "right"];
+  const ALL_NAVIGATOR_DIRECTIONS = [...BASIC_NAVIGATOR_DIRECTIONS, "up_left", "up_right", "down_left", "down_right"];
+
+  function navigatorDirections(params) {
+    return params?.navigatorDirections === "all" ? ALL_NAVIGATOR_DIRECTIONS : BASIC_NAVIGATOR_DIRECTIONS;
+  }
+
   function commandEnd(start, command) {
     const direction = DIRECTION[command.direction];
     return { col: start.col + direction.col * command.cells, row: start.row + direction.row * command.cells };
@@ -717,7 +724,8 @@
       resolve(correct);
     }
 
-    const arrows = Object.entries(DIRECTION).map(([key, item]) => {
+    const arrows = navigatorDirections(sessionParams).map((key) => {
+      const item = DIRECTION[key];
       const start = { x: 6 + item.col * 1.75, y: 6 + item.row * 1.75 };
       const end = { x: 6 + item.col * 4.65, y: 6 + item.row * 4.65 };
       const length = Math.hypot(end.x - start.x, end.y - start.y);
@@ -819,8 +827,8 @@
     return h("svg", { className: "navigator-learning__arrow", viewBox: "0 0 10 10", "aria-hidden": "true" }, h("path", { d }));
   }
 
-  function NavigatorLearningCards({ task }) {
-    const directions = Object.keys(DIRECTION);
+  function NavigatorLearningCards({ task, sessionParams }) {
+    const directions = navigatorDirections(sessionParams);
     const initialIndex = Math.max(0, directions.indexOf(task?.direction));
     const [index, setIndex] = useState(initialIndex);
     const direction = directions[index];
@@ -840,15 +848,16 @@
     );
   }
 
-  function learningChoices(direction, taskId) {
-    const directions = Object.keys(DIRECTION);
+  function learningChoices(direction, taskId, directions) {
     const index = Math.max(0, directions.indexOf(direction));
-    const choices = [
-      direction,
-      directions[(index + 1) % directions.length],
-      directions[(index + 3) % directions.length],
-      directions[(index + 5) % directions.length],
-    ];
+    const choices = directions.length === 4
+      ? [...directions]
+      : [
+        direction,
+        directions[(index + 1) % directions.length],
+        directions[(index + 3) % directions.length],
+        directions[(index + 5) % directions.length],
+      ];
     const seed = String(taskId ?? direction).split("").reduce((sum, character) => sum + character.charCodeAt(0), 0);
     const offset = seed % choices.length;
     return [...choices.slice(offset), ...choices.slice(0, offset)];
@@ -857,7 +866,8 @@
   function NavigatorLearningChoiceTask({ task, onCorrect, onMistake, sessionParams }) {
     const exercise = sessionParams?.learningExercise === "choose_arrow" ? "choose_arrow" : "choose_word";
     const direction = task?.direction ?? "up";
-    const choices = useMemo(() => learningChoices(direction, task?.id), [direction, task?.id]);
+    const directions = navigatorDirections(sessionParams);
+    const choices = useMemo(() => learningChoices(direction, task?.id, directions), [direction, task?.id, directions]);
     const [answer, setAnswer] = useState(null);
     const resolvedRef = useRef(false);
 
