@@ -1,48 +1,33 @@
-"""Draws one A5 letter-practice page's content (ruling + header + practice
-rows) onto a reportlab canvas at whatever the canvas's CURRENT local
-origin is -- booklet.py is responsible for translating/scaling to the
-right A5 slot on the physical A4 sheet before calling draw_letter_page.
+"""Positions propis letter-practice content to align with the REAL, ALREADY
+EXISTING notebook ruling PDF (make_lined_paper_landscape.py's "плотная"
+page) -- booklet.py overlays this module's content onto that actual PDF
+page rather than redrawing an equivalent grid, so the printed page is
+pixel-identical to the blank copybook pages already in print_materials
+(confirmed with the user 2026-08-15: reuse the real asset, don't
+re-derive the geometry).
+
+No per-letter header: content flows continuously, row after row, letter
+after letter, across as many pages as a group needs -- paginate_rows() is
+the only place page breaks get decided.
 
 Assumes the canvas is already in a "1 unit = 1 mm" local frame (i.e. the
 caller has done canvas.scale(mm, mm) upstream) -- every number in this
 file is a plain mm value, not points.
 """
 
-import math
-
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-
-from render import draw_letter, ROW_MM
-
-# reportlab's built-in "Helvetica"/"Helvetica-Bold" have no Cyrillic glyphs
-# (headers rendered as solid boxes without this) -- same fallback chain
-# scripts/cover_tetrad.py already uses for the same reason.
-FONT_REGULAR, FONT_BOLD = "Helvetica", "Helvetica-Bold"
-for _reg_path, _bold_path in [
-    ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf"),
-    ("C:/Windows/Fonts/calibri.ttf", "C:/Windows/Fonts/calibrib.ttf"),
-    ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
-]:
-    try:
-        pdfmetrics.registerFont(TTFont("PW-Regular", _reg_path))
-        pdfmetrics.registerFont(TTFont("PW-Bold", _bold_path))
-        FONT_REGULAR, FONT_BOLD = "PW-Regular", "PW-Bold"
-        break
-    except Exception:
-        pass
+from render import draw_letter, letter_ink_bounds, SCALE
 
 PAGE_W_MM = 148.5
 PAGE_H_MM = 210.0
-MARGIN_MM = 12.0
+MARGIN_MM = 15.0  # matches make_lined_paper_landscape.py's own red margin lines
 
-ROW_TOP_GAP_MM = 10.0  # ascender gap, propisRuling NATIVE_L1->L2
-ROW_NARROW_MM = 5.0    # узкая строка, NATIVE_L2->L3 (the working zone)
-ROW_BOT_GAP_MM = 10.0  # descender gap, NATIVE_L3->L4 -- sums to ROW_MM (25.0)
-
-ANGLE_DEG = 65.0
-DIAGONAL_MM = 20.0
-_TAN_ANGLE = math.tan(math.radians(90 - ANGLE_DEG))
+# Mirrors make_lined_paper_landscape.py's horizontal-line loop exactly (same
+# narrow/wide alternation, same starting phase from y=0) -- this file never
+# draws these lines itself, it only needs to know where the real page put
+# them, to anchor letter baselines onto the actual thick lines.
+NARROW_MM = 4.0
+WIDE_MM = 8.0
+ROW_CYCLE_MM = NARROW_MM + WIDE_MM  # 12mm baseline-to-baseline
 
 GAP_MM = 5.0            # gap between repeated letter instances on a row
 TAIL_FRACTION = 0.32    # final fraction of every row left blank, ruled-only
@@ -57,91 +42,182 @@ def _opacity_for_index(i):
     return FADE_OPACITIES[min(i - 1, len(FADE_OPACITIES) - 1)]
 
 
-def draw_ruling(c, usable_w_mm, top_y_mm, row_count):
-    """propis's own 10/5/10mm ruling (bold baseline) + 65-degree/20mm
-    diagonal guides -- NOT make_lined_paper_landscape_standard.py's
-    different 4/8mm notebook scheme (confirmed with the user)."""
-    total_h = row_count * ROW_MM
-    bottom_y = top_y_mm - total_h
-
-    c.saveState()
-    c.setStrokeColorRGB(0.55, 0.62, 0.72)
-    for row in range(row_count):
-        row_top = top_y_mm - row * ROW_MM
-        narrow_top_y = row_top - ROW_TOP_GAP_MM
-        baseline_y = narrow_top_y - ROW_NARROW_MM
-        descender_y = baseline_y - ROW_BOT_GAP_MM
-        c.setLineWidth(0.3)
-        c.line(0, row_top, usable_w_mm, row_top)
-        c.line(0, descender_y, usable_w_mm, descender_y)
-        c.setLineWidth(0.35)
-        c.line(0, narrow_top_y, usable_w_mm, narrow_top_y)
-        c.setLineWidth(1.0)
-        c.line(0, baseline_y, usable_w_mm, baseline_y)
-
-    c.setLineWidth(0.25)
-    c.setStrokeAlpha(0.6)
-    x = -total_h * _TAN_ANGLE
-    x_end = usable_w_mm + total_h * _TAN_ANGLE
-    while x < x_end:
-        c.line(x, bottom_y, x + total_h * _TAN_ANGLE, top_y_mm)
-        x += DIAGONAL_MM
-    c.setStrokeAlpha(1)
-    c.restoreState()
+# Every group's notebook is this fixed size -- 6 A4 sheets printed
+# double-sided (12 printed faces x 2 A5 slots each) -- matching the user's
+# own standard print/binding format for every notebook they produce
+# (confirmed 2026-08-15), regardless of how many letters a group has.
+# Letters in a smaller group just get proportionally more practice pages.
+TARGET_PAGES_PER_GROUP = 24
 
 
-def draw_row(c, letters_row, row_top_y_mm, usable_w_mm):
+def _pages_per_letter(n_letters, target=TARGET_PAGES_PER_GROUP):
+    """Splits `target` pages as evenly as possible across `n_letters` --
+    any remainder goes one-per-letter to the first few letters."""
+    base, extra = divmod(target, n_letters)
+    return [base + 1 if i < extra else base for i in range(n_letters)]
+
+
+def letter_rows_for(lower_card, upper_card, num_pages=1):
+    """Fills exactly `num_pages` full pages' worth of rows for a single
+    letter: the 2-lower/1-upper/2-paired pattern (or lowercase-alone for a
+    letter with no uppercase, Ъ/Ь) repeated enough times to fill
+    num_pages * ROWS_PER_PAGE exactly -- so every group's pages break
+    cleanly on letter boundaries, and no page is left partially blank
+    (confirmed with the user 2026-08-15: every row must be filled, and
+    each letter's block is a whole number of full pages)."""
+    if upper_card is not None:
+        base = [[lower_card], [lower_card], [upper_card], [lower_card, upper_card], [lower_card, upper_card]]
+    else:
+        base = [[lower_card]]
+    total_rows = num_pages * ROWS_PER_PAGE
+    reps = -(-total_rows // len(base))  # ceil division
+    return (base * reps)[:total_rows]
+
+
+def group_rows(group, letters):
+    """Flattens every letter in `group` into one ordered list of practice
+    rows -- each letter contributes a whole number of pages' worth
+    (_pages_per_letter), summing to TARGET_PAGES_PER_GROUP, so
+    paginate_rows() below always breaks on letter boundaries."""
+    entries = group["letters"]
+    pages_per = _pages_per_letter(len(entries))
+    rows = []
+    for (lower, upper), num_pages in zip(entries, pages_per):
+        lower_card = letters[lower]
+        upper_card = letters[upper] if upper else None
+        rows.extend(letter_rows_for(lower_card, upper_card, num_pages))
+    return rows
+
+
+def _thick_line_ys():
+    """Every thick (baseline) line's y across the FULL page height, in the
+    same bottom-up frame make_lined_paper_landscape.py draws in (y=0 at the
+    page's bottom edge, no margin inset -- the real page's ruling isn't
+    clipped to the red margin lines, so neither is this)."""
+    ys = []
+    y = 0.0
+    pattern_index = 0
+    while y < PAGE_H_MM:
+        if pattern_index % 2 == 0:
+            y += NARROW_MM
+        else:
+            y += WIDE_MM
+            if y < PAGE_H_MM:
+                ys.append(y)
+        pattern_index += 1
+    return ys
+
+
+def row_baselines():
+    """Baseline y for every practice row on one page, top-to-bottom, in the
+    same bottom-up mm frame as _thick_line_ys. Drops only the topmost thick
+    line, so row 0 keeps a full cycle of ascender headroom instead of
+    sitting flush against the page's top edge -- the bottom-most thick
+    line IS used as the last row's baseline (dropping it too, as an
+    earlier version did, left a whole extra ruled cycle at the bottom of
+    the page with no content on it at all -- flagged by the user
+    2026-08-15 as a visibly empty row; the descender room below the last
+    row's baseline comes for free from the page's own bottom margin)."""
+    thick_ys = _thick_line_ys()
+    return list(reversed(thick_ys[:-1]))
+
+
+ROWS_PER_PAGE = len(row_baselines())
+
+
+def paginate_rows(rows, per_page=ROWS_PER_PAGE):
+    """Splits a flat row list into per-page chunks."""
+    if not rows:
+        return [[]]
+    return [rows[i:i + per_page] for i in range(0, len(rows), per_page)]
+
+
+def _instance_width_mm(letters_row):
+    """Width of one repeated instance of `letters_row` (1 card, or 2 for a
+    paired row) -- the same quantity draw_row's own loop accumulates per
+    repetition, computed without touching a canvas so _natural_count can
+    dry-run how many instances a row would fit before any taper is applied."""
+    total = 0.0
+    for card in letters_row:
+        minx, maxx, _, _ = letter_ink_bounds(card)
+        total += (maxx - minx) * SCALE + GAP_MM
+    return total
+
+
+def _natural_count(letters_row, fill_limit_mm):
+    """How many repetitions of `letters_row` draw_row would fit into
+    fill_limit_mm with no cap -- the taper's starting point for a row."""
+    inst_w = _instance_width_mm(letters_row)
+    if inst_w <= 0:
+        return 0
+    count = 0
+    x = 0.0
+    while x < fill_limit_mm:
+        x += inst_w
+        count += 1
+    return count
+
+
+def draw_row(c, letters_row, baseline_y_mm, usable_w_mm, max_instances=None):
     """One practice row: `letters_row` is a list of 1 card (lowercase- or
     uppercase-alone) or 2 cards (the paired row) to repeat together,
     fading per FADE_OPACITIES, stopping at TAIL_FRACTION of the row width
     -- the remainder is left as a blank ruled tail for independent
-    writing."""
-    baseline_y = row_top_y_mm - ROW_TOP_GAP_MM - ROW_NARROW_MM
+    writing. `max_instances`, if given, stops after that many repetitions
+    even if more would still fit (used for the bottom-half taper)."""
     fill_limit_mm = usable_w_mm * (1 - TAIL_FRACTION)
 
     x = 0.0
     i = 0
     while x < fill_limit_mm:
+        if max_instances is not None and i >= max_instances:
+            break
         opacity = _opacity_for_index(i)
         for card in letters_row:
-            width = draw_letter(c, card, x, baseline_y, opacity)
+            width = draw_letter(c, card, x, baseline_y_mm, opacity)
             x += width + GAP_MM
             if x >= fill_limit_mm:
                 break
         i += 1
 
 
-def draw_letter_page(c, group, lower_label, upper_label, letters):
-    """One full A5 page: header, then practice rows. A letter with no
-    uppercase counterpart (Ъ, Ь -- upper_label is None) gets 4
-    lowercase-only rows instead of the standard 2-lower/1-upper/2-paired
-    pattern, using the space that would have gone to the missing rows."""
-    usable_w_mm = PAGE_W_MM - 2 * MARGIN_MM
+# Horizontal start inset for content, per A5 slot side. The LEFT slot's
+# local x=0 is the page's own outer edge, so MARGIN_MM hugs the real red
+# margin line there. The RIGHT slot's local x=0 is the CENTER divider
+# (booklet.py translates it there), so a small inset hugs that line
+# instead -- confirmed with the user 2026-08-15: content should start
+# near the margin on the left half, near the center divider on the right.
+LEFT_INSET_MM = MARGIN_MM + 2.0
+CENTER_INSET_MM = 2.0 + 2.0
+CONTENT_W_MM = PAGE_W_MM - 2 * MARGIN_MM
+
+
+def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM):
+    """Content-only overlay for one A5 slot: whatever practice rows landed
+    on this page, positioned to align with the real ruling PDF's own lines.
+    Draws no ruling, no background, no header -- booklet.py merges this
+    onto the actual notebook page. `inset_mm` is which reference line
+    (outer margin or center divider) this slot's content should hug.
+
+    The top half fills each row to the normal TAIL_FRACTION width. From
+    the middle row down, each row's own natural fit-count shrinks by one
+    more repetition per row -- a taper ("скос", confirmed with the user
+    2026-08-15) that leaves progressively more blank ruled space toward
+    the bottom of the page for independent writing, instead of every row
+    looking identical top to bottom."""
+    baselines = row_baselines()
+    middle = len(baselines) // 2
+    fill_limit_mm = CONTENT_W_MM * (1 - TAIL_FRACTION)
 
     c.saveState()
-    c.translate(MARGIN_MM, 0)
+    c.translate(inset_mm, 0)
 
-    c.setFillColorRGB(0.2, 0.2, 0.2)
-    c.setFont(FONT_BOLD, 13)
-    header_letters = f"{upper_label}, {lower_label}" if upper_label else lower_label
-    c.drawString(0, PAGE_H_MM - MARGIN_MM - 8, f"Группа {group['id']} · {header_letters}")
-    c.setFillColorRGB(0.55, 0.55, 0.55)
-    c.setFont(FONT_REGULAR, 8)
-    c.drawString(0, PAGE_H_MM - MARGIN_MM - 16, group["label"])
-
-    lower_card = letters[lower_label]
-    if upper_label:
-        upper_card = letters[upper_label]
-        rows = [[lower_card], [lower_card], [upper_card], [lower_card, upper_card], [lower_card, upper_card]]
-    else:
-        rows = [[lower_card]] * 4
-
-    content_top = PAGE_H_MM - MARGIN_MM - 24
-    draw_ruling(c, usable_w_mm, content_top, len(rows))
-
-    row_top = content_top
-    for row_cards in rows:
-        draw_row(c, row_cards, row_top, usable_w_mm)
-        row_top -= ROW_MM
+    for row_index, (baseline_y, row_cards) in enumerate(zip(baselines, page_rows)):
+        if row_index < middle:
+            draw_row(c, row_cards, baseline_y, CONTENT_W_MM)
+        else:
+            natural = _natural_count(row_cards, fill_limit_mm)
+            cap = max(natural - (row_index - middle + 1), 1)
+            draw_row(c, row_cards, baseline_y, CONTENT_W_MM, max_instances=cap)
 
     c.restoreState()

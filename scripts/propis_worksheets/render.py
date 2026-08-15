@@ -16,12 +16,13 @@ from svg_path import path_bounds, draw_path
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TOPIC_JSON = os.path.join(ROOT, "tools", "propis", "topic.json")
 
-# Mirrors propisRuling.js: UNIT_H is the native-unit height of one row
-# (150), matched to a real 25mm row (10mm ascender gap + 5mm узкая строка +
-# 10mm descender gap) -- so every letter's native coordinates scale by the
-# same fixed ROW_MM / UNIT_H factor, regardless of which row it's drawn on.
+# UNIT_H is the native-unit height of one letter's design canvas (150).
+# ROW_MM is the mm a letter's own native-unit height maps onto -- chosen to
+# match one cycle (baseline-to-baseline) of the "плотная" notebook ruling
+# (page.py's ROW_CYCLE_MM = 12mm) that letters are drawn onto here, matched
+# 2026-08-15 (replacing Phase 1's original propis-specific 25mm ruling).
 UNIT_H = 150
-ROW_MM = 25.0
+ROW_MM = 20.0
 SCALE = ROW_MM / UNIT_H
 
 # The baseline every captured letter's own path data was drawn against --
@@ -74,7 +75,7 @@ def draw_letter(c, card, origin_x_mm, baseline_y_mm, opacity, color=(0.11, 0.30,
     c.saveState()
     c.setStrokeColorRGB(*color)
     c.setStrokeAlpha(opacity)
-    c.setLineWidth(1.1)
+    c.setLineWidth(0.275)
     c.setLineCap(1)
     c.setLineJoin(1)
     c.drawPath(path, stroke=1, fill=0)

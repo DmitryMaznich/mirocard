@@ -140,14 +140,14 @@ for y_staple in [page_height - 45*mm, 45*mm]:
 c.setFillColorRGB(0.6, 0.6, 0.6)
 c.setFont("Helvetica", 7)
 c.drawString(center - 60*mm, 3*mm, "© Kaplieva Center")
-c.drawString(center + 30*mm, 3*mm, "kaplieva.help")
+c.drawString(center + 30*mm, 3*mm, "mironium.com")
 
 c.setFillColorRGB(0.85, 0.85, 0.85)
 c.setFont("Helvetica", 4)
 description = (
     f"Insert page: standard copybook grid with gray punctuation marks for tracing. "
     f"Format: A4 landscape 297x210mm. Right half rows filled with '.', ',', '!', '?' "
-    f"in ClassRoomCursive, top to bottom. Creator: Kaplieva Center TEAM. Website: kaplieva.help."
+    f"in ClassRoomCursive, top to bottom. Creator: Kaplieva Center TEAM. Website: mironium.com."
 )
 c.drawString(150*mm, 1*mm, description)
 
