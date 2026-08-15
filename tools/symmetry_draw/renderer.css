@@ -463,6 +463,10 @@
 .navigator__timer--paused .navigator__timer-track { border-color: #9eadbd; background: #dce4ed; }
 .navigator__timer--paused i { background: #8b9caf; box-shadow: none; }
 .navigator__timer--paused .navigator__timer-clock { color: #65778b; }
+.navigator__timer--waiting { background: #edf4fd; }
+.navigator__timer--waiting .navigator__timer-track { border-color: #8db6da; background: #dbeafa; }
+.navigator__timer--waiting i { background: #76a7d8; box-shadow: none; }
+.navigator__timer--waiting .navigator__timer-clock { color: #4e7fb3; }
 @keyframes navigatorTimerUrgent { to { filter: brightness(1.12) drop-shadow(0 0 7px rgba(222, 75, 51, .85)); } }
 .navigator__board {
   position: relative;

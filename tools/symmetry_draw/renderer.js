@@ -570,13 +570,15 @@
     const [result, setResult] = useState(null);
     const [paused, setPaused] = useState(() => document.hidden || !document.hasFocus());
     const retryTimerRef = useRef(null);
+    const isListening = sessionParams?.navigatorPractice === "listening";
+    const canSpeak = Boolean(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === "function");
+    const [waitingForInitialCommand, setWaitingForInitialCommand] = useState(() => isListening && canSpeak);
     const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
     const durationMs = responseSeconds * 1000;
     const remainingRef = useRef(durationMs);
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
     const isGridRoute = sessionParams?.navigatorPractice === "grid_route";
-    const isListening = sessionParams?.navigatorPractice === "listening";
     const gridSize = isGridRoute ? 8 : 12;
     const cells = Math.max(1, Math.min(3, Math.round(Number(task.cells) || 1)));
     const command = isGridRoute ? navigatorRouteText(task.direction, cells) : (NAVIGATOR_LABEL[task.direction] ?? "Вверх");
@@ -599,7 +601,8 @@
       setRemaining(durationMs);
       remainingRef.current = durationMs;
       setPaused(document.hidden || !document.hasFocus());
-    }, [task.id, durationMs]); // Each generated task has a unique id; retries remount it after feedback.
+      setWaitingForInitialCommand(isListening && canSpeak);
+    }, [task.id, durationMs, isListening, canSpeak]); // Each generated task has a unique id; retries remount it after feedback.
 
     useEffect(() => () => window.clearTimeout(retryTimerRef.current), []);
 
@@ -639,7 +642,7 @@
     }, [onMistake, task.conceptId, task.card?.id]);
 
     useEffect(() => {
-      if (paused || resolvedRef.current) return undefined;
+      if (paused || waitingForInitialCommand || resolvedRef.current) return undefined;
       const remainingAtStart = remainingRef.current;
       const startedAt = Date.now();
       const ticker = window.setInterval(() => {
@@ -649,24 +652,44 @@
         if (next === 0 && !resolvedRef.current) retryAfterMistake();
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [paused, task.id, retryAfterMistake]);
+    }, [paused, waitingForInitialCommand, task.id, retryAfterMistake]);
 
-    const speakCommand = useCallback(() => {
-      if (!window.speechSynthesis) return;
+    const speakCommand = useCallback((releasesInitialTimer = false) => {
+      if (!canSpeak) {
+        if (releasesInitialTimer) setWaitingForInitialCommand(false);
+        return;
+      }
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(command);
       utterance.lang = "ru-RU";
-      window.speechSynthesis.speak(utterance);
-    }, [command]);
+      const releaseTimer = () => {
+        if (releasesInitialTimer) setWaitingForInitialCommand(false);
+      };
+      utterance.onend = releaseTimer;
+      utterance.onerror = releaseTimer;
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        releaseTimer();
+      }
+    }, [canSpeak, command]);
 
     useEffect(() => {
-      if (!isListening || !window.speechSynthesis) return undefined;
-      const timer = window.setTimeout(speakCommand, 120);
+      if (!isListening) {
+        setWaitingForInitialCommand(false);
+        return undefined;
+      }
+      if (!canSpeak) {
+        setWaitingForInitialCommand(false);
+        return undefined;
+      }
+      setWaitingForInitialCommand(true);
+      const timer = window.setTimeout(() => speakCommand(true), 120);
       return () => {
         window.clearTimeout(timer);
         window.speechSynthesis.cancel();
       };
-    }, [isListening, task.id, speakCommand]);
+    }, [isListening, canSpeak, task.id, speakCommand]);
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -776,6 +799,8 @@
     }
     const timerState = paused
       ? " navigator__timer--paused"
+      : waitingForInitialCommand
+      ? " navigator__timer--waiting"
       : remaining <= 1500
       ? " navigator__timer--urgent"
       : remaining / durationMs <= .4
@@ -785,11 +810,11 @@
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
         h("div", { className: "navigator__command" }, isListening
-          ? h("button", { type: "button", className: "navigator__listen", onClick: speakCommand, "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
+          ? h("button", { type: "button", className: "navigator__listen", onClick: () => speakCommand(false), "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
           : command,
         ),
       ),
-      h("div", { className: `navigator__timer${timerState}`, "aria-label": "Время на ответ" },
+      h("div", { className: `navigator__timer${timerState}`, "aria-label": waitingForInitialCommand ? "Сначала послушайте команду" : "Время на ответ" },
         h("div", { className: "navigator__timer-track" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
         h("svg", { className: "navigator__timer-clock", viewBox: "0 0 24 24", "aria-hidden": "true" },
           h("circle", { cx: "12", cy: "12", r: "8.5" }),
