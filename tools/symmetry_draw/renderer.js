@@ -2,7 +2,7 @@
   const React = window.__Mirocard?.React;
   if (!React) throw new Error("Mirocard React runtime is unavailable");
 
-  const { createElement: h, useEffect, useMemo, useRef, useState } = React;
+  const { createElement: h, useCallback, useEffect, useMemo, useRef, useState } = React;
 
   // How close (in grid cells) a drawn point must land to an ideal target point
   // to "cover" it. Tuned against a simulated hand trace (smooth wobble + jitter):
@@ -212,7 +212,7 @@
     });
   }
 
-  function DictationTask({ task, onCorrect, sessionParams }) {
+  function DictationTask({ task, onCorrect, onMistake, sessionParams }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const gestureRef = useRef([]);
@@ -296,6 +296,7 @@
       // between points are often too long for a comfortable single drag.
       const correct = isCorrectMove(points, activePoint, step.end) || (isCoordinate && isCorrectTap(points, step.end));
       if (!correct) {
+        onMistake?.(task.conceptId, shape.id);
         setPreview(null);
         setNotice(isCoordinate ? "Попробуй ещё раз. Нажми на точку или веди линию от активной." : "Попробуй ещё раз. Начни с активной точки.");
         return;
@@ -409,7 +410,7 @@
 
   // A single point instead of a figure keeps the coordinate exercise honest:
   // the child must read the axes, not recognise a memorised silhouette.
-  function CoordinatePracticeTask({ task, onCorrect, sessionParams }) {
+  function CoordinatePracticeTask({ task, onCorrect, onMistake, sessionParams }) {
     const svgRef = useRef(null);
     const target = task.target;
     const shape = task.card;
@@ -432,6 +433,7 @@
       if (correct) {
         window.setTimeout(() => onCorrect?.(task.conceptId, shape?.id), 480);
       } else {
+        onMistake?.(task.conceptId, shape?.id);
         window.setTimeout(() => {
           setResult(null);
           setNotice("");
@@ -563,8 +565,10 @@
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
     const isGridRoute = sessionParams?.navigatorExercise === "grid_route";
+    const isListening = sessionParams?.navigatorExercise === "listening";
     const gridSize = isGridRoute ? 8 : 12;
     const cells = Math.max(1, Math.min(3, Math.round(Number(task.cells) || 1)));
+    const command = isGridRoute ? navigatorRouteText(task.direction, cells) : (NAVIGATOR_LABEL[task.direction] ?? "Вверх");
     const expected = { x: direction.col, y: direction.row };
     const inputStart = { x: gridSize / 2, y: gridSize / 2 };
     const routeEnd = { x: inputStart.x + expected.x * cells, y: inputStart.y + expected.y * cells };
@@ -622,7 +626,24 @@
         }
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [paused, task.id]);
+    }, [paused, task.id, task.conceptId, task.card?.id, onIncorrect]);
+
+    const speakCommand = useCallback(() => {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(command);
+      utterance.lang = "ru-RU";
+      window.speechSynthesis.speak(utterance);
+    }, [command]);
+
+    useEffect(() => {
+      if (!isListening || !window.speechSynthesis) return undefined;
+      const timer = window.setTimeout(speakCommand, 120);
+      return () => {
+        window.clearTimeout(timer);
+        window.speechSynthesis.cancel();
+      };
+    }, [isListening, task.id, speakCommand]);
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -738,7 +759,10 @@
     return h("section", { className: `navigator${isGridRoute ? " navigator--grid-route" : ""}${paused ? " navigator--paused" : ""} navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
-        h("div", { className: "navigator__command" }, isGridRoute ? navigatorRouteText(task.direction, cells) : (NAVIGATOR_LABEL[task.direction] ?? "Вверх")),
+        h("div", { className: "navigator__command" }, isListening
+          ? h("button", { type: "button", className: "navigator__listen", onClick: speakCommand, "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
+          : command,
+        ),
       ),
       h("div", { className: `navigator__timer${timerState}`, "aria-label": "Время на ответ" },
         h("div", { className: "navigator__timer-track" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
@@ -805,7 +829,7 @@
       ? h(NavigatorLearningTask)
       : h(NavigatorPracticeTask, props);
   }
-  function GridTask({ task, mode, onCorrect, onAdvance, sessionParams }) {
+  function GridTask({ task, mode, onCorrect, onMistake, onAdvance }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const [drawnPaths, setDrawnPaths] = useState([]);
@@ -898,6 +922,7 @@
         else onCorrect?.(task.conceptId, shape.id);
         return;
       }
+      onMistake?.(task.conceptId, shape.id);
       setResult({ percent, complete: false, coveredIndexes: coverage.coveredIndexes });
     }
 

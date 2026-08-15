@@ -397,6 +397,19 @@
   font: 800 clamp(25px, 4vw, 39px)/1.05 Georgia, serif;
   color: #1f3152;
 }
+.navigator__listen {
+  min-height: 52px;
+  padding: 10px 18px;
+  border: 2px solid #8db6da;
+  border-radius: 14px;
+  color: #174f90;
+  background: #f4f9fe;
+  box-shadow: 0 2px 0 rgba(43, 100, 167, .13);
+  font: 800 clamp(19px, 3.4vw, 30px)/1.1 Nunito, sans-serif;
+  cursor: pointer;
+}
+.navigator__listen:hover { background: #e9f4fd; }
+.navigator__listen:focus-visible { outline: 3px solid #f0b93e; outline-offset: 3px; }
 .navigator__timer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px;
@@ -508,6 +521,7 @@
   .navigator__instruction { grid-template-columns: 32px minmax(0, 1fr) 32px; min-height: 74px; padding: 8px 12px; }
   .navigator__star { width: 29px; height: 29px; font-size: 27px; }
   .navigator__command { font-size: clamp(22px, 7vw, 31px); }
+  .navigator__listen { min-height: 44px; padding: 8px 11px; font-size: clamp(17px, 5.5vw, 24px); }
   .navigator__board { padding: 18px 9px 12px; }
   .navigator__svg { max-height: 58vh; }
 }
