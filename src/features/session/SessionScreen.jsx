@@ -286,6 +286,7 @@ export default function SessionScreen() {
           <Renderer
             key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
             task={currentTask}
+            taskRetry={sessionState.taskRetry ?? 0}
             mode={mode}
             sessionStatus={status}
             topicId={topicRecord.meta.id}

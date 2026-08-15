@@ -561,7 +561,7 @@
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
-  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, answersPerStar = 1, sessionParams }) {
+  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, answersPerStar = 1, sessionParams, taskRetry = 0 }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const startRef = useRef(null);
@@ -585,6 +585,7 @@
     const expected = { x: direction.col, y: direction.row };
     const inputStart = { x: gridSize / 2, y: gridSize / 2 };
     const routeEnd = { x: inputStart.x + expected.x * cells, y: inputStart.y + expected.y * cells };
+    const showHint = taskRetry > 0;
     // The single star mirrors the shared "Серия для видеонаграды" setting:
     // 5 / 10 / 15 answers means one ray fills after 1 / 2 / 3 correct answers.
     // Use floor so a ray never appears before its full part of the streak.
@@ -778,7 +779,7 @@
         `L ${tailRight.x} ${tailRight.y}`,
         "Z",
       ].join(" ");
-      return h("g", { key, className: `navigator__route navigator__route--${key}` },
+      return h("g", { key, className: `navigator__route navigator__route--${key}${showHint && key === task.direction ? " navigator__route--hint" : ""}` },
         h("path", { className: "navigator__arrow", d: arrowPath }),
         h("circle", { className: "navigator__dash", r: "0.105" },
           h("animateMotion", { path: `M ${start.x} ${start.y} L ${end.x} ${end.y}`, dur: "1.25s", repeatCount: "indefinite" }),
@@ -821,9 +822,14 @@
           h("path", { d: "M12 7.3v5.1l3.5 2" }),
         ),
       ),
+      showHint ? h("p", { className: "navigator__hint", role: "status" }, isGridRoute
+        ? "Подсказка: проведи по подсвеченному маршруту"
+        : "Подсказка: найди подсвеченную стрелку",
+      ) : null,
       h("div", { className: "navigator__board" },
         h("svg", { ref: svgRef, viewBox: `0 0 ${gridSize} ${gridSize}`, className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
           isGridRoute ? h("g", { className: "navigator__grid" }, routeGrid) : arrows,
+          showHint && isGridRoute ? h("line", { className: "navigator__route-hint", x1: inputStart.x, y1: inputStart.y, x2: routeEnd.x, y2: routeEnd.y }) : null,
           h("circle", { className: "navigator__input-start", cx: inputStart.x, cy: inputStart.y, r: isGridRoute ? "0.22" : "0.3" },
             isGridRoute ? h("animate", { attributeName: "r", values: ".22;.34;.22", dur: "1.1s", repeatCount: "indefinite" }) : null,
           ),
@@ -893,7 +899,7 @@
     return [...choices.slice(offset), ...choices.slice(0, offset)];
   }
 
-  function NavigatorLearningChoiceTask({ task, onCorrect, onMistake, sessionParams }) {
+  function NavigatorLearningChoiceTask({ task, onCorrect, onMistake, sessionParams, taskRetry = 0 }) {
     const exercise = sessionParams?.learningExercise === "choose_arrow" ? "choose_arrow" : "choose_word";
     const direction = task?.direction ?? "up";
     const directions = navigatorDirections(sessionParams);
@@ -927,6 +933,7 @@
     }
 
     const isWordChoice = exercise === "choose_word";
+    const showHint = taskRetry > 0;
     return h("section", { className: "navigator-learning", "aria-label": isWordChoice ? "Выбери слово к стрелке" : "Выбери стрелку к слову" },
       h("div", { className: "navigator-learning__eyebrow" }, isWordChoice ? "Куда показывает стрелка?" : "Найди нужную стрелку"),
       h("div", { className: "navigator-learning__card navigator-learning__card--quiz" },
@@ -939,11 +946,12 @@
         return h("button", {
           key: choice,
           type: "button",
-          className: `navigator-learning__choice${state}`,
+          className: `navigator-learning__choice${state}${showHint && choice === direction ? " is-hinted" : ""}`,
           disabled: Boolean(answer),
           onClick: () => choose(choice),
         }, isWordChoice ? NAVIGATOR_LABEL[choice] : DIRECTION[choice].arrow);
       })),
+      showHint ? h("div", { className: "navigator-learning__hint", role: "status" }, "Подсказка: правильный ответ подсвечен") : null,
       answer ? h("div", { className: `navigator-learning__feedback${answer.correct ? " is-correct" : " is-wrong"}`, "aria-live": "polite" }, answer.correct ? "Верно!" : "Попробуй ещё раз") : null,
     );
   }

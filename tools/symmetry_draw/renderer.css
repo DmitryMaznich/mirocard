@@ -495,6 +495,11 @@
 .navigator__input-start { fill: #e5f1fa; stroke: #2d67b4; stroke-width: .09; pointer-events: none; }
 .navigator__dash { fill: #e4effa; pointer-events: none; }
 .navigator__trail { fill: none; stroke: #2f837c; stroke-width: .5; stroke-linecap: round; pointer-events: none; }
+.navigator__route--hint { color: #d99320; animation: navigatorHintPulse .9s ease-in-out infinite alternate; }
+.navigator__route-hint { stroke: #d99320; stroke-width: .28; stroke-linecap: round; stroke-dasharray: .38 .22; pointer-events: none; animation: navigatorRouteHint 1s linear infinite; }
+.navigator__hint { margin: 7px 12px 0; text-align: center; color: #8a5b09; font: 800 clamp(14px, 2.5vw, 18px)/1.2 Nunito, sans-serif; }
+@keyframes navigatorHintPulse { to { color: #f2b53c; filter: drop-shadow(0 0 5px rgba(217,147,32,.55)); } }
+@keyframes navigatorRouteHint { to { stroke-dashoffset: -.6; } }
 .navigator--good .navigator__route { color: #b8cbe4; opacity: .42; }
 .navigator--good.navigator--target-up .navigator__route--up,
 .navigator--good.navigator--target-down .navigator__route--down,
@@ -532,11 +537,14 @@
 .navigator-learning__choice:disabled { cursor: default; }
 .navigator-learning__choice.is-correct { border-color: #42a879; background: #e7f8ef; color: #247050; }
 .navigator-learning__choice.is-wrong { border-color: #d98a72; background: #fff0ea; color: #a24f3a; }
+.navigator-learning__choice.is-hinted { border-color: #e4aa35; background: #fff7db; color: #805908; animation: navigatorLearningHint .9s ease-in-out infinite alternate; }
 .navigator-learning__choices--arrows .navigator-learning__choice { font-size: clamp(36px, 8vw, 58px); }
+.navigator-learning__hint { min-height: 24px; margin-top: 12px; color: #805908; font: 800 16px/1.25 Nunito, sans-serif; }
 .navigator-learning__feedback { min-height: 28px; margin-top: 13px; font: 900 20px/1 Nunito, sans-serif; }
 .navigator-learning__feedback.is-correct { color: #247050; }
 .navigator-learning__feedback.is-wrong { color: #a24f3a; }
 @keyframes navigatorLearningPop { from { opacity: .15; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes navigatorLearningHint { to { transform: translateY(-2px); box-shadow: 0 6px 0 #ead28f; } }
 @media (max-width: 560px) {
   .navigator { border-radius: 14px; }
   .navigator__instruction { grid-template-columns: 32px minmax(0, 1fr) 32px; min-height: 74px; padding: 8px 12px; }
