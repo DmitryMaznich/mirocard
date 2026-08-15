@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, computeSessionRecord } from "./sessionEngine";
 
 const TASKS = [
   { type: "yes_no", conceptId: "tshirt", card: { id: "t1" }, displayLabel: "футболка", isLabelCorrect: true },
@@ -203,6 +203,24 @@ describe("handleInstantCorrect — streak without session completion", () => {
     state = handleInstantIncorrect(state);
     expect(state.streakCount).toBe(0);
   });
+
+  it("retries in place and resets the strict reward series", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    state = handleInstantCorrect(state);
+    state = handleInstantCorrect(state);
+    const next = handleInPlaceIncorrect(state, "c2", "c2");
+    expect(next.taskIndex).toBe(state.taskIndex);
+    expect(next.taskRetry).toBe(1);
+    expect(next.streakCount).toBe(0);
+    expect(next.mistakes).toEqual([{ conceptId: "c2", cardId: "c2" }]);
+  });
+
+  it("keeps the reward series on an in-place error when strict stars are disabled", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", [], null, false, 1, false);
+    state = handleInstantCorrect(state);
+    const next = handleInPlaceIncorrect(state);
+    expect(next.streakCount).toBe(1);
+  });
 });
 
 describe("computeSessionRecord", () => {
@@ -238,5 +256,21 @@ describe("computeSessionRecord", () => {
     state = handleAdvance(state);
     const rec = computeSessionRecord(state, "s1", "t1", "1.0.0");
     expect(rec.percentCorrect).toBeNull();
+  });
+
+  it("preserves analytics telemetry as a snapshot of the completed session", () => {
+    let state = createSessionState([TASKS[0]], MODE, "s1", "t1", "1.0.0", ["tshirt"]);
+    state = handleAnswer(state, true);
+    state = handleAdvance(state);
+    const rec = computeSessionRecord(state, "s1", "t1", "1.0.0", [], {
+      activeDurationMs: 42_000,
+      elapsedDurationMs: 57_000,
+      paramsSnapshot: { level: 2, distractors: 3 },
+      entryPoint: "student_portal",
+    });
+    expect(rec.activeDurationMs).toBe(42_000);
+    expect(rec.elapsedDurationMs).toBe(57_000);
+    expect(rec.paramsSnapshot).toEqual({ level: 2, distractors: 3 });
+    expect(rec.entryPoint).toBe("student_portal");
   });
 });

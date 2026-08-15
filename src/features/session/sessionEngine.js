@@ -64,7 +64,7 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
   };
 }
 
-export function handleInstantCorrect(state, conceptId, cardId) {
+export function handleInstantCorrect(state) {
   const streakTarget = 5 * (state.answersPerStar ?? 1);
   const streakCount = (state.streakCount ?? 0) + 1;
   const correctCount = state.correctCount + 1;
@@ -91,6 +91,23 @@ export function handleInstantIncorrect(state, conceptId, cardId) {
   return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount: state.strictStars ? 0 : (state.streakCount ?? 0), mistakes };
 }
 
+// Custom exercises sometimes need immediate feedback and a retry on the same
+// task. Keep that interaction in the shared scoring path so strict stars use
+// exactly the same reset rule as every other evaluated answer.
+export function handleInPlaceIncorrect(state, conceptId, cardId) {
+  if (!state || state.mode?.evaluation === "none") return state;
+  const incorrectCount = state.incorrectCount + 1;
+  const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
+  return {
+    ...state,
+    status: "task_active",
+    taskRetry: (state.taskRetry ?? 0) + 1,
+    incorrectCount,
+    streakCount: state.strictStars ? 0 : (state.streakCount ?? 0),
+    mistakes,
+  };
+}
+
 export function handleQualityAnswer(state, quality, conceptId, cardId) {
   const assessment = { quality, conceptId, cardId, taskIndex: state.taskIndex };
   return handleAdvance({
@@ -107,7 +124,7 @@ export function handleAdvance(state) {
   return { ...state, status: "task_active", taskIndex: nextIndex };
 }
 
-export function computeSessionRecord(state, studentId, topicId, topicVersion, cardEvents = []) {
+export function computeSessionRecord(state, studentId, topicId, topicVersion, cardEvents = [], telemetry = {}) {
   const isEvaluated = state.mode.evaluation !== "none";
 
   let correctCount, incorrectCount, percentCorrect;
@@ -134,6 +151,10 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion, ca
     conceptIds:     state.conceptIds,
     startedAt:      state.startedAt,
     completedAt:    new Date().toISOString(),
+    activeDurationMs: telemetry.activeDurationMs ?? null,
+    elapsedDurationMs: telemetry.elapsedDurationMs ?? null,
+    paramsSnapshot: telemetry.paramsSnapshot ?? {},
+    entryPoint: telemetry.entryPoint ?? "therapist",
     correctCount,
     incorrectCount,
     percentCorrect,
