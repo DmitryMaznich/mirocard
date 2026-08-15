@@ -10,28 +10,48 @@ mis-render).
 
 import re
 
-_TOKEN_RE = re.compile(r"([MLC])|(-?\d+\.?\d*)")
+_TOKEN_RE = re.compile(r"([A-Za-z])|(-?\d+\.?\d*)")
 
 _ARITY = {"M": 2, "L": 2, "C": 6}
 
 
 def parse_path(d):
     """Parse an SVG path `d` string into a list of
-    ("M"|"L", (x, y)) / ("C", (x1, y1, x2, y2, x, y)) tuples, in order."""
+    ("M"|"L", (x, y)) / ("C", (x1, y1, x2, y2, x, y)) tuples, in order.
+
+    Per the SVG path spec, a coordinate (pair/sextet) that follows a
+    command WITHOUT its own command letter is an implicit repeat of that
+    command -- except a repeated "M" is treated as an implicit "L" (a
+    real captured stroke does this: "M 14.15 57.05 14.16 56.66" is a
+    moveto followed by one implicit lineto, not two movetos). Discovered
+    2026-08-15 generating group 2's worksheets -- the earlier "only M/L/C
+    ever appear" scan only checked which command LETTERS occur, not
+    whether every occurrence was followed by exactly its own arity of
+    numbers before the next letter.
+    """
     tokens = []
     for cmd_match, num_match in _TOKEN_RE.findall(d):
         tokens.append(cmd_match if cmd_match else float(num_match))
 
     commands = []
     i = 0
+    current_cmd = None
     while i < len(tokens):
-        cmd = tokens[i]
-        if cmd not in _ARITY:
-            raise ValueError(f"unsupported path command {cmd!r} in {d!r}")
-        arity = _ARITY[cmd]
-        args = tuple(tokens[i + 1 : i + 1 + arity])
-        commands.append((cmd, args))
-        i += 1 + arity
+        token = tokens[i]
+        if isinstance(token, str):
+            if token not in _ARITY:
+                raise ValueError(f"unsupported path command {token!r} in {d!r}")
+            current_cmd = token
+            i += 1
+        elif current_cmd is None:
+            raise ValueError(f"path starts with a coordinate, not a command, in {d!r}")
+
+        effective_cmd = "L" if current_cmd == "M" and commands else current_cmd
+        arity = _ARITY[current_cmd]
+        args = tuple(tokens[i : i + arity])
+        commands.append((effective_cmd, args))
+        i += arity
+        current_cmd = effective_cmd if current_cmd == "M" else current_cmd
     return commands
 
 

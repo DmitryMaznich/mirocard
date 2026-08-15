@@ -5,6 +5,18 @@ def test_parse_simple_move_line():
     assert parse_path("M 10 20 L 30 40") == [("M", (10.0, 20.0)), ("L", (30.0, 40.0))]
 
 
+def test_parse_implicit_lineto_after_moveto():
+    # Real captured data does this: "M x y x2 y2" -- a moveto followed by a
+    # coordinate pair with no command letter is an IMPLICIT lineto, per the
+    # SVG path spec (found 2026-08-15 generating group 2's worksheets:
+    # "M 14.15 57.05 14.16 56.66" crashed the naive "every M/L/C has
+    # exactly its own arity of numbers" parser).
+    assert parse_path("M 14.15 57.05 14.16 56.66") == [
+        ("M", (14.15, 57.05)),
+        ("L", (14.16, 56.66)),
+    ]
+
+
 def test_parse_cubic_bezier():
     assert parse_path("M 0 0 C 1 2 3 4 5 6") == [
         ("M", (0.0, 0.0)),
