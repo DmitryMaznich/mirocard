@@ -593,3 +593,55 @@ session is slow for iterating on visuals. Faster loop:
 3. `npx vite --host 0.0.0.0 --port 8080`, open `/dev-propis.html`, screenshot
    (Playwright works headless for this).
 4. **Delete both throwaway files before committing** — never commit them.
+
+## Printed worksheets (Phase 1)
+
+Standalone, from-scratch Python package: `scripts/propis_worksheets/`
+(`svg_path.py`, `letter_groups.py`, `render.py`, `page.py`, `booklet.py`,
+`build.py`). Generates printable A5 letter-formation worksheets — one PDF per
+letter group, imposed into saddle-stitch A4-landscape booklets — from
+propis's own captured cursive strokes (`tools/propis/topic.json`), reusing
+propis's own 10/5/10mm ruling geometry (**not**
+`make_lined_paper_landscape_standard.py`'s different 4/8mm notebook scheme).
+No font rendering: every letter instance is drawn by replaying the same `d`
+path data the app itself animates, through a small SVG-path → reportlab-path
+converter. Registered as new items in the existing `print_materials` topic's
+`worksheets` category — same download-a-PDF browse UI, no new app UI.
+Design spec: `docs/superpowers/specs/2026-08-14-propis-letter-worksheets-design.md`;
+implementation plan (task-by-task reasoning): `docs/superpowers/plans/2026-08-14-propis-letter-worksheets.md`.
+
+Six graphomotor letter groups (Илюхина/Горецкий-style "Пропись" methodology,
+simplest shared construction element first, not alphabetical): Крючок (и, л,
+м, ш); Крючок + доп. штрих (п, т, ц, щ); Овал (а, е, ё, о, с, э); Петля (б,
+в, д, з, у, ф); Составные формы (г, ж, к, н, х, ч, ю, я); Особые формы (й,
+р, ъ, ы, ь — ъ/ь are lowercase-only, no practical uppercase form). Full
+33-letter alphabet, no gaps, no duplicates. Each page: header + 5 rows (2×
+lowercase alone, 1× uppercase alone, 2× lowercase+uppercase pair), each row
+filling left-to-right with fading repetitions (model → mid-gray) then a
+blank ruled tail for independent writing.
+
+**SVG parser gotcha (found generating groups 3/6, 2026-08-15):** a captured
+stroke's `d` string can use SVG's *implicit command repetition* — a bare
+coordinate pair with no command letter of its own repeats the previous
+command, and a repeated `M` specifically means `L` (SVG spec). Hit on ё/Ё's
+decorative dot strokes (`"M 14.15 57.05 14.16 56.66"`, exported as a
+degenerate move+line dot, not two separate `M`s). The original parser
+assumed every argument group was preceded by an explicit command letter and
+raised on these as "unsupported command" (a bare coordinate token, not
+actually a new command). Fixed in `svg_path.py`'s `parse_path` by tracking
+the current command and repeating it (with the M→L substitution) whenever
+the next token isn't a command letter — this is valid SVG syntax, not a
+capture-format the parser should reject. Covered by
+`test_parse_implicit_repeat_after_move_becomes_line` /
+`test_parse_implicit_repeat_after_line_stays_line` in `test_svg_path.py`.
+
+All 6 groups generated and registered as of `print_materials` deck v1.0.11
+(2026-08-15): `propis_worksheets_group1`..`group6`, 1 A4 sheet each for
+groups 1/2, 2 sheets each for groups 3–6. Regenerate via
+`python scripts/propis_worksheets/build.py` (all groups) or `... N` (one
+group, faster iteration), then `python make_print_zip.py` to re-stage,
+re-thumbnail, and rebuild the deck zip/catalog entry.
+
+Out of scope for Phase 1 (per the user's own phased roadmap, deferred to
+future specs): syllable worksheets, short-word worksheets, short-text
+copy-out worksheets.

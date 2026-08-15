@@ -6,6 +6,12 @@ every captured card) -- this parser intentionally does not support
 anything else, and raises loudly if it ever sees something new (a future
 capture using an unexpected command should fail the build, not silently
 mis-render).
+
+Standard SVG syntax also allows a coordinate pair with no command letter
+of its own, implicitly repeating the previous command (a bare repeated
+"M x y" becomes "L x y" per spec) -- e.g. the captured decorative dots on
+ё/Ё ("M 14.15 57.05 14.16 56.66") export this way. Handled below rather
+than rejected, since it's valid syntax, not an unsupported command.
 """
 
 import re
@@ -24,14 +30,26 @@ def parse_path(d):
 
     commands = []
     i = 0
+    current_cmd = None
     while i < len(tokens):
-        cmd = tokens[i]
-        if cmd not in _ARITY:
-            raise ValueError(f"unsupported path command {cmd!r} in {d!r}")
-        arity = _ARITY[cmd]
-        args = tuple(tokens[i + 1 : i + 1 + arity])
-        commands.append((cmd, args))
-        i += 1 + arity
+        token = tokens[i]
+        if isinstance(token, str):
+            if token not in _ARITY:
+                raise ValueError(f"unsupported path command {token!r} in {d!r}")
+            current_cmd = token
+            i += 1
+        elif current_cmd is None:
+            raise ValueError(f"path data starts with a coordinate, not a command, in {d!r}")
+        else:
+            # Implicit repeat of the previous command (no new letter) -- a
+            # repeated bare "M" is an "L" per the SVG spec.
+            current_cmd = "L" if current_cmd == "M" else current_cmd
+        arity = _ARITY[current_cmd]
+        args = tuple(tokens[i : i + arity])
+        if len(args) < arity:
+            raise ValueError(f"truncated arguments for {current_cmd!r} in {d!r}")
+        commands.append((current_cmd, args))
+        i += arity
     return commands
 
 
