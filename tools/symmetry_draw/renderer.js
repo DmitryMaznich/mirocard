@@ -830,7 +830,12 @@
   function learningChoices(direction, taskId) {
     const directions = Object.keys(DIRECTION);
     const index = Math.max(0, directions.indexOf(direction));
-    const choices = [direction, directions[(index + 1) % directions.length], directions[(index + 4) % directions.length]];
+    const choices = [
+      direction,
+      directions[(index + 1) % directions.length],
+      directions[(index + 3) % directions.length],
+      directions[(index + 5) % directions.length],
+    ];
     const seed = String(taskId ?? direction).split("").reduce((sum, character) => sum + character.charCodeAt(0), 0);
     const offset = seed % choices.length;
     return [...choices.slice(offset), ...choices.slice(0, offset)];
