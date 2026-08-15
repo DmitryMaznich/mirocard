@@ -460,6 +460,7 @@ export function useSessionEngine() {
   const streakCount = rewardPending
     ? answersPerStar * 5
     : (sessionState?.streakCount ?? 0);
+  const bestStreak = sessionState?.bestStreak ?? 0;
   const rewardProgress = {
     available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
   };
@@ -473,6 +474,7 @@ export function useSessionEngine() {
     completedRecord,
     rewardProgress,
     streakCount,
+    bestStreak,
     answersPerStar,
     rewardPending,
     clearRewardPending,

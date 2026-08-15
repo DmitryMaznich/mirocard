@@ -193,6 +193,7 @@ describe("handleInstantCorrect — streak without session completion", () => {
     expect(state.status).toBe("task_active");
     expect(state.streakCount).toBe(0);
     expect(state.rewardEarnedCount).toBe(1);
+    expect(state.bestStreak).toBe(5);
   });
 
   it("resets streakCount on incorrect", () => {

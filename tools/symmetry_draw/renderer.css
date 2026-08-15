@@ -498,6 +498,7 @@
 .navigator__route--hint { color: #d99320; animation: navigatorHintPulse .9s ease-in-out infinite alternate; }
 .navigator__route-hint { stroke: #d99320; stroke-width: .28; stroke-linecap: round; stroke-dasharray: .38 .22; pointer-events: none; animation: navigatorRouteHint 1s linear infinite; }
 .navigator__hint { margin: 7px 12px 0; text-align: center; color: #8a5b09; font: 800 clamp(14px, 2.5vw, 18px)/1.2 Nunito, sans-serif; }
+.navigator__mastery { margin: 7px 12px 0; text-align: center; color: #247050; font: 800 clamp(13px, 2.3vw, 17px)/1.25 Nunito, sans-serif; }
 @keyframes navigatorHintPulse { to { color: #f2b53c; filter: drop-shadow(0 0 5px rgba(217,147,32,.55)); } }
 @keyframes navigatorRouteHint { to { stroke-dashoffset: -.6; } }
 .navigator--good .navigator__route { color: #b8cbe4; opacity: .42; }

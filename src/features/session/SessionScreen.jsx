@@ -80,7 +80,7 @@ export default function SessionScreen() {
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
-    completedRecord, rewardProgress, streakCount, answersPerStar,
+    completedRecord, rewardProgress, streakCount, bestStreak, answersPerStar,
     rewardPending, clearRewardPending,
     deckExhausted, handleRestartDeck, handleFinishDeck,
     onCorrect, onPrevious, onIncorrect, onMistake, onAdvance, onQualityAnswer,
@@ -311,6 +311,7 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
+            bestStreak={bestStreak}
             answersPerStar={answersPerStar}
           />
         </div>

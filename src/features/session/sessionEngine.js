@@ -27,6 +27,7 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     correctCount: 0,
     incorrectCount: 0,
     streakCount: 0,
+    bestStreak: 0,
     rewardEarnedCount: 0,
     mistakes: [],
     assessments: [],
@@ -50,6 +51,7 @@ export function handleAnswer(state, isCorrect, conceptId, cardId) {
       status: "answer_correct",
       correctCount: state.correctCount + 1,
       streakCount: finalStreak,
+      bestStreak: Math.max(state.bestStreak ?? 0, streakCount),
       rewardEarnedCount,
     };
   }
@@ -80,6 +82,7 @@ export function handleInstantCorrect(state) {
     taskRetry: 0,
     correctCount,
     streakCount: finalStreak,
+    bestStreak: Math.max(state.bestStreak ?? 0, streakCount),
     rewardEarnedCount,
   };
 }

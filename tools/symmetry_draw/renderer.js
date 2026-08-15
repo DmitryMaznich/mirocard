@@ -561,7 +561,7 @@
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
-  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, answersPerStar = 1, sessionParams, taskRetry = 0 }) {
+  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, bestStreak = 0, answersPerStar = 1, sessionParams, taskRetry = 0 }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const startRef = useRef(null);
@@ -586,6 +586,7 @@
     const inputStart = { x: gridSize / 2, y: gridSize / 2 };
     const routeEnd = { x: inputStart.x + expected.x * cells, y: inputStart.y + expected.y * cells };
     const showHint = taskRetry > 0;
+    const canAddDiagonals = navigatorDirections(sessionParams).length === 4 && bestStreak >= 5;
     // The single star mirrors the shared "Серия для видеонаграды" setting:
     // 5 / 10 / 15 answers means one ray fills after 1 / 2 / 3 correct answers.
     // Use floor so a ray never appears before its full part of the streak.
@@ -826,6 +827,7 @@
         ? "Подсказка: проведи по подсвеченному маршруту"
         : "Подсказка: найди подсвеченную стрелку",
       ) : null,
+      canAddDiagonals ? h("p", { className: "navigator__mastery", role: "status" }, "Пять верных ответов — можно добавить диагонали в настройках") : null,
       h("div", { className: "navigator__board" },
         h("svg", { ref: svgRef, viewBox: `0 0 ${gridSize} ${gridSize}`, className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
           isGridRoute ? h("g", { className: "navigator__grid" }, routeGrid) : arrows,
