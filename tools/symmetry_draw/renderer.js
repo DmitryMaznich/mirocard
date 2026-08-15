@@ -551,7 +551,7 @@
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
-  function NavigatorPracticeTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1, sessionParams }) {
+  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, answersPerStar = 1, sessionParams }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const startRef = useRef(null);
@@ -559,6 +559,8 @@
     const [trail, setTrail] = useState(null);
     const [result, setResult] = useState(null);
     const [paused, setPaused] = useState(() => document.hidden || !document.hasFocus());
+    const [attempt, setAttempt] = useState(0);
+    const retryTimerRef = useRef(null);
     const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
     const durationMs = responseSeconds * 1000;
     const remainingRef = useRef(durationMs);
@@ -588,7 +590,9 @@
       setRemaining(durationMs);
       remainingRef.current = durationMs;
       setPaused(document.hidden || !document.hasFocus());
-    }, [task.id, durationMs]); // Each generated task has a unique id.
+    }, [task.id, durationMs, attempt]); // Each generated task has a unique id; a retry starts a fresh attempt.
+
+    useEffect(() => () => window.clearTimeout(retryTimerRef.current), []);
 
     useEffect(() => {
       const pause = () => {
@@ -611,6 +615,18 @@
       };
     }, []);
 
+    const retryAfterMistake = useCallback(() => {
+      if (resolvedRef.current) return;
+      resolvedRef.current = true;
+      drawingRef.current = false;
+      startRef.current = null;
+      setResult("miss");
+      onMistake?.(task.conceptId, task.card?.id);
+      retryTimerRef.current = window.setTimeout(() => {
+        setAttempt((current) => current + 1);
+      }, 520);
+    }, [onMistake, task.conceptId, task.card?.id]);
+
     useEffect(() => {
       if (paused || resolvedRef.current) return undefined;
       const remainingAtStart = remainingRef.current;
@@ -619,14 +635,10 @@
         const next = Math.max(0, remainingAtStart - (Date.now() - startedAt));
         remainingRef.current = next;
         setRemaining(next);
-        if (next === 0 && !resolvedRef.current) {
-          resolvedRef.current = true;
-          setResult("miss");
-          window.setTimeout(() => onIncorrect?.(task.conceptId, task.card?.id), 360);
-        }
+        if (next === 0 && !resolvedRef.current) retryAfterMistake();
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [paused, task.id, task.conceptId, task.card?.id, onIncorrect]);
+    }, [paused, task.id, attempt, retryAfterMistake]);
 
     const speakCommand = useCallback(() => {
       if (!window.speechSynthesis) return;
@@ -659,12 +671,13 @@
 
     function resolve(correct) {
       if (paused || resolvedRef.current) return;
+      if (!correct) {
+        retryAfterMistake();
+        return;
+      }
       resolvedRef.current = true;
-      setResult(correct ? "good" : "miss");
-      window.setTimeout(() => {
-        if (correct) onCorrect?.(task.conceptId, task.card?.id);
-        else onIncorrect?.(task.conceptId, task.card?.id);
-      }, correct ? 420 : 360);
+      setResult("good");
+      window.setTimeout(() => onCorrect?.(task.conceptId, task.card?.id), 420);
     }
 
     function startGesture(event) {
