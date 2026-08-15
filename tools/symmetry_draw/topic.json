@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.22",
+    "version": "1.8.23",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -20,8 +20,23 @@
     {
       "id": "navigator_learning",
       "type": "navigator",
-      "evaluation": "none",
+      "evaluation": "instant",
       "hideConceptPicker": true,
+      "params": {
+        "learningExercise": {
+          "type": "enum",
+          "label": { "ru": "Как учим направление" },
+          "values": ["cards", "choose_word", "choose_arrow"],
+          "default": "cards",
+          "labels": { "ru": { "cards": "Карточки", "choose_word": "Выбери слово", "choose_arrow": "Выбери стрелку" } },
+          "info": {
+            "ru": {
+              "text": "«Карточки» показывают стрелку и слово; следующая карточка — по тапу. В двух вариантах выбора ребёнок учится быстро узнавать направление среди двух отвлекающих ответов.",
+              "tip": "Сначала пролистайте карточки вместе. Затем закрепите связь: сначала выбирайте слово к стрелке, потом — стрелку к слову."
+            }
+          }
+        }
+      },
       "ui": {
         "title": "Навигатор: обучалка",
         "instruction": "Смотри на стрелку и называй направление",

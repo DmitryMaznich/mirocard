@@ -806,27 +806,92 @@
     return h("svg", { className: "navigator-learning__arrow", viewBox: "0 0 10 10", "aria-hidden": "true" }, h("path", { d }));
   }
 
-  function NavigatorLearningTask() {
+  function NavigatorLearningCards({ task }) {
     const directions = Object.keys(DIRECTION);
-    const [index, setIndex] = useState(0);
+    const initialIndex = Math.max(0, directions.indexOf(task?.direction));
+    const [index, setIndex] = useState(initialIndex);
     const direction = directions[index];
-    useEffect(() => {
-      const timer = window.setInterval(() => setIndex((current) => (current + 1) % directions.length), 3000);
-      return () => window.clearInterval(timer);
-    }, [directions.length]);
     return h("section", { className: "navigator-learning", "aria-label": "Обучалка направлений" },
       h("div", { className: "navigator-learning__eyebrow" }, "Запоминай направление"),
-      h("div", { className: "navigator-learning__card", "aria-live": "polite" },
+      h("button", {
+        type: "button",
+        className: "navigator-learning__card navigator-learning__card--tap",
+        onClick: () => setIndex((current) => (current + 1) % directions.length),
+        "aria-label": `Направление: ${NAVIGATOR_LABEL[direction]}. Нажми, чтобы увидеть следующую карточку`,
+      },
         h(NavigatorLearningArrow, { direction }),
         h("div", { className: "navigator-learning__word" }, NAVIGATOR_LABEL[direction]),
+        h("div", { className: "navigator-learning__tap-hint" }, "Нажми на карточку — дальше"),
       ),
       h("div", { className: "navigator-learning__dots", "aria-hidden": "true" }, directions.map((item, dotIndex) => h("i", { key: item, className: dotIndex === index ? "is-active" : "" }))),
     );
   }
 
+  function learningChoices(direction, taskId) {
+    const directions = Object.keys(DIRECTION);
+    const index = Math.max(0, directions.indexOf(direction));
+    const choices = [direction, directions[(index + 1) % directions.length], directions[(index + 4) % directions.length]];
+    const seed = String(taskId ?? direction).split("").reduce((sum, character) => sum + character.charCodeAt(0), 0);
+    const offset = seed % choices.length;
+    return [...choices.slice(offset), ...choices.slice(0, offset)];
+  }
+
+  function NavigatorLearningChoiceTask({ task, onCorrect, onMistake, sessionParams }) {
+    const exercise = sessionParams?.learningExercise === "choose_arrow" ? "choose_arrow" : "choose_word";
+    const direction = task?.direction ?? "up";
+    const choices = useMemo(() => learningChoices(direction, task?.id), [direction, task?.id]);
+    const [answer, setAnswer] = useState(null);
+    const resolvedRef = useRef(false);
+
+    useEffect(() => {
+      resolvedRef.current = false;
+      setAnswer(null);
+    }, [task?.id, exercise]);
+
+    function choose(choice) {
+      if (resolvedRef.current) return;
+      const correct = choice === direction;
+      setAnswer({ choice, correct });
+      if (correct) {
+        resolvedRef.current = true;
+        window.setTimeout(() => onCorrect?.(task?.conceptId, task?.card?.id), 450);
+        return;
+      }
+      onMistake?.(task?.conceptId, task?.card?.id);
+      window.setTimeout(() => setAnswer(null), 650);
+    }
+
+    const isWordChoice = exercise === "choose_word";
+    return h("section", { className: "navigator-learning", "aria-label": isWordChoice ? "Выбери слово к стрелке" : "Выбери стрелку к слову" },
+      h("div", { className: "navigator-learning__eyebrow" }, isWordChoice ? "Куда показывает стрелка?" : "Найди нужную стрелку"),
+      h("div", { className: "navigator-learning__card navigator-learning__card--quiz" },
+        isWordChoice
+          ? h(NavigatorLearningArrow, { direction })
+          : h("div", { className: "navigator-learning__word" }, NAVIGATOR_LABEL[direction]),
+      ),
+      h("div", { className: `navigator-learning__choices${isWordChoice ? "" : " navigator-learning__choices--arrows"}` }, choices.map((choice) => {
+        const state = answer?.choice === choice ? (answer.correct ? " is-correct" : " is-wrong") : "";
+        return h("button", {
+          key: choice,
+          type: "button",
+          className: `navigator-learning__choice${state}`,
+          disabled: Boolean(answer),
+          onClick: () => choose(choice),
+        }, isWordChoice ? NAVIGATOR_LABEL[choice] : DIRECTION[choice].arrow);
+      })),
+      answer ? h("div", { className: `navigator-learning__feedback${answer.correct ? " is-correct" : " is-wrong"}`, "aria-live": "polite" }, answer.correct ? "Верно!" : "Попробуй ещё раз") : null,
+    );
+  }
+
+  function NavigatorLearningTask(props) {
+    return props.sessionParams?.learningExercise === "cards" || !props.sessionParams?.learningExercise
+      ? h(NavigatorLearningCards, props)
+      : h(NavigatorLearningChoiceTask, props);
+  }
+
   function NavigatorTask(props) {
     return props.mode?.id === "navigator_learning"
-      ? h(NavigatorLearningTask)
+      ? h(NavigatorLearningTask, props)
       : h(NavigatorPracticeTask, props);
   }
   function GridTask({ task, mode, onCorrect, onMistake, onAdvance }) {
