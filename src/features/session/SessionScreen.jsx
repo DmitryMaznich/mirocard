@@ -236,6 +236,15 @@ export default function SessionScreen() {
   const isNavigatorFlashCards = topicRecord.meta.id === "symmetry_draw"
     && mode.id === "navigator_learning"
     && sessionParams.learningExercise === "cards";
+  // A graphic dictation consists of several dependent strokes. An error on
+  // the current stroke is recorded in the session (including strict-stars),
+  // but must not remount the renderer: the already completed figure remains
+  // the child's visual and motor reference for the retry.
+  const keepsDictationCanvasOnMistake = topicRecord.meta.id === "symmetry_draw"
+    && ["graphic_dictation", "coordinate_dictation"].includes(currentTask?.type);
+  const rendererTaskKey = keepsDictationCanvasOnMistake
+    ? String(taskIndex)
+    : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
   const showStreak = mode?.type !== "daily_sentences" && !isNavigatorFlashCards;
   const showProgress = !(
     (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
@@ -287,7 +296,7 @@ export default function SessionScreen() {
           onClick={(isCorrectFeedback || isAdvanceGateActive) ? requestAdvance : undefined}
         >
           <Renderer
-            key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
+            key={rendererTaskKey}
             task={currentTask}
             taskRetry={sessionState.taskRetry ?? 0}
             mode={mode}

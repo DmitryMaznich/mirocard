@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const renderer = await readFile(new URL("./renderer.js", import.meta.url), "utf8");
+const sessionScreen = await readFile(new URL("../../src/features/session/SessionScreen.jsx", import.meta.url), "utf8");
 
 test("listening navigator shows the command if speech synthesis is unavailable", () => {
   assert.match(renderer, /const usesAuditoryPrompt = isListening && canSpeak;/);
@@ -21,4 +22,10 @@ test("navigator keeps a wrong-answer trace visible before retrying the task", ()
 test("learning flash cards start predictably and choice exercises retain four cardinal directions", () => {
   assert.match(renderer, /const BASIC_NAVIGATOR_DIRECTIONS = \["up", "right", "down", "left"\];/);
   assert.match(renderer, /const \[index, setIndex\] = useState\(0\);/);
+});
+
+test("a dictation error preserves the completed part of the drawing", () => {
+  assert.match(sessionScreen, /const keepsDictationCanvasOnMistake = topicRecord\.meta\.id === "symmetry_draw"/);
+  assert.match(sessionScreen, /\["graphic_dictation", "coordinate_dictation"\]\.includes\(currentTask\?\.type\)/);
+  assert.match(sessionScreen, /const rendererTaskKey = keepsDictationCanvasOnMistake\s*\? String\(taskIndex\)\s*:/);
 });
