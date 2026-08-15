@@ -18,8 +18,16 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   v1.0.1841 as of 2026-08-13).** Free-text multi-line copybook: colored keyboard
   (magnetic_alphabet style) + a wrapping notebook grid that lays words out
   row-by-row, no animation. See its own section below.
-- **Mode 2 (PDF export for print) — not started.** `PropisShowView.jsx` (see below)
+- **Mode 2 (in-app PDF export) — not started.** `PropisShowView.jsx` (see below)
   is a dormant starting point for it, not wired to any active mode.
+- **Printed letter worksheets (Phase 1) — shipped, live on `main`
+  (`print_materials` deck v1.0.12 as of 2026-08-15).** A completely separate
+  system from the in-app modes above: standalone Python
+  (`scripts/propis_worksheets/`), reusing propis's own captured strokes and
+  ruling geometry but generating real print-ready PDFs (not an in-app view),
+  registered as new items in the *other* `print_materials` topic
+  (`src/print_materials/topic.json`), not this topic's own `topic.json`. See
+  its own section below.
 
 ## File map
 
@@ -578,6 +586,90 @@ gap, see "Natural next steps" above) so a single missing/uncaptured
 character degrades to one system-font glyph inline instead of dropping the
 whole word/segment, unlike `WriteWordsView.jsx`'s all-or-nothing
 `try/catch`.
+
+## Printed letter worksheets (Phase 1)
+
+Standalone print pipeline, not part of the in-app renderer at all — no
+React, no `topics/renderers/propis/` code involved. Design spec:
+`docs/superpowers/specs/2026-08-14-propis-letter-worksheets-design.md`;
+implementation plan (task-by-task, including the exact code):
+`docs/superpowers/plans/2026-08-14-propis-letter-worksheets.md`.
+
+**What it is:** one A5 tracing page per letter — 2 rows of the lowercase
+alone, 1 row of the uppercase alone, 2 rows of the lowercase+uppercase pair
+together — each row filled edge-to-edge with fading repetitions (dark
+model → mid-gray → light-gray) and a clean blank tail for independent
+writing. Pages are grouped by graphomotor complexity (shared stroke
+element), not alphabetical or sound order, confirmed with the user:
+
+1. Крючок — и, л, м, ш
+2. Крючок + доп. штрих — п, т, ц, щ
+3. Овал — а, е, ё, о, с, э
+4. Петля — б, в, д, з, у, ф
+5. Составные формы — г, ж, к, н, х, ч, ю, я
+6. Особые формы — й, р, ъ, ы, ь (Ъ/Ь: lowercase-only, no real capitalized
+   form in practical use)
+
+Every group is its own imposed, fold-and-staple A4-landscape booklet PDF
+(same physical assembly as `print_materials`'s existing notebooks), and
+registered as a `worksheets`-category item in the *separate*
+`src/print_materials/topic.json` (not this topic's own).
+
+### File map
+
+- `scripts/propis_worksheets/svg_path.py` — parses a captured stroke's `d`
+  string (M/L/C, including the SVG implicit-lineto-after-moveto shorthand)
+  into reportlab draw commands + bounding boxes. Pure logic, real pytest
+  unit tests (`test_svg_path.py`).
+- `scripts/propis_worksheets/letter_groups.py` — the 6 groups above, as
+  data.
+- `scripts/propis_worksheets/render.py` — draws one letter instance onto a
+  reportlab canvas, scaled from the app's native coordinate system
+  (`propisRuling.js`'s own `UNIT_H`/baseline) into real mm. No
+  connector-chaining at all — every instance is an isolated single letter
+  (even the "paired" row is two independent letters placed side by side,
+  never joined by a connecting stroke).
+- `scripts/propis_worksheets/page.py` — one A5 page's ruling + header +
+  practice rows. Registers a Cyrillic-capable font (reportlab's built-in
+  Helvetica has no Cyrillic glyphs — headers rendered as solid boxes
+  without this, same fallback chain as `scripts/cover_tetrad.py`).
+- `scripts/propis_worksheets/booklet.py` — saddle-stitch imposition
+  (`_imposition_order`, unit-tested against hand-verified n=4/n=8 cases).
+- `scripts/propis_worksheets/build.py` — CLI: `python build.py` (all
+  groups) or `python build.py N` (just group N) → `output/propis_worksheets_groupN.pdf`.
+
+### Gotchas hit building this (2026-08-15)
+
+- **`canvas.showPage()` resets any transform set outside a
+  `saveState`/`restoreState` pair** — a `canvas.scale(mm, mm)` call before
+  the page loop only affects the FIRST page; every later page silently
+  draws in points instead of mm. `booklet.py`'s `draw_slot` re-applies
+  `scale(mm, mm)` inside its own `saveState`/`restoreState` for every A5
+  slot specifically because of this — don't hoist it back out.
+- **The SVG path parser needs to handle implicit lineto repetition.** A
+  real captured stroke like `"M 14.15 57.05 14.16 56.66"` is a moveto
+  followed by an IMPLICIT lineto (a coordinate pair with no command
+  letter) — legal per the SVG spec, and real data uses it. The original
+  "every M/L/C has exactly its own arity, nothing left over" parser
+  crashed on this generating group 2. While fixing it, also found the
+  tokenizer regex only matched `[MLC]` and silently DROPPED any other
+  letter (e.g. a hypothetical arc command `A`) instead of raising —
+  previously masked by the strict-arity parser choking on the orphaned
+  numbers anyway, by accident rather than by design. Both fixed together;
+  see `svg_path.py`'s own comments.
+- **`ClassRoomCursive.ttf`** (used by `scripts/cover_tetrad.py`'s notebook
+  covers) turned out to be visually very close to propis's own captured
+  cursive style — confirmed with a side-by-side render during
+  brainstorming — but the user deliberately chose to render from the real
+  captured strokes anyway (SVG→PDF), specifically for pixel-consistency
+  with what the app itself animates, accepting the extra parser/imposition
+  work that requires.
+- **`src/print_materials/print/` and `thumbnails/` are gitignored**
+  (matched by the repo's blanket `*.png` rule and never explicitly
+  tracked) — only `topic.json`, `public/decks/catalog.json`, and the
+  packaged `public/decks/print_materials_vX.Y.Z.zip` itself get committed;
+  regenerate the rest via `python make_print_zip.py` rather than trying to
+  hand-edit or commit source PDFs/PNGs directly.
 
 ## Verifying visual changes locally (no full app flow needed)
 
