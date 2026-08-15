@@ -122,8 +122,11 @@
     down_left: "Вниз и влево",
   };
 
-  const BASIC_NAVIGATOR_DIRECTIONS = ["up", "down", "left", "right"];
-  const ALL_NAVIGATOR_DIRECTIONS = [...BASIC_NAVIGATOR_DIRECTIONS, "up_left", "up_right", "down_left", "down_right"];
+  // This is the learning order, not just a list of available answers: start
+  // at the top and turn clockwise, then place each diagonal between its two
+  // neighbouring cardinal directions.
+  const BASIC_NAVIGATOR_DIRECTIONS = ["up", "right", "down", "left"];
+  const ALL_NAVIGATOR_DIRECTIONS = ["up", "up_right", "right", "down_right", "down", "down_left", "left", "up_left"];
 
   function navigatorDirections(params) {
     return params?.navigatorDirections === "all" ? ALL_NAVIGATOR_DIRECTIONS : BASIC_NAVIGATOR_DIRECTIONS;
@@ -566,7 +569,6 @@
     const [trail, setTrail] = useState(null);
     const [result, setResult] = useState(null);
     const [paused, setPaused] = useState(() => document.hidden || !document.hasFocus());
-    const [attempt, setAttempt] = useState(0);
     const retryTimerRef = useRef(null);
     const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
     const durationMs = responseSeconds * 1000;
@@ -597,7 +599,7 @@
       setRemaining(durationMs);
       remainingRef.current = durationMs;
       setPaused(document.hidden || !document.hasFocus());
-    }, [task.id, durationMs, attempt]); // Each generated task has a unique id; a retry starts a fresh attempt.
+    }, [task.id, durationMs]); // Each generated task has a unique id; retries remount it after feedback.
 
     useEffect(() => () => window.clearTimeout(retryTimerRef.current), []);
 
@@ -628,9 +630,11 @@
       drawingRef.current = false;
       startRef.current = null;
       setResult("miss");
-      onMistake?.(task.conceptId, task.card?.id);
+      // SessionScreen intentionally remounts a task after an in-place error.
+      // Report the error only after the child has seen the red trace; otherwise
+      // that remount erases the feedback in the same render frame.
       retryTimerRef.current = window.setTimeout(() => {
-        setAttempt((current) => current + 1);
+        onMistake?.(task.conceptId, task.card?.id);
       }, 520);
     }, [onMistake, task.conceptId, task.card?.id]);
 
@@ -645,7 +649,7 @@
         if (next === 0 && !resolvedRef.current) retryAfterMistake();
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [paused, task.id, attempt, retryAfterMistake]);
+    }, [paused, task.id, retryAfterMistake]);
 
     const speakCommand = useCallback(() => {
       if (!window.speechSynthesis) return;
@@ -827,10 +831,11 @@
     return h("svg", { className: "navigator-learning__arrow", viewBox: "0 0 10 10", "aria-hidden": "true" }, h("path", { d }));
   }
 
-  function NavigatorLearningCards({ task, sessionParams }) {
+  function NavigatorLearningCards({ sessionParams }) {
     const directions = navigatorDirections(sessionParams);
-    const initialIndex = Math.max(0, directions.indexOf(task?.direction));
-    const [index, setIndex] = useState(initialIndex);
+    // A flash-card run is a short, predictable learning path. It must not
+    // inherit the random first task from the practice drill.
+    const [index, setIndex] = useState(0);
     const direction = directions[index];
     return h("section", { className: "navigator-learning", "aria-label": "Обучалка направлений" },
       h("div", { className: "navigator-learning__eyebrow" }, "Запоминай направление"),
@@ -870,6 +875,9 @@
     const choices = useMemo(() => learningChoices(direction, task?.id, directions), [direction, task?.id, directions]);
     const [answer, setAnswer] = useState(null);
     const resolvedRef = useRef(false);
+    const feedbackTimerRef = useRef(null);
+
+    useEffect(() => () => window.clearTimeout(feedbackTimerRef.current), []);
 
     useEffect(() => {
       resolvedRef.current = false;
@@ -882,11 +890,15 @@
       setAnswer({ choice, correct });
       if (correct) {
         resolvedRef.current = true;
-        window.setTimeout(() => onCorrect?.(task?.conceptId, task?.card?.id), 450);
+        feedbackTimerRef.current = window.setTimeout(() => onCorrect?.(task?.conceptId, task?.card?.id), 450);
         return;
       }
-      onMistake?.(task?.conceptId, task?.card?.id);
-      window.setTimeout(() => setAnswer(null), 650);
+      // As above, keep the wrong answer visible before SessionScreen remounts
+      // this task to start its retry and record the strict-stars reset.
+      feedbackTimerRef.current = window.setTimeout(() => {
+        setAnswer(null);
+        onMistake?.(task?.conceptId, task?.card?.id);
+      }, 650);
     }
 
     const isWordChoice = exercise === "choose_word";
