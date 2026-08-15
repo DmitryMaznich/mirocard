@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.21",
+    "version": "1.8.22",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -18,22 +18,33 @@
   },
   "modes": [
     {
+      "id": "navigator_learning",
+      "type": "navigator",
+      "evaluation": "none",
+      "hideConceptPicker": true,
+      "ui": {
+        "title": "Навигатор: обучалка",
+        "instruction": "Смотри на стрелку и называй направление",
+        "icon": "media/navigator_avatar.svg"
+      }
+    },
+    {
       "id": "navigator",
       "type": "navigator",
       "evaluation": "instant",
       "answersPerStar": 1,
       "hideConceptPicker": true,
       "params": {
-        "navigatorExercise": {
+        "navigatorPractice": {
           "type": "enum",
           "label": { "ru": "Вариант тренировки" },
-          "values": ["learning", "direction", "listening", "grid_route"],
+          "values": ["direction", "listening", "grid_route"],
           "default": "direction",
-          "labels": { "ru": { "learning": "Обучалка", "direction": "Направление", "listening": "Слушай направление", "grid_route": "Маршрут по клеткам" } },
+          "labels": { "ru": { "direction": "Направление", "listening": "Слушай направление", "grid_route": "Маршрут по клеткам" } },
           "info": {
             "ru": {
-              "text": "«Обучалка» показывает стрелку и её название. «Направление» — свайп в нужную сторону по слову. «Слушай направление» озвучивает команду и скрывает её текст. «Маршрут по клеткам» добавляет длину шага.",
-              "tip": "Начните с обучалки, затем переходите к направлениям, слуховым командам и маршрутам по клеткам."
+              "text": "«Направление» — свайп в нужную сторону по слову. «Слушай направление» озвучивает команду и скрывает её текст. «Маршрут по клеткам» добавляет длину шага.",
+              "tip": "Перед тренировкой можно пройти отдельную «Навигатор: обучалка», затем переходить к направлениям, слуховым командам и маршрутам по клеткам."
             }
           }
         },
@@ -43,7 +54,6 @@
           "min": 3,
           "max": 10,
           "default": 5,
-          "disabledWhen": { "navigatorExercise": "learning" },
           "info": {
             "ru": {
               "text": "Сколько времени есть на один свайп. Когда полоса полностью исчезает, задание засчитывается как ошибка.",

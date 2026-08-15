@@ -564,8 +564,8 @@
     const remainingRef = useRef(durationMs);
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
-    const isGridRoute = sessionParams?.navigatorExercise === "grid_route";
-    const isListening = sessionParams?.navigatorExercise === "listening";
+    const isGridRoute = sessionParams?.navigatorPractice === "grid_route";
+    const isListening = sessionParams?.navigatorPractice === "listening";
     const gridSize = isGridRoute ? 8 : 12;
     const cells = Math.max(1, Math.min(3, Math.round(Number(task.cells) || 1)));
     const command = isGridRoute ? navigatorRouteText(task.direction, cells) : (NAVIGATOR_LABEL[task.direction] ?? "Вверх");
@@ -825,7 +825,7 @@
   }
 
   function NavigatorTask(props) {
-    return props.sessionParams?.navigatorExercise === "learning"
+    return props.mode?.id === "navigator_learning"
       ? h(NavigatorLearningTask)
       : h(NavigatorPracticeTask, props);
   }
