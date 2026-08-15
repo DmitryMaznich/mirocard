@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.19",
+    "version": "1.8.20",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
