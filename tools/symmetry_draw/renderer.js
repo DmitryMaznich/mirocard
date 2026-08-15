@@ -881,6 +881,7 @@
         h("div", { className: "navigator-learning__tap-hint" }, "Нажми на карточку — дальше"),
       ),
       h("div", { className: "navigator-learning__dots", "aria-hidden": "true" }, directions.map((item, dotIndex) => h("i", { key: item, className: dotIndex === index ? "is-active" : "" }))),
+      h("p", { className: "navigator-learning__next-step" }, "Когда запомнишь — выбери вариант «Выбери слово» или «Выбери стрелку»."),
     );
   }
 

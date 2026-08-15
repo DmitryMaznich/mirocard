@@ -970,6 +970,11 @@ export default function ParamsScreen() {
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
   const [activeInfo,     setActiveInfo]      = useState(null);
+  // Flash cards are an ungraded introduction. A video for repeatedly tapping
+  // through them would look like a reward for guessing, not for learning.
+  const isNavigatorFlashCards = activeTopicId === "symmetry_draw"
+    && activeModeId === "navigator_learning"
+    && params.learningExercise === "cards";
 
   const allModes = topicRecord?.modes ?? [];
   const modeBackScreen = allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
@@ -1023,7 +1028,7 @@ export default function ParamsScreen() {
       return;
     }
     const bypassPin = mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs;
-    if (!shouldRequestSessionStartPin({ videoRewardEnabled: videoReward, bypassPin })) {
+    if (!shouldRequestSessionStartPin({ videoRewardEnabled: videoReward && !isNavigatorFlashCards, bypassPin })) {
       launchSession();
       return;
     }
@@ -1390,7 +1395,14 @@ export default function ParamsScreen() {
             {paramsContent}
           </div>
 
-          {hasVideos && !isAlphabetPairs && (
+          {hasVideos && isNavigatorFlashCards && (
+            <div className="param-section">
+              <div className="param-section__header">Карточки — знакомство</div>
+              <div className="param-hint">Здесь ребёнок спокойно знакомится со стрелками, без оценки и видеонаграды. Для проверки и награды выберите «Выбери слово» или «Выбери стрелку».</div>
+            </div>
+          )}
+
+          {hasVideos && !isAlphabetPairs && !isNavigatorFlashCards && (
             <div className="param-section">
               <div className="param-section__header">Награда за занятие</div>
 

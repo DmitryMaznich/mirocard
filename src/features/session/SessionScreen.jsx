@@ -233,7 +233,10 @@ export default function SessionScreen() {
   const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
 
-  const showStreak = mode?.type !== "daily_sentences";
+  const isNavigatorFlashCards = topicRecord.meta.id === "symmetry_draw"
+    && mode.id === "navigator_learning"
+    && sessionParams.learningExercise === "cards";
+  const showStreak = mode?.type !== "daily_sentences" && !isNavigatorFlashCards;
   const showProgress = !(
     (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
