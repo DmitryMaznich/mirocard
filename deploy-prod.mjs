@@ -12,7 +12,6 @@ const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
 
 const args = new Set(process.argv.slice(2));
 const verifyOnly = args.has("--verify-only");
-const allowDirty = args.has("--allow-dirty") || process.env.MIROCARD_DEPLOY_ALLOW_DIRTY === "1";
 const skipBuild = args.has("--skip-build");
 const noBump = args.has("--no-bump");
 
@@ -30,13 +29,13 @@ function run(command, args = [], options = {}) {
   execFileSync(command, args, { cwd: root, stdio: "inherit", ...options });
 }
 
-function output(command) {
-  return execSync(command, { cwd: root, encoding: "utf8" }).trim();
+function output(command, args = []) {
+  return execFileSync(command, args, { cwd: root, encoding: "utf8" }).trim();
 }
 
 function gitSha() {
   try {
-    return output("git rev-parse --short HEAD") || "unknown";
+    return output("git", ["rev-parse", "--short", "HEAD"]) || "unknown";
   } catch {
     return "unknown";
   }
@@ -50,18 +49,19 @@ function bumpPatchVersion() {
   pkgRaw.version = parts.join(".");
   writeFileSync(pkgPath, JSON.stringify(pkgRaw, null, 2) + "\n");
   pkg.version = pkgRaw.version;
-  execSync(`git add package.json && git commit -m "chore: release v${pkg.version}"`, { cwd: root, stdio: "inherit" });
+  run("git", ["add", "package.json"]);
+  run("git", ["commit", "-m", `chore: release v${pkg.version}`]);
   console.log(`bumped version to ${pkg.version}`);
 }
 
 function assertCleanWorktree() {
-  if (allowDirty || verifyOnly) return;
-  const status = output("git status --porcelain");
+  const status = output("git", ["status", "--porcelain"]);
   if (!status) return;
 
-  console.error("Refusing to deploy with a dirty worktree.");
-  console.error("Commit/stash changes first, or pass --allow-dirty for an explicit emergency deploy.");
-  process.exit(1);
+  throw new Error(
+    "Refusing to deploy with a dirty worktree. Commit or stash every change first: "
+    + "production deployments must be reproducible from a pushed commit."
+  );
 }
 
 function collectFiles(dir, prefix = "") {
@@ -317,19 +317,36 @@ async function verify(expectedVersion) {
 }
 
 function pushToOrigin() {
-  const branch = output("git rev-parse --abbrev-ref HEAD");
+  const branch = output("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
+  if (branch === "HEAD") {
+    throw new Error("Refusing to deploy from a detached HEAD. Check out a branch and push its commit first.");
+  }
   console.log(`pushing ${branch} to origin...`);
-  execSync(`git push origin ${branch}`, { cwd: root, stdio: "inherit" });
+  run("git", ["push", "origin", branch]);
 }
 
 async function main() {
   let version = null;
+  if (!verifyOnly && (args.has("--allow-dirty") || process.env.MIROCARD_DEPLOY_ALLOW_DIRTY === "1")) {
+    throw new Error("--allow-dirty is no longer supported. Commit or stash changes before deploying.");
+  }
+
   if (!verifyOnly) {
+    assertCleanWorktree();
     if (!skipBuild) {
-      assertCleanWorktree();
       if (!noBump) bumpPatchVersion();
+      assertCleanWorktree();
+    }
+
+    // Push before building/uploading, so production can only contain a state
+    // that is recoverable from origin. A non-fast-forward rejection stops the
+    // deploy before any production file is replaced.
+    pushToOrigin();
+
+    if (!skipBuild) {
       console.log(`building Mirocard2 v${pkg.version}...`);
       execSync("npm run build", { cwd: root, stdio: "inherit" });
+      assertCleanWorktree();
     }
     version = writeVersionJson();
     const files = buildUploadPlan();
@@ -341,8 +358,6 @@ async function main() {
 
   await verify(version);
   console.log("deploy target is consistent.");
-
-  if (!verifyOnly) pushToOrigin();
 }
 
 main().catch((error) => {
