@@ -572,6 +572,9 @@
     const retryTimerRef = useRef(null);
     const isListening = sessionParams?.navigatorPractice === "listening";
     const canSpeak = Boolean(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === "function");
+    // A listening task must still be solvable in browsers without the Web
+    // Speech API (or where it was disabled by a parent/device policy).
+    const usesAuditoryPrompt = isListening && canSpeak;
     const [waitingForInitialCommand, setWaitingForInitialCommand] = useState(() => isListening && canSpeak);
     const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
     const durationMs = responseSeconds * 1000;
@@ -811,10 +814,13 @@
     return h("section", { className: `navigator${isGridRoute ? " navigator--grid-route" : ""}${paused ? " navigator--paused" : ""} navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
-        h("div", { className: "navigator__command" }, isListening
+        h("div", { className: "navigator__command" }, usesAuditoryPrompt
           ? h("button", { type: "button", className: "navigator__listen", onClick: () => speakCommand(false), "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
           : command,
         ),
+        isListening && !canSpeak
+          ? h("p", { className: "navigator__audio-fallback", role: "status" }, "Озвучка недоступна — команда показана текстом")
+          : null,
       ),
       h("div", { className: `navigator__timer${timerState}`, "aria-label": waitingForInitialCommand ? "Сначала послушайте команду" : "Время на ответ" },
         h("div", { className: "navigator__timer-track" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),

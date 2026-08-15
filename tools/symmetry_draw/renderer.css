@@ -410,6 +410,12 @@
 }
 .navigator__listen:hover { background: #e9f4fd; }
 .navigator__listen:focus-visible { outline: 3px solid #f0b93e; outline-offset: 3px; }
+.navigator__audio-fallback {
+  grid-column: 2;
+  margin: -3px 0 0;
+  color: #53657b;
+  font: 700 14px/1.2 Nunito, sans-serif;
+}
 .navigator__timer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px;
