@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.8.17",
+    "version": "1.8.18",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -16,68 +16,6 @@
     }
   },
   "modes": [
-    {
-      "id": "symmetry_draw",
-      "type": "mirror_draw",
-      "evaluation": "auto",
-      "ui": {
-        "title": "Симметричный рисунок",
-        "instruction": "Дорисуй вторую половину фигуры",
-        "icon": "media/avatar.svg"
-      }
-    },
-    {
-      "id": "repeat_draw",
-      "type": "repeat_draw",
-      "evaluation": "auto",
-      "ui": {
-        "title": "Повтори рисунок",
-        "instruction": "Смотри на рисунок слева и нарисуй такой же справа",
-        "icon": "media/repeat_avatar.svg"
-      }
-    },
-    {
-      "id": "graphic_dictation",
-      "type": "graphic_dictation",
-      "evaluation": "auto",
-      "ui": {
-        "title": "Графический диктант",
-        "instruction": "Слушай команду и веди линию от активной точки",
-        "icon": "media/dictation_avatar.svg"
-      },
-      "params": {
-        "dictationCommand": {
-          "type": "enum",
-          "label": {
-            "ru": "Как строить рисунок"
-          },
-          "values": ["directions", "coordinates"],
-          "default": "directions",
-          "labels": {
-            "ru": {
-              "directions": "По направлениям",
-              "coordinates": "По координатам"
-            }
-          },
-          "info": {
-            "ru": {
-              "text": "В первом варианте ребёнок читает шаг и направление. Во втором — следующую точку по её координатам.",
-              "tip": "Начните с направлений. Координатный вариант вводите после уверенной работы с координатами."
-            }
-          }
-        },
-        "showArrow": {
-          "type": "boolean",
-          "default": true,
-          "label": {
-            "ru": "Стрелка в подсказке"
-          },
-          "hint": {
-            "ru": "Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
-          }
-        }
-      }
-    },
     {
       "id": "navigator",
       "type": "navigator",
@@ -147,6 +85,68 @@
         "title": "Координаты",
         "instruction": "Находи точки по координатам или называй их",
         "icon": "media/dictation_avatar.svg"
+      }
+    },
+    {
+      "id": "graphic_dictation",
+      "type": "graphic_dictation",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Графический диктант",
+        "instruction": "Слушай команду и веди линию от активной точки",
+        "icon": "media/dictation_avatar.svg"
+      },
+      "params": {
+        "dictationCommand": {
+          "type": "enum",
+          "label": {
+            "ru": "Как строить рисунок"
+          },
+          "values": ["directions", "coordinates"],
+          "default": "directions",
+          "labels": {
+            "ru": {
+              "directions": "По направлениям",
+              "coordinates": "По координатам"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "В первом варианте ребёнок читает шаг и направление. Во втором — следующую точку по её координатам.",
+              "tip": "Начните с направлений. Координатный вариант вводите после уверенной работы с координатами."
+            }
+          }
+        },
+        "showArrow": {
+          "type": "boolean",
+          "default": true,
+          "label": {
+            "ru": "Стрелка в подсказке"
+          },
+          "hint": {
+            "ru": "Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
+          }
+        }
+      }
+    },
+    {
+      "id": "repeat_draw",
+      "type": "repeat_draw",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Повтори рисунок",
+        "instruction": "Смотри на рисунок слева и нарисуй такой же справа",
+        "icon": "media/repeat_avatar.svg"
+      }
+    },
+    {
+      "id": "symmetry_draw",
+      "type": "mirror_draw",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Симметричный рисунок",
+        "instruction": "Дорисуй вторую половину фигуры",
+        "icon": "media/avatar.svg"
       }
     }
   ],

@@ -341,17 +341,6 @@
       "access": "free"
     },
     {
-      "id": "print_materials",
-      "version": "1.0.10",
-      "title": {
-        "ru": "Печатные материалы"
-      },
-      "description": {
-        "ru": "Тетради и рабочие листы для печати"
-      },
-      "url": "./decks/print_materials_v1.0.10.zip"
-    },
-    {
       "id": "word_agreement_ru",
       "version": "1.7.0",
       "url": "./decks/word_agreement_ru_v1.7.0.zip",
@@ -368,9 +357,9 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.8.17",
-      "url": "./decks/symmetry_draw_v1.8.17.zip",
-      "zipUrl": "symmetry_draw_v1.8.17.zip",
+      "version": "1.8.18",
+      "url": "./decks/symmetry_draw_v1.8.18.zip",
+      "zipUrl": "symmetry_draw_v1.8.18.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },
@@ -380,6 +369,17 @@
       "renderer": "flashcards",
       "status": "release",
       "access": "free"
+    },
+    {
+      "id": "print_materials",
+      "version": "1.0.11",
+      "title": {
+        "ru": "Печатные материалы"
+      },
+      "description": {
+        "ru": "Тетради и рабочие листы для печати"
+      },
+      "url": "./decks/print_materials_v1.0.11.zip"
     }
   ]
 }
