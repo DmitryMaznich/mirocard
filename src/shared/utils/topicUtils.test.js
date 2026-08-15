@@ -93,6 +93,21 @@ describe("getConceptCards", () => {
     expect(cards.map((c) => c.id)).toEqual(["c1"]);
   });
 
+  it("filters symmetry-draw figures by the chosen difficulty after task kind", () => {
+    const record = {
+      meta: { id: "symmetry_draw", renderer: "flashcards" },
+      cards: [
+        { id: "starter-mirror", taskKind: "mirror", difficulty: "starter" },
+        { id: "challenge-mirror", taskKind: "mirror", difficulty: "challenge" },
+        { id: "starter-repeat", taskKind: "repeat", difficulty: "starter" },
+      ],
+    };
+    expect(getConceptCards(record, { type: "mirror_draw" }, { figureDifficulty: "starter" }).map((card) => card.id))
+      .toEqual(["starter-mirror"]);
+    expect(getConceptCards(record, { type: "mirror_draw" }, { figureDifficulty: "all" }).map((card) => card.id))
+      .toEqual(["starter-mirror", "challenge-mirror"]);
+  });
+
   it("scopes navigator to its direction-drill metadata card", () => {
     const cards = getConceptCards(symmetryDrawRecord, { type: "navigator" });
     expect(cards.map((c) => c.id)).toEqual(["n1"]);
@@ -118,6 +133,21 @@ describe("mode-scoped concept selection", () => {
   const dictationMode = { id: "graphic_dictation", type: "graphic_dictation" };
   const genericRecord = { meta: { renderer: "flashcards" }, cards: CARDS };
   const genericMode = { id: "only_mode", type: "anything" };
+
+  it("keeps manual figure selections separate for each difficulty level", () => {
+    const figureRecord = {
+      meta: { id: "symmetry_draw", renderer: "flashcards" },
+      cards: [
+        { id: "m1", conceptId: "m1", taskKind: "mirror", difficulty: "starter" },
+        { id: "m2", conceptId: "m2", taskKind: "mirror", difficulty: "challenge" },
+      ],
+    };
+    const starter = writeModeSelectedConceptIds(figureRecord, mirrorMode, null, ["m1"], { figureDifficulty: "starter" });
+    const both = writeModeSelectedConceptIds(figureRecord, mirrorMode, starter, ["m2"], { figureDifficulty: "challenge" });
+    expect(both).toEqual(expect.arrayContaining(["symmetry_draw:starter::m1", "symmetry_draw:challenge::m2"]));
+    expect(readModeSelectedConceptIds(figureRecord, mirrorMode, both, { figureDifficulty: "starter" })).toEqual(["m1"]);
+    expect(readModeSelectedConceptIds(figureRecord, mirrorMode, both, { figureDifficulty: "challenge" })).toEqual(["m2"]);
+  });
 
   it("isConceptSelectionScopedByMode is true when the mode only sees part of the topic", () => {
     expect(isConceptSelectionScopedByMode(symmetryDrawRecord, mirrorMode)).toBe(true);

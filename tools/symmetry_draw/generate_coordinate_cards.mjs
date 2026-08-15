@@ -28,6 +28,7 @@ const coordinateCards = dictationCards.map((card) => {
     primary: true,
     label: card.label,
     taskKind: "coordinate",
+    difficulty: card.difficulty ?? "reinforce",
     columns: card.columns,
     rows: card.rows,
     start: card.start,
@@ -35,12 +36,16 @@ const coordinateCards = dictationCards.map((card) => {
   };
 });
 
+const generatedById = new Map(coordinateCards.map((card) => [card.id, card]));
 const existingIds = new Set(topic.cards.map((card) => card.id));
 const newCards = coordinateCards.filter((card) => !existingIds.has(card.id));
-if (newCards.length !== coordinateCards.length) {
-  console.log(`Skipped ${coordinateCards.length - newCards.length} card(s) that already exist.`);
-}
-
+const refreshedCount = coordinateCards.length - newCards.length;
+// Coordinate cards are derived material. Refresh their geometry too when a
+// source dictation is corrected, while leaving standalone coordinate cards
+// (which have no dictation counterpart) untouched.
+topic.cards = topic.cards.map((card) => generatedById.has(card.id)
+  ? { ...card, ...generatedById.get(card.id) }
+  : card);
 topic.cards.push(...newCards);
 writeFileSync(topicPath, `${JSON.stringify(topic, null, 2)}\n`, "utf8");
-console.log(`Added ${newCards.length} coordinate card(s) to ${topicPath}`);
+console.log(`Added ${newCards.length} and refreshed ${refreshedCount} coordinate card(s) in ${topicPath}`);

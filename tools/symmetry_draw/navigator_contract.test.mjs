@@ -4,6 +4,11 @@ import { readFile } from "node:fs/promises";
 
 const renderer = await readFile(new URL("./renderer.js", import.meta.url), "utf8");
 const sessionScreen = await readFile(new URL("../../src/features/session/SessionScreen.jsx", import.meta.url), "utf8");
+const topic = JSON.parse(await readFile(new URL("./topic.json", import.meta.url), "utf8"));
+const vectors = {
+  up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0],
+  up_left: [-1, -1], up_right: [1, -1], down_left: [-1, 1], down_right: [1, 1],
+};
 
 test("listening navigator shows the command if speech synthesis is unavailable", () => {
   assert.match(renderer, /const usesAuditoryPrompt = isListening && canSpeak;/);
@@ -28,4 +33,38 @@ test("a dictation error preserves the completed part of the drawing", () => {
   assert.match(sessionScreen, /const keepsDictationCanvasOnMistake = topicRecord\.meta\.id === "symmetry_draw"/);
   assert.match(sessionScreen, /\["graphic_dictation", "coordinate_dictation"\]\.includes\(currentTask\?\.type\)/);
   assert.match(sessionScreen, /const rendererTaskKey = keepsDictationCanvasOnMistake\s*\? String\(taskIndex\)\s*:/);
+});
+
+test("every figure-building mode has a complete three-level card pool", () => {
+  for (const taskKind of ["mirror", "repeat", "dictation", "coordinate"]) {
+    const cards = topic.cards.filter((card) => card.taskKind === taskKind);
+    assert.ok(cards.length > 0, `${taskKind} has cards`);
+    for (const difficulty of ["starter", "reinforce", "challenge"]) {
+      assert.ok(cards.filter((card) => card.difficulty === difficulty).length >= 6, `${taskKind}/${difficulty} has at least six figures`);
+    }
+  }
+});
+
+test("all figure geometry stays inside its printable grid", () => {
+  for (const card of topic.cards) {
+    if (card.taskKind === "repeat") {
+      for (const point of card.sourcePaths.flat()) {
+        assert.ok(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id} repeat point is in bounds`);
+      }
+    }
+    if (card.taskKind === "coordinate") {
+      for (const point of card.points) {
+        assert.ok(point.col >= 0 && point.col <= card.columns && point.row >= 0 && point.row <= card.rows, `${card.id} coordinate is in bounds`);
+      }
+    }
+    if (card.taskKind === "dictation") {
+      let point = { ...card.start };
+      for (const command of card.commands) {
+        const vector = vectors[command.direction];
+        assert.ok(vector, `${card.id} has a supported direction`);
+        point = { col: point.col + vector[0] * command.cells, row: point.row + vector[1] * command.cells };
+        assert.ok(point.col >= 0 && point.col <= card.columns && point.row >= 0 && point.row <= card.rows, `${card.id} command endpoint is in bounds`);
+      }
+    }
+  }
 });
