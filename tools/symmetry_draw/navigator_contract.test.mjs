@@ -46,14 +46,15 @@ test("every figure-building mode has a complete three-level card pool", () => {
   }
 });
 
-test("worksheet references add five complex repeat figures", () => {
-  const ids = ["repeat_duck_worksheet", "repeat_seahorse_worksheet", "repeat_crocodile_worksheet", "repeat_cactus_worksheet", "repeat_person_worksheet"];
+test("worksheet references add the complete complex repeat figure set", () => {
+  const ids = ["repeat_duck_worksheet", "repeat_seahorse_worksheet", "repeat_crocodile_worksheet", "repeat_cactus_worksheet", "repeat_person_worksheet", "repeat_squirrel_worksheet", "repeat_elephant_worksheet", "repeat_bull_worksheet"];
   for (const id of ids) {
     const card = topic.cards.find((item) => item.id === id);
     assert.equal(card?.taskKind, "repeat", `${id} is a repeat card`);
     assert.equal(card?.difficulty, "challenge", `${id} stays in the advanced pool`);
     assert.ok(card.sourcePaths.flat().length >= 6, `${id} contains a drawable trace`);
   }
+  assert.equal(topic.cards.find((card) => card.id === "repeat_seahorse_worksheet")?.label, "Утка с хвостом");
 });
 
 test("the figure difficulty control is shown in every specialized drawing settings screen", () => {

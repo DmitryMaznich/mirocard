@@ -5,9 +5,18 @@ import { fileURLToPath } from "node:url";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const zip = new JSZip();
+const traceImages = Object.fromEntries([
+  ["repeat_duck_worksheet", "repeat_duck_trace.png"],
+  ["repeat_seahorse_worksheet", "repeat_duck_tail_trace.png"],
+  ["repeat_person_worksheet", "repeat_beetle_trace.png"],
+  ["repeat_squirrel_worksheet", "repeat_squirrel_trace.png"],
+  ["repeat_elephant_worksheet", "repeat_elephant_trace.png"],
+  ["repeat_bull_worksheet", "repeat_bull_trace.png"],
+].map(([id, file]) => [id, `data:image/png;base64,${readFileSync(join(dir, "media", file)).toString("base64")}`]));
+const renderer = `window.__MirocardTraceImages = ${JSON.stringify(traceImages)};\n${readFileSync(join(dir, "renderer.js"), "utf8")}`;
 
 zip.file("topic.json", readFileSync(join(dir, "topic.json")));
-zip.file("renderer", readFileSync(join(dir, "renderer.js")));
+zip.file("renderer", renderer);
 zip.file("mirocard2.css", readFileSync(join(dir, "renderer.css")));
 zip.file("media/avatar.svg", readFileSync(join(dir, "media", "avatar.svg")));
 zip.file("media/repeat_avatar.svg", readFileSync(join(dir, "media", "repeat_avatar.svg")));
