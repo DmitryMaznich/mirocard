@@ -12413,6 +12413,22 @@ button {
 .session-plan-tongue--incorrect {
   background: linear-gradient(180deg, #fdecea 0%, #fbd6d2 55%, #f7c0ba 100%);
 }
+@media (max-width: 560px) {
+  /* At the default 50%/50% split (see .session-plan-tongue above) the 96px
+     badge pokes 48px above the topbar's bottom edge — on a wide screen the
+     breadcrumb (left) and counter (right) sit clear of the centered badge
+     horizontally, but on a narrow phone the breadcrumb text runs close to
+     full width and ends up directly under it, unreadable. Shifting the
+     anchor to 90% keeps a small "grown out of the header" poke (~10px)
+     without covering the text; the larger downward poke this creates still
+     fits inside the margin-bottom reserved on .session-header-wrap above.
+     (Placed after the base .session-plan-tongue rule — same specificity,
+     so source order decides, and this needs to win.) */
+  .session-plan-tongue--correct,
+  .session-plan-tongue--incorrect {
+    transform: translate(-50%, 90%);
+  }
+}
 .session-plan-tongue__emoji {
   font-size: 13px;
   line-height: 1;

@@ -41,6 +41,11 @@ function withMarker(text, marker, active) {
 
 function BlankSentence({ card, filledWord, showMarker }) {
   const [before, after] = card.sentence.split("{blank}");
+  // Reserve the blank's final width up front from the answer's own length
+  // (never the letters themselves — just the count) so filling it in
+  // doesn't reflow the line. Floor of 3ch keeps very short answers from
+  // looking like a stray dash.
+  const blankWidth = `${Math.max(card.answer.length, 3)}ch`;
   return (
     <div className="wa-task__text">
       {card.context && (
@@ -51,7 +56,10 @@ function BlankSentence({ card, filledWord, showMarker }) {
       <div className="wa-task__sentence">
         {withMarker(before, card.marker, showMarker)}
         {showMarker && card.question && <em className="wa-question">({card.question})</em>}
-        <span className={`wa-blank${filledWord ? " wa-blank--filled" : ""}`}>
+        <span
+          className={`wa-blank${filledWord ? " wa-blank--filled" : ""}`}
+          style={{ minWidth: blankWidth }}
+        >
           {filledWord ?? "···"}
         </span>
         {withMarker(after, card.marker, showMarker)}
@@ -124,8 +132,10 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
       <div className={`wa-options wa-options--${shownOptions.length}`}>
         {shownOptions.map((word, i) => {
           let mod = "";
-          if (status !== "active" && word === card.answer) mod = "wa-option--correct";
-          else if (i === wrongIdx) mod = "wa-option--wrong";
+          const isCorrectAnswer = status !== "active" && word === card.answer;
+          const isWrongPick = i === wrongIdx;
+          if (isCorrectAnswer) mod = "wa-option--correct";
+          else if (isWrongPick) mod = "wa-option--wrong";
           else if (status !== "active") mod = "wa-option--dim";
           return (
             <button
@@ -134,6 +144,10 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
               onClick={() => handlePick(i)}
               disabled={status !== "active"}
             >
+              {/* Color alone (green/red) isn't enough for colorblind readers —
+                  the glyph carries the same meaning independently of hue. */}
+              {isCorrectAnswer && <span className="wa-option__icon" aria-hidden="true">✓</span>}
+              {isWrongPick && <span className="wa-option__icon" aria-hidden="true">✗</span>}
               {word}
             </button>
           );
