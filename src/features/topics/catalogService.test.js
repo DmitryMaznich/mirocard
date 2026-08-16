@@ -8,7 +8,7 @@ describe("shouldClaimCatalogDeck", () => {
   });
 
   it("keeps claims for signed-in and restricted installs", () => {
-    expect(shouldClaimCatalogDeck({ access: "free" }, { id: "adult-1" })).toBe(true);
+    expect(shouldClaimCatalogDeck({ access: "free" }, "token-1")).toBe(true);
     expect(shouldClaimCatalogDeck({ access: "paid" }, null)).toBe(true);
   });
 });

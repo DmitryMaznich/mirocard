@@ -166,6 +166,7 @@ export default function TopicLibraryScreen() {
   const activeStudentId   = useAppStore((s) => s.activeStudentId);
   const ownedTopics       = useAppStore((s) => s.ownedTopics);
   const account           = useAppStore((s) => s.account);
+  const token             = useAppStore((s) => s.token);
 
 
   const [catalog,           setCatalog]           = useState(null);
@@ -177,7 +178,7 @@ export default function TopicLibraryScreen() {
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
-    if (!isGranted && shouldClaimCatalogDeck(entry, account)) {
+    if (!isGranted && shouldClaimCatalogDeck(entry, token)) {
       const result = await claimDeck(entry.id);
       upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
       if (result.status !== "granted") return; // pending — don't download yet
@@ -185,7 +186,7 @@ export default function TopicLibraryScreen() {
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
     upsertTopicRecord(record);
     return record;
-  }, [account, buildInfo.version, upsertTopicRecord, upsertOwnedTopic, ownedTopics]);
+  }, [buildInfo.version, token, upsertTopicRecord, upsertOwnedTopic, ownedTopics]);
 
   useEffect(() => {
     if (catalog !== null) return;
