@@ -1161,6 +1161,8 @@ export default function ParamsScreen() {
               value={params[key] ?? def.default}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               disabledValues={def.disabledValues}
+              info={def.info?.ru}
+              onShowInfo={setActiveInfo}
             />
           );
         }
@@ -1173,6 +1175,8 @@ export default function ParamsScreen() {
               value={params[key] ?? def.default ?? false}
               disabled={def.dependsOn ? !params[def.dependsOn] : false}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              info={def.info?.ru}
+              onShowInfo={setActiveInfo}
             />
           );
         }
