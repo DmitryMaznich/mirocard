@@ -364,6 +364,22 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
   );
 }
 
+function FigureDifficultyParam({ mode, params, onChange, onShowInfo }) {
+  const def = mode?.params?.figureDifficulty;
+  if (!def) return null;
+  return (
+    <EnumParam
+      label={def.label?.ru ?? "Сложность фигур"}
+      options={def.values}
+      labels={def.labels?.ru}
+      value={params.figureDifficulty ?? def.default ?? "all"}
+      onChange={(value) => onChange((current) => ({ ...current, figureDifficulty: value }))}
+      info={def.info?.ru}
+      onShowInfo={onShowInfo}
+    />
+  );
+}
+
 function EnumMultiParam({ label, options, labels, value, onChange }) {
   const selected = Array.isArray(value) ? value : [];
   const allSelected = selected.length === 0;
@@ -1121,6 +1137,7 @@ export default function ParamsScreen() {
     <ComparisonParams params={params} onChange={setParams} />
   ) : isGraphicDictation ? (
     <>
+      <FigureDifficultyParam mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo} />
       <EnumParam
         label="Как строить рисунок"
         options={["directions", "coordinates"]}
@@ -1138,13 +1155,14 @@ export default function ParamsScreen() {
             value={params.showArrow ?? true}
             onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
           />
-          <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
+          <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
         </>
       )}
     </>
   ) : isSymmetryDrawPrint ? (
     <>
-      <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
+      <FigureDifficultyParam mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo} />
+      <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
     </>
   ) : (
     <>

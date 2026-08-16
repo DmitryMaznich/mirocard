@@ -5,8 +5,8 @@ import Modal from "@/shared/components/Modal";
 import { openSymmetryDrawPrintWindow } from "./symmetryDrawPrintHtml";
 import "./SymmetryDrawPrintParams.css";
 
-export default function SymmetryDrawPrintParams({ topicRecord, mode }) {
-  const concepts = deriveConcepts(getConceptCards(topicRecord, mode));
+export default function SymmetryDrawPrintParams({ topicRecord, mode, params = {} }) {
+  const concepts = deriveConcepts(getConceptCards(topicRecord, mode, params));
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(new Set());
   const [popupBlocked, setPopupBlocked] = useState(false);

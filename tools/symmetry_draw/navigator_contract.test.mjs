@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const renderer = await readFile(new URL("./renderer.js", import.meta.url), "utf8");
 const sessionScreen = await readFile(new URL("../../src/features/session/SessionScreen.jsx", import.meta.url), "utf8");
+const paramsScreen = await readFile(new URL("../../src/features/session/ParamsScreen.jsx", import.meta.url), "utf8");
 const topic = JSON.parse(await readFile(new URL("./topic.json", import.meta.url), "utf8"));
 const vectors = {
   up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0],
@@ -43,6 +44,12 @@ test("every figure-building mode has a complete three-level card pool", () => {
       assert.ok(cards.filter((card) => card.difficulty === difficulty).length >= 6, `${taskKind}/${difficulty} has at least six figures`);
     }
   }
+});
+
+test("the figure difficulty control is shown in every specialized drawing settings screen", () => {
+  assert.match(paramsScreen, /function FigureDifficultyParam/);
+  assert.equal((paramsScreen.match(/<FigureDifficultyParam /g) ?? []).length, 2);
+  assert.match(paramsScreen, /<SymmetryDrawPrintParams topicRecord=\{topicRecord\} mode=\{mode\} params=\{params\} \/>/);
 });
 
 test("all figure geometry stays inside its printable grid", () => {
