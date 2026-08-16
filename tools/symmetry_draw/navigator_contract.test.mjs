@@ -48,8 +48,11 @@ test("every figure-building mode has a complete three-level card pool", () => {
 
 test("the figure difficulty control is shown in every specialized drawing settings screen", () => {
   assert.match(paramsScreen, /function FigureDifficultyParam/);
-  assert.equal((paramsScreen.match(/<FigureDifficultyParam /g) ?? []).length, 2);
+  assert.equal((paramsScreen.match(/<FigureDifficultyParam\b/g) ?? []).length, 2);
   assert.match(paramsScreen, /<SymmetryDrawPrintParams topicRecord=\{topicRecord\} mode=\{mode\} params=\{params\} \/>/);
+  assert.match(paramsScreen, /figureCountLabel\(count\)/);
+  assert.match(paramsScreen, /figure-difficulty-option__count/);
+  assert.match(paramsScreen, /getFigureDifficultyRecommendation/);
 });
 
 test("all figure geometry stays inside its printable grid", () => {

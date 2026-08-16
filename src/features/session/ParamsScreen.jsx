@@ -28,6 +28,7 @@ import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams"
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
+import { getFigureDifficultyRecommendation } from "@/features/session/figureDifficultyProgress";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -364,19 +365,66 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
   );
 }
 
-function FigureDifficultyParam({ mode, params, onChange, onShowInfo }) {
+function figureCountLabel(count) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return `${count} заданий`;
+  if (last === 1) return `${count} задание`;
+  if (last >= 2 && last <= 4) return `${count} задания`;
+  return `${count} заданий`;
+}
+
+function FigureDifficultyParam({
+  topicRecord,
+  mode,
+  params,
+  onChange,
+  onShowInfo,
+  sessions,
+  studentId,
+  topicId,
+}) {
   const def = mode?.params?.figureDifficulty;
   if (!def) return null;
+  const value = params.figureDifficulty ?? def.default ?? "all";
+  const labels = def.labels?.ru ?? {};
+  const recommendation = getFigureDifficultyRecommendation(sessions, {
+    studentId,
+    topicId,
+    modeId: mode.id,
+    difficulty: value,
+  });
   return (
-    <EnumParam
-      label={def.label?.ru ?? "Сложность фигур"}
-      options={def.values}
-      labels={def.labels?.ru}
-      value={params.figureDifficulty ?? def.default ?? "all"}
-      onChange={(value) => onChange((current) => ({ ...current, figureDifficulty: value }))}
-      info={def.info?.ru}
-      onShowInfo={onShowInfo}
-    />
+    <div className="param-row param-row--block figure-difficulty-param">
+      <ParamLabel label={def.label?.ru ?? "Сложность фигур"} info={def.info?.ru} onShowInfo={onShowInfo} />
+      <div className="param-enum-group figure-difficulty-options">
+        {def.values.map((option) => {
+          const count = getConceptCards(topicRecord, mode, { ...params, figureDifficulty: option }).length;
+          return (
+            <button
+              key={option}
+              className={`enum-btn figure-difficulty-option ${value === option ? "enum-btn--active" : ""}`}
+              onClick={() => onChange((current) => ({ ...current, figureDifficulty: option }))}
+            >
+              <span>{labels[option] ?? option}</span>
+              <span className="figure-difficulty-option__count">{figureCountLabel(count)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {recommendation && (
+        <div className="param-hint figure-difficulty-recommendation" role="status">
+          <span>{recommendation.successfulSessions} уверенных занятия позади. Можно попробовать «{labels[recommendation.nextDifficulty] ?? recommendation.nextDifficulty}».</span>
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => onChange((current) => ({ ...current, figureDifficulty: recommendation.nextDifficulty }))}
+          >
+            Выбрать
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1137,7 +1185,10 @@ export default function ParamsScreen() {
     <ComparisonParams params={params} onChange={setParams} />
   ) : isGraphicDictation ? (
     <>
-      <FigureDifficultyParam mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo} />
+      <FigureDifficultyParam
+        topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo}
+        sessions={sessions} studentId={activeStudentId} topicId={activeTopicId}
+      />
       <EnumParam
         label="Как строить рисунок"
         options={["directions", "coordinates"]}
@@ -1161,7 +1212,10 @@ export default function ParamsScreen() {
     </>
   ) : isSymmetryDrawPrint ? (
     <>
-      <FigureDifficultyParam mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo} />
+      <FigureDifficultyParam
+        topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo}
+        sessions={sessions} studentId={activeStudentId} topicId={activeTopicId}
+      />
       <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
     </>
   ) : (
