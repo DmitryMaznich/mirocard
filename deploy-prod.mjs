@@ -41,17 +41,53 @@ function gitSha() {
   }
 }
 
-function bumpPatchVersion() {
+function parseVersion(version) {
+  const parts = String(version ?? "").split(".").map(Number);
+  return parts.length === 3 && parts.every(Number.isInteger) ? parts : null;
+}
+
+function compareVersions(left, right) {
+  const a = parseVersion(left);
+  const b = parseVersion(right);
+  if (!a || !b) return 0;
+  for (let index = 0; index < 3; index += 1) {
+    if (a[index] !== b[index]) return a[index] - b[index];
+  }
+  return 0;
+}
+
+async function readPublishedAppVersion() {
+  const versions = [];
+  for (const target of [publicUrl, lanUrl]) {
+    try {
+      const response = await fetch(`${target}/version.json?deploy-check=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) continue;
+      const published = await response.json();
+      if (parseVersion(published.version)) versions.push(published.version);
+    } catch {
+      // A deployment can still proceed if one public endpoint is momentarily
+      // unavailable; the local package version remains a safe fallback.
+    }
+  }
+  return versions.sort(compareVersions).at(-1) ?? null;
+}
+
+async function bumpPatchVersion() {
   const pkgPath = path.join(root, "package.json");
   const pkgRaw = JSON.parse(readFileSync(pkgPath, "utf8"));
-  const parts = pkgRaw.version.split(".").map(Number);
+  const publishedVersion = await readPublishedAppVersion();
+  const baseVersion = publishedVersion && compareVersions(publishedVersion, pkgRaw.version) > 0
+    ? publishedVersion
+    : pkgRaw.version;
+  const parts = parseVersion(baseVersion);
+  if (!parts) throw new Error(`package.json has an invalid version: ${pkgRaw.version}`);
   parts[2] += 1;
   pkgRaw.version = parts.join(".");
   writeFileSync(pkgPath, JSON.stringify(pkgRaw, null, 2) + "\n");
   pkg.version = pkgRaw.version;
   run("git", ["add", "package.json"]);
   run("git", ["commit", "-m", `chore: release v${pkg.version}`]);
-  console.log(`bumped version to ${pkg.version}`);
+  console.log(`bumped version to ${pkg.version}${publishedVersion ? ` (after published ${publishedVersion})` : ""}`);
 }
 
 function assertCleanWorktree() {
@@ -334,7 +370,7 @@ async function main() {
   if (!verifyOnly) {
     assertCleanWorktree();
     if (!skipBuild) {
-      if (!noBump) bumpPatchVersion();
+      if (!noBump) await bumpPatchVersion();
       assertCleanWorktree();
     }
 
