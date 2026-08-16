@@ -797,6 +797,13 @@ const DEFAULT_MODES = {
           labels: { ru: { full: "Весь текст", line: "По строкам" } },
           default: "full",
         },
+        textStyle: {
+          type: "enum",
+          label: { ru: "Текст" },
+          values: ["normal", "syllables"],
+          labels: { ru: { normal: "Обычный", syllables: "По слогам" } },
+          default: "normal",
+        },
       },
     },
     {
