@@ -242,7 +242,12 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
         <div className="reading-content" ref={fit.contentRef}>
-          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={showCloseButton} />
+          {/* Verse (poem) lines stay single-line and shrink to fit — a wrapped
+              line would break the poem's own line breaks, which carry meaning.
+              Story lines are ordinary prose: wrapping them is normal and safe,
+              and forcing nowrap here was clipping longer sentences on narrow
+              screens instead of just wrapping to a second line. */}
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={task.text?.kind === "poem"} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
