@@ -57,4 +57,18 @@ describe("situation_intro — mounted through the real SituationIntroTask", () =
     act(() => btn.click());
     expect(advanceCalls).toBe(1);
   });
+
+  it("shows a situation scene before revealing the portrait and emotion word", () => {
+    const [baseTask] = generateTasks("situation_intro", CONCEPTS, CARDS, {});
+    const task = { ...baseTask, sceneImage: "media/situation_joy_1.webp" };
+    mount(task, () => {});
+
+    expect(container.querySelector(".situation-scene")).not.toBeNull();
+    expect(container.querySelector(".card-area")).toBeNull();
+
+    const btn = container.querySelector("button.situation-intro");
+    act(() => btn.click());
+    expect(container.querySelector(".card-area")).not.toBeNull();
+    expect(container.querySelector(".situation-intro__label")?.textContent).toBe("радость");
+  });
 });
