@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldClaimCatalogDeck } from "./catalogService";
+import { isLocalModeProfile, shouldClaimCatalogDeck } from "./catalogService";
 
 describe("shouldClaimCatalogDeck", () => {
   it("does not require a token to install a free deck in local mode", () => {
@@ -10,5 +10,13 @@ describe("shouldClaimCatalogDeck", () => {
   it("keeps claims for signed-in and restricted installs", () => {
     expect(shouldClaimCatalogDeck({ access: "free" }, "token-1")).toBe(true);
     expect(shouldClaimCatalogDeck({ access: "paid" }, null)).toBe(true);
+  });
+});
+
+describe("isLocalModeProfile", () => {
+  it("recognizes the tokenless local profile without confusing a signed-in adult", () => {
+    expect(isLocalModeProfile({ email: "local" }, null)).toBe(true);
+    expect(isLocalModeProfile({ email: "adult@example.test" }, null)).toBe(false);
+    expect(isLocalModeProfile({ email: "local" }, "token-1")).toBe(false);
   });
 });

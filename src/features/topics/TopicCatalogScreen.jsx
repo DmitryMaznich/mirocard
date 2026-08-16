@@ -11,6 +11,7 @@ import {
   getImportErrorMessage,
   refreshInstalledCatalogTopics,
   shouldClaimCatalogDeck,
+  isLocalModeProfile,
 } from "./catalogService";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
@@ -208,11 +209,12 @@ export default function TopicCatalogScreen() {
   }
 
   const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
+  const isLocalMode = isLocalModeProfile(account, token);
 
   // When admin has explicitly granted topics (source === "grant"), treat ownedTopics as
   // a whitelist: show all topics the user owns (any non-pending source). Without any admin
   // grants, show the full catalog (no restriction).
-  const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
+  const hasAdminGrants = !isLocalMode && account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
 
   const visibleDecks = catalog
     ? catalog.decks.filter((e) => !hasAdminGrants || (ownedById[e.id] != null && ownedById[e.id].source !== "request"))

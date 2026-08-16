@@ -17,6 +17,7 @@ import {
   claimDeck,
   getImportErrorMessage,
   shouldClaimCatalogDeck,
+  isLocalModeProfile,
 } from "./catalogService";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
@@ -213,13 +214,14 @@ export default function TopicLibraryScreen() {
   // user logged in on the same device don't bleed through.
   // Builtin topics are always visible. Local mode (no account) shows everything.
   const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
+  const isLocalMode = isLocalModeProfile(account, token);
   const grantedIds = new Set(
     (ownedTopics ?? []).filter((o) => o.source === "grant").map((o) => o.topicId)
   );
   const ownedNonPendingIds = new Set(
     (ownedTopics ?? []).filter((o) => o.source !== "request").map((o) => o.topicId)
   );
-  const visibleRecords = (account
+  const visibleRecords = (account && !isLocalMode
     ? topicRecords.filter((r) => r.meta.builtin || ownedNonPendingIds.has(r.meta.id))
     : topicRecords
   ).filter((r) => !r.meta.hidden);

@@ -16,6 +16,10 @@ export function shouldClaimCatalogDeck(entry, token) {
   return (entry.access ?? "free") !== "free" || Boolean(token);
 }
 
+export function isLocalModeProfile(account, token) {
+  return account?.email === "local" && !token;
+}
+
 export async function fetchCatalog() {
   try {
     return await api.get("/decks/catalog");
