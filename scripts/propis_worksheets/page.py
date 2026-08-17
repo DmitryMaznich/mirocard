@@ -42,29 +42,19 @@ def _opacity_for_index(i):
     return FADE_OPACITIES[min(i - 1, len(FADE_OPACITIES) - 1)]
 
 
-# Every group's notebook is this fixed size -- 6 A4 sheets printed
-# double-sided (12 printed faces x 2 A5 slots each) -- matching the user's
-# own standard print/binding format for every notebook they produce
-# (confirmed 2026-08-15), regardless of how many letters a group has.
-# Letters in a smaller group just get proportionally more practice pages.
-TARGET_PAGES_PER_GROUP = 24
+# Every letter gets this many full pages of practice, fixed -- a notebook's
+# sheet count is however many letters its groups cover x this, not a target
+# page count to distribute (confirmed with the user 2026-08-15, replacing
+# the earlier fixed-24-pages-per-group scheme).
+PAGES_PER_LETTER = 2
 
 
-def _pages_per_letter(n_letters, target=TARGET_PAGES_PER_GROUP):
-    """Splits `target` pages as evenly as possible across `n_letters` --
-    any remainder goes one-per-letter to the first few letters."""
-    base, extra = divmod(target, n_letters)
-    return [base + 1 if i < extra else base for i in range(n_letters)]
-
-
-def letter_rows_for(lower_card, upper_card, num_pages=1):
+def letter_rows_for(lower_card, upper_card, num_pages=PAGES_PER_LETTER):
     """Fills exactly `num_pages` full pages' worth of rows for a single
     letter: the 2-lower/1-upper/2-paired pattern (or lowercase-alone for a
     letter with no uppercase, Ъ/Ь) repeated enough times to fill
-    num_pages * ROWS_PER_PAGE exactly -- so every group's pages break
-    cleanly on letter boundaries, and no page is left partially blank
-    (confirmed with the user 2026-08-15: every row must be filled, and
-    each letter's block is a whole number of full pages)."""
+    num_pages * ROWS_PER_PAGE exactly -- so every notebook's pages break
+    cleanly on letter boundaries, and no page is left partially blank."""
     if upper_card is not None:
         base = [[lower_card], [lower_card], [upper_card], [lower_card, upper_card], [lower_card, upper_card]]
     else:
@@ -74,18 +64,17 @@ def letter_rows_for(lower_card, upper_card, num_pages=1):
     return (base * reps)[:total_rows]
 
 
-def group_rows(group, letters):
-    """Flattens every letter in `group` into one ordered list of practice
-    rows -- each letter contributes a whole number of pages' worth
-    (_pages_per_letter), summing to TARGET_PAGES_PER_GROUP, so
-    paginate_rows() below always breaks on letter boundaries."""
-    entries = group["letters"]
-    pages_per = _pages_per_letter(len(entries))
+def notebook_rows(groups, letters):
+    """Flattens every letter across `groups` (in order) into one ordered
+    list of practice rows -- each letter contributes PAGES_PER_LETTER
+    pages' worth, so paginate_rows() below always breaks on letter
+    boundaries."""
     rows = []
-    for (lower, upper), num_pages in zip(entries, pages_per):
-        lower_card = letters[lower]
-        upper_card = letters[upper] if upper else None
-        rows.extend(letter_rows_for(lower_card, upper_card, num_pages))
+    for group in groups:
+        for lower, upper in group["letters"]:
+            lower_card = letters[lower]
+            upper_card = letters[upper] if upper else None
+            rows.extend(letter_rows_for(lower_card, upper_card))
     return rows
 
 

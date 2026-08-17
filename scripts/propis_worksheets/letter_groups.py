@@ -46,3 +46,22 @@ GROUPS = [
         "letters": [("й", "Й"), ("р", "Р"), ("ъ", None), ("ы", "Ы"), ("ь", None)],
     },
 ]
+
+# Two physical notebooks (Phase 1's actual print product, confirmed with the
+# user 2026-08-15) -- each letter gets a fixed PAGES_PER_LETTER pages
+# (page.py), so a notebook's sheet count falls out of how many letters its
+# groups cover, not a target page count. Split after group 3 ("простые
+# формы": hook / hook+stroke / oval, 14 letters, 7 sheets) vs groups 4-6
+# ("сложные формы": loop / compound / special forms, 19 letters, 10 sheets)
+# -- the most balanced group-aligned split point.
+NOTEBOOKS = [
+    {"id": 1, "label": "Простые формы", "group_ids": [1, 2, 3]},
+    {"id": 2, "label": "Сложные формы", "group_ids": [4, 5, 6]},
+]
+
+
+def notebook_groups(notebook):
+    """Resolves a NOTEBOOKS entry's group_ids into the actual group dicts,
+    in order."""
+    by_id = {g["id"]: g for g in GROUPS}
+    return [by_id[gid] for gid in notebook["group_ids"]]

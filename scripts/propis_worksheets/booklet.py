@@ -28,7 +28,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from pypdf import PdfReader, PdfWriter
 
-from page import PAGE_W_MM, LEFT_INSET_MM, CENTER_INSET_MM, draw_group_page, group_rows, paginate_rows
+from page import PAGE_W_MM, LEFT_INSET_MM, CENTER_INSET_MM, draw_group_page, notebook_rows, paginate_rows
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RULING_SCRIPT = os.path.join(ROOT, "make_lined_paper_landscape.py")
@@ -87,8 +87,8 @@ def _build_overlay_pdf(pages, out_path):
     return len(sheets)
 
 
-def build_group_pdf(group, letters, out_path):
-    pages = paginate_rows(group_rows(group, letters))
+def build_notebook_pdf(groups, letters, out_path):
+    pages = paginate_rows(notebook_rows(groups, letters))
     n = len(pages)
     if n % 4 != 0:
         n += 4 - (n % 4)
