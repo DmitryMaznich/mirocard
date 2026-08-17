@@ -168,9 +168,10 @@ describe("generateTasks — situation_intro", () => {
 describe("situation use levels", () => {
   const CARDS = [
     { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
+    { id: "joy_2", conceptId: "joy", primary: false, image: "media/joy_2.webp" },
     { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
     { id: "calm_1", conceptId: "calm", primary: true, label: "спокойствие", image: "media/calm_1.webp" },
-    { id: "joy_auto", conceptId: "joy", cardType: "situation", situationUse: "auto", label: "Мальчик получил игрушку.", sceneImage: "media/situation_joy_1.webp" },
+    { id: "joy_auto", conceptId: "joy", cardType: "situation", situationUse: "auto", label: "Мальчик получил игрушку.", sceneImage: "media/situation_joy_1.webp", revealCardId: "joy_2" },
     { id: "sad_auto", conceptId: "sadness", cardType: "situation", situationUse: "auto", label: "Лопнул шарик." },
     { id: "calm_discussion", conceptId: "calm", cardType: "situation", situationUse: "discussion", label: "Девочка слушает музыку." },
     { id: "calm_deferred", conceptId: "calm", cardType: "situation", situationUse: "deferred", label: "Отложенная ситуация." },
@@ -193,6 +194,11 @@ describe("situation use levels", () => {
     expect(tasks).toHaveLength(4);
     expect(tasks.some((task) => task.situationText === "Девочка слушает музыку.")).toBe(true);
     expect(tasks.some((task) => task.situationText === "Отложенная ситуация.")).toBe(true);
+  });
+
+  it("uses a situation's explicitly assigned portrait instead of a random variation", () => {
+    const tasks = generateTasks("situation_intro", CONCEPTS, CARDS, {});
+    expect(tasks.find((task) => task.situationText === "Мальчик получил игрушку.")?.card.id).toBe("joy_2");
   });
 
   it("honours an explicit per-session situation limit", () => {

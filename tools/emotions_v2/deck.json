@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.7.2",
+    "version": "1.7.3",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -978,6 +978,7 @@
       "situationUse": "auto",
       "label": "Мальчик получил долгожданную игрушку.",
       "sceneImage": "media/situation_joy_1.webp",
+      "revealCardId": "joy_1",
       "answerKey": "радость",
       "primary": false
     },
@@ -988,6 +989,7 @@
       "situationUse": "auto",
       "label": "Девочку похвалили за рисунок.",
       "sceneImage": "media/situation_joy_2.webp",
+      "revealCardId": "joy_2",
       "answerKey": "радость",
       "primary": false
     },
@@ -998,6 +1000,7 @@
       "situationUse": "deferred",
       "label": "Мама подарила новую игрушку.",
       "sceneImage": "media/situation_joy_3.webp",
+      "revealCardId": "joy_1",
       "answerKey": "радость",
       "primary": false
     },
@@ -1008,6 +1011,7 @@
       "situationUse": "auto",
       "label": "У девочки лопнул любимый шарик.",
       "sceneImage": "media/situation_sadness_1.webp",
+      "revealCardId": "sadness_2",
       "answerKey": "грусть",
       "primary": false
     },
@@ -1018,6 +1022,7 @@
       "situationUse": "auto",
       "label": "Мальчик потерял любимую игрушку.",
       "sceneImage": "media/situation_sadness_2.webp",
+      "revealCardId": "sadness_1",
       "answerKey": "грусть",
       "primary": false
     },
@@ -1028,6 +1033,7 @@
       "situationUse": "deferred",
       "label": "Мама не разрешила гулять.",
       "sceneImage": "media/situation_sadness_3.webp",
+      "revealCardId": "sadness_2",
       "answerKey": "грусть",
       "primary": false
     },
@@ -1038,6 +1044,7 @@
       "situationUse": "auto",
       "label": "Друг сломал её башню.",
       "sceneImage": "media/situation_anger_1.webp",
+      "revealCardId": "anger_1",
       "answerKey": "злость",
       "primary": false
     },
@@ -1048,6 +1055,7 @@
       "situationUse": "deferred",
       "label": "Мама не хочет покупать колу.",
       "sceneImage": "media/situation_anger_2.webp",
+      "revealCardId": "anger_2",
       "answerKey": "злость",
       "primary": false
     },
@@ -1058,6 +1066,7 @@
       "situationUse": "auto",
       "label": "Друг взял игрушку без спроса.",
       "sceneImage": "media/situation_anger_3.webp",
+      "revealCardId": "anger_1",
       "answerKey": "злость",
       "primary": false
     },
@@ -1068,6 +1077,7 @@
       "situationUse": "auto",
       "label": "За окном громко гремит гром.",
       "sceneImage": "media/situation_fear_1.webp",
+      "revealCardId": "fear_1",
       "answerKey": "страх",
       "primary": false
     },
@@ -1078,6 +1088,7 @@
       "situationUse": "auto",
       "label": "Большая собака громко рычит.",
       "sceneImage": "media/situation_fear_2.webp",
+      "revealCardId": "fear_2",
       "answerKey": "страх",
       "primary": false
     },
@@ -1088,6 +1099,7 @@
       "situationUse": "deferred",
       "label": "Ночью по крыше кто-то ходит.",
       "sceneImage": "media/situation_fear_3.webp",
+      "revealCardId": "fear_2",
       "answerKey": "страх",
       "primary": false
     },
@@ -1098,6 +1110,7 @@
       "situationUse": "auto",
       "label": "Друзья приготовили сюрприз.",
       "sceneImage": "media/situation_surprise_1.webp",
+      "revealCardId": "surprise_1",
       "answerKey": "удивление",
       "primary": false
     },
@@ -1108,6 +1121,7 @@
       "situationUse": "auto",
       "label": "Из коробки вылетели шарики.",
       "sceneImage": "media/situation_surprise_2.webp",
+      "revealCardId": "surprise_1",
       "answerKey": "удивление",
       "primary": false
     },
@@ -1118,6 +1132,7 @@
       "situationUse": "deferred",
       "label": "Неожиданно заиграла любимая музыка.",
       "sceneImage": "media/situation_surprise_3.webp",
+      "revealCardId": "surprise_2",
       "answerKey": "удивление",
       "primary": false
     },
@@ -1128,6 +1143,7 @@
       "situationUse": "discussion",
       "label": "Мальчик слушает тихую музыку.",
       "sceneImage": "media/situation_calm_1.webp",
+      "revealCardId": "calm_1",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1138,6 +1154,7 @@
       "situationUse": "deferred",
       "label": "Все дела сегодня сделаны.",
       "sceneImage": "media/situation_calm_2.webp",
+      "revealCardId": "calm_2",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1148,6 +1165,7 @@
       "situationUse": "discussion",
       "label": "Мальчик тихо гуляет в парке.",
       "sceneImage": "media/situation_calm_3.webp",
+      "revealCardId": "calm_3",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1158,6 +1176,7 @@
       "situationUse": "discussion",
       "label": "Мальчик долго ждёт в очереди.",
       "sceneImage": "media/situation_boredom_1.webp",
+      "revealCardId": "boredom_1",
       "answerKey": "скука",
       "primary": false
     },
@@ -1168,6 +1187,7 @@
       "situationUse": "deferred",
       "label": "Мама спросила, кто пукнул в машине.",
       "sceneImage": "media/situation_shame_1.webp",
+      "revealCardId": "shame_1",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1178,6 +1198,7 @@
       "situationUse": "discussion",
       "label": "После долгой дороги хочется спать.",
       "sceneImage": "media/situation_tiredness_1.webp",
+      "revealCardId": "tiredness_1",
       "answerKey": "усталость",
       "primary": false
     },
@@ -1188,6 +1209,7 @@
       "situationUse": "deferred",
       "label": "Кто-то пукнул рядом.",
       "sceneImage": "media/situation_disgust_1.webp",
+      "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false
     },
@@ -1198,6 +1220,7 @@
       "situationUse": "deferred",
       "label": "Друзья сказали, что от меня плохо пахнет.",
       "sceneImage": "media/situation_shame_2.webp",
+      "revealCardId": "shame_1",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1208,6 +1231,7 @@
       "situationUse": "deferred",
       "label": "Девочка случайно разлила воду на рисунок.",
       "sceneImage": "media/situation_shame_3.webp",
+      "revealCardId": "shame_2",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1218,6 +1242,7 @@
       "situationUse": "auto",
       "label": "Молоко в стакане прокисло.",
       "sceneImage": "media/situation_disgust_2.webp",
+      "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false
     },
@@ -1228,6 +1253,7 @@
       "situationUse": "auto",
       "label": "В яблоке сидит червячок.",
       "sceneImage": "media/situation_disgust_3.webp",
+      "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false
     },
@@ -1238,6 +1264,7 @@
       "situationUse": "discussion",
       "label": "Играть дома уже надоело.",
       "sceneImage": "media/situation_boredom_2.webp",
+      "revealCardId": "boredom_2",
       "answerKey": "скука",
       "primary": false
     },
@@ -1248,6 +1275,7 @@
       "situationUse": "discussion",
       "label": "Дорога кажется очень долгой.",
       "sceneImage": "media/situation_boredom_3.webp",
+      "revealCardId": "boredom_3",
       "answerKey": "скука",
       "primary": false
     },
@@ -1258,6 +1286,7 @@
       "situationUse": "discussion",
       "label": "После игры на улице ребёнок устал.",
       "sceneImage": "media/situation_tiredness_2.webp",
+      "revealCardId": "tiredness_2",
       "answerKey": "усталость",
       "primary": false
     },
@@ -1268,6 +1297,7 @@
       "situationUse": "discussion",
       "label": "Глаза закрываются. Пора спать.",
       "sceneImage": "media/situation_tiredness_3.webp",
+      "revealCardId": "tiredness_1",
       "answerKey": "усталость",
       "primary": false
     }
