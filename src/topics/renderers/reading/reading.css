@@ -9,22 +9,61 @@
   background: #fdfcf9;
 }
 
-/* Portrait (the default, non-spread state): the illustration was a small
-   bottom-right thumbnail sized off its own height. Make it a full-width
-   picture under the text instead, matching the text card's width — the
-   .reading-illustration--corners two-photo variant keeps its own layout,
-   it isn't one picture that can sensibly stretch to full width. The
-   fit-to-height JS already measures however tall this ends up and shrinks
-   the text to compensate, so no extra height cap is needed here. */
-.reading-page .reading-illustration:not(.reading-illustration--corners) {
-  justify-content: center;
-  align-items: center;
+/* Flowing paragraph rendering for story prose (see the `flow` branch in
+   ReadingTextBlock) — sentences wrap naturally instead of each sitting in
+   its own block, only breaking around dialogue. Font-size still rides
+   --reading-fit-scale so the same shrink-to-fit JS keeps working. */
+.reading-page .reading-flow-text {
   width: 100%;
+  font-size: calc(1.5rem * var(--reading-fit-scale, 1));
+  font-weight: 700;
+  line-height: 1.5;
+  color: #1a2e2b;
+  text-align: left;
 }
 
-.reading-page .reading-illustration:not(.reading-illustration--corners) img {
-  width: 100%;
-  height: auto;
+@media (min-width: 768px) {
+  .reading-page .reading-flow-text {
+    font-size: calc(2rem * var(--reading-fit-scale, 1));
+  }
+}
+
+/* Portrait: the illustration was a small bottom-right thumbnail sized off
+   its own height. Make it a full-width picture under the text instead,
+   matching the text's width — .reading-illustration--corners (the
+   two-photo variant) keeps its own layout, it isn't one picture that can
+   sensibly stretch to full width.
+
+   Gated on orientation:portrait rather than :not(.reading-page--spread):
+   .reading-page--spread is added whenever there's a (non-corner)
+   illustration at all, in *both* orientations — only the landscape media
+   query below turns it into an actual row layout. A class-exclusion guard
+   here would therefore have also excluded portrait, not just landscape;
+   mutually-exclusive media queries are the reliable way to keep these two
+   rule sets from ever fighting regardless of selector specificity. */
+@media (orientation: portrait) {
+  /* Dropping flex-grow so the box is sized by the image's own natural
+     aspect ratio, and max-height:none so nothing clips it independently
+     of width — the previous width:100% + inherited max-height:100%
+     (styles.css) combination let the box get clipped to less height than
+     the width implied without touching width, and the img's default
+     object-fit:fill then stretched the bitmap to fit the mismatched box
+     (visibly distorted). The fit-to-height JS already measures however
+     tall this ends up and shrinks the text to compensate, so no
+     artificial height cap is needed here anyway. */
+  .reading-page .reading-illustration:not(.reading-illustration--corners) {
+    flex: 0 0 auto;
+    min-height: 0;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .reading-page .reading-illustration:not(.reading-illustration--corners) img {
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
 }
 
 /* Landscape: an open-book spread — illustration on one side, text page on

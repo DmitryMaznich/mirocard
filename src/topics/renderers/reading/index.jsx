@@ -27,10 +27,39 @@ function getLineText(line, textStyle = "normal") {
   return line?.text ?? "";
 }
 
-function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false }) {
+function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false, flow = false }) {
+  const items = lines ?? [];
+
+  // Story content is authored one sentence per lines[] entry (so the
+  // "по строкам" navigator can step sentence-by-sentence), but rendering
+  // each entry as its own block stacked every sentence on its own visual
+  // line — real prose, not verse. In flow mode we join sentences into a
+  // normal wrapping paragraph, only keeping a hard line break around
+  // dialogue (a line starting with "—"), matching how it's actually typeset
+  // in a book.
+  if (flow) {
+    return (
+      <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""} reading-text--flow`}>
+        <div className="reading-flow-text">
+          {items.map((line, i) => {
+            const text = getLineText(line, textStyle);
+            const isDialogue = text.trimStart().startsWith("—");
+            const prevIsDialogue = i > 0 && getLineText(items[i - 1], textStyle).trimStart().startsWith("—");
+            return (
+              <Fragment key={line.id ?? i}>
+                {i > 0 && (isDialogue || prevIsDialogue ? <br /> : " ")}
+                {text}
+              </Fragment>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""}${noWrap ? " reading-text--nowrap" : ""}`}>
-      {(lines ?? []).map((line) => (
+      {items.map((line) => (
         <div
           key={line.id ?? getLineText(line)}
           className={`reading-line${activeLineId === line.id ? " reading-line--active" : ""}`}
@@ -258,7 +287,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
               Story lines are ordinary prose: wrapping them is normal and safe,
               and forcing nowrap here was clipping longer sentences on narrow
               screens instead of just wrapping to a second line. */}
-          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={task.text?.kind === "poem"} />
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={task.text?.kind === "poem"} flow={bookStyle} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
