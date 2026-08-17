@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.2",
+    "version": "1.11.3",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -7267,7 +7267,7 @@
       "id": "repeat_crocodile_worksheet",
       "conceptId": "repeat_crocodile_worksheet",
       "primary": true,
-      "label": "Крокодил",
+      "label": "Самолёт",
       "taskKind": "repeat",
       "difficulty": "challenge",
       "columns": 30,
