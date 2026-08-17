@@ -30,8 +30,10 @@
 
 /* Flowing paragraph rendering for story prose (see the `flow` branch in
    ReadingTextBlock) — sentences wrap naturally instead of each sitting in
-   its own block, only breaking around dialogue. Font-size still rides
-   --reading-fit-scale so the same shrink-to-fit JS keeps working. */
+   its own block, broken into <p> blocks at the content's editorial
+   `newParagraph` marks, only breaking around dialogue within a paragraph.
+   Font-size still rides --reading-fit-scale so the same shrink-to-fit JS
+   keeps working. */
 .reading-page .reading-flow-text {
   width: 100%;
   font-size: calc(1.5rem * var(--reading-fit-scale, 1));
@@ -41,6 +43,13 @@
   text-align: left;
 }
 
+.reading-page .reading-flow-para {
+  margin: 0 0 calc(0.75em * var(--reading-fit-scale, 1));
+}
+.reading-page .reading-flow-para:last-child {
+  margin-bottom: 0;
+}
+
 @media (min-width: 768px) {
   .reading-page .reading-flow-text {
     font-size: calc(2rem * var(--reading-fit-scale, 1));
@@ -48,9 +57,11 @@
 }
 
 /* Drop cap on the first letter of story prose — a storybook-page touch.
+   Targets the first paragraph specifically (::first-letter doesn't reach
+   through a nested block child from the wrapping .reading-flow-text div).
    Skipped (via --no-dropcap, set in index.jsx) when the story opens on a
    dialogue line, where a giant "—" would read oddly. */
-.reading-page .reading-flow-text::first-letter {
+.reading-page .reading-flow-text .reading-flow-para:first-child::first-letter {
   float: left;
   font-size: 2.7em;
   line-height: 0.78;
@@ -58,7 +69,7 @@
   color: #2f6f66;
   padding: 4px 8px 0 0;
 }
-.reading-page .reading-flow-text--no-dropcap::first-letter {
+.reading-page .reading-flow-text--no-dropcap .reading-flow-para:first-child::first-letter {
   float: none;
   font-size: inherit;
   font-weight: inherit;

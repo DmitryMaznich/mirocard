@@ -33,28 +33,39 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle
   // Story content is authored one sentence per lines[] entry (so the
   // "по строкам" navigator can step sentence-by-sentence), but rendering
   // each entry as its own block stacked every sentence on its own visual
-  // line — real prose, not verse. In flow mode we join sentences into a
-  // normal wrapping paragraph, only keeping a hard line break around
-  // dialogue (a line starting with "—"), matching how it's actually typeset
-  // in a book.
+  // line — real prose, not verse. In flow mode we join sentences into
+  // normal wrapping paragraphs, breaking into a new <p> wherever the
+  // content marks `newParagraph` (editorial paragraph boundaries authored
+  // in scripts/generate-reading-short-stories.mjs), and keeping a hard line
+  // break around dialogue within a paragraph — matching how it's actually
+  // typeset in a book.
   if (flow) {
     // A drop cap on the first letter reads oddly when the story opens on a
     // dialogue line (a lone "—" blown up huge) — skip it there.
     const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
+    const paragraphs = [];
+    items.forEach((line, i) => {
+      if (i === 0 || line.newParagraph) paragraphs.push([]);
+      paragraphs[paragraphs.length - 1].push(line);
+    });
     return (
       <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""} reading-text--flow`}>
         <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
-          {items.map((line, i) => {
-            const text = getLineText(line, textStyle);
-            const isDialogue = text.trimStart().startsWith("—");
-            const prevIsDialogue = i > 0 && getLineText(items[i - 1], textStyle).trimStart().startsWith("—");
-            return (
-              <Fragment key={line.id ?? i}>
-                {i > 0 && (isDialogue || prevIsDialogue ? <br /> : " ")}
-                {text}
-              </Fragment>
-            );
-          })}
+          {paragraphs.map((paraLines, pi) => (
+            <p className="reading-flow-para" key={paraLines[0]?.id ?? pi}>
+              {paraLines.map((line, i) => {
+                const text = getLineText(line, textStyle);
+                const isDialogue = text.trimStart().startsWith("—");
+                const prevIsDialogue = i > 0 && getLineText(paraLines[i - 1], textStyle).trimStart().startsWith("—");
+                return (
+                  <Fragment key={line.id ?? i}>
+                    {i > 0 && (isDialogue || prevIsDialogue ? <br /> : " ")}
+                    {text}
+                  </Fragment>
+                );
+              })}
+            </p>
+          ))}
         </div>
       </div>
     );

@@ -17,7 +17,7 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
@@ -26,7 +26,7 @@
         "ru": "Двенадцать коротких рассказов с иллюстрациями для совместного чтения (обычный текст или по слогам). После чтения родитель или логопед сам задаёт ребёнку вопросы по смыслу.",
         "en": "Twelve short illustrated stories for shared reading (normal text or syllable-split). After reading, the parent or therapist asks the child their own comprehension questions."
       },
-      "url": "./decks/reading_short_stories_v1.1.0.zip",
+      "url": "./decks/reading_short_stories_v1.2.0.zip",
       "status": "release",
       "access": "free"
     },
