@@ -5,13 +5,13 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.6.0",
+    "version": "1.7.3",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
     "answerPrefix": "Чувствует",
     "about": {
-      "text": "Колода знакомит детей с 10 базовыми эмоциями. 3 вариации каждого понятия (все — детские лица) развивают генерализацию — ребёнок учится узнавать эмоцию на фото, в жизненной сцене и в иллюстрации. Подходит для детей до 16 лет, работы с логопедом, дефектологом, родителями.",
+      "text": "Колода знакомит с 6 базовыми эмоциями и 4 состояниями. Три вариации детских лиц для каждого понятия развивают узнавание эмоции у разных людей. Для всех десяти понятий есть жизненные ситуации с сюжетными фотографиями.",
       "tips": [
         "Начинайте с 2–3 самых знакомых эмоций — радость, грусть, злость",
         "Обсуждайте ситуации: «Когда ты так себя чувствуешь?»",
@@ -195,6 +195,20 @@
           "Используйте перед режимами «Ситуация → эмоция» и «Эмоция → Ситуация»"
         ],
         "duration": "3–5 минут"
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Ситуаций за занятие"
+          },
+          "values": [
+            4,
+            6,
+            8
+          ],
+          "default": 6
+        }
       }
     },
     {
@@ -215,6 +229,18 @@
         "duration": "5-8 минут"
       },
       "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Ситуаций за занятие"
+          },
+          "values": [
+            4,
+            6,
+            8
+          ],
+          "default": 6
+        },
         "optionCount": {
           "type": "enum",
           "label": {
@@ -247,6 +273,18 @@
         "duration": "5-8 минут"
       },
       "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Ситуаций за занятие"
+          },
+          "values": [
+            4,
+            6,
+            8
+          ],
+          "default": 6
+        },
         "optionCount": {
           "type": "enum",
           "label": {
@@ -263,7 +301,7 @@
     }
   ],
   "annotation": {
-    "ru": "Основные эмоции с 3 вариациями каждого понятия (только детские лица) для развития генерализации. Для детей до 16 лет, логопеды и родители.",
+    "ru": "Шесть базовых эмоций и четыре состояния, по три вариации детских лиц. Для базовых эмоций добавлены жизненные сцены; подходит для работы логопеда, педагога или родителя.",
     "en": ""
   },
   "semanticSchema": {
@@ -937,7 +975,10 @@
       "id": "situation_joy_1",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "На прогулке купили вкусное мороженое.",
+      "situationUse": "auto",
+      "label": "Мальчик получил долгожданную игрушку.",
+      "sceneImage": "media/situation_joy_1.webp",
+      "revealCardId": "joy_1",
       "answerKey": "радость",
       "primary": false
     },
@@ -945,7 +986,10 @@
       "id": "situation_joy_2",
       "conceptId": "joy",
       "cardType": "situation",
-      "label": "Папа похвалил после занятия.",
+      "situationUse": "auto",
+      "label": "Девочку похвалили за рисунок.",
+      "sceneImage": "media/situation_joy_2.webp",
+      "revealCardId": "joy_2",
       "answerKey": "радость",
       "primary": false
     },
@@ -953,7 +997,10 @@
       "id": "situation_joy_3",
       "conceptId": "joy",
       "cardType": "situation",
+      "situationUse": "deferred",
       "label": "Мама подарила новую игрушку.",
+      "sceneImage": "media/situation_joy_3.webp",
+      "revealCardId": "joy_1",
       "answerKey": "радость",
       "primary": false
     },
@@ -961,7 +1008,10 @@
       "id": "situation_sadness_1",
       "conceptId": "sadness",
       "cardType": "situation",
-      "label": "Папа уехал на работу.",
+      "situationUse": "auto",
+      "label": "У девочки лопнул любимый шарик.",
+      "sceneImage": "media/situation_sadness_1.webp",
+      "revealCardId": "sadness_2",
       "answerKey": "грусть",
       "primary": false
     },
@@ -969,7 +1019,10 @@
       "id": "situation_sadness_2",
       "conceptId": "sadness",
       "cardType": "situation",
-      "label": "Мама забрала планшет.",
+      "situationUse": "auto",
+      "label": "Мальчик потерял любимую игрушку.",
+      "sceneImage": "media/situation_sadness_2.webp",
+      "revealCardId": "sadness_1",
       "answerKey": "грусть",
       "primary": false
     },
@@ -977,7 +1030,10 @@
       "id": "situation_sadness_3",
       "conceptId": "sadness",
       "cardType": "situation",
-      "label": "Папа не разрешил гулять.",
+      "situationUse": "deferred",
+      "label": "Мама не разрешила гулять.",
+      "sceneImage": "media/situation_sadness_3.webp",
+      "revealCardId": "sadness_2",
       "answerKey": "грусть",
       "primary": false
     },
@@ -985,7 +1041,10 @@
       "id": "situation_anger_1",
       "conceptId": "anger",
       "cardType": "situation",
-      "label": "Не получается решить пример.",
+      "situationUse": "auto",
+      "label": "Друг сломал её башню.",
+      "sceneImage": "media/situation_anger_1.webp",
+      "revealCardId": "anger_1",
       "answerKey": "злость",
       "primary": false
     },
@@ -993,7 +1052,10 @@
       "id": "situation_anger_2",
       "conceptId": "anger",
       "cardType": "situation",
-      "label": "Папа не хочет покупать колу.",
+      "situationUse": "deferred",
+      "label": "Мама не хочет покупать колу.",
+      "sceneImage": "media/situation_anger_2.webp",
+      "revealCardId": "anger_2",
       "answerKey": "злость",
       "primary": false
     },
@@ -1001,7 +1063,10 @@
       "id": "situation_anger_3",
       "conceptId": "anger",
       "cardType": "situation",
-      "label": "Сестра обзывается.",
+      "situationUse": "auto",
+      "label": "Друг взял игрушку без спроса.",
+      "sceneImage": "media/situation_anger_3.webp",
+      "revealCardId": "anger_1",
       "answerKey": "злость",
       "primary": false
     },
@@ -1009,7 +1074,10 @@
       "id": "situation_fear_1",
       "conceptId": "fear",
       "cardType": "situation",
-      "label": "На улице страшная гроза.",
+      "situationUse": "auto",
+      "label": "За окном громко гремит гром.",
+      "sceneImage": "media/situation_fear_1.webp",
+      "revealCardId": "fear_1",
       "answerKey": "страх",
       "primary": false
     },
@@ -1017,7 +1085,10 @@
       "id": "situation_fear_2",
       "conceptId": "fear",
       "cardType": "situation",
-      "label": "Большая собака рычит.",
+      "situationUse": "auto",
+      "label": "Большая собака громко рычит.",
+      "sceneImage": "media/situation_fear_2.webp",
+      "revealCardId": "fear_2",
       "answerKey": "страх",
       "primary": false
     },
@@ -1025,7 +1096,10 @@
       "id": "situation_fear_3",
       "conceptId": "fear",
       "cardType": "situation",
+      "situationUse": "deferred",
       "label": "Ночью по крыше кто-то ходит.",
+      "sceneImage": "media/situation_fear_3.webp",
+      "revealCardId": "fear_2",
       "answerKey": "страх",
       "primary": false
     },
@@ -1033,7 +1107,10 @@
       "id": "situation_surprise_1",
       "conceptId": "surprise",
       "cardType": "situation",
-      "label": "Папа с мамой устроили сюрприз.",
+      "situationUse": "auto",
+      "label": "Друзья приготовили сюрприз.",
+      "sceneImage": "media/situation_surprise_1.webp",
+      "revealCardId": "surprise_1",
       "answerKey": "удивление",
       "primary": false
     },
@@ -1041,7 +1118,10 @@
       "id": "situation_surprise_2",
       "conceptId": "surprise",
       "cardType": "situation",
-      "label": "Дверь открылась сама.",
+      "situationUse": "auto",
+      "label": "Из коробки вылетели шарики.",
+      "sceneImage": "media/situation_surprise_2.webp",
+      "revealCardId": "surprise_1",
       "answerKey": "удивление",
       "primary": false
     },
@@ -1049,7 +1129,10 @@
       "id": "situation_surprise_3",
       "conceptId": "surprise",
       "cardType": "situation",
+      "situationUse": "deferred",
       "label": "Неожиданно заиграла любимая музыка.",
+      "sceneImage": "media/situation_surprise_3.webp",
+      "revealCardId": "surprise_2",
       "answerKey": "удивление",
       "primary": false
     },
@@ -1057,7 +1140,10 @@
       "id": "situation_calm_1",
       "conceptId": "calm",
       "cardType": "situation",
-      "label": "Смотрит на спокойное море.",
+      "situationUse": "discussion",
+      "label": "Мальчик слушает тихую музыку.",
+      "sceneImage": "media/situation_calm_1.webp",
+      "revealCardId": "calm_1",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1065,7 +1151,10 @@
       "id": "situation_calm_2",
       "conceptId": "calm",
       "cardType": "situation",
+      "situationUse": "deferred",
       "label": "Все дела сегодня сделаны.",
+      "sceneImage": "media/situation_calm_2.webp",
+      "revealCardId": "calm_2",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1073,7 +1162,10 @@
       "id": "situation_calm_3",
       "conceptId": "calm",
       "cardType": "situation",
-      "label": "Гуляет в тихом парке.",
+      "situationUse": "discussion",
+      "label": "Мальчик тихо гуляет в парке.",
+      "sceneImage": "media/situation_calm_3.webp",
+      "revealCardId": "calm_3",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1081,7 +1173,10 @@
       "id": "situation_boredom_1",
       "conceptId": "boredom",
       "cardType": "situation",
-      "label": "Стоит в длинной очереди.",
+      "situationUse": "discussion",
+      "label": "Мальчик долго ждёт в очереди.",
+      "sceneImage": "media/situation_boredom_1.webp",
+      "revealCardId": "boredom_1",
       "answerKey": "скука",
       "primary": false
     },
@@ -1089,7 +1184,10 @@
       "id": "situation_shame_1",
       "conceptId": "shame",
       "cardType": "situation",
-      "label": "Папа спросил, кто пукнул в машине.",
+      "situationUse": "deferred",
+      "label": "Мама спросила, кто пукнул в машине.",
+      "sceneImage": "media/situation_shame_1.webp",
+      "revealCardId": "shame_1",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1097,7 +1195,10 @@
       "id": "situation_tiredness_1",
       "conceptId": "tiredness",
       "cardType": "situation",
-      "label": "Целый день ехали в машине в путешествие.",
+      "situationUse": "discussion",
+      "label": "После долгой дороги хочется спать.",
+      "sceneImage": "media/situation_tiredness_1.webp",
+      "revealCardId": "tiredness_1",
       "answerKey": "усталость",
       "primary": false
     },
@@ -1105,7 +1206,10 @@
       "id": "situation_disgust_1",
       "conceptId": "disgust",
       "cardType": "situation",
+      "situationUse": "deferred",
       "label": "Кто-то пукнул рядом.",
+      "sceneImage": "media/situation_disgust_1.webp",
+      "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false
     },
@@ -1113,7 +1217,10 @@
       "id": "situation_shame_2",
       "conceptId": "shame",
       "cardType": "situation",
+      "situationUse": "deferred",
       "label": "Друзья сказали, что от меня плохо пахнет.",
+      "sceneImage": "media/situation_shame_2.webp",
+      "revealCardId": "shame_1",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1121,7 +1228,10 @@
       "id": "situation_shame_3",
       "conceptId": "shame",
       "cardType": "situation",
-      "label": "Мама ругает, что я не смываю за собой в туалете.",
+      "situationUse": "deferred",
+      "label": "Девочка случайно разлила воду на рисунок.",
+      "sceneImage": "media/situation_shame_3.webp",
+      "revealCardId": "shame_2",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1129,7 +1239,10 @@
       "id": "situation_disgust_2",
       "conceptId": "disgust",
       "cardType": "situation",
-      "label": "В стакане оказалось прокисшее молоко.",
+      "situationUse": "auto",
+      "label": "Молоко в стакане прокисло.",
+      "sceneImage": "media/situation_disgust_2.webp",
+      "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false
     },
@@ -1137,7 +1250,10 @@
       "id": "situation_disgust_3",
       "conceptId": "disgust",
       "cardType": "situation",
-      "label": "На обувь залез огромный слизень.",
+      "situationUse": "auto",
+      "label": "В яблоке сидит червячок.",
+      "sceneImage": "media/situation_disgust_3.webp",
+      "revealCardId": "disgust_2",
       "answerKey": "отвращение",
       "primary": false
     },
@@ -1145,7 +1261,10 @@
       "id": "situation_boredom_2",
       "conceptId": "boredom",
       "cardType": "situation",
-      "label": "За окном дождь, а играть дома надоело.",
+      "situationUse": "discussion",
+      "label": "Играть дома уже надоело.",
+      "sceneImage": "media/situation_boredom_2.webp",
+      "revealCardId": "boredom_2",
       "answerKey": "скука",
       "primary": false
     },
@@ -1153,7 +1272,10 @@
       "id": "situation_boredom_3",
       "conceptId": "boredom",
       "cardType": "situation",
-      "label": "Дорога в машине кажется очень долгой.",
+      "situationUse": "discussion",
+      "label": "Дорога кажется очень долгой.",
+      "sceneImage": "media/situation_boredom_3.webp",
+      "revealCardId": "boredom_3",
       "answerKey": "скука",
       "primary": false
     },
@@ -1161,7 +1283,10 @@
       "id": "situation_tiredness_2",
       "conceptId": "tiredness",
       "cardType": "situation",
-      "label": "Целый день играли с друзьями на улице.",
+      "situationUse": "discussion",
+      "label": "После игры на улице ребёнок устал.",
+      "sceneImage": "media/situation_tiredness_2.webp",
+      "revealCardId": "tiredness_2",
       "answerKey": "усталость",
       "primary": false
     },
@@ -1169,7 +1294,10 @@
       "id": "situation_tiredness_3",
       "conceptId": "tiredness",
       "cardType": "situation",
-      "label": "Уже поздно, и глаза сами закрываются.",
+      "situationUse": "discussion",
+      "label": "Глаза закрываются. Пора спать.",
+      "sceneImage": "media/situation_tiredness_3.webp",
+      "revealCardId": "tiredness_1",
       "answerKey": "усталость",
       "primary": false
     }

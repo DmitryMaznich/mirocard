@@ -130,6 +130,20 @@ function writeVersionJson() {
   return version;
 }
 
+function assertDeckCatalogWasBuilt() {
+  const sourceCatalog = path.join(root, "public", "decks", "catalog.json");
+  const builtCatalog = path.join(distDir, "decks", "catalog.json");
+  if (!existsSync(sourceCatalog) || !existsSync(builtCatalog)) {
+    throw new Error("Deck catalog is missing from public/ or the build output.");
+  }
+  if (readFileSync(sourceCatalog, "utf8") !== readFileSync(builtCatalog, "utf8")) {
+    throw new Error(
+      "dist/decks/catalog.json does not match public/decks/catalog.json. "
+      + "Rebuild after changing a deck catalog before deploying."
+    );
+  }
+}
+
 function buildUploadPlan() {
   if (!existsSync(distDir)) {
     throw new Error("dist/ does not exist. Run npm run build first.");
@@ -384,6 +398,9 @@ async function main() {
       execSync("npm run build", { cwd: root, stdio: "inherit" });
       assertCleanWorktree();
     }
+    // This check also protects --skip-build deployments: the upload must never
+    // use an older catalog left in dist/ from a previous build.
+    assertDeckCatalogWasBuilt();
     version = writeVersionJson();
     const files = buildUploadPlan();
     console.log(`uploading ${files.length} files to canonical Windows/Caddy runtime (skipping unchanged)...`);

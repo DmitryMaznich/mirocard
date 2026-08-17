@@ -79,18 +79,40 @@ function generateCoordinateTasks(concepts) {
   }));
 }
 
+function getSituationCards(allCards, use = "all") {
+  return allCards.filter((card) => {
+    if (card.cardType !== "situation") return false;
+    const situationUse = card.situationUse ?? "auto";
+    if (use === "intro") return true;
+    if (use === "all") return situationUse !== "deferred";
+    return situationUse === use;
+  });
+}
+
+function conceptsForSituations(displayConcepts, situationCards) {
+  const conceptIds = new Set(situationCards.map((card) => card.conceptId));
+  return displayConcepts.filter((concept) => conceptIds.has(concept.conceptId));
+}
+
+function shuffleSituationTasks(tasks, params) {
+  const shuffled = shuffle(tasks);
+  const taskCount = Number(params?.taskCount);
+  return Number.isFinite(taskCount) && taskCount > 0 ? shuffled.slice(0, taskCount) : shuffled;
+}
+
 function generateSituationEmotionTasks(displayConcepts, allCards, params) {
   const optionCount = params.optionCount ?? 4;
   const difficulty = params.distractorLevel ?? "medium";
-  const situationCards = allCards.filter((c) => c.cardType === "situation");
+  const situationCards = getSituationCards(allCards, "auto");
+  const taskConcepts = conceptsForSituations(displayConcepts, situationCards);
   const tasks = [];
   for (const situationCard of situationCards) {
-    const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);
+    const targetConcept = taskConcepts.find((c) => c.conceptId === situationCard.conceptId);
     if (!targetConcept) continue;
-    const distractorCount = Math.min(optionCount - 1, displayConcepts.length - 1);
-    const distractorIds = selectDistractorConceptIds(situationCard.conceptId, displayConcepts, distractorCount, difficulty);
+    const distractorCount = Math.min(optionCount - 1, taskConcepts.length - 1);
+    const distractorIds = selectDistractorConceptIds(situationCard.conceptId, taskConcepts, distractorCount, difficulty);
     const distractorOptions = distractorIds.map((cid) => {
-      const dc = displayConcepts.find((c) => c.conceptId === cid);
+      const dc = taskConcepts.find((c) => c.conceptId === cid);
       return { conceptId: cid, card: pickVariation(dc), isTarget: false };
     });
     const targetOption = { conceptId: situationCard.conceptId, card: pickVariation(targetConcept), isTarget: true };
@@ -98,39 +120,45 @@ function generateSituationEmotionTasks(displayConcepts, allCards, params) {
       type: "situation_emotion",
       targetConceptId: situationCard.conceptId,
       targetLabel: situationCard.label,
+      sceneImage: situationCard.sceneImage ?? null,
       options: shuffle([targetOption, ...distractorOptions]),
     });
   }
-  return shuffle(tasks);
+  return shuffleSituationTasks(tasks, params);
 }
 
-function generateSituationIntroTasks(displayConcepts, allCards) {
-  const situationCards = allCards.filter((c) => c.cardType === "situation");
+function generateSituationIntroTasks(displayConcepts, allCards, params) {
+  const situationCards = getSituationCards(allCards, "intro");
   const tasks = [];
   for (const situationCard of situationCards) {
     const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);
     if (!targetConcept) continue;
+    const revealCard = situationCard.revealCardId
+      ? allCards.find((card) => card.id === situationCard.revealCardId && card.conceptId === situationCard.conceptId)
+      : null;
     tasks.push({
       type: "situation_intro",
       conceptId: situationCard.conceptId,
       situationText: situationCard.label,
-      card: pickVariation(targetConcept),
+      sceneImage: situationCard.sceneImage ?? null,
+      card: revealCard ?? pickVariation(targetConcept),
       label: targetConcept.primary?.label ?? targetConcept.conceptId,
     });
   }
-  return shuffle(tasks);
+  return shuffleSituationTasks(tasks, params);
 }
 
 function generateEmotionSituationTasks(displayConcepts, allCards, params) {
   const optionCount = params.optionCount ?? 4;
   const difficulty = params.distractorLevel ?? "medium";
-  const situationCards = allCards.filter((c) => c.cardType === "situation");
+  const situationCards = getSituationCards(allCards, "auto");
+  const taskConcepts = conceptsForSituations(displayConcepts, situationCards);
   const tasks = [];
   for (const situationCard of situationCards) {
-    const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);
+    const targetConcept = taskConcepts.find((c) => c.conceptId === situationCard.conceptId);
     if (!targetConcept) continue;
-    const distractorCount = Math.min(optionCount - 1, displayConcepts.length - 1);
-    const distractorIds = selectDistractorConceptIds(situationCard.conceptId, displayConcepts, distractorCount, difficulty);
+    const distractorCount = Math.min(optionCount - 1, taskConcepts.length - 1);
+    const distractorIds = selectDistractorConceptIds(situationCard.conceptId, taskConcepts, distractorCount, difficulty);
     const distractorOptions = distractorIds
       .map((cid) => {
         const candidates = situationCards.filter((sc) => sc.conceptId === cid);
@@ -147,7 +175,7 @@ function generateEmotionSituationTasks(displayConcepts, allCards, params) {
       options: shuffle([targetOption, ...distractorOptions]),
     });
   }
-  return shuffle(tasks);
+  return shuffleSituationTasks(tasks, params);
 }
 
 // Most nouns share their nominative and accusative forms, but not all
@@ -308,7 +336,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "navigator":              return generateNavigatorTasks(displayConcepts, params);
     case "coordinates":            return generateCoordinateTasks(displayConcepts);
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
-    case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards);
+    case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards, params);
     case "emotion_situation":      return generateEmotionSituationTasks(displayConcepts, allCards, params);
     case "question_answer":        return generateIntroTasks(displayConcepts).map((t) => ({ ...t, type: "question_answer" }));
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);

@@ -12819,6 +12819,15 @@ button {
 
 .card-img            { border-radius: 16px; object-fit: cover; }
 .card-img--loading   { background: #f0f0f0; min-width: 120px; min-height: 120px; }
+.situation-scene {
+  width: min(100%, 360px);
+  max-height: 34svh;
+  aspect-ratio: 1 / 1;
+  flex: 0 1 auto;
+  border-radius: 16px;
+  object-fit: cover;
+}
+.situation-scene--loading { background: #f0f0f0; }
 
 .session-label        { font-size: 1.8rem; font-weight: 700; text-align: center; flex-shrink: 0; transform: translateY(-5dvh); }
 .session-label__prefix { font-weight: 400; }
@@ -12834,6 +12843,8 @@ button {
    the actual available room on any screen height. */
 .session-body--find-n { container-type: size; }
 .session-body--find-n .session-instruction { transform: translateY(calc(14cqh - var(--rows, 2) * 4cqh)); }
+.session-body--situation .session-instruction { transform: none; }
+.session-body--situation .situation-scene { width: min(100%, 220px); max-height: 26cqh; }
 
 /* yes/no */
 .yes-no-row {
@@ -13072,13 +13083,28 @@ button {
 .situation-intro .card-area {
   flex: 0 1 auto;
 }
+/* The scene is the primary material in the first step of “Знакомство”.
+   It should use the entire content width instead of the generic 360px card
+   cap; the button's horizontal padding still keeps it clear of screen edges. */
+.situation-intro .situation-scene {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: auto;
+  aspect-ratio: auto;
+}
 /* Pin the question to the photo: .session-full-tap's flex `gap: 12px`
    already puts 12px between them, so add just enough extra margin to bring
    the total up to 0.95em (~70% of this line's own rendered line-height,
    measured at ~1.357x its font-size) - scales with the responsive
    font-size instead of a fixed px gap. */
-.situation-intro__question {
+.situation-intro .situation-intro__question {
   margin-top: calc(0.95em - 12px);
+  /* Override the generic tablet instruction scale: this is a prompt, not
+     the headline of the screen. */
+  font-size: clamp(1rem, 2.4dvh, 1.3rem);
+  font-weight: 600;
+  line-height: 1.25;
 }
 .situation-intro__reveal {
   display: flex;
@@ -13097,9 +13123,12 @@ button {
 /* Own label class, not .session-label - that one carries a
    translateY(-5dvh) tuned for IntroTask's flex-fill layout, which
    pulled this label up onto the picture instead of sitting under it. */
-.situation-intro__label {
-  font-size: 1.8rem;
-  font-weight: 700;
+.situation-intro .situation-intro__label {
+  /* The revealed emotion is the answer and must be visibly dominant over
+     the question on both a phone and a tablet. */
+  font-size: clamp(2.2rem, 5dvh, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
   text-align: center;
   flex-shrink: 0;
 }
