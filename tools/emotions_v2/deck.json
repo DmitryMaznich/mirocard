@@ -5,7 +5,7 @@
       "ru": "Эмоции",
       "en": "Emotions"
     },
-    "version": "1.7.1",
+    "version": "1.7.2",
     "renderer": "flashcards",
     "conceptCount": 10,
     "questionKey": "Что чувствует?",
@@ -1006,7 +1006,7 @@
       "conceptId": "sadness",
       "cardType": "situation",
       "situationUse": "auto",
-      "label": "У мальчика лопнул любимый шарик.",
+      "label": "У девочки лопнул любимый шарик.",
       "sceneImage": "media/situation_sadness_1.webp",
       "answerKey": "грусть",
       "primary": false
@@ -1016,7 +1016,7 @@
       "conceptId": "sadness",
       "cardType": "situation",
       "situationUse": "auto",
-      "label": "Девочка потеряла любимую игрушку.",
+      "label": "Мальчик потерял любимую игрушку.",
       "sceneImage": "media/situation_sadness_2.webp",
       "answerKey": "грусть",
       "primary": false
@@ -1026,7 +1026,7 @@
       "conceptId": "sadness",
       "cardType": "situation",
       "situationUse": "deferred",
-      "label": "Папа не разрешил гулять.",
+      "label": "Мама не разрешила гулять.",
       "sceneImage": "media/situation_sadness_3.webp",
       "answerKey": "грусть",
       "primary": false
@@ -1036,7 +1036,7 @@
       "conceptId": "anger",
       "cardType": "situation",
       "situationUse": "auto",
-      "label": "Друг сломал его башню.",
+      "label": "Друг сломал её башню.",
       "sceneImage": "media/situation_anger_1.webp",
       "answerKey": "злость",
       "primary": false
@@ -1046,7 +1046,7 @@
       "conceptId": "anger",
       "cardType": "situation",
       "situationUse": "deferred",
-      "label": "Папа не хочет покупать колу.",
+      "label": "Мама не хочет покупать колу.",
       "sceneImage": "media/situation_anger_2.webp",
       "answerKey": "злость",
       "primary": false
@@ -1126,7 +1126,7 @@
       "conceptId": "calm",
       "cardType": "situation",
       "situationUse": "discussion",
-      "label": "Девочка слушает тихую музыку.",
+      "label": "Мальчик слушает тихую музыку.",
       "sceneImage": "media/situation_calm_1.webp",
       "answerKey": "спокойствие",
       "primary": false
@@ -1156,7 +1156,7 @@
       "conceptId": "boredom",
       "cardType": "situation",
       "situationUse": "discussion",
-      "label": "Девочка долго ждёт в очереди.",
+      "label": "Мальчик долго ждёт в очереди.",
       "sceneImage": "media/situation_boredom_1.webp",
       "answerKey": "скука",
       "primary": false
@@ -1166,7 +1166,7 @@
       "conceptId": "shame",
       "cardType": "situation",
       "situationUse": "deferred",
-      "label": "Папа спросил, кто пукнул в машине.",
+      "label": "Мама спросила, кто пукнул в машине.",
       "sceneImage": "media/situation_shame_1.webp",
       "answerKey": "стыд",
       "primary": false
