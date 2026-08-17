@@ -397,8 +397,10 @@ async function main() {
       console.log(`building Mirocard2 v${pkg.version}...`);
       execSync("npm run build", { cwd: root, stdio: "inherit" });
       assertCleanWorktree();
-      assertDeckCatalogWasBuilt();
     }
+    // This check also protects --skip-build deployments: the upload must never
+    // use an older catalog left in dist/ from a previous build.
+    assertDeckCatalogWasBuilt();
     version = writeVersionJson();
     const files = buildUploadPlan();
     console.log(`uploading ${files.length} files to canonical Windows/Caddy runtime (skipping unchanged)...`);
