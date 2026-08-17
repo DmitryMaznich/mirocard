@@ -383,6 +383,7 @@ function FigureDifficultyParam({
   sessions,
   studentId,
   topicId,
+  children,
 }) {
   const def = mode?.params?.figureDifficulty;
   if (!def) return null;
@@ -412,6 +413,7 @@ function FigureDifficultyParam({
             </button>
           );
         })}
+        {children}
       </div>
       {recommendation && figureFilter.type === "difficulty" && (
         <div className="param-hint figure-difficulty-recommendation" role="status">
@@ -513,16 +515,15 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
   }
 
   return (
-    <div className="param-row param-row--block figure-picker-param">
-      <div className="param-label">Рисунки</div>
-      <div className="figure-picker-param__summary">
-        <span className="param-hint">
-          {selectedIds
-            ? `Выбрано ${selectedCount} из ${allFigures.length}`
-            : `Набор: ${difficultyLabels[figureFilter.difficulty] ?? "Все уровни"} (${selectedCount})`}
-        </span>
-        <button type="button" className="link-btn" onClick={openPicker}>Посмотреть и выбрать</button>
-      </div>
+    <>
+      <button
+        type="button"
+        className={`enum-btn figure-difficulty-option figure-picker-trigger ${selectedIds ? "enum-btn--active" : ""}`}
+        onClick={openPicker}
+      >
+        <span>Свой набор</span>
+        <span className="figure-difficulty-option__count">{selectedIds ? `${selectedCount} выбрано` : "Выбрать рисунки"}</span>
+      </button>
       {open && (
         <Modal
           title="Выберите рисунки"
@@ -549,10 +550,14 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
           </div>
           <div className="figure-picker__toolbar">
             <span className="param-hint">{draftIds.size} из {allFigures.length} отмечено</span>
-            <div className="figure-picker__bulk-actions">
-              <button type="button" className="link-btn" onClick={() => setDraftIds(new Set(allFigures.map((card) => card.id)))}>Выбрать все</button>
-              <button type="button" className="link-btn" onClick={() => setDraftIds(new Set())}>Сбросить все</button>
-            </div>
+            <label className="figure-picker__select-all">
+              <input
+                type="checkbox"
+                checked={allFigures.length > 0 && draftIds.size === allFigures.length}
+                onChange={(event) => setDraftIds(event.target.checked ? new Set(allFigures.map((card) => card.id)) : new Set())}
+              />
+              <span>Все рисунки</span>
+            </label>
           </div>
           <div className="figure-picker__grid" role="group" aria-label="Рисунки">
             {visibleFigures.map((card) => {
@@ -574,7 +579,7 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
           </div>
         </Modal>
       )}
-    </div>
+    </>
   );
 }
 
@@ -1347,7 +1352,9 @@ export default function ParamsScreen() {
       <FigureDifficultyParam
         topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo}
         sessions={sessions} studentId={activeStudentId} topicId={activeTopicId}
-      />
+      >
+        <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
+      </FigureDifficultyParam>
       <EnumParam
         label="Как строить рисунок"
         options={["directions", "coordinates"]}
@@ -1357,7 +1364,6 @@ export default function ParamsScreen() {
         info={mode?.params?.dictationCommand?.info?.ru}
         onShowInfo={setActiveInfo}
       />
-      <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
       {(params.dictationCommand ?? "directions") === "directions" && (
         <>
           <BooleanParam
@@ -1375,8 +1381,9 @@ export default function ParamsScreen() {
       <FigureDifficultyParam
         topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo}
         sessions={sessions} studentId={activeStudentId} topicId={activeTopicId}
-      />
-      <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
+      >
+        <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
+      </FigureDifficultyParam>
       <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
     </>
   ) : (
