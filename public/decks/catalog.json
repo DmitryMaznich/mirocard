@@ -357,9 +357,9 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.11.3",
-      "url": "./decks/symmetry_draw_v1.11.3.zip",
-      "zipUrl": "symmetry_draw_v1.11.3.zip",
+      "version": "1.11.5",
+      "url": "./decks/symmetry_draw_v1.11.5.zip",
+      "zipUrl": "symmetry_draw_v1.11.5.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },

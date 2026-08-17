@@ -63,8 +63,11 @@ test("worksheet references add the complete complex repeat figure set", () => {
 
 test("repeat worksheets use the standard vector grid style without numbered hint points", () => {
   assert.doesNotMatch(renderer, /BLACK_LINE_TRACES|traceImage|__MirocardTraceImages/);
+  assert.match(renderer, /__MirocardRepeatArtwork/);
+  assert.match(renderer, /symmetry-draw__source-artwork/);
   assert.match(renderer, /sourcePaths\.map\(\(path, index\) => h\("path", \{ key: `source-\$\{index\}`/);
-  assert.match(renderer, /showHint \? targetPaths\.map\(\(path, index\) => h\("path", \{ key: `hint-line-\$\{index\}`/);
+  assert.match(renderer, /repeatArtwork\.paths\.map\(\(d, index\) => h\("path", \{ key: `hint-artwork-\$\{index\}`/);
+  assert.match(renderer, /targetPaths\.map\(\(path, index\) => h\("path", \{ key: `hint-line-\$\{index\}`/);
   assert.match(renderer, /showHint \? hintPoints\.map\(\(point, index\) => h\("circle", \{ key: `hint-point-\$\{index\}`/);
 });
 

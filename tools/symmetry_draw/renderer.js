@@ -17,6 +17,9 @@
   // Vertical position is NOT forgiven this way; only horizontal.
   const HORIZONTAL_SHIFT_TOLERANCE = 2;
   const EMPTY_PATHS = [];
+  // Exact worksheet models are embedded as vector paths. The child still draws
+  // on the normal grid and is assessed by the card's grid routes.
+  const REPEAT_ARTWORK = window.__MirocardRepeatArtwork ?? {};
 
   function mirrorPaths(paths, axisCol) {
     return (paths ?? []).map((path) => path.map((point) => ({ col: 2 * axisCol - point.col, row: point.row })));
@@ -988,8 +991,9 @@
     const columns = Number(shape.columns ?? 10);
     const rows = Number(shape.rows ?? 8);
     const axisCol = Number(shape.axisCol ?? 5);
-    const sourcePaths = shape.sourcePaths || EMPTY_PATHS;
+    const sourcePaths = shape.sourcePaths ?? EMPTY_PATHS;
     const isRepeat = shape.taskKind === "repeat";
+    const repeatArtwork = isRepeat ? REPEAT_ARTWORK[shape.id] ?? null : null;
     // A repeat is two separate workspaces, not two halves around an axis.
     // Keep a narrow visual gutter so it cannot be mistaken for symmetry.
     const repeatGap = isRepeat ? 1.5 : 0;
@@ -1130,7 +1134,9 @@
                 h("path", { key: "chev-top", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
                 h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
               ] : null,
-          sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
+          repeatArtwork
+            ? h("g", { className: "symmetry-draw__source-artwork", transform: `scale(${axisCol / repeatArtwork.width} ${rows / repeatArtwork.height})` }, repeatArtwork.paths.map((d, index) => h("path", { key: `source-artwork-${index}`, d })))
+            : sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),
@@ -1142,7 +1148,10 @@
             className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
             x1: segment.a.col, y1: segment.a.row, x2: segment.b.col, y2: segment.b.row,
           })) : null,
-          showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
+          showHint ? (repeatArtwork
+            ? h("g", { className: "symmetry-draw__hint-artwork", transform: `translate(${workOrigin} 0) scale(${axisCol / repeatArtwork.width} ${rows / repeatArtwork.height})` }, repeatArtwork.paths.map((d, index) => h("path", { key: `hint-artwork-${index}`, d })))
+            : targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) }))
+          ) : null,
           showHint ? hintPoints.map((point, index) => h("circle", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point", cx: point.col, cy: point.row, r: "0.17" })) : null,
         ),
       ),
