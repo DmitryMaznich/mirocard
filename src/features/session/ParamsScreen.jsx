@@ -12,7 +12,7 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, getFigureFilter, readModeSelectedConceptIds, withFigureFilter } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
@@ -386,25 +386,26 @@ function FigureDifficultyParam({
 }) {
   const def = mode?.params?.figureDifficulty;
   if (!def) return null;
-  const value = params.figureDifficulty ?? def.default ?? "all";
+  const figureFilter = getFigureFilter(params, mode);
+  const value = figureFilter.type === "difficulty" ? figureFilter.difficulty : null;
   const labels = def.labels?.ru ?? {};
   const recommendation = getFigureDifficultyRecommendation(sessions, {
     studentId,
     topicId,
     modeId: mode.id,
-    difficulty: value,
+    difficulty: value ?? "all",
   });
   return (
     <div className="param-row param-row--block figure-difficulty-param">
       <ParamLabel label={def.label?.ru ?? "Сложность фигур"} info={def.info?.ru} onShowInfo={onShowInfo} />
       <div className="param-enum-group figure-difficulty-options">
         {def.values.map((option) => {
-          const count = getConceptCards(topicRecord, mode, { ...params, figureDifficulty: option }).length;
+          const count = getConceptCards(topicRecord, mode, withFigureFilter(params, mode, { type: "difficulty", difficulty: option })).length;
           return (
             <button
               key={option}
               className={`enum-btn figure-difficulty-option ${value === option ? "enum-btn--active" : ""}`}
-              onClick={() => onChange((current) => ({ ...current, figureDifficulty: option }))}
+              onClick={() => onChange((current) => withFigureFilter(current, mode, { type: "difficulty", difficulty: option }))}
             >
               <span>{labels[option] ?? option}</span>
               <span className="figure-difficulty-option__count">{figureCountLabel(count)}</span>
@@ -412,17 +413,163 @@ function FigureDifficultyParam({
           );
         })}
       </div>
-      {recommendation && (
+      {recommendation && figureFilter.type === "difficulty" && (
         <div className="param-hint figure-difficulty-recommendation" role="status">
           <span>{recommendation.successfulSessions} уверенных занятия позади. Можно попробовать «{labels[recommendation.nextDifficulty] ?? recommendation.nextDifficulty}».</span>
           <button
             type="button"
             className="link-btn"
-            onClick={() => onChange((current) => ({ ...current, figureDifficulty: recommendation.nextDifficulty }))}
+            onClick={() => onChange((current) => withFigureFilter(current, mode, { type: "difficulty", difficulty: recommendation.nextDifficulty }))}
           >
             Выбрать
           </button>
         </div>
+      )}
+    </div>
+  );
+}
+
+const THUMBNAIL_DIRECTIONS = {
+  up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0],
+  up_left: [-1, -1], up_right: [1, -1], down_left: [-1, 1], down_right: [1, 1],
+};
+
+function figurePreviewPaths(card) {
+  if (card.sourcePaths?.length) return card.sourcePaths;
+  if (card.points?.length) return [[card.start, ...card.points]];
+  if (!card.start || !card.commands?.length) return [];
+  const points = [{ ...card.start }];
+  for (const command of card.commands) {
+    const direction = THUMBNAIL_DIRECTIONS[command.direction];
+    if (!direction) continue;
+    const previous = points.at(-1);
+    points.push({
+      col: previous.col + direction[0] * command.cells,
+      row: previous.row + direction[1] * command.cells,
+    });
+  }
+  return [points];
+}
+
+function FigureThumbnail({ card }) {
+  const columns = Number(card.columns ?? 10);
+  const rows = Number(card.rows ?? 8);
+  const gridLines = [
+    ...Array.from({ length: columns + 1 }, (_, col) => `M ${col} 0 V ${rows}`),
+    ...Array.from({ length: rows + 1 }, (_, row) => `M 0 ${row} H ${columns}`),
+  ].join(" ");
+  return (
+    <svg className="figure-picker__thumbnail" viewBox={`-0.35 -0.35 ${columns + 0.7} ${rows + 0.7}`} aria-hidden="true">
+      <path className="figure-picker__thumbnail-grid" d={gridLines} />
+      {figurePreviewPaths(card).map((path, index) => (
+        <path
+          key={index}
+          className="figure-picker__line"
+          d={path.map((point, pointIndex) => `${pointIndex ? "L" : "M"} ${point.col} ${point.row}`).join(" ")}
+        />
+      ))}
+    </svg>
+  );
+}
+
+function FigurePickerParam({ topicRecord, mode, params, onChange }) {
+  const figureFilter = getFigureFilter(params, mode);
+  const allFigures = getConceptCards(
+    topicRecord,
+    mode,
+    withFigureFilter(params, mode, { type: "difficulty", difficulty: "all" }),
+  );
+  const activeFigures = getConceptCards(topicRecord, mode, params);
+  const [open, setOpen] = useState(false);
+  const [draftIds, setDraftIds] = useState(() => new Set());
+  const [browseDifficulty, setBrowseDifficulty] = useState("all");
+  const difficultyLabels = mode?.params?.figureDifficulty?.labels?.ru ?? {};
+  const selectedIds = figureFilter.type === "manual" ? figureFilter.cardIds : null;
+  const selectedCount = activeFigures.length;
+  const visibleFigures = browseDifficulty === "all"
+    ? allFigures
+    : allFigures.filter((card) => card.difficulty === browseDifficulty);
+
+  function openPicker() {
+    setDraftIds(new Set(selectedIds ?? activeFigures.map((card) => card.id)));
+    setBrowseDifficulty(figureFilter.type === "difficulty" ? figureFilter.difficulty : "all");
+    setOpen(true);
+  }
+
+  function toggle(cardId) {
+    setDraftIds((current) => {
+      const next = new Set(current);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
+      return next;
+    });
+  }
+
+  function applySelection() {
+    const cardIds = allFigures.filter((card) => draftIds.has(card.id)).map((card) => card.id);
+    if (!cardIds.length) return;
+    onChange((current) => withFigureFilter(current, mode, { type: "manual", cardIds }));
+    setOpen(false);
+  }
+
+  return (
+    <div className="param-row param-row--block figure-picker-param">
+      <div className="param-label">Рисунки</div>
+      <div className="figure-picker-param__summary">
+        <span className="param-hint">
+          {selectedIds
+            ? `Выбрано ${selectedCount} из ${allFigures.length}`
+            : `Набор: ${difficultyLabels[figureFilter.difficulty] ?? "Все уровни"} (${selectedCount})`}
+        </span>
+        <button type="button" className="link-btn" onClick={openPicker}>Посмотреть и выбрать</button>
+      </div>
+      {open && (
+        <Modal
+          title="Выберите рисунки"
+          onClose={() => setOpen(false)}
+          actions={(
+            <>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
+              <Button onClick={applySelection} disabled={!draftIds.size}>Выбрать {draftIds.size || ""}</Button>
+            </>
+          )}
+        >
+          <p className="figure-picker__intro">Отметьте рисунки для занятия. Выбор заменяет быстрый фильтр сложности; кнопки сложности вернут набор целиком.</p>
+          <div className="figure-picker__filters" aria-label="Показать рисунки по сложности">
+            {mode?.params?.figureDifficulty?.values?.map((difficulty) => (
+              <button
+                type="button"
+                key={difficulty}
+                className={`enum-btn enum-btn--compact ${browseDifficulty === difficulty ? "enum-btn--active" : ""}`}
+                onClick={() => setBrowseDifficulty(difficulty)}
+              >
+                {difficultyLabels[difficulty] ?? difficulty}
+              </button>
+            ))}
+          </div>
+          <div className="figure-picker__toolbar">
+            <span className="param-hint">{draftIds.size} из {allFigures.length} отмечено</span>
+            <button type="button" className="link-btn" onClick={() => setDraftIds(new Set(allFigures.map((card) => card.id)))}>Выбрать все</button>
+          </div>
+          <div className="figure-picker__grid" role="group" aria-label="Рисунки">
+            {visibleFigures.map((card) => {
+              const selected = draftIds.has(card.id);
+              return (
+                <button
+                  type="button"
+                  key={card.id}
+                  className={`figure-picker__card ${selected ? "figure-picker__card--selected" : ""}`}
+                  onClick={() => toggle(card.id)}
+                  aria-pressed={selected}
+                >
+                  <FigureThumbnail card={card} />
+                  <span className="figure-picker__name">{card.label}</span>
+                  <span className="figure-picker__level">{difficultyLabels[card.difficulty] ?? card.difficulty}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
       )}
     </div>
   );
@@ -1005,7 +1152,12 @@ export default function ParamsScreen() {
       };
     }
     const modeParams = mode?.params ?? {};
-    const out = {};
+    // Visual figure selections are deliberately namespaced by exercise inside
+    // this object.  It is not a declared renderer option, so retain it while
+    // normalizing the rest of the saved settings.
+    const out = saved.figureFilters && typeof saved.figureFilters === "object"
+      ? { figureFilters: saved.figureFilters }
+      : {};
     for (const [key, def] of Object.entries(modeParams)) {
       if (def.type === "concept_selector") continue;
       if (def.type === "sentence_list") {
@@ -1202,6 +1354,7 @@ export default function ParamsScreen() {
         info={mode?.params?.dictationCommand?.info?.ru}
         onShowInfo={setActiveInfo}
       />
+      <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
       {(params.dictationCommand ?? "directions") === "directions" && (
         <>
           <BooleanParam
@@ -1220,6 +1373,7 @@ export default function ParamsScreen() {
         topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo}
         sessions={sessions} studentId={activeStudentId} topicId={activeTopicId}
       />
+      <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
       <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
     </>
   ) : (
