@@ -38,9 +38,12 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle
   // dialogue (a line starting with "—"), matching how it's actually typeset
   // in a book.
   if (flow) {
+    // A drop cap on the first letter reads oddly when the story opens on a
+    // dialogue line (a lone "—" blown up huge) — skip it there.
+    const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
     return (
       <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""} reading-text--flow`}>
-        <div className="reading-flow-text">
+        <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
           {items.map((line, i) => {
             const text = getLineText(line, textStyle);
             const isDialogue = text.trimStart().startsWith("—");

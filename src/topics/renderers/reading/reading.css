@@ -7,6 +7,25 @@
 
 .reading-body.reading-page {
   background: #fdfcf9;
+  /* Center the page's content instead of pinning it to the top edge
+     (portrait) or the left edge (landscape spread row). The shrink-to-fit
+     script in index.jsx already makes content roughly fill a phone screen,
+     so this is invisible there — but on a tablet a short story leaves half
+     the page as dead space without it, and the spread hugs the left edge
+     on wide screens. */
+  justify-content: center;
+}
+
+/* Small accent rule under the title, evoking a book's chapter head. */
+.reading-page .reading-title::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 3px;
+  margin: 10px auto 0;
+  border-radius: 2px;
+  background: #4a9b8f;
+  opacity: 0.55;
 }
 
 /* Flowing paragraph rendering for story prose (see the `flow` branch in
@@ -26,6 +45,25 @@
   .reading-page .reading-flow-text {
     font-size: calc(2rem * var(--reading-fit-scale, 1));
   }
+}
+
+/* Drop cap on the first letter of story prose — a storybook-page touch.
+   Skipped (via --no-dropcap, set in index.jsx) when the story opens on a
+   dialogue line, where a giant "—" would read oddly. */
+.reading-page .reading-flow-text::first-letter {
+  float: left;
+  font-size: 2.7em;
+  line-height: 0.78;
+  font-weight: 900;
+  color: #2f6f66;
+  padding: 4px 8px 0 0;
+}
+.reading-page .reading-flow-text--no-dropcap::first-letter {
+  float: none;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  padding: 0;
 }
 
 /* Portrait: the illustration was a small bottom-right thumbnail sized off
@@ -55,7 +93,7 @@
      bitmap, since contain scales the image to fit rather than filling
      both axes unconditionally like the default object-fit:fill did.) */
   .reading-page .reading-illustration:not(.reading-illustration--corners) {
-    flex: 0 1 36%;
+    flex: 0 1 42%;
     min-height: 0;
     justify-content: center;
     align-items: center;
@@ -84,7 +122,36 @@
   .reading-body.reading-page--spread {
     flex-direction: row;
     align-items: center;
-    gap: 28px;
+    gap: 36px;
+    position: relative;
+  }
+
+  /* A soft "spine" shadow between the two pages, like an open book's
+     center crease, instead of a plain gap. */
+  .reading-page--spread::before {
+    content: "";
+    position: absolute;
+    top: 3%;
+    bottom: 3%;
+    left: 50%;
+    width: 34px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(28, 54, 50, 0.07) 38%,
+      rgba(28, 54, 50, 0.13) 50%,
+      rgba(28, 54, 50, 0.07) 62%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .reading-page--spread .reading-poem-wrap,
+  .reading-page--spread .reading-illustration {
+    position: relative;
+    z-index: 1;
   }
 
   .reading-page--spread .reading-poem-wrap {
@@ -102,6 +169,8 @@
 
   .reading-page--spread .reading-illustration img {
     max-width: 100%;
-    max-height: 60vh;
+    /* Fill much more of its page instead of floating small and centered
+       (60vh left a lot of unused space around a near-square illustration). */
+    max-height: 82vh;
   }
 }
