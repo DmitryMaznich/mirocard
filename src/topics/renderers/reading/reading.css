@@ -1,0 +1,51 @@
+/* Reading "page" composition — read_text (layout full/line) and
+   read_poem_book. Scoped under .reading-page on purpose: the shared
+   .reading-body class (styles.css) is also worn by understand_text,
+   assemble_line, follow_instruction (recipes), shopping_list and
+   safe_code, which have their own, unrelated compositions — nothing here
+   should leak into those. */
+
+.reading-body.reading-page {
+  background: #fdfcf9;
+}
+
+/* The card was already half-built into .reading-text (padding, radius) but
+   left transparent/shadowless — text and illustration floated as two
+   disconnected blocks with no shared "page" framing. Filling in the paper
+   background + shadow here finishes that card instead of inventing a new
+   wrapper. */
+.reading-page .reading-content .reading-text {
+  background: #fffef5;
+  box-shadow: 0 10px 24px rgba(28, 54, 52, 0.08), 0 2px 6px rgba(28, 54, 52, 0.05);
+}
+
+/* Tablet+: an open-book spread — illustration on one side, text page on the
+   other — instead of the same narrow centered column just scaled up. */
+@media (min-width: 768px) {
+  /* .reading-body / .session-body also set flex-direction/align-items at
+     equal (single-class) specificity — pair with .reading-body so this
+     reliably wins regardless of stylesheet load order. */
+  .reading-body.reading-page--spread {
+    flex-direction: row;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .reading-page--spread .reading-poem-wrap {
+    flex: 1 1 52%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .reading-page--spread .reading-illustration {
+    flex: 1 1 48%;
+    min-height: 0;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .reading-page--spread .reading-illustration img {
+    max-width: 100%;
+    max-height: 60vh;
+  }
+}

@@ -13,6 +13,7 @@ import { CSS as DndCSS } from "@dnd-kit/utilities";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getSafeCodeConfig, appendSafeCodeLog } from "@/core/groupStore";
+import "./reading.css";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -84,7 +85,7 @@ function ReadingIllustration({ topicId, text, illustrationRef }) {
 // after the illustration claims its reserved height, so the whole text is
 // visible on one screen without scrolling on small devices. Falls back to
 // scrolling just the line list if even the minimum readable scale overflows.
-function useFitReadingText(active, deps) {
+function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
   const bodyRef = useRef(null);
   const wrapRef = useRef(null);
   const contentRef = useRef(null);
@@ -96,6 +97,12 @@ function useFitReadingText(active, deps) {
     const wrap = wrapRef.current;
     const content = contentRef.current;
     if (!body || !wrap) return;
+
+    // Above the .reading-page--spread breakpoint the illustration sits beside
+    // the text (row layout), not above/below it — it no longer eats into the
+    // text's available height, so the usual "subtract the illustration" math
+    // would under-scale the text for no reason.
+    const isSpread = spreadCapable && window.matchMedia("(min-width: 768px)").matches;
 
     const GAP = 18; // .reading-body gap between the poem-wrap and the illustration
     const MIN_SCALE = 0.55;
@@ -136,8 +143,8 @@ function useFitReadingText(active, deps) {
     const bodyStyle = getComputedStyle(body);
     const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
     const bodyHeight = body.getBoundingClientRect().height;
-    const illuHeight = illustrationNodeRef.current?.getBoundingClientRect().height ?? 0;
-    const available = Math.max(0, bodyHeight - paddingV - illuHeight - GAP);
+    const illuHeight = isSpread ? 0 : (illustrationNodeRef.current?.getBoundingClientRect().height ?? 0);
+    const available = Math.max(0, bodyHeight - paddingV - illuHeight - (isSpread ? 0 : GAP));
 
     let current = 1;
     let required = requiredHeight();
@@ -162,7 +169,7 @@ function useFitReadingText(active, deps) {
       // centered child — the child needs to start at the top to be scrollable.
       content.style.justifyContent = "flex-start";
     }
-  }, [active]);
+  }, [active, spreadCapable]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(measure, [measure, ...deps]);
@@ -194,11 +201,15 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   const isPool = task.text?.kind === "sentence_pool";
   const bookStyle = task.text?.kind === "story";
   const showCloseButton = task.text?.kind === "story" || task.text?.kind === "poem";
-  const fit = useFitReadingText(showCloseButton && layout === "full", [task.text?.id, textStyle, lines.length]);
+  // Corner-photo decks pin two images to the bottom corners rather than one
+  // book-style illustration — that layout doesn't translate to a side-by-side
+  // spread, so it keeps the plain vertical stack at every width.
+  const hasIllustration = !!task.text?.image && !task.text?.cornerPhotos;
+  const fit = useFitReadingText(showCloseButton && layout === "full", [task.text?.id, textStyle, lines.length], { spreadCapable: hasIllustration });
 
   if (layout === "line") {
     return (
-      <div className="session-body reading-body">
+      <div className="session-body reading-body reading-page">
         <div className="reading-poem-wrap">
           {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
           {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
@@ -233,7 +244,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
 
   return (
     <div
-      className="session-body reading-body"
+      className={`session-body reading-body reading-page${hasIllustration ? " reading-page--spread" : ""}`}
       ref={fit.bodyRef}
       style={isPool ? { justifyContent: "center" } : undefined}
       onClick={showCloseButton ? undefined : onAdvance}
@@ -264,7 +275,7 @@ function ReadPoemBookTask({ task, topicId, onAdvance }) {
   if (!page) return null;
 
   return (
-    <div className="session-body reading-body" ref={fit.bodyRef}>
+    <div className="session-body reading-body reading-page" ref={fit.bodyRef}>
       <div className="reading-poem-wrap" ref={fit.wrapRef}>
         <div className="reading-title">{getTopicTitle(page.title)}</div>
         <div className="reading-content" ref={fit.contentRef}>
