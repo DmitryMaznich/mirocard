@@ -102,7 +102,7 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
     // the text (row layout), not above/below it — it no longer eats into the
     // text's available height, so the usual "subtract the illustration" math
     // would under-scale the text for no reason.
-    const isSpread = spreadCapable && window.matchMedia("(min-width: 768px)").matches;
+    const isSpread = spreadCapable && window.matchMedia("(orientation: landscape)").matches;
 
     const GAP = 18; // .reading-body gap between the poem-wrap and the illustration
     const MIN_SCALE = 0.55;

@@ -9,19 +9,33 @@
   background: #fdfcf9;
 }
 
-/* The card was already half-built into .reading-text (padding, radius) but
-   left transparent/shadowless — text and illustration floated as two
-   disconnected blocks with no shared "page" framing. Filling in the paper
-   background + shadow here finishes that card instead of inventing a new
-   wrapper. */
-.reading-page .reading-content .reading-text {
-  background: #fffef5;
-  box-shadow: 0 10px 24px rgba(28, 54, 52, 0.08), 0 2px 6px rgba(28, 54, 52, 0.05);
+/* Portrait (the default, non-spread state): the illustration was a small
+   bottom-right thumbnail sized off its own height. Make it a full-width
+   picture under the text instead, matching the text card's width — the
+   .reading-illustration--corners two-photo variant keeps its own layout,
+   it isn't one picture that can sensibly stretch to full width. The
+   fit-to-height JS already measures however tall this ends up and shrinks
+   the text to compensate, so no extra height cap is needed here. */
+.reading-page .reading-illustration:not(.reading-illustration--corners) {
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
-/* Tablet+: an open-book spread — illustration on one side, text page on the
-   other — instead of the same narrow centered column just scaled up. */
-@media (min-width: 768px) {
+.reading-page .reading-illustration:not(.reading-illustration--corners) img {
+  width: 100%;
+  height: auto;
+}
+
+/* Landscape: an open-book spread — illustration on one side, text page on
+   the other — instead of the same narrow centered column just scaled up.
+   Keyed on orientation, not width: a portrait tablet is still a tall,
+   narrow reading surface (same shape as a phone) and should stay a single
+   column full-width; only when the screen is wider than it is tall does
+   the two-page-spread composition make sense. Matches the existing
+   orientation-based row-layout convention used elsewhere in this file
+   (.find-n-body, .qa-body, .choose-all-body). */
+@media (orientation: landscape) {
   /* .reading-body / .session-body also set flex-direction/align-items at
      equal (single-class) specificity — pair with .reading-body so this
      reliably wins regardless of stylesheet load order. */
