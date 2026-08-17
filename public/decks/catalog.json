@@ -23,8 +23,8 @@
         "en": "Reading: Short Stories"
       },
       "description": {
-        "ru": "Двенадцать коротких рассказов с иллюстрациями: совместное чтение (с показом по слогам или обычным текстом), вопросы по смыслу и сборка текста из слов.",
-        "en": "Twelve short illustrated stories: shared reading (syllable or normal text display), comprehension questions, and sentence assembly."
+        "ru": "Двенадцать коротких рассказов с иллюстрациями для совместного чтения (обычный текст или по слогам). После чтения родитель или логопед сам задаёт ребёнку вопросы по смыслу.",
+        "en": "Twelve short illustrated stories for shared reading (normal text or syllable-split). After reading, the parent or therapist asks the child their own comprehension questions."
       },
       "url": "./decks/reading_short_stories_v1.1.0.zip",
       "status": "release",
@@ -47,16 +47,16 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.7.0",
+      "version": "1.6.0",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
       },
       "description": {
-        "ru": "Шесть базовых эмоций и четыре состояния: по три портрета разных детей, 12 жизненных ситуаций с фотографиями-причинами и аудио названий.",
-        "en": "Six core emotions and four states: three portraits of different children per concept, 12 life situations with causal photographs, and spoken labels."
+        "ru": "10 эмоций × 3 вариации (крупные портреты разных детей) и ситуации для всех эмоций. Аудио произношение.",
+        "en": "10 emotions × 3 close-up portraits of different children, with situations for every emotion. Audio included."
       },
-      "url": "./decks/emotions_v2_v1.7.0.zip",
+      "url": "./decks/emotions_v2_v1.6.0.zip",
       "status": "release",
       "access": "free"
     },
@@ -357,9 +357,9 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.11.0",
-      "url": "./decks/symmetry_draw_v1.11.0.zip",
-      "zipUrl": "symmetry_draw_v1.11.0.zip",
+      "version": "1.11.1",
+      "url": "./decks/symmetry_draw_v1.11.1.zip",
+      "zipUrl": "symmetry_draw_v1.11.1.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },

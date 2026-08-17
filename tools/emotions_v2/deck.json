@@ -997,6 +997,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Мама подарила новую игрушку.",
+      "sceneImage": "media/situation_joy_3.webp",
       "answerKey": "радость",
       "primary": false
     },
@@ -1026,6 +1027,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Папа не разрешил гулять.",
+      "sceneImage": "media/situation_sadness_3.webp",
       "answerKey": "грусть",
       "primary": false
     },
@@ -1045,6 +1047,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Папа не хочет покупать колу.",
+      "sceneImage": "media/situation_anger_2.webp",
       "answerKey": "злость",
       "primary": false
     },
@@ -1084,6 +1087,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Ночью по крыше кто-то ходит.",
+      "sceneImage": "media/situation_fear_3.webp",
       "answerKey": "страх",
       "primary": false
     },
@@ -1113,6 +1117,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Неожиданно заиграла любимая музыка.",
+      "sceneImage": "media/situation_surprise_3.webp",
       "answerKey": "удивление",
       "primary": false
     },
@@ -1122,6 +1127,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "Девочка слушает тихую музыку.",
+      "sceneImage": "media/situation_calm_1.webp",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1131,6 +1137,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Все дела сегодня сделаны.",
+      "sceneImage": "media/situation_calm_2.webp",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1140,6 +1147,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "Мальчик тихо гуляет в парке.",
+      "sceneImage": "media/situation_calm_3.webp",
       "answerKey": "спокойствие",
       "primary": false
     },
@@ -1149,6 +1157,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "Девочка долго ждёт в очереди.",
+      "sceneImage": "media/situation_boredom_1.webp",
       "answerKey": "скука",
       "primary": false
     },
@@ -1158,6 +1167,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Папа спросил, кто пукнул в машине.",
+      "sceneImage": "media/situation_shame_1.webp",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1167,6 +1177,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "После долгой дороги хочется спать.",
+      "sceneImage": "media/situation_tiredness_1.webp",
       "answerKey": "усталость",
       "primary": false
     },
@@ -1176,6 +1187,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Кто-то пукнул рядом.",
+      "sceneImage": "media/situation_disgust_1.webp",
       "answerKey": "отвращение",
       "primary": false
     },
@@ -1185,6 +1197,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Друзья сказали, что от меня плохо пахнет.",
+      "sceneImage": "media/situation_shame_2.webp",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1194,6 +1207,7 @@
       "cardType": "situation",
       "situationUse": "deferred",
       "label": "Девочка случайно разлила воду на рисунок.",
+      "sceneImage": "media/situation_shame_3.webp",
       "answerKey": "стыд",
       "primary": false
     },
@@ -1223,6 +1237,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "Играть дома уже надоело.",
+      "sceneImage": "media/situation_boredom_2.webp",
       "answerKey": "скука",
       "primary": false
     },
@@ -1232,6 +1247,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "Дорога кажется очень долгой.",
+      "sceneImage": "media/situation_boredom_3.webp",
       "answerKey": "скука",
       "primary": false
     },
@@ -1241,6 +1257,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "После игры на улице ребёнок устал.",
+      "sceneImage": "media/situation_tiredness_2.webp",
       "answerKey": "усталость",
       "primary": false
     },
@@ -1250,6 +1267,7 @@
       "cardType": "situation",
       "situationUse": "discussion",
       "label": "Глаза закрываются. Пора спать.",
+      "sceneImage": "media/situation_tiredness_3.webp",
       "answerKey": "усталость",
       "primary": false
     }

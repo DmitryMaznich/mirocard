@@ -83,6 +83,7 @@ function getSituationCards(allCards, use = "all") {
   return allCards.filter((card) => {
     if (card.cardType !== "situation") return false;
     const situationUse = card.situationUse ?? "auto";
+    if (use === "intro") return true;
     if (use === "all") return situationUse !== "deferred";
     return situationUse === use;
   });
@@ -127,7 +128,7 @@ function generateSituationEmotionTasks(displayConcepts, allCards, params) {
 }
 
 function generateSituationIntroTasks(displayConcepts, allCards, params) {
-  const situationCards = getSituationCards(allCards);
+  const situationCards = getSituationCards(allCards, "intro");
   const tasks = [];
   for (const situationCard of situationCards) {
     const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);

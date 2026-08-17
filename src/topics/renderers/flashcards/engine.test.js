@@ -188,11 +188,11 @@ describe("situation use levels", () => {
     expect(reverse.every((task) => task.options.every((option) => option.conceptId !== "calm"))).toBe(true);
   });
 
-  it("keeps discussion situations in no-evaluation introduction and hides deferred material", () => {
+  it("keeps discussion and deferred situations in the no-evaluation introduction", () => {
     const tasks = generateTasks("situation_intro", CONCEPTS, CARDS, {});
-    expect(tasks).toHaveLength(3);
+    expect(tasks).toHaveLength(4);
     expect(tasks.some((task) => task.situationText === "Девочка слушает музыку.")).toBe(true);
-    expect(tasks.some((task) => task.situationText === "Отложенная ситуация.")).toBe(false);
+    expect(tasks.some((task) => task.situationText === "Отложенная ситуация.")).toBe(true);
   });
 
   it("honours an explicit per-session situation limit", () => {

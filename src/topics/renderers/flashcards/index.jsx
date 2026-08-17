@@ -80,17 +80,20 @@ function SituationIntroTask({ task, topicId, onAdvance }) {
     <button className="session-full-tap situation-intro" onClick={handleTap}>
       <div className="session-instruction">{task.situationText}</div>
       {hasScene && !revealed ? (
-        <SituationScene topicId={topicId} image={task.sceneImage} />
+        <>
+          <SituationScene topicId={topicId} image={task.sceneImage} />
+          <div className="session-instruction situation-intro__question">Что чувствует?</div>
+        </>
       ) : (
         <>
           <CardArea topicId={topicId} card={task.card} />
-          {!hasScene && <div className="session-instruction situation-intro__question">Как называется это чувство?</div>}
+          {!hasScene && <div className="session-instruction situation-intro__question">Что чувствует?</div>}
           <div className={`situation-intro__reveal${revealed ? " situation-intro__reveal--shown" : ""}`}>
             <div className="situation-intro__label">{task.label}</div>
           </div>
         </>
       )}
-      {!revealed && <div className="session-hint">{hasScene ? "Нажми, чтобы увидеть эмоцию" : "Нажми, чтобы узнать ответ"}</div>}
+      {!revealed && <div className="session-hint">{hasScene ? "Нажми, чтобы увидеть ответ" : "Нажми, чтобы узнать ответ"}</div>}
     </button>
   );
 }
