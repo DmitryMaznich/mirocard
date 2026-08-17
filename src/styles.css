@@ -13098,8 +13098,13 @@ button {
    the total up to 0.95em (~70% of this line's own rendered line-height,
    measured at ~1.357x its font-size) - scales with the responsive
    font-size instead of a fixed px gap. */
-.situation-intro__question {
+.situation-intro .situation-intro__question {
   margin-top: calc(0.95em - 12px);
+  /* Override the generic tablet instruction scale: this is a prompt, not
+     the headline of the screen. */
+  font-size: clamp(1rem, 2.4dvh, 1.3rem);
+  font-weight: 600;
+  line-height: 1.25;
 }
 .situation-intro__reveal {
   display: flex;
@@ -13118,9 +13123,12 @@ button {
 /* Own label class, not .session-label - that one carries a
    translateY(-5dvh) tuned for IntroTask's flex-fill layout, which
    pulled this label up onto the picture instead of sitting under it. */
-.situation-intro__label {
-  font-size: 1.8rem;
-  font-weight: 700;
+.situation-intro .situation-intro__label {
+  /* The revealed emotion is the answer and must be visibly dominant over
+     the question on both a phone and a tablet. */
+  font-size: clamp(2.2rem, 5dvh, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
   text-align: center;
   flex-shrink: 0;
 }
