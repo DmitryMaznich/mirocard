@@ -14409,12 +14409,6 @@ kbd {
   align-items: baseline;
   gap: 6px;
 }
-.figure-picker-param__summary {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-}
 .figure-picker__intro {
   margin: 0 0 14px;
   color: #58736f;
@@ -14434,12 +14428,22 @@ kbd {
   gap: 12px;
   margin-bottom: 10px;
 }
-.figure-picker__bulk-actions {
+.figure-picker__select-all {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px 12px;
+  gap: 7px;
+  color: #315b54;
+  font-size: .84rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.figure-picker__select-all input {
+  width: 18px;
+  height: 18px;
+  accent-color: #1c7a6e;
+  cursor: pointer;
 }
 .figure-picker__grid {
   display: grid;
