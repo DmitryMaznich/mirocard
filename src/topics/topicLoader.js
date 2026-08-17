@@ -1737,9 +1737,19 @@ function normalizeReading(manifest) {
     lines: text.lines ?? [],
     questions: text.questions ?? [],
   }));
+  // mergeDefaultModes unions in every DEFAULT_MODES.reading entry regardless
+  // of what the deck's own manifest declares — fine for decks that want the
+  // full read/understand/assemble set "for free", but some decks (e.g. one
+  // that only wants supervised reading, no built-in comprehension quiz or
+  // word-scramble) need to actually drop a default mode, not just skip
+  // listing it. meta.excludeDefaultModes is that opt-out, scoped per deck.
+  const excludedModeIds = new Set(manifest.meta?.excludeDefaultModes ?? []);
+  const defaultModesForTopic = excludedModeIds.size
+    ? DEFAULT_MODES.reading.filter((m) => !excludedModeIds.has(m.id))
+    : DEFAULT_MODES.reading;
   const modes = manifest.modes?.length
-    ? ensureModeIcons(mergeDefaultModes(manifest.modes, DEFAULT_MODES.reading), "reading")
-    : ensureModeIcons(DEFAULT_MODES.reading, "reading");
+    ? ensureModeIcons(mergeDefaultModes(manifest.modes, defaultModesForTopic), "reading")
+    : ensureModeIcons(defaultModesForTopic, "reading");
 
   return { ...manifest, meta, cards, texts, modes };
 }

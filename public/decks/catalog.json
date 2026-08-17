@@ -23,8 +23,8 @@
         "en": "Reading: Short Stories"
       },
       "description": {
-        "ru": "Двенадцать коротких рассказов с иллюстрациями: совместное чтение (с показом по слогам или обычным текстом), вопросы по смыслу и сборка текста из слов.",
-        "en": "Twelve short illustrated stories: shared reading (syllable or normal text display), comprehension questions, and sentence assembly."
+        "ru": "Двенадцать коротких рассказов с иллюстрациями для совместного чтения (обычный текст или по слогам). После чтения родитель или логопед сам задаёт ребёнку вопросы по смыслу.",
+        "en": "Twelve short illustrated stories for shared reading (normal text or syllable-split). After reading, the parent or therapist asks the child their own comprehension questions."
       },
       "url": "./decks/reading_short_stories_v1.1.0.zip",
       "status": "release",
