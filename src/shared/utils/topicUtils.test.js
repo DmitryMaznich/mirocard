@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  deriveConcepts, getConceptCards, getPrimaryCard,
+  deriveConcepts, getConceptCards, getFigureFilter, getPrimaryCard, withFigureFilter,
   isConceptSelectionScopedByMode, readModeSelectedConceptIds, writeModeSelectedConceptIds,
 } from "./topicUtils";
 
@@ -106,6 +106,43 @@ describe("getConceptCards", () => {
       .toEqual(["starter-mirror"]);
     expect(getConceptCards(record, { type: "mirror_draw" }, { figureDifficulty: "all" }).map((card) => card.id))
       .toEqual(["starter-mirror", "challenge-mirror"]);
+  });
+
+  it("uses a manual figure selection instead of intersecting it with a difficulty preset", () => {
+    const record = {
+      meta: { id: "symmetry_draw", renderer: "flashcards" },
+      cards: [
+        { id: "starter-mirror", taskKind: "mirror", difficulty: "starter" },
+        { id: "challenge-mirror", taskKind: "mirror", difficulty: "challenge" },
+      ],
+    };
+    const mode = { id: "symmetry_draw", type: "mirror_draw" };
+    const params = withFigureFilter({ figureDifficulty: "starter" }, mode, {
+      type: "manual",
+      cardIds: ["challenge-mirror"],
+    });
+    expect(getFigureFilter(params, mode)).toEqual({ type: "manual", cardIds: ["challenge-mirror"] });
+    expect(getConceptCards(record, mode, params).map((card) => card.id)).toEqual(["challenge-mirror"]);
+  });
+
+  it("honours a saved difficulty filter for its own drawing mode", () => {
+    const mode = { id: "repeat_draw", type: "repeat_draw" };
+    const params = withFigureFilter({}, mode, { type: "difficulty", difficulty: "challenge" });
+    expect(getFigureFilter(params, mode)).toEqual({ type: "difficulty", difficulty: "challenge" });
+  });
+
+  it("keeps visual figure filters separate between exercise modes and dictation variants", () => {
+    const repeat = { id: "repeat_draw", type: "repeat_draw" };
+    const dictation = { id: "graphic_dictation", type: "graphic_dictation" };
+    const params = withFigureFilter(
+      withFigureFilter({}, repeat, { type: "manual", cardIds: ["rocket"] }),
+      dictation,
+      { type: "manual", cardIds: ["house"] },
+    );
+    const coordinateParams = { ...params, dictationCommand: "coordinates" };
+    expect(getFigureFilter(params, repeat).cardIds).toEqual(["rocket"]);
+    expect(getFigureFilter(params, dictation).cardIds).toEqual(["house"]);
+    expect(getFigureFilter(coordinateParams, dictation).type).toBe("difficulty");
   });
 
   it("scopes navigator to its direction-drill metadata card", () => {
