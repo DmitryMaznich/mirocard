@@ -42,17 +42,20 @@
    mutually-exclusive media queries are the reliable way to keep these two
    rule sets from ever fighting regardless of selector specificity. */
 @media (orientation: portrait) {
-  /* Dropping flex-grow so the box is sized by the image's own natural
-     aspect ratio, and max-height:none so nothing clips it independently
-     of width — the previous width:100% + inherited max-height:100%
-     (styles.css) combination let the box get clipped to less height than
-     the width implied without touching width, and the img's default
-     object-fit:fill then stretched the bitmap to fit the mismatched box
-     (visibly distorted). The fit-to-height JS already measures however
-     tall this ends up and shrinks the text to compensate, so no
-     artificial height cap is needed here anyway. */
+  /* Letting the box size itself off the image's own aspect ratio (a
+     previous version of this rule) meant a near-square or portrait photo
+     at full width came out very tall, crowding the text down to its
+     minimum readable scale even with room to spare elsewhere on the page.
+     Capping the box to a fixed share of the page's height instead — with
+     object-fit:contain doing the aspect-preserving scaling inside that
+     box — keeps the picture from dominating regardless of its native
+     aspect ratio, and leaves the text noticeably more room. (contain also
+     sidesteps the earlier distortion bug for good: the box's width and
+     height can now be set independently without ever stretching the
+     bitmap, since contain scales the image to fit rather than filling
+     both axes unconditionally like the default object-fit:fill did.) */
   .reading-page .reading-illustration:not(.reading-illustration--corners) {
-    flex: 0 0 auto;
+    flex: 0 1 36%;
     min-height: 0;
     justify-content: center;
     align-items: center;
@@ -61,8 +64,8 @@
 
   .reading-page .reading-illustration:not(.reading-illustration--corners) img {
     width: 100%;
-    height: auto;
-    max-height: none;
+    height: 100%;
+    object-fit: contain;
   }
 }
 
