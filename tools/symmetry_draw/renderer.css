@@ -118,7 +118,6 @@
 .symmetry-draw__repeat-feedback--missed { stroke: #e77949; stroke-dasharray: .08 .11; }
 .symmetry-draw__hint-line { stroke: var(--sd-hint); stroke-width: 0.035; stroke-dasharray: 0.02 0.1; }
 .symmetry-draw__hint-point { fill: var(--sd-hint); pointer-events: none; }
-.symmetry-draw__hint-point text { fill: white; font: 800 0.17px/1 Nunito, sans-serif; pointer-events: none; }
 
 .symmetry-draw__controls { display: flex; width: 100%; min-width: 0; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
 

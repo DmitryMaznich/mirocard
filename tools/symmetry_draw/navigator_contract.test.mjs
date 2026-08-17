@@ -61,6 +61,13 @@ test("worksheet references add the complete complex repeat figure set", () => {
   assert.equal(topic.cards.find((card) => card.id === "repeat_seahorse_worksheet")?.label, "Утка с хвостом");
 });
 
+test("repeat worksheets use the standard vector grid style without numbered hint points", () => {
+  assert.doesNotMatch(renderer, /BLACK_LINE_TRACES|traceImage|__MirocardTraceImages/);
+  assert.match(renderer, /sourcePaths\.map\(\(path, index\) => h\("path", \{ key: `source-\$\{index\}`/);
+  assert.match(renderer, /showHint \? targetPaths\.map\(\(path, index\) => h\("path", \{ key: `hint-line-\$\{index\}`/);
+  assert.match(renderer, /showHint \? hintPoints\.map\(\(point, index\) => h\("circle", \{ key: `hint-point-\$\{index\}`/);
+});
+
 test("the figure difficulty control is shown in every specialized drawing settings screen", () => {
   assert.match(paramsScreen, /function FigureDifficultyParam/);
   assert.equal((paramsScreen.match(/<FigureDifficultyParam\b/g) ?? []).length, 2);

@@ -17,9 +17,6 @@
   // Vertical position is NOT forgiven this way; only horizontal.
   const HORIZONTAL_SHIFT_TOLERANCE = 2;
   const EMPTY_PATHS = [];
-  // Generated from the supplied worksheets: these preserve a literal trace of
-  // their black model line rather than a hand-interpreted approximation.
-  const BLACK_LINE_TRACES = window.__MirocardTraceImages ?? {};
 
   function mirrorPaths(paths, axisCol) {
     return (paths ?? []).map((path) => path.map((point) => ({ col: 2 * axisCol - point.col, row: point.row })));
@@ -993,7 +990,6 @@
     const axisCol = Number(shape.axisCol ?? 5);
     const sourcePaths = shape.sourcePaths || EMPTY_PATHS;
     const isRepeat = shape.taskKind === "repeat";
-    const traceImage = isRepeat ? (BLACK_LINE_TRACES[shape.id] ?? null) : null;
     // A repeat is two separate workspaces, not two halves around an axis.
     // Keep a narrow visual gutter so it cannot be mistaken for symmetry.
     const repeatGap = isRepeat ? 1.5 : 0;
@@ -1134,9 +1130,7 @@
                 h("path", { key: "chev-top", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
                 h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
               ] : null,
-          traceImage
-            ? h("image", { className: "symmetry-draw__source-trace", href: traceImage, x: 0, y: 0, width: axisCol, height: rows, preserveAspectRatio: "none", "aria-hidden": "true" })
-            : sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
+          sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),
@@ -1148,10 +1142,8 @@
             className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
             x1: segment.a.col, y1: segment.a.row, x2: segment.b.col, y2: segment.b.row,
           })) : null,
-          showHint ? (traceImage
-            ? h("image", { className: "symmetry-draw__hint-trace", href: traceImage, x: workOrigin, y: 0, width: axisCol, height: rows, preserveAspectRatio: "none", "aria-hidden": "true" })
-            : targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) }))) : null,
-          showHint ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.17" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
+          showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
+          showHint ? hintPoints.map((point, index) => h("circle", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point", cx: point.col, cy: point.row, r: "0.17" })) : null,
         ),
       ),
       h("div", { className: "symmetry-draw__controls" },
