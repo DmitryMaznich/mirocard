@@ -52,6 +52,9 @@ export function getFigureFilter(params = {}, mode) {
   if (saved?.type === "manual" && Array.isArray(saved.cardIds) && saved.cardIds.length) {
     return { type: "manual", cardIds: saved.cardIds };
   }
+  if (saved?.type === "difficulty" && typeof saved.difficulty === "string") {
+    return { type: "difficulty", difficulty: saved.difficulty };
+  }
   // `figureDifficulty` is kept as a one-release migration path for settings
   // saved before the visual picker existed.
   return { type: "difficulty", difficulty: params.figureDifficulty ?? "all" };

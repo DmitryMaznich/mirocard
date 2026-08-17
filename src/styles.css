@@ -14434,6 +14434,13 @@ kbd {
   gap: 12px;
   margin-bottom: 10px;
 }
+.figure-picker__bulk-actions {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 12px;
+}
 .figure-picker__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

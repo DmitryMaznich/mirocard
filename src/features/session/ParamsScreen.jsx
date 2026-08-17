@@ -549,7 +549,10 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
           </div>
           <div className="figure-picker__toolbar">
             <span className="param-hint">{draftIds.size} из {allFigures.length} отмечено</span>
-            <button type="button" className="link-btn" onClick={() => setDraftIds(new Set(allFigures.map((card) => card.id)))}>Выбрать все</button>
+            <div className="figure-picker__bulk-actions">
+              <button type="button" className="link-btn" onClick={() => setDraftIds(new Set(allFigures.map((card) => card.id)))}>Выбрать все</button>
+              <button type="button" className="link-btn" onClick={() => setDraftIds(new Set())}>Сбросить все</button>
+            </div>
           </div>
           <div className="figure-picker__grid" role="group" aria-label="Рисунки">
             {visibleFigures.map((card) => {
