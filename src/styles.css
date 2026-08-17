@@ -13083,6 +13083,16 @@ button {
 .situation-intro .card-area {
   flex: 0 1 auto;
 }
+/* The scene is the primary material in the first step of “Знакомство”.
+   It should use the entire content width instead of the generic 360px card
+   cap; the button's horizontal padding still keeps it clear of screen edges. */
+.situation-intro .situation-scene {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: auto;
+  aspect-ratio: auto;
+}
 /* Pin the question to the photo: .session-full-tap's flex `gap: 12px`
    already puts 12px between them, so add just enough extra margin to bring
    the total up to 0.95em (~70% of this line's own rendered line-height,
