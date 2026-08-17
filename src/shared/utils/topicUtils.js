@@ -36,6 +36,38 @@ function isSymmetryDrawFigureMode(topicRecord, mode) {
   return topicRecord?.meta?.id === "symmetry_draw" && FIGURE_MODE_TYPES.has(mode?.type);
 }
 
+// Figure filters belong to a particular exercise, not to the whole topic.  In
+// particular, the two variants of graphic dictation draw from different card
+// pools.  Keeping the filter in one namespaced object prevents a parent's
+// choice for "Повтори рисунок" from unexpectedly changing "Симметрию".
+export function getFigureFilterKey(mode, params = {}) {
+  const variant = mode?.type === "graphic_dictation"
+    ? `:${params.dictationCommand === "coordinates" ? "coordinates" : "directions"}`
+    : "";
+  return `${mode?.id ?? "figure"}${variant}`;
+}
+
+export function getFigureFilter(params = {}, mode) {
+  const saved = params.figureFilters?.[getFigureFilterKey(mode, params)];
+  if (saved?.type === "manual" && Array.isArray(saved.cardIds) && saved.cardIds.length) {
+    return { type: "manual", cardIds: saved.cardIds };
+  }
+  // `figureDifficulty` is kept as a one-release migration path for settings
+  // saved before the visual picker existed.
+  return { type: "difficulty", difficulty: params.figureDifficulty ?? "all" };
+}
+
+export function withFigureFilter(params = {}, mode, filter) {
+  const key = getFigureFilterKey(mode, params);
+  return {
+    ...params,
+    figureFilters: {
+      ...(params.figureFilters ?? {}),
+      [key]: filter,
+    },
+  };
+}
+
 // word_agreement bundles several unrelated skills (case, verb number, verb
 // gender, ...) as one big card array with a `skill` field per card, one
 // mode per skill. Without this, the concept picker would list every card in
@@ -52,9 +84,15 @@ export function getConceptCards(topicRecord, mode, params = {}) {
     ? (params.dictationCommand === "coordinates" ? "coordinate" : "dictation")
     : (mode?.type ? TASK_KIND_BY_MODE_TYPE[mode.type] : undefined);
   const modeCards = taskKind ? cards.filter((c) => c.taskKind === taskKind) : cards;
-  const difficulty = params.figureDifficulty ?? "all";
-  if (isSymmetryDrawFigureMode(topicRecord, mode) && difficulty !== "all") {
-    return modeCards.filter((card) => card.difficulty === difficulty);
+  if (isSymmetryDrawFigureMode(topicRecord, mode)) {
+    const figureFilter = getFigureFilter(params, mode);
+    if (figureFilter.type === "manual") {
+      const selected = new Set(figureFilter.cardIds);
+      return modeCards.filter((card) => selected.has(card.id));
+    }
+    if (figureFilter.difficulty !== "all") {
+      return modeCards.filter((card) => card.difficulty === figureFilter.difficulty);
+    }
   }
   return modeCards;
 }
