@@ -109,6 +109,17 @@
   pointer-events: none;
 }
 .symmetry-draw__source { stroke: var(--sd-given); stroke-width: 0.09; }
+.symmetry-draw__source-artwork { fill: var(--sd-given); pointer-events: none; }
+.symmetry-draw__hint-artwork {
+  fill: none;
+  stroke: var(--sd-hint);
+  stroke-width: 0.035;
+  stroke-dasharray: 0.02 0.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.92;
+  pointer-events: none;
+}
 /* The child's own stroke gets a soft low-opacity halo underneath a bold core -
    reads like felt-tip marker ink instead of a thin debug vector. */
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }

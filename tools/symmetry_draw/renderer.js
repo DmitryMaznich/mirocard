@@ -17,6 +17,9 @@
   // Vertical position is NOT forgiven this way; only horizontal.
   const HORIZONTAL_SHIFT_TOLERANCE = 2;
   const EMPTY_PATHS = [];
+  // These are the approved worksheet SVGs. They remain vectors rather than
+  // being replaced with an approximate grid drawing.
+  const REPEAT_ARTWORK = window.__MirocardRepeatArtwork ?? {};
 
   function mirrorPaths(paths, axisCol) {
     return (paths ?? []).map((path) => path.map((point) => ({ col: 2 * axisCol - point.col, row: point.row })));
@@ -98,6 +101,57 @@
 
   function pathToD(points) {
     return points.map((point, index) => `${index ? "L" : "M"} ${point.col} ${point.row}`).join(" ");
+  }
+
+  function splitSvgSubpaths(d) {
+    // Separate outline contours must not be joined by a synthetic line.
+    return d.trim().split(/(?=M\s)/).filter(Boolean);
+  }
+
+  function sampleSvgPath(d, artwork, offsetCol = 0) {
+    const svgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    svgPath.setAttribute("d", d);
+    const length = svgPath.getTotalLength();
+    if (!Number.isFinite(length) || length <= 0) return [];
+    const scaleX = artwork.gridWidth / artwork.width;
+    const scaleY = artwork.gridHeight / artwork.height;
+    const scaledLength = length * Math.max(Math.abs(scaleX), Math.abs(scaleY));
+    const steps = Math.max(2, Math.ceil(scaledLength / 0.14));
+    return Array.from({ length: steps + 1 }, (_, index) => {
+      const point = svgPath.getPointAtLength((length * index) / steps);
+      return { col: offsetCol + point.x * scaleX, row: point.y * scaleY };
+    });
+  }
+
+  function artworkToGridPaths(artwork, offsetCol = 0) {
+    if (!artwork) return EMPTY_PATHS;
+    return artwork.paths.flatMap((path) => splitSvgSubpaths(path.d)
+      .map((subpath) => sampleSvgPath(subpath, artwork, offsetCol))
+      .filter((points) => points.length > 1));
+  }
+
+  function artworkHintPoints(artwork, offsetCol = 0) {
+    const nearestByNode = new Map();
+    const scaleX = artwork.gridWidth / artwork.width;
+    const scaleY = artwork.gridHeight / artwork.height;
+    for (const path of artwork.paths) {
+      for (const match of path.d.matchAll(/[ML]\s+(-?\d*\.?\d+)\s+(-?\d*\.?\d+)/g)) {
+        const point = {
+          col: offsetCol + Number(match[1]) * scaleX,
+          row: Number(match[2]) * scaleY,
+        };
+        const anchor = {
+          col: Math.round(point.col * 2) / 2,
+          row: Math.round(point.row * 2) / 2,
+        };
+        const offset = distance(point, anchor);
+        if (offset > 0.11) continue;
+        const key = `${anchor.col}:${anchor.row}`;
+        const current = nearestByNode.get(key);
+        if (!current || offset < current.offset) nearestByNode.set(key, { ...anchor, offset });
+      }
+    }
+    return [...nearestByNode.values()].map(({ col, row }) => ({ col, row }));
   }
 
   const DIRECTION = {
@@ -990,17 +1044,25 @@
     const axisCol = Number(shape.axisCol ?? 5);
     const sourcePaths = shape.sourcePaths || EMPTY_PATHS;
     const isRepeat = shape.taskKind === "repeat";
+    const rawArtwork = isRepeat ? REPEAT_ARTWORK[shape.id] ?? null : null;
     // A repeat is two separate workspaces, not two halves around an axis.
     // Keep a narrow visual gutter so it cannot be mistaken for symmetry.
     const repeatGap = isRepeat ? 1.5 : 0;
     const workOrigin = isRepeat ? axisCol + repeatGap : axisCol;
     const canvasColumns = columns + repeatGap;
+    const repeatArtwork = useMemo(() => rawArtwork ? {
+      ...rawArtwork,
+      gridWidth: axisCol,
+      gridHeight: rows,
+    } : null, [rawArtwork, axisCol, rows]);
     const targetPaths = useMemo(
-      () => (isRepeat ? translatePaths(sourcePaths, workOrigin) : mirrorPaths(sourcePaths, axisCol)),
-      [sourcePaths, axisCol, workOrigin, isRepeat],
+      () => repeatArtwork
+        ? artworkToGridPaths(repeatArtwork, workOrigin)
+        : (isRepeat ? translatePaths(sourcePaths, workOrigin) : mirrorPaths(sourcePaths, axisCol)),
+      [sourcePaths, axisCol, workOrigin, isRepeat, repeatArtwork],
     );
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
-    const hintPoints = useMemo(() => targetPaths.flat(), [targetPaths]);
+    const hintPoints = useMemo(() => repeatArtwork ? artworkHintPoints(repeatArtwork, workOrigin) : targetPaths.flat(), [targetPaths, repeatArtwork, workOrigin]);
 
     function pointFromEvent(event) {
       const svg = svgRef.current;
@@ -1093,7 +1155,7 @@
     }
 
     const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
-    const repeatStart = targetPaths[0]?.[0] ?? null;
+    const repeatStart = repeatArtwork ? null : targetPaths[0]?.[0] ?? null;
     const coveredSegments = new Set(result?.coveredIndexes ?? []);
 
     return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, "aria-label": shape.label ?? "Симметричный рисунок" },
@@ -1130,7 +1192,9 @@
                 h("path", { key: "chev-top", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} 0.55 L ${axisCol} 0.1 L ${axisCol + 0.22} 0.55 Z` }),
                 h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
               ] : null,
-          sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
+          repeatArtwork
+            ? h("g", { className: "symmetry-draw__source-artwork", transform: `scale(${axisCol / repeatArtwork.width} ${rows / repeatArtwork.height})` }, repeatArtwork.paths.map((path, index) => h("path", { key: `source-artwork-${index}`, d: path.d, fillRule: path.fillRule })))
+            : sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),
@@ -1142,7 +1206,10 @@
             className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
             x1: segment.a.col, y1: segment.a.row, x2: segment.b.col, y2: segment.b.row,
           })) : null,
-          showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
+          showHint ? (repeatArtwork
+            ? h("g", { className: "symmetry-draw__hint-artwork", transform: `translate(${workOrigin} 0) scale(${axisCol / repeatArtwork.width} ${rows / repeatArtwork.height})` }, repeatArtwork.paths.map((path, index) => h("path", { key: `hint-artwork-${index}`, d: path.d, fillRule: path.fillRule })))
+            : targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) }))
+          ) : null,
           showHint ? hintPoints.map((point, index) => h("circle", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point", cx: point.col, cy: point.row, r: "0.17" })) : null,
         ),
       ),
