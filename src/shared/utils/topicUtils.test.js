@@ -125,6 +125,12 @@ describe("getConceptCards", () => {
     expect(getConceptCards(record, mode, params).map((card) => card.id)).toEqual(["challenge-mirror"]);
   });
 
+  it("honours a saved difficulty filter for its own drawing mode", () => {
+    const mode = { id: "repeat_draw", type: "repeat_draw" };
+    const params = withFigureFilter({}, mode, { type: "difficulty", difficulty: "challenge" });
+    expect(getFigureFilter(params, mode)).toEqual({ type: "difficulty", difficulty: "challenge" });
+  });
+
   it("keeps visual figure filters separate between exercise modes and dictation variants", () => {
     const repeat = { id: "repeat_draw", type: "repeat_draw" };
     const dictation = { id: "graphic_dictation", type: "graphic_dictation" };

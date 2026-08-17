@@ -1150,7 +1150,7 @@
           })) : null,
           showHint ? (traceImage
             ? h("image", { className: "symmetry-draw__hint-trace", href: traceImage, x: workOrigin, y: 0, width: axisCol, height: rows, preserveAspectRatio: "none", "aria-hidden": "true" })
-            : targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
+            : targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) }))) : null,
           showHint ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.17" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
         ),
       ),

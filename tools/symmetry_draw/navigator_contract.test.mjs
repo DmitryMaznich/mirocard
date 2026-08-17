@@ -11,6 +11,10 @@ const vectors = {
   up_left: [-1, -1], up_right: [1, -1], down_left: [-1, 1], down_right: [1, 1],
 };
 
+test("the bundled drawing renderer is valid JavaScript", () => {
+  assert.doesNotThrow(() => new Function(renderer));
+});
+
 test("listening navigator shows the command if speech synthesis is unavailable", () => {
   assert.match(renderer, /const usesAuditoryPrompt = isListening && canSpeak;/);
   assert.match(renderer, /usesAuditoryPrompt\s*\? h\("button"/);
