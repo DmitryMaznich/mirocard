@@ -8,6 +8,18 @@ export function getImportErrorMessage(err) {
   return `Ошибка загрузки: ${err?.message ?? err}`;
 }
 
+// A local therapist profile has an account-shaped display object but no API
+// token. Free decks are deliberately
+// published as static ZIPs, so asking the API to claim one first turns a
+// perfectly valid local install into a misleading "Missing token" error.
+export function shouldClaimCatalogDeck(entry, token) {
+  return (entry.access ?? "free") !== "free" || Boolean(token);
+}
+
+export function isLocalModeProfile(account, token) {
+  return account?.email === "local" && !token;
+}
+
 export async function fetchCatalog() {
   try {
     return await api.get("/decks/catalog");

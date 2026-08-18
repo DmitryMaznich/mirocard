@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "print_materials",
-    "version": "1.0.10",
+    "version": "1.0.13",
     "renderer": "print_materials",
     "title": {
       "ru": "Печатные материалы"
@@ -123,6 +123,102 @@
           "path": "print/точки_pages.pdf",
           "filename": "тетрадь_точки_страницы.pdf",
           "hint": "4 листа, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "propis_worksheets_group1",
+      "category": "worksheets",
+      "title": "Прописи — группа 1 (и, л, м, ш)",
+      "description": "Отработка написания букв: и, л, м, ш (строчная, заглавная, пара на строке).",
+      "thumbnail": "thumbnails/propis_worksheets_group1.png",
+      "files": [
+        {
+          "label": "Рабочие листы",
+          "path": "print/группа1_прописи.pdf",
+          "filename": "прописи_группа1.pdf",
+          "hint": "6 листов A4, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "propis_worksheets_group2",
+      "category": "worksheets",
+      "title": "Прописи — группа 2 (п, т, ц, щ)",
+      "description": "Отработка написания букв: п, т, ц, щ (строчная, заглавная, пара на строке).",
+      "thumbnail": "thumbnails/propis_worksheets_group2.png",
+      "files": [
+        {
+          "label": "Рабочие листы",
+          "path": "print/группа2_прописи.pdf",
+          "filename": "прописи_группа2.pdf",
+          "hint": "6 листов A4, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "propis_worksheets_group3",
+      "category": "worksheets",
+      "title": "Прописи — группа 3 (а, е, ё, о, с, э)",
+      "description": "Отработка написания букв: а, е, ё, о, с, э (строчная, заглавная, пара на строке).",
+      "thumbnail": "thumbnails/propis_worksheets_group3.png",
+      "files": [
+        {
+          "label": "Рабочие листы",
+          "path": "print/группа3_прописи.pdf",
+          "filename": "прописи_группа3.pdf",
+          "hint": "6 листов A4, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "propis_worksheets_group4",
+      "category": "worksheets",
+      "title": "Прописи — группа 4 (б, в, д, з, у, ф)",
+      "description": "Отработка написания букв: б, в, д, з, у, ф (строчная, заглавная, пара на строке).",
+      "thumbnail": "thumbnails/propis_worksheets_group4.png",
+      "files": [
+        {
+          "label": "Рабочие листы",
+          "path": "print/группа4_прописи.pdf",
+          "filename": "прописи_группа4.pdf",
+          "hint": "6 листов A4, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "propis_worksheets_group5",
+      "category": "worksheets",
+      "title": "Прописи — группа 5 (г, ж, к, н, х, ч, ю, я)",
+      "description": "Отработка написания букв: г, ж, к, н, х, ч, ю, я (строчная, заглавная, пара на строке).",
+      "thumbnail": "thumbnails/propis_worksheets_group5.png",
+      "files": [
+        {
+          "label": "Рабочие листы",
+          "path": "print/группа5_прописи.pdf",
+          "filename": "прописи_группа5.pdf",
+          "hint": "6 листов A4, двусторонняя, альбомная"
+        }
+      ],
+      "assembly": "Сложить по центру, скрепить степлером по сгибу"
+    },
+    {
+      "id": "propis_worksheets_group6",
+      "category": "worksheets",
+      "title": "Прописи — группа 6 (й, р, ъ, ы, ь)",
+      "description": "Отработка написания букв: й, р, ъ, ы, ь (строчная, заглавная, пара на строке — кроме ъ/ь, только строчные).",
+      "thumbnail": "thumbnails/propis_worksheets_group6.png",
+      "files": [
+        {
+          "label": "Рабочие листы",
+          "path": "print/группа6_прописи.pdf",
+          "filename": "прописи_группа6.pdf",
+          "hint": "6 листов A4, двусторонняя, альбомная"
         }
       ],
       "assembly": "Сложить по центру, скрепить степлером по сгибу"

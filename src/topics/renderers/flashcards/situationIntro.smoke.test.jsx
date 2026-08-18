@@ -33,15 +33,18 @@ describe("situation_intro — mounted through the real SituationIntroTask", () =
     });
   }
 
-  it("shows the situation text and the 'Что чувствует?' question, hides the emotion label until the first tap", () => {
+  it("shows the situation text, the picture, and the question up front (same font as the situation text); hides only the emotion word until the first tap", () => {
     const [task] = generateTasks("situation_intro", CONCEPTS, CARDS, {});
     mount(task, () => {});
-    expect(container.querySelector(".session-instruction")?.textContent).toBe("Друг подарил тебе игрушку.");
-    expect(container.querySelector(".session-hint")?.textContent).toBe("Что чувствует?");
+    const instructions = container.querySelectorAll(".session-instruction");
+    expect(instructions[0]?.textContent).toBe("Друг подарил тебе игрушку.");
+    expect(instructions[1]?.textContent).toBe("Что чувствует?");
+    expect(container.querySelector(".card-area")).not.toBeNull();
     expect(container.querySelector(".situation-intro__reveal")?.className).not.toContain("--shown");
+    expect(container.querySelector(".situation-intro__label")?.textContent).toBe("радость");
   });
 
-  it("first tap reveals the emotion directly under the picture, does not advance; second tap advances", () => {
+  it("first tap reveals the emotion word, does not advance; second tap advances", () => {
     const [task] = generateTasks("situation_intro", CONCEPTS, CARDS, {});
     let advanceCalls = 0;
     mount(task, () => { advanceCalls++; });
@@ -49,11 +52,24 @@ describe("situation_intro — mounted through the real SituationIntroTask", () =
     const btn = container.querySelector("button.situation-intro");
     act(() => btn.click());
     expect(container.querySelector(".situation-intro__reveal")?.className).toContain("--shown");
-    const reveal = container.querySelector(".situation-intro__reveal");
-    expect(reveal.querySelector(".card-area + .situation-intro__label")?.textContent).toBe("радость");
     expect(advanceCalls).toBe(0);
 
     act(() => btn.click());
     expect(advanceCalls).toBe(1);
+  });
+
+  it("shows the scene and question before revealing the portrait and emotion word", () => {
+    const [baseTask] = generateTasks("situation_intro", CONCEPTS, CARDS, {});
+    const task = { ...baseTask, sceneImage: "media/situation_joy_1.webp" };
+    mount(task, () => {});
+
+    expect(container.querySelector(".situation-scene")).not.toBeNull();
+    expect(container.querySelector(".card-area")).toBeNull();
+    expect(container.querySelector(".situation-intro__question")?.textContent).toBe("Что чувствует?");
+
+    const btn = container.querySelector("button.situation-intro");
+    act(() => btn.click());
+    expect(container.querySelector(".card-area")).not.toBeNull();
+    expect(container.querySelector(".situation-intro__label")?.textContent).toBe("радость");
   });
 });

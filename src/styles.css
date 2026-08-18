@@ -12311,6 +12311,16 @@ button {
 .session-header-wrap {
   position: relative;
   z-index: 20;
+  /* Reserve the maximum feedback-badge overhang at all times, so the task
+     never jumps when the small tongue becomes the 96px answer indicator. */
+  margin-bottom: 58px;
+}
+@media (max-width: 560px) {
+  .session-header-wrap {
+    /* On a phone the 96px feedback badge needs extra clear space below the
+       header; reserve it permanently so the instruction remains readable. */
+    margin-bottom: 86px;
+  }
 }
 
 /* ── Plan/settings tongue — a small capsule "grip" poking out of the
@@ -12402,6 +12412,22 @@ button {
 }
 .session-plan-tongue--incorrect {
   background: linear-gradient(180deg, #fdecea 0%, #fbd6d2 55%, #f7c0ba 100%);
+}
+@media (max-width: 560px) {
+  /* At the default 50%/50% split (see .session-plan-tongue above) the 96px
+     badge pokes 48px above the topbar's bottom edge — on a wide screen the
+     breadcrumb (left) and counter (right) sit clear of the centered badge
+     horizontally, but on a narrow phone the breadcrumb text runs close to
+     full width and ends up directly under it, unreadable. Shifting the
+     anchor to 90% keeps a small "grown out of the header" poke (~10px)
+     without covering the text; the larger downward poke this creates still
+     fits inside the margin-bottom reserved on .session-header-wrap above.
+     (Placed after the base .session-plan-tongue rule — same specificity,
+     so source order decides, and this needs to win.) */
+  .session-plan-tongue--correct,
+  .session-plan-tongue--incorrect {
+    transform: translate(-50%, 90%);
+  }
 }
 .session-plan-tongue__emoji {
   font-size: 13px;
@@ -12793,10 +12819,32 @@ button {
 
 .card-img            { border-radius: 16px; object-fit: cover; }
 .card-img--loading   { background: #f0f0f0; min-width: 120px; min-height: 120px; }
+.situation-scene {
+  width: min(100%, 360px);
+  max-height: 34svh;
+  aspect-ratio: 1 / 1;
+  flex: 0 1 auto;
+  border-radius: 16px;
+  object-fit: cover;
+}
+.situation-scene--loading { background: #f0f0f0; }
 
-.session-label       { font-size: 1.8rem; font-weight: 700; text-align: center; flex-shrink: 0; transform: translateY(-5dvh); }
+.session-label        { font-size: 1.8rem; font-weight: 700; text-align: center; flex-shrink: 0; transform: translateY(-5dvh); }
+.session-label__prefix { font-weight: 400; }
 .session-hint        { font-size: 0.85rem; color: #aaa; flex-shrink: 0; }
 .session-instruction { font-size: 1.4rem; font-weight: 600; text-align: center; flex-shrink: 0; }
+/* find_n's photo grid centers itself inside a flex:1 area, leaving empty
+   space above the actual thumbnails that shrinks as more rows are needed
+   (2/4/6 options -> 1/2/3 rows). A flat offset overlapped the thumbnails at
+   6 options on shorter phones (iPhone SE), because dvh is relative to the
+   whole screen, not this area - the session header eats a fixed chunk of a
+   short screen's height, so a %-of-viewport nudge doesn't shrink to match.
+   cqh is relative to .session-body itself (after the header), so it tracks
+   the actual available room on any screen height. */
+.session-body--find-n { container-type: size; }
+.session-body--find-n .session-instruction { transform: translateY(calc(14cqh - var(--rows, 2) * 4cqh)); }
+.session-body--situation .session-instruction { transform: none; }
+.session-body--situation .situation-scene { width: min(100%, 220px); max-height: 26cqh; }
 
 /* yes/no */
 .yes-no-row {
@@ -13025,6 +13073,39 @@ button {
   opacity: 1;
   transform: translateY(0);
 }
+/* .card-area is normally flex:1, growing to fill the leftover column space
+   and centering the (smaller, width-capped) photo inside that oversized box -
+   which pushed the photo way down when bottom-aligned instead of just
+   closing the gap to the question below. Drop the grow here so the box
+   shrinks to the photo's own size; .session-full-tap's `justify-content:
+   center` then centers the whole [text, photo, question, label] stack as
+   one group, keeping the photo at a normal height. */
+.situation-intro .card-area {
+  flex: 0 1 auto;
+}
+/* The scene is the primary material in the first step of “Знакомство”.
+   It should use the entire content width instead of the generic 360px card
+   cap; the button's horizontal padding still keeps it clear of screen edges. */
+.situation-intro .situation-scene {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: auto;
+  aspect-ratio: auto;
+}
+/* Pin the question to the photo: .session-full-tap's flex `gap: 12px`
+   already puts 12px between them, so add just enough extra margin to bring
+   the total up to 0.95em (~70% of this line's own rendered line-height,
+   measured at ~1.357x its font-size) - scales with the responsive
+   font-size instead of a fixed px gap. */
+.situation-intro .situation-intro__question {
+  margin-top: calc(0.95em - 12px);
+  /* Override the generic tablet instruction scale: this is a prompt, not
+     the headline of the screen. */
+  font-size: clamp(1rem, 2.4dvh, 1.3rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
 .situation-intro__reveal {
   display: flex;
   flex-direction: column;
@@ -13042,9 +13123,12 @@ button {
 /* Own label class, not .session-label - that one carries a
    translateY(-5dvh) tuned for IntroTask's flex-fill layout, which
    pulled this label up onto the picture instead of sitting under it. */
-.situation-intro__label {
-  font-size: 1.8rem;
-  font-weight: 700;
+.situation-intro .situation-intro__label {
+  /* The revealed emotion is the answer and must be visibly dominant over
+     the question on both a phone and a tablet. */
+  font-size: clamp(2.2rem, 5dvh, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
   text-align: center;
   flex-shrink: 0;
 }
@@ -14335,6 +14419,99 @@ kbd {
   font-size: 0.78rem;
   color: #7a9e9a;
   line-height: 1.4;
+}
+.figure-difficulty-options { justify-content: flex-start; }
+.figure-difficulty-option {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+}
+.figure-difficulty-option__count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.78;
+}
+.figure-difficulty-recommendation {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.figure-picker__intro {
+  margin: 0 0 14px;
+  color: #58736f;
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+.figure-picker__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.figure-picker__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.figure-picker__select-all {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: #315b54;
+  font-size: .84rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.figure-picker__select-all input {
+  width: 18px;
+  height: 18px;
+  accent-color: #1c7a6e;
+  cursor: pointer;
+}
+.figure-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  max-height: min(54vh, 500px);
+  overflow: auto;
+  padding: 2px;
+}
+.figure-picker__card {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 9px;
+  align-items: center;
+  min-height: 92px;
+  padding: 7px;
+  text-align: left;
+  border: 2px solid #d8e4e1;
+  border-radius: 12px;
+  background: #fff;
+  color: #24413d;
+  cursor: pointer;
+}
+.figure-picker__card:hover { border-color: #87b8af; background: #f7fbfa; }
+.figure-picker__card--selected { border-color: #1c7a6e; background: #edf8f5; box-shadow: inset 0 0 0 1px #1c7a6e; }
+.figure-picker__thumbnail {
+  grid-row: span 2;
+  width: 76px;
+  height: 76px;
+  border-radius: 8px;
+  background: #fffdf8;
+}
+.figure-picker__thumbnail-grid { stroke: #d8e4e1; stroke-width: .045; fill: none; }
+.figure-picker__line { stroke: #1d2927; stroke-width: .24; stroke-linecap: round; stroke-linejoin: round; fill: none; vector-effect: non-scaling-stroke; }
+.figure-picker__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; font-size: .88rem; }
+.figure-picker__level { color: #69847f; font-size: .74rem; line-height: 1.2; }
+@media (max-width: 440px) {
+  .figure-picker__grid { grid-template-columns: 1fr; }
 }
 .enum-btn--compact {
   min-width: 40px;
@@ -17379,6 +17556,138 @@ select.account-card__input {
 .se-save-btn:hover  { background: rgba(255,255,255,0.25); }
 .se-save-btn:disabled { opacity: 0.5; }
 
+/* ─── Weekly student progress ─────────────────────────────────────────────── */
+
+.se-progress-btn {
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 10px;
+  padding: 7px 9px;
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.progress-screen__body {
+  width: min(780px, 100%);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.progress-week-switcher {
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  align-items: center;
+  margin-bottom: 16px;
+  border: 1px solid #e7dccf;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(250, 247, 242, 0.96);
+}
+
+.progress-week-switcher button {
+  min-height: 54px;
+  border: 0;
+  background: transparent;
+  color: #2f5b57;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.progress-week-switcher button:disabled { color: #c7c1bb; cursor: default; }
+.progress-week-switcher > div { text-align: center; }
+.progress-week-switcher strong { display: block; font-size: 15px; color: #263131; }
+.progress-week-switcher span { display: block; margin-top: 2px; font-size: 11px; color: #80908c; }
+
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.progress-metric {
+  min-height: 92px;
+  padding: 12px 8px;
+  border: 1px solid #e7dccf;
+  border-radius: 16px;
+  background: rgba(250, 247, 242, 0.96);
+  text-align: center;
+}
+
+.progress-metric strong { display: block; color: #2f5b57; font-size: 18px; line-height: 1.2; }
+.progress-metric span { display: block; margin-top: 7px; color: #71817d; font-size: 11px; line-height: 1.2; }
+.progress-topics h2 { margin: 0 0 10px; color: #2f5b57; font-size: 16px; }
+
+.progress-comparison {
+  margin: -8px 0 20px;
+  padding: 14px;
+  border: 1px solid #d7e8df;
+  border-radius: 16px;
+  background: #f5fbf7;
+}
+.progress-comparison h2 { display: inline; margin: 0; color: #356758; font-size: 14px; }
+.progress-comparison > span { margin-left: 7px; color: #799187; font-size: 11px; }
+.progress-comparison > div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.progress-comparison__metric { min-width: 112px; }
+.progress-comparison__metric strong { display: block; color: #2f5b57; font-size: 14px; }
+.progress-comparison__metric span { display: block; margin-top: 2px; color: #71817d; font-size: 10px; }
+.progress-comparison__empty { margin: 10px 0 0; color: #71817d; font-size: 12px; }
+
+.progress-topic-row {
+  margin-bottom: 8px;
+  padding: 14px;
+  border: 1px solid #e7dccf;
+  border-radius: 16px;
+  background: rgba(250, 247, 242, 0.96);
+}
+
+.progress-topic-row__heading { display: flex; justify-content: space-between; gap: 12px; color: #263131; }
+.progress-topic-row__heading span { display: block; margin-top: 3px; color: #71817d; font-size: 12px; font-weight: 700; }
+.progress-topic-row__metrics { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 10px; color: #566461; font-size: 12px; }
+.progress-topic-row__difficulty { margin-top: 9px; color: #8c6b39; font-size: 11px; font-weight: 700; }
+.progress-topic-row__change { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 9px; color: #356758; font-size: 11px; font-weight: 800; }
+.progress-topic-row__note { margin-top: 9px; color: #8c6b5b; font-size: 11px; }
+
+.progress-review { margin-top: 20px; }
+.progress-review h2 { margin: 0; color: #87513b; font-size: 16px; }
+.progress-review > p { margin: 5px 0 10px; color: #71817d; font-size: 12px; }
+.progress-review__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 13px 14px;
+  border: 1px solid #ecd8ca;
+  border-radius: 16px;
+  background: #fff9f5;
+}
+.progress-review__item strong { display: block; color: #5f4032; font-size: 14px; }
+.progress-review__item span { display: block; color: #8c6b5b; font-size: 11px; line-height: 1.35; }
+.progress-review__item > span { flex-shrink: 0; text-align: right; font-weight: 800; }
+
+.progress-empty, .progress-error {
+  padding: 34px 16px;
+  border: 1px solid #e7dccf;
+  border-radius: 16px;
+  background: rgba(250, 247, 242, 0.96);
+  color: #71817d;
+  text-align: center;
+}
+
+.progress-error { color: #a23d3d; }
+.progress-error button { margin-left: 10px; border: 0; background: none; color: #2f7d72; font: inherit; font-weight: 800; cursor: pointer; }
+
+@media (max-width: 460px) {
+  .progress-screen__body { padding: 12px; }
+  .progress-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .progress-metric { min-height: 75px; }
+  .se-progress-btn { padding: 6px 7px; }
+}
+
 /* Profile card */
 .se-profile-row {
   display: flex;
@@ -19196,6 +19505,58 @@ body { background: #eef0ef; }
   box-sizing: border-box;
 }
 .param-sentence-textarea:focus { border-color: #4a9b8f; }
+
+/* ── TextUploadParam ── */
+.param-text-upload .param-text-upload__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.param-text-upload__trigger {
+  align-self: flex-start;
+  border: 2px dashed #d6cbbf;
+  border-radius: 8px;
+  background: #fff;
+  color: #263131;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.param-text-upload__trigger:hover { border-color: #4a9b8f; }
+
+.param-text-upload__preview {
+  border: 2px solid #d6cbbf;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #263131;
+  white-space: pre-wrap;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.param-text-upload__actions { display: flex; gap: 12px; }
+
+.param-text-upload__link {
+  border: none;
+  background: none;
+  color: #4a9b8f;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.param-text-upload__error {
+  color: #ef4444;
+  background: #fef2f2;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
 
 /* reward modal (pre-video choice) */
 .reward-modal-overlay {

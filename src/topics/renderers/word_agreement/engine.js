@@ -39,6 +39,24 @@ export const FORMS_BY_WORD = {
     singular: ["яйцо", "яйца", "яйцу", "яйцом", "яйце", "яиц"],
     plural:   ["яйца", "яиц", "яйцам", "яйцами", "яйцах", "яйцо"],
   },
+  // kot is the deck's only animate noun. Unlike the inanimate masc./neuter
+  // words above (where accusative = nominative, so no separate slot is
+  // needed), an animate masc. noun's accusative instead equals its
+  // genitive — "кота" at index 1 already covers both roles, so this table
+  // needs no extra slot either, just for the opposite reason.
+  kot: {
+    singular: ["кот", "кота", "коту", "котом", "коте", "котов"],
+  },
+  // The four characters' own names, declined for the first time — every
+  // card above puts Иван/Алина/мама/папа only in the nominative (the one
+  // doing the action). These let a name itself be the answer, e.g. as the
+  // recipient of a gift ("подарил {кому}"). Only 5 forms each (no genitive-
+  // plural bonus slot like the common nouns get) — a name has no natural
+  // plural in this world, so that 6th distractor doesn't apply here.
+  ivan:  { singular: ["Иван", "Ивана", "Ивану", "Иваном", "Иване"] },
+  alina: { singular: ["Алина", "Алины", "Алине", "Алиной", "Алине"] },
+  mama:  { singular: ["мама", "мамы", "маме", "мамой", "маме"] },
+  papa:  { singular: ["папа", "папы", "папе", "папой", "папе"] },
 };
 
 const OPTION_COUNTS = new Set([2, 3, 4, 6]);
@@ -135,6 +153,7 @@ const VERB_GENDER_FORMS = {
   lezhat:     { masc: "лежал",     fem: "лежала",     neut: "лежало",    plural: "лежали" },
   stoyat:     { masc: "стоял",     fem: "стояла",     neut: "стояло",    plural: "стояли" },
   pokatitsya: { masc: "покатился", fem: "покатилась", neut: "покатилось", plural: "покатились" },
+  otkrytsya:  { masc: "открылся",  fem: "открылась",  neut: "открылось",  plural: "открылись" },
 };
 
 const GENDERS = ["masc", "fem", "neut", "plural"];

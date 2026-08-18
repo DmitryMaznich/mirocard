@@ -1,0 +1,63 @@
+.sdpp-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #cbd9ea;
+  border-radius: 10px;
+  background: #fff;
+  color: #285da8;
+  font: 700 14px/1 Nunito, sans-serif;
+  padding: 10px 14px;
+  cursor: pointer;
+  margin: 10px 0;
+}
+.sdpp-trigger:hover { background: #f3f7fd; }
+
+.sdpp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.sdpp-count { font: 700 14px/1.2 Nunito, sans-serif; color: #1e3a6e; }
+.sdpp-select-toggle {
+  border: 1px solid #cbd9ea;
+  border-radius: 9px;
+  background: #fff;
+  color: #285da8;
+  font: 700 13px/1 Nunito, sans-serif;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.sdpp-select-toggle:hover { background: #f3f7fd; }
+
+.sdpp-popup-warning {
+  background: #fff4e5;
+  border: 1px solid #f0c987;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: 700 13px/1.4 Nunito, sans-serif;
+  color: #7a4a06;
+  margin-bottom: 12px;
+}
+
+.sdpp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.sdpp-card {
+  border: 2px solid #e3e9f4;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  min-height: 44px;
+  cursor: pointer;
+  text-align: center;
+}
+.sdpp-card--selected {
+  border-color: #2563eb;
+  background: #eef4ff;
+}
+.sdpp-card-label { font: 700 13px/1.3 Nunito, sans-serif; color: #1e3a6e; }

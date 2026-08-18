@@ -1,0 +1,272 @@
+/* ─── Прописи · «Показ» ──────────────────────────────────────────────────
+   Paper/ink colors are intentionally NOT tied to any theme toggle — this is a
+   physical white sheet of paper, it does not go dark. */
+
+.propis-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #cabfa9;
+  touch-action: none;
+}
+
+.propis-page-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.propis-paper    { fill: #fffdf8; }
+/* Default weights are tuned for the real full-page scale (PropisShowView, PAGE_W_MM=148.5).
+   PropisPracticeView's much-more-zoomed card overrides these via inline stroke-width, scaled
+   to its own crop width — see STROKE_SCALE there. Do not "thin these out" directly here,
+   that was the bug: an absolute value tuned for one crop went stale when the other crop's
+   real-world width changed and its zoom level moved (2026-08-06). */
+.propis-line-thin { stroke: #bcd8ec; stroke-width: 0.28; }
+.propis-line-bold { stroke: #6fa3e0; stroke-width: 0.5; }
+.propis-line-diag { stroke: #6fa3e0; stroke-width: 0.16; opacity: 0.55; }
+.propis-line-red  { stroke: #c0392b; stroke-width: 0.35; opacity: 0.65; }
+
+.propis-empty-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 32px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.propis-controls {
+  position: absolute;
+  top: calc(12px + var(--app-safe-top, 0px));
+  right: calc(12px + var(--app-safe-right, 0px));
+  display: flex;
+  gap: 8px;
+  z-index: 1;
+}
+
+.propis-ctrl-btn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 8px 16px;
+  background: rgba(20, 20, 20, 0.55);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+}
+
+.propis-ctrl-btn--done { background: #1d4ed8; }
+
+/* ─── Прописи · «Учим буквы» (practice) ──────────────────────────────────── */
+
+.propis-practice-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  justify-content: center;
+  background: #cabfa9;
+  touch-action: none;
+}
+
+.propis-practice-close {
+  position: fixed;
+  top: calc(12px + var(--app-safe-top, 0px));
+  right: calc(12px + var(--app-safe-right, 0px));
+  z-index: 2;
+}
+
+.propis-practice-frame {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fffdf8;
+}
+
+/* write_text's grid benefits from the full screen width (fewer wraps, bigger writing
+   area) — unlike the single-letter/single-word cards above, it isn't capped at a
+   "phone card" width. */
+.propis-text-frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fffdf8;
+}
+
+.propis-practice-demo {
+  flex: 1 1 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: calc(16px + var(--app-safe-top, 0px)) calc(20px + var(--app-safe-right, 0px)) 16px calc(20px + var(--app-safe-left, 0px));
+}
+
+.propis-practice-card-svg {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.18));
+}
+
+.propis-practice-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 28px;
+  color: #6b7280;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ─── Прописи · «Пишем текст» ────────────────────────────────────────── */
+
+.propis-text-grid-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: calc(12px + var(--app-safe-top, 0px)) calc(12px + var(--app-safe-right, 0px)) 12px calc(12px + var(--app-safe-left, 0px));
+}
+
+.propis-text-grid-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.12));
+}
+
+/* Invisible tap target covering a whole placed word — pointer-events:all is required
+   because the paths/rect it sits behind use fill="none"/"transparent", which the SVG
+   pointer-events model does NOT hit-test by default (only "painted" fills are). */
+.propis-text-word-hit { fill: transparent; pointer-events: all; cursor: pointer; }
+
+.propis-practice-keyboard {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  background: #eef1f4;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 8px calc(10px + var(--app-safe-right, 0px)) calc(10px + var(--app-safe-bottom, 0px)) calc(10px + var(--app-safe-left, 0px));
+}
+
+.propis-case-toggle {
+  flex: 0 0 auto;
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.propis-case-btn {
+  flex: 1;
+  appearance: none;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  padding: 4px 2px;
+  cursor: pointer;
+}
+
+.propis-case-arrow { font-size: 13px; line-height: 1; }
+
+.propis-case-btn--active { background: #1d4ed8; color: #fff; }
+
+.propis-key-rows {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.propis-key-row { display: flex; gap: 4px; }
+
+.propis-key {
+  flex: 1 1 0;
+  min-width: 0;
+  height: clamp(30px, 8vw, 40px);
+  appearance: none;
+  border: none;
+  border-radius: 7px;
+  background: #fff;
+  color: #1f2937;
+  font-size: clamp(12px, 3.4vw, 16px);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.propis-key--active { background: #1d4ed8; color: #fff; }
+
+.propis-key:disabled { background: transparent; color: #c3c8ce; cursor: default; }
+
+/* Colored keyboard style, matching magnetic_alphabet's key coloring for a shared visual
+   language across the app's keyboards — same hex values, but scoped to propis's own
+   classes since the two topics' CSS stay isolated from each other. */
+.propis-key--vowel     { background: #ef4444; color: #fff; }
+.propis-key--consonant { background: #3b82f6; color: #fff; }
+.propis-key--sign      { background: #9ca3af; color: #fff; }
+/* Digits/punctuation — no captured cursive stroke data yet (system-font fallback glyph in
+   the grid, see wordEngine.js's buildWordSegments), colored neutral like magnetic_alphabet's
+   own non-letter keys so they read as "not a letter" rather than an uncategorized letter. */
+.propis-key--neutral   { background: #8d8177; color: #fff; }
+.propis-key--shift     { background: #8d8177; color: #fff; flex: 1.3 1 0; }
+/* Two-class selector so this always wins over --neutral's background, regardless of
+   stylesheet order (both are otherwise equal-specificity single-class rules). */
+.propis-key--shift.propis-key--active { background: #1d4ed8; color: #fff; }
+
+.propis-key--wide { flex: 1.6 1 0; font-size: clamp(11px, 3vw, 14px); background: #eef1ec; color: #334155; }
+.propis-key--wide:disabled { opacity: 0.4; cursor: default; }
+
+/* ─── Прописи · «Написание слов» ──────────────────────────────────────── */
+
+.propis-word-row { display: flex; align-items: center; gap: 8px; padding: 0 calc(20px + var(--app-safe-right, 0px)) 0 calc(20px + var(--app-safe-left, 0px)); }
+
+.propis-word-preview {
+  flex: 1; min-width: 0;
+  background: #fffdf8; border-radius: 9px; border: 1px solid #d7dcd0;
+  padding: 9px 12px; font-size: 22px; font-weight: 600; letter-spacing: 0.05em;
+  color: #1f2a3a; min-height: 20px; overflow-x: auto; white-space: nowrap;
+}
+
+.propis-word-btn {
+  flex: none; min-height: 38px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid #d7dcd0; background: #eef1ec; color: #334155;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+}
+
+.propis-word-btn:disabled { opacity: 0.4; cursor: default; }

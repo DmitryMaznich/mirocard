@@ -2,10 +2,11 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
-import { deriveConcepts } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
-import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
+import { useActiveSessionTimer } from "./useActiveSessionTimer";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import {
@@ -16,6 +17,14 @@ import {
 } from "./activeSession";
 
 const INCORRECT_FEEDBACK_MS = 1500;
+
+function resolveStrictStars(mode, savedValue) {
+  // Some reaction drills are a true "correct answers in a row" exercise.
+  // Their progression must not inherit a soft-count setting saved in another
+  // mode of the same topic.
+  if (mode?.rewardDefaults?.forceStrictStars) return true;
+  return savedValue ?? mode?.rewardDefaults?.strictStars ?? true;
+}
 
 function shuffle(arr) {
   const a = [...arr];
@@ -51,7 +60,13 @@ function buildGeneratedSessionState({
       : [];
   } else if (renderer === "flashcards") {
     const allConcepts = deriveConcepts(topicRecord.cards);
-    const selected = allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
+    // These drills do not use parent-selectable picture concepts. Their one
+    // metadata card is part of the mode itself, so an old saved selection must
+    // never be allowed to filter it away and leave the session with no tasks.
+    const isSelfContainedDrill = ["navigator", "coordinates"].includes(mode.type);
+    const selected = isSelfContainedDrill
+      ? allConcepts.filter((c) => c.cards.some((card) => card.taskKind === mode.type))
+      : allConcepts.filter((c) => selectedConceptIds.includes(c.conceptId));
     const deckPos = link.deckPosition ?? 0;
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
     const concepts = shuffle(safeStart === 0 ? selected : [...selected.slice(safeStart), ...selected.slice(0, safeStart)]);
@@ -114,7 +129,7 @@ function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true,
+    resolveStrictStars(mode, link.strictStars),
   );
 
   if (mode.type === "assemble_text") {
@@ -136,6 +151,7 @@ export function useSessionEngine() {
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
   const activeSessionSnapshot = useAppStore((s) => s.activeSessionSnapshot);
+  const isStudentPortal = useAppStore((s) => s.isStudentPortal);
   const setActiveSessionSnapshot = useAppStore((s) => s.setActiveSessionSnapshot);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
@@ -165,12 +181,20 @@ export function useSessionEngine() {
     hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
   };
   const isReading = topicRecord?.meta.renderer === "reading";
+  const sessionParams = { ...(link.params ?? {}), strictStars: resolveStrictStars(mode, link.strictStars) };
+  const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
+    .filter((c) => c.primary)
+    .map((c) => c.conceptId);
+  const modeSelectedConceptIds = mode
+    ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, sessionParams)
+    : (link.selectedConceptIds?.length ? link.selectedConceptIds : null);
+  // A newly added scoped mode can inherit an old saved selection whose ids do
+  // not belong to its own card pool. Do not let that stale selection create an
+  // empty session: retain valid ids, otherwise start with the mode defaults.
+  const validSelectedConceptIds = modeSelectedConceptIds?.filter((id) => defaultModeConceptIds.includes(id)) ?? [];
   const selectedConceptIds = isReading
     ? (activeTextId ? [activeTextId] : [])
-    : (link.selectedConceptIds?.length ? link.selectedConceptIds : null)
-      ?? topicRecord?.cards.filter((c) => c.primary).map((c) => c.conceptId)
-      ?? [];
-  const sessionParams = { ...(link.params ?? {}), strictStars: link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true };
+    : (validSelectedConceptIds.length ? validSelectedConceptIds : defaultModeConceptIds);
   const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
@@ -196,6 +220,9 @@ export function useSessionEngine() {
       topicVersion: topicRecord.meta.version,
     }) ?? generatedState;
   });
+  const { getActiveDurationMs } = useActiveSessionTimer(
+    Boolean(sessionState && sessionState.status !== "completed"),
+  );
 
   // Recovery: if the session was built without adult cards (closeAdults not yet
   // in the store at mount time), rebuild as soon as the store catches up — but
@@ -237,7 +264,12 @@ export function useSessionEngine() {
     // concept or two instead of the full deck.
 
     const record = {
-      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents),
+      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents, {
+        activeDurationMs: Math.round(getActiveDurationMs()),
+        elapsedDurationMs: Math.max(0, Date.now() - new Date(state.startedAt).getTime()),
+        paramsSnapshot: sessionParams,
+        entryPoint: isStudentPortal ? "student_portal" : "therapist",
+      }),
       reward: {
         videoEnabled: Boolean(rewardConfig.videoRewardEnabled),
         videoAvailable: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
@@ -305,9 +337,11 @@ export function useSessionEngine() {
     if (earned > lastRewardEarnedCountRef.current) {
       lastRewardEarnedCountRef.current = earned;
       if (rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled) {
-        setRewardPending(true);
+        const timer = window.setTimeout(() => setRewardPending(true), 0);
+        return () => window.clearTimeout(timer);
       }
     }
+    return undefined;
   }, [sessionState?.rewardEarnedCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearRewardPending = useCallback(() => setRewardPending(false), []);
@@ -378,17 +412,7 @@ export function useSessionEngine() {
   }, []);
 
   const onMistake = useCallback((conceptId, cardId) => {
-    setSessionState((s) => {
-      if (!s || s.mode.evaluation === "none") return s;
-      return {
-        ...s,
-        incorrectCount: s.incorrectCount + 1,
-        streakCount: 0,
-        mistakes: conceptId
-          ? [...s.mistakes, { conceptId, cardId }]
-          : s.mistakes,
-      };
-    });
+    setSessionState((s) => handleInPlaceIncorrect(s, conceptId, cardId));
   }, []);
 
   const onAdvance = useCallback(() => {
@@ -436,6 +460,7 @@ export function useSessionEngine() {
   const streakCount = rewardPending
     ? answersPerStar * 5
     : (sessionState?.streakCount ?? 0);
+  const bestStreak = sessionState?.bestStreak ?? 0;
   const rewardProgress = {
     available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
   };
@@ -449,6 +474,7 @@ export function useSessionEngine() {
     completedRecord,
     rewardProgress,
     streakCount,
+    bestStreak,
     answersPerStar,
     rewardPending,
     clearRewardPending,

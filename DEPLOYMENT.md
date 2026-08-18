@@ -19,14 +19,14 @@ This repo has one production deployment path.
 Before any production deploy, Codex and Claude Code must both use this flow:
 
 1. `git status --short`
-2. Commit or stash all unrelated changes.
+2. Commit or stash all changes. Production is deployed only from a clean worktree.
 3. Run the relevant tests/checks for the change.
 4. Run `npm run build`.
-5. Commit the deployed state.
+5. Commit the deployed state and push it to `origin`.
 6. Run `npm run deploy:prod`.
 7. Verify both `https://mirocard.kaplieva.help/` and `http://192.168.1.163:8080/`.
 
-The deploy script refuses a dirty worktree by default. For an emergency-only deploy, pass `--allow-dirty` and state that explicitly in the handoff.
+The deploy script refuses a dirty worktree unconditionally. It pushes the current branch before uploading any production file, then checks the worktree again after the build. This prevents a deployment of files that do not exist in a recoverable commit on `origin`.
 
 ## Commands
 
@@ -92,7 +92,6 @@ MIROCARD_DEPLOY_KEY_PATH=C:/path/to/private/key
 MIROCARD_REMOTE_ROOT=C:/Users/dmazn/Projects/Mirocard2
 MIROCARD_PUBLIC_URL=https://mirocard.kaplieva.help
 MIROCARD_LAN_URL=http://192.168.1.163:8080
-MIROCARD_DEPLOY_ALLOW_DIRTY=1
 ```
 
 Use either `MIROCARD_DEPLOY_PASSWORD` or `MIROCARD_DEPLOY_KEY_PATH`.

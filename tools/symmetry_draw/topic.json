@@ -1,43 +1,356 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.1.2",
+    "version": "1.11.2",
     "renderer": "flashcards",
     "customModesOnly": true,
-    "title": "Симметричный рисунок",
+    "title": "Рисуем по клеткам",
     "avatar": "media/avatar.svg",
     "about": {
-      "description": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси.",
+      "description": "Ребёнок тренирует пространственные представления на клетчатом поле: ориентируется по направлениям, находит точки по координатам, выполняет графические диктанты, копирует и достраивает симметричные фигуры.",
       "goals": [
-        "Развивать зрительно-пространственное восприятие и представление симметрии.",
-        "Закреплять формы: квадрат, треугольник, круг, овал и ромб."
+        "Развивать понимание пространственных слов и инструкций: вверх, вниз, вправо, влево, по диагонали.",
+        "Тренировать зрительно-моторную координацию, внимание и слухоречевую память.",
+        "Закреплять чтение координат, копирование по клеткам и представление о симметрии."
       ],
-      "finalGoal": "Ребёнок самостоятельно дорисовывает симметричную фигуру по клеточкам без подсказок."
+      "finalGoal": "Ребёнок самостоятельно понимает и выполняет пространственные инструкции, уверенно работает с клетчатым полем и достраивает симметричные фигуры без подсказок."
     }
   },
   "modes": [
     {
-      "id": "symmetry_draw",
-      "type": "mirror_draw",
+      "id": "navigator_learning",
+      "type": "navigator",
+      "evaluation": "instant",
+      "hideConceptPicker": true,
+      "params": {
+        "learningExercise": {
+          "type": "enum",
+          "label": {
+            "ru": "Как учим направление"
+          },
+          "values": [
+            "cards",
+            "choose_word",
+            "choose_arrow"
+          ],
+          "default": "cards",
+          "labels": {
+            "ru": {
+              "cards": "Карточки — знакомство",
+              "choose_word": "Выбери слово",
+              "choose_arrow": "Выбери стрелку"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "«Карточки» показывают стрелку и слово; следующая карточка — по тапу. Это знакомство без оценки. В двух вариантах выбора ребёнок учится быстро узнавать направление среди трёх отвлекающих ответов и получает видеонаграду за серию.",
+              "tip": "Сначала пролистайте карточки вместе. Затем закрепите связь: сначала выбирайте слово к стрелке, потом — стрелку к слову."
+            }
+          }
+        },
+        "navigatorDirections": {
+          "type": "enum",
+          "label": {
+            "ru": "Набор направлений"
+          },
+          "values": [
+            "basic",
+            "all"
+          ],
+          "default": "basic",
+          "labels": {
+            "ru": {
+              "basic": "4 основных",
+              "all": "Все 8, с диагоналями"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "Сначала доступны вверх, вниз, вправо и влево. Во втором варианте добавляются четыре диагональных направления.",
+              "tip": "Переходите к диагоналям, когда ребёнок быстро и без подсказки узнаёт все четыре основные стрелки."
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Навигатор: обучалка",
+        "instruction": "Смотри на стрелку и называй направление",
+        "icon": "media/navigator_avatar.svg"
+      }
+    },
+    {
+      "id": "navigator",
+      "type": "navigator",
+      "evaluation": "instant",
+      "answersPerStar": 1,
+      "hideConceptPicker": true,
+      "params": {
+        "navigatorPractice": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариант тренировки"
+          },
+          "values": [
+            "direction",
+            "listening",
+            "grid_route"
+          ],
+          "default": "direction",
+          "labels": {
+            "ru": {
+              "direction": "Направление",
+              "listening": "Слушай направление",
+              "grid_route": "Маршрут по клеткам"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "«Направление» — свайп в нужную сторону по слову. «Слушай направление» озвучивает команду и скрывает её текст. «Маршрут по клеткам» добавляет длину шага.",
+              "tip": "Перед тренировкой можно пройти отдельную «Навигатор: обучалка», затем переходить к направлениям, слуховым командам и маршрутам по клеткам."
+            }
+          }
+        },
+        "navigatorDirections": {
+          "type": "enum",
+          "label": {
+            "ru": "Набор направлений"
+          },
+          "values": [
+            "basic",
+            "all"
+          ],
+          "default": "basic",
+          "labels": {
+            "ru": {
+              "basic": "4 основных",
+              "all": "Все 8, с диагоналями"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "Сначала доступны вверх, вниз, вправо и влево. Во втором варианте добавляются четыре диагональных направления.",
+              "tip": "Выбирайте диагонали, когда основные направления уже выполняются уверенно."
+            }
+          }
+        },
+        "responseSeconds": {
+          "type": "number",
+          "label": {
+            "ru": "Время на ответ, сек."
+          },
+          "min": 3,
+          "max": 10,
+          "default": 5,
+          "info": {
+            "ru": {
+              "text": "Сколько времени есть на один свайп. Когда полоса полностью исчезает, задание засчитывается как ошибка.",
+              "tip": "Начните с 5 секунд; увеличьте время, если ребёнок сначала вслух проговаривает направление."
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Навигатор",
+        "instruction": "Слушай направление и проведи по нужной стрелке",
+        "icon": "media/navigator_avatar.svg"
+      }
+    },
+    {
+      "id": "coordinates",
+      "type": "coordinates",
+      "evaluation": "instant",
+      "hideConceptPicker": true,
+      "rewardDefaults": {
+        "strictStars": true,
+        "forceStrictStars": true
+      },
+      "params": {
+        "coordinateExercise": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариант тренировки"
+          },
+          "values": [
+            "find",
+            "name"
+          ],
+          "default": "find",
+          "labels": {
+            "ru": {
+              "find": "Найди точку",
+              "name": "Назови координаты"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "«Найди точку» учит читать координату. «Назови координаты» тренирует обратное действие: прочитать их с сетки.",
+              "tip": "Начните с поиска точки; обратный вариант включайте, когда ребёнок уверенно находит точки по буквам и цифрам."
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Координаты",
+        "instruction": "Находи точки по координатам или называй их",
+        "icon": "media/coordinates_avatar.svg"
+      }
+    },
+    {
+      "id": "graphic_dictation",
+      "type": "graphic_dictation",
       "evaluation": "auto",
       "ui": {
-        "title": "Симметричный рисунок",
-        "instruction": "Дорисуй вторую половину фигуры",
-        "icon": "media/avatar.svg"
+        "title": "Графический диктант",
+        "instruction": "Слушай команду и веди линию от активной точки",
+        "icon": "media/dictation_avatar.svg"
+      },
+      "params": {
+        "figureDifficulty": {
+          "type": "enum",
+          "label": {
+            "ru": "Сложность фигур"
+          },
+          "values": [
+            "all",
+            "starter",
+            "reinforce",
+            "challenge"
+          ],
+          "default": "all",
+          "labels": {
+            "ru": {
+              "all": "Все уровни",
+              "starter": "Первые фигуры",
+              "reinforce": "Закрепление",
+              "challenge": "Сложные фигуры"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "Уровни различаются числом линий и поворотов, диагоналями, размером поля и количеством частей рисунка.",
+              "tip": "Начните с первых фигур, затем переходите к закреплению. Сложные выбирайте для самостоятельной уверенной работы."
+            }
+          }
+        },
+        "dictationCommand": {
+          "type": "enum",
+          "label": {
+            "ru": "Как строить рисунок"
+          },
+          "values": [
+            "directions",
+            "coordinates"
+          ],
+          "default": "directions",
+          "labels": {
+            "ru": {
+              "directions": "По направлениям",
+              "coordinates": "По координатам"
+            }
+          },
+          "info": {
+            "ru": {
+              "text": "В первом варианте ребёнок читает шаг и направление. Во втором — следующую точку по её координатам.",
+              "tip": "Начните с направлений. Координатный вариант вводите после уверенной работы с координатами."
+            }
+          }
+        },
+        "showArrow": {
+          "type": "boolean",
+          "default": true,
+          "label": {
+            "ru": "Стрелка в подсказке"
+          },
+          "hint": {
+            "ru": "Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
+          }
+        }
       }
     },
     {
       "id": "repeat_draw",
       "type": "repeat_draw",
       "evaluation": "auto",
+      "params": {
+        "figureDifficulty": {
+          "type": "enum",
+          "label": {
+            "ru": "Сложность фигур"
+          },
+          "values": [
+            "all",
+            "starter",
+            "reinforce",
+            "challenge"
+          ],
+          "default": "all",
+          "labels": {
+            "ru": {
+              "all": "Все уровни",
+              "starter": "Первые фигуры",
+              "reinforce": "Закрепление",
+              "challenge": "Сложные фигуры"
+            }
+          }
+        }
+      },
       "ui": {
         "title": "Повтори рисунок",
-        "instruction": "Повтори рисунок целиком справа",
+        "instruction": "Смотри на рисунок слева и нарисуй такой же справа",
         "icon": "media/repeat_avatar.svg"
+      }
+    },
+    {
+      "id": "symmetry_draw",
+      "type": "mirror_draw",
+      "evaluation": "auto",
+      "params": {
+        "figureDifficulty": {
+          "type": "enum",
+          "label": {
+            "ru": "Сложность фигур"
+          },
+          "values": [
+            "all",
+            "starter",
+            "reinforce",
+            "challenge"
+          ],
+          "default": "all",
+          "labels": {
+            "ru": {
+              "all": "Все уровни",
+              "starter": "Первые фигуры",
+              "reinforce": "Закрепление",
+              "challenge": "Сложные фигуры"
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Симметричный рисунок",
+        "instruction": "Дорисуй вторую половину фигуры",
+        "icon": "media/symmetry_avatar.svg"
       }
     }
   ],
   "cards": [
+    {
+      "id": "coordinates_practice",
+      "conceptId": "coordinates_practice",
+      "primary": true,
+      "label": "Координаты",
+      "taskKind": "coordinates",
+      "columns": 7,
+      "rows": 7
+    },
+    {
+      "id": "navigator_directions",
+      "conceptId": "navigator_directions",
+      "primary": true,
+      "label": "Направления",
+      "taskKind": "navigator"
+    },
     {
       "id": "symmetry_house",
       "conceptId": "symmetry_house",
@@ -66,80 +379,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
-    },
-    {
-      "id": "symmetry_arc",
-      "conceptId": "symmetry_arc",
-      "label": "Дуга",
-      "columns": 12,
-      "rows": 12,
-      "axisCol": 6,
-      "sourcePaths": [
-        [
-          {
-            "col": 6,
-            "row": 3
-          },
-          {
-            "col": 4.9,
-            "row": 3.1
-          },
-          {
-            "col": 3.8,
-            "row": 3.3
-          },
-          {
-            "col": 2.9,
-            "row": 3.7
-          },
-          {
-            "col": 2.1,
-            "row": 4.1
-          },
-          {
-            "col": 1.5,
-            "row": 4.7
-          },
-          {
-            "col": 1.1,
-            "row": 5.3
-          },
-          {
-            "col": 1,
-            "row": 6
-          },
-          {
-            "col": 1.1,
-            "row": 6.7
-          },
-          {
-            "col": 1.5,
-            "row": 7.3
-          },
-          {
-            "col": 2.1,
-            "row": 7.9
-          },
-          {
-            "col": 2.9,
-            "row": 8.4
-          },
-          {
-            "col": 3.8,
-            "row": 8.7
-          },
-          {
-            "col": 4.9,
-            "row": 8.9
-          },
-          {
-            "col": 6,
-            "row": 9
-          }
-        ]
-      ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "starter"
     },
     {
       "id": "symmetry_zigzag_arrow",
@@ -172,7 +413,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
     },
     {
       "id": "symmetry_heart",
@@ -253,7 +495,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "challenge"
     },
     {
       "id": "symmetry_square",
@@ -282,7 +525,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "starter"
     },
     {
       "id": "symmetry_triangle",
@@ -307,7 +551,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "starter"
     },
     {
       "id": "symmetry_rhombus",
@@ -332,7 +577,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "starter"
     },
     {
       "id": "symmetry_hexagon",
@@ -361,7 +607,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
     },
     {
       "id": "symmetry_arrow",
@@ -394,7 +641,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "starter"
     },
     {
       "id": "symmetry_house_window",
@@ -445,7 +693,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
     },
     {
       "id": "symmetry_boat",
@@ -484,7 +733,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
     },
     {
       "id": "symmetry_car",
@@ -565,7 +815,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "challenge"
     },
     {
       "id": "symmetry_lightning",
@@ -590,7 +841,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "starter"
     },
     {
       "id": "symmetry_bracket",
@@ -619,7 +871,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "starter"
     },
     {
       "id": "symmetry_stairs",
@@ -664,7 +917,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
     },
     {
       "id": "symmetry_little_car",
@@ -723,7 +977,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "challenge"
     },
     {
       "id": "symmetry_crown",
@@ -752,7 +1007,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
     },
     {
       "id": "symmetry_slingshot",
@@ -781,7 +1037,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
     },
     {
       "id": "symmetry_sigma",
@@ -870,7 +1127,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "challenge"
     },
     {
       "id": "symmetry_fig8",
@@ -965,7 +1223,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "challenge"
     },
     {
       "id": "symmetry_eye",
@@ -1036,102 +1295,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
-    },
-    {
-      "id": "symmetry_nested",
-      "conceptId": "symmetry_nested",
-      "label": "Вложенные дуги",
-      "columns": 12,
-      "rows": 12,
-      "axisCol": 6,
-      "sourcePaths": [
-        [
-          {
-            "col": 6,
-            "row": 1
-          },
-          {
-            "col": 4.5,
-            "row": 1.2
-          },
-          {
-            "col": 3.1,
-            "row": 2
-          },
-          {
-            "col": 2,
-            "row": 3.1
-          },
-          {
-            "col": 1.2,
-            "row": 4.5
-          },
-          {
-            "col": 1,
-            "row": 6
-          },
-          {
-            "col": 1.2,
-            "row": 7.5
-          },
-          {
-            "col": 2,
-            "row": 8.9
-          },
-          {
-            "col": 3.1,
-            "row": 10
-          },
-          {
-            "col": 4.5,
-            "row": 10.8
-          },
-          {
-            "col": 6,
-            "row": 11
-          }
-        ],
-        [
-          {
-            "col": 6,
-            "row": 2.9
-          },
-          {
-            "col": 4.8,
-            "row": 3.1
-          },
-          {
-            "col": 3.8,
-            "row": 3.8
-          },
-          {
-            "col": 3.1,
-            "row": 4.8
-          },
-          {
-            "col": 2.9,
-            "row": 6
-          },
-          {
-            "col": 3.1,
-            "row": 7.2
-          },
-          {
-            "col": 3.8,
-            "row": 8.2
-          },
-          {
-            "col": 4.8,
-            "row": 8.9
-          },
-          {
-            "col": 6,
-            "row": 9.1
-          }
-        ]
-      ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "challenge"
     },
     {
       "id": "symmetry_circles",
@@ -1242,7 +1407,8 @@
           }
         ]
       ],
-      "taskKind": "mirror"
+      "taskKind": "mirror",
+      "difficulty": "challenge"
     },
     {
       "id": "repeat_rocket",
@@ -1254,11 +1420,84 @@
       "rows": 14,
       "axisCol": 9,
       "sourcePaths": [
-        [{"col":4,"row":0},{"col":6,"row":3},{"col":6,"row":10},{"col":2,"row":10},{"col":2,"row":3},{"col":4,"row":0}],
-        [{"col":2,"row":10},{"col":0,"row":13},{"col":2,"row":13}],
-        [{"col":6,"row":10},{"col":8,"row":13},{"col":6,"row":13}],
-        [{"col":3,"row":4},{"col":4,"row":3},{"col":5,"row":4},{"col":4,"row":5},{"col":3,"row":4}]
-      ]
+        [
+          {
+            "col": 4,
+            "row": 0
+          },
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 6,
+            "row": 10
+          },
+          {
+            "col": 2,
+            "row": 10
+          },
+          {
+            "col": 2,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 0
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 10
+          },
+          {
+            "col": 0,
+            "row": 13
+          },
+          {
+            "col": 2,
+            "row": 13
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 10
+          },
+          {
+            "col": 8,
+            "row": 13
+          },
+          {
+            "col": 6,
+            "row": 13
+          }
+        ],
+        [
+          {
+            "col": 3,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 5
+          },
+          {
+            "col": 3,
+            "row": 4
+          }
+        ]
+      ],
+      "difficulty": "reinforce"
     },
     {
       "id": "repeat_robot",
@@ -1270,14 +1509,118 @@
       "rows": 14,
       "axisCol": 9,
       "sourcePaths": [
-        [{"col":2,"row":1},{"col":6,"row":1},{"col":6,"row":4},{"col":2,"row":4},{"col":2,"row":1}],
-        [{"col":4,"row":1},{"col":4,"row":0}],
-        [{"col":1,"row":4},{"col":7,"row":4},{"col":7,"row":10},{"col":1,"row":10},{"col":1,"row":4}],
-        [{"col":1,"row":5},{"col":0,"row":5},{"col":0,"row":8}],
-        [{"col":7,"row":5},{"col":8,"row":5},{"col":8,"row":8}],
-        [{"col":3,"row":10},{"col":3,"row":13},{"col":2,"row":13}],
-        [{"col":5,"row":10},{"col":5,"row":13},{"col":6,"row":13}]
-      ]
+        [
+          {
+            "col": 2,
+            "row": 1
+          },
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 6,
+            "row": 4
+          },
+          {
+            "col": 2,
+            "row": 4
+          },
+          {
+            "col": 2,
+            "row": 1
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 0
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 7,
+            "row": 4
+          },
+          {
+            "col": 7,
+            "row": 10
+          },
+          {
+            "col": 1,
+            "row": 10
+          },
+          {
+            "col": 1,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 5
+          },
+          {
+            "col": 0,
+            "row": 5
+          },
+          {
+            "col": 0,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 7,
+            "row": 5
+          },
+          {
+            "col": 8,
+            "row": 5
+          },
+          {
+            "col": 8,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 3,
+            "row": 10
+          },
+          {
+            "col": 3,
+            "row": 13
+          },
+          {
+            "col": 2,
+            "row": 13
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 10
+          },
+          {
+            "col": 5,
+            "row": 13
+          },
+          {
+            "col": 6,
+            "row": 13
+          }
+        ]
+      ],
+      "difficulty": "challenge"
     },
     {
       "id": "repeat_train",
@@ -1289,13 +1632,128 @@
       "rows": 12,
       "axisCol": 10,
       "sourcePaths": [
-        [{"col":1,"row":4},{"col":9,"row":4},{"col":9,"row":8},{"col":1,"row":8},{"col":1,"row":4}],
-        [{"col":1,"row":1},{"col":5,"row":1},{"col":5,"row":4},{"col":1,"row":4},{"col":1,"row":1}],
-        [{"col":3,"row":1},{"col":3,"row":0}],
-        [{"col":2,"row":8},{"col":3,"row":9},{"col":2,"row":10},{"col":1,"row":9},{"col":2,"row":8}],
-        [{"col":6,"row":8},{"col":7,"row":9},{"col":6,"row":10},{"col":5,"row":9},{"col":6,"row":8}],
-        [{"col":2,"row":2},{"col":4,"row":2},{"col":4,"row":3},{"col":2,"row":3},{"col":2,"row":2}]
-      ]
+        [
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 9,
+            "row": 4
+          },
+          {
+            "col": 9,
+            "row": 8
+          },
+          {
+            "col": 1,
+            "row": 8
+          },
+          {
+            "col": 1,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 1
+          },
+          {
+            "col": 5,
+            "row": 1
+          },
+          {
+            "col": 5,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 1,
+            "row": 1
+          }
+        ],
+        [
+          {
+            "col": 3,
+            "row": 1
+          },
+          {
+            "col": 3,
+            "row": 0
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 8
+          },
+          {
+            "col": 3,
+            "row": 9
+          },
+          {
+            "col": 2,
+            "row": 10
+          },
+          {
+            "col": 1,
+            "row": 9
+          },
+          {
+            "col": 2,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 8
+          },
+          {
+            "col": 7,
+            "row": 9
+          },
+          {
+            "col": 6,
+            "row": 10
+          },
+          {
+            "col": 5,
+            "row": 9
+          },
+          {
+            "col": 6,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 2
+          },
+          {
+            "col": 4,
+            "row": 2
+          },
+          {
+            "col": 4,
+            "row": 3
+          },
+          {
+            "col": 2,
+            "row": 3
+          },
+          {
+            "col": 2,
+            "row": 2
+          }
+        ]
+      ],
+      "difficulty": "challenge"
     },
     {
       "id": "repeat_crane",
@@ -1307,14 +1765,86 @@
       "rows": 16,
       "axisCol": 9,
       "sourcePaths": [
-        [{"col":1,"row":15},{"col":1,"row":2}],
-        [{"col":0,"row":15},{"col":3,"row":15}],
-        [{"col":1,"row":2},{"col":8,"row":2}],
-        [{"col":1,"row":3},{"col":0,"row":3},{"col":0,"row":2}],
-        [{"col":7,"row":2},{"col":7,"row":6}],
-        [{"col":6,"row":6},{"col":7,"row":7},{"col":8,"row":6}],
-        [{"col":1,"row":10},{"col":3,"row":15}]
-      ]
+        [
+          {
+            "col": 1,
+            "row": 15
+          },
+          {
+            "col": 1,
+            "row": 2
+          }
+        ],
+        [
+          {
+            "col": 0,
+            "row": 15
+          },
+          {
+            "col": 3,
+            "row": 15
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 2
+          },
+          {
+            "col": 8,
+            "row": 2
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 3
+          },
+          {
+            "col": 0,
+            "row": 3
+          },
+          {
+            "col": 0,
+            "row": 2
+          }
+        ],
+        [
+          {
+            "col": 7,
+            "row": 2
+          },
+          {
+            "col": 7,
+            "row": 6
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
+            "col": 7,
+            "row": 7
+          },
+          {
+            "col": 8,
+            "row": 6
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 10
+          },
+          {
+            "col": 3,
+            "row": 15
+          }
+        ]
+      ],
+      "difficulty": "reinforce"
     },
     {
       "id": "repeat_gear",
@@ -1326,13 +1856,140 @@
       "rows": 13,
       "axisCol": 12,
       "sourcePaths": [
-        [{"col":4,"row":2},{"col":8,"row":2},{"col":10,"row":4},{"col":10,"row":8},{"col":8,"row":10},{"col":4,"row":10},{"col":2,"row":8},{"col":2,"row":4},{"col":4,"row":2}],
-        [{"col":4,"row":2},{"col":4,"row":0},{"col":8,"row":0},{"col":8,"row":2}],
-        [{"col":4,"row":10},{"col":4,"row":12},{"col":8,"row":12},{"col":8,"row":10}],
-        [{"col":2,"row":4},{"col":0,"row":4},{"col":0,"row":8},{"col":2,"row":8}],
-        [{"col":10,"row":4},{"col":12,"row":4},{"col":12,"row":8},{"col":10,"row":8}],
-        [{"col":6,"row":5},{"col":7,"row":6},{"col":6,"row":7},{"col":5,"row":6},{"col":6,"row":5}]
-      ]
+        [
+          {
+            "col": 4,
+            "row": 2
+          },
+          {
+            "col": 8,
+            "row": 2
+          },
+          {
+            "col": 10,
+            "row": 4
+          },
+          {
+            "col": 10,
+            "row": 8
+          },
+          {
+            "col": 8,
+            "row": 10
+          },
+          {
+            "col": 4,
+            "row": 10
+          },
+          {
+            "col": 2,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 2
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 2
+          },
+          {
+            "col": 4,
+            "row": 0
+          },
+          {
+            "col": 8,
+            "row": 0
+          },
+          {
+            "col": 8,
+            "row": 2
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 10
+          },
+          {
+            "col": 4,
+            "row": 12
+          },
+          {
+            "col": 8,
+            "row": 12
+          },
+          {
+            "col": 8,
+            "row": 10
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 4
+          },
+          {
+            "col": 0,
+            "row": 4
+          },
+          {
+            "col": 0,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 10,
+            "row": 4
+          },
+          {
+            "col": 12,
+            "row": 4
+          },
+          {
+            "col": 12,
+            "row": 8
+          },
+          {
+            "col": 10,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 7,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 7
+          },
+          {
+            "col": 5,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 5
+          }
+        ]
+      ],
+      "difficulty": "challenge"
     },
     {
       "id": "repeat_bridge",
@@ -1344,13 +2001,80 @@
       "rows": 9,
       "axisCol": 10,
       "sourcePaths": [
-        [{"col":0,"row":5},{"col":9,"row":5}],
-        [{"col":1,"row":5},{"col":2,"row":7},{"col":5,"row":8},{"col":8,"row":7},{"col":9,"row":5}],
-        [{"col":2,"row":5},{"col":2,"row":4}],
-        [{"col":4,"row":5},{"col":4,"row":4}],
-        [{"col":6,"row":5},{"col":6,"row":4}],
-        [{"col":8,"row":5},{"col":8,"row":4}]
-      ]
+        [
+          {
+            "col": 0,
+            "row": 5
+          },
+          {
+            "col": 9,
+            "row": 5
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 7
+          },
+          {
+            "col": 5,
+            "row": 8
+          },
+          {
+            "col": 8,
+            "row": 7
+          },
+          {
+            "col": 9,
+            "row": 5
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 5
+          },
+          {
+            "col": 4,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 6,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 8,
+            "row": 5
+          },
+          {
+            "col": 8,
+            "row": 4
+          }
+        ]
+      ],
+      "difficulty": "reinforce"
     },
     {
       "id": "repeat_skyscraper",
@@ -1362,15 +2086,172 @@
       "rows": 16,
       "axisCol": 8,
       "sourcePaths": [
-        [{"col":1,"row":2},{"col":7,"row":2},{"col":7,"row":15},{"col":1,"row":15},{"col":1,"row":2}],
-        [{"col":4,"row":2},{"col":4,"row":0}],
-        [{"col":2,"row":4},{"col":3,"row":4},{"col":3,"row":5},{"col":2,"row":5},{"col":2,"row":4}],
-        [{"col":5,"row":4},{"col":6,"row":4},{"col":6,"row":5},{"col":5,"row":5},{"col":5,"row":4}],
-        [{"col":2,"row":7},{"col":3,"row":7},{"col":3,"row":8},{"col":2,"row":8},{"col":2,"row":7}],
-        [{"col":5,"row":7},{"col":6,"row":7},{"col":6,"row":8},{"col":5,"row":8},{"col":5,"row":7}],
-        [{"col":2,"row":10},{"col":3,"row":10},{"col":3,"row":11},{"col":2,"row":11},{"col":2,"row":10}],
-        [{"col":5,"row":10},{"col":6,"row":10},{"col":6,"row":11},{"col":5,"row":11},{"col":5,"row":10}]
-      ]
+        [
+          {
+            "col": 1,
+            "row": 2
+          },
+          {
+            "col": 7,
+            "row": 2
+          },
+          {
+            "col": 7,
+            "row": 15
+          },
+          {
+            "col": 1,
+            "row": 15
+          },
+          {
+            "col": 1,
+            "row": 2
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 2
+          },
+          {
+            "col": 4,
+            "row": 0
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 4
+          },
+          {
+            "col": 3,
+            "row": 4
+          },
+          {
+            "col": 3,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 2,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 4
+          },
+          {
+            "col": 6,
+            "row": 4
+          },
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 5,
+            "row": 5
+          },
+          {
+            "col": 5,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 7
+          },
+          {
+            "col": 3,
+            "row": 7
+          },
+          {
+            "col": 3,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 7
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 7
+          },
+          {
+            "col": 6,
+            "row": 7
+          },
+          {
+            "col": 6,
+            "row": 8
+          },
+          {
+            "col": 5,
+            "row": 8
+          },
+          {
+            "col": 5,
+            "row": 7
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 10
+          },
+          {
+            "col": 3,
+            "row": 10
+          },
+          {
+            "col": 3,
+            "row": 11
+          },
+          {
+            "col": 2,
+            "row": 11
+          },
+          {
+            "col": 2,
+            "row": 10
+          }
+        ],
+        [
+          {
+            "col": 5,
+            "row": 10
+          },
+          {
+            "col": 6,
+            "row": 10
+          },
+          {
+            "col": 6,
+            "row": 11
+          },
+          {
+            "col": 5,
+            "row": 11
+          },
+          {
+            "col": 5,
+            "row": 10
+          }
+        ]
+      ],
+      "difficulty": "challenge"
     },
     {
       "id": "repeat_star",
@@ -1382,7 +2263,6419 @@
       "rows": 9,
       "axisCol": 9,
       "sourcePaths": [
-        [{"col":4,"row":0},{"col":5,"row":3},{"col":8,"row":3},{"col":6,"row":5},{"col":7,"row":8},{"col":4,"row":6},{"col":1,"row":8},{"col":2,"row":5},{"col":0,"row":3},{"col":3,"row":3},{"col":4,"row":0}]
+        [
+          {
+            "col": 4,
+            "row": 0
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 8,
+            "row": 3
+          },
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 7,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 6
+          },
+          {
+            "col": 1,
+            "row": 8
+          },
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 0,
+            "row": 3
+          },
+          {
+            "col": 3,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 0
+          }
+        ]
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_house",
+      "conceptId": "dictation_house",
+      "primary": true,
+      "label": "Дом",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 2,
+        "row": 7
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 7
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_kite",
+      "conceptId": "dictation_kite",
+      "primary": true,
+      "label": "Воздушный змей",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 5,
+        "row": 2
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 3
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_stairs",
+      "conceptId": "dictation_stairs",
+      "primary": true,
+      "label": "Лестница",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        }
+      ],
+      "difficulty": "starter"
+    },
+    {
+      "id": "dictation_lightning",
+      "conceptId": "dictation_lightning",
+      "primary": true,
+      "label": "Молния",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 3,
+        "row": 1
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_crown",
+      "conceptId": "dictation_crown",
+      "primary": true,
+      "label": "Корона",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 8
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_spiral",
+      "conceptId": "dictation_spiral",
+      "primary": true,
+      "label": "Спираль",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 1
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        }
+      ],
+      "difficulty": "starter"
+    },
+    {
+      "id": "dictation_hexagon",
+      "conceptId": "dictation_hexagon",
+      "primary": true,
+      "label": "Шестиугольник",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 3,
+        "row": 2
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 3
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_flag",
+      "conceptId": "dictation_flag",
+      "primary": true,
+      "label": "Флажок",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 2,
+        "row": 9
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_wave",
+      "conceptId": "dictation_wave",
+      "primary": true,
+      "label": "Волна",
+      "taskKind": "dictation",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 7
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "dictation_maze",
+      "conceptId": "dictation_maze",
+      "primary": true,
+      "label": "Лабиринт",
+      "taskKind": "dictation",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 1
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        }
+      ],
+      "difficulty": "starter"
+    },
+    {
+      "id": "dictation_dog",
+      "conceptId": "dictation_dog",
+      "primary": true,
+      "label": "Собака",
+      "taskKind": "dictation",
+      "columns": 21,
+      "rows": 16,
+      "start": {
+        "col": 12,
+        "row": 6
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 8
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_mouse",
+      "conceptId": "dictation_mouse",
+      "primary": true,
+      "label": "Мышь",
+      "taskKind": "dictation",
+      "columns": 18,
+      "rows": 20,
+      "start": {
+        "col": 3,
+        "row": 16
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_parrot",
+      "conceptId": "dictation_parrot",
+      "primary": true,
+      "label": "Попугай",
+      "taskKind": "dictation",
+      "columns": 15,
+      "rows": 18,
+      "start": {
+        "col": 12,
+        "row": 14
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_fish",
+      "conceptId": "dictation_fish",
+      "primary": true,
+      "label": "Рыбка",
+      "taskKind": "dictation",
+      "columns": 21,
+      "rows": 17,
+      "start": {
+        "col": 14,
+        "row": 12
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_fox",
+      "conceptId": "dictation_fox",
+      "primary": true,
+      "label": "Лиса",
+      "taskKind": "dictation",
+      "columns": 22,
+      "rows": 20,
+      "start": {
+        "col": 11,
+        "row": 10
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_crab",
+      "conceptId": "dictation_crab",
+      "primary": true,
+      "label": "Краб",
+      "taskKind": "dictation",
+      "columns": 23,
+      "rows": 18,
+      "start": {
+        "col": 19,
+        "row": 1
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_pig",
+      "conceptId": "dictation_pig",
+      "primary": true,
+      "label": "Свинья",
+      "taskKind": "dictation",
+      "columns": 33,
+      "rows": 23,
+      "start": {
+        "col": 2,
+        "row": 12
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 12
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        }
+      ],
+      "decorations": [
+        {
+          "type": "dot",
+          "col": 7,
+          "row": 11
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_trex",
+      "conceptId": "dictation_trex",
+      "primary": true,
+      "label": "Динозавр",
+      "taskKind": "dictation",
+      "columns": 19,
+      "rows": 21,
+      "start": {
+        "col": 0,
+        "row": 8
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_airplane",
+      "conceptId": "dictation_airplane",
+      "primary": true,
+      "label": "Самолёт",
+      "taskKind": "dictation",
+      "columns": 21,
+      "rows": 19,
+      "start": {
+        "col": 1,
+        "row": 10
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        }
+      ],
+      "decorations": [
+        {
+          "type": "rect",
+          "col": 4,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        },
+        {
+          "type": "rect",
+          "col": 6,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        },
+        {
+          "type": "rect",
+          "col": 8,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        },
+        {
+          "type": "rect",
+          "col": 10,
+          "row": 10,
+          "width": 1,
+          "height": 1
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_helicopter",
+      "conceptId": "dictation_helicopter",
+      "primary": true,
+      "label": "Вертолёт",
+      "taskKind": "dictation",
+      "columns": 21,
+      "rows": 20,
+      "start": {
+        "col": 3,
+        "row": 14
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 8
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 8
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 8
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 14
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        }
+      ],
+      "decorations": [
+        {
+          "type": "rect",
+          "col": 9,
+          "row": 16,
+          "width": 1,
+          "height": 1
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_car",
+      "conceptId": "dictation_car",
+      "primary": true,
+      "label": "Машина",
+      "taskKind": "dictation",
+      "columns": 21,
+      "rows": 17,
+      "start": {
+        "col": 1,
+        "row": 9
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 7
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        }
+      ],
+      "decorations": [
+        {
+          "type": "polygon",
+          "points": [
+            {
+              "col": 8,
+              "row": 6
+            },
+            {
+              "col": 9,
+              "row": 6
+            },
+            {
+              "col": 9,
+              "row": 8
+            },
+            {
+              "col": 7,
+              "row": 8
+            },
+            {
+              "col": 7,
+              "row": 7
+            },
+            {
+              "col": 8,
+              "row": 7
+            }
+          ]
+        },
+        {
+          "type": "polygon",
+          "points": [
+            {
+              "col": 10,
+              "row": 5
+            },
+            {
+              "col": 13,
+              "row": 5
+            },
+            {
+              "col": 13,
+              "row": 6
+            },
+            {
+              "col": 14,
+              "row": 6
+            },
+            {
+              "col": 14,
+              "row": 7
+            },
+            {
+              "col": 15,
+              "row": 7
+            },
+            {
+              "col": 15,
+              "row": 8
+            },
+            {
+              "col": 10,
+              "row": 8
+            }
+          ]
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_horned_dino",
+      "conceptId": "dictation_horned_dino",
+      "primary": true,
+      "label": "Рогатый динозавр",
+      "taskKind": "dictation",
+      "columns": 22,
+      "rows": 14,
+      "start": {
+        "col": 8,
+        "row": 7
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        }
+      ],
+      "decorations": [
+        {
+          "type": "dot",
+          "col": 3.5,
+          "row": 6.5
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "dictation_stegosaurus",
+      "conceptId": "dictation_stegosaurus",
+      "primary": true,
+      "label": "Стегозавр",
+      "taskKind": "dictation",
+      "columns": 23,
+      "rows": 10,
+      "start": {
+        "col": 2,
+        "row": 6
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        }
+      ],
+      "decorations": [
+        {
+          "type": "dot",
+          "col": 3,
+          "row": 6
+        }
+      ],
+      "difficulty": "challenge"
+    },
+    {
+      "id": "coordinate_house",
+      "conceptId": "coordinate_house",
+      "primary": true,
+      "label": "Дом",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 2,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 2,
+          "row": 3
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 1
+        },
+        {
+          "col": 9,
+          "row": 3
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 2,
+          "row": 7
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "coordinate_kite",
+      "conceptId": "coordinate_kite",
+      "primary": true,
+      "label": "Воздушный змей",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 5,
+        "row": 2
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 8
+        },
+        {
+          "col": 2,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 2
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "coordinate_stairs",
+      "conceptId": "coordinate_stairs",
+      "primary": true,
+      "label": "Лестница",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 2
+        }
+      ],
+      "difficulty": "starter"
+    },
+    {
+      "id": "coordinate_lightning",
+      "conceptId": "coordinate_lightning",
+      "primary": true,
+      "label": "Молния",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 3,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 7,
+          "row": 1
+        },
+        {
+          "col": 4,
+          "row": 4
+        },
+        {
+          "col": 6,
+          "row": 4
+        },
+        {
+          "col": 2,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 8
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "coordinate_crown",
+      "conceptId": "coordinate_crown",
+      "primary": true,
+      "label": "Корона",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 1,
+          "row": 4
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 9,
+          "row": 4
+        },
+        {
+          "col": 9,
+          "row": 8
+        },
+        {
+          "col": 1,
+          "row": 8
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "coordinate_spiral",
+      "conceptId": "coordinate_spiral",
+      "primary": true,
+      "label": "Спираль",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 6
+        }
+      ],
+      "difficulty": "starter"
+    },
+    {
+      "id": "coordinate_hexagon",
+      "conceptId": "coordinate_hexagon",
+      "primary": true,
+      "label": "Шестиугольник",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 3,
+        "row": 2
+      },
+      "points": [
+        {
+          "col": 6,
+          "row": 2
+        },
+        {
+          "col": 9,
+          "row": 5
+        },
+        {
+          "col": 6,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 0,
+          "row": 5
+        },
+        {
+          "col": 3,
+          "row": 2
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "coordinate_flag",
+      "conceptId": "coordinate_flag",
+      "primary": true,
+      "label": "Флажок",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 2,
+        "row": 9
+      },
+      "points": [
+        {
+          "col": 2,
+          "row": 2
+        },
+        {
+          "col": 7,
+          "row": 2
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 2,
+          "row": 4
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "coordinate_wave",
+      "conceptId": "coordinate_wave",
+      "primary": true,
+      "label": "Волна",
+      "taskKind": "coordinate",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 11,
+          "row": 5
+        }
+      ],
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "coordinate_maze",
+      "conceptId": "coordinate_maze",
+      "primary": true,
+      "label": "Лабиринт",
+      "taskKind": "coordinate",
+      "columns": 10,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 8
+        }
+      ],
+      "difficulty": "starter"
+    },
+    {
+      "id": "repeat_corner",
+      "conceptId": "repeat_corner",
+      "primary": true,
+      "label": "Уголок",
+      "taskKind": "repeat",
+      "difficulty": "starter",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 2,
+            "row": 6
+          },
+          {
+            "col": 2,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 2
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_square_basic",
+      "conceptId": "repeat_square_basic",
+      "primary": true,
+      "label": "Квадрат",
+      "taskKind": "repeat",
+      "difficulty": "starter",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 2,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
+            "col": 2,
+            "row": 6
+          },
+          {
+            "col": 2,
+            "row": 2
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_roof",
+      "conceptId": "repeat_roof",
+      "primary": true,
+      "label": "Крыша",
+      "taskKind": "repeat",
+      "difficulty": "starter",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 2,
+            "row": 6
+          },
+          {
+            "col": 4,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 6
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_flag_basic",
+      "conceptId": "repeat_flag_basic",
+      "primary": true,
+      "label": "Флажок",
+      "taskKind": "repeat",
+      "difficulty": "starter",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 2,
+            "row": 7
+          },
+          {
+            "col": 2,
+            "row": 1
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 1
+          },
+          {
+            "col": 6,
+            "row": 1
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 2,
+            "row": 3
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_steps_basic",
+      "conceptId": "repeat_steps_basic",
+      "primary": true,
+      "label": "Ступеньки",
+      "taskKind": "repeat",
+      "difficulty": "starter",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 1,
+            "row": 7
+          },
+          {
+            "col": 1,
+            "row": 5
+          },
+          {
+            "col": 3,
+            "row": 5
+          },
+          {
+            "col": 3,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 1
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_boat_basic",
+      "conceptId": "repeat_boat_basic",
+      "primary": true,
+      "label": "Лодочка",
+      "taskKind": "repeat",
+      "difficulty": "starter",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
+            "col": 5,
+            "row": 7
+          },
+          {
+            "col": 2,
+            "row": 7
+          },
+          {
+            "col": 1,
+            "row": 6
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 6
+          },
+          {
+            "col": 4,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 5
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_house_basic",
+      "conceptId": "repeat_house_basic",
+      "primary": true,
+      "label": "Домик",
+      "taskKind": "repeat",
+      "difficulty": "reinforce",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 1,
+            "row": 7
+          },
+          {
+            "col": 1,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 7,
+            "row": 3
+          },
+          {
+            "col": 7,
+            "row": 7
+          },
+          {
+            "col": 1,
+            "row": 7
+          }
+        ],
+        [
+          {
+            "col": 3,
+            "row": 7
+          },
+          {
+            "col": 3,
+            "row": 5
+          },
+          {
+            "col": 5,
+            "row": 5
+          },
+          {
+            "col": 5,
+            "row": 7
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_fish_basic",
+      "conceptId": "repeat_fish_basic",
+      "primary": true,
+      "label": "Рыбка",
+      "taskKind": "repeat",
+      "difficulty": "reinforce",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 2,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 2
+          },
+          {
+            "col": 6,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 6
+          },
+          {
+            "col": 2,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 4
+          },
+          {
+            "col": 8,
+            "row": 2
+          },
+          {
+            "col": 8,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 4
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_windmill",
+      "conceptId": "repeat_windmill",
+      "primary": true,
+      "label": "Мельница",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 4,
+            "row": 7
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 4
+          },
+          {
+            "col": 7,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 1
+          },
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 4
+          },
+          {
+            "col": 2,
+            "row": 3
+          },
+          {
+            "col": 4,
+            "row": 1
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 4
+          },
+          {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 4,
+            "row": 7
+          },
+          {
+            "col": 2,
+            "row": 5
+          },
+          {
+            "col": 4,
+            "row": 4
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_castle",
+      "conceptId": "repeat_castle",
+      "primary": true,
+      "label": "Замок",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 16,
+      "rows": 8,
+      "axisCol": 8,
+      "sourcePaths": [
+        [
+          {
+            "col": 1,
+            "row": 7
+          },
+          {
+            "col": 1,
+            "row": 3
+          },
+          {
+            "col": 2,
+            "row": 3
+          },
+          {
+            "col": 2,
+            "row": 1
+          },
+          {
+            "col": 3,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 3
+          },
+          {
+            "col": 5,
+            "row": 1
+          },
+          {
+            "col": 6,
+            "row": 3
+          },
+          {
+            "col": 7,
+            "row": 3
+          },
+          {
+            "col": 7,
+            "row": 7
+          },
+          {
+            "col": 1,
+            "row": 7
+          }
+        ],
+        [
+          {
+            "col": 3,
+            "row": 7
+          },
+          {
+            "col": 3,
+            "row": 5
+          },
+          {
+            "col": 5,
+            "row": 5
+          },
+          {
+            "col": 5,
+            "row": 7
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 5
+          },
+          {
+            "col": 7,
+            "row": 5
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeat_duck_worksheet",
+      "conceptId": "repeat_duck_worksheet",
+      "primary": true,
+      "label": "Утка",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 20,
+      "rows": 11,
+      "axisCol": 10,
+      "sourcePaths": [[{"col":5,"row":1},{"col":4,"row":1},{"col":3,"row":1},{"col":2,"row":2},{"col":2,"row":3}],[{"col":5,"row":1},{"col":6,"row":3},{"col":5,"row":4}],[{"col":2,"row":3},{"col":3,"row":4}],[{"col":2,"row":3},{"col":1,"row":4},{"col":2,"row":4},{"col":3,"row":4}],[{"col":3,"row":2},{"col":4,"row":3}],[{"col":3,"row":4},{"col":2,"row":5},{"col":2,"row":6},{"col":2,"row":7},{"col":3,"row":8},{"col":4,"row":8}],[{"col":3,"row":3},{"col":4,"row":2}],[{"col":6,"row":3},{"col":5,"row":4},{"col":6,"row":4},{"col":7,"row":4},{"col":8,"row":5},{"col":9,"row":4},{"col":9,"row":5},{"col":9,"row":6},{"col":9,"row":7},{"col":8,"row":8},{"col":7,"row":8},{"col":6,"row":8}],[{"col":4,"row":5},{"col":4,"row":6},{"col":5,"row":7},{"col":6,"row":7},{"col":7,"row":7},{"col":8,"row":6},{"col":7,"row":5},{"col":6,"row":5}],[{"col":4,"row":8},{"col":5,"row":8},{"col":6,"row":8}],[{"col":4,"row":8},{"col":4,"row":9},{"col":4,"row":10},{"col":3,"row":10}],[{"col":6,"row":8},{"col":6,"row":9},{"col":6,"row":10},{"col":7,"row":10}]]
+    },
+    {
+      "id": "repeat_seahorse_worksheet",
+      "conceptId": "repeat_seahorse_worksheet",
+      "primary": true,
+      "label": "Утка с хвостом",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 24,
+      "rows": 10,
+      "axisCol": 12,
+      "sourcePaths": [[{"col":10,"row":2},{"col":9,"row":1},{"col":8,"row":1},{"col":7,"row":1},{"col":6,"row":2},{"col":6,"row":3},{"col":7,"row":4},{"col":7,"row":5}],[{"col":10,"row":2},{"col":11,"row":2},{"col":10,"row":3}],[{"col":10,"row":2},{"col":10,"row":3}],[{"col":10,"row":3},{"col":9,"row":4},{"col":9,"row":5},{"col":10,"row":6},{"col":10,"row":7},{"col":9,"row":8},{"col":8,"row":9},{"col":7,"row":9},{"col":6,"row":9},{"col":5,"row":9},{"col":4,"row":9},{"col":3,"row":8}],[{"col":7,"row":5},{"col":6,"row":5},{"col":5,"row":5},{"col":4,"row":5}],[{"col":7,"row":5},{"col":8,"row":6},{"col":8,"row":7},{"col":7,"row":8},{"col":6,"row":8},{"col":5,"row":8},{"col":4,"row":8},{"col":3,"row":8}],[{"col":2,"row":7},{"col":3,"row":8}]]
+    },
+    {
+      "id": "repeat_crocodile_worksheet",
+      "conceptId": "repeat_crocodile_worksheet",
+      "primary": true,
+      "label": "Крокодил",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 30,
+      "rows": 10,
+      "axisCol": 15,
+      "sourcePaths": [[{"col":6,"row":0},{"col":7,"row":0},{"col":8,"row":0},{"col":9,"row":0},{"col":10,"row":0},{"col":10,"row":1},{"col":9,"row":1},{"col":9,"row":2},{"col":8,"row":2},{"col":8,"row":3},{"col":9,"row":3},{"col":10,"row":3},{"col":11,"row":3},{"col":12,"row":3},{"col":12,"row":2},{"col":13,"row":2},{"col":13,"row":1},{"col":14,"row":1},{"col":15,"row":1},{"col":15,"row":2},{"col":15,"row":3},{"col":15,"row":4},{"col":14,"row":4},{"col":14,"row":5},{"col":13,"row":5},{"col":13,"row":6},{"col":12,"row":6},{"col":11,"row":6},{"col":10,"row":6},{"col":9,"row":6},{"col":8,"row":6},{"col":8,"row":7},{"col":9,"row":7},{"col":9,"row":8},{"col":10,"row":8},{"col":10,"row":9},{"col":11,"row":9},{"col":11,"row":10},{"col":10,"row":10},{"col":9,"row":10},{"col":8,"row":10},{"col":8,"row":9},{"col":7,"row":9},{"col":6,"row":9},{"col":6,"row":8},{"col":5,"row":8},{"col":5,"row":7},{"col":4,"row":7},{"col":4,"row":6},{"col":3,"row":6},{"col":2,"row":6},{"col":1,"row":6},{"col":0,"row":5},{"col":1,"row":4},{"col":2,"row":4},{"col":3,"row":4},{"col":3,"row":3},{"col":4,"row":3},{"col":4,"row":2},{"col":5,"row":2},{"col":5,"row":1},{"col":6,"row":1},{"col":6,"row":0}]]
+    },
+    {
+      "id": "repeat_cactus_worksheet",
+      "conceptId": "repeat_cactus_worksheet",
+      "primary": true,
+      "label": "Зонтик",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 28,
+      "rows": 12,
+      "axisCol": 14,
+      "sourcePaths": [[{"col":2,"row":1},{"col":2.5,"row":0},{"col":3,"row":1},{"col":2,"row":1}],[{"col":10,"row":1},{"col":10.5,"row":0},{"col":11,"row":1},{"col":10,"row":1}],[{"col":13,"row":2},{"col":13.5,"row":1},{"col":14,"row":2},{"col":13,"row":2}],[{"col":0,"row":3},{"col":0.5,"row":2},{"col":1,"row":3},{"col":0,"row":3}],[{"col":12,"row":4},{"col":11,"row":4},{"col":11,"row":3},{"col":10,"row":3},{"col":10,"row":2},{"col":9,"row":2},{"col":9,"row":1},{"col":8,"row":1},{"col":7,"row":0},{"col":6,"row":0},{"col":5,"row":1},{"col":4,"row":1},{"col":4,"row":2},{"col":3,"row":2},{"col":3,"row":3},{"col":2,"row":3},{"col":2,"row":4},{"col":1,"row":4},{"col":1,"row":5},{"col":0,"row":5},{"col":0,"row":6},{"col":1,"row":6},{"col":2,"row":6},{"col":3,"row":6},{"col":4,"row":6},{"col":5,"row":6},{"col":6,"row":6},{"col":6,"row":7},{"col":6,"row":8},{"col":6,"row":9},{"col":6,"row":10},{"col":6,"row":11},{"col":5,"row":11},{"col":5,"row":10},{"col":4,"row":10},{"col":4,"row":11},{"col":4,"row":12},{"col":5,"row":12},{"col":6,"row":12},{"col":7,"row":12},{"col":7,"row":11},{"col":7,"row":10},{"col":7,"row":9},{"col":7,"row":8},{"col":7,"row":7},{"col":7,"row":6},{"col":8,"row":6},{"col":9,"row":6},{"col":10,"row":6},{"col":11,"row":6},{"col":12,"row":6},{"col":13,"row":6},{"col":13,"row":5},{"col":12,"row":5},{"col":12,"row":4}],[{"col":12,"row":4},{"col":12.5,"row":3},{"col":13,"row":4},{"col":12,"row":4}]]
+    },
+    {
+      "id": "repeat_person_worksheet",
+      "conceptId": "repeat_person_worksheet",
+      "primary": true,
+      "label": "Жук",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 22,
+      "rows": 11,
+      "axisCol": 11,
+      "sourcePaths": [[{"col":5,"row":1},{"col":7,"row":1},{"col":8,"row":2},{"col":7,"row":3},{"col":5,"row":3},{"col":4,"row":2},{"col":5,"row":1}],[{"col":3,"row":2},{"col":3,"row":3},{"col":5,"row":5}],[{"col":9,"row":2},{"col":9,"row":3},{"col":7,"row":5}],[{"col":1,"row":3},{"col":2,"row":4},{"col":3,"row":5},{"col":5,"row":5}],[{"col":7,"row":5},{"col":9,"row":5},{"col":11,"row":4}],[{"col":5,"row":5},{"col":5,"row":7},{"col":7,"row":7},{"col":7,"row":5}],[{"col":5,"row":7},{"col":3,"row":8},{"col":1,"row":10}],[{"col":7,"row":7},{"col":9,"row":8},{"col":11,"row":10}],[{"col":5,"row":7},{"col":4,"row":8},{"col":5,"row":10},{"col":7,"row":10},{"col":8,"row":8},{"col":7,"row":7}]]
+    },
+    {
+      "id": "repeat_squirrel_worksheet",
+      "conceptId": "repeat_squirrel_worksheet",
+      "primary": true,
+      "label": "Белка",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 22,
+      "rows": 11,
+      "axisCol": 11,
+      "sourcePaths": [[{"col":2,"row":3},{"col":4,"row":1},{"col":7,"row":1},{"col":8,"row":4},{"col":8,"row":7},{"col":7,"row":8},{"col":2,"row":8},{"col":2,"row":7},{"col":4,"row":6},{"col":4,"row":5},{"col":2,"row":4},{"col":1,"row":3},{"col":2,"row":3}],[{"col":4,"row":1},{"col":4,"row":0},{"col":5,"row":0},{"col":5,"row":1},{"col":4,"row":1}],[{"col":6,"row":1},{"col":6,"row":0},{"col":7,"row":0},{"col":7,"row":1},{"col":6,"row":1}],[{"col":7,"row":1},{"col":9,"row":1},{"col":10,"row":4},{"col":9,"row":4},{"col":8,"row":5},{"col":10,"row":7},{"col":10,"row":8},{"col":8,"row":10},{"col":7,"row":11},{"col":7,"row":8}],[{"col":2,"row":4},{"col":3,"row":5},{"col":4,"row":5}],[{"col":2,"row":4},{"col":1,"row":5},{"col":2,"row":6},{"col":4,"row":6}]]
+    },
+    {
+      "id": "repeat_elephant_worksheet",
+      "conceptId": "repeat_elephant_worksheet",
+      "primary": true,
+      "label": "Слон",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 20,
+      "rows": 9,
+      "axisCol": 10,
+      "sourcePaths": [[{"col":1,"row":5},{"col":1,"row":2},{"col":2,"row":1},{"col":3,"row":1},{"col":4,"row":0},{"col":5,"row":0},{"col":6,"row":1},{"col":7,"row":1},{"col":8,"row":2},{"col":8,"row":4},{"col":9,"row":6}],[{"col":1,"row":3},{"col":0,"row":4},{"col":2,"row":4},{"col":1,"row":6},{"col":2,"row":6},{"col":3,"row":4}],[{"col":3,"row":3},{"col":4,"row":4},{"col":5,"row":4},{"col":6,"row":3}],[{"col":3,"row":4},{"col":3,"row":6},{"col":4,"row":7},{"col":5,"row":7},{"col":5,"row":5}],[{"col":6,"row":3},{"col":7,"row":4},{"col":7,"row":6},{"col":8,"row":6},{"col":8,"row":4}]]
+    },
+    {
+      "id": "repeat_bull_worksheet",
+      "conceptId": "repeat_bull_worksheet",
+      "primary": true,
+      "label": "Бык",
+      "taskKind": "repeat",
+      "difficulty": "challenge",
+      "columns": 22,
+      "rows": 12,
+      "axisCol": 11,
+      "sourcePaths": [[{"col":1,"row":1},{"col":2,"row":2},{"col":2,"row":3},{"col":3,"row":4},{"col":8,"row":4},{"col":9,"row":3},{"col":9,"row":2},{"col":10,"row":1}],[{"col":2,"row":3},{"col":3,"row":3}],[{"col":8,"row":3},{"col":9,"row":3}],[{"col":3,"row":4},{"col":3,"row":7},{"col":4,"row":8},{"col":5,"row":7},{"col":6,"row":8},{"col":7,"row":7},{"col":8,"row":4}],[{"col":4,"row":5},{"col":5,"row":5},{"col":5,"row":6},{"col":4,"row":6},{"col":4,"row":5}],[{"col":6,"row":5},{"col":7,"row":5},{"col":7,"row":6},{"col":6,"row":6},{"col":6,"row":5}],[{"col":4,"row":8},{"col":5,"row":9},{"col":6,"row":9},{"col":7,"row":8}]]
+    },
+    {
+      "id": "dictation_rectangle",
+      "conceptId": "dictation_rectangle",
+      "primary": true,
+      "label": "Прямоугольник",
+      "taskKind": "dictation",
+      "difficulty": "starter",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 2,
+        "row": 7
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 4
+        }
+      ]
+    },
+    {
+      "id": "dictation_chair",
+      "conceptId": "dictation_chair",
+      "primary": true,
+      "label": "Стул",
+      "taskKind": "dictation",
+      "difficulty": "starter",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 2,
+        "row": 7
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        }
+      ]
+    },
+    {
+      "id": "dictation_fence",
+      "conceptId": "dictation_fence",
+      "primary": true,
+      "label": "Забор",
+      "taskKind": "dictation",
+      "difficulty": "starter",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 5
+        }
+      ]
+    },
+    {
+      "id": "dictation_boat_small",
+      "conceptId": "dictation_boat_small",
+      "primary": true,
+      "label": "Кораблик",
+      "taskKind": "dictation",
+      "difficulty": "reinforce",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 1,
+        "row": 7
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 9
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 9
+        }
+      ]
+    },
+    {
+      "id": "dictation_key",
+      "conceptId": "dictation_key",
+      "primary": true,
+      "label": "Ключ",
+      "taskKind": "dictation",
+      "difficulty": "reinforce",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 1,
+        "row": 5
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        }
+      ]
+    },
+    {
+      "id": "dictation_flower",
+      "conceptId": "dictation_flower",
+      "primary": true,
+      "label": "Цветок",
+      "taskKind": "dictation",
+      "difficulty": "reinforce",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 5,
+        "row": 9
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        }
+      ]
+    },
+    {
+      "id": "dictation_small_plane",
+      "conceptId": "dictation_small_plane",
+      "primary": true,
+      "label": "Самолётик",
+      "taskKind": "dictation",
+      "difficulty": "reinforce",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 4,
+        "row": 5
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 4
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        }
+      ]
+    },
+    {
+      "id": "dictation_small_fish",
+      "conceptId": "dictation_small_fish",
+      "primary": true,
+      "label": "Рыбка",
+      "taskKind": "dictation",
+      "difficulty": "reinforce",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 5
+      },
+      "commands": [
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 5
+        }
+      ]
+    },
+    {
+      "id": "coordinate_rocket",
+      "conceptId": "coordinate_rocket",
+      "primary": true,
+      "label": "Ракета",
+      "taskKind": "coordinate",
+      "difficulty": "challenge",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 6,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 4
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 6,
+          "row": 7
+        },
+        {
+          "col": 4,
+          "row": 8
+        },
+        {
+          "col": 4,
+          "row": 4
+        },
+        {
+          "col": 6,
+          "row": 1
+        },
+        {
+          "col": 3,
+          "row": 9
+        },
+        {
+          "col": 5,
+          "row": 9
+        },
+        {
+          "col": 6,
+          "row": 8
+        },
+        {
+          "col": 7,
+          "row": 9
+        },
+        {
+          "col": 9,
+          "row": 9
+        },
+        {
+          "col": 6,
+          "row": 8
+        }
+      ]
+    },
+    {
+      "id": "coordinate_robot",
+      "conceptId": "coordinate_robot",
+      "primary": true,
+      "label": "Робот",
+      "taskKind": "coordinate",
+      "difficulty": "challenge",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 3,
+        "row": 1
+      },
+      "points": [
+        {
+          "col": 7,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 2
+        },
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 7,
+          "row": 9
+        },
+        {
+          "col": 5,
+          "row": 9
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 3,
+          "row": 7
+        },
+        {
+          "col": 3,
+          "row": 9
+        },
+        {
+          "col": 1,
+          "row": 9
+        },
+        {
+          "col": 1,
+          "row": 6
+        },
+        {
+          "col": 2,
+          "row": 5
+        },
+        {
+          "col": 2,
+          "row": 2
+        },
+        {
+          "col": 3,
+          "row": 1
+        }
+      ]
+    },
+    {
+      "id": "coordinate_castle",
+      "conceptId": "coordinate_castle",
+      "primary": true,
+      "label": "Замок",
+      "taskKind": "coordinate",
+      "difficulty": "challenge",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 9
+      },
+      "points": [
+        {
+          "col": 1,
+          "row": 3
+        },
+        {
+          "col": 2,
+          "row": 3
+        },
+        {
+          "col": 2,
+          "row": 1
+        },
+        {
+          "col": 4,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 1
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 9,
+          "row": 3
+        },
+        {
+          "col": 9,
+          "row": 9
+        },
+        {
+          "col": 6,
+          "row": 9
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 4,
+          "row": 6
+        },
+        {
+          "col": 4,
+          "row": 9
+        },
+        {
+          "col": 1,
+          "row": 9
+        }
+      ]
+    },
+    {
+      "id": "coordinate_butterfly",
+      "conceptId": "coordinate_butterfly",
+      "primary": true,
+      "label": "Бабочка",
+      "taskKind": "coordinate",
+      "difficulty": "challenge",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 6,
+        "row": 5
+      },
+      "points": [
+        {
+          "col": 4,
+          "row": 2
+        },
+        {
+          "col": 1,
+          "row": 1
+        },
+        {
+          "col": 2,
+          "row": 5
+        },
+        {
+          "col": 1,
+          "row": 9
+        },
+        {
+          "col": 4,
+          "row": 8
+        },
+        {
+          "col": 6,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 2
+        },
+        {
+          "col": 11,
+          "row": 1
+        },
+        {
+          "col": 10,
+          "row": 5
+        },
+        {
+          "col": 11,
+          "row": 9
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 6,
+          "row": 5
+        }
+      ]
+    },
+    {
+      "id": "coordinate_sailboat",
+      "conceptId": "coordinate_sailboat",
+      "primary": true,
+      "label": "Парусник",
+      "taskKind": "coordinate",
+      "difficulty": "challenge",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 11,
+          "row": 8
+        },
+        {
+          "col": 9,
+          "row": 10
+        },
+        {
+          "col": 3,
+          "row": 10
+        },
+        {
+          "col": 1,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 2
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 2,
+          "row": 7
+        },
+        {
+          "col": 5,
+          "row": 2
+        }
+      ]
+    },
+    {
+      "id": "coordinate_snail",
+      "conceptId": "coordinate_snail",
+      "primary": true,
+      "label": "Улитка",
+      "taskKind": "coordinate",
+      "difficulty": "challenge",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 5,
+          "row": 9
+        },
+        {
+          "col": 3,
+          "row": 9
+        },
+        {
+          "col": 2,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 7
+        },
+        {
+          "col": 4,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 9
+        },
+        {
+          "col": 6,
+          "row": 9
+        },
+        {
+          "col": 7,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 10,
+          "row": 8
+        },
+        {
+          "col": 11,
+          "row": 6
+        },
+        {
+          "col": 10,
+          "row": 4
+        },
+        {
+          "col": 8,
+          "row": 4
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 5,
+          "row": 6
+        }
+      ]
+    },
+    {
+      "id": "coordinate_rectangle",
+      "conceptId": "coordinate_rectangle",
+      "primary": true,
+      "label": "Прямоугольник",
+      "taskKind": "coordinate",
+      "difficulty": "starter",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 2,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 8,
+          "row": 7
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 2,
+          "row": 3
+        },
+        {
+          "col": 2,
+          "row": 7
+        }
+      ]
+    },
+    {
+      "id": "coordinate_chair",
+      "conceptId": "coordinate_chair",
+      "primary": true,
+      "label": "Стул",
+      "taskKind": "coordinate",
+      "difficulty": "starter",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 2,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 2,
+          "row": 2
+        },
+        {
+          "col": 6,
+          "row": 2
+        },
+        {
+          "col": 6,
+          "row": 4
+        },
+        {
+          "col": 4,
+          "row": 4
+        },
+        {
+          "col": 4,
+          "row": 7
+        },
+        {
+          "col": 8,
+          "row": 7
+        },
+        {
+          "col": 8,
+          "row": 4
+        },
+        {
+          "col": 6,
+          "row": 4
+        }
+      ]
+    },
+    {
+      "id": "coordinate_fence",
+      "conceptId": "coordinate_fence",
+      "primary": true,
+      "label": "Забор",
+      "taskKind": "coordinate",
+      "difficulty": "starter",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 1,
+        "row": 8
+      },
+      "points": [
+        {
+          "col": 1,
+          "row": 3
+        },
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 3,
+          "row": 8
+        },
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 5,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 8
+        }
+      ]
+    },
+    {
+      "id": "coordinate_boat_small",
+      "conceptId": "coordinate_boat_small",
+      "primary": true,
+      "label": "Кораблик",
+      "taskKind": "coordinate",
+      "difficulty": "reinforce",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 1,
+        "row": 7
+      },
+      "points": [
+        {
+          "col": 10,
+          "row": 7
+        },
+        {
+          "col": 10,
+          "row": 6
+        },
+        {
+          "col": 8,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 4
+        },
+        {
+          "col": 3,
+          "row": 4
+        },
+        {
+          "col": 3,
+          "row": 6
+        },
+        {
+          "col": 0,
+          "row": 6
+        },
+        {
+          "col": 0,
+          "row": 7
+        },
+        {
+          "col": 9,
+          "row": 7
+        }
+      ]
+    },
+    {
+      "id": "coordinate_key",
+      "conceptId": "coordinate_key",
+      "primary": true,
+      "label": "Ключ",
+      "taskKind": "coordinate",
+      "difficulty": "reinforce",
+      "columns": 11,
+      "rows": 9,
+      "start": {
+        "col": 1,
+        "row": 5
+      },
+      "points": [
+        {
+          "col": 4,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 6,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 5
+        },
+        {
+          "col": 9,
+          "row": 7
+        },
+        {
+          "col": 8,
+          "row": 7
+        },
+        {
+          "col": 8,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 8
+        },
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 2,
+          "row": 6
+        }
+      ]
+    },
+    {
+      "id": "coordinate_flower",
+      "conceptId": "coordinate_flower",
+      "primary": true,
+      "label": "Цветок",
+      "taskKind": "coordinate",
+      "difficulty": "reinforce",
+      "columns": 11,
+      "rows": 10,
+      "start": {
+        "col": 5,
+        "row": 9
+      },
+      "points": [
+        {
+          "col": 5,
+          "row": 6
+        },
+        {
+          "col": 3,
+          "row": 4
+        },
+        {
+          "col": 5,
+          "row": 2
+        },
+        {
+          "col": 5,
+          "row": 0
+        },
+        {
+          "col": 7,
+          "row": 2
+        },
+        {
+          "col": 5,
+          "row": 4
+        },
+        {
+          "col": 5,
+          "row": 7
+        },
+        {
+          "col": 7,
+          "row": 9
+        },
+        {
+          "col": 8,
+          "row": 8
+        },
+        {
+          "col": 7,
+          "row": 7
+        },
+        {
+          "col": 5,
+          "row": 9
+        }
+      ]
+    },
+    {
+      "id": "coordinate_small_plane",
+      "conceptId": "coordinate_small_plane",
+      "primary": true,
+      "label": "Самолётик",
+      "taskKind": "coordinate",
+      "difficulty": "reinforce",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 4,
+        "row": 5
+      },
+      "points": [
+        {
+          "col": 7,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 3
+        },
+        {
+          "col": 7,
+          "row": 4
+        },
+        {
+          "col": 11,
+          "row": 4
+        },
+        {
+          "col": 12,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 7,
+          "row": 6
+        },
+        {
+          "col": 6,
+          "row": 6
+        },
+        {
+          "col": 4,
+          "row": 4
+        },
+        {
+          "col": 1,
+          "row": 4
+        },
+        {
+          "col": 1,
+          "row": 2
+        }
+      ]
+    },
+    {
+      "id": "coordinate_small_fish",
+      "conceptId": "coordinate_small_fish",
+      "primary": true,
+      "label": "Рыбка",
+      "taskKind": "coordinate",
+      "difficulty": "reinforce",
+      "columns": 12,
+      "rows": 10,
+      "start": {
+        "col": 1,
+        "row": 5
+      },
+      "points": [
+        {
+          "col": 3,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 3
+        },
+        {
+          "col": 8,
+          "row": 5
+        },
+        {
+          "col": 6,
+          "row": 7
+        },
+        {
+          "col": 3,
+          "row": 7
+        },
+        {
+          "col": 1,
+          "row": 5
+        },
+        {
+          "col": 6,
+          "row": 5
+        },
+        {
+          "col": 8,
+          "row": 3
+        },
+        {
+          "col": 10,
+          "row": 5
+        },
+        {
+          "col": 5,
+          "row": 5
+        }
       ]
     }
   ]

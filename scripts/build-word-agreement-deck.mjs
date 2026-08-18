@@ -11,6 +11,16 @@ const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // exists here — until then FillBlankTask falls back to browser TTS.
 const AUDIO_SRC_DIR = `public/decks/_audio_src/${TOPIC_ID}`;
 
+// Shared explanation for every mode's optionCount enum — same underlying
+// idea everywhere (more options = more real distractor forms to rule out,
+// so it's harder), just reused across all modes rather than restated.
+const OPTION_COUNT_INFO = {
+  ru: {
+    text: "Чем больше вариантов ответа, тем больше похожих, но неправильных форм слова нужно исключить — сложнее угадать наугад, важнее по-настоящему знать окончание. Начните с меньшего числа и увеличивайте его, когда ребёнок отвечает уверенно.",
+    tip: "Если ребёнок часто ошибается, не бойтесь вернуться к меньшему числу вариантов — это не откат назад, а нормальная часть тренировки.",
+  },
+};
+
 const topic = {
   meta: {
     id:       TOPIC_ID,
@@ -40,10 +50,17 @@ const topic = {
         optionCount: {
           type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
           labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+          info: OPTION_COUNT_INFO,
         },
         includeAdvancedCards: {
           type: "boolean", label: { ru: "Сложные сюжеты" },
-          hint: { ru: "Карточки со значением «думает о…»" }, default: false,
+          hint: { ru: "Карточки со значением «думает о…» — сложнее, чем обычные" }, default: false,
+          info: {
+            ru: {
+              text: "Все остальные карточки этой темы — конкретные, физические ситуации («мяч лежит», «нет мяча», «подошёл к мячу»), где падеж подсказывает сам глагол или предлог. «Думает о...» — абстрактная конструкция: сначала нужно понять смысл «думать о чём-то», и только потом подобрать окончание. Это сложнее, поэтому по умолчанию выключено.",
+              tip: "Включайте, когда ребёнок уверенно справляется с обычным набором карточек — как дополнительную, более сложную тренировку того же падежа.",
+            },
+          },
         },
       },
     },
@@ -60,7 +77,8 @@ const topic = {
       params: {
         optionCount: {
           type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 4, 6],
-          labels: { ru: { "2": "2 — только число", "4": "4 — число и лицо", "6": "6 — все формы" } }, default: 2,
+          labels: { ru: { "2": "2 — только число", "4": "4 — сложнее выбор", "6": "6 — все формы" } }, default: 2,
+          info: OPTION_COUNT_INFO,
         },
       },
     },
@@ -78,6 +96,7 @@ const topic = {
         optionCount: {
           type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
           labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+          info: OPTION_COUNT_INFO,
         },
       },
     },
@@ -95,6 +114,7 @@ const topic = {
         optionCount: {
           type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
           labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+          info: OPTION_COUNT_INFO,
         },
       },
     },
@@ -112,6 +132,7 @@ const topic = {
         optionCount: {
           type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
           labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+          info: OPTION_COUNT_INFO,
         },
       },
     },
@@ -129,6 +150,7 @@ const topic = {
         optionCount: {
           type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
           labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+          info: OPTION_COUNT_INFO,
         },
       },
     },

@@ -1,0 +1,187 @@
+/* Reading "page" composition — read_text (layout full/line) and
+   read_poem_book. Scoped under .reading-page on purpose: the shared
+   .reading-body class (styles.css) is also worn by understand_text,
+   assemble_line, follow_instruction (recipes), shopping_list and
+   safe_code, which have their own, unrelated compositions — nothing here
+   should leak into those. */
+
+.reading-body.reading-page {
+  background: #fdfcf9;
+  /* Center the page's content instead of pinning it to the top edge
+     (portrait) or the left edge (landscape spread row). The shrink-to-fit
+     script in index.jsx already makes content roughly fill a phone screen,
+     so this is invisible there — but on a tablet a short story leaves half
+     the page as dead space without it, and the spread hugs the left edge
+     on wide screens. */
+  justify-content: center;
+}
+
+/* Small accent rule under the title, evoking a book's chapter head. */
+.reading-page .reading-title::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 3px;
+  margin: 10px auto 0;
+  border-radius: 2px;
+  background: #4a9b8f;
+  opacity: 0.55;
+}
+
+/* Flowing paragraph rendering for story prose (see the `flow` branch in
+   ReadingTextBlock) — sentences wrap naturally instead of each sitting in
+   its own block, broken into <p> blocks at the content's editorial
+   `newParagraph` marks, only breaking around dialogue within a paragraph.
+   Font-size still rides --reading-fit-scale so the same shrink-to-fit JS
+   keeps working. */
+.reading-page .reading-flow-text {
+  width: 100%;
+  font-size: calc(1.5rem * var(--reading-fit-scale, 1));
+  font-weight: 700;
+  line-height: 1.5;
+  color: #1a2e2b;
+  text-align: left;
+}
+
+.reading-page .reading-flow-para {
+  margin: 0 0 calc(0.75em * var(--reading-fit-scale, 1));
+}
+.reading-page .reading-flow-para:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .reading-page .reading-flow-text {
+    font-size: calc(2rem * var(--reading-fit-scale, 1));
+  }
+}
+
+/* Drop cap on the first letter of story prose — a storybook-page touch.
+   Targets the first paragraph specifically (::first-letter doesn't reach
+   through a nested block child from the wrapping .reading-flow-text div).
+   Skipped (via --no-dropcap, set in index.jsx) when the story opens on a
+   dialogue line, where a giant "—" would read oddly. */
+.reading-page .reading-flow-text .reading-flow-para:first-child::first-letter {
+  float: left;
+  font-size: 2.7em;
+  line-height: 0.78;
+  font-weight: 900;
+  color: #2f6f66;
+  padding: 4px 8px 0 0;
+}
+.reading-page .reading-flow-text--no-dropcap .reading-flow-para:first-child::first-letter {
+  float: none;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  padding: 0;
+}
+
+/* Portrait: the illustration was a small bottom-right thumbnail sized off
+   its own height. Make it a full-width picture under the text instead,
+   matching the text's width — .reading-illustration--corners (the
+   two-photo variant) keeps its own layout, it isn't one picture that can
+   sensibly stretch to full width.
+
+   Gated on orientation:portrait rather than :not(.reading-page--spread):
+   .reading-page--spread is added whenever there's a (non-corner)
+   illustration at all, in *both* orientations — only the landscape media
+   query below turns it into an actual row layout. A class-exclusion guard
+   here would therefore have also excluded portrait, not just landscape;
+   mutually-exclusive media queries are the reliable way to keep these two
+   rule sets from ever fighting regardless of selector specificity. */
+@media (orientation: portrait) {
+  /* Letting the box size itself off the image's own aspect ratio (a
+     previous version of this rule) meant a near-square or portrait photo
+     at full width came out very tall, crowding the text down to its
+     minimum readable scale even with room to spare elsewhere on the page.
+     Capping the box to a fixed share of the page's height instead — with
+     object-fit:contain doing the aspect-preserving scaling inside that
+     box — keeps the picture from dominating regardless of its native
+     aspect ratio, and leaves the text noticeably more room. (contain also
+     sidesteps the earlier distortion bug for good: the box's width and
+     height can now be set independently without ever stretching the
+     bitmap, since contain scales the image to fit rather than filling
+     both axes unconditionally like the default object-fit:fill did.) */
+  .reading-page .reading-illustration:not(.reading-illustration--corners) {
+    flex: 0 1 42%;
+    min-height: 0;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .reading-page .reading-illustration:not(.reading-illustration--corners) img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* Landscape: an open-book spread — illustration on one side, text page on
+   the other — instead of the same narrow centered column just scaled up.
+   Keyed on orientation, not width: a portrait tablet is still a tall,
+   narrow reading surface (same shape as a phone) and should stay a single
+   column full-width; only when the screen is wider than it is tall does
+   the two-page-spread composition make sense. Matches the existing
+   orientation-based row-layout convention used elsewhere in this file
+   (.find-n-body, .qa-body, .choose-all-body). */
+@media (orientation: landscape) {
+  /* .reading-body / .session-body also set flex-direction/align-items at
+     equal (single-class) specificity — pair with .reading-body so this
+     reliably wins regardless of stylesheet load order. */
+  .reading-body.reading-page--spread {
+    flex-direction: row;
+    align-items: center;
+    gap: 36px;
+    position: relative;
+  }
+
+  /* A soft "spine" shadow between the two pages, like an open book's
+     center crease, instead of a plain gap. */
+  .reading-page--spread::before {
+    content: "";
+    position: absolute;
+    top: 3%;
+    bottom: 3%;
+    left: 50%;
+    width: 34px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(28, 54, 50, 0.07) 38%,
+      rgba(28, 54, 50, 0.13) 50%,
+      rgba(28, 54, 50, 0.07) 62%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .reading-page--spread .reading-poem-wrap,
+  .reading-page--spread .reading-illustration {
+    position: relative;
+    z-index: 1;
+  }
+
+  .reading-page--spread .reading-poem-wrap {
+    flex: 1 1 52%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .reading-page--spread .reading-illustration {
+    flex: 1 1 48%;
+    min-height: 0;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .reading-page--spread .reading-illustration img {
+    max-width: 100%;
+    /* Fill much more of its page instead of floating small and centered
+       (60vh left a lot of unused space around a near-square illustration). */
+    max-height: 82vh;
+  }
+}

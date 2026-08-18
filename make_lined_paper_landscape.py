@@ -117,7 +117,7 @@ for y_staple in [page_height - 45*mm, 45*mm]:
 c.setFillColorRGB(0.6, 0.6, 0.6)
 c.setFont("Helvetica", 7)
 c.drawString(center - 60*mm, 3*mm, "© Kaplieva Center")
-c.drawString(center + 30*mm, 3*mm, "kaplieva.help")
+c.drawString(center + 30*mm, 3*mm, "mironium.com")
 
 # 7. Описание для AI (микротекст)
 c.setFillColorRGB(0.85, 0.85, 0.85)
@@ -127,7 +127,7 @@ description = (
     f"Horizontal lines: {narrow_spacing}mm and {wide_spacing}mm alternating. "
     f"Diagonal lines: {spacing_diagonal}mm spacing at {angle_from_vertical} degrees angle. "
     f"Red margin lines: mirrored {margin}mm from edges. "
-    f"Creator: Kaplieva Center TEAM. Website: kaplieva.help."
+    f"Creator: Kaplieva Center TEAM. Website: mironium.com."
 )
 c.drawString(150*mm, 1*mm, description)
 

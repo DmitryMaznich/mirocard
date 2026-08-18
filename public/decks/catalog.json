@@ -17,16 +17,16 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
       },
       "description": {
-        "ru": "Три коротких рассказа с иллюстрациями: совместное чтение (с показом по слогам или обычным текстом), вопросы по смыслу и сборка текста из слов.",
-        "en": "Three short illustrated stories: shared reading (syllable or normal text display), comprehension questions, and sentence assembly."
+        "ru": "Двенадцать коротких рассказов с иллюстрациями для совместного чтения (обычный текст или по слогам). После чтения родитель или логопед сам задаёт ребёнку вопросы по смыслу.",
+        "en": "Twelve short illustrated stories for shared reading (normal text or syllable-split). After reading, the parent or therapist asks the child their own comprehension questions."
       },
-      "url": "./decks/reading_short_stories_v1.0.0.zip",
+      "url": "./decks/reading_short_stories_v1.2.0.zip",
       "status": "release",
       "access": "free"
     },
@@ -47,16 +47,16 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.5.7",
+      "version": "1.7.3",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
       },
       "description": {
-        "ru": "10 эмоций × 3 вариации (крупные портреты разных детей) и ситуации для всех эмоций. Аудио произношение.",
-        "en": "10 emotions × 3 close-up portraits of different children, with situations for every emotion. Audio included."
+        "ru": "Три портрета и три сюжетные ситуации для каждого из 10 понятий: ребёнок, причина и читаемая эмоция в одной фотографии.",
+        "en": "Three portraits and three situation scenes for each of 10 concepts: a child, the cause, and a readable emotion in one photograph."
       },
-      "url": "./decks/emotions_v2_v1.5.7.zip",
+      "url": "./decks/emotions_v2_v1.7.3.zip",
       "status": "release",
       "access": "free"
     },
@@ -244,6 +244,21 @@
       "access": "free"
     },
     {
+      "id": "propis",
+      "version": "1.23.4",
+      "title": {
+        "ru": "Прописи",
+        "en": "Copybook"
+      },
+      "description": {
+        "ru": "Тренажёр рукописного письма: клавиатура алфавита внизу, крупный зацикленный образец написания выбранной буквы сверху.",
+        "en": "Handwriting practice: an alphabet keyboard at the bottom, a large looping handwriting animation for the selected letter above."
+      },
+      "url": "./decks/propis_v1.23.4.zip",
+      "status": "beta",
+      "access": "free"
+    },
+    {
       "id": "vowel_consonant_ru",
       "version": "1.0.0",
       "title": {
@@ -326,17 +341,6 @@
       "access": "free"
     },
     {
-      "id": "print_materials",
-      "version": "1.0.10",
-      "title": {
-        "ru": "Печатные материалы"
-      },
-      "description": {
-        "ru": "Тетради и рабочие листы для печати"
-      },
-      "url": "./decks/print_materials_v1.0.10.zip"
-    },
-    {
       "id": "word_agreement_ru",
       "version": "1.8.0",
       "url": "./decks/word_agreement_ru_v1.8.0.zip",
@@ -353,18 +357,29 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.1.2",
-      "url": "./decks/symmetry_draw_v1.1.2.zip",
-      "zipUrl": "symmetry_draw_v1.1.2.zip",
+      "version": "1.11.2",
+      "url": "./decks/symmetry_draw_v1.11.2.zip",
+      "zipUrl": "symmetry_draw_v1.11.2.zip",
       "title": {
-        "ru": "Симметричный рисунок"
+        "ru": "Рисуем по клеткам"
       },
       "description": {
-        "ru": "Ребёнок дорисовывает вторую половину фигуры на клетчатом поле, соблюдая симметрию относительно вертикальной оси."
+        "ru": "Симметрия, повтор, графический диктант, точки по координатам и тренировка направлений."
       },
       "renderer": "flashcards",
       "status": "release",
       "access": "free"
+    },
+    {
+      "id": "print_materials",
+      "version": "1.0.13",
+      "title": {
+        "ru": "Печатные материалы"
+      },
+      "description": {
+        "ru": "Тетради и рабочие листы для печати"
+      },
+      "url": "./decks/print_materials_v1.0.13.zip"
     }
   ]
 }

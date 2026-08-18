@@ -18,6 +18,7 @@ import { generateTasks as printMaterialsEngine }       from "./print_materials/e
 import { generateTasks as wordFormationEngine }        from "./word_formation/engine";
 import { generateTasks as phoneticAnalysisEngine }     from "./phonetic_analysis/engine.js";
 import { generateTasks as wordAgreementEngine }        from "./word_agreement/engine.js";
+import { generateTasks as propisEngine }               from "./propis/engine.js";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -40,4 +41,5 @@ export const ENGINE_REGISTRY = {
   word_formation:        wordFormationEngine,
   phonetic_analysis:     phoneticAnalysisEngine,
   word_agreement:        wordAgreementEngine,
+  propis:                propisEngine,
 };

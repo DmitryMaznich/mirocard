@@ -19,6 +19,13 @@ function CardImage({ topicId, card }) {
   return <img className="card-img" src={url} alt="" draggable={false} />;
 }
 
+function SituationScene({ topicId, image }) {
+  const url = useTopicFile(topicId, image);
+  if (!image) return null;
+  if (!url) return <div className="situation-scene situation-scene--loading" />;
+  return <img className="situation-scene" src={url} alt="" draggable={false} />;
+}
+
 function CardArea({ topicId, card }) {
   return (
     <div className="card-area">
@@ -40,7 +47,7 @@ function AudioButton({ topicId, audioPath, playTopicFile, soundEnabled }) {
   );
 }
 
-function IntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
+function IntroTask({ task, mode, topicId, soundEnabled, playTopicFile, onAdvance }) {
   const audioPath = getTaskAudioPath(task);
 
   useEffect(() => {
@@ -50,7 +57,10 @@ function IntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
   return (
     <button className="session-full-tap" onClick={onAdvance}>
       <CardArea topicId={topicId} card={task.card} />
-      <div className="session-label">{task.label}</div>
+      <div className="session-label">
+        {mode?.answerPrefix && <span className="session-label__prefix">{mode.answerPrefix} </span>}
+        {task.label}
+      </div>
       <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
     </button>
   );
@@ -59,6 +69,7 @@ function IntroTask({ task, topicId, soundEnabled, playTopicFile, onAdvance }) {
 function SituationIntroTask({ task, topicId, onAdvance }) {
   const [revealed, setRevealed] = useState(false);
   useEffect(() => { setRevealed(false); }, [task]);
+  const hasScene = Boolean(task.sceneImage);
 
   function handleTap() {
     if (!revealed) { setRevealed(true); return; }
@@ -68,11 +79,21 @@ function SituationIntroTask({ task, topicId, onAdvance }) {
   return (
     <button className="session-full-tap situation-intro" onClick={handleTap}>
       <div className="session-instruction">{task.situationText}</div>
-      <div className="session-hint">Что чувствует?</div>
-      <div className={`situation-intro__reveal${revealed ? " situation-intro__reveal--shown" : ""}`}>
-        <CardArea topicId={topicId} card={task.card} />
-        <div className="situation-intro__label">{task.label}</div>
-      </div>
+      {hasScene && !revealed ? (
+        <>
+          <SituationScene topicId={topicId} image={task.sceneImage} />
+          <div className="session-instruction situation-intro__question">Что чувствует?</div>
+        </>
+      ) : (
+        <>
+          <CardArea topicId={topicId} card={task.card} />
+          {!hasScene && <div className="session-instruction situation-intro__question">Что чувствует?</div>}
+          <div className={`situation-intro__reveal${revealed ? " situation-intro__reveal--shown" : ""}`}>
+            <div className="situation-intro__label">{task.label}</div>
+          </div>
+        </>
+      )}
+      {!revealed && <div className="session-hint">{hasScene ? "Нажми, чтобы увидеть ответ" : "Нажми, чтобы узнать ответ"}</div>}
     </button>
   );
 }
@@ -232,9 +253,10 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
   const rows = Math.ceil(task.options.length / cols);
 
   return (
-    <div className="session-body">
+    <div className={`session-body session-body--find-n${task.sceneImage ? " session-body--situation" : ""}`} style={{ "--rows": rows }}>
       <div className="session-instruction">{task.targetLabel}</div>
-      <div className="find-n-grid" style={{ "--cols": cols, "--rows": rows }}>
+      {task.sceneImage && <SituationScene topicId={topicId} image={task.sceneImage} />}
+      <div className="find-n-grid" style={{ "--cols": cols }}>
         <div className="find-n-inner">
           {task.options.map((option) => (
             <FindNOption key={option.card.id} option={option} topicId={topicId} onClick={handleOption} />
