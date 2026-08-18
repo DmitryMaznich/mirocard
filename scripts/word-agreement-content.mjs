@@ -338,4 +338,67 @@ export const ADJECTIVE_AGREEMENT_CARDS = ADJECTIVE_AGREEMENT_ITEMS.map((item) =>
   context: null,
 })).map((c) => ({ ...c, label: fullLabel(c) }));
 
-export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS, ...NUMERAL_AGREEMENT_CARDS, ...ADJECTIVE_AGREEMENT_CARDS];
+// possessive_agreement: свой (reflexive — "взял свой мяч") is the most
+// distinctively Russian and most clinically relevant of the possessives for
+// this app's audience (children on the autism spectrum commonly show
+// deictic pronoun confusion — mixing up "my"/"your" — which is exactly what
+// мой/твой drill, more centrally than свой's third-person reflexive does).
+// So all four get tested: свой in plain third-person narrative (works
+// without any new sentence shape), мой/твой/наш need a speaker, so those
+// use short quoted dialogue instead — a new shape for this topic, but a
+// natural, common one, not an artificial construction.
+//
+// свой is tested as a direct object ("нашёл свой мяч"), so its answers are
+// the accusative forms — masc/neut/plural match nominative for inanimate
+// nouns, only fem changes (своя -> свою). мой/твой/наш are tested as a
+// predicate ("Это мой мяч"), so those stay nominative. See POSSESSIVE_FORMS
+// in engine.js for the exact forms used.
+const POSSESSIVE_AGREEMENT_ITEMS = [
+  // свой (свой/свою/своё/свои)
+  { id: "poss_svoy_myach",     possessive: "svoy", gender: "masc",   noun: "мяч",      sentence: "Иван нашёл {blank} мяч.",         answer: "свой" },
+  { id: "poss_svoy_karandash", possessive: "svoy", gender: "masc",   noun: "карандаш", sentence: "Алина взяла {blank} карандаш.",   answer: "свой" },
+  { id: "poss_svoy_stol",      possessive: "svoy", gender: "masc",   noun: "стол",     sentence: "Иван сел за {blank} стол.",       answer: "свой" },
+  { id: "poss_svoy_mashina",   possessive: "svoy", gender: "fem",    noun: "машину",   sentence: "Папа паркует {blank} машину.",    answer: "свою" },
+  { id: "poss_svoy_kniga",     possessive: "svoy", gender: "fem",    noun: "книгу",    sentence: "Алина взяла {blank} книгу.",      answer: "свою" },
+  { id: "poss_svoy_kukla",     possessive: "svoy", gender: "fem",    noun: "куклу",    sentence: "Алина нашла {blank} куклу.",      answer: "свою" },
+  { id: "poss_svoy_yabloko",   possessive: "svoy", gender: "neut",   noun: "яблоко",   sentence: "Иван взял {blank} яблоко.",       answer: "своё" },
+  { id: "poss_svoy_okno",      possessive: "svoy", gender: "neut",   noun: "окно",     sentence: "Иван открыл {blank} окно.",       answer: "своё" },
+  { id: "poss_svoy_yaytso",    possessive: "svoy", gender: "neut",   noun: "яйцо",     sentence: "Мама разбила {blank} яйцо.",      answer: "своё" },
+  { id: "poss_svoy_myachi",    possessive: "svoy", gender: "plural", noun: "мячи",     sentence: "Дети взяли {blank} мячи.",        answer: "свои" },
+  { id: "poss_svoy_karandashi", possessive: "svoy", gender: "plural", noun: "карандаши", sentence: "Дети взяли {blank} карандаши.", answer: "свои" },
+  { id: "poss_svoy_knigi",     possessive: "svoy", gender: "plural", noun: "книги",    sentence: "Дети взяли {blank} книги.",       answer: "свои" },
+  { id: "poss_svoy_yabloki",   possessive: "svoy", gender: "plural", noun: "яблоки",   sentence: "Дети взяли {blank} яблоки.",      answer: "свои" },
+
+  // мой (Иван/Алина о своём — говорящий сам)
+  { id: "poss_moy_myach",   possessive: "moy", gender: "masc",   noun: "мяч",   context: "Иван говорит:",  sentence: "«Это {blank} мяч.»",   answer: "мой" },
+  { id: "poss_moy_kukla",   possessive: "moy", gender: "fem",    noun: "кукла", context: "Алина говорит:", sentence: "«Это {blank} кукла.»", answer: "моя" },
+  { id: "poss_moy_yabloko", possessive: "moy", gender: "neut",   noun: "яблоко", context: "Иван говорит:", sentence: "«Это {blank} яблоко.»", answer: "моё" },
+  { id: "poss_moy_knigi",   possessive: "moy", gender: "plural", noun: "книги", context: "Алина говорит:", sentence: "«Это {blank} книги.»", answer: "мои" },
+
+  // твой (мама/папа обращаются к ребёнку)
+  { id: "poss_tvoy_myach",       possessive: "tvoy", gender: "masc",   noun: "мяч",       context: "Мама говорит Ивану:",  sentence: "«Это {blank} мяч.»",       answer: "твой" },
+  { id: "poss_tvoy_kukla",       possessive: "tvoy", gender: "fem",    noun: "кукла",     context: "Мама говорит Алине:",  sentence: "«Это {blank} кукла.»",     answer: "твоя" },
+  { id: "poss_tvoy_yabloko",     possessive: "tvoy", gender: "neut",   noun: "яблоко",    context: "Папа говорит Ивану:",  sentence: "«Это {blank} яблоко.»",    answer: "твоё" },
+  { id: "poss_tvoy_karandashi",  possessive: "tvoy", gender: "plural", noun: "карандаши", context: "Мама говорит Алине:",  sentence: "«Это {blank} карандаши.»", answer: "твои" },
+
+  // наш (мама и папа — говорят вместе)
+  { id: "poss_nash_stol",    possessive: "nash", gender: "masc",   noun: "стол",    context: "Мама и папа говорят:", sentence: "«Это {blank} стол.»",    answer: "наш" },
+  { id: "poss_nash_mashina", possessive: "nash", gender: "fem",    noun: "машина",  context: "Мама и папа говорят:", sentence: "«Это {blank} машина.»",  answer: "наша" },
+  { id: "poss_nash_okno",    possessive: "nash", gender: "neut",   noun: "окно",    context: "Мама и папа говорят:", sentence: "«Это {blank} окно.»",    answer: "наше" },
+  { id: "poss_nash_yabloki", possessive: "nash", gender: "plural", noun: "яблоки",  context: "Мама и папа говорят:", sentence: "«Это {blank} яблоки.»",  answer: "наши" },
+];
+
+const POSSESSIVE_QUESTION = { masc: "чей?", fem: "чья?", neut: "чьё?", plural: "чьи?" };
+
+export const POSSESSIVE_AGREEMENT_CARDS = POSSESSIVE_AGREEMENT_ITEMS.map((item) => ({
+  id: item.id,
+  skill: "possessive_agreement",
+  possessive: item.possessive,
+  sentence: item.sentence,
+  answer: item.answer,
+  marker: item.noun,
+  question: POSSESSIVE_QUESTION[item.gender],
+  context: item.context ?? null,
+})).map((c) => ({ ...c, label: fullLabel(c) }));
+
+export const ALL_CARDS = [...CASE_AGREEMENT_CARDS, ...VERB_NUMBER_CARDS, ...VERB_GENDER_CARDS, ...NUMERAL_AGREEMENT_CARDS, ...ADJECTIVE_AGREEMENT_CARDS, ...POSSESSIVE_AGREEMENT_CARDS];
