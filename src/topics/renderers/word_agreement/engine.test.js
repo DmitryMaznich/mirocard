@@ -30,6 +30,13 @@ const ADJECTIVE_CARDS = [
   { id: "plural", skill: "adjective_agreement", adjective: "bolshoy", answer: "большие" },
 ];
 
+const POSSESSIVE_CARDS = [
+  { id: "masc", skill: "possessive_agreement", possessive: "svoy", answer: "свой" },
+  { id: "fem", skill: "possessive_agreement", possessive: "svoy", answer: "свою" },
+  { id: "neut", skill: "possessive_agreement", possessive: "svoy", answer: "своё" },
+  { id: "plural", skill: "possessive_agreement", possessive: "svoy", answer: "свои" },
+];
+
 describe("word agreement task generation", () => {
   it("starts case agreement with two options and hides advanced cards by default", () => {
     const tasks = generateTasks({ type: "case_agreement" }, CASE_CARDS, 500, { optionCount: 2 });
@@ -90,6 +97,7 @@ describe("word agreement task generation", () => {
       "лежал", "лежала", "лежало", "лежали",
       "стоял", "стояла", "стояло", "стояли",
       "покатился", "покатилась", "покатилось", "покатились",
+      "открылся", "открылась", "открылось", "открылись",
     ]);
 
     expect(tasks).toHaveLength(4);
@@ -123,6 +131,23 @@ describe("word agreement task generation", () => {
       expect(task.options).toHaveLength(4);
       expect(task.options).toContain(task.card.answer);
       expect(task.options.every((option) => adjectiveForms.has(option))).toBe(true);
+    }
+  });
+
+  it("offers possessive forms for gender agreement, keyed to the correct answer", () => {
+    const tasks = generateTasks({ type: "possessive_agreement" }, POSSESSIVE_CARDS, 500, { optionCount: 4 });
+    const possessiveForms = new Set([
+      "свой", "свою", "своё", "свои",
+      "мой", "моя", "моё", "мои",
+      "твой", "твоя", "твоё", "твои",
+      "наш", "наша", "наше", "наши",
+    ]);
+
+    expect(tasks).toHaveLength(4);
+    for (const task of tasks) {
+      expect(task.options).toHaveLength(4);
+      expect(task.options).toContain(task.card.answer);
+      expect(task.options.every((option) => possessiveForms.has(option))).toBe(true);
     }
   });
 });

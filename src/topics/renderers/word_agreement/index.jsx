@@ -2,11 +2,11 @@ import FillBlankTask from "./FillBlankTask";
 import PlaceholderTask from "./PlaceholderTask";
 import "./WordAgreement.css";
 
-// case_agreement, verb_number, verb_gender, numeral_agreement and
-// adjective_agreement are all plain "sentence with a blank, pick the
-// matching word form" tasks — same component, the difference is entirely in
-// the card data.
-const FILL_BLANK_TYPES = new Set(["case_agreement", "verb_number", "verb_gender", "numeral_agreement", "adjective_agreement"]);
+// case_agreement, verb_number, verb_gender, numeral_agreement,
+// adjective_agreement and possessive_agreement are all plain "sentence with
+// a blank, pick the matching word form" tasks — same component, the
+// difference is entirely in the card data.
+const FILL_BLANK_TYPES = new Set(["case_agreement", "verb_number", "verb_gender", "numeral_agreement", "adjective_agreement", "possessive_agreement"]);
 
 export default function WordAgreementRenderer({ task, topicId, playTopicFile, onCorrect, onMistake, onAdvance, onCardShown, onTap }) {
   if (FILL_BLANK_TYPES.has(task?.type)) {

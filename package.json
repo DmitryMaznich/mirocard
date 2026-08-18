@@ -1,7 +1,7 @@
 {
   "name": "mirocard2",
   "private": true,
-  "version": "1.0.1876",
+  "version": "1.0.1918",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
@@ -17,6 +17,7 @@
     "deploy": "npm run deploy:prod",
     "deploy:prod": "node --env-file=.env deploy-prod.mjs",
     "deploy:verify": "node --env-file=.env deploy-prod.mjs --verify-only",
+    "deploy:safe": "node deploy-safe.mjs",
     "build:renderer": "vite build --config vite.config.renderer.mjs --configLoader native"
   },
   "dependencies": {

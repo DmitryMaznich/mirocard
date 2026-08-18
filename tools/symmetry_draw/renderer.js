@@ -122,6 +122,16 @@
     down_left: "Вниз и влево",
   };
 
+  // This is the learning order, not just a list of available answers: start
+  // at the top and turn clockwise, then place each diagonal between its two
+  // neighbouring cardinal directions.
+  const BASIC_NAVIGATOR_DIRECTIONS = ["up", "right", "down", "left"];
+  const ALL_NAVIGATOR_DIRECTIONS = ["up", "up_right", "right", "down_right", "down", "down_left", "left", "up_left"];
+
+  function navigatorDirections(params) {
+    return params?.navigatorDirections === "all" ? ALL_NAVIGATOR_DIRECTIONS : BASIC_NAVIGATOR_DIRECTIONS;
+  }
+
   function commandEnd(start, command) {
     const direction = DIRECTION[command.direction];
     return { col: start.col + direction.col * command.cells, row: start.row + direction.row * command.cells };
@@ -551,7 +561,7 @@
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
-  function NavigatorPracticeTask({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1, sessionParams }) {
+  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, bestStreak = 0, answersPerStar = 1, sessionParams, taskRetry = 0 }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const startRef = useRef(null);
@@ -559,19 +569,27 @@
     const [trail, setTrail] = useState(null);
     const [result, setResult] = useState(null);
     const [paused, setPaused] = useState(() => document.hidden || !document.hasFocus());
+    const retryTimerRef = useRef(null);
+    const isListening = sessionParams?.navigatorPractice === "listening";
+    const canSpeak = Boolean(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === "function");
+    // A listening task must still be solvable in browsers without the Web
+    // Speech API (or where it was disabled by a parent/device policy).
+    const usesAuditoryPrompt = isListening && canSpeak;
+    const [waitingForInitialCommand, setWaitingForInitialCommand] = useState(() => isListening && canSpeak);
     const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
     const durationMs = responseSeconds * 1000;
     const remainingRef = useRef(durationMs);
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
-    const isGridRoute = sessionParams?.navigatorExercise === "grid_route";
-    const isListening = sessionParams?.navigatorExercise === "listening";
+    const isGridRoute = sessionParams?.navigatorPractice === "grid_route";
     const gridSize = isGridRoute ? 8 : 12;
     const cells = Math.max(1, Math.min(3, Math.round(Number(task.cells) || 1)));
     const command = isGridRoute ? navigatorRouteText(task.direction, cells) : (NAVIGATOR_LABEL[task.direction] ?? "Вверх");
     const expected = { x: direction.col, y: direction.row };
     const inputStart = { x: gridSize / 2, y: gridSize / 2 };
     const routeEnd = { x: inputStart.x + expected.x * cells, y: inputStart.y + expected.y * cells };
+    const showHint = taskRetry > 0;
+    const canAddDiagonals = navigatorDirections(sessionParams).length === 4 && bestStreak >= 5;
     // The single star mirrors the shared "Серия для видеонаграды" setting:
     // 5 / 10 / 15 answers means one ray fills after 1 / 2 / 3 correct answers.
     // Use floor so a ray never appears before its full part of the streak.
@@ -588,7 +606,10 @@
       setRemaining(durationMs);
       remainingRef.current = durationMs;
       setPaused(document.hidden || !document.hasFocus());
-    }, [task.id, durationMs]); // Each generated task has a unique id.
+      setWaitingForInitialCommand(isListening && canSpeak);
+    }, [task.id, durationMs, isListening, canSpeak]); // Each generated task has a unique id; retries remount it after feedback.
+
+    useEffect(() => () => window.clearTimeout(retryTimerRef.current), []);
 
     useEffect(() => {
       const pause = () => {
@@ -611,39 +632,69 @@
       };
     }, []);
 
+    const retryAfterMistake = useCallback(() => {
+      if (resolvedRef.current) return;
+      resolvedRef.current = true;
+      drawingRef.current = false;
+      startRef.current = null;
+      setResult("miss");
+      // SessionScreen intentionally remounts a task after an in-place error.
+      // Report the error only after the child has seen the red trace; otherwise
+      // that remount erases the feedback in the same render frame.
+      retryTimerRef.current = window.setTimeout(() => {
+        onMistake?.(task.conceptId, task.card?.id);
+      }, 520);
+    }, [onMistake, task.conceptId, task.card?.id]);
+
     useEffect(() => {
-      if (paused || resolvedRef.current) return undefined;
+      if (paused || waitingForInitialCommand || resolvedRef.current) return undefined;
       const remainingAtStart = remainingRef.current;
       const startedAt = Date.now();
       const ticker = window.setInterval(() => {
         const next = Math.max(0, remainingAtStart - (Date.now() - startedAt));
         remainingRef.current = next;
         setRemaining(next);
-        if (next === 0 && !resolvedRef.current) {
-          resolvedRef.current = true;
-          setResult("miss");
-          window.setTimeout(() => onIncorrect?.(task.conceptId, task.card?.id), 360);
-        }
+        if (next === 0 && !resolvedRef.current) retryAfterMistake();
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [paused, task.id, task.conceptId, task.card?.id, onIncorrect]);
+    }, [paused, waitingForInitialCommand, task.id, retryAfterMistake]);
 
-    const speakCommand = useCallback(() => {
-      if (!window.speechSynthesis) return;
+    const speakCommand = useCallback((releasesInitialTimer = false) => {
+      if (!canSpeak) {
+        if (releasesInitialTimer) setWaitingForInitialCommand(false);
+        return;
+      }
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(command);
       utterance.lang = "ru-RU";
-      window.speechSynthesis.speak(utterance);
-    }, [command]);
+      const releaseTimer = () => {
+        if (releasesInitialTimer) setWaitingForInitialCommand(false);
+      };
+      utterance.onend = releaseTimer;
+      utterance.onerror = releaseTimer;
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        releaseTimer();
+      }
+    }, [canSpeak, command]);
 
     useEffect(() => {
-      if (!isListening || !window.speechSynthesis) return undefined;
-      const timer = window.setTimeout(speakCommand, 120);
+      if (!isListening) {
+        setWaitingForInitialCommand(false);
+        return undefined;
+      }
+      if (!canSpeak) {
+        setWaitingForInitialCommand(false);
+        return undefined;
+      }
+      setWaitingForInitialCommand(true);
+      const timer = window.setTimeout(() => speakCommand(true), 120);
       return () => {
         window.clearTimeout(timer);
         window.speechSynthesis.cancel();
       };
-    }, [isListening, task.id, speakCommand]);
+    }, [isListening, canSpeak, task.id, speakCommand]);
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -659,12 +710,13 @@
 
     function resolve(correct) {
       if (paused || resolvedRef.current) return;
+      if (!correct) {
+        retryAfterMistake();
+        return;
+      }
       resolvedRef.current = true;
-      setResult(correct ? "good" : "miss");
-      window.setTimeout(() => {
-        if (correct) onCorrect?.(task.conceptId, task.card?.id);
-        else onIncorrect?.(task.conceptId, task.card?.id);
-      }, correct ? 420 : 360);
+      setResult("good");
+      window.setTimeout(() => onCorrect?.(task.conceptId, task.card?.id), 420);
     }
 
     function startGesture(event) {
@@ -704,7 +756,8 @@
       resolve(correct);
     }
 
-    const arrows = Object.entries(DIRECTION).map(([key, item]) => {
+    const arrows = navigatorDirections(sessionParams).map((key) => {
+      const item = DIRECTION[key];
       const start = { x: 6 + item.col * 1.75, y: 6 + item.row * 1.75 };
       const end = { x: 6 + item.col * 4.65, y: 6 + item.row * 4.65 };
       const length = Math.hypot(end.x - start.x, end.y - start.y);
@@ -730,7 +783,7 @@
         `L ${tailRight.x} ${tailRight.y}`,
         "Z",
       ].join(" ");
-      return h("g", { key, className: `navigator__route navigator__route--${key}` },
+      return h("g", { key, className: `navigator__route navigator__route--${key}${showHint && key === task.direction ? " navigator__route--hint" : ""}` },
         h("path", { className: "navigator__arrow", d: arrowPath }),
         h("circle", { className: "navigator__dash", r: "0.105" },
           h("animateMotion", { path: `M ${start.x} ${start.y} L ${end.x} ${end.y}`, dur: "1.25s", repeatCount: "indefinite" }),
@@ -751,6 +804,8 @@
     }
     const timerState = paused
       ? " navigator__timer--paused"
+      : waitingForInitialCommand
+      ? " navigator__timer--waiting"
       : remaining <= 1500
       ? " navigator__timer--urgent"
       : remaining / durationMs <= .4
@@ -759,21 +814,30 @@
     return h("section", { className: `navigator${isGridRoute ? " navigator--grid-route" : ""}${paused ? " navigator--paused" : ""} navigator--target-${task.direction}${result ? ` navigator--${result}` : ""}`, "aria-label": "Навигатор" },
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
-        h("div", { className: "navigator__command" }, isListening
-          ? h("button", { type: "button", className: "navigator__listen", onClick: speakCommand, "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
+        h("div", { className: "navigator__command" }, usesAuditoryPrompt
+          ? h("button", { type: "button", className: "navigator__listen", onClick: () => speakCommand(false), "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
           : command,
         ),
+        isListening && !canSpeak
+          ? h("p", { className: "navigator__audio-fallback", role: "status" }, "Озвучка недоступна — команда показана текстом")
+          : null,
       ),
-      h("div", { className: `navigator__timer${timerState}`, "aria-label": "Время на ответ" },
+      h("div", { className: `navigator__timer${timerState}`, "aria-label": waitingForInitialCommand ? "Сначала послушайте команду" : "Время на ответ" },
         h("div", { className: "navigator__timer-track" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
         h("svg", { className: "navigator__timer-clock", viewBox: "0 0 24 24", "aria-hidden": "true" },
           h("circle", { cx: "12", cy: "12", r: "8.5" }),
           h("path", { d: "M12 7.3v5.1l3.5 2" }),
         ),
       ),
+      showHint ? h("p", { className: "navigator__hint", role: "status" }, isGridRoute
+        ? "Подсказка: проведи по подсвеченному маршруту"
+        : "Подсказка: найди подсвеченную стрелку",
+      ) : null,
+      canAddDiagonals ? h("p", { className: "navigator__mastery", role: "status" }, "Пять верных ответов — можно добавить диагонали в настройках") : null,
       h("div", { className: "navigator__board" },
         h("svg", { ref: svgRef, viewBox: `0 0 ${gridSize} ${gridSize}`, className: "navigator__svg", onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture },
           isGridRoute ? h("g", { className: "navigator__grid" }, routeGrid) : arrows,
+          showHint && isGridRoute ? h("line", { className: "navigator__route-hint", x1: inputStart.x, y1: inputStart.y, x2: routeEnd.x, y2: routeEnd.y }) : null,
           h("circle", { className: "navigator__input-start", cx: inputStart.x, cy: inputStart.y, r: isGridRoute ? "0.22" : "0.3" },
             isGridRoute ? h("animate", { attributeName: "r", values: ".22;.34;.22", dur: "1.1s", repeatCount: "indefinite" }) : null,
           ),
@@ -806,27 +870,110 @@
     return h("svg", { className: "navigator-learning__arrow", viewBox: "0 0 10 10", "aria-hidden": "true" }, h("path", { d }));
   }
 
-  function NavigatorLearningTask() {
-    const directions = Object.keys(DIRECTION);
+  function NavigatorLearningCards({ sessionParams }) {
+    const directions = navigatorDirections(sessionParams);
+    // A flash-card run is a short, predictable learning path. It must not
+    // inherit the random first task from the practice drill.
     const [index, setIndex] = useState(0);
     const direction = directions[index];
-    useEffect(() => {
-      const timer = window.setInterval(() => setIndex((current) => (current + 1) % directions.length), 3000);
-      return () => window.clearInterval(timer);
-    }, [directions.length]);
     return h("section", { className: "navigator-learning", "aria-label": "Обучалка направлений" },
       h("div", { className: "navigator-learning__eyebrow" }, "Запоминай направление"),
-      h("div", { className: "navigator-learning__card", "aria-live": "polite" },
+      h("button", {
+        type: "button",
+        className: "navigator-learning__card navigator-learning__card--tap",
+        onClick: () => setIndex((current) => (current + 1) % directions.length),
+        "aria-label": `Направление: ${NAVIGATOR_LABEL[direction]}. Нажми, чтобы увидеть следующую карточку`,
+      },
         h(NavigatorLearningArrow, { direction }),
         h("div", { className: "navigator-learning__word" }, NAVIGATOR_LABEL[direction]),
+        h("div", { className: "navigator-learning__tap-hint" }, "Нажми на карточку — дальше"),
       ),
       h("div", { className: "navigator-learning__dots", "aria-hidden": "true" }, directions.map((item, dotIndex) => h("i", { key: item, className: dotIndex === index ? "is-active" : "" }))),
+      h("p", { className: "navigator-learning__next-step" }, "Когда запомнишь — выбери вариант «Выбери слово» или «Выбери стрелку»."),
     );
   }
 
+  function learningChoices(direction, taskId, directions) {
+    const index = Math.max(0, directions.indexOf(direction));
+    const choices = directions.length === 4
+      ? [...directions]
+      : [
+        direction,
+        directions[(index + 1) % directions.length],
+        directions[(index + 3) % directions.length],
+        directions[(index + 5) % directions.length],
+      ];
+    const seed = String(taskId ?? direction).split("").reduce((sum, character) => sum + character.charCodeAt(0), 0);
+    const offset = seed % choices.length;
+    return [...choices.slice(offset), ...choices.slice(0, offset)];
+  }
+
+  function NavigatorLearningChoiceTask({ task, onCorrect, onMistake, sessionParams, taskRetry = 0 }) {
+    const exercise = sessionParams?.learningExercise === "choose_arrow" ? "choose_arrow" : "choose_word";
+    const direction = task?.direction ?? "up";
+    const directions = navigatorDirections(sessionParams);
+    const choices = useMemo(() => learningChoices(direction, task?.id, directions), [direction, task?.id, directions]);
+    const [answer, setAnswer] = useState(null);
+    const resolvedRef = useRef(false);
+    const feedbackTimerRef = useRef(null);
+
+    useEffect(() => () => window.clearTimeout(feedbackTimerRef.current), []);
+
+    useEffect(() => {
+      resolvedRef.current = false;
+      setAnswer(null);
+    }, [task?.id, exercise]);
+
+    function choose(choice) {
+      if (resolvedRef.current) return;
+      const correct = choice === direction;
+      setAnswer({ choice, correct });
+      if (correct) {
+        resolvedRef.current = true;
+        feedbackTimerRef.current = window.setTimeout(() => onCorrect?.(task?.conceptId, task?.card?.id), 450);
+        return;
+      }
+      // As above, keep the wrong answer visible before SessionScreen remounts
+      // this task to start its retry and record the strict-stars reset.
+      feedbackTimerRef.current = window.setTimeout(() => {
+        setAnswer(null);
+        onMistake?.(task?.conceptId, task?.card?.id);
+      }, 650);
+    }
+
+    const isWordChoice = exercise === "choose_word";
+    const showHint = taskRetry > 0;
+    return h("section", { className: "navigator-learning", "aria-label": isWordChoice ? "Выбери слово к стрелке" : "Выбери стрелку к слову" },
+      h("div", { className: "navigator-learning__eyebrow" }, isWordChoice ? "Куда показывает стрелка?" : "Найди нужную стрелку"),
+      h("div", { className: "navigator-learning__card navigator-learning__card--quiz" },
+        isWordChoice
+          ? h(NavigatorLearningArrow, { direction })
+          : h("div", { className: "navigator-learning__word" }, NAVIGATOR_LABEL[direction]),
+      ),
+      h("div", { className: `navigator-learning__choices${isWordChoice ? "" : " navigator-learning__choices--arrows"}` }, choices.map((choice) => {
+        const state = answer?.choice === choice ? (answer.correct ? " is-correct" : " is-wrong") : "";
+        return h("button", {
+          key: choice,
+          type: "button",
+          className: `navigator-learning__choice${state}${showHint && choice === direction ? " is-hinted" : ""}`,
+          disabled: Boolean(answer),
+          onClick: () => choose(choice),
+        }, isWordChoice ? NAVIGATOR_LABEL[choice] : DIRECTION[choice].arrow);
+      })),
+      showHint ? h("div", { className: "navigator-learning__hint", role: "status" }, "Подсказка: правильный ответ подсвечен") : null,
+      answer ? h("div", { className: `navigator-learning__feedback${answer.correct ? " is-correct" : " is-wrong"}`, "aria-live": "polite" }, answer.correct ? "Верно!" : "Попробуй ещё раз") : null,
+    );
+  }
+
+  function NavigatorLearningTask(props) {
+    return props.sessionParams?.learningExercise === "cards" || !props.sessionParams?.learningExercise
+      ? h(NavigatorLearningCards, props)
+      : h(NavigatorLearningChoiceTask, props);
+  }
+
   function NavigatorTask(props) {
-    return props.sessionParams?.navigatorExercise === "learning"
-      ? h(NavigatorLearningTask)
+    return props.mode?.id === "navigator_learning"
+      ? h(NavigatorLearningTask, props)
       : h(NavigatorPracticeTask, props);
   }
   function GridTask({ task, mode, onCorrect, onMistake, onAdvance }) {
@@ -996,7 +1143,7 @@
             x1: segment.a.col, y1: segment.a.row, x2: segment.b.col, y2: segment.b.row,
           })) : null,
           showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
-          showHint ? hintPoints.map((point, index) => h("g", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point" }, h("circle", { cx: point.col, cy: point.row, r: "0.17" }), h("text", { x: point.col, y: point.row + 0.055, textAnchor: "middle" }, index + 1))) : null,
+          showHint ? hintPoints.map((point, index) => h("circle", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point", cx: point.col, cy: point.row, r: "0.17" })) : null,
         ),
       ),
       h("div", { className: "symmetry-draw__controls" },

@@ -73,6 +73,7 @@ scripts/*.svg
 !content/media/*.webp
 !content/media/*.jpg
 !tools/emotions_v2/media/*.webp
+!tools/symmetry_draw/media/*_trace.png
 !public/hands/*.webp
 
 # Verification scripts and output

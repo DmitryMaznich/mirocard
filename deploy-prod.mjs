@@ -41,17 +41,53 @@ function gitSha() {
   }
 }
 
-function bumpPatchVersion() {
+function parseVersion(version) {
+  const parts = String(version ?? "").split(".").map(Number);
+  return parts.length === 3 && parts.every(Number.isInteger) ? parts : null;
+}
+
+function compareVersions(left, right) {
+  const a = parseVersion(left);
+  const b = parseVersion(right);
+  if (!a || !b) return 0;
+  for (let index = 0; index < 3; index += 1) {
+    if (a[index] !== b[index]) return a[index] - b[index];
+  }
+  return 0;
+}
+
+async function readPublishedAppVersion() {
+  const versions = [];
+  for (const target of [publicUrl, lanUrl]) {
+    try {
+      const response = await fetch(`${target}/version.json?deploy-check=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) continue;
+      const published = await response.json();
+      if (parseVersion(published.version)) versions.push(published.version);
+    } catch {
+      // A deployment can still proceed if one public endpoint is momentarily
+      // unavailable; the local package version remains a safe fallback.
+    }
+  }
+  return versions.sort(compareVersions).at(-1) ?? null;
+}
+
+async function bumpPatchVersion() {
   const pkgPath = path.join(root, "package.json");
   const pkgRaw = JSON.parse(readFileSync(pkgPath, "utf8"));
-  const parts = pkgRaw.version.split(".").map(Number);
+  const publishedVersion = await readPublishedAppVersion();
+  const baseVersion = publishedVersion && compareVersions(publishedVersion, pkgRaw.version) > 0
+    ? publishedVersion
+    : pkgRaw.version;
+  const parts = parseVersion(baseVersion);
+  if (!parts) throw new Error(`package.json has an invalid version: ${pkgRaw.version}`);
   parts[2] += 1;
   pkgRaw.version = parts.join(".");
   writeFileSync(pkgPath, JSON.stringify(pkgRaw, null, 2) + "\n");
   pkg.version = pkgRaw.version;
   run("git", ["add", "package.json"]);
   run("git", ["commit", "-m", `chore: release v${pkg.version}`]);
-  console.log(`bumped version to ${pkg.version}`);
+  console.log(`bumped version to ${pkg.version}${publishedVersion ? ` (after published ${publishedVersion})` : ""}`);
 }
 
 function assertCleanWorktree() {
@@ -92,6 +128,20 @@ function writeVersionJson() {
   };
   writeFileSync(path.join(distDir, "version.json"), JSON.stringify(version, null, 2) + "\n");
   return version;
+}
+
+function assertDeckCatalogWasBuilt() {
+  const sourceCatalog = path.join(root, "public", "decks", "catalog.json");
+  const builtCatalog = path.join(distDir, "decks", "catalog.json");
+  if (!existsSync(sourceCatalog) || !existsSync(builtCatalog)) {
+    throw new Error("Deck catalog is missing from public/ or the build output.");
+  }
+  if (readFileSync(sourceCatalog, "utf8") !== readFileSync(builtCatalog, "utf8")) {
+    throw new Error(
+      "dist/decks/catalog.json does not match public/decks/catalog.json. "
+      + "Rebuild after changing a deck catalog before deploying."
+    );
+  }
 }
 
 function buildUploadPlan() {
@@ -334,7 +384,7 @@ async function main() {
   if (!verifyOnly) {
     assertCleanWorktree();
     if (!skipBuild) {
-      if (!noBump) bumpPatchVersion();
+      if (!noBump) await bumpPatchVersion();
       assertCleanWorktree();
     }
 
@@ -348,6 +398,9 @@ async function main() {
       execSync("npm run build", { cwd: root, stdio: "inherit" });
       assertCleanWorktree();
     }
+    // This check also protects --skip-build deployments: the upload must never
+    // use an older catalog left in dist/ from a previous build.
+    assertDeckCatalogWasBuilt();
     version = writeVersionJson();
     const files = buildUploadPlan();
     console.log(`uploading ${files.length} files to canonical Windows/Caddy runtime (skipping unchanged)...`);

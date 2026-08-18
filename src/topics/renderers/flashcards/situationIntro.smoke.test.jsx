@@ -38,7 +38,7 @@ describe("situation_intro — mounted through the real SituationIntroTask", () =
     mount(task, () => {});
     const instructions = container.querySelectorAll(".session-instruction");
     expect(instructions[0]?.textContent).toBe("Друг подарил тебе игрушку.");
-    expect(instructions[1]?.textContent).toBe("Как называется это чувство?");
+    expect(instructions[1]?.textContent).toBe("Что чувствует?");
     expect(container.querySelector(".card-area")).not.toBeNull();
     expect(container.querySelector(".situation-intro__reveal")?.className).not.toContain("--shown");
     expect(container.querySelector(".situation-intro__label")?.textContent).toBe("радость");
@@ -56,5 +56,20 @@ describe("situation_intro — mounted through the real SituationIntroTask", () =
 
     act(() => btn.click());
     expect(advanceCalls).toBe(1);
+  });
+
+  it("shows the scene and question before revealing the portrait and emotion word", () => {
+    const [baseTask] = generateTasks("situation_intro", CONCEPTS, CARDS, {});
+    const task = { ...baseTask, sceneImage: "media/situation_joy_1.webp" };
+    mount(task, () => {});
+
+    expect(container.querySelector(".situation-scene")).not.toBeNull();
+    expect(container.querySelector(".card-area")).toBeNull();
+    expect(container.querySelector(".situation-intro__question")?.textContent).toBe("Что чувствует?");
+
+    const btn = container.querySelector("button.situation-intro");
+    act(() => btn.click());
+    expect(container.querySelector(".card-area")).not.toBeNull();
+    expect(container.querySelector(".situation-intro__label")?.textContent).toBe("радость");
   });
 });

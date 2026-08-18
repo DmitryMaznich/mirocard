@@ -10,6 +10,8 @@ import {
   claimDeck,
   getImportErrorMessage,
   refreshInstalledCatalogTopics,
+  shouldClaimCatalogDeck,
+  isLocalModeProfile,
 } from "./catalogService";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
@@ -45,7 +47,7 @@ const STATUS_BADGES = {
   experimental: { label: "ЭКСП.", className: "catalog-badge--experimental" },
 };
 
-function CatalogTopicItem({ entry, topicRecords, ownedTopic, onInstall, onClaim, disabled = false }) {
+function CatalogTopicItem({ entry, topicRecords, ownedTopic, onInstall, onClaim, claimRequired, disabled = false }) {
   const installStatus = getTopicCatalogStatus(entry, topicRecords);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState("");
@@ -62,7 +64,7 @@ function CatalogTopicItem({ entry, topicRecords, ownedTopic, onInstall, onClaim,
     setLoading(true);
     setError("");
     try {
-      if (!isGranted) {
+      if (!isGranted && claimRequired) {
         const result = await onClaim(entry.id);
         if (result.status === "pending") return; // UI will update via store
       }
@@ -129,6 +131,7 @@ export default function TopicCatalogScreen() {
   const upsertOwnedTopic  = useAppStore((s) => s.upsertOwnedTopic);
   const ownedTopics       = useAppStore((s) => s.ownedTopics);
   const account           = useAppStore((s) => s.account);
+  const token             = useAppStore((s) => s.token);
   const buildInfo         = useAppStore((s) => s.buildInfo);
 
   const [catalog,         setCatalog]         = useState(null);
@@ -206,11 +209,12 @@ export default function TopicCatalogScreen() {
   }
 
   const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
+  const isLocalMode = isLocalModeProfile(account, token);
 
   // When admin has explicitly granted topics (source === "grant"), treat ownedTopics as
   // a whitelist: show all topics the user owns (any non-pending source). Without any admin
   // grants, show the full catalog (no restriction).
-  const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
+  const hasAdminGrants = !isLocalMode && account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
 
   const visibleDecks = catalog
     ? catalog.decks.filter((e) => !hasAdminGrants || (ownedById[e.id] != null && ownedById[e.id].source !== "request"))
@@ -232,6 +236,7 @@ export default function TopicCatalogScreen() {
         ownedTopic={ownedById[entry.id] ?? null}
         onInstall={installCatalogEntry}
         onClaim={handleClaim}
+        claimRequired={shouldClaimCatalogDeck(entry, token)}
         disabled={refreshingDecks}
       />
     );

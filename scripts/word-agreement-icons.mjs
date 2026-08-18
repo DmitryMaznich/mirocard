@@ -72,12 +72,14 @@ const ADJECTIVE_AGREEMENT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox
   <text x="64" y="102" text-anchor="middle" font-family="${FONT}" font-size="22" font-weight="800" fill="#2c2c2c">больш<tspan fill="#c23a5e">ое</tspan></text>
 </svg>`;
 
-// Shared "not built yet" icon for the remaining placeholder modes — muted
-// grey clock, visually distinct from the working modes above.
-const COMING_SOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f0f0f0"/>
-  <circle cx="64" cy="64" r="34" fill="none" stroke="#b0b0b0" stroke-width="8"/>
-  <path d="M64 64 V40 M64 64 L82 76" stroke="#b0b0b0" stroke-width="8" stroke-linecap="round" fill="none"/>
+// possessive_agreement: same "one root, coloured endings" language as the
+// topic avatar and adjective_agreement — свой/своя/своё, the most
+// distinctively Russian of the possessives this mode drills.
+const POSSESSIVE_AGREEMENT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eafaf3"/>
+  <text x="64" y="46" text-anchor="middle" font-family="${FONT}" font-size="24" font-weight="800" fill="#2c2c2c">св<tspan fill="#1f8a5c">ой</tspan></text>
+  <text x="64" y="74" text-anchor="middle" font-family="${FONT}" font-size="24" font-weight="800" fill="#2c2c2c">св<tspan fill="#1f8a5c">оя</tspan></text>
+  <text x="64" y="102" text-anchor="middle" font-family="${FONT}" font-size="24" font-weight="800" fill="#2c2c2c">св<tspan fill="#1f8a5c">оё</tspan></text>
 </svg>`;
 
 // mode id -> zip-relative icon path + svg content
@@ -87,7 +89,7 @@ export const MODE_ICONS = {
   verb_gender_agreement: { path: "media/icons/verb_gender.svg",          svg: VERB_GENDER_SVG },
   adjective_agreement:   { path: "media/icons/adjective_agreement.svg",  svg: ADJECTIVE_AGREEMENT_SVG },
   numeral_agreement:     { path: "media/icons/numeral_agreement.svg",    svg: NUMERAL_AGREEMENT_SVG },
-  possessive_agreement:  { path: "media/icons/coming_soon.svg",          svg: COMING_SOON_SVG },
+  possessive_agreement:  { path: "media/icons/possessive_agreement.svg", svg: POSSESSIVE_AGREEMENT_SVG },
 };
 
 export const AVATAR_PATH = "media/avatar.svg";

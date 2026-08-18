@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  deriveConcepts, getConceptCards, getPrimaryCard,
+  deriveConcepts, getConceptCards, getFigureFilter, getPrimaryCard, withFigureFilter,
   isConceptSelectionScopedByMode, readModeSelectedConceptIds, writeModeSelectedConceptIds,
 } from "./topicUtils";
 
@@ -93,6 +93,58 @@ describe("getConceptCards", () => {
     expect(cards.map((c) => c.id)).toEqual(["c1"]);
   });
 
+  it("filters symmetry-draw figures by the chosen difficulty after task kind", () => {
+    const record = {
+      meta: { id: "symmetry_draw", renderer: "flashcards" },
+      cards: [
+        { id: "starter-mirror", taskKind: "mirror", difficulty: "starter" },
+        { id: "challenge-mirror", taskKind: "mirror", difficulty: "challenge" },
+        { id: "starter-repeat", taskKind: "repeat", difficulty: "starter" },
+      ],
+    };
+    expect(getConceptCards(record, { type: "mirror_draw" }, { figureDifficulty: "starter" }).map((card) => card.id))
+      .toEqual(["starter-mirror"]);
+    expect(getConceptCards(record, { type: "mirror_draw" }, { figureDifficulty: "all" }).map((card) => card.id))
+      .toEqual(["starter-mirror", "challenge-mirror"]);
+  });
+
+  it("uses a manual figure selection instead of intersecting it with a difficulty preset", () => {
+    const record = {
+      meta: { id: "symmetry_draw", renderer: "flashcards" },
+      cards: [
+        { id: "starter-mirror", taskKind: "mirror", difficulty: "starter" },
+        { id: "challenge-mirror", taskKind: "mirror", difficulty: "challenge" },
+      ],
+    };
+    const mode = { id: "symmetry_draw", type: "mirror_draw" };
+    const params = withFigureFilter({ figureDifficulty: "starter" }, mode, {
+      type: "manual",
+      cardIds: ["challenge-mirror"],
+    });
+    expect(getFigureFilter(params, mode)).toEqual({ type: "manual", cardIds: ["challenge-mirror"] });
+    expect(getConceptCards(record, mode, params).map((card) => card.id)).toEqual(["challenge-mirror"]);
+  });
+
+  it("honours a saved difficulty filter for its own drawing mode", () => {
+    const mode = { id: "repeat_draw", type: "repeat_draw" };
+    const params = withFigureFilter({}, mode, { type: "difficulty", difficulty: "challenge" });
+    expect(getFigureFilter(params, mode)).toEqual({ type: "difficulty", difficulty: "challenge" });
+  });
+
+  it("keeps visual figure filters separate between exercise modes and dictation variants", () => {
+    const repeat = { id: "repeat_draw", type: "repeat_draw" };
+    const dictation = { id: "graphic_dictation", type: "graphic_dictation" };
+    const params = withFigureFilter(
+      withFigureFilter({}, repeat, { type: "manual", cardIds: ["rocket"] }),
+      dictation,
+      { type: "manual", cardIds: ["house"] },
+    );
+    const coordinateParams = { ...params, dictationCommand: "coordinates" };
+    expect(getFigureFilter(params, repeat).cardIds).toEqual(["rocket"]);
+    expect(getFigureFilter(params, dictation).cardIds).toEqual(["house"]);
+    expect(getFigureFilter(coordinateParams, dictation).type).toBe("difficulty");
+  });
+
   it("scopes navigator to its direction-drill metadata card", () => {
     const cards = getConceptCards(symmetryDrawRecord, { type: "navigator" });
     expect(cards.map((c) => c.id)).toEqual(["n1"]);
@@ -118,6 +170,21 @@ describe("mode-scoped concept selection", () => {
   const dictationMode = { id: "graphic_dictation", type: "graphic_dictation" };
   const genericRecord = { meta: { renderer: "flashcards" }, cards: CARDS };
   const genericMode = { id: "only_mode", type: "anything" };
+
+  it("keeps manual figure selections separate for each difficulty level", () => {
+    const figureRecord = {
+      meta: { id: "symmetry_draw", renderer: "flashcards" },
+      cards: [
+        { id: "m1", conceptId: "m1", taskKind: "mirror", difficulty: "starter" },
+        { id: "m2", conceptId: "m2", taskKind: "mirror", difficulty: "challenge" },
+      ],
+    };
+    const starter = writeModeSelectedConceptIds(figureRecord, mirrorMode, null, ["m1"], { figureDifficulty: "starter" });
+    const both = writeModeSelectedConceptIds(figureRecord, mirrorMode, starter, ["m2"], { figureDifficulty: "challenge" });
+    expect(both).toEqual(expect.arrayContaining(["symmetry_draw:starter::m1", "symmetry_draw:challenge::m2"]));
+    expect(readModeSelectedConceptIds(figureRecord, mirrorMode, both, { figureDifficulty: "starter" })).toEqual(["m1"]);
+    expect(readModeSelectedConceptIds(figureRecord, mirrorMode, both, { figureDifficulty: "challenge" })).toEqual(["m2"]);
+  });
 
   it("isConceptSelectionScopedByMode is true when the mode only sees part of the topic", () => {
     expect(isConceptSelectionScopedByMode(symmetryDrawRecord, mirrorMode)).toBe(true);

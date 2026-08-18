@@ -4,7 +4,7 @@ import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
-import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
@@ -412,17 +412,7 @@ export function useSessionEngine() {
   }, []);
 
   const onMistake = useCallback((conceptId, cardId) => {
-    setSessionState((s) => {
-      if (!s || s.mode.evaluation === "none") return s;
-      return {
-        ...s,
-        incorrectCount: s.incorrectCount + 1,
-        streakCount: 0,
-        mistakes: conceptId
-          ? [...s.mistakes, { conceptId, cardId }]
-          : s.mistakes,
-      };
-    });
+    setSessionState((s) => handleInPlaceIncorrect(s, conceptId, cardId));
   }, []);
 
   const onAdvance = useCallback(() => {
@@ -470,6 +460,7 @@ export function useSessionEngine() {
   const streakCount = rewardPending
     ? answersPerStar * 5
     : (sessionState?.streakCount ?? 0);
+  const bestStreak = sessionState?.bestStreak ?? 0;
   const rewardProgress = {
     available: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
   };
@@ -483,6 +474,7 @@ export function useSessionEngine() {
     completedRecord,
     rewardProgress,
     streakCount,
+    bestStreak,
     answersPerStar,
     rewardPending,
     clearRewardPending,

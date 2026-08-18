@@ -80,7 +80,7 @@ export default function SessionScreen() {
 
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
-    completedRecord, rewardProgress, streakCount, answersPerStar,
+    completedRecord, rewardProgress, streakCount, bestStreak, answersPerStar,
     rewardPending, clearRewardPending,
     deckExhausted, handleRestartDeck, handleFinishDeck,
     onCorrect, onPrevious, onIncorrect, onMistake, onAdvance, onQualityAnswer,
@@ -110,6 +110,11 @@ export default function SessionScreen() {
       lessonPlan?.markItemDone(activeLessonPlanItemId, true);
       setActiveLessonPlanItemId(null);
     }
+    // read_text/daily_sentences are unscored (evaluation: "none"), so a stars
+    // summary has nothing to show — but landing on the mode picker afterward
+    // (rather than just going home, like closing mid-session already does)
+    // turned out to be an unwanted extra stop, not a useful "pick the next
+    // mode for this text" nudge. Go straight home instead.
     const skipSummary = topicRecord?.meta.renderer === "reading" && (mode?.type === "read_text" || mode?.type === "daily_sentences");
     const isInstruction = mode?.type === "follow_instruction" || mode?.type === "shopping_list" || mode?.type === "safe_code";
     if (isInstruction && sessionReturnScreen) {
@@ -117,7 +122,7 @@ export default function SessionScreen() {
       setSessionReturnScreen(null);
       return;
     }
-    setScreen(isInstruction ? "texts" : skipSummary ? "modes" : "summary");
+    setScreen(isInstruction ? "texts" : skipSummary ? "home" : "summary");
   }, [completedRecord, activeLessonPlanItemId, lessonPlan, setActiveLessonPlanItemId, mode?.type, setScreen, topicRecord?.meta.renderer, sessionReturnScreen, setSessionReturnScreen]);
 
   const ownsFeedback = currentTask?.type === "choose_action" || currentTask?.type === "scene_function";
@@ -233,7 +238,19 @@ export default function SessionScreen() {
   const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
   const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
 
-  const showStreak = mode?.type !== "daily_sentences";
+  const isNavigatorFlashCards = topicRecord.meta.id === "symmetry_draw"
+    && mode.id === "navigator_learning"
+    && sessionParams.learningExercise === "cards";
+  // A graphic dictation consists of several dependent strokes. An error on
+  // the current stroke is recorded in the session (including strict-stars),
+  // but must not remount the renderer: the already completed figure remains
+  // the child's visual and motor reference for the retry.
+  const keepsDictationCanvasOnMistake = topicRecord.meta.id === "symmetry_draw"
+    && ["graphic_dictation", "coordinate_dictation"].includes(currentTask?.type);
+  const rendererTaskKey = keepsDictationCanvasOnMistake
+    ? String(taskIndex)
+    : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
+  const showStreak = mode?.type !== "daily_sentences" && !isNavigatorFlashCards;
   const showProgress = !(
     (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
@@ -284,8 +301,9 @@ export default function SessionScreen() {
           onClick={(isCorrectFeedback || isAdvanceGateActive) ? requestAdvance : undefined}
         >
           <Renderer
-            key={`${taskIndex}_${sessionState.taskRetry ?? 0}`}
+            key={rendererTaskKey}
             task={currentTask}
+            taskRetry={sessionState.taskRetry ?? 0}
             mode={mode}
             sessionStatus={status}
             topicId={topicRecord.meta.id}
@@ -307,6 +325,7 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
+            bestStreak={bestStreak}
             answersPerStar={answersPerStar}
           />
         </div>

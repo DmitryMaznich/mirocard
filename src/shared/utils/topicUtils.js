@@ -30,6 +30,47 @@ const TASK_KIND_BY_MODE_TYPE = {
   coordinates: "coordinates",
 };
 
+const FIGURE_MODE_TYPES = new Set(["mirror_draw", "repeat_draw", "graphic_dictation"]);
+
+function isSymmetryDrawFigureMode(topicRecord, mode) {
+  return topicRecord?.meta?.id === "symmetry_draw" && FIGURE_MODE_TYPES.has(mode?.type);
+}
+
+// Figure filters belong to a particular exercise, not to the whole topic.  In
+// particular, the two variants of graphic dictation draw from different card
+// pools.  Keeping the filter in one namespaced object prevents a parent's
+// choice for "Повтори рисунок" from unexpectedly changing "Симметрию".
+export function getFigureFilterKey(mode, params = {}) {
+  const variant = mode?.type === "graphic_dictation"
+    ? `:${params.dictationCommand === "coordinates" ? "coordinates" : "directions"}`
+    : "";
+  return `${mode?.id ?? "figure"}${variant}`;
+}
+
+export function getFigureFilter(params = {}, mode) {
+  const saved = params.figureFilters?.[getFigureFilterKey(mode, params)];
+  if (saved?.type === "manual" && Array.isArray(saved.cardIds) && saved.cardIds.length) {
+    return { type: "manual", cardIds: saved.cardIds };
+  }
+  if (saved?.type === "difficulty" && typeof saved.difficulty === "string") {
+    return { type: "difficulty", difficulty: saved.difficulty };
+  }
+  // `figureDifficulty` is kept as a one-release migration path for settings
+  // saved before the visual picker existed.
+  return { type: "difficulty", difficulty: params.figureDifficulty ?? "all" };
+}
+
+export function withFigureFilter(params = {}, mode, filter) {
+  const key = getFigureFilterKey(mode, params);
+  return {
+    ...params,
+    figureFilters: {
+      ...(params.figureFilters ?? {}),
+      [key]: filter,
+    },
+  };
+}
+
 // word_agreement bundles several unrelated skills (case, verb number, verb
 // gender, ...) as one big card array with a `skill` field per card, one
 // mode per skill. Without this, the concept picker would list every card in
@@ -45,10 +86,18 @@ export function getConceptCards(topicRecord, mode, params = {}) {
   const taskKind = mode?.type === "graphic_dictation"
     ? (params.dictationCommand === "coordinates" ? "coordinate" : "dictation")
     : (mode?.type ? TASK_KIND_BY_MODE_TYPE[mode.type] : undefined);
-  if (taskKind) {
-    return cards.filter((c) => c.taskKind === taskKind);
+  const modeCards = taskKind ? cards.filter((c) => c.taskKind === taskKind) : cards;
+  if (isSymmetryDrawFigureMode(topicRecord, mode)) {
+    const figureFilter = getFigureFilter(params, mode);
+    if (figureFilter.type === "manual") {
+      const selected = new Set(figureFilter.cardIds);
+      return modeCards.filter((card) => selected.has(card.id));
+    }
+    if (figureFilter.difficulty !== "all") {
+      return modeCards.filter((card) => card.difficulty === figureFilter.difficulty);
+    }
   }
-  return cards;
+  return modeCards;
 }
 
 // True when this mode only draws from part of the topic's cards (symmetry_draw's
@@ -61,11 +110,14 @@ export function isConceptSelectionScopedByMode(topicRecord, mode, params) {
   return getConceptCards(topicRecord, mode, params).length !== allCards.length;
 }
 
-function getSelectionPrefix(mode, params) {
+function getSelectionPrefix(topicRecord, mode, params) {
   const variant = mode?.type === "graphic_dictation"
     ? `:${params?.dictationCommand === "coordinates" ? "coordinates" : "directions"}`
     : "";
-  return `${mode.id}${variant}::`;
+  const figureDifficulty = isSymmetryDrawFigureMode(topicRecord, mode)
+    ? `:${params?.figureDifficulty ?? "all"}`
+    : "";
+  return `${mode.id}${variant}${figureDifficulty}::`;
 }
 
 // The student-topic link has a single shared selectedConceptIds array (one
@@ -78,16 +130,29 @@ function getSelectionPrefix(mode, params) {
 export function readModeSelectedConceptIds(topicRecord, mode, rawSelectedConceptIds, params) {
   if (!rawSelectedConceptIds?.length) return null;
   if (!isConceptSelectionScopedByMode(topicRecord, mode, params)) return rawSelectedConceptIds;
-  const prefix = getSelectionPrefix(mode, params);
+  const prefix = getSelectionPrefix(topicRecord, mode, params);
   const own = rawSelectedConceptIds
     .filter((id) => id.startsWith(prefix))
     .map((id) => id.slice(prefix.length));
+  // Selections made before the difficulty filter used the shorter namespace.
+  // Keep those choices when opening the default “all levels” pool once after
+  // the upgrade; level-specific selections remain independent from then on.
+  if (!own.length && isSymmetryDrawFigureMode(topicRecord, mode) && (params?.figureDifficulty ?? "all") === "all") {
+    const legacyVariant = mode?.type === "graphic_dictation"
+      ? `:${params?.dictationCommand === "coordinates" ? "coordinates" : "directions"}`
+      : "";
+    const legacyPrefix = `${mode.id}${legacyVariant}::`;
+    const legacy = rawSelectedConceptIds
+      .filter((id) => id.startsWith(legacyPrefix))
+      .map((id) => id.slice(legacyPrefix.length));
+    if (legacy.length) return legacy;
+  }
   return own.length ? own : null;
 }
 
 export function writeModeSelectedConceptIds(topicRecord, mode, rawSelectedConceptIds, newIdsForMode, params) {
   if (!isConceptSelectionScopedByMode(topicRecord, mode, params)) return newIdsForMode;
-  const prefix = getSelectionPrefix(mode, params);
+  const prefix = getSelectionPrefix(topicRecord, mode, params);
   const otherModes = (rawSelectedConceptIds ?? []).filter((id) => !id.startsWith(prefix));
   return [...otherModes, ...newIdsForMode.map((id) => `${prefix}${id}`)];
 }

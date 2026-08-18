@@ -39,6 +39,24 @@ export const FORMS_BY_WORD = {
     singular: ["яйцо", "яйца", "яйцу", "яйцом", "яйце", "яиц"],
     plural:   ["яйца", "яиц", "яйцам", "яйцами", "яйцах", "яйцо"],
   },
+  // kot is the deck's only animate noun. Unlike the inanimate masc./neuter
+  // words above (where accusative = nominative, so no separate slot is
+  // needed), an animate masc. noun's accusative instead equals its
+  // genitive — "кота" at index 1 already covers both roles, so this table
+  // needs no extra slot either, just for the opposite reason.
+  kot: {
+    singular: ["кот", "кота", "коту", "котом", "коте", "котов"],
+  },
+  // The four characters' own names, declined for the first time — every
+  // card above puts Иван/Алина/мама/папа only in the nominative (the one
+  // doing the action). These let a name itself be the answer, e.g. as the
+  // recipient of a gift ("подарил {кому}"). Only 5 forms each (no genitive-
+  // plural bonus slot like the common nouns get) — a name has no natural
+  // plural in this world, so that 6th distractor doesn't apply here.
+  ivan:  { singular: ["Иван", "Ивана", "Ивану", "Иваном", "Иване"] },
+  alina: { singular: ["Алина", "Алины", "Алине", "Алиной", "Алине"] },
+  mama:  { singular: ["мама", "мамы", "маме", "мамой", "маме"] },
+  papa:  { singular: ["папа", "папы", "папе", "папой", "папе"] },
 };
 
 const OPTION_COUNTS = new Set([2, 3, 4, 6]);
@@ -135,6 +153,7 @@ const VERB_GENDER_FORMS = {
   lezhat:     { masc: "лежал",     fem: "лежала",     neut: "лежало",    plural: "лежали" },
   stoyat:     { masc: "стоял",     fem: "стояла",     neut: "стояло",    plural: "стояли" },
   pokatitsya: { masc: "покатился", fem: "покатилась", neut: "покатилось", plural: "покатились" },
+  otkrytsya:  { masc: "открылся",  fem: "открылась",  neut: "открылось",  plural: "открылись" },
 };
 
 const GENDERS = ["masc", "fem", "neut", "plural"];
@@ -196,6 +215,43 @@ function buildAdjectiveAgreementTasks(cards, params) {
   );
 }
 
+// possessive_agreement: свой/мой/твой/наш all agree with the possessed
+// noun's gender/number, same shape as adjectives. свой is tested as a direct
+// object ("нашёл свой мяч") so its forms are the accusative ones — masc/
+// neut/plural are spelled the same as nominative for inanimate nouns, only
+// fem differs (своя -> свою). мой/твой/наш are tested as a predicate
+// ("Это мой мяч") so those stay nominative.
+const POSSESSIVE_FORMS = {
+  svoy: { masc: "свой", fem: "свою", neut: "своё", plural: "свои" },
+  moy:  { masc: "мой",  fem: "моя",  neut: "моё",  plural: "мои" },
+  tvoy: { masc: "твой", fem: "твоя", neut: "твоё", plural: "твои" },
+  nash: { masc: "наш",  fem: "наша", neut: "наше", plural: "наши" },
+};
+
+function buildPossessiveOptions(card, count) {
+  const forms = POSSESSIVE_FORMS[card.possessive] ?? {};
+  const answerGender = GENDERS.find((gender) => forms[gender] === card.answer);
+  const samePossessiveOtherGenders = GENDERS.filter((gender) => gender !== answerGender).map((gender) => forms[gender]);
+  const sameGenderOtherPossessives = Object.entries(POSSESSIVE_FORMS)
+    .filter(([possessive]) => possessive !== card.possessive)
+    .map(([, possForms]) => possForms[answerGender]);
+
+  return limitedOptions([...samePossessiveOtherGenders, ...sameGenderOtherPossessives], card.answer, count);
+}
+
+function buildPossessiveAgreementTasks(cards, params) {
+  const optionCount = getOptionCount(params);
+  return shuffle(
+    cards
+      .filter((card) => card.skill === "possessive_agreement")
+      .map((card) => ({
+        type: "possessive_agreement",
+        card,
+        options: buildPossessiveOptions(card, optionCount),
+      }))
+  );
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const modeType = mode?.type ?? mode?.id;
   if (modeType === "case_agreement") return buildCaseAgreementTasks(cards, params);
@@ -203,5 +259,6 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
   if (modeType === "verb_gender_agreement") return buildVerbGenderTasks(cards, params);
   if (modeType === "numeral_agreement") return buildNumeralAgreementTasks(cards, params);
   if (modeType === "adjective_agreement") return buildAdjectiveAgreementTasks(cards, params);
+  if (modeType === "possessive_agreement") return buildPossessiveAgreementTasks(cards, params);
   return [{ type: modeType }];
 }

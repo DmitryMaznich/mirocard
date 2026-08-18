@@ -12,7 +12,7 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, getFigureFilter, readModeSelectedConceptIds, withFigureFilter } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
@@ -28,6 +28,7 @@ import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams"
 import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
+import { getFigureDifficultyRecommendation } from "@/features/session/figureDifficultyProgress";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -361,6 +362,224 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
         })}
       </div>
     </div>
+  );
+}
+
+function figureCountLabel(count) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return `${count} заданий`;
+  if (last === 1) return `${count} задание`;
+  if (last >= 2 && last <= 4) return `${count} задания`;
+  return `${count} заданий`;
+}
+
+function FigureDifficultyParam({
+  topicRecord,
+  mode,
+  params,
+  onChange,
+  onShowInfo,
+  sessions,
+  studentId,
+  topicId,
+  children,
+}) {
+  const def = mode?.params?.figureDifficulty;
+  if (!def) return null;
+  const figureFilter = getFigureFilter(params, mode);
+  const value = figureFilter.type === "difficulty" ? figureFilter.difficulty : null;
+  const labels = def.labels?.ru ?? {};
+  const recommendation = getFigureDifficultyRecommendation(sessions, {
+    studentId,
+    topicId,
+    modeId: mode.id,
+    difficulty: value ?? "all",
+  });
+  return (
+    <div className="param-row param-row--block figure-difficulty-param">
+      <ParamLabel label={def.label?.ru ?? "Сложность фигур"} info={def.info?.ru} onShowInfo={onShowInfo} />
+      <div className="param-enum-group figure-difficulty-options">
+        {def.values.map((option) => {
+          const count = getConceptCards(topicRecord, mode, withFigureFilter(params, mode, { type: "difficulty", difficulty: option })).length;
+          return (
+            <button
+              key={option}
+              className={`enum-btn figure-difficulty-option ${value === option ? "enum-btn--active" : ""}`}
+              onClick={() => onChange((current) => withFigureFilter(current, mode, { type: "difficulty", difficulty: option }))}
+            >
+              <span>{labels[option] ?? option}</span>
+              <span className="figure-difficulty-option__count">{figureCountLabel(count)}</span>
+            </button>
+          );
+        })}
+        {children}
+      </div>
+      {recommendation && figureFilter.type === "difficulty" && (
+        <div className="param-hint figure-difficulty-recommendation" role="status">
+          <span>{recommendation.successfulSessions} уверенных занятия позади. Можно попробовать «{labels[recommendation.nextDifficulty] ?? recommendation.nextDifficulty}».</span>
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => onChange((current) => withFigureFilter(current, mode, { type: "difficulty", difficulty: recommendation.nextDifficulty }))}
+          >
+            Выбрать
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const THUMBNAIL_DIRECTIONS = {
+  up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0],
+  up_left: [-1, -1], up_right: [1, -1], down_left: [-1, 1], down_right: [1, 1],
+};
+
+function figurePreviewPaths(card) {
+  if (card.sourcePaths?.length) return card.sourcePaths;
+  if (card.points?.length) return [[card.start, ...card.points]];
+  if (!card.start || !card.commands?.length) return [];
+  const points = [{ ...card.start }];
+  for (const command of card.commands) {
+    const direction = THUMBNAIL_DIRECTIONS[command.direction];
+    if (!direction) continue;
+    const previous = points.at(-1);
+    points.push({
+      col: previous.col + direction[0] * command.cells,
+      row: previous.row + direction[1] * command.cells,
+    });
+  }
+  return [points];
+}
+
+function FigureThumbnail({ card }) {
+  const columns = Number(card.columns ?? 10);
+  const rows = Number(card.rows ?? 8);
+  const gridLines = [
+    ...Array.from({ length: columns + 1 }, (_, col) => `M ${col} 0 V ${rows}`),
+    ...Array.from({ length: rows + 1 }, (_, row) => `M 0 ${row} H ${columns}`),
+  ].join(" ");
+  return (
+    <svg className="figure-picker__thumbnail" viewBox={`-0.35 -0.35 ${columns + 0.7} ${rows + 0.7}`} aria-hidden="true">
+      <path className="figure-picker__thumbnail-grid" d={gridLines} />
+      {figurePreviewPaths(card).map((path, index) => (
+        <path
+          key={index}
+          className="figure-picker__line"
+          d={path.map((point, pointIndex) => `${pointIndex ? "L" : "M"} ${point.col} ${point.row}`).join(" ")}
+        />
+      ))}
+    </svg>
+  );
+}
+
+function FigurePickerParam({ topicRecord, mode, params, onChange }) {
+  const figureFilter = getFigureFilter(params, mode);
+  const allFigures = getConceptCards(
+    topicRecord,
+    mode,
+    withFigureFilter(params, mode, { type: "difficulty", difficulty: "all" }),
+  );
+  const activeFigures = getConceptCards(topicRecord, mode, params);
+  const [open, setOpen] = useState(false);
+  const [draftIds, setDraftIds] = useState(() => new Set());
+  const [browseDifficulty, setBrowseDifficulty] = useState("all");
+  const difficultyLabels = mode?.params?.figureDifficulty?.labels?.ru ?? {};
+  const selectedIds = figureFilter.type === "manual" ? figureFilter.cardIds : null;
+  const selectedCount = activeFigures.length;
+  const visibleFigures = browseDifficulty === "all"
+    ? allFigures
+    : allFigures.filter((card) => card.difficulty === browseDifficulty);
+
+  function openPicker() {
+    setDraftIds(new Set(selectedIds ?? activeFigures.map((card) => card.id)));
+    setBrowseDifficulty(figureFilter.type === "difficulty" ? figureFilter.difficulty : "all");
+    setOpen(true);
+  }
+
+  function toggle(cardId) {
+    setDraftIds((current) => {
+      const next = new Set(current);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
+      return next;
+    });
+  }
+
+  function applySelection() {
+    const cardIds = allFigures.filter((card) => draftIds.has(card.id)).map((card) => card.id);
+    if (!cardIds.length) return;
+    onChange((current) => withFigureFilter(current, mode, { type: "manual", cardIds }));
+    setOpen(false);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`enum-btn figure-difficulty-option figure-picker-trigger ${selectedIds ? "enum-btn--active" : ""}`}
+        onClick={openPicker}
+      >
+        <span>Свой набор</span>
+        <span className="figure-difficulty-option__count">{selectedIds ? `${selectedCount} выбрано` : "Выбрать рисунки"}</span>
+      </button>
+      {open && (
+        <Modal
+          title="Выберите рисунки"
+          onClose={() => setOpen(false)}
+          actions={(
+            <>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
+              <Button onClick={applySelection} disabled={!draftIds.size}>Выбрать {draftIds.size || ""}</Button>
+            </>
+          )}
+        >
+          <p className="figure-picker__intro">Отметьте рисунки для занятия. Выбор заменяет быстрый фильтр сложности; кнопки сложности вернут набор целиком.</p>
+          <div className="figure-picker__filters" aria-label="Показать рисунки по сложности">
+            {mode?.params?.figureDifficulty?.values?.map((difficulty) => (
+              <button
+                type="button"
+                key={difficulty}
+                className={`enum-btn enum-btn--compact ${browseDifficulty === difficulty ? "enum-btn--active" : ""}`}
+                onClick={() => setBrowseDifficulty(difficulty)}
+              >
+                {difficultyLabels[difficulty] ?? difficulty}
+              </button>
+            ))}
+          </div>
+          <div className="figure-picker__toolbar">
+            <span className="param-hint">{draftIds.size} из {allFigures.length} отмечено</span>
+            <label className="figure-picker__select-all">
+              <input
+                type="checkbox"
+                checked={allFigures.length > 0 && draftIds.size === allFigures.length}
+                onChange={(event) => setDraftIds(event.target.checked ? new Set(allFigures.map((card) => card.id)) : new Set())}
+              />
+              <span>Все рисунки</span>
+            </label>
+          </div>
+          <div className="figure-picker__grid" role="group" aria-label="Рисунки">
+            {visibleFigures.map((card) => {
+              const selected = draftIds.has(card.id);
+              return (
+                <button
+                  type="button"
+                  key={card.id}
+                  className={`figure-picker__card ${selected ? "figure-picker__card--selected" : ""}`}
+                  onClick={() => toggle(card.id)}
+                  aria-pressed={selected}
+                >
+                  <FigureThumbnail card={card} />
+                  <span className="figure-picker__name">{card.label}</span>
+                  <span className="figure-picker__level">{difficultyLabels[card.difficulty] ?? card.difficulty}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }
 
@@ -941,7 +1160,12 @@ export default function ParamsScreen() {
       };
     }
     const modeParams = mode?.params ?? {};
-    const out = {};
+    // Visual figure selections are deliberately namespaced by exercise inside
+    // this object.  It is not a declared renderer option, so retain it while
+    // normalizing the rest of the saved settings.
+    const out = saved.figureFilters && typeof saved.figureFilters === "object"
+      ? { figureFilters: saved.figureFilters }
+      : {};
     for (const [key, def] of Object.entries(modeParams)) {
       if (def.type === "concept_selector") continue;
       if (def.type === "sentence_list") {
@@ -970,6 +1194,11 @@ export default function ParamsScreen() {
   const [showModeInfo,   setShowModeInfo]    = useState(false);
   const [showPinGate,    setShowPinGate]     = useState(false);
   const [activeInfo,     setActiveInfo]      = useState(null);
+  // Flash cards are an ungraded introduction. A video for repeatedly tapping
+  // through them would look like a reward for guessing, not for learning.
+  const isNavigatorFlashCards = activeTopicId === "symmetry_draw"
+    && activeModeId === "navigator_learning"
+    && params.learningExercise === "cards";
 
   const allModes = topicRecord?.modes ?? [];
   const modeBackScreen = allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
@@ -1023,7 +1252,7 @@ export default function ParamsScreen() {
       return;
     }
     const bypassPin = mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs;
-    if (!shouldRequestSessionStartPin({ videoRewardEnabled: videoReward, bypassPin })) {
+    if (!shouldRequestSessionStartPin({ videoRewardEnabled: videoReward && !isNavigatorFlashCards, bypassPin })) {
       launchSession();
       return;
     }
@@ -1092,6 +1321,8 @@ export default function ParamsScreen() {
               value={params[key] ?? def.default}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               disabledValues={def.disabledValues}
+              info={def.info?.ru}
+              onShowInfo={setActiveInfo}
             />
           );
         }
@@ -1104,6 +1335,8 @@ export default function ParamsScreen() {
               value={params[key] ?? def.default ?? false}
               disabled={def.dependsOn ? !params[def.dependsOn] : false}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              info={def.info?.ru}
+              onShowInfo={setActiveInfo}
             />
           );
         }
@@ -1116,6 +1349,12 @@ export default function ParamsScreen() {
     <ComparisonParams params={params} onChange={setParams} />
   ) : isGraphicDictation ? (
     <>
+      <FigureDifficultyParam
+        topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo}
+        sessions={sessions} studentId={activeStudentId} topicId={activeTopicId}
+      >
+        <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
+      </FigureDifficultyParam>
       <EnumParam
         label="Как строить рисунок"
         options={["directions", "coordinates"]}
@@ -1133,13 +1372,19 @@ export default function ParamsScreen() {
             value={params.showArrow ?? true}
             onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
           />
-          <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
+          <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
         </>
       )}
     </>
   ) : isSymmetryDrawPrint ? (
     <>
-      <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} />
+      <FigureDifficultyParam
+        topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} onShowInfo={setActiveInfo}
+        sessions={sessions} studentId={activeStudentId} topicId={activeTopicId}
+      >
+        <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
+      </FigureDifficultyParam>
+      <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
     </>
   ) : (
     <>
@@ -1390,7 +1635,14 @@ export default function ParamsScreen() {
             {paramsContent}
           </div>
 
-          {hasVideos && !isAlphabetPairs && (
+          {hasVideos && isNavigatorFlashCards && (
+            <div className="param-section">
+              <div className="param-section__header">Карточки — знакомство</div>
+              <div className="param-hint">Здесь ребёнок спокойно знакомится со стрелками, без оценки и видеонаграды. Для проверки и награды выберите «Выбери слово» или «Выбери стрелку».</div>
+            </div>
+          )}
+
+          {hasVideos && !isAlphabetPairs && !isNavigatorFlashCards && (
             <div className="param-section">
               <div className="param-section__header">Награда за занятие</div>
 

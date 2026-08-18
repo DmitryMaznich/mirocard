@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const zip = new JSZip();
-
 zip.file("topic.json", readFileSync(join(dir, "topic.json")));
 zip.file("renderer", readFileSync(join(dir, "renderer.js")));
 zip.file("mirocard2.css", readFileSync(join(dir, "renderer.css")));

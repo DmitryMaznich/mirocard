@@ -16,7 +16,9 @@ const CARDS = [
   { id: "joy_2", conceptId: "joy", primary: false, image: "media/joy_2.webp" },
   { id: "sadness_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sadness_1.webp" },
   { id: "anger_1", conceptId: "anger", primary: true, label: "злость", image: "media/anger_1.webp" },
-  { id: "situation_joy_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе подарок на день рождения.", answerKey: "радость" },
+  { id: "situation_joy_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе подарок на день рождения.", sceneImage: "media/situation_joy_1.webp", answerKey: "радость" },
+  { id: "situation_sadness_1", conceptId: "sadness", cardType: "situation", label: "Лопнул любимый шарик.", answerKey: "грусть" },
+  { id: "situation_anger_1", conceptId: "anger", cardType: "situation", label: "Друг сломал башню.", answerKey: "злость" },
 ];
 const CONCEPTS = deriveConcepts(CARDS);
 
@@ -47,10 +49,11 @@ describe("situation_emotion — mounted through the real FindNTask", () => {
   }
 
   it("renders the situation sentence as the instruction, not an emotion word", () => {
-    const [task] = generateTasks("situation_emotion", CONCEPTS, CARDS, {});
+    const task = generateTasks("situation_emotion", CONCEPTS, CARDS, {}).find((item) => item.targetConceptId === "joy");
     mount(task, { onCorrect: () => {}, onIncorrect: () => {} });
     const instruction = container.querySelector(".session-instruction");
     expect(instruction?.textContent).toBe("Друг подарил тебе подарок на день рождения.");
+    expect(container.querySelector(".situation-scene")).not.toBeNull();
   });
 
   it("tapping the correct emotion's option fires onCorrect with the target concept and card id", () => {

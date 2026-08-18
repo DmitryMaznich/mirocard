@@ -17,16 +17,16 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
       },
       "description": {
-        "ru": "Двенадцать коротких рассказов с иллюстрациями: совместное чтение (с показом по слогам или обычным текстом), вопросы по смыслу и сборка текста из слов.",
-        "en": "Twelve short illustrated stories: shared reading (syllable or normal text display), comprehension questions, and sentence assembly."
+        "ru": "Двенадцать коротких рассказов с иллюстрациями для совместного чтения (обычный текст или по слогам). После чтения родитель или логопед сам задаёт ребёнку вопросы по смыслу.",
+        "en": "Twelve short illustrated stories for shared reading (normal text or syllable-split). After reading, the parent or therapist asks the child their own comprehension questions."
       },
-      "url": "./decks/reading_short_stories_v1.1.0.zip",
+      "url": "./decks/reading_short_stories_v1.2.0.zip",
       "status": "release",
       "access": "free"
     },
@@ -47,16 +47,16 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.6.0",
+      "version": "1.7.3",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
       },
       "description": {
-        "ru": "10 эмоций × 3 вариации (крупные портреты разных детей) и ситуации для всех эмоций. Аудио произношение.",
-        "en": "10 emotions × 3 close-up portraits of different children, with situations for every emotion. Audio included."
+        "ru": "Три портрета и три сюжетные ситуации для каждого из 10 понятий: ребёнок, причина и читаемая эмоция в одной фотографии.",
+        "en": "Three portraits and three situation scenes for each of 10 concepts: a child, the cause, and a readable emotion in one photograph."
       },
-      "url": "./decks/emotions_v2_v1.6.0.zip",
+      "url": "./decks/emotions_v2_v1.7.3.zip",
       "status": "release",
       "access": "free"
     },
@@ -342,14 +342,14 @@
     },
     {
       "id": "word_agreement_ru",
-      "version": "1.7.0",
-      "url": "./decks/word_agreement_ru_v1.7.0.zip",
-      "zipUrl": "word_agreement_ru_v1.7.0.zip",
+      "version": "1.8.0",
+      "url": "./decks/word_agreement_ru_v1.8.0.zip",
+      "zipUrl": "word_agreement_ru_v1.8.0.zip",
       "title": {
         "ru": "Языковой тренажёр"
       },
       "description": {
-        "ru": "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, стол, машина, книга, кукла, яблоко, окно, яйцо), число и род глагола, числительное и прилагательное + существительное. Настраиваемая сложность: от двух до шести вариантов ответа."
+        "ru": "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, стол, машина, книга, кукла, яблоко, окно, яйцо), число и род глагола, числительное, прилагательное и притяжательные местоимения + существительное. Настраиваемая сложность: от двух до шести вариантов ответа."
       },
       "renderer": "word_agreement",
       "status": "release",
@@ -357,9 +357,9 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.8.21",
-      "url": "./decks/symmetry_draw_v1.8.21.zip",
-      "zipUrl": "symmetry_draw_v1.8.21.zip",
+      "version": "1.11.2",
+      "url": "./decks/symmetry_draw_v1.11.2.zip",
+      "zipUrl": "symmetry_draw_v1.11.2.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },

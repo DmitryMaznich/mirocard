@@ -64,15 +64,20 @@ describe("generateTasks — symmetry_draw modes", () => {
     expect(tasks[0].card.taskKind).toBe("coordinate");
   });
 
-  it("navigator creates a twenty-step mixed direction drill", () => {
+  it("navigator starts with a twenty-step drill of four basic directions", () => {
     const tasks = generateTasks("navigator", MIXED_CONCEPTS, MIXED_CARDS, {});
     expect(tasks).toHaveLength(20);
     expect(tasks.every((task) => task.type === "navigator" && task.card.taskKind === "navigator")).toBe(true);
+    expect(new Set(tasks.map((task) => task.direction))).toEqual(new Set(["up", "down", "left", "right"]));
+    expect(tasks.every((task) => Number.isInteger(task.cells) && task.cells >= 1 && task.cells <= 3)).toBe(true);
+    expect(new Set(tasks.map((task) => task.cells))).toEqual(new Set([1, 2, 3]));
+  });
+
+  it("navigator adds diagonal directions when the full set is chosen", () => {
+    const tasks = generateTasks("navigator", MIXED_CONCEPTS, MIXED_CARDS, { navigatorDirections: "all" });
     expect(new Set(tasks.map((task) => task.direction))).toEqual(new Set([
       "up", "down", "left", "right", "up_left", "up_right", "down_left", "down_right",
     ]));
-    expect(tasks.every((task) => Number.isInteger(task.cells) && task.cells >= 1 && task.cells <= 3)).toBe(true);
-    expect(new Set(tasks.map((task) => task.cells))).toEqual(new Set([1, 2, 3]));
   });
 
   it("coordinates creates twenty distinct points on an 8×8 node grid", () => {
@@ -157,6 +162,49 @@ describe("generateTasks — situation_intro", () => {
       label: "радость",
     });
     expect(joyTask.card.cardType).not.toBe("situation");
+  });
+});
+
+describe("situation use levels", () => {
+  const CARDS = [
+    { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
+    { id: "joy_2", conceptId: "joy", primary: false, image: "media/joy_2.webp" },
+    { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
+    { id: "calm_1", conceptId: "calm", primary: true, label: "спокойствие", image: "media/calm_1.webp" },
+    { id: "joy_auto", conceptId: "joy", cardType: "situation", situationUse: "auto", label: "Мальчик получил игрушку.", sceneImage: "media/situation_joy_1.webp", revealCardId: "joy_2" },
+    { id: "sad_auto", conceptId: "sadness", cardType: "situation", situationUse: "auto", label: "Лопнул шарик." },
+    { id: "calm_discussion", conceptId: "calm", cardType: "situation", situationUse: "discussion", label: "Девочка слушает музыку." },
+    { id: "calm_deferred", conceptId: "calm", cardType: "situation", situationUse: "deferred", label: "Отложенная ситуация." },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+
+  it("uses only auto situations and their concepts in evaluated situation modes", () => {
+    const forward = generateTasks("situation_emotion", CONCEPTS, CARDS, { optionCount: 4 });
+    const reverse = generateTasks("emotion_situation", CONCEPTS, CARDS, { optionCount: 4 });
+
+    expect(forward).toHaveLength(2);
+    expect(reverse).toHaveLength(2);
+    expect(forward.find((task) => task.targetConceptId === "joy")?.sceneImage).toBe("media/situation_joy_1.webp");
+    expect(forward.every((task) => task.options.every((option) => option.conceptId !== "calm"))).toBe(true);
+    expect(reverse.every((task) => task.options.every((option) => option.conceptId !== "calm"))).toBe(true);
+  });
+
+  it("keeps discussion and deferred situations in the no-evaluation introduction", () => {
+    const tasks = generateTasks("situation_intro", CONCEPTS, CARDS, {});
+    expect(tasks).toHaveLength(4);
+    expect(tasks.some((task) => task.situationText === "Девочка слушает музыку.")).toBe(true);
+    expect(tasks.some((task) => task.situationText === "Отложенная ситуация.")).toBe(true);
+  });
+
+  it("uses a situation's explicitly assigned portrait instead of a random variation", () => {
+    const tasks = generateTasks("situation_intro", CONCEPTS, CARDS, {});
+    expect(tasks.find((task) => task.situationText === "Мальчик получил игрушку.")?.card.id).toBe("joy_2");
+  });
+
+  it("honours an explicit per-session situation limit", () => {
+    expect(generateTasks("situation_intro", CONCEPTS, CARDS, { taskCount: 2 })).toHaveLength(2);
+    expect(generateTasks("situation_emotion", CONCEPTS, CARDS, { taskCount: 1 })).toHaveLength(1);
+    expect(generateTasks("emotion_situation", CONCEPTS, CARDS, { taskCount: 1 })).toHaveLength(1);
   });
 });
 

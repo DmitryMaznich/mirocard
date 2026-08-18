@@ -13,6 +13,7 @@ import { CSS as DndCSS } from "@dnd-kit/utilities";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getSafeCodeConfig, appendSafeCodeLog } from "@/core/groupStore";
+import "./reading.css";
 
 const UNDERSTAND_BUTTONS = [
   { value: "independent", label: "Сам", mod: "easy" },
@@ -26,10 +27,53 @@ function getLineText(line, textStyle = "normal") {
   return line?.text ?? "";
 }
 
-function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false }) {
+function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false, flow = false }) {
+  const items = lines ?? [];
+
+  // Story content is authored one sentence per lines[] entry (so the
+  // "по строкам" navigator can step sentence-by-sentence), but rendering
+  // each entry as its own block stacked every sentence on its own visual
+  // line — real prose, not verse. In flow mode we join sentences into
+  // normal wrapping paragraphs, breaking into a new <p> wherever the
+  // content marks `newParagraph` (editorial paragraph boundaries authored
+  // in scripts/generate-reading-short-stories.mjs), and keeping a hard line
+  // break around dialogue within a paragraph — matching how it's actually
+  // typeset in a book.
+  if (flow) {
+    // A drop cap on the first letter reads oddly when the story opens on a
+    // dialogue line (a lone "—" blown up huge) — skip it there.
+    const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
+    const paragraphs = [];
+    items.forEach((line, i) => {
+      if (i === 0 || line.newParagraph) paragraphs.push([]);
+      paragraphs[paragraphs.length - 1].push(line);
+    });
+    return (
+      <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""} reading-text--flow`}>
+        <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
+          {paragraphs.map((paraLines, pi) => (
+            <p className="reading-flow-para" key={paraLines[0]?.id ?? pi}>
+              {paraLines.map((line, i) => {
+                const text = getLineText(line, textStyle);
+                const isDialogue = text.trimStart().startsWith("—");
+                const prevIsDialogue = i > 0 && getLineText(paraLines[i - 1], textStyle).trimStart().startsWith("—");
+                return (
+                  <Fragment key={line.id ?? i}>
+                    {i > 0 && (isDialogue || prevIsDialogue ? <br /> : " ")}
+                    {text}
+                  </Fragment>
+                );
+              })}
+            </p>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""}${noWrap ? " reading-text--nowrap" : ""}`}>
-      {(lines ?? []).map((line) => (
+      {items.map((line) => (
         <div
           key={line.id ?? getLineText(line)}
           className={`reading-line${activeLineId === line.id ? " reading-line--active" : ""}`}
@@ -84,7 +128,7 @@ function ReadingIllustration({ topicId, text, illustrationRef }) {
 // after the illustration claims its reserved height, so the whole text is
 // visible on one screen without scrolling on small devices. Falls back to
 // scrolling just the line list if even the minimum readable scale overflows.
-function useFitReadingText(active, deps) {
+function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
   const bodyRef = useRef(null);
   const wrapRef = useRef(null);
   const contentRef = useRef(null);
@@ -96,6 +140,12 @@ function useFitReadingText(active, deps) {
     const wrap = wrapRef.current;
     const content = contentRef.current;
     if (!body || !wrap) return;
+
+    // Above the .reading-page--spread breakpoint the illustration sits beside
+    // the text (row layout), not above/below it — it no longer eats into the
+    // text's available height, so the usual "subtract the illustration" math
+    // would under-scale the text for no reason.
+    const isSpread = spreadCapable && window.matchMedia("(orientation: landscape)").matches;
 
     const GAP = 18; // .reading-body gap between the poem-wrap and the illustration
     const MIN_SCALE = 0.55;
@@ -136,8 +186,8 @@ function useFitReadingText(active, deps) {
     const bodyStyle = getComputedStyle(body);
     const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
     const bodyHeight = body.getBoundingClientRect().height;
-    const illuHeight = illustrationNodeRef.current?.getBoundingClientRect().height ?? 0;
-    const available = Math.max(0, bodyHeight - paddingV - illuHeight - GAP);
+    const illuHeight = isSpread ? 0 : (illustrationNodeRef.current?.getBoundingClientRect().height ?? 0);
+    const available = Math.max(0, bodyHeight - paddingV - illuHeight - (isSpread ? 0 : GAP));
 
     let current = 1;
     let required = requiredHeight();
@@ -162,7 +212,7 @@ function useFitReadingText(active, deps) {
       // centered child — the child needs to start at the top to be scrollable.
       content.style.justifyContent = "flex-start";
     }
-  }, [active]);
+  }, [active, spreadCapable]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(measure, [measure, ...deps]);
@@ -194,11 +244,15 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
   const isPool = task.text?.kind === "sentence_pool";
   const bookStyle = task.text?.kind === "story";
   const showCloseButton = task.text?.kind === "story" || task.text?.kind === "poem";
-  const fit = useFitReadingText(showCloseButton && layout === "full", [task.text?.id, textStyle, lines.length]);
+  // Corner-photo decks pin two images to the bottom corners rather than one
+  // book-style illustration — that layout doesn't translate to a side-by-side
+  // spread, so it keeps the plain vertical stack at every width.
+  const hasIllustration = !!task.text?.image && !task.text?.cornerPhotos;
+  const fit = useFitReadingText(showCloseButton && layout === "full", [task.text?.id, textStyle, lines.length], { spreadCapable: hasIllustration });
 
   if (layout === "line") {
     return (
-      <div className="session-body reading-body">
+      <div className="session-body reading-body reading-page">
         <div className="reading-poem-wrap">
           {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
           {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
@@ -233,7 +287,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
 
   return (
     <div
-      className="session-body reading-body"
+      className={`session-body reading-body reading-page${hasIllustration ? " reading-page--spread" : ""}`}
       ref={fit.bodyRef}
       style={isPool ? { justifyContent: "center" } : undefined}
       onClick={showCloseButton ? undefined : onAdvance}
@@ -242,7 +296,12 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
         {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
         <div className="reading-content" ref={fit.contentRef}>
-          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={showCloseButton} />
+          {/* Verse (poem) lines stay single-line and shrink to fit — a wrapped
+              line would break the poem's own line breaks, which carry meaning.
+              Story lines are ordinary prose: wrapping them is normal and safe,
+              and forcing nowrap here was clipping longer sentences on narrow
+              screens instead of just wrapping to a second line. */}
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={task.text?.kind === "poem"} flow={bookStyle} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
@@ -259,7 +318,7 @@ function ReadPoemBookTask({ task, topicId, onAdvance }) {
   if (!page) return null;
 
   return (
-    <div className="session-body reading-body" ref={fit.bodyRef}>
+    <div className="session-body reading-body reading-page" ref={fit.bodyRef}>
       <div className="reading-poem-wrap" ref={fit.wrapRef}>
         <div className="reading-title">{getTopicTitle(page.title)}</div>
         <div className="reading-content" ref={fit.contentRef}>

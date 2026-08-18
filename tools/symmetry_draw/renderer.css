@@ -118,7 +118,6 @@
 .symmetry-draw__repeat-feedback--missed { stroke: #e77949; stroke-dasharray: .08 .11; }
 .symmetry-draw__hint-line { stroke: var(--sd-hint); stroke-width: 0.035; stroke-dasharray: 0.02 0.1; }
 .symmetry-draw__hint-point { fill: var(--sd-hint); pointer-events: none; }
-.symmetry-draw__hint-point text { fill: white; font: 800 0.17px/1 Nunito, sans-serif; pointer-events: none; }
 
 .symmetry-draw__controls { display: flex; width: 100%; min-width: 0; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
 
@@ -410,6 +409,12 @@
 }
 .navigator__listen:hover { background: #e9f4fd; }
 .navigator__listen:focus-visible { outline: 3px solid #f0b93e; outline-offset: 3px; }
+.navigator__audio-fallback {
+  grid-column: 2;
+  margin: -3px 0 0;
+  color: #53657b;
+  font: 700 14px/1.2 Nunito, sans-serif;
+}
 .navigator__timer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px;
@@ -463,6 +468,10 @@
 .navigator__timer--paused .navigator__timer-track { border-color: #9eadbd; background: #dce4ed; }
 .navigator__timer--paused i { background: #8b9caf; box-shadow: none; }
 .navigator__timer--paused .navigator__timer-clock { color: #65778b; }
+.navigator__timer--waiting { background: #edf4fd; }
+.navigator__timer--waiting .navigator__timer-track { border-color: #8db6da; background: #dbeafa; }
+.navigator__timer--waiting i { background: #76a7d8; box-shadow: none; }
+.navigator__timer--waiting .navigator__timer-clock { color: #4e7fb3; }
 @keyframes navigatorTimerUrgent { to { filter: brightness(1.12) drop-shadow(0 0 7px rgba(222, 75, 51, .85)); } }
 .navigator__board {
   position: relative;
@@ -491,6 +500,12 @@
 .navigator__input-start { fill: #e5f1fa; stroke: #2d67b4; stroke-width: .09; pointer-events: none; }
 .navigator__dash { fill: #e4effa; pointer-events: none; }
 .navigator__trail { fill: none; stroke: #2f837c; stroke-width: .5; stroke-linecap: round; pointer-events: none; }
+.navigator__route--hint { color: #d99320; animation: navigatorHintPulse .9s ease-in-out infinite alternate; }
+.navigator__route-hint { stroke: #d99320; stroke-width: .28; stroke-linecap: round; stroke-dasharray: .38 .22; pointer-events: none; animation: navigatorRouteHint 1s linear infinite; }
+.navigator__hint { margin: 7px 12px 0; text-align: center; color: #8a5b09; font: 800 clamp(14px, 2.5vw, 18px)/1.2 Nunito, sans-serif; }
+.navigator__mastery { margin: 7px 12px 0; text-align: center; color: #247050; font: 800 clamp(13px, 2.3vw, 17px)/1.25 Nunito, sans-serif; }
+@keyframes navigatorHintPulse { to { color: #f2b53c; filter: drop-shadow(0 0 5px rgba(217,147,32,.55)); } }
+@keyframes navigatorRouteHint { to { stroke-dashoffset: -.6; } }
 .navigator--good .navigator__route { color: #b8cbe4; opacity: .42; }
 .navigator--good.navigator--target-up .navigator__route--up,
 .navigator--good.navigator--target-down .navigator__route--down,
@@ -505,17 +520,38 @@
 .navigator--paused .navigator__svg { opacity: .42; pointer-events: none; }
 .navigator__pause-overlay { position: absolute; inset: 0; display: grid; place-items: center; color: #263d56; font: 900 clamp(24px, 5vw, 38px)/1 Nunito, sans-serif; text-shadow: 0 2px 0 #fff; pointer-events: none; }
 
-/* ── Navigator learning: no timer, no answer, only word ↔ direction ───── */
+/* ── Navigator learning: tap-through cards and short recognition drills ── */
 .navigator-learning { width: min(100%, 700px); margin: 0 auto; padding: clamp(18px, 4vw, 42px); text-align: center; }
 .navigator-learning__eyebrow { margin-bottom: 14px; color: #58708d; font: 800 clamp(14px, 2.5vw, 18px)/1 Nunito, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
 .navigator-learning__card { display: grid; place-items: center; gap: 18px; min-height: min(62vh, 580px); padding: clamp(22px, 5vw, 54px); border: 2px solid #c7dbef; border-radius: 28px; background: radial-gradient(circle at 50% 42%, #f8fcff, #eaf3fc); box-shadow: 0 7px 0 #d6e4f1, inset 0 1px 0 #fff; }
+.navigator-learning__card--tap { width: 100%; color: inherit; font: inherit; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.navigator-learning__card--tap:hover { transform: translateY(-2px); box-shadow: 0 9px 0 #d6e4f1, inset 0 1px 0 #fff; }
+.navigator-learning__card--tap:active { transform: translateY(4px); box-shadow: 0 3px 0 #d6e4f1, inset 0 1px 0 #fff; }
+.navigator-learning__card--tap:focus-visible, .navigator-learning__choice:focus-visible { outline: 4px solid #f0ae3d; outline-offset: 4px; }
+.navigator-learning__card--quiz { min-height: min(43vh, 390px); }
 .navigator-learning__arrow { width: min(68vw, 360px); height: min(48vh, 340px); color: #2d67b4; filter: drop-shadow(0 7px 0 rgba(32,83,151,.16)); animation: navigatorLearningPop .38s ease-out both; }
 .navigator-learning__arrow path { fill: currentColor; }
 .navigator-learning__word { color: #1f3152; font: 900 clamp(34px, 7vw, 58px)/1 Georgia, serif; animation: navigatorLearningPop .38s ease-out both; }
+.navigator-learning__tap-hint { color: #58708d; font: 800 clamp(14px, 2.5vw, 18px)/1 Nunito, sans-serif; }
 .navigator-learning__dots { display: flex; justify-content: center; gap: 7px; margin-top: 20px; }
 .navigator-learning__dots i { width: 8px; height: 8px; border-radius: 99px; background: #b6cbe0; transition: transform .2s, background .2s; }
 .navigator-learning__dots i.is-active { background: #2d67b4; transform: scale(1.45); }
+.navigator-learning__next-step { max-width: 46ch; margin: 15px auto 0; color: #58708d; font: 700 clamp(13px, 2.2vw, 16px)/1.35 Nunito, sans-serif; }
+.navigator-learning__choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.navigator-learning__choice { min-height: 62px; padding: 10px 8px; border: 2px solid #c7dbef; border-radius: 18px; color: #263d56; background: #fff; box-shadow: 0 4px 0 #d6e4f1; font: 900 clamp(16px, 3vw, 21px)/1.12 Nunito, sans-serif; cursor: pointer; transition: transform .14s, background .14s, border-color .14s; }
+.navigator-learning__choice:hover:not(:disabled) { transform: translateY(-2px); border-color: #79a6d4; }
+.navigator-learning__choice:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #d6e4f1; }
+.navigator-learning__choice:disabled { cursor: default; }
+.navigator-learning__choice.is-correct { border-color: #42a879; background: #e7f8ef; color: #247050; }
+.navigator-learning__choice.is-wrong { border-color: #d98a72; background: #fff0ea; color: #a24f3a; }
+.navigator-learning__choice.is-hinted { border-color: #e4aa35; background: #fff7db; color: #805908; animation: navigatorLearningHint .9s ease-in-out infinite alternate; }
+.navigator-learning__choices--arrows .navigator-learning__choice { font-size: clamp(36px, 8vw, 58px); }
+.navigator-learning__hint { min-height: 24px; margin-top: 12px; color: #805908; font: 800 16px/1.25 Nunito, sans-serif; }
+.navigator-learning__feedback { min-height: 28px; margin-top: 13px; font: 900 20px/1 Nunito, sans-serif; }
+.navigator-learning__feedback.is-correct { color: #247050; }
+.navigator-learning__feedback.is-wrong { color: #a24f3a; }
 @keyframes navigatorLearningPop { from { opacity: .15; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes navigatorLearningHint { to { transform: translateY(-2px); box-shadow: 0 6px 0 #ead28f; } }
 @media (max-width: 560px) {
   .navigator { border-radius: 14px; }
   .navigator__instruction { grid-template-columns: 32px minmax(0, 1fr) 32px; min-height: 74px; padding: 8px 12px; }
@@ -524,4 +560,6 @@
   .navigator__listen { min-height: 44px; padding: 8px 11px; font-size: clamp(17px, 5.5vw, 24px); }
   .navigator__board { padding: 18px 9px 12px; }
   .navigator__svg { max-height: 58vh; }
+  .navigator-learning__choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .navigator-learning__card--quiz { min-height: min(37vh, 330px); }
 }
