@@ -180,6 +180,16 @@ LEFT_INSET_MM = MARGIN_MM + 2.0
 CENTER_INSET_MM = 2.0 + 2.0
 CONTENT_W_MM = PAGE_W_MM - 2 * MARGIN_MM
 
+# Page-number badge: centered in the slot's own OUTER margin strip (between
+# the real page edge and the real red margin line, i.e. past/outside the
+# margin, not inside the writing area) -- confirmed with the user
+# 2026-08-15. A white filled circle sits behind the digits so they stay
+# legible over the ruling's own diagonal hatching underneath.
+NUMBER_CX_LEFT_MM = MARGIN_MM / 2
+NUMBER_CX_RIGHT_MM = PAGE_W_MM - MARGIN_MM / 2
+NUMBER_CY_MM = 10.0
+NUMBER_R_MM = 4.0
+
 
 def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, number_align="left"):
     """Content-only overlay for one A5 slot: whatever practice rows landed
@@ -195,35 +205,34 @@ def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, numb
     the bottom of the page for independent writing, instead of every row
     looking identical top to bottom.
 
-    `page_number`, if given, is stamped in this slot's bottom OUTER corner
-    (`number_align="left"` for the left slot, "right" for the right slot --
-    standard book pagination, verso/recto numbers sitting at the outer
-    edge) in READING order (after fold and staple), not raw PDF page
-    order, so a parent can flip through the assembled notebook and
+    `page_number`, if given, is stamped past the outer margin, in a white
+    circle badge (`number_align="left"` for the left slot, "right" for the
+    right slot -- standard book pagination, verso/recto numbers sitting at
+    the outer edge) in READING order (after fold and staple), not raw PDF
+    page order, so a parent can flip through the assembled notebook and
     confirm nothing is out of sequence (confirmed with the user
     2026-08-15: raw imposition order looks scrambled and caused real
-    confusion once already). Just the number -- no "/total" clutter --
-    same small size as the real page's own "© Mironium" footer text."""
+    confusion once already)."""
     baselines = row_baselines()
     middle = len(baselines) // 2
     fill_limit_mm = CONTENT_W_MM * (1 - TAIL_FRACTION)
 
-    c.saveState()
-    c.translate(inset_mm, 0)
-
     if page_number is not None:
+        cx = NUMBER_CX_LEFT_MM if number_align == "left" else NUMBER_CX_RIGHT_MM
         c.saveState()
+        c.setFillColorRGB(1, 1, 1)
+        c.circle(cx, NUMBER_CY_MM, NUMBER_R_MM, stroke=0, fill=1)
         # The canvas is already scale(mm, mm)'d (booklet.py), so a font
         # size given directly in points here would render mm-sized (7 ->
         # ~20pt) -- convert from the real target point size to match the
         # ruling page's own "© Mironium" footer text (also 7pt) exactly.
         c.setFont("Helvetica", 7 / 2.83465)
-        c.setFillColorRGB(0.55, 0.55, 0.55)
-        if number_align == "right":
-            c.drawRightString(CONTENT_W_MM, 8, str(page_number))
-        else:
-            c.drawString(0, 8, str(page_number))
+        c.setFillColorRGB(0.45, 0.45, 0.45)
+        c.drawCentredString(cx, NUMBER_CY_MM - 1.0, str(page_number))
         c.restoreState()
+
+    c.saveState()
+    c.translate(inset_mm, 0)
 
     for row_index, (baseline_y, row_cards) in enumerate(zip(baselines, page_rows)):
         if row_index < middle:

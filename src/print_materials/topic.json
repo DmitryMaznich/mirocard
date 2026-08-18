@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "print_materials",
-    "version": "1.0.18",
+    "version": "1.0.19",
     "renderer": "print_materials",
     "title": {
       "ru": "Печатные материалы"
