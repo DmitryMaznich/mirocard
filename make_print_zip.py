@@ -43,7 +43,8 @@ def copy_pdfs():
         "стандарт_pages.pdf": os.path.join(OUTPUT_DIR, "стандарт_pages.pdf"),
         "плотная_pages.pdf":  os.path.join(OUTPUT_DIR, "плотная_pages.pdf"),
         "точки_pages.pdf":    os.path.join(OUTPUT_DIR, "точки_pages.pdf"),
-        "прописи_буквы.pdf": os.path.join(OUTPUT_DIR, "propis_worksheets_all.pdf"),
+        "прописи_часть1.pdf": os.path.join(OUTPUT_DIR, "propis_worksheets_notebook1.pdf"),
+        "прописи_часть2.pdf": os.path.join(OUTPUT_DIR, "propis_worksheets_notebook2.pdf"),
     }
     print("── Копирую PDF в staging...")
     for dest_name, src_path in mapping.items():
