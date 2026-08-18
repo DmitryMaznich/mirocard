@@ -71,13 +71,17 @@ def _build_overlay_pdf(pages, out_path):
         # `index` is this slot's 0-based position in READING order (the
         # `pages` list is already in reading order; only the physical
         # placement below is scrambled by imposition) -- the number
-        # reflects that, not raw PDF page order.
+        # reflects that, not raw PDF page order. Every letter contributes
+        # exactly 2 pages (page.py's PAGES_PER_LETTER) in fixed order --
+        # practice, then sample -- so the style alternates consistently
+        # off the same 0-based index, no separate bookkeeping needed.
         c.saveState()
         c.translate(x_offset_mm * mm, 0)
         c.scale(mm, mm)
         draw_group_page(
             c, pages[index], inset_mm=inset,
             page_number=index + 1, number_align="left" if is_left else "right",
+            style="practice" if index % 2 == 0 else "sample",
         )
         c.restoreState()
 

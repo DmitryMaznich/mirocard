@@ -49,12 +49,14 @@ def _opacity_for_index(i):
 PAGES_PER_LETTER = 2
 
 
-def letter_rows_for(lower_card, upper_card, num_pages=PAGES_PER_LETTER):
-    """Fills exactly `num_pages` full pages' worth of rows for a single
-    letter: the 2-lower/1-upper/2-paired pattern (or lowercase-alone for a
-    letter with no uppercase, Ъ/Ь) repeated enough times to fill
+def letter_rows_for(lower_card, upper_card, num_pages=1):
+    """Fills exactly `num_pages` full "practice" pages' worth of rows for a
+    single letter: the 2-lower/1-upper/2-paired pattern (or lowercase-alone
+    for a letter with no uppercase, Ъ/Ь) repeated enough times to fill
     num_pages * ROWS_PER_PAGE exactly -- so every notebook's pages break
-    cleanly on letter boundaries, and no page is left partially blank."""
+    cleanly on letter boundaries, and no page is left partially blank.
+    This is page 1 of the letter's PAGES_PER_LETTER pages (draw_group_page's
+    style="practice") -- unchanged since 2026-08-15."""
     if upper_card is not None:
         base = [[lower_card], [lower_card], [upper_card], [lower_card, upper_card], [lower_card, upper_card]]
     else:
@@ -64,17 +66,38 @@ def letter_rows_for(lower_card, upper_card, num_pages=PAGES_PER_LETTER):
     return (base * reps)[:total_rows]
 
 
+def letter_sample_rows_for(lower_card, upper_card):
+    """Fills exactly one "sample" page's worth of rows: the model letter
+    shown ONCE at the start of each row with the rest left blank (no
+    fading repetitions) -- independent-practice page 2 of the letter's
+    PAGES_PER_LETTER pages (draw_group_page's style="sample"), confirmed
+    with the user 2026-08-18. Rows come in blocks -- lowercase-alone,
+    then uppercase-alone, then paired -- at roughly 30/30/40% (rounded to
+    fill ROWS_PER_PAGE exactly). A letter with no uppercase (Ъ, Ь) just
+    gets ROWS_PER_PAGE lowercase-alone rows, matching letter_rows_for's
+    own fallback."""
+    n = ROWS_PER_PAGE
+    if upper_card is None:
+        return [[lower_card]] * n
+    n_lower = round(n * 0.3)
+    n_upper = round(n * 0.3)
+    n_paired = n - n_lower - n_upper
+    return [[lower_card]] * n_lower + [[upper_card]] * n_upper + [[lower_card, upper_card]] * n_paired
+
+
 def notebook_rows(groups, letters):
     """Flattens every letter across `groups` (in order) into one ordered
-    list of practice rows -- each letter contributes PAGES_PER_LETTER
-    pages' worth, so paginate_rows() below always breaks on letter
-    boundaries."""
+    list of practice rows -- each letter contributes exactly
+    PAGES_PER_LETTER pages' worth (one "practice" page, one "sample"
+    page), so paginate_rows() below always breaks on letter boundaries
+    and pages alternate practice/sample throughout the whole notebook."""
     rows = []
     for group in groups:
         for lower, upper in group["letters"]:
             lower_card = letters[lower]
             upper_card = letters[upper] if upper else None
             rows.extend(letter_rows_for(lower_card, upper_card))
+            rows.extend(letter_sample_rows_for(lower_card, upper_card))
     return rows
 
 
@@ -191,19 +214,21 @@ NUMBER_CY_MM = 10.0
 NUMBER_R_MM = 4.0
 
 
-def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, number_align="left"):
+def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, number_align="left", style="practice"):
     """Content-only overlay for one A5 slot: whatever practice rows landed
     on this page, positioned to align with the real ruling PDF's own lines.
     Draws no ruling, no background, no header -- booklet.py merges this
     onto the actual notebook page. `inset_mm` is which reference line
     (outer margin or center divider) this slot's content should hug.
 
-    The top half fills each row to the normal TAIL_FRACTION width. From
-    the middle row down, each row's own natural fit-count shrinks by one
-    more repetition per row -- a taper ("скос", confirmed with the user
-    2026-08-15) that leaves progressively more blank ruled space toward
-    the bottom of the page for independent writing, instead of every row
-    looking identical top to bottom.
+    `style="practice"` (a letter's page 1) fills the top half of every row
+    to the normal TAIL_FRACTION width; from the middle row down, each
+    row's own natural fit-count shrinks by one more repetition per row --
+    a taper ("скос", confirmed with the user 2026-08-15) that leaves
+    progressively more blank ruled space toward the bottom for
+    independent writing. `style="sample"` (a letter's page 2, confirmed
+    with the user 2026-08-18) draws the model once at the start of every
+    row and leaves the rest blank -- no repetitions, no taper.
 
     `page_number`, if given, is stamped past the outer margin, in a white
     circle badge (`number_align="left"` for the left slot, "right" for the
@@ -234,12 +259,16 @@ def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, numb
     c.saveState()
     c.translate(inset_mm, 0)
 
-    for row_index, (baseline_y, row_cards) in enumerate(zip(baselines, page_rows)):
-        if row_index < middle:
-            draw_row(c, row_cards, baseline_y, CONTENT_W_MM)
-        else:
-            natural = _natural_count(row_cards, fill_limit_mm)
-            cap = max(natural - (row_index - middle + 1), 1)
-            draw_row(c, row_cards, baseline_y, CONTENT_W_MM, max_instances=cap)
+    if style == "sample":
+        for baseline_y, row_cards in zip(baselines, page_rows):
+            draw_row(c, row_cards, baseline_y, CONTENT_W_MM, max_instances=1)
+    else:
+        for row_index, (baseline_y, row_cards) in enumerate(zip(baselines, page_rows)):
+            if row_index < middle:
+                draw_row(c, row_cards, baseline_y, CONTENT_W_MM)
+            else:
+                natural = _natural_count(row_cards, fill_limit_mm)
+                cap = max(natural - (row_index - middle + 1), 1)
+                draw_row(c, row_cards, baseline_y, CONTENT_W_MM, max_instances=cap)
 
     c.restoreState()
