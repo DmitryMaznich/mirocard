@@ -61,19 +61,23 @@ def _build_overlay_pdf(pages, out_path):
     sheet-face per showPage(), same page count and imposition order as
     the final output."""
     c = canvas.Canvas(out_path, pagesize=landscape(A4))
+    n = len(pages)
 
     def draw_slot(index, x_offset_mm):
         # The left A5 slot's local x=0 is the page's outer edge (hug the
         # real margin); the right slot's local x=0 is the center divider
         # (hug that line instead) -- see page.py's LEFT_INSET_MM/CENTER_INSET_MM.
         inset = LEFT_INSET_MM if x_offset_mm == 0 else CENTER_INSET_MM
+        # `index` is this slot's 0-based position in READING order (the
+        # `pages` list is already in reading order; only the physical
+        # placement below is scrambled by imposition) -- label reflects
+        # that, not raw PDF page order.
         c.saveState()
         c.translate(x_offset_mm * mm, 0)
         c.scale(mm, mm)
-        draw_group_page(c, pages[index], inset_mm=inset)
+        draw_group_page(c, pages[index], inset_mm=inset, page_label=f"{index + 1}/{n}")
         c.restoreState()
 
-    n = len(pages)
     sheets = _imposition_order(n)
     for front, back in sheets:
         draw_slot(front[0], 0)

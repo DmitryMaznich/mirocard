@@ -181,7 +181,7 @@ CENTER_INSET_MM = 2.0 + 2.0
 CONTENT_W_MM = PAGE_W_MM - 2 * MARGIN_MM
 
 
-def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM):
+def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_label=None):
     """Content-only overlay for one A5 slot: whatever practice rows landed
     on this page, positioned to align with the real ruling PDF's own lines.
     Draws no ruling, no background, no header -- booklet.py merges this
@@ -193,13 +193,27 @@ def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM):
     more repetition per row -- a taper ("скос", confirmed with the user
     2026-08-15) that leaves progressively more blank ruled space toward
     the bottom of the page for independent writing, instead of every row
-    looking identical top to bottom."""
+    looking identical top to bottom.
+
+    `page_label` (e.g. "3/28"), if given, is stamped in the top-right
+    corner of this slot's own content area -- READING order (after fold
+    and staple), not raw PDF page order, so a parent can flip through the
+    assembled notebook and confirm nothing is out of sequence (confirmed
+    with the user 2026-08-15: raw imposition order looks scrambled and
+    caused real confusion once already)."""
     baselines = row_baselines()
     middle = len(baselines) // 2
     fill_limit_mm = CONTENT_W_MM * (1 - TAIL_FRACTION)
 
     c.saveState()
     c.translate(inset_mm, 0)
+
+    if page_label:
+        c.saveState()
+        c.setFont("Helvetica", 7)
+        c.setFillColorRGB(0.55, 0.55, 0.55)
+        c.drawRightString(CONTENT_W_MM, PAGE_H_MM - 8, page_label)
+        c.restoreState()
 
     for row_index, (baseline_y, row_cards) in enumerate(zip(baselines, page_rows)):
         if row_index < middle:

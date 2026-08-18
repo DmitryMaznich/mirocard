@@ -27,10 +27,10 @@ pdf_path = output_file
 c = canvas.Canvas(pdf_path, pagesize=landscape(A4))
 
 # Метаданные
-c.setTitle("Lined Paper A4 Landscape - Kaplieva Center")
-c.setAuthor("Kaplieva Center TEAM")
+c.setTitle("Lined Paper A4 Landscape - Mironium")
+c.setAuthor("Mironium TEAM")
 c.setSubject("Russian copybook slanted lined paper A4 landscape spread")
-c.setCreator("Kaplieva Center TEAM")
+c.setCreator("Mironium TEAM")
 
 # Фон
 c.setFillColorRGB(1, 1, 1)
@@ -116,7 +116,7 @@ for y_staple in [page_height - 45*mm, 45*mm]:
 # 6. Copyright и URL
 c.setFillColorRGB(0.6, 0.6, 0.6)
 c.setFont("Helvetica", 7)
-c.drawString(center - 60*mm, 3*mm, "© Kaplieva Center")
+c.drawString(center - 60*mm, 3*mm, "© Mironium")
 c.drawString(center + 30*mm, 3*mm, "mironium.com")
 
 # 7. Описание для AI (микротекст)
@@ -127,7 +127,7 @@ description = (
     f"Horizontal lines: {narrow_spacing}mm and {wide_spacing}mm alternating. "
     f"Diagonal lines: {spacing_diagonal}mm spacing at {angle_from_vertical} degrees angle. "
     f"Red margin lines: mirrored {margin}mm from edges. "
-    f"Creator: Kaplieva Center TEAM. Website: mironium.com."
+    f"Creator: Mironium TEAM. Website: mironium.com."
 )
 c.drawString(150*mm, 1*mm, description)
 
