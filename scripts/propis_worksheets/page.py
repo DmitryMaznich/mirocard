@@ -181,7 +181,7 @@ CENTER_INSET_MM = 2.0 + 2.0
 CONTENT_W_MM = PAGE_W_MM - 2 * MARGIN_MM
 
 
-def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_label=None):
+def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, number_align="left"):
     """Content-only overlay for one A5 slot: whatever practice rows landed
     on this page, positioned to align with the real ruling PDF's own lines.
     Draws no ruling, no background, no header -- booklet.py merges this
@@ -195,12 +195,15 @@ def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_label=None):
     the bottom of the page for independent writing, instead of every row
     looking identical top to bottom.
 
-    `page_label` (e.g. "3/28"), if given, is stamped in the top-right
-    corner of this slot's own content area -- READING order (after fold
-    and staple), not raw PDF page order, so a parent can flip through the
-    assembled notebook and confirm nothing is out of sequence (confirmed
-    with the user 2026-08-15: raw imposition order looks scrambled and
-    caused real confusion once already)."""
+    `page_number`, if given, is stamped in this slot's bottom OUTER corner
+    (`number_align="left"` for the left slot, "right" for the right slot --
+    standard book pagination, verso/recto numbers sitting at the outer
+    edge) in READING order (after fold and staple), not raw PDF page
+    order, so a parent can flip through the assembled notebook and
+    confirm nothing is out of sequence (confirmed with the user
+    2026-08-15: raw imposition order looks scrambled and caused real
+    confusion once already). Just the number -- no "/total" clutter --
+    same small size as the real page's own "© Mironium" footer text."""
     baselines = row_baselines()
     middle = len(baselines) // 2
     fill_limit_mm = CONTENT_W_MM * (1 - TAIL_FRACTION)
@@ -208,11 +211,18 @@ def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_label=None):
     c.saveState()
     c.translate(inset_mm, 0)
 
-    if page_label:
+    if page_number is not None:
         c.saveState()
-        c.setFont("Helvetica", 7)
+        # The canvas is already scale(mm, mm)'d (booklet.py), so a font
+        # size given directly in points here would render mm-sized (7 ->
+        # ~20pt) -- convert from the real target point size to match the
+        # ruling page's own "© Mironium" footer text (also 7pt) exactly.
+        c.setFont("Helvetica", 7 / 2.83465)
         c.setFillColorRGB(0.55, 0.55, 0.55)
-        c.drawRightString(CONTENT_W_MM, PAGE_H_MM - 8, page_label)
+        if number_align == "right":
+            c.drawRightString(CONTENT_W_MM, 8, str(page_number))
+        else:
+            c.drawString(0, 8, str(page_number))
         c.restoreState()
 
     for row_index, (baseline_y, row_cards) in enumerate(zip(baselines, page_rows)):
