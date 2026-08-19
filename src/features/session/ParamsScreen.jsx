@@ -454,7 +454,12 @@ function figurePreviewPaths(card) {
 }
 
 function FigureThumbnail({ card }) {
-  const columns = Number(card.columns ?? 10);
+  // For repeat/mirror tasks sourcePaths only cover the sample half of the
+  // card (0..axisCol); the other half is blank workspace for the child to
+  // draw in. Cropping the thumbnail to that half keeps the pictogram large
+  // and legible instead of shrinking it into half an otherwise-empty grid.
+  const hasSampleHalf = card.sourcePaths?.length && card.axisCol != null;
+  const columns = hasSampleHalf ? Number(card.axisCol) : Number(card.columns ?? 10);
   const rows = Number(card.rows ?? 8);
   const gridLines = [
     ...Array.from({ length: columns + 1 }, (_, col) => `M ${col} 0 V ${rows}`),
