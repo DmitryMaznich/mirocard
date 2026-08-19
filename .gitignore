@@ -113,3 +113,10 @@ feedback/
 
 # Grid-figure tracing scratch files (never committed)
 tools/symmetry_draw/.trace-scratch/
+
+# Raw per-card audio staging area (generate-*-audio.mjs output) — the
+# built deck .zip already bundles the final audio; this is just scratch
+# input for the build script. Untracked-but-not-ignored here repeatedly
+# tripped deploy-prod.mjs's clean-worktree check across concurrent
+# sessions (each session/worktree accumulates its own local files).
+public/decks/_audio_src/
