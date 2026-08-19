@@ -62,6 +62,23 @@ export const LETTER_BASELINE_UNIT = 88;
 // letter's ascenders/descenders eat into that 150 units too).
 export const LETTER_XHEIGHT_UNIT_SPAN = 88 - 62;
 
+// Baseline-to-baseline distance for MULTI-LINE text flow (WriteTextView.jsx,
+// ReadTextView.jsx) -- NOT the same as UNIT_H (150), which is the full
+// ascender+x-height+descender allocation a single ISOLATED letter/word card
+// needs (PropisPracticeView, WordAnimatedCard). Tiling multiple rows a full
+// UNIT_H apart double-allocates: each row already reserves its OWN 59.3-unit
+// ascender headroom and 21.2-unit descender depth (real max across every
+// captured letter -- "Й" and "р" respectively, measured 2026-08-19 against
+// the real capture data, not the nominal NATIVE_L1/L4 guide lines), so two
+// adjacent rows never need more than 59.3 + 21.2 = 80.5 units apart -- UNIT_H
+// leaves ~70 units (46%) of dead space between every pair of written lines,
+// which is the "extra blank ruled line between every text line" bug reported
+// 2026-08-19 (present in WriteTextView.jsx too -- ReadTextView.jsx just
+// inherited it verbatim). 100 keeps ~20 units of buffer over the bare
+// 80.5-unit minimum -- comfortably real-notebook-dense without the tallest
+// letter of one line ever touching the deepest letter of the next.
+export const TEXT_ROW_PITCH = 100;
+
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
 // Quartered (not just halved) for the same reason the ruling stroke-widths are:

@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { layoutTextIntoRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
-import { INK_COLOR, NATIVE_L1, NATIVE_L2, NATIVE_L3, NATIVE_L4, UNIT_H } from "./propisRuling.js";
+import { INK_COLOR, NATIVE_L1, NATIVE_L2, NATIVE_L3, NATIVE_L4, UNIT_H, TEXT_ROW_PITCH } from "./propisRuling.js";
 
 const DIGIT_ROW = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
@@ -123,7 +123,7 @@ export default function WriteTextView({ task, onClose }) {
         <div className="propis-text-grid-scroll" ref={wrapRef}>
           <svg
             className="propis-text-grid-svg"
-            viewBox={`0 0 ${rowWidthUnits} ${layout.rowCount * UNIT_H}`}
+            viewBox={`0 0 ${rowWidthUnits} ${(layout.rowCount - 1) * TEXT_ROW_PITCH + UNIT_H}`}
             xmlns="http://www.w3.org/2000/svg"
           >
             <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
@@ -131,7 +131,7 @@ export default function WriteTextView({ task, onClose }) {
               GUIDE_ROW_LINES.map((g, gi) => (
                 <line
                   key={`${rowIndex}_${gi}`}
-                  x1="0" y1={rowIndex * UNIT_H + g.y} x2={rowWidthUnits} y2={rowIndex * UNIT_H + g.y}
+                  x1="0" y1={rowIndex * TEXT_ROW_PITCH + g.y} x2={rowWidthUnits} y2={rowIndex * TEXT_ROW_PITCH + g.y}
                   stroke={GUIDE_COLOR}
                   strokeWidth={g.bold ? GUIDE_BOLD_W : GUIDE_THIN_W}
                 />
@@ -141,10 +141,10 @@ export default function WriteTextView({ task, onClose }) {
               const wordWidth = p.segments.reduce((sum, seg) => sum + seg.width, 0);
               const isActive = i === activeIndex;
               return (
-                <g key={i} transform={`translate(${p.x} ${p.rowIndex * UNIT_H})`}>
+                <g key={i} transform={`translate(${p.x} ${p.rowIndex * TEXT_ROW_PITCH})`}>
                   <rect
                     className="propis-text-word-hit"
-                    x={-4} y={0} width={wordWidth + 8} height={UNIT_H}
+                    x={-4} y={0} width={wordWidth + 8} height={TEXT_ROW_PITCH}
                     onClick={() => setActiveIndex((cur) => (cur === i ? null : i))}
                   />
                   {p.segments.map((seg, si) =>

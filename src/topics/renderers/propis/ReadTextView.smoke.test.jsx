@@ -2,6 +2,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach } from "vitest";
 import ReadTextView from "./ReadTextView.jsx";
+import { UNIT_H, TEXT_ROW_PITCH } from "./propisRuling.js";
 
 // jsdom has no ResizeObserver -- ReadTextView (like WriteTextView.jsx, same unmodified
 // pattern) uses one to size the grid to its real on-screen width. The stub never fires,
@@ -98,5 +99,22 @@ describe("ReadTextView — mounted through the real component", () => {
     act(() => { buttons()[1].click(); }); // -> text 2
     act(() => { buttons()[0].click(); }); // -> back to text 1
     expect(container.querySelector(".propis-text-nav__counter")?.textContent).toBe("Текст 1 из 2");
+  });
+
+  // Regression guard for the "extra blank ruled line between every text line" bug
+  // (reported 2026-08-19, fixed by tiling rows TEXT_ROW_PITCH apart instead of the full
+  // UNIT_H): a multi-row text's viewBox must grow by TEXT_ROW_PITCH per extra row, not by
+  // a full UNIT_H, or the wasted-space bug is back.
+  it("tiles multi-row text TEXT_ROW_PITCH apart, not a full UNIT_H apart", () => {
+    const longWord = Array(20).fill("аб").join(" "); // forces a wrap onto a 2nd row
+    mount({ letters: [LETTER_A, LETTER_B], connectors: [], texts: [longWord] });
+    const svg = container.querySelector(".propis-text-grid-svg");
+    const [, , , heightStr] = svg.getAttribute("viewBox").split(" ");
+    const height = Number(heightStr);
+    // Must actually have wrapped for this test to mean anything.
+    expect(height).toBeGreaterThan(UNIT_H);
+    const rowCount = Math.round((height - UNIT_H) / TEXT_ROW_PITCH) + 1;
+    expect(rowCount).toBeGreaterThanOrEqual(2);
+    expect(height).toBe((rowCount - 1) * TEXT_ROW_PITCH + UNIT_H);
   });
 });
