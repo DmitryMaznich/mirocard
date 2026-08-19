@@ -56,10 +56,13 @@ def _imposition_order(n):
     return sheets
 
 
-def _build_overlay_pdf(pages, out_path):
+def _build_overlay_pdf_generic(pages, out_path, draw_page_fn):
     """Content-only pages (no ruling, no background) -- one physical A4
     sheet-face per showPage(), same page count and imposition order as
-    the final output."""
+    the final output. `draw_page_fn(c, index, page_data, inset_mm,
+    page_number, number_align)` draws one A5 slot's content; the caller
+    supplies it so this imposition/pypdf plumbing is shared across content
+    types (letters, syllables) instead of duplicated per notebook."""
     c = canvas.Canvas(out_path, pagesize=landscape(A4))
 
     def draw_slot(index, x_offset_mm):
@@ -71,18 +74,11 @@ def _build_overlay_pdf(pages, out_path):
         # `index` is this slot's 0-based position in READING order (the
         # `pages` list is already in reading order; only the physical
         # placement below is scrambled by imposition) -- the number
-        # reflects that, not raw PDF page order. Every letter contributes
-        # exactly 2 pages (page.py's PAGES_PER_LETTER) in fixed order --
-        # practice, then sample -- so the style alternates consistently
-        # off the same 0-based index, no separate bookkeeping needed.
+        # reflects that, not raw PDF page order.
         c.saveState()
         c.translate(x_offset_mm * mm, 0)
         c.scale(mm, mm)
-        draw_group_page(
-            c, pages[index], inset_mm=inset,
-            page_number=index + 1, number_align="left" if is_left else "right",
-            style="practice" if index % 2 == 0 else "sample",
-        )
+        draw_page_fn(c, index, pages[index], inset, index + 1, "left" if is_left else "right")
         c.restoreState()
 
     sheets = _imposition_order(len(pages))
@@ -98,17 +94,21 @@ def _build_overlay_pdf(pages, out_path):
     return len(sheets)
 
 
-def build_notebook_pdf(groups, letters, out_path):
-    pages = paginate_rows(notebook_rows(groups, letters))
-    n = len(pages)
-    if n % 4 != 0:
-        n += 4 - (n % 4)
-    pages = pages + [[]] * (n - len(pages))  # pad with fully-ruled, letter-free pages
+def _build_overlay_pdf(pages, out_path):
+    # Every letter contributes exactly 2 pages (page.py's PAGES_PER_LETTER)
+    # in fixed order -- practice, then sample -- so the style alternates
+    # consistently off the page's own 0-based reading-order index, no
+    # separate bookkeeping needed.
+    def draw_page_fn(c, index, page_rows, inset, page_number, number_align):
+        draw_group_page(
+            c, page_rows, inset_mm=inset, page_number=page_number, number_align=number_align,
+            style="practice" if index % 2 == 0 else "sample",
+        )
 
-    ruling_path = _ensure_ruling_pdf()
-    overlay_path = out_path + ".overlay.tmp.pdf"
-    sheets = _build_overlay_pdf(pages, overlay_path)
+    return _build_overlay_pdf_generic(pages, out_path, draw_page_fn)
 
+
+def _merge_with_ruling(overlay_path, ruling_path, out_path):
     overlay_reader = PdfReader(overlay_path)
     writer = PdfWriter()
 
@@ -124,6 +124,19 @@ def build_notebook_pdf(groups, letters, out_path):
 
     with open(out_path, "wb") as f:
         writer.write(f)
+
+
+def build_notebook_pdf(groups, letters, out_path):
+    pages = paginate_rows(notebook_rows(groups, letters))
+    n = len(pages)
+    if n % 4 != 0:
+        n += 4 - (n % 4)
+    pages = pages + [[]] * (n - len(pages))  # pad with fully-ruled, letter-free pages
+
+    ruling_path = _ensure_ruling_pdf()
+    overlay_path = out_path + ".overlay.tmp.pdf"
+    sheets = _build_overlay_pdf(pages, overlay_path)
+    _merge_with_ruling(overlay_path, ruling_path, out_path)
     os.remove(overlay_path)
 
     return sheets
