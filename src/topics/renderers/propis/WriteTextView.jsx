@@ -1,7 +1,10 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { layoutTextIntoRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
-import { INK_COLOR, NATIVE_L1, NATIVE_L2, NATIVE_L3, NATIVE_L4, UNIT_H, TEXT_ROW_PITCH } from "./propisRuling.js";
+import {
+  INK_COLOR, NATIVE_L3, UNIT_H, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
+  buildDiagonalLines,
+} from "./propisRuling.js";
 
 const DIGIT_ROW = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
@@ -30,13 +33,17 @@ function keyCategory(letter) {
 // container's real pixel aspect exactly (no preserveAspectRatio distortion needed).
 const ROW_HEIGHT_PX = 72;
 
+// Real "косая линейка" cycle -- one thin line (x-height top) and one thick
+// baseline line per TEXT_ROW_PITCH, exactly mirroring the print notebooks'
+// own NARROW_MM/WIDE_MM alternation (see propisRuling.js's TEXT_ROW_PITCH
+// comment for the full derivation and why this replaced the old 4-line
+// NATIVE_L1..L4 set, which only fit a single isolated row, not tiled text).
 const GUIDE_ROW_LINES = [
-  { y: NATIVE_L1, bold: false },
-  { y: NATIVE_L2, bold: false },
+  { y: NATIVE_L3 - TEXT_ROW_THIN_OFFSET, bold: false },
   { y: NATIVE_L3, bold: true },
-  { y: NATIVE_L4, bold: false },
 ];
 const GUIDE_COLOR = "#6fa3e0";
+const GUIDE_DIAG_W = 0.25;
 const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
 
@@ -115,6 +122,12 @@ export default function WriteTextView({ task, onClose }) {
   }, []);
   const handleClear = useCallback(() => setText(""), []);
 
+  const gridHeight = (layout.rowCount - 1) * TEXT_ROW_PITCH + UNIT_H;
+  const diagonalLines = useMemo(
+    () => buildDiagonalLines(gridHeight, rowWidthUnits, TEXT_ROW_DIAGONAL_SPACING),
+    [gridHeight, rowWidthUnits]
+  );
+
   return (
     <div className="propis-practice-stage">
       <button type="button" className="propis-ctrl-btn propis-practice-close" onClick={onClose} aria-label="Закрыть">✕</button>
@@ -123,10 +136,13 @@ export default function WriteTextView({ task, onClose }) {
         <div className="propis-text-grid-scroll" ref={wrapRef}>
           <svg
             className="propis-text-grid-svg"
-            viewBox={`0 0 ${rowWidthUnits} ${(layout.rowCount - 1) * TEXT_ROW_PITCH + UNIT_H}`}
+            viewBox={`0 0 ${rowWidthUnits} ${gridHeight}`}
             xmlns="http://www.w3.org/2000/svg"
           >
             <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
+            {diagonalLines.map((l, i) => (
+              <line key={`diag${i}`} x1={l.x1} y1={0} x2={l.x2} y2={gridHeight} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />
+            ))}
             {Array.from({ length: layout.rowCount }, (_, rowIndex) =>
               GUIDE_ROW_LINES.map((g, gi) => (
                 <line

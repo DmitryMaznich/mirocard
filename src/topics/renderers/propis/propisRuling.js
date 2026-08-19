@@ -66,18 +66,40 @@ export const LETTER_XHEIGHT_UNIT_SPAN = 88 - 62;
 // ReadTextView.jsx) -- NOT the same as UNIT_H (150), which is the full
 // ascender+x-height+descender allocation a single ISOLATED letter/word card
 // needs (PropisPracticeView, WordAnimatedCard). Tiling multiple rows a full
-// UNIT_H apart double-allocates: each row already reserves its OWN 59.3-unit
-// ascender headroom and 21.2-unit descender depth (real max across every
-// captured letter -- "Й" and "р" respectively, measured 2026-08-19 against
-// the real capture data, not the nominal NATIVE_L1/L4 guide lines), so two
-// adjacent rows never need more than 59.3 + 21.2 = 80.5 units apart -- UNIT_H
-// leaves ~70 units (46%) of dead space between every pair of written lines,
-// which is the "extra blank ruled line between every text line" bug reported
-// 2026-08-19 (present in WriteTextView.jsx too -- ReadTextView.jsx just
-// inherited it verbatim). 100 keeps ~20 units of buffer over the bare
-// 80.5-unit minimum -- comfortably real-notebook-dense without the tallest
-// letter of one line ever touching the deepest letter of the next.
-export const TEXT_ROW_PITCH = 100;
+// UNIT_H apart double-allocates ascender/descender headroom every row already
+// reserves on its own, which was the original "extra blank ruled line between
+// every text line" bug (reported 2026-08-19).
+//
+// Set to the SAME real "косая линейка" cycle the print notebooks already use
+// (scripts/propis_worksheets/page.py's ROW_CYCLE_MM=12mm, at this app's own
+// 150-units-per-25mm native scale: 12mm * 150/25 = 72 units) -- not an
+// independently-chosen value. A first attempt (100 units, sized only off the
+// bare ascender+descender minimum) got flagged 2026-08-19 as "сделал левую
+// сетку": at 100, the OLD 4-line-per-row guide set (NATIVE_L1..L4, spanning
+// 130 units) no longer fit inside one row's own pitch, so consecutive rows'
+// guide lines interleaved out of order instead of tiling as clean parallel
+// lines. 72 fixes that by pairing with a 2-line-per-cycle guide set (see
+// GUIDE_ROW_LINES in WriteTextView.jsx/ReadTextView.jsx: one thin line
+// NARROW_MM above each baseline, one thick baseline line, exactly mirroring
+// page.py's own NARROW_MM/WIDE_MM alternation) instead of 4 -- the same cycle
+// already verified against every captured letter's real ink bounds for the
+// print pipeline (max ascender "Й" 59.3 units, max descender "р" 21.2 units,
+// measured 2026-08-19), so no separate re-validation was needed here.
+export const TEXT_ROW_PITCH = 72;
+
+// The print notebooks' own NARROW_MM (4mm, x-height zone) converted to this
+// app's native units (4mm * 150/25 = 24) -- how far above each baseline the
+// cycle's thin line sits. WIDE_MM (8mm = 48 units) is implied, not a separate
+// constant: it's simply whatever's left going up from the thin line to the
+// NEXT row's baseline (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET = 72 - 24 = 48),
+// same arithmetic as page.py's WIDE_MM.
+export const TEXT_ROW_THIN_OFFSET = 24;
+
+// Standard 20mm diagonal spacing ("стандарт российских школ", same as
+// DIAGONAL_MM above and the print notebooks), converted to native units so
+// WriteTextView.jsx/ReadTextView.jsx can draw them directly in the same
+// coordinate space as everything else in their SVG (20mm * 150/25 = 120).
+export const TEXT_ROW_DIAGONAL_SPACING = (DIAGONAL_MM * UNIT_H) / LINE_MM;
 
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
