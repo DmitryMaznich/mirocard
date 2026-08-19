@@ -55,10 +55,10 @@ tan_angle = math.tan(angle_rad)
 
 c = canvas.Canvas(output_file, pagesize=landscape(A4))
 
-c.setTitle("Insert - Punctuation Tracing - Kaplieva Center")
-c.setAuthor("Kaplieva Center TEAM")
+c.setTitle("Insert - Punctuation Tracing - Mironium")
+c.setAuthor("Mironium TEAM")
 c.setSubject("Standard copybook insert page with gray punctuation marks for tracing")
-c.setCreator("Kaplieva Center TEAM")
+c.setCreator("Mironium TEAM")
 
 # Фон
 c.setFillColorRGB(1, 1, 1)
@@ -139,7 +139,7 @@ for y_staple in [page_height - 45*mm, 45*mm]:
 # 6. Copyright и URL
 c.setFillColorRGB(0.6, 0.6, 0.6)
 c.setFont("Helvetica", 7)
-c.drawString(center - 60*mm, 3*mm, "© Kaplieva Center")
+c.drawString(center - 60*mm, 3*mm, "© Mironium")
 c.drawString(center + 30*mm, 3*mm, "mironium.com")
 
 c.setFillColorRGB(0.85, 0.85, 0.85)
@@ -147,7 +147,7 @@ c.setFont("Helvetica", 4)
 description = (
     f"Insert page: standard copybook grid with gray punctuation marks for tracing. "
     f"Format: A4 landscape 297x210mm. Right half rows filled with '.', ',', '!', '?' "
-    f"in ClassRoomCursive, top to bottom. Creator: Kaplieva Center TEAM. Website: mironium.com."
+    f"in ClassRoomCursive, top to bottom. Creator: Mironium TEAM. Website: mironium.com."
 )
 c.drawString(150*mm, 1*mm, description)
 

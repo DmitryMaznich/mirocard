@@ -28,7 +28,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from pypdf import PdfReader, PdfWriter
 
-from page import PAGE_W_MM, LEFT_INSET_MM, CENTER_INSET_MM, draw_group_page, group_rows, paginate_rows
+from page import PAGE_W_MM, LEFT_INSET_MM, CENTER_INSET_MM, draw_group_page, notebook_rows, paginate_rows
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RULING_SCRIPT = os.path.join(ROOT, "make_lined_paper_landscape.py")
@@ -66,15 +66,26 @@ def _build_overlay_pdf(pages, out_path):
         # The left A5 slot's local x=0 is the page's outer edge (hug the
         # real margin); the right slot's local x=0 is the center divider
         # (hug that line instead) -- see page.py's LEFT_INSET_MM/CENTER_INSET_MM.
-        inset = LEFT_INSET_MM if x_offset_mm == 0 else CENTER_INSET_MM
+        is_left = x_offset_mm == 0
+        inset = LEFT_INSET_MM if is_left else CENTER_INSET_MM
+        # `index` is this slot's 0-based position in READING order (the
+        # `pages` list is already in reading order; only the physical
+        # placement below is scrambled by imposition) -- the number
+        # reflects that, not raw PDF page order. Every letter contributes
+        # exactly 2 pages (page.py's PAGES_PER_LETTER) in fixed order --
+        # practice, then sample -- so the style alternates consistently
+        # off the same 0-based index, no separate bookkeeping needed.
         c.saveState()
         c.translate(x_offset_mm * mm, 0)
         c.scale(mm, mm)
-        draw_group_page(c, pages[index], inset_mm=inset)
+        draw_group_page(
+            c, pages[index], inset_mm=inset,
+            page_number=index + 1, number_align="left" if is_left else "right",
+            style="practice" if index % 2 == 0 else "sample",
+        )
         c.restoreState()
 
-    n = len(pages)
-    sheets = _imposition_order(n)
+    sheets = _imposition_order(len(pages))
     for front, back in sheets:
         draw_slot(front[0], 0)
         draw_slot(front[1], PAGE_W_MM)
@@ -87,8 +98,8 @@ def _build_overlay_pdf(pages, out_path):
     return len(sheets)
 
 
-def build_group_pdf(group, letters, out_path):
-    pages = paginate_rows(group_rows(group, letters))
+def build_notebook_pdf(groups, letters, out_path):
+    pages = paginate_rows(notebook_rows(groups, letters))
     n = len(pages)
     if n % 4 != 0:
         n += 4 - (n % 4)

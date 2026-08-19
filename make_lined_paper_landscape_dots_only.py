@@ -27,10 +27,10 @@ tan_angle = math.tan(angle_rad)
 
 c = canvas.Canvas(output_file, pagesize=landscape(A4))
 
-c.setTitle("Lined Paper A4 Landscape Dots Only - Kaplieva Center")
-c.setAuthor("Kaplieva Center TEAM")
+c.setTitle("Lined Paper A4 Landscape Dots Only - Mironium")
+c.setAuthor("Mironium TEAM")
 c.setSubject("Russian copybook lined paper with starting dots only, no trace segments")
-c.setCreator("Kaplieva Center TEAM")
+c.setCreator("Mironium TEAM")
 
 # Фон
 c.setFillColorRGB(1, 1, 1)
@@ -119,7 +119,7 @@ for y_staple in [page_height - 45*mm, 45*mm]:
 # 7. Copyright и URL
 c.setFillColorRGB(0.6, 0.6, 0.6)
 c.setFont("Helvetica", 7)
-c.drawString(center - 60*mm, 3*mm, "© Kaplieva Center")
+c.drawString(center - 60*mm, 3*mm, "© Mironium")
 c.drawString(center + 30*mm, 3*mm, "mironium.com")
 
 c.setFillColorRGB(0.85, 0.85, 0.85)
@@ -128,7 +128,7 @@ description = (
     f"Russian copybook lined paper with starting dots only. Format: A4 landscape 297x210mm. "
     f"Horizontal lines: {narrow_spacing}mm and {wide_spacing}mm alternating. "
     f"Diagonal lines: {spacing_diagonal}mm at {angle_from_vertical} degrees. "
-    f"Dots at top line intersections within margins. Creator: Kaplieva Center TEAM. Website: mironium.com."
+    f"Dots at top line intersections within margins. Creator: Mironium TEAM. Website: mironium.com."
 )
 c.drawString(150*mm, 1*mm, description)
 
