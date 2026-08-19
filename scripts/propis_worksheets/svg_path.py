@@ -82,6 +82,31 @@ def path_bounds(d, samples_per_curve=20):
     return min(xs), max(xs), min(ys), max(ys)
 
 
+def sample_path(d, samples_per_curve=100):
+    """Flattens a path into an ordered list of (x, y) points (including
+    every M point), sampling each C segment -- mirrors pathGeometry.js's
+    samplePath exactly (same default density), used to find where a
+    stroke passes near a given y (e.g. a baseline) that its own M/L/C
+    endpoints alone don't reliably reveal."""
+    points = []
+    cur = (0.0, 0.0)
+    for cmd, args in parse_path(d):
+        if cmd in ("M", "L"):
+            points.append(args)
+            cur = args
+        else:  # "C"
+            x1, y1, x2, y2, x, y = args
+            x0, y0 = cur
+            for s in range(samples_per_curve + 1):
+                t = s / samples_per_curve
+                mt = 1 - t
+                bx = mt**3 * x0 + 3 * mt**2 * t * x1 + 3 * mt * t**2 * x2 + t**3 * x
+                by = mt**3 * y0 + 3 * mt**2 * t * y1 + 3 * mt * t**2 * y2 + t**3 * y
+                points.append((bx, by))
+            cur = (x, y)
+    return points
+
+
 def draw_path(pdf_path, d, transform):
     """Replays `d` onto `pdf_path` (a reportlab Path, or anything exposing
     moveTo/lineTo/curveTo), applying `transform(x, y) -> (x, y)` to every

@@ -214,6 +214,27 @@ NUMBER_CY_MM = 10.0
 NUMBER_R_MM = 4.0
 
 
+def draw_page_number_badge(c, page_number, number_align):
+    """White-circle page-number badge, past the outer margin (see
+    LEFT_INSET_MM/CENTER_INSET_MM's docstring for why it sits there) --
+    factored out of draw_group_page so syllable_page.py's pages (a
+    different content type, same physical page/ruling) can stamp an
+    identical badge without duplicating the geometry or the mm/pt font
+    conversion gotcha."""
+    cx = NUMBER_CX_LEFT_MM if number_align == "left" else NUMBER_CX_RIGHT_MM
+    c.saveState()
+    c.setFillColorRGB(1, 1, 1)
+    c.circle(cx, NUMBER_CY_MM, NUMBER_R_MM, stroke=0, fill=1)
+    # The canvas is already scale(mm, mm)'d (booklet.py), so a font size
+    # given directly in points here would render mm-sized (7 -> ~20pt) --
+    # convert from the real target point size to match the ruling page's
+    # own "© Mironium" footer text (also 7pt) exactly.
+    c.setFont("Helvetica", 7 / 2.83465)
+    c.setFillColorRGB(0.45, 0.45, 0.45)
+    c.drawCentredString(cx, NUMBER_CY_MM - 1.0, str(page_number))
+    c.restoreState()
+
+
 def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, number_align="left", style="practice"):
     """Content-only overlay for one A5 slot: whatever practice rows landed
     on this page, positioned to align with the real ruling PDF's own lines.
@@ -243,18 +264,7 @@ def draw_group_page(c, page_rows, inset_mm=LEFT_INSET_MM, page_number=None, numb
     fill_limit_mm = CONTENT_W_MM * (1 - TAIL_FRACTION)
 
     if page_number is not None:
-        cx = NUMBER_CX_LEFT_MM if number_align == "left" else NUMBER_CX_RIGHT_MM
-        c.saveState()
-        c.setFillColorRGB(1, 1, 1)
-        c.circle(cx, NUMBER_CY_MM, NUMBER_R_MM, stroke=0, fill=1)
-        # The canvas is already scale(mm, mm)'d (booklet.py), so a font
-        # size given directly in points here would render mm-sized (7 ->
-        # ~20pt) -- convert from the real target point size to match the
-        # ruling page's own "© Mironium" footer text (also 7pt) exactly.
-        c.setFont("Helvetica", 7 / 2.83465)
-        c.setFillColorRGB(0.45, 0.45, 0.45)
-        c.drawCentredString(cx, NUMBER_CY_MM - 1.0, str(page_number))
-        c.restoreState()
+        draw_page_number_badge(c, page_number, number_align)
 
     c.saveState()
     c.translate(inset_mm, 0)

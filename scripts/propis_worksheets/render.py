@@ -11,7 +11,7 @@ system has nothing to port.
 import json
 import os
 
-from svg_path import path_bounds, draw_path
+from svg_path import path_bounds, draw_path, sample_path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TOPIC_JSON = os.path.join(ROOT, "tools", "propis", "topic.json")
@@ -40,6 +40,23 @@ def load_letters():
         if card["type"] == "letter" and not card.get("variantOf"):
             letters[card["label"]] = card
     return letters
+
+
+def load_letters_with_variants():
+    """Like load_letters(), but keyed by each card's own `label` field and
+    including variant cards (о_first_u, etc.) -- connectors.py's
+    build_variant_index/resolve_variant need the variants; the plain
+    letters stay reachable under their own single-character labels
+    exactly as before."""
+    with open(TOPIC_JSON, encoding="utf-8") as f:
+        topic = json.load(f)
+    return {c["label"]: c for c in topic["cards"] if c["type"] == "letter"}
+
+
+def load_connectors():
+    with open(TOPIC_JSON, encoding="utf-8") as f:
+        topic = json.load(f)
+    return [c for c in topic["cards"] if c["type"] == "connector"]
 
 
 def letter_ink_bounds(card):
@@ -71,6 +88,54 @@ def draw_letter(c, card, origin_x_mm, baseline_y_mm, opacity, color=(0.11, 0.30,
     path = c.beginPath()
     for stroke in card["strokes"]:
         draw_path(path, stroke["d"], transform)
+
+    c.saveState()
+    c.setStrokeColorRGB(*color)
+    c.setStrokeAlpha(opacity)
+    c.setLineWidth(0.275)
+    c.setLineCap(1)
+    c.setLineJoin(1)
+    c.drawPath(path, stroke=1, fill=0)
+    c.restoreState()
+
+    return (maxx - minx) * SCALE
+
+
+def _segment_bounds(segment):
+    minx = miny = float("inf")
+    maxx = maxy = float("-inf")
+    dx, scale_y, translate_y = segment["dx"], segment["scaleY"], segment["translateY"]
+    for stroke in segment["strokes"]:
+        for x, y in sample_path(stroke["d"]):
+            tx, ty = x + dx, y * scale_y + translate_y
+            minx, maxx = min(minx, tx), max(maxx, tx)
+            miny, maxy = min(miny, ty), max(maxy, ty)
+    return minx, maxx, miny, maxy
+
+
+def draw_pair(c, segments, origin_x_mm, baseline_y_mm, opacity, color=(0.11, 0.30, 0.85)):
+    """Draws a connectors.build_pair() trajectory (letter + real connector
+    strokes + letter, in native units) -- same contract as draw_letter:
+    its own combined left ink edge lands at `origin_x_mm`, letter 1's own
+    native baseline (unaffected by any transform, since letter 1 is
+    always segment 0 with dx=dy=0, scaleY=1 -- see build_pair) lands at
+    `baseline_y_mm`. Returns the mm width consumed."""
+    minx = min(_segment_bounds(s)[0] for s in segments)
+    maxx = max(_segment_bounds(s)[1] for s in segments)
+
+    path = c.beginPath()
+    for segment in segments:
+        dx, scale_y, translate_y = segment["dx"], segment["scaleY"], segment["translateY"]
+
+        def transform(nx, ny, dx=dx, scale_y=scale_y, translate_y=translate_y):
+            wx = nx + dx
+            wy = ny * scale_y + translate_y
+            px = origin_x_mm + (wx - minx) * SCALE
+            py = baseline_y_mm - (wy - LETTER_BASELINE_UNIT) * SCALE
+            return px, py
+
+        for stroke in segment["strokes"]:
+            draw_path(path, stroke["d"], transform)
 
     c.saveState()
     c.setStrokeColorRGB(*color)
