@@ -125,7 +125,17 @@ export default function SessionScreen() {
     setScreen(isInstruction ? "texts" : skipSummary ? "home" : "summary");
   }, [completedRecord, activeLessonPlanItemId, lessonPlan, setActiveLessonPlanItemId, mode?.type, setScreen, topicRecord?.meta.renderer, sessionReturnScreen, setSessionReturnScreen]);
 
-  const ownsFeedback = currentTask?.type === "choose_action" || currentTask?.type === "scene_function";
+  // word_agreement plays its own recorded word audio in place of the
+  // generic correct/incorrect chime (see FillBlankTask's playCorrectAudio) —
+  // without this, playFeedback's stop() raced playTopicFile's in-flight
+  // getDb()/getFile() and cancelled it via the shared genRef token before it
+  // ever reached Audio.play(), so the recorded word silently never played.
+  const OWNS_FEEDBACK_TYPES = new Set([
+    "choose_action", "scene_function",
+    "case_agreement", "verb_number", "verb_gender",
+    "numeral_agreement", "adjective_agreement", "possessive_agreement",
+  ]);
+  const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 
   // useCallback here isn't a perf nicety: some renderers (e.g. HouseGrow) key a
   // completion useEffect's setTimeout on this callback's identity via a `[done,
