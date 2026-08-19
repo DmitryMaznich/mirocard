@@ -120,6 +120,17 @@ def _segment_bounds(segment):
     return minx, maxx, miny, maxy
 
 
+def segments_ink_bounds(segments):
+    """(minx, maxx) across a whole connectors.build_word_trajectory()
+    segments list, in native units -- exposed for text_layout.py's
+    per-word ink-width measurement (mirrors wordEngine.js's
+    inkWidthUnits), which needs a word's real width BEFORE deciding
+    whether it fits on the current row, not just at draw time."""
+    minx = min(_segment_bounds(s)[0] for s in segments)
+    maxx = max(_segment_bounds(s)[1] for s in segments)
+    return minx, maxx
+
+
 def draw_pair(c, segments, origin_x_mm, baseline_y_mm, opacity, color=(0.11, 0.30, 0.85)):
     """Draws a connectors.build_pair() trajectory (letter + real connector
     strokes + letter, in native units) -- same contract as draw_letter:

@@ -21,6 +21,8 @@ from syllable_booklet import build_syllable_notebook_pdf
 from syllables import all_pairs
 from word_booklet import build_word_notebook_pdf
 from words import BLOCK_B, block_a_notebook_words
+from text_booklet import build_text_notebook_pdf
+from texts import TEXTS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(ROOT, "output")
@@ -81,11 +83,22 @@ def _build_word_notebooks(target):
         print(f"  тетрадь слов, часть 2 ({len(BLOCK_B)} слов): {sheets} лист(ов) A4 -> {out_path}")
 
 
+def _build_text_notebook(target):
+    if target is not None and target not in ("texts", "7"):
+        return
+    letters = load_letters_with_variants()
+    connectors_by_key = build_connectors_by_key(load_connectors())
+    variant_index = build_variant_index(letters)
+    out_path = os.path.join(OUTPUT_DIR, "propis_worksheets_texts.pdf")
+    sheets = build_text_notebook_pdf(letters, connectors_by_key, variant_index, out_path, TEXTS)
+    print(f"  тетрадь текстов ({len(TEXTS)} текстов): {sheets} лист(ов) A4 -> {out_path}")
+
+
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     target = sys.argv[1] if len(sys.argv) > 1 else None
-    non_letter_targets = ("syllables", "3", "words1", "5", "words2", "6")
+    non_letter_targets = ("syllables", "3", "words1", "5", "words2", "6", "texts", "7")
 
     if target is None or target not in non_letter_targets:
         letter_target = int(target) if target is not None else None
@@ -94,6 +107,8 @@ def main():
         _build_syllable_notebook(target)
     if target is None or target in ("words1", "5", "words2", "6"):
         _build_word_notebooks(target)
+    if target is None or target in ("texts", "7"):
+        _build_text_notebook(target)
 
 
 if __name__ == "__main__":
