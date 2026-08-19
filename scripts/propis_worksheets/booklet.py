@@ -1,17 +1,30 @@
 """Saddle-stitch booklet imposition: arranges N per-page overlays of
-propis letter content onto the REAL, ALREADY EXISTING "плотная" notebook
-ruling PDF (make_lined_paper_landscape.py) -- physical A4-landscape
-sheet-faces (2 A5 slots per face, printed double-sided) in the order that
-reads correctly after folding down the center and stapling, same as the
-existing print_materials notebooks.
+propis letter content onto propis_ruling.py's OWN standard-style
+ruling PDF -- physical A4-landscape sheet-faces (2 A5 slots per face,
+printed double-sided) in the order that reads correctly after folding
+down the center and stapling, same as the existing print_materials
+notebooks.
+
+Uses propis_ruling.py, NOT the shared root make_lined_paper_landscape*
+scripts (switched 2026-08-19 per the user, two changes): (a) the
+STANDARD 20mm diagonal-line spacing (school-standard slant guide), not
+the "плотная" 3mm-spaced variant Phase 1 originally used -- the dense
+3mm diagonal lines are visual noise for this notebook's actual purpose
+(letter/word shape and connection, not slant drilling); (b) a -3mm
+vertical phase shift on the horizontal narrow/wide cycle, so page.py can
+fit 17 practice rows per page instead of 16 with a safe margin on BOTH
+page edges (see propis_ruling.py's own docstring for the full
+derivation). This needed its own ruling script -- not just new
+parameters to the shared root "стандарт" script -- because that root
+script also generates the separately-sold "Тетрадь — стандарт РФ" blank
+notebook product (notebooks.py), which nobody asked to change.
 
 Reuses the actual ruling page verbatim (regenerated fresh from its own
 script every build, never redrawn here) rather than re-deriving an
-equivalent grid, so the printed page is pixel-identical to the blank
-copybook pages already in this topic (confirmed with the user
-2026-08-15) -- and picks up that page's red margin lines, staple-slot
-markers, and footer for free, none of which propis's own ruling ever
-drew.
+equivalent grid, so the printed page is pixel-identical to what
+propis_ruling.py actually draws -- and picks up that page's red margin
+lines, staple-slot markers, and footer for free, none of which propis's
+own content-drawing code ever draws itself.
 
 Verified by hand during planning for n=4 and n=8: sheet i's front holds
 pages (n-1-2i, 2i) left-to-right, its back holds pages (2i+1, n-2-2i) --
@@ -31,15 +44,16 @@ from pypdf import PdfReader, PdfWriter
 from page import PAGE_W_MM, LEFT_INSET_MM, CENTER_INSET_MM, draw_group_page, notebook_rows, paginate_rows
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-RULING_SCRIPT = os.path.join(ROOT, "make_lined_paper_landscape.py")
-RULING_PDF = os.path.join(ROOT, "lined_paper_A4_landscape.pdf")
+PROPIS_DIR = os.path.dirname(os.path.abspath(__file__))
+RULING_SCRIPT = os.path.join(PROPIS_DIR, "propis_ruling.py")
+RULING_PDF = os.path.join(PROPIS_DIR, "lined_paper_A4_landscape_propis.pdf")
 
 
 def _ensure_ruling_pdf():
-    """Regenerates the real "плотная" notebook ruling PDF from its own
-    source script -- this module never redraws that grid itself, only
-    reuses whatever the actual script currently produces."""
-    subprocess.run([sys.executable, RULING_SCRIPT], cwd=ROOT, check=True)
+    """Regenerates propis_ruling.py's own ruling PDF from its own source
+    script -- this module never redraws that grid itself, only reuses
+    whatever the actual script currently produces."""
+    subprocess.run([sys.executable, RULING_SCRIPT], cwd=PROPIS_DIR, check=True)
     return RULING_PDF
 
 

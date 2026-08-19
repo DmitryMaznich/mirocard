@@ -1,10 +1,9 @@
 """Positions propis letter-practice content to align with the REAL, ALREADY
-EXISTING notebook ruling PDF (make_lined_paper_landscape.py's "плотная"
-page) -- booklet.py overlays this module's content onto that actual PDF
-page rather than redrawing an equivalent grid, so the printed page is
-pixel-identical to the blank copybook pages already in print_materials
-(confirmed with the user 2026-08-15: reuse the real asset, don't
-re-derive the geometry).
+EXISTING notebook ruling PDF (propis_ruling.py's page) -- booklet.py
+overlays this module's content onto that actual PDF page rather than
+redrawing an equivalent grid, so the printed page is pixel-identical to
+that ruling (confirmed with the user 2026-08-15: reuse the real asset,
+don't re-derive the geometry).
 
 No per-letter header: content flows continuously, row after row, letter
 after letter, across as many pages as a group needs -- paginate_rows() is
@@ -19,15 +18,23 @@ from render import draw_letter, letter_ink_bounds, SCALE
 
 PAGE_W_MM = 148.5
 PAGE_H_MM = 210.0
-MARGIN_MM = 15.0  # matches make_lined_paper_landscape.py's own red margin lines
+MARGIN_MM = 15.0  # matches propis_ruling.py's own red margin lines
 
-# Mirrors make_lined_paper_landscape.py's horizontal-line loop exactly (same
-# narrow/wide alternation, same starting phase from y=0) -- this file never
-# draws these lines itself, it only needs to know where the real page put
-# them, to anchor letter baselines onto the actual thick lines.
+# Mirrors propis_ruling.py's horizontal-line loop exactly (same narrow/wide
+# alternation, same -3mm starting phase shift) -- this file never draws
+# these lines itself, it only needs to know where the real page put them,
+# to anchor letter baselines onto the actual thick lines.
 NARROW_MM = 4.0
 WIDE_MM = 8.0
 ROW_CYCLE_MM = NARROW_MM + WIDE_MM  # 12mm baseline-to-baseline
+
+# propis_ruling.py's own vertical_shift -- MUST match exactly, or letters
+# render off whatever physical line the ruling actually put on the page.
+# -6mm splits the 210mm page's 18mm leftover (210 isn't a multiple of the
+# 12mm cycle) into a 12mm top margin and a 6mm bottom margin, sized against
+# every real captured letter's ink bounds at render.py's ROW_MM=25 -- see
+# propis_ruling.py's own docstring for the full derivation.
+SHIFT_MM = -6.0
 
 GAP_MM = 5.0            # gap between repeated letter instances on a row
 TAIL_FRACTION = 0.32    # final fraction of every row left blank, ruled-only
@@ -103,18 +110,19 @@ def notebook_rows(groups, letters):
 
 def _thick_line_ys():
     """Every thick (baseline) line's y across the FULL page height, in the
-    same bottom-up frame make_lined_paper_landscape.py draws in (y=0 at the
-    page's bottom edge, no margin inset -- the real page's ruling isn't
-    clipped to the red margin lines, so neither is this)."""
+    same bottom-up frame propis_ruling.py draws in (y=0 at the page's
+    bottom edge, no margin inset -- the real page's ruling isn't clipped
+    to the red margin lines, so neither is this). Starts from SHIFT_MM,
+    not 0, matching propis_ruling.py's own phase-shifted loop exactly."""
     ys = []
-    y = 0.0
+    y = SHIFT_MM
     pattern_index = 0
     while y < PAGE_H_MM:
         if pattern_index % 2 == 0:
             y += NARROW_MM
         else:
             y += WIDE_MM
-            if y < PAGE_H_MM:
+            if 0 <= y < PAGE_H_MM:
                 ys.append(y)
         pattern_index += 1
     return ys
@@ -122,16 +130,21 @@ def _thick_line_ys():
 
 def row_baselines():
     """Baseline y for every practice row on one page, top-to-bottom, in the
-    same bottom-up mm frame as _thick_line_ys. Drops only the topmost thick
-    line, so row 0 keeps a full cycle of ascender headroom instead of
-    sitting flush against the page's top edge -- the bottom-most thick
-    line IS used as the last row's baseline (dropping it too, as an
-    earlier version did, left a whole extra ruled cycle at the bottom of
-    the page with no content on it at all -- flagged by the user
-    2026-08-15 as a visibly empty row; the descender room below the last
-    row's baseline comes for free from the page's own bottom margin)."""
+    same bottom-up mm frame as _thick_line_ys. Uses EVERY thick line,
+    including the topmost one, as a real row (confirmed with the user
+    2026-08-19: the earlier version dropped the topmost line to reserve a
+    full spare 12mm cycle of ascender headroom above row 0 -- 18mm of
+    margin total, when the tallest captured letter only needs ~8mm above
+    its own baseline -- costing a whole extra row of practice space for a
+    margin bigger than any real letter needs. The bottom-most thick line
+    was already used as the last row's baseline (dropping IT too, as an
+    even earlier version did, left a whole extra ruled cycle at the
+    bottom of the page with no content on it at all -- flagged by the
+    user 2026-08-15 as a visibly empty row); row 0 now gets the same
+    6mm-ish page-edge margin the last row's own descenders already sit
+    close to at the bottom, not a whole spare cycle."""
     thick_ys = _thick_line_ys()
-    return list(reversed(thick_ys[:-1]))
+    return list(reversed(thick_ys))
 
 
 ROWS_PER_PAGE = len(row_baselines())

@@ -17,12 +17,19 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 TOPIC_JSON = os.path.join(ROOT, "tools", "propis", "topic.json")
 
 # UNIT_H is the native-unit height of one letter's design canvas (150).
-# ROW_MM is the mm a letter's own native-unit height maps onto -- chosen to
-# match one cycle (baseline-to-baseline) of the "плотная" notebook ruling
-# (page.py's ROW_CYCLE_MM = 12mm) that letters are drawn onto here, matched
-# 2026-08-15 (replacing Phase 1's original propis-specific 25mm ruling).
+# ROW_MM is the mm a letter's own native-unit height maps onto. 25.0, not
+# 20.0 (corrected 2026-08-19) -- the 2026-08-15 migration onto the shared
+# notebook ruling dropped Phase 1's original propis-specific 25mm value
+# without rechecking it against the new ruling's own narrow-zone height,
+# leaving plain lowercase letters (о, с, п...) about 20% short of the
+# ruling's own thin x-height guide line instead of touching it (confirmed
+# 2026-08-19 from a printed proof: measured every captured letter's own
+# ink bounds -- "о", the classic x-height reference, landed at 3.22mm
+# against page.py's NARROW_MM=4mm target at ROW_MM=20; 25.0 puts it at
+# 4.02mm, matching the line). Coincidentally (or not) the same 25mm Phase
+# 1 used originally, before that migration ever touched this constant.
 UNIT_H = 150
-ROW_MM = 20.0
+ROW_MM = 25.0
 SCALE = ROW_MM / UNIT_H
 
 # The baseline every captured letter's own path data was drawn against --

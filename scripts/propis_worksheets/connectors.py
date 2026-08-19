@@ -1,21 +1,18 @@
-"""Ports the 2-letter-pair slice of
-src/topics/renderers/propis/wordEngine.js (the in-app word-trajectory
-builder) to Python, for rendering real connected letter-pairs ("слоги" /
-letter connections) in the print pipeline -- reusing the actual captured
-connector strokes from tools/propis/topic.json, not just placing two
-letters side by side (confirmed with the user 2026-08-19: the whole
-point of this notebook is teaching the real connecting motion).
+"""Ports src/topics/renderers/propis/wordEngine.js's buildWordTrajectory
+(the in-app word-trajectory builder) to Python, for rendering real
+connected letters -- both letter PAIRS ("слоги" / letter connections)
+and full multi-letter WORDS -- in the print pipeline, reusing the actual
+captured connector strokes from tools/propis/topic.json instead of just
+placing letters side by side (confirmed with the user 2026-08-19: the
+whole point of both notebooks is teaching the real connecting motion).
 
-Deliberately NOT a full port -- buildWordTrajectory's drift-accumulation
-correction, multi-letter о/ю-run handling, and row-wrapping all exist to
-serve arbitrary-length words. A 2-letter pair only ever has ONE junction
-(prev=null on letter 1, then one resolve on letter 2), so this only needs:
-resolveConnectionInfo, the exit/entry connector lookup+placement, and
-buildVariantIndex/resolveVariant's "first"/"last" branches (never
-"middle", which only exists for a letter with both a predecessor AND a
-successor). See wordEngine.js itself for the full reasoning behind each
-piece ported here -- comments below are trimmed to what's specific to
-the 2-letter case.
+build_word_trajectory (below) is the full port: an N-letter loop with
+"middle"-position о/ю-variant resolution and the same drift-accumulation
+corrections (canonical-line snap, exit/entry connector Y-rescale) as the
+JS original. build_pair is now a thin 2-letter convenience wrapper around
+it, kept only because the syllables notebook (and its existing tests)
+call it by that name; it does not duplicate any logic. See wordEngine.js
+itself for the full reasoning behind each piece ported here.
 
 Coordinate system: identical to render.py's (UNIT_H=150,
 LETTER_BASELINE_UNIT=88) -- wordEngine.js's own NATIVE_L3=88 is the same
@@ -228,6 +225,26 @@ def resolve_variant(variant_index, label, position, prev_label, next_label):
     bucket = variant_index.get(label)
     if not bucket:
         return None
+
+    # A run of 2+ consecutive о's (2026-08-14, user-specified rule): every о
+    # immediately followed by another о resolves the SAME way regardless of
+    # its own word position -- whichever first-position variant's
+    # nextLetters includes "о". The run's LAST о (preceded by о, not itself
+    # followed by one) returns None here on purpose, so the caller falls
+    # through to the plain card. See wordEngine.js's resolveVariant for the
+    # full reasoning; only relevant once a word has 3+ letters (a 2-letter
+    # pair can never contain a full о-run).
+    if label == "о":
+        if next_label == "о":
+            for c in bucket["first"]:
+                if _matches_next(c, "о"):
+                    return c
+            return None
+        if prev_label == "о":
+            return None
+
+    entry_type = ("upper" if prev_label in DUAL_NATURE_LETTERS else "lower") if prev_label else None
+
     if position == "first":
         for c in bucket["first"]:
             if _matches_next(c, next_label):
@@ -237,17 +254,28 @@ def resolve_variant(variant_index, label, position, prev_label, next_label):
                 return c
         return None
     if position == "last":
-        entry_type = "upper" if prev_label in DUAL_NATURE_LETTERS else "lower"
         return bucket["last"].get(entry_type) or bucket["last"].get("lower")
-    return None  # "middle" never happens for a 2-letter pair
+    if position == "middle":
+        if not entry_type:
+            return None
+        for c in bucket["middle"][entry_type]:
+            if _matches_next(c, next_label):
+                return c
+        for c in bucket["any"]:
+            if _matches_next(c, next_label):
+                return c
+        return None
+    return None  # "isolated" (single-letter word): no variant, use the plain card
 
 
-def build_pair(label1, label2, letters_by_label, connectors_by_key, variant_index):
-    """The 2-letter slice of buildWordTrajectory: resolves (a) whether
-    label1 (dual-nature) needs its own "first" variant, (b) whether
-    label2 (dual-nature) needs its own "last" variant, (c) the single
-    junction between them (real captured exit/entry connector pieces if
-    the methodology calls for one, else an exact-snap direct translate).
+def build_word_trajectory(word, letters_by_label, connectors_by_key, variant_index):
+    """Full N-letter port of wordEngine.js's buildWordTrajectory. Walks
+    `word` left to right, resolving for each letter: (a) whether it's a
+    dual-nature (о/ю) letter needing its own captured first/middle/last
+    variant, (b) the single junction with whatever came before it (a real
+    captured exit/entry connector pair if the methodology calls for one,
+    else an exact-snap direct translate onto the previous letter's own
+    canonical exit line).
 
     Returns a list of segments, each `{"strokes": [...], "dx", "scaleY",
     "translateY"}` -- render.py's draw_pair applies each segment's own
@@ -255,59 +283,84 @@ def build_pair(label1, label2, letters_by_label, connectors_by_key, variant_inde
     time, composed with the usual world placement, instead of
     re-serializing new path `d` strings the way wordEngine.js does (this
     file only ever needs the numbers, not new SVG text)."""
-    letter1 = letters_by_label[label1]
-    used_variant1 = False
-    if label1 in DUAL_NATURE_LETTERS:
-        variant = resolve_variant(variant_index, label1, "first", None, label2)
-        if variant:
-            letter1 = variant
-            used_variant1 = True
+    chars = list(word)
+    segments = []
+    prev = None  # {exitLine, exitPointWorld, baselineContactWorld, usedVariant, label}
 
-    letter2 = letters_by_label[label2]
-    used_variant2 = False
-    if label2 in DUAL_NATURE_LETTERS:
-        variant = resolve_variant(variant_index, label2, "last", label1, None)
-        if variant:
-            letter2 = variant
-            used_variant2 = True
+    for i, ch in enumerate(chars):
+        letter = letters_by_label[ch]
+        prev_label = chars[i - 1] if i > 0 else None
+        next_label = chars[i + 1] if i < len(chars) - 1 else None
 
-    segments = [{"strokes": letter1["strokes"], "dx": 0.0, "scaleY": 1.0, "translateY": 0.0}]
+        used_variant = False
+        if ch in DUAL_NATURE_LETTERS:
+            if len(chars) == 1:
+                position = "isolated"
+            elif i == 0:
+                position = "first"
+            elif i == len(chars) - 1:
+                position = "last"
+            else:
+                position = "middle"
+            variant = resolve_variant(variant_index, ch, position, prev_label, next_label)
+            if variant:
+                letter = variant
+                used_variant = True
 
-    info1 = resolve_connection_info(letter1)
-    info2 = resolve_connection_info(letter2)
+        info = resolve_connection_info(letter)
+        dx, dy = 0.0, 0.0
 
-    # A resolved о/ю variant's own tail already reaches wherever the next
-    # letter needs to start (captured as part of the same continuous
-    # stroke) -- both the ordinary exit-connector lookup AND the
-    # canonical-line snap below are skipped for it, using its own raw
-    # (untouched) exit point as the anchor directly instead (see
-    # wordEngine.js's `variantTailReachesHere`).
-    exit_connector = None if used_variant1 else find_exit_connector(connectors_by_key, info1["exitLine"], label1)
-    entry_connector = None if (used_variant2 or used_variant1) else find_entry_connector(connectors_by_key, info2["entryLine"], label2)
+        if prev is not None:
+            exit_connector = None if prev["usedVariant"] else find_exit_connector(
+                connectors_by_key, prev["exitLine"], prev["label"])
+            entry_connector = None if (used_variant or prev["usedVariant"]) else find_entry_connector(
+                connectors_by_key, info["entryLine"], ch)
+            # A resolved о/ю variant's own tail already reaches wherever the
+            # next letter needs to start (captured as part of the same
+            # continuous stroke) -- both the ordinary exit-connector lookup
+            # AND the canonical-line snap below are skipped for it, using
+            # its own raw (untouched) exit point as the anchor directly
+            # instead (see wordEngine.js's `variantTailReachesHere`).
+            variant_tail_reaches_here = prev["usedVariant"]
 
-    if exit_connector:
-        contacts = get_baseline_contacts(letter1)
-        placed = place_exit_connector(exit_connector, contacts["last"])
-        segments.append(placed)
-        anchor = placed["endPoint"]
-    elif used_variant1:
-        anchor = info1["exitPoint"]
-    else:
-        canonical_y = GUIDE_LINES.get(info1["exitLine"])
-        anchor = (info1["exitPoint"][0], canonical_y) if canonical_y is not None else info1["exitPoint"]
+            if exit_connector:
+                placed = place_exit_connector(exit_connector, prev["baselineContactWorld"])
+                segments.append(placed)
+                anchor = placed["endPoint"]
+            elif variant_tail_reaches_here:
+                anchor = prev["exitPointWorld"]
+            else:
+                canonical_y = GUIDE_LINES.get(prev["exitLine"])
+                anchor = (prev["exitPointWorld"][0], canonical_y) if canonical_y is not None else prev["exitPointWorld"]
 
-    if entry_connector:
-        local = place_entry_connector_local(entry_connector, info2["entryPoint"])
-        dx = anchor[0] - local["startPoint"][0]
-        dy = anchor[1] - local["startPoint"][1]
-        segments.append({
-            "strokes": local["strokes"],
-            "dx": local["dx"] + dx, "scaleY": local["scaleY"], "translateY": local["translateY"] + dy,
-        })
-        letter2_dx, letter2_dy = dx, dy
-    else:
-        letter2_dx = anchor[0] - info2["entryPoint"][0]
-        letter2_dy = anchor[1] - info2["entryPoint"][1]
+            if entry_connector:
+                local = place_entry_connector_local(entry_connector, info["entryPoint"])
+                dx = anchor[0] - local["startPoint"][0]
+                dy = anchor[1] - local["startPoint"][1]
+                segments.append({
+                    "strokes": local["strokes"],
+                    "dx": local["dx"] + dx, "scaleY": local["scaleY"], "translateY": local["translateY"] + dy,
+                })
+            else:
+                dx = anchor[0] - info["entryPoint"][0]
+                dy = anchor[1] - info["entryPoint"][1]
 
-    segments.append({"strokes": letter2["strokes"], "dx": letter2_dx, "scaleY": 1.0, "translateY": letter2_dy})
+        segments.append({"strokes": letter["strokes"], "dx": dx, "scaleY": 1.0, "translateY": dy})
+
+        contacts = get_baseline_contacts(letter)
+        prev = {
+            "exitLine": info["exitLine"],
+            "exitPointWorld": (info["exitPoint"][0] + dx, info["exitPoint"][1] + dy),
+            "baselineContactWorld": (contacts["last"][0] + dx, contacts["last"][1] + dy),
+            "usedVariant": used_variant,
+            "label": ch,
+        }
+
     return segments
+
+
+def build_pair(label1, label2, letters_by_label, connectors_by_key, variant_index):
+    """2-letter convenience wrapper around build_word_trajectory, kept for
+    the syllables notebook (and its own tests) which only ever deal with
+    letter pairs, not full words."""
+    return build_word_trajectory(label1 + label2, letters_by_label, connectors_by_key, variant_index)
