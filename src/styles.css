@@ -14504,10 +14504,20 @@ kbd {
   width: 76px;
   height: 76px;
   border-radius: 8px;
-  background: #fffdf8;
+  background: #ffffff;
+  border: 1px solid #e4ece9;
 }
-.figure-picker__thumbnail-grid { stroke: #d8e4e1; stroke-width: .045; fill: none; }
-.figure-picker__line { stroke: #1d2927; stroke-width: .24; stroke-linecap: round; stroke-linejoin: round; fill: none; vector-effect: non-scaling-stroke; }
+.figure-picker__thumbnail-grid { stroke: #cddad6; stroke-width: .05; fill: none; }
+.figure-picker__line {
+  stroke: #0f1e1a;
+  /* Fixed pixel width (not grid-cell units) so every pictogram reads with
+     the same crisp weight regardless of how many cells its own grid has. */
+  stroke-width: 2.3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
 .figure-picker__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; font-size: .88rem; }
 .figure-picker__level { color: #69847f; font-size: .74rem; line-height: 1.2; }
 @media (max-width: 440px) {
