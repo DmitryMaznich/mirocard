@@ -162,6 +162,39 @@
    pointer-events model does NOT hit-test by default (only "painted" fills are). */
 .propis-text-word-hit { fill: transparent; pointer-events: all; cursor: pointer; }
 
+/* ─── Прописи · «Пишем текст с экрана» (read_text) ───────────────────── */
+
+.propis-text-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #eef1f4;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 10px calc(10px + var(--app-safe-right, 0px)) calc(10px + var(--app-safe-bottom, 0px)) calc(10px + var(--app-safe-left, 0px));
+}
+
+.propis-text-nav .propis-ctrl-btn {
+  box-shadow: none;
+  background: #1d4ed8;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.propis-text-nav .propis-ctrl-btn:disabled {
+  background: rgba(20, 20, 20, 0.18);
+  cursor: default;
+}
+
+.propis-text-nav__counter {
+  min-width: 120px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3f3a33;
+}
+
 .propis-practice-keyboard {
   flex: 0 0 auto;
   display: flex;

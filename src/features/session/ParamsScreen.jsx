@@ -734,6 +734,44 @@ function SentenceListParam({ label, predefined, value, onChange }) {
   );
 }
 
+// Pure "pick one or more from a fixed list" -- unlike SentenceListParam, no free-text
+// merge (propis's read_text texts are pre-authored, not something a parent types in
+// here). Stores the selected texts' own content strings in `value`, not their ids, so
+// engine.js can build the task straight off sessionParams without a second topic-level
+// lookup (see engine.js's read_text branch).
+function TextListParam({ label, predefined, value, onChange }) {
+  const selected = Array.isArray(value) ? value : [];
+
+  function toggle(text) {
+    if (selected.includes(text)) onChange(selected.filter((s) => s !== text));
+    else onChange([...selected, text]);
+  }
+
+  return (
+    <div className="param-row param-row--block param-sentence-list">
+      <div className="param-label">
+        {label}
+        <span className="param-hint" style={{ fontWeight: "normal", marginLeft: 6 }}>{selected.length} / {predefined.length}</span>
+      </div>
+      <div className="param-sentence-list__body">
+        <div className="param-sentence-list__predefined">
+          {predefined.map((t) => (
+            <label key={t.id} className="param-sentence-list__item">
+              <input
+                type="checkbox"
+                className="param-checkbox"
+                checked={selected.includes(t.text)}
+                onChange={() => toggle(t.text)}
+              />
+              <span>{t.text}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TextUploadParam({ label, maxLength, value, onChange }) {
   const fileRef = useRef(null);
   const [error, setError] = useState(null);
@@ -1177,6 +1215,10 @@ export default function ParamsScreen() {
         out[key] = saved[key] ?? [];
         continue;
       }
+      if (def.type === "text_list") {
+        out[key] = saved[key] ?? [];
+        continue;
+      }
       if (def.type === "text_upload") {
         out[key] = saved[key] ?? "";
         continue;
@@ -1547,6 +1589,18 @@ export default function ParamsScreen() {
               />
             );
           }
+          if (def.type === "text_list") {
+            const predefined = topicRecord?.texts ?? [];
+            return (
+              <TextListParam
+                key={key}
+                label={def.label?.ru ?? key}
+                predefined={predefined}
+                value={params[key] ?? []}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
           if (def.type === "text_upload") {
             return (
               <TextUploadParam
@@ -1588,8 +1642,10 @@ export default function ParamsScreen() {
 
   const hasSentenceListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "sentence_list");
   const sentenceListEmpty = hasSentenceListParam && (params.sentences ?? []).length === 0;
+  const hasTextListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "text_list");
+  const textListEmpty = hasTextListParam && (params.texts ?? []).length === 0;
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
-  const isStartDisabled = sentenceListEmpty || poolEmpty;
+  const isStartDisabled = sentenceListEmpty || textListEmpty || poolEmpty;
 
   return (
     <div className="screen">
