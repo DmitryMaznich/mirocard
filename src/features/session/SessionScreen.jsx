@@ -87,7 +87,8 @@ export default function SessionScreen() {
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
-  const { soundEnabled, toggleSound, playFeedback, playTopicFile } = useAudio();
+  const { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying } = useAudio();
+  const pendingAudioAdvanceRef = useRef(null);
   const [manualAdvanceGate, setManualAdvanceGate] = useState({ key: null, state: null });
   const [isPlanDrawerOpen, setIsPlanDrawerOpen] = useState(false);
   const [pillFlash, setPillFlash] = useState(null);
@@ -204,8 +205,29 @@ export default function SessionScreen() {
       modeType: mode?.type,
     });
     setManualAdvanceGate(gate ? { key: advanceGateKey, state: gate } : { key: null, state: null });
-    if (shouldAdvance) onAdvance();
-  }, [adultConfirmAdvance, advanceGate, advanceGateKey, mode?.type, onAdvance]);
+    if (!shouldAdvance) return;
+
+    // For renderers that play their own recorded audio in place of the
+    // generic chime (word_agreement's card word, see ownsFeedback above),
+    // a tap right after a correct answer used to cut that audio off and
+    // jump straight to the next card. Queue the advance instead — it fires
+    // the moment playback ends rather than mid-word.
+    if (ownsFeedback && isAudioPlaying()) {
+      if (pendingAudioAdvanceRef.current) return; // already queued from an earlier tap
+      pendingAudioAdvanceRef.current = setInterval(() => {
+        if (isAudioPlaying()) return;
+        clearInterval(pendingAudioAdvanceRef.current);
+        pendingAudioAdvanceRef.current = null;
+        onAdvance();
+      }, 100);
+      return;
+    }
+    onAdvance();
+  }, [adultConfirmAdvance, advanceGate, advanceGateKey, mode?.type, onAdvance, ownsFeedback, isAudioPlaying]);
+
+  useEffect(() => () => {
+    if (pendingAudioAdvanceRef.current) clearInterval(pendingAudioAdvanceRef.current);
+  }, []);
 
   // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
   const [Renderer, setRenderer]           = useState(() =>
