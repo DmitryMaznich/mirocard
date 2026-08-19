@@ -1,4 +1,4 @@
-// Synthesizes one .wav per word_agreement card (its full, correctly-filled
+// Synthesizes one .mp3 per word_agreement card (its full, correctly-filled
 // sentence) via Gemini's native TTS. Output feeds build-word-agreement-deck.mjs,
 // which bundles any file it finds here into the deck zip.
 //
@@ -6,8 +6,11 @@
 // project's other generate-*.mjs scripts use for Gemini image generation.
 //
 // Gemini TTS returns raw PCM (16-bit signed LE, mono, 24kHz) as base64 —
-// there's no MP3/WAV encoding on the API side, so we wrap it in a minimal
-// WAV header ourselves (pcmToWav below) rather than pull in ffmpeg.
+// there's no MP3/WAV encoding on the API side. Originally this just wrapped
+// the PCM in a minimal WAV header (cheap, no dependency) — but 210 raw WAVs
+// made the deck ~42MB, large enough that installing/updating the topic
+// would hang in the browser. Encoding to MP3 via @breezystack/lamejs (pure
+// JS, no native binary) instead cuts each file by roughly 5-8x.
 //
 // The free/paid-Tier-1 key for this model is hard-capped at 100
 // CreateVoice requests/day (GenerateRequestsPerDayPerProjectPerModel) —
@@ -22,6 +25,7 @@
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 import { ALL_CARDS } from "./word-agreement-content.mjs";
 
@@ -30,6 +34,7 @@ const ROOT     = join(__dirname, "..");
 const OUT_DIR  = join(ROOT, "public/decks/_audio_src/word_agreement_ru");
 const MODEL    = "gemini-2.5-flash-preview-tts";
 const SAMPLE_RATE = 24000;
+const MP3_KBPS = 64; // plenty for clear mono speech, a fraction of raw PCM's size
 
 // Stay comfortably under the 10 requests/min pacing limit alongside the
 // daily cap.
@@ -49,26 +54,20 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Wrap raw 16-bit PCM in a minimal 44-byte WAV (RIFF) header.
-function pcmToWav(pcmBytes, sampleRate = SAMPLE_RATE, numChannels = 1, bitsPerSample = 16) {
-  const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
-  const blockAlign = numChannels * (bitsPerSample / 8);
-  const buf = Buffer.alloc(44 + pcmBytes.length);
-  buf.write("RIFF", 0);
-  buf.writeUInt32LE(36 + pcmBytes.length, 4);
-  buf.write("WAVE", 8);
-  buf.write("fmt ", 12);
-  buf.writeUInt32LE(16, 16);            // subchunk1 size (PCM)
-  buf.writeUInt16LE(1, 20);             // audio format = 1 (PCM)
-  buf.writeUInt16LE(numChannels, 22);
-  buf.writeUInt32LE(sampleRate, 24);
-  buf.writeUInt32LE(byteRate, 28);
-  buf.writeUInt16LE(blockAlign, 32);
-  buf.writeUInt16LE(bitsPerSample, 34);
-  buf.write("data", 36);
-  buf.writeUInt32LE(pcmBytes.length, 40);
-  pcmBytes.copy(buf, 44);
-  return buf;
+// Encode raw 16-bit signed LE mono PCM to MP3.
+function pcmToMp3(pcmBytes, sampleRate = SAMPLE_RATE) {
+  const samples = new Int16Array(pcmBytes.buffer, pcmBytes.byteOffset, pcmBytes.length / 2);
+  const encoder = new Mp3Encoder(1, sampleRate, MP3_KBPS);
+  const chunkSize = 1152; // lamejs' recommended block size
+  const parts = [];
+  for (let i = 0; i < samples.length; i += chunkSize) {
+    const chunk = samples.subarray(i, i + chunkSize);
+    const mp3buf = encoder.encodeBuffer(chunk);
+    if (mp3buf.length > 0) parts.push(Buffer.from(mp3buf));
+  }
+  const end = encoder.flush();
+  if (end.length > 0) parts.push(Buffer.from(end));
+  return Buffer.concat(parts);
 }
 
 class DailyQuotaExhausted extends Error {}
@@ -110,7 +109,7 @@ async function synthesizeOnce(text) {
   if (!part?.data) {
     throw new Error("Gemini TTS error: " + JSON.stringify(data).slice(0, 500));
   }
-  return pcmToWav(Buffer.from(part.data, "base64"));
+  return pcmToMp3(Buffer.from(part.data, "base64"));
 }
 
 async function synthesize(text) {
@@ -135,16 +134,16 @@ let failed    = 0;
 let stoppedOnQuota = false;
 
 for (const card of ALL_CARDS) {
-  const outPath = join(OUT_DIR, `${card.id}.wav`);
+  const outPath = join(OUT_DIR, `${card.id}.mp3`);
   if (!force && existsSync(outPath)) {
     skipped++;
     continue;
   }
   process.stdout.write(`  gen   ${card.id}  "${card.label}"... `);
   try {
-    const wav = await synthesize(card.label);
-    writeFileSync(outPath, wav);
-    console.log(`${wav.length} bytes`);
+    const mp3 = await synthesize(card.label);
+    writeFileSync(outPath, mp3);
+    console.log(`${mp3.length} bytes`);
     generated++;
   } catch (err) {
     if (err instanceof DailyQuotaExhausted) {

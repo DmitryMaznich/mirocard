@@ -4,10 +4,10 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.8.1";
+const VERSION    = "1.8.2";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
-// .wav files. A card gets its `audio` field only if the file actually
+// .mp3 files. A card gets its `audio` field only if the file actually
 // exists here — until then FillBlankTask falls back to browser TTS.
 const AUDIO_SRC_DIR = `public/decks/_audio_src/${TOPIC_ID}`;
 
@@ -156,8 +156,8 @@ const topic = {
     },
   ],
   cards: ALL_CARDS.map((card) => {
-    const audioSrcPath = `${AUDIO_SRC_DIR}/${card.id}.wav`;
-    return existsSync(audioSrcPath) ? { ...card, audio: `audio/${card.id}.wav` } : card;
+    const audioSrcPath = `${AUDIO_SRC_DIR}/${card.id}.mp3`;
+    return existsSync(audioSrcPath) ? { ...card, audio: `audio/${card.id}.mp3` } : card;
   }),
 };
 
@@ -174,7 +174,7 @@ for (const { path, svg } of Object.values(MODE_ICONS)) {
 let audioCount = 0;
 for (const card of topic.cards) {
   if (!card.audio) continue;
-  zip.file(card.audio, readFileSync(`${AUDIO_SRC_DIR}/${card.id}.wav`));
+  zip.file(card.audio, readFileSync(`${AUDIO_SRC_DIR}/${card.id}.mp3`));
   audioCount += 1;
 }
 
