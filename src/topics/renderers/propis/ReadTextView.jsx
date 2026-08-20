@@ -11,6 +11,13 @@ import {
 // layouts diverge enough that a shared constants module would need its own upkeep for
 // very little payoff -- see that file for the full reasoning behind each constant).
 const ROW_HEIGHT_PX = 72;
+// On tablet this view's text renders ~2x larger (2026-08-20 user request, read_text only --
+// WriteTextView's keyboard eats most of a tablet's extra width anyway, so it wasn't asked
+// for there). rowWidthUnits (below) is inversely proportional to ROW_HEIGHT_PX, so doubling
+// it HALVES how many native units span the same real container width -- i.e. every letter
+// occupies twice the screen space. Same tablet-breakpoint idiom column_addition's
+// useTapButtonSize.js already uses (matchMedia "(min-width: 768px)", live-updating).
+const TABLET_ROW_HEIGHT_PX = ROW_HEIGHT_PX * 2;
 
 // Real "косая линейка" cycle -- one thin line (x-height top) and one thick baseline line
 // per TEXT_ROW_PITCH, same fix applied here as WriteTextView.jsx (see propisRuling.js's
@@ -80,7 +87,17 @@ export default function ReadTextView({ task, onClose }) {
     return () => ro.disconnect();
   }, []);
 
-  const rowWidthUnits = (wrapW / ROW_HEIGHT_PX) * UNIT_H;
+  const [isTablet, setIsTablet] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const onChange = () => setIsTablet(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  const rowWidthUnits = (wrapW / (isTablet ? TABLET_ROW_HEIGHT_PX : ROW_HEIGHT_PX)) * UNIT_H;
 
   // No cache needed here the way WriteTextView needs one -- that one rebuilds on every
   // keystroke; this view's text only changes when textIndex changes (Prev/Next), so the

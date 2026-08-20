@@ -21,6 +21,16 @@ if (!globalThis.ResizeObserver) {
 if (!Element.prototype.scrollTo) {
   Element.prototype.scrollTo = () => {};
 }
+// jsdom has no matchMedia -- ReadTextView uses it for the tablet 2x-scale check (2026-08-20),
+// same stub column_addition's compareMode.smoke.test.jsx already uses for its own tablet-size
+// hook. `matches: false` (phone) is fine here -- none of these tests assert on scale/size.
+if (!window.matchMedia) {
+  window.matchMedia = () => ({
+    matches: false,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  });
+}
 
 // Minimal captured-letter fixtures, same shape wordEngine.test.js uses -- geometry
 // correctness of buildWordTrajectory/layoutTextIntoRows is already covered there. This
@@ -116,5 +126,27 @@ describe("ReadTextView — mounted through the real component", () => {
     const rowCount = Math.round((height - UNIT_H) / TEXT_ROW_PITCH) + 1;
     expect(rowCount).toBeGreaterThanOrEqual(2);
     expect(height).toBe((rowCount - 1) * TEXT_ROW_PITCH + UNIT_H);
+  });
+
+  // 2026-08-20 user request: text renders ~2x larger on tablet. rowWidthUnits is inversely
+  // proportional to the on-screen row-height constant, so doubling that constant (tablet)
+  // must HALVE the viewBox width for the same real container width -- not double it.
+  it("renders the grid at half the viewBox width on tablet (2x on-screen scale) vs phone", () => {
+    const realMatchMedia = window.matchMedia;
+    window.matchMedia = () => ({ matches: true, addEventListener: () => {}, removeEventListener: () => {} });
+    try {
+      mount({ letters: [LETTER_A, LETTER_B], connectors: [], texts: ["аб"] });
+      const tabletViewBox = container.querySelector(".propis-text-grid-svg").getAttribute("viewBox");
+      const [, , tabletWidthStr] = tabletViewBox.split(" ");
+      window.matchMedia = realMatchMedia;
+      act(() => root.unmount());
+      container.remove();
+      mount({ letters: [LETTER_A, LETTER_B], connectors: [], texts: ["аб"] });
+      const phoneViewBox = container.querySelector(".propis-text-grid-svg").getAttribute("viewBox");
+      const [, , phoneWidthStr] = phoneViewBox.split(" ");
+      expect(Number(tabletWidthStr)).toBeCloseTo(Number(phoneWidthStr) / 2, 5);
+    } finally {
+      window.matchMedia = realMatchMedia;
+    }
   });
 });
