@@ -39,6 +39,18 @@
 .pm-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* Default `auto` implicit row tracks size to content ONLY when that
+     content fits; once total content height exceeds this grid's own
+     (flex-constrained) height, "auto" rows get squashed to divide the
+     available space evenly instead of overflowing for overflow-y to
+     scroll -- confirmed live in-DOM 2026-08-20 on both Chrome and real
+     iOS/Android (not a WebKit quirk, a real cross-browser Grid
+     behavior): 5 items in a 626px-tall grid all collapsed to a uniform
+     106px, clipping everything below each card's thumbnail image
+     (title/description/download buttons) since .pm-card has its own
+     overflow:hidden. min-content forces each row to its card's real
+     natural height so the grid overflows and scrolls instead. */
+  grid-auto-rows: min-content;
   gap: 16px;
   padding: 16px;
   overflow-y: auto;
