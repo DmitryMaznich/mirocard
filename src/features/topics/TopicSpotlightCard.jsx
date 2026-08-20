@@ -1,10 +1,13 @@
-import TopicCover from "@/shared/components/TopicCover";
+import { CATEGORY_STYLE, OTHER_CATEGORY } from "./topicCategories";
+import { CategoryGlyph } from "./CategoryIcons";
 
 // Wide "for you" card used in the Мои темы carousel — reuses the app's own
 // active-theme treatment (the mint/teal hero gradient) rather than a new
 // accent color, so a personal deck reads as "special" the same way an
 // already-selected theme does elsewhere in the app.
-export default function TopicSpotlightCard({ title, topicId, avatarPath, caption, isActive, onSelect, onMenu }) {
+export default function TopicSpotlightCard({ title, category, caption, isActive, onSelect, onMenu }) {
+  const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE[OTHER_CATEGORY];
+
   return (
     <article className="topic-spotlight" onClick={onSelect}>
       <div className="topic-spotlight__top">
@@ -20,7 +23,7 @@ export default function TopicSpotlightCard({ title, topicId, avatarPath, caption
         )}
       </div>
       <div className="topic-spotlight__cover">
-        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="xl" />
+        <CategoryGlyph name={style.icon} size={50} />
       </div>
       <div className="topic-spotlight__title">{title}</div>
       {caption && <div className="topic-spotlight__caption">{caption}</div>}

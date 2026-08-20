@@ -1,5 +1,5 @@
 import { CATEGORY_STYLE, getTopicCategory, OTHER_CATEGORY } from "./topicCategories";
-import TopicCover from "@/shared/components/TopicCover";
+import { CategoryGlyph } from "./CategoryIcons";
 import { getTopicTitle } from "@/shared/utils/format";
 
 // Compact "quick resume" banner for the active topic — keeps the one-tap
@@ -12,7 +12,7 @@ export default function ContinueStrip({ record, onContinue }) {
   return (
     <button className="continue-strip" onClick={onContinue}>
       <span className={`continue-strip__cover ${style.cls}`}>
-        <TopicCover topicId={record.meta.id} avatarPath={record.meta.avatar} title={record.meta.title} size="small" />
+        <CategoryGlyph name={style.icon} size={26} />
       </span>
       <span className="continue-strip__text">
         <span className="continue-strip__eyebrow">Сейчас активна</span>
