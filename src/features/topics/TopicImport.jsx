@@ -20,7 +20,7 @@ export default function TopicImport({ onImported, compact = false }) {
     try {
       const buf = await file.arrayBuffer();
       const db = await getDb();
-      const record = await importTopic(db, buf, buildInfo.version);
+      const record = await importTopic(db, buf, buildInfo.version, { origin: "imported" });
       setTopicRecords([
         ...topicRecords.filter((r) => r.meta.id !== record.meta.id),
         record,

@@ -1777,7 +1777,7 @@ export function getDefaultModeSettings(renderer, modeId) {
   };
 }
 
-export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
+export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin } = {}) {
   const zip = await JSZip.loadAsync(zipBuffer);
 
   let manifest = await parseManifest(zip);
@@ -1788,6 +1788,9 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0") {
   validateImages(manifest, zip);
 
   const topicId = manifest.meta.id;
+  // Marks a deck loaded via manual ZIP upload (as opposed to the shared
+  // catalog) so the "Мои темы" section can single it out.
+  if (origin) manifest.meta.origin = origin;
 
   // Pre-resolve card image paths to inline base64 data URLs so bundled
   // renderer IIFEs can access them via topicRecord.cards[n].photo without

@@ -3,157 +3,26 @@ import { useAppStore } from "@/core/store";
 import { AnalyticsScreen } from "@/features/analytics/AnalyticsScreen";
 import { getDb } from "@/core/db";
 import { deleteTopicRecord } from "@/topics/topicLoader";
-import TopicCover from "@/shared/components/TopicCover";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import TopicImport from "./TopicImport";
 import InfoModal from "@/shared/components/InfoModal";
-import TopicHeroCard from "./TopicHeroCard";
 import TopicActionSheet from "./TopicActionSheet";
+import TopicTile from "./TopicTile";
+import TopicSpotlightCard from "./TopicSpotlightCard";
+import ContinueStrip from "./ContinueStrip";
+import { CategoryGlyph } from "./CategoryIcons";
 import { getTopicTitle } from "@/shared/utils/format";
 import {
   fetchCatalog,
   fetchCatalogTopic,
   claimDeck,
-  getImportErrorMessage,
   shouldClaimCatalogDeck,
   isLocalModeProfile,
 } from "./catalogService";
-import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
-
-function InstalledTopicItem({ record, onSelect, onMenu, onInfo }) {
-  const isBuiltin = Boolean(record.meta.builtin);
-  return (
-    <li className="topic-item" onClick={() => onSelect(record)}>
-      <TopicCover
-        topicId={record.meta.id}
-        avatarPath={record.meta.avatar}
-        title={record.meta.title}
-        size="medium"
-      />
-      <div className="topic-item__info">
-        <div className="topic-item__title">{getTopicTitle(record.meta.title)}</div>
-        <div className="topic-item__meta">
-          {isBuiltin
-            ? "встроенная"
-            : `v${record.meta.version} · ${record.meta.conceptCount ?? record.cards.length} понятий`}
-        </div>
-      </div>
-      {isBuiltin
-        ? (
-          <button
-            className="icon-btn icon-btn--info"
-            onClick={(e) => { e.stopPropagation(); onInfo(record); }}
-            aria-label="О теме"
-          >
-            i
-          </button>
-        ) : (
-          <button
-            className="icon-btn"
-            onClick={(e) => { e.stopPropagation(); onMenu(record); }}
-            aria-label="Действия"
-          >
-            ⋯
-          </button>
-        )}
-    </li>
-  );
-}
-
-function PreviewChip({ entry, onInstall, disabled, isUpdate }) {
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState("");
-  const label = loading   ? "…"
-    : isUpdate            ? `↑ v${entry.version}`
-    : `↓ ${entry.title?.ru ?? entry.id}`;
-
-  async function handleClick() {
-    setLoading(true);
-    setError("");
-    try {
-      await onInstall(entry, { force: isUpdate });
-    } catch (err) {
-      setError(getImportErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <span className="catalog-preview__chip-wrap">
-      <button
-        className={`topic-action-chip topic-action-chip--${isUpdate ? "update" : "install"}`}
-        disabled={disabled || loading}
-        onClick={handleClick}
-      >
-        {label}
-      </button>
-      {error && <div className="form-error">{error}</div>}
-    </span>
-  );
-}
-
-function CatalogPreview({ catalog, topicRecords, hasAdminGrants, ownedNonPendingIds, onInstall, onOpenCatalog, disabled }) {
-  if (!catalog) return null;
-
-  const accessibleDecks = catalog.decks.filter((e) =>
-    !hasAdminGrants || ownedNonPendingIds.has(e.id)
-  );
-
-  const updates = accessibleDecks.filter((e) => {
-    const installed = topicRecords.find((r) => r.meta.id === e.id);
-    return installed && installed.meta.version !== e.version;
-  });
-  const newTopics = accessibleDecks
-    .filter((e) => !topicRecords.find((r) => r.meta.id === e.id))
-    .slice(0, 3);
-
-  return (
-    <div className="catalog-preview-card">
-      <button className="catalog-preview-card__header" onClick={onOpenCatalog}>
-        <span className="catalog-preview-card__title">Каталог тем</span>
-        <span className="catalog-preview-card__open-btn">Открыть <ChevronRightIcon size={13} /></span>
-      </button>
-      {(updates.length > 0 || newTopics.length > 0) && (
-        <div className="catalog-preview-card__body">
-          {updates.length > 0 && (
-            <div className="catalog-preview-card__group">
-              <span className="catalog-preview-card__label">Доступны обновления</span>
-              <div className="catalog-preview__chips">
-                {updates.map((entry) => (
-                  <PreviewChip
-                    key={entry.id}
-                    entry={entry}
-                    onInstall={onInstall}
-                    disabled={disabled}
-                    isUpdate
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          {newTopics.length > 0 && (
-            <div className="catalog-preview-card__group">
-              <span className="catalog-preview-card__label">Новые темы — нажмите для установки</span>
-              <div className="catalog-preview__chips">
-                {newTopics.map((entry) => (
-                  <PreviewChip
-                    key={entry.id}
-                    entry={entry}
-                    onInstall={onInstall}
-                    disabled={disabled}
-                    isUpdate={false}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+import { CATEGORY_ORDER, OTHER_CATEGORY, getTopicCategory } from "./topicCategories";
+import { isPersonalTopic, getPersonalTopicCaption } from "./topicOrigin";
+import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function TopicLibraryScreen() {
   const setScreen         = useAppStore((s) => s.setScreen);
@@ -169,12 +38,24 @@ export default function TopicLibraryScreen() {
   const account           = useAppStore((s) => s.account);
   const token             = useAppStore((s) => s.token);
 
-
   const [catalog,           setCatalog]           = useState(null);
+  const [catalogError,      setCatalogError]      = useState(false);
+  const [filter,             setFilter]           = useState("all");
+  const [query,              setQuery]            = useState("");
   const [analyticsTarget,   setAnalyticsTarget]   = useState(null);
   const [deleting,          setDeleting]          = useState(null);
   const [infoTopic,         setInfoTopic]         = useState(null);
   const [actionSheetRecord, setActionSheetRecord] = useState(null);
+
+  const loadCatalog = useCallback(() => {
+    fetchCatalog()
+      .then((c) => { setCatalog(c); setCatalogError(false); })
+      .catch(() => setCatalogError(true));
+  }, []);
+
+  useEffect(() => {
+    if (catalog === null) loadCatalog();
+  }, [catalog, loadCatalog]);
 
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
@@ -189,17 +70,8 @@ export default function TopicLibraryScreen() {
     return record;
   }, [buildInfo.version, token, upsertTopicRecord, upsertOwnedTopic, ownedTopics]);
 
-  useEffect(() => {
-    if (catalog !== null) return;
-    let cancelled = false;
-    fetchCatalog(false)
-      .then((c) => { if (!cancelled) setCatalog(c); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [catalog]);
-
-  function handleSelectTopic(r) {
-    setActiveTopicId(r.meta.id);
+  function handleSelectTopic(record) {
+    setActiveTopicId(record.meta.id);
     setScreen("home");
   }
 
@@ -215,19 +87,100 @@ export default function TopicLibraryScreen() {
   // Builtin topics are always visible. Local mode (no account) shows everything.
   const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
   const isLocalMode = isLocalModeProfile(account, token);
-  const grantedIds = new Set(
-    (ownedTopics ?? []).filter((o) => o.source === "grant").map((o) => o.topicId)
-  );
+  const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
   const ownedNonPendingIds = new Set(
     (ownedTopics ?? []).filter((o) => o.source !== "request").map((o) => o.topicId)
   );
+
   const visibleRecords = (account && !isLocalMode
     ? topicRecords.filter((r) => r.meta.builtin || ownedNonPendingIds.has(r.meta.id))
     : topicRecords
   ).filter((r) => !r.meta.hidden);
 
+  const visibleDecks = catalog
+    ? catalog.decks.filter((e) => !hasAdminGrants || ownedNonPendingIds.has(e.id))
+    : [];
+
   const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
-  const otherRecords = visibleRecords.filter((r) => r.meta.id !== activeTopicId);
+
+  // "Мои темы" (personal decks) are pulled out of the shared category grid
+  // entirely — they get their own spotlight section instead of competing
+  // with the general catalog for the same slot.
+  const personalRecords = visibleRecords.filter((r) => isPersonalTopic(r.meta, ownedTopics));
+  const personalIds = new Set(personalRecords.map((r) => r.meta.id));
+
+  const itemsById = new Map();
+  for (const entry of visibleDecks) {
+    if (personalIds.has(entry.id)) continue;
+    itemsById.set(entry.id, {
+      id: entry.id,
+      title: entry.title?.ru ?? entry.id,
+      category: getTopicCategory(entry.id),
+      entry,
+      installedRecord: null,
+    });
+  }
+  for (const record of visibleRecords) {
+    if (personalIds.has(record.meta.id)) continue;
+    const existing = itemsById.get(record.meta.id) ?? {
+      id: record.meta.id,
+      title: getTopicTitle(record.meta.title),
+      category: getTopicCategory(record.meta.id),
+      entry: null,
+    };
+    existing.installedRecord = record;
+    itemsById.set(record.meta.id, existing);
+  }
+  const allItems = [...itemsById.values()];
+
+  const trimmedQuery = query.trim().toLowerCase();
+  const searchResults = trimmedQuery
+    ? allItems.filter((item) => item.title.toLowerCase().includes(trimmedQuery))
+    : null;
+
+  const categorySections = [...CATEGORY_ORDER, OTHER_CATEGORY]
+    .map((label) => ({ label, items: allItems.filter((item) => item.category === label) }))
+    .filter((group) => group.items.length > 0);
+
+  const sectionsToShow = filter === "all"
+    ? categorySections
+    : categorySections.filter((group) => group.label === filter);
+
+  const showMineSection = filter === "mine" || (filter === "all" && personalRecords.length > 0);
+
+  function renderItem(item) {
+    const owned = ownedById[item.id] ?? null;
+    return (
+      <TopicTile
+        key={item.id}
+        title={item.title}
+        category={item.category}
+        entry={item.entry}
+        installedRecord={item.installedRecord}
+        isActive={item.installedRecord?.meta.id === activeTopicId}
+        access={item.entry?.access ?? "free"}
+        claimSource={owned?.source ?? null}
+        onInstall={installCatalogEntry}
+        onSelect={handleSelectTopic}
+        onMenu={setActionSheetRecord}
+        onInfo={setInfoTopic}
+      />
+    );
+  }
+
+  function renderPersonal(record) {
+    return (
+      <TopicSpotlightCard
+        key={record.meta.id}
+        title={getTopicTitle(record.meta.title)}
+        category={getTopicCategory(record.meta.id)}
+        caption={getPersonalTopicCaption(record.meta, ownedTopics)}
+        isActive={record.meta.id === activeTopicId}
+        onSelect={() => handleSelectTopic(record)}
+        onMenu={record.meta.builtin ? null : () => setActionSheetRecord(record)}
+      />
+    );
+  }
 
   return (
     <div className="screen">
@@ -236,49 +189,99 @@ export default function TopicLibraryScreen() {
         <h1 className="screen-title">Темы</h1>
       </div>
 
-      <div className="topics-screen-body">
-        {/* Zone 1: Hero — active topic */}
-        {activeRecord && (
-          <TopicHeroCard
-            record={activeRecord}
-            onInfo={setInfoTopic}
-            onSelect={() => setScreen("home")}
-          />
-        )}
-        {!activeRecord && topicRecords.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state__text">Нет установленных тем</div>
-          </div>
-        )}
-
-        {/* Zone 2: All other topics */}
-        {otherRecords.length > 0 && (
-          <ul className="topic-list topics-zone-list">
-            {otherRecords.map((record) => (
-              <InstalledTopicItem
-                key={record.meta.id}
-                record={record}
-                onSelect={handleSelectTopic}
-                onMenu={setActionSheetRecord}
-                onInfo={setInfoTopic}
-              />
-            ))}
-          </ul>
-        )}
-
-        {/* Zone 3: Catalog preview */}
-        <CatalogPreview
-          catalog={catalog}
-          topicRecords={visibleRecords}
-          hasAdminGrants={hasAdminGrants}
-          ownedNonPendingIds={ownedNonPendingIds}
-          onInstall={installCatalogEntry}
-          onOpenCatalog={() => setScreen("catalog")}
-          disabled={false}
+      <div className="topics-search">
+        <input
+          type="text"
+          inputMode="search"
+          placeholder="Найти тему…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
+      </div>
 
-        {/* Import ZIP — редко используется, внизу */}
-        <TopicImport compact />
+      <div className="topics-screen-body">
+        {!trimmedQuery && activeRecord && (
+          <ContinueStrip record={activeRecord} onContinue={() => setScreen("home")} />
+        )}
+
+        {!trimmedQuery && (
+          <nav className="topic-filter-chips">
+            <button
+              className={`topic-chip topic-chip--mine${filter === "mine" ? " is-active" : ""}`}
+              onClick={() => setFilter("mine")}
+            >
+              Мои темы
+              {personalRecords.length > 0 && <span className="topic-chip__count">{personalRecords.length}</span>}
+            </button>
+            <button
+              className={`topic-chip${filter === "all" ? " is-active" : ""}`}
+              onClick={() => setFilter("all")}
+            >
+              Всё
+            </button>
+            {CATEGORY_ORDER.map((label) => (
+              <button
+                key={label}
+                className={`topic-chip${filter === label ? " is-active" : ""}`}
+                onClick={() => setFilter(label)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        {trimmedQuery ? (
+          <section className="topics-section">
+            <div className="topics-section__head"><h2>Результаты поиска</h2></div>
+            {searchResults.length > 0 ? (
+              <div className="topics-grid">{searchResults.map(renderItem)}</div>
+            ) : (
+              <div className="empty-state"><div className="empty-state__text">Ничего не найдено</div></div>
+            )}
+          </section>
+        ) : (
+          <>
+            {showMineSection && (
+              <section className="topics-section">
+                <div className="topics-section__head">
+                  <div>
+                    <span className="topics-section__eyebrow">Подобрано для вас</span>
+                    <h2>Мои темы</h2>
+                  </div>
+                </div>
+                {personalRecords.length > 0 ? (
+                  <div className="topic-spotlight-row">{personalRecords.map(renderPersonal)}</div>
+                ) : (
+                  <div className="topics-mine-empty">
+                    <div className="topics-mine-empty__icon"><CategoryGlyph name="generic" size={20} /></div>
+                    <h4>Пока здесь пусто</h4>
+                    <p>Персональные темы появляются, когда логопед готовит материал именно для вас — они сразу окажутся в этом разделе.</p>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {sectionsToShow.map((group) => (
+              <section className="topics-section" key={group.label}>
+                <div className="topics-section__head"><h2>{group.label}</h2></div>
+                <div className="topics-grid">{group.items.map(renderItem)}</div>
+              </section>
+            ))}
+
+            {!catalog && !catalogError && (
+              <div className="empty-state"><div className="empty-state__text">Загружаем каталог…</div></div>
+            )}
+            {catalogError && (
+              <div className="empty-state">
+                <div className="empty-state__text">Не удалось загрузить каталог</div>
+                <Button variant="secondary" onClick={loadCatalog}>Повторить</Button>
+              </div>
+            )}
+
+            <TopicImport compact />
+          </>
+        )}
       </div>
 
       {/* Overlays */}

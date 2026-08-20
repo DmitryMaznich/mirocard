@@ -109,11 +109,3 @@ export function formatRewardTime(seconds) {
   const s = seconds % 60;
   return m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}с`;
 }
-
-// Returns "not_installed" | "installed" | "update_available"
-export function getTopicCatalogStatus(catalogEntry, topicRecords) {
-  const installed = topicRecords.find((r) => r.meta.id === catalogEntry.id);
-  if (!installed) return "not_installed";
-  if (installed.meta.version !== catalogEntry.version) return "update_available";
-  return "installed";
-}
