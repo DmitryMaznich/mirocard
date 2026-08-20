@@ -734,41 +734,189 @@ function SentenceListParam({ label, predefined, value, onChange }) {
   );
 }
 
-// Pure "pick one or more from a fixed list" -- unlike SentenceListParam, no free-text
-// merge (propis's read_text texts are pre-authored, not something a parent types in
-// here). Stores the selected texts' own content strings in `value`, not their ids, so
-// engine.js can build the task straight off sessionParams without a second topic-level
-// lookup (see engine.js's read_text branch).
-function TextListParam({ label, predefined, value, onChange }) {
-  const selected = Array.isArray(value) ? value : [];
+// Modal picker, same open/draft/apply shape as FigurePickerParam ("Повтори рисунок") --
+// added 2026-08-20 once the predefined list grew past what a single inline checkbox block
+// comfortably fits on the params screen. Also reverses an earlier explicit decision (see git
+// history): propis's read_text texts used to be pre-authored only, no free-text merge --
+// the user asked for a "своего текста" section, same idea as SentenceListParam's custom
+// textarea, just file-upload-capable too (texts here are full paragraphs, not one-liners).
+// Both predefined and custom texts are stored as plain content strings in the same `value`
+// array either way -- engine.js/ReadTextView never know or care which kind a given string
+// is (see engine.js's read_text branch), so nothing downstream of this component changed.
+const TEXT_LIST_CUSTOM_MAX_LENGTH_DEFAULT = 300;
 
-  function toggle(text) {
-    if (selected.includes(text)) onChange(selected.filter((s) => s !== text));
-    else onChange([...selected, text]);
+function normalizeUploadedText(raw) {
+  // Uploaded/typed text often has blank lines between paragraphs for readability --
+  // layoutTextIntoRows treats every "\n" as a real row break (including blank ones), so
+  // without collapsing those here, the text renders with an empty ruled row after every
+  // single line (same fix as TextUploadParam.handleFile, applied here for the same reason).
+  return raw.replace(/\r\n?/g, "\n").replace(/\n{2,}/g, "\n").trim();
+}
+
+function TextListParam({ label, predefined, value, maxLength, onChange }) {
+  const selected = Array.isArray(value) ? value : [];
+  const customMaxLength = maxLength ?? TEXT_LIST_CUSTOM_MAX_LENGTH_DEFAULT;
+
+  const [open, setOpen] = useState(false);
+  const [draftPredefinedIds, setDraftPredefinedIds] = useState(() => new Set());
+  const [draftCustomTexts, setDraftCustomTexts] = useState([]);
+  const [customDraftText, setCustomDraftText] = useState("");
+  const [customError, setCustomError] = useState(null);
+  const fileRef = useRef(null);
+
+  const totalSelected = draftPredefinedIds.size + draftCustomTexts.length;
+
+  function openPicker() {
+    const predefinedTexts = new Set(predefined.map((t) => t.text));
+    setDraftPredefinedIds(new Set(predefined.filter((t) => selected.includes(t.text)).map((t) => t.id)));
+    setDraftCustomTexts(selected.filter((s) => !predefinedTexts.has(s)));
+    setCustomDraftText("");
+    setCustomError(null);
+    setOpen(true);
+  }
+
+  function togglePredefined(id) {
+    setDraftPredefinedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function addCustomText(raw) {
+    const normalized = normalizeUploadedText(raw);
+    if (!normalized) return;
+    if (normalized.length > customMaxLength) {
+      setCustomError(`Слишком длинный текст: ${normalized.length} символов, максимум ${customMaxLength}.`);
+      return;
+    }
+    setCustomError(null);
+    setDraftCustomTexts((current) => [...current, normalized]);
+    setCustomDraftText("");
+  }
+
+  function removeCustomText(index) {
+    setDraftCustomTexts((current) => current.filter((_, i) => i !== index));
+  }
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      addCustomText(await file.text());
+    } catch {
+      setCustomError("Не удалось прочитать файл. Убедитесь, что это текстовый .txt файл.");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  function applySelection() {
+    const predefinedTexts = predefined.filter((t) => draftPredefinedIds.has(t.id)).map((t) => t.text);
+    const next = [...draftCustomTexts, ...predefinedTexts];
+    if (!next.length) return;
+    onChange(next);
+    setOpen(false);
   }
 
   return (
-    <div className="param-row param-row--block param-sentence-list">
-      <div className="param-label">
-        {label}
-        <span className="param-hint" style={{ fontWeight: "normal", marginLeft: 6 }}>{selected.length} / {predefined.length}</span>
-      </div>
-      <div className="param-sentence-list__body">
-        <div className="param-sentence-list__predefined">
-          {predefined.map((t) => (
-            <label key={t.id} className="param-sentence-list__item">
+    <>
+      <button
+        type="button"
+        className={`enum-btn figure-difficulty-option figure-picker-trigger ${selected.length ? "enum-btn--active" : ""}`}
+        onClick={openPicker}
+      >
+        <span>{label}</span>
+        <span className="figure-difficulty-option__count">{selected.length ? `${selected.length} выбрано` : "Выбрать тексты"}</span>
+      </button>
+      {open && (
+        <Modal
+          title="Выберите тексты"
+          onClose={() => setOpen(false)}
+          actions={(
+            <>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
+              <Button onClick={applySelection} disabled={!totalSelected}>Выбрать {totalSelected || ""}</Button>
+            </>
+          )}
+        >
+          <div className="text-picker__custom-section">
+            <div className="param-hint">Свои тексты</div>
+            {draftCustomTexts.length > 0 && (
+              <div className="text-picker__custom-list">
+                {draftCustomTexts.map((t, i) => (
+                  <div key={i} className="text-picker__custom-item">
+                    <span className="text-picker__custom-item-preview">{t}</span>
+                    <button
+                      type="button"
+                      className="text-picker__custom-item-remove"
+                      onClick={() => removeCustomText(i)}
+                      aria-label="Удалить текст"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <textarea
+              className="param-sentence-textarea"
+              rows={3}
+              value={customDraftText}
+              onChange={(e) => setCustomDraftText(e.target.value)}
+              placeholder="Напечатайте свой текст…"
+            />
+            <div className="text-picker__custom-actions">
+              <button
+                type="button"
+                className="param-text-upload__link"
+                onClick={() => addCustomText(customDraftText)}
+                disabled={!customDraftText.trim()}
+              >
+                + Добавить текст
+              </button>
+              <button type="button" className="param-text-upload__link" onClick={() => fileRef.current?.click()}>
+                📄 Загрузить .txt
+              </button>
+            </div>
+            {customError && <div className="param-text-upload__error">{customError}</div>}
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".txt,text/plain"
+              onChange={handleFile}
+              style={{ display: "none" }}
+            />
+          </div>
+
+          <div className="figure-picker__toolbar">
+            <span className="param-hint">{draftPredefinedIds.size} из {predefined.length} отмечено</span>
+            <label className="figure-picker__select-all">
               <input
                 type="checkbox"
-                className="param-checkbox"
-                checked={selected.includes(t.text)}
-                onChange={() => toggle(t.text)}
+                checked={predefined.length > 0 && draftPredefinedIds.size === predefined.length}
+                onChange={(e) => setDraftPredefinedIds(e.target.checked ? new Set(predefined.map((t) => t.id)) : new Set())}
               />
-              <span>{t.text}</span>
+              <span>Все тексты</span>
             </label>
-          ))}
-        </div>
-      </div>
-    </div>
+          </div>
+          <div className="param-sentence-list__predefined text-picker__predefined-list">
+            {predefined.map((t) => (
+              <label key={t.id} className="param-sentence-list__item">
+                <input
+                  type="checkbox"
+                  className="param-checkbox"
+                  checked={draftPredefinedIds.has(t.id)}
+                  onChange={() => togglePredefined(t.id)}
+                />
+                <span>{t.text}</span>
+              </label>
+            ))}
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }
 
@@ -1596,6 +1744,7 @@ export default function ParamsScreen() {
                 key={key}
                 label={def.label?.ru ?? key}
                 predefined={predefined}
+                maxLength={def.maxLength}
                 value={params[key] ?? []}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               />
