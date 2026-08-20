@@ -10,36 +10,39 @@ const BUILTIN_ASSETS = {
   <rect x="20" y="84" width="88" height="22" rx="11" fill="#4caf50"/>
   <text x="64" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="900" fill="#fff">5 ИЗ 5</text>
 </svg>`,
+  // Topic-catalog avatars below (2026-08-20) are transparent-background line art, matching
+  // propis's own avatar_propis.svg -- meant to sit ON TOP of TopicTile/TopicSpotlightCard's
+  // own category-color gradient background (see topicCategories.js's CATEGORY_STYLE), not
+  // carry their own solid fill. Faithful redraws of each icon's original shapes (same motif,
+  // same relative layout) with fills/strokes swapped to white at varying opacity for depth,
+  // rather than new concepts -- keeps every existing topic instantly recognizable while
+  // fitting the new tile treatment. Mode-level icons (inside a topic, e.g. propis's own
+  // "Учим буквы"/"Написание слов" screen) are explicitly NOT part of this and stay untouched.
   "media/avatar_flashcards.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f4efe6"/>
-  <rect x="20" y="28" width="54" height="72" rx="12" fill="#fff" stroke="#dfc9a7" stroke-width="4" transform="rotate(-8 47 64)"/>
-  <rect x="54" y="24" width="54" height="72" rx="12" fill="#fffdf7" stroke="#d7b98c" stroke-width="4" transform="rotate(6 81 60)"/>
-  <circle cx="44" cy="56" r="12" fill="#ef6f5e"/>
-  <rect x="66" y="45" width="26" height="8" rx="4" fill="#4a9b8f"/>
-  <rect x="34" y="78" width="22" height="8" rx="4" fill="#f3c969"/>
-  <rect x="66" y="68" width="18" height="18" rx="5" fill="#7bb0ff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="20" y="28" width="54" height="72" rx="12" stroke="#fff" stroke-opacity="0.5" stroke-width="3" transform="rotate(-8 47 64)"/>
+  <rect x="54" y="24" width="54" height="72" rx="12" stroke="#fff" stroke-width="3" transform="rotate(6 81 60)"/>
+  <circle cx="44" cy="56" r="10" fill="#fff" fill-opacity="0.55"/>
+  <rect x="66" y="45" width="26" height="8" rx="4" fill="#fff" fill-opacity="0.85"/>
+  <rect x="34" y="78" width="22" height="8" rx="4" fill="#fff" fill-opacity="0.55"/>
 </svg>`,
   "media/avatar_comparison.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
-  <circle cx="40" cy="66" r="24" fill="#7bb0ff"/>
-  <circle cx="88" cy="58" r="16" fill="#f3c969"/>
-  <path d="M61 58h12l-6 10z" fill="#1f4f8a"/>
-  <path d="M52 94h40" stroke="#1f4f8a" stroke-width="8" stroke-linecap="round"/>
-  <path d="M64 30l12 10H52z" fill="#ef6f5e"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <circle cx="40" cy="66" r="22" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
+  <circle cx="88" cy="58" r="14" stroke="#fff" stroke-width="3"/>
+  <path d="M61 58h12l-6 10z" fill="#fff" fill-opacity="0.85"/>
+  <path d="M52 94h40" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
 </svg>`,
   "media/avatar.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="26" fill="#f8e7bd"/>
-  <path d="M25 58 64 25l39 33v48H25z" fill="#2d6fb5"/>
-  <path d="M18 61 64 21l46 40-8 10-38-33-38 33z" fill="#ef6f5e"/>
-  <rect x="36" y="62" width="22" height="20" rx="5" fill="#fff"/>
-  <rect x="70" y="62" width="22" height="20" rx="5" fill="#fff"/>
-  <rect x="36" y="88" width="22" height="20" rx="5" fill="#fff"/>
-  <rect x="70" y="88" width="22" height="20" rx="5" fill="#fff"/>
-  <circle cx="64" cy="45" r="13" fill="#fbbf24" stroke="#fff" stroke-width="4"/>
-  <text x="64" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#422006">7</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <path d="M25 58 64 25l39 33v48H25z" stroke="#fff" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M18 61 64 21l46 40" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="36" y="62" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <rect x="70" y="62" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <rect x="36" y="88" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <rect x="70" y="88" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <circle cx="64" cy="45" r="12" stroke="#fff" stroke-width="3"/>
+  <text x="64" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="900" fill="#fff">7</text>
 </svg>`,
   "media/icons/flashcards_intro.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -98,15 +101,14 @@ const BUILTIN_ASSETS = {
   <rect x="62" y="62" width="18" height="10" rx="5" fill="#ef6f5e"/>
 </svg>`,
   "media/avatar_sentence_puzzle.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f0fdf4"/>
-  <rect x="12" y="30" width="46" height="28" rx="8" fill="#7bb0ff"/>
-  <circle cx="58" cy="44" r="7" fill="#7bb0ff"/>
-  <rect x="65" y="30" width="51" height="28" rx="8" fill="#4a9b8f"/>
-  <rect x="12" y="68" width="104" height="28" rx="8" fill="#fbbf24"/>
-  <rect x="20" y="40" width="26" height="7" rx="3" fill="rgba(255,255,255,0.8)"/>
-  <rect x="73" y="40" width="32" height="7" rx="3" fill="rgba(255,255,255,0.8)"/>
-  <rect x="30" y="78" width="68" height="7" rx="3" fill="rgba(255,255,255,0.8)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="12" y="30" width="46" height="28" rx="8" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
+  <circle cx="58" cy="44" r="6" stroke="#fff" stroke-opacity="0.55" stroke-width="2.5"/>
+  <rect x="65" y="30" width="51" height="28" rx="8" stroke="#fff" stroke-width="3"/>
+  <rect x="12" y="68" width="104" height="28" rx="8" stroke="#fff" stroke-opacity="0.75" stroke-width="3"/>
+  <rect x="20" y="40" width="26" height="6" rx="3" fill="#fff" fill-opacity="0.6"/>
+  <rect x="73" y="40" width="32" height="6" rx="3" fill="#fff" fill-opacity="0.85"/>
+  <rect x="30" y="78" width="68" height="6" rx="3" fill="#fff" fill-opacity="0.85"/>
 </svg>`,
   "media/icons/sentence_puzzle_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -263,17 +265,11 @@ const BUILTIN_ASSETS = {
   <rect x="70" y="88" width="22" height="20" rx="5" fill="#fff"/>
 </svg>`,
   "media/avatar_column_addition.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f0f6ff"/>
-  <text x="58" y="23" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#5b8def">1</text>
-  <text x="58" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">3</text>
-  <text x="90" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">5</text>
-  <text x="26" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#4a9b8f">+</text>
-  <text x="58" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">1</text>
-  <text x="90" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">7</text>
-  <line x1="16" y1="86" x2="106" y2="86" stroke="#1a1a2e" stroke-width="2.5"/>
-  <text x="58" y="114" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">5</text>
-  <text x="90" y="114" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#1a1a2e">2</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <text x="58" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#fff" fill-opacity="0.7">35</text>
+  <text x="64" y="80" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#fff" fill-opacity="0.7">+17</text>
+  <line x1="16" y1="90" x2="112" y2="90" stroke="#fff" stroke-width="3"/>
+  <text x="64" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#fff">52</text>
 </svg>`,
   "media/icons/fingers_count_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -381,15 +377,14 @@ const BUILTIN_ASSETS = {
   <rect x="114" y="67" width="8" height="8" rx="2" fill="#60a5fa" stroke="#2563eb" stroke-width="1"/>
 </svg>`,
   "media/avatar_operations.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eefaf5"/>
-  <rect x="20" y="32" width="88" height="52" rx="18" fill="#ffffff" stroke="#c9dfdb" stroke-width="4"/>
-  <path d="M28 64h72" stroke="#9fb8b4" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="42" cy="64" r="10" fill="#4a9b8f"/>
-  <circle cx="64" cy="64" r="10" fill="#4a9b8f"/>
-  <circle cx="86" cy="64" r="10" fill="#ef6f5e"/>
-  <text x="44" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="900" fill="#1f7a6f">+</text>
-  <text x="84" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" font-weight="900" fill="#c04040">-</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="20" y="32" width="88" height="44" rx="16" stroke="#fff" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M28 54h72" stroke="#fff" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="42" cy="54" r="8" fill="#fff" fill-opacity="0.75"/>
+  <circle cx="64" cy="54" r="8" fill="#fff" fill-opacity="0.75"/>
+  <circle cx="86" cy="54" r="8" fill="#fff"/>
+  <text x="44" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="900" fill="#fff">+</text>
+  <text x="84" y="98" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="900" fill="#fff" fill-opacity="0.75">-</text>
 </svg>`,
   "media/icons/operations_action_from_sign.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -445,12 +440,10 @@ const BUILTIN_ASSETS = {
   <text x="84" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="900" fill="#c04040">-</text>
 </svg>`,
   "media/avatar_reading.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f5f0ff"/>
-  <rect x="25" y="24" width="78" height="84" rx="12" fill="#fff" stroke="#c8bde8" stroke-width="4"/>
-  <path d="M43 45h42M43 62h34M43 79h42" stroke="#4a9b8f" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="39" cy="96" r="11" fill="#f3c969"/>
-  <path d="M35 96h8m-4-4v8" stroke="#8a5a10" stroke-width="4" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="25" y="24" width="78" height="84" rx="12" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
+  <path d="M43 45h42M43 62h34M43 79h42" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="39" cy="96" r="9" fill="#fff" fill-opacity="0.85"/>
 </svg>`,
   "media/icons/reading_read.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -568,19 +561,18 @@ const BUILTIN_ASSETS = {
   <circle cx="96" cy="90" r="22" fill="#4a9b8f"/>
   <path d="M86 90 93 98 108 80" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
-  // Прописи (propis) topic + mode icons -- 2026-08-20, redrawn to transparent-background
-  // line art (2026-08-20 follow-up, user request): the first version was a fully illustrated
-  // icon with its own solid background, which either had to cover the whole colored category
-  // tile (losing the category's own color identity) or sit as a small box next to it ("square
-  // plaques split in half"). These have NO background at all -- pure white/semi-white strokes
-  // meant to sit ON TOP of the tile's own category-color gradient (topic-tile__cover--math/
-  // lit/voc/prac), same idea CategoryIcons.jsx's shared glyphs already used, just per-topic
-  // instead of per-category. White reads with enough contrast against every category gradient
-  // (math blue, lit teal, voc orange, prac gray) without per-category tinting. Same shared
-  // visual language across all five: a ruled notebook card + a continuous wavy stroke standing
-  // in for real cursive ink (never an actual rendered glyph, which stays legible at icon scale
-  // a real letterform wouldn't). Row count / keyboard hint / screen-to-paper arrow are still
-  // what differentiate each mode icon from the others at a glance.
+  // Прописи (propis) topic avatar -- 2026-08-20, redrawn to transparent-background line art
+  // (2026-08-20 follow-up, user request): the first version was a fully illustrated icon with
+  // its own solid background, which either had to cover the whole colored category tile
+  // (losing the category's own color identity) or sit as a small box next to it ("square
+  // plaques split in half"). This has NO background at all -- pure white/semi-white strokes
+  // meant to sit ON TOP of the topic-catalog tile's own category-color gradient
+  // (topic-tile__cover--math/lit/voc/prac), same idea CategoryIcons.jsx's shared glyphs
+  // already used, just per-topic instead of per-category. Scope is the topic-catalog tile
+  // ONLY (TopicTile/TopicSpotlightCard, applies the same way to every topic, not just propis)
+  // -- mode-level icons (the "Учим буквы"/"Написание слов"/etc. screen inside the propis
+  // topic) were a separate, out-of-scope addition and have been reverted; see
+  // tools/propis/topic.json's mode.ui blocks, which no longer carry an "icon" field.
   "media/avatar_propis.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
   <rect x="16" y="16" width="96" height="96" rx="12" stroke="#fff" stroke-opacity="0.5" stroke-width="3"/>
@@ -592,70 +584,25 @@ const BUILTIN_ASSETS = {
     <path d="M92 44h13l-6.5 13z" fill="#fff"/>
   </g>
 </svg>`,
-  "media/icons/propis_practice.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <rect x="18" y="18" width="92" height="92" rx="14" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
-  <path d="M30 60h68" stroke="#fff" stroke-opacity="0.4" stroke-width="2"/>
-  <path d="M30 86h68" stroke="#fff" stroke-opacity="0.75" stroke-width="2.6"/>
-  <path d="M46 86c-2-14 6-24 18-24 10 0 17 8 17 18s-7 16-15 16c-7 0-12-5-12-12s5-11 11-11" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`,
-  "media/icons/propis_write_words.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <rect x="16" y="16" width="96" height="62" rx="12" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
-  <path d="M28 60h72" stroke="#fff" stroke-opacity="0.75" stroke-width="2.4"/>
-  <path d="M32 58c3-12 8-12 11 0s8 12 11 0 8-12 11 0 8 12 11 0 8-12 11 0" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <g fill="#fff" fill-opacity="0.85">
-    <rect x="20" y="90" width="16" height="14" rx="4"/>
-    <rect x="40" y="90" width="16" height="14" rx="4"/>
-    <rect x="60" y="90" width="16" height="14" rx="4"/>
-    <rect x="80" y="90" width="16" height="14" rx="4"/>
-  </g>
-</svg>`,
-  "media/icons/propis_write_text.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <rect x="16" y="12" width="96" height="66" rx="12" stroke="#fff" stroke-opacity="0.5" stroke-width="3"/>
-  <path d="M28 34h72M28 54h72M28 74h56" stroke="#fff" stroke-opacity="0.55" stroke-width="2.2"/>
-  <path d="M32 32c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0 6 8 8 0" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M32 52c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M32 72c2-8 6-8 8 0s6 8 8 0 6-8 8 0" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <g fill="#fff" fill-opacity="0.85">
-    <rect x="20" y="90" width="16" height="14" rx="4"/>
-    <rect x="40" y="90" width="16" height="14" rx="4"/>
-    <rect x="60" y="90" width="16" height="14" rx="4"/>
-    <rect x="80" y="90" width="16" height="14" rx="4"/>
-  </g>
-</svg>`,
-  "media/icons/propis_read_text.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <rect x="20" y="10" width="88" height="58" rx="10" stroke="#fff" stroke-width="3"/>
-  <path d="M34 34h60M34 48h44" stroke="#fff" stroke-opacity="0.6" stroke-width="2.2"/>
-  <path d="M38 32c2-6 5-6 7 0s5 6 7 0 5-6 7 0 5 6 7 0 5-6 7 0" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M64 70v20" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
-  <path d="M52 84l12 14 12-14z" fill="#fff"/>
-  <rect x="24" y="104" width="80" height="18" rx="4" stroke="#fff" stroke-opacity="0.5" stroke-width="2.5"/>
-</svg>`,
 };
 
 const TOPIC_AVATAR_VARIANTS = {
   clothes_basic: `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#fff7ed"/>
-  <circle cx="92" cy="34" r="14" fill="#fdba74"/>
-  <path d="M40 28h48l12 18-16 12-9-10v48H53V48l-9 10-16-12z" fill="#fb7185"/>
-  <path d="M50 28h28v14H50z" fill="#fff"/>
-  <path d="M58 66h12" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <circle cx="92" cy="34" r="11" stroke="#fff" stroke-opacity="0.6" stroke-width="3"/>
+  <path d="M40 28h48l12 18-16 12-9-10v48H53V48l-9 10-16-12z" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M58 66h12" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
 </svg>`,
   emotions_v2: `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eefaf5"/>
-  <circle cx="44" cy="64" r="22" fill="#fbbf24"/>
-  <circle cx="88" cy="64" r="22" fill="#60a5fa"/>
-  <circle cx="37" cy="57" r="3.5" fill="#1f2937"/>
-  <circle cx="51" cy="57" r="3.5" fill="#1f2937"/>
-  <path d="M34 72c5 8 15 8 20 0" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="81" cy="57" r="3.5" fill="#1f2937"/>
-  <circle cx="95" cy="57" r="3.5" fill="#1f2937"/>
-  <path d="M78 78c3-9 19-9 22 0" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <circle cx="44" cy="64" r="20" stroke="#fff" stroke-opacity="0.6" stroke-width="3"/>
+  <circle cx="88" cy="64" r="20" stroke="#fff" stroke-width="3"/>
+  <circle cx="37" cy="57" r="3" fill="#fff" fill-opacity="0.8"/>
+  <circle cx="51" cy="57" r="3" fill="#fff" fill-opacity="0.8"/>
+  <path d="M34 72c5 8 15 8 20 0" stroke="#fff" stroke-opacity="0.8" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="81" cy="57" r="3" fill="#fff"/>
+  <circle cx="95" cy="57" r="3" fill="#fff"/>
+  <path d="M78 78c3-9 19-9 22 0" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
 </svg>`,
   tools_basic: `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
@@ -668,62 +615,51 @@ const TOPIC_AVATAR_VARIANTS = {
   <circle cx="39" cy="73" r="8" fill="#14b8a6"/>
 </svg>`,
   transport_photo: `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#ecfeff"/>
-  <rect x="22" y="42" width="84" height="34" rx="14" fill="#38bdf8"/>
-  <rect x="34" y="52" width="20" height="12" rx="4" fill="#e0f2fe"/>
-  <rect x="58" y="52" width="20" height="12" rx="4" fill="#e0f2fe"/>
-  <rect x="82" y="52" width="12" height="12" rx="4" fill="#e0f2fe"/>
-  <path d="M32 76h64v10H32z" fill="#0f172a"/>
-  <circle cx="44" cy="88" r="10" fill="#1f2937"/>
-  <circle cx="84" cy="88" r="10" fill="#1f2937"/>
-  <circle cx="44" cy="88" r="4" fill="#cbd5e1"/>
-  <circle cx="84" cy="88" r="4" fill="#cbd5e1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="22" y="42" width="84" height="34" rx="14" stroke="#fff" stroke-opacity="0.6" stroke-width="3"/>
+  <rect x="34" y="52" width="20" height="12" rx="4" fill="#fff" fill-opacity="0.5"/>
+  <rect x="58" y="52" width="20" height="12" rx="4" fill="#fff" fill-opacity="0.5"/>
+  <rect x="82" y="52" width="12" height="12" rx="4" fill="#fff" fill-opacity="0.5"/>
+  <path d="M32 76h64v10H32z" fill="#fff" fill-opacity="0.7"/>
+  <circle cx="44" cy="88" r="8" stroke="#fff" stroke-width="3"/>
+  <circle cx="84" cy="88" r="8" stroke="#fff" stroke-width="3"/>
 </svg>`,
   verbs_v2: `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f5f3ff"/>
-  <circle cx="40" cy="38" r="12" fill="#fb7185"/>
-  <path d="M38 52 56 66 50 76 32 62z" fill="#fb7185"/>
-  <path d="M56 66 74 56 80 66 62 76z" fill="#8b5cf6"/>
-  <path d="M50 76 40 98" stroke="#1f2937" stroke-width="8" stroke-linecap="round"/>
-  <path d="M62 76 84 96" stroke="#1f2937" stroke-width="8" stroke-linecap="round"/>
-  <path d="M76 36h20l-8-8m8 8-8 8" fill="none" stroke="#22c55e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <circle cx="40" cy="38" r="10" stroke="#fff" stroke-opacity="0.6" stroke-width="3"/>
+  <path d="M38 52 56 66 50 76 32 62z" fill="#fff" fill-opacity="0.55"/>
+  <path d="M56 66 74 56 80 66 62 76z" fill="#fff"/>
+  <path d="M50 76 40 98" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M62 76 84 96" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M76 36h20l-8-8m8 8-8 8" stroke="#fff" stroke-opacity="0.85" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
   comparison: `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
-  <circle cx="40" cy="66" r="24" fill="#7bb0ff"/>
-  <circle cx="88" cy="58" r="16" fill="#f3c969"/>
-  <path d="M61 58h12l-6 10z" fill="#1f4f8a"/>
-  <path d="M52 94h40" stroke="#1f4f8a" stroke-width="8" stroke-linecap="round"/>
-  <path d="M64 30l12 10H52z" fill="#ef6f5e"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <circle cx="40" cy="66" r="22" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
+  <circle cx="88" cy="58" r="14" stroke="#fff" stroke-width="3"/>
+  <path d="M61 58h12l-6 10z" fill="#fff" fill-opacity="0.85"/>
+  <path d="M52 94h40" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
 </svg>`,
   math_houses: `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="26" fill="#f8e7bd"/>
-  <path d="M25 58 64 25l39 33v48H25z" fill="#2d6fb5"/>
-  <path d="M18 61 64 21l46 40-8 10-38-33-38 33z" fill="#ef6f5e"/>
-  <rect x="36" y="62" width="22" height="20" rx="5" fill="#fff"/>
-  <rect x="70" y="62" width="22" height="20" rx="5" fill="#fff"/>
-  <rect x="36" y="88" width="22" height="20" rx="5" fill="#fff"/>
-  <rect x="70" y="88" width="22" height="20" rx="5" fill="#fff"/>
-  <circle cx="64" cy="45" r="13" fill="#fbbf24" stroke="#fff" stroke-width="4"/>
-  <text x="64" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#422006">7</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <path d="M25 58 64 25l39 33v48H25z" stroke="#fff" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M18 61 64 21l46 40" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="36" y="62" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <rect x="70" y="62" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <rect x="36" y="88" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <rect x="70" y="88" width="22" height="20" rx="5" stroke="#fff" stroke-opacity="0.6" stroke-width="2.5"/>
+  <circle cx="64" cy="45" r="12" stroke="#fff" stroke-width="3"/>
+  <text x="64" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="900" fill="#fff">7</text>
 </svg>`,
   written_letters: `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#dbeafe"/>
-  <rect x="16" y="12" width="96" height="104" rx="10" fill="#fefef6" stroke="#b8d8e8" stroke-width="2"/>
-  <line x1="32" y1="110" x2="58" y2="18" stroke="#cde8f0" stroke-width="1"/>
-  <line x1="54" y1="110" x2="80" y2="18" stroke="#cde8f0" stroke-width="1"/>
-  <line x1="76" y1="110" x2="102" y2="18" stroke="#cde8f0" stroke-width="1"/>
-  <line x1="24" y1="47" x2="104" y2="47" stroke="#6ab4cc" stroke-width="1.5"/>
-  <line x1="24" y1="61" x2="104" y2="61" stroke="#2a82a0" stroke-width="2.5"/>
-  <line x1="24" y1="76" x2="104" y2="76" stroke="#6ab4cc" stroke-width="1.5"/>
-  <line x1="24" y1="90" x2="104" y2="90" stroke="#2a82a0" stroke-width="2.5"/>
-  <text x="36" y="61" font-family="Georgia,serif" font-style="italic" font-size="24" fill="#1d4ed8" font-weight="bold">А</text>
-  <text x="68" y="90" font-family="Georgia,serif" font-style="italic" font-size="18" fill="#1d4ed8">а</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="16" y="12" width="96" height="104" rx="10" stroke="#fff" stroke-opacity="0.5" stroke-width="2.5"/>
+  <line x1="24" y1="47" x2="104" y2="47" stroke="#fff" stroke-opacity="0.4" stroke-width="1.5"/>
+  <line x1="24" y1="61" x2="104" y2="61" stroke="#fff" stroke-opacity="0.7" stroke-width="2.5"/>
+  <line x1="24" y1="76" x2="104" y2="76" stroke="#fff" stroke-opacity="0.4" stroke-width="1.5"/>
+  <line x1="24" y1="90" x2="104" y2="90" stroke="#fff" stroke-opacity="0.7" stroke-width="2.5"/>
+  <text x="36" y="61" font-family="Georgia,serif" font-style="italic" font-size="24" fill="#fff" font-weight="bold">А</text>
+  <text x="68" y="90" font-family="Georgia,serif" font-style="italic" font-size="18" fill="#fff" fill-opacity="0.85">а</text>
 </svg>`,
 };
 
