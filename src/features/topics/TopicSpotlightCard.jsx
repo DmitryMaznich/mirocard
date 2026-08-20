@@ -20,7 +20,7 @@ export default function TopicSpotlightCard({ title, topicId, avatarPath, caption
         )}
       </div>
       <div className="topic-spotlight__cover">
-        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="medium" />
+        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="fill" />
       </div>
       <div className="topic-spotlight__title">{title}</div>
       {caption && <div className="topic-spotlight__caption">{caption}</div>}
