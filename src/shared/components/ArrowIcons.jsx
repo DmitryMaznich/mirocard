@@ -66,3 +66,38 @@ export function ArrowDownSmallIcon({ size = 14 }) {
     </svg>
   );
 }
+
+// Paid-tier topic the parent hasn't been granted access to yet — the catalog
+// tile's "request access" state.
+export function LockSmallIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" aria-hidden>
+      <rect x="3" y="6.5" width="8" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M4.5 6.5V4.5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Access request already sent, awaiting approval — the catalog tile's
+// "pending" state (non-interactive).
+export function ClockSmallIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" aria-hidden>
+      <circle cx="7" cy="7" r="5.25" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M7 4.2V7l2.1 1.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// The catalog tile's "more actions" menu trigger (delete a personal deck,
+// etc.) — three dots, deliberately quiet/low-contrast next to the louder
+// status badge (see TopicTile.jsx) so it doesn't compete for attention.
+export function MoreDotsIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="5" cy="12" r="1.8" />
+      <circle cx="12" cy="12" r="1.8" />
+      <circle cx="19" cy="12" r="1.8" />
+    </svg>
+  );
+}
