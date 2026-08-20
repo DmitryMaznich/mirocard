@@ -53,6 +53,13 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Safari/WebKit flexbug: a column flex item's automatic minimum size
+     defaults to its CONTENT's natural size, not 0 -- without this, a grid
+     item wrapping a large thumbnail image can refuse to shrink to fit,
+     ballooning past the grid row's intended height (confirmed on real
+     iOS Safari 2026-08-20; Chrome doesn't reproduce it, hence invisible
+     in Chromium-based testing). min-height:0 is the standard fix. */
+  min-height: 0;
 }
 
 .pm-card__thumb {
@@ -63,6 +70,10 @@
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  /* Same flexbug as .pm-card above, but here it's the one that actually
+     matters: without it, this thumb ignores its own height:130px and
+     grows to the thumbnail image's natural size (1263x893) on Safari. */
+  min-height: 0;
 }
 .pm-card__thumb img {
   width: 100%;
