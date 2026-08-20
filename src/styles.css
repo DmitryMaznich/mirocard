@@ -12183,52 +12183,6 @@ button {
 .topic-item__desc  { font-size: 0.82rem; color: #6b8380; margin-top: 4px; }
 .recipe-status-badge { margin-left: 6px; font-size: 0.72rem; font-weight: 700; color: #4a9b8f; background: #e6f5f3; padding: 1px 6px; border-radius: 5px; }
 
-/* ─── Catalog action chip ────────────────────────────────────────────────── */
-.topic-action-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 30px;
-  padding: 0 11px;
-  border-radius: 20px;
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  border: 1.5px solid;
-  transition: background 0.12s, transform 0.08s;
-}
-.topic-action-chip:active  { transform: scale(0.94); }
-.topic-action-chip:disabled { opacity: 0.4; pointer-events: none; }
-.topic-action-chip--install {
-  border-color: #4a9b8f;
-  color: #2a6b60;
-  background: #e6f5f3;
-}
-.topic-action-chip--update {
-  border-color: #d08c20;
-  color: #8a5c00;
-  background: #fef3e0;
-}
-.topic-action-chip--sync {
-  border-color: #c8d4d2;
-  color: #6b8380;
-  background: #f5f7f7;
-}
-.topic-action-chip--request {
-  border-color: #4a9b8f;
-  color: #2a6b60;
-  background: #e6f5f3;
-}
-.topic-action-chip--pending {
-  border-color: #c8d4d2;
-  color: #9aa6a3;
-  background: #f5f7f7;
-  font-style: italic;
-}
-
 .topic-import { padding: 0 0 12px; }
 /* ─── Session screen ─────────────────────────────────────────────────────── */
 .session-screen {
@@ -21242,77 +21196,105 @@ body { background: #eef0ef; }
   margin-bottom: 2px;
 }
 
-.topics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.topic-tile {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.03);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
+.topics-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 768px) {
+  .topics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
-.topic-tile__cover {
-  height: 94px;
+.topic-tile-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 80px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  position: relative;
+}
+.topic-tile-row--math { background: linear-gradient(150deg, #5b9bf5, #3b82f6); }
+.topic-tile-row--lit  { background: linear-gradient(150deg, #5fb3a6, #3f8b7e); }
+.topic-tile-row--voc  { background: linear-gradient(150deg, #f5a15f, #e0813a); }
+.topic-tile-row--prac { background: linear-gradient(150deg, #8b9aa8, #6b7c8a); }
+.topic-tile-row__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  position: relative;
+  flex-shrink: 0;
 }
-.topic-tile__cover--math { background: linear-gradient(150deg, #5b9bf5, #3b82f6); }
-.topic-tile__cover--lit  { background: linear-gradient(150deg, #5fb3a6, #3f8b7e); }
-.topic-tile__cover--voc  { background: linear-gradient(150deg, #f5a15f, #e0813a); }
-.topic-tile__cover--prac { background: linear-gradient(150deg, #8b9aa8, #6b7c8a); }
-.topic-tile__badge {
-  position: absolute;
-  top: 8px; left: 8px;
-  font-size: 0.62rem;
-  font-weight: 900;
+.topic-tile-row__text { flex: 1; min-width: 0; }
+.topic-tile-row__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.66rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 3px 7px;
-  border-radius: 7px;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-bottom: 2px;
+  overflow: hidden;
+}
+.topic-tile-row__eyebrow > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topic-tile-row__title {
+  font-size: 0.94rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.topic-tile-row__tag {
+  flex-shrink: 0;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.92);
 }
-.topic-tile__badge--beta { color: #3a5fc8; }
-.topic-tile__badge--experimental { color: #b05a10; }
-.topic-tile__menu {
-  position: absolute;
-  top: 6px; right: 6px;
-  width: 26px; height: 26px;
+.topic-tile-row__tag--beta { color: #3a5fc8; }
+.topic-tile-row__tag--experimental { color: #b05a10; }
+.topic-tile-row__more {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   border: none;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.22);
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-}
-.topic-tile__body { padding: 10px 11px 11px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.topic-tile__title {
-  font-size: 0.88rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.85rem;
   font-weight: 800;
-  color: #1a2e2b;
-  line-height: 1.25;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin-right: -4px;
 }
-.topic-tile__foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.topic-tile__status-text { font-size: 0.68rem; font-weight: 700; color: #a0b0ae; }
-
-.topic-action-chip--active {
-  border-color: #147a6b;
-  color: #fff;
-  background: linear-gradient(135deg, #2ec5b3, #1a9d8c, #147a6b);
+.topic-tile-row__badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
-.topic-action-chip--open {
-  border-color: #4a9b8f;
-  color: #fff;
-  background: #4a9b8f;
-}
+.topic-tile-row__badge--done { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.topic-tile-row__badge--get  { background: #fff; }
+.topic-tile-row__badge:disabled { cursor: default; opacity: 0.75; }
+.topic-tile-row--math .topic-tile-row__badge--get { color: #2f66c9; }
+.topic-tile-row--lit  .topic-tile-row__badge--get { color: #1f6b5e; }
+.topic-tile-row--voc  .topic-tile-row__badge--get { color: #b8631f; }
+.topic-tile-row--prac .topic-tile-row__badge--get { color: #4d5b66; }
+.topic-tile-row .form-error { position: absolute; left: 16px; right: 16px; bottom: -22px; font-size: 0.72rem; }
 
 /* ── Темы screen: Мои темы spotlight ─────────────────────── */
 .topic-spotlight-row {
