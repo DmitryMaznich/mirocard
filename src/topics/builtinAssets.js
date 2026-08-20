@@ -568,43 +568,43 @@ const BUILTIN_ASSETS = {
   <circle cx="96" cy="90" r="22" fill="#4a9b8f"/>
   <path d="M86 90 93 98 108 80" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
-  // Прописи (propis) topic + mode icons -- 2026-08-20. Shared visual language across all
-  // five: a ruled notebook card (echoing propisRuling.js's own thin/bold horizontal lines)
-  // and the same continuous wavy stroke standing in for real cursive ink (INK_COLOR #1d4ed8),
-  // rather than an actual glyph, which stays legible/recognizable at icon scale a rendered
-  // letterform wouldn't. Each mode icon's row count/keyboard hint is what differentiates it
-  // from the others at a glance -- one wave (single letter/word) vs three (a whole text) vs
-  // a screen-to-paper arrow (copying, not typing).
+  // Прописи (propis) topic + mode icons -- 2026-08-20, redrawn to transparent-background
+  // line art (2026-08-20 follow-up, user request): the first version was a fully illustrated
+  // icon with its own solid background, which either had to cover the whole colored category
+  // tile (losing the category's own color identity) or sit as a small box next to it ("square
+  // plaques split in half"). These have NO background at all -- pure white/semi-white strokes
+  // meant to sit ON TOP of the tile's own category-color gradient (topic-tile__cover--math/
+  // lit/voc/prac), same idea CategoryIcons.jsx's shared glyphs already used, just per-topic
+  // instead of per-category. White reads with enough contrast against every category gradient
+  // (math blue, lit teal, voc orange, prac gray) without per-category tinting. Same shared
+  // visual language across all five: a ruled notebook card + a continuous wavy stroke standing
+  // in for real cursive ink (never an actual rendered glyph, which stays legible at icon scale
+  // a real letterform wouldn't). Row count / keyboard hint / screen-to-paper arrow are still
+  // what differentiate each mode icon from the others at a glance.
   "media/avatar_propis.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="26" fill="#f7ecd8"/>
-  <rect x="16" y="16" width="96" height="96" rx="12" fill="#fffdf8" stroke="#e3cfa0" stroke-width="3"/>
-  <path d="M28 42h72" stroke="#e3cfa0" stroke-width="1.5" opacity="0.6"/>
-  <path d="M28 60h72" stroke="#bcd8ec" stroke-width="2"/>
-  <path d="M28 84h72" stroke="#bcd8ec" stroke-width="2"/>
-  <path d="M28 102h72" stroke="#e3cfa0" stroke-width="1.5" opacity="0.6"/>
-  <path d="M32 78c5-16 11-16 16 0s11 16 16 0 11-16 16 0" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="16" y="16" width="96" height="96" rx="12" stroke="#fff" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M28 60h72" stroke="#fff" stroke-opacity="0.55" stroke-width="2"/>
+  <path d="M28 84h72" stroke="#fff" stroke-opacity="0.55" stroke-width="2"/>
+  <path d="M32 78c5-16 11-16 16 0s11 16 16 0 11-16 16 0" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
   <g transform="rotate(40 100 32)">
-    <rect x="92" y="4" width="13" height="44" rx="6" fill="#ef6f5e"/>
-    <path d="M92 44h13l-6.5 13z" fill="#fbbf24"/>
-    <circle cx="98.5" cy="10" r="3.5" fill="#fff" opacity="0.55"/>
+    <rect x="92" y="4" width="13" height="44" rx="6" fill="#fff" fill-opacity="0.85"/>
+    <path d="M92 44h13l-6.5 13z" fill="#fff"/>
   </g>
 </svg>`,
   "media/icons/propis_practice.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
-  <rect x="18" y="18" width="92" height="92" rx="14" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
-  <path d="M30 60h68" stroke="#dcebf6" stroke-width="2"/>
-  <path d="M30 86h68" stroke="#6fa3e0" stroke-width="2.6"/>
-  <path d="M46 86c-2-14 6-24 18-24 10 0 17 8 17 18s-7 16-15 16c-7 0-12-5-12-12s5-11 11-11" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="18" y="18" width="92" height="92" rx="14" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
+  <path d="M30 60h68" stroke="#fff" stroke-opacity="0.4" stroke-width="2"/>
+  <path d="M30 86h68" stroke="#fff" stroke-opacity="0.75" stroke-width="2.6"/>
+  <path d="M46 86c-2-14 6-24 18-24 10 0 17 8 17 18s-7 16-15 16c-7 0-12-5-12-12s5-11 11-11" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
   "media/icons/propis_write_words.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
-  <rect x="16" y="16" width="96" height="62" rx="12" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
-  <path d="M28 60h72" stroke="#6fa3e0" stroke-width="2.4"/>
-  <path d="M32 58c3-12 8-12 11 0s8 12 11 0 8-12 11 0 8 12 11 0 8-12 11 0" fill="none" stroke="#1d4ed8" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <g fill="#8d8177">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="16" y="16" width="96" height="62" rx="12" stroke="#fff" stroke-opacity="0.55" stroke-width="3"/>
+  <path d="M28 60h72" stroke="#fff" stroke-opacity="0.75" stroke-width="2.4"/>
+  <path d="M32 58c3-12 8-12 11 0s8 12 11 0 8-12 11 0 8 12 11 0 8-12 11 0" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#fff" fill-opacity="0.85">
     <rect x="20" y="90" width="16" height="14" rx="4"/>
     <rect x="40" y="90" width="16" height="14" rx="4"/>
     <rect x="60" y="90" width="16" height="14" rx="4"/>
@@ -612,14 +612,13 @@ const BUILTIN_ASSETS = {
   </g>
 </svg>`,
   "media/icons/propis_write_text.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
-  <rect x="16" y="12" width="96" height="66" rx="12" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
-  <path d="M28 34h72M28 54h72M28 74h56" stroke="#6fa3e0" stroke-width="2.2"/>
-  <path d="M32 32c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0 6 8 8 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M32 52c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M32 72c2-8 6-8 8 0s6 8 8 0 6-8 8 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <g fill="#8d8177">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="16" y="12" width="96" height="66" rx="12" stroke="#fff" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M28 34h72M28 54h72M28 74h56" stroke="#fff" stroke-opacity="0.55" stroke-width="2.2"/>
+  <path d="M32 32c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0 6 8 8 0" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 52c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 72c2-8 6-8 8 0s6 8 8 0 6-8 8 0" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#fff" fill-opacity="0.85">
     <rect x="20" y="90" width="16" height="14" rx="4"/>
     <rect x="40" y="90" width="16" height="14" rx="4"/>
     <rect x="60" y="90" width="16" height="14" rx="4"/>
@@ -627,16 +626,13 @@ const BUILTIN_ASSETS = {
   </g>
 </svg>`,
   "media/icons/propis_read_text.svg": `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
-  <rect x="20" y="10" width="88" height="58" rx="10" fill="#2b2b2b"/>
-  <rect x="26" y="16" width="76" height="46" rx="4" fill="#fffdf8"/>
-  <path d="M34 34h60M34 48h44" stroke="#6fa3e0" stroke-width="2.2"/>
-  <path d="M38 32c2-6 5-6 7 0s5 6 7 0 5-6 7 0 5 6 7 0 5-6 7 0" fill="none" stroke="#1d4ed8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M64 70v20" stroke="#ef6f5e" stroke-width="6" stroke-linecap="round"/>
-  <path d="M52 84l12 14 12-14z" fill="#ef6f5e"/>
-  <rect x="24" y="104" width="80" height="18" rx="4" fill="#fffdf8" stroke="#bcd8ec" stroke-width="2.5"/>
-  <path d="M32 113c2-4 4-4 6 0s4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0" fill="none" stroke="#1d4ed8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect x="20" y="10" width="88" height="58" rx="10" stroke="#fff" stroke-width="3"/>
+  <path d="M34 34h60M34 48h44" stroke="#fff" stroke-opacity="0.6" stroke-width="2.2"/>
+  <path d="M38 32c2-6 5-6 7 0s5 6 7 0 5-6 7 0 5 6 7 0 5-6 7 0" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 70v20" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M52 84l12 14 12-14z" fill="#fff"/>
+  <rect x="24" y="104" width="80" height="18" rx="4" stroke="#fff" stroke-opacity="0.5" stroke-width="2.5"/>
 </svg>`,
 };
 

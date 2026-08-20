@@ -11486,10 +11486,11 @@ button {
 .topic-cover--small  { width: 40px;  height: 40px; }
 .topic-cover--medium { width: 64px;  height: 64px; }
 .topic-cover--large  { width: 100px; height: 100px; }
-/* Fills its whole parent edge-to-edge instead of sitting as a small centered box --
-   the parent is expected to own the rounded-corner clipping (overflow: hidden), since
-   this variant deliberately drops its own border-radius. */
-.topic-cover--fill   { width: 100%;   height: 100%; border-radius: 0; }
+/* Large centered icon for a colored category tile (topic-tile__cover /
+   topic-spotlight__cover) -- these topic avatars are transparent-background line
+   art meant to sit ON the colored gradient, not cover it, so this stays a fixed
+   centered box (not 100%/edge-to-edge) leaving the color visible as a frame. */
+.topic-cover--xl     { width: 78px;  height: 78px; }
 .topic-cover--placeholder {
   background: #e8eaf6;
   color: #5c6bc0;

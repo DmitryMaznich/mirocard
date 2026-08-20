@@ -95,7 +95,7 @@ export default function TopicTile({
     >
       <div className={`topic-tile__cover ${style.cls}`}>
         {badge && <span className={`topic-tile__badge ${badge.className}`}>{badge.label}</span>}
-        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="fill" />
+        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="xl" />
         {installedRecord && !isBuiltin && onMenu && (
           <button
             className="topic-tile__menu"
