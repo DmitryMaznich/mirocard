@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { getImportErrorMessage } from "./catalogService";
 import { CATEGORY_STYLE, STATUS_BADGES, OTHER_CATEGORY } from "./topicCategories";
-import { CategoryGlyph } from "./CategoryIcons";
+import TopicCover from "@/shared/components/TopicCover";
+import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon } from "@/shared/components/ArrowIcons";
 
 // One card in the "Темы" grid. Covers both a catalog entry the user hasn't
@@ -67,6 +68,8 @@ export default function TopicTile({
 
   const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE[OTHER_CATEGORY];
   const badge = entry?.status ? STATUS_BADGES[entry.status] : null;
+  const topicId = installedRecord?.meta.id ?? entry?.id;
+  const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
 
   const chipLabel = loading ? "…"
     : status === "active"  ? "Активна"
@@ -92,7 +95,7 @@ export default function TopicTile({
     >
       <div className={`topic-tile__cover ${style.cls}`}>
         {badge && <span className={`topic-tile__badge ${badge.className}`}>{badge.label}</span>}
-        <CategoryGlyph name={style.icon} />
+        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="medium" />
         {installedRecord && !isBuiltin && onMenu && (
           <button
             className="topic-tile__menu"

@@ -173,7 +173,8 @@ export default function TopicLibraryScreen() {
       <TopicSpotlightCard
         key={record.meta.id}
         title={getTopicTitle(record.meta.title)}
-        category={getTopicCategory(record.meta.id)}
+        topicId={record.meta.id}
+        avatarPath={record.meta.avatar}
         caption={getPersonalTopicCaption(record.meta, ownedTopics)}
         isActive={record.meta.id === activeTopicId}
         onSelect={() => handleSelectTopic(record)}
