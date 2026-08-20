@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { getImportErrorMessage } from "./catalogService";
 import { CATEGORY_STYLE, STATUS_BADGES, OTHER_CATEGORY } from "./topicCategories";
-import TopicCover from "@/shared/components/TopicCover";
-import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
-import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon } from "@/shared/components/ArrowIcons";
+import { CategoryGlyph } from "./CategoryIcons";
+import {
+  ArrowDownSmallIcon,
+  ArrowUpSmallIcon,
+  CheckmarkIcon,
+  LockSmallIcon,
+  ClockSmallIcon,
+  MoreDotsIcon,
+} from "@/shared/components/ArrowIcons";
 
-// One card in the "Темы" grid. Covers both a catalog entry the user hasn't
-// installed yet and an already-installed record — the tile figures out
-// which state it's in and shows the matching status chip, so the same list
-// can mix "browse the catalog" and "open what you have" without two screens.
+// One row in the "Темы" catalog list. Covers both a catalog entry the user
+// hasn't installed yet and an already-installed record -- the tile figures
+// out which state it's in and shows the matching status badge, so the same
+// list can mix "browse the catalog" and "open what you have" without two
+// screens.
 export default function TopicTile({
   title,
   category,
@@ -42,6 +49,7 @@ export default function TopicTile({
   }
 
   const canOpen = status === "active" || status === "open" || status === "update";
+  const isDone = status === "active" || status === "open";
 
   async function handleAction() {
     setLoading(true);
@@ -60,76 +68,82 @@ export default function TopicTile({
     else if (status !== "pending") handleAction();
   }
 
-  function handleChipClick(e) {
+  // Deliberately NOT the same branch as handleTileClick: for "update", the
+  // tile itself still opens the (already-installed, still-usable) topic --
+  // only the badge specifically triggers the re-download.
+  function handleBadgeClick(e) {
     e.stopPropagation();
     if (status === "active" || status === "open") onSelect(installedRecord);
     else if (status !== "pending") handleAction();
   }
 
   const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE[OTHER_CATEGORY];
-  const badge = entry?.status ? STATUS_BADGES[entry.status] : null;
-  const topicId = installedRecord?.meta.id ?? entry?.id;
-  const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
+  const statusBadge = entry?.status ? STATUS_BADGES[entry.status] : null;
 
-  const chipLabel = loading ? "…"
+  const badgeIcon = loading ? "…"
+    : status === "active" || status === "open" ? <CheckmarkIcon size={16} />
+    : status === "update"  ? <ArrowUpSmallIcon size={15} />
+    : status === "install" ? <ArrowDownSmallIcon size={15} />
+    : status === "request" ? <LockSmallIcon size={15} />
+    : <ClockSmallIcon size={15} />; // pending
+
+  const badgeLabel = loading ? "Загрузка…"
     : status === "active"  ? "Активна"
     : status === "open"    ? "Открыть"
-    : status === "update"  ? `v${entry.version}`
+    : status === "update"  ? `Доступно обновление v${entry.version}`
     : status === "install" ? "Установить"
     : status === "request" ? "Запросить доступ"
     : "Запрос отправлен";
 
-  const chipIcon = status === "active"  ? <CheckmarkIcon size={11} />
-    : status === "install" ? <ArrowDownSmallIcon size={11} />
-    : status === "update"  ? <ArrowUpSmallIcon size={11} />
-    : null;
-
-  const versionText = installedRecord
-    ? (isBuiltin ? "встроенная" : `v${installedRecord.meta.version}`)
-    : (entry ? `v${entry.version}` : "");
-
   return (
     <article
-      className={`topic-tile${canOpen ? " topic-tile--open" : ""}`}
+      className={`topic-tile-row ${style.cls}${canOpen ? " topic-tile-row--open" : ""}`}
       onClick={handleTileClick}
     >
-      <div className={`topic-tile__cover ${style.cls}`}>
-        {badge && <span className={`topic-tile__badge ${badge.className}`}>{badge.label}</span>}
-        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="xl" />
-        {installedRecord && !isBuiltin && onMenu && (
-          <button
-            className="topic-tile__menu"
-            onClick={(e) => { e.stopPropagation(); onMenu(installedRecord); }}
-            aria-label="Действия"
-          >
-            ⋯
-          </button>
-        )}
-        {installedRecord && isBuiltin && onInfo && (
-          <button
-            className="topic-tile__menu"
-            onClick={(e) => { e.stopPropagation(); onInfo(installedRecord); }}
-            aria-label="О теме"
-          >
-            i
-          </button>
-        )}
+      <div className="topic-tile-row__icon">
+        <CategoryGlyph name={style.icon} size={28} />
       </div>
-      <div className="topic-tile__body">
-        <div className="topic-tile__title">{title}</div>
-        <div className="topic-tile__foot">
-          <span className="topic-tile__status-text">{versionText}</span>
-          <button
-            className={`topic-action-chip topic-action-chip--${status}`}
-            disabled={disabled || loading || status === "pending"}
-            onClick={handleChipClick}
-          >
-            {chipIcon}
-            {chipLabel}
-          </button>
+      <div className="topic-tile-row__text">
+        <div className="topic-tile-row__eyebrow">
+          <span>{category}</span>
+          {statusBadge && (
+            <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>
+              {statusBadge.label}
+            </span>
+          )}
         </div>
-        {error && <div className="form-error">{error}</div>}
+        <div className="topic-tile-row__title">{title}</div>
       </div>
+      {installedRecord && !isBuiltin && onMenu && (
+        <button
+          type="button"
+          className="topic-tile-row__more"
+          onClick={(e) => { e.stopPropagation(); onMenu(installedRecord); }}
+          aria-label="Действия"
+        >
+          <MoreDotsIcon size={16} />
+        </button>
+      )}
+      {installedRecord && isBuiltin && onInfo && (
+        <button
+          type="button"
+          className="topic-tile-row__more"
+          onClick={(e) => { e.stopPropagation(); onInfo(installedRecord); }}
+          aria-label="О теме"
+        >
+          i
+        </button>
+      )}
+      <button
+        type="button"
+        className={`topic-tile-row__badge topic-tile-row__badge--${isDone ? "done" : "get"}`}
+        disabled={disabled || loading || status === "pending"}
+        onClick={handleBadgeClick}
+        aria-label={badgeLabel}
+      >
+        {badgeIcon}
+      </button>
+      {error && <div className="form-error">{error}</div>}
     </article>
   );
 }
