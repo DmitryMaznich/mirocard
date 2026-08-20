@@ -11,6 +11,9 @@ wide_spacing = 8         # мм - широкая рабочая зона
 spacing_diagonal = 3     # мм - расстояние между наклонными линиями
 angle_from_vertical = 65 # градусов - угол наклона
 margin = 15              # мм - отступ красных линий полей от краёв
+# См. make_lined_paper_landscape_standard.py -- тот же сдвиг фазы по той
+# же причине (принтер срезал верхнюю строку из-за узкого верхнего поля).
+vertical_shift = -5      # мм
 
 output_file = 'lined_paper_A4_landscape.pdf'
 # ============================================================
@@ -41,7 +44,7 @@ c.setStrokeColorRGB(0.55, 0.62, 0.72)
 
 for x_offset_mm in [0, 148.5]:
     x_offset = x_offset_mm * mm
-    y = 0
+    y = vertical_shift * mm
     pattern_index = 0
 
     while y < page_height:
@@ -52,7 +55,7 @@ for x_offset_mm in [0, 148.5]:
             y += wide_spacing * mm
             c.setLineWidth(1.3)   # рабочие линии толще
 
-        if y < page_height:
+        if 0 <= y < page_height:
             c.line(x_offset, y, x_offset + 148*mm, y)
 
         pattern_index += 1

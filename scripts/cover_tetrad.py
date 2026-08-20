@@ -88,9 +88,7 @@ L_Y0 = 18 * MM
 L_Y1 = PAGE_H - 12 * MM
 
 # ── Алфавит (для варианта --variant=alphabet) ─────────────────────────────────
-ALPHABET_UPPER = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 ALPHABET_LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-ALPHABET_PAIRS = [u + l for u, l in zip(ALPHABET_UPPER, ALPHABET_LOWER)]
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -282,41 +280,6 @@ def left_page(cv):
     _logo_footer(cv)
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# Левая страница — вариант «алфавит»
-# ═════════════════════════════════════════════════════════════════════════════
-
-def _alphabet_rows(pairs, sizes):
-    rows, i = [], 0
-    for n in sizes:
-        rows.append(" ".join(pairs[i:i + n]))
-        i += n
-    assert i == len(pairs), f"{i} != {len(pairs)}"
-    return rows
-
-
-def left_page_alphabet(cv):
-    cv.setFillColorRGB(1, 1, 1)
-    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
-
-    ybase, cx, max_w, font_max = _propis_grid(cv)
-
-    # Строка 0: заголовок (по центру, зелёный)
-    cv.setFont(CURSIVE, font_max)
-    cv.setFillColorRGB(0.05, 0.40, 0.08)
-    cv.drawCentredString(cx, ybase(0), "Алфавит")
-
-    # Строки 1-5: 33 пары «Аа Бб Вв...» — 7/7/7/6/6 пар на строку
-    cv.setFillColorRGB(0.04, 0.08, 0.30)
-    rows = _alphabet_rows(ALPHABET_PAIRS, [7, 7, 7, 6, 6])
-    for j, row_text in enumerate(rows):
-        size = font_max
-        while size > 10 and pdfmetrics.stringWidth(row_text, CURSIVE, size) > max_w:
-            size -= 1
-        cv.setFont(CURSIVE, size)
-        cv.drawCentredString(cx, ybase(1 + j), row_text)
-
-    _logo_footer(cv)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -524,10 +487,8 @@ def main():
     out = os.path.join(ROOT_DIR, f"cover_{style}{suffix}.pdf")
     cv = canvas.Canvas(out, pagesize=landscape(A4))
 
-    if style == "тексты":
+    if variant == "alphabet":
         left_page_alphabet_handwritten(cv)
-    elif variant == "alphabet":
-        left_page_alphabet(cv)
     else:
         left_page(cv)
     right_page(cv, style=style)

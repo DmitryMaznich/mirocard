@@ -13,6 +13,14 @@ wide_spacing = 8         # мм - широкая рабочая зона
 spacing_diagonal = 20    # мм - стандарт российских школ
 angle_from_vertical = 65 # градусов
 margin = 15              # мм - поля
+# Смещает фазу горизонтальных линий так, чтобы верхнее поле (было 2мм) и
+# нижнее (было 4мм) стали симметричными 7мм/7мм -- на печати у пользователя
+# реальный принтер срезал самую верхнюю строку из-за слишком узкого
+# верхнего поля; -3мм (5мм/1мм) было первой попыткой, пользователь
+# 2026-08-20 попросил ещё на 2мм ниже. Не увеличивает число строк (те же
+# 17 практических строк) -- просто даёт самой верхней строке достаточно
+# поля, чтобы не срезалась при печати.
+vertical_shift = -5      # мм
 
 output_file = 'lined_paper_A4_landscape_standard.pdf'
 # ============================================================
@@ -40,7 +48,7 @@ c.setStrokeColorRGB(0.55, 0.62, 0.72)
 
 for x_offset_mm in [0, 148.5]:
     x_offset = x_offset_mm * mm
-    y = 0
+    y = vertical_shift * mm
     pattern_index = 0
     while y < page_height:
         if pattern_index % 2 == 0:
@@ -49,7 +57,7 @@ for x_offset_mm in [0, 148.5]:
         else:
             y += wide_spacing * mm
             c.setLineWidth(1.3)
-        if y < page_height:
+        if 0 <= y < page_height:
             c.line(x_offset, y, x_offset + 148*mm, y)
         pattern_index += 1
 

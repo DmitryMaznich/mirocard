@@ -12,6 +12,9 @@ spacing_diagonal = 3     # мм - частые наклонные
 angle_from_vertical = 65 # градусов
 margin = 15              # мм - поля
 dot_radius = 0.5         # мм - радиус точек
+# См. make_lined_paper_landscape_standard.py -- тот же сдвиг фазы по той
+# же причине (принтер срезал верхнюю строку из-за узкого верхнего поля).
+vertical_shift = -5      # мм
 
 output_file = 'lined_paper_A4_landscape_dots_only.pdf'
 # ============================================================
@@ -42,18 +45,18 @@ top_line_positions = []
 
 for x_offset_mm in [0, 148.5]:
     x_offset = x_offset_mm * mm
-    y = 0
+    y = vertical_shift * mm
     pattern_index = 0
     while y < page_height:
         if pattern_index % 2 == 0:
             y += narrow_spacing * mm
             c.setLineWidth(0.3)
-            if y < page_height:
+            if 0 <= y < page_height:
                 top_line_positions.append(y)  # верхняя линия рабочей зоны
         else:
             y += wide_spacing * mm
             c.setLineWidth(1.3)
-        if y < page_height:
+        if 0 <= y < page_height:
             c.line(x_offset, y, x_offset + 148*mm, y)
         pattern_index += 1
 
