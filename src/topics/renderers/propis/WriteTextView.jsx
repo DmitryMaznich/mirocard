@@ -70,6 +70,12 @@ export default function WriteTextView({ task, onClose }) {
     return map;
   }, [task]);
 
+  const punctuationByLabel = useMemo(() => {
+    const map = new Map();
+    for (const item of task?.punctuation ?? []) map.set(item.label ?? item.id, item);
+    return map;
+  }, [task]);
+
   const [text, setText] = useState(task?.initialText ?? "");
   const [caseMode, setCaseMode] = useState("lower");
   const [activeIndex, setActiveIndex] = useState(null);
@@ -95,11 +101,11 @@ export default function WriteTextView({ task, onClose }) {
   // keystroke that grew unbounded as the user kept writing, and was the real driver behind
   // typing feeling laggy/dropping input the longer a session ran (2026-08-13). Recreated only
   // when the letter/connector data itself changes (never mid-session in practice).
-  const segmentCache = useMemo(() => new Map(), [lettersByLabel, connectorsByKey]);
+  const segmentCache = useMemo(() => new Map(), [lettersByLabel, connectorsByKey, punctuationByLabel]);
 
   const layout = useMemo(
-    () => layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache),
-    [text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache]
+    () => layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache, punctuationByLabel),
+    [text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache, punctuationByLabel]
   );
 
   useEffect(() => {
@@ -173,6 +179,15 @@ export default function WriteTextView({ task, onClose }) {
                             <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                           ))
                         )}
+                      </g>
+                    ) : seg.type === "glyph" ? (
+                      // Real captured punctuation ink, but never animated (see
+                      // buildPunctuationGlyph in wordEngine.js) — it's a standalone
+                      // replacement for the fallback font glyph, not a letter that chains.
+                      <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                        {seg.strokes.map((s, ssi) => (
+                          <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        ))}
                       </g>
                     ) : (
                       <text

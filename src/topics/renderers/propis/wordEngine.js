@@ -589,50 +589,100 @@ const WORD_GAP_UNITS = 33;
 // function (also used from plain vitest).
 const FALLBACK_CHAR_WIDTH_UNITS = 24;
 
-// Splits `word` into runs of consecutive "cursive-capable" (in lettersByLabel) vs
-// "fallback" characters, and builds each run separately — a run of real letters still
-// goes through buildWordTrajectory exactly as before (so connectors within it chain
-// normally), but a digit/punctuation run (or any run buildWordTrajectory unexpectedly
-// fails on) becomes a fixed-width fallback-text placeholder instead of silently deleting
-// the whole word, letting mixed content like "стол1" render "стол" in cursive followed by
-// a plain "1". Returns segments already laid out left-to-right within the word (each with
-// its own `xOffset`), plus the word's total width for layoutTextIntoRows' own row-fit math.
+// A punctuation mark is captured ink (real hand-drawn stroke), but unlike a letter it never
+// takes a connector and is never chained through buildWordTrajectory — it's a standalone
+// glyph that just replaces the system-font fallback character for that symbol, positioned
+// immediately after whatever comes before it (same idea as a fallback glyph, just real ink
+// instead of a font). Mirrors buildWordTrajectory's own minX-shift-to-0 safety net (see the
+// comment there) so a raw capture that dips slightly negative doesn't clip off the left edge.
+function buildPunctuationGlyph(card) {
+  let minX = 0;
+  let maxX = 0;
+  for (const s of card.strokes) {
+    for (const p of samplePath(s.d)) {
+      if (p[0] < minX) minX = p[0];
+      if (p[0] > maxX) maxX = p[0];
+    }
+  }
+  let strokes = card.strokes;
+  if (minX < 0) {
+    const shift = -minX;
+    strokes = strokes.map((s) => ({ ...s, d: transformPathD(s.d, { translateX: shift }) }));
+    maxX += shift;
+  }
+  return { strokes, inkWidthUnits: maxX };
+}
+
+// Splits `word` into runs of consecutive "cursive-capable" (in lettersByLabel) characters —
+// a run of real letters goes through buildWordTrajectory exactly as before (so connectors
+// within it chain normally) — versus individual punctuation marks (in punctuationByLabel,
+// each always its OWN segment, never merged with a neighbor even if two appear back to back,
+// since punctuation never chains) versus runs of anything else, which become a fixed-width
+// fallback-text placeholder (digits, or any letter run buildWordTrajectory unexpectedly fails
+// on) instead of silently deleting that part of the word — letting mixed content like
+// "стол1" render "стол" in cursive followed by a plain "1". Returns segments already laid out
+// left-to-right within the word (each with its own `xOffset`), plus the word's total width
+// for layoutTextIntoRows' own row-fit math.
 //
 // `cache` (optional, keyed by the literal word text) lets a caller that rebuilds the whole
 // text on every keystroke (write_text) skip rebuilding words it has already built before —
-// see layoutTextIntoRows. Safe only as long as lettersByLabel/connectorsByKey stay the same
-// for the cache's whole lifetime; the caller owns clearing it when those change.
-function buildWordSegments(word, lettersByLabel, connectorsByKey, cache) {
+// see layoutTextIntoRows. Safe only as long as lettersByLabel/connectorsByKey/punctuationByLabel
+// stay the same for the cache's whole lifetime; the caller owns clearing it when those change.
+function buildWordSegments(word, lettersByLabel, connectorsByKey, punctuationByLabel, cache) {
   if (cache && cache.has(word)) return cache.get(word);
   const chars = Array.from(word);
-  const runs = [];
-  for (const ch of chars) {
-    const supported = lettersByLabel.has(ch);
-    const last = runs[runs.length - 1];
-    if (last && last.supported === supported) last.text += ch;
-    else runs.push({ supported, text: ch });
-  }
 
   const segments = [];
   let x = 0;
-  for (const run of runs) {
-    let trajectory = null;
-    if (run.supported) {
-      try {
-        trajectory = buildWordTrajectory(run.text, lettersByLabel, connectorsByKey);
-      } catch {
-        trajectory = null;
+  let i = 0;
+  while (i < chars.length) {
+    const ch = chars[i];
+
+    if (punctuationByLabel?.has(ch)) {
+      const glyph = buildPunctuationGlyph(punctuationByLabel.get(ch));
+      segments.push({ type: "glyph", xOffset: x, strokes: glyph.strokes, width: glyph.inkWidthUnits });
+      x += glyph.inkWidthUnits;
+      i += 1;
+      continue;
+    }
+
+    if (lettersByLabel.has(ch)) {
+      let j = i;
+      let text = "";
+      while (j < chars.length && lettersByLabel.has(chars[j])) {
+        text += chars[j];
+        j += 1;
       }
+      let trajectory = null;
+      try {
+        trajectory = buildWordTrajectory(text, lettersByLabel, connectorsByKey);
+      } catch {
+        // trajectory stays null -> falls through to the fallback-text branch below
+      }
+      if (trajectory) {
+        segments.push({ type: "cursive", xOffset: x, trajectory, width: trajectory.inkWidthUnits });
+        x += trajectory.inkWidthUnits;
+      } else {
+        const width = text.length * FALLBACK_CHAR_WIDTH_UNITS;
+        segments.push({ type: "fallback", xOffset: x, text, width });
+        x += width;
+      }
+      i = j;
+      continue;
     }
-    if (trajectory) {
-      segments.push({ type: "cursive", xOffset: x, trajectory, width: trajectory.inkWidthUnits });
-      x += trajectory.inkWidthUnits;
-    } else {
-      const width = run.text.length * FALLBACK_CHAR_WIDTH_UNITS;
-      segments.push({ type: "fallback", xOffset: x, text: run.text, width });
-      x += width;
+
+    let j = i;
+    let text = "";
+    while (j < chars.length && !lettersByLabel.has(chars[j]) && !punctuationByLabel?.has(chars[j])) {
+      text += chars[j];
+      j += 1;
     }
+    const width = text.length * FALLBACK_CHAR_WIDTH_UNITS;
+    segments.push({ type: "fallback", xOffset: x, text, width });
+    x += width;
+    i = j;
   }
+
   const result = { segments, width: x };
   if (cache) cache.set(word, result);
   return result;
@@ -647,7 +697,11 @@ function buildWordSegments(word, lettersByLabel, connectorsByKey, cache) {
 // `segmentCache` (optional) is forwarded to buildWordSegments so a caller re-running this
 // over the whole text on every keystroke (write_text's own useMemo) doesn't redo the real
 // stroke-geometry work for words it already built on an earlier call — see buildWordSegments.
-export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache) {
+// `punctuationByLabel` (optional) is the same shape as lettersByLabel but for standalone,
+// non-chaining punctuation glyphs (see buildWordSegments/buildPunctuationGlyph) — omitted or
+// empty just means every punctuation/digit character falls back to the plain system-font glyph,
+// same as before this existed.
+export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits, segmentCache, punctuationByLabel) {
   const hardLines = (text ?? "").split("\n");
   const placed = [];
   let rowIndex = 0;
@@ -658,7 +712,7 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
     let rowHasContent = false;
 
     for (const word of words) {
-      const { segments, width: wordWidth } = buildWordSegments(word, lettersByLabel, connectorsByKey, segmentCache);
+      const { segments, width: wordWidth } = buildWordSegments(word, lettersByLabel, connectorsByKey, punctuationByLabel, segmentCache);
       if (segments.length === 0) continue;
 
       // The row's first word always lands where it is, even if wider than rowWidthUnits

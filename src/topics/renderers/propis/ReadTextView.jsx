@@ -52,6 +52,12 @@ export default function ReadTextView({ task, onClose }) {
     return map;
   }, [task]);
 
+  const punctuationByLabel = useMemo(() => {
+    const map = new Map();
+    for (const item of task?.punctuation ?? []) map.set(item.label ?? item.id, item);
+    return map;
+  }, [task]);
+
   const texts = task?.texts ?? [];
   // Own internal Prev/Next state, same self-contained pattern PropisPracticeView already
   // uses for letter/case switching -- no other propis mode relies on the session engine's
@@ -80,8 +86,8 @@ export default function ReadTextView({ task, onClose }) {
   // keystroke; this view's text only changes when textIndex changes (Prev/Next), so the
   // real stroke-geometry work happens at most once per text, not once per keystroke.
   const layout = useMemo(
-    () => layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits),
-    [text, lettersByLabel, connectorsByKey, rowWidthUnits]
+    () => layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWidthUnits, undefined, punctuationByLabel),
+    [text, lettersByLabel, connectorsByKey, rowWidthUnits, punctuationByLabel]
   );
 
   useEffect(() => {
@@ -150,6 +156,15 @@ export default function ReadTextView({ task, onClose }) {
                                 <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                               ))
                             )}
+                          </g>
+                        ) : seg.type === "glyph" ? (
+                          // Real captured punctuation ink, but never animated (see
+                          // buildPunctuationGlyph in wordEngine.js) — it's a standalone
+                          // replacement for the fallback font glyph, not a letter that chains.
+                          <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                            {seg.strokes.map((s, ssi) => (
+                              <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                            ))}
                           </g>
                         ) : (
                           <text

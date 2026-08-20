@@ -303,6 +303,36 @@ describe("layoutTextIntoRows", () => {
     const second = layoutTextIntoRows("а б а", letters, new Map(), 500, cache);
     expect(second.placed[2].segments).toBe(first.placed[0].segments);
   });
+
+  // 2026-08-20 user correction: captured punctuation marks are not letters — they must
+  // never take a connector or chain through buildWordTrajectory the way two adjacent
+  // letters do. Each one is always its own standalone "glyph" segment.
+  describe("with punctuationByLabel (captured punctuation, standalone)", () => {
+    const PERIOD = { id: ".", label: ".", strokes: [{ d: "M 5 85 C 6 86 6 87 5 88" }] };
+    const QUESTION = { id: "?", label: "?", strokes: [{ d: "M 2 40 C 4 50 6 60 5 80" }] };
+    const punctuation = new Map([[".", PERIOD], ["?", QUESTION]]);
+
+    it("keeps a trailing punctuation mark as its own glyph segment, not merged into the letter run", () => {
+      const result = layoutTextIntoRows("а.", letters, new Map(), 500, undefined, punctuation);
+      expect(result.placed[0].segments).toEqual([
+        { type: "cursive", xOffset: 0, trajectory: expect.any(Object), width: 22 },
+        { type: "glyph", xOffset: 22, strokes: expect.any(Array), width: expect.any(Number) },
+      ]);
+    });
+
+    it("never merges two adjacent punctuation marks into one segment either", () => {
+      const result = layoutTextIntoRows("а.?", letters, new Map(), 500, undefined, punctuation);
+      expect(result.placed[0].segments).toHaveLength(3);
+      expect(result.placed[0].segments[1].type).toBe("glyph");
+      expect(result.placed[0].segments[2].type).toBe("glyph");
+      expect(result.placed[0].segments[1].xOffset).not.toBe(result.placed[0].segments[2].xOffset);
+    });
+
+    it("without punctuationByLabel, the same character still falls back to a plain-text glyph (unchanged legacy behavior)", () => {
+      const result = layoutTextIntoRows("а.", letters, new Map(), 500);
+      expect(result.placed[0].segments[1]).toEqual({ type: "fallback", xOffset: 22, text: ".", width: 24 });
+    });
+  });
 });
 
 describe("buildWordTrajectory — exit connectors (real, hand-drawn, never rescaled)", () => {

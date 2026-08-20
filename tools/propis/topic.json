@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.23.7",
+    "version": "1.23.8",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar.svg",
@@ -1293,7 +1293,7 @@
     },
     {
       "id": ",",
-      "type": "letter",
+      "type": "punctuation",
       "label": ",",
       "viewBox": "0 0 100 150",
       "strokes": [
@@ -1304,7 +1304,7 @@
     },
     {
       "id": ".",
-      "type": "letter",
+      "type": "punctuation",
       "label": ".",
       "viewBox": "0 0 100 150",
       "strokes": [
@@ -1315,7 +1315,7 @@
     },
     {
       "id": "?",
-      "type": "letter",
+      "type": "punctuation",
       "label": "?",
       "viewBox": "0 0 100 150",
       "strokes": [
@@ -1329,7 +1329,7 @@
     },
     {
       "id": "!",
-      "type": "letter",
+      "type": "punctuation",
       "label": "!",
       "viewBox": "0 0 100 150",
       "strokes": [
