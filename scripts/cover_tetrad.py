@@ -35,6 +35,15 @@ ROOT_DIR    = os.path.dirname(SCRIPTS_DIR)
 CURSIVE     = "ClassRoomCursive"
 pdfmetrics.registerFont(TTFont(CURSIVE, os.path.join(ROOT_DIR, "ClassRoomCursive.ttf")))
 
+# The "тексты" cover's alphabet is drawn with the child's OWN captured
+# cursive strokes (render.draw_letter), not this font -- confirmed with the
+# user 2026-08-20, same "real handwriting, not a font" rule the text-copying
+# notebook's own pages already follow (see text_page.py).
+PROPIS_WORKSHEETS_DIR = os.path.join(SCRIPTS_DIR, "propis_worksheets")
+if PROPIS_WORKSHEETS_DIR not in sys.path:
+    sys.path.insert(0, PROPIS_WORKSHEETS_DIR)
+from render import draw_letter, letter_ink_bounds, load_letters, SCALE as LETTER_SCALE
+
 REG, BOLD = "Helvetica", "Helvetica-Bold"
 for r_path, b_path in [
     ("C:/Windows/Fonts/arial.ttf",   "C:/Windows/Fonts/arialbd.ttf"),
@@ -156,6 +165,24 @@ def thumbnail_dots(cv, x0, x1, y0, y1, narrow_h, pitch, n_rows):
             xi = xs + y_top * TAN
             if x0 <= xi <= x1:
                 cv.circle(xi, y_top, dot_r, fill=1, stroke=0)
+
+
+def _texts_pictogram(cv, x0, x1, y0, y1, narrow_h, pitch, y_first):
+    """Mini copy of this notebook's own page layout: real ruling (same
+    physical sheet as the «стандарт» style — тексты pages use its exact
+    20mm косая линейка, see booklet.py), with the top ~40% overdrawn as
+    bold "already written" strokes and the rest left as plain blank
+    lines — mirrors the actual page (model text on top, copying space
+    below), so the window reads as "texts to copy into", not just ruling."""
+    diag_lines(cv, x0, x1, y0, y1, step=7 * MM)
+    propis_rows(cv, x0, x1, y_first, 5, narrow_h=narrow_h, pitch=pitch)
+
+    cv.setStrokeColorRGB(*HANDWRITTEN_INK_COLOR)
+    cv.setLineCap(1)
+    for i, frac in enumerate((0.82, 0.58)):
+        y = y_first - i * pitch
+        cv.setLineWidth(1.0 if i == 0 else 0.8)
+        cv.line(x0 + 0.8 * MM, y, x0 + 0.8 * MM + (x1 - x0 - 1.6 * MM) * frac, y)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -293,6 +320,103 @@ def left_page_alphabet(cv):
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# Левая страница — вариант «алфавит, рукописными буквами» (тетрадь «тексты»)
+# ═════════════════════════════════════════════════════════════════════════════
+
+# Same blue every other cursive stroke in the print pipeline uses (render.py's
+# own INK_COLOR default / text_page.py's INK_COLOR).
+HANDWRITTEN_INK_COLOR = (0.11, 0.30, 0.85)
+
+# "Аа" -- capital and its own lowercase side by side with a plain gap, not a
+# real connecting pen stroke: connectors.py has no data for that (a capital
+# letter's real connectors join it to whatever DIFFERENT letter starts a
+# word, e.g. "Аня", never to its own lowercase twin) -- same "isolated
+# letters, plain gap" pattern page.py's own paired practice rows already use
+# (see render.py's module docstring).
+PAIR_INTRA_GAP_MM = 0.8   # capital -> its own lowercase
+PAIR_INTER_GAP_MM = 3.0   # this pair -> the next pair
+
+
+def _alphabet_items(letters_by_label):
+    """33 (upper_or_None, lower) items in alphabet order. Ъ and Ь have no
+    captured uppercase card (same "letter with no uppercase" case
+    page.py's letter_rows_for already handles) -- those go in solo,
+    lowercase-only, matching that existing convention instead of a pair."""
+    items = []
+    for lower in ALPHABET_LOWER:
+        upper = lower.upper()
+        items.append((upper if upper in letters_by_label else None, lower))
+    return items
+
+
+def _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows):
+    """Greedily wraps the 33 case items across n_rows using each letter's
+    real ink width (mirrors _alphabet_rows' row-splitting role, but
+    width-aware since real captured strokes aren't monospaced like the
+    font version's pdfmetrics.stringWidth check)."""
+    def item_width_mm(upper, lower):
+        l0, l1, _, _ = letter_ink_bounds(letters_by_label[lower])
+        w = (l1 - l0) * LETTER_SCALE
+        if upper is not None:
+            u0, u1, _, _ = letter_ink_bounds(letters_by_label[upper])
+            w += (u1 - u0) * LETTER_SCALE + PAIR_INTRA_GAP_MM
+        return w
+
+    rows, row, row_w = [], [], 0.0
+    for upper, lower in _alphabet_items(letters_by_label):
+        w = item_width_mm(upper, lower)
+        added = w if not row else PAIR_INTER_GAP_MM + w
+        if row and row_w + added > max_w_mm:
+            rows.append(row)
+            row, row_w = [], 0.0
+            added = w
+        row.append((upper, lower, w))
+        row_w += added
+    if row:
+        rows.append(row)
+
+    assert len(rows) <= n_rows, f"алфавит не влез в {n_rows} строк рукописными буквами (вышло {len(rows)})"
+    return rows
+
+
+def _draw_alphabet_pairs_handwritten(cv, letters_by_label, ybase, cx, max_w):
+    max_w_mm = max_w / MM
+    rows = _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows=5)
+
+    cv.saveState()
+    cv.scale(MM, MM)
+    for i, row in enumerate(rows):
+        row_w = sum(w for _, _, w in row) + PAIR_INTER_GAP_MM * (len(row) - 1)
+        x = cx / MM - row_w / 2
+        baseline_mm = ybase(1 + i) / MM
+        for upper, lower, _ in row:
+            if upper is not None:
+                uw = draw_letter(cv, letters_by_label[upper], x, baseline_mm, 1.0, color=HANDWRITTEN_INK_COLOR)
+                x += uw + PAIR_INTRA_GAP_MM
+            lw = draw_letter(cv, letters_by_label[lower], x, baseline_mm, 1.0, color=HANDWRITTEN_INK_COLOR)
+            x += lw + PAIR_INTER_GAP_MM
+    cv.restoreState()
+
+
+def left_page_alphabet_handwritten(cv):
+    cv.setFillColorRGB(1, 1, 1)
+    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
+
+    ybase, cx, _max_w, font_max = _propis_grid(cv)
+
+    # Строка 0: заголовок (по центру, зелёный) — как у обычного алфавита
+    cv.setFont(CURSIVE, font_max)
+    cv.setFillColorRGB(0.05, 0.40, 0.08)
+    cv.drawCentredString(cx, ybase(0), "Алфавит")
+
+    # Строки 1-5: 33 пары «Аа Бб Вв...», настоящими росчерками пера
+    letters_by_label = load_letters()
+    _draw_alphabet_pairs_handwritten(cv, letters_by_label, ybase, cx, _max_w)
+
+    _logo_footer(cv)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # Правая страница — бланк ТЕТРАДЬ
 # ═════════════════════════════════════════════════════════════════════════════
 
@@ -369,6 +493,8 @@ def right_page(cv, style="плотная"):
     if style == "точки":
         propis_rows(cv, th_x0, th_x1, th_y_first, 5, narrow_h=th_narrow, pitch=th_pitch)
         thumbnail_dots(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, 5)
+    elif style == "тексты":
+        _texts_pictogram(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, th_y_first)
     else:
         diag_step = 3 * MM if style == "плотная" else 7 * MM
         diag_lines(cv, th_x0, th_x1, th_y0, th_y1, step=diag_step)
@@ -398,7 +524,9 @@ def main():
     out = os.path.join(ROOT_DIR, f"cover_{style}{suffix}.pdf")
     cv = canvas.Canvas(out, pagesize=landscape(A4))
 
-    if variant == "alphabet":
+    if style == "тексты":
+        left_page_alphabet_handwritten(cv)
+    elif variant == "alphabet":
         left_page_alphabet(cv)
     else:
         left_page(cv)

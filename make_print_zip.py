@@ -31,6 +31,19 @@ def run_make_notebook():
     )
 
 
+def build_texts_cover():
+    # Не входит в notebooks.py/make_notebook.py — своя обложка тетради
+    # «тексты» (алфавит настоящими росчерками пера + пиктограмма-окошко),
+    # а не переиспользование стандартной. cover_tetrad.py пишет результат
+    # в корень репозитория, как и остальные обложки.
+    print("── Генерирую обложку «Тетрадь — тексты для переписывания»...")
+    subprocess.run(
+        [sys.executable, os.path.join(ROOT, "scripts", "cover_tetrad.py"),
+         "--style=тексты", "--variant=alphabet"],
+        cwd=ROOT, check=True
+    )
+
+
 def copy_pdfs():
     os.makedirs(STAGING_PRINT, exist_ok=True)
     mapping = {
@@ -49,6 +62,7 @@ def copy_pdfs():
         "прописи_слова_часть1.pdf": os.path.join(OUTPUT_DIR, "propis_worksheets_words_part1.pdf"),
         "прописи_слова_часть2.pdf": os.path.join(OUTPUT_DIR, "propis_worksheets_words_part2.pdf"),
         "прописи_тексты.pdf": os.path.join(OUTPUT_DIR, "propis_worksheets_texts.pdf"),
+        "cover_алфавит_тексты.pdf": os.path.join(ROOT, "cover_тексты_alphabet.pdf"),
     }
     print("── Копирую PDF в staging...")
     for dest_name, src_path in mapping.items():
@@ -145,6 +159,7 @@ def update_catalog(zip_name, topic):
 
 def main():
     run_make_notebook()
+    build_texts_cover()
 
     with open(TOPIC_JSON, encoding="utf-8") as f:
         topic = json.load(f)
