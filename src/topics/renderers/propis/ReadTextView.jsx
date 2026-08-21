@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useLayoutEffect, useRef } from "react";
 import { layoutTextIntoRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
@@ -76,10 +76,18 @@ export default function ReadTextView({ task, onClose }) {
   useEffect(() => setActiveIndex(null), [textIndex]);
 
   const wrapRef = useRef(null);
+  // useLayoutEffect (not useEffect) + a synchronous first measurement, deliberately: on every
+  // (re)mount -- e.g. each session (re)start, since SessionScreen gives the renderer a fresh
+  // key per attempt -- wrapW otherwise starts at the 320 fallback below and only learns the
+  // real container width once ResizeObserver's async callback fires a frame later. On tablet
+  // that briefly renders at the WRONG (over-stretched, even bigger than the intended 2x) size
+  // before snapping to correct -- a visible flash. useLayoutEffect runs before the browser
+  // paints, so measuring here means the first paint already has the right width.
   const [wrapW, setWrapW] = useState(320);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    setWrapW(el.clientWidth || 320);
     const ro = new ResizeObserver((entries) => {
       setWrapW(entries[0].contentRect.width || 320);
     });
