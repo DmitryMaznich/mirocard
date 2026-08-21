@@ -11486,6 +11486,7 @@ button {
 .topic-cover--small  { width: 40px;  height: 40px; }
 .topic-cover--medium { width: 64px;  height: 64px; }
 .topic-cover--large  { width: 100px; height: 100px; }
+.topic-cover--fill   { width: 100%;  height: 100%; }
 .topic-cover--placeholder {
   background: #e8eaf6;
   color: #5c6bc0;
@@ -21212,7 +21213,7 @@ body { background: #eef0ef; }
   align-items: center;
   gap: 12px;
   min-height: 80px;
-  padding: 14px 16px;
+  padding: 14px 16px 14px 0;
   border-radius: 20px;
   border: 1.5px solid transparent;
   background: transparent;
@@ -21234,16 +21235,20 @@ body { background: #eef0ef; }
 .topic-tile-row--voc  .topic-tile-row__fill { background: linear-gradient(150deg, #f5a15f, #e0813a); }
 .topic-tile-row--prac .topic-tile-row__fill { background: linear-gradient(150deg, #8b9aa8, #6b7c8a); }
 
+/* Sized to exactly fill the transparent ~20% zone (matches __fill's left
+   offset above), edge to edge, so the pictogram isn't a small icon
+   floating in open space -- it IS the transparent zone's content. */
 .topic-tile-row__icon {
-  width: 52px; height: 52px;
-  border-radius: 14px;
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 20%;
+  padding: 10px;
+  box-sizing: border-box;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  position: relative;
   z-index: 1;
 }
 
-.topic-tile-row__text { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.topic-tile-row__text { flex: 1; min-width: 0; margin-left: calc(20% + 4px); position: relative; z-index: 1; }
 .topic-tile-row__eyebrow {
   display: flex; align-items: center; gap: 6px;
   font-size: 0.66rem;
@@ -21258,9 +21263,11 @@ body { background: #eef0ef; }
 .topic-tile-row__title {
   font-size: 0.94rem;
   font-weight: 800;
+  line-height: 1.25;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .topic-tile-row__tag {

@@ -85,6 +85,9 @@ export default function TopicTile({
   const statusBadge = entry?.status ? STATUS_BADGES[entry.status] : null;
   const topicId = installedRecord?.meta.id ?? entry?.id;
   const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
+  const versionText = installedRecord
+    ? (isBuiltin ? "встроенная" : `v${installedRecord.meta.version}`)
+    : (entry ? `v${entry.version}` : "");
 
   const badgeIcon = loading ? "…"
     : status === "active" || status === "open" ? <CheckmarkIcon size={16} />
@@ -108,11 +111,11 @@ export default function TopicTile({
     >
       <div className="topic-tile-row__fill" aria-hidden />
       <div className="topic-tile-row__icon">
-        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="small" />
+        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="fill" />
       </div>
       <div className="topic-tile-row__text">
         <div className="topic-tile-row__eyebrow">
-          <span>{category}</span>
+          <span>{versionText}</span>
           {statusBadge && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
         </div>
         <div className="topic-tile-row__title">{title}</div>

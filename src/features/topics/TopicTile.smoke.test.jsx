@@ -109,9 +109,9 @@ describe("TopicTile — mounted through the real component", () => {
     expect(container.querySelector(".topic-tile-row__more")).toBeFalsy();
   });
 
-  it("renders the category eyebrow and a beta tag when the entry carries one", () => {
+  it("renders the version eyebrow and a beta tag when the entry carries one", () => {
     mount({ entry: { id: "propis", version: "1.0.0", status: "beta" } });
-    expect(container.querySelector(".topic-tile-row__eyebrow").textContent).toContain("Чтение");
+    expect(container.querySelector(".topic-tile-row__eyebrow").textContent).toContain("v1.0.0");
     const tag = container.querySelector(".topic-tile-row__tag--beta");
     expect(tag?.textContent).toBe("БЕТА");
   });
