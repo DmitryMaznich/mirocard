@@ -42,9 +42,9 @@ export const STATUS_BADGES = {
 // Cover glyph + gradient per category — a consistent icon system standing in
 // for per-topic cover art, which doesn't exist for most decks.
 export const CATEGORY_STYLE = {
-  "Чтение":          { icon: "reading",  cls: "topic-tile__cover--lit" },
-  "Математика":      { icon: "math",     cls: "topic-tile__cover--math" },
-  "Словарный запас": { icon: "vocab",    cls: "topic-tile__cover--voc" },
-  "Практика":        { icon: "practice", cls: "topic-tile__cover--prac" },
-  [OTHER_CATEGORY]:  { icon: "generic",  cls: "topic-tile__cover--prac" },
+  "Чтение":          { icon: "reading",  cls: "topic-tile-row--lit" },
+  "Математика":      { icon: "math",     cls: "topic-tile-row--math" },
+  "Словарный запас": { icon: "vocab",    cls: "topic-tile-row--voc" },
+  "Практика":        { icon: "practice", cls: "topic-tile-row--prac" },
+  [OTHER_CATEGORY]:  { icon: "generic",  cls: "topic-tile-row--prac" },
 };
