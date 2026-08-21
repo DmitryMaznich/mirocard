@@ -143,9 +143,14 @@ function buildVerbNumberTasks(cards, params) {
 }
 
 // Past-tense forms for the verb_gender_agreement mode: masc/fem/neut are
-// spelled differently, plural is shared across genders. Distractors mix the
-// same verb's other genders (the actual skill being tested) with the same
-// gender's forms of other verbs (used to fill out larger option counts).
+// spelled differently, plural is shared across genders. Distractors are
+// strictly the same verb's other genders — the skill this mode tests is
+// picking the right ending for THIS verb, not telling verbs apart. An
+// earlier version also mixed in the same gender's forms of other verbs to
+// fill out larger option counts, but those often fit the sentence just as
+// well semantically (different root, same ending), which let a child pick
+// the "wrong" verb and still land on something that reads correctly —
+// undermining the actual skill being tested.
 const VERB_GENDER_FORMS = {
   poyti:      { masc: "пошёл",     fem: "пошла",     neut: "пошло",     plural: "пошли" },
   priti:      { masc: "пришёл",    fem: "пришла",    neut: "пришло",    plural: "пришли" },
@@ -162,11 +167,8 @@ function buildVerbGenderOptions(card, count) {
   const forms = VERB_GENDER_FORMS[card.verb] ?? {};
   const answerGender = GENDERS.find((gender) => forms[gender] === card.answer);
   const sameVerbOtherGenders = GENDERS.filter((gender) => gender !== answerGender).map((gender) => forms[gender]);
-  const sameGenderOtherVerbs = Object.entries(VERB_GENDER_FORMS)
-    .filter(([verb]) => verb !== card.verb)
-    .map(([, verbForms]) => verbForms[answerGender]);
 
-  return limitedOptions([...sameVerbOtherGenders, ...sameGenderOtherVerbs], card.answer, count);
+  return limitedOptions(sameVerbOtherGenders, card.answer, count);
 }
 
 function buildVerbGenderTasks(cards, params) {
