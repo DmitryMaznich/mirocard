@@ -114,11 +114,11 @@ export default function TopicTile({
         <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="fill" />
       </div>
       <div className="topic-tile-row__text">
+        <div className="topic-tile-row__title">{title}</div>
         <div className="topic-tile-row__eyebrow">
           <span>{versionText}</span>
           {statusBadge && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
         </div>
-        <div className="topic-tile-row__title">{title}</div>
       </div>
       {installedRecord && !isBuiltin && onMenu && (
         <button
