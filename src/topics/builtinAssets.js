@@ -573,9 +573,7 @@ const BUILTIN_ASSETS = {
   // (a later transparent-line-on-color-gradient variant was tried for the topic-catalog tile
   // specifically, but that whole tile treatment was reverted, and the transparent style also
   // read as illegible on the plain/transparent HomeScreen avatar bubble background, which
-  // this same asset feeds too -- see TopicCover usage in HomeScreen.jsx). Mode-level icons
-  // (the "Учим буквы"/"Написание слов"/etc. screen inside the propis topic) are out of scope
-  // and were never restored -- tools/propis/topic.json's mode.ui blocks carry no "icon" field.
+  // this same asset feeds too -- see TopicCover usage in HomeScreen.jsx).
   "media/avatar_propis.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="26" fill="#f7ecd8"/>
@@ -590,6 +588,63 @@ const BUILTIN_ASSETS = {
     <path d="M92 44h13l-6.5 13z" fill="#fbbf24"/>
     <circle cx="98.5" cy="10" r="3.5" fill="#fff" opacity="0.55"/>
   </g>
+</svg>`,
+  // Прописи (propis) mode icons -- restored 2026-08-21 (originally added 2026-08-20 in
+  // f50f5670, then reverted along with an unrelated topic-catalog-tile experiment; the
+  // topic.json "icon" fields were dropped at the same time and are added back alongside
+  // this). Shared visual language across all four: a ruled notebook card (echoing
+  // propisRuling.js's own thin/bold horizontal lines) and the same continuous wavy stroke
+  // standing in for real cursive ink (INK_COLOR #1d4ed8), rather than an actual glyph, which
+  // stays legible/recognizable at icon scale a rendered letterform wouldn't. Each mode's row
+  // count/keyboard hint differentiates it from the others at a glance -- one wave (single
+  // letter/word) vs three (a whole text) vs a screen-to-paper arrow (copying, not typing).
+  "media/icons/propis_practice.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
+  <rect x="18" y="18" width="92" height="92" rx="14" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
+  <path d="M30 60h68" stroke="#dcebf6" stroke-width="2"/>
+  <path d="M30 86h68" stroke="#6fa3e0" stroke-width="2.6"/>
+  <path d="M46 86c-2-14 6-24 18-24 10 0 17 8 17 18s-7 16-15 16c-7 0-12-5-12-12s5-11 11-11" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+  "media/icons/propis_write_words.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
+  <rect x="16" y="16" width="96" height="62" rx="12" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
+  <path d="M28 60h72" stroke="#6fa3e0" stroke-width="2.4"/>
+  <path d="M32 58c3-12 8-12 11 0s8 12 11 0 8-12 11 0 8 12 11 0 8-12 11 0" fill="none" stroke="#1d4ed8" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#8d8177">
+    <rect x="20" y="90" width="16" height="14" rx="4"/>
+    <rect x="40" y="90" width="16" height="14" rx="4"/>
+    <rect x="60" y="90" width="16" height="14" rx="4"/>
+    <rect x="80" y="90" width="16" height="14" rx="4"/>
+  </g>
+</svg>`,
+  "media/icons/propis_write_text.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
+  <rect x="16" y="12" width="96" height="66" rx="12" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
+  <path d="M28 34h72M28 54h72M28 74h56" stroke="#6fa3e0" stroke-width="2.2"/>
+  <path d="M32 32c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0 6 8 8 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 52c2-8 6-8 8 0s6 8 8 0 6-8 8 0 6 8 8 0 6-8 8 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 72c2-8 6-8 8 0s6 8 8 0 6-8 8 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#8d8177">
+    <rect x="20" y="90" width="16" height="14" rx="4"/>
+    <rect x="40" y="90" width="16" height="14" rx="4"/>
+    <rect x="60" y="90" width="16" height="14" rx="4"/>
+    <rect x="80" y="90" width="16" height="14" rx="4"/>
+  </g>
+</svg>`,
+  "media/icons/propis_read_text.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
+  <rect x="20" y="10" width="88" height="58" rx="10" fill="#2b2b2b"/>
+  <rect x="26" y="16" width="76" height="46" rx="4" fill="#fffdf8"/>
+  <path d="M34 34h60M34 48h44" stroke="#6fa3e0" stroke-width="2.2"/>
+  <path d="M38 32c2-6 5-6 7 0s5 6 7 0 5-6 7 0 5 6 7 0 5-6 7 0" fill="none" stroke="#1d4ed8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 70v20" stroke="#ef6f5e" stroke-width="6" stroke-linecap="round"/>
+  <path d="M52 84l12 14 12-14z" fill="#ef6f5e"/>
+  <rect x="24" y="104" width="80" height="18" rx="4" fill="#fffdf8" stroke="#bcd8ec" stroke-width="2.5"/>
+  <path d="M32 113c2-4 4-4 6 0s4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0" fill="none" stroke="#1d4ed8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
 };
 
