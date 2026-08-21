@@ -2,9 +2,14 @@ import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { layoutTextIntoRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
-  INK_COLOR, NATIVE_L3, UNIT_H, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
-  buildDiagonalLines,
+  INK_COLOR, NATIVE_L3, NATIVE_NARROW_MID, UNIT_H, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET,
+  TEXT_ROW_DIAGONAL_SPACING, buildDiagonalLines,
 } from "./propisRuling.js";
+
+// Word tap-hit rect: see ReadTextView.jsx's identical WORD_HIT_Y for the full derivation --
+// centers the hit rect on the row's own visual content instead of pinning it to y=0, which
+// otherwise sits mostly above where the ink actually renders.
+const WORD_HIT_Y = NATIVE_NARROW_MID - TEXT_ROW_PITCH / 2;
 
 const DIGIT_ROW = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
@@ -166,7 +171,7 @@ export default function WriteTextView({ task, onClose }) {
                 <g key={i} transform={`translate(${p.x} ${p.rowIndex * TEXT_ROW_PITCH})`}>
                   <rect
                     className="propis-text-word-hit"
-                    x={-4} y={0} width={wordWidth + 8} height={TEXT_ROW_PITCH}
+                    x={-4} y={WORD_HIT_Y} width={wordWidth + 8} height={TEXT_ROW_PITCH}
                     onClick={() => setActiveIndex((cur) => (cur === i ? null : i))}
                   />
                   {p.segments.map((seg, si) =>

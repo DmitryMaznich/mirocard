@@ -2,9 +2,21 @@ import { useMemo, useState, useEffect, useLayoutEffect, useRef } from "react";
 import { layoutTextIntoRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
-  INK_COLOR, NATIVE_L3, UNIT_H, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
-  buildDiagonalLines,
+  INK_COLOR, NATIVE_L3, NATIVE_NARROW_MID, UNIT_H, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET,
+  TEXT_ROW_DIAGONAL_SPACING, buildDiagonalLines,
 } from "./propisRuling.js";
+
+// Word tap-hit rect: one TEXT_ROW_PITCH tall, centered on NATIVE_NARROW_MID (the x-height
+// zone's own vertical center -- "most letters' own start/end point", per propisRuling.js) --
+// NOT y=0..TEXT_ROW_PITCH from the row's own top. TEXT_ROW_PITCH (72) is deliberately shorter
+// than a letter's full ascender-to-descender span (NATIVE_L1..NATIVE_L4, 130 units): rows tile
+// tighter than one isolated letter needs, relying on neighboring rows' ascenders/descenders
+// rarely colliding in practice (see TEXT_ROW_PITCH's own comment). A hit rect pinned to the
+// row's top 72 units therefore sits mostly ABOVE where the ink actually renders (bug reported
+// 2026-08-21: "the tap area is higher than the word") -- centering it on the row's own visual
+// content instead fixes that, and neighboring rows' hit rects still tile edge-to-edge with no
+// gap or overlap since they're offset by the same TEXT_ROW_PITCH the rows themselves are.
+const WORD_HIT_Y = NATIVE_NARROW_MID - TEXT_ROW_PITCH / 2;
 
 // Same fixed on-screen row height / guide-line / fallback-glyph setup as WriteTextView.jsx
 // (kept in sync deliberately, not shared, since the two views' keyboard-vs-no-keyboard
@@ -168,7 +180,7 @@ export default function ReadTextView({ task, onClose }) {
                     <g key={i} transform={`translate(${p.x} ${p.rowIndex * TEXT_ROW_PITCH})`}>
                       <rect
                         className="propis-text-word-hit"
-                        x={-4} y={0} width={wordWidth + 8} height={TEXT_ROW_PITCH}
+                        x={-4} y={WORD_HIT_Y} width={wordWidth + 8} height={TEXT_ROW_PITCH}
                         onClick={() => setActiveIndex((cur) => (cur === i ? null : i))}
                       />
                       {p.segments.map((seg, si) =>
