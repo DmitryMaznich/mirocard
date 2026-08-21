@@ -184,9 +184,14 @@ function buildVerbGenderTasks(cards, params) {
   );
 }
 
-// adjective_agreement: same masc/fem/neut/plural shape as verb gender —
-// distractors mix the same adjective's other genders (the actual skill)
-// with the same gender's forms of other adjectives (for larger counts).
+// adjective_agreement: same masc/fem/neut/plural shape as verb gender, and
+// the same fix applies — distractors are strictly the same adjective's
+// other genders. An earlier version also mixed in the same gender's forms
+// of other adjectives (e.g. offering "новая"/"большая" alongside the
+// correct "маленькая"), which just as often read as a perfectly
+// grammatical, plausible-sounding sentence with a different adjective —
+// letting a child pick the wrong word and still land on something that
+// sounds right, same failure mode as the verb_gender fix above.
 const ADJECTIVE_FORMS = {
   malenkiy: { masc: "маленький", fem: "маленькая", neut: "маленькое", plural: "маленькие" },
   novy:     { masc: "новый",     fem: "новая",     neut: "новое",     plural: "новые" },
@@ -197,11 +202,8 @@ function buildAdjectiveOptions(card, count) {
   const forms = ADJECTIVE_FORMS[card.adjective] ?? {};
   const answerGender = GENDERS.find((gender) => forms[gender] === card.answer);
   const sameAdjectiveOtherGenders = GENDERS.filter((gender) => gender !== answerGender).map((gender) => forms[gender]);
-  const sameGenderOtherAdjectives = Object.entries(ADJECTIVE_FORMS)
-    .filter(([adjective]) => adjective !== card.adjective)
-    .map(([, adjForms]) => adjForms[answerGender]);
 
-  return limitedOptions([...sameAdjectiveOtherGenders, ...sameGenderOtherAdjectives], card.answer, count);
+  return limitedOptions(sameAdjectiveOtherGenders, card.answer, count);
 }
 
 function buildAdjectiveAgreementTasks(cards, params) {

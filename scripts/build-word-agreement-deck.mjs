@@ -4,7 +4,7 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.8.4";
+const VERSION    = "1.8.5";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
 // .mp3 files. A card gets its `audio` field only if the file actually
@@ -132,9 +132,12 @@ const topic = {
         icon:        MODE_ICONS.adjective_agreement.path,
       },
       params: {
+        // Capped at 4, not 6, same reason as verb_gender_agreement:
+        // distractors are strictly this adjective's other genders
+        // (masc/fem/neut/plural), so 4 is every option that exists.
         optionCount: {
-          type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4, 6],
-          labels: { ru: { "2": "2 — начало", "3": "3", "4": "4", "6": "6 — уверенный уровень" } }, default: 2,
+          type: "enum", label: { ru: "Вариантов ответа" }, values: [2, 3, 4],
+          labels: { ru: { "2": "2 — начало", "3": "3", "4": "4 — уверенный уровень" } }, default: 2,
           info: OPTION_COUNT_INFO,
         },
       },
