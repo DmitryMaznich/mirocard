@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { getImportErrorMessage } from "./catalogService";
 import { CATEGORY_STYLE, STATUS_BADGES, OTHER_CATEGORY } from "./topicCategories";
-import { CategoryGlyph } from "./CategoryIcons";
+import TopicCover from "@/shared/components/TopicCover";
+import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, LockSmallIcon, ClockSmallIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
 
 // One row in the "Темы" list — a wide horizontal pill (same template as the
@@ -82,6 +83,8 @@ export default function TopicTile({
 
   const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE[OTHER_CATEGORY];
   const statusBadge = entry?.status ? STATUS_BADGES[entry.status] : null;
+  const topicId = installedRecord?.meta.id ?? entry?.id;
+  const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
 
   const badgeIcon = loading ? "…"
     : status === "active" || status === "open" ? <CheckmarkIcon size={16} />
@@ -104,7 +107,7 @@ export default function TopicTile({
       onClick={handleTileClick}
     >
       <div className="topic-tile-row__icon">
-        <CategoryGlyph name={style.icon} size={28} />
+        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="small" />
       </div>
       <div className="topic-tile-row__text">
         <div className="topic-tile-row__eyebrow">
