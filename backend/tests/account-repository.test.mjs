@@ -120,8 +120,6 @@ import {
   appendSession,
   getSessions,
   getAllSessions,
-  getStudentWeeklyProgress,
-  compareWeeklyProgress,
   upsertAccountTopic,
   getAccountTopics,
   getAccountTopicByTopicId,
@@ -205,76 +203,6 @@ test("getAllSessions returns all without pagination", () => {
     });
   }
   assert.equal(getAllSessions(db, acc.id).length, 5);
-});
-
-test("getStudentWeeklyProgress groups only the requested student's sessions", () => {
-  const db = makeDb();
-  const acc = makeAccount(db);
-  upsertStudent(db, acc.id, { id: "progress_student", name: "Маша" });
-  upsertStudent(db, acc.id, { id: "other_student", name: "Петя" });
-  appendSession(db, acc.id, {
-    id: "progress_1", studentId: "progress_student", topicId: "comparison", topicVersion: "1.0.0",
-    mode: "compare_visual", startedAt: "2026-08-03T10:00:00.000Z", completedAt: "2026-08-03T10:05:00.000Z",
-    correctCount: 8, incorrectCount: 2, percentCorrect: 80, mistakes: [{ conceptId: "more", cardId: "compare_1" }],
-    activeDurationMs: 120000, paramsSnapshot: { level: 2 }, entryPoint: "student_portal",
-  });
-  appendSession(db, acc.id, {
-    id: "progress_2", studentId: "progress_student", topicId: "comparison", topicVersion: "1.0.0",
-    mode: "compare_visual", startedAt: "2026-08-04T10:00:00.000Z", completedAt: "2026-08-04T10:04:00.000Z",
-    correctCount: 5, incorrectCount: 0, percentCorrect: 100, mistakes: [{ conceptId: "more", cardId: "compare_1" }],
-    activeDurationMs: 90000, paramsSnapshot: { level: 2 }, entryPoint: "therapist",
-  });
-  appendSession(db, acc.id, {
-    id: "other_1", studentId: "other_student", topicId: "comparison", topicVersion: "1.0.0",
-    mode: "compare_visual", startedAt: "2026-08-04T10:00:00.000Z", completedAt: "2026-08-04T10:04:00.000Z",
-    correctCount: 1, incorrectCount: 0, percentCorrect: 100, mistakes: [], activeDurationMs: 240000,
-  });
-  appendSession(db, acc.id, {
-    id: "progress_before", studentId: "progress_student", topicId: "comparison", topicVersion: "1.0.0",
-    mode: "compare_visual", startedAt: "2026-07-30T10:00:00.000Z", completedAt: "2026-07-30T10:02:00.000Z",
-    correctCount: 3, incorrectCount: 2, percentCorrect: 60, mistakes: [], activeDurationMs: 60000,
-    paramsSnapshot: { level: 2 }, entryPoint: "therapist",
-  });
-  appendSession(db, acc.id, {
-    id: "progress_before_2", studentId: "progress_student", topicId: "comparison", topicVersion: "1.0.0",
-    mode: "compare_visual", startedAt: "2026-07-31T10:00:00.000Z", completedAt: "2026-07-31T10:02:00.000Z",
-    correctCount: 3, incorrectCount: 2, percentCorrect: 60, mistakes: [], activeDurationMs: 60000,
-    paramsSnapshot: { level: 2 }, entryPoint: "therapist",
-  });
-
-  const progress = getStudentWeeklyProgress(
-    db, acc.id, "progress_student", "2026-08-03T00:00:00.000Z", "2026-08-10T00:00:00.000Z"
-  );
-  assert.equal(progress.summary.sessions, 2);
-  assert.equal(progress.summary.activeDays, 2);
-  assert.equal(progress.summary.activeDurationMs, 210000);
-  assert.equal(progress.summary.accuracy, 87);
-  assert.equal(progress.topics.length, 1);
-  assert.deepEqual(progress.topics[0].paramsSnapshots, [{ level: 2 }]);
-  assert.deepEqual(progress.recurringMistakes, [{
-    topicId: "comparison", conceptId: "more", cardId: "compare_1", count: 2, sessions: 2,
-  }]);
-  const previous = getStudentWeeklyProgress(
-    db, acc.id, "progress_student", "2026-07-27T00:00:00.000Z", "2026-08-03T00:00:00.000Z"
-  );
-  const comparison = compareWeeklyProgress(progress, previous);
-  assert.equal(comparison.summary.activeDurationMsDelta, 90000);
-  assert.equal(comparison.summary.accuracyDelta, 27);
-  assert.deepEqual(comparison.topics, [{
-    key: "comparison\u0000compare_visual", status: "comparable", activeDurationMsDelta: 90000,
-    sessionsDelta: 0, accuracyDelta: 27, previousAccuracy: 60,
-  }]);
-});
-
-test("getStudentWeeklyProgress refuses a student outside the account", () => {
-  const db = makeDb();
-  const first = makeAccount(db);
-  const second = makeAccount(db);
-  upsertStudent(db, second.id, { id: "private_student", name: "Лена" });
-  assert.equal(
-    getStudentWeeklyProgress(db, first.id, "private_student", "2026-08-03T00:00:00.000Z", "2026-08-10T00:00:00.000Z"),
-    null,
-  );
 });
 
 test("upsertAccountTopic and getAccountTopics", () => {

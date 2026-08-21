@@ -111,8 +111,6 @@ export default function StudentEditScreen() {
   const setScreen           = useAppStore((s) => s.setScreen);
   const students            = useAppStore((s) => s.students);
   const setStudents         = useAppStore((s) => s.setStudents);
-  const setActiveStudentId  = useAppStore((s) => s.setActiveStudentId);
-  const setStudentProgressReturnScreen = useAppStore((s) => s.setStudentProgressReturnScreen);
   const editingStudentId    = useAppStore((s) => s.editingStudentId);
   const studentTopicLinks   = useAppStore((s) => s.studentTopicLinks);
   const topicRecords        = useAppStore((s) => s.topicRecords);
@@ -282,19 +280,6 @@ export default function StudentEditScreen() {
       <div className="screen-header">
         <button className="back-btn" onClick={goBack}><BackArrowIcon /></button>
         <h1 className="screen-title">{isEdit ? initial.name : "Новый ученик"}</h1>
-        {isEdit && (
-          <button
-            type="button"
-            className="se-progress-btn"
-            onClick={() => {
-              setActiveStudentId(initial.id);
-              setStudentProgressReturnScreen("student_edit");
-              setScreen("student_progress");
-            }}
-          >
-            Прогресс
-          </button>
-        )}
         <button className="se-save-btn" onClick={handleSave} disabled={saving}>
           {saving ? "…" : "Сохранить"}
         </button>

@@ -77,10 +77,6 @@ export function initDb(dbPath = DB_PATH) {
       incorrect_count  INTEGER DEFAULT 0,
       percent_correct  INTEGER DEFAULT 0,
       mistakes         TEXT DEFAULT '[]',
-      active_duration_ms INTEGER,
-      elapsed_duration_ms INTEGER,
-      params_snapshot_json TEXT NOT NULL DEFAULT '{}',
-      entry_point      TEXT NOT NULL DEFAULT 'therapist',
       created_at       TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_sessions_account ON sessions(account_id);
@@ -215,18 +211,6 @@ export function initDb(dbPath = DB_PATH) {
   const sessionColumns = db.prepare("PRAGMA table_info(sessions)").all();
   if (!sessionColumns.some((c) => c.name === "card_events")) {
     db.exec("ALTER TABLE sessions ADD COLUMN card_events TEXT DEFAULT '[]'");
-  }
-  if (!sessionColumns.some((c) => c.name === "active_duration_ms")) {
-    db.exec("ALTER TABLE sessions ADD COLUMN active_duration_ms INTEGER");
-  }
-  if (!sessionColumns.some((c) => c.name === "elapsed_duration_ms")) {
-    db.exec("ALTER TABLE sessions ADD COLUMN elapsed_duration_ms INTEGER");
-  }
-  if (!sessionColumns.some((c) => c.name === "params_snapshot_json")) {
-    db.exec("ALTER TABLE sessions ADD COLUMN params_snapshot_json TEXT NOT NULL DEFAULT '{}'");
-  }
-  if (!sessionColumns.some((c) => c.name === "entry_point")) {
-    db.exec("ALTER TABLE sessions ADD COLUMN entry_point TEXT NOT NULL DEFAULT 'therapist'");
   }
 
   // Ensure unique email at DB level. Older DBs may lack the constraint if the

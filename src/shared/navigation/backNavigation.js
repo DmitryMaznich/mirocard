@@ -17,10 +17,6 @@ export const SESSION_EXIT_TARGET = "session_exit";
 export function getBackTarget(state) {
   const screen = state?.screen;
 
-  if (screen === "student_progress") {
-    return state.studentProgressReturnScreen ?? "students";
-  }
-
   if (screen === "modes") {
     const topicRecord = state.topicRecords?.find((record) => record.meta.id === state.activeTopicId);
     return topicRecord?.meta?.renderer === "reading" ? "texts" : "home";

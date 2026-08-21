@@ -426,9 +426,8 @@ export function appendSession(db, accountId, session) {
     INSERT OR IGNORE INTO sessions
       (id, account_id, student_id, topic_id, topic_version, mode,
        started_at, completed_at, correct_count, incorrect_count,
-       percent_correct, mistakes, card_events, active_duration_ms,
-       elapsed_duration_ms, params_snapshot_json, entry_point, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       percent_correct, mistakes, card_events, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     session.id,
     accountId,
@@ -443,16 +442,6 @@ export function appendSession(db, accountId, session) {
     session.percentCorrect ?? session.percent_correct ?? null,
     Array.isArray(mistakesRaw)   ? JSON.stringify(mistakesRaw)   : (mistakesRaw   ?? "[]"),
     Array.isArray(cardEventsRaw) ? JSON.stringify(cardEventsRaw) : (cardEventsRaw ?? "[]"),
-    Number.isFinite(session.activeDurationMs ?? session.active_duration_ms)
-      ? Math.max(0, Math.round(session.activeDurationMs ?? session.active_duration_ms))
-      : null,
-    Number.isFinite(session.elapsedDurationMs ?? session.elapsed_duration_ms)
-      ? Math.max(0, Math.round(session.elapsedDurationMs ?? session.elapsed_duration_ms))
-      : null,
-    typeof (session.paramsSnapshot ?? session.params_snapshot) === "string"
-      ? (session.paramsSnapshot ?? session.params_snapshot)
-      : JSON.stringify(session.paramsSnapshot ?? session.params_snapshot ?? {}),
-    session.entryPoint ?? session.entry_point ?? "therapist",
     now()
   );
 }
@@ -473,176 +462,6 @@ export function getAllSessions(db, accountId) {
   return db.prepare(
     "SELECT * FROM sessions WHERE account_id = ? ORDER BY completed_at DESC"
   ).all(accountId);
-}
-
-export function getStudentWeeklyProgress(db, accountId, studentId, periodStart, periodEnd) {
-  const student = db.prepare(
-    "SELECT id FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
-  ).get(studentId, accountId);
-  if (!student) return null;
-
-  const sessions = db.prepare(`
-    SELECT id, topic_id, mode, started_at, completed_at, correct_count, incorrect_count,
-           mistakes, active_duration_ms, elapsed_duration_ms, params_snapshot_json, entry_point
-    FROM sessions
-    WHERE account_id = ? AND student_id = ?
-      AND completed_at >= ? AND completed_at < ?
-    ORDER BY completed_at ASC
-  `).all(accountId, studentId, periodStart, periodEnd);
-
-  const topics = new Map();
-  const activeDays = new Set();
-  let activeDurationMs = 0;
-  let correctCount = 0;
-  let incorrectCount = 0;
-  let evaluatedAttempts = 0;
-  const mistakes = new Map();
-
-  for (const session of sessions) {
-    const elapsedFromDates = Math.max(
-      0,
-      new Date(session.completed_at).getTime() - new Date(session.started_at).getTime(),
-    );
-    const durationMs = Math.max(0, Number(session.active_duration_ms ?? session.elapsed_duration_ms ?? elapsedFromDates) || 0);
-    const key = `${session.topic_id}\u0000${session.mode}`;
-    const row = topics.get(key) ?? {
-      topicId: session.topic_id,
-      modeId: session.mode,
-      sessions: 0,
-      activeDurationMs: 0,
-      correctCount: 0,
-      incorrectCount: 0,
-      evaluatedAttempts: 0,
-      paramsSnapshots: [],
-      entryPoints: new Set(),
-    };
-
-    row.sessions += 1;
-    row.activeDurationMs += durationMs;
-    activeDurationMs += durationMs;
-    activeDays.add(session.completed_at.slice(0, 10));
-
-    if (session.correct_count != null && session.incorrect_count != null) {
-      const correct = Math.max(0, Number(session.correct_count) || 0);
-      const incorrect = Math.max(0, Number(session.incorrect_count) || 0);
-      row.correctCount += correct;
-      row.incorrectCount += incorrect;
-      row.evaluatedAttempts += correct + incorrect;
-      correctCount += correct;
-      incorrectCount += incorrect;
-      evaluatedAttempts += correct + incorrect;
-    }
-
-    try {
-      const snapshot = JSON.parse(session.params_snapshot_json ?? "{}");
-      if (snapshot && Object.keys(snapshot).length) row.paramsSnapshots.push(snapshot);
-    } catch { /* Malformed historical snapshot is safely ignored. */ }
-    row.entryPoints.add(session.entry_point ?? "therapist");
-    topics.set(key, row);
-
-    try {
-      const sessionMistakes = JSON.parse(session.mistakes ?? "[]");
-      for (const mistake of sessionMistakes) {
-        const conceptId = typeof mistake?.conceptId === "string" ? mistake.conceptId : null;
-        const cardId = typeof mistake?.cardId === "string" ? mistake.cardId : null;
-        if (!conceptId && !cardId) continue;
-        const mistakeKey = `${session.topic_id}\u0000${conceptId ?? ""}\u0000${cardId ?? ""}`;
-        const item = mistakes.get(mistakeKey) ?? {
-          topicId: session.topic_id,
-          conceptId,
-          cardId,
-          count: 0,
-          sessionIds: new Set(),
-        };
-        item.count += 1;
-        item.sessionIds.add(session.id);
-        mistakes.set(mistakeKey, item);
-      }
-    } catch { /* Malformed historical mistakes are safely ignored. */ }
-  }
-
-  const rows = [...topics.values()]
-    .map((row) => ({
-      ...row,
-      accuracy: row.evaluatedAttempts > 0
-        ? Math.round((row.correctCount / row.evaluatedAttempts) * 100)
-        : null,
-      paramsSnapshots: [...new Map(row.paramsSnapshots.map((snapshot) => [JSON.stringify(snapshot), snapshot])).values()],
-      entryPoints: [...row.entryPoints],
-    }))
-    .sort((a, b) => b.activeDurationMs - a.activeDurationMs || b.sessions - a.sessions);
-
-  return {
-    periodStart,
-    periodEnd,
-    summary: {
-      activeDays: activeDays.size,
-      sessions: sessions.length,
-      activeDurationMs,
-      correctCount,
-      incorrectCount,
-      evaluatedAttempts,
-      accuracy: evaluatedAttempts > 0 ? Math.round((correctCount / evaluatedAttempts) * 100) : null,
-    },
-    topics: rows,
-    recurringMistakes: [...mistakes.values()]
-      .filter((item) => item.count >= 2)
-      .map(({ sessionIds, ...item }) => ({ ...item, sessions: sessionIds.size }))
-      .sort((a, b) => b.count - a.count || b.sessions - a.sessions),
-  };
-}
-
-function stableDifficultyKey(row) {
-  const snapshots = row.paramsSnapshots ?? [];
-  return snapshots.length === 1 ? JSON.stringify(snapshots[0]) : null;
-}
-
-/**
- * Compares only equal topic/mode/difficulty combinations. A mixed level in a
- * week is useful activity data but not a trustworthy performance baseline.
- */
-export function compareWeeklyProgress(current, previous) {
-  const previousByKey = new Map();
-  for (const row of previous.topics ?? []) {
-    const difficultyKey = stableDifficultyKey(row);
-    if (!difficultyKey) continue;
-    previousByKey.set(`${row.topicId}\u0000${row.modeId}\u0000${difficultyKey}`, row);
-  }
-
-  const comparableTopics = (current.topics ?? []).map((row) => {
-    const difficultyKey = stableDifficultyKey(row);
-    if (!difficultyKey) return { key: `${row.topicId}\u0000${row.modeId}`, status: "mixed_difficulty" };
-    const baseline = previousByKey.get(`${row.topicId}\u0000${row.modeId}\u0000${difficultyKey}`);
-    if (!baseline) return { key: `${row.topicId}\u0000${row.modeId}`, status: "no_baseline" };
-    if (row.sessions < 2 || baseline.sessions < 2) {
-      return { key: `${row.topicId}\u0000${row.modeId}`, status: "not_enough_data" };
-    }
-    return {
-      key: `${row.topicId}\u0000${row.modeId}`,
-      status: "comparable",
-      activeDurationMsDelta: row.activeDurationMs - baseline.activeDurationMs,
-      sessionsDelta: row.sessions - baseline.sessions,
-      accuracyDelta: row.accuracy != null && baseline.accuracy != null
-        ? row.accuracy - baseline.accuracy
-        : null,
-      previousAccuracy: baseline.accuracy,
-    };
-  });
-
-  return {
-    previousPeriodStart: previous.periodStart,
-    previousPeriodEnd: previous.periodEnd,
-    hasPreviousData: previous.summary.sessions > 0,
-    summary: {
-      activeDaysDelta: current.summary.activeDays - previous.summary.activeDays,
-      activeDurationMsDelta: current.summary.activeDurationMs - previous.summary.activeDurationMs,
-      sessionsDelta: current.summary.sessions - previous.summary.sessions,
-      accuracyDelta: current.summary.accuracy != null && previous.summary.accuracy != null
-        ? current.summary.accuracy - previous.summary.accuracy
-        : null,
-    },
-    topics: comparableTopics,
-  };
 }
 
 // ─── Account topics ───────────────────────────────────────────────────────────

@@ -52,12 +52,3 @@ test("accounts has new columns", () => {
   assert.ok(cols.includes("referral_source"));
   assert.ok(cols.includes("consent_personal_data_at"));
 });
-
-test("sessions stores analytics timing and a params snapshot", () => {
-  const db = initDb(":memory:");
-  const cols = db.prepare("PRAGMA table_info(sessions)").all().map(c => c.name);
-  assert.ok(cols.includes("active_duration_ms"));
-  assert.ok(cols.includes("elapsed_duration_ms"));
-  assert.ok(cols.includes("params_snapshot_json"));
-  assert.ok(cols.includes("entry_point"));
-});
