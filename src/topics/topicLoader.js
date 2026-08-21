@@ -44,7 +44,6 @@ function validateManifest(manifest, appVersion) {
   if (!manifest.meta?.version) throw new TopicImportError("Отсутствует meta.version");
   const isReading      = manifest.meta.renderer === "reading" || Array.isArray(manifest.texts);
   const isNarrative      = manifest.meta.renderer === "narrative";
-  const isPhraseMatch    = manifest.meta.renderer === "phrase_match";
   const isChatPractice   = manifest.meta.renderer === "chat_practice";
   const isPrintMaterials = manifest.meta.renderer === "print_materials";
   if (isChatPractice) {
@@ -58,10 +57,6 @@ function validateManifest(manifest, appVersion) {
   } else if (isReading) {
     if (!Array.isArray(manifest.texts) || manifest.texts.length === 0) {
       throw new TopicImportError("Тема чтения не содержит текстов");
-    }
-  } else if (isPhraseMatch) {
-    if (!Array.isArray(manifest.groups) || manifest.groups.length === 0) {
-      throw new TopicImportError("Тема phrase_match не содержит групп");
     }
   } else if (!isNarrative && !isPrintMaterials && (!Array.isArray(manifest.cards) || manifest.cards.length === 0)) {
     throw new TopicImportError("Тема не содержит карточек");

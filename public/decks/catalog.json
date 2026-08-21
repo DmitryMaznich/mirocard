@@ -327,20 +327,6 @@
       "access": "free"
     },
     {
-      "id": "phrase_match_pilot",
-      "version": "2.1.0",
-      "renderer": "phrase_match",
-      "url": "./decks/phrase_match_pilot_v2.1.0.zip",
-      "title": {
-        "ru": "Точное чтение"
-      },
-      "description": {
-        "ru": "8 групп на глагольные приставки. Перетащи ответ к нужному вопросу."
-      },
-      "status": "release",
-      "access": "free"
-    },
-    {
       "id": "word_agreement_ru",
       "version": "1.8.6",
       "url": "./decks/word_agreement_ru_v1.8.6.zip",

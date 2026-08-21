@@ -1256,7 +1256,6 @@ export default function ParamsScreen() {
   const hasVideos = (student?.rewardVideos?.length ?? 0) > 0;
 
   const isComparison          = topicRecord?.meta.renderer === "comparison";
-  const isPhraseMatch         = topicRecord?.meta.renderer === "phrase_match";
   const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
@@ -1583,7 +1582,7 @@ export default function ParamsScreen() {
     </>
   ) : (
     <>
-      {!isPhraseMatch && !modeHasCategoryParam && !mode?.hideConceptPicker && (
+      {!modeHasCategoryParam && !mode?.hideConceptPicker && (
         <div className="param-row param-row--block">
           <div className="param-label">Понятия</div>
           <div className="param-concept-col">

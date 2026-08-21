@@ -9,7 +9,6 @@ const RENDERER_EMOJI = {
   comparison:     "⚖️",
   streak_tracker: "⭐",
   reading:        "📖",
-  phrase_match:   "🔤",
 };
 
 const BANNER_DISMISSED_KEY = "shs_install_banner_dismissed";

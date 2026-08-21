@@ -7,7 +7,6 @@ export const CATALOG_CATEGORIES = {
   reading_dad_poems:        "Чтение",
   reading_dad_instructions: "Чтение",
   sentence_puzzle:          "Чтение",
-  phrase_match_pilot:       "Чтение",
   vowel_consonant_ru:       "Чтение",
   magnetic_alphabet:        "Чтение",
   comparison:               "Математика",
