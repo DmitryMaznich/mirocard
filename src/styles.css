@@ -21227,7 +21227,8 @@ body { background: #eef0ef; }
 .topic-tile-row__icon {
   width: 52px; height: 52px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.16);
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
