@@ -106,6 +106,7 @@ export default function TopicTile({
       className={`topic-tile-row ${style.cls}${canOpen ? " topic-tile-row--open" : ""}`}
       onClick={handleTileClick}
     >
+      <div className="topic-tile-row__fill" aria-hidden />
       <div className="topic-tile-row__icon">
         <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="small" />
       </div>

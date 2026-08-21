@@ -21214,26 +21214,36 @@ body { background: #eef0ef; }
   min-height: 80px;
   padding: 14px 16px;
   border-radius: 20px;
-  border: none;
+  border: 1.5px solid transparent;
+  background: transparent;
   color: #fff;
   cursor: pointer;
   position: relative;
+  overflow: hidden;
 }
-.topic-tile-row--math { background: linear-gradient(150deg, #5b9bf5, #3b82f6); }
-.topic-tile-row--lit  { background: linear-gradient(150deg, #5fb3a6, #3f8b7e); }
-.topic-tile-row--voc  { background: linear-gradient(150deg, #f5a15f, #e0813a); }
-.topic-tile-row--prac { background: linear-gradient(150deg, #8b9aa8, #6b7c8a); }
+.topic-tile-row--math { border-color: rgba(59, 130, 246, 0.35); }
+.topic-tile-row--lit  { border-color: rgba(63, 139, 126, 0.35); }
+.topic-tile-row--voc  { border-color: rgba(224, 129, 58, 0.35); }
+.topic-tile-row--prac { border-color: rgba(107, 124, 138, 0.35); }
+
+/* The tile's actual color fill -- covers the right ~80%, leaving the
+   pictogram's ~20% on a transparent ground per the two-tone treatment. */
+.topic-tile-row__fill { position: absolute; top: 0; right: 0; bottom: 0; left: 20%; }
+.topic-tile-row--math .topic-tile-row__fill { background: linear-gradient(150deg, #5b9bf5, #3b82f6); }
+.topic-tile-row--lit  .topic-tile-row__fill { background: linear-gradient(150deg, #5fb3a6, #3f8b7e); }
+.topic-tile-row--voc  .topic-tile-row__fill { background: linear-gradient(150deg, #f5a15f, #e0813a); }
+.topic-tile-row--prac .topic-tile-row__fill { background: linear-gradient(150deg, #8b9aa8, #6b7c8a); }
 
 .topic-tile-row__icon {
   width: 52px; height: 52px;
   border-radius: 14px;
-  background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
-.topic-tile-row__text { flex: 1; min-width: 0; }
+.topic-tile-row__text { flex: 1; min-width: 0; position: relative; z-index: 1; }
 .topic-tile-row__eyebrow {
   display: flex; align-items: center; gap: 6px;
   font-size: 0.66rem;
@@ -21281,6 +21291,8 @@ body { background: #eef0ef; }
   flex-shrink: 0;
   cursor: pointer;
   margin-right: -4px;
+  position: relative;
+  z-index: 1;
 }
 
 .topic-tile-row__badge {
@@ -21292,6 +21304,8 @@ body { background: #eef0ef; }
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 700;
+  position: relative;
+  z-index: 1;
 }
 .topic-tile-row__badge--done { background: rgba(255, 255, 255, 0.22); color: #fff; }
 .topic-tile-row__badge--get  { background: #fff; }
