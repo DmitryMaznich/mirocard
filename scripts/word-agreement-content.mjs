@@ -1,4 +1,4 @@
-// Shared content for the "Языковой тренажёр" (word_agreement) topic.
+// Shared content for the "Согласование слов" (word_agreement) topic.
 // Used by both build-word-agreement-deck.mjs (packages the deck) and
 // generate-word-agreement-audio.mjs (synthesizes one .wav per card's full
 // sentence via Gemini TTS). Keeping the sentences in one place avoids the

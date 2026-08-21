@@ -4,7 +4,7 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.8.5";
+const VERSION    = "1.8.6";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
 // .mp3 files. A card gets its `audio` field only if the file actually
@@ -26,7 +26,7 @@ const topic = {
     id:       TOPIC_ID,
     renderer: "word_agreement",
     version:  VERSION,
-    title:    { ru: "Языковой тренажёр" },
+    title:    { ru: "Согласование слов" },
     avatar:   AVATAR_PATH,
     about: {
       description: {
@@ -195,7 +195,7 @@ const entry = {
   version:  VERSION,
   url:      `./decks/${TOPIC_ID}_v${VERSION}.zip`,
   zipUrl:   `${TOPIC_ID}_v${VERSION}.zip`,
-  title:    { ru: "Языковой тренажёр" },
+  title:    { ru: "Согласование слов" },
   description: {
     ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, стол, машина, книга, кукла, яблоко, окно, яйцо), число и род глагола, числительное, прилагательное и притяжательные местоимения + существительное. Настраиваемая сложность: от двух до шести вариантов ответа.",
   },
