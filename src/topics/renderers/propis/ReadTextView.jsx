@@ -145,6 +145,9 @@ export default function ReadTextView({ task, onClose }) {
   return (
     <div className="propis-practice-stage">
       <button type="button" className="propis-ctrl-btn propis-practice-close" onClick={onClose} aria-label="Закрыть">✕</button>
+      <div style={{ position: "fixed", top: 4, left: 4, zIndex: 9999, background: "#000", color: "#0f0", font: "12px monospace", padding: "4px 8px", borderRadius: 4, pointerEvents: "none" }}>
+        innerWidth={typeof window !== "undefined" ? window.innerWidth : "?"} isTablet={String(isTablet)} wrapW={Math.round(wrapW)}
+      </div>
 
       <div className="propis-text-frame">
         {texts.length === 0 ? (
