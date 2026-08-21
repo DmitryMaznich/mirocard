@@ -10,6 +10,11 @@ export const useAppStore = create((set) => ({
   // screen. Null means "use the default flow".
   sessionReturnScreen: null,
   setSessionReturnScreen: (sessionReturnScreen) => set({ sessionReturnScreen }),
+  // The progress screen can be opened from either the student list or the
+  // student's editor. Keep that parent explicitly because this app uses a
+  // screen state machine rather than a browser-router history stack.
+  studentProgressReturnScreen: "students",
+  setStudentProgressReturnScreen: (studentProgressReturnScreen) => set({ studentProgressReturnScreen }),
   // Which lesson-plan checklist item (see src/features/lessonPlan) launched
   // the session currently in progress, if it was started via "Играть это".
   // Read once when the session completes to auto-mark that item done, then

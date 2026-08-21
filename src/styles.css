@@ -21196,10 +21196,17 @@ body { background: #eef0ef; }
   margin-bottom: 2px;
 }
 
+/* Single column on phone, 2 on tablet+ (2026-08-20 redesign) -- matches the
+   same min-width:768px breakpoint used app-wide (e.g. useTapButtonSize.js). */
 .topics-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 @media (min-width: 768px) {
   .topics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
+
+/* Wide horizontal pill, same template as the home screen's "Продолжить"
+   strip (.continue-strip) -- replaces the earlier square cover-on-top card.
+   No "Открыть" text button: the whole row is the tap target, and
+   .topic-tile-row__badge on the right carries the state as an icon instead. */
 .topic-tile-row {
   display: flex;
   align-items: center;
@@ -21216,21 +21223,18 @@ body { background: #eef0ef; }
 .topic-tile-row--lit  { background: linear-gradient(150deg, #5fb3a6, #3f8b7e); }
 .topic-tile-row--voc  { background: linear-gradient(150deg, #f5a15f, #e0813a); }
 .topic-tile-row--prac { background: linear-gradient(150deg, #8b9aa8, #6b7c8a); }
+
 .topic-tile-row__icon {
-  width: 52px;
-  height: 52px;
+  width: 52px; height: 52px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
+
 .topic-tile-row__text { flex: 1; min-width: 0; }
 .topic-tile-row__eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: flex; align-items: center; gap: 6px;
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -21247,6 +21251,7 @@ body { background: #eef0ef; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .topic-tile-row__tag {
   flex-shrink: 0;
   font-size: 0.58rem;
@@ -21258,30 +21263,30 @@ body { background: #eef0ef; }
 }
 .topic-tile-row__tag--beta { color: #3a5fc8; }
 .topic-tile-row__tag--experimental { color: #b05a10; }
+
+/* Deliberately quiet/low-contrast -- sits next to the louder status badge
+   without competing with it for attention (only shown for a topic that's
+   already installed, so it never displaces the badge on a not-yet-installed
+   tile). */
 .topic-tile-row__more {
-  width: 28px;
-  height: 28px;
+  width: 28px; height: 28px;
   border-radius: 50%;
   border: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.65);
   font-size: 0.85rem;
   font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
   margin-right: -4px;
 }
+
 .topic-tile-row__badge {
-  width: 34px;
-  height: 34px;
+  width: 34px; height: 34px;
   border-radius: 50%;
   border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
   font-size: 0.7rem;
@@ -21294,7 +21299,12 @@ body { background: #eef0ef; }
 .topic-tile-row--lit  .topic-tile-row__badge--get { color: #1f6b5e; }
 .topic-tile-row--voc  .topic-tile-row__badge--get { color: #b8631f; }
 .topic-tile-row--prac .topic-tile-row__badge--get { color: #4d5b66; }
-.topic-tile-row .form-error { position: absolute; left: 16px; right: 16px; bottom: -22px; font-size: 0.72rem; }
+
+.topic-tile-row .form-error {
+  position: absolute;
+  left: 16px; right: 16px; bottom: -22px;
+  font-size: 0.72rem;
+}
 
 /* ── Темы screen: Мои темы spotlight ─────────────────────── */
 .topic-spotlight-row {

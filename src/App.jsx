@@ -30,6 +30,7 @@ import SessionSummary from "@/features/session/SessionSummary";
 import ChatSessionScreen from "@/features/chat/ChatSessionScreen";
 import ChatParamsScreen from "@/features/chat/ChatParamsScreen";
 import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
+import StudentProgressScreen from "@/features/progress/StudentProgressScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
@@ -82,6 +83,7 @@ const SCREENS = {
   chat_params: ChatParamsScreen,
   chat_session: ChatSessionScreen,
   history: StudentHistoryScreen,
+  student_progress: StudentProgressScreen,
   settings: SettingsScreen,
   planner_menu: PlannerMenuScreen,
   planner_shopping: PlannerShoppingScreen,

@@ -49,15 +49,16 @@ export default function ConceptPickerScreen() {
   const studentTopicLinks  = useAppStore((s) => s.studentTopicLinks);
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode         = topicRecord?.modes?.find((m) => m.id === activeModeId);
-  const concepts    = topicRecord ? deriveConcepts(getConceptCards(topicRecord, mode)) : [];
+  const linkKey = `${activeStudentId}_${activeTopicId}`;
+  const selectionParams = studentTopicLinks[linkKey]?.params ?? {};
+  const concepts    = topicRecord ? deriveConcepts(getConceptCards(topicRecord, mode, selectionParams)) : [];
 
   const groupMeta      = topicRecord?.meta?.groups ?? null;
   const availableGroups = groupMeta ? Object.keys(groupMeta) : [];
 
-  const linkKey = `${activeStudentId}_${activeTopicId}`;
   const allIds  = concepts.map((c) => c.conceptId);
   const rawSavedIds = studentTopicLinks[linkKey]?.selectedConceptIds;
-  const savedIds = readModeSelectedConceptIds(topicRecord, mode, rawSavedIds);
+  const savedIds = readModeSelectedConceptIds(topicRecord, mode, rawSavedIds, selectionParams);
   // merge saved with any new concepts not yet in selection (new groups added after last save)
   const saved = savedIds
     ? [...new Set([...savedIds.filter((id) => allIds.includes(id)), ...allIds.filter((id) => !savedIds.includes(id))])]
@@ -92,7 +93,7 @@ export default function ConceptPickerScreen() {
 
   function confirm() {
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      selectedConceptIds: writeModeSelectedConceptIds(topicRecord, mode, rawSavedIds, [...selected]),
+      selectedConceptIds: writeModeSelectedConceptIds(topicRecord, mode, rawSavedIds, [...selected], selectionParams),
       selectionMode: "manual",
     });
     setScreen("params");

@@ -2,20 +2,23 @@ import { useState } from "react";
 import { getImportErrorMessage } from "./catalogService";
 import { CATEGORY_STYLE, STATUS_BADGES, OTHER_CATEGORY } from "./topicCategories";
 import { CategoryGlyph } from "./CategoryIcons";
-import {
-  ArrowDownSmallIcon,
-  ArrowUpSmallIcon,
-  CheckmarkIcon,
-  LockSmallIcon,
-  ClockSmallIcon,
-  MoreDotsIcon,
-} from "@/shared/components/ArrowIcons";
+import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, LockSmallIcon, ClockSmallIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
 
-// One row in the "Темы" catalog list. Covers both a catalog entry the user
-// hasn't installed yet and an already-installed record -- the tile figures
-// out which state it's in and shows the matching status badge, so the same
-// list can mix "browse the catalog" and "open what you have" without two
-// screens.
+// One row in the "Темы" list — a wide horizontal pill (same template as the
+// active-topic "Продолжить" strip on the home screen), not the earlier
+// square cover-on-top card. Covers both a catalog entry the user hasn't
+// installed yet and an already-installed record — the tile figures out
+// which state it's in and shows the matching status badge, so the same list
+// can mix "browse the catalog" and "open what you have" without two screens.
+//
+// 2026-08-20 redesign (user request): dropped the separate "Открыть" text
+// button entirely — the whole row is already the tap target, the button was
+// redundant. In its place, a single small circular badge on the right now
+// carries the state as an icon instead of a word (checkmark = open/installed,
+// down-arrow = not installed, up-arrow = update available, lock = paid tier
+// awaiting a request, clock = request already sent). The "⋯"/"i" menu
+// trigger sits just left of that badge, deliberately smaller and lower-
+// contrast so it doesn't compete with the primary status badge for attention.
 export default function TopicTile({
   title,
   category,
@@ -106,11 +109,7 @@ export default function TopicTile({
       <div className="topic-tile-row__text">
         <div className="topic-tile-row__eyebrow">
           <span>{category}</span>
-          {statusBadge && (
-            <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>
-              {statusBadge.label}
-            </span>
-          )}
+          {statusBadge && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
         </div>
         <div className="topic-tile-row__title">{title}</div>
       </div>

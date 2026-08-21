@@ -21,7 +21,7 @@ import {
   createEmailVerificationToken, consumeEmailVerificationToken,
   deleteEmailVerificationTokensForAccount,
   upsertStudent, getStudents, softDeleteStudent,
-  appendSession, getSessions,
+  appendSession, getSessions, getStudentWeeklyProgress, compareWeeklyProgress,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
   getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
   listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat, getActiveTokens,
@@ -517,9 +517,10 @@ async function handleDeleteStudent(req, res) {
 // ─── Session handlers ──────────────────────────────────────────────────────────
 
 function sessionToApi(s) {
-  let mistakes, cardEvents;
+  let mistakes, cardEvents, paramsSnapshot;
   try { mistakes   = JSON.parse(s.mistakes   ?? "[]"); } catch { mistakes   = []; }
   try { cardEvents = JSON.parse(s.card_events ?? "[]"); } catch { cardEvents = []; }
+  try { paramsSnapshot = JSON.parse(s.params_snapshot_json ?? "{}"); } catch { paramsSnapshot = {}; }
   return {
     id:             s.id,
     studentId:      s.student_id,
@@ -531,6 +532,10 @@ function sessionToApi(s) {
     correctCount:   s.correct_count,
     incorrectCount: s.incorrect_count,
     percentCorrect: s.percent_correct,
+    activeDurationMs: s.active_duration_ms,
+    elapsedDurationMs: s.elapsed_duration_ms,
+    paramsSnapshot,
+    entryPoint: s.entry_point,
     mistakes,
     cardEvents,
     createdAt:      s.created_at,
@@ -555,6 +560,38 @@ async function handleAppendSession(req, res) {
   }
   appendSession(db, account.id, body);
   writeJson(res, 201, { ok: true });
+}
+
+function weekBounds(week) {
+  const validWeek = typeof week === "string" && /^\d{4}-\d{2}-\d{2}$/.test(week);
+  const base = validWeek ? new Date(`${week}T00:00:00.000Z`) : new Date();
+  if (Number.isNaN(base.getTime())) return null;
+  const day = base.getUTCDay() || 7;
+  base.setUTCDate(base.getUTCDate() - day + 1);
+  base.setUTCHours(0, 0, 0, 0);
+  const end = new Date(base);
+  end.setUTCDate(end.getUTCDate() + 7);
+  return { start: base.toISOString(), end: end.toISOString() };
+}
+
+async function handleGetStudentWeeklyProgress(req, res, studentId) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const bounds = weekBounds(url.searchParams.get("week"));
+  if (!bounds) return writeJson(res, 400, { error: "week must be YYYY-MM-DD" });
+  const report = getStudentWeeklyProgress(db, account.id, studentId, bounds.start, bounds.end);
+  if (!report) return writeJson(res, 404, { error: "student not found" });
+  const previousEnd = new Date(bounds.start);
+  const previousStart = new Date(previousEnd);
+  previousStart.setUTCDate(previousStart.getUTCDate() - 7);
+  const previous = getStudentWeeklyProgress(
+    db,
+    account.id,
+    studentId,
+    previousStart.toISOString(),
+    previousEnd.toISOString(),
+  );
+  return writeJson(res, 200, { ...report, comparison: compareWeeklyProgress(report, previous) });
 }
 
 // ─── Analysis handlers ────────────────────────────────────────────────────────
@@ -1010,11 +1047,15 @@ async function handleStudentSession(req, res) {
     mode: body.mode,
     startedAt: body.startedAt,
     completedAt: body.completedAt,
-    correctCount: body.correctCount ?? 0,
-    incorrectCount: body.incorrectCount ?? 0,
-    percentCorrect: body.percentCorrect ?? 0,
+    correctCount: body.correctCount ?? null,
+    incorrectCount: body.incorrectCount ?? null,
+    percentCorrect: body.percentCorrect ?? null,
     mistakes: body.mistakes ?? [],
     cardEvents: body.cardEvents ?? [],
+    activeDurationMs: body.activeDurationMs ?? null,
+    elapsedDurationMs: body.elapsedDurationMs ?? null,
+    paramsSnapshot: body.paramsSnapshot ?? {},
+    entryPoint: "student_portal",
   });
   return writeNoContent(res);
 }
@@ -1142,6 +1183,8 @@ async function router(req, res) {
     // Students
     if (method === "GET"    && p === "/students")                 return await handleGetStudents(req, res);
     if (method === "POST"   && p === "/students")                 return await handleUpsertStudent(req, res);
+    { const m = p.match(/^\/students\/([^/]+)\/progress\/weekly$/);
+      if (method === "GET" && m) return await handleGetStudentWeeklyProgress(req, res, m[1]); }
     if (method === "DELETE" && /^\/students\/[^/]+$/.test(p))    return await handleDeleteStudent(req, res);
 
     // Sessions

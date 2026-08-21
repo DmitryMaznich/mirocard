@@ -17,6 +17,7 @@ export default function StudentsScreen() {
   const setStudents        = useAppStore((s) => s.setStudents);
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
   const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
+  const setStudentProgressReturnScreen = useAppStore((s) => s.setStudentProgressReturnScreen);
   const setScreen          = useAppStore((s) => s.setScreen);
 
   const [deleting,       setDeleting]       = useState(null);
@@ -134,6 +135,17 @@ export default function StudentsScreen() {
                 onClick={() => { setActiveStudentId(panelStudent.id); setScreen("home"); }}
               >
                 Выбрать <ChevronRightIcon size={14} />
+              </Button>
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => {
+                  setActiveStudentId(panelStudent.id);
+                  setStudentProgressReturnScreen("students");
+                  setScreen("student_progress");
+                }}
+              >
+                Прогресс
               </Button>
               <div style={{ display: "flex", gap: 8 }}>
                 <Button variant="secondary" fullWidth onClick={() => openEdit(panelStudent)}>

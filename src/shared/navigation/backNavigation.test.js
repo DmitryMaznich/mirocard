@@ -14,8 +14,16 @@ describe("getBackTarget", () => {
   it("returns stable parent screens for regular app screens", () => {
     expect(getBackTarget(state({ screen: "students" }))).toBe("home");
     expect(getBackTarget(state({ screen: "student_edit" }))).toBe("students");
+    expect(getBackTarget(state({ screen: "student_progress" }))).toBe("students");
     expect(getBackTarget(state({ screen: "concepts" }))).toBe("params");
     expect(getBackTarget(state({ screen: "all_texts" }))).toBe("texts");
+  });
+
+  it("returns to the screen that opened student progress", () => {
+    expect(getBackTarget(state({
+      screen: "student_progress",
+      studentProgressReturnScreen: "student_edit",
+    }))).toBe("student_edit");
   });
 
   it("returns texts before reading modes", () => {
