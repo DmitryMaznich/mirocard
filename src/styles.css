@@ -21197,10 +21197,15 @@ body { background: #eef0ef; }
   margin-bottom: 2px;
 }
 
-/* Single column on phone, 2 on tablet+ (2026-08-20 redesign) -- matches the
-   same min-width:768px breakpoint used app-wide (e.g. useTapButtonSize.js). */
+/* Single column on phone, 2 on tablet+ (2026-08-20 redesign). Lowered from the
+   app-wide 768px idiom (e.g. useTapButtonSize.js) to 700px 2026-08-21: a real
+   Galaxy Tab S7 FE (12.4", unambiguously a tablet) measures innerWidth=753 in
+   portrait, so 768px silently stuck it with the 1-column phone layout -- same
+   root cause as ReadTextView.jsx's TABLET_BREAKPOINT_PX, see that comment for
+   the full measurement. Scoped to this rule only, not the shared 768px idiom
+   other features still use. */
 .topics-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-@media (min-width: 768px) {
+@media (min-width: 700px) {
   .topics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
 

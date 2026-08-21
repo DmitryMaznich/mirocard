@@ -27,9 +27,16 @@ const ROW_HEIGHT_PX = 72;
 // WriteTextView's keyboard eats most of a tablet's extra width anyway, so it wasn't asked
 // for there). rowWidthUnits (below) is inversely proportional to ROW_HEIGHT_PX, so doubling
 // it HALVES how many native units span the same real container width -- i.e. every letter
-// occupies twice the screen space. Same tablet-breakpoint idiom column_addition's
-// useTapButtonSize.js already uses (matchMedia "(min-width: 768px)", live-updating).
+// occupies twice the screen space.
 const TABLET_ROW_HEIGHT_PX = ROW_HEIGHT_PX * 2;
+// column_addition's useTapButtonSize.js uses 768px for this same tablet-vs-phone split, but
+// that assumes ~2x devicePixelRatio landing exactly on 768 CSS px (true for iPad). Real
+// Android tablets don't all hit that: a Galaxy Tab S7 FE (12.4", unambiguously a tablet)
+// measured at innerWidth=753 in portrait -- reported 2026-08-21 as "scale still isn't
+// applying" after this file's own 768px check silently excluded it. Lowered specifically
+// here (not the shared useTapButtonSize idiom, which other features still rely on) to 700,
+// comfortably below that measurement and still well above any phone's portrait width.
+const TABLET_BREAKPOINT_PX = 700;
 
 // Real "косая линейка" cycle -- one thin line (x-height top) and one thick baseline line
 // per TEXT_ROW_PITCH, same fix applied here as WriteTextView.jsx (see propisRuling.js's
@@ -108,10 +115,10 @@ export default function ReadTextView({ task, onClose }) {
   }, []);
 
   const [isTablet, setIsTablet] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
+    () => typeof window !== "undefined" && window.matchMedia(`(min-width: ${TABLET_BREAKPOINT_PX}px)`).matches
   );
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
+    const mq = window.matchMedia(`(min-width: ${TABLET_BREAKPOINT_PX}px)`);
     const onChange = () => setIsTablet(mq.matches);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
@@ -145,9 +152,6 @@ export default function ReadTextView({ task, onClose }) {
   return (
     <div className="propis-practice-stage">
       <button type="button" className="propis-ctrl-btn propis-practice-close" onClick={onClose} aria-label="Закрыть">✕</button>
-      <div style={{ position: "fixed", top: 4, left: 4, zIndex: 9999, background: "#000", color: "#0f0", font: "12px monospace", padding: "4px 8px", borderRadius: 4, pointerEvents: "none" }}>
-        innerWidth={typeof window !== "undefined" ? window.innerWidth : "?"} isTablet={String(isTablet)} wrapW={Math.round(wrapW)}
-      </div>
 
       <div className="propis-text-frame">
         {texts.length === 0 ? (
