@@ -4,6 +4,8 @@ import { CATEGORY_STYLE, STATUS_BADGES, OTHER_CATEGORY } from "./topicCategories
 import TopicCover from "@/shared/components/TopicCover";
 import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, LockSmallIcon, ClockSmallIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
+import Modal from "@/shared/components/Modal";
+import Button from "@/shared/components/Button";
 
 // One row in the "Темы" list — a wide horizontal pill (same template as the
 // active-topic "Продолжить" strip on the home screen), not the earlier
@@ -36,6 +38,7 @@ export default function TopicTile({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [confirmingInstall, setConfirmingInstall] = useState(false);
 
   const isBuiltin = Boolean(installedRecord?.meta.builtin);
   const isPending = claimSource === "request";
@@ -67,9 +70,18 @@ export default function TopicTile({
     }
   }
 
+  // Installing a topic the user has never had before means a real download
+  // (a few MB to tens of MB) landing on their device without warning —
+  // confirm first. An update to something already installed isn't "a new
+  // deck" in the same sense, so it keeps the previous one-tap behavior.
+  function requestAction() {
+    if (status === "install") setConfirmingInstall(true);
+    else handleAction();
+  }
+
   function handleTileClick() {
     if (canOpen) onSelect(installedRecord);
-    else if (status !== "pending") handleAction();
+    else if (status !== "pending") requestAction();
   }
 
   // Deliberately NOT the same branch as handleTileClick: for "update", the
@@ -78,7 +90,12 @@ export default function TopicTile({
   function handleBadgeClick(e) {
     e.stopPropagation();
     if (status === "active" || status === "open") onSelect(installedRecord);
-    else if (status !== "pending") handleAction();
+    else if (status !== "pending") requestAction();
+  }
+
+  function confirmInstall() {
+    setConfirmingInstall(false);
+    handleAction();
   }
 
   const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE[OTHER_CATEGORY];
@@ -105,6 +122,7 @@ export default function TopicTile({
     : "Запрос отправлен";
 
   return (
+    <>
     <article
       className={`topic-tile-row ${style.cls}${canOpen ? " topic-tile-row--open" : ""}`}
       onClick={handleTileClick}
@@ -151,5 +169,20 @@ export default function TopicTile({
       </button>
       {error && <div className="form-error">{error}</div>}
     </article>
+    {confirmingInstall && (
+      <Modal
+        title="Установить тему?"
+        onClose={() => setConfirmingInstall(false)}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setConfirmingInstall(false)}>Отмена</Button>
+            <Button variant="primary" onClick={confirmInstall}>Установить</Button>
+          </>
+        }
+      >
+        <p>«{title}»{versionText ? ` ${versionText}` : ""} — тема будет скачана и сохранена на устройство.</p>
+      </Modal>
+    )}
+    </>
   );
 }
