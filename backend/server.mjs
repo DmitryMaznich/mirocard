@@ -720,6 +720,80 @@ async function handleAdminGrant(req, res) {
   writeJson(res, 200, { ok: true, email: account.email, topicId: body.topicId });
 }
 
+// TEMPORARY: one-off import of a single account bundle from the retired home
+// host, used only for the 2026-08-23 Railway migration. Remove after use.
+async function handleAdminImportAccountBundle(req, res) {
+  requireAdmin(req);
+  const body = await readJsonBody(req);
+  if (!body?.account?.id || !body?.account?.email) {
+    return writeJson(res, 400, { error: "account required" });
+  }
+
+  const tableColumnsCache = new Map();
+  function tableColumns(table) {
+    if (!tableColumnsCache.has(table)) {
+      const cols = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name));
+      tableColumnsCache.set(table, cols);
+    }
+    return tableColumnsCache.get(table);
+  }
+
+  // The source DB may carry columns dropped from the current schema
+  // (e.g. a stale `last_device` on an older `accounts` row) — only insert
+  // columns the live schema actually has.
+  function insertRow(table, row) {
+    const known = tableColumns(table);
+    const cols = Object.keys(row).filter((c) => known.has(c));
+    const placeholders = cols.map(() => "?").join(",");
+    db.prepare(`INSERT INTO ${table} (${cols.join(",")}) VALUES (${placeholders})`)
+      .run(...cols.map((c) => row[c]));
+  }
+
+  const existing = findAccountByEmailAny(db, body.account.email);
+
+  db.exec("BEGIN");
+  try {
+    if (existing) {
+      for (const t of ["account_settings", "students", "account_topics", "student_topic_links",
+        "sessions", "student_portals", "account_kv", "audio_overrides", "auth_tokens"]) {
+        db.prepare(`DELETE FROM ${t} WHERE account_id = ?`).run(existing.id);
+      }
+      db.prepare("DELETE FROM accounts WHERE id = ?").run(existing.id);
+    }
+
+    insertRow("accounts", body.account);
+    for (const r of body.account_settings ?? []) insertRow("account_settings", r);
+    for (const r of body.students ?? []) insertRow("students", r);
+    for (const r of body.account_topics ?? []) insertRow("account_topics", r);
+    for (const r of body.student_topic_links ?? []) insertRow("student_topic_links", r);
+    for (const r of body.sessions ?? []) insertRow("sessions", r);
+    for (const r of body.student_portals ?? []) insertRow("student_portals", r);
+    for (const r of body.account_kv ?? []) insertRow("account_kv", r);
+    for (const r of body.audio_overrides ?? []) {
+      insertRow("audio_overrides", { ...r, audio_data: Buffer.from(r.audio_data, "base64") });
+    }
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
+  writeJson(res, 200, {
+    ok: true,
+    replacedExisting: Boolean(existing),
+    accountId: body.account.id,
+    counts: {
+      students: (body.students ?? []).length,
+      sessions: (body.sessions ?? []).length,
+      account_topics: (body.account_topics ?? []).length,
+      student_topic_links: (body.student_topic_links ?? []).length,
+      student_portals: (body.student_portals ?? []).length,
+      account_kv: (body.account_kv ?? []).length,
+      audio_overrides: (body.audio_overrides ?? []).length,
+    },
+  });
+}
+
 async function handleAdminListAccounts(req, res) {
   requireAdmin(req);
   writeJson(res, 200, listAllAccounts(db));
@@ -1162,6 +1236,7 @@ async function router(req, res) {
     if (method === "POST"   && /^\/decks\/[^/]+\/claim$/.test(p))                 return await handleClaimDeck(req, res);
     if (method === "GET"    && /^\/decks\/[^/]+\/download$/.test(p))              return await handleDownloadDeck(req, res);
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
+    if (method === "POST"   && p === "/admin/import-account-bundle")                 return await handleAdminImportAccountBundle(req, res);
     { const m = p.match(/^\/admin\/accounts\/([^/]+)\/sessions$/);
       if (method === "GET" && m) return await handleAdminGetAccountSessions(req, res, m[1]); }
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
