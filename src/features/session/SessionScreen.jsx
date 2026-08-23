@@ -135,6 +135,7 @@ export default function SessionScreen() {
     "choose_action", "scene_function",
     "case_agreement", "verb_number", "verb_gender",
     "numeral_agreement", "adjective_agreement", "possessive_agreement",
+    "operation_observe",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 
@@ -279,7 +280,11 @@ export default function SessionScreen() {
   // the child's visual and motor reference for the retry.
   const keepsDictationCanvasOnMistake = topicRecord.meta.id === "symmetry_draw"
     && ["graphic_dictation", "coordinate_dictation"].includes(currentTask?.type);
-  const rendererTaskKey = keepsDictationCanvasOnMistake
+  // The first operations mode replays the exact same visual scene after an
+  // error. Remounting it would discard its gentle "Посмотри ещё раз" feedback
+  // before the replay begins.
+  const keepsObserveSceneOnMistake = currentTask?.type === "operation_observe";
+  const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake
     ? String(taskIndex)
     : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
   const showStreak = mode?.type !== "daily_sentences" && !isNavigatorFlashCards;

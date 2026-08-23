@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useSpeech } from "@/shared/hooks/useSpeech";
 import HelperPanel from "./HelperPanel";
 import {
   buildStickSlots,
@@ -557,6 +558,180 @@ function PlaceholderTask() {
   );
 }
 
+function ObserveQuantityRail({ task, phase }) {
+  const isBefore = phase === "before";
+  const isChanging = phase === "changing";
+  const changedIndex = task.operation === "add" ? task.result - 1 : task.start - 1;
+  const shownCount = isBefore ? task.start : task.result;
+  const label = isBefore || isChanging ? "Было" : "Стало";
+  const shape = ["circle", "square", "triangle"].includes(task.shape) ? task.shape : "circle";
+
+  return (
+    <div className="observe-change__quantity" aria-label={`${label}: ${shownCount}`}>
+      <div className="observe-change__quantity-label">
+        <span>{label}</span>
+        {task.showNumerals && <strong>{shownCount}</strong>}
+      </div>
+      <div className="observe-change__rail" style={{ "--observe-slots": task.maxNumber }} aria-hidden="true">
+        {Array.from({ length: task.maxNumber }, (_, index) => {
+          const isChangedDot = index === changedIndex;
+          const isPresent = task.operation === "subtract"
+            ? (phase === "after" || phase === "question" ? index < task.result : index < task.start)
+            : index < (isBefore ? task.start : task.result);
+          const animation = isChanging && isChangedDot
+            ? task.operation === "add" ? " observe-change__dot--enter" : " observe-change__dot--leave"
+            : "";
+
+          return (
+            <div key={index} className="observe-change__slot">
+              {isPresent && <span className={`observe-change__dot observe-change__dot--${shape}${animation}`} />}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEnabled }) {
+  const [phase, setPhase] = useState("before");
+  const [selected, setSelected] = useState(null);
+  const [feedback, setFeedback] = useState(null);
+  const timersRef = useRef([]);
+  const { speak, cancel } = useSpeech();
+
+  const clearSequence = useCallback(() => {
+    timersRef.current.forEach((timer) => clearTimeout(timer));
+    timersRef.current = [];
+  }, []);
+
+  const schedule = useCallback((callback, delay) => {
+    const timer = setTimeout(callback, delay);
+    timersRef.current.push(timer);
+    return timer;
+  }, []);
+
+  const say = useCallback((text) => {
+    if (soundEnabled) speak(text, { rate: 0.82 });
+  }, [soundEnabled, speak]);
+
+  const startSequence = useCallback(() => {
+    clearSequence();
+    cancel();
+    setPhase("before");
+    setSelected(null);
+    setFeedback(null);
+
+    schedule(() => say(`Смотри. Было ${task.start}.`), 80);
+    // Give the child time to count the initial set, watch the change,
+    // and then count the result before asking for an answer.
+    schedule(() => setPhase("changing"), 1800);
+    schedule(() => setPhase("after"), 3000);
+    schedule(() => {
+      setPhase("question");
+      say(`Стало ${task.result}. Больше или меньше?`);
+    }, 5000);
+  }, [cancel, clearSequence, say, schedule, task.result, task.start]);
+
+  useEffect(() => {
+    const startTimer = schedule(startSequence, 0);
+    return () => {
+      clearTimeout(startTimer);
+      clearSequence();
+      cancel();
+    };
+  }, [cancel, clearSequence, schedule, startSequence]);
+
+  function replay() {
+    startSequence();
+  }
+
+  function replaySpeech() {
+    if (feedback === "correct") {
+      say(task.answer === "more" ? "Стало больше." : "Стало меньше.");
+      return;
+    }
+    if (feedback === "retry") {
+      say("Посмотри ещё раз.");
+      return;
+    }
+    if (phase === "before" || phase === "changing") {
+      say(`Смотри. Было ${task.start}.`);
+      return;
+    }
+    if (phase === "after") {
+      say(`Стало ${task.result}.`);
+      return;
+    }
+    say(`Стало ${task.result}. Больше или меньше?`);
+  }
+
+  function handleAnswer(value) {
+    if (phase !== "question" || selected != null) return;
+    setSelected(value);
+
+    if (value === task.answer) {
+      setFeedback("correct");
+      playFeedback?.("correct");
+      say(value === "more" ? "Стало больше." : "Стало меньше.");
+      schedule(() => onCorrect(task.conceptId, task.cardId), 750);
+      return;
+    }
+
+    setFeedback("retry");
+    say("Посмотри ещё раз.");
+    onIncorrect(task.conceptId, task.cardId);
+    schedule(startSequence, 850);
+  }
+
+  const answerLabel = task.answer === "more" ? "Стало больше" : "Стало меньше";
+
+  return (
+    <div className="operation-stage operation-stage--observe">
+      <div className="observe-change">
+        <div className="observe-change__title">Смотри</div>
+        <ObserveQuantityRail task={task} phase={phase} />
+        <div className="observe-change__controls" aria-label="Повтор задания">
+          <button type="button" className="observe-change__repeat" onClick={replay}>
+            ↻ Ещё раз
+          </button>
+          <button type="button" className="observe-change__audio" onClick={replaySpeech} aria-label="Повторить фразу">
+            🔊
+          </button>
+        </div>
+        <div
+          className={`observe-change__answer-area${phase === "question" ? " observe-change__answer-area--visible" : ""}`}
+          aria-hidden={phase !== "question"}
+        >
+          <div className="observe-change__question">Больше или меньше?</div>
+          <div className="observe-change__answers">
+              <button
+                type="button"
+                className={`observe-change__answer observe-change__answer--more${selected === "more" ? " observe-change__answer--selected" : ""}${feedback === "correct" && task.answer === "more" ? " observe-change__answer--correct" : ""}`}
+                onClick={() => handleAnswer("more")}
+                disabled={selected != null}
+              >
+                <span aria-hidden="true">+</span> Больше
+              </button>
+              <button
+                type="button"
+                className={`observe-change__answer observe-change__answer--less${selected === "less" ? " observe-change__answer--selected" : ""}${feedback === "correct" && task.answer === "less" ? " observe-change__answer--correct" : ""}`}
+                onClick={() => handleAnswer("less")}
+                disabled={selected != null}
+              >
+                <span aria-hidden="true">−</span> Меньше
+              </button>
+          </div>
+        </div>
+        <div className="observe-change__feedback" aria-live="polite">
+          {feedback === "retry" && "Посмотри ещё раз"}
+          {feedback === "correct" && answerLabel}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FindSignTask({ task, onCorrect, onIncorrect }) {
   const [step, setStep] = useState(1);
   const [selected, setSelected] = useState(null);
@@ -844,14 +1019,19 @@ function MissingTermTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
-function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount }) {
+function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled }) {
   const type = task.type;
 
   if (type === "operation_worksheet") {
     return <WorksheetTask task={task} />;
   }
-  if (type === "operation_observe") {
+  // Kept for the future specialist-only physical-stick tool. It is no longer
+  // part of the child-facing `operation_observe` lesson.
+  if (type === "operation_manual_observe") {
     return <ManualSessionTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} streakCount={streakCount} />;
+  }
+  if (type === "operation_observe") {
+    return <ObserveChangeTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} playFeedback={playFeedback} soundEnabled={soundEnabled} />;
   }
   if (type === "operation_do_action") {
     return <ManipulationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
@@ -877,7 +1057,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount })
   return null;
 }
 
-export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake, streakCount }) {
+export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled }) {
   if (!task) return null;
-  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} />;
+  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} />;
 }

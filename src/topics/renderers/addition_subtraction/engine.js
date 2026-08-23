@@ -1,8 +1,8 @@
 import { shuffle } from "@/shared/utils/shuffle";
 
-const DEFAULT_MAX_NUMBER = 5;
 const DEFAULT_CHANGE_MAX = 1;
 const DEFAULT_RAIL_SIZE = 20;
+const OBSERVE_SHAPES = ["circle", "square", "triangle"];
 
 function getModeType(mode) {
   return typeof mode === "string" ? mode : mode?.type ?? mode?.id ?? "operation_result";
@@ -49,6 +49,31 @@ function resolveAssociationDirection(modeType, params, taskIndex) {
   if (direction === "action_to_sign") return "action_to_sign";
   if (direction === "random") return Math.random() < 0.5 ? "sign_to_action" : "action_to_sign";
   return taskIndex % 2 === 0 ? "sign_to_action" : "action_to_sign";
+}
+
+function buildObserveTask(card, params = {}) {
+  const operation = normalizeOperation(card.params?.operation);
+  const requestedMaxNumber = toNumber(params.maxNumber, 3);
+  const maxNumber = requestedMaxNumber <= 3 ? 3 : 5;
+  const start = operation === "add"
+    ? randomInt(1, maxNumber - 1)
+    : randomInt(2, maxNumber);
+  const delta = 1;
+  const result = operation === "add" ? start + delta : start - delta;
+
+  return {
+    type: "operation_observe",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    operation,
+    start,
+    delta,
+    result,
+    answer: result > start ? "more" : "less",
+    maxNumber,
+    shape: OBSERVE_SHAPES[randomInt(0, OBSERVE_SHAPES.length - 1)],
+    showNumerals: Boolean(params.showNumerals),
+  };
 }
 
 function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
@@ -256,6 +281,14 @@ export function generateTasks(mode, cards, arg3, arg4) {
   const operationCards = cards.filter((card) => card.renderer === "addition_subtraction");
 
   if (!operationCards.length) return [];
+
+  if (modeType === "operation_observe") {
+    // Do not shuffle this mode: alternating directions prevents more than two
+    // identical changes in a row while the answer buttons stay in fixed places.
+    return Array.from({ length: count }, (_, index) =>
+      buildObserveTask(operationCards[index % operationCards.length], params)
+    );
+  }
 
   if (modeType === "operation_worksheet") {
     const groupCount = Math.max(2, Math.min(8, toNumber(params.groupCount, 6)));

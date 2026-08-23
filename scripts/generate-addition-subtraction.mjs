@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 const manifest = {
   meta: {
     id: "addition_subtraction",
-    version: "1.2.0",
+    version: "1.3.3",
     minAppVersion: "1.0.2",
     language: "ru",
     cardType: "procedural",
@@ -34,12 +34,17 @@ const manifest = {
       type: "operation_observe",
       evaluation: "auto",
       defaultCardId: "operation_plus",
-      ui: { title: "1. Наблюдение (скоро)", instruction: "Смотрим, как меняется количество" },
+      ui: { title: "1. Что изменилось?", instruction: "Больше или меньше?" },
+      params: {
+        maxNumber: { type: "enum", values: [3, 5], labels: { ru: { "3": "до 3", "5": "до 5" } }, default: 3, label: { ru: "Максимальное число" } },
+        showNumerals: { type: "boolean", default: false, label: { ru: "Показывать цифры" } },
+      },
       methodology: {
-        text: "Первая ступень: ребёнок наблюдает за действием — специалист показывает добавление или убирание предметов. Цель — сформировать зрительный образ операции до того, как ребёнок будет выполнять её самостоятельно.",
+        text: "Первая ступень: ребёнок наблюдает за изменением количества и выбирает, стало больше или меньше. Это формирует зрительный образ изменения до названия действия и математического знака.",
         tips: [
-          "Используйте реальные предметы параллельно с экраном: кубики, фишки, пуговицы.",
-          "Называйте действие вслух: «Добавляю одну — стало три».",
+          "Начинайте с диапазона до 3 и изменения на один предмет.",
+          "Говорите коротко: «Было три. Стало четыре. Больше или меньше?»",
+          "При ошибке повторите показ, не называя знак и не торопя ребёнка.",
         ],
         duration: "2–3 мин",
       },
@@ -241,5 +246,5 @@ const manifest = {
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/addition_subtraction_v1.2.0.zip", buffer);
-console.log("generated addition_subtraction_v1.2.0.zip");
+writeFileSync("public/decks/addition_subtraction_v1.3.3.zip", buffer);
+console.log("generated addition_subtraction_v1.3.3.zip");

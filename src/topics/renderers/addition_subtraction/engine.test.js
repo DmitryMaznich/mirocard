@@ -21,6 +21,48 @@ const CARDS = [
 ];
 
 describe("addition_subtraction engine", () => {
+  it("creates observation tasks with one visible change", () => {
+    const tasks = generateTasks("operation_observe", CARDS, 12, { maxNumber: 5 });
+
+    expect(tasks).toHaveLength(12);
+    tasks.forEach((task) => {
+      expect(task.type).toBe("operation_observe");
+      expect(task.delta).toBe(1);
+      expect(task.maxNumber).toBe(5);
+      expect(task.answer).toBe(task.result > task.start ? "more" : "less");
+      expect(Math.abs(task.result - task.start)).toBe(1);
+      expect(["circle", "square", "triangle"]).toContain(task.shape);
+    });
+  });
+
+  it("keeps observation tasks in the selected range", () => {
+    const tasks = generateTasks("operation_observe", CARDS, 20, { maxNumber: 3 });
+
+    tasks.forEach((task) => {
+      expect(task.maxNumber).toBe(3);
+      expect(task.start).toBeGreaterThanOrEqual(1);
+      expect(task.result).toBeGreaterThanOrEqual(1);
+      expect(task.start).toBeLessThanOrEqual(3);
+      expect(task.result).toBeLessThanOrEqual(3);
+    });
+  });
+
+  it("alternates observation directions when both operation cards are selected", () => {
+    const tasks = generateTasks("operation_observe", CARDS, 12, { maxNumber: 3 });
+    const directions = tasks.map((task) => task.answer);
+
+    expect(directions.filter((direction) => direction === "more")).toHaveLength(6);
+    expect(directions.filter((direction) => direction === "less")).toHaveLength(6);
+    directions.forEach((direction, index) => {
+      if (index > 0) expect(direction).not.toBe(directions[index - 1]);
+    });
+  });
+
+  it("passes the numeral-support setting to observation tasks", () => {
+    const [task] = generateTasks("operation_observe", [CARDS[0]], 1, { showNumerals: true });
+    expect(task.showNumerals).toBe(true);
+  });
+
   it("generates requested task count", () => {
     const tasks = generateTasks("operation_result", CARDS, 12, {});
     expect(tasks).toHaveLength(12);

@@ -151,26 +151,30 @@ describe("importTopic — valid cases", () => {
     expect(record.meta.renderer).toBe("addition_subtraction");
     expect(record.meta.avatar).toBe("media/avatar_operations.svg");
     expect(record.modes.map((m) => m.id)).toEqual([
-      "operation_action_from_sign",
-      "operation_do_action",
+      "operation_observe",
       "operation_name_action",
-      "operation_more_less",
-      "operation_sign_from_action",
-      "operation_build_expression",
+      "operation_do_action",
+      "operation_action_from_sign",
+      "operation_find_sign",
       "operation_result",
-      "operation_missing_sign",
+      "operation_chain",
+      "operation_worksheet",
+      "operation_missing_term",
     ]);
     expect(record.modes.map((m) => m.ui.title)).toEqual([
-      "Знак ↔ действие",
-      "Сделай действие",
-      "Что сделали?",
-      "Больше / меньше",
-      "Действие → знак",
-      "Собери пример",
-      "Сколько стало?",
-      "Вставь знак",
+      "1. Что изменилось?",
+      "2. Назови действие (скоро)",
+      "3. Сделай действие",
+      "4. Знак ↔ Действие",
+      "5. Найди знак",
+      "6. Сколько стало?",
+      "7. Цепочка",
+      "8. Листок",
+      "9. Найди неизвестное",
     ]);
-    expect(record.modes.every((m) => m.params?.maxNumber)).toBe(true);
+    const observeMode = record.modes.find((mode) => mode.id === "operation_observe");
+    expect(observeMode.params.maxNumber.default).toBe(3);
+    expect(observeMode.params.showNumerals.default).toBe(false);
   });
 
   it("imports a reading topic with texts and no cards", async () => {

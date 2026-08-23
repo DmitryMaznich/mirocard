@@ -14,10 +14,10 @@
     "preview": "vite preview --host 0.0.0.0 --port 8080 --configLoader native",
     "serve:prod": "node backend/serve-production.mjs",
     "start": "node backend/server.mjs",
-    "deploy": "npm run deploy:prod",
-    "deploy:prod": "node --env-file=.env deploy-prod.mjs",
-    "deploy:verify": "node --env-file=.env deploy-prod.mjs --verify-only",
-    "deploy:safe": "node deploy-safe.mjs",
+    "deploy": "git push origin main",
+    "deploy:prod": "git push origin main",
+    "deploy:verify": "node scripts/verify-railway-deploy.mjs",
+    "deploy:safe": "git push origin main",
     "build:renderer": "vite build --config vite.config.renderer.mjs --configLoader native"
   },
   "dependencies": {
