@@ -51,7 +51,12 @@ function resolveAssociationDirection(modeType, params, taskIndex) {
   return taskIndex % 2 === 0 ? "sign_to_action" : "action_to_sign";
 }
 
-function buildObserveTask(card, params = {}) {
+function resolveObserveShape(index, params = {}) {
+  if (params.shapeMode !== "blocks") return "circle";
+  return OBSERVE_SHAPES[Math.floor(index / 3) % OBSERVE_SHAPES.length];
+}
+
+function buildObserveTask(card, params = {}, shape = "circle") {
   const operation = normalizeOperation(card.params?.operation);
   const requestedMaxNumber = toNumber(params.maxNumber, 3);
   const maxNumber = requestedMaxNumber <= 3 ? 3 : 5;
@@ -71,7 +76,7 @@ function buildObserveTask(card, params = {}) {
     result,
     answer: result > start ? "more" : "less",
     maxNumber,
-    shape: OBSERVE_SHAPES[randomInt(0, OBSERVE_SHAPES.length - 1)],
+    shape,
     showNumerals: Boolean(params.showNumerals),
   };
 }
@@ -286,7 +291,7 @@ export function generateTasks(mode, cards, arg3, arg4) {
     // Do not shuffle this mode: alternating directions prevents more than two
     // identical changes in a row while the answer buttons stay in fixed places.
     return Array.from({ length: count }, (_, index) =>
-      buildObserveTask(operationCards[index % operationCards.length], params)
+      buildObserveTask(operationCards[index % operationCards.length], params, resolveObserveShape(index, params))
     );
   }
 

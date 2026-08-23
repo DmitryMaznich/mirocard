@@ -31,7 +31,7 @@ describe("addition_subtraction engine", () => {
       expect(task.maxNumber).toBe(5);
       expect(task.answer).toBe(task.result > task.start ? "more" : "less");
       expect(Math.abs(task.result - task.start)).toBe(1);
-      expect(["circle", "square", "triangle"]).toContain(task.shape);
+      expect(task.shape).toBe("circle");
     });
   });
 
@@ -61,6 +61,15 @@ describe("addition_subtraction engine", () => {
   it("passes the numeral-support setting to observation tasks", () => {
     const [task] = generateTasks("operation_observe", [CARDS[0]], 1, { showNumerals: true });
     expect(task.showNumerals).toBe(true);
+  });
+
+  it("changes the visual material by short blocks when enabled", () => {
+    const tasks = generateTasks("operation_observe", CARDS, 9, { shapeMode: "blocks" });
+    expect(tasks.map((task) => task.shape)).toEqual([
+      "circle", "circle", "circle",
+      "square", "square", "square",
+      "triangle", "triangle", "triangle",
+    ]);
   });
 
   it("generates requested task count", () => {

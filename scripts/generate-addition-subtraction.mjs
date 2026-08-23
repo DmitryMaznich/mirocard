@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 const manifest = {
   meta: {
     id: "addition_subtraction",
-    version: "1.3.3",
+    version: "1.3.4",
     minAppVersion: "1.0.2",
     language: "ru",
     cardType: "procedural",
@@ -38,13 +38,14 @@ const manifest = {
       params: {
         maxNumber: { type: "enum", values: [3, 5], labels: { ru: { "3": "до 3", "5": "до 5" } }, default: 3, label: { ru: "Максимальное число" } },
         showNumerals: { type: "boolean", default: false, label: { ru: "Показывать цифры" } },
+        shapeMode: { type: "enum", values: ["circle", "blocks"], labels: { ru: { circle: "Только круги", blocks: "Фигуры сериями" } }, default: "circle", label: { ru: "Материал" } },
       },
       methodology: {
-        text: "Первая ступень: ребёнок наблюдает за изменением количества и выбирает, стало больше или меньше. Это формирует зрительный образ изменения до названия действия и математического знака.",
+        text: "Первая ступень: ребёнок наблюдает за одним изменением количества и выбирает + или −. На детском экране нет подписей: взрослый при необходимости задаёт вопрос вслух.",
         tips: [
           "Начинайте с диапазона до 3 и изменения на один предмет.",
-          "Говорите коротко: «Было три. Стало четыре. Больше или меньше?»",
-          "При ошибке повторите показ, не называя знак и не торопя ребёнка.",
+          "Сначала используйте только круги; другие фигуры вводите короткими сериями по три задания.",
+          "При ошибке экран повторяет показ, а озвучка говорит: «Неправильно. Посмотри ещё раз».",
         ],
         duration: "2–3 мин",
       },
@@ -246,5 +247,5 @@ const manifest = {
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/addition_subtraction_v1.3.3.zip", buffer);
-console.log("generated addition_subtraction_v1.3.3.zip");
+writeFileSync("public/decks/addition_subtraction_v1.3.4.zip", buffer);
+console.log("generated addition_subtraction_v1.3.4.zip");

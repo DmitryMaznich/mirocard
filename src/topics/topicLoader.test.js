@@ -175,6 +175,7 @@ describe("importTopic — valid cases", () => {
     const observeMode = record.modes.find((mode) => mode.id === "operation_observe");
     expect(observeMode.params.maxNumber.default).toBe(3);
     expect(observeMode.params.showNumerals.default).toBe(false);
+    expect(observeMode.params.shapeMode.default).toBe("circle");
   });
 
   it("imports a reading topic with texts and no cards", async () => {

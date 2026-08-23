@@ -1,6 +1,16 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+const speech = vi.hoisted(() => ({
+  cancel: vi.fn(),
+  speak: vi.fn(),
+}));
+
+vi.mock("@/shared/hooks/useSpeech", () => ({
+  useSpeech: () => speech,
+}));
+
 import AdditionSubtractionRenderer from "./index.jsx";
 
 const addTask = {
@@ -25,6 +35,8 @@ describe("operation_observe", () => {
     if (root) act(() => root.unmount());
     if (container) container.remove();
     vi.useRealTimers();
+    speech.cancel.mockClear();
+    speech.speak.mockClear();
     root = null;
     container = null;
   });
@@ -37,7 +49,7 @@ describe("operation_observe", () => {
       root.render(
         <AdditionSubtractionRenderer
           task={task}
-          soundEnabled={false}
+          soundEnabled={callbacks.soundEnabled ?? false}
           playFeedback={() => {}}
           onCorrect={callbacks.onCorrect ?? (() => {})}
           onIncorrect={callbacks.onIncorrect ?? (() => {})}
@@ -47,11 +59,13 @@ describe("operation_observe", () => {
     });
   }
 
-  it("shows the observed result before asking more or less", () => {
+  it("shows only the visual change and two sign choices", () => {
     vi.useFakeTimers();
     mount(addTask);
 
-    expect(container.querySelector(".observe-change__title")?.textContent).toBe("Смотри");
+    expect(container.textContent).not.toContain("Смотри");
+    expect(container.textContent).not.toContain("Было");
+    expect(container.textContent).not.toContain("Стало");
     expect(container.querySelectorAll(".observe-change__dot")).toHaveLength(2);
     expect(container.querySelectorAll(".observe-change__dot--square")).toHaveLength(2);
     const initialAnswerArea = container.querySelector(".observe-change__answer-area");
@@ -61,20 +75,20 @@ describe("operation_observe", () => {
     act(() => { vi.advanceTimersByTime(5000); });
 
     expect(container.querySelectorAll(".observe-change__dot")).toHaveLength(3);
-    expect(container.querySelector(".observe-change__question")?.textContent).toBe("Больше или меньше?");
+    expect(container.querySelector(".observe-change__question")).toBeNull();
     const visibleAnswerArea = container.querySelector(".observe-change__answer-area");
     expect(visibleAnswerArea?.classList.contains("observe-change__answer-area--visible")).toBe(true);
     expect(visibleAnswerArea?.getAttribute("aria-hidden")).toBe("false");
     expect([...container.querySelectorAll(".observe-change__answer")].map((button) => button.textContent.trim())).toEqual([
-      "+ Больше",
-      "− Меньше",
+      "+",
+      "−",
     ]);
   });
 
   it("records an incorrect answer and replays the same scene", () => {
     vi.useFakeTimers();
     const onIncorrect = vi.fn();
-    mount(addTask, { onIncorrect });
+    mount(addTask, { onIncorrect, soundEnabled: true });
     act(() => { vi.advanceTimersByTime(5000); });
 
     act(() => {
@@ -83,17 +97,17 @@ describe("operation_observe", () => {
     });
 
     expect(onIncorrect).toHaveBeenCalledWith("plus", "operation_plus");
-    expect(container.querySelector(".observe-change__feedback")?.textContent).toContain("Посмотри ещё раз");
+    expect(container.querySelector(".observe-change__feedback")).toBeNull();
+    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Неправильно. Посмотри ещё раз.");
 
     act(() => { vi.advanceTimersByTime(850); });
-    expect(container.querySelector(".observe-change__quantity-label")?.textContent).toBe("Было");
     expect(container.querySelectorAll(".observe-change__dot")).toHaveLength(2);
   });
 
   it("records a correct answer only after the calm confirmation", () => {
     vi.useFakeTimers();
     const onCorrect = vi.fn();
-    mount(addTask, { onCorrect });
+    mount(addTask, { onCorrect, soundEnabled: true });
     act(() => { vi.advanceTimersByTime(5000); });
 
     act(() => {
@@ -102,7 +116,8 @@ describe("operation_observe", () => {
     });
 
     expect(onCorrect).not.toHaveBeenCalled();
-    expect(container.querySelector(".observe-change__feedback")?.textContent).toContain("Стало больше");
+    expect(container.querySelector(".observe-change__feedback")).toBeNull();
+    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Правильно. Стало больше.");
     act(() => { vi.advanceTimersByTime(750); });
     expect(onCorrect).toHaveBeenCalledWith("plus", "operation_plus");
   });

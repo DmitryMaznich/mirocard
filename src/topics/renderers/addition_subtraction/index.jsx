@@ -563,15 +563,11 @@ function ObserveQuantityRail({ task, phase }) {
   const isChanging = phase === "changing";
   const changedIndex = task.operation === "add" ? task.result - 1 : task.start - 1;
   const shownCount = isBefore ? task.start : task.result;
-  const label = isBefore || isChanging ? "Было" : "Стало";
   const shape = ["circle", "square", "triangle"].includes(task.shape) ? task.shape : "circle";
 
   return (
-    <div className="observe-change__quantity" aria-label={`${label}: ${shownCount}`}>
-      <div className="observe-change__quantity-label">
-        <span>{label}</span>
-        {task.showNumerals && <strong>{shownCount}</strong>}
-      </div>
+    <div className="observe-change__quantity" aria-label={`Количество: ${shownCount}`}>
+      {task.showNumerals && <strong className="observe-change__numeral">{shownCount}</strong>}
       <div className="observe-change__rail" style={{ "--observe-slots": task.maxNumber }} aria-hidden="true">
         {Array.from({ length: task.maxNumber }, (_, index) => {
           const isChangedDot = index === changedIndex;
@@ -622,16 +618,12 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
     setSelected(null);
     setFeedback(null);
 
-    schedule(() => say(`Смотри. Было ${task.start}.`), 80);
-    // Give the child time to count the initial set, watch the change,
-    // and then count the result before asking for an answer.
-    schedule(() => setPhase("changing"), 1800);
-    schedule(() => setPhase("after"), 3000);
-    schedule(() => {
-      setPhase("question");
-      say(`Стало ${task.result}. Больше или меньше?`);
-    }, 5000);
-  }, [cancel, clearSequence, say, schedule, task.result, task.start]);
+    // The child sees one event at a time: the initial set, a single change,
+    // then the stable result and only after that the two sign choices.
+    schedule(() => setPhase("changing"), 2000);
+    schedule(() => setPhase("after"), 3200);
+    schedule(() => setPhase("question"), 5000);
+  }, [cancel, clearSequence, schedule]);
 
   useEffect(() => {
     const startTimer = schedule(startSequence, 0);
@@ -646,86 +638,57 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
     startSequence();
   }
 
-  function replaySpeech() {
-    if (feedback === "correct") {
-      say(task.answer === "more" ? "Стало больше." : "Стало меньше.");
-      return;
-    }
-    if (feedback === "retry") {
-      say("Посмотри ещё раз.");
-      return;
-    }
-    if (phase === "before" || phase === "changing") {
-      say(`Смотри. Было ${task.start}.`);
-      return;
-    }
-    if (phase === "after") {
-      say(`Стало ${task.result}.`);
-      return;
-    }
-    say(`Стало ${task.result}. Больше или меньше?`);
-  }
-
   function handleAnswer(value) {
-    if (phase !== "question" || selected != null) return;
-    setSelected(value);
+    if (phase !== "question" || selected != null || feedback != null) return;
 
     if (value === task.answer) {
+      setSelected(value);
       setFeedback("correct");
       playFeedback?.("correct");
-      say(value === "more" ? "Стало больше." : "Стало меньше.");
+      say(value === "more" ? "Правильно. Стало больше." : "Правильно. Стало меньше.");
       schedule(() => onCorrect(task.conceptId, task.cardId), 750);
       return;
     }
 
     setFeedback("retry");
-    say("Посмотри ещё раз.");
+    say("Неправильно. Посмотри ещё раз.");
     onIncorrect(task.conceptId, task.cardId);
     schedule(startSequence, 850);
   }
 
-  const answerLabel = task.answer === "more" ? "Стало больше" : "Стало меньше";
-
   return (
     <div className="operation-stage operation-stage--observe">
       <div className="observe-change">
-        <div className="observe-change__title">Смотри</div>
         <ObserveQuantityRail task={task} phase={phase} />
         <div className="observe-change__controls" aria-label="Повтор задания">
-          <button type="button" className="observe-change__repeat" onClick={replay}>
-            ↻ Ещё раз
-          </button>
-          <button type="button" className="observe-change__audio" onClick={replaySpeech} aria-label="Повторить фразу">
-            🔊
+          <button type="button" className="observe-change__repeat" onClick={replay} aria-label="Показать ещё раз">
+            ↻
           </button>
         </div>
         <div
           className={`observe-change__answer-area${phase === "question" ? " observe-change__answer-area--visible" : ""}`}
           aria-hidden={phase !== "question"}
         >
-          <div className="observe-change__question">Больше или меньше?</div>
           <div className="observe-change__answers">
-              <button
-                type="button"
-                className={`observe-change__answer observe-change__answer--more${selected === "more" ? " observe-change__answer--selected" : ""}${feedback === "correct" && task.answer === "more" ? " observe-change__answer--correct" : ""}`}
-                onClick={() => handleAnswer("more")}
-                disabled={selected != null}
-              >
-                <span aria-hidden="true">+</span> Больше
-              </button>
-              <button
-                type="button"
-                className={`observe-change__answer observe-change__answer--less${selected === "less" ? " observe-change__answer--selected" : ""}${feedback === "correct" && task.answer === "less" ? " observe-change__answer--correct" : ""}`}
-                onClick={() => handleAnswer("less")}
-                disabled={selected != null}
-              >
-                <span aria-hidden="true">−</span> Меньше
-              </button>
+            <button
+              type="button"
+              className={`observe-change__answer observe-change__answer--more${feedback === "correct" && task.answer === "more" ? " observe-change__answer--correct" : ""}`}
+              onClick={() => handleAnswer("more")}
+              disabled={selected != null || feedback === "retry"}
+              aria-label="Стало больше"
+            >
+              <span aria-hidden="true">+</span>
+            </button>
+            <button
+              type="button"
+              className={`observe-change__answer observe-change__answer--less${feedback === "correct" && task.answer === "less" ? " observe-change__answer--correct" : ""}`}
+              onClick={() => handleAnswer("less")}
+              disabled={selected != null || feedback === "retry"}
+              aria-label="Стало меньше"
+            >
+              <span aria-hidden="true">−</span>
+            </button>
           </div>
-        </div>
-        <div className="observe-change__feedback" aria-live="polite">
-          {feedback === "retry" && "Посмотри ещё раз"}
-          {feedback === "correct" && answerLabel}
         </div>
       </div>
     </div>
