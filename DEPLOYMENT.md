@@ -20,6 +20,20 @@ There is no separate `deploy:prod` step for the backend anymore. A normal deploy
 ```bash
 git status --short   # must be clean
 npm run build         # sanity-check the build locally first
+```
+
+Bump the app version and commit that on its own (this repo's convention — see
+`git log --oneline -- package.json`, e.g. `chore: release v1.0.1968`):
+
+```bash
+npm version patch --no-git-tag-version
+git add package.json
+git commit -m "chore: release v$(node -p "require('./package.json').version")"
+```
+
+Then push:
+
+```bash
 git push origin main  # Railway picks this up automatically
 ```
 
