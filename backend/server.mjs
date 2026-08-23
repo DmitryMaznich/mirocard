@@ -745,8 +745,13 @@ async function handleAdminImportAccountBundle(req, res) {
     const known = tableColumns(table);
     const cols = Object.keys(row).filter((c) => known.has(c));
     const placeholders = cols.map(() => "?").join(",");
-    db.prepare(`INSERT INTO ${table} (${cols.join(",")}) VALUES (${placeholders})`)
-      .run(...cols.map((c) => row[c]));
+    try {
+      db.prepare(`INSERT INTO ${table} (${cols.join(",")}) VALUES (${placeholders})`)
+        .run(...cols.map((c) => row[c]));
+    } catch (err) {
+      err.message = `[${table}] ${err.message} row=${JSON.stringify(row).slice(0, 300)}`;
+      throw err;
+    }
   }
 
   const existing = findAccountByEmailAny(db, body.account.email);
