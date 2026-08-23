@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "comparison",
-    "version": "2.10.2",
+    "version": "2.10.3",
     "renderer": "comparison",
     "title": "Сравнение"
   },
@@ -99,8 +99,8 @@
     }
   ],
   "cards": [
-    { "id": "compare_easy",   "conceptId": "compare_easy",   "primary": true, "label": "Много / мало (1–10, разница ≥3)", "params": { "min": 1, "max": 10, "minDiff": 3, "allowEqual": false } },
-    { "id": "compare_medium", "conceptId": "compare_medium", "primary": true, "label": "Числа 1–10",                      "params": { "min": 1, "max": 10, "minDiff": 1, "allowEqual": false } },
-    { "id": "compare_hard",   "conceptId": "compare_hard",   "primary": true, "label": "Числа 1–20 с равными",            "params": { "min": 1, "max": 20, "minDiff": 1, "allowEqual": true  } }
+    { "id": "compare_easy",   "conceptId": "compare_easy",   "primary": true, "label": "Ступень 1 — наглядное сравнение" },
+    { "id": "compare_medium", "conceptId": "compare_medium", "primary": true, "label": "Ступень 2 — знак «Крокодил»" },
+    { "id": "compare_hard",   "conceptId": "compare_hard",   "primary": true, "label": "Ступень 3–4 — знак и самостоятельная оценка" }
   ]
 }

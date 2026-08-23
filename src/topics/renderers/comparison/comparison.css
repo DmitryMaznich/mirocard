@@ -1,163 +1,4 @@
-/* ── Comparison deck: croc modes ─────────────────────────────────── */
-
-.croc-visual-stage,
-.croc-numbers-stage,
-.croc-sign-stage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  padding: 16px;
-  overflow: hidden;
-}
-
-.croc-sides {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  width: 100%;
-  max-width: 760px;
-}
-
-.croc-side-btn {
-  width: clamp(90px, 26vw, 220px);
-  height: clamp(90px, 26vw, 220px);
-  flex-shrink: 0;
-  border-radius: 20px;
-  border: 4px solid transparent;
-  background: white;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: transform 0.15s, border-color 0.25s;
-  padding: 16px;
-}
-.croc-side-btn--empty { border: 3px dashed #cbd5e1; background: transparent; box-shadow: none; }
-.croc-side-btn--empty:hover:not(:disabled) { border-color: #94a3b8; background: rgba(255,255,255,0.5); }
-.croc-side-btn--empty.croc-side-btn--correct { border: 3px solid #48bb78; background: #f0fff4; }
-.croc-side-btn:hover:not(:disabled) { transform: scale(1.03); }
-.croc-side-btn--correct { border-color: #48bb78; background: #f0fff4; }
-.croc-side-btn--shake   { animation: shake 0.35s; }
-.croc-side-btn:disabled { cursor: default; }
-
-.croc-dots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  max-width: 160px;
-}
-.croc-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--dot-color, #4299e1);
-  display: inline-block;
-}
-.croc-side-digit { font-size: 48px; font-weight: 900; line-height: 1; }
-
-.croc-number-col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-
-.croc-num-btn {
-  font-size: clamp(48px, 14vw, 96px);
-  font-weight: 900;
-  width: clamp(72px, 22vw, 150px);
-  height: clamp(72px, 22vw, 150px);
-  border-radius: 24px;
-  border: 5px solid transparent;
-  background: white;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.15s, border-color 0.25s;
-  user-select: none;
-  flex-shrink: 0;
-}
-.croc-num-btn--empty { border: 4px dashed #cbd5e1; background: transparent; box-shadow: none; }
-.croc-num-btn--empty:hover:not(:disabled) { border-color: #94a3b8; background: rgba(255,255,255,0.5); }
-.croc-num-btn--empty.croc-num-btn--correct { border: 4px solid #48bb78; background: #f0fff4; }
-.croc-num-btn:hover:not(:disabled) { transform: scale(1.06); }
-.croc-num-btn--correct { border-color: #48bb78; background: #f0fff4; }
-.croc-num-btn--shake   { animation: shake 0.35s; }
-.croc-num-btn:disabled { cursor: default; }
-
-.croc-dot-hint {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  width: 140px;
-  justify-content: center;
-  min-height: 58px;
-  align-content: flex-start;
-  opacity: 0;
-  transition: opacity 0.25s;
-}
-.croc-dot-hint--visible { opacity: 1; }
-
-.croc-sign-row { display: flex; align-items: center; gap: clamp(6px, 2.5vw, 16px); }
-
-.croc-sign-center {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.croc-sign-center--sign  { width: clamp(72px, 22vw, 90px); height: clamp(110px, 28vw, 150px); }
-.croc-sign-center--equal { width: 96px; height: 260px; }
-
-.croc-sign-gator {
-  position: absolute;
-  top: 50%; left: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translate(-50%, -50%);
-}
-.croc-sign-gator--tappable { cursor: pointer; border-radius: 16px; transition: transform 0.15s; padding: 6px; }
-.croc-sign-gator--tappable:hover { transform: translate(-50%, -50%) scale(1.1); }
-.croc-sign-gator--shake   { animation: shake 0.35s; }
-.croc-sign-gator--correct { filter: drop-shadow(0 0 10px #48bb78); }
-
-.croc-sign-equals-row {
-  position: absolute;
-  top: 50%; left: 50%;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  transform: translateX(-50%);
-}
-
-.croc-equal-btn {
-  font-size: 40px; font-weight: 900;
-  width: 80px; height: 56px;
-  border-radius: 14px; border: 4px solid #a0aec0;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-  display: flex; align-items: center; justify-content: center;
-}
-.croc-equal-btn:hover:not(:disabled) { border-color: #4299e1; }
-.croc-equal-btn--correct  { border-color: #48bb78; background: #f0fff4; }
-.croc-equal-btn--lower    { margin-top: 116px; }
-.croc-equal-btn:disabled  { cursor: default; }
-.croc-equal-hint          { font-size: 18px; font-weight: 600; color: #c05621; text-align: center; min-height: 28px; }
-
-.croc-verdict {
-  font-size: clamp(22px, 4vw, 34px);
-  font-weight: 800; color: #2d6fb5; text-align: center;
-  animation: fadeIn 0.3s ease;
-}
+/* ── Put/draw sign (ComparePutSign, CompareDrawSign) ─────────────── */
 
 .croc-put-sign-numbers { display: flex; align-items: center; gap: 24px; margin: 24px 0 32px; }
 .croc-put-sign-num   { font-size: 96px; font-weight: 900; color: #2d3748; min-width: 120px; text-align: center; line-height: 1; }
@@ -171,8 +12,8 @@
   display: flex; align-items: center; justify-content: center;
   transition: transform 0.1s;
 }
-.croc-put-sign-btn:hover:not(:disabled) { border-color: #4299e1; transform: scale(1.06); }
-.croc-put-sign-btn--correct { border-color: #48bb78; background: #f0fff4; }
+.croc-put-sign-btn:hover:not(:disabled) { border-color: #3b82f6; transform: scale(1.06); }
+.croc-put-sign-btn--correct { border-color: #22c55e; background: #dcfce7; }
 .croc-put-sign-btn--shake   { animation: shake 0.35s; }
 .croc-put-sign-btn:disabled { cursor: default; }
 
@@ -220,6 +61,7 @@
 .compare-side:active { border-color: #4a90e2; }
 .compare-side--number { width: clamp(90px, 26vw, 220px); height: clamp(90px, 26vw, 220px); }
 .compare-side--dots   { height: auto; min-height: clamp(90px, 26vw, 220px); justify-content: flex-start; padding-top: 14px; padding-bottom: 14px; }
+.compare-side--shake  { animation: shake 0.35s; }
 
 .compare-big-number { font-size: clamp(48px, 14vw, 96px); font-weight: 900; line-height: 1; }
 .compare-number     { font-size: 1.8rem; font-weight: 700; }
@@ -266,6 +108,7 @@
 .compare-equal-btn--empty:hover:not(:disabled) { border-color: #94a3b8; background: rgba(255,255,255,0.5); }
 .compare-equal-btn--hint { background: #fef3c7; border-color: #f59e0b; }
 .compare-equal-btn--hint:hover:not(:disabled) { background: #fde68a; border-color: #d97706; }
+.compare-equal-btn--shake { animation: shake 0.35s; }
 
 .compare-sign-row--first-number { max-width: 560px; }
 .compare-side--focus { border-color: #22c55e; background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); box-shadow: 0 8px 26px rgba(34,197,94,0.18); }
@@ -346,15 +189,6 @@
   .compare-big-number       { font-size: 96px; }
   .dot                      { width: 54px; height: 54px; }
   .dot-group                { gap: 12px; max-width: min(186px, 100%); }
-
-  .croc-sides           { max-width: 860px; gap: 24px; }
-  .croc-side-btn        { width: 200px; height: 200px; }
-  .croc-num-btn         { width: 160px; height: 160px; font-size: 96px; }
-  .croc-dot             { width: 26px; height: 26px; }
-  .croc-sign-row        { gap: 24px; }
-  .croc-sign-center--sign  { height: 170px; }
-  .croc-sign-center--equal { height: 290px; }
-  .croc-equal-btn--lower   { margin-top: 130px; }
 
   .croc-put-sign-num   { font-size: 112px; min-width: 140px; }
   .croc-put-sign-blank { font-size: 84px; min-width: 80px; }

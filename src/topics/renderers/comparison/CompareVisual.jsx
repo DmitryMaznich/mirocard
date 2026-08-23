@@ -24,6 +24,7 @@ function SideContent({ value, color, visualMode, showHint }) {
 export default function CompareVisual({ task, mode, sessionStatus, onCorrect, onIncorrect }) {
   const [answered,  setAnswered]  = useState(false);
   const [showHints, setShowHints] = useState(false);
+  const [shakeSide, setShakeSide] = useState(null); // "left" | "right" | "equal" | null
 
   const visualMode    = task.visualMode ?? (task.showNumbers ? "dots_numbers" : "dots");
   const isNumbers     = visualMode === "numbers";
@@ -37,8 +38,14 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
     if (sessionStatus === "task_active") {
       setAnswered(false);
       setShowHints(false);
+      setShakeSide(null);
     }
   }, [sessionStatus]);
+
+  function flashWrong(side) {
+    setShakeSide(side);
+    setTimeout(() => setShakeSide(null), 350);
+  }
 
   function handleSide(pickedLeft) {
     if (isAnswered || task.question === "equal") return;
@@ -46,6 +53,7 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
     if (isLeftCorrect === pickedLeft) {
       onCorrect(task.conceptId, null);
     } else {
+      flashWrong(pickedLeft ? "left" : "right");
       if (isNumbers) {
         setShowHints(true);
         setTimeout(() => setShowHints(false), 1500);
@@ -60,30 +68,33 @@ export default function CompareVisual({ task, mode, sessionStatus, onCorrect, on
     if (task.left === task.right) {
       onCorrect(task.conceptId, null);
     } else {
+      flashWrong("equal");
       onIncorrect(task.conceptId, null);
     }
   }
 
-  const sideClass = `compare-side${isNumbers ? " compare-side--number" : " compare-side--dots"}`;
+  function sideClass(side) {
+    return `compare-side${isNumbers ? " compare-side--number" : " compare-side--dots"}${shakeSide === side ? " compare-side--shake" : ""}`;
+  }
 
   return (
     <div className="compare-body">
       <div className="compare-instruction">{task.instruction ?? getTopicTitle(mode.ui.instruction)}</div>
       {task.equalHint && <div className="compare-instruction-hint">{task.equalHint}</div>}
       <div className="compare-sides">
-        <button className={sideClass} disabled={isAnswered} onClick={() => handleSide(true)}>
-          <SideContent value={task.left} color="#4299e1" visualMode={visualMode} showHint={showHints} />
+        <button className={sideClass("left")} disabled={isAnswered} onClick={() => handleSide(true)}>
+          <SideContent value={task.left} color="#3b82f6" visualMode={visualMode} showHint={showHints} />
         </button>
         {task.showEqual && (
           <button
-            className="compare-equal-btn compare-equal-btn--empty compare-equal-btn--hint"
+            className={`compare-equal-btn compare-equal-btn--empty compare-equal-btn--hint${shakeSide === "equal" ? " compare-equal-btn--shake" : ""}`}
             style={{ alignSelf: "center" }}
             disabled={isAnswered}
             onClick={handleEqual}
             aria-label="Одинаково"
           />
         )}
-        <button className={sideClass} disabled={isAnswered} onClick={() => handleSide(false)}>
+        <button className={sideClass("right")} disabled={isAnswered} onClick={() => handleSide(false)}>
           <SideContent value={task.right} color="#fc8181" visualMode={visualMode} showHint={showHints} />
         </button>
       </div>

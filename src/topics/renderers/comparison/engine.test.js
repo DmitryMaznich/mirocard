@@ -1,9 +1,20 @@
 import { describe, it, expect } from "vitest";
 import { generateComparisonTask, generateTasks, getVerdict } from "./engine";
 
-const CARD_EASY   = { id: "compare_easy",   conceptId: "compare_easy",   primary: true, params: { min: 1, max: 10, minDiff: 3, allowEqual: false } };
-const CARD_MEDIUM = { id: "compare_medium", conceptId: "compare_medium", primary: true, params: { min: 1, max: 10, minDiff: 1, allowEqual: false } };
-const CARD_HARD   = { id: "compare_hard",   conceptId: "compare_hard",   primary: true, params: { min: 1, max: 20, minDiff: 1, allowEqual: true  } };
+// generateComparisonTask() takes a raw params object directly — unrelated to
+// the "cards" shape below (cards no longer carry their own min/max/minDiff,
+// see note further down).
+const EASY_PARAMS   = { min: 1, max: 10, minDiff: 3, allowEqual: false };
+const MEDIUM_PARAMS = { min: 1, max: 10, minDiff: 1, allowEqual: false };
+const HARD_PARAMS   = { min: 1, max: 20, minDiff: 1, allowEqual: true  };
+
+// Real cards only carry id/conceptId/label — the number range is driven
+// solely by sessionParams.level (COMPARISON_LEVELS), not by a per-card
+// params object. A card only ever affects which conceptId a task is tagged
+// with (used for per-concept progress tracking).
+const CARD_EASY   = { id: "compare_easy",   conceptId: "compare_easy",   primary: true };
+const CARD_MEDIUM = { id: "compare_medium", conceptId: "compare_medium", primary: true };
+const CARD_HARD   = { id: "compare_hard",   conceptId: "compare_hard",   primary: true };
 
 const ALL_CARDS = [CARD_EASY, CARD_MEDIUM, CARD_HARD];
 
@@ -31,7 +42,7 @@ const MODE_FIRST = {
 describe("generateComparisonTask", () => {
   it("returns left and right within [min, max]", () => {
     for (let i = 0; i < 50; i++) {
-      const { left, right } = generateComparisonTask(CARD_EASY.params);
+      const { left, right } = generateComparisonTask(EASY_PARAMS);
       expect(left).toBeGreaterThanOrEqual(1);
       expect(left).toBeLessThanOrEqual(10);
       expect(right).toBeGreaterThanOrEqual(1);
@@ -41,14 +52,14 @@ describe("generateComparisonTask", () => {
 
   it("respects minDiff when allowEqual is false", () => {
     for (let i = 0; i < 100; i++) {
-      const { left, right } = generateComparisonTask(CARD_EASY.params);
+      const { left, right } = generateComparisonTask(EASY_PARAMS);
       expect(Math.abs(left - right)).toBeGreaterThanOrEqual(3);
     }
   });
 
   it("never produces equal values when allowEqual is false", () => {
     for (let i = 0; i < 100; i++) {
-      const { left, right } = generateComparisonTask(CARD_MEDIUM.params);
+      const { left, right } = generateComparisonTask(MEDIUM_PARAMS);
       expect(left).not.toBe(right);
     }
   });
@@ -56,7 +67,7 @@ describe("generateComparisonTask", () => {
   it("sometimes produces equal values when allowEqual is true", () => {
     let seenEqual = false;
     for (let i = 0; i < 200; i++) {
-      const { left, right } = generateComparisonTask(CARD_HARD.params);
+      const { left, right } = generateComparisonTask(HARD_PARAMS);
       if (left === right) { seenEqual = true; break; }
     }
     expect(seenEqual).toBe(true);
@@ -68,13 +79,33 @@ describe("generateTasks", () => {
     expect(generateTasks(MODE_VISUAL, ALL_CARDS, 20)).toHaveLength(20);
   });
 
-  it("uses defaultCardId to select card — easy mode enforces minDiff >= 3", () => {
+  it("defaults to level 2 (1-10, minDiff 1) when no level is given", () => {
     for (let i = 0; i < 5; i++) {
       const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 20);
       tasks.forEach(({ left, right }) => {
-        expect(Math.abs(left - right)).toBeGreaterThanOrEqual(3);
+        expect(left).toBeGreaterThanOrEqual(1);
+        expect(left).toBeLessThanOrEqual(10);
+        expect(right).toBeGreaterThanOrEqual(1);
+        expect(right).toBeLessThanOrEqual(10);
       });
     }
+  });
+
+  it("level (not the card) controls the numeric range — level 4 reaches two-digit numbers", () => {
+    const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 30, { level: 4 });
+    tasks.forEach(({ left, right }) => {
+      expect(left).toBeGreaterThanOrEqual(10);
+      expect(left).toBeLessThanOrEqual(99);
+      expect(right).toBeGreaterThanOrEqual(10);
+      expect(right).toBeLessThanOrEqual(99);
+    });
+  });
+
+  it("level 1 enforces minDiff >= 5 regardless of which card is selected", () => {
+    const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 30, { level: 1, cardId: "compare_hard" });
+    tasks.forEach(({ left, right }) => {
+      expect(Math.abs(left - right)).toBeGreaterThanOrEqual(5);
+    });
   });
 
   it("each task has type, left, right, conceptId, question fields", () => {
@@ -132,17 +163,15 @@ describe("generateTasks", () => {
     }
   });
 
-  it("cardId override selects a different card than defaultCardId", () => {
+  it("cardId override only changes which conceptId tasks are tagged with, not the number range", () => {
     const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 20, { cardId: "compare_hard" });
-    // hard card: max=20, so values can exceed 10
-    const hasAbove10 = tasks.some(({ left, right }) => left > 10 || right > 10);
-    // Run multiple times to ensure — hard range goes up to 20
-    let found = hasAbove10;
-    for (let i = 0; !found && i < 10; i++) {
-      const t = generateTasks(MODE_VISUAL, ALL_CARDS, 20, { cardId: "compare_hard" });
-      found = t.some(({ left, right }) => left > 10 || right > 10);
-    }
-    expect(found).toBe(true);
+    tasks.forEach(({ left, right, conceptId }) => {
+      expect(conceptId).toBe("compare_hard");
+      // range still comes from the default level (2: 1-10), the hard card
+      // does not widen it — number ranges are level-driven, not card-driven.
+      expect(left).toBeLessThanOrEqual(10);
+      expect(right).toBeLessThanOrEqual(10);
+    });
   });
 
   it("falls back to cards[0] when defaultCardId is not found", () => {
@@ -173,12 +202,12 @@ describe("getVerdict", () => {
     expect(getVerdict({ left: 7, right: 4, question: "less" })).toBe("4 меньше 7");
   });
 
-  it("returns 'Одинаково' verdict for question='equal'", () => {
-    expect(getVerdict({ left: 5, right: 5, question: "equal" })).toBe("Одинаково! 5 = 5");
+  it("returns '=' verdict for question='equal'", () => {
+    expect(getVerdict({ left: 5, right: 5, question: "equal" })).toBe("5 = 5");
   });
 
-  it("returns 'Одинаково' when left === right regardless of question", () => {
-    expect(getVerdict({ left: 3, right: 3, question: "more" })).toBe("Одинаково! 3 = 3");
+  it("returns '=' verdict when left === right regardless of question", () => {
+    expect(getVerdict({ left: 3, right: 3, question: "more" })).toBe("3 = 3");
   });
 
   it("returns first-number verdict for compare_first_number tasks", () => {

@@ -1,4 +1,30 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { recognizeSign, DRAW_SPACE } from "./signRecognition";
+
+// Backing-store resolution follows the canvas's real displayed CSS size *
+// devicePixelRatio, so lines stay crisp on retina screens instead of being
+// upscaled from a fixed 300x300 bitmap. A transform maps the DRAW_SPACE
+// logical grid onto that physical resolution, so drawing/recognition code
+// never has to know about DPR or the actual display size.
+function syncCanvasResolution(canvas) {
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dpr = window.devicePixelRatio || 1;
+  const targetWidth  = Math.max(1, Math.round(rect.width * dpr));
+  const targetHeight = Math.max(1, Math.round(rect.height * dpr));
+  // Reassigning canvas.width/height clears the bitmap, so only do it when
+  // the physical size actually changed (not on every style resync).
+  if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+    canvas.width  = targetWidth;
+    canvas.height = targetHeight;
+  }
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(targetWidth / DRAW_SPACE, 0, 0, targetHeight / DRAW_SPACE, 0, 0);
+  ctx.lineWidth   = 14;
+  ctx.lineCap     = "round";
+  ctx.lineJoin    = "round";
+  ctx.strokeStyle = "#2d6fb5";
+}
 
 export default function DrawingSignPad({ taskKey, onSignRecognized, disabled, shake }) {
   const canvasRef    = useRef(null);
@@ -10,31 +36,42 @@ export default function DrawingSignPad({ taskKey, onSignRecognized, disabled, sh
   function clearCanvas() {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+      const ctx = canvas.getContext("2d");
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
     }
     strokesRef.current = [];
     setOverlaySign(null);
     if (timerRef.current) clearTimeout(timerRef.current);
   }
 
-  useEffect(() => { clearCanvas(); }, [taskKey]);
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    syncCanvasResolution(canvas);
+    clearCanvas();
+  }, [taskKey]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    ctx.lineWidth   = 14;
-    ctx.lineCap     = "round";
-    ctx.lineJoin    = "round";
-    ctx.strokeStyle = "#2d6fb5";
-  }, [taskKey, overlaySign]);
+    function handleResize() { syncCanvasResolution(canvas); }
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, []);
 
   function getCoords(e) {
     const canvas = canvasRef.current;
     const rect   = canvas.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) * (canvas.width  / rect.width),
-      y: (e.clientY - rect.top)  * (canvas.height / rect.height),
+      x: (e.clientX - rect.left) * (DRAW_SPACE / rect.width),
+      y: (e.clientY - rect.top)  * (DRAW_SPACE / rect.height),
     };
   }
 
@@ -77,8 +114,6 @@ export default function DrawingSignPad({ taskKey, onSignRecognized, disabled, sh
     <div className={`draw-sign-pad-wrapper${shake ? " croc-put-sign-btn--shake" : ""}`}>
       <canvas
         ref={canvasRef}
-        width={300}
-        height={300}
         className="draw-sign-canvas"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -92,41 +127,4 @@ export default function DrawingSignPad({ taskKey, onSignRecognized, disabled, sh
       )}
     </div>
   );
-}
-
-function recognizeSign(strokes) {
-  if (!strokes || strokes.length === 0) return null;
-
-  if (strokes.length === 2) {
-    const getBounds = (s) => {
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      s.forEach((p) => {
-        if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
-        if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
-      });
-      return { width: maxX - minX, height: maxY - minY };
-    };
-    const b1 = getBounds(strokes[0]);
-    const b2 = getBounds(strokes[1]);
-    if (b1.width > b1.height * 1.5 && b2.width > b2.height * 1.5) return "=";
-    return "?";
-  }
-
-  if (strokes.length === 1) {
-    const pts = strokes[0];
-    if (pts.length < 5) return "?";
-    let minX = Infinity, maxX = -Infinity, minXIdx = -1, maxXIdx = -1;
-    pts.forEach((p, i) => {
-      if (p.x < minX) { minX = p.x; minXIdx = i; }
-      if (p.x > maxX) { maxX = p.x; maxXIdx = i; }
-    });
-    const startX = pts[0].x;
-    const endX   = pts[pts.length - 1].x;
-    const isMinInMiddle = minXIdx > pts.length * 0.1 && minXIdx < pts.length * 0.9;
-    if (isMinInMiddle && startX > minX + 20 && endX > minX + 20) return "<";
-    const isMaxInMiddle = maxXIdx > pts.length * 0.1 && maxXIdx < pts.length * 0.9;
-    if (isMaxInMiddle && startX < maxX - 20 && endX < maxX - 20) return ">";
-  }
-
-  return "?";
 }

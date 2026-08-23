@@ -1338,8 +1338,11 @@ export default function ParamsScreen() {
       return { selectedLineIds: saved.selectedLineIds ?? null, group: mode?.group ?? null };
     }
     if (isComparison) {
+      // compare_visual's own methodology recommends starting at level 1
+      // (diff >= 5, most contrastive) — other modes keep the general default.
+      const defaultLevel = activeModeId === "compare_visual" ? 1 : 2;
       return {
-        level:         saved.level         ?? 2,
+        level:         saved.level         ?? defaultLevel,
         question:      saved.question      ?? "more",
         showEqual:     saved.showEqual     ?? false,
         wordsVerdict:  saved.wordsVerdict  ?? false,
