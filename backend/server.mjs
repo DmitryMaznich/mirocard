@@ -760,7 +760,8 @@ async function handleAdminImportAccountBundle(req, res) {
   try {
     if (existing) {
       for (const t of ["account_settings", "students", "account_topics", "student_topic_links",
-        "sessions", "student_portals", "account_kv", "audio_overrides", "auth_tokens"]) {
+        "sessions", "student_portals", "account_kv", "audio_overrides", "auth_tokens",
+        "email_verification_tokens", "password_reset_tokens", "push_subscriptions"]) {
         db.prepare(`DELETE FROM ${t} WHERE account_id = ?`).run(existing.id);
       }
       db.prepare("DELETE FROM accounts WHERE id = ?").run(existing.id);
