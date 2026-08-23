@@ -72,6 +72,27 @@ describe("generateComparisonTask", () => {
     }
     expect(seenEqual).toBe(true);
   });
+
+  // Reported bug: level 1 (minDiff:5, range 1-10) only has ~30 valid ordered
+  // pairs, but compare_sign requests 500 tasks in one batch. Once usedPairs
+  // exhausts the pool, every subsequent draw fails all MAX_ATTEMPTS random
+  // tries and used to fall back to one fixed pair (min, min+minDiff) — the
+  // child saw the exact same pair (1, 6) repeat for hundreds of tasks in a
+  // row instead of a mix of the already-seen pairs.
+  it("does not collapse onto one fixed pair once the pool of unique pairs is exhausted", () => {
+    const LEVEL_1_PARAMS = { min: 1, max: 10, minDiff: 5, allowEqual: false };
+    const usedPairs = new Set();
+    const overflow = [];
+    for (let i = 0; i < 200; i++) {
+      overflow.push(generateComparisonTask(LEVEL_1_PARAMS, usedPairs));
+    }
+    // Only the pairs generated after the ~30-pair pool is exhausted are at
+    // risk — check the back half of the batch, where every draw is
+    // guaranteed to already be a repeat of some earlier pair.
+    const repeats = overflow.slice(100);
+    const distinctRepeats = new Set(repeats.map((t) => `${t.left},${t.right}`));
+    expect(distinctRepeats.size).toBeGreaterThan(1);
+  });
 });
 
 describe("generateTasks", () => {
