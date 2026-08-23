@@ -10,47 +10,27 @@ C:\Users\dmazn\Projects\Mirocard2
 
 Do not open backup archives, restored backup folders, Synology backup folders, `dist/`, `runtime/`, or `output/` as the main project.
 
-## Runtime Host (backend + Caddy)
+## Runtime Host (Railway)
 
-> **ВАЖНО:** бэкенд и Caddy работают на **отдельной машине** (192.168.1.163), а не на машине разработчика. Все операции с продакшн-БД, логами и процессом бэкенда — только через SSH на 192.168.1.163. Локальный файл `runtime/data/mirocard.db` в рабочей копии — это **не продакшн**, а локальная разработка.
+> **ВАЖНО:** production теперь на Railway (проект "Mirocard", сервис `mirocard-backend`), не на локальной машине. Деплой — `git push origin main` (Railway auto-deploy из GitHub). БД — SQLite на Railway Volume (`/data`), недоступна напрямую через SSH; для чтения/изменения продакшн-БД нужен Railway API/dashboard shell, не paramiko. Локальный файл `runtime/data/mirocard.db` в рабочей копии — это **не продакшн**, а локальная разработка.
 
 | Parameter | Value |
 |-----------|-------|
-| LAN IP | `192.168.1.163` |
-| Tailscale IP | `100.124.69.40` |
-| Tailscale hostname | `laptop-353ltno0.taile45e98.ts.net` (Funnel -> :8080) |
-| SSH port | 22 |
-| User | `dmazn` |
-| Project path | `C:/Users/dmazn/Projects/Mirocard2` |
-| Frontend dist | `C:/Users/dmazn/Projects/Mirocard2/dist` |
-| Backend API | `127.0.0.1:3012` (Caddy reverse-proxies `/api/*`) |
-| LAN URL | `http://192.168.1.163:8080/` |
-| Public URL | `https://mirocard.kaplieva.help/` |
+| Public URL | `https://app.mironium.com/` |
+| Railway project | Mirocard |
+| Railway service | `mirocard-backend` |
+| Source | GitHub `DmitryMaznich/mirocard`, branch `main` |
+| Backend + SPA | serves both (`SERVE_STATIC=1`), no separate reverse proxy |
+| DB | SQLite on Railway Volume, `MIROCARD_DATA_DIR=/data` |
+| Backups | hourly, in-process (`scripts/railway-backup-loop.mjs`), only runs when `RAILWAY_ENVIRONMENT` is set |
 
 Do not deploy the backend to Synology. Synology/SmartNAS is backup storage only.
 
-### Подключение к продакшн-БД (только через SSH)
+Известное ограничение: SMTP (`mail.kaplieva.help`) недоступен из сети Railway (connection timeout) — email-подтверждение и восстановление пароля на `app.mironium.com` сейчас не работают. См. `DEPLOYMENT.md`.
 
-```python
-import paramiko
+### Старый хост (retired 2026-08-23)
 
-client = paramiko.SSHClient()
-client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-client.connect("192.168.1.163", port=22, username="dmazn", password="241078diMA", timeout=10)
-
-# Запрос к БД на продакшн-машине
-cmd = r'node --input-type=module -e "import { DatabaseSync } from \"node:sqlite\"; const db = new DatabaseSync(\"C:/Users/dmazn/Projects/Mirocard2/runtime/data/mirocard.db\"); console.log(JSON.stringify(db.prepare(\"SELECT COUNT(*) as n FROM accounts\").get())); db.close();"'
-stdin, stdout, stderr = client.exec_command(cmd)
-print(stdout.read().decode())
-client.close()
-```
-
-### Логи бэкенда на продакшне
-
-```
-C:/Users/dmazn/Projects/Mirocard2/backend/logs/server.log
-C:/Users/dmazn/Projects/Mirocard2/backend/logs/server-err.log
-```
+Домашний Windows/Caddy хост (`192.168.1.163`, публичный адрес `mirocard.kaplieva.help`) отключён: `MirocardBackend2` scheduled task — **Disabled** (не удалён, обратимо). `/api/*` там теперь 502. Подробности старой схемы — в `DEPLOYMENT.md`, раздел "Former production path".
 
 ## Credentials
 
@@ -68,19 +48,18 @@ If credentials are needed for deployment, use `MIROCARD_DEPLOY_PASSWORD` or `MIR
 ## Deploy
 
 ```bash
-npm run deploy:prod    # build + upload to the Windows/Caddy runtime
-npm run deploy:verify  # verify public and LAN URLs
+git push origin main   # Railway auto-deploys the whole app (frontend + backend)
 ```
 
-Before deploy: run `git status --short`, commit intentional changes, then run the deploy script. Dirty worktree deploys require an explicit emergency-only `--allow-dirty`.
+`npm run deploy:prod` / `npm run deploy:verify` target the **old, retired** Windows/Caddy host — do not run them expecting a production effect; they no longer touch what's actually live.
+
+Before pushing to `main`: run `git status --short`, commit intentional changes, run `npm run build` locally as a sanity check.
 
 Details: `DEPLOYMENT.md`.
 
 ## Backend (Node.js)
 
-The backend runs on the runtime host, normally via the `MirocardBackend2` Windows Scheduled Task. It listens on `127.0.0.1:3012`.
-
-Backend source changes are not deployed by `npm run deploy:prod`; follow `DEPLOYMENT.md` for backend copy/restart/verification.
+The backend runs as part of the same Railway service as the frontend — no separate deploy step, no SFTP, no scheduled task to restart. A push to `main` redeploys both together.
 
 ## Backups
 
@@ -106,12 +85,16 @@ Rules for Claude Code:
 - Do not run backup scripts with `-IncludeSecrets` unless the user explicitly asks and confirms the destination is encrypted/access-controlled.
 - `runtime/data/mirocard.db` is production/runtime data, not source code.
 
-Production DB protection:
+Production DB protection (Railway, current):
 
-- Runtime host `192.168.1.163` runs `Mirocard Production DB Hourly Backup` hourly.
-- It writes SQLite backups to `C:\Users\dmazn\MirocardBackups\hourly-db` on the runtime host.
-- Local full backup packages fetch the latest production DB backup over SSH via `scripts/fetch-production-db-backup.py` and include it under `db/production/`.
+- The `mirocard-backend` service itself runs the hourly backup loop in-process (`scripts/railway-backup-loop.mjs`), writing to `/data/backups/` on the same Volume, 14-day retention.
+- No off-site copy yet — known gap, not yet solved. `scripts/fetch-production-db-backup.py` (SSH-based, below) no longer applies to current production.
 - Do not restart or stop the backend for backups.
+
+Old host backups (retired, 192.168.1.163):
+
+- Runtime host `192.168.1.163` ran `Mirocard Production DB Hourly Backup` hourly, writing to `C:\Users\dmazn\MirocardBackups\hourly-db`.
+- `scripts/fetch-production-db-backup.py` fetched the latest backup over SSH for local full backup packages — this pulled from the old host's `runtime/data/mirocard.db`, not Railway.
 
 Restore and scheduling details: `docs/backup-restore.md`.
 
@@ -129,8 +112,8 @@ map, the ruling geometry's design decisions (and why), and pitfalls already hit 
 ## Important
 
 - Synology/SmartNAS is allowed only as backup storage, not as a backend/runtime target.
-- Two backend processes on `3012` conflict; stop the old process before starting a new one.
-- `npm run deploy:verify` must pass after every production deploy.
+- After pushing to `main`, verify `https://app.mironium.com/api/version` and `/` both respond before considering a deploy done.
+- `railway.json`'s builder must stay `"DOCKERFILE"` — Railpack/Nixpacks auto-detect has historically misidentified this repo as a static site.
 - Rotate any token or password that was ever committed, pasted into docs, or embedded in git remotes.
 
 ## iOS Safe Area (notch / Dynamic Island / home indicator) — mandatory check
