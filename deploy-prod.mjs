@@ -15,6 +15,22 @@ const verifyOnly = args.has("--verify-only");
 const skipBuild = args.has("--skip-build");
 const noBump = args.has("--no-bump");
 
+// Retired 2026-08-23: production moved to Railway (git push origin main
+// auto-deploys). This script only reaches 192.168.1.163 / mirocard.kaplieva.help,
+// which is no longer live — running it would silently "succeed" against a dead
+// host while the real app on app.mironium.com never gets the new build. See
+// DEPLOYMENT.md's "Former production path" section.
+if (!args.has("--i-understand-this-targets-the-retired-host")) {
+  console.error(
+    "\n✗ This script targets the RETIRED home-host deploy path (192.168.1.163 / mirocard.kaplieva.help).\n" +
+    "  Production is now Railway — deploy with: git push origin main\n" +
+    "  (Railway auto-deploys app.mironium.com on every push to main.)\n\n" +
+    "  If you specifically need to touch the retired host (e.g. for archival\n" +
+    "  recovery), re-run with --i-understand-this-targets-the-retired-host.\n"
+  );
+  process.exit(1);
+}
+
 const deployHosts = (process.env.MIROCARD_DEPLOY_HOSTS || "100.72.91.115,192.168.1.163")
   .split(",")
   .map((value) => value.trim())
