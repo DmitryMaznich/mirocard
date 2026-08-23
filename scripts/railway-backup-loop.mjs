@@ -1,29 +1,20 @@
 #!/usr/bin/env node
-import { execFileSync } from "node:child_process";
 import { mkdirSync, readdirSync, statSync, unlinkSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { backupSqlite } from "./backup-sqlite.mjs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = process.env.MIROCARD_DATA_DIR || "/data";
-const RETENTION_DAYS = Number(process.env.BACKUP_RETENTION_DAYS || 14);
-const ONCE = process.argv.includes("--once");
+const HOUR_MS = 60 * 60 * 1000;
 
-function runBackup() {
-  const dbPath = path.join(DATA_DIR, "mirocard.db");
-  const backupDir = path.join(DATA_DIR, "backups");
+export function runBackupOnce({ dataDir, retentionDays = 14 }) {
+  const dbPath = path.join(dataDir, "mirocard.db");
+  const backupDir = path.join(dataDir, "backups");
   mkdirSync(backupDir, { recursive: true });
 
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const outPath = path.join(backupDir, `mirocard-${stamp}.db`);
+  backupSqlite({ dbPath, outPath });
 
-  execFileSync(
-    "node",
-    [path.join(__dirname, "backup-sqlite.mjs"), "--db", dbPath, "--out", outPath],
-    { stdio: "inherit" }
-  );
-
-  const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
   for (const name of readdirSync(backupDir)) {
     const filePath = path.join(backupDir, name);
     if (statSync(filePath).mtimeMs < cutoff) {
@@ -33,10 +24,19 @@ function runBackup() {
   }
 }
 
-if (ONCE) {
-  runBackup();
-  process.exit(0);
-} else {
-  runBackup();
-  setInterval(runBackup, 60 * 60 * 1000); // hourly
+export function startBackupLoop({ dataDir, retentionDays = 14, intervalMs = HOUR_MS }) {
+  runBackupOnce({ dataDir, retentionDays });
+  return setInterval(() => runBackupOnce({ dataDir, retentionDays }), intervalMs);
+}
+
+if (process.argv[1]?.endsWith("railway-backup-loop.mjs")) {
+  const dataDir = process.env.MIROCARD_DATA_DIR || "/data";
+  const retentionDays = Number(process.env.BACKUP_RETENTION_DAYS || 14);
+  const once = process.argv.includes("--once");
+
+  if (once) {
+    runBackupOnce({ dataDir, retentionDays });
+  } else {
+    startBackupLoop({ dataDir, retentionDays });
+  }
 }

@@ -1229,3 +1229,12 @@ async function router(req, res) {
 createServer(router).listen(PORT, () => {
   console.log(`Mirocard2 backend running on port ${PORT}`);
 });
+
+// Railway has no Windows Task Scheduler for hourly SQLite backups, so the
+// running service does it in-process instead. RAILWAY_ENVIRONMENT is
+// injected by Railway itself, so this never runs on the home host.
+if (process.env.RAILWAY_ENVIRONMENT) {
+  import("../scripts/railway-backup-loop.mjs")
+    .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
+    .catch((err) => console.error("[backup] failed to start backup loop:", err));
+}
