@@ -34,14 +34,26 @@ describe("TopicTile — mounted through the real component", () => {
     });
   }
 
-  it("not-yet-installed, free: shows a download badge and installs on tap", async () => {
+  it("not-yet-installed, free: confirms and then installs", async () => {
     const onInstall = vi.fn().mockResolvedValue(undefined);
     mount({ entry: { id: "propis", version: "1.0.0" }, installedRecord: null, onInstall });
     expect(container.querySelector(".topic-tile-row__badge--get")).toBeTruthy();
     await act(async () => {
       container.querySelector("article").click();
     });
+    expect(container.querySelector('[role="dialog"]')).toBeTruthy();
+    await act(async () => {
+      container.querySelector(".btn-primary").click();
+    });
     expect(onInstall).toHaveBeenCalledWith({ id: "propis", version: "1.0.0" }, { force: false });
+  });
+
+  it("shows an installation error below the card", async () => {
+    const onInstall = vi.fn().mockRejectedValue(new Error("Нет соединения"));
+    mount({ entry: { id: "propis", version: "1.0.0" }, installedRecord: null, onInstall });
+    await act(async () => { container.querySelector("article").click(); });
+    await act(async () => { container.querySelector(".btn-primary").click(); });
+    expect(container.querySelector(".topic-tile-row__error")?.textContent).toContain("Нет соединения");
   });
 
   it("installed, not active: shows a checkmark badge and opens on tap", () => {

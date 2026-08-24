@@ -58,13 +58,35 @@ export default function TopicLibraryScreen() {
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
-    if (!isGranted && shouldClaimCatalogDeck(entry, token)) {
+    const isFreeStaticDeck = (entry.access ?? "free") === "free" && Boolean(entry.url);
+
+    // A free deck is a self-contained public file. Download it first, rather
+    // than making installation depend on an account call that may be stale or
+    // temporarily unavailable. For signed-in users we still record ownership
+    // afterwards, but that bookkeeping must never prevent use of the topic.
+    if (isFreeStaticDeck && !isGranted) {
+      upsertOwnedTopic({ topicId: entry.id, source: "free" });
+    }
+
+    if (!isGranted && shouldClaimCatalogDeck(entry)) {
       const result = await claimDeck(entry.id);
       upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
       if (result.status !== "granted") return; // pending — don't download yet
     }
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
     upsertTopicRecord(record);
+
+    // Keep the account library in sync when possible, without turning a free
+    // installation into a no-op if the API is unavailable.
+    if (isFreeStaticDeck && token && !isGranted) {
+      try {
+        const result = await claimDeck(entry.id);
+        upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
+      } catch {
+        // The downloaded topic remains available on this device. We will try
+        // again on the next installation/update once the connection returns.
+      }
+    }
     return record;
   }, [buildInfo.version, token, upsertTopicRecord, upsertOwnedTopic, ownedTopics]);
 

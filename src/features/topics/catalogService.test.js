@@ -7,9 +7,12 @@ describe("shouldClaimCatalogDeck", () => {
     expect(shouldClaimCatalogDeck({}, null)).toBe(false);
   });
 
-  it("keeps claims for signed-in and restricted installs", () => {
-    expect(shouldClaimCatalogDeck({ access: "free" }, "token-1")).toBe(true);
-    expect(shouldClaimCatalogDeck({ access: "paid" }, null)).toBe(true);
+  it("does not make a free static download depend on account confirmation", () => {
+    expect(shouldClaimCatalogDeck({ access: "free" }, "token-1")).toBe(false);
+  });
+
+  it("keeps claims for restricted installs", () => {
+    expect(shouldClaimCatalogDeck({ access: "paid" })).toBe(true);
   });
 });
 

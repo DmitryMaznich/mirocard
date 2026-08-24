@@ -138,6 +138,7 @@ export default function TopicTile({
           <span>{versionText}</span>
           {statusBadge && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
           {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>Личная</span>}
+          {loading && <span className="topic-tile-row__loading">Загружаем…</span>}
         </div>
       </div>
       {installedRecord && !isBuiltin && onMenu && (
@@ -169,8 +170,8 @@ export default function TopicTile({
       >
         {badgeIcon}
       </button>
-      {error && <div className="form-error">{error}</div>}
     </article>
+    {error && <div className="topic-tile-row__error" role="alert">{error}</div>}
     {confirmingInstall && (
       <Modal
         title="Установить тему?"

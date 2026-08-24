@@ -12,8 +12,8 @@ export function getImportErrorMessage(err) {
 // token. Free decks are deliberately
 // published as static ZIPs, so asking the API to claim one first turns a
 // perfectly valid local install into a misleading "Missing token" error.
-export function shouldClaimCatalogDeck(entry, token) {
-  return (entry.access ?? "free") !== "free" || Boolean(token);
+export function shouldClaimCatalogDeck(entry) {
+  return (entry.access ?? "free") !== "free";
 }
 
 export function isLocalModeProfile(account, token) {
