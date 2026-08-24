@@ -14,8 +14,47 @@ export const RELATIONS = [
 
 const RELATION_LABELS = Object.fromEntries(RELATIONS.map(({ relation, label }) => [relation, label]));
 
+const SUBJECT_AUDIO_IDS = {
+  "Мяч": "ball",
+  "Машинка": "car",
+  "Кубик": "cube",
+  "Мишка": "bear",
+};
+
+// The same spoken construction is deliberately shared by matching core and
+// transfer cards.  This keeps the downloaded deck compact without changing
+// the language model the child hears.
+const CONSTRUCTION_AUDIO_IDS = {
+  "Мяч|в коробке": "ball-in-box",
+  "Машинка|в коробке": "car-in-box",
+  "Мяч|в корзине": "ball-in-basket",
+  "Кубик|в рюкзаке": "cube-in-backpack",
+  "Мишка|в домике": "bear-in-house",
+  "Мяч|на столе": "ball-on-table",
+  "Машинка|на столе": "car-on-table",
+  "Мяч|на стуле": "ball-on-chair",
+  "Кубик|на кровати": "cube-on-bed",
+  "Мишка|на столе": "bear-on-table",
+  "Мяч|под столом": "ball-under-table",
+  "Машинка|под столом": "car-under-table",
+  "Мяч|под стулом": "ball-under-chair",
+  "Кубик|под кроватью": "cube-under-bed",
+  "Мишка|под столом": "bear-under-table",
+  "Мишка|на скамейке": "bear-on-bench",
+  "Мишка|под скамейкой": "bear-under-bench",
+};
+
+function toWebp(path) {
+  return path.replace(/\.png$/i, ".webp");
+}
+
 function card({ id, conceptId, relation, subject, landmark, phrase, image, contrastImage, phase = "core" }) {
   const model = `${subject} ${phrase}.`;
+  const subjectAudioId = SUBJECT_AUDIO_IDS[subject];
+  const constructionAudioId = CONSTRUCTION_AUDIO_IDS[`${subject}|${phrase}`];
+  if (!subjectAudioId || !constructionAudioId) {
+    throw new Error(`Missing audio identifiers for ${subject} ${phrase}`);
+  }
   return {
     id,
     conceptId,
@@ -29,8 +68,11 @@ function card({ id, conceptId, relation, subject, landmark, phrase, image, contr
     question: `Где ${subject.toLowerCase()}?`,
     recognizePrompt: `Покажи: ${subject.toLowerCase()} ${phrase}.`,
     model,
-    image,
-    contrastImage,
+    questionAudio: `audio/q-${subjectAudioId}.mp3`,
+    modelAudio: `audio/m-${constructionAudioId}.mp3`,
+    recognizeAudio: `audio/r-${constructionAudioId}.mp3`,
+    image: toWebp(image),
+    contrastImage: toWebp(contrastImage),
   };
 }
 

@@ -28,17 +28,17 @@ function RepeatButton({ onClick, label = "Повторить" }) {
 function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, onCardShown }) {
   const { card, modelFirst } = task;
   const [revealed, setRevealed] = useState(modelFirst);
-  const voice = (text) => speak({ topicId, text, playTopicFile, soundEnabled });
+  const voice = (text, audio) => speak({ topicId, text, audio, playTopicFile, soundEnabled });
 
   useEffect(() => {
     onCardShown?.(card.id, card.conceptId);
-    voice(modelFirst ? card.model : card.question);
+    voice(modelFirst ? card.model : card.question, modelFirst ? card.modelAudio : card.questionAudio);
   }, [card.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function reveal() {
     if (revealed) return;
     setRevealed(true);
-    voice(card.model);
+    voice(card.model, card.modelAudio);
   }
 
   return (
@@ -49,7 +49,7 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
         <>
           <h1 className="sp-question">{card.question}</h1>
           <div className="sp-actions">
-            <RepeatButton onClick={() => voice(card.question)} label="Повторить вопрос" />
+            <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" />
             <button className="sp-primary-button" type="button" onClick={reveal}>Узнать</button>
           </div>
         </>
@@ -57,7 +57,7 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
         <>
           <div className="sp-answer" aria-live="polite">{card.phrase}</div>
           <div className="sp-actions">
-            <RepeatButton onClick={() => voice(card.model)} label="Слушать ещё раз" />
+            <RepeatButton onClick={() => voice(card.model, card.modelAudio)} label="Слушать ещё раз" />
             <button className="sp-primary-button" type="button" onClick={onAdvance}>Дальше</button>
           </div>
         </>
@@ -69,11 +69,11 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
 function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, onMistake, onAdvance, onCardShown, onTap }) {
   const { card, options, showInstructionText, type } = task;
   const [result, setResult] = useState(null);
-  const voice = (text) => speak({ topicId, text, playTopicFile, soundEnabled });
+  const voice = (text, audio) => speak({ topicId, text, audio, playTopicFile, soundEnabled });
 
   useEffect(() => {
     onCardShown?.(card.id, card.conceptId);
-    voice(card.recognizePrompt);
+    voice(card.recognizePrompt, card.recognizeAudio);
   }, [card.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function choose(option) {
@@ -81,12 +81,12 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
     onTap?.(option.id, option.isTarget);
     if (option.isTarget) {
       setResult("correct");
-      voice(card.model);
+      voice(card.model, card.modelAudio);
       onCorrect?.(card.conceptId, card.id);
       return;
     }
     setResult("model");
-    voice(`Посмотри. ${card.model}`);
+    voice(card.model, card.modelAudio);
     onMistake?.(card.conceptId, card.id);
   }
 
@@ -114,7 +114,7 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
           );
         })}
       </div>
-      <RepeatButton onClick={() => voice(card.recognizePrompt)} label="Повторить" />
+      <RepeatButton onClick={() => voice(card.recognizePrompt, card.recognizeAudio)} label="Повторить" />
       {result && <div className="sp-model-line" aria-live="polite">{card.model}</div>}
       {result === "model" && <button className="sp-primary-button" type="button" onClick={onAdvance}>Дальше</button>}
     </main>
@@ -124,17 +124,17 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
 function RespondTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, onCardShown }) {
   const { card } = task;
   const [revealed, setRevealed] = useState(false);
-  const voice = (text) => speak({ topicId, text, playTopicFile, soundEnabled });
+  const voice = (text, audio) => speak({ topicId, text, audio, playTopicFile, soundEnabled });
 
   useEffect(() => {
     onCardShown?.(card.id, card.conceptId);
-    voice(card.question);
+    voice(card.question, card.questionAudio);
   }, [card.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function reveal() {
     if (revealed) return;
     setRevealed(true);
-    voice(card.model);
+    voice(card.model, card.modelAudio);
   }
 
   return (
@@ -144,7 +144,7 @@ function RespondTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, on
       <h1 className="sp-question">{card.question}</h1>
       {!revealed ? (
         <div className="sp-actions">
-          <RepeatButton onClick={() => voice(card.question)} label="Повторить вопрос" />
+          <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" />
           <button className="sp-primary-button" type="button" onClick={reveal}>Показать ответ</button>
         </div>
       ) : (
@@ -152,7 +152,7 @@ function RespondTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, on
           <div className="sp-answer" aria-live="polite">{card.phrase}</div>
           <div className="sp-model-line">{card.model}</div>
           <div className="sp-actions">
-            <RepeatButton onClick={() => voice(card.model)} label="Слушать ещё раз" />
+            <RepeatButton onClick={() => voice(card.model, card.modelAudio)} label="Слушать ещё раз" />
             <button className="sp-primary-button" type="button" onClick={onAdvance}>Дальше</button>
           </div>
         </>

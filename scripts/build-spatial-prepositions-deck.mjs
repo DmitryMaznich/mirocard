@@ -3,9 +3,10 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ALL_CARDS } from "./spatial-prepositions-content.mjs";
 
 const TOPIC_ID = "spatial_prepositions_ru";
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const ASSET_DIR = "public/decks/_assets/spatial_prepositions";
+const AUDIO_DIR = "public/decks/_audio_src/spatial_prepositions_ru";
 const AVATAR_PATH = "media/avatar.svg";
 
 const AVATAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
@@ -137,17 +138,25 @@ const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(topic, null, 2));
 zip.file(AVATAR_PATH, AVATAR_SVG);
 
-const imagePaths = new Set(ALL_CARDS.flatMap((card) => [card.image, card.contrastImage]));
-for (const imagePath of imagePaths) {
-  const fileName = imagePath.split("/").at(-1);
-  const sourcePath = `${ASSET_DIR}/${fileName}`;
+const mediaPaths = new Set(ALL_CARDS.flatMap((card) => [
+  card.image,
+  card.contrastImage,
+  card.questionAudio,
+  card.modelAudio,
+  card.recognizeAudio,
+]));
+for (const mediaPath of mediaPaths) {
+  const fileName = mediaPath.split("/").at(-1);
+  const sourcePath = mediaPath.startsWith("audio/")
+    ? `${AUDIO_DIR}/${fileName}`
+    : `${ASSET_DIR}/${fileName}`;
   if (!existsSync(sourcePath)) throw new Error(`Missing spatial prepositions asset: ${sourcePath}`);
-  zip.file(imagePath, readFileSync(sourcePath));
+  zip.file(mediaPath, readFileSync(sourcePath));
 }
 
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
 writeFileSync(ZIP_PATH, buffer);
-console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024 / 1024).toFixed(1)} MB, ${ALL_CARDS.length} cards, ${imagePaths.size} photographs)`);
+console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024 / 1024).toFixed(1)} MB, ${ALL_CARDS.length} cards, ${mediaPaths.size} media files)`);
 
 const catalog = JSON.parse(readFileSync("public/decks/catalog.json", "utf8"));
 const entry = {
