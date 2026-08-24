@@ -145,7 +145,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   const isVerbal = isFirstNumber;
 
   const examplesCount = (isFirstNumber || isEvaluate)
-    ? Math.max(1, Math.min(6, Number(sessionParams.examplesCount ?? 1)))
+    ? Math.max(1, Math.min(10, Number(sessionParams.examplesCount ?? 1)))
     : 1;
   const showLabels = isVerbal ? (sessionParams.showLabels !== false) : false;
 

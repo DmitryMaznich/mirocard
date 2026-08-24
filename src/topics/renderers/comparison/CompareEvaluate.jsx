@@ -184,7 +184,7 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
   }
 
   return (
-    <div className="compare-body">
+    <div className="compare-body compare-body--multi" style={{ "--multi-count": items.length }}>
       <div className="compare-instruction">{task.instruction ?? "Поставь правильный знак между числами"}</div>
       <div className="cfn-multi">
         {items.map((item, i) => (

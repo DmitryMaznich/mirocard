@@ -283,6 +283,12 @@ describe("generateTasks", () => {
       });
     });
   });
+
+  it("compare_test supports up to 10 examples per screen", () => {
+    const batches = generateTasks(MODE_TEST, ALL_CARDS, 3, { examplesCount: 10 });
+    expect(batches).toHaveLength(3);
+    batches.forEach((batch) => expect(batch.items).toHaveLength(10));
+  });
 });
 
 describe("getVerdict", () => {

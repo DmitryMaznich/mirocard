@@ -1164,7 +1164,7 @@ function ComparisonParams({ params, onChange }) {
           label="Примеров на экране"
           value={params.examplesCount ?? 4}
           min={2}
-          max={6}
+          max={10}
           onChange={(v) => onChange({ ...params, examplesCount: v })}
         />
       )}
@@ -1339,7 +1339,7 @@ export default function ParamsScreen() {
       // examples in "Контрольная работа").
       const isTestMode = activeModeId === "compare_test";
       const examplesCount = isTestMode
-        ? Math.max(2, Math.min(6, saved.examplesCount ?? 4))
+        ? Math.max(2, Math.min(10, saved.examplesCount ?? 4))
         : 1;
       return {
         level:         saved.level         ?? defaultLevel,
