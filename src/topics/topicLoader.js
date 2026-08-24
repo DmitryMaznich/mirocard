@@ -865,7 +865,7 @@ const DEFAULT_MODES = {
     { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил",   instruction: "Нажми на большее число",                     icon: "media/icons/comparison_sign.svg" } },
     { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",            icon: "media/icons/comparison_mode.svg" } },
     { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Сравни и поставь знак",   instruction: "Поставь правильный знак между числами", icon: "media/icons/comparison_evaluate.svg" } },
-    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Сравни первое число",     instruction: "Сравни первое число со вторым",          icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Сравни первое и второе",   instruction: "Сравни первое число со вторым",          icon: "media/icons/comparison_first_number.svg" } },
     { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "6. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
   ],
   math_houses: [
