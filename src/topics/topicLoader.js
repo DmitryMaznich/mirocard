@@ -447,10 +447,10 @@ const DEFAULT_MODE_METHODOLOGY = {
       // topic.json schema. Hand-listing settings here risks exactly the
       // staleness this entry had before (still describing "Что учим" and
       // "Количество примеров" years after both moved to their own modes).
-      goal: "Ребёнок самостоятельно оценивает пару чисел и выбирает знак или словесное отношение — без подсказанного направления.",
+      goal: "Ребёнок самостоятельно сравнивает пару чисел и выбирает знак или словесное отношение — без подсказанного направления.",
     },
     compare_first_number: {
-      goal: "Ребёнок читает выражение слева направо и определяет позицию первого числа относительно второго.",
+      goal: "Ребёнок сравнивает числа в медленном темпе и проговаривает отношение вслух полной фразой, прежде чем перейти к следующему примеру.",
     },
     compare_test: {
       goal: "Ребёнок самостоятельно решает несколько примеров подряд без пошаговой подсказки — как в настоящей проверочной работе.",
@@ -472,10 +472,10 @@ const DEFAULT_MODE_METHODOLOGY = {
   },
   addition_subtraction: {
     operation_observe: {
-      summary: "Короткое визуальное наблюдение: одно изменение и выбор знака.",
-      text: "На детском экране нет подписей и вопроса: ребёнок видит предметы, одно изменение и выбирает + или −. Взрослый при необходимости задаёт вопрос вслух.",
+      summary: "Короткое визуальное наблюдение: одно изменение и выбор направления.",
+      text: "На детском экране нет лишних подписей и вопроса: ребёнок видит предметы, одно изменение и выбирает «Больше» или «Меньше». Взрослый при необходимости задаёт вопрос вслух.",
       settings: ["Начинайте с диапазона до 3 без цифр и только с кругами.", "Меняйте фигуры сериями, а не в каждом задании: это обобщает навык без лишнего шума."],
-      goal: "Ребёнок замечает направление изменения количества и связывает его со знаком + или −.",
+      goal: "Ребёнок замечает направление изменения количества и называет: стало больше или меньше.",
     },
     operation_name_action: {
       settings: [],
@@ -864,8 +864,8 @@ const DEFAULT_MODES = {
     { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака", instruction: "Нажми на сторону, где больше",              icon: "media/icons/comparison_visual.svg" } },
     { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил",   instruction: "Нажми на большее число",                     icon: "media/icons/comparison_sign.svg" } },
     { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",            icon: "media/icons/comparison_mode.svg" } },
-    { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Оцени и поставь знак",     instruction: "Поставь правильный знак между числами",      icon: "media/icons/comparison_evaluate.svg" } },
-    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Оцени первое число",      instruction: "Первое число — больше, меньше или равно второму?", icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Сравни и поставь знак",   instruction: "Поставь правильный знак между числами", icon: "media/icons/comparison_evaluate.svg" } },
+    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Сравни первое число",     instruction: "Сравни первое число со вторым",          icon: "media/icons/comparison_first_number.svg" } },
     { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "6. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
   ],
   math_houses: [

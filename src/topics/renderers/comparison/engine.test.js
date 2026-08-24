@@ -46,7 +46,7 @@ const MODE_DRAW_SIGN = {
 const MODE_EVALUATE = {
   id: "compare_evaluate", type: "compare_evaluate", evaluation: "auto",
   defaultCardId: "compare_hard",
-  ui: { title: "4. Оцени и поставь знак", instruction: "Поставь правильный знак между числами" },
+  ui: { title: "4. Сравни и поставь знак", instruction: "Поставь правильный знак между числами" },
 };
 // "Контрольная работа" — a distinct mode entry that shares compare_evaluate's
 // type/renderer/engine branch (multi-item batching), differing only in id

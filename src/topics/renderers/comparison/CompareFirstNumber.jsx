@@ -82,7 +82,7 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
 
   return (
     <div className="compare-body">
-      <div className="compare-instruction">Оцени первое число</div>
+      <div className="compare-instruction">Сравни первое число</div>
       <div className="cfn-multi">
         {items.map((item, i) => (
           <div key={i} className={`cfn-multi-row${focusIndex === i ? " cfn-multi-row--active" : ""}`}>

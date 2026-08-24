@@ -139,7 +139,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   const style         = isEvaluate ? (sessionParams.style ?? "sign") : null;
   // compare_first_number is the only evaluate-family task with a fixed
   // relationship to name ("is the first number bigger/smaller/equal?") —
-  // "Оцени и поставь знак" and "Контрольная работа" always ask for the
+  // "Сравни и поставь знак" and "Контрольная работа" always ask for the
   // real, unrigged relationship between two numbers (see the removed
   // direction-forcing below), so isVerbal only ever applies here.
   const isVerbal = isFirstNumber;

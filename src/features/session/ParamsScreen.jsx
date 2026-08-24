@@ -1069,7 +1069,7 @@ function ComparisonParams({ params, onChange }) {
   // The sign to draw is fully determined by left vs right — "Что учим"
   // (more/less/mix) can't change which sign is correct, so it has no
   // effect for this mode and would just be a dead control. The same is
-  // true of "Оцени и поставь знак" and "Контрольная работа" — both ask
+  // true of "Сравни и поставь знак" and "Контрольная работа" — both ask
   // the child to name the actual relationship between two numbers, so a
   // forced direction would either make the task trivial (rig every pair
   // to the same answer) or contradict itself (label says "больше" on a
@@ -1334,7 +1334,7 @@ export default function ParamsScreen() {
       // link key isn't per-mode), but only "Контрольная работа" exposes a
       // control for it — force it to that mode's fixed shape on entry so a
       // value picked in one mode can't silently carry into another mode
-      // that doesn't even show the control (e.g. "Оцени и поставь знак"
+      // that doesn't even show the control (e.g. "Сравни и поставь знак"
       // quietly running in worksheet mode because the student last set 4
       // examples in "Контрольная работа").
       const isTestMode = activeModeId === "compare_test";

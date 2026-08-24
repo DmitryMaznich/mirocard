@@ -12,7 +12,7 @@ const TYPE_MAP = {
   compare_equal:        CompareVisual, // backward compat — old installed decks, pre-consolidation mode type
   compare_numbers:      CompareVisual, // backward compat — old installed decks, pre-consolidation mode type
   compare_sign:         CompareSign,
-  compare_first_number: CompareFirstNumber, // "5. Оцени первое число" — its own mode again as of v2.11.0, previously folded into compare_evaluate's "first_number" question
+  compare_first_number: CompareFirstNumber, // "5. Сравни первое число" — its own mode again as of v2.11.0, previously folded into compare_evaluate's "first_number" question
   compare_draw_sign:    CompareDrawSign,
   compare_put_sign:     ComparePutSign,   // backward compat — old installed decks
   compare_evaluate:     CompareEvaluate,
