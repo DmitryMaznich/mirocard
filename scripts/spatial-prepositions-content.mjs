@@ -1,10 +1,11 @@
 // Content for the standalone «Где предмет?» topic.
 //
-// One relation is always practised at a time.  Every core card has a matched
-// contrast photograph of the *same* scene: for «на / под» only the vertical
-// relation changes; for «в» the item is either inside the container or beside
-// that same container.  This prevents a child from choosing by a familiar
-// noun, furniture item, or background instead of by the spatial relation.
+// A single relation is practised at a time until it is ready for the separate
+// mixed drill. Every core card has a matched contrast photograph of the same
+// scene: for «на / под» only the vertical relation changes; for «в» the item
+// is either inside the container or beside that same container. This prevents
+// a child from choosing by a familiar noun, furniture item, or background
+// instead of by the spatial relation.
 
 export const RELATIONS = [
   { id: "spatial_in", label: "В", relation: "in", shortPhrase: "в" },

@@ -76,6 +76,30 @@ describe("handleAdvance — none evaluation (intro)", () => {
     state = handleAdvance(state);
     expect(state.status).toBe("completed");
   });
+
+  it("returns to the first card for a looping mode", () => {
+    const loopingMode = { ...INTRO_MODE, loop: true };
+    let state = createSessionState([INTRO_TASKS[0]], loopingMode, "s1", "t1", "1.0.0", ["tshirt"]);
+    state = handleAdvance(state);
+    expect(state.status).toBe("task_active");
+    expect(state.taskIndex).toBe(0);
+  });
+
+  it("reshuffles a mixed looping round without repeating its closing relation first", () => {
+    const tasks = [
+      { type: "spatial_mixed", card: { id: "in-1", relation: "in" } },
+      { type: "spatial_mixed", card: { id: "on-1", relation: "on" } },
+      { type: "spatial_mixed", card: { id: "under-1", relation: "under" } },
+    ];
+    const mixedMode = { ...INTRO_MODE, loop: true, reshuffleOnLoop: true };
+    let state = createSessionState(tasks, mixedMode, "s1", "t1", "1.0.0", []);
+    state.taskIndex = tasks.length - 1;
+    state = handleAdvance(state);
+    expect(state.status).toBe("task_active");
+    expect(state.taskIndex).toBe(0);
+    expect(state.tasks.map((task) => task.card.id).sort()).toEqual(tasks.map((task) => task.card.id).sort());
+    expect(state.tasks[0].card.relation).not.toBe("under");
+  });
 });
 
 describe("handleAnswer — streak tracking", () => {

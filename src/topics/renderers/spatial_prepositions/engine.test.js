@@ -21,8 +21,28 @@ describe("spatial prepositions engine", () => {
   });
 
   it("never mixes relations in a one-concept session", () => {
-    const tasks = generateTasks({ type: "spatial_respond" }, cards, 500, { relation: "spatial_under", cardCount: 5 });
+    const tasks = generateTasks({ type: "spatial_respond" }, cards, 500, { relation: "spatial_under" });
     expect(tasks).toHaveLength(1);
     expect(tasks[0].card.relation).toBe("under");
+  });
+
+  it("interleaves selected relations in the mixed drill", () => {
+    const tasks = generateTasks(
+      { type: "spatial_mixed" },
+      cards,
+      500,
+      { relations: ["spatial_in", "spatial_on", "spatial_under"] },
+    );
+
+    expect(tasks).toHaveLength(cards.length);
+    expect(new Set(tasks.map((task) => task.card.relation))).toEqual(new Set(["in", "on", "under"]));
+    for (let index = 1; index < tasks.length; index += 1) {
+      expect(tasks[index].card.relation).not.toBe(tasks[index - 1].card.relation);
+    }
+  });
+
+  it("treats a stale one-item mixed setting as all available relations", () => {
+    const tasks = generateTasks({ type: "spatial_mixed" }, cards, 500, { relations: ["spatial_in"] });
+    expect(new Set(tasks.map((task) => task.card.relation))).toEqual(new Set(["in", "on", "under"]));
   });
 });

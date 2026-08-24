@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ALL_CARDS } from "./spatial-prepositions-content.mjs";
 
 const TOPIC_ID = "spatial_prepositions_ru";
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const ASSET_DIR = "public/decks/_assets/spatial_prepositions";
 const AUDIO_DIR = "public/decks/_audio_src/spatial_prepositions_ru";
@@ -23,19 +23,26 @@ const RELATION_PARAM = {
   default: "spatial_in",
   info: {
     ru: {
-      text: "За одно занятие берём один предлог. Сначала ребёнок видит несколько спокойных образцов, затем различает отношения на фотографиях.",
-      tip: "Не смешивайте «в», «на» и «под», пока одно отношение не стало понятным на разных примерах.",
+      text: "В этих режимах берём один предлог и повторяем разные примеры столько, сколько нужно ребёнку.",
+      tip: "Когда отдельные отношения стали понятны, переходите в режим «Микс» для их различения.",
     },
   },
 };
 
-const CARD_COUNT_PARAM = (defaultValue) => ({
-  type: "enum",
-  label: { ru: "Карточек за занятие" },
-  values: [2, 3, 5],
-  labels: { ru: { "2": "2 — коротко", "3": "3 — обычно", "5": "5 — весь набор" } },
-  default: defaultValue,
-});
+const MIX_RELATIONS_PARAM = {
+  type: "enum_multi",
+  label: { ru: "Предлоги в миксе (минимум два)" },
+  values: ["spatial_in", "spatial_on", "spatial_under"],
+  labels: { ru: { spatial_in: "В", spatial_on: "На", spatial_under: "Под" } },
+  default: [],
+  minSelected: 2,
+  info: {
+    ru: {
+      text: "В каждом круге предлоги чередуются, а после полного набора карточки перемешиваются заново.",
+      tip: "Начинайте с двух уже знакомых ребёнку предлогов; третий добавляйте, когда различение стало устойчивым.",
+    },
+  },
+};
 
 const topic = {
   meta: {
@@ -47,7 +54,7 @@ const topic = {
     language: "ru",
     about: {
       description: {
-        ru: "Пространственные предлоги на спокойных фотореалистичных сценах. Сначала ребёнок знакомится с образцом, затем показывает отношение и отвечает с помощью взрослого.",
+        ru: "Пространственные предлоги на спокойных фотореалистичных сценах. Сначала ребёнок знакомится с образцом, затем показывает отношение и отвечает с помощью взрослого. Знакомые предлоги можно чередовать в режиме «Микс».",
       },
     },
   },
@@ -56,6 +63,8 @@ const topic = {
       id: "introduction",
       type: "spatial_introduction",
       evaluation: "none",
+      loop: true,
+      hideConceptPicker: true,
       requirePin: false,
       ui: {
         title: { ru: "Знакомство" },
@@ -64,7 +73,6 @@ const topic = {
       },
       params: {
         relation: RELATION_PARAM,
-        cardCount: CARD_COUNT_PARAM(3),
         modelTiming: {
           type: "enum",
           label: { ru: "Подача образца" },
@@ -78,6 +86,8 @@ const topic = {
       id: "recognize",
       type: "spatial_recognize",
       evaluation: "auto",
+      loop: true,
+      hideConceptPicker: true,
       requirePin: false,
       ui: {
         title: { ru: "Покажи" },
@@ -86,7 +96,6 @@ const topic = {
       },
       params: {
         relation: RELATION_PARAM,
-        cardCount: CARD_COUNT_PARAM(5),
         showInstructionText: {
           type: "boolean",
           label: { ru: "Показывать текст задания" },
@@ -99,6 +108,8 @@ const topic = {
       id: "respond",
       type: "spatial_respond",
       evaluation: "none",
+      loop: true,
+      hideConceptPicker: true,
       requirePin: false,
       ui: {
         title: { ru: "Ответь" },
@@ -107,13 +118,14 @@ const topic = {
       },
       params: {
         relation: RELATION_PARAM,
-        cardCount: CARD_COUNT_PARAM(3),
       },
     },
     {
       id: "transfer",
       type: "spatial_transfer",
       evaluation: "auto",
+      loop: true,
+      hideConceptPicker: true,
       requirePin: false,
       ui: {
         title: { ru: "Новые картинки" },
@@ -122,10 +134,32 @@ const topic = {
       },
       params: {
         relation: RELATION_PARAM,
-        cardCount: CARD_COUNT_PARAM(5),
         showInstructionText: {
           type: "boolean",
           label: { ru: "Показывать текст задания" },
+          default: false,
+        },
+      },
+    },
+    {
+      id: "mixed",
+      type: "spatial_mixed",
+      evaluation: "auto",
+      loop: true,
+      reshuffleOnLoop: true,
+      hideConceptPicker: true,
+      requirePin: false,
+      ui: {
+        title: { ru: "Микс" },
+        instruction: { ru: "Различай несколько предлогов на фотографиях" },
+        icon: AVATAR_PATH,
+      },
+      params: {
+        relations: MIX_RELATIONS_PARAM,
+        showInstructionText: {
+          type: "boolean",
+          label: { ru: "Показывать текст задания" },
+          hint: { ru: "По умолчанию ребёнок слушает инструкцию и выбирает фотографию." },
           default: false,
         },
       },
@@ -166,7 +200,7 @@ const entry = {
   zipUrl: `${TOPIC_ID}_v${VERSION}.zip`,
   title: { ru: "Где предмет?" },
   description: {
-    ru: "Пространственные предлоги «в», «на» и «под»: знакомство с образцом, выбор фотографии и ответ с паузой для ребёнка.",
+    ru: "Пространственные предлоги «в», «на» и «под»: знакомство, выбор фотографии, ответ с паузой и режим «Микс».",
   },
   renderer: "spatial_prepositions",
   status: "beta",

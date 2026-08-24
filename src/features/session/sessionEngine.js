@@ -2,6 +2,33 @@ function generateId() {
   return "session_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
 }
 
+function taskRelation(task) {
+  return task?.card?.relation ?? null;
+}
+
+// A looping mixed drill starts a fresh round from a new order.  Prefer a
+// relation different from the one that just closed the previous round, so the
+// child never gets an accidental two-card run of the same preposition.
+export function reshuffleLoopTasks(tasks) {
+  const remaining = [...tasks];
+  const next = [];
+  let previousRelation = taskRelation(tasks.at(-1));
+
+  while (remaining.length) {
+    const eligibleIndexes = remaining
+      .map((task, index) => ({ task, index }))
+      .filter(({ task }) => taskRelation(task) !== previousRelation)
+      .map(({ index }) => index);
+    const indexes = eligibleIndexes.length ? eligibleIndexes : remaining.map((_, index) => index);
+    const index = indexes[Math.floor(Math.random() * indexes.length)];
+    const [task] = remaining.splice(index, 1);
+    next.push(task);
+    previousRelation = taskRelation(task);
+  }
+
+  return next;
+}
+
 // Task types that never call handleAnswer/handleInstantCorrect (advance-only)
 const ADVANCE_ONLY_TYPES = new Set(["pair_intro", "season_overview"]);
 
@@ -122,6 +149,15 @@ export function handleQualityAnswer(state, quality, conceptId, cardId) {
 export function handleAdvance(state) {
   const nextIndex = state.taskIndex + 1;
   if (nextIndex >= state.tasks.length) {
+    if (state.mode?.loop) {
+      return {
+        ...state,
+        status: "task_active",
+        taskIndex: 0,
+        taskRetry: 0,
+        tasks: state.mode.reshuffleOnLoop ? reshuffleLoopTasks(state.tasks) : state.tasks,
+      };
+    }
     return { ...state, status: state.isDeckMode ? "deck_exhausted" : "completed" };
   }
   return { ...state, status: "task_active", taskIndex: nextIndex };
