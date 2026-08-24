@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DotGroup from "./DotGroup";
 import { getVerdict } from "./engine";
 import { getTopicTitle } from "@/shared/utils/format";
@@ -16,13 +16,24 @@ function PairingStage({ left, right, onDone }) {
   const pairs  = Math.min(usedLeft, usedRight);
   const target = Math.min(left, right);
 
+  const onDoneRef = useRef(onDone);
+  useEffect(() => { onDoneRef.current = onDone; });
+
+  // Split in two: detecting "pairing just finished" and "now schedule the
+  // reveal timer" must not share a dependency array. A single effect keyed
+  // on `revealing` that also *sets* revealing tears itself down the instant
+  // it flips the flag — React reruns the effect for the new `revealing`
+  // value, firing this same effect's own cleanup and canceling the timeout
+  // before it ever fires.
   useEffect(() => {
-    if (pairs >= target && !revealing) {
-      setRevealing(true);
-      const t = setTimeout(onDone, 900);
-      return () => clearTimeout(t);
-    }
-  }, [pairs, target, revealing, onDone]);
+    if (pairs >= target) setRevealing(true);
+  }, [pairs, target]);
+
+  useEffect(() => {
+    if (!revealing) return;
+    const t = setTimeout(() => onDoneRef.current(), 900);
+    return () => clearTimeout(t);
+  }, [revealing]);
 
   function tapSide(side) {
     if (revealing) return;
