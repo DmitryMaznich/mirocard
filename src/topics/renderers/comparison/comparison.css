@@ -167,6 +167,11 @@
 .compare-body--multi {
   min-height: 0;
   gap: 10px;
+  /* Center would split any leftover vertical space above and below the
+     whole block — push the content to the top instead, so slack collects
+     below the answer buttons where it's harmless, not as dead space above
+     the instruction. */
+  justify-content: flex-start;
 }
 .compare-body--multi > .compare-instruction,
 .compare-body--multi > .cfn-multi-divider {
@@ -181,7 +186,8 @@
 .compare-body--multi .croc-put-sign-btns { flex-direction: row; gap: 10px; flex-shrink: 0; }
 .compare-body--multi .croc-put-sign-btn  { width: 60px; height: 60px; font-size: 28px; }
 .compare-body--multi .cfn-options        { flex-direction: row; max-width: none; justify-content: center; flex-shrink: 0; }
-.compare-body--multi .cfn-btn            { min-height: 52px; min-width: 84px; flex: 1; max-width: 140px; padding: 0 8px; }
+.compare-body--multi .cfn-btn            { min-height: 52px; min-width: 84px; flex: 1; max-width: 140px; padding: 0 4px 0 10px; gap: 4px; }
+.compare-body--multi .cfn-btn-sign       { min-width: 0; }
 
 .cfn-multi {
   width: 100%; max-width: 400px;
