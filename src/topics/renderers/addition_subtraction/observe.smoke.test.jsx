@@ -85,6 +85,19 @@ describe("operation_observe", () => {
     ]);
   });
 
+  it("gives a spoken starting quantity and asks more or less without naming the action", () => {
+    vi.useFakeTimers();
+    mount(addTask, { soundEnabled: true });
+
+    act(() => { vi.advanceTimersByTime(80); });
+    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Было 2.");
+
+    act(() => { vi.advanceTimersByTime(4920); });
+    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Стало больше или меньше?");
+    expect(speech.speak.mock.calls.map(([text]) => text)).not.toContain("Прибавили 1.");
+    expect(speech.speak.mock.calls.map(([text]) => text)).not.toContain("Убрали 1.");
+  });
+
   it("records an incorrect answer and replays the same scene", () => {
     vi.useFakeTimers();
     const onIncorrect = vi.fn();

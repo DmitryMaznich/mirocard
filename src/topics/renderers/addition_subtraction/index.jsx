@@ -618,12 +618,18 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
     setSelected(null);
     setFeedback(null);
 
-    // The child sees one event at a time: the initial set, a single change,
-    // then the stable result and only after that the two sign choices.
+    // The child hears the starting quantity, then sees one event at a time:
+    // the initial set, a single change, then the stable result and only after
+    // that the two sign choices. The action itself remains unnamed so the
+    // child still has to decide whether the quantity grew or shrank.
+    schedule(() => say(`Было ${task.start}.`), 80);
     schedule(() => setPhase("changing"), 2000);
     schedule(() => setPhase("after"), 3200);
-    schedule(() => setPhase("question"), 5000);
-  }, [cancel, clearSequence, schedule]);
+    schedule(() => {
+      setPhase("question");
+      say("Стало больше или меньше?");
+    }, 5000);
+  }, [cancel, clearSequence, say, schedule, task.start]);
 
   useEffect(() => {
     const startTimer = schedule(startSequence, 0);
