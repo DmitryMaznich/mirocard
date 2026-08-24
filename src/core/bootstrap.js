@@ -96,6 +96,17 @@ export function mergeStudents(local, server) {
   return activeStudents(mergeStudentRecords(local, server));
 }
 
+// Server ownership is authoritative, EXCEPT for a locally-granted free deck
+// the server doesn't know about yet (see TopicLibraryScreen's optimistic
+// "free" grant on install). Bootstrap sync runs every 20s and on every
+// tab-visible event, so a plain replace erases that grant before the claim
+// call reaches the server, hiding a topic the device already downloaded.
+export function mergeOwnedTopics(local, server) {
+  const serverIds = new Set((server ?? []).map((o) => o.topicId));
+  const keptLocal = (local ?? []).filter((o) => o.source === "free" && !serverIds.has(o.topicId));
+  return [...(server ?? []), ...keptLocal];
+}
+
 export function markStudentDeleted(students, id, deletedAt = new Date().toISOString()) {
   const current = (students ?? []).find((student) => student?.id === id);
   const tombstone = {
@@ -118,6 +129,25 @@ function atomicMergeStudents(db, serverStudents) {
       const current = Array.isArray(getReq.result) ? getReq.result : [];
       const merged = mergeStudentRecords(current, serverStudents);
       const putReq = store.put(merged, "students");
+      putReq.onsuccess = () => resolve(merged);
+      putReq.onerror  = () => reject(putReq.error);
+    };
+    getReq.onerror = () => reject(getReq.error);
+    tx.onerror     = () => reject(tx.error);
+  });
+}
+
+// Atomic IDB read→merge→write for the same reason as atomicMergeStudents:
+// prevents a concurrent write from being overwritten between read and put.
+function atomicMergeOwnedTopics(db, serverOwnedTopics) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("keyval", "readwrite");
+    const store = tx.objectStore("keyval");
+    const getReq = store.get("ownedTopics");
+    getReq.onsuccess = () => {
+      const current = Array.isArray(getReq.result) ? getReq.result : [];
+      const merged = mergeOwnedTopics(current, serverOwnedTopics);
+      const putReq = store.put(merged, "ownedTopics");
       putReq.onsuccess = () => resolve(merged);
       putReq.onerror  = () => reject(putReq.error);
     };
@@ -189,7 +219,7 @@ export function applyBootstrapToStore(raw) {
     })(),
     // Merge with current store state so a concurrent local save isn't overwritten in memory.
     students: mergeStudents(state.students, bootstrap.students),
-    ownedTopics: bootstrap.ownedTopics,
+    ownedTopics: "ownedTopics" in raw ? mergeOwnedTopics(state.ownedTopics, bootstrap.ownedTopics) : state.ownedTopics,
     topicRecords: "topicRecords" in raw ? bootstrap.topicRecords : state.topicRecords,
     studentTopicLinks: bootstrap.studentTopicLinks,
     conceptProgress: bootstrap.conceptProgress,
@@ -268,7 +298,7 @@ export async function persistBootstrap(db, raw) {
     writes.push(kv.set(db, "settings", settings));
   }
   if ("students" in raw) writes.push(atomicMergeStudents(db, bootstrap.students));
-  if ("ownedTopics" in raw) writes.push(kv.set(db, "ownedTopics", bootstrap.ownedTopics));
+  if ("ownedTopics" in raw) writes.push(atomicMergeOwnedTopics(db, bootstrap.ownedTopics));
   if ("studentTopicLinks" in raw) writes.push(kv.set(db, "studentTopicLinks", bootstrap.studentTopicLinks));
   if ("conceptProgress" in raw) writes.push(kv.set(db, "conceptProgress", bootstrap.conceptProgress));
   if ("sessions" in raw) writes.push(kv.set(db, "sessions", bootstrap.sessions));

@@ -8,6 +8,7 @@ import {
   indexStudentTopicLinks,
   loadLocalBootstrap,
   markStudentDeleted,
+  mergeOwnedTopics,
   mergeStudentRecords,
   mergeStudents,
   normalizeBootstrap,
@@ -87,6 +88,30 @@ describe("bootstrap helpers", () => {
     expect(result.sessions[0].id).toBe(6);
     expect(result.lastContext).toBeNull();
     expect(result.activeSession).toBeNull();
+  });
+
+  it("mergeOwnedTopics keeps a local free grant the server doesn't know about yet", () => {
+    const merged = mergeOwnedTopics(
+      [{ topicId: "spatial_prepositions_ru", source: "free" }],
+      [],
+    );
+    expect(merged).toEqual([{ topicId: "spatial_prepositions_ru", source: "free" }]);
+  });
+
+  it("mergeOwnedTopics drops a local non-free entry the server no longer sends", () => {
+    const merged = mergeOwnedTopics(
+      [{ topicId: "granted_topic", source: "grant" }],
+      [],
+    );
+    expect(merged).toEqual([]);
+  });
+
+  it("mergeOwnedTopics prefers the server's record once it catches up", () => {
+    const merged = mergeOwnedTopics(
+      [{ topicId: "t1", source: "free" }],
+      [{ topicId: "t1", source: "free", grantedAt: "2026-05-14T00:00:00.000Z" }],
+    );
+    expect(merged).toEqual([{ topicId: "t1", source: "free", grantedAt: "2026-05-14T00:00:00.000Z" }]);
   });
 
   it("mergeStudents removes local active records when server sends a tombstone", () => {
@@ -264,6 +289,31 @@ describe("bootstrap helpers", () => {
     });
 
     expect(useAppStore.getState().students).toEqual([]);
+  });
+
+  it("applyBootstrapToStore survives a periodic server resync that hasn't caught up with a fresh free-deck install", () => {
+    // Installing a free deck optimistically grants it locally before the server confirms.
+    applyBootstrapToStore({ ownedTopics: [{ topicId: "spatial_prepositions_ru", source: "free" }] });
+    expect(useAppStore.getState().ownedTopics).toEqual([{ topicId: "spatial_prepositions_ru", source: "free" }]);
+
+    // The 20s/visibilitychange resync lands next, with a server list that hasn't seen the claim yet.
+    applyBootstrapToStore({ ownedTopics: [] });
+    expect(useAppStore.getState().ownedTopics).toEqual([{ topicId: "spatial_prepositions_ru", source: "free" }]);
+  });
+
+  it("applyBootstrapToStore leaves ownedTopics untouched when the caller omits the field entirely", () => {
+    applyBootstrapToStore({ ownedTopics: [{ topicId: "t1", source: "free" }] });
+    applyBootstrapToStore({ students: [{ id: "s1" }] });
+    expect(useAppStore.getState().ownedTopics).toEqual([{ topicId: "t1", source: "free" }]);
+  });
+
+  it("persistBootstrap merges ownedTopics instead of replacing, keeping a local free grant", async () => {
+    const db = await freshDb();
+    await kv.set(db, "ownedTopics", [{ topicId: "spatial_prepositions_ru", source: "free" }]);
+
+    await persistBootstrap(db, { ownedTopics: [] });
+
+    expect(await kv.get(db, "ownedTopics")).toEqual([{ topicId: "spatial_prepositions_ru", source: "free" }]);
   });
 
   it("persistBootstrap saves normalized entities and loadLocalBootstrap returns normalized snapshot", async () => {
