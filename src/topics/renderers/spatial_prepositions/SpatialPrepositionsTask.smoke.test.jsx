@@ -62,6 +62,10 @@ describe("spatial prepositions tasks", () => {
     expect(container.textContent).toContain("под столом");
     // The written response stays short; the full sentence is the audio model.
     expect(container.textContent).not.toContain("Мяч под столом.");
+    const modelReplayButton = container.querySelector(".sp-audio-button--icon");
+    expect(modelReplayButton.getAttribute("aria-label")).toBe("Слушать ещё раз");
+    expect(modelReplayButton.textContent).toBe("🔊");
+    expect(container.querySelector(".sp-actions--question .sp-primary-button").textContent).toBe("Дальше");
 
     act(() => { container.querySelector(".sp-primary-button").click(); });
     expect(onAdvance).toHaveBeenCalledOnce();

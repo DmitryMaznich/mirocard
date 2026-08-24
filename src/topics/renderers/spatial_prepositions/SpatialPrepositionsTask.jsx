@@ -66,8 +66,8 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
       ) : (
         <>
           <div className="sp-answer" aria-live="polite">{card.phrase}</div>
-          <div className="sp-actions">
-            <RepeatButton onClick={() => voice(card.model, card.modelAudio)} label="Слушать ещё раз" />
+          <div className="sp-actions sp-actions--question">
+            <RepeatButton onClick={() => voice(card.model, card.modelAudio)} label="Слушать ещё раз" iconOnly />
             <button className="sp-primary-button" type="button" onClick={onAdvance}>Дальше</button>
           </div>
         </>
