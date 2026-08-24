@@ -35,6 +35,26 @@ function shuffle(arr) {
   return a;
 }
 
+// Spatial prepositions use their own `relations` multi-select in Params.
+// That choice must be authoritative: a legacy selection from the generic
+// concept picker belongs to an older version of the topic and can otherwise
+// hide the cards requested by the new control.
+export function cardsForRenderer(topicRecord, mode, selectedConceptIds) {
+  const allCards = topicRecord?.cards ?? [];
+  const selectedIds = new Set(selectedConceptIds ?? []);
+  const selectedCards = shuffle(allCards.filter((card) => selectedIds.has(card.conceptId)));
+  const modeHasCategoryParam = Boolean(mode?.params?.category);
+  const spatialRelationsOwnFilter = topicRecord?.meta?.renderer === "spatial_prepositions"
+    && mode?.params?.relations?.type === "enum_multi";
+
+  return {
+    selectedCards,
+    cards: modeHasCategoryParam || spatialRelationsOwnFilter
+      ? allCards
+      : (selectedCards.length ? selectedCards : allCards),
+  };
+}
+
 function buildGeneratedSessionState({
   topicRecord,
   mode,
@@ -98,14 +118,10 @@ function buildGeneratedSessionState({
   } else {
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
-    const selectedCards = shuffle(topicRecord.cards.filter((card) => selectedConceptIds.includes(card.conceptId)));
-    // When a mode defines a category param, category filter is authoritative — pass all cards
-    // so filterByCategory inside generateTasks can include cards from any selected category,
-    // not just those that happened to be in selectedConceptIds from a prior concept-picker save.
-    const modeHasCategoryParam = !!mode?.params?.category;
-    const cardsForEngine = modeHasCategoryParam
-      ? topicRecord.cards
-      : (selectedCards.length ? selectedCards : topicRecord.cards);
+    // Category filters, and spatial prepositions' own relation selector, are
+    // authoritative — pass the full topic pool so an older generic concept
+    // selection cannot silently hide the requested cards.
+    const { selectedCards, cards: cardsForEngine } = cardsForRenderer(topicRecord, mode, selectedConceptIds);
     tasks = generateTasks
       ? generateTasks(mode, cardsForEngine, sessionSize, sessionParams)
       : [];

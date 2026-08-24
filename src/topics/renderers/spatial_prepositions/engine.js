@@ -28,7 +28,13 @@ function interleaveRelations(cards, relations) {
       .filter(([, bucket]) => bucket.length > 0)
       .map(([relation]) => relation);
     const candidates = available.filter((relation) => relation !== previousRelation);
-    const relation = (candidates.length ? candidates : available)[Math.floor(Math.random() * (candidates.length || available.length))];
+    const eligible = candidates.length ? candidates : available;
+    // Take a relation with the largest remaining pool.  Choosing an arbitrary
+    // different relation can exhaust the small pools first and leave two cards
+    // from the same relation adjacent even when a clean alternation is possible.
+    const largestPool = Math.max(...eligible.map((relation) => buckets.get(relation).length));
+    const balanced = eligible.filter((relation) => buckets.get(relation).length === largestPool);
+    const relation = balanced[Math.floor(Math.random() * balanced.length)];
     mixed.push(buckets.get(relation).shift());
     previousRelation = relation;
   }
