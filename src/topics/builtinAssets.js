@@ -161,6 +161,14 @@ const BUILTIN_ASSETS = {
   <text x="94" y="74" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#ef6f5e">6</text>
   <path d="M55 56h18M55 72h18" stroke="#f59e0b" stroke-width="7" stroke-linecap="round"/>
 </svg>`,
+  "media/icons/comparison_evaluate.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <text x="30" y="76" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="900" fill="#1f4f8a">5</text>
+  <text x="98" y="76" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="900" fill="#ef6f5e">8</text>
+  <rect x="51" y="49" width="26" height="30" rx="8" fill="none" stroke="#94a3b8" stroke-width="4" stroke-dasharray="5 5"/>
+  <text x="64" y="73" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="#94a3b8">?</text>
+</svg>`,
   "media/icons/comparison_first_number.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f4fff7"/>
@@ -170,6 +178,16 @@ const BUILTIN_ASSETS = {
   <text x="92" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="900" fill="#1f2937">9</text>
   <rect x="24" y="92" width="80" height="14" rx="7" fill="#22c55e"/>
   <text x="64" y="103" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="800" fill="#fff">ПЕРВОЕ ЧИСЛО</text>
+</svg>`,
+  "media/icons/comparison_test.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff8ec"/>
+  <rect x="30" y="20" width="68" height="88" rx="10" fill="#fff" stroke="#e3c38e" stroke-width="4"/>
+  <rect x="42" y="38" width="44" height="7" rx="3.5" fill="#cbd5e1"/>
+  <rect x="42" y="54" width="44" height="7" rx="3.5" fill="#cbd5e1"/>
+  <rect x="42" y="70" width="30" height="7" rx="3.5" fill="#cbd5e1"/>
+  <circle cx="92" cy="88" r="20" fill="#22c55e"/>
+  <path d="M83 88l6 7 14-15" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>`,
   "media/icons/comparison_visual.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
