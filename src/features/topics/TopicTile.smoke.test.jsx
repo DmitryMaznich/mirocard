@@ -115,4 +115,18 @@ describe("TopicTile — mounted through the real component", () => {
     const tag = container.querySelector(".topic-tile-row__tag--beta");
     expect(tag?.textContent).toBe("БЕТА");
   });
+
+  it("renders a personal badge when personalCaption is set", () => {
+    const record = { meta: { id: "propis", version: "1.0.0" } };
+    mount({ installedRecord: record, personalCaption: "Импортирована вручную" });
+    const tag = container.querySelector(".topic-tile-row__tag--personal");
+    expect(tag?.textContent).toBe("Личная");
+    expect(tag?.title).toBe("Импортирована вручную");
+  });
+
+  it("hides the personal badge when personalCaption is not set", () => {
+    const record = { meta: { id: "propis", version: "1.0.0" } };
+    mount({ installedRecord: record, personalCaption: null });
+    expect(container.querySelector(".topic-tile-row__tag--personal")).toBeFalsy();
+  });
 });

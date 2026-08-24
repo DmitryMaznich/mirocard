@@ -30,6 +30,7 @@ export default function TopicTile({
   isActive,
   access = "free",
   claimSource,        // ownedTopics[...].source, or null
+  personalCaption,    // getPersonalTopicCaption() result, or null — imported/granted topics only
   onInstall,
   onSelect,
   onMenu,
@@ -136,6 +137,7 @@ export default function TopicTile({
         <div className="topic-tile-row__eyebrow">
           <span>{versionText}</span>
           {statusBadge && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
+          {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>Личная</span>}
         </div>
       </div>
       {installedRecord && !isBuiltin && onMenu && (

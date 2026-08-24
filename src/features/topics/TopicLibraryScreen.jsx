@@ -9,9 +9,7 @@ import TopicImport from "./TopicImport";
 import InfoModal from "@/shared/components/InfoModal";
 import TopicActionSheet from "./TopicActionSheet";
 import TopicTile from "./TopicTile";
-import TopicSpotlightCard from "./TopicSpotlightCard";
 import ContinueStrip from "./ContinueStrip";
-import { CategoryGlyph } from "./CategoryIcons";
 import { getTopicTitle } from "@/shared/utils/format";
 import {
   fetchCatalog,
@@ -21,7 +19,7 @@ import {
   isLocalModeProfile,
 } from "./catalogService";
 import { CATEGORY_ORDER, OTHER_CATEGORY, getTopicCategory } from "./topicCategories";
-import { isPersonalTopic, getPersonalTopicCaption } from "./topicOrigin";
+import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function TopicLibraryScreen() {
@@ -40,7 +38,7 @@ export default function TopicLibraryScreen() {
 
   const [catalog,           setCatalog]           = useState(null);
   const [catalogError,      setCatalogError]      = useState(false);
-  const [filter,             setFilter]           = useState("all");
+  const [filter,             setFilter]           = useState("mine");
   const [query,              setQuery]            = useState("");
   const [analyticsTarget,   setAnalyticsTarget]   = useState(null);
   const [deleting,          setDeleting]          = useState(null);
@@ -103,15 +101,8 @@ export default function TopicLibraryScreen() {
 
   const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
 
-  // "Мои темы" (personal decks) are pulled out of the shared category grid
-  // entirely — they get their own spotlight section instead of competing
-  // with the general catalog for the same slot.
-  const personalRecords = visibleRecords.filter((r) => isPersonalTopic(r.meta, ownedTopics));
-  const personalIds = new Set(personalRecords.map((r) => r.meta.id));
-
   const itemsById = new Map();
   for (const entry of visibleDecks) {
-    if (personalIds.has(entry.id)) continue;
     itemsById.set(entry.id, {
       id: entry.id,
       title: entry.title?.ru ?? entry.id,
@@ -121,7 +112,6 @@ export default function TopicLibraryScreen() {
     });
   }
   for (const record of visibleRecords) {
-    if (personalIds.has(record.meta.id)) continue;
     const existing = itemsById.get(record.meta.id) ?? {
       id: record.meta.id,
       title: getTopicTitle(record.meta.title),
@@ -132,24 +122,30 @@ export default function TopicLibraryScreen() {
     itemsById.set(record.meta.id, existing);
   }
   const allItems = [...itemsById.values()];
+  const installedCount = allItems.filter((item) => item.installedRecord != null).length;
 
   const trimmedQuery = query.trim().toLowerCase();
   const searchResults = trimmedQuery
     ? allItems.filter((item) => item.title.toLowerCase().includes(trimmedQuery))
     : null;
 
-  const categorySections = [...CATEGORY_ORDER, OTHER_CATEGORY]
-    .map((label) => ({ label, items: allItems.filter((item) => item.category === label) }))
+  // "Мои темы" is everything already on the device (builtin, downloaded,
+  // imported, granted) — the other chips filter the full catalog instead.
+  const filteredItems = filter === "mine"
+    ? allItems.filter((item) => item.installedRecord != null)
+    : filter === "all"
+      ? allItems
+      : allItems.filter((item) => item.category === filter);
+
+  const sectionsToShow = [...CATEGORY_ORDER, OTHER_CATEGORY]
+    .map((label) => ({ label, items: filteredItems.filter((item) => item.category === label) }))
     .filter((group) => group.items.length > 0);
-
-  const sectionsToShow = filter === "all"
-    ? categorySections
-    : categorySections.filter((group) => group.label === filter);
-
-  const showMineSection = filter === "mine" || (filter === "all" && personalRecords.length > 0);
 
   function renderItem(item) {
     const owned = ownedById[item.id] ?? null;
+    const personalCaption = item.installedRecord
+      ? getPersonalTopicCaption(item.installedRecord.meta, ownedTopics)
+      : null;
     return (
       <TopicTile
         key={item.id}
@@ -160,24 +156,11 @@ export default function TopicLibraryScreen() {
         isActive={item.installedRecord?.meta.id === activeTopicId}
         access={item.entry?.access ?? "free"}
         claimSource={owned?.source ?? null}
+        personalCaption={personalCaption}
         onInstall={installCatalogEntry}
         onSelect={handleSelectTopic}
         onMenu={setActionSheetRecord}
         onInfo={setInfoTopic}
-      />
-    );
-  }
-
-  function renderPersonal(record) {
-    return (
-      <TopicSpotlightCard
-        key={record.meta.id}
-        title={getTopicTitle(record.meta.title)}
-        category={getTopicCategory(record.meta.id)}
-        caption={getPersonalTopicCaption(record.meta, ownedTopics)}
-        isActive={record.meta.id === activeTopicId}
-        onSelect={() => handleSelectTopic(record)}
-        onMenu={record.meta.builtin ? null : () => setActionSheetRecord(record)}
       />
     );
   }
@@ -211,7 +194,7 @@ export default function TopicLibraryScreen() {
               onClick={() => setFilter("mine")}
             >
               Мои темы
-              {personalRecords.length > 0 && <span className="topic-chip__count">{personalRecords.length}</span>}
+              {installedCount > 0 && <span className="topic-chip__count">{installedCount}</span>}
             </button>
             <button
               className={`topic-chip${filter === "all" ? " is-active" : ""}`}
@@ -242,26 +225,6 @@ export default function TopicLibraryScreen() {
           </section>
         ) : (
           <>
-            {showMineSection && (
-              <section className="topics-section">
-                <div className="topics-section__head">
-                  <div>
-                    <span className="topics-section__eyebrow">Подобрано для вас</span>
-                    <h2>Мои темы</h2>
-                  </div>
-                </div>
-                {personalRecords.length > 0 ? (
-                  <div className="topic-spotlight-row">{personalRecords.map(renderPersonal)}</div>
-                ) : (
-                  <div className="topics-mine-empty">
-                    <div className="topics-mine-empty__icon"><CategoryGlyph name="generic" size={20} /></div>
-                    <h4>Пока здесь пусто</h4>
-                    <p>Персональные темы появляются, когда логопед готовит материал именно для вас — они сразу окажутся в этом разделе.</p>
-                  </div>
-                )}
-              </section>
-            )}
-
             {sectionsToShow.map((group) => (
               <section className="topics-section" key={group.label}>
                 <div className="topics-section__head"><h2>{group.label}</h2></div>
