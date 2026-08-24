@@ -441,12 +441,19 @@ const DEFAULT_MODE_METHODOLOGY = {
       goal: "Ребёнок не только выбирает, но и моторно воспроизводит правильный знак сравнения.",
     },
     compare_evaluate: {
-      settings: [
-        "Что учим задаёт фокус: больше, меньше, микс или оценка первого числа.",
-        "Тип ответа переключает символы < = > и словесные ответы.",
-        "Количество примеров на экране повышает нагрузку на внимание.",
-      ],
-      goal: "Ребёнок самостоятельно оценивает пару чисел и выбирает знак или словесное отношение.",
+      // No hand-written "settings" here on purpose — the mode's only param
+      // now is "style" (sign/verbal), and describeModeParams() below
+      // already generates an accurate line straight from that param's own
+      // topic.json schema. Hand-listing settings here risks exactly the
+      // staleness this entry had before (still describing "Что учим" and
+      // "Количество примеров" years after both moved to their own modes).
+      goal: "Ребёнок самостоятельно оценивает пару чисел и выбирает знак или словесное отношение — без подсказанного направления.",
+    },
+    compare_first_number: {
+      goal: "Ребёнок читает выражение слева направо и определяет позицию первого числа относительно второго.",
+    },
+    compare_test: {
+      goal: "Ребёнок самостоятельно решает несколько примеров подряд без пошаговой подсказки — как в настоящей проверочной работе.",
     },
   },
   math_houses: {
@@ -854,10 +861,12 @@ const DEFAULT_MODES = {
     },
   ],
   comparison: [
-    { id: "compare_visual",    type: "compare_visual",    evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака", instruction: "Нажми на сторону, где больше",       icon: "media/icons/comparison_visual.svg" } },
-    { id: "compare_sign",      type: "compare_sign",      evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил",   instruction: "Нажми на большее число",              icon: "media/icons/comparison_sign.svg" } },
-    { id: "compare_draw_sign", type: "compare_draw_sign", evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",     icon: "media/icons/comparison_mode.svg" } },
-    { id: "compare_evaluate",  type: "compare_evaluate",  evaluation: "auto", ui: { title: "4. Оцени и поставь знак",     instruction: "Поставь или выбери правильный знак",  icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака", instruction: "Нажми на сторону, где больше",              icon: "media/icons/comparison_visual.svg" } },
+    { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил",   instruction: "Нажми на большее число",                     icon: "media/icons/comparison_sign.svg" } },
+    { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",            icon: "media/icons/comparison_mode.svg" } },
+    { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Оцени и поставь знак",     instruction: "Поставь правильный знак между числами",      icon: "media/icons/comparison_evaluate.svg" } },
+    { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Оцени первое число",      instruction: "Первое число — больше, меньше или равно второму?", icon: "media/icons/comparison_first_number.svg" } },
+    { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "6. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
   ],
   math_houses: [
     { id: "math_houses_practice",  type: "math_houses_practice",  evaluation: "auto", ui: { title: "Домик",              instruction: "Работай с домиком числа",                   icon: "media/icons/math_houses.svg" } },
@@ -1968,9 +1977,13 @@ function migrateRecord(record) {
     const defaultModes = DEFAULT_MODES[record.meta.renderer] ?? [];
     let merged = mergeDefaultModesKeepOrder(record.modes ?? [], defaultModes);
     if (record.meta.renderer === "comparison") {
+      // compare_put_sign stays merged into compare_evaluate (dead, never
+      // reintroduced). compare_first_number used to be merged in too, but
+      // is its own mode again as of v2.11.0 — do NOT strip it here, or
+      // every stored record would silently lose mode 5 on every load.
       const hasEvaluate = merged.some((m) => m.id === "compare_evaluate");
       if (hasEvaluate) {
-        merged = merged.filter((m) => m.id !== "compare_first_number" && m.id !== "compare_put_sign");
+        merged = merged.filter((m) => m.id !== "compare_put_sign");
       }
     }
     return {

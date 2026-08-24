@@ -38,6 +38,24 @@ const MODE_FIRST = {
   defaultCardId: "compare_medium",
   ui: { title: "Первое число", instruction: "Посмотри на первое число" },
 };
+const MODE_DRAW_SIGN = {
+  id: "compare_draw_sign", type: "compare_draw_sign", evaluation: "auto",
+  defaultCardId: "compare_hard",
+  ui: { title: "3. Нарисуй знак", instruction: "Нарисуй правильный знак пальцем" },
+};
+const MODE_EVALUATE = {
+  id: "compare_evaluate", type: "compare_evaluate", evaluation: "auto",
+  defaultCardId: "compare_hard",
+  ui: { title: "4. Оцени и поставь знак", instruction: "Поставь правильный знак между числами" },
+};
+// "Контрольная работа" — a distinct mode entry that shares compare_evaluate's
+// type/renderer/engine branch (multi-item batching), differing only in id
+// and which params it exposes (examplesCount).
+const MODE_TEST = {
+  id: "compare_test", type: "compare_evaluate", evaluation: "auto",
+  defaultCardId: "compare_hard",
+  ui: { title: "6. Контрольная работа", instruction: "Реши примеры один за другим" },
+};
 
 describe("generateComparisonTask", () => {
   it("returns left and right within [min, max]", () => {
@@ -210,6 +228,59 @@ describe("generateTasks", () => {
       if (left === right) expect(question).toBe("equal");
       if (left < right) expect(question).toBe("less");
       if (left > right) expect(question).toBe("more");
+    });
+  });
+
+  // compare_draw_sign: the sign to draw is fully determined by left vs
+  // right, so "question" (more/less/mix) must not drive its instruction —
+  // it used to fall through to the visual-picking wording ("Где больше?"),
+  // which doesn't make sense for a drawing task and doesn't track which
+  // sign is actually correct.
+  it("compare_draw_sign has no per-task instruction regardless of question", () => {
+    for (const question of ["more", "less", "mix"]) {
+      const tasks = generateTasks(MODE_DRAW_SIGN, ALL_CARDS, 10, { question });
+      tasks.forEach((task) => {
+        expect(task.instruction).toBeFalsy();
+      });
+    }
+  });
+
+  // compare_evaluate: the child names the real relationship between two
+  // numbers by choosing a sign/word, so there is nothing to "direct" —
+  // rigging every pair to the same answer (the old "Где больше"/"Где
+  // меньше" behavior) made the task trivially solvable without looking at
+  // the numbers at all. Tasks must always reflect the real left/right
+  // relationship, regardless of any (now unused) "question" value —
+  // including a stale one left over from a student's old saved settings.
+  it("compare_evaluate never rigs pairs toward one answer, even if a stale question param is passed", () => {
+    for (const staleQuestion of ["more", "less", "mix", undefined]) {
+      const tasks = generateTasks(MODE_EVALUATE, ALL_CARDS, 40, { question: staleQuestion });
+      const relations = new Set(tasks.map((t) => t.question));
+      expect(relations.has("more")).toBe(true);
+      expect(relations.has("less")).toBe(true);
+      tasks.forEach((t) => {
+        const real = t.left === t.right ? "equal" : t.left > t.right ? "more" : "less";
+        expect(t.question).toBe(real);
+      });
+    }
+  });
+
+  it("compare_evaluate has a fixed instruction independent of any question setting", () => {
+    const tasks = generateTasks(MODE_EVALUATE, ALL_CARDS, 10, { question: "more" });
+    tasks.forEach((t) => expect(t.instruction).toBe("Поставь правильный знак между числами"));
+  });
+
+  // "Контрольная работа" reuses compare_evaluate's type/engine branch —
+  // only the mode id/params differ (examplesCount is meaningful here).
+  it("compare_test (Контрольная работа) batches items like compare_evaluate does", () => {
+    const batches = generateTasks(MODE_TEST, ALL_CARDS, 5, { examplesCount: 4 });
+    expect(batches).toHaveLength(5);
+    batches.forEach((batch) => {
+      expect(batch.items).toHaveLength(4);
+      batch.items.forEach((item) => {
+        const real = item.left === item.right ? "equal" : item.left > item.right ? "more" : "less";
+        expect(item.question).toBe(real);
+      });
     });
   });
 });

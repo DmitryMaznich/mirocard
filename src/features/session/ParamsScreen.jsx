@@ -1055,13 +1055,6 @@ const QUESTION_OPTIONS = [
   { value: "mix",  label: "Микс",    hint: "Вопросы «больше» и «меньше» чередуются" },
 ];
 
-const EVALUATE_QUESTION_OPTIONS = [
-  { value: "more",         label: "Где больше",   hint: "Пары чисел: слева всегда большее" },
-  { value: "less",         label: "Где меньше",   hint: "Пары чисел: слева всегда меньшее" },
-  { value: "mix",          label: "Микс",          hint: "Направление пар чередуется случайно" },
-  { value: "first_number", label: "Первое число",  hint: "Оцени первое число — больше, меньше или равно второму" },
-];
-
 const VISUAL_OPTIONS = [
   { value: "dots",         label: "Точки" },
   { value: "dots_numbers", label: "Точки + цифра" },
@@ -1073,11 +1066,22 @@ function ComparisonParams({ params, onChange }) {
   const activeLevel      = COMPARISON_LEVELS.find((l) => l.id === params.level);
   const isEvaluateMode   = activeModeId === "compare_evaluate";
   const isVisualMode     = activeModeId === "compare_visual";
-  const evaluateQuestion = params.question ?? "more";
+  // The sign to draw is fully determined by left vs right — "Что учим"
+  // (more/less/mix) can't change which sign is correct, so it has no
+  // effect for this mode and would just be a dead control. The same is
+  // true of "Оцени и поставь знак" and "Контрольная работа" — both ask
+  // the child to name the actual relationship between two numbers, so a
+  // forced direction would either make the task trivial (rig every pair
+  // to the same answer) or contradict itself (label says "больше" on a
+  // pair where it isn't). See compare_first_number below for the one
+  // evaluate-family mode where a fixed relationship genuinely is the task.
+  const isDrawSignMode   = activeModeId === "compare_draw_sign";
+  const isTestMode       = activeModeId === "compare_test";
+  const isFirstNumberMode = activeModeId === "compare_first_number";
+  const isEvaluateFamily  = isEvaluateMode || isTestMode;
 
-  const activeQuestion         = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
-  const activeEvaluateQuestion = EVALUATE_QUESTION_OPTIONS.find((q) => q.value === evaluateQuestion);
-  const multiMode              = isEvaluateMode && (params.examplesCount ?? 1) > 1;
+  const activeQuestion = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
+  const multiMode       = isTestMode && (params.examplesCount ?? 1) > 1;
 
   const currentVisualMode = params.visualMode ?? "dots";
   const dotsOnly = isVisualMode && currentVisualMode !== "numbers";
@@ -1125,27 +1129,7 @@ function ComparisonParams({ params, onChange }) {
         </div>
       </div>
 
-      {isEvaluateMode && (
-        <div className="param-row param-row--block">
-          <div className="param-label">Что учим</div>
-          <div className="param-enum-section">
-            <div className="param-enum-group">
-              {EVALUATE_QUESTION_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={`enum-btn ${evaluateQuestion === opt.value ? "enum-btn--active" : ""}`}
-                  onClick={() => onChange({ ...params, question: opt.value })}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            {activeEvaluateQuestion && <div className="param-hint">{activeEvaluateQuestion.hint}</div>}
-          </div>
-        </div>
-      )}
-
-      {!isEvaluateMode && (
+      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Что учим</div>
           <div className="param-enum-section">
@@ -1165,7 +1149,7 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {isEvaluateMode && (
+      {isEvaluateFamily && (
         <EnumParam
           label="Тип ответа"
           options={["sign", "verbal"]}
@@ -1175,21 +1159,20 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
-      {isEvaluateMode && (
+      {isTestMode && (
         <NumberStepper
           label="Примеров на экране"
-          value={params.examplesCount ?? 1}
-          min={1}
+          value={params.examplesCount ?? 4}
+          min={2}
           max={6}
           onChange={(v) => onChange({ ...params, examplesCount: v })}
         />
       )}
 
-      {isEvaluateMode && evaluateQuestion === "first_number" && (
+      {isFirstNumberMode && (
         <BooleanParam
           label='Подписи «Первое» и «Второе»'
           value={params.showLabels ?? true}
-          disabled={multiMode}
           onChange={(v) => onChange({ ...params, showLabels: v })}
         />
       )}
@@ -1213,13 +1196,19 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      <BooleanParam
-        label="Ответ словами"
-        hint='Вместо «7 больше 4» — «Семь больше четырёх»'
-        value={params.wordsVerdict}
-        disabled={multiMode}
-        onChange={(v) => onChange({ ...params, wordsVerdict: v })}
-      />
+      {!isFirstNumberMode && (
+        // compare_first_number's own verdict is always spoken as words by
+        // design ("Три меньше семи") — this toggle has no effect there, so
+        // don't expose a control that can't change anything (same bug as
+        // compare_draw_sign's old "Что учим").
+        <BooleanParam
+          label="Ответ словами"
+          hint='Вместо «7 больше 4» — «Семь больше четырёх»'
+          value={params.wordsVerdict}
+          disabled={multiMode}
+          onChange={(v) => onChange({ ...params, wordsVerdict: v })}
+        />
+      )}
     </>
   );
 }
@@ -1341,13 +1330,24 @@ export default function ParamsScreen() {
       // compare_visual's own methodology recommends starting at level 1
       // (diff >= 5, most contrastive) — other modes keep the general default.
       const defaultLevel = activeModeId === "compare_visual" ? 1 : 2;
+      // examplesCount is stored on the shared per-topic params object (this
+      // link key isn't per-mode), but only "Контрольная работа" exposes a
+      // control for it — force it to that mode's fixed shape on entry so a
+      // value picked in one mode can't silently carry into another mode
+      // that doesn't even show the control (e.g. "Оцени и поставь знак"
+      // quietly running in worksheet mode because the student last set 4
+      // examples in "Контрольная работа").
+      const isTestMode = activeModeId === "compare_test";
+      const examplesCount = isTestMode
+        ? Math.max(2, Math.min(6, saved.examplesCount ?? 4))
+        : 1;
       return {
         level:         saved.level         ?? defaultLevel,
         question:      saved.question      ?? "more",
         showEqual:     saved.showEqual     ?? false,
         wordsVerdict:  saved.wordsVerdict  ?? false,
         visualMode:    saved.visualMode    ?? "dots",
-        examplesCount: saved.examplesCount ?? 1,
+        examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",
       };

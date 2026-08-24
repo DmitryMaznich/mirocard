@@ -813,6 +813,62 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
   });
 });
 
+describe("comparison mode migration", () => {
+  // compare_first_number and compare_put_sign used to be merged into
+  // compare_evaluate, and migrateRecord stripped both out of any stored
+  // record that also had compare_evaluate — a blanket rule that ran on
+  // every load, not just once for stale pre-merge records. As of v2.11.0,
+  // compare_first_number is its own mode again (topic.json legitimately
+  // ships both compare_evaluate and compare_first_number side by side), so
+  // that same blanket rule would silently delete mode 5 from every
+  // installed record on every single load. compare_put_sign stays merged.
+  it("keeps compare_first_number alongside compare_evaluate instead of stripping it", async () => {
+    const db = await freshDb();
+    const record = {
+      id: "comparison",
+      meta: { id: "comparison", renderer: "comparison", version: "2.11.0", title: { ru: "Сравнение" } },
+      modes: [
+        { id: "compare_visual",       type: "compare_visual",       evaluation: "auto", ui: { title: "1. Сравни и нажми. Без знака" } },
+        { id: "compare_sign",         type: "compare_sign",         evaluation: "auto", ui: { title: "2. Вводим знак — Крокодил" } },
+        { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "3. Нарисуй знак" } },
+        { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Оцени и поставь знак" } },
+        { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Оцени первое число" } },
+        { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "6. Контрольная работа" } },
+      ],
+      cards: [{ id: "compare_hard", conceptId: "compare_hard", primary: true, label: "Ступень 3–6" }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:comparison", record);
+    await kv.set(db, "installedTopicIds", ["comparison"]);
+
+    const loaded = await getTopicRecord(db, "comparison");
+    const ids = loaded.modes.map((m) => m.id);
+    expect(ids).toContain("compare_first_number");
+    expect(ids).toContain("compare_test");
+  });
+
+  it("still strips the fully-merged compare_put_sign when compare_evaluate is present", async () => {
+    const db = await freshDb();
+    const record = {
+      id: "comparison",
+      meta: { id: "comparison", renderer: "comparison", version: "2.9.0", title: { ru: "Сравнение" } },
+      modes: [
+        { id: "compare_evaluate", type: "compare_evaluate", evaluation: "auto", ui: { title: "4. Оцени и поставь знак" } },
+        { id: "compare_put_sign", type: "compare_put_sign", evaluation: "auto", ui: { title: "Поставь знак" } },
+      ],
+      cards: [{ id: "compare_hard", conceptId: "compare_hard", primary: true, label: "Ступень 3–6" }],
+      installedAt: new Date().toISOString(),
+    };
+
+    await kv.set(db, "topic:comparison", record);
+    await kv.set(db, "installedTopicIds", ["comparison"]);
+
+    const loaded = await getTopicRecord(db, "comparison");
+    expect(loaded.modes.map((m) => m.id)).not.toContain("compare_put_sign");
+  });
+});
+
 // ─── chat_practice ────────────────────────────────────────────────────────────
 
 async function makeChatPracticeZip({ id = "morning_greeting", version = "1.0.0" } = {}) {

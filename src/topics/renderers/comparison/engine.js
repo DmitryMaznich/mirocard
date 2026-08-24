@@ -134,11 +134,15 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
 
-  const isFirstNumber         = mode.type === "compare_first_number";
-  const isEvaluate            = mode.type === "compare_evaluate";
-  const style                 = isEvaluate ? (sessionParams.style ?? "sign") : null;
-  const isFirstNumberEvaluate = isEvaluate && question === "first_number";
-  const isVerbal              = isFirstNumber || isFirstNumberEvaluate;
+  const isFirstNumber = mode.type === "compare_first_number";
+  const isEvaluate    = mode.type === "compare_evaluate";
+  const style         = isEvaluate ? (sessionParams.style ?? "sign") : null;
+  // compare_first_number is the only evaluate-family task with a fixed
+  // relationship to name ("is the first number bigger/smaller/equal?") —
+  // "Оцени и поставь знак" and "Контрольная работа" always ask for the
+  // real, unrigged relationship between two numbers (see the removed
+  // direction-forcing below), so isVerbal only ever applies here.
+  const isVerbal = isFirstNumber;
 
   const examplesCount = (isFirstNumber || isEvaluate)
     ? Math.max(1, Math.min(6, Number(sessionParams.examplesCount ?? 1)))
@@ -158,6 +162,12 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     }
     if (isEvaluate) {
       return "Поставь правильный знак между числами";
+    }
+    if (mode.type === "compare_draw_sign") {
+      // The sign to draw is fully determined by left vs right — "Что учим"
+      // (more/less/mix) has no effect here, so don't derive an instruction
+      // from it. Falls through to mode.ui.instruction in the renderer.
+      return null;
     }
     const baseQ = q === "equal" ? (question === "less" ? "less" : "more") : q;
     const verb  = baseQ === "more" ? "больше" : "меньше";
@@ -191,11 +201,6 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
 
     const isEqual = left === right;
 
-    // Enforce direction for evaluate non-first_number modes
-    if (isEvaluate && !isFirstNumberEvaluate && !isEqual) {
-      if (question === "more" && left < right) { const t = left; left = right; right = t; }
-      if (question === "less" && left > right) { const t = left; left = right; right = t; }
-    }
     const taskQuestion = (isFirstNumber || isEvaluate)
       ? getFirstNumberRelation(left, right)   // always actual relationship
       : isEqual
