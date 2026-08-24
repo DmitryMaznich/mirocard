@@ -41,7 +41,7 @@
 /* ── Compare Visual / cfn ────────────────────────────────────────── */
 .compare-body {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 20px; flex: 1; padding: 16px;
+  gap: 20px; flex: 1; min-height: 0; padding: 16px;
 }
 .compare-instruction      { font-size: clamp(22px, 4vw, 34px); font-weight: 800; text-align: center; color: #263131; }
 .compare-instruction-hint { font-size: clamp(16px, 2.5vw, 22px); font-weight: 500; text-align: center; color: #718096; margin-top: 4px; }
@@ -153,29 +153,55 @@
 }
 
 /* "Контрольная работа" — up to 10 items must fit one screen without
-   scrolling, so row height/font-size scale down as --multi-count grows
-   (same technique as math_houses' --num-floors/--floor-h). The available
-   budget is the viewport minus the fixed chrome above/below the row list
-   (topbar, instruction line, divider, answer buttons, safe areas). */
+   scrolling. Rather than guessing a viewport-height budget (fragile —
+   depends on device chrome, safe areas, topbar height), this leans on
+   real flexbox shrink-to-fit: each row has a comfortable natural height
+   (flex-basis) but flex-shrink:1, so with few items they render at that
+   natural size (leftover space absorbed by .compare-body's own
+   justify-content:center), and with many items the whole list — and only
+   the list, not the instruction/divider/buttons around it — shrinks by
+   exactly however much is needed to fit, never overflowing. min-height:0
+   at every level is required for flex-shrink to be able to go below
+   content's intrinsic size at all (the default min-height:auto on a flex
+   item blocks shrinking below its natural content height otherwise). */
 .compare-body--multi {
-  --multi-budget-h: calc(100dvh - 280px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px));
-  --multi-row-h: clamp(26px, calc(var(--multi-budget-h) / max(var(--multi-count, 4), 1)), 68px);
+  min-height: 0;
   gap: 10px;
+}
+.compare-body--multi > .compare-instruction,
+.compare-body--multi > .cfn-multi-divider {
+  flex-shrink: 0;
 }
 /* The answer buttons default to a vertical stack of three 88px buttons
    (fine for a single task), but with up to 10 number rows above them that
    stack alone would eat 250px+ of a phone screen. Force the same compact
    row layout the landscape breakpoint already uses, regardless of
-   orientation, whenever this is the multi-example mode. */
-.compare-body--multi .croc-put-sign-btns { flex-direction: row; gap: 10px; }
+   orientation, and keep the button row itself from shrinking — only the
+   number list above it should give up space. */
+.compare-body--multi .croc-put-sign-btns { flex-direction: row; gap: 10px; flex-shrink: 0; }
 .compare-body--multi .croc-put-sign-btn  { width: 60px; height: 60px; font-size: 28px; }
-.compare-body--multi .cfn-options        { flex-direction: row; max-width: none; justify-content: center; }
+.compare-body--multi .cfn-options        { flex-direction: row; max-width: none; justify-content: center; flex-shrink: 0; }
 .compare-body--multi .cfn-btn            { min-height: 52px; min-width: 84px; flex: 1; max-width: 140px; padding: 0 8px; }
-.cfn-multi { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 4px; }
-.cfn-multi-row { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 14px; padding: 0 16px; border-radius: 14px; min-height: var(--multi-row-h, 48px); transition: background 0.15s; }
+
+.cfn-multi {
+  width: 100%; max-width: 400px;
+  display: flex; flex-direction: column; gap: 4px;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.cfn-multi-row {
+  flex: 0 1 56px;
+  min-height: 0;
+  display: flex; flex-direction: row; align-items: center; justify-content: center;
+  gap: clamp(6px, 3vw, 14px);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: background 0.15s;
+}
 .cfn-multi-row--active { background: #f8fafc; }
-.cfn-multi-num  { min-width: 40px; font-size: clamp(16px, calc(var(--multi-row-h, 48px) * 0.5), 34px); font-weight: 900; color: #1e293b; text-align: center; }
-.cfn-multi-sign { min-width: calc(var(--multi-row-h, 48px) * 0.82); height: calc(var(--multi-row-h, 48px) * 0.82); border-radius: 12px; border: 2.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: clamp(14px, calc(var(--multi-row-h, 48px) * 0.4), 24px); font-weight: 900; color: #94a3b8; background: #fff; transition: background 0.2s, border-color 0.2s, color 0.2s; }
+.cfn-multi-num  { min-width: 0; flex-shrink: 1; font-size: clamp(14px, calc(36px - var(--multi-count, 4) * 1.8px), 34px); font-weight: 900; color: #1e293b; text-align: center; }
+.cfn-multi-sign { align-self: stretch; aspect-ratio: 1; flex-shrink: 0; border-radius: 12px; border: 2.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: clamp(12px, calc(28px - var(--multi-count, 4) * 1.4px), 24px); font-weight: 900; color: #94a3b8; background: #fff; transition: background 0.2s, border-color 0.2s, color 0.2s; }
 .cfn-multi-sign--active { border-style: solid; border-color: #f59e0b; background: #fef9c3; color: #d97706; }
 .cfn-multi-sign--done   { border-style: solid; border-color: #86efac; color: #16a34a; background: #f0fdf4; }
 .cfn-multi-sign--wrong  { border-style: solid; border-color: #fca5a5; background: #fef2f2; color: #dc2626; animation: cfn-shake 0.3s ease; }
