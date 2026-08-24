@@ -129,9 +129,61 @@ export function getVerdict(task) {
     : `${smaller} меньше ${bigger}`;
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean }
+// A number the child must PRODUCE (not just recognize) that satisfies a
+// spoken constraint ("больше 6"). `value` always leaves room on the correct
+// side within [min, max] so a valid answer exists.
+function generateApplyGenerateTask(min, max) {
+  const op = Math.random() < 0.5 ? "more" : "less";
+  const value = op === "more"
+    ? Math.floor(Math.random() * (max - min)) + min       // value < max
+    : Math.floor(Math.random() * (max - min)) + min + 1;  // value > min
+  return {
+    taskType: "generate",
+    op,
+    value,
+    min,
+    max,
+    promptText: op === "more" ? `Больше ${value}` : `Меньше ${value}`,
+  };
+}
+
+// `count` distinct numbers, shown shuffled; the child taps them out in
+// ascending order. `sorted` is the expected tap order (by value).
+function generateApplyOrderTask(min, max, count) {
+  const nums = new Set();
+  while (nums.size < count) {
+    nums.add(Math.floor(Math.random() * (max - min + 1)) + min);
+  }
+  const sorted = [...nums].sort((a, b) => a - b);
+  return { taskType: "order", numbers: shuffle([...nums]), sorted };
+}
+
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order" }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
+
+  if (mode.type === "compare_apply") {
+    const applyTaskType = sessionParams.taskType ?? "generate";
+    const numbersCount  = 3;
+    const levelDef      = COMPARISON_LEVELS.find((l) => l.id === (sessionParams.level ?? 2)) ?? COMPARISON_LEVELS[1];
+    const { min, max }  = levelDef.params;
+    const card          = resolveComparisonCard(mode, cards, sessionParams);
+    if (!card) return [];
+
+    const instruction = applyTaskType === "order"
+      ? "Расставь числа по порядку — от меньшего к большему"
+      : "Выбери число, которое подходит";
+
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      const base = applyTaskType === "order"
+        ? generateApplyOrderTask(min, max, numbersCount)
+        : generateApplyGenerateTask(min, max);
+      tasks.push({ type: mode.type, conceptId: card.conceptId, instruction, ...base });
+    }
+    return tasks;
+  }
+
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
 
   const isFirstNumber = mode.type === "compare_first_number";

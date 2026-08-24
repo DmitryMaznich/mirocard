@@ -1079,6 +1079,7 @@ function ComparisonParams({ params, onChange }) {
   const isDrawSignMode   = activeModeId === "compare_draw_sign";
   const isTestMode       = activeModeId === "compare_test";
   const isFirstNumberMode = activeModeId === "compare_first_number";
+  const isApplyMode      = activeModeId === "compare_apply";
   const isEvaluateFamily  = isEvaluateMode || isTestMode;
 
   const activeQuestion = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
@@ -1130,7 +1131,7 @@ function ComparisonParams({ params, onChange }) {
         </div>
       </div>
 
-      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && (
+      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Что учим</div>
           <div className="param-enum-section">
@@ -1178,6 +1179,16 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
+      {isApplyMode && (
+        <EnumParam
+          label="Тип задания"
+          options={["generate", "order"]}
+          labels={{ generate: "Выбери число", order: "Расставь по порядку" }}
+          value={params.taskType ?? "generate"}
+          onChange={(v) => onChange({ ...params, taskType: v })}
+        />
+      )}
+
       {isVisualMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Вид</div>
@@ -1197,9 +1208,10 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {!isFirstNumberMode && (
+      {!isFirstNumberMode && !isApplyMode && (
         // compare_first_number's own verdict is always spoken as words by
-        // design ("Три меньше семи") — this toggle has no effect there, so
+        // design ("Три меньше семи"), and compare_apply has no left/right
+        // verdict sentence at all — this toggle has no effect in either, so
         // don't expose a control that can't change anything (same bug as
         // compare_draw_sign's old "Что учим").
         <BooleanParam
@@ -1342,6 +1354,10 @@ export default function ParamsScreen() {
       const examplesCount = isTestMode
         ? Math.max(2, Math.min(10, saved.examplesCount ?? 4))
         : 1;
+      // Same per-topic-not-per-mode leakage guard as examplesCount above —
+      // taskType only means anything in compare_apply.
+      const isApplyMode = activeModeId === "compare_apply";
+      const taskType = isApplyMode ? (saved.taskType ?? "generate") : "generate";
       return {
         level:         saved.level         ?? defaultLevel,
         question:      saved.question      ?? "more",
@@ -1351,6 +1367,7 @@ export default function ParamsScreen() {
         examplesCount,
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",
+        taskType,
       };
     }
     const modeParams = mode?.params ?? {};

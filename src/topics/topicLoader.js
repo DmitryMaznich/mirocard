@@ -452,6 +452,9 @@ const DEFAULT_MODE_METHODOLOGY = {
     compare_first_number: {
       goal: "Ребёнок сравнивает числа в заданном порядке — первое со вторым, как в математической записи, — проговаривая отношение вслух полной фразой в медленном темпе.",
     },
+    compare_apply: {
+      goal: "Ребёнок применяет сравнение активно: сам называет число, подходящее под условие, или упорядочивает несколько чисел — вместо того чтобы просто оценивать готовую пару.",
+    },
     compare_test: {
       goal: "Ребёнок самостоятельно решает несколько примеров подряд без пошаговой подсказки — как в настоящей проверочной работе.",
     },
@@ -866,7 +869,8 @@ const DEFAULT_MODES = {
     { id: "compare_draw_sign",    type: "compare_draw_sign",    evaluation: "auto", ui: { title: "3. Нарисуй знак",             instruction: "Нарисуй правильный знак пальцем",            icon: "media/icons/comparison_mode.svg" } },
     { id: "compare_evaluate",     type: "compare_evaluate",     evaluation: "auto", ui: { title: "4. Сравни и поставь знак",   instruction: "Поставь правильный знак между числами", icon: "media/icons/comparison_evaluate.svg" } },
     { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Сравни первое и второе",   instruction: "Сравни первое число со вторым",          icon: "media/icons/comparison_first_number.svg" } },
-    { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "6. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
+    { id: "compare_apply",        type: "compare_apply",        evaluation: "auto", ui: { title: "6. Применяем сравнение",     instruction: "Выбери число или расставь по порядку",  icon: "media/icons/comparison_apply.svg" } },
+    { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "7. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
   ],
   math_houses: [
     { id: "math_houses_practice",  type: "math_houses_practice",  evaluation: "auto", ui: { title: "Домик",              instruction: "Работай с домиком числа",                   icon: "media/icons/math_houses.svg" } },

@@ -227,6 +227,48 @@
 }
 .cfn-multi-divider { width: 100%; max-width: 400px; height: 2px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 8px 0 4px; }
 
+/* ── CompareApply ("Применяем сравнение") ───────────────────────────── */
+.apply-prompt { font-size: clamp(28px, 6vw, 44px); font-weight: 900; color: #1e293b; }
+.apply-answer-slot {
+  min-width: 90px; min-height: 70px; padding: 0 16px;
+  border: 3px dashed #cbd5e1; border-radius: 16px; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(28px, 6vw, 40px); font-weight: 900; color: #1e293b;
+}
+.apply-numpad { display: grid; grid-template-columns: repeat(3, 64px); gap: 10px; justify-content: center; }
+.apply-numkey {
+  width: 64px; height: 56px; border: 3px solid #e2e8f0; border-radius: 14px; background: #fff;
+  font-size: 24px; font-weight: 800; color: #1e293b; cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+.apply-numkey:hover:not(:disabled) { border-color: #3b82f6; }
+.apply-numkey:active:not(:disabled) { transform: scale(0.94); }
+.apply-numkey--back { color: #64748b; }
+.apply-submit-btn {
+  min-height: 56px; padding: 0 32px; border: none; border-radius: 16px;
+  background: #2d6fb5; color: #fff; font-size: 20px; font-weight: 800; cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.apply-submit-btn:hover:not(:disabled) { background: #24578f; }
+.apply-submit-btn:active:not(:disabled) { transform: scale(0.97); }
+.apply-submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+.apply-order-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.apply-order-btn {
+  position: relative; min-width: 76px; min-height: 76px; padding: 0 10px;
+  border: 3px solid #e2e8f0; border-radius: 18px; background: #fff;
+  font-size: clamp(24px, 5vw, 34px); font-weight: 900; color: #1e293b; cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+.apply-order-btn:hover:not(:disabled) { border-color: #3b82f6; transform: translateY(-2px); }
+.apply-order-btn--placed { border-color: #22c55e; background: #dcfce7; color: #166534; }
+.apply-order-btn--wrong { animation: shake 0.35s; border-color: #ef4444; }
+.apply-order-badge {
+  position: absolute; top: -10px; right: -10px; width: 24px; height: 24px;
+  border-radius: 50%; background: #22c55e; color: #fff;
+  font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+}
+
 /* ── Shared keyframes ────────────────────────────────────────────── */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

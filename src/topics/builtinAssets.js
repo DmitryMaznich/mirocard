@@ -179,6 +179,14 @@ const BUILTIN_ASSETS = {
   <rect x="24" y="92" width="80" height="14" rx="7" fill="#22c55e"/>
   <text x="64" y="103" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="800" fill="#fff">ПЕРВОЕ ЧИСЛО</text>
 </svg>`,
+  "media/icons/comparison_apply.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f0f9ff"/>
+  <rect x="24" y="76" width="22" height="30" rx="6" fill="#93c5fd"/>
+  <rect x="53" y="58" width="22" height="48" rx="6" fill="#60a5fa"/>
+  <rect x="82" y="34" width="22" height="72" rx="6" fill="#2563eb"/>
+  <path d="M30 30h24l-8-8m8 8-8 8" fill="none" stroke="#166534" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" transform="rotate(45 42 30)"/>
+</svg>`,
   "media/icons/comparison_test.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#fff8ec"/>

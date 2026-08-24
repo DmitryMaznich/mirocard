@@ -54,7 +54,12 @@ const MODE_EVALUATE = {
 const MODE_TEST = {
   id: "compare_test", type: "compare_evaluate", evaluation: "auto",
   defaultCardId: "compare_hard",
-  ui: { title: "6. Контрольная работа", instruction: "Реши примеры один за другим" },
+  ui: { title: "7. Контрольная работа", instruction: "Реши примеры один за другим" },
+};
+const MODE_APPLY = {
+  id: "compare_apply", type: "compare_apply", evaluation: "auto",
+  defaultCardId: "compare_hard",
+  ui: { title: "6. Применяем сравнение", instruction: "Выбери число или расставь по порядку" },
 };
 
 describe("generateComparisonTask", () => {
@@ -299,6 +304,39 @@ describe("generateTasks", () => {
     const batches = generateTasks(MODE_TEST, ALL_CARDS, 3, { examplesCount: 10 });
     expect(batches).toHaveLength(3);
     batches.forEach((batch) => expect(batch.items).toHaveLength(10));
+  });
+
+  describe("compare_apply", () => {
+    it("'generate' tasks always leave a valid answer on the constrained side", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 60, { level: 2, taskType: "generate" });
+      expect(tasks).toHaveLength(60);
+      tasks.forEach((t) => {
+        expect(t.taskType).toBe("generate");
+        expect(["more", "less"]).toContain(t.op);
+        expect(t.value).toBeGreaterThanOrEqual(t.min);
+        expect(t.value).toBeLessThanOrEqual(t.max);
+        // a valid answer must exist strictly on the constrained side
+        if (t.op === "more") expect(t.value).toBeLessThan(t.max);
+        else expect(t.value).toBeGreaterThan(t.min);
+        expect(t.promptText).toBe(t.op === "more" ? `Больше ${t.value}` : `Меньше ${t.value}`);
+      });
+    });
+
+    it("'order' tasks give 3 distinct numbers whose sorted order matches ascending value", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 30, { level: 3, taskType: "order" });
+      expect(tasks).toHaveLength(30);
+      tasks.forEach((t) => {
+        expect(t.taskType).toBe("order");
+        expect(t.numbers).toHaveLength(3);
+        expect(new Set(t.numbers).size).toBe(3);
+        expect(t.sorted).toEqual([...t.numbers].sort((a, b) => a - b));
+      });
+    });
+
+    it("defaults to 'generate' when taskType is not specified", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 5, {});
+      tasks.forEach((t) => expect(t.taskType).toBe("generate"));
+    });
   });
 });
 

@@ -5,6 +5,7 @@ import CompareFirstNumber from "./CompareFirstNumber";
 import CompareDrawSign    from "./CompareDrawSign";
 import ComparePutSign     from "./ComparePutSign";
 import CompareEvaluate    from "./CompareEvaluate";
+import CompareApply       from "./CompareApply";
 
 const TYPE_MAP = {
   compare_visual:       CompareVisual,
@@ -16,6 +17,7 @@ const TYPE_MAP = {
   compare_draw_sign:    CompareDrawSign,
   compare_put_sign:     ComparePutSign,   // backward compat — old installed decks
   compare_evaluate:     CompareEvaluate,
+  compare_apply:        CompareApply,
 };
 
 export default function ComparisonRenderer({ task, mode, sessionStatus, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
