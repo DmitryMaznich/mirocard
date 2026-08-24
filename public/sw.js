@@ -1,4 +1,4 @@
-const CACHE = "mirocard2-v12";
+const CACHE = "mirocard2-v13";
 
 self.addEventListener("install", () => {
   // Stay in the waiting phase until the app explicitly applies the update.

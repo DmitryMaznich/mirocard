@@ -5,17 +5,13 @@ const RELATION_BY_CONCEPT = {
 };
 const RELATION_IDS = Object.keys(RELATION_BY_CONCEPT);
 
-function requestedRelation(params) {
-  return RELATION_BY_CONCEPT[params?.relation] ?? "in";
-}
-
 function requestedRelations(params) {
   const selected = Array.isArray(params?.relations)
     ? params.relations.filter((id) => RELATION_BY_CONCEPT[id])
     : [];
-  // An empty enum_multi selection means «Все».  A stale one-item setting
-  // should never turn «Микс» into a disguised single-preposition drill.
-  return selected.length >= 2 ? selected.map((id) => RELATION_BY_CONCEPT[id]) : RELATION_IDS.map((id) => RELATION_BY_CONCEPT[id]);
+  // An empty enum_multi selection means «Все»; a single selected item is a
+  // valid focused session.
+  return selected.length ? selected.map((id) => RELATION_BY_CONCEPT[id]) : RELATION_IDS.map((id) => RELATION_BY_CONCEPT[id]);
 }
 
 function relationCards(cards, relation, phase = "core") {
@@ -40,9 +36,15 @@ function interleaveRelations(cards, relations) {
   return mixed;
 }
 
+function selectedCards(cards, params, phase = "core") {
+  return interleaveRelations(
+    cards.filter((card) => (card.phase ?? "core") === phase),
+    requestedRelations(params),
+  );
+}
+
 function buildIntroductionTasks(cards, params) {
-  const relation = requestedRelation(params);
-  return relationCards(cards, relation).map((card) => ({
+  return selectedCards(cards, params).map((card) => ({
     type: "spatial_introduction",
     conceptId: card.conceptId,
     card,
@@ -50,10 +52,8 @@ function buildIntroductionTasks(cards, params) {
   }));
 }
 
-function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phase = "core", mixed = false } = {}) {
-  const sourceCards = mixed
-    ? interleaveRelations(cards.filter((card) => (card.phase ?? "core") === phase), requestedRelations(params))
-    : relationCards(cards, requestedRelation(params), phase);
+function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phase = "core" } = {}) {
+  const sourceCards = selectedCards(cards, params, phase);
 
   return sourceCards.map((card, index) => {
     const target = { id: "target", image: card.image, isTarget: true };
@@ -71,8 +71,7 @@ function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phas
 }
 
 function buildResponseTasks(cards, params) {
-  const relation = requestedRelation(params);
-  return relationCards(cards, relation).map((card) => ({
+  return selectedCards(cards, params).map((card) => ({
     type: "spatial_respond",
     conceptId: card.conceptId,
     card,
@@ -85,7 +84,6 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
     case "spatial_recognize": return buildRecognitionTasks(cards, params);
     case "spatial_respond": return buildResponseTasks(cards, params);
     case "spatial_transfer": return buildRecognitionTasks(cards, params, { type: "spatial_transfer", phase: "transfer" });
-    case "spatial_mixed": return buildRecognitionTasks(cards, params, { type: "spatial_mixed", mixed: true });
     default: return [];
   }
 }

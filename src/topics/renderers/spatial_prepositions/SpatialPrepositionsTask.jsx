@@ -101,10 +101,9 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
   }
 
   const isTransfer = type === "spatial_transfer";
-  const isMixed = type === "spatial_mixed";
   return (
     <main className="sp-task sp-task--recognize">
-      <div className="sp-stage-label">{isMixed ? "Микс" : isTransfer ? "Новая картинка" : "Покажи"}</div>
+      <div className="sp-stage-label">{isTransfer ? "Новая картинка" : "Покажи"}</div>
       <div className={`sp-instruction${showInstructionText ? "" : " sp-instruction--audio-only"}`}>
         {showInstructionText ? card.recognizePrompt : "Слушай задание"}
       </div>
@@ -176,8 +175,7 @@ export default function SpatialPrepositionsTask(props) {
   switch (props.task?.type) {
     case "spatial_introduction": return <IntroductionTask {...props} />;
     case "spatial_recognize":
-    case "spatial_transfer":
-    case "spatial_mixed": return <RecognizeTask {...props} />;
+    case "spatial_transfer": return <RecognizeTask {...props} />;
     case "spatial_respond": return <RespondTask {...props} />;
     default: return <div className="sp-task">Нет подходящего упражнения.</div>;
   }

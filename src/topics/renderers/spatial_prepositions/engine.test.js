@@ -10,25 +10,25 @@ const cards = [
 
 describe("spatial prepositions engine", () => {
   it("keeps introduction cards in a fixed teaching order for one relation", () => {
-    const tasks = generateTasks({ type: "spatial_introduction" }, cards, 500, { relation: "spatial_in", cardCount: 2 });
+    const tasks = generateTasks({ type: "spatial_introduction" }, cards, 500, { relations: ["spatial_in"] });
     expect(tasks.map((task) => task.card.id)).toEqual(["in-1", "in-2"]);
   });
 
   it("builds matched visual alternatives and alternates their fixed slots", () => {
-    const tasks = generateTasks({ type: "spatial_recognize" }, cards, 500, { relation: "spatial_in", cardCount: 2 });
+    const tasks = generateTasks({ type: "spatial_recognize" }, cards, 500, { relations: ["spatial_in"] });
     expect(tasks[0].options.map((option) => option.isTarget)).toEqual([true, false]);
     expect(tasks[1].options.map((option) => option.isTarget)).toEqual([false, true]);
   });
 
-  it("never mixes relations in a one-concept session", () => {
-    const tasks = generateTasks({ type: "spatial_respond" }, cards, 500, { relation: "spatial_under" });
+  it("uses one selected relation in any mode", () => {
+    const tasks = generateTasks({ type: "spatial_respond" }, cards, 500, { relations: ["spatial_under"] });
     expect(tasks).toHaveLength(1);
     expect(tasks[0].card.relation).toBe("under");
   });
 
-  it("interleaves selected relations in the mixed drill", () => {
+  it("interleaves selected relations in a regular mode", () => {
     const tasks = generateTasks(
-      { type: "spatial_mixed" },
+      { type: "spatial_recognize" },
       cards,
       500,
       { relations: ["spatial_in", "spatial_on", "spatial_under"] },
@@ -41,8 +41,8 @@ describe("spatial prepositions engine", () => {
     }
   });
 
-  it("treats a stale one-item mixed setting as all available relations", () => {
-    const tasks = generateTasks({ type: "spatial_mixed" }, cards, 500, { relations: ["spatial_in"] });
+  it("uses all relations when the multi-select is left on «Все»", () => {
+    const tasks = generateTasks({ type: "spatial_respond" }, cards, 500, { relations: [] });
     expect(new Set(tasks.map((task) => task.card.relation))).toEqual(new Set(["in", "on", "under"]));
   });
 });

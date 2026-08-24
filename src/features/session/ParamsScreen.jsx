@@ -588,19 +588,15 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
   );
 }
 
-function EnumMultiParam({ label, options, labels, value, onChange, minSelected = 0, info, onShowInfo }) {
+function EnumMultiParam({ label, options, labels, value, onChange, info, onShowInfo }) {
   const selected = Array.isArray(value) ? value : [];
   const allSelected = selected.length === 0;
 
   function toggle(opt) {
     if (allSelected) {
-      // For constrained multi-selectors (such as «Микс»), tapping an item
-      // while «Все» is active means "remove this one", not "leave only this
-      // one".  That preserves the required minimum number of choices.
-      onChange(minSelected > 0 ? options.filter((item) => item !== opt) : [opt]);
+      onChange([opt]);
       return;
     }
-    if (selected.includes(opt) && selected.length <= minSelected) return;
     const next = selected.includes(opt)
       ? selected.filter(o => o !== opt)
       : [...selected, opt];
@@ -622,7 +618,6 @@ function EnumMultiParam({ label, options, labels, value, onChange, minSelected =
             key={opt}
             className={`enum-btn ${!allSelected && selected.includes(opt) ? "enum-btn--active" : ""}`}
             onClick={() => toggle(opt)}
-            disabled={!allSelected && selected.includes(opt) && selected.length <= minSelected}
           >
             {labels?.[opt] ?? opt}
           </button>
@@ -1687,7 +1682,6 @@ export default function ParamsScreen() {
                 labels={def.labels?.ru}
                 value={params[key] ?? def.default ?? []}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                minSelected={def.minSelected ?? 0}
                 info={def.info?.ru}
                 onShowInfo={setActiveInfo}
               />

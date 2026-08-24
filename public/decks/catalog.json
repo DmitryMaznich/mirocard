@@ -328,14 +328,14 @@
     },
     {
       "id": "spatial_prepositions_ru",
-      "version": "0.3.0",
-      "url": "./decks/spatial_prepositions_ru_v0.3.0.zip",
-      "zipUrl": "spatial_prepositions_ru_v0.3.0.zip",
+      "version": "0.4.0",
+      "url": "./decks/spatial_prepositions_ru_v0.4.0.zip",
+      "zipUrl": "spatial_prepositions_ru_v0.4.0.zip",
       "title": {
         "ru": "Где предмет?"
       },
       "description": {
-        "ru": "Пространственные предлоги «в», «на» и «под»: знакомство, выбор фотографии, ответ с паузой и режим «Микс»."
+        "ru": "Пространственные предлоги «в», «на» и «под»: знакомство, выбор фотографии и ответ с паузой. В каждом режиме можно выбрать один или несколько предлогов."
       },
       "renderer": "spatial_prepositions",
       "status": "beta",

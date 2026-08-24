@@ -136,7 +136,7 @@ export default function SessionScreen() {
     "case_agreement", "verb_number", "verb_gender",
     "numeral_agreement", "adjective_agreement", "possessive_agreement",
     "preposition_recognize", "preposition_place", "preposition_phrase",
-    "spatial_recognize", "spatial_transfer", "spatial_mixed",
+    "spatial_recognize", "spatial_transfer",
     "operation_observe",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
@@ -286,7 +286,7 @@ export default function SessionScreen() {
   // error. Remounting it would discard its gentle "Посмотри ещё раз" feedback
   // before the replay begins.
   const keepsObserveSceneOnMistake = currentTask?.type === "operation_observe";
-  const keepsSpatialSceneOnMistake = ["spatial_recognize", "spatial_transfer", "spatial_mixed"].includes(currentTask?.type);
+  const keepsSpatialSceneOnMistake = ["spatial_recognize", "spatial_transfer"].includes(currentTask?.type);
   const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsSpatialSceneOnMistake
     ? String(taskIndex)
     : `${taskIndex}_${sessionState.taskRetry ?? 0}`;

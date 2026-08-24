@@ -85,11 +85,11 @@ describe("handleAdvance — none evaluation (intro)", () => {
     expect(state.taskIndex).toBe(0);
   });
 
-  it("reshuffles a mixed looping round without repeating its closing relation first", () => {
+  it("reshuffles a multi-relation looping round without repeating its closing relation first", () => {
     const tasks = [
-      { type: "spatial_mixed", card: { id: "in-1", relation: "in" } },
-      { type: "spatial_mixed", card: { id: "on-1", relation: "on" } },
-      { type: "spatial_mixed", card: { id: "under-1", relation: "under" } },
+      { type: "spatial_recognize", card: { id: "in-1", relation: "in" } },
+      { type: "spatial_recognize", card: { id: "on-1", relation: "on" } },
+      { type: "spatial_recognize", card: { id: "under-1", relation: "under" } },
     ];
     const mixedMode = { ...INTRO_MODE, loop: true, reshuffleOnLoop: true };
     let state = createSessionState(tasks, mixedMode, "s1", "t1", "1.0.0", []);
