@@ -45,4 +45,22 @@ describe("spatial prepositions engine", () => {
     const tasks = generateTasks({ type: "spatial_respond" }, cards, 500, { relations: [] });
     expect(new Set(tasks.map((task) => task.card.relation))).toEqual(new Set(["in", "on", "under"]));
   });
+
+  it("uses transfer cards only in the new-pictures mode", () => {
+    const transferCards = [
+      ...cards,
+      { id: "in-transfer", conceptId: "spatial_in", relation: "in", phase: "transfer", image: "in-transfer", contrastImage: "out-transfer" },
+      { id: "under-transfer", conceptId: "spatial_under", relation: "under", phase: "transfer", image: "under-transfer", contrastImage: "on-transfer" },
+    ];
+
+    const tasks = generateTasks(
+      { type: "spatial_transfer" },
+      transferCards,
+      500,
+      { relations: ["spatial_in", "spatial_under"] },
+    );
+
+    expect(tasks.map((task) => task.card.id)).toEqual(expect.arrayContaining(["in-transfer", "under-transfer"]));
+    expect(tasks).toHaveLength(2);
+  });
 });

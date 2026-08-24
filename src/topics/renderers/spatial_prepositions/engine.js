@@ -14,8 +14,10 @@ function requestedRelations(params) {
   return selected.length ? selected.map((id) => RELATION_BY_CONCEPT[id]) : RELATION_IDS.map((id) => RELATION_BY_CONCEPT[id]);
 }
 
-function relationCards(cards, relation, phase = "core") {
-  return cards.filter((card) => card.relation === relation && (card.phase ?? "core") === phase);
+function relationCards(cards, relation) {
+  // `selectedCards` has already chosen the teaching phase. Filtering by the
+  // default core phase again here made every transfer bucket empty.
+  return cards.filter((card) => card.relation === relation);
 }
 
 function interleaveRelations(cards, relations) {
