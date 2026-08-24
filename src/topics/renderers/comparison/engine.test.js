@@ -61,6 +61,11 @@ const MODE_APPLY = {
   defaultCardId: "compare_hard",
   ui: { title: "6. Применяем сравнение", instruction: "Выбери число или расставь по порядку" },
 };
+const MODE_REAL_LIFE = {
+  id: "compare_real_life", type: "compare_real_life", evaluation: "auto",
+  defaultCardId: "compare_medium",
+  ui: { title: "8. Сравни в жизни", instruction: "У кого больше?" },
+};
 
 describe("generateComparisonTask", () => {
   it("returns left and right within [min, max]", () => {
@@ -336,6 +341,26 @@ describe("generateTasks", () => {
     it("defaults to 'generate' when taskType is not specified", () => {
       const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 5, {});
       tasks.forEach((t) => expect(t.taskType).toBe("generate"));
+    });
+  });
+
+  describe("compare_real_life", () => {
+    it("question always reflects the real left/right relation, and the verdict names the actual bigger character", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60, { level: 2 });
+      expect(tasks).toHaveLength(60);
+      tasks.forEach((t) => {
+        const real = t.left === t.right ? "equal" : t.left > t.right ? "more" : "less";
+        expect(t.question).toBe(real);
+        expect(t.instruction).toBe(`У кого больше ${t.item}?`);
+        if (t.question === "more") expect(t.verdictText).toBe(`У ${t.nameA} больше ${t.item}, чем у ${t.nameB}.`);
+        if (t.question === "less") expect(t.verdictText).toBe(`У ${t.nameB} больше ${t.item}, чем у ${t.nameA}.`);
+        if (t.question === "equal") expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${t.item} поровну.`);
+      });
+    });
+
+    it("never produces equal pairs when showEqual is false (the default)", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40, { level: 2 });
+      tasks.forEach((t) => expect(t.left).not.toBe(t.right));
     });
   });
 });

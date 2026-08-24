@@ -187,6 +187,18 @@ const BUILTIN_ASSETS = {
   <rect x="82" y="34" width="22" height="72" rx="6" fill="#2563eb"/>
   <path d="M30 30h24l-8-8m8 8-8 8" fill="none" stroke="#166534" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" transform="rotate(45 42 30)"/>
 </svg>`,
+  "media/icons/comparison_real_life.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fef3c7"/>
+  <circle cx="38" cy="46" r="14" fill="#f59e0b"/>
+  <path d="M18 96c0-16 9-26 20-26s20 10 20 26" fill="#f59e0b"/>
+  <circle cx="92" cy="38" r="16" fill="#ef6f5e"/>
+  <path d="M68 96c0-18 11-30 24-30s24 12 24 30" fill="#ef6f5e"/>
+  <circle cx="38" cy="106" r="12" fill="#fff" stroke="#f59e0b" stroke-width="3"/>
+  <text x="38" y="111" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="900" fill="#92400e">3</text>
+  <circle cx="92" cy="106" r="12" fill="#fff" stroke="#ef6f5e" stroke-width="3"/>
+  <text x="92" y="111" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="900" fill="#b91c1c">7</text>
+</svg>`,
   "media/icons/comparison_test.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#fff8ec"/>

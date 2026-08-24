@@ -1080,6 +1080,10 @@ function ComparisonParams({ params, onChange }) {
   const isTestMode       = activeModeId === "compare_test";
   const isFirstNumberMode = activeModeId === "compare_first_number";
   const isApplyMode      = activeModeId === "compare_apply";
+  // Same as compare_evaluate/compare_apply above — the child names the real
+  // relationship between two named characters, so a forced "Что учим"
+  // direction would rig the answer or contradict the character it points to.
+  const isRealLifeMode   = activeModeId === "compare_real_life";
   const isEvaluateFamily  = isEvaluateMode || isTestMode;
 
   const activeQuestion = QUESTION_OPTIONS.find((q) => q.value === (params.question ?? "more"));
@@ -1131,7 +1135,7 @@ function ComparisonParams({ params, onChange }) {
         </div>
       </div>
 
-      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && (
+      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && !isRealLifeMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Что учим</div>
           <div className="param-enum-section">
@@ -1208,12 +1212,13 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {!isFirstNumberMode && !isApplyMode && (
+      {!isFirstNumberMode && !isApplyMode && !isRealLifeMode && (
         // compare_first_number's own verdict is always spoken as words by
-        // design ("Три меньше семи"), and compare_apply has no left/right
-        // verdict sentence at all — this toggle has no effect in either, so
-        // don't expose a control that can't change anything (same bug as
-        // compare_draw_sign's old "Что учим").
+        // design ("Три меньше семи"), compare_apply has no left/right
+        // verdict sentence at all, and compare_real_life's verdict is a
+        // fixed character-based phrase — this toggle has no effect in any
+        // of them, so don't expose a control that can't change anything
+        // (same bug as compare_draw_sign's old "Что учим").
         <BooleanParam
           label="Ответ словами"
           hint='Вместо «7 больше 4» — «Семь больше четырёх»'

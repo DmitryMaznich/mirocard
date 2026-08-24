@@ -158,9 +158,45 @@ function generateApplyOrderTask(min, max, count) {
   return { taskType: "order", numbers: shuffle([...nums]), sorted };
 }
 
+// Names given in genitive case (as "у ..." always requires in Russian) so
+// the same forms work for the setup question and the spoken verdict alike.
+const REAL_LIFE_SCENARIOS = [
+  { a: "Пети",  b: "Маши", item: "яблок" },
+  { a: "Кости", b: "Ани",  item: "конфет" },
+  { a: "Вани",  b: "Сони", item: "машинок" },
+  { a: "Димы",  b: "Киры", item: "шариков" },
+  { a: "Егора", b: "Иры",  item: "карандашей" },
+];
+
+function generateRealLifeTask(baseParams, usedPairs) {
+  const scenario     = REAL_LIFE_SCENARIOS[Math.floor(Math.random() * REAL_LIFE_SCENARIOS.length)];
+  const { left, right } = generateComparisonTask(baseParams, usedPairs);
+  const question = left === right ? "equal" : left > right ? "more" : "less";
+  const verdictText = question === "equal"
+    ? `У ${scenario.a} и ${scenario.b} ${scenario.item} поровну.`
+    : question === "more"
+      ? `У ${scenario.a} больше ${scenario.item}, чем у ${scenario.b}.`
+      : `У ${scenario.b} больше ${scenario.item}, чем у ${scenario.a}.`;
+  return { left, right, nameA: scenario.a, nameB: scenario.b, item: scenario.item, question, verdictText };
+}
+
 // sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order" }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
+
+  if (mode.type === "compare_real_life") {
+    const levelDef = COMPARISON_LEVELS.find((l) => l.id === (sessionParams.level ?? 2)) ?? COMPARISON_LEVELS[1];
+    const card     = resolveComparisonCard(mode, cards, sessionParams);
+    if (!card) return [];
+    const baseParams = { ...levelDef.params, allowEqual: sessionParams.showEqual ?? false };
+    const usedPairs  = new Set();
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      const t = generateRealLifeTask(baseParams, usedPairs);
+      tasks.push({ type: mode.type, conceptId: card.conceptId, instruction: `У кого больше ${t.item}?`, ...t });
+    }
+    return tasks;
+  }
 
   if (mode.type === "compare_apply") {
     const applyTaskType = sessionParams.taskType ?? "generate";

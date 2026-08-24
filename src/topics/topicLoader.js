@@ -458,6 +458,9 @@ const DEFAULT_MODE_METHODOLOGY = {
     compare_test: {
       goal: "Ребёнок самостоятельно решает несколько примеров подряд без пошаговой подсказки — как в настоящей проверочной работе.",
     },
+    compare_real_life: {
+      goal: "Ребёнок переносит навык сравнения в бытовую ситуацию с персонажами и предметами, проговаривая полную фразу о том, у кого больше.",
+    },
   },
   math_houses: {
     math_houses_practice: {
@@ -871,6 +874,7 @@ const DEFAULT_MODES = {
     { id: "compare_first_number", type: "compare_first_number", evaluation: "auto", ui: { title: "5. Сравни первое и второе",   instruction: "Сравни первое число со вторым",          icon: "media/icons/comparison_first_number.svg" } },
     { id: "compare_apply",        type: "compare_apply",        evaluation: "auto", ui: { title: "6. Применяем сравнение",     instruction: "Выбери число или расставь по порядку",  icon: "media/icons/comparison_apply.svg" } },
     { id: "compare_test",         type: "compare_evaluate",     evaluation: "auto", ui: { title: "7. Контрольная работа",      instruction: "Реши примеры один за другим",                icon: "media/icons/comparison_test.svg" } },
+    { id: "compare_real_life",    type: "compare_real_life",    evaluation: "auto", ui: { title: "8. Сравни в жизни",          instruction: "У кого больше?",                             icon: "media/icons/comparison_real_life.svg" } },
   ],
   math_houses: [
     { id: "math_houses_practice",  type: "math_houses_practice",  evaluation: "auto", ui: { title: "Домик",              instruction: "Работай с домиком числа",                   icon: "media/icons/math_houses.svg" } },

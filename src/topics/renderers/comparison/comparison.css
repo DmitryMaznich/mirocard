@@ -269,6 +269,28 @@
   font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;
 }
 
+/* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
+.reallife-cards { display: flex; gap: 20px; justify-content: center; }
+.reallife-card {
+  width: clamp(100px, 28vw, 160px); min-height: clamp(100px, 28vw, 160px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: #fff; border: 3px solid #e0e0e0; border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10); cursor: pointer; padding: 12px;
+  transition: transform 0.15s, border-color 0.25s;
+}
+.reallife-card:hover:not(:disabled) { transform: scale(1.03); }
+.reallife-card--wrong { animation: shake 0.35s; border-color: #ef4444; }
+.reallife-name  { font-size: clamp(16px, 3.4vw, 22px); font-weight: 800; color: #475569; }
+.reallife-count { font-size: clamp(40px, 10vw, 68px); font-weight: 900; color: #1e293b; line-height: 1; }
+.reallife-equal-btn {
+  margin-top: 4px; min-width: 96px; min-height: 44px; padding: 0 20px;
+  border: 3px solid #cbd5e1; border-radius: 14px; background: #fff;
+  font-size: 16px; font-weight: 800; color: #475569; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.reallife-equal-btn:hover { border-color: #94a3b8; background: #f1f5f9; }
+.reallife-equal-btn--wrong { animation: shake 0.35s; border-color: #ef4444; }
+
 /* ── Shared keyframes ────────────────────────────────────────────── */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
