@@ -37,6 +37,21 @@ const POSSESSIVE_CARDS = [
   { id: "plural", skill: "possessive_agreement", possessive: "svoy", answer: "свои" },
 ];
 
+const PREPOSITION_CARDS = [
+  {
+    id: "ball_box_in",
+    skill: "prepositions",
+    relation: "in",
+    distractorRelations: ["on"],
+  },
+  {
+    id: "ball_table_on",
+    skill: "prepositions",
+    relation: "on",
+    distractorRelations: ["under"],
+  },
+];
+
 describe("word agreement task generation", () => {
   it("starts case agreement with two options and hides advanced cards by default", () => {
     const tasks = generateTasks({ type: "case_agreement" }, CASE_CARDS, 500, { optionCount: 2 });
@@ -149,5 +164,30 @@ describe("word agreement task generation", () => {
       expect(task.options).toContain(task.card.answer);
       expect(task.options.every((option) => possessiveForms.has(option))).toBe(true);
     }
+  });
+
+  it("keeps preposition contrasts concrete and selects the requested practice form", () => {
+    const tasks = generateTasks(
+      { type: "prepositions" },
+      PREPOSITION_CARDS,
+      500,
+      { practice: "place" },
+    );
+
+    expect(tasks).toHaveLength(2);
+    for (const task of tasks) {
+      expect(task.type).toBe("preposition_place");
+      expect(task.options).toHaveLength(2);
+      expect(task.options).toContain(task.card.relation);
+      expect(new Set(task.options).size).toBe(task.options.length);
+    }
+  });
+
+  it("uses recognition practice when the preposition setting is missing or invalid", () => {
+    const [defaultTask] = generateTasks({ type: "prepositions" }, PREPOSITION_CARDS, 500, {});
+    const [invalidTask] = generateTasks({ type: "prepositions" }, PREPOSITION_CARDS, 500, { practice: "draw" });
+
+    expect(defaultTask.type).toBe("preposition_recognize");
+    expect(invalidTask.type).toBe("preposition_recognize");
   });
 });

@@ -4,7 +4,7 @@ import { ALL_CARDS } from "./word-agreement-content.mjs";
 import { AVATAR_SVG, AVATAR_PATH, MODE_ICONS } from "./word-agreement-icons.mjs";
 
 const TOPIC_ID   = "word_agreement_ru";
-const VERSION    = "1.8.6";
+const VERSION    = "1.8.7";
 const ZIP_PATH   = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 // Where generate-word-agreement-audio.mjs (Gemini TTS) writes synthesized
 // .mp3 files. A card gets its `audio` field only if the file actually
@@ -160,10 +160,51 @@ const topic = {
         },
       },
     },
+    {
+      id:          "prepositions",
+      type:        "prepositions",
+      evaluation:  "auto",
+      requirePin:  false,
+      ui: {
+        title:       { ru: "Где предмет?" },
+        instruction: { ru: "Смотри на картинку и выбери нужное место" },
+        icon:        MODE_ICONS.prepositions.path,
+      },
+      params: {
+        practice: {
+          type: "enum",
+          label: { ru: "Упражнение" },
+          values: ["recognize", "place", "phrase"],
+          labels: {
+            ru: {
+              recognize: "Покажи где",
+              place: "Положи предмет",
+              phrase: "Выбери слово",
+            },
+          },
+          default: "recognize",
+          info: {
+            ru: {
+              text: "Начните с «Покажи где»: ребёнок сначала различает отношение на картинке. «Положи предмет» добавляет выполнение инструкции, а «Выбери слово» связывает картинку с предлогом в короткой фразе.",
+              tip: "Не обязательно проходить упражнения по порядку в одном занятии. Оставьте одну форму, пока ребёнок отвечает уверенно.",
+            },
+          },
+        },
+      },
+    },
   ],
   cards: ALL_CARDS.map((card) => {
     const audioSrcPath = `${AUDIO_SRC_DIR}/${card.id}.mp3`;
-    return existsSync(audioSrcPath) ? { ...card, audio: `audio/${card.id}.mp3` } : card;
+    const withModelAudio = existsSync(audioSrcPath) ? { ...card, audio: `audio/${card.id}.mp3` } : card;
+    if (card.skill !== "prepositions") return withModelAudio;
+
+    const locateSrcPath = `${AUDIO_SRC_DIR}/${card.id}_locate.mp3`;
+    const actionSrcPath = `${AUDIO_SRC_DIR}/${card.id}_action.mp3`;
+    return {
+      ...withModelAudio,
+      ...(existsSync(locateSrcPath) && { locateAudio: `audio/${card.id}_locate.mp3` }),
+      ...(existsSync(actionSrcPath) && { actionAudio: `audio/${card.id}_action.mp3` }),
+    };
   }),
 };
 
@@ -179,9 +220,11 @@ for (const { path, svg } of Object.values(MODE_ICONS)) {
 
 let audioCount = 0;
 for (const card of topic.cards) {
-  if (!card.audio) continue;
-  zip.file(card.audio, readFileSync(`${AUDIO_SRC_DIR}/${card.id}.mp3`));
-  audioCount += 1;
+  for (const audioPath of [card.audio, card.locateAudio, card.actionAudio].filter(Boolean)) {
+    const fileName = audioPath.split("/").at(-1);
+    zip.file(audioPath, readFileSync(`${AUDIO_SRC_DIR}/${fileName}`));
+    audioCount += 1;
+  }
 }
 
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
@@ -197,12 +240,12 @@ const entry = {
   zipUrl:   `${TOPIC_ID}_v${VERSION}.zip`,
   title:    { ru: "Согласование слов" },
   description: {
-    ru: "Согласование слов и окончаний в предложениях. Падеж существительного (мяч, карандаш, стол, машина, книга, кукла, яблоко, окно, яйцо), число и род глагола, числительное, прилагательное и притяжательные местоимения + существительное. Настраиваемая сложность: от двух до шести вариантов ответа.",
+    ru: "Согласование слов и окончаний в предложениях: падеж существительного, число и род глагола, числительное, прилагательное и притяжательные местоимения. Новый режим «Где предмет?» помогает различать в, на и под на простых картинках.",
   },
   renderer: "word_agreement",
   status:   "release",
   access:   "free",
 };
 if (idx >= 0) { catalog.decks[idx] = entry; } else { catalog.decks.push(entry); }
-writeFileSync("public/decks/catalog.json", JSON.stringify(catalog, null, 2));
+writeFileSync("public/decks/catalog.json", `${JSON.stringify(catalog, null, 2)}\n`);
 console.log("✓ catalog.json updated");

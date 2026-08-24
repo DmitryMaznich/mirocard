@@ -135,6 +135,7 @@ export default function SessionScreen() {
     "choose_action", "scene_function",
     "case_agreement", "verb_number", "verb_gender",
     "numeral_agreement", "adjective_agreement", "possessive_agreement",
+    "preposition_recognize", "preposition_place", "preposition_phrase",
     "operation_observe",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);

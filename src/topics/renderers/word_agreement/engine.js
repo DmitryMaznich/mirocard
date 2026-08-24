@@ -256,6 +256,36 @@ function buildPossessiveAgreementTasks(cards, params) {
   );
 }
 
+// Prepositions are introduced through one fixed visual relation at a time.
+// The card author supplies only contrasts that make physical sense for that
+// landmark ("в коробке" ↔ "на коробке", "на столе" ↔ "под столом"). This
+// avoids a child having to reject absurd pictures such as "в столе" before
+// the spatial distinction itself is secure.
+const PREPOSITION_PRACTICE_TYPES = {
+  recognize: "preposition_recognize",
+  place: "preposition_place",
+  phrase: "preposition_phrase",
+};
+
+function buildPrepositionTasks(cards, params) {
+  const practice = PREPOSITION_PRACTICE_TYPES[params?.practice]
+    ? params.practice
+    : "recognize";
+
+  return shuffle(
+    cards
+      .filter((card) => card.skill === "prepositions")
+      .map((card) => {
+        const options = shuffle([card.relation, ...(card.distractorRelations ?? [])]);
+        return {
+          type: PREPOSITION_PRACTICE_TYPES[practice],
+          card,
+          options,
+        };
+      })
+  );
+}
+
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
   const modeType = mode?.type ?? mode?.id;
   if (modeType === "case_agreement") return buildCaseAgreementTasks(cards, params);
@@ -264,5 +294,6 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
   if (modeType === "numeral_agreement") return buildNumeralAgreementTasks(cards, params);
   if (modeType === "adjective_agreement") return buildAdjectiveAgreementTasks(cards, params);
   if (modeType === "possessive_agreement") return buildPossessiveAgreementTasks(cards, params);
+  if (modeType === "prepositions") return buildPrepositionTasks(cards, params);
   return [{ type: modeType }];
 }

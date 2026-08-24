@@ -82,6 +82,16 @@ const POSSESSIVE_AGREEMENT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBo
   <text x="64" y="102" text-anchor="middle" font-family="${FONT}" font-size="24" font-weight="800" fill="#2c2c2c">св<tspan fill="#1f8a5c">оё</tspan></text>
 </svg>`;
 
+// prepositions: one red ball is visibly inside a box. The spatial relation
+// itself carries the meaning, so the icon remains usable before reading.
+const PREPOSITIONS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef3fb"/>
+  <rect x="28" y="51" width="72" height="48" rx="8" fill="#e0a25e" stroke="#b87837" stroke-width="6"/>
+  <rect x="36" y="59" width="56" height="23" rx="4" fill="#8b572a"/>
+  <circle cx="64" cy="72" r="15" fill="#ef6c5b" stroke="#c83e3e" stroke-width="4"/>
+  <path d="M28 51h72" stroke="#b87837" stroke-width="8" stroke-linecap="round"/>
+</svg>`;
+
 // mode id -> zip-relative icon path + svg content
 export const MODE_ICONS = {
   case_agreement:        { path: "media/icons/case_agreement.svg",       svg: CASE_AGREEMENT_SVG },
@@ -90,6 +100,7 @@ export const MODE_ICONS = {
   adjective_agreement:   { path: "media/icons/adjective_agreement.svg",  svg: ADJECTIVE_AGREEMENT_SVG },
   numeral_agreement:     { path: "media/icons/numeral_agreement.svg",    svg: NUMERAL_AGREEMENT_SVG },
   possessive_agreement:  { path: "media/icons/possessive_agreement.svg", svg: POSSESSIVE_AGREEMENT_SVG },
+  prepositions:          { path: "media/icons/prepositions.svg",          svg: PREPOSITIONS_SVG },
 };
 
 export const AVATAR_PATH = "media/avatar.svg";

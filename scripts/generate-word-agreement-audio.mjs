@@ -128,33 +128,47 @@ async function synthesize(text) {
 
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
+function audioEntriesFor(card) {
+  const entries = [{ id: card.id, text: card.label }];
+  if (card.skill === "prepositions") {
+    entries.push(
+      { id: `${card.id}_locate`, text: card.locatePrompt },
+      { id: `${card.id}_action`, text: card.actionPrompt },
+    );
+  }
+  return entries;
+}
+
 let generated = 0;
 let skipped   = 0;
 let failed    = 0;
 let stoppedOnQuota = false;
 
 for (const card of ALL_CARDS) {
-  const outPath = join(OUT_DIR, `${card.id}.mp3`);
-  if (!force && existsSync(outPath)) {
-    skipped++;
-    continue;
-  }
-  process.stdout.write(`  gen   ${card.id}  "${card.label}"... `);
-  try {
-    const mp3 = await synthesize(card.label);
-    writeFileSync(outPath, mp3);
-    console.log(`${mp3.length} bytes`);
-    generated++;
-  } catch (err) {
-    if (err instanceof DailyQuotaExhausted) {
-      console.log("DAILY QUOTA EXHAUSTED — stopping here, re-run tomorrow to continue.");
-      stoppedOnQuota = true;
-      break;
+  for (const entry of audioEntriesFor(card)) {
+    const outPath = join(OUT_DIR, `${entry.id}.mp3`);
+    if (!force && existsSync(outPath)) {
+      skipped++;
+      continue;
     }
-    console.log(`FAILED: ${err.message}`);
-    failed++;
+    process.stdout.write(`  gen   ${entry.id}  "${entry.text}"... `);
+    try {
+      const mp3 = await synthesize(entry.text);
+      writeFileSync(outPath, mp3);
+      console.log(`${mp3.length} bytes`);
+      generated++;
+    } catch (err) {
+      if (err instanceof DailyQuotaExhausted) {
+        console.log("DAILY QUOTA EXHAUSTED — stopping here, re-run tomorrow to continue.");
+        stoppedOnQuota = true;
+        break;
+      }
+      console.log(`FAILED: ${err.message}`);
+      failed++;
+    }
+    await sleep(MIN_DELAY_MS);
   }
-  await sleep(MIN_DELAY_MS);
+  if (stoppedOnQuota) break;
 }
 
 console.log(`\ndone: ${generated} generated, ${skipped} skipped, ${failed} failed (voice: ${VOICE})${stoppedOnQuota ? " — stopped on daily quota" : ""}`);
