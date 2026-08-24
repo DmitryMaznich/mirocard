@@ -21,8 +21,18 @@ function Photo({ topicId, path, className = "" }) {
   return <img className={`sp-photo ${className}`} src={url} alt="" draggable={false} />;
 }
 
-function RepeatButton({ onClick, label = "Повторить" }) {
-  return <button className="sp-audio-button" type="button" onClick={onClick}>🔊 {label}</button>;
+function RepeatButton({ onClick, label = "Повторить", iconOnly = false }) {
+  return (
+    <button
+      className={`sp-audio-button${iconOnly ? " sp-audio-button--icon" : ""}`}
+      type="button"
+      onClick={onClick}
+      aria-label={iconOnly ? label : undefined}
+      title={iconOnly ? label : undefined}
+    >
+      🔊{iconOnly ? null : ` ${label}`}
+    </button>
+  );
 }
 
 function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, onCardShown }) {
@@ -48,8 +58,8 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
       {!revealed ? (
         <>
           <h1 className="sp-question">{card.question}</h1>
-          <div className="sp-actions">
-            <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" />
+          <div className="sp-actions sp-actions--question">
+            <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" iconOnly />
             <button className="sp-primary-button" type="button" onClick={reveal}>Узнать</button>
           </div>
         </>

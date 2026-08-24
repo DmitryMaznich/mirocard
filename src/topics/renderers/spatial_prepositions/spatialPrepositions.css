@@ -79,6 +79,12 @@
   gap: 14px;
 }
 
+.sp-actions--question {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  width: min(100%, 520px);
+}
+
 .sp-primary-button,
 .sp-audio-button {
   min-height: 58px;
@@ -106,6 +112,15 @@
   background: #f7fbf7;
   border-color: #bcd2c4;
   color: #294b3a;
+}
+
+.sp-audio-button--icon {
+  width: 58px;
+  padding: 0;
+}
+
+.sp-actions--question .sp-primary-button {
+  width: 100%;
 }
 
 .sp-choice-grid {
@@ -154,4 +169,6 @@
   .sp-choice { border-radius: 16px; border-width: 3px; }
   .sp-photo { border-radius: 17px; }
   .sp-primary-button, .sp-audio-button { min-height: 52px; padding: 10px 16px; }
+  .sp-actions--question { grid-template-columns: 52px minmax(0, 1fr); }
+  .sp-audio-button--icon { width: 52px; padding: 0; }
 }

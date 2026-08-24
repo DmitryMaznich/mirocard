@@ -53,6 +53,10 @@ describe("spatial prepositions tasks", () => {
 
     expect(container.textContent).toContain("Где мяч?");
     expect(container.textContent).not.toContain("под столом");
+    const replayButton = container.querySelector(".sp-audio-button--icon");
+    expect(replayButton.getAttribute("aria-label")).toBe("Повторить вопрос");
+    expect(replayButton.textContent).toBe("🔊");
+    expect(container.querySelector(".sp-actions--question .sp-primary-button").textContent).toBe("Узнать");
 
     act(() => { container.querySelector(".sp-primary-button").click(); });
     expect(container.textContent).toContain("под столом");
