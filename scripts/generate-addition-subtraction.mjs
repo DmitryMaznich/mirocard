@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 const manifest = {
   meta: {
     id: "addition_subtraction",
-    version: "1.3.4",
+    version: "1.3.5",
     minAppVersion: "1.0.2",
     language: "ru",
     cardType: "procedural",
@@ -41,7 +41,7 @@ const manifest = {
         shapeMode: { type: "enum", values: ["circle", "blocks"], labels: { ru: { circle: "Только круги", blocks: "Фигуры сериями" } }, default: "circle", label: { ru: "Материал" } },
       },
       methodology: {
-        text: "Первая ступень: ребёнок наблюдает за одним изменением количества и выбирает + или −. На детском экране нет подписей: взрослый при необходимости задаёт вопрос вслух.",
+        text: "Первая ступень: ребёнок наблюдает за одним изменением количества и выбирает «Больше» или «Меньше». На детском экране нет лишних подписей: взрослый при необходимости задаёт вопрос вслух.",
         tips: [
           "Начинайте с диапазона до 3 и изменения на один предмет.",
           "Сначала используйте только круги; другие фигуры вводите короткими сериями по три задания.",
@@ -247,5 +247,5 @@ const manifest = {
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/addition_subtraction_v1.3.4.zip", buffer);
-console.log("generated addition_subtraction_v1.3.4.zip");
+writeFileSync("public/decks/addition_subtraction_v1.3.5.zip", buffer);
+console.log("generated addition_subtraction_v1.3.5.zip");

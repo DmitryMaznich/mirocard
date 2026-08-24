@@ -683,7 +683,7 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
               disabled={selected != null || feedback === "retry"}
               aria-label="Стало больше"
             >
-              <span aria-hidden="true">+</span>
+              Больше
             </button>
             <button
               type="button"
@@ -692,7 +692,7 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
               disabled={selected != null || feedback === "retry"}
               aria-label="Стало меньше"
             >
-              <span aria-hidden="true">−</span>
+              Меньше
             </button>
           </div>
         </div>

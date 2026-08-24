@@ -80,9 +80,11 @@ describe("operation_observe", () => {
     expect(visibleAnswerArea?.classList.contains("observe-change__answer-area--visible")).toBe(true);
     expect(visibleAnswerArea?.getAttribute("aria-hidden")).toBe("false");
     expect([...container.querySelectorAll(".observe-change__answer")].map((button) => button.textContent.trim())).toEqual([
-      "+",
-      "−",
+      "Больше",
+      "Меньше",
     ]);
+    expect(container.textContent).not.toContain("+");
+    expect(container.textContent).not.toContain("−");
   });
 
   it("gives a spoken starting quantity and asks more or less without naming the action", () => {
