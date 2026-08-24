@@ -71,6 +71,15 @@
 .dot-group-number { font-size: 1.6rem; font-weight: 700; line-height: 1; }
 .dot            { width: 22px; height: 22px; border-radius: 50%; }
 
+.compare-pairing-col  { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: min(140px, 100%); }
+.compare-pairing-dot  { transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s; }
+.compare-pairing-dot--paired   { opacity: 0.25; transform: scale(0.8); }
+.compare-pairing-dot--leftover { animation: compare-pairing-pulse 0.6s ease-in-out infinite; }
+@keyframes compare-pairing-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,0.55); }
+  50%      { box-shadow: 0 0 0 7px rgba(245,158,11,0.15); }
+}
+
 .compare-sign-row {
   display: flex; align-items: center; justify-content: center;
   gap: clamp(6px, 2.5vw, 16px); width: 100%; max-width: 420px;

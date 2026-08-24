@@ -1059,6 +1059,7 @@ const VISUAL_OPTIONS = [
   { value: "dots",         label: "Точки" },
   { value: "dots_numbers", label: "Точки + цифра" },
   { value: "numbers",      label: "Только цифры" },
+  { value: "pairing",      label: "Пары" },
 ];
 
 function ComparisonParams({ params, onChange }) {

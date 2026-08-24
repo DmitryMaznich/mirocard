@@ -220,6 +220,17 @@ describe("generateTasks", () => {
     tasks.forEach(({ conceptId }) => expect(conceptId).toBe("compare_easy"));
   });
 
+  it("compare_visual gives a pairing-specific instruction for visualMode=pairing", () => {
+    for (const question of ["more", "less"]) {
+      const tasks = generateTasks(MODE_VISUAL, ALL_CARDS, 10, { question, visualMode: "pairing" });
+      const verb = question === "more" ? "больше" : "меньше";
+      tasks.forEach((t) => {
+        expect(t.visualMode).toBe("pairing");
+        expect(t.instruction).toBe(`Раздели точки на пары, потом покажи, где ${verb}`);
+      });
+    }
+  });
+
   it("compare_first_number derives question from the first number relation", () => {
     const tasks = generateTasks(MODE_FIRST, ALL_CARDS, 40, { showEqual: true });
     tasks.forEach(({ left, right, question, instruction, type }) => {

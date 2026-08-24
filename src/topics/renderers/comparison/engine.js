@@ -129,7 +129,7 @@ export function getVerdict(task) {
     : `${smaller} меньше ${bigger}`;
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers", examplesCount?: number, showLabels?: boolean }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
   const { question = "more", showEqual = false, level = 2, wordsVerdict = false, visualMode = "dots" } = sessionParams;
@@ -175,6 +175,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       return baseQ === "more" ? "Нажми на большее число" : "Нажми на меньшее число";
     }
     if (visualMode === "numbers") return baseQ === "more" ? "Какое число больше?" : "Какое число меньше?";
+    if (visualMode === "pairing") return `Раздели точки на пары, потом покажи, где ${verb}`;
     if (visualMode === "dots") return `Где ${verb} точек?`;
     return `Где ${verb}?`;
   }
