@@ -6,7 +6,10 @@ export function useAppUpdate() {
 
   useEffect(() => {
     if (!navigator.serviceWorker) return;
+    let currentReg = null;
+
     navigator.serviceWorker.ready.then((r) => {
+      currentReg = r;
       setReg(r);
       if (r.waiting) setHasUpdate(true);
       r.addEventListener("updatefound", () => {
@@ -19,9 +22,26 @@ export function useAppUpdate() {
       });
       r.update().catch(() => {});
     });
+
+    // A long mobile session can resume from the background without a real
+    // page reload — Android often revives a suspended tab in place rather
+    // than navigating — so the one-shot check above never re-runs on its
+    // own. Re-check whenever the app comes back to the foreground so a
+    // version that shipped while it was backgrounded is actually noticed.
+    function onVisible() {
+      if (document.hidden || !currentReg) return;
+      if (currentReg.waiting) setHasUpdate(true);
+      currentReg.update().catch(() => {});
+    }
+    document.addEventListener("visibilitychange", onVisible);
+
     const onController = () => window.location.reload();
     navigator.serviceWorker.addEventListener("controllerchange", onController);
-    return () => navigator.serviceWorker.removeEventListener("controllerchange", onController);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      navigator.serviceWorker.removeEventListener("controllerchange", onController);
+    };
   }, []);
 
   const applyUpdate = useCallback(async () => {
