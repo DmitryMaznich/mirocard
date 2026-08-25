@@ -23,6 +23,17 @@ function isEditableTarget(target) {
   );
 }
 
+export function shouldShowSessionStreak({ mode, isNavigatorFlashCards, renderer, rewardAvailable }) {
+  if (mode?.type === "daily_sentences" || isNavigatorFlashCards) return false;
+  // Spatial-prepositions sessions normally keep the header minimal.  An
+  // evaluated spatial mode with video rewards is the exception: without the
+  // bar, the child cannot see the progress that unlocks the reward.
+  if (renderer === "spatial_prepositions") {
+    return mode?.evaluation !== "none" && rewardAvailable;
+  }
+  return true;
+}
+
 export default function SessionScreen() {
   const setScreen             = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
@@ -290,7 +301,12 @@ export default function SessionScreen() {
   const rendererTaskKey = keepsDictationCanvasOnMistake || keepsObserveSceneOnMistake || keepsSpatialSceneOnMistake
     ? String(taskIndex)
     : `${taskIndex}_${sessionState.taskRetry ?? 0}`;
-  const showStreak = mode?.type !== "daily_sentences" && !isNavigatorFlashCards && topicRecord.meta.renderer !== "spatial_prepositions";
+  const showStreak = shouldShowSessionStreak({
+    mode,
+    isNavigatorFlashCards,
+    renderer: topicRecord.meta.renderer,
+    rewardAvailable: rewardProgress?.available ?? false,
+  });
   const showProgress = !(
     (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
