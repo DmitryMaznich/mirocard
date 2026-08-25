@@ -76,9 +76,9 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
   );
 }
 
-function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, onMistake, onAdvance, onCardShown, onTap }) {
+function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
   const { card, options, showInstructionText, type } = task;
-  const [result, setResult] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
   const voice = (text, audio) => speak({ topicId, text, audio, playTopicFile, soundEnabled });
 
   useEffect(() => {
@@ -87,17 +87,14 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
   }, [card.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function choose(option) {
-    if (result) return;
+    if (selectedOption) return;
     onTap?.(option.id, option.isTarget);
+    setSelectedOption(option);
     if (option.isTarget) {
-      setResult("correct");
-      voice(card.model, card.modelAudio);
       onCorrect?.(card.conceptId, card.id);
       return;
     }
-    setResult("model");
-    voice(card.model, card.modelAudio);
-    onMistake?.(card.conceptId, card.id);
+    onIncorrect?.(card.conceptId, card.id);
   }
 
   const isTransfer = type === "spatial_transfer";
@@ -109,15 +106,15 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
       </div>
       <div className="sp-choice-grid" aria-label={card.recognizePrompt}>
         {options.map((option) => {
-          const revealTarget = result === "model" && option.isTarget;
-          const correctTarget = result === "correct" && option.isTarget;
+          const correctTarget = selectedOption?.isTarget && option.isTarget;
+          const incorrectChoice = selectedOption && !selectedOption.isTarget && selectedOption.id === option.id;
           return (
             <button
               key={option.id}
               type="button"
-              className={`sp-choice${revealTarget || correctTarget ? " sp-choice--target" : ""}${result && !option.isTarget ? " sp-choice--muted" : ""}`}
+              className={`sp-choice${correctTarget ? " sp-choice--target" : ""}${incorrectChoice ? " sp-choice--incorrect" : ""}`}
               onClick={() => choose(option)}
-              disabled={Boolean(result)}
+              disabled={Boolean(selectedOption)}
             >
               <Photo topicId={topicId} path={option.image} />
             </button>
@@ -125,8 +122,6 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
         })}
       </div>
       <RepeatButton onClick={() => voice(card.recognizePrompt, card.recognizeAudio)} label="Повторить" />
-      {result && <div className="sp-model-line" aria-live="polite">{card.model}</div>}
-      {result === "model" && <button className="sp-primary-button" type="button" onClick={onAdvance}>Дальше</button>}
     </main>
   );
 }

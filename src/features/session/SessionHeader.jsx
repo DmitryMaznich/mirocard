@@ -126,25 +126,28 @@ export default function SessionHeader({
     </div>
   );
 
+  const streakBar = showStreak ? (
+    <StarBar
+      className="session-progress"
+      streakCount={streakCount}
+      available={rewardAvailable}
+      answersPerStar={answersPerStar}
+    />
+  ) : null;
+
   return (
     <div className="session-topbar">
       {showProgress ? (
         <>
           <div className="session-topbar-controls">
-            {showStreak && (
-              <StarBar
-                className="session-progress"
-                streakCount={streakCount}
-                available={rewardAvailable}
-                answersPerStar={answersPerStar}
-              />
-            )}
+            {streakBar}
             {rightCluster}
           </div>
           <div className="session-subtitle">{topicTitle} · {modeTitle}</div>
         </>
       ) : (
         <div className="session-topbar-controls">
+          {streakBar}
           <div className="session-subtitle session-subtitle--inline">{topicTitle} · {modeTitle}</div>
           {rightCluster}
         </div>

@@ -159,6 +159,11 @@
   box-shadow: 0 0 0 4px #d9f1e3;
 }
 
+.sp-choice--incorrect {
+  border-color: #d65a55;
+  box-shadow: 0 0 0 4px #f9dedc;
+}
+
 .sp-choice--muted {
   opacity: .48;
 }

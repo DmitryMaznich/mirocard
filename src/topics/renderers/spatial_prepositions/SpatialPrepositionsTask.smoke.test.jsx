@@ -38,6 +38,7 @@ describe("spatial prepositions tasks", () => {
           topicId="spatial_prepositions_ru"
           soundEnabled={false}
           onCorrect={callbacks.onCorrect ?? (() => {})}
+          onIncorrect={callbacks.onIncorrect ?? (() => {})}
           onMistake={callbacks.onMistake ?? (() => {})}
           onAdvance={callbacks.onAdvance ?? (() => {})}
           onCardShown={callbacks.onCardShown ?? (() => {})}
@@ -71,8 +72,8 @@ describe("spatial prepositions tasks", () => {
     expect(onAdvance).toHaveBeenCalledOnce();
   });
 
-  it("shows a calm model after a wrong photo without calling it wrong", () => {
-    const onMistake = vi.fn();
+  it("reports a wrong photo through the shared incorrect-answer event", () => {
+    const onIncorrect = vi.fn();
     const onTap = vi.fn();
     mount({
       type: "spatial_recognize",
@@ -82,15 +83,15 @@ describe("spatial prepositions tasks", () => {
         { id: "target", image: CARD.image, isTarget: true },
       ],
       showInstructionText: false,
-    }, { onMistake, onTap });
+    }, { onIncorrect, onTap });
 
     act(() => { container.querySelectorAll(".sp-choice")[0].click(); });
     expect(onTap).toHaveBeenCalledWith("contrast", false);
-    expect(onMistake).toHaveBeenCalledWith("spatial_under", "spatial_under_01");
-    expect(container.textContent).toContain("Мяч под столом.");
-    expect(container.textContent).not.toContain("Неверно");
-    expect(container.querySelectorAll(".sp-choice--target")).toHaveLength(1);
-    expect(container.textContent).toContain("Дальше");
+    expect(onIncorrect).toHaveBeenCalledWith("spatial_under", "spatial_under_01");
+    expect(container.querySelectorAll(".sp-choice--incorrect")).toHaveLength(1);
+    expect(container.querySelectorAll(".sp-choice--target")).toHaveLength(0);
+    expect(container.textContent).not.toContain("Мяч под столом.");
+    expect(container.textContent).not.toContain("Дальше");
   });
 
   it("records a correct picture choice and lets the session advance naturally", () => {
