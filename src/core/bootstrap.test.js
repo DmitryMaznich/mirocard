@@ -7,6 +7,7 @@ import {
   indexConceptProgress,
   indexStudentTopicLinks,
   loadLocalBootstrap,
+  atomicUpsertOwnedTopic,
   markStudentDeleted,
   mergeOwnedTopics,
   mergeStudentRecords,
@@ -314,6 +315,32 @@ describe("bootstrap helpers", () => {
     await persistBootstrap(db, { ownedTopics: [] });
 
     expect(await kv.get(db, "ownedTopics")).toEqual([{ topicId: "spatial_prepositions_ru", source: "free" }]);
+  });
+
+  it("atomicUpsertOwnedTopic persists a fresh free grant that survives a cold restart", async () => {
+    const db = await freshDb();
+
+    await atomicUpsertOwnedTopic(db, { topicId: "spatial_prepositions_ru", source: "free" });
+
+    // Simulates the app being closed and relaunched right after install,
+    // before any server round-trip — loadLocalBootstrap reads straight from IDB.
+    const bootstrap = await loadLocalBootstrap(db);
+    expect(bootstrap.ownedTopics).toEqual([{ topicId: "spatial_prepositions_ru", source: "free" }]);
+  });
+
+  it("atomicUpsertOwnedTopic updates an existing entry in place without touching others", async () => {
+    const db = await freshDb();
+    await kv.set(db, "ownedTopics", [
+      { topicId: "t1", source: "grant" },
+      { topicId: "t2", source: "free" },
+    ]);
+
+    await atomicUpsertOwnedTopic(db, { topicId: "t2", source: "free", acquiredAt: "2026-05-14T00:00:00.000Z" });
+
+    expect(await kv.get(db, "ownedTopics")).toEqual([
+      { topicId: "t1", source: "grant" },
+      { topicId: "t2", source: "free", acquiredAt: "2026-05-14T00:00:00.000Z" },
+    ]);
   });
 
   it("persistBootstrap saves normalized entities and loadLocalBootstrap returns normalized snapshot", async () => {

@@ -156,6 +156,35 @@ function atomicMergeOwnedTopics(db, serverOwnedTopics) {
   });
 }
 
+// Persists a single ownedTopics entry directly, independent of the next
+// server round-trip. useAppStore's upsertOwnedTopic only updates in-memory
+// state — the optimistic "free" grant TopicLibraryScreen sets on install
+// otherwise lives only in memory until a bootstrap sync happens to persist
+// it. The downloaded topic itself is durable immediately (importTopic writes
+// it straight to IndexedDB), so if the app is closed before that sync
+// completes, the grant is lost while the topic stays on disk — and it
+// vanishes from "Мои темы" on the next cold start even though nothing was
+// ever actually deleted.
+export function atomicUpsertOwnedTopic(db, topic) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("keyval", "readwrite");
+    const store = tx.objectStore("keyval");
+    const getReq = store.get("ownedTopics");
+    getReq.onsuccess = () => {
+      const current = Array.isArray(getReq.result) ? getReq.result : [];
+      const idx = current.findIndex((o) => o.topicId === topic.topicId);
+      const next = [...current];
+      if (idx >= 0) next[idx] = { ...next[idx], ...topic };
+      else next.push(topic);
+      const putReq = store.put(next, "ownedTopics");
+      putReq.onsuccess = () => resolve(next);
+      putReq.onerror  = () => reject(putReq.error);
+    };
+    getReq.onerror = () => reject(getReq.error);
+    tx.onerror     = () => reject(tx.error);
+  });
+}
+
 export function indexStudentTopicLinks(links) {
   if (links && typeof links === "object" && !Array.isArray(links)) {
     return links;

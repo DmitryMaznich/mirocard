@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { AnalyticsScreen } from "@/features/analytics/AnalyticsScreen";
 import { getDb } from "@/core/db";
+import { atomicUpsertOwnedTopic } from "@/core/bootstrap";
 import { deleteTopicRecord } from "@/topics/topicLoader";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
@@ -64,8 +65,14 @@ export default function TopicLibraryScreen() {
     // than making installation depend on an account call that may be stale or
     // temporarily unavailable. For signed-in users we still record ownership
     // afterwards, but that bookkeeping must never prevent use of the topic.
+    // Persisted to IndexedDB immediately too — the topic content itself
+    // becomes durable the moment it's imported, so the ownership flag that
+    // gates its visibility must not depend on a later server round-trip
+    // surviving the app being closed in between.
     if (isFreeStaticDeck && !isGranted) {
       upsertOwnedTopic({ topicId: entry.id, source: "free" });
+      const db = await getDb();
+      await atomicUpsertOwnedTopic(db, { topicId: entry.id, source: "free" });
     }
 
     if (!isGranted && shouldClaimCatalogDeck(entry)) {
