@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ALL_CARDS } from "./spatial-prepositions-content.mjs";
 
 const TOPIC_ID = "spatial_prepositions_ru";
-const VERSION = "0.5.0";
+const VERSION = "0.6.0";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const ASSET_DIR = "public/decks/_assets/spatial_prepositions";
 const AUDIO_DIR = "public/decks/_audio_src/spatial_prepositions_ru";
@@ -124,12 +124,6 @@ const topic = {
       },
       params: {
         relations: RELATIONS_PARAM,
-        showInstructionText: {
-          type: "boolean",
-          label: { ru: "Показывать текст задания" },
-          hint: { ru: "По умолчанию ребёнок слушает инструкцию и выбирает фотографию." },
-          default: false,
-        },
       },
     },
     {
@@ -164,11 +158,6 @@ const topic = {
       },
       params: {
         relations: RELATIONS_PARAM,
-        showInstructionText: {
-          type: "boolean",
-          label: { ru: "Показывать текст задания" },
-          default: false,
-        },
       },
     },
   ],

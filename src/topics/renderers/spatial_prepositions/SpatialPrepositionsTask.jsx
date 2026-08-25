@@ -53,7 +53,6 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
 
   return (
     <main className="sp-task sp-task--introduction">
-      <div className="sp-stage-label">Посмотри и узнай</div>
       <Photo topicId={topicId} path={card.image} />
       {!revealed ? (
         <>
@@ -77,7 +76,7 @@ function IntroductionTask({ task, topicId, playTopicFile, soundEnabled, onAdvanc
 }
 
 function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
-  const { card, options, showInstructionText, type } = task;
+  const { card, options } = task;
   const [selectedOption, setSelectedOption] = useState(null);
   const voice = (text, audio) => speak({ topicId, text, audio, playTopicFile, soundEnabled });
 
@@ -97,13 +96,8 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
     onIncorrect?.(card.conceptId, card.id);
   }
 
-  const isTransfer = type === "spatial_transfer";
   return (
     <main className="sp-task sp-task--recognize">
-      <div className="sp-stage-label">{isTransfer ? "Новая картинка" : "Покажи"}</div>
-      <div className={`sp-instruction${showInstructionText ? "" : " sp-instruction--audio-only"}`}>
-        {showInstructionText ? card.recognizePrompt : "Слушай задание"}
-      </div>
       <div className="sp-choice-grid" aria-label={card.recognizePrompt}>
         {options.map((option) => {
           const correctTarget = selectedOption?.isTarget && option.isTarget;
@@ -144,7 +138,6 @@ function RespondTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, on
 
   return (
     <main className="sp-task sp-task--respond">
-      <div className="sp-stage-label">Ответь</div>
       <Photo topicId={topicId} path={card.image} />
       <h1 className="sp-question">{card.question}</h1>
       {!revealed ? (

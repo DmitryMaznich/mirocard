@@ -82,7 +82,6 @@ describe("spatial prepositions tasks", () => {
         { id: "contrast", image: CARD.contrastImage, isTarget: false },
         { id: "target", image: CARD.image, isTarget: true },
       ],
-      showInstructionText: false,
     }, { onIncorrect, onTap });
 
     act(() => { container.querySelectorAll(".sp-choice")[0].click(); });
@@ -103,11 +102,11 @@ describe("spatial prepositions tasks", () => {
         { id: "target", image: CARD.image, isTarget: true },
         { id: "contrast", image: CARD.contrastImage, isTarget: false },
       ],
-      showInstructionText: true,
     }, { onCorrect });
 
-    expect(container.textContent).toContain("Новая картинка");
-    expect(container.textContent).toContain(CARD.recognizePrompt);
+    expect(container.textContent).not.toContain("Новая картинка");
+    expect(container.textContent).not.toContain(CARD.recognizePrompt);
+    expect(container.textContent).not.toContain("Слушай задание");
     act(() => { container.querySelectorAll(".sp-choice")[0].click(); });
     expect(onCorrect).toHaveBeenCalledWith("spatial_under", "spatial_under_01");
     expect(container.querySelectorAll(".sp-choice--target")).toHaveLength(1);

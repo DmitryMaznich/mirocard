@@ -12,13 +12,6 @@
   color: #183329;
 }
 
-.sp-stage-label {
-  color: #557267;
-  font-size: clamp(16px, 2vw, 22px);
-  font-weight: 800;
-  letter-spacing: .01em;
-}
-
 .sp-photo {
   display: block;
   width: min(100%, 780px);
@@ -36,8 +29,7 @@
 
 .sp-question,
 .sp-answer,
-.sp-model-line,
-.sp-instruction {
+.sp-model-line {
   margin: 0;
   text-align: center;
 }
@@ -58,17 +50,6 @@
 .sp-model-line {
   font-size: clamp(21px, 2.8vw, 32px);
   font-weight: 800;
-}
-
-.sp-instruction {
-  min-height: 1.5em;
-  font-size: clamp(21px, 2.8vw, 31px);
-  font-weight: 850;
-}
-
-.sp-instruction--audio-only {
-  color: #668176;
-  font-size: clamp(17px, 2vw, 22px);
 }
 
 .sp-actions {

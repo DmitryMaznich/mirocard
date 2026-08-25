@@ -73,7 +73,6 @@ function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phas
       // The two fixed slots remain predictable.  Only their contents swap,
       // preventing a left/right tapping habit without a noisy re-layout.
       options: index % 2 === 0 ? [target, contrast] : [contrast, target],
-      showInstructionText: params?.showInstructionText === true,
     };
   });
 }
