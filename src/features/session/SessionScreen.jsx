@@ -34,6 +34,13 @@ export function shouldShowSessionStreak({ mode, isNavigatorFlashCards, renderer,
   return true;
 }
 
+// This renderer is maintained by the application itself.  Older versions of
+// its ZIP used to ship a renderer.js; if one remains in IndexedDB it must not
+// override the current bundled component after the topic has been updated.
+export function shouldPreferBundledRenderer(renderer) {
+  return renderer === "spatial_prepositions";
+}
+
 export default function SessionScreen() {
   const setScreen             = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
@@ -242,7 +249,8 @@ export default function SessionScreen() {
     if (pendingAudioAdvanceRef.current) clearInterval(pendingAudioAdvanceRef.current);
   }, []);
 
-  // Dynamic renderer: prefer renderer.js from IndexedDB, fall back to registry.
+  // Dynamic renderer: use a topic-supplied renderer.js when appropriate,
+  // otherwise fall back to the renderer bundled with the app.
   const [Renderer, setRenderer]           = useState(() =>
     topicRecord ? (RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null) : null
   );
@@ -251,15 +259,23 @@ export default function SessionScreen() {
   );
   useEffect(() => {
     if (!topicRecord) return;
+    const { renderer: rendererId } = topicRecord.meta;
+
+    if (shouldPreferBundledRenderer(rendererId)) {
+      setRenderer(() => RENDERER_REGISTRY[rendererId] ?? null);
+      setRendererReady(true);
+      return undefined;
+    }
+
     loadRenderer(topicRecord.meta.id)
       .then((DynamicRenderer) => {
-        setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null);
+        setRenderer(() => DynamicRenderer ?? RENDERER_REGISTRY[rendererId] ?? null);
       })
       .catch(() => {
-        setRenderer(() => RENDERER_REGISTRY[topicRecord.meta.renderer] ?? null);
+        setRenderer(() => RENDERER_REGISTRY[rendererId] ?? null);
       })
       .finally(() => setRendererReady(true));
-  }, [topicRecord?.meta.id]);
+  }, [topicRecord?.meta.id, topicRecord?.meta.renderer]);
 
   if (!sessionState || !topicRecord || !mode) {
     return (

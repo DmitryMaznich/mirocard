@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldShowSessionStreak } from "./SessionScreen";
+import { shouldPreferBundledRenderer, shouldShowSessionStreak } from "./SessionScreen";
 
 describe("shouldShowSessionStreak", () => {
   it("shows stars for evaluated spatial modes with an active video reward", () => {
@@ -24,5 +24,15 @@ describe("shouldShowSessionStreak", () => {
       renderer: "spatial_prepositions",
       rewardAvailable: true,
     })).toBe(false);
+  });
+});
+
+describe("shouldPreferBundledRenderer", () => {
+  it("does not let a legacy deck renderer override spatial prepositions", () => {
+    expect(shouldPreferBundledRenderer("spatial_prepositions")).toBe(true);
+  });
+
+  it("keeps supporting dynamic renderers for other topics", () => {
+    expect(shouldPreferBundledRenderer("flashcards")).toBe(false);
   });
 });
