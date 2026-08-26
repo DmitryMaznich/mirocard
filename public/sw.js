@@ -1,7 +1,24 @@
-const CACHE = "mirocard2-v22";
+const CACHE = "mirocard2-v23";
 // Build 1.0.1996. Keep the runtime cache stable between releases: changing
 // this worker makes the browser check for an update without repeatedly
 // throwing away the cache an installed PWA is currently using.
+
+// A cold app launch on a mobile device is the highest-risk moment for the
+// very first network request to fail outright — the radio can still be
+// waking from doze/idle even though connectivity is fine a moment later.
+// Falling straight back to the cached app shell on any single failure means
+// an Android PWA relaunched after being evicted from memory can get stuck
+// showing whatever version happened to be cached last time a fetch
+// succeeded — sometimes many releases behind — even though the network is
+// actually fine. One retry after a short delay avoids treating a transient
+// hiccup as if it were real offline use.
+function fetchWithRetry(request, retries = 1, delayMs = 400) {
+  return fetch(new Request(request, { cache: "no-store" })).catch((err) => {
+    if (retries <= 0) throw err;
+    return new Promise((resolve) => setTimeout(resolve, delayMs))
+      .then(() => fetchWithRetry(request, retries - 1, delayMs));
+  });
+}
 
 self.addEventListener("install", () => {
   // Stay in the waiting phase until the app explicitly applies the update.
@@ -69,7 +86,7 @@ self.addEventListener("fetch", (e) => {
 
   if (e.request.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html")) {
     e.respondWith(
-      fetch(new Request(e.request, { cache: "no-store" }))
+      fetchWithRetry(e.request)
         .then((resp) => {
           if (resp.ok) {
             const cloned = resp.clone();
@@ -87,7 +104,7 @@ self.addEventListener("fetch", (e) => {
 
   // App shell — network-first с fallback на кеш
   e.respondWith(
-    fetch(new Request(e.request, { cache: "no-store" }))
+    fetchWithRetry(e.request)
       .then((resp) => {
         if (resp.ok && e.request.method === "GET") {
           const cloned = resp.clone();
