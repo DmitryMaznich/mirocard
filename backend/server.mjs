@@ -1091,7 +1091,16 @@ const STATIC_CONTENT_TYPES = {
 function serveStaticFile(res, absPath) {
   const stat = statSync(absPath);
   const contentType = STATIC_CONTENT_TYPES[path.extname(absPath).toLowerCase()] || "application/octet-stream";
-  res.writeHead(200, { "Content-Type": contentType, "Content-Length": stat.size });
+  // The app is built as a single index.html.  Letting a browser cache that
+  // shell means an Android PWA can resume an older JavaScript build after a
+  // deployment, even though the server already has the current version.
+  // The service worker and manifest must be checked fresh for the same reason.
+  const isAppShell = ["index.html", "sw.js", "manifest.json"].includes(path.basename(absPath));
+  res.writeHead(200, {
+    "Content-Type": contentType,
+    "Content-Length": stat.size,
+    "Cache-Control": isAppShell ? "no-store, no-cache, must-revalidate" : "public, max-age=86400",
+  });
   createReadStream(absPath).pipe(res);
 }
 

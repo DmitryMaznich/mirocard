@@ -1,4 +1,7 @@
 const CACHE = "mirocard2-v22";
+// Build 1.0.1995. Keep the runtime cache stable between releases: changing
+// this worker makes the browser check for an update without repeatedly
+// throwing away the cache an installed PWA is currently using.
 
 self.addEventListener("install", () => {
   // Stay in the waiting phase until the app explicitly applies the update.
@@ -74,7 +77,10 @@ self.addEventListener("fetch", (e) => {
           }
           return resp;
         })
-        .catch(() => caches.match("/").then((resp) => resp || caches.match(e.request)))
+        // Only this worker's cache may be used as the offline fallback.  A
+        // global caches.match could resurrect the app shell from an older
+        // service-worker version after a brief network interruption.
+        .catch(() => caches.open(CACHE).then((cache) => cache.match("/").then((resp) => resp || cache.match(e.request))))
     );
     return;
   }
@@ -89,6 +95,6 @@ self.addEventListener("fetch", (e) => {
         }
         return resp;
       })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match("/")))
+      .catch(() => caches.open(CACHE).then((cache) => cache.match(e.request).then((resp) => resp || cache.match("/"))))
   );
 });
