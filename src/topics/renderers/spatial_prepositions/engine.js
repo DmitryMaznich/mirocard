@@ -1,5 +1,6 @@
 const RELATION_BY_CONCEPT = {
   spatial_in: "in",
+  spatial_near: "near",
   spatial_on: "on",
   spatial_under: "under",
 };

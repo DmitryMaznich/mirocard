@@ -2,13 +2,13 @@
 //
 // A single relation is practised at a time until it is ready for the separate
 // mixed drill. Every core card has a matched contrast photograph of the same
-// scene: for «на / под» only the vertical relation changes; for «в» the item
-// is either inside the container or beside that same container. This prevents
-// a child from choosing by a familiar noun, furniture item, or background
-// instead of by the spatial relation.
+// scene: for «на / под» only the vertical relation changes; for «в / рядом
+// с» the item is either inside the container or beside that same container.
+// Every photograph is a teachable relation rather than a throwaway distractor.
 
 export const RELATIONS = [
   { id: "spatial_in", label: "В", relation: "in", shortPhrase: "в" },
+  { id: "spatial_near", label: "Рядом с", relation: "near", shortPhrase: "рядом с" },
   { id: "spatial_on", label: "На", relation: "on", shortPhrase: "на" },
   { id: "spatial_under", label: "Под", relation: "under", shortPhrase: "под" },
 ];
@@ -31,6 +31,11 @@ const CONSTRUCTION_AUDIO_IDS = {
   "Мяч|в корзине": "ball-in-basket",
   "Кубик|в рюкзаке": "cube-in-backpack",
   "Мишка|в домике": "bear-in-house",
+  "Мяч|рядом с коробкой": "ball-near-box",
+  "Машинка|рядом с коробкой": "car-near-box",
+  "Мяч|рядом с корзиной": "ball-near-basket",
+  "Кубик|рядом с рюкзаком": "cube-near-backpack",
+  "Мишка|рядом с домиком": "bear-near-house",
   "Мяч|на столе": "ball-on-table",
   "Машинка|на столе": "car-on-table",
   "Мяч|на стуле": "ball-on-chair",
@@ -77,10 +82,43 @@ function card({ id, conceptId, relation, subject, landmark, phrase, image, contr
   };
 }
 
+// The former contrast images for «в» are the complete, paired core of
+// «рядом с».  The same is true for their new-picture counterparts below.
+const NEAR_VARIANTS = [
+  { number: "01", subject: "Мяч", landmark: "коробкой", phrase: "рядом с коробкой", coreImage: "media/core-box-ball-out.png", coreContrast: "media/core-box-ball-in.png", transferImage: "media/transfer-box-ball-out.png", transferContrast: "media/transfer-box-ball-in.png" },
+  { number: "02", subject: "Машинка", landmark: "коробкой", phrase: "рядом с коробкой", coreImage: "media/core-box-car-out.png", coreContrast: "media/core-box-car-in.png", transferImage: "media/transfer-box-car-out.png", transferContrast: "media/transfer-box-car-in.png" },
+  { number: "03", subject: "Мяч", landmark: "корзиной", phrase: "рядом с корзиной", coreImage: "media/core-basket-ball-out.png", coreContrast: "media/core-basket-ball-in.png", transferImage: "media/transfer-basket-ball-out.png", transferContrast: "media/transfer-basket-ball-in.png" },
+  { number: "04", subject: "Кубик", landmark: "рюкзаком", phrase: "рядом с рюкзаком", coreImage: "media/core-backpack-cube-out.png", coreContrast: "media/core-backpack-cube-in.png", transferImage: "media/transfer-backpack-cube-out.png", transferContrast: "media/transfer-backpack-cube-in.png" },
+  { number: "05", subject: "Мишка", landmark: "домиком", phrase: "рядом с домиком", coreImage: "media/core-house-bear-out.png", coreContrast: "media/core-house-bear-in.png", transferImage: "media/transfer-house-bear-out.png", transferContrast: "media/transfer-house-bear-in.png" },
+];
+
+export const CORE_NEAR_CARDS = NEAR_VARIANTS.map(({ number, subject, landmark, phrase, coreImage: image, coreContrast: contrastImage }) => card({
+  id: `spatial_near_${number}`,
+  conceptId: "spatial_near",
+  relation: "near",
+  subject,
+  landmark,
+  phrase,
+  image,
+  contrastImage,
+}));
+
+export const TRANSFER_NEAR_CARDS = NEAR_VARIANTS.map(({ number, subject, landmark, phrase, transferImage: image, transferContrast: contrastImage }) => card({
+  id: `spatial_near_transfer_${number}`,
+  conceptId: "spatial_near",
+  relation: "near",
+  subject,
+  landmark,
+  phrase,
+  image,
+  contrastImage,
+  phase: "transfer",
+}));
+
 export const CORE_CARDS = [
   // «В»: two cards with the same box isolate a change of object, then the
-  // container changes one variable at a time.  The contrast always remains a
-  // non-taught «рядом с», never another untaught grammatical construction.
+  // container changes one variable at a time.  Their paired «рядом с» photos
+  // are active cards in the same topic, not unintroduced distractors.
   card({
     id: "spatial_in_01", conceptId: "spatial_in", relation: "in",
     subject: "Мяч", landmark: "коробке", phrase: "в коробке",
@@ -106,6 +144,8 @@ export const CORE_CARDS = [
     subject: "Мишка", landmark: "домике", phrase: "в домике",
     image: "media/core-house-bear-in.png", contrastImage: "media/core-house-bear-out.png",
   }),
+
+  ...CORE_NEAR_CARDS,
 
   // «На / под»: matching pairs share the same scene, object and landmark.
   card({
@@ -190,6 +230,8 @@ export const TRANSFER_CARDS = [
     subject: "Мишка", landmark: "домике", phrase: "в домике", phase: "transfer",
     image: "media/transfer-house-bear-in.png", contrastImage: "media/transfer-house-bear-out.png",
   }),
+
+  ...TRANSFER_NEAR_CARDS,
 
   card({
     id: "spatial_on_transfer_01", conceptId: "spatial_on", relation: "on",
