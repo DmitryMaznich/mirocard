@@ -10,7 +10,7 @@ const CARD = {
   subject: "Мяч",
   phrase: "под столом",
   question: "Где мяч?",
-  recognizePrompt: "Покажи: мяч под столом.",
+  recognizePrompt: "Покажи мяч под столом.",
   model: "Мяч под столом.",
   image: "media/under.png",
   contrastImage: "media/on.png",
@@ -84,6 +84,7 @@ describe("spatial prepositions tasks", () => {
       ],
     }, { onIncorrect, onTap });
 
+    expect(container.querySelector(".sp-recognize-prompt").textContent).toBe("Покажи мяч под столом.");
     act(() => { container.querySelectorAll(".sp-choice")[0].click(); });
     expect(onTap).toHaveBeenCalledWith("contrast", false);
     expect(onIncorrect).toHaveBeenCalledWith("spatial_under", "spatial_under_01");
@@ -106,6 +107,7 @@ describe("spatial prepositions tasks", () => {
 
     expect(container.textContent).not.toContain("Новая картинка");
     expect(container.textContent).not.toContain(CARD.recognizePrompt);
+    expect(container.querySelector(".sp-recognize-prompt")).toBeNull();
     expect(container.textContent).not.toContain("Слушай задание");
     act(() => { container.querySelectorAll(".sp-choice")[0].click(); });
     expect(onCorrect).toHaveBeenCalledWith("spatial_under", "spatial_under_01");

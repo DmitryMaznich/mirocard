@@ -98,6 +98,9 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
 
   return (
     <main className="sp-task sp-task--recognize">
+      {task.type === "spatial_recognize" && (
+        <h1 className="sp-recognize-prompt">{card.recognizePrompt}</h1>
+      )}
       <div className="sp-choice-grid" aria-label={card.recognizePrompt}>
         {options.map((option) => {
           const correctTarget = selectedOption?.isTarget && option.isTarget;

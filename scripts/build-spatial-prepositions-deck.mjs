@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ALL_CARDS } from "./spatial-prepositions-content.mjs";
 
 const TOPIC_ID = "spatial_prepositions_ru";
-const VERSION = "0.7.0";
+const VERSION = "0.8.0";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const ASSET_DIR = "public/decks/_assets/spatial_prepositions";
 const AUDIO_DIR = "public/decks/_audio_src/spatial_prepositions_ru";

@@ -72,7 +72,7 @@ function card({ id, conceptId, relation, subject, landmark, phrase, image, contr
     landmark,
     phrase,
     question: `Где ${subject.toLowerCase()}?`,
-    recognizePrompt: `Покажи: ${subject.toLowerCase()} ${phrase}.`,
+    recognizePrompt: `Покажи ${subject.toLowerCase()} ${phrase}.`,
     model,
     questionAudio: `audio/q-${subjectAudioId}.mp3`,
     modelAudio: `audio/m-${constructionAudioId}.mp3`,
