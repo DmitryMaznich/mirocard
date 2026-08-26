@@ -119,9 +119,19 @@ describe("spatial prepositions tasks", () => {
     const onCorrect = vi.fn();
     mount({ type: "spatial_respond", card: CARD }, { onAdvance, onCorrect });
 
+    let replayButton = container.querySelector(".sp-actions--question .sp-audio-button--icon");
+    expect(replayButton.getAttribute("aria-label")).toBe("Повторить вопрос");
+    expect(replayButton.textContent).toBe("🔊");
+    expect(container.querySelector(".sp-actions--question .sp-primary-button").textContent).toBe("Показать ответ");
+
     act(() => { container.querySelector(".sp-primary-button").click(); });
     expect(container.textContent).toContain("Мяч под столом.");
     expect(onCorrect).not.toHaveBeenCalled();
+
+    replayButton = container.querySelector(".sp-actions--question .sp-audio-button--icon");
+    expect(replayButton.getAttribute("aria-label")).toBe("Слушать ещё раз");
+    expect(replayButton.textContent).toBe("🔊");
+    expect(container.querySelector(".sp-actions--question .sp-primary-button").textContent).toBe("Дальше");
 
     act(() => { container.querySelector(".sp-primary-button").click(); });
     expect(onAdvance).toHaveBeenCalledOnce();

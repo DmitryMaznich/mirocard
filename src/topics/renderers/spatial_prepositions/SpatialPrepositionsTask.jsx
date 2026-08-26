@@ -144,16 +144,16 @@ function RespondTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, on
       <Photo topicId={topicId} path={card.image} />
       <h1 className="sp-question">{card.question}</h1>
       {!revealed ? (
-        <div className="sp-actions">
-          <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" />
+        <div className="sp-actions sp-actions--question">
+          <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" iconOnly />
           <button className="sp-primary-button" type="button" onClick={reveal}>Показать ответ</button>
         </div>
       ) : (
         <>
           <div className="sp-answer" aria-live="polite">{card.phrase}</div>
           <div className="sp-model-line">{card.model}</div>
-          <div className="sp-actions">
-            <RepeatButton onClick={() => voice(card.model, card.modelAudio)} label="Слушать ещё раз" />
+          <div className="sp-actions sp-actions--question">
+            <RepeatButton onClick={() => voice(card.model, card.modelAudio)} label="Слушать ещё раз" iconOnly />
             <button className="sp-primary-button" type="button" onClick={onAdvance}>Дальше</button>
           </div>
         </>

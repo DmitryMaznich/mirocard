@@ -1,5 +1,5 @@
 const CACHE = "mirocard2-v22";
-// Build 1.0.1995. Keep the runtime cache stable between releases: changing
+// Build 1.0.1996. Keep the runtime cache stable between releases: changing
 // this worker makes the browser check for an update without repeatedly
 // throwing away the cache an installed PWA is currently using.
 
