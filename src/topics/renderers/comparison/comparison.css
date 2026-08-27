@@ -283,10 +283,50 @@
   background: #fef2f2; color: #991b1b;
   box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
 }
-.apply-order-badge {
-  position: absolute; top: -10px; right: -10px; width: 24px; height: 24px;
-  border-radius: 50%; background: #22c55e; color: #fff;
-  font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+/* Order task ("Расставь по порядку"): drag a tile from the tray below into
+   one of the labeled slots above — a physical sort, not a tap sequence. */
+.apply-order-slots {
+  position: relative; z-index: 1;
+  display: flex; gap: 14px; justify-content: center;
+  width: 100%; max-width: 420px; box-sizing: border-box;
+}
+.apply-order-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.apply-order-slot-label {
+  font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #93a5c4;
+}
+.apply-order-slot-drop {
+  width: 100%; aspect-ratio: 1; max-width: 96px;
+  border: 2.5px dashed #c7d4ea; border-radius: 20px; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(24px, 5vw, 34px); font-weight: 900; color: #c2cee2;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.apply-order-slot-drop--over {
+  border-style: solid; border-color: #3b82f6; background: #eff6ff;
+  box-shadow: 0 0 0 6px rgba(59,130,246,0.14);
+}
+.apply-order-slot-drop--correct { border-style: solid; border-color: #16a34a; background: #f0fdf4; color: #166534; }
+.apply-order-slot-drop--wrong { animation: shake 0.35s; border-style: solid; border-color: #ef4444; }
+
+.apply-order-tray {
+  position: relative; z-index: 1;
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  width: 100%; max-width: 420px; box-sizing: border-box; padding-top: 6px; min-height: 76px;
+}
+.apply-order-tile {
+  min-width: 72px; min-height: 76px; padding: 0 10px;
+  border: none; border-radius: 22px; background: #fff;
+  font-size: clamp(24px, 5vw, 34px); font-weight: 900; color: #1e293b;
+  box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
+  display: flex; align-items: center; justify-content: center;
+  touch-action: none; cursor: grab;
+}
+.apply-order-tile--overlay { cursor: grabbing; transform: scale(1.08); }
+.apply-order-tray-caption {
+  position: relative; z-index: 1;
+  width: 100%; text-align: center;
+  font-size: 0.78rem; font-weight: 600; color: #93a5c4;
 }
 
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
