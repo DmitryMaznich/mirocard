@@ -180,12 +180,20 @@ function generateApplyOrderTask(min, max, count, direction) {
 
 // Names given in genitive case (as "у ..." always requires in Russian) so
 // the same forms work for the setup question and the spoken verdict alike.
+// `item` must be one of the 5 keys realLifeItems.js has an icon for
+// (scripts/generate-reallife-items.mjs) — more name pairs per item are
+// free to add, a new item type isn't without generating its icon too.
 const REAL_LIFE_SCENARIOS = [
-  { a: "Пети",  b: "Маши", item: "яблок" },
-  { a: "Кости", b: "Ани",  item: "конфет" },
-  { a: "Вани",  b: "Сони", item: "машинок" },
-  { a: "Димы",  b: "Киры", item: "шариков" },
-  { a: "Егора", b: "Иры",  item: "карандашей" },
+  { a: "Пети",  aGender: "boy",  b: "Маши",   bGender: "girl", item: "яблок" },
+  { a: "Лёши",  aGender: "boy",  b: "Ксюши",  bGender: "girl", item: "яблок" },
+  { a: "Кости", aGender: "boy",  b: "Ани",    bGender: "girl", item: "конфет" },
+  { a: "Ромы",  aGender: "boy",  b: "Насти",  bGender: "girl", item: "конфет" },
+  { a: "Вани",  aGender: "boy",  b: "Сони",   bGender: "girl", item: "машинок" },
+  { a: "Тимы",  aGender: "boy",  b: "Вики",   bGender: "girl", item: "машинок" },
+  { a: "Димы",  aGender: "boy",  b: "Киры",   bGender: "girl", item: "шариков" },
+  { a: "Севы",  aGender: "boy",  b: "Полины", bGender: "girl", item: "шариков" },
+  { a: "Егора", aGender: "boy",  b: "Иры",    bGender: "girl", item: "карандашей" },
+  { a: "Максима", aGender: "boy", b: "Лизы",  bGender: "girl", item: "карандашей" },
 ];
 
 function generateRealLifeTask(baseParams, usedPairs) {
@@ -197,7 +205,12 @@ function generateRealLifeTask(baseParams, usedPairs) {
     : question === "more"
       ? `У ${scenario.a} больше ${scenario.item}, чем у ${scenario.b}.`
       : `У ${scenario.b} больше ${scenario.item}, чем у ${scenario.a}.`;
-  return { left, right, nameA: scenario.a, nameB: scenario.b, item: scenario.item, question, verdictText };
+  return {
+    left, right,
+    nameA: scenario.a, nameB: scenario.b,
+    genderA: scenario.aGender, genderB: scenario.bGender,
+    item: scenario.item, question, verdictText,
+  };
 }
 
 // sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
@@ -213,7 +226,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const tasks = [];
     for (let i = 0; i < count; i++) {
       const t = generateRealLifeTask(baseParams, usedPairs);
-      tasks.push({ type: mode.type, conceptId: card.conceptId, instruction: `У кого больше ${t.item}?`, ...t });
+      tasks.push({ type: mode.type, conceptId: card.conceptId, instruction: `У кого больше ${t.item}?`, allowEqual: baseParams.allowEqual, ...t });
     }
     return tasks;
   }

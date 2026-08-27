@@ -419,6 +419,21 @@ describe("generateTasks", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40, { level: 2 });
       tasks.forEach((t) => expect(t.left).not.toBe(t.right));
     });
+
+    it("carries allowEqual on each task so the UI can hide 'Поровну' when it's off", () => {
+      const off = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 10, { level: 2 });
+      const on  = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 10, { level: 2, showEqual: true });
+      off.forEach((t) => expect(t.allowEqual).toBe(false));
+      on.forEach((t) => expect(t.allowEqual).toBe(true));
+    });
+
+    it("carries a gender per name so the UI can illustrate the character, not just print the name", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40, { level: 2 });
+      tasks.forEach((t) => {
+        expect(["boy", "girl"]).toContain(t.genderA);
+        expect(["boy", "girl"]).toContain(t.genderB);
+      });
+    });
   });
 });
 

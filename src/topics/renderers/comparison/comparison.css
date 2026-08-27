@@ -360,19 +360,73 @@
 }
 
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
-.reallife-cards { display: flex; gap: 20px; justify-content: center; }
-.reallife-card {
-  width: clamp(100px, 28vw, 160px); min-height: clamp(100px, 28vw, 160px);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  background: #fff; border: 3px solid #e0e0e0; border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.10); cursor: pointer; padding: 12px;
-  transition: transform 0.15s, border-color 0.25s;
+/* One shared "table" scene instead of two disconnected cards — items are
+   scattered inside each half (CompareRealLife.jsx's scatterItems, the same
+   randomized-but-fixed-seed pile idea column_addition's PILE_LAYOUT uses
+   for coins), not gridded, so it reads as a small real pile rather than a
+   UI list. */
+.reallife-scene {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 380px; height: clamp(250px, 64vw, 310px);
+  border-radius: 28px;
+  background: linear-gradient(180deg, #fef6e7 0%, #f8e6c4 100%);
+  box-shadow: inset 0 2px 10px rgba(120,90,30,0.12), 0 6px 18px rgba(0,0,0,0.08);
+  display: flex;
+  overflow: hidden;
 }
-.reallife-card:hover:not(:disabled) { transform: scale(1.03); }
-.reallife-card--wrong { animation: shake 0.35s; border-color: #ef4444; }
-.reallife-name  { font-size: clamp(16px, 3.4vw, 22px); font-weight: 800; color: #475569; }
-.reallife-count { font-size: clamp(40px, 10vw, 68px); font-weight: 900; color: #1e293b; line-height: 1; }
+.reallife-scene::before {
+  /* faint center seam — the table is shared, not two separate boxes */
+  content: ""; position: absolute; left: 50%; top: 14px; bottom: 14px; width: 2px;
+  background: repeating-linear-gradient(to bottom, #d9bd85 0 8px, transparent 8px 16px);
+  transform: translateX(-50%);
+}
+.reallife-side {
+  position: relative; flex: 1; min-width: 0;
+  border: none; background: none; padding: 0; margin: 0; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.reallife-side:disabled { cursor: default; }
+.reallife-side--wrong { animation: shake 0.35s; }
+.reallife-side--correct::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: rgba(34,197,94,0.10);
+}
+.reallife-side:first-child.reallife-side--correct::after { border-radius: 26px 0 0 26px; }
+.reallife-side:last-child.reallife-side--correct::after  { border-radius: 0 26px 26px 0; }
+
+.reallife-who {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.reallife-avatar {
+  width: clamp(48px, 16vw, 72px); height: auto;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,0.15));
+}
+.reallife-tag {
+  background: #fff; border-radius: 999px; padding: 3px 14px; white-space: nowrap;
+  font-size: clamp(14px, 3vw, 18px); font-weight: 800; color: #475569;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+  transition: background 0.15s, color 0.15s;
+}
+.reallife-side--correct .reallife-tag { background: #22c55e; color: #fff; }
+
+.reallife-item {
+  position: absolute; width: clamp(22px, 8vw, 34px); height: clamp(22px, 8vw, 34px);
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+}
+
+/* Above SCATTER_LIMIT items, one icon + "× N" replaces the scatter —
+   scattering 40+ icons stops being legible (compare_visual falls back
+   from dots to a plain number the same way at its higher levels). */
+.reallife-badge {
+  position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%);
+  display: flex; align-items: center; gap: 8px;
+}
+.reallife-badge-icon  { width: clamp(40px, 12vw, 56px); height: clamp(40px, 12vw, 56px); filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15)); }
+.reallife-badge-times { font-size: clamp(22px, 5.5vw, 32px); font-weight: 900; color: #1e293b; }
+
 .reallife-equal-btn {
+  position: relative; z-index: 1;
   margin-top: 4px; min-width: 96px; min-height: 44px; padding: 0 20px;
   border: 3px solid #cbd5e1; border-radius: 14px; background: #fff;
   font-size: 16px; font-weight: 800; color: #475569; cursor: pointer;
