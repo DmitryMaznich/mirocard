@@ -1102,11 +1102,16 @@ function serveStaticFile(res, absPath) {
   // shell means an Android PWA can resume an older JavaScript build after a
   // deployment, even though the server already has the current version.
   // The service worker and manifest must be checked fresh for the same reason.
-  const isAppShell = ["index.html", "sw.js", "manifest.json"].includes(path.basename(absPath));
+  const fileName = path.basename(absPath);
+  const isAppShell = ["index.html", "sw.js", "manifest.json"].includes(fileName);
+  // The catalog stays at one fixed URL while each deck ZIP has a versioned
+  // filename. Cache the ZIPs, but always revalidate the catalog so a newly
+  // published topic is visible as soon as the deployment switches over.
+  const isDeckCatalog = fileName === "catalog.json" && path.dirname(absPath).endsWith(`${path.sep}decks`);
   res.writeHead(200, {
     "Content-Type": contentType,
     "Content-Length": stat.size,
-    "Cache-Control": isAppShell ? "no-store, no-cache, must-revalidate" : "public, max-age=86400",
+    "Cache-Control": isAppShell || isDeckCatalog ? "no-store, no-cache, must-revalidate" : "public, max-age=86400",
   });
   createReadStream(absPath).pipe(res);
 }
