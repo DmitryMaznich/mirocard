@@ -1193,6 +1193,16 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
+      {isApplyMode && params.taskType === "order" && (
+        <NumberStepper
+          label="Чисел в задании"
+          value={params.numbersCount ?? 3}
+          min={3}
+          max={5}
+          onChange={(v) => onChange({ ...params, numbersCount: v })}
+        />
+      )}
+
       {isVisualMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Вид</div>
@@ -1363,6 +1373,9 @@ export default function ParamsScreen() {
       // taskType only means anything in compare_apply.
       const isApplyMode = activeModeId === "compare_apply";
       const taskType = isApplyMode ? (saved.taskType ?? "generate") : "generate";
+      const numbersCount = isApplyMode && taskType === "order"
+        ? Math.max(3, Math.min(5, saved.numbersCount ?? 3))
+        : 3;
       return {
         level:         saved.level         ?? defaultLevel,
         question:      saved.question      ?? "more",
@@ -1373,6 +1386,7 @@ export default function ParamsScreen() {
         showLabels:    saved.showLabels    ?? true,
         style:         saved.style         ?? "sign",
         taskType,
+        numbersCount,
       };
     }
     const modeParams = mode?.params ?? {};

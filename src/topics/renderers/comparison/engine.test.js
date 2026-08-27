@@ -345,7 +345,7 @@ describe("generateTasks", () => {
       });
     });
 
-    it("'order' tasks give 3 distinct numbers whose sorted order matches ascending value", () => {
+    it("'order' tasks give 3 distinct numbers by default whose sorted order matches ascending value", () => {
       const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 30, { level: 3, taskType: "order" });
       expect(tasks).toHaveLength(30);
       tasks.forEach((t) => {
@@ -354,6 +354,24 @@ describe("generateTasks", () => {
         expect(new Set(t.numbers).size).toBe(3);
         expect(t.sorted).toEqual([...t.numbers].sort((a, b) => a - b));
       });
+    });
+
+    it("'order' tasks honor a requested numbersCount between 3 and 5", () => {
+      for (const numbersCount of [3, 4, 5]) {
+        const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 20, { level: 4, taskType: "order", numbersCount });
+        tasks.forEach((t) => {
+          expect(t.numbers).toHaveLength(numbersCount);
+          expect(new Set(t.numbers).size).toBe(numbersCount);
+          expect(t.sorted).toEqual([...t.numbers].sort((a, b) => a - b));
+        });
+      }
+    });
+
+    it("clamps an out-of-range numbersCount to [3, 5]", () => {
+      const tooFew  = generateTasks(MODE_APPLY, ALL_CARDS, 5, { level: 4, taskType: "order", numbersCount: 1 });
+      const tooMany = generateTasks(MODE_APPLY, ALL_CARDS, 5, { level: 4, taskType: "order", numbersCount: 9 });
+      tooFew.forEach((t) => expect(t.numbers).toHaveLength(3));
+      tooMany.forEach((t) => expect(t.numbers).toHaveLength(5));
     });
 
     it("defaults to 'generate' when taskType is not specified", () => {

@@ -216,7 +216,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
 
   if (mode.type === "compare_apply") {
     const applyTaskType = sessionParams.taskType ?? "generate";
-    const numbersCount  = 3;
+    const numbersCount  = applyTaskType === "order"
+      ? Math.max(3, Math.min(5, sessionParams.numbersCount ?? 3))
+      : 3;
     const levelDef      = COMPARISON_LEVELS.find((l) => l.id === (sessionParams.level ?? 2)) ?? COMPARISON_LEVELS[1];
     const { min, max }  = levelDef.params;
     const card          = resolveComparisonCard(mode, cards, sessionParams);

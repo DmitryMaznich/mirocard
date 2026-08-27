@@ -47,13 +47,33 @@ function GenerateStage({ task, answered, onAnswer }) {
   );
 }
 
-const SLOT_SIZES = ["sm", "md", "lg"];
+// Box/font size as a percentage of the slot's OWN column width (via `cqi` —
+// each .apply-order-slot is its own size-container, one equal-width grid
+// column of N; see .apply-order-slots in comparison.css) at the smallest
+// and largest slot in the staircase. Every slot in between is a linear
+// interpolation of these two. Sizing against the column's own width rather
+// than the viewport means this needs no separate math per count (3–5,
+// picked in ParamsScreen) — N columns already divide the available row
+// width evenly, so a bigger N shrinks every slot automatically.
+const SLOT_BOX_PCT  = [58, 100]; // cqi
+const SLOT_FONT_PCT = [26, 42];  // cqi
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+// `t` is this slot's position from 0 (smallest, leftmost) to 1 (largest,
+// rightmost) — see the comment on .apply-order-slots in comparison.css.
+function slotSizeStyle(t) {
+  return {
+    width: `clamp(52px, ${lerp(...SLOT_BOX_PCT, t)}cqi, 220px)`,
+    fontSize: `clamp(18px, ${lerp(...SLOT_FONT_PCT, t)}cqi, 84px)`,
+  };
+}
 
 // One slot the child can drop a tile into. `value` is the number already
-// placed here (from `placement`), or null while empty. `size` grows the box
-// itself (small/medium/large) instead of an ordinal "1st/2nd/3rd" label —
+// placed here (from `placement`), or null while empty. `t` grows the box
+// itself (see slotSizeStyle) instead of an ordinal "1st/2nd/3rd" label —
 // see the comment on .apply-order-slots in comparison.css.
-function OrderSlot({ slotIdx, size, value, wrong }) {
+function OrderSlot({ slotIdx, t, value, wrong }) {
   const { isOver, setNodeRef } = useDroppable({ id: `apply-slot-${slotIdx}`, data: { slotIdx } });
   const cls = [
     "apply-order-slot-drop",
@@ -62,8 +82,8 @@ function OrderSlot({ slotIdx, size, value, wrong }) {
     wrong && "apply-order-slot-drop--wrong",
   ].filter(Boolean).join(" ");
   return (
-    <div className={`apply-order-slot apply-order-slot--${size}`}>
-      <div ref={setNodeRef} className={cls}>{value ?? "?"}</div>
+    <div className="apply-order-slot">
+      <div ref={setNodeRef} className={cls} style={slotSizeStyle(t)}>{value ?? "?"}</div>
     </div>
   );
 }
@@ -134,14 +154,14 @@ function OrderStage({ task, answered, onAnswer }) {
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveIdx(-1)}>
-      <div className="apply-order-slots">
+      <div className="apply-order-slots" style={{ gridTemplateColumns: `repeat(${task.sorted.length}, 1fr)` }}>
         {task.sorted.map((_, slotIdx) => {
           const tileIdx = placement.indexOf(slotIdx);
           return (
             <OrderSlot
               key={slotIdx}
               slotIdx={slotIdx}
-              size={SLOT_SIZES[slotIdx]}
+              t={task.sorted.length > 1 ? slotIdx / (task.sorted.length - 1) : 0}
               value={tileIdx >= 0 ? task.numbers[tileIdx] : null}
               wrong={wrongSlotIdx === slotIdx}
             />
