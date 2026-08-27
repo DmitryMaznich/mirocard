@@ -26,21 +26,22 @@ function GenerateStage({ task, answered, onAnswer }) {
         <div className="apply-prompt-icon" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
         <div className="apply-prompt-value" aria-hidden="true">{task.value}</div>
       </div>
-      <div className="apply-order-row">
+      <div className="apply-order-row" style={{ gridTemplateColumns: `repeat(${task.options.length}, 1fr)` }}>
         {task.options.map((n, i) => (
-          <button
-            key={i}
-            type="button"
-            className={[
-              "apply-order-btn",
-              pickedIdx === i && wrongIdx !== i && "apply-order-btn--placed",
-              wrongIdx === i && "apply-order-btn--wrong",
-            ].filter(Boolean).join(" ")}
-            disabled={answered}
-            onClick={() => tapOption(n, i)}
-          >
-            {n}
-          </button>
+          <div key={i} className="apply-order-cell">
+            <button
+              type="button"
+              className={[
+                "apply-order-btn",
+                pickedIdx === i && wrongIdx !== i && "apply-order-btn--placed",
+                wrongIdx === i && "apply-order-btn--wrong",
+              ].filter(Boolean).join(" ")}
+              disabled={answered}
+              onClick={() => tapOption(n, i)}
+            >
+              {n}
+            </button>
+          </div>
         ))}
       </div>
     </>
@@ -96,19 +97,21 @@ function OrderTile({ idx, value, disabled }) {
     disabled,
   });
   return (
-    <div
-      ref={setNodeRef}
-      className="apply-order-tile"
-      style={{
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.35 : 1,
-        transition: isDragging ? "none" : "transform 0.15s ease",
-        cursor: disabled ? "default" : "grab",
-      }}
-      {...listeners}
-      {...attributes}
-    >
-      {value}
+    <div className="apply-order-cell">
+      <div
+        ref={setNodeRef}
+        className="apply-order-tile"
+        style={{
+          transform: CSS.Translate.toString(transform),
+          opacity: isDragging ? 0.35 : 1,
+          transition: isDragging ? "none" : "transform 0.15s ease",
+          cursor: disabled ? "default" : "grab",
+        }}
+        {...listeners}
+        {...attributes}
+      >
+        {value}
+      </div>
     </div>
   );
 }
@@ -168,7 +171,10 @@ function OrderStage({ task, answered, onAnswer }) {
           );
         })}
       </div>
-      <div className="apply-order-tray">
+      <div
+        className="apply-order-tray"
+        style={{ gridTemplateColumns: `repeat(${Math.max(1, placement.filter((v) => v === null).length)}, 1fr)` }}
+      >
         {task.numbers.map((n, idx) => placement[idx] === null && (
           <OrderTile key={idx} idx={idx} value={n} disabled={answered} />
         ))}

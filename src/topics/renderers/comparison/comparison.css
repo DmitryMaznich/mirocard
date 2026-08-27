@@ -259,15 +259,27 @@
 }
 .apply-prompt-value { font-size: clamp(32px, 7vw, 46px); font-weight: 900; color: #1e293b; line-height: 1; }
 
+/* Number-tile rows (this one and .apply-order-tray below) always render as
+   one row, however many tiles there are (2–5 across this file's task
+   types) — CSS Grid with N equal `1fr` columns (N set inline by
+   CompareApply.jsx) divides the row's actual width by exactly that many,
+   so it can never overflow or need to wrap. Each tile sits in its own
+   .apply-order-cell size container (`container-type: inline-size`); the
+   tile itself sizes its font off that container via `cqi` — it can't be
+   the container AND query itself, that's circular — so it shrinks
+   automatically as N grows, with no per-count math here. */
 .apply-order-row {
   position: relative; z-index: 1;
-  display: flex; gap: clamp(12px, 2.5vw, 22px); justify-content: center; flex-wrap: wrap;
+  display: grid; align-items: center; justify-items: center;
+  gap: clamp(10px, 2.5vw, 22px);
   width: 100%; max-width: min(94vw, 720px); box-sizing: border-box;
 }
+.apply-order-cell { container-type: inline-size; width: 100%; display: flex; justify-content: center; }
 .apply-order-btn {
-  position: relative; min-width: clamp(76px, 19vw, 160px); min-height: clamp(80px, 20vw, 164px); padding: 0 10px;
+  position: relative; width: 100%; aspect-ratio: 1; padding: 0 10px;
+  display: flex; align-items: center; justify-content: center;
   border: none; border-radius: 22px; background: #fff;
-  font-size: clamp(30px, 7.5vw, 58px); font-weight: 900; color: #1e293b; cursor: pointer;
+  font-size: clamp(18px, 34cqi, 84px); font-weight: 900; color: #1e293b; cursor: pointer;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
   transition: transform 0.12s, box-shadow 0.12s;
 }
@@ -320,18 +332,27 @@
 
 .apply-order-tray {
   position: relative; z-index: 1;
-  display: flex; gap: clamp(12px, 2.5vw, 22px); justify-content: center; flex-wrap: wrap;
+  display: grid; align-items: center; justify-items: center;
+  gap: clamp(10px, 2.5vw, 22px);
   width: 100%; max-width: min(94vw, 720px); box-sizing: border-box; padding-top: 6px; min-height: 76px;
 }
 .apply-order-tile {
-  min-width: clamp(76px, 19vw, 160px); min-height: clamp(80px, 20vw, 164px); padding: 0 10px;
+  width: 100%; aspect-ratio: 1; padding: 0 10px;
   border: none; border-radius: 22px; background: #fff;
-  font-size: clamp(30px, 7.5vw, 58px); font-weight: 900; color: #1e293b;
+  font-size: clamp(18px, 34cqi, 84px); font-weight: 900; color: #1e293b;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
   display: flex; align-items: center; justify-content: center;
   touch-action: none; cursor: grab;
 }
-.apply-order-tile--overlay { cursor: grabbing; transform: scale(1.08); }
+/* Rendered inside DragOverlay's portal, outside the grid above, so it can't
+   size itself off a grid column — give it an explicit vw-based fallback
+   close to a typical tile instead. Exact size match isn't the point here;
+   it's already visually distinguished by the 1.08x "picked up" scale. */
+.apply-order-tile--overlay {
+  width: clamp(60px, 16vw, 140px); aspect-ratio: 1;
+  font-size: clamp(22px, 6.5vw, 52px);
+  cursor: grabbing; transform: scale(1.08);
+}
 .apply-order-tray-caption {
   position: relative; z-index: 1;
   width: 100%; text-align: center;
