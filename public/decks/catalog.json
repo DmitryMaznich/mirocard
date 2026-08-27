@@ -47,16 +47,16 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.7.3",
+      "version": "1.8.0",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
       },
       "description": {
-        "ru": "Три портрета и три сюжетные ситуации для каждого из 10 понятий: ребёнок, причина и читаемая эмоция в одной фотографии.",
-        "en": "Three portraits and three situation scenes for each of 10 concepts: a child, the cause, and a readable emotion in one photograph."
+        "ru": "Три сюжетные ситуации для каждого из 10 понятий: после сюжета — крупный портрет того же ребёнка с читаемой эмоцией.",
+        "en": "Three situation scenes for each of 10 concepts: each scene is followed by a close-up of the same child with a readable emotion."
       },
-      "url": "./decks/emotions_v2_v1.7.3.zip",
+      "url": "./decks/emotions_v2_v1.8.0.zip",
       "status": "release",
       "access": "free"
     },

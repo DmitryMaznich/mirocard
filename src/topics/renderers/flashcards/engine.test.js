@@ -201,6 +201,18 @@ describe("situation use levels", () => {
     expect(tasks.find((task) => task.situationText === "Мальчик получил игрушку.")?.card.id).toBe("joy_2");
   });
 
+  it("uses a dedicated same-child portrait when the situation provides one", () => {
+    const cards = CARDS.map((card) => card.id === "joy_auto"
+      ? { ...card, revealImage: "media/portrait_situation_joy_1_v2.webp" }
+      : card);
+    const tasks = generateTasks("situation_intro", deriveConcepts(cards), cards, {});
+    expect(tasks.find((task) => task.situationText === "Мальчик получил игрушку.")?.card).toMatchObject({
+      id: "joy_auto_reveal",
+      image: "media/portrait_situation_joy_1_v2.webp",
+      conceptId: "joy",
+    });
+  });
+
   it("honours an explicit per-session situation limit", () => {
     expect(generateTasks("situation_intro", CONCEPTS, CARDS, { taskCount: 2 })).toHaveLength(2);
     expect(generateTasks("situation_emotion", CONCEPTS, CARDS, { taskCount: 1 })).toHaveLength(1);

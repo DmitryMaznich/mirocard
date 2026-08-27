@@ -133,9 +133,18 @@ function generateSituationIntroTasks(displayConcepts, allCards, params) {
   for (const situationCard of situationCards) {
     const targetConcept = displayConcepts.find((c) => c.conceptId === situationCard.conceptId);
     if (!targetConcept) continue;
-    const revealCard = situationCard.revealCardId
-      ? allCards.find((card) => card.id === situationCard.revealCardId && card.conceptId === situationCard.conceptId)
-      : null;
+    // A situation can supply a dedicated portrait of the same child. Keep it
+    // local to this two-step flow so the general face-card modes retain their
+    // existing variation set.
+    const revealCard = situationCard.revealImage
+      ? {
+        ...targetConcept.primary,
+        id: `${situationCard.id}_reveal`,
+        image: situationCard.revealImage,
+      }
+      : situationCard.revealCardId
+        ? allCards.find((card) => card.id === situationCard.revealCardId && card.conceptId === situationCard.conceptId)
+        : null;
     tasks.push({
       type: "situation_intro",
       conceptId: situationCard.conceptId,
