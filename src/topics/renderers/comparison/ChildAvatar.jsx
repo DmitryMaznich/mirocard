@@ -1,40 +1,45 @@
-// Simple flat, bold-shape child illustrations — same visual language as the
-// generated item icons (realLifeItems.js): thick soft outlines, bright flat
-// colors, no gradients/shadows. Drawn inline (not generated) so the "who" in
-// a real-life comparison is an actual illustrated character, not just a
-// text name — a child with autism spectrum needs everything the question
-// mentions shown, not just some of it.
+// Simple flat child illustrations pairing with each real-life scenario's
+// character — same visual role as the generated item icons (realLifeItems.js):
+// everything the question mentions gets shown, not just the countable
+// objects. Kept as inline SVG (not generated) so it renders crisp at any
+// size; drawn with the app's own accent blue + a warm secondary, not an
+// arbitrary palette, to match the rest of the topic's visual language.
 export default function ChildAvatar({ gender, className }) {
-  const skin = "#FFD9AE";
-  const outline = "#3A2E28";
+  const skin = "#FBD3A6";
+  const skinShade = "#F0B87E";
+  const outline = "#2d3748";
   const isGirl = gender === "girl";
-  const hair = isGirl ? "#7A4A2A" : "#4A3222";
-  const shirt = isGirl ? "#F0709B" : "#4FA3E3";
+  const hair = isGirl ? "#5C3A21" : "#3D2A18";
+  const shirt = isGirl ? "#EC4899" : "#3b82f6";
+  const shirtShade = isGirl ? "#DB2777" : "#2563eb";
 
   return (
     <svg
       className={className}
-      viewBox="0 0 120 130"
+      viewBox="0 0 120 132"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {/* shirt / shoulders */}
+      {/* shoulders / shirt */}
       <path
-        d="M20 128c0-22 13-34 40-34s40 12 40 34"
+        d="M16 130c1.5-24 14.5-36 44-36s42.5 12 44 36"
         fill={shirt}
         stroke={outline}
-        strokeWidth="4"
+        strokeWidth="4.5"
         strokeLinejoin="round"
       />
+      {/* collar accent */}
+      <path d="M46 96c4 6 10 9 14 9s10-3 14-9" fill="none" stroke={shirtShade} strokeWidth="4" strokeLinecap="round" />
+
       {isGirl ? (
         <>
-          {/* long hair behind head */}
+          {/* long hair mass behind head */}
           <path
-            d="M22 62c0-24 16-40 38-40s38 16 38 40l-6 30c-2-8-6-12-6-12l-4 20-6-16-6 18-6-18-6 16-4-20s-4 4-6 12z"
+            d="M20 64c-1-26 16-42 40-42s41 16 40 42c0 8-2 15-5 21l-6-4c1-6 2-13 0-19-4 6-10 9-16 10 3-6 3-12 1-17-5 7-13 11-21 12 2-5 2-11 0-15-6 7-16 11-25 10-2 6-1 13 1 19l-6 4c-3-6-4-13-3-21z"
             fill={hair}
             stroke={outline}
-            strokeWidth="4"
+            strokeWidth="4.5"
             strokeLinejoin="round"
           />
         </>
@@ -42,40 +47,37 @@ export default function ChildAvatar({ gender, className }) {
         <>
           {/* short hair cap */}
           <path
-            d="M24 56c-2-26 15-42 36-42s38 16 36 42c-8-10-20-14-36-14s-28 4-36 14z"
+            d="M22 58c-4-27 14-44 38-44s42 17 38 44c-3-9-9-16-17-19 2 4 2 8 1 12-7-8-17-13-27-13-3 0-7 3-9 8-6-1-11-4-14-9-2 6-4 13-10 21z"
             fill={hair}
             stroke={outline}
-            strokeWidth="4"
+            strokeWidth="4.5"
             strokeLinejoin="round"
           />
         </>
       )}
+
       {/* face */}
-      <circle cx="60" cy="60" r="34" fill={skin} stroke={outline} strokeWidth="4" />
+      <circle cx="60" cy="62" r="33" fill={skin} stroke={outline} strokeWidth="4.5" />
+      <path d="M30 66a30 30 0 0 0 4 15" fill="none" stroke={skinShade} strokeWidth="3" strokeLinecap="round" opacity="0.5" />
+
       {isGirl && (
         <>
-          {/* two side buns */}
-          <circle cx="24" cy="50" r="11" fill={hair} stroke={outline} strokeWidth="4" />
-          <circle cx="96" cy="50" r="11" fill={hair} stroke={outline} strokeWidth="4" />
+          <circle cx="23" cy="58" r="10" fill={hair} stroke={outline} strokeWidth="4" />
+          <circle cx="97" cy="58" r="10" fill={hair} stroke={outline} strokeWidth="4" />
         </>
       )}
+
       {/* eyes */}
-      <circle cx="47" cy="62" r="4.5" fill={outline} />
-      <circle cx="73" cy="62" r="4.5" fill={outline} />
+      <circle cx="48" cy="63" r="4.2" fill={outline} />
+      <circle cx="72" cy="63" r="4.2" fill={outline} />
+      {/* eyebrows */}
+      <path d="M42 53c3-2 8-2 11 0" stroke={outline} strokeWidth="3" strokeLinecap="round" fill="none" />
+      <path d="M67 53c3-2 8-2 11 0" stroke={outline} strokeWidth="3" strokeLinecap="round" fill="none" />
       {/* smile */}
-      <path d="M46 76c5 7 23 7 28 0" stroke={outline} strokeWidth="4" strokeLinecap="round" fill="none" />
+      <path d="M46 76c5 6 23 6 28 0" stroke={outline} strokeWidth="4" strokeLinecap="round" fill="none" />
       {/* cheeks */}
-      <circle cx="38" cy="72" r="5" fill="#FF9E8A" opacity="0.6" />
-      <circle cx="82" cy="72" r="5" fill="#FF9E8A" opacity="0.6" />
-      {isGirl && (
-        <path
-          d="M96 34l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z"
-          fill="#FF6F91"
-          stroke={outline}
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-      )}
+      <circle cx="37" cy="73" r="5.5" fill="#FF9B85" opacity="0.55" />
+      <circle cx="83" cy="73" r="5.5" fill="#FF9B85" opacity="0.55" />
     </svg>
   );
 }

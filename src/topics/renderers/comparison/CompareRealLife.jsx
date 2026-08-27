@@ -29,7 +29,7 @@ function scatterItems(count, seed) {
     let x, y, ok, tries = 0;
     do {
       x = 12 + rand() * 76;
-      y = 40 + rand() * 54;
+      y = 48 + rand() * 46;
       ok = placed.every((p) => Math.hypot(p.x - x, p.y - y) > 17);
       tries++;
     } while (!ok && tries < 40);
