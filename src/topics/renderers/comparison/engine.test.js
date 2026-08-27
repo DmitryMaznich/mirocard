@@ -374,6 +374,27 @@ describe("generateTasks", () => {
       tooMany.forEach((t) => expect(t.numbers).toHaveLength(5));
     });
 
+    it("'order' tasks default to ascending direction", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 20, { level: 4, taskType: "order", numbersCount: 4 });
+      tasks.forEach((t) => {
+        expect(t.direction).toBe("asc");
+        expect(t.sorted).toEqual([...t.numbers].sort((a, b) => a - b));
+      });
+    });
+
+    it("'order' tasks reverse the slot order for orderDirection: 'desc'", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 20, { level: 4, taskType: "order", numbersCount: 4, orderDirection: "desc" });
+      tasks.forEach((t) => {
+        expect(t.direction).toBe("desc");
+        expect(t.sorted).toEqual([...t.numbers].sort((a, b) => b - a));
+      });
+    });
+
+    it("'order' instruction no longer names a direction in words (the staircase shape shows it)", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 3, { level: 3, taskType: "order" });
+      tasks.forEach((t) => expect(t.instruction).toBe("Расставь числа по порядку"));
+    });
+
     it("defaults to 'generate' when taskType is not specified", () => {
       const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 5, {});
       tasks.forEach((t) => expect(t.taskType).toBe("generate"));

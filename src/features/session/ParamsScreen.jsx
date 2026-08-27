@@ -1203,6 +1203,16 @@ function ComparisonParams({ params, onChange }) {
         />
       )}
 
+      {isApplyMode && params.taskType === "order" && (
+        <EnumParam
+          label="Направление"
+          options={["asc", "desc"]}
+          labels={{ asc: "Меньше → Больше", desc: "Больше → Меньше" }}
+          value={params.orderDirection ?? "asc"}
+          onChange={(v) => onChange({ ...params, orderDirection: v })}
+        />
+      )}
+
       {isVisualMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Вид</div>
@@ -1376,6 +1386,9 @@ export default function ParamsScreen() {
       const numbersCount = isApplyMode && taskType === "order"
         ? Math.max(3, Math.min(5, saved.numbersCount ?? 3))
         : 3;
+      const orderDirection = isApplyMode && taskType === "order"
+        ? (saved.orderDirection === "desc" ? "desc" : "asc")
+        : "asc";
       return {
         level:         saved.level         ?? defaultLevel,
         question:      saved.question      ?? "more",
@@ -1387,6 +1400,7 @@ export default function ParamsScreen() {
         style:         saved.style         ?? "sign",
         taskType,
         numbersCount,
+        orderDirection,
       };
     }
     const modeParams = mode?.params ?? {};
