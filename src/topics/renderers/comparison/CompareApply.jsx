@@ -90,6 +90,12 @@ function OrderSlot({ slotIdx, t, value, wrong }) {
 }
 
 // One draggable number tile sitting in the tray, before it's been placed.
+// Sized to match the SMALLEST staircase slot exactly (slotSizeStyle(0), the
+// same t=0 the leftmost slot uses) — a flat size for every tile, not one
+// that grows as its neighbors get dragged away. The tray's own column
+// count is fixed at the task's original tile count (see OrderStage), so
+// this cell is the same width as a slot's cell and the two end up pixel-
+// identical, not just proportionally similar.
 function OrderTile({ idx, value, disabled }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `apply-tile-${idx}`,
@@ -102,6 +108,7 @@ function OrderTile({ idx, value, disabled }) {
         ref={setNodeRef}
         className="apply-order-tile"
         style={{
+          ...slotSizeStyle(0),
           transform: CSS.Translate.toString(transform),
           opacity: isDragging ? 0.35 : 1,
           transition: isDragging ? "none" : "transform 0.15s ease",
@@ -171,13 +178,14 @@ function OrderStage({ task, answered, onAnswer }) {
           );
         })}
       </div>
-      <div
-        className="apply-order-tray"
-        style={{ gridTemplateColumns: `repeat(${Math.max(1, placement.filter((v) => v === null).length)}, 1fr)` }}
-      >
-        {task.numbers.map((n, idx) => placement[idx] === null && (
-          <OrderTile key={idx} idx={idx} value={n} disabled={answered} />
-        ))}
+      <div className="apply-order-tray" style={{ gridTemplateColumns: `repeat(${task.numbers.length}, 1fr)` }}>
+        {task.numbers.map((n, idx) => placement[idx] === null
+          ? <OrderTile key={idx} idx={idx} value={n} disabled={answered} />
+          // A placed tile leaves its own cell in place (not removed from the
+          // grid) so the tiles still in the tray keep their original spot
+          // and size instead of drifting/growing to fill the gap.
+          : <div key={idx} className="apply-order-cell" />
+        )}
       </div>
       <div className="apply-order-tray-caption">перетащи число в нужное место</div>
       <DragOverlay dropAnimation={null}>
