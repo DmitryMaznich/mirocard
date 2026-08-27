@@ -148,10 +148,6 @@ function OrderStage({ task, answered, onAnswer }) {
           );
         })}
       </div>
-      <div className="apply-order-endcaps">
-        <div className="apply-order-endcap">меньше</div>
-        <div className="apply-order-endcap">больше</div>
-      </div>
       <div className="apply-order-tray">
         {task.numbers.map((n, idx) => placement[idx] === null && (
           <OrderTile key={idx} idx={idx} value={n} disabled={answered} />
