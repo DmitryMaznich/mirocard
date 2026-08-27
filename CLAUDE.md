@@ -70,6 +70,26 @@ After pushing, verify `https://app.mironium.com/api/version` returns the new ver
 
 Details: `DEPLOYMENT.md`.
 
+### Deck-zip topics load from their downloaded ZIP, not the app bundle
+
+Most topics under `src/topics/renderers/<id>/` that also have a `tools/<id>/build.mjs` are **not** served from the main app bundle in production — `SessionScreen` calls `loadRenderer(topicId)` first, which fetches/caches `public/decks/<id>_v<version>.zip` (built by that `build.mjs`) and only falls back to the bundled `RENDERER_REGISTRY` version if that fails. So editing `src/topics/renderers/<id>/*.jsx`/`.css`/`.js` and pushing to `main` ships the *source*, but the running app keeps rendering whatever's in the last-published ZIP until that ZIP is rebuilt too — the one hard-coded exception is `spatial_prepositions` (`shouldPreferBundledRenderer` in `SessionScreen.jsx` forces it to always use the bundled renderer, ignoring any downloaded ZIP).
+
+Learned the hard way twice on the `comparison` topic (2026-08-27): a source-only push left production showing the old UI even after `/api/version` had already bumped.
+
+**If your change touches a deck-zip topic's renderer, do this in the same push as the source change:**
+
+```bash
+# 1. bump that topic's own version (tools/<id>/topic.json → meta.version)
+# 2. rebuild:
+node tools/<id>/build.mjs
+# 3. publish under the new version and point the catalog at it:
+cp tools/<id>/comparison.zip public/decks/<id>_v<new-version>.zip   # filename per topic
+# then edit public/decks/catalog.json: bump that topic's "version" and "url"
+git add tools/<id>/topic.json tools/<id>/*.zip public/decks/catalog.json public/decks/<id>_v<new-version>.zip
+```
+
+Commit this alongside (or right before) the `package.json` version-bump commit above, then push. Sanity-check the rebuilt ZIP actually contains your change before pushing: `unzip -p public/decks/<id>_v<new-version>.zip mirocard2.css | grep <a class or string you just added>`.
+
 ## Backend (Node.js)
 
 The backend runs as part of the same Railway service as the frontend — no separate deploy step, no SFTP, no scheduled task to restart. A push to `main` redeploys both together.
