@@ -119,6 +119,43 @@
   gap: clamp(13px, 2vw, 24px);
 }
 
+.sp-answer-choice-grid {
+  display: grid;
+  width: min(100%, 780px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 20px);
+}
+
+.sp-answer-choice {
+  min-height: 76px;
+  padding: 13px 18px;
+  border: 3px solid #d8e4dc;
+  border-radius: 20px;
+  background: #fff;
+  color: #183329;
+  font: inherit;
+  font-size: clamp(21px, 3vw, 32px);
+  font-weight: 850;
+  line-height: 1.12;
+  cursor: pointer;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.sp-answer-choice:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #83b499;
+}
+
+.sp-answer-choice--target {
+  border-color: #3f9b71;
+  box-shadow: 0 0 0 4px #d9f1e3;
+}
+
+.sp-answer-choice--incorrect {
+  border-color: #d65a55;
+  box-shadow: 0 0 0 4px #f9dedc;
+}
+
 .sp-choice {
   min-width: 0;
   padding: 0;
@@ -161,6 +198,7 @@
   .sp-task { min-height: auto; padding: 16px 12px 26px; }
   .sp-choice-grid { gap: 10px; }
   .sp-choice { border-radius: 16px; border-width: 3px; }
+  .sp-answer-choice { min-height: 68px; border-radius: 16px; }
   .sp-photo { border-radius: 17px; }
   .sp-primary-button, .sp-audio-button { min-height: 52px; padding: 10px 16px; }
   .sp-actions--question { grid-template-columns: 52px minmax(0, 1fr); }
