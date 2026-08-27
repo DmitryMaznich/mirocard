@@ -895,9 +895,16 @@ async function handleGetPhoto(req, res) {
 
 async function handleVersion(req, res) {
   try {
-    const versionPath = path.join(DEPLOY_FRONTEND_DIR, "version.json");
-    const content = await readFile(versionPath, "utf8");
-    writeJson(res, 200, JSON.parse(content));
+    // version.json was written by the old deploy-prod.mjs script for the
+    // retired Windows/Caddy host. Railway builds straight from a Docker
+    // image that never writes that file, so this endpoint silently returned
+    // "unknown" — worthless for a client trying to detect it's stale.
+    // package.json's version is bumped as its own commit on every release
+    // (see DEPLOYMENT.md) and is always present in the built image.
+    const pkgPath = path.join(DEPLOY_FRONTEND_DIR, "..", "package.json");
+    const content = await readFile(pkgPath, "utf8");
+    const { version } = JSON.parse(content);
+    writeJson(res, 200, { version });
   } catch {
     writeJson(res, 200, { version: "unknown" });
   }
