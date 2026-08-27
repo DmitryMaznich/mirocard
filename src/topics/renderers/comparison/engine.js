@@ -129,20 +129,36 @@ export function getVerdict(task) {
     : `${smaller} меньше ${bigger}`;
 }
 
-// A number the child must PRODUCE (not just recognize) that satisfies a
-// spoken constraint ("больше 6"). `value` always leaves room on the correct
-// side within [min, max] so a valid answer exists.
+// A handful of concrete number tiles the child taps one of — one that
+// satisfies a spoken constraint ("больше 6"), a few that don't. Children who
+// can't reason about "any number bigger than 6" in the abstract can still
+// recognize a satisfying number among a small closed set of choices, so this
+// is a discrimination task, not free number generation. `value` always
+// leaves room on the correct side within [min, max] so a valid tile exists.
+// The boundary value itself is always one of the wrong tiles, since it's the
+// most instructive near-miss for a strict "больше/меньше".
 function generateApplyGenerateTask(min, max) {
   const op = Math.random() < 0.5 ? "more" : "less";
   const value = op === "more"
     ? Math.floor(Math.random() * (max - min)) + min       // value < max
     : Math.floor(Math.random() * (max - min)) + min + 1;  // value > min
+
+  const fits = (n) => (op === "more" ? n > value : n < value);
+  const rest = [];
+  for (let n = min; n <= max; n++) if (n !== value) rest.push(n);
+  shuffle(rest);
+
+  const correct = rest.find(fits);
+  const wrong = [value, ...rest.filter((n) => !fits(n))].slice(0, 3);
+  const options = shuffle([correct, ...wrong]);
+
   return {
     taskType: "generate",
     op,
     value,
     min,
     max,
+    options,
     promptText: op === "more" ? `Больше ${value}` : `Меньше ${value}`,
   };
 }

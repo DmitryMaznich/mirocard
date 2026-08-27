@@ -1,45 +1,43 @@
 import { useState } from "react";
 
-const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-
+// Tap one of a few concrete number tiles that fits the spoken constraint —
+// a closed choice, not free number entry. See engine.js's
+// generateApplyGenerateTask for why.
 function GenerateStage({ task, answered, onAnswer }) {
-  const [digits, setDigits] = useState([]);
-  const value = digits.length ? Number(digits.join("")) : null;
+  const [pickedIdx, setPickedIdx] = useState(-1);
+  const [wrongIdx, setWrongIdx] = useState(-1);
 
-  function tapDigit(d) {
-    if (answered || digits.length >= 2) return;
-    setDigits((prev) => [...prev, d]);
-  }
-
-  function backspace() {
+  function tapOption(n, idx) {
     if (answered) return;
-    setDigits((prev) => prev.slice(0, -1));
-  }
-
-  function submit() {
-    if (answered || value == null) return;
-    const inRange = value >= task.min && value <= task.max;
-    const satisfies = task.op === "more" ? value > task.value : value < task.value;
-    onAnswer(inRange && satisfies);
+    setPickedIdx(idx);
+    const isCorrect = task.op === "more" ? n > task.value : n < task.value;
+    if (!isCorrect) {
+      setWrongIdx(idx);
+      window.setTimeout(() => setWrongIdx(-1), 350);
+    }
+    onAnswer(isCorrect);
   }
 
   return (
     <>
       <div className="apply-prompt">{task.promptText}</div>
-      <div className="apply-answer-slot">{value ?? "?"}</div>
-      <div className="apply-numpad">
-        {DIGITS.map((d) => (
-          <button key={d} type="button" className="apply-numkey" disabled={answered} onClick={() => tapDigit(d)}>
-            {d}
+      <div className="apply-order-row">
+        {task.options.map((n, i) => (
+          <button
+            key={i}
+            type="button"
+            className={[
+              "apply-order-btn",
+              pickedIdx === i && wrongIdx !== i && "apply-order-btn--placed",
+              wrongIdx === i && "apply-order-btn--wrong",
+            ].filter(Boolean).join(" ")}
+            disabled={answered}
+            onClick={() => tapOption(n, i)}
+          >
+            {n}
           </button>
         ))}
-        <button type="button" className="apply-numkey apply-numkey--back" disabled={answered} onClick={backspace}>
-          ⌫
-        </button>
       </div>
-      <button type="button" className="apply-submit-btn" disabled={answered || value == null} onClick={submit}>
-        Проверить
-      </button>
     </>
   );
 }
