@@ -123,9 +123,9 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
   );
 }
 
-function RespondTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, onCardShown }) {
-  const { card } = task;
-  const [revealed, setRevealed] = useState(false);
+function RespondTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
+  const { card, options } = task;
+  const [selectedOption, setSelectedOption] = useState(null);
   const voice = (text, audio) => speak({ topicId, text, audio, playTopicFile, soundEnabled });
 
   useEffect(() => {
@@ -133,31 +133,39 @@ function RespondTask({ task, topicId, playTopicFile, soundEnabled, onAdvance, on
     voice(card.question, card.questionAudio);
   }, [card.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function reveal() {
-    if (revealed) return;
-    setRevealed(true);
-    voice(card.model, card.modelAudio);
+  function choose(option) {
+    if (selectedOption) return;
+    onTap?.(option.id, option.isTarget);
+    setSelectedOption(option);
+    if (option.isTarget) {
+      onCorrect?.(card.conceptId, card.id);
+      return;
+    }
+    onIncorrect?.(card.conceptId, card.id);
   }
 
   return (
     <main className="sp-task sp-task--respond">
       <Photo topicId={topicId} path={card.image} />
       <h1 className="sp-question">{card.question}</h1>
-      {!revealed ? (
-        <div className="sp-actions sp-actions--question">
-          <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" iconOnly />
-          <button className="sp-primary-button" type="button" onClick={reveal}>Показать ответ</button>
-        </div>
-      ) : (
-        <>
-          <div className="sp-answer" aria-live="polite">{card.phrase}</div>
-          <div className="sp-model-line">{card.model}</div>
-          <div className="sp-actions sp-actions--question">
-            <RepeatButton onClick={() => voice(card.model, card.modelAudio)} label="Слушать ещё раз" iconOnly />
-            <button className="sp-primary-button" type="button" onClick={onAdvance}>Дальше</button>
-          </div>
-        </>
-      )}
+      <div className="sp-answer-choice-grid" aria-label={card.question}>
+        {options.map((option) => {
+          const correctTarget = selectedOption?.isTarget && option.isTarget;
+          const incorrectChoice = selectedOption && !selectedOption.isTarget && selectedOption.id === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              className={`sp-answer-choice${correctTarget ? " sp-answer-choice--target" : ""}${incorrectChoice ? " sp-answer-choice--incorrect" : ""}`}
+              onClick={() => choose(option)}
+              disabled={Boolean(selectedOption)}
+            >
+              {option.text}
+            </button>
+          );
+        })}
+      </div>
+      <RepeatButton onClick={() => voice(card.question, card.questionAudio)} label="Повторить вопрос" iconOnly />
     </main>
   );
 }

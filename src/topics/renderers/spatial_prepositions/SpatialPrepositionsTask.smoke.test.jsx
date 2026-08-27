@@ -117,26 +117,32 @@ describe("spatial prepositions tasks", () => {
     expect(container.querySelectorAll(".sp-choice--target")).toHaveLength(1);
   });
 
-  it("does not score spoken response practice automatically", () => {
-    const onAdvance = vi.fn();
+  it("lets the child select the matching verbal answer", () => {
     const onCorrect = vi.fn();
-    mount({ type: "spatial_respond", card: CARD }, { onAdvance, onCorrect });
+    const onIncorrect = vi.fn();
+    const onTap = vi.fn();
+    mount({
+      type: "spatial_respond",
+      card: CARD,
+      options: [
+        { id: "target", text: "под столом", isTarget: true },
+        { id: "contrast", text: "на столе", isTarget: false },
+      ],
+    }, { onCorrect, onIncorrect, onTap });
 
-    let replayButton = container.querySelector(".sp-actions--question .sp-audio-button--icon");
+    expect(container.textContent).toContain("Где мяч?");
+    expect(container.querySelectorAll(".sp-answer-choice")).toHaveLength(2);
+    expect(container.textContent).toContain("под столом");
+    expect(container.textContent).toContain("на столе");
+    const replayButton = container.querySelector(".sp-audio-button--icon");
     expect(replayButton.getAttribute("aria-label")).toBe("Повторить вопрос");
     expect(replayButton.textContent).toBe("🔊");
-    expect(container.querySelector(".sp-actions--question .sp-primary-button").textContent).toBe("Показать ответ");
 
-    act(() => { container.querySelector(".sp-primary-button").click(); });
-    expect(container.textContent).toContain("Мяч под столом.");
-    expect(onCorrect).not.toHaveBeenCalled();
-
-    replayButton = container.querySelector(".sp-actions--question .sp-audio-button--icon");
-    expect(replayButton.getAttribute("aria-label")).toBe("Слушать ещё раз");
-    expect(replayButton.textContent).toBe("🔊");
-    expect(container.querySelector(".sp-actions--question .sp-primary-button").textContent).toBe("Дальше");
-
-    act(() => { container.querySelector(".sp-primary-button").click(); });
-    expect(onAdvance).toHaveBeenCalledOnce();
+    act(() => { container.querySelectorAll(".sp-answer-choice")[0].click(); });
+    expect(onTap).toHaveBeenCalledWith("target", true);
+    expect(onCorrect).toHaveBeenCalledWith("spatial_under", "spatial_under_01");
+    expect(onIncorrect).not.toHaveBeenCalled();
+    expect(container.querySelectorAll(".sp-answer-choice--target")).toHaveLength(1);
+    expect(container.querySelectorAll(".sp-answer-choice--incorrect")).toHaveLength(0);
   });
 });

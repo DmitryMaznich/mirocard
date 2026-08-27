@@ -79,11 +79,24 @@ function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phas
 }
 
 function buildResponseTasks(cards, params) {
-  return selectedCards(cards, params).map((card) => ({
-    type: "spatial_respond",
-    conceptId: card.conceptId,
-    card,
-  }));
+  return selectedCards(cards, params).map((card, index) => {
+    // Use the paired scene as the distractor.  The child therefore chooses
+    // between two verbal descriptions of the same object and setting, rather
+    // than being led by a change of object or background.
+    const contrastCard = cards.find((candidate) => candidate.image === card.contrastImage);
+    if (!contrastCard) throw new Error(`Missing paired response card for ${card.id}`);
+
+    const target = { id: "target", text: card.phrase, isTarget: true };
+    const contrast = { id: "contrast", text: contrastCard.phrase, isTarget: false };
+    return {
+      type: "spatial_respond",
+      conceptId: card.conceptId,
+      card,
+      // Keep two stable places while alternating their contents, as in
+      // «Покажи», so the answer cannot become a left/right habit.
+      options: index % 2 === 0 ? [target, contrast] : [contrast, target],
+    };
+  });
 }
 
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
