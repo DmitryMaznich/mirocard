@@ -32,6 +32,22 @@ describe("spatial prepositions engine", () => {
     ]);
   });
 
+  it("offers all four relations when four response tiles are selected", () => {
+    const tasks = generateTasks(
+      { type: "spatial_respond" },
+      cards,
+      500,
+      { relations: ["spatial_under"], answerOptions: "4" },
+    );
+
+    expect(tasks[0].options).toEqual([
+      { id: "target", text: "под столом", isTarget: true },
+      { id: "contrast", text: "на столе", isTarget: false },
+      { id: "relation-in", text: "в коробке", isTarget: false },
+      { id: "relation-near", text: "рядом с коробкой", isTarget: false },
+    ]);
+  });
+
   it("interleaves selected relations in a regular mode", () => {
     const tasks = generateTasks(
       { type: "spatial_recognize" },

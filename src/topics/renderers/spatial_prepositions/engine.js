@@ -78,7 +78,24 @@ function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phas
   });
 }
 
+function rotateOptions(options, index) {
+  const offset = index % options.length;
+  return offset ? [...options.slice(-offset), ...options.slice(0, -offset)] : options;
+}
+
+function responseDistractor(card, cards, relation) {
+  const phase = card.phase ?? "core";
+  return cards.find((candidate) => (
+    candidate.relation === relation
+    && candidate.subject === card.subject
+    && (candidate.phase ?? "core") === phase
+  )) ?? cards.find((candidate) => (
+    candidate.relation === relation && (candidate.phase ?? "core") === phase
+  ));
+}
+
 function buildResponseTasks(cards, params) {
+  const optionCount = Number(params?.answerOptions) === 4 ? 4 : 2;
   return selectedCards(cards, params).map((card, index) => {
     // Use the paired scene as the distractor.  The child therefore chooses
     // between two verbal descriptions of the same object and setting, rather
@@ -88,13 +105,27 @@ function buildResponseTasks(cards, params) {
 
     const target = { id: "target", text: card.phrase, isTarget: true };
     const contrast = { id: "contrast", text: contrastCard.phrase, isTarget: false };
+    const options = [target, contrast];
+
+    if (optionCount === 4) {
+      // Two more answers complete the set of relations.  Prefer phrases with
+      // the same subject and phase so the added difficulty is in recognising
+      // the preposition, not in changing the pictured object.
+      for (const relation of Object.values(RELATION_BY_CONCEPT)) {
+        if (relation === card.relation || relation === contrastCard.relation) continue;
+        const distractor = responseDistractor(card, cards, relation);
+        if (!distractor) throw new Error(`Missing ${relation} response distractor for ${card.id}`);
+        options.push({ id: `relation-${relation}`, text: distractor.phrase, isTarget: false });
+      }
+    }
+
     return {
       type: "spatial_respond",
       conceptId: card.conceptId,
       card,
-      // Keep two stable places while alternating their contents, as in
-      // «Покажи», so the answer cannot become a left/right habit.
-      options: index % 2 === 0 ? [target, contrast] : [contrast, target],
+      // Fixed slots keep the layout calm, while the contents rotate so the
+      // answer cannot become a left/right tapping habit.
+      options: rotateOptions(options, index),
     };
   });
 }

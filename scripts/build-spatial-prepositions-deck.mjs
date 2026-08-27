@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ALL_CARDS } from "./spatial-prepositions-content.mjs";
 
 const TOPIC_ID = "spatial_prepositions_ru";
-const VERSION = "0.11.0";
+const VERSION = "0.12.0";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const ASSET_DIR = "public/decks/_assets/spatial_prepositions";
 const AUDIO_DIR = "public/decks/_audio_src/spatial_prepositions_ru";
@@ -141,6 +141,18 @@ const topic = {
       },
       params: {
         relations: RELATIONS_PARAM,
+        answerOptions: {
+          type: "enum",
+          label: { ru: "Варианты ответа" },
+          values: ["2", "4"],
+          labels: { ru: { "2": "2 плашки", "4": "4 плашки" } },
+          default: "2",
+          info: {
+            ru: {
+              text: "Включая правильный ответ. Начинайте с двух плашек; четыре подходят для различения всех предлогов.",
+            },
+          },
+        },
       },
     },
     {
