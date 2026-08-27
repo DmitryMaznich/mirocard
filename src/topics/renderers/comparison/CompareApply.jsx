@@ -20,7 +20,10 @@ function GenerateStage({ task, answered, onAnswer }) {
 
   return (
     <>
-      <div className="apply-prompt">{task.promptText}</div>
+      <div className="apply-prompt-card" aria-label={task.promptText}>
+        <div className="apply-prompt-icon" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
+        <div className="apply-prompt-value" aria-hidden="true">{task.value}</div>
+      </div>
       <div className="apply-order-row">
         {task.options.map((n, i) => (
           <button
@@ -96,8 +99,8 @@ export default function CompareApply({ task, onCorrect, onIncorrect }) {
   }
 
   return (
-    <div className="compare-body">
-      <div className="compare-instruction">{task.instruction}</div>
+    <div className="compare-body compare-body--apply">
+      <div className="apply-kicker">{task.instruction}</div>
       {task.taskType === "order" ? (
         <OrderStage task={task} answered={answered} onAnswer={handleAnswer} />
       ) : (
