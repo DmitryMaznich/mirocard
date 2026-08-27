@@ -224,7 +224,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
 
     const instruction = applyTaskType === "order"
       ? "Расставь числа по порядку — от меньшего к большему"
-      : "Выбери число, которое подходит";
+      : "Выбери число, которое";
 
     const tasks = [];
     for (let i = 0; i < count; i++) {
