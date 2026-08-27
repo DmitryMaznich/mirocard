@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "comparison",
-    "version": "2.14.2",
+    "version": "2.15.0",
     "renderer": "comparison",
     "title": "Сравнение"
   },
