@@ -1119,19 +1119,29 @@ function ComparisonParams({ params, onChange }) {
             {dotsOnly && <div className="param-hint">Уровни 3–4 доступны только в режиме «Только цифры»</div>}
           </div>
 
-          <div className="param-enum-divider" />
+          {/* compare_apply never reads showEqual (see engine.js's
+              compare_apply branch, which returns before the showEqual
+              destructure below it) — both its task types need distinct
+              numbers (a tied number breaks "choose one that fits" and
+              "which slot does it go in"), so the toggle would just be
+              dead UI there. */}
+          {!isApplyMode && (
+            <>
+              <div className="param-enum-divider" />
 
-          <div className="param-enum-section">
-            <button
-              className={`enum-btn enum-btn--compact ${params.showEqual ? "enum-btn--active" : ""}`}
-              onClick={() => onChange({ ...params, showEqual: !params.showEqual })}
-            >
-              =
-            </button>
-            <div className="param-hint">
-              {params.showEqual ? "С одинаковыми (~30%)" : "Без одинаковых"}
-            </div>
-          </div>
+              <div className="param-enum-section">
+                <button
+                  className={`enum-btn enum-btn--compact ${params.showEqual ? "enum-btn--active" : ""}`}
+                  onClick={() => onChange({ ...params, showEqual: !params.showEqual })}
+                >
+                  =
+                </button>
+                <div className="param-hint">
+                  {params.showEqual ? "С одинаковыми (~30%)" : "Без одинаковых"}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
