@@ -388,6 +388,28 @@
   .croc-put-sign-num   { font-size: 112px; min-width: 140px; }
   .croc-put-sign-blank { font-size: 84px; min-width: 80px; }
   .croc-put-sign-btn   { width: 100px; height: 100px; font-size: 48px; }
+
+  /* CompareApply: the vw-based clamp()s above cap out at their phone-tuned
+     max well before a tablet's actual width, and the fixed-px staircase/tile
+     sizes don't scale with viewport at all — both read as "too small" in
+     the extra room a tablet has. Bump each with flat, larger tablet sizes. */
+  .apply-kicker       { font-size: 1.05rem; max-width: 380px; }
+  .apply-prompt-card  { gap: 22px; padding: 24px 40px; }
+  .apply-prompt-icon  { width: 64px; height: 64px; font-size: 36px; }
+  .apply-prompt-value { font-size: 64px; }
+
+  .apply-order-row    { max-width: 560px; gap: 18px; }
+  .apply-order-btn    { min-width: 100px; min-height: 104px; font-size: 44px; }
+
+  .apply-order-slots  { max-width: 560px; gap: 20px; }
+  .apply-order-slot--sm .apply-order-slot-drop { width: 84px;  height: 84px;  font-size: 30px; }
+  .apply-order-slot--md .apply-order-slot-drop { width: 108px; height: 108px; font-size: 38px; }
+  .apply-order-slot--lg .apply-order-slot-drop { width: 132px; height: 132px; font-size: 46px; }
+  .apply-order-endcap { font-size: 0.92rem; }
+
+  .apply-order-tray         { max-width: 560px; gap: 18px; }
+  .apply-order-tile         { min-width: 100px; min-height: 104px; font-size: 44px; }
+  .apply-order-tray-caption { font-size: 1rem; }
 }
 
 /* ── Landscape ───────────────────────────────────────────────────── */
