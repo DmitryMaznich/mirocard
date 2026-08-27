@@ -327,6 +327,24 @@ describe("generateTasks", () => {
       });
     });
 
+    it("'generate' tasks offer a closed set of number tiles, not free entry, with at least one right and one wrong tile", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 60, { level: 2, taskType: "generate" });
+      tasks.forEach((t) => {
+        expect(t.options.length).toBeGreaterThanOrEqual(2);
+        expect(t.options.length).toBeLessThanOrEqual(4);
+        expect(new Set(t.options).size).toBe(t.options.length);
+        t.options.forEach((n) => {
+          expect(n).toBeGreaterThanOrEqual(t.min);
+          expect(n).toBeLessThanOrEqual(t.max);
+        });
+        const fits = (n) => (t.op === "more" ? n > t.value : n < t.value);
+        expect(t.options.some(fits)).toBe(true);
+        expect(t.options.some((n) => !fits(n))).toBe(true);
+        // the boundary value itself is always offered as a near-miss distractor
+        expect(t.options).toContain(t.value);
+      });
+    });
+
     it("'order' tasks give 3 distinct numbers whose sorted order matches ascending value", () => {
       const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 30, { level: 3, taskType: "order" });
       expect(tasks).toHaveLength(30);

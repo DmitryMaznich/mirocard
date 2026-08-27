@@ -228,45 +228,116 @@
 .cfn-multi-divider { width: 100%; max-width: 400px; height: 2px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 8px 0 4px; }
 
 /* ── CompareApply ("Применяем сравнение") ───────────────────────────── */
-.apply-prompt { font-size: clamp(28px, 6vw, 44px); font-weight: 900; color: #1e293b; }
-.apply-answer-slot {
-  min-width: 90px; min-height: 70px; padding: 0 16px;
-  border: 3px dashed #cbd5e1; border-radius: 16px; background: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: clamp(28px, 6vw, 40px); font-weight: 900; color: #1e293b;
+.compare-body--apply { position: relative; overflow: hidden; }
+.compare-body--apply::before,
+.compare-body--apply::after {
+  content: ""; position: absolute; width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.10), transparent 70%);
+  pointer-events: none;
 }
-.apply-numpad { display: grid; grid-template-columns: repeat(3, 64px); gap: 10px; justify-content: center; }
-.apply-numkey {
-  width: 64px; height: 56px; border: 3px solid #e2e8f0; border-radius: 14px; background: #fff;
-  font-size: 24px; font-weight: 800; color: #1e293b; cursor: pointer;
-  transition: transform 0.1s, border-color 0.15s;
-}
-.apply-numkey:hover:not(:disabled) { border-color: #3b82f6; }
-.apply-numkey:active:not(:disabled) { transform: scale(0.94); }
-.apply-numkey--back { color: #64748b; }
-.apply-submit-btn {
-  min-height: 56px; padding: 0 32px; border: none; border-radius: 16px;
-  background: #2d6fb5; color: #fff; font-size: 20px; font-weight: 800; cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-}
-.apply-submit-btn:hover:not(:disabled) { background: #24578f; }
-.apply-submit-btn:active:not(:disabled) { transform: scale(0.97); }
-.apply-submit-btn:disabled { opacity: 0.5; cursor: default; }
+.compare-body--apply::before { top: -70px; right: -60px; }
+.compare-body--apply::after  { bottom: -80px; left: -70px; width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(59,130,246,0.06), transparent 70%); }
 
-.apply-order-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-.apply-order-btn {
-  position: relative; min-width: 76px; min-height: 76px; padding: 0 10px;
-  border: 3px solid #e2e8f0; border-radius: 18px; background: #fff;
-  font-size: clamp(24px, 5vw, 34px); font-weight: 900; color: #1e293b; cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+.apply-kicker {
+  position: relative; z-index: 1;
+  font-size: 0.8rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.10em; color: #7c8db0; text-align: center; max-width: 280px;
 }
-.apply-order-btn:hover:not(:disabled) { border-color: #3b82f6; transform: translateY(-2px); }
-.apply-order-btn--placed { border-color: #22c55e; background: #dcfce7; color: #166534; }
-.apply-order-btn--wrong { animation: shake 0.35s; border-color: #ef4444; }
-.apply-order-badge {
-  position: absolute; top: -10px; right: -10px; width: 24px; height: 24px;
-  border-radius: 50%; background: #22c55e; color: #fff;
-  font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+
+.apply-prompt-card {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 16px;
+  background: #fff; border-radius: 26px; padding: 18px 30px;
+  box-shadow: 0 14px 34px rgba(37,99,235,0.12), 0 2px 6px rgba(15,23,42,0.04);
+}
+.apply-prompt-icon {
+  width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+  background: #eaf1ff; color: #2563eb;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 900; line-height: 1;
+}
+.apply-prompt-value { font-size: clamp(32px, 7vw, 46px); font-weight: 900; color: #1e293b; line-height: 1; }
+
+.apply-order-row {
+  position: relative; z-index: 1;
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  width: 100%; max-width: 420px; box-sizing: border-box;
+}
+.apply-order-btn {
+  position: relative; min-width: 72px; min-height: 76px; padding: 0 10px;
+  border: none; border-radius: 22px; background: #fff;
+  font-size: clamp(24px, 5vw, 34px); font-weight: 900; color: #1e293b; cursor: pointer;
+  box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.apply-order-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.apply-order-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #dbe6f7; }
+.apply-order-btn:disabled { cursor: default; }
+.apply-order-btn--placed {
+  background: #f0fdf4; color: #166534;
+  box-shadow: 0 4px 0 #16a34a, 0 8px 18px rgba(34,197,94,0.18);
+}
+.apply-order-btn--wrong {
+  animation: shake 0.35s;
+  background: #fef2f2; color: #991b1b;
+  box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
+}
+/* Order task ("Расставь по порядку"): drag a tile from the tray below into
+   one of the slots above — a physical sort, not a tap sequence. The slots
+   themselves form a size staircase (small → medium → large) instead of
+   "1-е/2-е/3-е" labels, so "the small number goes in the small box" reads
+   directly off the shape — no ordinal position to translate first. */
+.apply-order-slots {
+  position: relative; z-index: 1;
+  display: flex; align-items: flex-end; gap: 14px; justify-content: center;
+  width: 100%; max-width: 420px; box-sizing: border-box;
+}
+.apply-order-slot { display: flex; flex-direction: column; align-items: center; }
+.apply-order-slot-drop {
+  border: 2.5px dashed #c7d4ea; border-radius: 18px; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; color: #c2cee2;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.apply-order-slot--sm .apply-order-slot-drop { width: 64px; height: 64px; font-size: 22px; }
+.apply-order-slot--md .apply-order-slot-drop { width: 80px; height: 80px; font-size: 28px; }
+.apply-order-slot--lg .apply-order-slot-drop { width: 96px; height: 96px; font-size: 34px; }
+.apply-order-slot-drop--over {
+  border-style: solid; border-color: #3b82f6; background: #eff6ff;
+  box-shadow: 0 0 0 6px rgba(59,130,246,0.14);
+}
+.apply-order-slot-drop--correct { border-style: solid; border-color: #16a34a; background: #f0fdf4; color: #166534; }
+.apply-order-slot-drop--wrong { animation: shake 0.35s; border-style: solid; border-color: #ef4444; }
+
+.apply-order-endcaps {
+  position: relative; z-index: 1;
+  display: flex; justify-content: space-between;
+  width: 100%; max-width: 420px; box-sizing: border-box; padding: 0 4px;
+}
+.apply-order-endcap {
+  font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #93a5c4;
+}
+
+.apply-order-tray {
+  position: relative; z-index: 1;
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  width: 100%; max-width: 420px; box-sizing: border-box; padding-top: 6px; min-height: 76px;
+}
+.apply-order-tile {
+  min-width: 72px; min-height: 76px; padding: 0 10px;
+  border: none; border-radius: 22px; background: #fff;
+  font-size: clamp(24px, 5vw, 34px); font-weight: 900; color: #1e293b;
+  box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
+  display: flex; align-items: center; justify-content: center;
+  touch-action: none; cursor: grab;
+}
+.apply-order-tile--overlay { cursor: grabbing; transform: scale(1.08); }
+.apply-order-tray-caption {
+  position: relative; z-index: 1;
+  width: 100%; text-align: center;
+  font-size: 0.78rem; font-weight: 600; color: #93a5c4;
 }
 
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
