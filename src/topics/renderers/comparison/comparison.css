@@ -284,30 +284,41 @@
   box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
 }
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
-   one of the labeled slots above — a physical sort, not a tap sequence. */
+   one of the slots above — a physical sort, not a tap sequence. The slots
+   themselves form a size staircase (small → medium → large) instead of
+   "1-е/2-е/3-е" labels, so "the small number goes in the small box" reads
+   directly off the shape — no ordinal position to translate first. */
 .apply-order-slots {
   position: relative; z-index: 1;
-  display: flex; gap: 14px; justify-content: center;
+  display: flex; align-items: flex-end; gap: 14px; justify-content: center;
   width: 100%; max-width: 420px; box-sizing: border-box;
 }
-.apply-order-slot { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-.apply-order-slot-label {
-  font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.08em; color: #93a5c4;
-}
+.apply-order-slot { display: flex; flex-direction: column; align-items: center; }
 .apply-order-slot-drop {
-  width: 100%; aspect-ratio: 1; max-width: 96px;
-  border: 2.5px dashed #c7d4ea; border-radius: 20px; background: #fff;
+  border: 2.5px dashed #c7d4ea; border-radius: 18px; background: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: clamp(24px, 5vw, 34px); font-weight: 900; color: #c2cee2;
+  font-weight: 900; color: #c2cee2;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
+.apply-order-slot--sm .apply-order-slot-drop { width: 64px; height: 64px; font-size: 22px; }
+.apply-order-slot--md .apply-order-slot-drop { width: 80px; height: 80px; font-size: 28px; }
+.apply-order-slot--lg .apply-order-slot-drop { width: 96px; height: 96px; font-size: 34px; }
 .apply-order-slot-drop--over {
   border-style: solid; border-color: #3b82f6; background: #eff6ff;
   box-shadow: 0 0 0 6px rgba(59,130,246,0.14);
 }
 .apply-order-slot-drop--correct { border-style: solid; border-color: #16a34a; background: #f0fdf4; color: #166534; }
 .apply-order-slot-drop--wrong { animation: shake 0.35s; border-style: solid; border-color: #ef4444; }
+
+.apply-order-endcaps {
+  position: relative; z-index: 1;
+  display: flex; justify-content: space-between;
+  width: 100%; max-width: 420px; box-sizing: border-box; padding: 0 4px;
+}
+.apply-order-endcap {
+  font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #93a5c4;
+}
 
 .apply-order-tray {
   position: relative; z-index: 1;

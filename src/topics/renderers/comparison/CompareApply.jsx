@@ -47,9 +47,13 @@ function GenerateStage({ task, answered, onAnswer }) {
   );
 }
 
+const SLOT_SIZES = ["sm", "md", "lg"];
+
 // One slot the child can drop a tile into. `value` is the number already
-// placed here (from `placement`), or null while empty.
-function OrderSlot({ slotIdx, label, value, wrong }) {
+// placed here (from `placement`), or null while empty. `size` grows the box
+// itself (small/medium/large) instead of an ordinal "1st/2nd/3rd" label —
+// see the comment on .apply-order-slots in comparison.css.
+function OrderSlot({ slotIdx, size, value, wrong }) {
   const { isOver, setNodeRef } = useDroppable({ id: `apply-slot-${slotIdx}`, data: { slotIdx } });
   const cls = [
     "apply-order-slot-drop",
@@ -58,8 +62,7 @@ function OrderSlot({ slotIdx, label, value, wrong }) {
     wrong && "apply-order-slot-drop--wrong",
   ].filter(Boolean).join(" ");
   return (
-    <div className="apply-order-slot">
-      <div className="apply-order-slot-label">{label}</div>
+    <div className={`apply-order-slot apply-order-slot--${size}`}>
       <div ref={setNodeRef} className={cls}>{value ?? "?"}</div>
     </div>
   );
@@ -138,12 +141,16 @@ function OrderStage({ task, answered, onAnswer }) {
             <OrderSlot
               key={slotIdx}
               slotIdx={slotIdx}
-              label={`${slotIdx + 1}-е`}
+              size={SLOT_SIZES[slotIdx]}
               value={tileIdx >= 0 ? task.numbers[tileIdx] : null}
               wrong={wrongSlotIdx === slotIdx}
             />
           );
         })}
+      </div>
+      <div className="apply-order-endcaps">
+        <div className="apply-order-endcap">меньше</div>
+        <div className="apply-order-endcap">больше</div>
       </div>
       <div className="apply-order-tray">
         {task.numbers.map((n, idx) => placement[idx] === null && (
