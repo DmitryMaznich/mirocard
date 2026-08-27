@@ -22,6 +22,15 @@ const SUBJECT_AUDIO_IDS = {
   "Мишка": "bear",
 };
 
+// The model sentence names the object in nominative case («Мишка на столе»),
+// while the receptive instruction uses accusative («Покажи мишку на столе»).
+const SUBJECT_ACCUSATIVES = {
+  "Мяч": "мяч",
+  "Машинка": "машинку",
+  "Кубик": "кубик",
+  "Мишка": "мишку",
+};
+
 // The same spoken construction is deliberately shared by matching core and
 // transfer cards.  This keeps the downloaded deck compact without changing
 // the language model the child hears.
@@ -57,8 +66,9 @@ function toWebp(path) {
 function card({ id, conceptId, relation, subject, landmark, phrase, image, contrastImage, phase = "core" }) {
   const model = `${subject} ${phrase}.`;
   const subjectAudioId = SUBJECT_AUDIO_IDS[subject];
+  const subjectAccusative = SUBJECT_ACCUSATIVES[subject];
   const constructionAudioId = CONSTRUCTION_AUDIO_IDS[`${subject}|${phrase}`];
-  if (!subjectAudioId || !constructionAudioId) {
+  if (!subjectAudioId || !subjectAccusative || !constructionAudioId) {
     throw new Error(`Missing audio identifiers for ${subject} ${phrase}`);
   }
   return {
@@ -72,7 +82,7 @@ function card({ id, conceptId, relation, subject, landmark, phrase, image, contr
     landmark,
     phrase,
     question: `Где ${subject.toLowerCase()}?`,
-    recognizePrompt: `Покажи ${subject.toLowerCase()} ${phrase}.`,
+    recognizePrompt: `Покажи ${subjectAccusative} ${phrase}.`,
     model,
     questionAudio: `audio/q-${subjectAudioId}.mp3`,
     modelAudio: `audio/m-${constructionAudioId}.mp3`,
