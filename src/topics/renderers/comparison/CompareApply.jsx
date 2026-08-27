@@ -167,11 +167,17 @@ function OrderStage({ task, answered, onAnswer }) {
       <div className="apply-order-slots" style={{ gridTemplateColumns: `repeat(${task.sorted.length}, 1fr)` }}>
         {task.sorted.map((_, slotIdx) => {
           const tileIdx = placement.indexOf(slotIdx);
+          // Box size must track the MAGNITUDE of the number that belongs in
+          // this slot, not raw left-to-right position — task.sorted[0] is
+          // the smallest value in "asc" mode but the largest in "desc"
+          // mode (engine.js reverses it), so slot 0's box size flips too.
+          const raw = task.sorted.length > 1 ? slotIdx / (task.sorted.length - 1) : 0;
+          const t = task.direction === "desc" ? 1 - raw : raw;
           return (
             <OrderSlot
               key={slotIdx}
               slotIdx={slotIdx}
-              t={task.sorted.length > 1 ? slotIdx / (task.sorted.length - 1) : 0}
+              t={t}
               value={tileIdx >= 0 ? task.numbers[tileIdx] : null}
               wrong={wrongSlotIdx === slotIdx}
             />

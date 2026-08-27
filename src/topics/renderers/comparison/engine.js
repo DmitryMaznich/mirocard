@@ -163,15 +163,19 @@ function generateApplyGenerateTask(min, max) {
   };
 }
 
-// `count` distinct numbers, shown shuffled; the child taps them out in
-// ascending order. `sorted` is the expected tap order (by value).
-function generateApplyOrderTask(min, max, count) {
+// `count` distinct numbers, shown shuffled. `sorted` is the expected slot
+// order — ascending (small→big) by default, or reversed for `direction:
+// "desc"` — CompareApply.jsx reads `direction` to flip which end of the
+// staircase (smallest box vs. largest box) is `sorted[0]`, so a box's
+// size always matches the number that belongs in it either way.
+function generateApplyOrderTask(min, max, count, direction) {
   const nums = new Set();
   while (nums.size < count) {
     nums.add(Math.floor(Math.random() * (max - min + 1)) + min);
   }
-  const sorted = [...nums].sort((a, b) => a - b);
-  return { taskType: "order", numbers: shuffle([...nums]), sorted };
+  const ascending = [...nums].sort((a, b) => a - b);
+  const sorted = direction === "desc" ? ascending.reverse() : ascending;
+  return { taskType: "order", numbers: shuffle([...nums]), sorted, direction: direction === "desc" ? "desc" : "asc" };
 }
 
 // Names given in genitive case (as "у ..." always requires in Russian) so
@@ -196,7 +200,7 @@ function generateRealLifeTask(baseParams, usedPairs) {
   return { left, right, nameA: scenario.a, nameB: scenario.b, item: scenario.item, question, verdictText };
 }
 
-// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order" }
+// sessionParams: { level?, question?: "more"|"less"|"mix", showEqual?: boolean, wordsVerdict?: boolean, visualMode?: "dots"|"dots_numbers"|"numbers"|"pairing", examplesCount?: number, showLabels?: boolean, taskType?: "generate"|"order", numbersCount?: number (3-5, "order" only), orderDirection?: "asc"|"desc" ("order" only) }
 export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
   if (!cards.length) return [];
 
@@ -224,14 +228,17 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const card          = resolveComparisonCard(mode, cards, sessionParams);
     if (!card) return [];
 
+    // The staircase's own box sizes (small→large or large→small) already
+    // show which end is which — no "от меньшего/большего" suffix needed.
     const instruction = applyTaskType === "order"
-      ? "Расставь числа по порядку — от меньшего к большему"
+      ? "Расставь числа по порядку"
       : "Выбери число, которое";
+    const orderDirection = sessionParams.orderDirection === "desc" ? "desc" : "asc";
 
     const tasks = [];
     for (let i = 0; i < count; i++) {
       const base = applyTaskType === "order"
-        ? generateApplyOrderTask(min, max, numbersCount)
+        ? generateApplyOrderTask(min, max, numbersCount, orderDirection)
         : generateApplyGenerateTask(min, max);
       tasks.push({ type: mode.type, conceptId: card.conceptId, instruction, ...base });
     }
