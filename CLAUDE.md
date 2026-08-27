@@ -55,6 +55,19 @@ git push origin main   # Railway auto-deploys the whole app (frontend + backend)
 
 Before pushing to `main`: run `git status --short`, commit intentional changes, run `npm run build` locally as a sanity check.
 
+**Mandatory: every push to `main` that changes app behavior must bump the version in `package.json` first, in its own commit.** `git push origin main` deploys to production immediately (Railway auto-deploy) with no review gate, so the version is the only signal that distinguishes one deploy from the next — skipping it means `/api/version` can't tell you whether a given fix actually shipped. Bump before pushing, not after:
+
+```bash
+npm version patch --no-git-tag-version
+git add package.json
+git commit -m "chore: release v$(node -p "require('./package.json').version")"
+git push origin main
+```
+
+Skip only for changes that touch no app code (docs, this file, deck ZIPs pushed separately, etc).
+
+After pushing, verify `https://app.mironium.com/api/version` returns the new version and `/` responds before considering the deploy done.
+
 Details: `DEPLOYMENT.md`.
 
 ## Backend (Node.js)
