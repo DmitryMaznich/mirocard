@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ALL_CARDS } from "./spatial-prepositions-content.mjs";
 
 const TOPIC_ID = "spatial_prepositions_ru";
-const VERSION = "0.9.0";
+const VERSION = "0.10.0";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const ASSET_DIR = "public/decks/_assets/spatial_prepositions";
 const AUDIO_DIR = "public/decks/_audio_src/spatial_prepositions_ru";
@@ -75,7 +75,7 @@ const topic = {
     id: TOPIC_ID,
     renderer: "spatial_prepositions",
     version: VERSION,
-    title: { ru: "Где предмет?" },
+    title: { ru: "Предлоги: где предмет?" },
     avatar: AVATAR_PATH,
     language: "ru",
     about: {
@@ -195,7 +195,7 @@ const entry = {
   version: VERSION,
   url: `./decks/${TOPIC_ID}_v${VERSION}.zip`,
   zipUrl: `${TOPIC_ID}_v${VERSION}.zip`,
-  title: { ru: "Где предмет?" },
+  title: { ru: "Предлоги: где предмет?" },
   description: {
     ru: "Пространственные отношения «в», «рядом с», «на» и «под»: знакомство, выбор фотографии и ответ с паузой. В каждом режиме можно выбрать одно или несколько отношений.",
   },

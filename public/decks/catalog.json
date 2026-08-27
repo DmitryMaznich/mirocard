@@ -328,11 +328,11 @@
     },
     {
       "id": "spatial_prepositions_ru",
-      "version": "0.9.0",
-      "url": "./decks/spatial_prepositions_ru_v0.9.0.zip",
-      "zipUrl": "spatial_prepositions_ru_v0.9.0.zip",
+      "version": "0.10.0",
+      "url": "./decks/spatial_prepositions_ru_v0.10.0.zip",
+      "zipUrl": "spatial_prepositions_ru_v0.10.0.zip",
       "title": {
-        "ru": "Где предмет?"
+        "ru": "Предлоги: где предмет?"
       },
       "description": {
         "ru": "Пространственные отношения «в», «рядом с», «на» и «под»: знакомство, выбор фотографии и ответ с паузой. В каждом режиме можно выбрать одно или несколько отношений."

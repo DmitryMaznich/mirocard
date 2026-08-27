@@ -118,7 +118,7 @@ function RecognizeTask({ task, topicId, playTopicFile, soundEnabled, onCorrect, 
           );
         })}
       </div>
-      <RepeatButton onClick={() => voice(card.recognizePrompt, card.recognizeAudio)} label="Повторить" />
+      <RepeatButton onClick={() => voice(card.recognizePrompt, card.recognizeAudio)} label="Повторить задание" iconOnly />
     </main>
   );
 }

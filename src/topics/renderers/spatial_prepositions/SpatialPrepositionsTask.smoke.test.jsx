@@ -85,6 +85,9 @@ describe("spatial prepositions tasks", () => {
     }, { onIncorrect, onTap });
 
     expect(container.querySelector(".sp-recognize-prompt").textContent).toBe("Покажи мяч под столом.");
+    const replayButton = container.querySelector(".sp-audio-button--icon");
+    expect(replayButton.getAttribute("aria-label")).toBe("Повторить задание");
+    expect(replayButton.textContent).toBe("🔊");
     act(() => { container.querySelectorAll(".sp-choice")[0].click(); });
     expect(onTap).toHaveBeenCalledWith("contrast", false);
     expect(onIncorrect).toHaveBeenCalledWith("spatial_under", "spatial_under_01");
