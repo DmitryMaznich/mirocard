@@ -146,9 +146,9 @@ describe("generateTasks — situation_emotion", () => {
 describe("generateTasks — situation_intro", () => {
   const EMOTION_CARDS = [
     { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
-    { id: "joy_situation_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку." },
+    { id: "joy_situation_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку.", sceneImage: "media/situation_joy_1.webp" },
     { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
-    { id: "sad_situation_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел." },
+    { id: "sad_situation_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел.", sceneImage: "media/situation_sad_1.webp" },
   ];
   const EMOTION_CONCEPTS = deriveConcepts(EMOTION_CARDS);
 
@@ -223,11 +223,11 @@ describe("situation use levels", () => {
 describe("generateTasks — emotion_situation", () => {
   const EMOTION_CARDS = [
     { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
-    { id: "joy_situation_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку." },
+    { id: "joy_situation_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку.", sceneImage: "media/situation_joy_1.webp" },
     { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
-    { id: "sad_situation_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел." },
+    { id: "sad_situation_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел.", sceneImage: "media/situation_sad_1.webp" },
     { id: "anger_1", conceptId: "anger", primary: true, label: "злость", image: "media/anger_1.webp" },
-    { id: "anger_situation_1", conceptId: "anger", cardType: "situation", label: "Брат сломал твою игрушку." },
+    { id: "anger_situation_1", conceptId: "anger", cardType: "situation", label: "Брат сломал твою игрушку.", sceneImage: "media/situation_anger_1.webp" },
   ];
   const EMOTION_CONCEPTS = deriveConcepts(EMOTION_CARDS);
 
@@ -239,12 +239,14 @@ describe("generateTasks — emotion_situation", () => {
     expect(joyTask.card.cardType).not.toBe("situation");
   });
 
-  it("options are situation sentences (not emotion words), exactly one isTarget matching the source text", () => {
+  it("options are graphical situation cards, exactly one matching the source scene", () => {
     const tasks = generateTasks("emotion_situation", EMOTION_CONCEPTS, EMOTION_CARDS, { optionCount: 2 });
     const joyTask = tasks.find((t) => t.conceptId === "joy");
     const targets = joyTask.options.filter((o) => o.isTarget);
     expect(targets).toHaveLength(1);
     expect(targets[0].label).toBe("Друг подарил тебе игрушку.");
+    expect(targets[0].sceneImage).toBe("media/situation_joy_1.webp");
+    expect(joyTask.options.every((option) => option.sceneImage?.startsWith("media/situation_"))).toBe(true);
     expect(joyTask.options.every((o) => !["радость", "грусть", "злость"].includes(o.label))).toBe(true);
   });
 });

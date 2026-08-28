@@ -7,15 +7,15 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 
 const CARDS = [
   { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
-  { id: "situation_joy_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку." },
+  { id: "situation_joy_1", conceptId: "joy", cardType: "situation", label: "Друг подарил тебе игрушку.", sceneImage: "media/situation_joy_1.webp" },
   { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
-  { id: "situation_sad_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел." },
+  { id: "situation_sad_1", conceptId: "sadness", cardType: "situation", label: "Питомец заболел.", sceneImage: "media/situation_sad_1.webp" },
   { id: "anger_1", conceptId: "anger", primary: true, label: "злость", image: "media/anger_1.webp" },
-  { id: "situation_anger_1", conceptId: "anger", cardType: "situation", label: "Брат сломал твою игрушку." },
+  { id: "situation_anger_1", conceptId: "anger", cardType: "situation", label: "Брат сломал твою игрушку.", sceneImage: "media/situation_anger_1.webp" },
 ];
 const CONCEPTS = deriveConcepts(CARDS);
 
-describe("emotion_situation — mounted through the real (unmodified) ChooseWordTask", () => {
+describe("emotion_situation — mounted through the graphical EmotionSituationTask", () => {
   let container = null;
   let root = null;
 
@@ -36,12 +36,13 @@ describe("emotion_situation — mounted through the real (unmodified) ChooseWord
     });
   }
 
-  it("renders situation sentences as clickable text options, not emotion words", () => {
+  it("renders situation photos as clickable options, not text buttons", () => {
     const tasks = generateTasks("emotion_situation", CONCEPTS, CARDS, { optionCount: 2 });
     mount(tasks[0], { onCorrect: () => {}, onIncorrect: () => {} });
-    const buttons = Array.from(container.querySelectorAll(".choose-word-btn"));
-    expect(buttons.length).toBeGreaterThan(0);
-    expect(buttons.every((b) => !["радость", "грусть", "злость"].includes(b.textContent))).toBe(true);
+    const buttons = Array.from(container.querySelectorAll(".emotion-situation__option"));
+    expect(buttons).toHaveLength(tasks[0].options.length);
+    expect(container.querySelectorAll(".choose-word-btn")).toHaveLength(0);
+    expect(container.querySelector(".emotion-situation__prompt .card-area")).not.toBeNull();
   });
 
   it("clicking the correct situation option fires onCorrect", () => {
@@ -50,8 +51,8 @@ describe("emotion_situation — mounted through the real (unmodified) ChooseWord
     let correctCall = null;
     mount(task, { onCorrect: (...args) => { correctCall = args; }, onIncorrect: () => { throw new Error("should not fire"); } });
 
-    const targetLabel = task.options.find((o) => o.isTarget).label;
-    const btn = Array.from(container.querySelectorAll(".choose-word-btn")).find((b) => b.textContent === targetLabel);
+    const targetIndex = task.options.findIndex((o) => o.isTarget);
+    const btn = container.querySelectorAll(".emotion-situation__option")[targetIndex];
     expect(btn, "target option button not found").toBeTruthy();
     act(() => btn.click());
 

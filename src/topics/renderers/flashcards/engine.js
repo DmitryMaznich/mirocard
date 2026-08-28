@@ -173,10 +173,22 @@ function generateEmotionSituationTasks(displayConcepts, allCards, params) {
         const candidates = situationCards.filter((sc) => sc.conceptId === cid);
         if (candidates.length === 0) return null;
         const pick = candidates[Math.floor(Math.random() * candidates.length)];
-        return { label: pick.label, conceptId: cid, isTarget: false };
+        return {
+          id: pick.id,
+          label: pick.label,
+          sceneImage: pick.sceneImage ?? null,
+          conceptId: cid,
+          isTarget: false,
+        };
       })
       .filter(Boolean);
-    const targetOption = { label: situationCard.label, conceptId: situationCard.conceptId, isTarget: true };
+    const targetOption = {
+      id: situationCard.id,
+      label: situationCard.label,
+      sceneImage: situationCard.sceneImage ?? null,
+      conceptId: situationCard.conceptId,
+      isTarget: true,
+    };
     tasks.push({
       type: "emotion_situation",
       conceptId: situationCard.conceptId,

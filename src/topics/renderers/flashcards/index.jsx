@@ -274,6 +274,51 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
   );
 }
 
+function SituationOption({ option, topicId, onClick }) {
+  const url = useTopicFile(topicId, option.sceneImage);
+  return (
+    <button className="find-n-option emotion-situation__option" onClick={() => onClick(option)}>
+      {url
+        ? <img className="find-n-option__img" src={url} alt="" draggable={false} />
+        : <div className="find-n-option__img find-n-option__img--loading" />
+      }
+    </button>
+  );
+}
+
+function EmotionSituationTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  useEffect(() => {
+    onCardShown?.(task.card?.id, task.conceptId);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleOption(option) {
+    onTap?.(option.id, option.isTarget);
+    if (option.isTarget) onCorrect(task.conceptId, task.card.id);
+    else                 onIncorrect(task.conceptId, task.card.id);
+  }
+
+  const cols = 2;
+  const rows = Math.ceil(task.options.length / cols);
+
+  return (
+    <div className="session-body session-body--find-n session-body--emotion-situation" style={{ "--rows": rows }}>
+      <div className="emotion-situation__prompt">
+        <div className="session-instruction">Когда так бывает?</div>
+        <CardArea topicId={topicId} card={task.card} />
+      </div>
+      <div className="emotion-situation__choices">
+        <div className="find-n-grid" style={{ "--cols": cols }}>
+          <div className="find-n-inner">
+            {task.options.map((option) => (
+              <SituationOption key={option.id} option={option} topicId={topicId} onClick={handleOption} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChooseWordTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
   useEffect(() => {
     onCardShown?.(task.card?.id, task.conceptId);
@@ -379,7 +424,7 @@ const TASK_RENDERERS = {
   find_n:                 FindNTask,
   situation_emotion:      FindNTask,
   situation_intro:        SituationIntroTask,
-  emotion_situation:      ChooseWordTask,
+  emotion_situation:      EmotionSituationTask,
   choose_word_by_picture: ChooseWordTask,
   choose_all:             ChooseAllTask,
 };
