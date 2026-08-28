@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { ALL_CARDS } from "./spatial-prepositions-content.mjs";
 
 const TOPIC_ID = "spatial_prepositions_ru";
-const VERSION = "0.13.0";
+const VERSION = "0.14.0";
 const ZIP_PATH = `public/decks/${TOPIC_ID}_v${VERSION}.zip`;
 const ASSET_DIR = "public/decks/_assets/spatial_prepositions";
 const AUDIO_DIR = "public/decks/_audio_src/spatial_prepositions_ru";
@@ -44,16 +44,6 @@ const MODE_ICONS = {
       <path d="M92 91c4 3 7 7 7 12M99 86c7 5 11 11 11 18" stroke="#2E8A63" stroke-width="6" stroke-linecap="round"/>
     </svg>`,
   },
-  transfer: {
-    path: "media/mode_transfer.svg",
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-      <rect width="128" height="128" rx="32" fill="#F2ECFB"/>
-      <rect x="27" y="35" width="47" height="57" rx="8" fill="#fff" stroke="#8061B8" stroke-width="7"/>
-      <circle cx="42" cy="51" r="6" fill="#E9B850"/>
-      <path d="m34 82 12-14 9 9 8-8 8 13" stroke="#8061B8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M78 62h21m-8-9 9 9-9 9" stroke="#2E8A63" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
-  },
 };
 
 const RELATIONS_PARAM = {
@@ -66,6 +56,19 @@ const RELATIONS_PARAM = {
     ru: {
       text: "Оставьте «Все» или выберите один либо несколько предлогов. В выбранном наборе отношения чередуются.",
       tip: "Для знакомства обычно начинают с одного предлога, а затем добавляют уже знакомые отношения.",
+    },
+  },
+};
+
+const CARDS_PER_RELATION_PARAM = {
+  type: "enum",
+  label: { ru: "Карточек на предлог" },
+  values: ["5", "10"],
+  labels: { ru: { "5": "5", "10": "10" } },
+  default: "5",
+  info: {
+    ru: {
+      text: "10 добавляет второй набор фотографий с теми же предлогами.",
     },
   },
 };
@@ -124,6 +127,7 @@ const topic = {
       },
       params: {
         relations: RELATIONS_PARAM,
+        cardsPerRelation: CARDS_PER_RELATION_PARAM,
       },
     },
     {
@@ -141,6 +145,7 @@ const topic = {
       },
       params: {
         relations: RELATIONS_PARAM,
+        cardsPerRelation: CARDS_PER_RELATION_PARAM,
         answerOptions: {
           type: "enum",
           label: { ru: "Варианты ответа" },
@@ -153,23 +158,6 @@ const topic = {
             },
           },
         },
-      },
-    },
-    {
-      id: "transfer",
-      type: "spatial_transfer",
-      evaluation: "auto",
-      loop: true,
-      reshuffleOnLoop: true,
-      hideConceptPicker: true,
-      requirePin: false,
-      ui: {
-        title: { ru: "Новые картинки" },
-        instruction: { ru: "Покажи отношение на новой фотографии" },
-        icon: MODE_ICONS.transfer.path,
-      },
-      params: {
-        relations: RELATIONS_PARAM,
       },
     },
   ],

@@ -45,9 +45,12 @@ function interleaveRelations(cards, relations) {
   return mixed;
 }
 
-function selectedCards(cards, params, phase = "core") {
+function selectedCards(cards, params, { phase = "core", includeTransfer = false } = {}) {
+  const phases = includeTransfer && Number(params?.cardsPerRelation) === 10
+    ? new Set(["core", "transfer"])
+    : new Set([phase]);
   return interleaveRelations(
-    cards.filter((card) => (card.phase ?? "core") === phase),
+    cards.filter((card) => phases.has(card.phase ?? "core")),
     requestedRelations(params),
   );
 }
@@ -61,8 +64,8 @@ function buildIntroductionTasks(cards, params) {
   }));
 }
 
-function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phase = "core" } = {}) {
-  const sourceCards = selectedCards(cards, params, phase);
+function buildRecognitionTasks(cards, params, { type = "spatial_recognize", phase = "core", includeTransfer = true } = {}) {
+  const sourceCards = selectedCards(cards, params, { phase, includeTransfer });
 
   return sourceCards.map((card, index) => {
     const target = { id: "target", image: card.image, isTarget: true };
@@ -96,7 +99,7 @@ function responseDistractor(card, cards, relation) {
 
 function buildResponseTasks(cards, params) {
   const optionCount = Number(params?.answerOptions) === 4 ? 4 : 2;
-  return selectedCards(cards, params).map((card, index) => {
+  return selectedCards(cards, params, { includeTransfer: true }).map((card, index) => {
     // Use the paired scene as the distractor.  The child therefore chooses
     // between two verbal descriptions of the same object and setting, rather
     // than being led by a change of object or background.
@@ -135,7 +138,8 @@ export function generateTasks(mode, cards, _sessionSize, params = {}) {
     case "spatial_introduction": return buildIntroductionTasks(cards, params);
     case "spatial_recognize": return buildRecognitionTasks(cards, params);
     case "spatial_respond": return buildResponseTasks(cards, params);
-    case "spatial_transfer": return buildRecognitionTasks(cards, params, { type: "spatial_transfer", phase: "transfer" });
+    // Keep existing installations that still have the retired mode playable.
+    case "spatial_transfer": return buildRecognitionTasks(cards, params, { type: "spatial_transfer", phase: "transfer", includeTransfer: false });
     default: return [];
   }
 }

@@ -73,21 +73,36 @@ describe("spatial prepositions engine", () => {
     expect(tasks.map((task) => task.card.id)).toEqual(["near-1", "near-2"]);
   });
 
-  it("uses transfer cards only in the new-pictures mode", () => {
+  it("adds the second picture set to «Покажи» and «Ответь» only when 10 is selected", () => {
     const transferCards = [
       ...cards,
-      { id: "in-transfer", conceptId: "spatial_in", relation: "in", phase: "transfer", image: "in-transfer", contrastImage: "out-transfer" },
-      { id: "under-transfer", conceptId: "spatial_under", relation: "under", phase: "transfer", image: "under-transfer", contrastImage: "on-transfer" },
+      { id: "in-transfer", conceptId: "spatial_in", relation: "in", phrase: "в коробке", phase: "transfer", image: "in-transfer", contrastImage: "near-transfer" },
+      { id: "near-transfer", conceptId: "spatial_near", relation: "near", phrase: "рядом с коробкой", phase: "transfer", image: "near-transfer", contrastImage: "in-transfer" },
+      { id: "on-transfer", conceptId: "spatial_on", relation: "on", phrase: "на столе", phase: "transfer", image: "on-transfer", contrastImage: "under-transfer" },
+      { id: "under-transfer", conceptId: "spatial_under", relation: "under", phrase: "под столом", phase: "transfer", image: "under-transfer", contrastImage: "on-transfer" },
     ];
 
-    const tasks = generateTasks(
-      { type: "spatial_transfer" },
+    const standardShowTasks = generateTasks(
+      { type: "spatial_recognize" },
       transferCards,
       500,
-      { relations: ["spatial_in", "spatial_under"] },
+      { relations: ["spatial_in"] },
+    );
+    const extendedShowTasks = generateTasks(
+      { type: "spatial_recognize" },
+      transferCards,
+      500,
+      { relations: ["spatial_in"], cardsPerRelation: "10" },
+    );
+    const extendedResponseTasks = generateTasks(
+      { type: "spatial_respond" },
+      transferCards,
+      500,
+      { relations: ["spatial_under"], cardsPerRelation: "10" },
     );
 
-    expect(tasks.map((task) => task.card.id)).toEqual(expect.arrayContaining(["in-transfer", "under-transfer"]));
-    expect(tasks).toHaveLength(2);
+    expect(standardShowTasks.map((task) => task.card.id)).not.toContain("in-transfer");
+    expect(extendedShowTasks.map((task) => task.card.id)).toContain("in-transfer");
+    expect(extendedResponseTasks.map((task) => task.card.id)).toContain("under-transfer");
   });
 });
