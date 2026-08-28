@@ -251,6 +251,26 @@ describe("generateTasks — emotion_situation", () => {
   });
 });
 
+describe("generateTasks — emotion_control", () => {
+  const CARDS = [
+    { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
+    { id: "sad_1", conceptId: "sadness", primary: true, label: "грусть", image: "media/sad_1.webp" },
+    { id: "anger_1", conceptId: "anger", primary: true, label: "злость", image: "media/anger_1.webp" },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+
+  it("keeps all topic labels as answer options even for a narrowed target session", () => {
+    const [joyConcept] = CONCEPTS.filter((concept) => concept.conceptId === "joy");
+    const tasks = generateTasks("emotion_control", [joyConcept], CARDS, {});
+
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].options.map((option) => option.label).sort()).toEqual(["грусть", "злость", "радость"]);
+    expect(tasks[0].options.filter((option) => option.isTarget)).toEqual([
+      expect.objectContaining({ conceptId: "joy", label: "радость" }),
+    ]);
+  });
+});
+
 describe("generateTasks — yes_no", () => {
   it("generates repsPerConcept tasks per photo variation", () => {
     const tasks = generateTasks("yes_no", ALL_CONCEPTS, CARDS, { repsPerConcept: 2 });

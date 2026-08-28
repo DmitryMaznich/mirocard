@@ -12417,6 +12417,74 @@ button {
   box-shadow: 0 2px 6px rgba(38, 49, 49, 0.08);
 }
 
+/* “What does the child feel?” is the end-of-topic check: the child first
+   names the emotion aloud, then confirms it among the complete vocabulary. */
+.session-body--emotion-control {
+  container-type: size;
+  justify-content: flex-start;
+  gap: clamp(8px, 1.5cqh, 14px);
+  padding: clamp(8px, 1.8cqh, 16px);
+}
+.emotion-control__prompt {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 1cqh, 10px);
+}
+.session-body--emotion-control .session-instruction {
+  font-size: clamp(1.2rem, 3dvh, 1.6rem);
+  font-weight: 800;
+}
+.emotion-control__prompt .card-area {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.session-body--emotion-control .emotion-control__prompt .card-img {
+  width: min(100%, min(430px, 45cqh));
+  max-height: 100%;
+  border: 1px solid rgba(38, 49, 49, 0.1);
+  box-shadow: 0 8px 24px rgba(38, 49, 49, 0.09);
+}
+.emotion-control__hint {
+  font-size: clamp(0.82rem, 2.1dvh, 1rem);
+  color: #5c6d6b;
+  text-align: center;
+  flex-shrink: 0;
+}
+.emotion-control__choices {
+  flex: 0 1 clamp(230px, 42cqh, 360px);
+  min-height: 0;
+  width: min(100%, 560px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: clamp(6px, 1cqh, 10px);
+}
+.emotion-control__choice {
+  min-height: 0;
+  border: 2px solid rgba(38, 49, 49, 0.12);
+  border-radius: 14px;
+  background: #fff;
+  color: #263131;
+  box-shadow: 0 3px 10px rgba(38, 49, 49, 0.07);
+  font: inherit;
+  font-size: clamp(0.92rem, 2.35dvh, 1.15rem);
+  font-weight: 750;
+  line-height: 1.1;
+  cursor: pointer;
+  padding: 6px 10px;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.emotion-control__choice:active {
+  transform: scale(0.98);
+  border-color: rgba(45, 111, 181, 0.55);
+  box-shadow: 0 2px 6px rgba(38, 49, 49, 0.08);
+}
+
 @media (orientation: landscape) {
   .session-body--situation {
     flex-direction: row;
@@ -12450,6 +12518,23 @@ button {
   }
   .emotion-situation__choices {
     flex: 1 1 42%;
+    width: auto;
+  }
+  .session-body--emotion-control {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: clamp(12px, 2vw, 24px);
+    padding: clamp(12px, 2vw, 24px);
+  }
+  .emotion-control__prompt {
+    flex: 1 1 54%;
+  }
+  .session-body--emotion-control .emotion-control__prompt .card-img {
+    width: min(100%, 62cqh);
+  }
+  .emotion-control__choices {
+    flex: 1 1 46%;
     width: auto;
   }
 }

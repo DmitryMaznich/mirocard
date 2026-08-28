@@ -17,6 +17,25 @@ function generateIntroTasks(concepts) {
   return shuffle(tasks);
 }
 
+// A control task keeps the productive prompt (“name the emotion”) but makes
+// the answer observable: every concept in the topic is offered as a word.
+// The active session may be narrowed to selected targets, while its answer
+// bank remains the full topic vocabulary.
+function generateEmotionControlTasks(displayConcepts, allCards) {
+  const answerOptions = allCards
+    .filter((card) => card.primary && card.cardType !== "situation" && card.label)
+    .map((card) => ({ conceptId: card.conceptId, label: card.label }));
+
+  return generateIntroTasks(displayConcepts).map((task) => ({
+    ...task,
+    type: "emotion_control",
+    options: shuffle(answerOptions.map((option) => ({
+      ...option,
+      isTarget: option.conceptId === task.conceptId,
+    }))),
+  }));
+}
+
 function filterByTaskKind(concepts, kind) {
   return concepts.filter((concept) => concept.cards.some((card) => card.taskKind === kind));
 }
@@ -359,6 +378,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
     case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards, params);
     case "emotion_situation":      return generateEmotionSituationTasks(displayConcepts, allCards, params);
+    case "emotion_control":        return generateEmotionControlTasks(displayConcepts, allCards);
     case "question_answer":        return generateIntroTasks(displayConcepts).map((t) => ({ ...t, type: "question_answer" }));
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
     case "find_n":                 return generateFindNTasks(displayConcepts, params);

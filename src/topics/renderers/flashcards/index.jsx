@@ -178,6 +178,39 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   );
 }
 
+function EmotionControlTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  useEffect(() => {
+    onCardShown?.(task.card?.id, task.conceptId);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleOption(option) {
+    onTap?.(option.conceptId, option.isTarget);
+    if (option.isTarget) onCorrect(task.conceptId, task.card.id);
+    else                 onIncorrect(task.conceptId, task.card.id);
+  }
+
+  return (
+    <div className="session-body session-body--emotion-control">
+      <div className="emotion-control__prompt">
+        <div className="session-instruction">Что чувствует?</div>
+        <CardArea topicId={topicId} card={task.card} />
+        <div className="emotion-control__hint">Назови эмоцию и выбери ответ.</div>
+      </div>
+      <div className="emotion-control__choices">
+        {task.options.map((option) => (
+          <button
+            key={option.conceptId}
+            className="emotion-control__choice"
+            onClick={() => handleOption(option)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function YesNoTask({ task, mode, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
   const [result, setResult] = useState(null); // null | "correct" | "incorrect"
 
@@ -425,6 +458,7 @@ const TASK_RENDERERS = {
   situation_emotion:      FindNTask,
   situation_intro:        SituationIntroTask,
   emotion_situation:      EmotionSituationTask,
+  emotion_control:        EmotionControlTask,
   choose_word_by_picture: ChooseWordTask,
   choose_all:             ChooseAllTask,
 };
