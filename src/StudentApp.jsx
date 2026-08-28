@@ -11,6 +11,7 @@ import { listTopicRecords, importTopic } from "@/topics/topicLoader";
 import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
 import { clearActiveSessionSnapshot as clearPersistedSessionSnapshot } from "@/features/session/activeSession";
 import { saveShoppingPlan } from "@/core/groupStore";
+import { semver } from "@/shared/utils/semver";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 
@@ -132,17 +133,20 @@ export default function StudentApp({ token, isStandalone = false, fromLink = fal
       ];
       useAppStore.setState({ topicRecords: allRecords });
 
-      // If the active topic is not installed, download it from the static catalog
+      // Keep the active catalog topic current. Topic records are stored locally so
+      // that a student can work offline, but that cache must not hide a newer deck.
       const activeTopicId = data.activeTask?.topicId;
-      const alreadyHave = !activeTopicId || allRecords.some((r) => r.meta.id === activeTopicId);
-
-      if (!alreadyHave) {
+      if (activeTopicId) {
         try {
-          const catalogResp = await fetch("/decks/catalog.json");
+          const catalogResp = await fetch("/decks/catalog.json", { cache: "no-store" });
           const catalog = await catalogResp.json();
           const deck = catalog.decks.find((d) => d.id === activeTopicId);
-          if (deck) {
-            const zipResp = await fetch(deck.url);
+          const installedRecord = allRecords.find((r) => r.meta.id === activeTopicId);
+          const needsInstall = !installedRecord
+            || (deck?.version && semver.lt(installedRecord.meta.version ?? "0.0.0", deck.version));
+
+          if (deck && needsInstall) {
+            const zipResp = await fetch(deck.url, { cache: "no-store" });
             const zipBuffer = await zipResp.arrayBuffer();
             const record = await importTopic(db, zipBuffer);
             allRecords = [
@@ -152,7 +156,7 @@ export default function StudentApp({ token, isStandalone = false, fromLink = fal
             useAppStore.setState({ topicRecords: allRecords });
           }
         } catch {
-          // Download failed — session screens will show "topic not found"
+          // Download failed — keep the installed version available offline.
         }
       }
 
