@@ -57,7 +57,7 @@ describe("situation_emotion — mounted through the real FindNTask", () => {
   });
 
   it("renders the mode's own instruction, separately from the situation sentence", () => {
-    const task = generateTasks("situation_emotion", CONCEPTS, CARDS, {})[0];
+    const task = generateTasks("situation_emotion", CONCEPTS, CARDS, {}).find((item) => item.targetConceptId === "joy");
     mount(task, { onCorrect: () => {}, onIncorrect: () => {} });
     const instructionEl = container.querySelector(".situation-emotion__question");
     expect(instructionEl?.textContent).toBe("Прочитай ситуацию и выбери подходящую эмоцию");
