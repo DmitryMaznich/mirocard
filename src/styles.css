@@ -12917,6 +12917,13 @@ kbd {
   text-align: center;
   flex-shrink: 0;
 }
+.choose-all-progress {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5c6d6b;
+  text-align: center;
+  flex-shrink: 0;
+}
 .choose-all-grid {
   flex: 1;
   min-height: 0;

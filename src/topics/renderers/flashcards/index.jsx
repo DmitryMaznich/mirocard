@@ -443,12 +443,14 @@ function ChooseAllTask({ task, topicId, onCorrect, onIncorrect }) {
 
   const cols = task.allCards.length === 9 ? 3 : 2;
   const rows = Math.ceil(task.allCards.length / cols);
+  const foundCount = task.targetCardIds.filter((id) => marks[id] === "correct").length;
 
   return (
     <div className="session-body">
       <div className="choose-all-instruction">
         Найди все: <strong>{task.targetLabel}</strong>
       </div>
+      <div className="choose-all-progress">Найдено {foundCount} из {task.targetCardIds.length}</div>
       <div className="choose-all-grid" style={{ "--cols": cols, "--rows": rows }}>
         <div className="choose-all-inner">
         {task.allCards.map((card) => (
