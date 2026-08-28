@@ -49,12 +49,27 @@ export function useAppUpdate() {
         if (version && version !== "unknown" && version !== CURRENT_VERSION) {
           setHasUpdate(true);
           // This only runs right as the app becomes visible again, not
-          // mid-interaction, so a reload here doesn't cost an in-progress
+          // mid-interaction, so handing off here doesn't cost an in-progress
           // exercise — except when one is actually running (screen ===
           // "session"), where we still only raise the indicator.
-          if (useAppStore.getState().screen !== "session") {
-            _internals.reload();
+          if (useAppStore.getState().screen === "session") return;
+          // A bare reload does NOT hand control to a newer worker — the
+          // still-active old one keeps serving the reloaded page through its
+          // own (stale) fetch handler, so nothing actually changes. This was
+          // confirmed live: chrome://serviceworker-internals showed the same
+          // active Version ID days apart despite dozens of deploys and
+          // repeated reloads via this path. update() first gives the browser
+          // a chance to finish installing the newest worker, then SKIP_WAITING
+          // it — the controllerchange listener below does the actual reload
+          // once the new worker has really taken over.
+          if (currentReg) {
+            await currentReg.update().catch(() => {});
+            if (currentReg.waiting) {
+              currentReg.waiting.postMessage({ type: "SKIP_WAITING" });
+              return;
+            }
           }
+          _internals.reload();
         }
       } catch {
         // Best-effort — the registration-based checks above still apply.
@@ -96,7 +111,14 @@ export function useAppUpdate() {
     } catch {
       // A manual refresh still gives the browser a chance to load the newest app shell.
     }
-    window.location.reload();
+    // update() resolving doesn't guarantee the newly-found worker has
+    // finished installing yet — check again rather than reloading straight
+    // into the same still-active old worker.
+    if (reg?.waiting) {
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      return;
+    }
+    _internals.reload();
   }, [reg]);
 
   return { hasUpdate, applyUpdate };

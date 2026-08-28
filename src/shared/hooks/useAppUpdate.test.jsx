@@ -145,6 +145,32 @@ describe("useAppUpdate", () => {
     expect(reloadSpy).toHaveBeenCalled();
   });
 
+  it("hands off via SKIP_WAITING instead of reloading directly, once update() actually finds a new worker", async () => {
+    // This is the bug that shipped: a bare reload keeps being served by the
+    // same still-active old worker, so the version never actually changes no
+    // matter how many times it "reloads" — chrome://serviceworker-internals
+    // showed the identical active Version ID days apart despite this path
+    // running repeatedly. Confirmed here at the visibility-resume trigger,
+    // where currentReg is reliably populated (unlike the very first
+    // mount-time check, which can still race registration.ready).
+    const reg = makeFakeRegistration();
+    await mountWithRegistration(reg);
+
+    const postMessage = vi.fn();
+    reg.update = vi.fn().mockImplementation(() => {
+      reg.waiting = { postMessage };
+      return Promise.resolve();
+    });
+    api.get.mockResolvedValue({ version: "1.0.9999" });
+
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    expect(postMessage).toHaveBeenCalledWith({ type: "SKIP_WAITING" });
+    expect(reloadSpy).not.toHaveBeenCalled();
+  });
+
   it("ignores an 'unknown' server version rather than treating it as a mismatch", async () => {
     api.get.mockResolvedValue({ version: "unknown" });
     const reg = makeFakeRegistration();
