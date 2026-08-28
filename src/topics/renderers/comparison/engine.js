@@ -201,7 +201,11 @@ function realLifeTaskFromScene(scene) {
       : `У ${scene.nameB} ${where}больше ${scene.item}, чем у ${scene.nameA}.`;
   return {
     left: scene.left, right: scene.right,
+    // nameA/nameB stay genitive (for "У ..." sentences above); nameANom/
+    // nameBNom are the plain nominative form ("Петя", not "Пети") for
+    // labeling the character directly on the scene image.
     nameA: scene.nameA, nameB: scene.nameB,
+    nameANom: scene.nameANom, nameBNom: scene.nameBNom,
     genderA: scene.genderA, genderB: scene.genderB,
     item: scene.item, containerPhrase: scene.containerPhrase,
     question, instruction, verdictText, image: scene.image,

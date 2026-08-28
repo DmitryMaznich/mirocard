@@ -9,17 +9,24 @@ function correctAnswerFor(task) {
 
 function Scene({ task, answered, correctAnswer, picked }) {
   return (
-    <div className="reallife-scene" style={{ backgroundImage: `url(${task.image})` }}>
-      <div className={[
-        "reallife-side",
-        answered && correctAnswer === "a" && "reallife-side--correct",
-        answered && picked === "a" && correctAnswer !== "a" && "reallife-side--wrong",
-      ].filter(Boolean).join(" ")} />
-      <div className={[
-        "reallife-side",
-        answered && correctAnswer === "b" && "reallife-side--correct",
-        answered && picked === "b" && correctAnswer !== "b" && "reallife-side--wrong",
-      ].filter(Boolean).join(" ")} />
+    <div className="reallife-scene">
+      <img className="reallife-scene-img" src={task.image} alt="" draggable={false} />
+      <div className="reallife-overlay">
+        <div className={[
+          "reallife-side",
+          answered && correctAnswer === "a" && "reallife-side--correct",
+          answered && picked === "a" && correctAnswer !== "a" && "reallife-side--wrong",
+        ].filter(Boolean).join(" ")}>
+          <span className="reallife-tag">{task.nameANom}</span>
+        </div>
+        <div className={[
+          "reallife-side",
+          answered && correctAnswer === "b" && "reallife-side--correct",
+          answered && picked === "b" && correctAnswer !== "b" && "reallife-side--wrong",
+        ].filter(Boolean).join(" ")}>
+          <span className="reallife-tag">{task.nameBNom}</span>
+        </div>
+      </div>
     </div>
   );
 }

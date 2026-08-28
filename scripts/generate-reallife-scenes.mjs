@@ -88,7 +88,7 @@ resolution.`;
 const SCENES = [
   {
     id: "apples_petya_masha", item: "яблок", left: 3, right: 7,
-    nameA: "Пети", genderA: "boy", nameB: "Маши", genderB: "girl",
+    nameA: "Пети", nameANom: "Петя", genderA: "boy", nameB: "Маши", nameBNom: "Маша", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: a cozy home kitchen with a built-in wood counter whose solid front panel
@@ -111,7 +111,7 @@ they are individually countable, not overlapping into a blob.`,
   },
   {
     id: "apples_lyosha_ksyusha", item: "яблок", left: 6, right: 2,
-    nameA: "Лёши", genderA: "boy", nameB: "Ксюши", genderB: "girl",
+    nameA: "Лёши", nameANom: "Лёша", genderA: "boy", nameB: "Ксюши", nameBNom: "Ксюша", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: the same style of cozy home kitchen, a built-in wood counter whose solid
@@ -134,7 +134,7 @@ they are individually countable, not overlapping into a blob.`,
   },
   {
     id: "candies_kostya_anya", item: "конфет", left: 8, right: 3,
-    nameA: "Кости", genderA: "boy", nameB: "Ани", genderB: "girl",
+    nameA: "Кости", nameANom: "Костя", genderA: "boy", nameB: "Ани", nameBNom: "Аня", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: a cheerful birthday-party living room, pastel bunting flags strung along
@@ -157,7 +157,7 @@ so they are individually countable, not overlapping into a blob.`,
   },
   {
     id: "candies_roma_nastya", item: "конфет", left: 2, right: 6,
-    nameA: "Ромы", genderA: "boy", nameB: "Насти", genderB: "girl",
+    nameA: "Ромы", nameANom: "Рома", genderA: "boy", nameB: "Насти", nameBNom: "Настя", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: the same style of birthday-party living room, colorful bunting flags, a
@@ -180,7 +180,7 @@ so they are individually countable, not overlapping into a blob.`,
   },
   {
     id: "cars_vanya_sonya", item: "машинок", left: 2, right: 5,
-    nameA: "Вани", genderA: "boy", nameB: "Сони", genderB: "girl",
+    nameA: "Вани", nameANom: "Ваня", genderA: "boy", nameB: "Сони", nameBNom: "Соня", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: a playroom with a round rug that has a simple road/track pattern woven
@@ -201,7 +201,7 @@ arrange the cars so they are individually countable, not overlapping into a blob
   },
   {
     id: "cars_tima_vika", item: "машинок", left: 7, right: 3,
-    nameA: "Тимы", genderA: "boy", nameB: "Вики", genderB: "girl",
+    nameA: "Тимы", nameANom: "Тима", genderA: "boy", nameB: "Вики", nameBNom: "Вика", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: the same style of playroom, a round rug with a road pattern, a window
@@ -222,7 +222,7 @@ arrange the cars so they are individually countable, not overlapping into a blob
   },
   {
     id: "balloons_dima_kira", item: "шариков", left: 5, right: 2,
-    nameA: "Димы", genderA: "boy", nameB: "Киры", genderB: "girl",
+    nameA: "Димы", nameANom: "Дима", genderA: "boy", nameB: "Киры", nameBNom: "Кира", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: a sunny backyard with a short, evenly mowed lawn (flat green grass, not
@@ -247,7 +247,7 @@ blob, each a different bright color.`,
   },
   {
     id: "balloons_seva_polina", item: "шариков", left: 3, right: 8,
-    nameA: "Севы", genderA: "boy", nameB: "Полины", genderB: "girl",
+    nameA: "Севы", nameANom: "Сева", genderA: "boy", nameB: "Полины", nameBNom: "Полина", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: the same style of sunny backyard, a short evenly mowed lawn (flat green
@@ -272,7 +272,7 @@ blob, each a different bright color.`,
   },
   {
     id: "pencils_egor_ira", item: "карандашей", left: 4, right: 9,
-    nameA: "Егора", genderA: "boy", nameB: "Иры", genderB: "girl",
+    nameA: "Егора", nameANom: "Егор", genderA: "boy", nameB: "Иры", nameBNom: "Ира", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: a cozy study corner with a wooden desk whose solid front panel reaches
@@ -296,7 +296,7 @@ pencil a different color.`,
   },
   {
     id: "pencils_maxim_liza", item: "карандашей", left: 6, right: 2,
-    nameA: "Максима", genderA: "boy", nameB: "Лизы", genderB: "girl",
+    nameA: "Максима", nameANom: "Максим", genderA: "boy", nameB: "Лизы", nameBNom: "Лиза", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: the same style of study corner, a wooden desk whose solid front panel
@@ -325,7 +325,7 @@ pencil a different color.`,
   // not a literal count; the prompt below expresses each as a fill level.
   {
     id: "water_artem_dasha", item: "воды", left: 3, right: 7, containerPhrase: "в стакане",
-    nameA: "Артёма", genderA: "boy", nameB: "Даши", genderB: "girl",
+    nameA: "Артёма", nameANom: "Артём", genderA: "boy", nameB: "Даши", nameBNom: "Даша", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: a cozy home kitchen with a built-in wood counter whose solid front panel
@@ -353,7 +353,7 @@ glance: one clearly low, one clearly high.`,
   },
   {
     id: "water_grisha_lyuba", item: "воды", left: 6, right: 2, containerPhrase: "в стакане",
-    nameA: "Гриши", genderA: "boy", nameB: "Любы", genderB: "girl",
+    nameA: "Гриши", nameANom: "Гриша", genderA: "boy", nameB: "Любы", nameBNom: "Люба", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: the same style of cozy home kitchen, a built-in wood counter whose solid
@@ -379,7 +379,7 @@ at a glance.`,
   },
   {
     id: "porridge_matvey_vera", item: "каши", left: 2, right: 8, containerPhrase: "в тарелке",
-    nameA: "Матвея", genderA: "boy", nameB: "Веры", genderB: "girl",
+    nameA: "Матвея", nameANom: "Матвей", genderA: "boy", nameB: "Веры", nameBNom: "Вера", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: a cozy home kitchen breakfast table with a solid wooden tabletop and a
@@ -409,7 +409,7 @@ almost full.`,
   },
   {
     id: "porridge_styopa_olya", item: "каши", left: 7, right: 4, containerPhrase: "в тарелке",
-    nameA: "Стёпы", genderA: "boy", nameB: "Оли", genderB: "girl",
+    nameA: "Стёпы", nameANom: "Стёпа", genderA: "boy", nameB: "Оли", nameBNom: "Оля", genderB: "girl",
     prompt: `${STYLE}
 
 Scene: the same style of cozy kitchen breakfast table, a solid wooden tabletop
@@ -479,7 +479,8 @@ for (const scene of SCENES) {
   const jpeg = await sharp(raw).resize({ width: 900 }).jpeg({ quality: 82 }).toBuffer();
   scenesOut.push({
     id: scene.id, item: scene.item, left: scene.left, right: scene.right,
-    nameA: scene.nameA, genderA: scene.genderA, nameB: scene.nameB, genderB: scene.genderB,
+    nameA: scene.nameA, nameANom: scene.nameANom, genderA: scene.genderA,
+    nameB: scene.nameB, nameBNom: scene.nameBNom, genderB: scene.genderB,
     ...(scene.containerPhrase ? { containerPhrase: scene.containerPhrase } : {}),
     image: `data:image/jpeg;base64,${jpeg.toString("base64")}`,
   });

@@ -362,22 +362,25 @@
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
 /* A single pre-illustrated scene (realLifeScenes.js — both children, both
    item piles, exact counts baked into the picture by the image itself) in
-   place of a procedurally scattered pile. The picture is not interactive;
-   the answer is picked via the three .cfn-btn buttons below it (see
-   compare-body--reallife), and the correct half still highlights on the
-   picture once answered, via the same reallife-side--correct/--wrong
-   overlay this used before the picture existed. */
+   place of a procedurally scattered pile. The whole picture renders at its
+   own aspect ratio (width: 100% up to the cap below, height: auto) instead
+   of being cropped into a fixed-height box — a fixed height forced
+   background-size:cover to crop the top/bottom off every scene. The
+   picture is not interactive; the answer is picked via the three .cfn-btn
+   buttons below it (see compare-body--reallife), and the correct half
+   still highlights on the picture once answered, via the same
+   reallife-side--correct/--wrong overlay this used before the picture
+   existed. */
 .reallife-scene {
   position: relative; z-index: 1;
-  width: 100%; max-width: 400px; height: clamp(230px, 64vw, 300px);
+  width: 100%; max-width: 480px;
   border-radius: 24px;
   border: 3px solid #e0e0e0;
   box-shadow: 0 4px 20px rgba(0,0,0,0.10);
-  background-size: cover;
-  background-position: center;
-  display: flex;
   overflow: hidden;
 }
+.reallife-scene-img { display: block; width: 100%; height: auto; }
+.reallife-overlay { position: absolute; inset: 0; display: flex; }
 .reallife-side { position: relative; flex: 1; min-width: 0; }
 .reallife-side--wrong { animation: shake 0.35s; }
 .reallife-side--correct::after {
@@ -387,8 +390,17 @@
 .reallife-side:first-child.reallife-side--correct::after { border-radius: 21px 0 0 21px; }
 .reallife-side:last-child.reallife-side--correct::after  { border-radius: 0 21px 21px 0; }
 
-.compare-body--reallife .cfn-options { flex-direction: row; max-width: 400px; }
-.compare-body--reallife .cfn-btn { min-height: 56px; flex: 1; font-size: clamp(14px, 3.6vw, 17px); padding: 0 6px; }
+.reallife-tag {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2;
+  background: rgba(255,255,255,0.88); backdrop-filter: blur(3px);
+  border: 2px solid rgba(226,232,240,0.9); border-radius: 999px; padding: 3px 14px; white-space: nowrap;
+  font-size: clamp(13px, 3.2vw, 17px); font-weight: 800; color: #475569;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.reallife-side--correct .reallife-tag { background: #22c55e; border-color: #16a34a; color: #fff; }
+
+.compare-body--reallife .cfn-options { flex-direction: row; max-width: 480px; }
+.compare-body--reallife .cfn-btn { min-height: 56px; flex: 1; font-size: clamp(14px, 3.6vw, 17px); font-weight: 800; padding: 0 6px; }
 
 /* ── Shared keyframes ────────────────────────────────────────────── */
 @keyframes shake {
@@ -424,14 +436,13 @@
   .apply-prompt-icon  { width: 64px; height: 64px; font-size: 36px; }
   .apply-prompt-value { font-size: 64px; }
 
-  /* CompareRealLife: the 400px max-width below is sized for a phone —
+  /* CompareRealLife: the 480px max-width below is sized for a phone —
      without a tablet override the scene (and the answer buttons under it)
-     stay phone-sized on a much wider screen instead of growing into it. */
-  .reallife-scene {
-    max-width: 640px;
-    height: clamp(280px, 34vw, 420px);
-  }
-  .compare-body--reallife .cfn-options { max-width: 640px; }
+     stay phone-sized on a much wider screen instead of growing into it.
+     No height override needed — .reallife-scene-img's height:auto already
+     follows the wider width at its own aspect ratio. */
+  .reallife-scene { max-width: 720px; }
+  .compare-body--reallife .cfn-options { max-width: 720px; }
   .compare-body--reallife .cfn-btn     { min-height: 68px; font-size: clamp(17px, 2.4vw, 22px); }
 }
 
