@@ -1,6 +1,6 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import FlashcardsRenderer from "./index.jsx";
 import { generateTasks } from "./engine.js";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
@@ -43,15 +43,46 @@ describe("emotion_control — graphical prompt with a full answer bank", () => {
     expect(container.querySelectorAll(".qa-btn")).toHaveLength(0);
   });
 
-  it("selecting the named emotion reports a correct answer", () => {
-    const task = generateTasks("emotion_control", CONCEPTS, CARDS, {}).find((item) => item.conceptId === "joy");
-    let correctCall = null;
-    mount(task, { onCorrect: (...args) => { correctCall = args; }, onIncorrect: () => { throw new Error("should not fire"); } });
+  it("selecting the named emotion highlights it green, then reports a correct answer after the reveal delay", () => {
+    vi.useFakeTimers();
+    try {
+      const task = generateTasks("emotion_control", CONCEPTS, CARDS, {}).find((item) => item.conceptId === "joy");
+      let correctCall = null;
+      mount(task, { onCorrect: (...args) => { correctCall = args; }, onIncorrect: () => { throw new Error("should not fire"); } });
 
-    const targetIndex = task.options.findIndex((option) => option.isTarget);
-    const target = container.querySelectorAll(".emotion-control__choice")[targetIndex];
-    act(() => target.click());
+      const targetIndex = task.options.findIndex((option) => option.isTarget);
+      const target = container.querySelectorAll(".emotion-control__choice")[targetIndex];
+      act(() => target.click());
 
-    expect(correctCall).toEqual(["joy", task.card.id]);
+      expect(target.className).toContain("emotion-control__choice--correct");
+      expect(correctCall).toBeNull();
+
+      act(() => { vi.advanceTimersByTime(1500); });
+      expect(correctCall).toEqual(["joy", task.card.id]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("marks a wrong tap red and still reveals the correct word green", () => {
+    vi.useFakeTimers();
+    try {
+      const task = generateTasks("emotion_control", CONCEPTS, CARDS, {}).find((item) => item.conceptId === "joy");
+      let incorrectCall = null;
+      mount(task, { onCorrect: () => { throw new Error("should not fire"); }, onIncorrect: (...args) => { incorrectCall = args; } });
+
+      const choices = container.querySelectorAll(".emotion-control__choice");
+      const targetIndex = task.options.findIndex((option) => option.isTarget);
+      const wrongIndex = task.options.findIndex((option) => !option.isTarget);
+      act(() => choices[wrongIndex].click());
+
+      expect(choices[wrongIndex].className).toContain("emotion-control__choice--wrong");
+      expect(choices[targetIndex].className).toContain("emotion-control__choice--correct");
+
+      act(() => { vi.advanceTimersByTime(1500); });
+      expect(incorrectCall).toEqual(["joy", task.card.id]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -193,14 +193,22 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
 }
 
 function EmotionControlTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  const [result, setResult] = useState(null); // null | { conceptId, outcome: "correct" | "incorrect" }
+
   useEffect(() => {
+    setResult(null);
     onCardShown?.(task.card?.id, task.conceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleOption(option) {
+    if (result) return;
     onTap?.(option.conceptId, option.isTarget);
-    if (option.isTarget) onCorrect(task.conceptId, task.card.id);
-    else                 onIncorrect(task.conceptId, task.card.id);
+    const outcome = option.isTarget ? "correct" : "incorrect";
+    setResult({ conceptId: option.conceptId, outcome });
+    setTimeout(() => {
+      if (option.isTarget) onCorrect(task.conceptId, task.card.id);
+      else                 onIncorrect(task.conceptId, task.card.id);
+    }, 1500);
   }
 
   return (
@@ -211,15 +219,21 @@ function EmotionControlTask({ task, topicId, onCorrect, onIncorrect, onCardShown
         <div className="emotion-control__hint">Назови эмоцию и выбери ответ.</div>
       </div>
       <div className="emotion-control__choices">
-        {task.options.map((option) => (
-          <button
-            key={option.conceptId}
-            className="emotion-control__choice"
-            onClick={() => handleOption(option)}
-          >
-            {option.label}
-          </button>
-        ))}
+        {task.options.map((option) => {
+          const isTappedWrong = result?.conceptId === option.conceptId && result.outcome === "incorrect";
+          const revealCorrect  = Boolean(result) && option.isTarget;
+          const stateClass = revealCorrect ? " emotion-control__choice--correct" : isTappedWrong ? " emotion-control__choice--wrong" : "";
+          return (
+            <button
+              key={option.conceptId}
+              className={`emotion-control__choice${stateClass}`}
+              disabled={!!result}
+              onClick={() => handleOption(option)}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
