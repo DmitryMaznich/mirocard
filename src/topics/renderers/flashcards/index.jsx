@@ -12,11 +12,25 @@ function getTaskAudioPath(task) {
   return null;
 }
 
+const MOOD_VALENCES = new Set(["positive", "negative", "neutral"]);
+
 function CardImage({ topicId, card }) {
   const url = useTopicFile(topicId, card?.image);
   if (!card?.image) return null;
-  if (!url) return <div className="card-img card-img--loading" />;
-  return <img className="card-img" src={url} alt="" draggable={false} />;
+  const valence = card?.semantic?.group1;
+  const haloClass = MOOD_VALENCES.has(valence) ? ` card-img-wrap--${valence}` : "";
+  if (!url) {
+    return (
+      <span className={`card-img-wrap${haloClass}`}>
+        <div className="card-img card-img--loading" />
+      </span>
+    );
+  }
+  return (
+    <span className={`card-img-wrap${haloClass}`}>
+      <img className="card-img" src={url} alt="" draggable={false} />
+    </span>
+  );
 }
 
 function SituationScene({ topicId, image }) {

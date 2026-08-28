@@ -12286,6 +12286,38 @@ button {
 
 .card-img            { border-radius: 16px; object-fit: cover; }
 .card-img--loading   { background: #f0f0f0; min-width: 120px; min-height: 120px; }
+
+/* card-img-wrap: positioning context for the valence "mood halo". CardImage
+   is only ever used to show a single stimulus card (see index.jsx CardArea
+   usages) — never one tile in a multi-option choice grid — so coloring it
+   by valence can never leak the answer to a choice task. Sized 100%/100%
+   and re-centering its child so every existing `.card-img` sizing rule
+   (which targets the <img> itself, unchanged) keeps resolving against the
+   same box it always did. */
+.card-img-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.card-img-wrap .card-img { position: relative; z-index: 1; }
+.card-img-wrap--positive::before,
+.card-img-wrap--negative::before,
+.card-img-wrap--neutral::before {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  border-radius: 30%;
+  z-index: 0;
+  filter: blur(3px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.card-img-wrap--positive::before { background: radial-gradient(circle, #E2703F 0%, transparent 70%); }
+.card-img-wrap--negative::before { background: radial-gradient(circle, #56628A 0%, transparent 70%); }
+.card-img-wrap--neutral::before  { background: radial-gradient(circle, #C99A3B 0%, transparent 70%); }
 .situation-scene {
   width: min(100%, 360px);
   max-height: 34svh;
