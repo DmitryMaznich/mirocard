@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { generateComparisonTask, generateTasks, getVerdict } from "./engine";
+import { REAL_LIFE_SCENES } from "./realLifeScenes.js";
 
 // generateComparisonTask() takes a raw params object directly — unrelated to
 // the "cards" shape below (cards no longer carry their own min/max/minDiff,
@@ -402,8 +403,8 @@ describe("generateTasks", () => {
   });
 
   describe("compare_real_life", () => {
-    // Draws from the fixed 10-scene bank in realLifeScenes.js (each scene an
-    // illustration with an exact, baked-in left/right count) instead of
+    // Draws from the fixed scene bank in realLifeScenes.js (each scene an
+    // illustration with an exact, baked-in left/right amount) instead of
     // generating arbitrary numbers — level and showEqual no longer apply
     // (ParamsScreen hides both controls for this mode; see isRealLifeMode).
 
@@ -413,14 +414,20 @@ describe("generateTasks", () => {
       tasks.forEach((t) => {
         const real = t.left === t.right ? "equal" : t.left > t.right ? "more" : "less";
         expect(t.question).toBe(real);
-        expect(t.instruction).toBe(`У кого больше ${t.item}?`);
-        if (t.question === "more") expect(t.verdictText).toBe(`У ${t.nameA} больше ${t.item}, чем у ${t.nameB}.`);
-        if (t.question === "less") expect(t.verdictText).toBe(`У ${t.nameB} больше ${t.item}, чем у ${t.nameA}.`);
-        if (t.question === "equal") expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${t.item} поровну.`);
+        // A few scenes compare a continuous amount inside a container (water
+        // in a glass, porridge in a bowl) instead of counting discrete
+        // objects — those carry containerPhrase and thread it into both
+        // strings ("У кого в стакане больше воды?"), everything else uses
+        // the plain "У кого больше X?" object-counting phrasing.
+        const where = t.containerPhrase ? `${t.containerPhrase} ` : "";
+        expect(t.instruction).toBe(`У кого ${where}больше ${t.item}?`);
+        if (t.question === "more") expect(t.verdictText).toBe(`У ${t.nameA} ${where}больше ${t.item}, чем у ${t.nameB}.`);
+        if (t.question === "less") expect(t.verdictText).toBe(`У ${t.nameB} ${where}больше ${t.item}, чем у ${t.nameA}.`);
+        if (t.question === "equal") expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${where}${t.item} поровну.`);
       });
     });
 
-    it("every task carries the scene's image and none of the 10 scenes happens to be a tie", () => {
+    it("every task carries the scene's image and none of the scenes happens to be a tie", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40);
       tasks.forEach((t) => {
         expect(t.left).not.toBe(t.right);
@@ -441,10 +448,11 @@ describe("generateTasks", () => {
       });
     });
 
-    it("cycles through the whole 10-scene bank before any scene repeats", () => {
-      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 10);
+    it("cycles through the whole scene bank before any scene repeats", () => {
+      const bankSize = REAL_LIFE_SCENES.length;
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, bankSize);
       const ids = tasks.map((t) => `${t.item}:${t.left}:${t.right}:${t.nameA}`);
-      expect(new Set(ids).size).toBe(10);
+      expect(new Set(ids).size).toBe(bankSize);
     });
   });
 });

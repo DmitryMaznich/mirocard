@@ -187,16 +187,24 @@ function generateApplyOrderTask(min, max, count, direction) {
 // generateComparisonTask offers other compare_* modes.
 function realLifeTaskFromScene(scene) {
   const question = scene.left === scene.right ? "equal" : scene.left > scene.right ? "more" : "less";
+  // Most scenes count discrete objects ("больше яблок?"); a few compare a
+  // continuous amount inside a container instead (water in a glass, porridge
+  // in a bowl) — those carry containerPhrase ("в стакане") and need it
+  // threaded into both the question and the verdict, or "У кого больше
+  // воды?" reads as if the child should count something.
+  const where = scene.containerPhrase ? `${scene.containerPhrase} ` : "";
+  const instruction = `У кого ${where}больше ${scene.item}?`;
   const verdictText = question === "equal"
-    ? `У ${scene.nameA} и ${scene.nameB} ${scene.item} поровну.`
+    ? `У ${scene.nameA} и ${scene.nameB} ${where}${scene.item} поровну.`
     : question === "more"
-      ? `У ${scene.nameA} больше ${scene.item}, чем у ${scene.nameB}.`
-      : `У ${scene.nameB} больше ${scene.item}, чем у ${scene.nameA}.`;
+      ? `У ${scene.nameA} ${where}больше ${scene.item}, чем у ${scene.nameB}.`
+      : `У ${scene.nameB} ${where}больше ${scene.item}, чем у ${scene.nameA}.`;
   return {
     left: scene.left, right: scene.right,
     nameA: scene.nameA, nameB: scene.nameB,
     genderA: scene.genderA, genderB: scene.genderB,
-    item: scene.item, question, verdictText, image: scene.image,
+    item: scene.item, containerPhrase: scene.containerPhrase,
+    question, instruction, verdictText, image: scene.image,
   };
 }
 
@@ -221,7 +229,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const tasks = [];
     for (let i = 0; i < count; i++) {
       const t = realLifeTaskFromScene(cycle.next().value);
-      tasks.push({ type: mode.type, conceptId: card.conceptId, instruction: `У кого больше ${t.item}?`, allowEqual: true, ...t });
+      tasks.push({ type: mode.type, conceptId: card.conceptId, allowEqual: true, ...t });
     }
     return tasks;
   }

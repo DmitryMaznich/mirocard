@@ -83,7 +83,8 @@ and more square than a wide 16:9 frame — do not leave empty margins at the
 sides), no text, no letters, no logos, no watermark anywhere in the image, high
 resolution.`;
 
-// ── 10 scenes — 2 per item, matching REAL_LIFE_SCENARIOS pairs in engine.js ─
+// ── Round 1: 10 discrete-object scenes — 2 per item, matching the name pairs
+// engine.js used to keep in REAL_LIFE_SCENARIOS before this bank replaced it ─
 const SCENES = [
   {
     id: "apples_petya_masha", item: "яблок", left: 3, right: 7,
@@ -317,6 +318,124 @@ Count must be exact: 6 pencils on the left, 2 pencils on the right — arrange t
 pencils so each one is individually countable, not overlapping into a blob, each
 pencil a different color.`,
   },
+
+  // ── Round 2: continuous-amount scenes (containerPhrase set) — compare how
+  // much is inside a container instead of counting discrete objects. left/
+  // right are still just a relative magnitude (used for correct/incorrect),
+  // not a literal count; the prompt below expresses each as a fill level.
+  {
+    id: "water_artem_dasha", item: "воды", left: 3, right: 7, containerPhrase: "в стакане",
+    nameA: "Артёма", genderA: "boy", nameB: "Даши", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a cozy home kitchen with a built-in wood counter whose solid front panel
+reaches all the way down to the floor, like a closed cabinet base (no legs, not
+floating, no sink, no faucet, no stove — just a clear flat counter surface on top
+of a solid base), a window with soft daylight and a small potted plant. Two
+children stand behind the counter, side by side, facing the viewer, sharing the
+same floor line and light.
+
+Left third of the frame: a boy, about 6 years old, brown hair, wearing a green
+t-shirt, standing next to a tall clear glass on the counter. The glass is filled
+with water to only about 30% of its height — a shallow layer of water at the
+bottom, the rest of the glass empty and clearly visible.
+
+Right third of the frame: a girl, about 6 years old, dark hair in a ponytail,
+wearing a coral dress, standing next to a tall clear glass on the counter,
+identical in shape and size to the boy's glass. This glass is filled with water
+to about 70% of its height — clearly much more full than the other glass, but
+not all the way to the brim.
+
+Both children and both glasses must be clearly visible in one single frame. The
+two glasses must be the exact same shape and size — only the water level differs.
+The difference in water level between the two glasses must be obvious at a
+glance: one clearly low, one clearly high.`,
+  },
+  {
+    id: "water_grisha_lyuba", item: "воды", left: 6, right: 2, containerPhrase: "в стакане",
+    nameA: "Гриши", genderA: "boy", nameB: "Любы", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: the same style of cozy home kitchen, a built-in wood counter whose solid
+front panel reaches all the way down to the floor, like a closed cabinet base
+(no legs, not floating), a window with morning light. Two children stand behind
+the counter, side by side, facing the viewer, sharing the same floor line and
+light.
+
+Left third of the frame: a boy, about 7 years old, dark blond hair, wearing a
+blue-grey shirt, standing next to a tall clear glass on the counter. The glass is
+filled with water to about 60% of its height — clearly more than half full.
+
+Right third of the frame: a girl, about 5 years old, light brown hair with a
+small bow, wearing a yellow dress, standing next to a tall clear glass on the
+counter, identical in shape and size to the boy's glass. This glass is filled
+with water to only about 20% of its height — a thin layer at the bottom, clearly
+much less than the other glass.
+
+Both children and both glasses must be clearly visible in one single frame. The
+two glasses must be the exact same shape and size — only the water level
+differs. The difference in water level between the two glasses must be obvious
+at a glance.`,
+  },
+  {
+    id: "porridge_matvey_vera", item: "каши", left: 2, right: 8, containerPhrase: "в тарелке",
+    nameA: "Матвея", genderA: "boy", nameB: "Веры", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a cozy home kitchen breakfast table with a solid wooden tabletop and a
+front panel that reaches all the way down to the floor, like a closed cabinet
+base (no legs, not floating), a window with soft morning light, a small potted
+plant. Two children stand behind the table, side by side, facing the viewer,
+sharing the same floor line and light.
+
+Left third of the frame: a boy, about 6 years old, dark hair, wearing an orange
+shirt, standing next to a round bowl on the table. The bowl holds a small amount
+of porridge — only about 20% of the bowl is filled, a small pale-yellow mound in
+the center of an otherwise empty bowl. A spoon rests in the bowl, its handle
+leaning against the rim.
+
+Right third of the frame: a girl, about 6 years old, brown hair in two braids,
+wearing a teal dress, standing next to a round bowl on the table, identical in
+shape and size to the boy's bowl. This bowl is filled with porridge to about 80%
+of its capacity — nearly full, a smooth pale-yellow surface close to the rim,
+with a small pat of butter on top. A spoon rests in this bowl too, its handle
+leaning against the rim, matching the boy's spoon in style.
+
+Both children and both bowls must be clearly visible in one single frame, each
+bowl with its own spoon. The two bowls must be the exact same shape and size —
+only the amount of porridge differs. The difference in fill level between the
+two bowls must be obvious at a glance: one clearly almost empty, one clearly
+almost full.`,
+  },
+  {
+    id: "porridge_styopa_olya", item: "каши", left: 7, right: 4, containerPhrase: "в тарелке",
+    nameA: "Стёпы", genderA: "boy", nameB: "Оли", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: the same style of cozy kitchen breakfast table, a solid wooden tabletop
+with a front panel reaching all the way down to the floor, like a closed cabinet
+base (no legs, not floating), a window with soft daylight. Two children stand
+behind the table, side by side, facing the viewer, sharing the same floor line
+and light.
+
+Left third of the frame: a boy, about 7 years old, sandy blond hair, wearing a
+red shirt, standing next to a round bowl on the table. The bowl is filled with
+porridge to about 70% of its capacity — clearly more than half full, a smooth
+pale-yellow surface. A spoon rests in the bowl, its handle leaning against the
+rim.
+
+Right third of the frame: a girl, about 5 years old, dark hair with a small
+flower clip, wearing a pink dress, standing next to a round bowl on the table,
+identical in shape and size to the boy's bowl. This bowl is filled with porridge
+to about 40% of its capacity — clearly less than half full. A spoon rests in
+this bowl too, its handle leaning against the rim, matching the boy's spoon in
+style.
+
+Both children and both bowls must be clearly visible in one single frame, each
+bowl with its own spoon. The two bowls must be the exact same shape and size —
+only the amount of porridge differs. The difference in fill level between the
+two bowls must be obvious at a glance.`,
+  },
 ];
 
 const targets = ONLY_ID ? SCENES.filter((s) => s.id === ONLY_ID) : SCENES;
@@ -361,6 +480,7 @@ for (const scene of SCENES) {
   scenesOut.push({
     id: scene.id, item: scene.item, left: scene.left, right: scene.right,
     nameA: scene.nameA, genderA: scene.genderA, nameB: scene.nameB, genderB: scene.genderB,
+    ...(scene.containerPhrase ? { containerPhrase: scene.containerPhrase } : {}),
     image: `data:image/jpeg;base64,${jpeg.toString("base64")}`,
   });
 }
