@@ -13009,13 +13009,21 @@ kbd {
   height: auto;
   min-height: 52px;
   padding: 10px 14px;
-  border: none;
+  border: 2px solid transparent;
   border-radius: 12px;
   background: #f5f5f5;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 0.1s ease, filter 0.1s ease, background 0.15s, border-color 0.15s;
 }
+.choose-word-btn:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.96);
+}
+.choose-word-btn:disabled { cursor: default; }
+.choose-word-btn--correct { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+.choose-word-btn--wrong   { background: #fef2f2; border-color: #ef4444; color: #b71c1c; }
 
 /* Landscape: square photo flush left, options centered right */
 @media (orientation: landscape) {

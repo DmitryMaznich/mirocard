@@ -356,29 +356,43 @@ function EmotionSituationTask({ task, topicId, onCorrect, onIncorrect, onCardSho
 }
 
 function ChooseWordTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+  const [result, setResult] = useState(null); // null | { optionId, outcome: "correct" | "incorrect" }
+
   useEffect(() => {
+    setResult(null);
     onCardShown?.(task.card?.id, task.conceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleOption(option) {
+    if (result) return;
     onTap?.(option.conceptId, option.isTarget);
-    if (option.isTarget) onCorrect(task.conceptId, task.card.id);
-    else                 onIncorrect(task.conceptId, task.card.id);
+    const outcome = option.isTarget ? "correct" : "incorrect";
+    setResult({ optionId: option.conceptId, outcome });
+    setTimeout(() => {
+      if (option.isTarget) onCorrect(task.conceptId, task.card.id);
+      else                 onIncorrect(task.conceptId, task.card.id);
+    }, 1500);
   }
 
   return (
     <div className="session-body session-body--choose-word">
       <CardArea topicId={topicId} card={task.card} />
       <div className="choose-word-options">
-        {task.options.map((option) => (
-          <button
-            key={option.conceptId}
-            className="choose-word-btn"
-            onClick={() => handleOption(option)}
-          >
-            {option.label}
-          </button>
-        ))}
+        {task.options.map((option) => {
+          const isTappedWrong = result?.optionId === option.conceptId && result.outcome === "incorrect";
+          const revealCorrect  = Boolean(result) && option.isTarget;
+          const stateClass = revealCorrect ? " choose-word-btn--correct" : isTappedWrong ? " choose-word-btn--wrong" : "";
+          return (
+            <button
+              key={option.conceptId}
+              className={`choose-word-btn${stateClass}`}
+              disabled={!!result}
+              onClick={() => handleOption(option)}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
