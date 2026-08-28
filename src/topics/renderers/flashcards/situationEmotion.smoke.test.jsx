@@ -5,11 +5,9 @@ import FlashcardsRenderer from "./index.jsx";
 import { generateTasks } from "./engine.js";
 import { deriveConcepts } from "@/shared/utils/topicUtils";
 
-// Mounts the real, unmodified FindNTask (via FlashcardsRenderer's task.type
-// dispatch) with an actual generateTasks("situation_emotion", ...) task, to
-// confirm the situation sentence renders as the instruction and the correct
-// picture option fires onCorrect - proving the "reuse find_n's UI as-is"
-// design actually holds, not just the task-shape unit tests in engine.test.js.
+// Mounts the real FindNTask (via FlashcardsRenderer's task.type dispatch) with
+// an actual generateTasks("situation_emotion", ...) task. The mode uses a
+// dedicated hierarchy: a prominent situation prompt above a compact answer grid.
 
 const CARDS = [
   { id: "joy_1", conceptId: "joy", primary: true, label: "радость", image: "media/joy_1.webp" },
@@ -54,6 +52,8 @@ describe("situation_emotion — mounted through the real FindNTask", () => {
     const instruction = container.querySelector(".session-instruction");
     expect(instruction?.textContent).toBe("Друг подарил тебе подарок на день рождения.");
     expect(container.querySelector(".situation-scene")).not.toBeNull();
+    expect(container.querySelector(".situation-emotion__prompt")).not.toBeNull();
+    expect(container.querySelector(".situation-emotion__choices")).not.toBeNull();
   });
 
   it("tapping the correct emotion's option fires onCorrect with the target concept and card id", () => {

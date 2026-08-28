@@ -254,13 +254,20 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
 
   return (
     <div className={`session-body session-body--find-n${task.sceneImage ? " session-body--situation" : ""}`} style={{ "--rows": rows }}>
-      <div className="session-instruction">{task.targetLabel}</div>
-      {task.sceneImage && <SituationScene topicId={topicId} image={task.sceneImage} />}
-      <div className="find-n-grid" style={{ "--cols": cols }}>
-        <div className="find-n-inner">
-          {task.options.map((option) => (
-            <FindNOption key={option.card.id} option={option} topicId={topicId} onClick={handleOption} />
-          ))}
+      {task.sceneImage && (
+        <div className="situation-emotion__prompt">
+          <div className="session-instruction">{task.targetLabel}</div>
+          <SituationScene topicId={topicId} image={task.sceneImage} />
+        </div>
+      )}
+      {!task.sceneImage && <div className="session-instruction">{task.targetLabel}</div>}
+      <div className={task.sceneImage ? "situation-emotion__choices" : undefined}>
+        <div className="find-n-grid" style={{ "--cols": cols }}>
+          <div className="find-n-inner">
+            {task.options.map((option) => (
+              <FindNOption key={option.card.id} option={option} topicId={topicId} onClick={handleOption} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

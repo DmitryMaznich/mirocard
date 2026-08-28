@@ -12313,6 +12313,78 @@ button {
 .session-body--situation .session-instruction { transform: none; }
 .session-body--situation .situation-scene { width: min(100%, 220px); max-height: 26cqh; }
 
+/* Situation → emotion has a different learning hierarchy from “find a
+   picture”: the scene is the stimulus to understand, while the faces are
+   answer controls. Keep the scene prominent without making the targets too
+   small to read or tap. */
+.session-body--situation {
+  justify-content: flex-start;
+  gap: clamp(8px, 1.5cqh, 14px);
+  padding: clamp(8px, 1.8cqh, 16px);
+}
+.situation-emotion__prompt {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.2cqh, 12px);
+}
+.session-body--situation .situation-emotion__prompt .session-instruction {
+  font-size: clamp(1.05rem, 2.6dvh, 1.4rem);
+  line-height: 1.25;
+}
+.session-body--situation .situation-emotion__prompt .situation-scene {
+  width: min(100%, min(460px, 55cqh));
+  max-height: none;
+  aspect-ratio: 1 / 1;
+  flex: 0 1 auto;
+  border: 1px solid rgba(38, 49, 49, 0.1);
+  box-shadow: 0 8px 24px rgba(38, 49, 49, 0.09);
+}
+.situation-emotion__choices {
+  flex: 0 1 clamp(170px, 37cqh, 320px);
+  min-height: 0;
+  width: min(100%, 520px);
+}
+.situation-emotion__choices .find-n-grid {
+  height: 100%;
+  padding: 0;
+}
+.situation-emotion__choices .find-n-option {
+  border: 2px solid rgba(38, 49, 49, 0.1);
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(38, 49, 49, 0.08);
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.situation-emotion__choices .find-n-option:active {
+  transform: scale(0.97);
+  border-color: rgba(45, 111, 181, 0.5);
+  box-shadow: 0 2px 6px rgba(38, 49, 49, 0.08);
+}
+
+@media (orientation: landscape) {
+  .session-body--situation {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: clamp(12px, 2vw, 24px);
+    padding: clamp(12px, 2vw, 24px);
+  }
+  .situation-emotion__prompt {
+    flex: 1 1 58%;
+  }
+  .session-body--situation .situation-emotion__prompt .situation-scene {
+    width: min(100%, 62cqh);
+  }
+  .situation-emotion__choices {
+    flex: 1 1 42%;
+    width: auto;
+  }
+}
+
 /* yes/no */
 .yes-no-row {
   display: flex;
