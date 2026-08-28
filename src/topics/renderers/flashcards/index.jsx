@@ -271,7 +271,7 @@ function FindNOption({ option, topicId, onClick }) {
   );
 }
 
-function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+function FindNTask({ task, mode, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
   useEffect(() => {
     onCardShown?.(null, task.targetConceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -291,6 +291,9 @@ function FindNTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }
         <div className="situation-emotion__prompt">
           <div className="session-instruction">{task.targetLabel}</div>
           <SituationScene topicId={topicId} image={task.sceneImage} />
+          {mode?.ui?.instruction && (
+            <div className="situation-emotion__question">{mode.ui.instruction}</div>
+          )}
         </div>
       )}
       {!task.sceneImage && <div className="session-instruction">{task.targetLabel}</div>}

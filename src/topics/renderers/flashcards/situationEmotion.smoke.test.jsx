@@ -38,7 +38,7 @@ describe("situation_emotion — mounted through the real FindNTask", () => {
       root.render(
         <FlashcardsRenderer
           task={task}
-          mode={{ type: "situation_emotion" }}
+          mode={{ type: "situation_emotion", ui: { instruction: "Прочитай ситуацию и выбери подходящую эмоцию" } }}
           onCorrect={onCorrect}
           onIncorrect={onIncorrect}
         />
@@ -54,6 +54,15 @@ describe("situation_emotion — mounted through the real FindNTask", () => {
     expect(container.querySelector(".situation-scene")).not.toBeNull();
     expect(container.querySelector(".situation-emotion__prompt")).not.toBeNull();
     expect(container.querySelector(".situation-emotion__choices")).not.toBeNull();
+  });
+
+  it("renders the mode's own instruction, separately from the situation sentence", () => {
+    const task = generateTasks("situation_emotion", CONCEPTS, CARDS, {})[0];
+    mount(task, { onCorrect: () => {}, onIncorrect: () => {} });
+    const instructionEl = container.querySelector(".situation-emotion__question");
+    expect(instructionEl?.textContent).toBe("Прочитай ситуацию и выбери подходящую эмоцию");
+    // the situation sentence itself must still be on screen, as its own element
+    expect(container.querySelector(".session-instruction")?.textContent).toBe(task.targetLabel);
   });
 
   it("tapping the correct emotion's option fires onCorrect with the target concept and card id", () => {

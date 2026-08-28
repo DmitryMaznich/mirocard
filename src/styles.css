@@ -12336,6 +12336,13 @@ button {
   font-size: clamp(1.05rem, 2.6dvh, 1.4rem);
   line-height: 1.25;
 }
+.situation-emotion__prompt .situation-emotion__question {
+  font-size: clamp(0.92rem, 2.2dvh, 1.15rem);
+  font-weight: 700;
+  color: #2f5b57;
+  text-align: center;
+  line-height: 1.25;
+}
 .session-body--situation .situation-emotion__prompt .situation-scene {
   width: min(100%, min(460px, 55cqh));
   max-height: none;
