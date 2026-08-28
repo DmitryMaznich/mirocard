@@ -423,6 +423,16 @@
   .apply-prompt-card  { gap: 22px; padding: 24px 40px; }
   .apply-prompt-icon  { width: 64px; height: 64px; font-size: 36px; }
   .apply-prompt-value { font-size: 64px; }
+
+  /* CompareRealLife: the 400px max-width below is sized for a phone —
+     without a tablet override the scene (and the answer buttons under it)
+     stay phone-sized on a much wider screen instead of growing into it. */
+  .reallife-scene {
+    max-width: 640px;
+    height: clamp(280px, 34vw, 420px);
+  }
+  .compare-body--reallife .cfn-options { max-width: 640px; }
+  .compare-body--reallife .cfn-btn     { min-height: 68px; font-size: clamp(17px, 2.4vw, 22px); }
 }
 
 /* ── Landscape ───────────────────────────────────────────────────── */
