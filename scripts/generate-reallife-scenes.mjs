@@ -436,6 +436,192 @@ bowl with its own spoon. The two bowls must be the exact same shape and size —
 only the amount of porridge differs. The difference in fill level between the
 two bowls must be obvious at a glance.`,
   },
+
+  // ── Round 3: one genuinely equal scene per item (new name pairs, not
+  // reused from rounds 1-2) — every scene so far has left !== right, so
+  // "Поровну" was never actually the correct answer to tap, only ever a
+  // distractor. left === right on all seven of these.
+  {
+    id: "apples_kirill_alisa", item: "яблок", left: 5, right: 5,
+    nameA: "Кирилла", nameANom: "Кирилл", genderA: "boy", nameB: "Алисы", nameBNom: "Алиса", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a cozy home kitchen with a built-in wood counter whose solid front panel
+reaches all the way down to the floor, like a closed cabinet base (no legs, not
+floating, no sink, no faucet, no stove — just a clear flat counter surface on top
+of a solid base), a window with soft daylight and a small potted plant. Two
+children stand behind the counter, side by side, facing the viewer, sharing the
+same floor line and light.
+
+Left third of the frame: a boy, about 6 years old, light brown hair, wearing a
+purple t-shirt, standing next to a ceramic bowl with exactly 5 red apples in it.
+
+Right third of the frame: a girl, about 6 years old, dark hair in two short
+pigtails, wearing a mint-green dress, standing next to a ceramic bowl on the
+counter, identical in size and shape to the boy's bowl. This bowl also holds
+exactly 5 apples, matching the boy's bowl in color mix and arrangement style.
+
+Both children and both bowls must be clearly visible in one single frame. Count
+must be exact and equal: 5 apples on the left, 5 apples on the right — arrange
+each pile so the apples are individually countable, not overlapping into a blob,
+and so the two piles visibly look the same size at a glance.`,
+  },
+  {
+    id: "candies_misha_yulya", item: "конфет", left: 6, right: 6,
+    nameA: "Миши", nameANom: "Миша", genderA: "boy", nameB: "Юли", nameBNom: "Юля", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a cheerful birthday-party living room, pastel bunting flags strung along
+the top of the wall, a cream-colored table with a long tablecloth that reaches
+all the way down to the floor, hiding the legs completely (the table must not
+look like it is floating). Two children stand behind the table, side by side,
+facing the viewer, sharing the same floor line and light.
+
+Left third of the frame: a boy, about 6 years old, curly dark hair, wearing a
+sky-blue shirt, standing next to a glass jar with exactly 6 individually
+wrapped candies (twist-wrapped, different bright colors) inside.
+
+Right third of the frame: a girl, about 5 years old, blonde hair with a
+headband, wearing a coral dress, standing next to a glass jar on the table,
+identical in size and shape to the boy's jar. This jar also holds exactly 6
+wrapped candies, matching the boy's jar in color mix and arrangement style.
+
+Both children and both jars must be clearly visible in one single frame. Count
+must be exact and equal: 6 candies on the left, 6 candies on the right —
+arrange each pile so the candies are individually countable, not overlapping
+into a blob, and so the two piles visibly look the same size at a glance.`,
+  },
+  {
+    id: "cars_danil_zlata", item: "машинок", left: 4, right: 4,
+    nameA: "Данила", nameANom: "Данил", genderA: "boy", nameB: "Златы", nameBNom: "Злата", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a playroom with a round rug that has a simple road/track pattern woven
+into it, a small wooden shelf with toy boxes in the background, soft daylight.
+Two children sit or kneel on the rug, side by side, facing the viewer, sharing
+the same floor line and light.
+
+Left third of the frame: a boy, about 6 years old, short dark hair, wearing a
+yellow shirt, with exactly 4 colorful toy cars parked in front of him on the
+rug.
+
+Right third of the frame: a girl, about 6 years old, brown hair in a high
+ponytail, wearing a purple overall dress, with exactly 4 colorful toy cars
+parked in front of her on the rug, matching the boy's cars in color mix and
+arrangement style.
+
+Both children and both groups of toy cars must be clearly visible in one single
+frame. Count must be exact and equal: 4 toy cars on the left, 4 toy cars on the
+right — arrange each group so the cars are individually countable, not
+overlapping into a blob, and so the two groups visibly look the same size at a
+glance.`,
+  },
+  {
+    id: "balloons_rodion_alina", item: "шариков", left: 5, right: 5,
+    nameA: "Родиона", nameANom: "Родион", genderA: "boy", nameB: "Алины", nameBNom: "Алина", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a sunny backyard with a short, evenly mowed lawn (flat green grass, not
+tall or wild grass blades), a low wooden fence in the background that reaches
+about waist height on the children, a clear blue sky with a few soft clouds. Two
+children stand fully upright on top of the grass, their whole bodies visible
+from feet to head, feet planted clearly on the ground (not sunk into the grass),
+side by side, facing the viewer, sharing the same ground line and light.
+
+Left third of the frame: a boy, about 6 years old, dark blond hair, wearing a
+red t-shirt, holding a bunch of exactly 5 round balloons on strings gathered
+together above his hand.
+
+Right third of the frame: a girl, about 6 years old, brown hair in two braids,
+wearing a teal sundress, holding a bunch of exactly 5 round balloons on strings
+above her hand, matching the boy's bunch in size and color mix.
+
+Both children and both balloon bunches must be clearly visible in one single
+frame. Count must be exact and equal: 5 balloons on the left, 5 balloons on the
+right — arrange each bunch so the balloons are individually countable, not
+overlapping into a blob, each a different bright color, and so the two bunches
+visibly look the same size at a glance.`,
+  },
+  {
+    id: "pencils_nikita_sofia", item: "карандашей", left: 5, right: 5,
+    nameA: "Никиты", nameANom: "Никита", genderA: "boy", nameB: "Софии", nameBNom: "София", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a cozy study corner with a wooden desk whose solid front panel reaches
+all the way down to the floor, like a closed cabinet base (no legs, not
+floating), a window with a small potted plant, a shelf with a few books above
+the desk, soft daylight. Two children stand behind the desk, side by side,
+facing the viewer, sharing the same floor line and light.
+
+Left third of the frame: a boy, about 7 years old, short brown hair, wearing a
+teal t-shirt, standing next to a cup holding exactly 5 colored pencils, tips
+pointing up, fanned out slightly.
+
+Right third of the frame: a girl, about 6 years old, dark hair in a single
+braid, wearing a yellow dress, standing next to a cup on the desk, identical in
+size and shape to the boy's cup. This cup also holds exactly 5 colored pencils,
+matching the boy's cup in color mix and arrangement style.
+
+Both children and both pencil cups must be clearly visible in one single frame.
+Count must be exact and equal: 5 pencils on the left, 5 pencils on the right —
+arrange each cup so the pencils are individually countable, not overlapping
+into a blob, each pencil a different color, and so the two cups visibly look
+the same at a glance.`,
+  },
+  {
+    id: "water_bogdan_marina", item: "воды", left: 5, right: 5, containerPhrase: "в стакане",
+    nameA: "Богдана", nameANom: "Богдан", genderA: "boy", nameB: "Марины", nameBNom: "Марина", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a cozy home kitchen with a built-in wood counter whose solid front panel
+reaches all the way down to the floor, like a closed cabinet base (no legs, not
+floating, no sink, no faucet, no stove — just a clear flat counter surface on top
+of a solid base), a window with soft daylight and a small potted plant. Two
+children stand behind the counter, side by side, facing the viewer, sharing the
+same floor line and light.
+
+Left third of the frame: a boy, about 6 years old, dark hair, wearing a navy
+t-shirt, standing next to a tall clear glass on the counter. The glass is filled
+with water to about 50% of its height — exactly half full.
+
+Right third of the frame: a girl, about 6 years old, light brown hair in a
+ponytail, wearing a peach dress, standing next to a tall clear glass on the
+counter, identical in shape and size to the boy's glass. This glass is also
+filled with water to about 50% of its height, matching the boy's glass exactly.
+
+Both children and both glasses must be clearly visible in one single frame. The
+two glasses must be the exact same shape and size, filled to the exact same
+water level — the two water levels must visibly line up and match at a glance,
+neither one higher than the other.`,
+  },
+  {
+    id: "porridge_ilya_milana", item: "каши", left: 5, right: 5, containerPhrase: "в тарелке",
+    nameA: "Ильи", nameANom: "Илья", genderA: "boy", nameB: "Миланы", nameBNom: "Милана", genderB: "girl",
+    prompt: `${STYLE}
+
+Scene: a cozy home kitchen breakfast table with a solid wooden tabletop and a
+front panel that reaches all the way down to the floor, like a closed cabinet
+base (no legs, not floating), a window with soft morning light, a small potted
+plant. Two children stand behind the table, side by side, facing the viewer,
+sharing the same floor line and light.
+
+Left third of the frame: a boy, about 6 years old, sandy hair, wearing a green
+shirt, standing next to a round bowl on the table. The bowl is filled with
+porridge to about 50% of its capacity — exactly half full, a smooth pale-yellow
+surface. A spoon rests in the bowl, its handle leaning against the rim.
+
+Right third of the frame: a girl, about 6 years old, dark hair in a bob cut,
+wearing a lilac dress, standing next to a round bowl on the table, identical in
+shape and size to the boy's bowl. This bowl is also filled with porridge to
+about 50% of its capacity, matching the boy's bowl exactly. A spoon rests in
+this bowl too, its handle leaning against the rim, matching the boy's spoon in
+style.
+
+Both children and both bowls must be clearly visible in one single frame, each
+bowl with its own spoon. The two bowls must be the exact same shape and size,
+filled to the exact same level — the two fill levels must visibly line up and
+match at a glance, neither one fuller than the other.`,
+  },
 ];
 
 const targets = ONLY_ID ? SCENES.filter((s) => s.id === ONLY_ID) : SCENES;

@@ -427,11 +427,22 @@ describe("generateTasks", () => {
       });
     });
 
-    it("every task carries the scene's image and none of the scenes happens to be a tie", () => {
+    it("every task carries the scene's image", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40);
-      tasks.forEach((t) => {
-        expect(t.left).not.toBe(t.right);
-        expect(t.image).toMatch(/^data:image\/jpeg;base64,/);
+      tasks.forEach((t) => expect(t.image).toMatch(/^data:image\/jpeg;base64,/));
+    });
+
+    it("includes at least one genuinely tied scene, so 'Поровну' is sometimes the correct answer", () => {
+      // Round 1-2 scenes were all left !== right — "Поровну" was only ever a
+      // distractor. Round 3 added one equal scene per item specifically so
+      // the concept has real positive examples, not just a trap option.
+      const bankSize = REAL_LIFE_SCENES.length;
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, bankSize);
+      const tied = tasks.filter((t) => t.left === t.right);
+      expect(tied.length).toBeGreaterThan(0);
+      tied.forEach((t) => {
+        expect(t.question).toBe("equal");
+        expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${t.containerPhrase ? t.containerPhrase + " " : ""}${t.item} поровну.`);
       });
     });
 
