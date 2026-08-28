@@ -1099,51 +1099,59 @@ function ComparisonParams({ params, onChange }) {
 
   return (
     <>
-      <div className="param-row param-row--block">
-        <div className="param-label">Уровень</div>
-        <div className="param-enum-row">
-          <div className="param-enum-section">
-            <div className="param-enum-group">
-              {COMPARISON_LEVELS.map((lvl) => (
-                <button
-                  key={lvl.id}
-                  className={`enum-btn enum-btn--compact ${params.level === lvl.id ? "enum-btn--active" : ""}`}
-                  disabled={dotsOnly && lvl.id > 2}
-                  onClick={() => onChange({ ...params, level: lvl.id })}
-                >
-                  {lvl.id}
-                </button>
-              ))}
-            </div>
-            {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
-            {dotsOnly && <div className="param-hint">Уровни 3–4 доступны только в режиме «Только цифры»</div>}
-          </div>
-
-          {/* compare_apply never reads showEqual (see engine.js's
-              compare_apply branch, which returns before the showEqual
-              destructure below it) — both its task types need distinct
-              numbers (a tied number breaks "choose one that fits" and
-              "which slot does it go in"), so the toggle would just be
-              dead UI there. */}
-          {!isApplyMode && (
-            <>
-              <div className="param-enum-divider" />
-
-              <div className="param-enum-section">
-                <button
-                  className={`enum-btn enum-btn--compact ${params.showEqual ? "enum-btn--active" : ""}`}
-                  onClick={() => onChange({ ...params, showEqual: !params.showEqual })}
-                >
-                  =
-                </button>
-                <div className="param-hint">
-                  {params.showEqual ? "С одинаковыми (~30%)" : "Без одинаковых"}
-                </div>
+      {/* compare_real_life draws from a fixed bank of 10 pre-illustrated
+          scenes (see realLifeScenes.js) instead of generating numbers within
+          a level's range, and always shows all three answer buttons
+          (У {A} / Поровну / У {B}) — neither "Уровень" nor "=" has any
+          effect there, so don't expose controls that can't change anything
+          (same reasoning as compare_apply's showEqual exclusion below). */}
+      {!isRealLifeMode && (
+        <div className="param-row param-row--block">
+          <div className="param-label">Уровень</div>
+          <div className="param-enum-row">
+            <div className="param-enum-section">
+              <div className="param-enum-group">
+                {COMPARISON_LEVELS.map((lvl) => (
+                  <button
+                    key={lvl.id}
+                    className={`enum-btn enum-btn--compact ${params.level === lvl.id ? "enum-btn--active" : ""}`}
+                    disabled={dotsOnly && lvl.id > 2}
+                    onClick={() => onChange({ ...params, level: lvl.id })}
+                  >
+                    {lvl.id}
+                  </button>
+                ))}
               </div>
-            </>
-          )}
+              {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
+              {dotsOnly && <div className="param-hint">Уровни 3–4 доступны только в режиме «Только цифры»</div>}
+            </div>
+
+            {/* compare_apply never reads showEqual (see engine.js's
+                compare_apply branch, which returns before the showEqual
+                destructure below it) — both its task types need distinct
+                numbers (a tied number breaks "choose one that fits" and
+                "which slot does it go in"), so the toggle would just be
+                dead UI there. */}
+            {!isApplyMode && (
+              <>
+                <div className="param-enum-divider" />
+
+                <div className="param-enum-section">
+                  <button
+                    className={`enum-btn enum-btn--compact ${params.showEqual ? "enum-btn--active" : ""}`}
+                    onClick={() => onChange({ ...params, showEqual: !params.showEqual })}
+                  >
+                    =
+                  </button>
+                  <div className="param-hint">
+                    {params.showEqual ? "С одинаковыми (~30%)" : "Без одинаковых"}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && !isRealLifeMode && (
         <div className="param-row param-row--block">

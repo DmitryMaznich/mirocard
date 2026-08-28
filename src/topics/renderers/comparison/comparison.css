@@ -360,84 +360,35 @@
 }
 
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
-/* One shared "table" scene instead of two disconnected cards — items are
-   scattered inside each half (CompareRealLife.jsx's scatterItems, the same
-   randomized-but-fixed-seed pile idea column_addition's PILE_LAYOUT uses
-   for coins), not gridded, so it reads as a small real pile rather than a
-   UI list. */
+/* A single pre-illustrated scene (realLifeScenes.js — both children, both
+   item piles, exact counts baked into the picture by the image itself) in
+   place of a procedurally scattered pile. The picture is not interactive;
+   the answer is picked via the three .cfn-btn buttons below it (see
+   compare-body--reallife), and the correct half still highlights on the
+   picture once answered, via the same reallife-side--correct/--wrong
+   overlay this used before the picture existed. */
 .reallife-scene {
   position: relative; z-index: 1;
-  width: 100%; max-width: 400px; height: clamp(260px, 64vw, 320px);
+  width: 100%; max-width: 400px; height: clamp(230px, 64vw, 300px);
   border-radius: 24px;
-  background: #fff;
   border: 3px solid #e0e0e0;
   box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  background-size: cover;
+  background-position: center;
   display: flex;
   overflow: hidden;
 }
-.reallife-scene::before {
-  /* faint center seam — the scene is shared, not two separate boxes */
-  content: ""; position: absolute; left: 50%; top: 18px; bottom: 18px; width: 2px;
-  background: #e2e8f0;
-  transform: translateX(-50%);
-}
-.reallife-side {
-  position: relative; flex: 1; min-width: 0;
-  border: none; background: none; padding: 0; margin: 0; cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s;
-}
-.reallife-side:hover:not(:disabled) { background: #f8fafc; }
-.reallife-side:disabled { cursor: default; }
+.reallife-side { position: relative; flex: 1; min-width: 0; }
 .reallife-side--wrong { animation: shake 0.35s; }
 .reallife-side--correct::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: rgba(34,197,94,0.10);
+  background: rgba(34,197,94,0.16);
 }
 .reallife-side:first-child.reallife-side--correct::after { border-radius: 21px 0 0 21px; }
 .reallife-side:last-child.reallife-side--correct::after  { border-radius: 0 21px 21px 0; }
 
-.reallife-who {
-  position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 2;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-}
-.reallife-avatar {
-  width: clamp(50px, 17vw, 76px); height: auto;
-  filter: drop-shadow(0 3px 3px rgba(0,0,0,0.12));
-}
-.reallife-tag {
-  background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 999px; padding: 3px 14px; white-space: nowrap;
-  font-size: clamp(14px, 3vw, 18px); font-weight: 800; color: #475569;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.reallife-side--correct .reallife-tag { background: #22c55e; border-color: #16a34a; color: #fff; }
-
-.reallife-item {
-  position: absolute; width: clamp(24px, 8.5vw, 36px); height: clamp(24px, 8.5vw, 36px);
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12));
-}
-
-/* Above SCATTER_LIMIT items, one icon + "× N" replaces the scatter —
-   scattering 40+ icons stops being legible (compare_visual falls back
-   from dots to a plain number the same way at its higher levels). */
-.reallife-badge {
-  position: absolute; top: 64%; left: 50%; transform: translate(-50%, -50%);
-  display: flex; align-items: center; gap: 8px;
-  background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px;
-  padding: 8px 14px;
-}
-.reallife-badge-icon  { width: clamp(36px, 11vw, 50px); height: clamp(36px, 11vw, 50px); filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12)); }
-.reallife-badge-times { font-size: clamp(22px, 5.5vw, 32px); font-weight: 900; color: #1e293b; }
-
-.reallife-equal-btn {
-  position: relative; z-index: 1;
-  margin-top: 4px; min-width: 96px; min-height: 44px; padding: 0 20px;
-  border: 3px solid #cbd5e1; border-radius: 14px; background: #fff;
-  font-size: 16px; font-weight: 800; color: #475569; cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-.reallife-equal-btn:hover { border-color: #94a3b8; background: #f1f5f9; }
-.reallife-equal-btn--wrong { animation: shake 0.35s; border-color: #ef4444; }
+.compare-body--reallife .cfn-options { flex-direction: row; max-width: 400px; }
+.compare-body--reallife .cfn-btn { min-height: 56px; flex: 1; font-size: clamp(14px, 3.6vw, 17px); padding: 0 6px; }
 
 /* ── Shared keyframes ────────────────────────────────────────────── */
 @keyframes shake {

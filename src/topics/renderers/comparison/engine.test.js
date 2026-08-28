@@ -402,8 +402,13 @@ describe("generateTasks", () => {
   });
 
   describe("compare_real_life", () => {
+    // Draws from the fixed 10-scene bank in realLifeScenes.js (each scene an
+    // illustration with an exact, baked-in left/right count) instead of
+    // generating arbitrary numbers — level and showEqual no longer apply
+    // (ParamsScreen hides both controls for this mode; see isRealLifeMode).
+
     it("question always reflects the real left/right relation, and the verdict names the actual bigger character", () => {
-      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60, { level: 2 });
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60);
       expect(tasks).toHaveLength(60);
       tasks.forEach((t) => {
         const real = t.left === t.right ? "equal" : t.left > t.right ? "more" : "less";
@@ -415,24 +420,31 @@ describe("generateTasks", () => {
       });
     });
 
-    it("never produces equal pairs when showEqual is false (the default)", () => {
-      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40, { level: 2 });
-      tasks.forEach((t) => expect(t.left).not.toBe(t.right));
+    it("every task carries the scene's image and none of the 10 scenes happens to be a tie", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40);
+      tasks.forEach((t) => {
+        expect(t.left).not.toBe(t.right);
+        expect(t.image).toMatch(/^data:image\/jpeg;base64,/);
+      });
     });
 
-    it("carries allowEqual on each task so the UI can hide 'Поровну' when it's off", () => {
-      const off = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 10, { level: 2 });
-      const on  = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 10, { level: 2, showEqual: true });
-      off.forEach((t) => expect(t.allowEqual).toBe(false));
-      on.forEach((t) => expect(t.allowEqual).toBe(true));
+    it("always carries allowEqual (the UI always shows all three answer buttons now)", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 10);
+      tasks.forEach((t) => expect(t.allowEqual).toBe(true));
     });
 
     it("carries a gender per name so the UI can illustrate the character, not just print the name", () => {
-      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40, { level: 2 });
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40);
       tasks.forEach((t) => {
         expect(["boy", "girl"]).toContain(t.genderA);
         expect(["boy", "girl"]).toContain(t.genderB);
       });
+    });
+
+    it("cycles through the whole 10-scene bank before any scene repeats", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 10);
+      const ids = tasks.map((t) => `${t.item}:${t.left}:${t.right}:${t.nameA}`);
+      expect(new Set(ids).size).toBe(10);
     });
   });
 });
