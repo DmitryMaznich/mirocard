@@ -12455,6 +12455,16 @@ button {
   border-color: rgba(45, 111, 181, 0.5);
   box-shadow: 0 2px 6px rgba(38, 49, 49, 0.08);
 }
+/* Scene options are narrative photos, not face crops — a 1:1 crop can cut
+   off the exact detail that makes the scene legible (e.g. a trigger at the
+   frame's edge). Give this one grid a 4:3 tile ratio and match the grid's
+   own aspect-ratio formula to it. */
+.emotion-situation__choices .find-n-option {
+  aspect-ratio: 4 / 3;
+}
+.emotion-situation__choices .find-n-grid > .find-n-inner {
+  aspect-ratio: calc(var(--cols, 2) * 4) / calc(var(--rows, 2) * 3);
+}
 
 /* “What does the child feel?” is the end-of-topic check: the child first
    names the emotion aloud, then confirms it among the complete vocabulary. */
