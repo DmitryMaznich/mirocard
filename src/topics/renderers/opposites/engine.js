@@ -45,20 +45,31 @@ function buildChooseTwoTask(target, sameObjOpposite, allEntries, optionCount) {
   return {
     type:             "choose_two",
     targetPole:       target.pole,
-    poleLabelNeutral: target.poleLabelNeutral,
+    instructionLabel: target.instructionLabel,
     options:          shuffle(options.slice(0, optionCount)),
   };
 }
 
 function generateChooseTwoTasks(cards, params) {
+  // Intentionally 1 here, not topic.json's production default of 2 — real
+  // sessions always pass a resolved repsPerPair via ParamsScreen, so this
+  // fallback only fires when a caller omits the param entirely (as several
+  // engine.test.js cases do on purpose, to test the repsPerPair=1 behavior
+  // specifically). Do not "fix" this to match topic.json without also
+  // updating those tests to pass repsPerPair explicitly.
   const repsPerPair = params.repsPerPair ?? 1;
   const byObject    = groupByObjectId(cards);
   const entries     = [...byObject.entries()];
   const tasks       = [];
   for (const [, { left, right }] of entries) {
     if (!left || !right) continue;
-    // Each rep = 1 task. Randomise pole order so both get asked when repsPerPair >= 2.
-    const poles = shuffle([left, right]);
+    // left = the positive/unmarked pole for every shipped concept (большой,
+    // высокий, длинный... — see Global Constraints in the plan this came
+    // from). Children acquire the unmarked term before its marked
+    // counterpart (H.H. Clark's "positive pole" finding), so a single rep
+    // always asks for it first; only repsPerPair=2 also asks the marked
+    // (right) pole.
+    const poles = [left, right];
     for (let i = 0; i < Math.min(repsPerPair, 2); i++) {
       const target   = poles[i];
       const opposite = target === left ? right : left;
@@ -168,7 +179,7 @@ function generateFindAllTasks(cards, params) {
     return {
       type:           "find_all",
       targetPole,
-      targetLabel:    selectedTargets[0]?.poleLabelNeutral ?? selectedTargets[0]?.poleLabelPlural ?? targetPole,
+      targetLabel:    selectedTargets[0]?.poleLabelPlural ?? selectedTargets[0]?.poleLabelNeutral ?? targetPole,
       allCards:       shuffle([...selectedTargets, ...selectedOthers]),
       correctCardIds: selectedTargets.map((c) => c.id),
     };

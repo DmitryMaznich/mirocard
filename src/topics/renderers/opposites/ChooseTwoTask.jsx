@@ -41,7 +41,7 @@ export default function ChooseTwoTask({ task, topicId, onCorrect, onIncorrect })
   return (
     <div className="session-body opp-choose">
       <div className="opp-choose__instruction">
-        Покажи, что {task.poleLabelNeutral}?
+        Покажи {task.instructionLabel}.
       </div>
       <div className="opp-choose__cards">
         {task.options.map((opt) => (

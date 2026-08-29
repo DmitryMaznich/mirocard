@@ -95,9 +95,9 @@
   transition: border-color 0.15s, background 0.15s;
 }
 .opp-grid-card:disabled { cursor: default; }
-.opp-grid-card--correct  { background: #e8f5e9; border-color: #4caf50; }
-.opp-grid-card--wrong    { background: #ffebee; border-color: #f44336; }
-.opp-grid-card--selected { background: #e3f2fd; border-color: #2196f3; }
+.opp-grid-card--correct  { background: #dcfce7; border-color: #22c55e; }
+.opp-grid-card--wrong    { background: #fef2f2; border-color: #ef4444; }
+.opp-grid-card--selected { background: #eff6ff; border-color: #3b82f6; }
 
 .opp-grid-card__img {
   width: 100%;
@@ -142,15 +142,18 @@
 .opp-submit-btn {
   padding: 12px 36px;
   font-size: 1.1rem;
-  background: #2196f3;
+  background: #4a9b8f;
   color: #fff;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
   flex-shrink: 0;
+  box-shadow: 0 5px 0 #2a6b60, 0 8px 20px rgba(42, 107, 96, 0.35);
+  transition: transform 0.1s ease;
 }
-.opp-submit-btn:disabled { background: #ccc; cursor: default; }
+.opp-submit-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #2a6b60, 0 4px 10px rgba(42, 107, 96, 0.25); }
+.opp-submit-btn:disabled { background: #ccc; box-shadow: none; cursor: default; }
 
 /* ── Sort ───────────────────────────────────────────── */
 /* Both orientations: hand (top, flex:1) → zones (bottom, fixed height) */
@@ -182,7 +185,7 @@
 }
 
 .opp-sort__zone {
-  border: 2.5px solid #ccc;
+  border: 2.5px dashed #cbd5e1;
   border-radius: 14px;
   padding: 8px;
   display: flex;
@@ -190,11 +193,15 @@
   align-items: stretch;
   gap: 6px;
   overflow-y: auto;
-  transition: border-color 0.15s, background 0.15s;
+  background: #f8fafc;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
-.opp-sort__zone--left  { background: #e3f2fd; border-color: #90caf9; }
-.opp-sort__zone--right { background: #fff3e0; border-color: #ffcc80; }
-.opp-sort__zone--active { border-color: #1565c0; background: #bbdefb; }
+.opp-sort__zone--active {
+  border-style: solid;
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
 
 .opp-sort__zone-label {
   font-size: clamp(1.1rem, 4vw, 1.5rem);
@@ -303,27 +310,6 @@
   flex: 1;
   min-height: 0;
   align-items: center;
-  cursor: pointer;
-}
-
-/* Приглушённый полюс: виден как силуэт, layout не прыгает */
-.opp-pair__side--hidden {
-  opacity: 0.2;
-  filter: grayscale(1);
-  pointer-events: none;
-  transition: opacity 0.3s ease, filter 0.3s ease;
-}
-
-.opp-pair__side {
-  transition: opacity 0.3s ease;
-}
-
-.opp-pair-v2__tap-hint {
-  text-align: center;
-  color: #aaa;
-  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
-  padding: 4px 0;
-  flex-shrink: 0;
 }
 
 .opp-pair-v2__nav {
@@ -354,12 +340,13 @@
   cursor: default;
 }
 .opp-pair-v2__nav-btn--next {
-  background: #e3f2fd;
-  border-color: #90caf9;
+  background: #4a9b8f;
+  border-color: #2a6b60;
+  color: #fff;
+  box-shadow: 0 3px 0 #2a6b60;
+  transition: transform 0.1s ease;
 }
-.opp-pair-v2__nav-btn--next:hover:not(:disabled) {
-  background: #bbdefb;
-}
+.opp-pair-v2__nav-btn--next:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #2a6b60; }
 
 .opp-pair-v2__progress {
   font-size: clamp(0.9rem, 3vw, 1.1rem);
@@ -435,8 +422,8 @@
   flex-shrink: 0;
 }
 .opp-choose__card:disabled { cursor: default; }
-.opp-grid-card--correct.opp-choose__card  { background: #e8f5e9; border-color: #4caf50; }
-.opp-grid-card--wrong.opp-choose__card    { background: #ffebee; border-color: #f44336; }
+.opp-grid-card--correct.opp-choose__card  { background: #dcfce7; border-color: #22c55e; }
+.opp-grid-card--wrong.opp-choose__card    { background: #fef2f2; border-color: #ef4444; }
 
 .opp-choose__card-img {
   width: 100%;
@@ -564,16 +551,16 @@
 }
 
 .opp-fo__slot--active {
-  border-color: #42a5f5;
+  border-color: #3b82f6;
   border-style: solid;
-  background: #e3f2fd;
-  color: #42a5f5;
+  background: #eff6ff;
+  color: #3b82f6;
 }
 
 .opp-fo__slot--correct {
-  border-color: #66bb6a;
+  border-color: #22c55e;
   border-style: solid;
-  background: #e8f5e9;
+  background: #dcfce7;
 }
 
 .opp-fo__slot--correct img {
@@ -584,9 +571,9 @@
 }
 
 .opp-fo__slot--wrong {
-  border-color: #e57373;
+  border-color: #ef4444;
   border-style: solid;
-  background: #ffebee;
+  background: #fef2f2;
   animation: opp-fo-shake 0.35s ease;
 }
 

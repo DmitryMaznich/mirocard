@@ -2,16 +2,16 @@ import { describe, it, expect } from "vitest";
 import { generateTasks } from "./engine";
 
 const CARDS = [
-  { id: "big_dog",    conceptId: "big_small", pole: "left",  objectId: "dog",   objectLabel: "собака", poleLabel: "большой",   nominativeLabel: "большая",   image: "media/big_dog.webp" },
-  { id: "small_dog",  conceptId: "big_small", pole: "right", objectId: "dog",   objectLabel: "собака", poleLabel: "маленький", nominativeLabel: "маленькая", image: "media/small_dog.webp" },
-  { id: "big_cat",    conceptId: "big_small", pole: "left",  objectId: "cat",   objectLabel: "кошка",  poleLabel: "большой",   nominativeLabel: "большая",   image: "media/big_cat.webp" },
-  { id: "small_cat",  conceptId: "big_small", pole: "right", objectId: "cat",   objectLabel: "кошка",  poleLabel: "маленький", nominativeLabel: "маленькая", image: "media/small_cat.webp" },
-  { id: "big_ball",   conceptId: "big_small", pole: "left",  objectId: "ball",  objectLabel: "мяч",    poleLabel: "большой",   nominativeLabel: "большой",   image: "media/big_ball.webp" },
-  { id: "small_ball", conceptId: "big_small", pole: "right", objectId: "ball",  objectLabel: "мяч",    poleLabel: "маленький", nominativeLabel: "маленький", image: "media/small_ball.webp" },
-  { id: "wet_stone",  conceptId: "wet_dry",   pole: "left",  objectId: "stone", objectLabel: "камень", poleLabel: "мокрый",    nominativeLabel: "мокрый",    image: "media/wet_stone.webp" },
-  { id: "dry_stone",  conceptId: "wet_dry",   pole: "right", objectId: "stone", objectLabel: "камень", poleLabel: "сухой",     nominativeLabel: "сухой",     image: "media/dry_stone.webp" },
-  { id: "wet_leaf",   conceptId: "wet_dry",   pole: "left",  objectId: "leaf",  objectLabel: "лист",   poleLabel: "мокрый",    nominativeLabel: "мокрый",    image: "media/wet_leaf.webp" },
-  { id: "dry_leaf",   conceptId: "wet_dry",   pole: "right", objectId: "leaf",  objectLabel: "лист",   poleLabel: "сухой",     nominativeLabel: "сухой",     image: "media/dry_leaf.webp" },
+  { id: "big_dog",    conceptId: "big_small", pole: "left",  objectId: "dog",   objectLabel: "собака", poleLabel: "большой",   nominativeLabel: "большая",   instructionLabel: "большую",    poleLabelNeutral: "большое",   poleLabelPlural: "большие",   image: "media/big_dog.webp" },
+  { id: "small_dog",  conceptId: "big_small", pole: "right", objectId: "dog",   objectLabel: "собака", poleLabel: "маленький", nominativeLabel: "маленькая", instructionLabel: "маленькую",  poleLabelNeutral: "маленькое", poleLabelPlural: "маленькие", image: "media/small_dog.webp" },
+  { id: "big_cat",    conceptId: "big_small", pole: "left",  objectId: "cat",   objectLabel: "кошка",  poleLabel: "большой",   nominativeLabel: "большая",   instructionLabel: "большую",    poleLabelNeutral: "большое",   poleLabelPlural: "большие",   image: "media/big_cat.webp" },
+  { id: "small_cat",  conceptId: "big_small", pole: "right", objectId: "cat",   objectLabel: "кошка",  poleLabel: "маленький", nominativeLabel: "маленькая", instructionLabel: "маленькую",  poleLabelNeutral: "маленькое", poleLabelPlural: "маленькие", image: "media/small_cat.webp" },
+  { id: "big_ball",   conceptId: "big_small", pole: "left",  objectId: "ball",  objectLabel: "мяч",    poleLabel: "большой",   nominativeLabel: "большой",   instructionLabel: "большой",    poleLabelNeutral: "большое",   poleLabelPlural: "большие",   image: "media/big_ball.webp" },
+  { id: "small_ball", conceptId: "big_small", pole: "right", objectId: "ball",  objectLabel: "мяч",    poleLabel: "маленький", nominativeLabel: "маленький", instructionLabel: "маленький",  poleLabelNeutral: "маленькое", poleLabelPlural: "маленькие", image: "media/small_ball.webp" },
+  { id: "wet_stone",  conceptId: "wet_dry",   pole: "left",  objectId: "stone", objectLabel: "камень", poleLabel: "мокрый",    nominativeLabel: "мокрый",    instructionLabel: "мокрый",     poleLabelNeutral: "мокрое",    poleLabelPlural: "мокрые",    image: "media/wet_stone.webp" },
+  { id: "dry_stone",  conceptId: "wet_dry",   pole: "right", objectId: "stone", objectLabel: "камень", poleLabel: "сухой",     nominativeLabel: "сухой",     instructionLabel: "сухой",      poleLabelNeutral: "сухое",     poleLabelPlural: "сухие",     image: "media/dry_stone.webp" },
+  { id: "wet_leaf",   conceptId: "wet_dry",   pole: "left",  objectId: "leaf",  objectLabel: "лист",   poleLabel: "мокрый",    nominativeLabel: "мокрый",    instructionLabel: "мокрый",     poleLabelNeutral: "мокрое",    poleLabelPlural: "мокрые",    image: "media/wet_leaf.webp" },
+  { id: "dry_leaf",   conceptId: "wet_dry",   pole: "right", objectId: "leaf",  objectLabel: "лист",   poleLabel: "сухой",     nominativeLabel: "сухой",     instructionLabel: "сухой",      poleLabelNeutral: "сухое",     poleLabelPlural: "сухие",     image: "media/dry_leaf.webp" },
 ];
 
 describe("generateTasks — find_opposite (image)", () => {
@@ -130,6 +130,49 @@ describe("generateTasks — find_opposite (text)", () => {
       for (const d of t.options.filter(o => !o.isTarget)) {
         expect(d.card.conceptId).not.toBe(t.stimulusCard.conceptId);
       }
+    }
+  });
+});
+
+describe("generateTasks — choose_two, grammatical concord", () => {
+  it("instructs using the target card's own instructionLabel, not a fixed neuter form", () => {
+    const tasks = generateTasks({ type: "choose_two" }, CARDS, 10, {});
+    const dogTask = tasks.find(t => t.options.some(o => o.card.id === "big_dog" && o.isTarget));
+    expect(dogTask.instructionLabel).toBe("большую"); // big_dog, feminine "собака"
+    const ballTask = tasks.find(t => t.options.some(o => o.card.id === "big_ball" && o.isTarget));
+    expect(ballTask.instructionLabel).toBe("большой"); // big_ball, masculine "мяч"
+    expect(dogTask.poleLabelNeutral).toBeUndefined();
+  });
+});
+
+describe("generateTasks — find_all, plural instruction", () => {
+  it("targetLabel is the plural form, not the singular neuter form", () => {
+    const findAllCards = CARDS.filter(c => c.conceptId === "big_small");
+    const tasks = generateTasks({ type: "find_all" }, findAllCards, 10, { gridSize: 4 });
+    for (const t of tasks) {
+      const expectedPlural = t.targetPole === "left" ? "большие" : "маленькие";
+      expect(t.targetLabel).toBe(expectedPlural);
+    }
+  });
+});
+
+describe("generateTasks — choose_two, positive-pole-first sequencing", () => {
+  it("repsPerPair=1 (default): always asks for the left (positive) pole", () => {
+    const tasks = generateTasks({ type: "choose_two" }, CARDS, 10, {});
+    for (const t of tasks) {
+      expect(t.targetPole).toBe("left");
+    }
+  });
+
+  it("repsPerPair=2: asks both poles for every object", () => {
+    const tasks = generateTasks({ type: "choose_two" }, CARDS, 10, { repsPerPair: 2 });
+    const polesByObject = {};
+    for (const t of tasks) {
+      const targetCard = t.options.find(o => o.isTarget).card;
+      (polesByObject[targetCard.objectId] ??= new Set()).add(t.targetPole);
+    }
+    for (const poles of Object.values(polesByObject)) {
+      expect([...poles].sort()).toEqual(["left", "right"]);
     }
   });
 });
