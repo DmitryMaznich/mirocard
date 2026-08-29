@@ -46,7 +46,7 @@ export default function FindAllTask({ task, topicId, onCorrect, onIncorrect }) {
 
   return (
     <div className="session-body opp-find-all">
-      <div className="session-instruction">Покажи, что {targetLabel}</div>
+      <div className="session-instruction">Найди все {targetLabel}</div>
       <div className="opp-grid">
         {allCards.map((card) => (
           <GridCard

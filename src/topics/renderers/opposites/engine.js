@@ -168,7 +168,7 @@ function generateFindAllTasks(cards, params) {
     return {
       type:           "find_all",
       targetPole,
-      targetLabel:    selectedTargets[0]?.poleLabelNeutral ?? selectedTargets[0]?.poleLabelPlural ?? targetPole,
+      targetLabel:    selectedTargets[0]?.poleLabelPlural ?? selectedTargets[0]?.poleLabelNeutral ?? targetPole,
       allCards:       shuffle([...selectedTargets, ...selectedOthers]),
       correctCardIds: selectedTargets.map((c) => c.id),
     };

@@ -144,3 +144,14 @@ describe("generateTasks — choose_two, grammatical concord", () => {
     expect(dogTask.poleLabelNeutral).toBeUndefined();
   });
 });
+
+describe("generateTasks — find_all, plural instruction", () => {
+  it("targetLabel is the plural form, not the singular neuter form", () => {
+    const findAllCards = CARDS.filter(c => c.conceptId === "big_small");
+    const tasks = generateTasks({ type: "find_all" }, findAllCards, 10, { gridSize: 4 });
+    for (const t of tasks) {
+      const expectedPlural = t.targetPole === "left" ? "большие" : "маленькие";
+      expect(t.targetLabel).toBe(expectedPlural);
+    }
+  });
+});
