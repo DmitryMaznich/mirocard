@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.8.0",
+    "version": "2.9.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -619,10 +619,10 @@
       "conceptId": "wide_narrow",
       "pole": "right",
       "objectId": "river_stream",
-      "objectLabel": "ручей",
+      "objectLabel": "река",
       "poleLabel": "узкий",
-      "nominativeLabel": "узкий",
-      "instructionLabel": "узкий",
+      "nominativeLabel": "узкая",
+      "instructionLabel": "узкую",
       "poleLabelPlural": "узкие",
       "primary": true,
       "image": "media/narrow_stream_1.webp",
