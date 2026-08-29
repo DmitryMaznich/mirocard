@@ -47,7 +47,7 @@
     },
     {
       "id": "emotions_v2",
-      "version": "1.9.0",
+      "version": "1.10.0",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
@@ -56,7 +56,7 @@
         "ru": "Три сюжетные ситуации для каждого из 10 понятий: после сюжета — крупный портрет того же ребёнка с читаемой эмоцией.",
         "en": "Three situation scenes for each of 10 concepts: each scene is followed by a close-up of the same child with a readable emotion."
       },
-      "url": "./decks/emotions_v2_v1.9.0.zip",
+      "url": "./decks/emotions_v2_v1.10.0.zip",
       "status": "release",
       "access": "free"
     },

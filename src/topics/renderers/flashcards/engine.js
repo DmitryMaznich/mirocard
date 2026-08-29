@@ -1,5 +1,5 @@
 import { shuffle } from "@/shared/utils/shuffle";
-import { pickVariation } from "@/shared/utils/topicUtils";
+import { pickVariation, deriveConcepts } from "@/shared/utils/topicUtils";
 import { selectDistractorConceptIds } from "@/shared/utils/distractorEngine";
 
 function generateIntroTasks(concepts) {
@@ -18,22 +18,34 @@ function generateIntroTasks(concepts) {
 }
 
 // A control task keeps the productive prompt (“name the emotion”) but makes
-// the answer observable: every concept in the topic is offered as a word.
-// The active session may be narrowed to selected targets, while its answer
-// bank remains the full topic vocabulary.
-function generateEmotionControlTasks(displayConcepts, allCards) {
-  const answerOptions = allCards
-    .filter((card) => card.primary && card.cardType !== "situation" && card.label)
-    .map((card) => ({ conceptId: card.conceptId, label: card.label }));
+// the answer observable: by default every concept in the topic is offered
+// as a word (the active session may be narrowed to selected targets, while
+// its answer bank remains the full topic vocabulary). params.optionCount
+// narrows that answer bank instead to the N most confusable concepts (via
+// selectDistractorConceptIds at "hard" difficulty) - a smaller, still
+// meaningfully-hard set for a child who isn't ready for the full topic
+// vocabulary as both a receptive (find the word) and expressive (name it
+// first) task at once.
+function generateEmotionControlTasks(displayConcepts, allCards, params = {}) {
+  const vocabularyCards = allCards
+    .filter((card) => card.primary && card.cardType !== "situation" && card.label);
+  const vocabularyConcepts = deriveConcepts(vocabularyCards);
+  const optionCount = Math.min(params.optionCount ?? vocabularyConcepts.length, vocabularyConcepts.length);
 
-  return generateIntroTasks(displayConcepts).map((task) => ({
-    ...task,
-    type: "emotion_control",
-    options: shuffle(answerOptions.map((option) => ({
-      ...option,
-      isTarget: option.conceptId === task.conceptId,
-    }))),
-  }));
+  return generateIntroTasks(displayConcepts).map((task) => {
+    const distractorCount = Math.max(0, Math.min(optionCount - 1, vocabularyConcepts.length - 1));
+    const distractorIds = selectDistractorConceptIds(task.conceptId, vocabularyConcepts, distractorCount, "hard");
+    const targetCard = vocabularyCards.find((card) => card.conceptId === task.conceptId);
+    const options = [
+      { conceptId: task.conceptId, label: targetCard?.label ?? task.conceptId, isTarget: true },
+      ...distractorIds.map((conceptId) => ({
+        conceptId,
+        label: vocabularyCards.find((card) => card.conceptId === conceptId)?.label ?? conceptId,
+        isTarget: false,
+      })),
+    ];
+    return { ...task, type: "emotion_control", options: shuffle(options) };
+  });
 }
 
 function filterByTaskKind(concepts, kind) {
@@ -378,7 +390,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "situation_emotion":      return generateSituationEmotionTasks(displayConcepts, allCards, params);
     case "situation_intro":        return generateSituationIntroTasks(displayConcepts, allCards, params);
     case "emotion_situation":      return generateEmotionSituationTasks(displayConcepts, allCards, params);
-    case "emotion_control":        return generateEmotionControlTasks(displayConcepts, allCards);
+    case "emotion_control":        return generateEmotionControlTasks(displayConcepts, allCards, params);
     case "question_answer":        return generateIntroTasks(displayConcepts).map((t) => ({ ...t, type: "question_answer" }));
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
     case "find_n":                 return generateFindNTasks(displayConcepts, params);

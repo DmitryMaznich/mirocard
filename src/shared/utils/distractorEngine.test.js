@@ -44,3 +44,45 @@ describe("selectDistractorConceptIds", () => {
     expect(["skirt", "hat", "scarf"]).toContain(result[0]);
   });
 });
+
+describe("selectDistractorConceptIds — semantic.group1/2/3 (emotions_v2-style cards)", () => {
+  // shame and sadness match on all three axes (negative/low/facial) - the
+  // audit's own example of a pair that plain valence tags treat as no more
+  // confusable than shame-vs-anger, even though shame-vs-sadness is the
+  // pair a child actually mixes up. anger matches shame on valence only
+  // (group1); joy matches on none of the three axes.
+  const CARDS = [
+    { id: "shame_1",   conceptId: "shame",   primary: true, label: "стыд",    tags: ["emotions", "negative"], semantic: { group1: "negative", group2: "low",  group3: "facial" } },
+    { id: "sadness_1", conceptId: "sadness", primary: true, label: "грусть",  tags: ["emotions", "negative"], semantic: { group1: "negative", group2: "low",  group3: "facial" } },
+    { id: "anger_1",   conceptId: "anger",   primary: true, label: "злость",  tags: ["emotions", "negative"], semantic: { group1: "negative", group2: "high", group3: "postural" } },
+    { id: "joy_1",     conceptId: "joy",     primary: true, label: "радость", tags: ["emotions", "positive"], semantic: { group1: "positive", group2: "high", group3: "postural" } },
+  ];
+  const concepts = deriveConcepts(CARDS);
+
+  it("hard difficulty picks the 3-axis match (sadness) over the 1-axis match (anger)", () => {
+    const result = selectDistractorConceptIds("shame", concepts, 1, "hard");
+    expect(result[0]).toBe("sadness");
+  });
+
+  it("medium difficulty picks the 1-axis match (anger), not the 3-axis or 0-axis one", () => {
+    const result = selectDistractorConceptIds("shame", concepts, 1, "medium");
+    expect(result[0]).toBe("anger");
+  });
+
+  it("easy difficulty picks the 0-axis match (joy)", () => {
+    const result = selectDistractorConceptIds("shame", concepts, 1, "easy");
+    expect(result[0]).toBe("joy");
+  });
+
+  it("falls back to tag counting when semantic is missing on either card (other topics are unaffected)", () => {
+    const mixed = deriveConcepts([
+      { id: "a_1", conceptId: "a", primary: true, label: "a", tags: ["x", "y"], semantic: { group1: "negative", group2: "low", group3: "facial" } },
+      { id: "b_1", conceptId: "b", primary: true, label: "b", tags: ["x", "y"] }, // no semantic
+      { id: "c_1", conceptId: "c", primary: true, label: "c", tags: ["x"] },
+    ]);
+    // b shares 2 tags with a (would be "hard" by tag count); a has semantic
+    // but b doesn't, so the pair must fall back to tags, not silently score 0.
+    const result = selectDistractorConceptIds("a", mixed, 1, "hard");
+    expect(result[0]).toBe("b");
+  });
+});

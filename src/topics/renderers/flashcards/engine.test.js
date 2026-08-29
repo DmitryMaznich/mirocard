@@ -269,6 +269,18 @@ describe("generateTasks — emotion_control", () => {
       expect.objectContaining({ conceptId: "joy", label: "радость" }),
     ]);
   });
+
+  it("narrows the answer bank to optionCount when set, target always included", () => {
+    const tasks = generateTasks("emotion_control", CONCEPTS, CARDS, { optionCount: 2 });
+
+    expect(tasks).toHaveLength(3);
+    for (const task of tasks) {
+      expect(task.options).toHaveLength(2);
+      const targets = task.options.filter((o) => o.isTarget);
+      expect(targets).toHaveLength(1);
+      expect(targets[0].conceptId).toBe(task.conceptId);
+    }
+  });
 });
 
 describe("generateTasks — yes_no", () => {
