@@ -9,7 +9,7 @@ function CardImage({ topicId, card }) {
   return <img src={url} alt="" draggable={false} />;
 }
 
-export default function FindOppositeTask({ task, topicId, onCorrect, onIncorrect }) {
+export default function FindOppositeTask({ task, mode, topicId, onCorrect, onIncorrect }) {
   const { stimulusCard, options } = task;
   const [answered,  setAnswered]  = useState(false);
   const [slotState, setSlotState] = useState("idle");
@@ -76,7 +76,7 @@ export default function FindOppositeTask({ task, topicId, onCorrect, onIncorrect
       style={{ touchAction: "none" }}
     >
       <div className="opp-fo__instruction">
-        Найди неприятеля — перетащи!
+        {mode?.ui?.instruction ?? "Найди противоположность и перетащи её сюда"}
       </div>
 
       <div className="opp-fo__pair">

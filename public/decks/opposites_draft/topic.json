@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.5.1",
+    "version": "2.6.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -118,7 +118,7 @@
       "type": "find_opposite",
       "evaluation": "auto",
       "ui": {
-        "title": "Найди неприятеля",
+        "title": "Найди пару",
         "instruction": "Перетащи противоположную карточку",
         "icon": "media/icons/find_opposite.svg"
       },
