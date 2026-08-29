@@ -75,8 +75,19 @@ function IntroTask({ task, mode, topicId, soundEnabled, playTopicFile, onAdvance
         {mode?.answerPrefix && <span className="session-label__prefix">{mode.answerPrefix} </span>}
         {task.label}
       </div>
+      <div className="session-hint">Нажми, чтобы продолжить</div>
       <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
     </button>
+  );
+}
+
+function SituationIntroSticker({ topicId, image }) {
+  const url = useTopicFile(topicId, image);
+  if (!url) return null;
+  return (
+    <div className="situation-intro__sticker">
+      <img src={url} alt="" draggable={false} />
+    </div>
   );
 }
 
@@ -100,6 +111,12 @@ function SituationIntroTask({ task, topicId, onAdvance }) {
         </>
       ) : (
         <>
+          {hasScene && revealed && (
+            <>
+              <SituationIntroSticker topicId={topicId} image={task.sceneImage} />
+              <div className="situation-intro__link" />
+            </>
+          )}
           <CardArea topicId={topicId} card={task.card} />
           {!hasScene && <div className="session-instruction situation-intro__question">Что чувствует?</div>}
           <div className={`situation-intro__reveal${revealed ? " situation-intro__reveal--shown" : ""}`}>

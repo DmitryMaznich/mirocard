@@ -12848,8 +12848,38 @@ button {
    shrinks to the photo's own size; .session-full-tap's `justify-content:
    center` then centers the whole [text, photo, question, label] stack as
    one group, keeping the photo at a normal height. */
+.situation-intro {
+  position: relative;
+}
 .situation-intro .card-area {
   flex: 0 1 auto;
+}
+/* Sticker: a small persistent reminder of the situation scene, shown only
+   after reveal, in the corner of the (already safely-padded) content area —
+   not pinned to the actual screen edge, so no extra safe-area offset needed
+   here (see CLAUDE.md's iOS safe-area rule; that rule is about elements
+   pinned to the real device edge, which this is not). */
+.situation-intro__sticker {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 52px;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(38, 49, 49, 0.25);
+  border: 2px solid #fff;
+  z-index: 2;
+}
+.situation-intro__sticker img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.situation-intro__link {
+  position: absolute;
+  top: 26px;
+  left: 60px;
+  width: 18px;
+  height: 2px;
+  background: rgba(38, 49, 49, 0.35);
+  z-index: 2;
 }
 /* The scene is the primary material in the first step of “Знакомство”.
    It should use the entire content width instead of the generic 360px card
