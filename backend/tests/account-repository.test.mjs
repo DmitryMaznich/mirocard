@@ -115,6 +115,8 @@ test("createPasswordResetToken and consumePasswordResetToken", () => {
 // ─── Students ─────────────────────────────────────────────────────────────────
 import {
   upsertStudent,
+  upsertStudentVideos,
+  upsertStudentAdults,
   getStudents,
   softDeleteStudent,
   appendSession,
@@ -165,6 +167,76 @@ test("upsertStudent preserves existing photo when incoming photo is null", () =>
   const after2 = getStudents(db, acc.id).find((s) => s.id === "s_photo");
   assert.equal(after2.name, "Аня Новая");
   assert.equal(after2.photo, savedPhotoUrl, "photo must NOT be overwritten by null");
+});
+
+test("upsertStudent preserves existing rewardVideos/closeAdults on an unrelated edit (stale client)", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  // First write, with videos and a close adult, from a device that knows about them.
+  upsertStudent(db, acc.id, {
+    id: "s_videos", name: "Миня",
+    rewardVideos: ["https://youtu.be/a", "https://youtu.be/b", "https://youtu.be/c"],
+    closeAdults: [{ id: "ad1", name: "Мама", photo: null }],
+  });
+
+  // Second write from a stale device: it only changes the comment, and still carries
+  // its own (empty) local snapshot of rewardVideos/closeAdults from before the first write.
+  upsertStudent(db, acc.id, {
+    id: "s_videos", name: "Миня", comment: "новый комментарий",
+    rewardVideos: [], closeAdults: [],
+  });
+
+  const after = getStudents(db, acc.id).find((s) => s.id === "s_videos");
+  assert.equal(after.comment, "новый комментарий");
+  assert.deepEqual(JSON.parse(after.reward_videos), ["https://youtu.be/a", "https://youtu.be/b", "https://youtu.be/c"],
+    "reward_videos must not be wiped by an unrelated stale student.upsert");
+  assert.deepEqual(JSON.parse(after.close_adults), [{ id: "ad1", name: "Мама", photo: null }],
+    "close_adults must not be wiped by an unrelated stale student.upsert");
+});
+
+test("upsertStudentVideos updates reward_videos and rejects a stale (older) write", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  upsertStudent(db, acc.id, { id: "s_v2", name: "Петя" });
+
+  upsertStudentVideos(db, acc.id, {
+    studentId: "s_v2", rewardVideos: ["https://youtu.be/1", "https://youtu.be/2"], updatedAt: "2026-08-01T00:00:00.000Z",
+  });
+  let after = getStudents(db, acc.id).find((s) => s.id === "s_v2");
+  assert.deepEqual(JSON.parse(after.reward_videos), ["https://youtu.be/1", "https://youtu.be/2"]);
+
+  // Newer write wins.
+  upsertStudentVideos(db, acc.id, {
+    studentId: "s_v2", rewardVideos: ["https://youtu.be/1", "https://youtu.be/2", "https://youtu.be/3"], updatedAt: "2026-08-02T00:00:00.000Z",
+  });
+  after = getStudents(db, acc.id).find((s) => s.id === "s_v2");
+  assert.equal(JSON.parse(after.reward_videos).length, 3);
+
+  // A write stamped BEFORE the current value must be rejected, not applied.
+  upsertStudentVideos(db, acc.id, {
+    studentId: "s_v2", rewardVideos: [], updatedAt: "2026-08-01T12:00:00.000Z",
+  });
+  after = getStudents(db, acc.id).find((s) => s.id === "s_v2");
+  assert.equal(JSON.parse(after.reward_videos).length, 3, "a stale-timestamped write must not clobber a newer value");
+});
+
+test("upsertStudentAdults updates close_adults and rejects a stale (older) write", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  upsertStudent(db, acc.id, { id: "s_a2", name: "Оля" });
+
+  upsertStudentAdults(db, acc.id, {
+    studentId: "s_a2", closeAdults: [{ id: "x1", name: "Папа", photo: null }], updatedAt: "2026-08-01T00:00:00.000Z",
+  });
+  let after = getStudents(db, acc.id).find((s) => s.id === "s_a2");
+  assert.deepEqual(JSON.parse(after.close_adults), [{ id: "x1", name: "Папа", photo: null }]);
+
+  upsertStudentAdults(db, acc.id, {
+    studentId: "s_a2", closeAdults: [], updatedAt: "2026-07-01T00:00:00.000Z",
+  });
+  after = getStudents(db, acc.id).find((s) => s.id === "s_a2");
+  assert.deepEqual(JSON.parse(after.close_adults), [{ id: "x1", name: "Папа", photo: null }],
+    "a stale-timestamped write must not clobber a newer value");
 });
 
 test("softDeleteStudent marks deleted_at", () => {

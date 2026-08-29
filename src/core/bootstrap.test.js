@@ -200,6 +200,40 @@ describe("bootstrap helpers", () => {
     expect(records[0].closeAdults[0].photo).toBe("/api/photos/newhash");
   });
 
+  it("mergeStudentRecords preserves rewardVideos added on another device when this device's unrelated edit is newer", () => {
+    // Server has the fuller/newer video list (added on another device).
+    const server = [{ id: "s1", updatedAt: "2026-01-01T00:00:00.000Z",
+      rewardVideos: ["a", "b", "c"], rewardVideosUpdatedAt: "2026-01-01T00:00:00.000Z" }];
+    // This device only made an unrelated edit (bumps the whole-record updatedAt) and
+    // still carries its own stale, empty videos snapshot from before the server's list grew.
+    const local = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
+      rewardVideos: [], rewardVideosUpdatedAt: null }];
+
+    const records = mergeStudentRecords(local, server);
+    expect(records[0].rewardVideos).toEqual(["a", "b", "c"]);
+  });
+
+  it("mergeStudentRecords picks rewardVideos from whichever side updated them more recently", () => {
+    const local = [{ id: "s1", updatedAt: "2026-01-01T00:00:00.000Z",
+      rewardVideos: ["a"], rewardVideosUpdatedAt: "2026-06-01T00:00:00.000Z" }];
+    const server = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
+      rewardVideos: ["a", "b"], rewardVideosUpdatedAt: "2026-01-01T00:00:00.000Z" }];
+
+    const records = mergeStudentRecords(local, server);
+    expect(records[0].rewardVideos).toEqual(["a"]);
+    expect(records[0].rewardVideosUpdatedAt).toBe("2026-06-01T00:00:00.000Z");
+  });
+
+  it("mergeStudentRecords preserves closeAdults added on another device when this device's unrelated edit is newer", () => {
+    const server = [{ id: "s1", updatedAt: "2026-01-01T00:00:00.000Z",
+      closeAdults: [{ id: "a1", name: "Мама", photo: null }], closeAdultsUpdatedAt: "2026-01-01T00:00:00.000Z" }];
+    const local = [{ id: "s1", updatedAt: "2026-06-01T00:00:00.000Z",
+      closeAdults: [], closeAdultsUpdatedAt: null }];
+
+    const records = mergeStudentRecords(local, server);
+    expect(records[0].closeAdults).toEqual([{ id: "a1", name: "Мама", photo: null }]);
+  });
+
   it("markStudentDeleted creates a tombstone without losing existing fields", () => {
     const deletedAt = "2026-05-14T10:00:00.000Z";
     const records = markStudentDeleted(

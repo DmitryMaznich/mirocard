@@ -200,6 +200,16 @@ export function initDb(dbPath = DB_PATH) {
     // Backfill: give existing photos a timestamp so they don't get overwritten by null
     db.exec("UPDATE students SET photo_updated_at = updated_at WHERE photo IS NOT NULL");
   }
+  if (!studentColumns.some((column) => column.name === "reward_videos_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN reward_videos_updated_at TEXT");
+    // Backfill: give existing non-empty video lists a timestamp so a stale client
+    // write can't blank them out (same protection as photo_updated_at above).
+    db.exec("UPDATE students SET reward_videos_updated_at = updated_at WHERE reward_videos IS NOT NULL AND reward_videos != '[]'");
+  }
+  if (!studentColumns.some((column) => column.name === "close_adults_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN close_adults_updated_at TEXT");
+    db.exec("UPDATE students SET close_adults_updated_at = updated_at WHERE close_adults IS NOT NULL AND close_adults != '[]'");
+  }
 
   const linkColumns = db.prepare("PRAGMA table_info(student_topic_links)").all();
   if (!linkColumns.some((c) => c.name === "params")) {

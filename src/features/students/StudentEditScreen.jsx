@@ -224,15 +224,34 @@ export default function StudentEditScreen() {
     const db = await getDb();
     if (isEdit) {
       const photoUpdatedAt = photoChanged ? ts : (initial.photoUpdatedAt ?? null);
-      const updated = { ...initial, ...data, photo: photo ?? null, photoUpdatedAt, updatedAt: ts };
+      // Compare against the snapshot the form was opened with — if this device's copy
+      // of the student was stale (another device added videos/adults meanwhile), an
+      // untouched list here must NOT be pushed as if it were a deliberate change.
+      const videosChanged = JSON.stringify(videos) !== JSON.stringify(normaliseVideos(initial.rewardVideos));
+      const adultsChanged = JSON.stringify(adults) !== JSON.stringify(normaliseAdults(initial.closeAdults));
+      const rewardVideosUpdatedAt = videosChanged ? ts : (initial.rewardVideosUpdatedAt ?? null);
+      const closeAdultsUpdatedAt  = adultsChanged ? ts : (initial.closeAdultsUpdatedAt ?? null);
+      const updated = {
+        ...initial, ...data,
+        photo: photo ?? null, photoUpdatedAt,
+        rewardVideosUpdatedAt, closeAdultsUpdatedAt,
+        updatedAt: ts,
+      };
       const next = students.map((s) => (s.id === initial.id ? updated : s));
       await kv.set(db, "students", next);
       setStudents(next);
-      // student.upsert covers all fields except photo
-      pushOp("student.upsert", { ...updated, photo: undefined });
-      // photo is synced independently so one device's unrelated edit can't erase another's photo
+      // student.upsert covers only name/comment/language/sex — photo, video rewards and
+      // close adults are each synced independently (their own op + timestamp), so a
+      // stale device that hasn't seen another device's additions can't erase them.
+      pushOp("student.upsert", { ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined });
       if (photoChanged) {
         pushOp("student.photo.upsert", { studentId: initial.id, photo: photo ?? null, photoUpdatedAt: ts });
+      }
+      if (videosChanged) {
+        pushOp("student.videos.upsert", { studentId: initial.id, rewardVideos: videos, updatedAt: ts });
+      }
+      if (adultsChanged) {
+        pushOp("student.adults.upsert", { studentId: initial.id, closeAdults: adults, updatedAt: ts });
       }
     } else {
       const photoUpdatedAt = photo ? ts : null;

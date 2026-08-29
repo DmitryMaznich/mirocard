@@ -18,6 +18,39 @@ test("student.upsert creates student", () => {
   assert.equal(getStudents(db, acc.id).length, 1);
 });
 
+test("student.videos.upsert sets reward_videos, and a later unrelated student.upsert does not wipe it", () => {
+  const db = makeDb();
+  const acc = makeAcc(db);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Миня" } }]);
+  processSync(db, acc.id, [{
+    type: "student.videos.upsert",
+    data: { studentId: "s1", rewardVideos: ["https://youtu.be/a", "https://youtu.be/b"], updatedAt: "2026-08-01T00:00:00.000Z" },
+  }]);
+  assert.deepEqual(JSON.parse(getStudents(db, acc.id)[0].reward_videos), ["https://youtu.be/a", "https://youtu.be/b"]);
+
+  // A stale device pushes an unrelated edit (e.g. comment) with no knowledge of the videos.
+  processSync(db, acc.id, [{
+    type: "student.upsert",
+    data: { id: "s1", name: "Миня", comment: "стало интереснее", rewardVideos: [] },
+  }]);
+  const after = getStudents(db, acc.id)[0];
+  assert.equal(after.comment, "стало интереснее");
+  assert.deepEqual(JSON.parse(after.reward_videos), ["https://youtu.be/a", "https://youtu.be/b"]);
+});
+
+test("student.adults.upsert sets close_adults independently of student.upsert", () => {
+  const db = makeDb();
+  const acc = makeAcc(db);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Миня" } }]);
+  processSync(db, acc.id, [{
+    type: "student.adults.upsert",
+    data: { studentId: "s1", closeAdults: [{ id: "a1", name: "Мама", photo: null }], updatedAt: "2026-08-01T00:00:00.000Z" },
+  }]);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Миня", closeAdults: [] } }]);
+  const after = getStudents(db, acc.id)[0];
+  assert.deepEqual(JSON.parse(after.close_adults), [{ id: "a1", name: "Мама", photo: null }]);
+});
+
 test("student.delete soft-deletes student", () => {
   const db = makeDb();
   const acc = makeAcc(db);

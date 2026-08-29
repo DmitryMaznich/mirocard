@@ -46,43 +46,63 @@ export function mergeStudentRecords(local, server) {
     }
 
     const winner = (student.updatedAt ?? "") >= (current.updatedAt ?? "") ? student : current;
-    const loser  = winner === student ? current : student;
 
-    // Photo merges independently of the rest of the student fields, by its own
-    // photoUpdatedAt, so an unrelated edit on Device B can't erase a photo set on Device A.
-    // This timestamp must be the only signal: an earlier version also unconditionally
-    // preferred any local "data:" URL as "probably unflushed", but nothing ever rewrites
-    // that URL back to the server's resolved one after a sync, so every device ended up
-    // permanently stuck on whichever photo it had last set itself.
-    const photoWinner = (student.photoUpdatedAt ?? "") >= (current.photoUpdatedAt ?? "")
-      ? student : current;
+    // Pick the fresher of two records by a field-specific timestamp. If neither side has
+    // that timestamp (e.g. legacy data from before it existed), fall back to the
+    // whole-record updatedAt so old behavior is preserved until a real edit stamps it.
+    function pickByFieldTimestamp(field) {
+      const a = student[field];
+      const b = current[field];
+      if (a || b) return (a ?? "") >= (b ?? "") ? student : current;
+      return winner;
+    }
+
+    // Photo, rewardVideos and closeAdults each merge independently of the rest of the
+    // student fields, by their own *UpdatedAt timestamp, so an unrelated edit on Device B
+    // (which only bumps the whole-record updatedAt) can't erase something Device A added
+    // to one of these fields more recently. This timestamp must be the only signal: an
+    // earlier version also unconditionally preferred any local "data:" photo URL as
+    // "probably unflushed", but nothing ever rewrote that URL back to the server's
+    // resolved one after a sync, so every device ended up permanently stuck on whichever
+    // photo it had last set itself.
+    const photoWinner = pickByFieldTimestamp("photoUpdatedAt");
     const resolvedPhoto   = photoWinner.photo ?? null;
     const resolvedPhotoTs = photoWinner.photoUpdatedAt ?? null;
 
-    // If winner has an empty adults list but loser has adults with photos, keep loser's list
-    // (empty winner means the server simply hasn't received the pushOp yet).
-    const winnerAdults = winner.closeAdults;
-    const loserAdults  = loser.closeAdults;
+    const videosWinner = pickByFieldTimestamp("rewardVideosUpdatedAt");
+    const resolvedVideos   = videosWinner.rewardVideos ?? [];
+    const resolvedVideosTs = videosWinner.rewardVideosUpdatedAt ?? null;
+
+    const adultsWinner = pickByFieldTimestamp("closeAdultsUpdatedAt");
+    const adultsLoser = adultsWinner === student ? current : student;
+    const winnerAdults = adultsWinner.closeAdults;
+    const loserAdults  = adultsLoser.closeAdults;
+    // If the winner has an empty adults list but the loser has adults with photos, keep
+    // the loser's list — an empty winner without its own closeAdultsUpdatedAt likely just
+    // means this replica hasn't received the pushOp yet, not a deliberate deletion.
     const closeAdults = winnerAdults == null
       ? winnerAdults
-      : winnerAdults.length === 0 && loserAdults?.length > 0
-        ? loserAdults
-        : winnerAdults.map((adult) => {
-            // Adults have no independent photo timestamp, so the whole-record `winner`
-            // (by updatedAt) is the best freshness signal available. Fall back to the
-            // loser's photo only when the winner doesn't have one for this adult, so a
-            // replica that hasn't received the photo yet doesn't erase it.
-            const loserAdultPhoto = (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
-            const resolvedAdultPhoto = adult.photo ?? loserAdultPhoto ?? null;
-            return resolvedAdultPhoto === adult.photo ? adult : { ...adult, photo: resolvedAdultPhoto };
-          });
+      : (winnerAdults.length === 0 && !adultsWinner.closeAdultsUpdatedAt && loserAdults?.length > 0
+          ? loserAdults
+          : winnerAdults
+        ).map((adult) => {
+          // Adults have no independent per-item photo timestamp, so fall back to the
+          // loser's photo only when the winner doesn't have one for this adult, so a
+          // replica that hasn't received the photo yet doesn't erase it.
+          const loserAdultPhoto = (loserAdults ?? []).find((a) => a.id === adult.id)?.photo ?? null;
+          const resolvedAdultPhoto = adult.photo ?? loserAdultPhoto ?? null;
+          return resolvedAdultPhoto === adult.photo ? adult : { ...adult, photo: resolvedAdultPhoto };
+        });
 
     byId.set(student.id, {
       ...winner,
       photo:          resolvedPhoto,
       photoUpdatedAt: resolvedPhotoTs,
       sex:            student.sex   ?? current.sex   ?? null,
-      closeAdults:    closeAdults,
+      rewardVideos:          resolvedVideos,
+      rewardVideosUpdatedAt: resolvedVideosTs,
+      closeAdults:           closeAdults,
+      closeAdultsUpdatedAt:  adultsWinner.closeAdultsUpdatedAt ?? null,
     });
   }
 

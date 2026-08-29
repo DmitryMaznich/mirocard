@@ -359,22 +359,23 @@ export function upsertStudent(db, accountId, {
   const serverNow = now();
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
-  // Photo is managed independently via upsertStudentPhoto / student.photo.upsert.
-  // On INSERT (new student) we set the initial photo; on UPDATE we never touch it
-  // so a stale write from one device cannot erase a photo written by another.
+  // Photo, rewardVideos and closeAdults are each managed independently via their
+  // own upsert* functions / sync ops (student.photo.upsert, student.videos.upsert,
+  // student.adults.upsert). On INSERT (new student) we set their initial values;
+  // on UPDATE we never touch them here, so a stale write from one device that
+  // doesn't yet know about another device's additions can't erase them.
   const initialPhotoRef = photo ? extractAndStorePhoto(db, photo) : null;
+  const normalizedVideos = Array.isArray(rewardVideos) ? rewardVideos : [];
   const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
 
   db.prepare(`
-    INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, photo_updated_at, reward_videos, close_adults, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, photo_updated_at, reward_videos, reward_videos_updated_at, close_adults, close_adults_updated_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       comment = excluded.comment,
       primary_language = excluded.primary_language,
       sex = excluded.sex,
-      reward_videos = excluded.reward_videos,
-      close_adults = excluded.close_adults,
       updated_at = excluded.updated_at
   `).run(
     id,
@@ -385,8 +386,10 @@ export function upsertStudent(db, accountId, {
     sex ?? null,
     initialPhotoRef,
     initialPhotoRef ? updated : null,
-    JSON.stringify(Array.isArray(rewardVideos) ? rewardVideos : []),
+    JSON.stringify(normalizedVideos),
+    normalizedVideos.length ? updated : null,
     JSON.stringify(processedAdults),
+    processedAdults.length ? updated : null,
     created,
     updated,
   );
@@ -403,6 +406,30 @@ export function upsertStudentPhoto(db, accountId, { studentId, photo, photoUpdat
   db.prepare(
     "UPDATE students SET photo = ?, photo_updated_at = ? WHERE id = ?"
   ).run(photoRef, photoUpdatedAt, studentId);
+}
+
+export function upsertStudentVideos(db, accountId, { studentId, rewardVideos, updatedAt }) {
+  const existing = db.prepare(
+    "SELECT reward_videos_updated_at FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+  ).get(studentId, accountId);
+  if (!existing) return;
+  // Last-write-wins: skip if we already have a newer (or equally fresh) list.
+  if (existing.reward_videos_updated_at && updatedAt < existing.reward_videos_updated_at) return;
+  db.prepare(
+    "UPDATE students SET reward_videos = ?, reward_videos_updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(Array.isArray(rewardVideos) ? rewardVideos : []), updatedAt, studentId);
+}
+
+export function upsertStudentAdults(db, accountId, { studentId, closeAdults, updatedAt }) {
+  const existing = db.prepare(
+    "SELECT close_adults_updated_at FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+  ).get(studentId, accountId);
+  if (!existing) return;
+  if (existing.close_adults_updated_at && updatedAt < existing.close_adults_updated_at) return;
+  const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
+  db.prepare(
+    "UPDATE students SET close_adults = ?, close_adults_updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(processedAdults), updatedAt, studentId);
 }
 
 export function getStudents(db, accountId) {
