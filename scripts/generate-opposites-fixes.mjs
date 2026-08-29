@@ -1,21 +1,30 @@
 /**
  * generate-opposites-fixes.mjs
- * Regenerates the mismatched card pairs found in the "Противоположности"
- * audit — plan Tasks 7 and 8 (docs/superpowers/plans/2026-08-29-opposites-finalization.md):
+ * Regenerates card pairs for the "Противоположности" topic wherever the two
+ * poles showed genuinely different objects/scenes/people instead of one
+ * object in two states — the defect the whole content-fix pass exists to
+ * close. Started as plan Tasks 7-8 (tall_short's tree/tower/fence,
+ * full_empty's bucket — docs/superpowers/plans/2026-08-29-opposites-finalization.md)
+ * and grew, via a live full-deck visual audit, to cover 24 pairs across 9
+ * concepts (see PAIRS below for the current list — this comment is not
+ * re-synced automatically, PAIRS is the source of truth for scope).
  *
- *  - tall_short: tree_bush/mountain_hill/building_house compared different
- *    OBJECTS across the pole (dерево vs куст, гора vs холм, дом vs домик).
- *    Replaced with same-object pairs: tree/tree, tower/tower, fence/fence.
- *  - full_empty: the "bucket" pair used two different buckets (blue metal
- *    vs yellow plastic). Replaced with one bucket, water added/removed.
+ * Lesson learned across the whole pass, baked into most prompts below:
+ * removing people is the single biggest lever for pair consistency. Nearly
+ * every prompt says "no people" — every pair that kept a person (backpack's
+ * first attempt, the original clean_car) came back less consistent than the
+ * people-free ones on the first try. Where a pair's target dimension is
+ * itself size/scale (tree, cake), also pin an explicit frame-percentage and
+ * tell the model not to zoom in to compensate — camera auto-compensation
+ * for a "smaller" subject was a repeat failure mode.
  *
  * Saves generated WebP images straight into public/decks/opposites_draft/media/
  * (the hand-maintained source folder every opposites_v*.zip has been zipped
  * from) so they can be inspected before the zip is rebuilt.
  *
  * Usage:
- *   node scripts/generate-opposites-fixes.mjs            # generate all 8 images
- *   node scripts/generate-opposites-fixes.mjs tree tower  # only these ids
+ *   node scripts/generate-opposites-fixes.mjs             # generate every pair in PAIRS
+ *   node scripts/generate-opposites-fixes.mjs tree tower   # only these ids (unknown ids are silently ignored — check PAIRS for the exact id list before running)
  */
 
 import fs from "fs";
@@ -36,8 +45,8 @@ const STYLE = "photorealistic photograph, natural daylight, single subject filli
 const PAIRS = [
   {
     id: "tree",
-    left:  { file: "tall_tree_1.webp",  prompt: `${STYLE}, a single tall young pine tree standing alone in a grassy clearing, straight trunk, full green needles from base to top, vivid green summer grass, a soft hazy blue-green hill treeline on the horizon, clear pale-blue sky with a few thin clouds, warm midday light, camera at standing eye-level about 8 meters from the tree, no other trees crowding the frame` },
-    right: { file: "short_tree_1.webp", prompt: `${STYLE}, a single short young pine tree — same species and needle color as a taller version of this exact tree, full green needles from base to top — but noticeably shorter, only about knee-to-waist height against the surrounding grass. Must match exactly: the same vivid green summer grass (not dry or golden), the same soft hazy blue-green hill treeline on the horizon, the same clear pale-blue sky with a few thin clouds, the same warm midday lighting and shadow direction, the same camera eye-level height and the same ~8 meter camera distance so the field of view is identical — only the tree's height differs, everything else in the frame must look like the same location on the same day. No other trees crowding the frame.` },
+    left:  { file: "tall_tree_1.webp",  prompt: `${STYLE}, a single tall young pine tree standing alone in a grassy clearing, straight trunk, full green needles from base to top, vivid green summer grass, a soft hazy blue-green hill treeline on the horizon, clear pale-blue sky with a few thin clouds, warm midday light, camera at standing eye-level about 8 meters from the tree, no other trees crowding the frame. The tree's crown reaches approximately 85% of the frame's height, with only a small margin of grass and sky around it.` },
+    right: { file: "short_tree_1.webp", prompt: `${STYLE}, a single short young pine tree — same species and needle color as a taller version of this exact tree, full green needles from base to top — but noticeably shorter, only about knee-to-waist height against the surrounding grass. Must match exactly: the same vivid green summer grass (not dry or golden), the same soft hazy blue-green hill treeline on the horizon, the same clear pale-blue sky with a few thin clouds, the same warm midday lighting and shadow direction, the same camera eye-level height and the same ~8 meter camera distance so the field of view is identical. IMPORTANT: do not zoom in or move the camera closer to compensate for the tree's short height — keep the exact same camera distance as the tall version. The short tree's crown must reach no more than 35% of the frame's height, with wide margins of grass and sky clearly visible on all sides, proving the camera did not move closer. No other trees crowding the frame.` },
   },
   {
     id: "tower",
@@ -95,19 +104,19 @@ const PAIRS = [
     right: { file: "short_scarf_1.webp", prompt: `${STYLE}, the exact same knitted wool scarf in the exact same mustard-gold color and knit pattern, laid out on the same light wooden floor with the same soft natural light — but a much shorter scarf, only occupying a small portion of the frame's length. Same overhead camera angle — only the scarf's length differs.` },
   },
   {
-    id: "road2",
+    id: "long_road",
     left:  { file: "long_road_1.webp",  prompt: `${STYLE}, a straight dirt country road stretching far into the distance under an open sky, simple grassy fields on both sides, camera low at road level looking straight down the road, the road recedes to a tiny point near the horizon showing its full long length` },
     right: { file: "short_road_1.webp", prompt: `${STYLE}, the exact same style dirt country road with the same simple grassy fields on both sides and the same open sky — but a short road that visibly ends at a closed wooden gate only a short distance away, same camera position low at road level. Same road material and framing as the long version — only the road's length differs.` },
   },
   {
     id: "rope",
-    left:  { file: "long_rope_1.webp",  prompt: `${STYLE}, a long thick natural-fiber rope laid out in a winding curve on a grassy lawn, stretching almost the full length of the frame, bright daylight, camera directly overhead looking straight down` },
-    right: { file: "short_rope_1.webp", prompt: `${STYLE}, the exact same thick natural-fiber rope — identical color, thickness, and fiber texture — laid out on the same grassy lawn with the same bright daylight, but a much shorter length of rope, only occupying a small portion of the frame. Same overhead camera angle — only the rope's length differs.` },
+    left:  { file: "long_rope_1.webp",  prompt: `${STYLE}, a long thick natural-fiber rope laid out in a winding curve on a grassy lawn, stretching almost the full length of the frame, bright daylight, camera directly overhead looking straight down, both frayed rope ends visible` },
+    right: { file: "short_rope_1.webp", prompt: `${STYLE}, a short single straight piece of the exact same thick natural-fiber rope — identical color, thickness, and fiber texture as the long version — laid out in a straight line (NOT coiled, NOT looped, NOT wound into a ring or spiral — straight, like a short segment cut from the long rope) on the same grassy lawn with the same bright daylight, both frayed rope ends clearly visible at each end of this short straight piece, occupying only about 20% of the frame's width with plenty of empty grass visible around it. Same overhead camera angle as the long version — only the rope's length differs; it must contain visibly LESS rope material than the long version, not the same amount rearranged.` },
   },
   {
     id: "backpack",
-    left:  { file: "full_backpack_1.webp",  prompt: `${STYLE}, a single dark green canvas backpack, fully packed and bulging, unzipped to show it stuffed with books and a water bottle, hanging by its top handle held by a hand (only the hand and forearm visible, no face), against a simple neutral wall background, camera straight-on` },
-    right: { file: "empty_backpack_1.webp", prompt: `${STYLE}, the exact same dark green canvas backpack — identical color, shape, and style as the full version — but completely empty and flat/deflated looking, zipped closed, hanging by its top handle held by the same hand and forearm (no face), same simple neutral wall background, same camera angle. Only the backpack's fullness differs.` },
+    left:  { file: "full_backpack_1.webp",  prompt: `${STYLE}, a single dark green canvas backpack, fully packed and bulging, unzipped to show it stuffed with books and a water bottle, standing upright on a plain wooden floor against a simple neutral wall background, no hands, no people, straight-on camera angle` },
+    right: { file: "empty_backpack_1.webp", prompt: `${STYLE}, the exact same dark green canvas backpack — identical color, shape, and style as the full version — but completely empty and flat/deflated looking, zipped closed, standing upright on the same plain wooden floor against the same simple neutral wall background, no hands, no people, same straight-on camera angle. Only the backpack's fullness differs.` },
   },
   {
     id: "plate",
@@ -120,9 +129,9 @@ const PAIRS = [
     right: { file: "dirty_shoes_1.webp", prompt: `${STYLE}, the exact same pair of white canvas sneakers — identical style, laces, and sole — sitting side by side on the same light wooden floor with the same soft natural window light, but covered in mud splatters and dirt stains. Same camera angle — only the shoes' cleanliness differs.` },
   },
   {
-    id: "car2",
-    left:  { file: "clean_car_1.webp",  prompt: `${STYLE}, a single blue sedan car parked on a driveway in front of a house, its paint gleaming clean and shiny, bright daylight, camera at a three-quarter angle from the front, no people` },
-    right: { file: "dirty_car_1.webp", prompt: `${STYLE}, the exact same blue sedan car — identical model, color, and shape — parked on the exact same driveway in front of the same house with the same bright daylight and same three-quarter camera angle, but covered in mud splatters and dust across the body and wheels. No people. Only the car's cleanliness differs.` },
+    id: "clean_car",
+    left:  { file: "clean_car_1.webp",  prompt: `${STYLE}, a single dark blue Toyota Corolla sedan (this exact make and model, four-door compact sedan body shape, factory badges visible), parked facing left on a plain grey concrete driveway in front of a single-story beige stucco house with a brown tile roof, its paint gleaming clean and shiny, overcast daylight, camera at a three-quarter angle from the front-left, no people` },
+    right: { file: "dirty_car_1.webp", prompt: `${STYLE}, the exact same dark blue Toyota Corolla sedan — identical make, model, four-door body shape, badges, and facing direction (facing left) as the clean version — parked on the exact same plain grey concrete driveway in front of the exact same single-story beige stucco house with the same brown tile roof, the same overcast daylight, and the same three-quarter camera angle from the front-left, but covered in mud splatters and dust across the body and wheels. No people. Only the car's cleanliness differs — same car, same house, same driveway, same angle.` },
   },
   {
     id: "bicycle",
@@ -151,8 +160,8 @@ const PAIRS = [
   },
   {
     id: "cake",
-    left:  { file: "big_cake_1.webp",  prompt: `${STYLE}, a large multi-tier white frosted cake decorated with pink roses, sitting on a silver cake stand on a wooden table, bright indoor light, camera at eye-level showing the whole cake, no people` },
-    right: { file: "small_cake_1.webp", prompt: `${STYLE}, a small single-layer white frosted cake decorated with the same style pink roses, sitting on the same style silver cake stand on the same wooden table with the same bright indoor light, identical decoration style to the large version — just a much smaller single-tier cake. Same camera angle showing the whole cake, no people — only the cake's size differs.` },
+    left:  { file: "big_cake_1.webp",  prompt: `${STYLE}, a large multi-tier white buttercream-frosted cake decorated with piped pink buttercream roses, sitting on a silver cake stand on a wooden table, a window in the background, bright indoor light, camera at eye-level showing the whole cake, no people. The cake occupies about 70% of the frame's height.` },
+    right: { file: "small_cake_1.webp", prompt: `${STYLE}, a small single-layer white buttercream-frosted cake decorated with the same style piped pink buttercream roses (identical icing technique and rose style to the large version, not fresh flowers), sitting on the same style silver cake stand on the same wooden table with the same window in the background and the same bright indoor light. IMPORTANT: do not zoom in to make the small cake look similar in size to the large one — use the exact same camera distance and eye-level as the large version. The small cake must occupy no more than 30% of the frame's height, with plainly visible empty table space around it, proving the camera did not move closer. No people — only the cake's size differs.` },
   },
   {
     id: "bucket",

@@ -51,6 +51,12 @@ function buildChooseTwoTask(target, sameObjOpposite, allEntries, optionCount) {
 }
 
 function generateChooseTwoTasks(cards, params) {
+  // Intentionally 1 here, not topic.json's production default of 2 — real
+  // sessions always pass a resolved repsPerPair via ParamsScreen, so this
+  // fallback only fires when a caller omits the param entirely (as several
+  // engine.test.js cases do on purpose, to test the repsPerPair=1 behavior
+  // specifically). Do not "fix" this to match topic.json without also
+  // updating those tests to pass repsPerPair explicitly.
   const repsPerPair = params.repsPerPair ?? 1;
   const byObject    = groupByObjectId(cards);
   const entries     = [...byObject.entries()];
