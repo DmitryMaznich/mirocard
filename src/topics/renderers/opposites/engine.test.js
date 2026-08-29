@@ -155,3 +155,24 @@ describe("generateTasks — find_all, plural instruction", () => {
     }
   });
 });
+
+describe("generateTasks — choose_two, positive-pole-first sequencing", () => {
+  it("repsPerPair=1 (default): always asks for the left (positive) pole", () => {
+    const tasks = generateTasks({ type: "choose_two" }, CARDS, 10, {});
+    for (const t of tasks) {
+      expect(t.targetPole).toBe("left");
+    }
+  });
+
+  it("repsPerPair=2: asks both poles for every object", () => {
+    const tasks = generateTasks({ type: "choose_two" }, CARDS, 10, { repsPerPair: 2 });
+    const polesByObject = {};
+    for (const t of tasks) {
+      const targetCard = t.options.find(o => o.isTarget).card;
+      (polesByObject[targetCard.objectId] ??= new Set()).add(t.targetPole);
+    }
+    for (const poles of Object.values(polesByObject)) {
+      expect([...poles].sort()).toEqual(["left", "right"]);
+    }
+  });
+});

@@ -57,8 +57,13 @@ function generateChooseTwoTasks(cards, params) {
   const tasks       = [];
   for (const [, { left, right }] of entries) {
     if (!left || !right) continue;
-    // Each rep = 1 task. Randomise pole order so both get asked when repsPerPair >= 2.
-    const poles = shuffle([left, right]);
+    // left = the positive/unmarked pole for every shipped concept (большой,
+    // высокий, длинный... — see Global Constraints in the plan this came
+    // from). Children acquire the unmarked term before its marked
+    // counterpart (H.H. Clark's "positive pole" finding), so a single rep
+    // always asks for it first; only repsPerPair=2 also asks the marked
+    // (right) pole.
+    const poles = [left, right];
     for (let i = 0; i < Math.min(repsPerPair, 2); i++) {
       const target   = poles[i];
       const opposite = target === left ? right : left;
