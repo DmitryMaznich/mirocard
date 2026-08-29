@@ -97,7 +97,7 @@
 .opp-grid-card:disabled { cursor: default; }
 .opp-grid-card--correct  { background: #dcfce7; border-color: #22c55e; }
 .opp-grid-card--wrong    { background: #fef2f2; border-color: #ef4444; }
-.opp-grid-card--selected { background: #e3f2fd; border-color: #2196f3; }
+.opp-grid-card--selected { background: #eff6ff; border-color: #3b82f6; }
 
 .opp-grid-card__img {
   width: 100%;
@@ -310,11 +310,6 @@
   flex: 1;
   min-height: 0;
   align-items: center;
-  cursor: pointer;
-}
-
-.opp-pair__side {
-  transition: opacity 0.3s ease;
 }
 
 .opp-pair-v2__nav {
@@ -556,10 +551,10 @@
 }
 
 .opp-fo__slot--active {
-  border-color: #42a5f5;
+  border-color: #3b82f6;
   border-style: solid;
-  background: #e3f2fd;
-  color: #42a5f5;
+  background: #eff6ff;
+  color: #3b82f6;
 }
 
 .opp-fo__slot--correct {

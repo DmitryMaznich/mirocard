@@ -137,9 +137,9 @@ describe("generateTasks — find_opposite (text)", () => {
 describe("generateTasks — choose_two, grammatical concord", () => {
   it("instructs using the target card's own instructionLabel, not a fixed neuter form", () => {
     const tasks = generateTasks({ type: "choose_two" }, CARDS, 10, {});
-    const dogTask = tasks.find(t => t.options.some(o => o.card.objectId === "dog" && o.isTarget));
+    const dogTask = tasks.find(t => t.options.some(o => o.card.id === "big_dog" && o.isTarget));
     expect(dogTask.instructionLabel).toBe("большую"); // big_dog, feminine "собака"
-    const ballTask = tasks.find(t => t.options.some(o => o.card.objectId === "ball" && o.isTarget));
+    const ballTask = tasks.find(t => t.options.some(o => o.card.id === "big_ball" && o.isTarget));
     expect(ballTask.instructionLabel).toBe("большой"); // big_ball, masculine "мяч"
     expect(dogTask.poleLabelNeutral).toBeUndefined();
   });
