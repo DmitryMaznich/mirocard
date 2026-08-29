@@ -12345,7 +12345,12 @@ button {
    cqh is relative to .session-body itself (after the header), so it tracks
    the actual available room on any screen height. */
 .session-body--find-n { container-type: size; }
-.session-body--find-n .session-instruction { transform: translateY(calc(14cqh - var(--rows, 2) * 4cqh)); }
+/* No manual translateY offset here anymore — it was hand-tuned to the old
+   cqw/cqh grid-sizing formula's exact leftover-space amount (see the
+   .find-n-grid comment below) and started overlapping the grid once that
+   formula changed. Plain top-of-flow + the session-body's own gap is
+   robust regardless of how tall the grid ends up computing. */
+.session-body--find-n .session-instruction { transform: none; }
 .session-body--situation .session-instruction { transform: none; }
 .session-body--situation .situation-scene { width: min(100%, 220px); max-height: 26cqh; }
 
@@ -12713,10 +12718,9 @@ button {
   max-height: 100%;
 }
 .find-n-option {
-  border: 2px solid rgba(38, 49, 49, 0.1);
+  border: none;
   border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(38, 49, 49, 0.08);
+  background: #f5f5f5;
   cursor: pointer;
   overflow: hidden;
   display: flex;
@@ -12724,12 +12728,6 @@ button {
   justify-content: center;
   aspect-ratio: 1 / 1;
   width: 100%;
-  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
-}
-.find-n-option:active {
-  transform: scale(0.97);
-  border-color: rgba(45, 111, 181, 0.5);
-  box-shadow: 0 2px 6px rgba(38, 49, 49, 0.08);
 }
 .find-n-option__img { width: 100%; height: 100%; object-fit: cover; }
 .find-n-option__img--loading { background: #e0e0e0; width: 100%; height: 100%; }
