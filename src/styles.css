@@ -12312,16 +12312,26 @@ button {
      visible at all. card-img-wrap is sized to match card-img exactly (see
      the comment on .card-img-wrap above), so a positive inset places the
      glow entirely underneath the opaque photo, where it can never be seen. */
-  inset: -18%;
+  /* Fixed px, not a percentage: .session-body (and every ancestor between
+     it and this box) clips with overflow:hidden, and its own padding is
+     only ~8-16px in the tightest contexts (emotion_control, yes_no).
+     A percentage inset scales with the photo — on a large photo (up to
+     70svh) an -18% bleed is 50-70px, blowing straight through that
+     padding and getting hard-clipped mid-glow (the "visible rectangle"
+     bug). A small fixed value plus a blur radius that fits the same
+     budget stays inside the padding in every context, so the gradient's
+     own transparent tail (see the two background rules below) is what
+     ends the glow, never the ancestor clip. */
+  inset: -6px;
   border-radius: 30%;
   z-index: 0;
-  filter: blur(14px);
-  opacity: 0.78;
+  filter: blur(5px);
+  opacity: 0.8;
   pointer-events: none;
 }
-.card-img-wrap--positive::before { background: radial-gradient(circle, #E2703F 0%, transparent 70%); }
-.card-img-wrap--negative::before { background: radial-gradient(circle, #56628A 0%, transparent 70%); }
-.card-img-wrap--neutral::before  { background: radial-gradient(circle, #C99A3B 0%, transparent 70%); }
+.card-img-wrap--positive::before { background: radial-gradient(circle, #E2703F 0%, transparent 85%); }
+.card-img-wrap--negative::before { background: radial-gradient(circle, #56628A 0%, transparent 85%); }
+.card-img-wrap--neutral::before  { background: radial-gradient(circle, #C99A3B 0%, transparent 85%); }
 .situation-scene {
   width: min(100%, 360px);
   max-height: 34svh;
