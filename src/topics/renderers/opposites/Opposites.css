@@ -306,24 +306,8 @@
   cursor: pointer;
 }
 
-/* Приглушённый полюс: виден как силуэт, layout не прыгает */
-.opp-pair__side--hidden {
-  opacity: 0.2;
-  filter: grayscale(1);
-  pointer-events: none;
-  transition: opacity 0.3s ease, filter 0.3s ease;
-}
-
 .opp-pair__side {
   transition: opacity 0.3s ease;
-}
-
-.opp-pair-v2__tap-hint {
-  text-align: center;
-  color: #aaa;
-  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
-  padding: 4px 0;
-  flex-shrink: 0;
 }
 
 .opp-pair-v2__nav {
