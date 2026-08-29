@@ -12312,11 +12312,11 @@ button {
      visible at all. card-img-wrap is sized to match card-img exactly (see
      the comment on .card-img-wrap above), so a positive inset places the
      glow entirely underneath the opaque photo, where it can never be seen. */
-  inset: -14%;
+  inset: -18%;
   border-radius: 30%;
   z-index: 0;
-  filter: blur(10px);
-  opacity: 0.6;
+  filter: blur(14px);
+  opacity: 0.78;
   pointer-events: none;
 }
 .card-img-wrap--positive::before { background: radial-gradient(circle, #E2703F 0%, transparent 70%); }
@@ -12682,12 +12682,20 @@ button {
   }
 }
 
-/* find-n grid: fills available space, cards stay square and equal */
+/* find-n grid: fills available space, cards stay square and equal.
+   Deliberately NOT container-type:size — this would be the only nested
+   size-containment context in the whole file (every other cqh/cqw usage
+   sits directly on the .session-body--* container, one level, not two),
+   and it reproduced as a near-zero-size collapse of .find-n-inner on real
+   Chrome/Samsung Internet on a Samsung S23 Ultra and a tablet (screenshot-
+   confirmed 2026-08-29) despite working in desktop-browser testing.
+   max-width/max-height against a flex:1 parent's resolved content box is
+   the same "fit width or height, whichever is tighter" result, using a
+   plain percentage instead of a second nested container query. */
 .find-n-grid {
   flex: 1;
   min-height: 0;
   width: 100%;
-  container-type: size;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12699,8 +12707,10 @@ button {
   grid-template-columns: repeat(var(--cols, 2), 1fr);
   gap: 10px;
   aspect-ratio: var(--cols, 2) / var(--rows, 2);
-  /* take the smaller of: full width OR height scaled to grid aspect ratio */
-  width: min(100cqw, calc(100cqh * var(--cols, 2) / var(--rows, 2)));
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
 }
 .find-n-option {
   border: 2px solid rgba(38, 49, 49, 0.1);
