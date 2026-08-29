@@ -5,7 +5,7 @@
  * object in two states — the defect the whole content-fix pass exists to
  * close. Started as plan Tasks 7-8 (tall_short's tree/tower/fence,
  * full_empty's bucket — docs/superpowers/plans/2026-08-29-opposites-finalization.md)
- * and grew, via a live full-deck visual audit, to cover 24 pairs across 9
+ * and grew, via a live full-deck visual audit, to cover 25 pairs across 9
  * concepts (see PAIRS below for the current list — this comment is not
  * re-synced automatically, PAIRS is the source of truth for scope).
  *
@@ -130,8 +130,8 @@ const PAIRS = [
   },
   {
     id: "clean_car",
-    left:  { file: "clean_car_1.webp",  prompt: `${STYLE}, a single dark blue Toyota Corolla sedan (this exact make and model, four-door compact sedan body shape, factory badges visible), parked facing left on a plain grey concrete driveway in front of a single-story beige stucco house with a brown tile roof, its paint gleaming clean and shiny, overcast daylight, camera at a three-quarter angle from the front-left, no people` },
-    right: { file: "dirty_car_1.webp", prompt: `${STYLE}, the exact same dark blue Toyota Corolla sedan — identical make, model, four-door body shape, badges, and facing direction (facing left) as the clean version — parked on the exact same plain grey concrete driveway in front of the exact same single-story beige stucco house with the same brown tile roof, the same overcast daylight, and the same three-quarter camera angle from the front-left, but covered in mud splatters and dust across the body and wheels. No people. Only the car's cleanliness differs — same car, same house, same driveway, same angle.` },
+    left:  { file: "clean_car_1.webp",  prompt: `${STYLE}, a single dark blue compact sedan car, 2020s-generation styling: sharp angular LED headlights that sweep back into the front fender, a wide trapezoidal lower grille with black honeycomb mesh, a thin chrome bar linking the headlights above the grille, a sharp character crease running from the front wheel arch to the tail light, 5-spoke silver alloy wheels — parked facing left on a plain grey concrete driveway in front of a single-story tan stucco house with a brown clay-tile roof and a large brown garage door visible behind the car on the right side of the frame, its paint gleaming clean and shiny, overcast daylight, camera at a three-quarter angle from the front-left, no people` },
+    right: { file: "dirty_car_1.webp", prompt: `${STYLE}, the exact same dark blue compact sedan car — identical 2020s-generation body: same sharp angular LED headlights sweeping into the front fender, same wide trapezoidal honeycomb-mesh grille, same thin chrome bar above the grille, same character crease from wheel arch to tail light, same 5-spoke silver alloy wheels, facing the same direction (facing left) as the clean version — parked on the exact same plain grey concrete driveway in front of the exact same single-story tan stucco house with the same brown clay-tile roof and the same large brown garage door visible on the right side of the frame, the same overcast daylight, and the same three-quarter camera angle from the front-left, but covered in mud splatters and dust across the body and wheels. No people. Only the car's cleanliness differs — same car body style, same house, same garage door, same driveway, same angle.` },
   },
   {
     id: "bicycle",
