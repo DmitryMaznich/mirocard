@@ -27,6 +27,10 @@ CHAT_ID = get_int_env('FEEDBACK_BOT_CHAT_ID', required=True)
 RETENTION_DAYS = get_int_env('FEEDBACK_BOT_CACHE_RETENTION_DAYS', default=30)
 DATA_DIR = get_env('FEEDBACK_BOT_DATA_DIR', required=True)
 
+# Video ingestion (optional — unset FEEDBACK_BOT_VIDEO_CHAT_ID to disable).
+LOCAL_BOT_API_URL = get_env('TELEGRAM_LOCAL_API_URL')
+VIDEO_CHAT_ID = get_int_env('FEEDBACK_BOT_VIDEO_CHAT_ID')
+
 CACHE_PATH = os.path.join(DATA_DIR, 'message_cache.json')
 INBOX_PATH = os.path.join(DATA_DIR, 'inbox.jsonl')
 LOG_PATH = os.path.join(DATA_DIR, 'bot.log')
@@ -186,11 +190,36 @@ async def prune_cache_job(_ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main() -> None:
-    app = Application.builder().token(BOT_TOKEN).build()
+    builder = Application.builder().token(BOT_TOKEN)
+    if LOCAL_BOT_API_URL:
+        # Standard Bot API caps file downloads at 20 MB — too small for phone
+        # video. A local Bot API server (telegram-bot-api) raises that to
+        # 2 GB; see docs/feedback-bot-setup.md section "Video ingestion".
+        builder = builder.base_url(f'{LOCAL_BOT_API_URL}/bot').base_file_url(f'{LOCAL_BOT_API_URL}/file/bot')
+        log.info('Using local Bot API server at %s', LOCAL_BOT_API_URL)
+    app = builder.build()
     app.add_handler(TypeHandler(Update, log_all_updates), group=-1)
     app.add_handler(MessageHandler(filters.ChatType.GROUPS, handle_group_message))
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE, handle_owner_dm))
     app.add_handler(MessageReactionHandler(handle_reaction))
+
+    if VIDEO_CHAT_ID:
+        from google_photos import GooglePhotosClient
+        from video_ingest import VideoIngest
+
+        client_secret_path = get_env('GOOGLE_PHOTOS_CLIENT_SECRET_PATH', required=True)
+        token_path = get_env('GOOGLE_PHOTOS_TOKEN_PATH', required=True)
+        album_id = get_env('GOOGLE_PHOTOS_ALBUM_ID', required=True)
+        video_temp_dir = os.path.join(DATA_DIR, 'video_tmp')
+
+        photos_client = GooglePhotosClient(client_secret_path, token_path)
+        video_ingest = VideoIngest(VIDEO_CHAT_ID, video_temp_dir, photos_client, album_id)
+        app.add_handler(MessageHandler(
+            filters.ChatType.GROUPS & (filters.VIDEO | filters.Document.VIDEO),
+            video_ingest.handle_message,
+        ))
+        log.info('Video ingestion enabled: chat=%d album=%s', VIDEO_CHAT_ID, album_id)
+
     app.job_queue.run_repeating(prune_cache_job, interval=60 * 60 * 24, first=60)
     log.info('Mirocard feedback bot started (chat=%d, owner=%d)', CHAT_ID, OWNER_ID)
     app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)

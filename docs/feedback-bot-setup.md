@@ -102,3 +102,69 @@ Start-ScheduledTask -TaskName "MirocardFeedbackBot"
 5. Manually edit one local entry's `status` to `"done"`, then run
    `scripts/fetch-feedback-backlog.py` again.
    Expect: that entry's `status` is still `"done"` after the sync.
+
+## 7. Video ingestion setup (optional)
+
+Same bot process, extended to also watch a **separate** Telegram group and
+archive every video posted there into a shared Google Photos album. Code:
+`feedback-bot/video_ingest.py`, `feedback-bot/google_photos.py`,
+`feedback-bot/authorize_google_photos.py`.
+
+### 7.1 Telegram side — video group + local Bot API server
+
+1. Create a new Telegram group (separate from the testers group) for raw
+   video, add the same `Mirocard Feedback` bot to it. Admin rights aren't
+   required for this part (only reactions need it, per step 1 above).
+2. Get its chat id the same way as step 2 above (`@RawDataBot`, or
+   `getUpdates`) — a negative number.
+3. The standard Bot API caps `getFile` downloads at **20 MB**, far too small
+   for phone-shot video. Fix: run a local Bot API server
+   (`telegram-bot-api`, Telegram's own open-source component) alongside the
+   bot; it raises the limit to 2 GB.
+   - Register an app at <https://my.telegram.org/apps> (login with your own
+     phone number) to get an `api_id` and `api_hash` — one-time, needed only
+     to run this server, not to log in as a user.
+   - Get `telegram-bot-api.exe` for Windows (build from
+     <https://github.com/tdlib/telegram-bot-api> per its README, or use a
+     prebuilt community release) and place it at
+     `C:\Users\dmazn\Projects\Mirocard2\telegram-bot-api\telegram-bot-api.exe`.
+   - On the runtime host: `.\scripts\install-telegram-local-api-task.ps1
+     -ApiId <id> -ApiHash <hash>`, then
+     `Start-ScheduledTask -TaskName "TelegramLocalBotApi"`.
+4. In `.env`, set `TELEGRAM_LOCAL_API_URL=http://127.0.0.1:8081` and
+   `FEEDBACK_BOT_VIDEO_CHAT_ID=<chat id from step 2>`.
+
+### 7.2 Google Photos side — OAuth + shared album
+
+1. In Google Cloud Console: create/select a project, enable **Photos
+   Library API**, configure the OAuth consent screen (External, Testing
+   mode is fine — add your own Google account as a test user), then create
+   an **OAuth client ID** of type **Desktop app**. Download its JSON.
+2. Save it as `feedback/google_client_secret.json` on the runtime host (this
+   directory is already gitignored — never commit it) and set
+   `GOOGLE_PHOTOS_CLIENT_SECRET_PATH` / `GOOGLE_PHOTOS_TOKEN_PATH` /
+   `GOOGLE_PHOTOS_ALBUM_TITLE` in `.env` per `.env.example`.
+3. Run `python authorize_google_photos.py` once, interactively, **with a
+   browser available** — it opens a consent screen. The headless runtime
+   host usually has no interactive browser session; if so, run this step on
+   your own dev machine instead (same `client_secret_path`, a temporary
+   `token_path`), then copy the resulting `google_photos_token.json` to the
+   host's `GOOGLE_PHOTOS_TOKEN_PATH`. The bot only needs the saved token
+   afterwards — no browser involved once it exists, since Google refreshes
+   access tokens from the stored refresh token automatically.
+4. This same run also creates the shared album (title from
+   `GOOGLE_PHOTOS_ALBUM_TITLE`) and prints its id and a shareable link.
+   Copy the id into `.env` as `GOOGLE_PHOTOS_ALBUM_ID`, then send the link
+   to your team — each person taps **Join** in their own Google Photos app
+   to see the album. Storage for everything uploaded counts against *your*
+   Google account's quota, not theirs, regardless of who's in the group.
+5. `pip install -r requirements.txt` again on the host (picks up
+   `requests`, `google-auth`, `google-auth-oauthlib`), then restart
+   `MirocardFeedbackBot`.
+
+### 7.3 Test
+
+Send a video over 20 MB in the video group. Expect a ✅ reaction within a
+couple of minutes and the clip to show up in the shared album (Google needs
+some time to finish processing a freshly uploaded video). A ❌ reaction
+means it failed — check `feedback/bot.log` on the host.

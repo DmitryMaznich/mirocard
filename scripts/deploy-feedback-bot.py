@@ -19,6 +19,9 @@ DEPLOYED_FILES = [
     "backlog.py",
     "formatting.py",
     "env_helpers.py",
+    "google_photos.py",
+    "video_ingest.py",
+    "authorize_google_photos.py",
     "requirements.txt",
 ]
 
