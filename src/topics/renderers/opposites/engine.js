@@ -166,24 +166,33 @@ function generateSortTask(cards, params) {
 }
 
 function generateFindAllTasks(cards, params) {
-  const gridSize   = params.gridSize ?? 6;
-  const half       = Math.floor(gridSize / 2);
-  const leftCards  = shuffle(cards.filter((c) => c.pole === "left"));
-  const rightCards = shuffle(cards.filter((c) => c.pole === "right"));
-  return [
-    ["left",  leftCards,  rightCards],
-    ["right", rightCards, leftCards],
-  ].map(([targetPole, targets, others]) => {
-    const selectedTargets = targets.slice(0, half);
-    const selectedOthers  = others.slice(0, gridSize - selectedTargets.length);
-    return {
-      type:           "find_all",
-      targetPole,
-      targetLabel:    selectedTargets[0]?.poleLabelPlural ?? selectedTargets[0]?.poleLabelNeutral ?? targetPole,
-      allCards:       shuffle([...selectedTargets, ...selectedOthers]),
-      correctCardIds: selectedTargets.map((c) => c.id),
-    };
-  });
+  // Scoped per concept (like generateSortL1Tasks) — not per the whole `cards`
+  // pool. A session can include several concepts at once; pooling all their
+  // left/right cards together let a single grid mix e.g. "маленькие" targets
+  // from big_small with "узкие" targets from wide_narrow while targetLabel
+  // only ever named the first one, so the instruction and half the grid's
+  // "correct" cards silently disagreed. One concept per task fixes this.
+  const gridSize  = params.gridSize ?? 6;
+  const half      = Math.floor(gridSize / 2);
+  const byConcept = groupByConcept(cards);
+  const tasks     = [];
+  for (const [, conceptCards] of byConcept) {
+    const leftCards  = shuffle(conceptCards.filter((c) => c.pole === "left"));
+    const rightCards = shuffle(conceptCards.filter((c) => c.pole === "right"));
+    if (!leftCards.length || !rightCards.length) continue;
+    for (const [targetPole, targets, others] of [["left", leftCards, rightCards], ["right", rightCards, leftCards]]) {
+      const selectedTargets = targets.slice(0, half);
+      const selectedOthers  = others.slice(0, gridSize - selectedTargets.length);
+      tasks.push({
+        type:           "find_all",
+        targetPole,
+        targetLabel:    selectedTargets[0]?.poleLabelPlural ?? selectedTargets[0]?.poleLabelNeutral ?? targetPole,
+        allCards:       shuffle([...selectedTargets, ...selectedOthers]),
+        correctCardIds: selectedTargets.map((c) => c.id),
+      });
+    }
+  }
+  return shuffle(tasks);
 }
 
 function generateFindOppositeImageTasks(cards, params) {

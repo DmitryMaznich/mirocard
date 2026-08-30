@@ -154,6 +154,24 @@ describe("generateTasks — find_all, plural instruction", () => {
       expect(t.targetLabel).toBe(expectedPlural);
     }
   });
+
+  it("with cards from multiple concepts, each task's grid stays within one concept (targetLabel matches every correct card)", () => {
+    // CARDS spans big_small and wet_dry. A session that includes both at once
+    // (e.g. a mixed review) must never build one grid mixing "маленькие" from
+    // big_small with "сухие" from wet_dry under a single targetLabel — every
+    // correct card in a task must belong to the same conceptId, and its
+    // poleLabelPlural must equal that task's targetLabel.
+    const tasks = generateTasks({ type: "find_all" }, CARDS, 10, {});
+    expect(tasks.length).toBeGreaterThan(0);
+    for (const t of tasks) {
+      const correctCards = t.allCards.filter(c => t.correctCardIds.includes(c.id));
+      const conceptIds = new Set(correctCards.map(c => c.conceptId));
+      expect(conceptIds.size).toBe(1);
+      for (const c of correctCards) {
+        expect(c.poleLabelPlural).toBe(t.targetLabel);
+      }
+    }
+  });
 });
 
 describe("generateTasks — choose_two, positive-pole-first sequencing", () => {

@@ -1,3 +1,4 @@
+import IntroTask          from "./IntroTask";
 import PairComparisonTask from "./PairComparisonTask";
 import ChooseTwoTask      from "./ChooseTwoTask";
 import FindAllTask        from "./FindAllTask";
@@ -6,6 +7,7 @@ import FindOppositeTask   from "./FindOppositeTask";
 
 export default function OppositeRenderer({ task, mode, topicId, onAdvance, onCorrect, onIncorrect, onMistake }) {
   switch (task?.type) {
+    case "intro":            return <IntroTask task={task} topicId={topicId} onAdvance={onAdvance} />;
     case "pair_comparison": return <PairComparisonTask task={task} topicId={topicId} onAdvance={onAdvance} />;
     case "choose_two":      return <ChooseTwoTask task={task} topicId={topicId} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
     case "find_all":        return <FindAllTask task={task} topicId={topicId} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
