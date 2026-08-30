@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "opposites",
-    "version": "2.11.1",
+    "version": "2.12.0",
     "renderer": "opposites",
     "title": "Противоположности",
     "avatar": "media/avatar.svg",
@@ -321,31 +321,31 @@
       "poleLabelNeutral": "маленькое"
     },
     {
-      "id": "tall_dog",
+      "id": "tall_glass",
       "conceptId": "tall_short",
       "pole": "left",
-      "objectId": "dog",
-      "objectLabel": "собака",
+      "objectId": "glass",
+      "objectLabel": "стакан",
       "poleLabel": "высокий",
-      "nominativeLabel": "высокая",
-      "instructionLabel": "высокую",
+      "nominativeLabel": "высокий",
+      "instructionLabel": "высокий",
       "poleLabelPlural": "высокие",
       "primary": true,
-      "image": "media/tall_dog_1.webp",
+      "image": "media/tall_glass_1.webp",
       "poleLabelNeutral": "высокое"
     },
     {
-      "id": "short_dog",
+      "id": "short_glass",
       "conceptId": "tall_short",
       "pole": "right",
-      "objectId": "dog",
-      "objectLabel": "собака",
+      "objectId": "glass",
+      "objectLabel": "стакан",
       "poleLabel": "низкий",
-      "nominativeLabel": "низкая",
-      "instructionLabel": "низкую",
+      "nominativeLabel": "низкий",
+      "instructionLabel": "низкий",
       "poleLabelPlural": "низкие",
       "primary": true,
-      "image": "media/short_dog_1.webp",
+      "image": "media/short_glass_1.webp",
       "poleLabelNeutral": "низкое"
     },
     {
@@ -433,31 +433,31 @@
       "poleLabelNeutral": "низкое"
     },
     {
-      "id": "tall_tower",
+      "id": "tall_lighthouse",
       "conceptId": "tall_short",
       "pole": "left",
-      "objectId": "tower",
-      "objectLabel": "башня",
+      "objectId": "lighthouse",
+      "objectLabel": "маяк",
       "poleLabel": "высокий",
-      "nominativeLabel": "высокая",
-      "instructionLabel": "высокую",
+      "nominativeLabel": "высокий",
+      "instructionLabel": "высокий",
       "poleLabelPlural": "высокие",
       "primary": false,
-      "image": "media/tall_tower_1.webp",
+      "image": "media/tall_lighthouse_1.webp",
       "poleLabelNeutral": "высокое"
     },
     {
-      "id": "short_tower",
+      "id": "short_lighthouse",
       "conceptId": "tall_short",
       "pole": "right",
-      "objectId": "tower",
-      "objectLabel": "башня",
+      "objectId": "lighthouse",
+      "objectLabel": "маяк",
       "poleLabel": "низкий",
-      "nominativeLabel": "низкая",
-      "instructionLabel": "низкую",
+      "nominativeLabel": "низкий",
+      "instructionLabel": "низкий",
       "poleLabelPlural": "низкие",
       "primary": false,
-      "image": "media/short_tower_1.webp",
+      "image": "media/short_lighthouse_1.webp",
       "poleLabelNeutral": "низкое"
     },
     {
@@ -611,7 +611,7 @@
       "instructionLabel": "широкую",
       "poleLabelPlural": "широкие",
       "primary": true,
-      "image": "media/wide_river_1.webp",
+      "image": "media/wide_river_2.webp",
       "poleLabelNeutral": "широкое"
     },
     {
@@ -625,7 +625,7 @@
       "instructionLabel": "узкую",
       "poleLabelPlural": "узкие",
       "primary": true,
-      "image": "media/narrow_stream_1.webp",
+      "image": "media/narrow_stream_2.webp",
       "poleLabelNeutral": "узкое"
     },
     {
@@ -667,7 +667,7 @@
       "instructionLabel": "широкую",
       "poleLabelPlural": "широкие",
       "primary": false,
-      "image": "media/wide_street_1.webp",
+      "image": "media/wide_street_2.webp",
       "poleLabelNeutral": "широкое"
     },
     {
@@ -681,7 +681,7 @@
       "instructionLabel": "узкую",
       "poleLabelPlural": "узкие",
       "primary": false,
-      "image": "media/narrow_alley_1.webp",
+      "image": "media/narrow_street_2.webp",
       "poleLabelNeutral": "узкое"
     },
     {
@@ -821,7 +821,7 @@
       "instructionLabel": "пустой",
       "poleLabelPlural": "пустые",
       "primary": false,
-      "image": "media/empty_backpack_1.webp",
+      "image": "media/empty_backpack_2.webp",
       "poleLabelNeutral": "пустое"
     },
     {
@@ -1301,30 +1301,30 @@
       "poleLabelNeutral": "сухое"
     },
     {
-      "id": "hot_campfire",
-      "objectId": "campfire",
+      "id": "hot_bench",
+      "objectId": "bench",
       "pole": "left",
       "poleLabel": "горячий",
-      "nominativeLabel": "горячий",
-      "instructionLabel": "горячий",
+      "nominativeLabel": "горячая",
+      "instructionLabel": "горячую",
       "poleLabelPlural": "горячие",
       "poleLabelNeutral": "горячее",
-      "objectLabel": "костёр",
-      "image": "media/hot_campfire_1.webp",
+      "objectLabel": "скамейка",
+      "image": "media/hot_bench_1.webp",
       "primary": true,
       "conceptId": "hot_cold"
     },
     {
-      "id": "cold_campfire",
-      "objectId": "campfire",
+      "id": "cold_bench",
+      "objectId": "bench",
       "pole": "right",
       "poleLabel": "холодный",
-      "nominativeLabel": "холодный",
-      "instructionLabel": "холодный",
+      "nominativeLabel": "холодная",
+      "instructionLabel": "холодную",
       "poleLabelPlural": "холодные",
       "poleLabelNeutral": "холодное",
-      "objectLabel": "костёр",
-      "image": "media/cold_campfire_1.webp",
+      "objectLabel": "скамейка",
+      "image": "media/cold_bench_1.webp",
       "primary": true,
       "conceptId": "hot_cold"
     },
@@ -1366,7 +1366,7 @@
       "poleLabelPlural": "горячие",
       "poleLabelNeutral": "горячее",
       "objectLabel": "камень",
-      "image": "media/hot_rock_1.webp",
+      "image": "media/hot_rock_2.webp",
       "primary": false,
       "conceptId": "hot_cold"
     },
@@ -1422,7 +1422,7 @@
       "poleLabelPlural": "горячие",
       "poleLabelNeutral": "горячее",
       "objectLabel": "дорога",
-      "image": "media/hot_pavement_1.webp",
+      "image": "media/hot_pavement_2.webp",
       "primary": false,
       "conceptId": "hot_cold"
     },
