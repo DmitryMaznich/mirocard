@@ -446,9 +446,59 @@
 .pv-guess-row {
   display: flex;
   justify-content: center;
-  gap: 8px;
   margin: 8px 0 10px;
 }
+
+/* One bordered frame for both digits, not two separate boxes: this is a
+   single number, and a child who reads two dashed squares with a gap
+   between them as "two answers" needs that read to be structurally
+   impossible, not just discouraged by proximity. Every state color
+   (wrong/correct) paints the frame as a whole — a wrong guess is one wrong
+   number, not "digit 1 is wrong" — see pv-number-cell's divider below for
+   the only place the two digits are told apart at all. */
+.pv-number-frame {
+  display: flex;
+  border: 2.5px dashed #94a3b8;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+/* Deliberately no per-digit "filled" highlight once a digit lands — the
+   digit itself appearing is confirmation enough, and adding a border/bg
+   change per cell here would recreate the "two boxes" read this component
+   exists to remove. */
+.pv-number-cell {
+  width: 48px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a2e;
+}
+
+/* The only seam between the two digits — thin and low-contrast on purpose,
+   there to separate the glyphs, not to read as a second border. */
+.pv-number-cell + .pv-number-cell {
+  border-left: 1.5px solid rgba(148, 163, 184, 0.45);
+}
+
+.pv-number-frame--shake {
+  border-color: #ef4444;
+  border-style: solid;
+  animation: pv-shake 0.4s ease-in-out;
+}
+
+.pv-number-frame--correct {
+  border-color: #059669;
+  border-style: solid;
+  background: #d1fae5;
+}
+.pv-number-frame--correct .pv-number-cell { color: #065f46; }
+.pv-number-frame--correct .pv-number-cell + .pv-number-cell { border-left-color: rgba(5, 150, 105, 0.35); }
 
 .pv-numpad {
   display: grid;

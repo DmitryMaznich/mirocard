@@ -13,9 +13,17 @@ const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 // swaps instead of growing/shrinking between them.
 const QUESTION_TEXTS = ["Какое это число?", "Правильно!"];
 
-function AnswerSlot({ state, value }) {
-  const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-answer-slot--${s}`).join("");
-  return <div className={`pv-answer-slot${cls}`}>{value ?? "?"}</div>;
+// One frame for both digits (not two separate slots) — this is a single
+// number the child is typing, two digits at a time, not two independent
+// answers. See place_value.css's .pv-number-frame for why.
+function NumberFrame({ state, digits }) {
+  const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-number-frame--${s}`).join("");
+  return (
+    <div className={`pv-number-frame${cls}`}>
+      <span className="pv-number-cell">{digits[0] ?? "?"}</span>
+      <span className="pv-number-cell">{digits[1] ?? "?"}</span>
+    </div>
+  );
 }
 
 export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
@@ -51,10 +59,10 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     onCorrect(task.conceptId, task.cardId);
   }
 
-  function numberSlotState(idx) {
-    if (phase === "done") return "filled correct";
+  function frameState() {
+    if (phase === "done") return "correct";
     if (wrong) return "shake";
-    return numberInput[idx] != null ? "filled" : undefined;
+    return undefined;
   }
 
   const questionText = phase === "done" ? "Правильно!" : "Какое это число?";
@@ -98,8 +106,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
       </div>
 
       <div className="pv-guess-row">
-        <AnswerSlot state={numberSlotState(0)} value={numberInput[0] ?? null} />
-        <AnswerSlot state={numberSlotState(1)} value={numberInput[1] ?? null} />
+        <NumberFrame state={frameState()} digits={numberInput} />
       </div>
 
       {phase === "done" ? (

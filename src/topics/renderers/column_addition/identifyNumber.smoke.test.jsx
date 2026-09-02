@@ -49,17 +49,26 @@ describe("IdentifyNumberTask", () => {
     return container.querySelector(".pv-question");
   }
 
-  function guessSlots() {
-    return container.querySelectorAll(".pv-guess-row .pv-answer-slot");
+  // The two digits render inside one shared .pv-number-frame (not two
+  // separate .pv-answer-slot boxes) so they read as one number, not two —
+  // see place_value.css's .pv-number-frame. guessFrame() checks the single
+  // frame's state class; guessCells() checks each digit's own text.
+  function guessFrame() {
+    return container.querySelector(".pv-guess-row .pv-number-frame");
   }
 
-  it("mounts asking 'Какое это число?' directly, with an empty two-digit guess row", () => {
+  function guessCells() {
+    return container.querySelectorAll(".pv-guess-row .pv-number-cell");
+  }
+
+  it("mounts asking 'Какое это число?' directly, with an empty two-digit guess row in one frame", () => {
     mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 23, model: { tens: 2, ones: 3 } });
     expect(question().textContent).toBe("Какое это число?");
-    const guesses = guessSlots();
-    expect(guesses.length).toBe(2);
-    expect(guesses[0].textContent).toBe("?");
-    expect(guesses[1].textContent).toBe("?");
+    expect(container.querySelectorAll(".pv-guess-row .pv-number-frame").length).toBe(1);
+    const cells = guessCells();
+    expect(cells.length).toBe(2);
+    expect(cells[0].textContent).toBe("?");
+    expect(cells[1].textContent).toBe("?");
   });
 
   it("renders every ten-stack/coin at once, even with a large tens/ones count (no wrapping/shrinking to fit)", () => {
@@ -80,15 +89,15 @@ describe("IdentifyNumberTask", () => {
       act(() => { digitButton(9).click(); }); // wrong guess, digit 2 of 2 -> 99 !== 23
 
       expect(onMistake).toHaveBeenCalledTimes(1);
-      let guesses = guessSlots();
-      expect(guesses[0].className).toContain("pv-answer-slot--shake");
-      expect(guesses[1].className).toContain("pv-answer-slot--shake");
+      // One shake on the frame — a wrong guess is one wrong number, not
+      // two separately-wrong digits.
+      expect(guessFrame().className).toContain("pv-number-frame--shake");
 
       act(() => { vi.advanceTimersByTime(500); });
 
-      guesses = guessSlots();
-      expect(guesses[0].textContent).toBe("?");
-      expect(guesses[1].textContent).toBe("?");
+      const cells = guessCells();
+      expect(cells[0].textContent).toBe("?");
+      expect(cells[1].textContent).toBe("?");
       expect(question().textContent).toBe("Какое это число?");
     } finally {
       vi.useRealTimers();
@@ -105,11 +114,10 @@ describe("IdentifyNumberTask", () => {
     expect(question().textContent).toBe("Правильно!");
     expect(question().className).toContain("pv-question--correct");
 
-    const guesses = guessSlots();
-    expect(guesses[0].textContent).toBe("2");
-    expect(guesses[0].className).toContain("pv-answer-slot--correct");
-    expect(guesses[1].textContent).toBe("3");
-    expect(guesses[1].className).toContain("pv-answer-slot--correct");
+    expect(guessFrame().className).toContain("pv-number-frame--correct");
+    const cells = guessCells();
+    expect(cells[0].textContent).toBe("2");
+    expect(cells[1].textContent).toBe("3");
 
     expect(container.querySelector(".pv-recap").textContent).toBe(placeValueAnswerSentence(2, 3, 23));
 
