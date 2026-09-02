@@ -418,6 +418,10 @@
 .reallife-side--correct::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background: rgba(34,197,94,0.16);
+  /* Reuses the same fadeIn keyframe already defined below for every other
+     "something just appeared" moment in this file — no new animation
+     invented for this reveal. */
+  animation: fadeIn 0.35s ease;
 }
 .reallife-side:first-child.reallife-side--correct::after { border-radius: 21px 0 0 21px; }
 .reallife-side:last-child.reallife-side--correct::after  { border-radius: 0 21px 21px 0; }
@@ -429,10 +433,30 @@
   font-size: clamp(13px, 3.2vw, 17px); font-weight: 800; color: #475569;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.reallife-side--correct .reallife-tag { background: #22c55e; border-color: #16a34a; color: #fff; }
+.reallife-side--correct .reallife-tag {
+  background: #22c55e; border-color: #16a34a; color: #fff;
+  /* Reuses CompareFirstNumber's own verdict-reveal pop (cfn-pop, see
+     .cfn-verdict-reveal below) instead of an instant color swap. */
+  animation: cfn-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
 
 .compare-body--reallife .cfn-options { flex-direction: row; max-width: 480px; }
-.compare-body--reallife .cfn-btn { min-height: 56px; flex: 1; font-size: clamp(14px, 3.6vw, 17px); font-weight: 800; padding: 0 6px; }
+/* Stacked (badge above label), not the row layout .cfn-btn-sign/.cfn-btn-label
+   use elsewhere in this file (CompareEvaluate, CompareFirstNumber) — three
+   of these have to fit side by side in a narrow row, where "badge next to
+   text" wraps the label onto two uneven lines. */
+.compare-body--reallife .cfn-btn { min-height: 72px; flex: 1; flex-direction: column; gap: 5px; padding: 8px 4px; }
+.compare-body--reallife .cfn-btn-label { font-size: clamp(12px, 3.2vw, 15px); font-weight: 800; color: #1e293b; }
+/* The bare glyph .cfn-btn-sign renders elsewhere (>, <, =) becomes a small
+   filled circle here, holding a name's initial letter instead of a sign —
+   a scoped look, not a change to the shared glyph style other compare_*
+   buttons still use. */
+.reallife-answer-sign {
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; min-width: 0;
+  background: #eaf1ff; color: #2563eb; font-size: 13px; line-height: 1;
+}
+.reallife-answer-sign--equal { background: #f1f5f9; color: #64748b; }
 
 /* ── Shared keyframes ────────────────────────────────────────────── */
 @keyframes shake {
@@ -488,8 +512,10 @@
      No height override needed — .reallife-scene-img's height:auto already
      follows the wider width at its own aspect ratio. */
   .reallife-scene { max-width: 720px; }
-  .compare-body--reallife .cfn-options { max-width: 720px; }
-  .compare-body--reallife .cfn-btn     { min-height: 68px; font-size: clamp(17px, 2.4vw, 22px); }
+  .compare-body--reallife .cfn-options   { max-width: 720px; }
+  .compare-body--reallife .cfn-btn       { min-height: 88px; }
+  .compare-body--reallife .cfn-btn-label { font-size: clamp(17px, 2.4vw, 22px); }
+  .reallife-answer-sign { width: 34px; height: 34px; font-size: 16px; }
 }
 
 /* ── Landscape ───────────────────────────────────────────────────── */

@@ -77,9 +77,25 @@ export default function CompareRealLife({ task, onCorrect, onIncorrect, onAdvanc
       <div className="compare-instruction">{task.instruction}</div>
       <Scene task={task} answered={false} correctAnswer={correctAnswer} wrongPick={wrongPick} />
       <div className="cfn-options">
-        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "a" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("a")}>У {task.nameA}</button>
-        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "equal" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("equal")}>Поровну</button>
-        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "b" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("b")}>У {task.nameB}</button>
+        {/* Each button's badge echoes the name pill already shown on the
+            picture above (same initial letter) — ties the choice back to
+            the specific labeled character instead of reading as a generic
+            quiz option. Reuses the .cfn-btn-sign/.cfn-btn-label split
+            CompareEvaluate/CompareFirstNumber already use, stacked
+            vertically (not their default row) since three of these have to
+            fit side by side in this narrow row. */}
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "a" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("a")}>
+          <span className="cfn-btn-sign reallife-answer-sign">{task.nameANom[0]}</span>
+          <span className="cfn-btn-label">У {task.nameA}</span>
+        </button>
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "equal" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("equal")}>
+          <span className="cfn-btn-sign reallife-answer-sign reallife-answer-sign--equal">=</span>
+          <span className="cfn-btn-label">Поровну</span>
+        </button>
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "b" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("b")}>
+          <span className="cfn-btn-sign reallife-answer-sign">{task.nameBNom[0]}</span>
+          <span className="cfn-btn-label">У {task.nameB}</span>
+        </button>
       </div>
     </div>
   );
