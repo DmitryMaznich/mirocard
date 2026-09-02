@@ -87,6 +87,27 @@
   justify-content: center;
 }
 
+/* regroup_ten only: points which zone the draggable ten-stack actually
+   belongs in — without it, nothing on screen says which of the two zones
+   is the target once the stack's picked up. Amber to match the ten's own
+   color family (the same "carry"/place-value amber used across this
+   family), not the zone-state blue reserved for drag-over. */
+.pv-regroup-arrow {
+  align-self: center;
+  flex-shrink: 0;
+  color: #d97706;
+  animation: pv-regroup-arrow-nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes pv-regroup-arrow-nudge {
+  0%, 100% { transform: translateX(0); opacity: 0.5; }
+  50% { transform: translateX(5px); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-regroup-arrow { animation: none; opacity: 0.85; }
+}
+
 .pv-zone {
   flex: 1;
   display: flex;

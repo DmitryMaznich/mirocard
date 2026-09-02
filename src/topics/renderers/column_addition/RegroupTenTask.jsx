@@ -2,17 +2,30 @@ import { useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
+import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
-import { useFitOneLine } from "./textFit.js";
+import { useFitLongestOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
 
+const INSTRUCTION_TEXT = "Перетащи десяток к единицам";
+const DONE_TEXT = "Готово!";
+
+// The one ten-stack a child can actually act on is otherwise pixel-for-
+// pixel identical to the static stacks beside it. The halo + idle bob
+// (pv-ten-stack--hint, coins.css) is what makes it read as interactive at
+// all — the same visual language build_number already uses for its
+// pickable pile coin (.cb-pile-coin--top), needed even more here since a
+// touch screen has no hover state to fall back on. Both switch off while
+// actually dragging — nothing left to hint at once it's already picked up.
 function DraggableTenStack({ id }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id, data: { kind: "ten" } });
+  const hintClass = isDragging ? "" : " pv-ten-stack--hint";
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 10 : "auto", cursor: "grab", touchAction: "none" }}
+      className={`pv-ten-stack--draggable${hintClass}`}
+      style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 10 : "auto" }}
       {...listeners}
       {...attributes}
     >
@@ -41,6 +54,16 @@ function Zones({ tens, ones, exchanged, initialOnes }) {
           )}
         </div>
       </div>
+
+      {/* Points which way the drag actually needs to go — without it,
+          nothing on screen says the stack belongs in the OTHER zone once
+          picked up. Gone once exchanged: nothing left to point at. */}
+      {!exchanged && (
+        <div className="pv-regroup-arrow" aria-hidden="true">
+          <ForwardArrowIcon size={22} />
+        </div>
+      )}
+
       <div className={`pv-zone${isOver ? " pv-zone--drag-over" : ""}`} ref={setNodeRef}>
         <div className="pv-zone-label">ЕДИНИЦЫ</div>
         <div className="pv-zone-body">
@@ -83,13 +106,13 @@ export default function RegroupTenTask({ task, onCorrect }) {
     onCorrect(task.conceptId, task.cardId);
   }
 
-  const { ref: questionRef, fontSize: questionFontSize } = useFitOneLine("Разменяй десяток в единицы", { max: 45, min: 13 });
+  const { ref: questionRef, fontSize: questionFontSize } = useFitLongestOneLine([INSTRUCTION_TEXT, DONE_TEXT], { max: 45, min: 13 });
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="pv-screen cb-screen">
-        <div className="pv-question">
-          <span ref={questionRef} style={{ fontSize: questionFontSize }}>Разменяй десяток в единицы</span>
+        <div className={`pv-question${exchanged ? " pv-question--correct" : ""}`}>
+          <span ref={questionRef} style={{ fontSize: questionFontSize }}>{exchanged ? DONE_TEXT : INSTRUCTION_TEXT}</span>
         </div>
 
         <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} />

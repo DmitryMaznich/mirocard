@@ -146,6 +146,31 @@
   animation: pv-pop 0.3s ease-out both;
 }
 
+/* regroup_ten only: marks the one ten-stack that's actually draggable
+   among otherwise-visually-identical static stacks. Same halo color/idle
+   bob as .cb-pile-coin--top above (build_number's pickable pile coin) —
+   deliberately reused, not reinvented, so "soft amber halo + gentle bob"
+   reads as this app's one consistent "you can pick this up" signal. */
+.pv-ten-stack--draggable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.pv-ten-stack--hint {
+  border-radius: 10px;
+  box-shadow: 0 0 0 6px rgba(230, 190, 90, 0.28);
+  animation: pv-ten-stack-bob 2.4s ease-in-out infinite;
+}
+
+@keyframes pv-ten-stack-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-ten-stack--hint { animation: none; }
+}
+
 .cb-stack-coin {
   width: calc(34 * var(--cb-scale));
   height: calc(12 * var(--cb-scale));
