@@ -602,14 +602,58 @@
   margin-top: 8px;
 }
 
-.pv-result-line {
-  font-size: 20px;
-  color: #1a1a2e;
+/* regroup_ten's final "Было"/"Стало" comparison: two visually separate
+   steps (not two plain lines of prose) so the parallel is unmissable —
+   each its own bordered row, each ending in the SAME bold total. That
+   repeated number in two matching slots is what shows the two groupings
+   are equal, not something to infer from reading a sentence. */
+.pv-regroup-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
-.pv-result-line--sum {
+.pv-regroup-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 9px 14px;
+}
+
+.pv-regroup-step-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+/* "Стало" only — green, matching every other confirmed-correct state in
+   this family, so it also doubles as "this is the one that was just
+   solved". "Было" stays neutral grey: a fact being recalled, not a result
+   being confirmed. */
+.pv-regroup-step--after .pv-regroup-step-label {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.pv-regroup-step-eq {
+  font-size: 16px;
+  color: #1a1a2e;
+  text-align: left;
+}
+
+.pv-regroup-step-eq b {
   color: #059669;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .pv-cube-pop {

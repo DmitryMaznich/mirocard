@@ -4,7 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
 import { ForwardArrowIcon, BackspaceIcon } from "@/shared/components/ArrowIcons";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
-import { pluralTens, pluralOnes, placeValueSentence } from "./placeValueLabels.js";
+import { pluralTens, pluralOnes } from "./placeValueLabels.js";
 import { useFitLongestOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
@@ -216,17 +216,26 @@ export default function RegroupTenTask({ task, onCorrect, onMistake, onFlashInco
 
         {/* Kept as a deliberate exception to "auto-advance like
             build_number": the point of this mode is for the child to see
-            and read the before/after equation, not to be swept past it.
-            placeValueSentence puts the NUMBER first in both lines ("23 —
-            это …") — the repeated "23" is what actually shows the two
-            groupings are equal, not just two separate facts about them. */}
+            and read the before/after comparison, not to be swept past it.
+            Two explicit, visually separate steps — "Было" and "Стало", each
+            its own equation ending in the SAME bold total — rather than two
+            plain sentences, so the equality reads as one repeated number in
+            two matching slots, not something to infer from prose. */}
         {phase === "done" && (
           <div className="pv-result-panel">
-            <div className="pv-result-line">
-              {placeValueSentence(task.initial.tens, task.initial.ones, task.number)}
-            </div>
-            <div className="pv-result-line pv-result-line--sum">
-              {placeValueSentence(task.after.tens, task.after.ones, task.number)}
+            <div className="pv-regroup-compare">
+              <div className="pv-regroup-step">
+                <span className="pv-regroup-step-label">Было</span>
+                <span className="pv-regroup-step-eq">
+                  {task.initial.tens} {pluralTens(task.initial.tens)} и {task.initial.ones} {pluralOnes(task.initial.ones)} = <b>{task.number}</b>
+                </span>
+              </div>
+              <div className="pv-regroup-step pv-regroup-step--after">
+                <span className="pv-regroup-step-label">Стало</span>
+                <span className="pv-regroup-step-eq">
+                  {task.after.tens} {pluralTens(task.after.tens)} и {task.after.ones} {pluralOnes(task.after.ones)} = <b>{task.number}</b>
+                </span>
+              </div>
             </div>
             <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
           </div>
