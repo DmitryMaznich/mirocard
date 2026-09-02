@@ -31,29 +31,35 @@ function Scene({ task, answered, correctAnswer, wrongPick }) {
   );
 }
 
-// A wrong tap shakes and un-picks itself (via onMistake, the same
-// try-again-on-this-task callback CompareFirstNumber's MultiMode uses) —
-// it doesn't end the task or advance the session. Only a correct tap
+// A wrong tap uses the same onIncorrect path CompareVisual/CompareSign use
+// for their single-task wrong answer: it shakes, locks the buttons, and
+// plays the shared "incorrect" sound + sad-face event, then the session
+// harness itself resets status back to task_active after
+// INCORRECT_FEEDBACK_MS (1.5s — see useSessionEngine.js) and remounts this
+// component fresh via its taskRetry-keyed remount, showing the same scene
+// again ready to retry. Nothing here needs to clear the shake or unlock the
+// buttons manually — the remount already does that. Only a correct tap
 // locks the task and reveals the full spoken verdict, which itself then
 // needs its own explicit tap (onAdvance) before the session moves on —
 // matching the deliberate, unhurried pace the rest of the ladder's
 // speech-reveal modes use.
-export default function CompareRealLife({ task, onCorrect, onMistake, onAdvance }) {
+export default function CompareRealLife({ task, onCorrect, onIncorrect, onAdvance }) {
   const [answered,  setAnswered]  = useState(false);
-  const [wrongPick, setWrongPick] = useState(null); // "a" | "equal" | "b" | null, transient shake
+  const [locked,    setLocked]    = useState(false); // set on a wrong tap, until the remount resets it
+  const [wrongPick, setWrongPick] = useState(null);  // "a" | "equal" | "b" | null
 
   const correctAnswer = correctAnswerFor(task);
 
   function handleAnswer(value) {
-    if (answered) return;
+    if (answered || locked) return;
     if (value === correctAnswer) {
       setAnswered(true);
       onCorrect(task.conceptId, null);
       return;
     }
+    setLocked(true);
     setWrongPick(value);
-    onMistake?.(task.conceptId, null);
-    window.setTimeout(() => setWrongPick(null), 350);
+    onIncorrect(task.conceptId, null);
   }
 
   if (answered) {
@@ -71,9 +77,9 @@ export default function CompareRealLife({ task, onCorrect, onMistake, onAdvance 
       <div className="compare-instruction">{task.instruction}</div>
       <Scene task={task} answered={false} correctAnswer={correctAnswer} wrongPick={wrongPick} />
       <div className="cfn-options">
-        <button type="button" className={`cfn-btn${wrongPick === "a" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("a")}>У {task.nameA}</button>
-        <button type="button" className={`cfn-btn${wrongPick === "equal" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("equal")}>Поровну</button>
-        <button type="button" className={`cfn-btn${wrongPick === "b" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("b")}>У {task.nameB}</button>
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "a" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("a")}>У {task.nameA}</button>
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "equal" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("equal")}>Поровну</button>
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "b" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("b")}>У {task.nameB}</button>
       </div>
     </div>
   );
