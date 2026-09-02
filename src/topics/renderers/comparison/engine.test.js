@@ -346,6 +346,22 @@ describe("generateTasks", () => {
       });
     });
 
+    // Regression: the correct tile used to be picked via an ascending,
+    // never-actually-shuffled array (shuffle()'s return value was discarded
+    // instead of used), so .find(fits) deterministically returned the
+    // smallest number satisfying the constraint every time — always `min`
+    // for "less" tasks, which is 10 at level 4. Across many tasks the
+    // correct tile must vary, not collapse onto a single number.
+    it("'generate' correct tile varies across tasks instead of always being the range's smallest fit", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 100, { level: 4, taskType: "generate" });
+      const lessTasks = tasks.filter((t) => t.op === "less");
+      expect(lessTasks.length).toBeGreaterThan(10);
+      const correctValues = lessTasks.map((t) => t.options.find((n) => n < t.value));
+      expect(new Set(correctValues).size).toBeGreaterThan(1);
+      // and specifically: not every correct tile is level 4's min (10)
+      expect(correctValues.some((n) => n !== 10)).toBe(true);
+    });
+
     it("'order' tasks give 3 distinct numbers by default whose sorted order matches ascending value", () => {
       const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 30, { level: 3, taskType: "order" });
       expect(tasks).toHaveLength(30);

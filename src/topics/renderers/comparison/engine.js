@@ -147,10 +147,17 @@ function generateApplyGenerateTask(min, max) {
   const fits = (n) => (op === "more" ? n > value : n < value);
   const rest = [];
   for (let n = min; n <= max; n++) if (n !== value) rest.push(n);
-  shuffle(rest);
+  // shuffle() returns a new array rather than mutating its argument —
+  // without capturing the result, `rest` stayed in ascending numeric order,
+  // so .find(fits) below always deterministically picked the smallest
+  // valid number (== min for "less", the boundary value's successor for
+  // "more") instead of a random one. At level 4 (min: 10) that made every
+  // "less" task's correct tile the number 10, no matter what the spoken
+  // constraint actually was.
+  const shuffledRest = shuffle(rest);
 
-  const correct = rest.find(fits);
-  const wrong = [value, ...rest.filter((n) => !fits(n))].slice(0, 3);
+  const correct = shuffledRest.find(fits);
+  const wrong = [value, ...shuffledRest.filter((n) => !fits(n))].slice(0, 3);
   const options = shuffle([correct, ...wrong]);
 
   return {
