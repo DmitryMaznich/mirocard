@@ -73,5 +73,6 @@ describe("RegroupTenTask", () => {
     expect(container.querySelector(".pv-numpad")).toBeNull();
     expect(container.querySelector(".pv-guess-row")).toBeNull();
     expect(container.querySelector(".pv-result-panel")).toBeNull();
+    expect(container.querySelector(".pv-caption")).toBeNull(); // no "Было:" before anything's changed yet
   });
 });

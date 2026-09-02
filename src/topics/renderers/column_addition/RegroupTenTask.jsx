@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import Button from "@/shared/components/Button";
 import { ForwardArrowIcon, BackspaceIcon } from "@/shared/components/ArrowIcons";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { pluralTens, pluralOnes, placeValueSentence } from "./placeValueLabels.js";
 import { useFitLongestOneLine } from "./textFit.js";
 import "./place_value.css";
 import "./coins.css";
@@ -174,6 +175,18 @@ export default function RegroupTenTask({ task, onCorrect, onMistake, onFlashInco
 
         <Zones tens={tens} ones={ones} exchanged={exchanged} initialOnes={task.initial.ones} />
 
+        {/* The picture only ever shows the CURRENT grouping — once it's
+            changed, the child has no way to see it's the same amount as
+            before without this. Frozen at the pre-drag numbers (not a
+            live readout of `tens`/`ones`) specifically so it reads as
+            "here's what it used to be", the fixed half of the comparison
+            the live picture is now being checked against. */}
+        {exchanged && (
+          <div className="pv-caption">
+            Было: {task.initial.tens} {pluralTens(task.initial.tens)} и {task.initial.ones} {pluralOnes(task.initial.ones)}
+          </div>
+        )}
+
         {phase === "answer" && (
           <div className="pv-guess-row">
             <NumberFrame state={frameState()} digits={numberInput} />
@@ -203,14 +216,17 @@ export default function RegroupTenTask({ task, onCorrect, onMistake, onFlashInco
 
         {/* Kept as a deliberate exception to "auto-advance like
             build_number": the point of this mode is for the child to see
-            and read the before/after equation, not to be swept past it. */}
+            and read the before/after equation, not to be swept past it.
+            placeValueSentence puts the NUMBER first in both lines ("23 —
+            это …") — the repeated "23" is what actually shows the two
+            groupings are equal, not just two separate facts about them. */}
         {phase === "done" && (
           <div className="pv-result-panel">
             <div className="pv-result-line">
-              {task.initial.tens * 10} + {task.initial.ones} = {task.number}
+              {placeValueSentence(task.initial.tens, task.initial.ones, task.number)}
             </div>
             <div className="pv-result-line pv-result-line--sum">
-              {task.after.tens * 10} + {task.after.ones} = {task.number}
+              {placeValueSentence(task.after.tens, task.after.ones, task.number)}
             </div>
             <Button variant="secondary" onClick={handleContinue}>Далее →</Button>
           </div>
