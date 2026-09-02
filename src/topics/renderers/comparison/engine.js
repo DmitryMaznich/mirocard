@@ -259,7 +259,7 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     // show which end is which — no "от меньшего/большего" suffix needed.
     const instruction = applyTaskType === "order"
       ? "Расставь числа по порядку"
-      : "Выбери число, которое";
+      : "Выбери число";
     const orderDirection = sessionParams.orderDirection === "desc" ? "desc" : "asc";
 
     const tasks = [];

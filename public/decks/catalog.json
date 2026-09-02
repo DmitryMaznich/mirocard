@@ -107,7 +107,7 @@
     },
     {
       "id": "comparison",
-      "version": "2.20.3",
+      "version": "2.21.0",
       "title": {
         "ru": "Сравнение",
         "en": "Comparison"
@@ -116,7 +116,7 @@
         "ru": "6 режимов педагогической лестницы: от зрительного сравнения до самостоятельной контрольной работы.",
         "en": "6 modes: from visual comparison to an independent test. Pedagogical ladder for children aged 4+."
       },
-      "url": "./decks/comparison_v2.20.3.zip",
+      "url": "./decks/comparison_v2.21.0.zip",
       "status": "release",
       "access": "free"
     },

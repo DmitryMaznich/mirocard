@@ -1,18 +1,24 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
 // Tap one of a few concrete number tiles that fits the spoken constraint —
 // a closed choice, not free number entry. See engine.js's
-// generateApplyGenerateTask for why.
+// generateApplyGenerateTask for why. The task is framed as an inequality
+// with a blank ("? > 36") rather than a bare icon+number card: it's the
+// same sign-between-numbers metaphor the earlier ladder steps (CompareSign,
+// CompareEvaluate) already taught, so the child reads this as "finish the
+// comparison" instead of decoding a new layout.
 function GenerateStage({ task, answered, onAnswer }) {
   const [pickedIdx, setPickedIdx] = useState(-1);
   const [wrongIdx, setWrongIdx] = useState(-1);
+  const [isCorrectPick, setIsCorrectPick] = useState(false);
 
   function tapOption(n, idx) {
     if (answered) return;
     setPickedIdx(idx);
     const isCorrect = task.op === "more" ? n > task.value : n < task.value;
+    setIsCorrectPick(isCorrect);
     if (!isCorrect) {
       setWrongIdx(idx);
       window.setTimeout(() => setWrongIdx(-1), 350);
@@ -22,19 +28,22 @@ function GenerateStage({ task, answered, onAnswer }) {
 
   return (
     <>
-      <div className="apply-prompt-card" aria-label={task.promptText}>
-        <div className="apply-prompt-icon" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
-        <div className="apply-prompt-value" aria-hidden="true">{task.value}</div>
+      <div className="apply-ineq" aria-label={task.promptText}>
+        <div className={`apply-ineq-blank${isCorrectPick ? " apply-ineq-blank--correct" : ""}`} aria-hidden="true">
+          {isCorrectPick ? task.options[pickedIdx] : "?"}
+        </div>
+        <div className="apply-ineq-sign" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
+        <div className="apply-ineq-value" aria-hidden="true">{task.value}</div>
       </div>
-      <div className="apply-order-row" style={{ gridTemplateColumns: `repeat(${task.options.length}, 1fr)` }}>
+      <div className="apply-choice-grid">
         {task.options.map((n, i) => (
-          <div key={i} className="apply-order-cell">
+          <div key={i} className="apply-choice-cell">
             <button
               type="button"
               className={[
-                "apply-order-btn",
-                pickedIdx === i && wrongIdx !== i && "apply-order-btn--placed",
-                wrongIdx === i && "apply-order-btn--wrong",
+                "apply-choice-btn",
+                pickedIdx === i && isCorrectPick && "apply-choice-btn--placed",
+                wrongIdx === i && "apply-choice-btn--wrong",
               ].filter(Boolean).join(" ")}
               disabled={answered}
               onClick={() => tapOption(n, i)}
@@ -76,11 +85,26 @@ function slotSizeStyle(t) {
 // see the comment on .apply-order-slots in comparison.css.
 function OrderSlot({ slotIdx, t, value, wrong }) {
   const { isOver, setNodeRef } = useDroppable({ id: `apply-slot-${slotIdx}`, data: { slotIdx } });
+  // A one-shot "settle" bounce the instant this slot goes from empty to
+  // filled — tracked locally (not derived from props) because the slot
+  // itself never remounts across a drop, only its `value` prop changes.
+  const [popping, setPopping] = useState(false);
+  const wasFilled = useRef(value != null);
+  useEffect(() => {
+    if (value != null && !wasFilled.current) {
+      setPopping(true);
+      const timer = window.setTimeout(() => setPopping(false), 300);
+      wasFilled.current = true;
+      return () => clearTimeout(timer);
+    }
+    wasFilled.current = value != null;
+  }, [value]);
   const cls = [
     "apply-order-slot-drop",
     value != null && "apply-order-slot-drop--correct",
     isOver && value == null && !wrong && "apply-order-slot-drop--over",
     wrong && "apply-order-slot-drop--wrong",
+    popping && "apply-order-slot-drop--pop",
   ].filter(Boolean).join(" ");
   return (
     <div className="apply-order-slot">
@@ -113,6 +137,9 @@ function OrderTile({ idx, value, disabled }) {
           opacity: isDragging ? 0.35 : 1,
           transition: isDragging ? "none" : "transform 0.15s ease",
           cursor: disabled ? "default" : "grab",
+          // Staggered "dealing" entrance, once per fresh task mount — see
+          // the .apply-order-tile animation in comparison.css.
+          animationDelay: `${idx * 40}ms`,
         }}
         {...listeners}
         {...attributes}
@@ -162,9 +189,14 @@ function OrderStage({ task, answered, onAnswer }) {
     if (next.every((v) => v !== null)) onAnswer(true);
   }
 
+  const complete = placement.every((v) => v !== null);
+
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveIdx(-1)}>
-      <div className="apply-order-slots" style={{ gridTemplateColumns: `repeat(${task.sorted.length}, 1fr)` }}>
+      <div
+        className={`apply-order-slots${complete ? " apply-order-slots--celebrate" : ""}`}
+        style={{ gridTemplateColumns: `repeat(${task.sorted.length}, 1fr)` }}
+      >
         {task.sorted.map((_, slotIdx) => {
           const tileIdx = placement.indexOf(slotIdx);
           // Box size must track the MAGNITUDE of the number that belongs in

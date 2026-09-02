@@ -245,56 +245,68 @@
   color: #1e293b; text-align: center; max-width: min(90vw, 640px);
 }
 
-.apply-prompt-card {
+/* "Generate" task ("Выбери число"): the prompt reads as an inequality with
+   a blank — "? > 36" — reusing the sign-between-numbers metaphor the
+   ladder already taught in CompareSign/CompareEvaluate instead of a new
+   icon+number card. The blank stays "?" until a CORRECT tap fills it with
+   the chosen number; a wrong tap never fills it (that would show a false
+   inequality like "18 > 36" as if valid) — only the tapped tile itself
+   flashes wrong, via .apply-choice-btn--wrong below. */
+.apply-ineq {
   position: relative; z-index: 1;
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center; gap: clamp(10px, 2.5vw, 20px);
   background: #fff; border-radius: 26px; padding: 18px 30px;
   box-shadow: 0 14px 34px rgba(37,99,235,0.12), 0 2px 6px rgba(15,23,42,0.04);
+  animation: apply-ineq-in 0.25s ease-out;
 }
-.apply-prompt-icon {
-  width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
-  background: #eaf1ff; color: #2563eb;
+.apply-ineq-blank {
+  width: clamp(52px, 11vw, 72px); height: clamp(52px, 11vw, 72px);
+  border-radius: 18px; border: 2.5px dashed #94a3b8; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; font-weight: 900; line-height: 1;
+  font-size: clamp(24px, 6vw, 34px); font-weight: 900; color: #94a3b8; line-height: 1;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
 }
-.apply-prompt-value { font-size: clamp(32px, 7vw, 46px); font-weight: 900; color: #1e293b; line-height: 1; }
+.apply-ineq-blank--correct {
+  border-style: solid; border-color: #16a34a; background: #f0fdf4; color: #166534;
+}
+.apply-ineq-sign  { font-size: clamp(26px, 6.5vw, 38px); font-weight: 900; color: #2563eb; line-height: 1; }
+.apply-ineq-value { font-size: clamp(26px, 6.5vw, 38px); font-weight: 900; color: #1e293b; line-height: 1; }
 
-/* Number-tile rows (this one and .apply-order-tray below) always render as
-   one row, however many tiles there are (2–5 across this file's task
-   types) — CSS Grid with N equal `1fr` columns (N set inline by
-   CompareApply.jsx) divides the row's actual width by exactly that many,
-   so it can never overflow or need to wrap. Each tile sits in its own
-   .apply-order-cell size container (`container-type: inline-size`); the
-   tile itself sizes its font off that container via `cqi` — it can't be
-   the container AND query itself, that's circular — so it shrinks
-   automatically as N grows, with no per-count math here. */
-.apply-order-row {
+/* Options render as a 2×2 grid, not a 1×4 row: there's no left-right order
+   to preserve here (unlike the Order task's staircase below), so trading
+   the cramped single row for a roomier grid costs nothing and roughly
+   doubles each tile's linear size. Dedicated .apply-choice-* classes (not
+   the shared .apply-order-btn) so retouching this tile's look can never
+   also affect the Order task's tray tiles. */
+.apply-choice-grid {
   position: relative; z-index: 1;
-  display: grid; align-items: center; justify-items: center;
-  gap: clamp(10px, 2.5vw, 22px);
-  width: 100%; max-width: min(94vw, 720px); box-sizing: border-box;
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: clamp(10px, 2.5vw, 18px);
+  width: 100%; max-width: 320px;
 }
-.apply-order-cell { container-type: inline-size; width: 100%; display: flex; justify-content: center; }
-.apply-order-btn {
-  position: relative; width: 100%; aspect-ratio: 1; padding: 0 10px;
+.apply-choice-cell { container-type: inline-size; }
+.apply-choice-btn {
+  position: relative; width: 100%; aspect-ratio: 1.5;
   display: flex; align-items: center; justify-content: center;
-  border: none; border-radius: 22px; background: #fff;
-  font-size: clamp(18px, 34cqi, 84px); font-weight: 900; color: #1e293b; cursor: pointer;
+  border: none; border-radius: 20px; background: #fff;
+  font-size: clamp(20px, 20cqi, 52px); font-weight: 900; color: #1e293b; cursor: pointer;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
   transition: transform 0.12s, box-shadow 0.12s;
 }
-.apply-order-btn:hover:not(:disabled) { transform: translateY(-2px); }
-.apply-order-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #dbe6f7; }
-.apply-order-btn:disabled { cursor: default; }
-.apply-order-btn--placed {
+.apply-choice-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.apply-choice-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #dbe6f7; }
+.apply-choice-btn:disabled { cursor: default; }
+.apply-choice-btn--placed {
   background: #f0fdf4; color: #166534;
   box-shadow: 0 4px 0 #16a34a, 0 8px 18px rgba(34,197,94,0.18);
+  animation: apply-choice-pop 0.3s ease-out;
 }
-.apply-order-btn--wrong {
+.apply-choice-btn--wrong {
   animation: shake 0.35s;
   background: #fef2f2; color: #991b1b;
   box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
 }
+
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
    one of the slots above — a physical sort, not a tap sequence. The slots
    themselves form a size staircase (small → large) instead of "1-е/2-е/3-е"
@@ -329,7 +341,19 @@
 }
 .apply-order-slot-drop--correct { border-style: solid; border-color: #16a34a; background: #f0fdf4; color: #166534; }
 .apply-order-slot-drop--wrong { animation: shake 0.35s; border-style: solid; border-color: #ef4444; }
+/* One-shot bounce the instant a tile lands in an empty slot. */
+.apply-order-slot-drop--pop { animation: apply-slot-pop 0.3s ease-out; }
+/* Once every slot is correctly filled, all of them bounce together in a
+   short left-to-right wave before the session advances — a small
+   celebration beat for "the whole thing is right", not just this one tile. */
+.apply-order-slots--celebrate .apply-order-slot-drop { animation: apply-slot-pop 0.4s ease-out; }
+.apply-order-slots--celebrate .apply-order-slot:nth-child(1) .apply-order-slot-drop { animation-delay: 0ms; }
+.apply-order-slots--celebrate .apply-order-slot:nth-child(2) .apply-order-slot-drop { animation-delay: 60ms; }
+.apply-order-slots--celebrate .apply-order-slot:nth-child(3) .apply-order-slot-drop { animation-delay: 120ms; }
+.apply-order-slots--celebrate .apply-order-slot:nth-child(4) .apply-order-slot-drop { animation-delay: 180ms; }
+.apply-order-slots--celebrate .apply-order-slot:nth-child(5) .apply-order-slot-drop { animation-delay: 240ms; }
 
+.apply-order-cell { container-type: inline-size; width: 100%; display: flex; justify-content: center; }
 .apply-order-tray {
   position: relative; z-index: 1;
   display: grid; align-items: center; justify-items: center;
@@ -343,15 +367,22 @@
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
   display: flex; align-items: center; justify-content: center;
   touch-action: none; cursor: grab;
+  /* Staggered "dealing" entrance on a fresh task (animation-delay set per
+     tile inline, see OrderTile in CompareApply.jsx) — plays once on mount
+     only, since neither this animation nor its delay changes on re-render. */
+  animation: apply-tile-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 /* Rendered inside DragOverlay's portal, outside the grid above, so it can't
    size itself off a grid column — give it an explicit vw-based fallback
    close to a typical tile instead. Exact size match isn't the point here;
-   it's already visually distinguished by the 1.08x "picked up" scale. */
+   it's already visually distinguished by the 1.08x "picked up" scale. It's
+   also a fresh DOM node every drag, so the entrance animation above must be
+   turned back off here or it would replay on every pickup. */
 .apply-order-tile--overlay {
   width: clamp(60px, 16vw, 140px); aspect-ratio: 1;
   font-size: clamp(22px, 6.5vw, 52px);
   cursor: grabbing; transform: scale(1.08);
+  animation: none;
 }
 .apply-order-tray-caption {
   position: relative; z-index: 1;
@@ -413,6 +444,24 @@
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes apply-ineq-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes apply-choice-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes apply-slot-pop {
+  0%   { transform: scale(0.75); }
+  55%  { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+@keyframes apply-tile-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 /* ── Tablet (≥768px) ─────────────────────────────────────────────── */
 @media (min-width: 768px) {
@@ -430,12 +479,8 @@
   .croc-put-sign-blank { font-size: 84px; min-width: 80px; }
   .croc-put-sign-btn   { width: 100px; height: 100px; font-size: 48px; }
 
-  /* CompareApply: prompt card only — everything else in this family now
-     scales continuously via clamp() (see base rules above), so it doesn't
-     need a breakpoint-specific override here. */
-  .apply-prompt-card  { gap: 22px; padding: 24px 40px; }
-  .apply-prompt-icon  { width: 64px; height: 64px; font-size: 36px; }
-  .apply-prompt-value { font-size: 64px; }
+  /* CompareApply: every size here scales continuously via clamp()/cqi (see
+     base rules above), so it doesn't need a breakpoint-specific override. */
 
   /* CompareRealLife: the 480px max-width below is sized for a phone —
      without a tablet override the scene (and the answer buttons under it)
