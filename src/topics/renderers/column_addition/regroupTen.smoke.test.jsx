@@ -54,4 +54,24 @@ describe("RegroupTenTask", () => {
     expect(container.querySelectorAll(".cb-ten-stack").length).toBe(2); // both stacks still render normally
     expect(container.querySelector(".pv-regroup-arrow")).toBeTruthy();
   });
+
+  // The answer step (numpad + guess frame) only exists AFTER a successful
+  // drag — confirms it doesn't leak into the initial state. The drag ->
+  // answer transition itself isn't exercised here: dnd-kit's collision
+  // detection relies on real getBoundingClientRect() layout, which jsdom
+  // doesn't provide, so (same as build_number's own coin drag) it's
+  // verified visually instead of via a simulated pointer sequence.
+  it("does not show the units-count question or numpad before the drag happens", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const task = { cardId: "x", conceptId: "x", type: "regroup_ten", number: 23, initial: { tens: 2, ones: 3 }, after: { tens: 1, ones: 13 } };
+    act(() => {
+      root.render(<RegroupTenTask task={task} onCorrect={() => {}} />);
+    });
+
+    expect(container.querySelector(".pv-numpad")).toBeNull();
+    expect(container.querySelector(".pv-guess-row")).toBeNull();
+    expect(container.querySelector(".pv-result-panel")).toBeNull();
+  });
 });

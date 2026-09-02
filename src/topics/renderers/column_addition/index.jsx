@@ -1034,6 +1034,7 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
         task={task}
         onCorrect={onCorrect}
         onMistake={strictMistake}
+        onFlashIncorrect={onFlashIncorrect}
       />
     );
   }
