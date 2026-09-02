@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "@/shared/components/Button";
+import { BackspaceIcon } from "@/shared/components/ArrowIcons";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { placeValueAnswerSentence } from "./placeValueLabels.js";
 import { useFitLongestOneLine } from "./textFit.js";
@@ -13,15 +14,19 @@ const DIGITS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 // swaps instead of growing/shrinking between them.
 const QUESTION_TEXTS = ["Какое это число?", "Правильно!"];
 
-// One frame for both digits (not two separate slots) — this is a single
-// number the child is typing, two digits at a time, not two independent
-// answers. See place_value.css's .pv-number-frame for why.
-function NumberFrame({ state, digits }) {
+// One frame for the whole number (not one slot per digit) — this is a
+// single number the child is typing, not several independent answers. See
+// place_value.css's .pv-number-frame for why. `length` is the number of
+// digits the TARGET actually has (1 for a bare single digit like 7, 2 for
+// 10-99) — a single-digit target gets a single-cell frame, not a padded
+// leading zero.
+function NumberFrame({ state, digits, length }) {
   const cls = (state ?? "").split(" ").filter(Boolean).map((s) => ` pv-number-frame--${s}`).join("");
   return (
     <div className={`pv-number-frame${cls}`}>
-      <span className="pv-number-cell">{digits[0] ?? "?"}</span>
-      <span className="pv-number-cell">{digits[1] ?? "?"}</span>
+      {Array.from({ length }, (_, i) => (
+        <span key={i} className="pv-number-cell">{digits[i] ?? "?"}</span>
+      ))}
     </div>
   );
 }
@@ -36,12 +41,19 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const [wrong, setWrong] = useState(false);
   const [numberInput, setNumberInput] = useState([]);
 
+  // How many digits the TARGET actually has — 1 for a bare single digit
+  // (tens = 0, e.g. 7), 2 for the regular 10-99 range. Reading this off
+  // task.number itself (not always assuming 2) is what lets a single-digit
+  // target end after one tap instead of demanding a padded "07".
+  const expectedDigits = String(task.number).length;
+
   function handleDigit(d) {
+    if (wrong) return; // mid-shake from the previous guess — ignore taps until it clears
     const next = [...numberInput, d];
     setNumberInput(next);
-    if (next.length < 2) return;
+    if (next.length < expectedDigits) return;
     const guess = Number(next.join(""));
-    if (guess === task.model.tens * 10 + task.model.ones) {
+    if (guess === task.number) {
       setPhase("done");
     } else {
       // A whole-number guess, not a single digit — no directional hint
@@ -53,6 +65,15 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
       setTimeout(() => setWrong(false), 500);
       setTimeout(() => setNumberInput([]), 500);
     }
+  }
+
+  // Removes only the last digit — lets a child who typed the first digit
+  // of a two-digit guess wrong fix just that one, instead of being forced
+  // to complete a guess they already know is wrong just to get the shake
+  // and a full clear.
+  function handleBackspace() {
+    if (wrong || numberInput.length === 0) return;
+    setNumberInput((prev) => prev.slice(0, -1));
   }
 
   function handleContinue() {
@@ -106,7 +127,18 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
       </div>
 
       <div className="pv-guess-row">
-        <NumberFrame state={frameState()} digits={numberInput} />
+        <NumberFrame state={frameState()} digits={numberInput} length={expectedDigits} />
+        {phase !== "done" && (
+          <button
+            type="button"
+            className="pv-backspace-btn"
+            onClick={handleBackspace}
+            disabled={wrong || numberInput.length === 0}
+            aria-label="Стереть цифру"
+          >
+            <BackspaceIcon />
+          </button>
+        )}
       </div>
 
       {phase === "done" ? (

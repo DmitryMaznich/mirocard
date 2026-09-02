@@ -446,8 +446,31 @@
 .pv-guess-row {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 10px;
   margin: 8px 0 10px;
 }
+
+/* Erases only the last digit — sits beside the frame, not inside the
+   numpad grid, since it acts on what's already been typed, not on which
+   digit to press next. Same 3D-shadow button formula as .pv-numkey below,
+   sized to match the frame's own height. */
+.pv-backspace-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 2px solid #dbeafe;
+  background: white;
+  box-shadow: 0 3px 0 #c7d2fe;
+  color: #64748b;
+  cursor: pointer;
+}
+.pv-backspace-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+.pv-backspace-btn:disabled { opacity: 0.35; cursor: default; }
 
 /* One bordered frame for both digits, not two separate boxes: this is a
    single number, and a child who reads two dashed squares with a gap

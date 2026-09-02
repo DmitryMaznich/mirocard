@@ -417,6 +417,30 @@ describe("generateTasks – identify_number", () => {
     }
   });
 
+  // Round tens (30, 40...) and bare single digits (7) are mixed in among
+  // the regular two-digit draws — a large sample should contain both, not
+  // just the regular 1-9/1-9 case.
+  it("mixes in round tens (ones = 0) and bare single digits (tens = 0) over a large sample", () => {
+    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 400, { maxOnes: 9 });
+    expect(tasks.some((t) => t.model.tens > 0 && t.model.ones === 0)).toBe(true);
+    expect(tasks.some((t) => t.model.tens === 0 && t.model.ones > 0)).toBe(true);
+    expect(tasks.some((t) => t.model.tens > 0 && t.model.ones > 0)).toBe(true);
+    for (const t of tasks) {
+      expect(t.model.tens).toBeGreaterThanOrEqual(0);
+      expect(t.model.ones).toBeGreaterThanOrEqual(0);
+      expect(t.number).toBe(t.model.tens * 10 + t.model.ones);
+    }
+  });
+
+  // maxOnes: 0 stays the pre-existing, deliberate "round tens only"
+  // session — every task must have ones === 0, never mixed with tens === 0.
+  it("maxOnes: 0 still means every task is a round ten, with tens never 0", () => {
+    const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 30, { maxOnes: 0 });
+    for (const t of tasks) {
+      expect(t.model.ones).toBe(0);
+      expect(t.model.tens).toBeGreaterThanOrEqual(1);
+    }
+  });
 });
 
 describe("generateTasks – regroup_ten", () => {

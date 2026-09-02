@@ -61,6 +61,10 @@ describe("IdentifyNumberTask", () => {
     return container.querySelectorAll(".pv-guess-row .pv-number-cell");
   }
 
+  function backspaceButton() {
+    return container.querySelector(".pv-backspace-btn");
+  }
+
   it("mounts asking 'Какое это число?' directly, with an empty two-digit guess row in one frame", () => {
     mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 23, model: { tens: 2, ones: 3 } });
     expect(question().textContent).toBe("Какое это число?");
@@ -128,5 +132,53 @@ describe("IdentifyNumberTask", () => {
     expect(nextButton).toBeTruthy();
     act(() => { nextButton.click(); });
     expect(onCorrect).toHaveBeenCalledWith("x", "x");
+  });
+
+  // Bare single digit (tens = 0, e.g. 7): the guess frame must not pad a
+  // leading zero — one cell, one tap, no "07".
+  it("a single-digit target (tens = 0) gets a one-cell frame that submits after one tap", () => {
+    const onCorrect = vi.fn();
+    mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 7, model: { tens: 0, ones: 7 } }, { onCorrect });
+
+    expect(guessCells().length).toBe(1);
+    expect(container.querySelectorAll(".cb-ten-stack").length).toBe(0);
+    expect(container.querySelectorAll(".cb-coin").length).toBe(7);
+
+    act(() => { digitButton(7).click(); });
+    expect(question().textContent).toBe("Правильно!");
+    expect(guessCells()[0].textContent).toBe("7");
+  });
+
+  // Round ten (ones = 0, e.g. 30): still a two-cell frame, second cell is 0.
+  it("a round ten (ones = 0) renders an empty units zone and solves as two digits", () => {
+    mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 30, model: { tens: 3, ones: 0 } });
+    expect(guessCells().length).toBe(2);
+    expect(container.querySelectorAll(".cb-ten-stack").length).toBe(3);
+    expect(container.querySelectorAll(".cb-coin").length).toBe(0);
+
+    act(() => { digitButton(3).click(); });
+    act(() => { digitButton(0).click(); });
+    expect(question().textContent).toBe("Правильно!");
+  });
+
+  it("backspace erases only the last digit, letting a mistyped first digit be fixed before submitting", () => {
+    const onCorrect = vi.fn();
+    const onMistake = vi.fn();
+    mount({ cardId: "x", conceptId: "x", type: "identify_number", number: 23, model: { tens: 2, ones: 3 } }, { onCorrect, onMistake });
+
+    act(() => { digitButton(9).click(); }); // wrong first digit, not yet submitted (2-digit target)
+    expect(guessCells()[0].textContent).toBe("9");
+    expect(backspaceButton().disabled).toBe(false);
+
+    act(() => { backspaceButton().click(); });
+    expect(guessCells()[0].textContent).toBe("?");
+    expect(backspaceButton().disabled).toBe(true); // nothing left to erase
+
+    act(() => { digitButton(2).click(); });
+    act(() => { digitButton(3).click(); });
+
+    expect(onMistake).not.toHaveBeenCalled(); // corrected before the guess ever completed
+    expect(question().textContent).toBe("Правильно!");
+    expect(onCorrect).not.toHaveBeenCalled(); // still waits for the Далее tap
   });
 });

@@ -219,8 +219,30 @@ export function generateBuildNumberTask(card, maxOnes, maxTens, numericBlocks) {
   };
 }
 
+// identify_number only: occasionally mixes in round tens (ones = 0, e.g.
+// 30/40/50) and bare single digits (tens = 0, e.g. 7) among the regular
+// two-digit draws. Left out of the shared randomPlaceValueNumber above —
+// build_number has nothing new to demonstrate on a round ten, and
+// regroup_ten specifically needs at least one ten to exchange, so neither
+// should ever see tens = 0. Without these edge cases, a child can answer
+// "какое это число?" by pattern ("it's always two digits, both filled")
+// instead of actually reading the picture — see the same session's
+// "величина без ощущения" discussion for why that matters here specifically.
+function randomIdentifyNumberValue(maxOnes, maxTens = 9) {
+  const max = Number(maxOnes);
+  // maxOnes = 0 is still the pre-existing, deliberate "round tens only"
+  // session (untouched) — the mixing below only applies to a normal
+  // maxOnes > 0 session.
+  if (max === 0) return { tens: randomInt(1, Number(maxTens)), ones: 0 };
+
+  const roll = Math.random();
+  if (roll < 0.15) return { tens: randomInt(1, Number(maxTens)), ones: 0 };
+  if (roll < 0.3) return { tens: 0, ones: randomInt(1, max) };
+  return { tens: randomInt(1, Number(maxTens)), ones: randomInt(1, max) };
+}
+
 export function generateIdentifyNumberTask(card, maxOnes) {
-  const { tens, ones } = randomPlaceValueNumber(maxOnes);
+  const { tens, ones } = randomIdentifyNumberValue(maxOnes);
   return {
     type: "identify_number",
     cardId: card.id,

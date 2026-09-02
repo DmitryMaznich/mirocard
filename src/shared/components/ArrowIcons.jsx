@@ -30,6 +30,15 @@ export function CheckmarkIcon({ size = 18 }) {
   );
 }
 
+export function BackspaceIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M6.8 3.5h7.2a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6.8L2 9l4.8-5.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M8.2 7l4 4M12.2 7l-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function RefreshIcon({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 18 18" fill="none" aria-hidden>
