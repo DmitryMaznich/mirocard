@@ -1,7 +1,7 @@
 {
   "name": "mirocard2",
   "private": true,
-  "version": "1.0.2045",
+  "version": "1.0.2046",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
@@ -10,6 +10,7 @@
     "dev": "vite --host 0.0.0.0 --port 8080 --configLoader native",
     "prebuild": "node scripts/sync-capture-tool.mjs",
     "build": "vite build --configLoader native",
+    "build:people-names": "node scripts/build-people-names-deck.mjs",
     "lint": "eslint .",
     "preview": "vite preview --host 0.0.0.0 --port 8080 --configLoader native",
     "serve:prod": "node backend/serve-production.mjs",
