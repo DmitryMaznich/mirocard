@@ -2,9 +2,10 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "language": "ru",
     "customModesOnly": true,
+    "loopModes": true,
     "title": { "ru": "Кто это? Люди и имена" },
     "avatar": "media/avatar.svg",
     "about": {

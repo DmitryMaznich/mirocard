@@ -26,6 +26,44 @@ function resolveStrictStars(mode, savedValue) {
   return savedValue ?? mode?.rewardDefaults?.strictStars ?? true;
 }
 
+// Shared between the initial mode lookup and the loopModes auto-advance
+// effect below, so both resolve a mode id the exact same way.
+function resolveMode(topicRecord, modeId) {
+  const modeFromTopic = topicRecord?.modes?.find((m) => m.id === modeId);
+  // Override evaluation/rewardThreshold from DEFAULT_MODES — stored records may be stale.
+  const defaultModeSettings = topicRecord
+    ? getDefaultModeSettings(topicRecord.meta.renderer, modeId)
+    : null;
+  return modeFromTopic
+    ? (defaultModeSettings
+        ? { ...modeFromTopic, evaluation: defaultModeSettings.evaluation }
+        : modeFromTopic)
+    : modeId === "follow_instruction"
+      ? { id: "follow_instruction", type: "follow_instruction", evaluation: "none" }
+      : undefined;
+}
+
+// Shared between the top-level render and the loopModes auto-advance effect,
+// so a freshly picked next mode gets the same concept selection a normal
+// mode switch (via ModePickerScreen -> params) would have produced.
+function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
+  const sessionParams = { ...(link.params ?? {}), strictStars: resolveStrictStars(mode, link.strictStars) };
+  const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
+    .filter((c) => c.primary)
+    .map((c) => c.conceptId);
+  const modeSelectedConceptIds = mode
+    ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, sessionParams)
+    : (link.selectedConceptIds?.length ? link.selectedConceptIds : null);
+  // A newly added scoped mode can inherit an old saved selection whose ids do
+  // not belong to its own card pool. Do not let that stale selection create an
+  // empty session: retain valid ids, otherwise start with the mode defaults.
+  const validSelectedConceptIds = modeSelectedConceptIds?.filter((id) => defaultModeConceptIds.includes(id)) ?? [];
+  const selectedConceptIds = isReading
+    ? (activeTextId ? [activeTextId] : [])
+    : (validSelectedConceptIds.length ? validSelectedConceptIds : defaultModeConceptIds);
+  return { sessionParams, selectedConceptIds };
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -171,19 +209,14 @@ export function useSessionEngine() {
   const tapToAdvance      = useAppStore((s) => s.settings.tapToAdvance ?? true);
   const autoAdvanceDelay  = useAppStore((s) => s.settings.autoAdvanceDelay ?? 3);
 
+  const setActiveModeId = useAppStore((s) => s.setActiveModeId);
+
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
-  const modeFromTopic = topicRecord?.modes?.find((m) => m.id === activeModeId);
   // Override evaluation/rewardThreshold from DEFAULT_MODES — stored records may be stale.
   const defaultModeSettings = topicRecord
     ? getDefaultModeSettings(topicRecord.meta.renderer, activeModeId)
     : null;
-  const mode = modeFromTopic
-    ? (defaultModeSettings
-        ? { ...modeFromTopic, evaluation: defaultModeSettings.evaluation }
-        : modeFromTopic)
-    : activeModeId === "follow_instruction"
-      ? { id: "follow_instruction", type: "follow_instruction", evaluation: "none" }
-      : undefined;
+  const mode = resolveMode(topicRecord, activeModeId);
   const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
 
   const linkKey = `${activeStudentId}_${activeTopicId}`;
@@ -194,20 +227,7 @@ export function useSessionEngine() {
     hasRewardVideos: (activeStudent?.rewardVideos?.length ?? 0) > 0,
   };
   const isReading = topicRecord?.meta.renderer === "reading";
-  const sessionParams = { ...(link.params ?? {}), strictStars: resolveStrictStars(mode, link.strictStars) };
-  const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
-    .filter((c) => c.primary)
-    .map((c) => c.conceptId);
-  const modeSelectedConceptIds = mode
-    ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, sessionParams)
-    : (link.selectedConceptIds?.length ? link.selectedConceptIds : null);
-  // A newly added scoped mode can inherit an old saved selection whose ids do
-  // not belong to its own card pool. Do not let that stale selection create an
-  // empty session: retain valid ids, otherwise start with the mode defaults.
-  const validSelectedConceptIds = modeSelectedConceptIds?.filter((id) => defaultModeConceptIds.includes(id)) ?? [];
-  const selectedConceptIds = isReading
-    ? (activeTextId ? [activeTextId] : [])
-    : (validSelectedConceptIds.length ? validSelectedConceptIds : defaultModeConceptIds);
+  const { sessionParams, selectedConceptIds } = resolveModeSelection(topicRecord, mode, link, isReading, activeTextId);
   const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
@@ -263,6 +283,33 @@ export function useSessionEngine() {
   const [rewardPending, setRewardPending] = useState(false);
   const [deckExhausted, setDeckExhausted] = useState(false);
   const lastRewardEarnedCountRef = useRef(sessionState?.rewardEarnedCount ?? 0);
+
+  // meta.loopModes topics (currently just people_names) never show the
+  // "Начать снова / Завершить" deck-exhausted dialog: the deck's own end is
+  // treated as a cue to move straight into the next mode in topicRecord.modes
+  // (wrapping past the last one), so a single continuous session cycles
+  // through every mode. The adult is the only one who ends the session, via
+  // the existing header close button — see SessionHeader/openSessionExitPrompt.
+  useEffect(() => {
+    if (!deckExhausted || !topicRecord?.meta?.loopModes) return;
+    const modes = topicRecord.modes ?? [];
+    if (!modes.length) return;
+    const currentIndex = modes.findIndex((m) => m.id === activeModeId);
+    const nextModeId = modes[(currentIndex + 1) % modes.length]?.id;
+    const nextMode = resolveMode(topicRecord, nextModeId);
+    if (!nextMode) return;
+    const { sessionParams: nextParams, selectedConceptIds: nextSelected } =
+      resolveModeSelection(topicRecord, nextMode, link, isReading, activeTextId);
+    const newState = buildGeneratedSessionState({
+      topicRecord, mode: nextMode, activeStudentId, activeTopicId,
+      activeTextId, activeText, activeStudent, link,
+      selectedConceptIds: nextSelected, sessionParams: nextParams,
+    });
+    if (!newState) return;
+    setDeckExhausted(false);
+    setActiveModeId(nextModeId);
+    setSessionState(newState);
+  }, [deckExhausted, topicRecord, activeModeId, link, isReading, activeTextId, activeStudentId, activeTopicId, activeText, activeStudent, setActiveModeId]);
 
   async function finishSession(state) {
     const cardEvents = cardLogger.getCardEvents();
