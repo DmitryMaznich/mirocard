@@ -2,7 +2,7 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "language": "ru",
     "customModesOnly": true,
     "title": { "ru": "Кто это? Люди и имена" },
@@ -301,6 +301,7 @@
     {
       "id": "boy_ilya",
       "conceptId": "boy",
+      "primary": false,
       "image": "media/people/boy_ilya.webp",
       "speech": "Это мальчик.",
       "personSpeech": "Это Илья.",
@@ -325,6 +326,7 @@
     {
       "id": "girl_lena",
       "conceptId": "girl",
+      "primary": false,
       "image": "media/people/girl_lena.webp",
       "speech": "Это девочка.",
       "personSpeech": "Это Лена.",
@@ -349,6 +351,7 @@
     {
       "id": "man_sergey",
       "conceptId": "man",
+      "primary": false,
       "image": "media/people/man_sergey.webp",
       "speech": "Это мужчина.",
       "personSpeech": "Это Сергей.",
@@ -373,6 +376,7 @@
     {
       "id": "woman_marina",
       "conceptId": "woman",
+      "primary": false,
       "image": "media/people/woman_marina.webp",
       "speech": "Это женщина.",
       "personSpeech": "Это Марина.",

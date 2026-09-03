@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { openDb, kv } from "@/core/db";
+import { deriveConcepts } from "@/shared/utils/topicUtils";
 import {
   importTopic,
   getTopicRecord,
@@ -121,13 +122,28 @@ async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0" } = 
 
 describe("importTopic — valid cases", () => {
   it("imports the shipped people-and-names deck end-to-end", async () => {
-    const bytes = await readFile(resolve("public/decks/people_names_v1.1.0.zip"));
+    const bytes = await readFile(resolve("public/decks/people_names_v1.1.1.zip"));
     const db = await freshDb();
     const record = await importTopic(db, bytes, "1.0.2046");
 
     expect(record.meta.id).toBe("people_names");
     expect(record.cards).toHaveLength(8);
     expect(record.cards.every((card) => card.imageUrl?.startsWith("data:image/webp;base64,"))).toBe(true);
+
+    // Regression guard: a card with no explicit "primary" key in topic.json
+    // used to default to primary:true on import (normalizeFlashcards), which
+    // let a non-primary card silently overwrite the concept's real primary
+    // in deriveConcepts - showing a raw card id (e.g. "boy_ilya") as the
+    // intro/find_n label instead of the authored word ("мальчик"). Every
+    // concept's derived primary must carry a real word, and each concept
+    // must have exactly one primary card.
+    const concepts = deriveConcepts(record.cards);
+    expect(concepts).toHaveLength(4);
+    for (const concept of concepts) {
+      const primaryCards = concept.cards.filter((c) => c.primary);
+      expect(primaryCards).toHaveLength(1);
+      expect(concept.primary?.label).not.toMatch(/^(boy|girl|man|woman)_/);
+    }
     expect(record.modes.map((mode) => mode.type)).toEqual([
       "intro", "find_n", "sort_by_attribute", "person_intro", "find_person_by_name",
       "choose_name", "choose_all", "question_answer", "yes_no", "generalisation_probe",
