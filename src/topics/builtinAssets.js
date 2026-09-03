@@ -97,6 +97,36 @@ const BUILTIN_ASSETS = {
   <rect x="62" y="44" width="28" height="10" rx="5" fill="#4a9b8f"/>
   <rect x="62" y="62" width="18" height="10" rx="5" fill="#ef6f5e"/>
 </svg>`,
+  "media/icons/flashcards_sort_by_attribute.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#f4fff7"/>
+  <rect x="46" y="16" width="36" height="46" rx="8" fill="#fff" stroke="#dfc9a7" stroke-width="4"/>
+  <circle cx="64" cy="34" r="9" fill="#f3c969"/>
+  <rect x="54" y="48" width="20" height="6" rx="3" fill="#ef6f5e"/>
+  <path d="M64 62v14M57 70l7 7 7-7" fill="none" stroke="#1f4f8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 94h40l-6 18H20z" fill="#7bb0ff"/>
+  <path d="M74 94h40l-6 18H80z" fill="#4a9b8f"/>
+</svg>`,
+  "media/icons/flashcards_probe.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <circle cx="64" cy="64" r="40" fill="none" stroke="#7bb0ff" stroke-width="7"/>
+  <circle cx="64" cy="64" r="26" fill="none" stroke="#4a9b8f" stroke-width="7"/>
+  <circle cx="64" cy="64" r="10" fill="#ef6f5e"/>
+  <path d="M64 14v14M64 100v14M14 64h14M100 64h14" stroke="#1f4f8a" stroke-width="4" stroke-linecap="round"/>
+</svg>`,
+  "media/icons/flashcards_find_person_by_name.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff7ef"/>
+  <circle cx="46" cy="56" r="26" fill="#f3d9b5"/>
+  <circle cx="38" cy="50" r="4" fill="#263131"/>
+  <circle cx="56" cy="50" r="4" fill="#263131"/>
+  <path d="M38 66q8 6 16 0" fill="none" stroke="#263131" stroke-width="4" stroke-linecap="round"/>
+  <path d="M78 44q10 12 0 24" fill="none" stroke="#ef6f5e" stroke-width="6" stroke-linecap="round"/>
+  <path d="M86 36q18 20 0 40" fill="none" stroke="#ef6f5e" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+  <circle cx="86" cy="90" r="16" fill="none" stroke="#1f4f8a" stroke-width="7"/>
+  <path d="m97 101 14 14" stroke="#1f4f8a" stroke-width="7" stroke-linecap="round"/>
+</svg>`,
   "media/avatar_sentence_puzzle.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#f0fdf4"/>
