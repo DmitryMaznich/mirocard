@@ -253,6 +253,27 @@ describe("importTopic — valid cases", () => {
     const all = await listTopicRecords(db);
     expect(all.filter((r) => r.meta.id === "test_clothes")).toHaveLength(1);
   });
+
+  it("a non-primary card in a multi-card concept does not become primary during normalization", async () => {
+    // people_names-style concept: one primary card with a real label, a
+    // second card carrying only conceptId/image (no primary flag, no label)
+    // - normalizeFlashcards must not default the second card's primary to
+    // true, or it silently outranks the real primary card wherever anything
+    // reads card.primary directly (deriveConcepts, generateEmotionControlTasks).
+    const buf = await makeObjectTopicZip({
+      cards: [
+        { id: "man_igor",   conceptId: "man", primary: true, label: "мужчина", image: "media/tshirt_1.webp" },
+        { id: "man_sergey", conceptId: "man", image: "media/tshirt_1.webp" },
+      ],
+    });
+    const db = await freshDb();
+    const record = await importTopic(db, buf, "2.0.0");
+
+    const primaryCard    = record.cards.find((c) => c.id === "man_igor");
+    const secondaryCard  = record.cards.find((c) => c.id === "man_sergey");
+    expect(primaryCard.primary).toBe(true);
+    expect(secondaryCard.primary).not.toBe(true);
+  });
 });
 
 describe("importTopic — validation errors", () => {

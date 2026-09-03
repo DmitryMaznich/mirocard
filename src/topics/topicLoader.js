@@ -1703,11 +1703,20 @@ function normalizeFlashcards(manifest) {
 
   const meta = mergeDefaultMeta({ ...manifest.meta, renderer: "flashcards" }, "flashcards");
 
+  // card.primary must pass through as-is, not default to true: a card that
+  // simply omits the field (as opposed to explicitly setting false) is a
+  // non-primary variation of some other card's concept, and deriveConcepts
+  // already defaults a concept with zero explicit-primary cards to its first
+  // card. Defaulting every card to primary here made every omitted-flag
+  // secondary card outrank the concept's real primary card wherever
+  // anything reads card.primary directly (deriveConcepts's "last primary
+  // card wins" merge, generateEmotionControlTasks's vocabulary filter) -
+  // confirmed live on people_names, whose secondary cards omit the field.
   const cards = manifest.cards.map((card) => ({
     ...card,
     label:     normalizeLabel(card),
     conceptId: card.conceptId ?? card.id,
-    primary:   card.primary ?? true,
+    primary:   card.primary,
   }));
 
   const modes = ensureModeIcons(buildFlashcardModes(manifest.meta, manifest.modes), "flashcards");
@@ -1717,6 +1726,18 @@ function normalizeFlashcards(manifest) {
 
 function normalizeProcedural(manifest) {
   if (manifest.meta.renderer === "reading") return manifest;
+  // normalizeFlashcards is the dedicated, authoritative normalizer for this
+  // renderer and runs right after this function - never let this one touch
+  // flashcards manifests first. "flashcards" is a knownRenderer below purely
+  // because it happens to have entries in DEFAULT_META/MODE_ICON_FALLBACKS/
+  // DEFAULT_MODE_METHODOLOGY (shared lookup tables, not a signal that this
+  // is a procedural-style renderer), so without this guard every flashcards
+  // manifest fell through into this function's own card normalization,
+  // which defaults a card's primary to true whenever the field is merely
+  // omitted (not explicitly false) - silently promoting every non-primary
+  // secondary card (e.g. people_names' man_sergey) to primary before
+  // normalizeFlashcards even runs.
+  if (manifest.meta.renderer === "flashcards") return manifest;
   // Infer meta.renderer from first card's renderer field
   const firstRenderer = manifest.cards?.[0]?.renderer;
   const renderer = manifest.meta.renderer ?? RENDERER_MAP[firstRenderer] ?? firstRenderer ?? "comparison";
