@@ -503,3 +503,67 @@ describe("generateTasks — people, names, and attributes", () => {
     expect(tasks.map((task) => task.targetValue).sort()).toEqual(["boy", "girl", "man", "woman"]);
   });
 });
+
+describe("generateTasks — person_intro", () => {
+  const CARDS = [
+    { id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "media/boy_peter.webp",
+      speech: "Это мальчик.", personSpeech: "Это Петя.", person: { id: "peter", name: "Петя" } },
+    { id: "boy_ilya", conceptId: "boy", image: "media/boy_ilya.webp",
+      speech: "Это мальчик.", personSpeech: "Это Илья.", person: { id: "ilya", name: "Илья" } },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+
+  it("uses personSpeech as the card's speech and the person's name as the label", () => {
+    const tasks = generateTasks("person_intro", CONCEPTS, CARDS, {});
+    expect(tasks).toHaveLength(2);
+    const peterTask = tasks.find((t) => t.card.id === "boy_peter");
+    expect(peterTask).toMatchObject({ type: "person_intro", conceptId: "boy", label: "Петя" });
+    expect(peterTask.card.speech).toBe("Это Петя.");
+  });
+
+  it("falls back to the card's own speech when a card has no person (regression guard)", () => {
+    const noPerson = [{ id: "x1", conceptId: "x", primary: true, label: "x", image: "media/x1.webp", speech: "Это x." }];
+    const tasks = generateTasks("person_intro", deriveConcepts(noPerson), noPerson, {});
+    expect(tasks[0].card.speech).toBe("Это x.");
+    expect(tasks[0].label).toBe("x");
+  });
+});
+
+describe("generateTasks — probeOnly cards", () => {
+  const CARDS = [
+    { id: "boy_1",   conceptId: "boy",  primary: true, label: "мальчик", image: "media/boy_1.webp" },
+    { id: "boy_2",   conceptId: "boy",  image: "media/boy_2.webp" },
+    { id: "boy_probe", conceptId: "boy", image: "media/boy_probe.webp", probeOnly: true },
+    { id: "girl_1",  conceptId: "girl", primary: true, label: "девочка", image: "media/girl_1.webp" },
+    { id: "girl_probe", conceptId: "girl", image: "media/girl_probe.webp", probeOnly: true },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+
+  it("probeOnly cards never appear in intro or find_n (regular teaching modes)", () => {
+    const introTasks = generateTasks("intro", CONCEPTS, CARDS, {});
+    expect(introTasks.every((t) => t.card.id !== "boy_probe" && t.card.id !== "girl_probe")).toBe(true);
+    expect(introTasks).toHaveLength(3); // boy_1, boy_2, girl_1 - probes excluded
+
+    const findNTasks = generateTasks("find_n", CONCEPTS, CARDS, { optionCount: 2 });
+    for (const task of findNTasks) {
+      expect(task.options.every((o) => o.card.id !== "boy_probe" && o.card.id !== "girl_probe")).toBe(true);
+    }
+  });
+
+  it("generalisation_probe uses only probeOnly cards", () => {
+    const tasks = generateTasks("generalisation_probe", CONCEPTS, CARDS, { optionCount: 2 });
+    expect(tasks.length).toBeGreaterThan(0);
+    expect(tasks.every((t) => ["boy_probe", "girl_probe"].includes(
+      t.options.find((o) => o.isTarget).card.id
+    ))).toBe(true);
+  });
+
+  it("a topic with no probeOnly field anywhere is unaffected (regression guard)", () => {
+    const PLAIN_CARDS = [
+      { id: "t1", conceptId: "tshirt", primary: true, label: "футболка", image: "media/t1.webp" },
+      { id: "j1", conceptId: "jacket", primary: true, label: "куртка", image: "media/j1.webp" },
+    ];
+    const tasks = generateTasks("intro", deriveConcepts(PLAIN_CARDS), PLAIN_CARDS, {});
+    expect(tasks).toHaveLength(2);
+  });
+});
