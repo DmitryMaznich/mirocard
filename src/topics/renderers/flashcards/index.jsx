@@ -15,21 +15,22 @@ function getTaskAudioPath(task) {
 
 const MOOD_VALENCES = new Set(["positive", "negative", "neutral"]);
 
-function CardImage({ topicId, card }) {
+function CardImage({ topicId, card, imageFit }) {
   const url = useTopicFile(topicId, card?.image);
   if (!card?.image) return null;
   const valence = card?.semantic?.group1;
   const haloClass = MOOD_VALENCES.has(valence) ? ` card-img-wrap--${valence}` : "";
+  const fitClass = imageFit ? ` card-img--${imageFit}` : "";
   if (!url) {
     return (
       <span className={`card-img-wrap${haloClass}`}>
-        <div className="card-img card-img--loading" />
+        <div className={`card-img card-img--loading${fitClass}`} />
       </span>
     );
   }
   return (
     <span className={`card-img-wrap${haloClass}`}>
-      <img className="card-img" src={url} alt="" draggable={false} />
+      <img className={`card-img${fitClass}`} src={url} alt="" draggable={false} />
     </span>
   );
 }
@@ -41,10 +42,10 @@ function SituationScene({ topicId, image }) {
   return <img className="situation-scene" src={url} alt="" draggable={false} />;
 }
 
-function CardArea({ topicId, card }) {
+function CardArea({ topicId, card, imageFit }) {
   return (
     <div className="card-area">
-      <CardImage topicId={topicId} card={card} />
+      <CardImage topicId={topicId} card={card} imageFit={imageFit} />
     </div>
   );
 }
@@ -540,9 +541,9 @@ function SortByAttributeTask({ task, topicId, soundEnabled, onCorrect, onIncorre
   }
 
   return (
-    <div className="session-body session-body--sort-attribute">
+    <div className={`session-body session-body--sort-attribute session-body--sort-attribute--${task.groups.length}`}>
       <div className="session-instruction">{instruction}</div>
-      <CardArea topicId={topicId} card={task.card} />
+      <CardArea topicId={topicId} card={task.card} imageFit={task.groups.length === 4 ? "contain" : undefined} />
       <div className={`sort-attribute-options sort-attribute-options--${task.groups.length}`}>
         {task.groups.map((group) => {
           const isChosen = result?.value === group.value;
