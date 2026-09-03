@@ -267,6 +267,21 @@ function generateYesNoTasks(concepts, params) {
   return shuffle(tasks);
 }
 
+// Some topics (e.g. people_names) document that one comparison axis (gender:
+// boy/girl, man/woman) must not be confounded with another one already encoded
+// by the same cards (age: child/adult). When the target has semantic.age,
+// narrow its distractor pool to concepts of the same age. This is a no-op for
+// ordinary flashcard topics and falls back to the full pool for small selections
+// where there is no same-age alternative.
+function sameAgePool(concept, concepts) {
+  const age = concept.primary?.semantic?.age;
+  if (!age) return concepts;
+  const narrowed = concepts.filter(
+    (candidate) => candidate.conceptId === concept.conceptId || candidate.primary?.semantic?.age === age
+  );
+  return narrowed.length > 1 ? narrowed : concepts;
+}
+
 function generateFindNTasks(concepts, params) {
   const reps        = params.repsPerConcept ?? 1;
   const optionCount = params.optionCount    ?? 4;
@@ -279,12 +294,13 @@ function generateFindNTasks(concepts, params) {
       // with 3 images must produce 3 find_n tasks (x reps), otherwise most of
       // its variations never appear in a session at all.
       for (const targetCard of concept.cards) {
-        const distractorCount = Math.min(optionCount - 1, concepts.length - 1);
+        const pool = sameAgePool(concept, concepts);
+        const distractorCount = Math.min(optionCount - 1, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
-          concept.conceptId, concepts, distractorCount, difficulty
+          concept.conceptId, pool, distractorCount, difficulty
         );
         const distractorOptions = distractorIds.map((cid) => {
-          const dc = concepts.find((c) => c.conceptId === cid);
+          const dc = pool.find((c) => c.conceptId === cid);
           return { conceptId: cid, card: pickVariation(dc), isTarget: false };
         });
         const targetOption = {
@@ -314,12 +330,13 @@ function generateChooseWordTasks(concepts, params) {
       // One task per photo variation, not one random pick per rep - see
       // generateFindNTasks for why.
       for (const targetCard of concept.cards) {
-        const distractorCount = Math.min(3, concepts.length - 1);
+        const pool = sameAgePool(concept, concepts);
+        const distractorCount = Math.min(3, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
-          concept.conceptId, concepts, distractorCount, "medium"
+          concept.conceptId, pool, distractorCount, "medium"
         );
         const distractorOptions = distractorIds.map((cid) => {
-          const dc = concepts.find((c) => c.conceptId === cid);
+          const dc = pool.find((c) => c.conceptId === cid);
           return { label: dc.primary?.label ?? cid, conceptId: cid, isTarget: false };
         });
         const targetOption = {

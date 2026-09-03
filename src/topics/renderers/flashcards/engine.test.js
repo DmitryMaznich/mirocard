@@ -376,6 +376,36 @@ describe("generateTasks — find_n", () => {
   });
 });
 
+describe("generateTasks — find_n respects semantic.age when present", () => {
+  const CARDS = [
+    { id: "boy_1",   conceptId: "boy",   primary: true, label: "мальчик", image: "media/boy_1.webp",   semantic: { age: "child", category: "boy" } },
+    { id: "girl_1",  conceptId: "girl",  primary: true, label: "девочка", image: "media/girl_1.webp",  semantic: { age: "child", category: "girl" } },
+    { id: "man_1",   conceptId: "man",   primary: true, label: "мужчина", image: "media/man_1.webp",   semantic: { age: "adult", category: "man" } },
+    { id: "woman_1", conceptId: "woman", primary: true, label: "женщина", image: "media/woman_1.webp", semantic: { age: "adult", category: "woman" } },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+
+  it("2-option find_n for a child concept always distracts with the other child, never an adult", () => {
+    for (let i = 0; i < 20; i++) {
+      const tasks = generateTasks("find_n", CONCEPTS, CARDS, { optionCount: 2 });
+      const boyTask = tasks.find((t) => t.targetConceptId === "boy");
+      const distractor = boyTask.options.find((o) => !o.isTarget);
+      expect(distractor.conceptId).toBe("girl");
+    }
+  });
+
+  it("a topic without semantic.age is unaffected", () => {
+    const plainCards = [
+      { id: "t1", conceptId: "tshirt", primary: true, label: "футболка", image: "media/t1.webp" },
+      { id: "j1", conceptId: "jacket", primary: true, label: "куртка", image: "media/j1.webp" },
+      { id: "s1", conceptId: "skirt", primary: true, label: "юбка", image: "media/s1.webp" },
+    ];
+    const tasks = generateTasks("find_n", deriveConcepts(plainCards), plainCards, { optionCount: 2 });
+    expect(tasks.length).toBeGreaterThan(0);
+    expect(tasks.every((t) => t.options.length === 2)).toBe(true);
+  });
+});
+
 describe("generateTasks — choose_word_by_picture", () => {
   it("generates one task per photo variation (1 rep default)", () => {
     const tasks = generateTasks("choose_word_by_picture", ALL_CONCEPTS, CARDS, {});
