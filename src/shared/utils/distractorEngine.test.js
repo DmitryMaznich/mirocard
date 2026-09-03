@@ -86,3 +86,24 @@ describe("selectDistractorConceptIds — semantic.group1/2/3 (emotions_v2-style 
     expect(result[0]).toBe("b");
   });
 });
+
+describe("selectDistractorConceptIds — semantic object without group1/2/3 (people_names-style cards)", () => {
+  // people_names cards set `semantic: { age, category }` — a real semantic
+  // object, but not the group1/2/3 axes semanticMatchCount uses. Before the
+  // fix, every pair was scored as having zero shared semantic axes, silently
+  // bypassing the informative tags below.
+  const CARDS = [
+    { id: "boy_1",  conceptId: "boy",  primary: true, label: "мальчик", tags: ["children", "people", "primary"], semantic: { age: "child", category: "boy" } },
+    { id: "girl_1", conceptId: "girl", primary: true, label: "девочка", tags: ["children", "people", "primary"], semantic: { age: "child", category: "girl" } },
+    { id: "man_1",  conceptId: "man",  primary: true, label: "мужчина", tags: ["people"], semantic: { age: "adult", category: "man" } },
+  ];
+  const concepts = deriveConcepts(CARDS);
+
+  it("falls back to tag counting instead of scoring every pair as equally close", () => {
+    // Boy shares all three tags with girl, but only one with man. Before the
+    // fallback fix, both had zero semantic matches and were shuffled together.
+    for (let i = 0; i < 20; i++) {
+      expect(selectDistractorConceptIds("boy", concepts, 1, "hard")[0]).toBe("girl");
+    }
+  });
+});
