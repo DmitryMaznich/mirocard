@@ -565,8 +565,9 @@ function SortByAttributeTask({ task, topicId, soundEnabled, onCorrect, onIncorre
   );
 }
 
-function ChooseAllOption({ card, topicId, mark, onClick, disabled }) {
+function ChooseAllOption({ card, topicId, mark, onClick, disabled, imageFit }) {
   const url = useTopicFile(topicId, card?.image);
+  const fitClass = imageFit ? ` choose-all-option__img--${imageFit}` : "";
   return (
     <button
       className={`choose-all-option${mark ? ` choose-all-option--${mark}` : ""}`}
@@ -574,8 +575,8 @@ function ChooseAllOption({ card, topicId, mark, onClick, disabled }) {
       disabled={disabled}
     >
       {url
-        ? <img className="choose-all-option__img" src={url} alt="" draggable={false} />
-        : <div className="choose-all-option__img choose-all-option__img--loading" />
+        ? <img className={`choose-all-option__img${fitClass}`} src={url} alt="" draggable={false} />
+        : <div className={`choose-all-option__img choose-all-option__img--loading${fitClass}`} />
       }
       {mark && (
         <span className={`choose-all-badge choose-all-badge--${mark}`}>
@@ -586,7 +587,7 @@ function ChooseAllOption({ card, topicId, mark, onClick, disabled }) {
   );
 }
 
-function ChooseAllTask({ task, topicId, onCorrect, onIncorrect }) {
+function ChooseAllTask({ task, topicId, onCorrect, onIncorrect, imageFit }) {
   const [marks,    setMarks]    = useState({});
   const [hadWrong, setHadWrong] = useState(false);
   const [done,     setDone]     = useState(false);
@@ -628,6 +629,7 @@ function ChooseAllTask({ task, topicId, onCorrect, onIncorrect }) {
             mark={marks[card.id]}
             onClick={() => handleTap(card)}
             disabled={done || !!marks[card.id]}
+            imageFit={imageFit}
           />
         ))}
         </div>
@@ -672,6 +674,7 @@ export default function FlashcardsRenderer({ task, mode, sessionParams, topicId,
       onCardShown={onCardShown}
       onTap={onTap}
       onQuality={onQuality}
+      imageFit={mode?.ui?.imageFit}
     />
   );
 }
