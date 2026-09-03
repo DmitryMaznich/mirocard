@@ -1,0 +1,322 @@
+{
+  "meta": {
+    "id": "people_names",
+    "renderer": "flashcards",
+    "version": "1.0.1",
+    "language": "ru",
+    "customModesOnly": true,
+    "title": { "ru": "Кто это? Люди и имена" },
+    "avatar": "media/avatar.svg",
+    "about": {
+      "description": {
+        "ru": "Учимся понимать и называть слова «мальчик», «девочка», «мужчина», «женщина», различать ребёнка и взрослого, а затем узнавать людей по имени."
+      },
+      "tips": [
+        "Начните с двух слов: «мальчик» и «девочка». Выбирайте в настройках только эти карточки.",
+        "Когда ребёнок уверенно различает детей, добавьте «мужчина» и «женщина», затем тренируйте «ребёнок / взрослый».",
+        "Имена здесь — названия конкретных людей. Не объясняйте их как правило, по которому всегда можно определить человека.",
+        "Засчитывайте самостоятельный устный ответ, ответ на AAC или указание на картинку."
+      ]
+    }
+  },
+  "modes": [
+    {
+      "id": "people_intro",
+      "type": "intro",
+      "evaluation": "none",
+      "ui": {
+        "title": "1. Знакомство",
+        "instruction": "Посмотри и послушай"
+      },
+      "methodology": {
+        "text": "Каждая карточка показывает одного человека и даёт короткую речевую модель: «Это мальчик. Его зовут Петя». Без ответа и оценки ребёнок спокойно знакомится с образом и словами.",
+        "tips": [
+          "Начинайте с одного-двух понятий.",
+          "Дайте ребёнку время рассмотреть человека; не просите повторить сразу.",
+          "Нажмите на кнопку со звуком, чтобы повторить модель."
+        ],
+        "duration": "2–4 минуты"
+      }
+    },
+    {
+      "id": "people_find_category",
+      "type": "find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "2. Покажи человека",
+        "instruction": "Послушай и нажми на картинку"
+      },
+      "methodology": {
+        "text": "Ребёнок слышит инструкцию «Покажи мальчика» и выбирает подходящую фотографию. Это основной режим для закрепления понимания слов.",
+        "tips": [
+          "На старте используйте 2 варианта и только пару «мальчик / девочка».",
+          "В заданиях на пол всегда сравниваются люди одного возраста; возраст не должен подсказывать ответ.",
+          "После ошибки назовите правильный ответ спокойно и повторите цель на другой карточке позже."
+        ],
+        "duration": "3–6 минут"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": { "ru": "Вариантов" },
+          "values": [2, 4],
+          "default": 2
+        },
+        "repsPerConcept": {
+          "type": "number",
+          "label": { "ru": "Повторений" },
+          "min": 1,
+          "max": 2,
+          "default": 1
+        }
+      }
+    },
+    {
+      "id": "people_sort_attribute",
+      "type": "sort_by_attribute",
+      "evaluation": "auto",
+      "ui": {
+        "title": "3. Разложи по группам",
+        "instruction": "Выбери подходящую группу"
+      },
+      "methodology": {
+        "text": "Одна фотография — один выбор. Сначала ребёнок отличает ребёнка от взрослого, затем распределяет людей по четырём знакомым словам.",
+        "tips": [
+          "Начинайте с «ребёнок / взрослый»: это отдельный навык возраста.",
+          "Включайте четыре группы только после уверенного различения пар.",
+          "Если нужно вернуться к простому выбору, используйте режим «Покажи человека»."
+        ],
+        "duration": "3–5 минут"
+      },
+      "params": {
+        "sortBy": {
+          "type": "enum",
+          "label": { "ru": "Группы" },
+          "values": ["age", "category"],
+          "labels": {
+            "ru": {
+              "age": "Ребёнок / взрослый",
+              "category": "Четыре слова"
+            }
+          },
+          "default": "age"
+        }
+      }
+    },
+    {
+      "id": "people_find_person_by_name",
+      "type": "find_person_by_name",
+      "evaluation": "auto",
+      "ui": {
+        "title": "4. Где это имя?",
+        "instruction": "Послушай имя и найди человека"
+      },
+      "methodology": {
+        "text": "Ребёнок слышит имя, например «Где Петя?», и ищет человека среди фотографий. Имя связано с конкретным персонажем, а не с правилом о людях вообще.",
+        "tips": [
+          "Начните с двух имён, которые заметно различаются на слух: «Петя» и «Оля».",
+          "Сначала используйте два варианта; четыре добавляйте после уверенного успеха.",
+          "Отложите похожие или двусмысленные имена до следующего этапа."
+        ],
+        "duration": "3–5 минут"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": { "ru": "Вариантов" },
+          "values": [2, 4],
+          "default": 2
+        }
+      }
+    },
+    {
+      "id": "people_choose_name",
+      "type": "choose_name",
+      "evaluation": "auto",
+      "ui": {
+        "title": "5. Как зовут?",
+        "instruction": "Посмотри и выбери имя"
+      },
+      "methodology": {
+        "text": "Обратное направление: ребёнок видит человека и выбирает его имя. Режим одновременно готовит к чтению коротких имён.",
+        "tips": [
+          "Перед выбором дайте ребёнку самому назвать имя — голосом, на AAC или жестом.",
+          "Для нечитающего ребёнка взрослый может прочитать варианты вслух.",
+          "Засчитывайте понимание и коммуникацию, а не только произношение."
+        ],
+        "duration": "3–5 минут"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": { "ru": "Вариантов" },
+          "values": [2, 4],
+          "default": 2
+        }
+      }
+    },
+    {
+      "id": "people_choose_all",
+      "type": "choose_all",
+      "evaluation": "auto",
+      "ui": {
+        "title": "6. Найди всех",
+        "instruction": "Найди все подходящие картинки"
+      },
+      "methodology": {
+        "text": "Ребёнок выбирает всех людей одной категории в небольшой сетке. Режим проверяет, что слово относится не к одной запомненной фотографии, а к разным людям.",
+        "tips": [
+          "Используйте после уверенного прохождения режима «Покажи человека».",
+          "Начните с четырёх карточек в сетке.",
+          "Перед началом покажите один пример, если ребёнок ещё не знаком с выбором нескольких ответов."
+        ],
+        "duration": "4–6 минут"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": { "ru": "Карточек в сетке" },
+          "values": [2, 4, 6],
+          "default": 4
+        }
+      }
+    },
+    {
+      "id": "people_question_answer",
+      "type": "question_answer",
+      "evaluation": "none",
+      "answerPrefix": "Это",
+      "ui": {
+        "title": "7. Кто это?",
+        "instruction": "Кто это?"
+      },
+      "methodology": {
+        "text": "Взрослый ждёт самостоятельный ответ на вопрос «Кто это?» и отмечает качество ответа. Экран раскрывает образец после отметки.",
+        "tips": [
+          "Сначала дайте 3–5 секунд на самостоятельный ответ.",
+          "Ответ с AAC или указанием можно отметить как верный, если он самостоятельный.",
+          "Не подсказывайте до первой попытки: это проверка, а не обучение."
+        ],
+        "duration": "3–5 минут"
+      }
+    },
+    {
+      "id": "people_yes_no",
+      "type": "yes_no",
+      "evaluation": "auto",
+      "answerPrefix": "Это",
+      "ui": {
+        "title": "8. Верно или нет?",
+        "instruction": "Проверь слово"
+      },
+      "methodology": {
+        "text": "Поздняя проверка связи «слово — человек». Ребёнок оценивает подпись под фотографией, а не только ищет нужную картинку.",
+        "tips": [
+          "Используйте только после уверенной работы в режимах «Покажи человека» и «Кто это?».",
+          "Хвалите ответы «да» и «нет» одинаково.",
+          "При угадывании вернитесь к режиму выбора картинки."
+        ],
+        "duration": "3–5 минут"
+      },
+      "params": {
+        "repsPerConcept": {
+          "type": "number",
+          "label": { "ru": "Повторений" },
+          "min": 1,
+          "max": 2,
+          "default": 1
+        }
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "boy_peter",
+      "conceptId": "boy",
+      "primary": true,
+      "label": "мальчик",
+      "image": "media/people/boy_peter.webp",
+      "speech": "Это мальчик. Его зовут Петя.",
+      "promptSpeech": "Покажи мальчика.",
+      "person": { "id": "peter", "name": "Петя" },
+      "semantic": { "age": "child", "category": "boy" },
+      "tags": ["children", "people", "primary"]
+    },
+    {
+      "id": "boy_ilya",
+      "conceptId": "boy",
+      "image": "media/people/boy_ilya.webp",
+      "speech": "Это мальчик. Его зовут Илья.",
+      "promptSpeech": "Покажи мальчика.",
+      "person": { "id": "ilya", "name": "Илья" },
+      "semantic": { "age": "child", "category": "boy" },
+      "tags": ["children", "people", "generalisation"]
+    },
+    {
+      "id": "girl_olga",
+      "conceptId": "girl",
+      "primary": true,
+      "label": "девочка",
+      "image": "media/people/girl_olga.webp",
+      "speech": "Это девочка. Её зовут Оля.",
+      "promptSpeech": "Покажи девочку.",
+      "person": { "id": "olga", "name": "Оля" },
+      "semantic": { "age": "child", "category": "girl" },
+      "tags": ["children", "people", "primary"]
+    },
+    {
+      "id": "girl_lena",
+      "conceptId": "girl",
+      "image": "media/people/girl_lena.webp",
+      "speech": "Это девочка. Её зовут Лена.",
+      "promptSpeech": "Покажи девочку.",
+      "person": { "id": "lena", "name": "Лена" },
+      "semantic": { "age": "child", "category": "girl" },
+      "tags": ["children", "people", "generalisation"]
+    },
+    {
+      "id": "man_igor",
+      "conceptId": "man",
+      "primary": true,
+      "label": "мужчина",
+      "image": "media/people/man_igor.webp",
+      "speech": "Это мужчина. Его зовут Игорь.",
+      "promptSpeech": "Покажи мужчину.",
+      "person": { "id": "igor", "name": "Игорь" },
+      "semantic": { "age": "adult", "category": "man" },
+      "tags": ["adults", "people", "primary"]
+    },
+    {
+      "id": "man_sergey",
+      "conceptId": "man",
+      "image": "media/people/man_sergey.webp",
+      "speech": "Это мужчина. Его зовут Сергей.",
+      "promptSpeech": "Покажи мужчину.",
+      "person": { "id": "sergey", "name": "Сергей" },
+      "semantic": { "age": "adult", "category": "man" },
+      "tags": ["adults", "people", "generalisation"]
+    },
+    {
+      "id": "woman_anna",
+      "conceptId": "woman",
+      "primary": true,
+      "label": "женщина",
+      "image": "media/people/woman_anna.webp",
+      "speech": "Это женщина. Её зовут Анна.",
+      "promptSpeech": "Покажи женщину.",
+      "person": { "id": "anna", "name": "Анна" },
+      "semantic": { "age": "adult", "category": "woman" },
+      "tags": ["adults", "people", "primary"]
+    },
+    {
+      "id": "woman_marina",
+      "conceptId": "woman",
+      "image": "media/people/woman_marina.webp",
+      "speech": "Это женщина. Её зовут Марина.",
+      "promptSpeech": "Покажи женщину.",
+      "person": { "id": "marina", "name": "Марина" },
+      "semantic": { "age": "adult", "category": "woman" },
+      "tags": ["adults", "people", "generalisation"]
+    }
+  ]
+}

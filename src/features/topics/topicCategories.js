@@ -14,6 +14,7 @@ export const CATALOG_CATEGORIES = {
   addition_subtraction:     "Математика",
   column_addition:          "Математика",
   emotions_v2:              "Словарный запас",
+  people_names:             "Словарный запас",
   clothes_basic:            "Словарный запас",
   verbs_v2:                 "Словарный запас",
   transport_photo:          "Словарный запас",

@@ -423,3 +423,53 @@ describe("generateTasks — choose_all", () => {
     expect(coveredIds).toEqual(["j1", "j2", "j3"]);
   });
 });
+
+describe("generateTasks — people, names, and attributes", () => {
+  const PEOPLE_CARDS = [
+    { id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "boy_peter.webp", person: { id: "peter", name: "Петя" }, semantic: { age: "child", category: "boy" } },
+    { id: "girl_olga", conceptId: "girl", primary: true, label: "девочка", image: "girl_olga.webp", person: { id: "olga", name: "Оля" }, semantic: { age: "child", category: "girl" } },
+    { id: "man_igor", conceptId: "man", primary: true, label: "мужчина", image: "man_igor.webp", person: { id: "igor", name: "Игорь" }, semantic: { age: "adult", category: "man" } },
+    { id: "woman_anna", conceptId: "woman", primary: true, label: "женщина", image: "woman_anna.webp", person: { id: "anna", name: "Анна" }, semantic: { age: "adult", category: "woman" } },
+  ];
+  const PEOPLE_CONCEPTS = deriveConcepts(PEOPLE_CARDS);
+
+  it("asks for every named person and keeps one photo target", () => {
+    const tasks = generateTasks("find_person_by_name", PEOPLE_CONCEPTS, PEOPLE_CARDS, { optionCount: 4 });
+    expect(tasks).toHaveLength(PEOPLE_CARDS.length);
+    expect(tasks.every((task) => task.type === "find_person_by_name")).toBe(true);
+
+    for (const task of tasks) {
+      const target = task.options.find((option) => option.isTarget);
+      expect(task.options).toHaveLength(4);
+      expect(task.targetLabel).toBe(`Где ${target.card.person.name}?`);
+      expect(task.promptSpeech).toBe(task.targetLabel);
+    }
+  });
+
+  it("offers names for the shown person", () => {
+    const tasks = generateTasks("choose_name", PEOPLE_CONCEPTS, PEOPLE_CARDS, { optionCount: 4 });
+    expect(tasks).toHaveLength(PEOPLE_CARDS.length);
+
+    for (const task of tasks) {
+      const target = task.options.find((option) => option.isTarget);
+      expect(target.label).toBe(task.card.person.name);
+      expect(task.options).toHaveLength(4);
+    }
+  });
+
+  it("sorts the same people by age with exactly two groups", () => {
+    const tasks = generateTasks("sort_by_attribute", PEOPLE_CONCEPTS, PEOPLE_CARDS, { sortBy: "age" });
+    expect(tasks).toHaveLength(PEOPLE_CARDS.length);
+    expect(tasks[0].groups).toEqual([
+      { value: "child", label: "Ребёнок" },
+      { value: "adult", label: "Взрослый" },
+    ]);
+    expect(tasks.map((task) => task.targetValue).sort()).toEqual(["adult", "adult", "child", "child"]);
+  });
+
+  it("sorts the same people by the four learned category words", () => {
+    const tasks = generateTasks("sort_by_attribute", PEOPLE_CONCEPTS, PEOPLE_CARDS, { sortBy: "category" });
+    expect(tasks[0].groups.map((group) => group.value)).toEqual(["boy", "girl", "man", "woman"]);
+    expect(tasks.map((task) => task.targetValue).sort()).toEqual(["boy", "girl", "man", "woman"]);
+  });
+});

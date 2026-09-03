@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { useSpeech } from "@/shared/hooks/useSpeech";
 import { getTopicTitle } from "@/shared/utils/format";
 
 function getTaskAudioPath(task) {
@@ -61,11 +62,28 @@ function AudioButton({ topicId, audioPath, playTopicFile, soundEnabled }) {
   );
 }
 
+function SpeechButton({ text, soundEnabled }) {
+  const { speak } = useSpeech();
+  if (!text || !soundEnabled) return null;
+  return (
+    <button
+      className="session-audio-icon-button session-audio-icon-button--active question-answer-audio-button"
+      onClick={(e) => { e.stopPropagation(); speak(text); }}
+      aria-label="Повторить"
+    >
+      🔊
+    </button>
+  );
+}
+
 function IntroTask({ task, mode, topicId, soundEnabled, playTopicFile, onAdvance }) {
   const audioPath = getTaskAudioPath(task);
+  const { speak } = useSpeech();
+  const speechText = task?.card?.speech ?? null;
 
   useEffect(() => {
     if (audioPath) playTopicFile(topicId, audioPath);
+    else if (speechText && soundEnabled) speak(speechText);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -76,7 +94,9 @@ function IntroTask({ task, mode, topicId, soundEnabled, playTopicFile, onAdvance
         {task.label}
       </div>
       <div className="session-hint">Нажми, чтобы продолжить</div>
-      <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
+      {audioPath
+        ? <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
+        : <SpeechButton text={speechText} soundEnabled={soundEnabled} />}
     </button>
   );
 }
@@ -316,10 +336,16 @@ function FindNOption({ option, topicId, onClick }) {
   );
 }
 
-function FindNTask({ task, mode, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
+function FindNTask({ task, mode, topicId, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
+  const { speak } = useSpeech();
+
   useEffect(() => {
     onCardShown?.(null, task.targetConceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
+  }, [task, soundEnabled, speak]);
 
   function handleOption(option) {
     onTap?.(option.card.id, option.isTarget);
@@ -351,6 +377,7 @@ function FindNTask({ task, mode, topicId, onCorrect, onIncorrect, onCardShown, o
           </div>
         </div>
       </div>
+      <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />
     </div>
   );
 }
@@ -443,6 +470,100 @@ function ChooseWordTask({ task, topicId, onCorrect, onIncorrect, onCardShown, on
   );
 }
 
+function ChooseNameTask({ task, topicId, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
+  const { speak } = useSpeech();
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    setResult(null);
+    onCardShown?.(task.card?.id, task.conceptId);
+    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleOption(option) {
+    if (result) return;
+    onTap?.(option.id, option.isTarget);
+    const outcome = option.isTarget ? "correct" : "incorrect";
+    setResult({ id: option.id, outcome });
+    setTimeout(() => {
+      if (option.isTarget) onCorrect(task.conceptId, task.card.id);
+      else                 onIncorrect(task.conceptId, task.card.id);
+    }, 1500);
+  }
+
+  return (
+    <div className="session-body session-body--choose-word session-body--choose-name">
+      <div className="session-instruction">Как зовут?</div>
+      <CardArea topicId={topicId} card={task.card} />
+      <div className="choose-word-options">
+        {task.options.map((option) => {
+          const isTappedWrong = result?.id === option.id && result.outcome === "incorrect";
+          const revealCorrect = Boolean(result) && option.isTarget;
+          const stateClass = revealCorrect ? " choose-word-btn--correct" : isTappedWrong ? " choose-word-btn--wrong" : "";
+          return (
+            <button
+              key={option.id}
+              className={`choose-word-btn${stateClass}`}
+              disabled={Boolean(result)}
+              onClick={() => handleOption(option)}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+      <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />
+    </div>
+  );
+}
+
+function SortByAttributeTask({ task, topicId, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
+  const { speak } = useSpeech();
+  const [result, setResult] = useState(null);
+  const instruction = task.sortBy === "category" ? "Кто это?" : "Ребёнок или взрослый?";
+
+  useEffect(() => {
+    setResult(null);
+    onCardShown?.(task.card?.id, task.conceptId);
+    if (soundEnabled) speak(instruction);
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleGroup(group) {
+    if (result) return;
+    const correct = group.value === task.targetValue;
+    setResult({ value: group.value, correct });
+    onTap?.(group.value, correct);
+    setTimeout(() => {
+      if (correct) onCorrect(task.conceptId, task.card.id);
+      else         onIncorrect(task.conceptId, task.card.id);
+    }, 1200);
+  }
+
+  return (
+    <div className="session-body session-body--sort-attribute">
+      <div className="session-instruction">{instruction}</div>
+      <CardArea topicId={topicId} card={task.card} />
+      <div className={`sort-attribute-options sort-attribute-options--${task.groups.length}`}>
+        {task.groups.map((group) => {
+          const isChosen = result?.value === group.value;
+          const stateClass = isChosen ? (result.correct ? " sort-attribute-btn--correct" : " sort-attribute-btn--wrong") : "";
+          return (
+            <button
+              key={group.value}
+              className={`sort-attribute-btn${stateClass}`}
+              disabled={Boolean(result)}
+              onClick={() => handleGroup(group)}
+            >
+              {group.label}
+            </button>
+          );
+        })}
+      </div>
+      <SpeechButton text={instruction} soundEnabled={soundEnabled} />
+    </div>
+  );
+}
+
 function ChooseAllOption({ card, topicId, mark, onClick, disabled }) {
   const url = useTopicFile(topicId, card?.image);
   return (
@@ -525,6 +646,9 @@ const TASK_RENDERERS = {
   emotion_control:        EmotionControlTask,
   choose_word_by_picture: ChooseWordTask,
   choose_all:             ChooseAllTask,
+  find_person_by_name:    FindNTask,
+  choose_name:            ChooseNameTask,
+  sort_by_attribute:      SortByAttributeTask,
 };
 
 export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {

@@ -13138,6 +13138,59 @@ kbd {
 }
 .choose-word-btn:disabled { cursor: default; }
 .choose-word-btn--correct { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+
+/* Attribute sorting is intentionally a calm tap-to-classify interaction.
+   Large neutral bins keep attention on the person card rather than a game-like
+   drag gesture, which makes it useful for early receptive-language work. */
+.session-body--sort-attribute {
+  gap: 12px;
+  padding: 12px;
+}
+.session-body--sort-attribute .card-area {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.sort-attribute-options {
+  display: grid;
+  width: min(100%, 560px);
+  gap: 10px;
+  flex: 0 0 auto;
+}
+.sort-attribute-options--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sort-attribute-options--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sort-attribute-btn {
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 2px solid rgba(38, 49, 49, 0.14);
+  border-radius: 14px;
+  background: #fff;
+  color: #263131;
+  font: inherit;
+  font-size: clamp(1rem, 2.8dvh, 1.25rem);
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(38, 49, 49, 0.06);
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.sort-attribute-btn:active:not(:disabled) { transform: scale(0.98); }
+.sort-attribute-btn:disabled { cursor: default; }
+.sort-attribute-btn--correct { border-color: #2f8f68; background: #eef9f4; color: #176044; }
+.sort-attribute-btn--wrong { border-color: #d9655d; background: #fff3f1; color: #9f3c37; }
+@media (orientation: landscape) {
+  .session-body--sort-attribute {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .session-body--sort-attribute .card-area {
+    width: auto;
+    flex: 1 1 auto;
+  }
+  .sort-attribute-options {
+    width: min(42%, 360px);
+    align-content: center;
+  }
+}
 .choose-word-btn--wrong   { background: #fef2f2; border-color: #ef4444; color: #b71c1c; }
 
 /* Landscape: square photo flush left, options centered right */

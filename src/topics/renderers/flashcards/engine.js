@@ -296,6 +296,7 @@ function generateFindNTasks(concepts, params) {
           type: "find_n",
           targetConceptId: concept.conceptId,
           targetLabel: concept.primary?.label ?? concept.conceptId,
+          promptSpeech: targetCard.promptSpeech ?? null,
           options: shuffle([targetOption, ...distractorOptions]),
         });
       }
@@ -369,6 +370,96 @@ function generateChooseAllTasks(concepts, params) {
   return shuffle(tasks);
 }
 
+function getPerson(card) {
+  if (!card?.person?.name) return null;
+  return {
+    id: card.person.id ?? card.id,
+    name: card.person.name,
+  };
+}
+
+function namedCards(concepts) {
+  return concepts.flatMap((concept) => concept.cards)
+    .filter((card) => Boolean(getPerson(card)));
+}
+
+// These two directions deliberately keep an individual person as the unit of
+// learning. A name is first an arbitrary, socially useful label for a person —
+// not a rule for inferring a person's category from spelling or sound.
+function generateFindPersonByNameTasks(concepts, params = {}) {
+  const cards = namedCards(concepts);
+  const optionCount = Math.max(2, Math.min(params.optionCount ?? 2, cards.length));
+  return shuffle(cards.map((targetCard) => {
+    const targetPerson = getPerson(targetCard);
+    const alternatives = shuffle(cards.filter((card) => getPerson(card)?.id !== targetPerson.id))
+      .slice(0, optionCount - 1);
+    const options = shuffle([
+      { card: targetCard, conceptId: targetCard.conceptId, isTarget: true },
+      ...alternatives.map((card) => ({ card, conceptId: card.conceptId, isTarget: false })),
+    ]);
+    return {
+      type: "find_person_by_name",
+      targetConceptId: targetCard.conceptId,
+      targetLabel: `Где ${targetPerson.name}?`,
+      promptSpeech: `Где ${targetPerson.name}?`,
+      targetPersonId: targetPerson.id,
+      options,
+    };
+  }));
+}
+
+function generateChooseNameTasks(concepts, params = {}) {
+  const cards = namedCards(concepts);
+  const optionCount = Math.max(2, Math.min(params.optionCount ?? 2, cards.length));
+  return shuffle(cards.map((targetCard) => {
+    const targetPerson = getPerson(targetCard);
+    const alternatives = shuffle(cards.filter((card) => getPerson(card)?.id !== targetPerson.id))
+      .slice(0, optionCount - 1);
+    return {
+      type: "choose_name",
+      conceptId: targetCard.conceptId,
+      card: targetCard,
+      targetPersonId: targetPerson.id,
+      promptSpeech: "Как зовут?",
+      options: shuffle([
+        { id: targetPerson.id, label: targetPerson.name, isTarget: true },
+        ...alternatives.map((card) => {
+          const person = getPerson(card);
+          return { id: person.id, label: person.name, isTarget: false };
+        }),
+      ]),
+    };
+  }));
+}
+
+const SORT_GROUPS = {
+  age: [
+    { value: "child", label: "Ребёнок" },
+    { value: "adult", label: "Взрослый" },
+  ],
+  category: [
+    { value: "boy", label: "Мальчик" },
+    { value: "girl", label: "Девочка" },
+    { value: "man", label: "Мужчина" },
+    { value: "woman", label: "Женщина" },
+  ],
+};
+
+function generateSortByAttributeTasks(concepts, params = {}) {
+  const sortBy = params.sortBy === "category" ? "category" : "age";
+  const groups = SORT_GROUPS[sortBy];
+  const cards = concepts.flatMap((concept) => concept.cards)
+    .filter((card) => groups.some((group) => group.value === card?.semantic?.[sortBy]));
+  return shuffle(cards.map((card) => ({
+    type: "sort_by_attribute",
+    conceptId: card.conceptId,
+    card,
+    sortBy,
+    groups,
+    targetValue: card.semantic[sortBy],
+  })));
+}
+
 export function generateTasks(modeType, concepts, allCards, params = {}) {
   // Cards tagged with a cardType (e.g. "situation") aren't an ordinary
   // picture/word variation and must never surface as one - strip them from
@@ -396,6 +487,9 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "find_n":                 return generateFindNTasks(displayConcepts, params);
     case "choose_word_by_picture": return generateChooseWordTasks(displayConcepts, params);
     case "choose_all":             return generateChooseAllTasks(displayConcepts, params);
+    case "find_person_by_name":    return generateFindPersonByNameTasks(displayConcepts, params);
+    case "choose_name":            return generateChooseNameTasks(displayConcepts, params);
+    case "sort_by_attribute":      return generateSortByAttributeTasks(displayConcepts, params);
     default:                       return [];
   }
 }

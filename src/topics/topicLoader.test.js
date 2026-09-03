@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import JSZip from "jszip";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { openDb, kv } from "@/core/db";
 import {
   importTopic,
@@ -118,6 +120,26 @@ async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0" } = 
 }
 
 describe("importTopic — valid cases", () => {
+  it("imports the shipped people-and-names deck end-to-end", async () => {
+    const bytes = await readFile(resolve("public/decks/people_names_v1.0.1.zip"));
+    const db = await freshDb();
+    const record = await importTopic(db, bytes, "1.0.2046");
+
+    expect(record.meta.id).toBe("people_names");
+    expect(record.cards).toHaveLength(8);
+    expect(record.cards.every((card) => card.imageUrl?.startsWith("data:image/webp;base64,"))).toBe(true);
+    expect(record.modes.map((mode) => mode.type)).toEqual([
+      "intro", "find_n", "sort_by_attribute", "find_person_by_name",
+      "choose_name", "choose_all", "question_answer", "yes_no",
+    ]);
+
+    const reloaded = await getTopicRecord(db, "people_names");
+    expect(reloaded.modes.map((mode) => mode.id)).toEqual([
+      "people_intro", "people_find_category", "people_sort_attribute", "people_find_person_by_name",
+      "people_choose_name", "people_choose_all", "people_question_answer", "people_yes_no",
+    ]);
+  });
+
   it("imports a valid object topic and returns a record", async () => {
     const db = await freshDb();
     const buf = await makeObjectTopicZip();
