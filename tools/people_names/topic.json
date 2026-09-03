@@ -2,7 +2,7 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "language": "ru",
     "customModesOnly": true,
     "title": { "ru": "Кто это? Люди и имена" },
@@ -186,7 +186,8 @@
       "ui": {
         "title": "7. Найди всех",
         "instruction": "Найди все подходящие картинки",
-        "icon": "media/icons/flashcards_choose_all.svg"
+        "icon": "media/icons/flashcards_choose_all.svg",
+        "imageFit": "contain"
       },
       "methodology": {
         "text": "Ребёнок выбирает всех людей одной категории в небольшой сетке. Режим проверяет, что слово относится не к одной запомненной фотографии, а к разным людям.",

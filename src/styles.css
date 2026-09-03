@@ -13068,6 +13068,11 @@ kbd {
 .choose-all-option--wrong   { border-color: #e53935; opacity: 0.6; }
 .choose-all-option__img { width: 100%; height: 100%; object-fit: cover; }
 .choose-all-option__img--loading { background: #e0e0e0; width: 100%; height: 100%; }
+/* Full-body studio portraits (e.g. people_names) get cropped unrecognisably
+   tight by the default cover-fit in this 1:1 grid tile - same bug already
+   fixed for the 4-group sort_by_attribute variant (see that rule above).
+   letterboxes on a neutral background instead of cutting off heads/feet. */
+.choose-all-option__img--contain { object-fit: contain; background: #f7f7f5; }
 .choose-all-badge {
   position: absolute;
   top: 6px;
