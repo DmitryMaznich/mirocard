@@ -321,6 +321,19 @@ function generateFindNTasks(concepts, params) {
   return shuffle(tasks);
 }
 
+// A probe task must use a photo the child has never drilled on in any
+// teaching mode - the whole point is testing whether the word transferred
+// to a new person, not whether the child memorised a specific photo. Reuses
+// generateFindNTasks's task shape exactly; the only difference is the card
+// pool, which is restricted to cards the author explicitly reserved via
+// card.probeOnly instead of the pool every other mode draws from.
+function generateProbeTasks(concepts, params) {
+  const probeConcepts = concepts
+    .map((c) => ({ ...c, cards: c.cards.filter((card) => card.probeOnly) }))
+    .filter((c) => c.cards.length > 0);
+  return generateFindNTasks(probeConcepts, params);
+}
+
 function generateChooseWordTasks(concepts, params) {
   const reps = params.repsPerConcept ?? 1;
   const tasks = [];
@@ -502,7 +515,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
   // them. A card that never sets cardType passes through unchanged, so this
   // is a no-op for every flashcards topic other than emotions_v2.
   const displayConcepts = concepts.map((c) => {
-    const displayCards = c.cards.filter((card) => !card.cardType);
+    const displayCards = c.cards.filter((card) => !card.cardType && !card.probeOnly);
     if (displayCards.length === c.cards.length) return c;
     return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
   });
@@ -521,6 +534,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "question_answer":        return generateIntroTasks(displayConcepts).map((t) => ({ ...t, type: "question_answer" }));
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
     case "find_n":                 return generateFindNTasks(displayConcepts, params);
+    case "generalisation_probe":   return generateProbeTasks(concepts, params);
     case "choose_word_by_picture": return generateChooseWordTasks(displayConcepts, params);
     case "choose_all":             return generateChooseAllTasks(displayConcepts, params);
     case "find_person_by_name":    return generateFindPersonByNameTasks(displayConcepts, params);

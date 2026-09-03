@@ -649,6 +649,7 @@ const TASK_RENDERERS = {
   choose_word_by_picture: ChooseWordTask,
   choose_all:             ChooseAllTask,
   find_person_by_name:    FindNTask,
+  generalisation_probe:   FindNTask,
   choose_name:            ChooseNameTask,
   sort_by_attribute:      SortByAttributeTask,
 };
