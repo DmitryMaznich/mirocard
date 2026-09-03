@@ -2,7 +2,7 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "language": "ru",
     "customModesOnly": true,
     "title": { "ru": "Кто это? Люди и имена" },
@@ -29,7 +29,7 @@
         "instruction": "Посмотри и послушай"
       },
       "methodology": {
-        "text": "Каждая карточка показывает одного человека и даёт короткую речевую модель: «Это мальчик. Его зовут Петя». Без ответа и оценки ребёнок спокойно знакомится с образом и словами.",
+        "text": "Каждая карточка показывает одного человека и даёт короткую речевую модель: «Это мальчик». Без ответа и оценки ребёнок спокойно знакомится с образом и словом-категорией.",
         "tips": [
           "Начинайте с одного-двух понятий.",
           "Дайте ребёнку время рассмотреть человека; не просите повторить сразу.",
@@ -104,11 +104,30 @@
       }
     },
     {
+      "id": "people_person_intro",
+      "type": "person_intro",
+      "evaluation": "none",
+      "ui": {
+        "title": "4. Это имя",
+        "instruction": "Посмотри и послушай",
+        "icon": "media/icons/flashcards_intro.svg"
+      },
+      "methodology": {
+        "text": "Тот же человек, но теперь звучит только имя, без слова-категории: «Это Петя». Имя не выводится из слова «мальчик» — оно вводится отдельно, как собственное название конкретного человека.",
+        "tips": [
+          "Проводите после уверенного различения слов «мальчик/девочка/мужчина/женщина» из режимов 2–3.",
+          "Не просите ребёнка повторить имя сразу — дайте время рассмотреть фотографию.",
+          "Если ребёнок сам называет имя — это хороший знак, но не требование этого режима."
+        ],
+        "duration": "2–3 минуты"
+      }
+    },
+    {
       "id": "people_find_person_by_name",
       "type": "find_person_by_name",
       "evaluation": "auto",
       "ui": {
-        "title": "4. Где это имя?",
+        "title": "5. Где это имя?",
         "instruction": "Послушай имя и найди человека"
       },
       "methodology": {
@@ -134,7 +153,7 @@
       "type": "choose_name",
       "evaluation": "auto",
       "ui": {
-        "title": "5. Как зовут?",
+        "title": "6. Как зовут?",
         "instruction": "Посмотри и выбери имя"
       },
       "methodology": {
@@ -160,7 +179,7 @@
       "type": "choose_all",
       "evaluation": "auto",
       "ui": {
-        "title": "6. Найди всех",
+        "title": "7. Найди всех",
         "instruction": "Найди все подходящие картинки"
       },
       "methodology": {
@@ -187,7 +206,7 @@
       "evaluation": "none",
       "answerPrefix": "Это",
       "ui": {
-        "title": "7. Кто это?",
+        "title": "8. Кто это?",
         "instruction": "Кто это?"
       },
       "methodology": {
@@ -206,7 +225,7 @@
       "evaluation": "auto",
       "answerPrefix": "Это",
       "ui": {
-        "title": "8. Верно или нет?",
+        "title": "9. Верно или нет?",
         "instruction": "Проверь слово"
       },
       "methodology": {
@@ -236,7 +255,8 @@
       "primary": true,
       "label": "мальчик",
       "image": "media/people/boy_peter.webp",
-      "speech": "Это мальчик. Его зовут Петя.",
+      "speech": "Это мальчик.",
+      "personSpeech": "Это Петя.",
       "promptSpeech": "Покажи мальчика.",
       "person": { "id": "peter", "name": "Петя" },
       "semantic": { "age": "child", "category": "boy" },
@@ -246,7 +266,8 @@
       "id": "boy_ilya",
       "conceptId": "boy",
       "image": "media/people/boy_ilya.webp",
-      "speech": "Это мальчик. Его зовут Илья.",
+      "speech": "Это мальчик.",
+      "personSpeech": "Это Илья.",
       "promptSpeech": "Покажи мальчика.",
       "person": { "id": "ilya", "name": "Илья" },
       "semantic": { "age": "child", "category": "boy" },
@@ -258,7 +279,8 @@
       "primary": true,
       "label": "девочка",
       "image": "media/people/girl_olga.webp",
-      "speech": "Это девочка. Её зовут Оля.",
+      "speech": "Это девочка.",
+      "personSpeech": "Это Оля.",
       "promptSpeech": "Покажи девочку.",
       "person": { "id": "olga", "name": "Оля" },
       "semantic": { "age": "child", "category": "girl" },
@@ -268,7 +290,8 @@
       "id": "girl_lena",
       "conceptId": "girl",
       "image": "media/people/girl_lena.webp",
-      "speech": "Это девочка. Её зовут Лена.",
+      "speech": "Это девочка.",
+      "personSpeech": "Это Лена.",
       "promptSpeech": "Покажи девочку.",
       "person": { "id": "lena", "name": "Лена" },
       "semantic": { "age": "child", "category": "girl" },
@@ -280,7 +303,8 @@
       "primary": true,
       "label": "мужчина",
       "image": "media/people/man_igor.webp",
-      "speech": "Это мужчина. Его зовут Игорь.",
+      "speech": "Это мужчина.",
+      "personSpeech": "Это Игорь.",
       "promptSpeech": "Покажи мужчину.",
       "person": { "id": "igor", "name": "Игорь" },
       "semantic": { "age": "adult", "category": "man" },
@@ -290,7 +314,8 @@
       "id": "man_sergey",
       "conceptId": "man",
       "image": "media/people/man_sergey.webp",
-      "speech": "Это мужчина. Его зовут Сергей.",
+      "speech": "Это мужчина.",
+      "personSpeech": "Это Сергей.",
       "promptSpeech": "Покажи мужчину.",
       "person": { "id": "sergey", "name": "Сергей" },
       "semantic": { "age": "adult", "category": "man" },
@@ -302,7 +327,8 @@
       "primary": true,
       "label": "женщина",
       "image": "media/people/woman_anna.webp",
-      "speech": "Это женщина. Её зовут Анна.",
+      "speech": "Это женщина.",
+      "personSpeech": "Это Анна.",
       "promptSpeech": "Покажи женщину.",
       "person": { "id": "anna", "name": "Анна" },
       "semantic": { "age": "adult", "category": "woman" },
@@ -312,7 +338,8 @@
       "id": "woman_marina",
       "conceptId": "woman",
       "image": "media/people/woman_marina.webp",
-      "speech": "Это женщина. Её зовут Марина.",
+      "speech": "Это женщина.",
+      "personSpeech": "Это Марина.",
       "promptSpeech": "Покажи женщину.",
       "person": { "id": "marina", "name": "Марина" },
       "semantic": { "age": "adult", "category": "woman" },

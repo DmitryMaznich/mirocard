@@ -24,6 +24,29 @@ describe("generateTasks — intro", () => {
   });
 });
 
+describe("generateTasks — person_intro", () => {
+  const CARDS = [
+    { id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "media/boy_peter.webp", speech: "Это мальчик.", personSpeech: "Это Петя.", person: { id: "peter", name: "Петя" } },
+    { id: "boy_ilya", conceptId: "boy", image: "media/boy_ilya.webp", speech: "Это мальчик.", personSpeech: "Это Илья.", person: { id: "ilya", name: "Илья" } },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+
+  it("uses personSpeech as the card speech and the person's name as the label", () => {
+    const tasks = generateTasks("person_intro", CONCEPTS, CARDS, {});
+    expect(tasks).toHaveLength(2);
+    const peterTask = tasks.find((task) => task.card.id === "boy_peter");
+    expect(peterTask).toMatchObject({ type: "person_intro", conceptId: "boy", label: "Петя" });
+    expect(peterTask.card.speech).toBe("Это Петя.");
+  });
+
+  it("falls back to the card speech when a card has no person", () => {
+    const noPerson = [{ id: "x1", conceptId: "x", primary: true, label: "x", image: "media/x1.webp", speech: "Это x." }];
+    const tasks = generateTasks("person_intro", deriveConcepts(noPerson), noPerson, {});
+    expect(tasks[0].card.speech).toBe("Это x.");
+    expect(tasks[0].label).toBe("x");
+  });
+});
+
 describe("generateTasks — symmetry_draw modes", () => {
   const MIXED_CARDS = [
     { id: "m1", conceptId: "m1", primary: true, label: "Дом",   taskKind: "mirror", sourcePaths: [] },

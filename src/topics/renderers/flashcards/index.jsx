@@ -638,6 +638,7 @@ function ChooseAllTask({ task, topicId, onCorrect, onIncorrect }) {
 
 const TASK_RENDERERS = {
   intro:                  IntroTask,
+  person_intro:           IntroTask,
   question_answer:        QuestionAnswerTask,
   yes_no:                 YesNoTask,
   find_n:                 FindNTask,

@@ -387,6 +387,24 @@ function generateChooseAllTasks(concepts, params) {
   return shuffle(tasks);
 }
 
+// A person's name is an independent label for this particular photo, not a
+// property inferred from the category word. Keep the ordinary category intro
+// and this name-only exposure separate so the two verbal models are never
+// introduced as one rule.
+function generatePersonIntroTasks(concepts) {
+  return generateIntroTasks(concepts).map((task) => {
+    const person = task.card?.person;
+    return {
+      ...task,
+      type: "person_intro",
+      label: person?.name ?? task.label,
+      card: person?.name
+        ? { ...task.card, speech: task.card.personSpeech ?? task.card.speech }
+        : task.card,
+    };
+  });
+}
+
 function getPerson(card) {
   if (!card?.person?.name) return null;
   return {
@@ -490,6 +508,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
   });
   switch (modeType) {
     case "intro":                  return generateIntroTasks(displayConcepts);
+    case "person_intro":           return generatePersonIntroTasks(displayConcepts);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts, params);
