@@ -121,7 +121,7 @@ async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0" } = 
 
 describe("importTopic — valid cases", () => {
   it("imports the shipped people-and-names deck end-to-end", async () => {
-    const bytes = await readFile(resolve("public/decks/people_names_v1.0.1.zip"));
+    const bytes = await readFile(resolve("public/decks/people_names_v1.1.0.zip"));
     const db = await freshDb();
     const record = await importTopic(db, bytes, "1.0.2046");
 
@@ -129,14 +129,15 @@ describe("importTopic — valid cases", () => {
     expect(record.cards).toHaveLength(8);
     expect(record.cards.every((card) => card.imageUrl?.startsWith("data:image/webp;base64,"))).toBe(true);
     expect(record.modes.map((mode) => mode.type)).toEqual([
-      "intro", "find_n", "sort_by_attribute", "find_person_by_name",
-      "choose_name", "choose_all", "question_answer", "yes_no",
+      "intro", "find_n", "sort_by_attribute", "person_intro", "find_person_by_name",
+      "choose_name", "choose_all", "question_answer", "yes_no", "generalisation_probe",
     ]);
 
     const reloaded = await getTopicRecord(db, "people_names");
     expect(reloaded.modes.map((mode) => mode.id)).toEqual([
-      "people_intro", "people_find_category", "people_sort_attribute", "people_find_person_by_name",
-      "people_choose_name", "people_choose_all", "people_question_answer", "people_yes_no",
+      "people_intro", "people_find_category", "people_sort_attribute", "people_person_intro",
+      "people_find_person_by_name", "people_choose_name", "people_choose_all",
+      "people_question_answer", "people_yes_no", "people_generalisation_probe",
     ]);
   });
 
