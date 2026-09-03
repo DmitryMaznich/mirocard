@@ -21,7 +21,12 @@ function generateIntroTasks(concepts) {
 // in the card's personSpeech (a name-only sentence, e.g. "Это Петя.") for
 // its speech, and the person's name for the label - so a name is introduced
 // as an independent label for a specific photo, never phrased as if it
-// followed from the category word the way plain intro does.
+// followed from the category word the way plain intro does. Also swaps
+// card.audio for card.personAudio: getTaskAudioPath (index.jsx) plays
+// whatever is in card.audio.ru unconditionally, so leaving the category
+// line's recording in place here would play "Это мальчик." on a screen
+// captioned "Петя" - a pre-recorded personAudio clip (or none, falling
+// back to browser TTS of personSpeech) must replace it, not stack with it.
 function generatePersonIntroTasks(concepts) {
   return generateIntroTasks(concepts).map((task) => {
     const person = task.card?.person;
@@ -30,7 +35,11 @@ function generatePersonIntroTasks(concepts) {
       ...task,
       type: "person_intro",
       label: person.name,
-      card: { ...task.card, speech: task.card.personSpeech ?? task.card.speech },
+      card: {
+        ...task.card,
+        speech: task.card.personSpeech ?? task.card.speech,
+        audio: task.card.personAudio,
+      },
     };
   });
 }
