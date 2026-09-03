@@ -294,21 +294,30 @@ export function useSessionEngine() {
     if (!deckExhausted || !topicRecord?.meta?.loopModes) return;
     const modes = topicRecord.modes ?? [];
     if (!modes.length) return;
-    const currentIndex = modes.findIndex((m) => m.id === activeModeId);
-    const nextModeId = modes[(currentIndex + 1) % modes.length]?.id;
-    const nextMode = resolveMode(topicRecord, nextModeId);
-    if (!nextMode) return;
-    const { sessionParams: nextParams, selectedConceptIds: nextSelected } =
-      resolveModeSelection(topicRecord, nextMode, link, isReading, activeTextId);
-    const newState = buildGeneratedSessionState({
-      topicRecord, mode: nextMode, activeStudentId, activeTopicId,
-      activeTextId, activeText, activeStudent, link,
-      selectedConceptIds: nextSelected, sessionParams: nextParams,
-    });
-    if (!newState) return;
-    setDeckExhausted(false);
-    setActiveModeId(nextModeId);
-    setSessionState(newState);
+    const startIndex = modes.findIndex((m) => m.id === activeModeId);
+    // Some modes (e.g. people_names' generalisation_probe) legitimately have
+    // no tasks yet — they need content the deck doesn't have today (held-out
+    // photos). A 0-task mode never reaches "deck_exhausted" on its own, so
+    // landing on one here would otherwise strand the loop on the "нет
+    // подходящих предложений" fallback screen. Try each mode in turn and
+    // settle on the first one that actually has cards.
+    for (let step = 1; step <= modes.length; step++) {
+      const candidateId = modes[(startIndex + step) % modes.length]?.id;
+      const candidateMode = resolveMode(topicRecord, candidateId);
+      if (!candidateMode) continue;
+      const { sessionParams: candidateParams, selectedConceptIds: candidateSelected } =
+        resolveModeSelection(topicRecord, candidateMode, link, isReading, activeTextId);
+      const newState = buildGeneratedSessionState({
+        topicRecord, mode: candidateMode, activeStudentId, activeTopicId,
+        activeTextId, activeText, activeStudent, link,
+        selectedConceptIds: candidateSelected, sessionParams: candidateParams,
+      });
+      if (!newState || newState.tasks.length === 0) continue;
+      setDeckExhausted(false);
+      setActiveModeId(candidateId);
+      setSessionState(newState);
+      return;
+    }
   }, [deckExhausted, topicRecord, activeModeId, link, isReading, activeTextId, activeStudentId, activeTopicId, activeText, activeStudent, setActiveModeId]);
 
   async function finishSession(state) {
