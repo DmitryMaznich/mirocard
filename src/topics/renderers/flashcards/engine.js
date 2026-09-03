@@ -403,7 +403,12 @@ function generateChooseAllTasks(concepts, params) {
 // A person's name is an independent label for this particular photo, not a
 // property inferred from the category word. Keep the ordinary category intro
 // and this name-only exposure separate so the two verbal models are never
-// introduced as one rule.
+// introduced as one rule. Also swaps card.audio for card.personAudio: once
+// pre-recorded audio exists, getTaskAudioPath (index.jsx) plays whatever is
+// in card.audio.ru unconditionally, so leaving the category line's
+// recording in place here would play "Это мальчик." on a screen captioned
+// "Петя" - a personAudio clip (or none, falling back to browser TTS of
+// personSpeech) must replace it, not stack with it.
 function generatePersonIntroTasks(concepts) {
   return generateIntroTasks(concepts).map((task) => {
     const person = task.card?.person;
@@ -412,7 +417,7 @@ function generatePersonIntroTasks(concepts) {
       type: "person_intro",
       label: person?.name ?? task.label,
       card: person?.name
-        ? { ...task.card, speech: task.card.personSpeech ?? task.card.speech }
+        ? { ...task.card, speech: task.card.personSpeech ?? task.card.speech, audio: task.card.personAudio }
         : task.card,
     };
   });

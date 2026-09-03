@@ -45,6 +45,26 @@ describe("generateTasks — person_intro", () => {
     expect(tasks[0].card.speech).toBe("Это x.");
     expect(tasks[0].label).toBe("x");
   });
+
+  it("swaps card.audio for card.personAudio, never plays the category recording under a name label", () => {
+    const withAudio = [{
+      id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "media/boy_peter.webp",
+      speech: "Это мальчик.", personSpeech: "Это Петя.", person: { id: "peter", name: "Петя" },
+      audio: { ru: "audio/boy_peter.mp3" }, personAudio: { ru: "audio/boy_peter_person.mp3" },
+    }];
+    const tasks = generateTasks("person_intro", deriveConcepts(withAudio), withAudio, {});
+    expect(tasks[0].card.audio).toEqual({ ru: "audio/boy_peter_person.mp3" });
+  });
+
+  it("clears card.audio when no personAudio recording exists yet (falls back to browser TTS of personSpeech)", () => {
+    const noPersonAudio = [{
+      id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "media/boy_peter.webp",
+      speech: "Это мальчик.", personSpeech: "Это Петя.", person: { id: "peter", name: "Петя" },
+      audio: { ru: "audio/boy_peter.mp3" },
+    }];
+    const tasks = generateTasks("person_intro", deriveConcepts(noPersonAudio), noPersonAudio, {});
+    expect(tasks[0].card.audio).toBeUndefined();
+  });
 });
 
 describe("generateTasks — probeOnly cards", () => {
