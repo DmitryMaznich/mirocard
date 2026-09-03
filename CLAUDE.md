@@ -32,6 +32,20 @@ Do not deploy the backend to Synology. Synology/SmartNAS is backup storage only.
 
 Домашний Windows/Caddy хост (`192.168.1.163`, публичный адрес `mirocard.kaplieva.help`) отключён: `MirocardBackend2` scheduled task — **Disabled** (не удалён, обратимо). `/api/*` там теперь 502. Подробности старой схемы — в `DEPLOYMENT.md`, раздел "Former production path".
 
+## Landing page (mironium.com)
+
+Отдельный от приложения статический сайт-визитка в `landing/` (только `index.html`, `og.png`, `server.mjs`, `Dockerfile` — `landing/v2/` не используется, это заброшенный черновик, в образ не попадает). Деплоится как **отдельный Railway-сервис** `mironium-landing` в том же проекте Mirocard, из того же GitHub-репо (`DmitryMaznich/mirocard`, branch `main`), но с root directory `landing` — поэтому пуш в `main` пересобирает и лендинг, и `mirocard-backend` одновременно (это ожидаемо и безопасно: код бэкенда не меняется, просто инвалидируется docker-кэш).
+
+| Parameter | Value |
+|-----------|-------|
+| Public URL | `https://mironium.com/` и `https://www.mironium.com/` |
+| Railway project | Mirocard |
+| Railway service | `mironium-landing` |
+| Source | GitHub `DmitryMaznich/mirocard`, branch `main`, root directory `landing` |
+| Server | `landing/server.mjs` — нулевые зависимости, обслуживает статику через `node:http`, слушает `$PORT` |
+
+Правки контента лендинга — обычный `git push origin main`, без версии `package.json` (лендинг не входит в "app code" из правила версионирования — как деки-зипы и доки, см. секцию `Deploy`). Deploy-doc для приложения (`app.mironium.com`) этого не касается — это два независимых Railway-сервиса на одном проекте и одном репо.
+
 ## Credentials
 
 Do not write secrets into repository docs. Use environment variables, Windows Credential Manager, SSH keys, or the password manager.

@@ -75,6 +75,7 @@ scripts/*.svg
 !tools/emotions_v2/media/*.webp
 !tools/symmetry_draw/media/*_trace.png
 !public/hands/*.webp
+!landing/og.png
 
 # Verification scripts and output
 verify-*.cjs
