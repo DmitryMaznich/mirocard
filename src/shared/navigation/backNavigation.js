@@ -8,6 +8,7 @@ const STATIC_BACK_TARGETS = {
   params: "modes",
   concepts: "params",
   history: "students",
+  account: "home",
   settings: "home",
   summary: "home",
 };
