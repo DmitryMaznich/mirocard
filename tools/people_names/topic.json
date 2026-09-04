@@ -2,7 +2,7 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "language": "ru",
     "customModesOnly": true,
     "loopModes": true,
@@ -283,6 +283,59 @@
           "default": 2
         }
       }
+    },
+    {
+      "id": "people_pictogram_find_n",
+      "type": "pictogram_find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "11. Пиктограммы",
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_pictogram.svg"
+      },
+      "methodology": {
+        "text": "Проверка переноса на другой тип изображения: вместо фотографии человека — условный знак (как на двери туалета). Слово должно применяться не только к фотографиям, но и к абстрактному символу той же категории.",
+        "tips": [
+          "Проводите после уверенной работы с фотографиями (режимы 2 и 7).",
+          "Если ребёнок не узнаёт пиктограмму — это не ошибка понимания слова, а отдельный навык (символическое обозначение); вернитесь к этому режиму позже.",
+          "Полезно перед знакомством с любыми AAC-символами вне приложения."
+        ],
+        "duration": "2–3 минуты"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": { "ru": "Вариантов" },
+          "values": [2, 4],
+          "default": 2
+        }
+      }
+    },
+    {
+      "id": "people_illustration_find_n",
+      "type": "illustration_find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "12. Картинки-иллюстрации",
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_illustration.svg"
+      },
+      "methodology": {
+        "text": "Ещё один тип переноса: нарисованный персонаж вместо фотографии реального человека. Проверяет, что слово закреплено за категорией, а не за конкретной картинкой или стилем изображения.",
+        "tips": [
+          "Проводите наравне с режимом «Пиктограммы» — оба тестируют перенос на новый тип изображения, но иллюстрация ближе к фотографии, чем абстрактный знак.",
+          "Если этот режим даётся легче пиктограмм — это ожидаемо, иллюстрация сохраняет больше признаков реального человека."
+        ],
+        "duration": "2–3 минуты"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": { "ru": "Вариантов" },
+          "values": [2, 4],
+          "default": 2
+        }
+      }
     }
   ],
   "cards": [
@@ -381,6 +434,78 @@
       "person": { "id": "marina", "name": "Марина" },
       "semantic": { "age": "adult", "category": "woman" },
       "tags": ["adults", "people", "generalisation"]
+    },
+    {
+      "id": "boy_pictogram",
+      "conceptId": "boy",
+      "cardType": "pictogram",
+      "image": "media/people/boy_pictogram.webp",
+      "promptSpeech": "Покажи мальчика.",
+      "semantic": { "age": "child", "category": "boy" },
+      "tags": ["children", "people", "pictogram"]
+    },
+    {
+      "id": "girl_pictogram",
+      "conceptId": "girl",
+      "cardType": "pictogram",
+      "image": "media/people/girl_pictogram.webp",
+      "promptSpeech": "Покажи девочку.",
+      "semantic": { "age": "child", "category": "girl" },
+      "tags": ["children", "people", "pictogram"]
+    },
+    {
+      "id": "man_pictogram",
+      "conceptId": "man",
+      "cardType": "pictogram",
+      "image": "media/people/man_pictogram.webp",
+      "promptSpeech": "Покажи мужчину.",
+      "semantic": { "age": "adult", "category": "man" },
+      "tags": ["adults", "people", "pictogram"]
+    },
+    {
+      "id": "woman_pictogram",
+      "conceptId": "woman",
+      "cardType": "pictogram",
+      "image": "media/people/woman_pictogram.webp",
+      "promptSpeech": "Покажи женщину.",
+      "semantic": { "age": "adult", "category": "woman" },
+      "tags": ["adults", "people", "pictogram"]
+    },
+    {
+      "id": "boy_illustration",
+      "conceptId": "boy",
+      "cardType": "illustration",
+      "image": "media/people/boy_illustration.webp",
+      "promptSpeech": "Покажи мальчика.",
+      "semantic": { "age": "child", "category": "boy" },
+      "tags": ["children", "people", "illustration"]
+    },
+    {
+      "id": "girl_illustration",
+      "conceptId": "girl",
+      "cardType": "illustration",
+      "image": "media/people/girl_illustration.webp",
+      "promptSpeech": "Покажи девочку.",
+      "semantic": { "age": "child", "category": "girl" },
+      "tags": ["children", "people", "illustration"]
+    },
+    {
+      "id": "man_illustration",
+      "conceptId": "man",
+      "cardType": "illustration",
+      "image": "media/people/man_illustration.webp",
+      "promptSpeech": "Покажи мужчину.",
+      "semantic": { "age": "adult", "category": "man" },
+      "tags": ["adults", "people", "illustration"]
+    },
+    {
+      "id": "woman_illustration",
+      "conceptId": "woman",
+      "cardType": "illustration",
+      "image": "media/people/woman_illustration.webp",
+      "promptSpeech": "Покажи женщину.",
+      "semantic": { "age": "adult", "category": "woman" },
+      "tags": ["adults", "people", "illustration"]
     }
   ]
 }

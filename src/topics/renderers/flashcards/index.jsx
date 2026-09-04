@@ -652,6 +652,8 @@ const TASK_RENDERERS = {
   choose_all:             ChooseAllTask,
   find_person_by_name:    FindNTask,
   generalisation_probe:   FindNTask,
+  pictogram_find_n:       FindNTask,
+  illustration_find_n:    FindNTask,
   choose_name:            ChooseNameTask,
   sort_by_attribute:      SortByAttributeTask,
 };

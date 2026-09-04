@@ -334,6 +334,20 @@ function generateProbeTasks(concepts, params) {
   return generateFindNTasks(probeConcepts, params);
 }
 
+// Tests transfer to a different representation of the same category word
+// (a restroom-sign-style pictogram, or a drawn illustration) rather than to
+// a new photo of a new person - same generateFindNTasks task shape, pool
+// restricted to cards tagged with the given cardType. Every concept's
+// distractor options are drawn from the same cardType pool too (via
+// generateFindNTasks -> sameAgePool), so a pictogram target is never mixed
+// with a photo or illustration distractor in the same task.
+function generateCardTypeFindNTasks(concepts, params, cardType) {
+  const typedConcepts = concepts
+    .map((c) => ({ ...c, cards: c.cards.filter((card) => card.cardType === cardType) }))
+    .filter((c) => c.cards.length > 0);
+  return generateFindNTasks(typedConcepts, params);
+}
+
 function generateChooseWordTasks(concepts, params) {
   const reps = params.repsPerConcept ?? 1;
   const tasks = [];
@@ -540,6 +554,8 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
     case "find_n":                 return generateFindNTasks(displayConcepts, params);
     case "generalisation_probe":   return generateProbeTasks(concepts, params);
+    case "pictogram_find_n":       return generateCardTypeFindNTasks(concepts, params, "pictogram");
+    case "illustration_find_n":    return generateCardTypeFindNTasks(concepts, params, "illustration");
     case "choose_word_by_picture": return generateChooseWordTasks(displayConcepts, params);
     case "choose_all":             return generateChooseAllTasks(displayConcepts, params);
     case "find_person_by_name":    return generateFindPersonByNameTasks(displayConcepts, params);

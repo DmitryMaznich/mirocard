@@ -106,6 +106,54 @@ describe("generateTasks — probeOnly cards", () => {
   });
 });
 
+describe("generateTasks — pictogram_find_n / illustration_find_n (cardType-scoped find_n)", () => {
+  const CARDS = [
+    { id: "boy_1",         conceptId: "boy",  primary: true, label: "мальчик", image: "media/boy_1.webp" },
+    { id: "boy_pictogram", conceptId: "boy",  image: "media/boy_pictogram.webp", cardType: "pictogram" },
+    { id: "boy_illustration", conceptId: "boy", image: "media/boy_illustration.webp", cardType: "illustration" },
+    { id: "girl_1",         conceptId: "girl", primary: true, label: "девочка", image: "media/girl_1.webp" },
+    { id: "girl_pictogram", conceptId: "girl", image: "media/girl_pictogram.webp", cardType: "pictogram" },
+    { id: "girl_illustration", conceptId: "girl", image: "media/girl_illustration.webp", cardType: "illustration" },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+
+  it("pictogram_find_n only ever targets pictogram cards", () => {
+    const tasks = generateTasks("pictogram_find_n", CONCEPTS, CARDS, { optionCount: 2 });
+    expect(tasks.length).toBeGreaterThan(0);
+    for (const task of tasks) {
+      const target = task.options.find((o) => o.isTarget);
+      expect(target.card.cardType).toBe("pictogram");
+    }
+  });
+
+  it("illustration_find_n only ever targets illustration cards", () => {
+    const tasks = generateTasks("illustration_find_n", CONCEPTS, CARDS, { optionCount: 2 });
+    expect(tasks.length).toBeGreaterThan(0);
+    for (const task of tasks) {
+      const target = task.options.find((o) => o.isTarget);
+      expect(target.card.cardType).toBe("illustration");
+    }
+  });
+
+  it("pictogram and illustration cards never appear in intro or plain find_n", () => {
+    const introTasks = generateTasks("intro", CONCEPTS, CARDS, {});
+    expect(introTasks).toHaveLength(2); // boy_1, girl_1 only
+    const findNTasks = generateTasks("find_n", CONCEPTS, CARDS, { optionCount: 2 });
+    for (const task of findNTasks) {
+      expect(task.options.every((o) => !o.card.cardType)).toBe(true);
+    }
+  });
+
+  it("a topic with no pictogram/illustration cards produces no tasks for either mode (regression guard)", () => {
+    const PLAIN_CARDS = [
+      { id: "t1", conceptId: "tshirt", primary: true, label: "футболка", image: "media/t1.webp" },
+    ];
+    const plainConcepts = deriveConcepts(PLAIN_CARDS);
+    expect(generateTasks("pictogram_find_n", plainConcepts, PLAIN_CARDS, {})).toHaveLength(0);
+    expect(generateTasks("illustration_find_n", plainConcepts, PLAIN_CARDS, {})).toHaveLength(0);
+  });
+});
+
 describe("generateTasks — symmetry_draw modes", () => {
   const MIXED_CARDS = [
     { id: "m1", conceptId: "m1", primary: true, label: "Дом",   taskKind: "mirror", sourcePaths: [] },

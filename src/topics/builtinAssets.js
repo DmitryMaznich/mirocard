@@ -115,6 +115,24 @@ const BUILTIN_ASSETS = {
   <circle cx="64" cy="64" r="10" fill="#ef6f5e"/>
   <path d="M64 14v14M64 100v14M14 64h14M100 64h14" stroke="#1f4f8a" stroke-width="4" stroke-linecap="round"/>
 </svg>`,
+  "media/icons/flashcards_pictogram.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eef6ff"/>
+  <circle cx="64" cy="42" r="16" fill="#1f4f8a"/>
+  <path d="M64 58c-16 0-26 10-26 24h52c0-14-10-24-26-24z" fill="#1f4f8a"/>
+  <rect x="50" y="80" width="10" height="30" rx="4" fill="#1f4f8a"/>
+  <rect x="68" y="80" width="10" height="30" rx="4" fill="#1f4f8a"/>
+</svg>`,
+  "media/icons/flashcards_illustration.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff7ef"/>
+  <path d="M30 96c0-30 15-52 34-52s34 22 34 52" fill="none" stroke="#263131" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="64" cy="46" r="20" fill="#f3d9b5" stroke="#263131" stroke-width="5"/>
+  <circle cx="57" cy="44" r="3" fill="#263131"/>
+  <circle cx="71" cy="44" r="3" fill="#263131"/>
+  <path d="M57 53q7 5 14 0" fill="none" stroke="#263131" stroke-width="4" stroke-linecap="round"/>
+  <rect x="30" y="96" width="68" height="16" rx="8" fill="#4a9b8f"/>
+</svg>`,
   "media/icons/flashcards_find_person_by_name.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#fff7ef"/>
