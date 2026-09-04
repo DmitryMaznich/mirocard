@@ -24,15 +24,16 @@ import { getPlannerShopBought, getPlannerShopPlan, getPlannerShopCustomData, get
 import "@/features/planner/planner.css";
 import InstructionsTab from "@/features/instructions/InstructionsTab";
 import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
+import HomeMenuSheet from "./HomeMenuSheet";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
-function AccountIcon() {
+function MenuIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-      <circle cx="11" cy="7.5" r="3.5" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M3.5 19C3.5 15.13 6.91 12 11 12C15.09 12 18.5 15.13 18.5 19"
-        stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path d="M3.5 6.5H18.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M3.5 11H18.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M3.5 15.5H18.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
     </svg>
   );
 }
@@ -52,7 +53,7 @@ function getTimeGreeting(date = new Date()) {
 
 function HomeHeader({
   student, buildInfo, hasUpdate, refreshingAll, refreshFailed, versionTitle,
-  onRefresh, onSettings, onAvatarTap,
+  onRefresh, onMenu, onAvatarTap,
 }) {
   return (
     <header className="home-header">
@@ -79,8 +80,8 @@ function HomeHeader({
         v{buildInfo.version}
         {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-header__version__dot" />}
       </button>
-      <button className="home-header__settings-btn" onClick={onSettings} aria-label="Настройки">
-        <AccountIcon />
+      <button className="home-header__settings-btn" onClick={onMenu} aria-label="Меню">
+        <MenuIcon />
       </button>
     </header>
   );
@@ -700,6 +701,7 @@ export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState(() => homeActiveTab ?? 'session');
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
   useEffect(() => {
@@ -836,7 +838,7 @@ export default function HomeScreen() {
         refreshFailed={refreshFailed}
         versionTitle={versionTitle}
         onRefresh={refreshAppAndTopics}
-        onSettings={() => setScreen("settings")}
+        onMenu={() => setMenuOpen(true)}
         onAvatarTap={handleAvatarSecretTap}
       />
 
@@ -870,6 +872,15 @@ export default function HomeScreen() {
       </div>
 
       <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />
+
+      {menuOpen && (
+        <HomeMenuSheet
+          onClose={() => setMenuOpen(false)}
+          onOpenProfile={() => setScreen("account")}
+          onOpenStudents={() => setScreen("students")}
+          onOpenSettings={() => setScreen("settings")}
+        />
+      )}
     </div>
   );
 }
