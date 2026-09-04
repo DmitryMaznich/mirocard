@@ -254,23 +254,28 @@
    flashes wrong, via .apply-choice-btn--wrong below. */
 .apply-ineq {
   position: relative; z-index: 1;
-  display: flex; align-items: center; gap: clamp(10px, 2.5vw, 20px);
-  background: #fff; border-radius: 26px; padding: 18px 30px;
+  display: flex; align-items: center; gap: clamp(12px, 3vw, 24px);
+  background: #fff; border-radius: 28px; padding: 22px 36px;
   box-shadow: 0 14px 34px rgba(37,99,235,0.12), 0 2px 6px rgba(15,23,42,0.04);
   animation: apply-ineq-in 0.25s ease-out;
 }
 .apply-ineq-blank {
-  width: clamp(52px, 11vw, 72px); height: clamp(52px, 11vw, 72px);
-  border-radius: 18px; border: 2.5px dashed #94a3b8; flex-shrink: 0;
+  /* Sized (and the sign/value below font-sized) well above
+     .apply-choice-btn's ceiling — this card is the given fact the tiles
+     complete, not just another number on screen, and needs to read as the
+     obvious main event at a glance, not something the eye has to compare
+     sizes to figure out. */
+  width: clamp(72px, 16vw, 104px); height: clamp(72px, 16vw, 104px);
+  border-radius: 20px; border: 3px dashed #94a3b8; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: clamp(24px, 6vw, 34px); font-weight: 900; color: #94a3b8; line-height: 1;
+  font-size: clamp(32px, 8vw, 48px); font-weight: 900; color: #94a3b8; line-height: 1;
   transition: border-color 0.2s, background 0.2s, color 0.2s;
 }
 .apply-ineq-blank--correct {
   border-style: solid; border-color: #16a34a; background: #f0fdf4; color: #166534;
 }
-.apply-ineq-sign  { font-size: clamp(26px, 6.5vw, 38px); font-weight: 900; color: #2563eb; line-height: 1; }
-.apply-ineq-value { font-size: clamp(26px, 6.5vw, 38px); font-weight: 900; color: #1e293b; line-height: 1; }
+.apply-ineq-sign  { font-size: clamp(36px, 9vw, 52px); font-weight: 900; color: #2563eb; line-height: 1; }
+.apply-ineq-value { font-size: clamp(36px, 9vw, 52px); font-weight: 900; color: #1e293b; line-height: 1; }
 
 /* Options render as a 2×2 grid, not a 1×4 row: there's no left-right order
    to preserve here (unlike the Order task's staircase below), so trading
@@ -289,10 +294,10 @@
   position: relative; width: 100%; aspect-ratio: 1.5;
   display: flex; align-items: center; justify-content: center;
   border: none; border-radius: 20px; background: #fff;
-  /* Capped noticeably below .apply-ineq-value's 38px ceiling — the tiles are
-     candidates to try, not the given fact, and reading the same size as the
-     reference number left no visual cue for which was which. */
-  font-size: clamp(18px, 14cqi, 30px); font-weight: 900; color: #1e293b; cursor: pointer;
+  /* Capped noticeably below .apply-ineq-value's 52px ceiling — the tiles are
+     candidates to try, not the given fact, and reading close to the same
+     size as the reference number left no visual cue for which was which. */
+  font-size: clamp(18px, 12cqi, 26px); font-weight: 900; color: #1e293b; cursor: pointer;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
   transition: transform 0.12s, box-shadow 0.12s;
 }
