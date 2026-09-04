@@ -219,7 +219,7 @@ function SessionTab({
     return (
       <div className="home-tab-empty">
         <p>Ученик не выбран</p>
-        <Button onClick={() => setScreen("settings")}>Выбрать в настройках</Button>
+        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
       </div>
     );
   }
@@ -431,7 +431,7 @@ function PlannerTab({ student, setScreen }) {
     return (
       <div className="home-tab-empty">
         <p>Ученик не выбран</p>
-        <Button onClick={() => setScreen("settings")}>Выбрать в настройках</Button>
+        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
       </div>
     );
   }
