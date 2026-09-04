@@ -341,8 +341,12 @@ describe("generateTasks", () => {
         const fits = (n) => (t.op === "more" ? n > t.value : n < t.value);
         expect(t.options.some(fits)).toBe(true);
         expect(t.options.some((n) => !fits(n))).toBe(true);
-        // the boundary value itself is always offered as a near-miss distractor
-        expect(t.options).toContain(t.value);
+        // The reference value itself must NOT be offered as a tile — it used
+        // to be a guaranteed distractor, but showing the same digits both as
+        // the task's given number and as a selectable option read as a
+        // confusing on-screen duplicate rather than a meaningful wrong
+        // answer (reported live: children couldn't tell which "36" was which).
+        expect(t.options).not.toContain(t.value);
       });
     });
 

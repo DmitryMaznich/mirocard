@@ -289,7 +289,10 @@
   position: relative; width: 100%; aspect-ratio: 1.5;
   display: flex; align-items: center; justify-content: center;
   border: none; border-radius: 20px; background: #fff;
-  font-size: clamp(20px, 20cqi, 52px); font-weight: 900; color: #1e293b; cursor: pointer;
+  /* Capped noticeably below .apply-ineq-value's 38px ceiling — the tiles are
+     candidates to try, not the given fact, and reading the same size as the
+     reference number left no visual cue for which was which. */
+  font-size: clamp(18px, 14cqi, 30px); font-weight: 900; color: #1e293b; cursor: pointer;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
   transition: transform 0.12s, box-shadow 0.12s;
 }
@@ -305,6 +308,13 @@
   animation: shake 0.35s;
   background: #fef2f2; color: #991b1b;
   box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
+}
+/* Mirrors .apply-order-tray-caption below — same role, spelling out in
+   words what the tiles are for instead of relying on layout alone. */
+.apply-choice-caption {
+  position: relative; z-index: 1;
+  width: 100%; text-align: center;
+  font-size: clamp(14px, 2.2vw, 18px); font-weight: 600; color: #93a5c4;
 }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into

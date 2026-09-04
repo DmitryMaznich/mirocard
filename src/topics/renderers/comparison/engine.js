@@ -140,9 +140,12 @@ export function getVerdict(task) {
 // most instructive near-miss for a strict "больше/меньше".
 function generateApplyGenerateTask(min, max) {
   const op = Math.random() < 0.5 ? "more" : "less";
-  const value = op === "more"
-    ? Math.floor(Math.random() * (max - min)) + min       // value < max
-    : Math.floor(Math.random() * (max - min)) + min + 1;  // value > min
+  // value must sit strictly inside (min, max), for both ops: a value equal
+  // to the range's own boundary (e.g. "more than 1" when min is 1) leaves
+  // literally every other number fitting the constraint, so there'd be no
+  // real non-fitting distractor left to offer once value itself is dropped
+  // from the tile pool below (see the `wrong` comment).
+  const value = Math.floor(Math.random() * (max - min - 1)) + min + 1;
 
   const fits = (n) => (op === "more" ? n > value : n < value);
   const rest = [];
@@ -157,7 +160,14 @@ function generateApplyGenerateTask(min, max) {
   const shuffledRest = shuffle(rest);
 
   const correct = shuffledRest.find(fits);
-  const wrong = [value, ...shuffledRest.filter((n) => !fits(n))].slice(0, 3);
+  // Drawn only from numbers that genuinely don't fit — value itself used to
+  // be forced in here as a guaranteed distractor ("you can't just repeat the
+  // number"), but that put the same digits on screen twice (once as the
+  // task's reference value, once as a tile) and was read as confusing
+  // duplication rather than a meaningful wrong answer. Plenty of non-fitting
+  // candidates exist at every level (see COMPARISON_LEVELS), so dropping it
+  // doesn't reopen elimination-guessing.
+  const wrong = shuffledRest.filter((n) => !fits(n)).slice(0, 3);
   const options = shuffle([correct, ...wrong]);
 
   return {

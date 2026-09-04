@@ -53,6 +53,12 @@ function GenerateStage({ task, answered, onAnswer }) {
           </div>
         ))}
       </div>
+      {/* Spells out the connection between the blank above and the tiles
+          below in words, not just proximity — mirrors OrderStage's own
+          "перетащи число в нужное место" caption for the same reason: two
+          separate white cards with a gap between them didn't read as
+          "pick one of these to complete that" on their own. */}
+      <div className="apply-choice-caption">выбери число вместо «?»</div>
     </>
   );
 }
