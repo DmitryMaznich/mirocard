@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
-import { ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
 const ROLE_LABELS = { parent: "Родитель", specialist: "Специалист" };
 
@@ -26,10 +25,6 @@ function memberSince(account) {
 export default function AccountCard({ onLogout }) {
   const account = useAppStore((s) => s.account);
   const setAccount = useAppStore((s) => s.setAccount);
-  const setScreen = useAppStore((s) => s.setScreen);
-  const students = useAppStore((s) => s.students);
-  const activeStudentId = useAppStore((s) => s.activeStudentId);
-  const activeStudent = students.find((s) => s.id === activeStudentId);
 
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -104,19 +99,9 @@ export default function AccountCard({ onLogout }) {
           <div className="account-card__email">{account?.email ?? "—"}</div>
           {sinceLabel && <div className="account-card__since">С нами с {sinceLabel}</div>}
 
-          <div className="account-card__student-row">
-            <span className="account-card__student-label">Ученик:</span>
-            <span className={`account-card__student-value${activeStudent ? '' : ' account-card__student-value--empty'}`}>
-              {activeStudent ? activeStudent.name : 'не выбран'}
-            </span>
-          </div>
-
           <div className="account-card__actions">
             <button className="account-card__edit-btn" onClick={startEdit} aria-label="Редактировать профиль">
               ✎ Изменить
-            </button>
-            <button className="account-card__students-btn" onClick={() => setScreen("students")}>
-              {activeStudent ? "Сменить ученика" : "Выбрать ученика"} <ChevronRightIcon size={14} />
             </button>
           </div>
         </div>
