@@ -20869,66 +20869,57 @@ body { background: #eef0ef; }
   .topics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
 
-/* Wide horizontal pill, same template as the home screen's "Продолжить"
-   strip (.continue-strip) -- replaces the earlier square cover-on-top card.
-   No "Открыть" text button: the whole row is the tap target, and
-   .topic-tile-row__badge on the right carries the state as an icon instead. */
+/* Clean bordered list row (Claude Desktop connector-catalog look) --
+   replaces the earlier colored-fill "pill" (2026-09-04 redesign, user
+   request). Category is no longer a background color here -- it only shows
+   up as text (section headers, filter chips); the only color left on the
+   card is the status badge on the right. No "Открыть" text button: the
+   whole row is the tap target, and .topic-tile-row__badge carries the state
+   as an icon instead. */
 .topic-tile-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 80px;
-  padding: 14px 16px 14px 0;
-  border-radius: 20px;
-  border: 1.5px solid transparent;
-  background: transparent;
-  color: #fff;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1.5px solid #e4e7e5;
+  background: #fff;
+  color: #1a2e2b;
   cursor: pointer;
   position: relative;
+}
+.topic-tile-row:active { border-color: #cfd6d3; background: #fafaf9; }
+
+/* Icon sits in its own small neutral chip instead of bleeding into a
+   colored fill -- the topic's own illustration stays full-color, but
+   contained, the way a connector's logo sits on a plain card. */
+.topic-tile-row__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f4f5f3;
+  border: 1px solid #e9ebe9;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
   overflow: hidden;
 }
-.topic-tile-row--math { border-color: rgba(59, 130, 246, 0.35); }
-.topic-tile-row--lit  { border-color: rgba(63, 139, 126, 0.35); }
-.topic-tile-row--voc  { border-color: rgba(224, 129, 58, 0.35); }
-.topic-tile-row--prac { border-color: rgba(107, 124, 138, 0.35); }
 
-/* The tile's actual color fill -- covers the right ~80%, leaving the
-   pictogram's ~20% on a transparent ground per the two-tone treatment. */
-.topic-tile-row__fill { position: absolute; top: 0; right: 0; bottom: 0; left: 20%; }
-.topic-tile-row--math .topic-tile-row__fill { background: linear-gradient(150deg, #5b9bf5, #3b82f6); }
-.topic-tile-row--lit  .topic-tile-row__fill { background: linear-gradient(150deg, #5fb3a6, #3f8b7e); }
-.topic-tile-row--voc  .topic-tile-row__fill { background: linear-gradient(150deg, #f5a15f, #e0813a); }
-.topic-tile-row--prac .topic-tile-row__fill { background: linear-gradient(150deg, #8b9aa8, #6b7c8a); }
-
-/* Sized to exactly fill the transparent ~20% zone (matches __fill's left
-   offset above), edge to edge, so the pictogram isn't a small icon
-   floating in open space -- it IS the transparent zone's content. */
-.topic-tile-row__icon {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 20%;
-  padding: 10px;
-  box-sizing: border-box;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1;
-}
-
-.topic-tile-row__text { flex: 1; min-width: 0; margin-left: calc(20% + 4px); position: relative; z-index: 1; }
+.topic-tile-row__text { flex: 1; min-width: 0; }
 .topic-tile-row__eyebrow {
   display: flex; align-items: center; gap: 6px;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 0.8;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #6b8380;
   margin-top: 2px;
   overflow: hidden;
 }
 .topic-tile-row__eyebrow > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topic-tile-row__title {
-  font-size: 1.065rem;
+  font-size: 1.02rem;
   font-weight: 800;
   line-height: 1.25;
+  color: #1a2e2b;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -20937,17 +20928,16 @@ body { background: #eef0ef; }
 
 .topic-tile-row__tag {
   flex-shrink: 0;
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-  padding: 2px 6px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 2px 7px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.92);
 }
-.topic-tile-row__tag--beta { color: #3a5fc8; }
-.topic-tile-row__tag--experimental { color: #b05a10; }
-.topic-tile-row__tag--personal { color: #1f8a63; }
-.topic-tile-row__loading { color: rgba(255, 255, 255, 0.96); }
+.topic-tile-row__tag--beta { color: #3a5fc8; background: #eef1fc; }
+.topic-tile-row__tag--experimental { color: #b05a10; background: #fdf1e6; }
+.topic-tile-row__tag--personal { color: #1f8a63; background: #e9f7f1; }
+.topic-tile-row__loading { color: #6b8380; }
 
 /* Deliberately quiet/low-contrast -- sits next to the louder status badge
    without competing with it for attention (only shown for a topic that's
@@ -20958,17 +20948,18 @@ body { background: #eef0ef; }
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.65);
+  color: #9aa5a2;
   font-size: 0.85rem;
   font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
   margin-right: -4px;
-  position: relative;
-  z-index: 1;
 }
+.topic-tile-row__more:hover { background: #f1f3f2; }
 
+/* Status is the one place color is still allowed to carry meaning --
+   everything else on the row is neutral. */
 .topic-tile-row__badge {
   width: 34px; height: 34px;
   border-radius: 50%;
@@ -20978,16 +20969,12 @@ body { background: #eef0ef; }
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 700;
-  position: relative;
-  z-index: 1;
 }
-.topic-tile-row__badge--done { background: rgba(255, 255, 255, 0.22); color: #fff; }
-.topic-tile-row__badge--get  { background: #fff; }
+.topic-tile-row__badge--active, .topic-tile-row__badge--open { background: #eafaf3; color: #16a34a; }
+.topic-tile-row__badge--install { background: #e6f4f1; color: #147a6b; }
+.topic-tile-row__badge--update { background: #fff4e5; color: #b45309; }
+.topic-tile-row__badge--request, .topic-tile-row__badge--pending { background: #f1f3f2; color: #5b6b76; }
 .topic-tile-row__badge:disabled { cursor: default; opacity: 0.75; }
-.topic-tile-row--math .topic-tile-row__badge--get { color: #2f66c9; }
-.topic-tile-row--lit  .topic-tile-row__badge--get { color: #1f6b5e; }
-.topic-tile-row--voc  .topic-tile-row__badge--get { color: #b8631f; }
-.topic-tile-row--prac .topic-tile-row__badge--get { color: #4d5b66; }
 
 .topic-tile-row__error {
   margin: -2px 8px 8px;

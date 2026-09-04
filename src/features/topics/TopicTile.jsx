@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { getImportErrorMessage } from "./catalogService";
-import { CATEGORY_STYLE, STATUS_BADGES, OTHER_CATEGORY } from "./topicCategories";
+import { STATUS_BADGES } from "./topicCategories";
 import TopicCover from "@/shared/components/TopicCover";
 import { getBuiltinTopicAvatarPath } from "@/topics/builtinAssets";
 import { ArrowDownSmallIcon, ArrowUpSmallIcon, CheckmarkIcon, LockSmallIcon, ClockSmallIcon, MoreDotsIcon } from "@/shared/components/ArrowIcons";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 
-// One row in the "Темы" list — a wide horizontal pill (same template as the
-// active-topic "Продолжить" strip on the home screen), not the earlier
-// square cover-on-top card. Covers both a catalog entry the user hasn't
-// installed yet and an already-installed record — the tile figures out
-// which state it's in and shows the matching status badge, so the same list
-// can mix "browse the catalog" and "open what you have" without two screens.
+// One row in the "Темы" list — a neutral bordered card (Claude Desktop
+// connector-catalog look), not the earlier colored-pill fill. Covers both a
+// catalog entry the user hasn't installed yet and an already-installed
+// record — the tile figures out which state it's in and shows the matching
+// status badge, so the same list can mix "browse the catalog" and "open what
+// you have" without two screens.
 //
 // 2026-08-20 redesign (user request): dropped the separate "Открыть" text
 // button entirely — the whole row is already the tap target, the button was
@@ -22,9 +22,13 @@ import Button from "@/shared/components/Button";
 // awaiting a request, clock = request already sent). The "⋯"/"i" menu
 // trigger sits just left of that badge, deliberately smaller and lower-
 // contrast so it doesn't compete with the primary status badge for attention.
+//
+// 2026-09-04 redesign (user request): dropped the per-category color fill —
+// category is still shown via section headers/filter chips, but the card
+// itself is a plain white row now, and color is reserved for the status
+// badge only.
 export default function TopicTile({
   title,
-  category,
   entry,             // catalog descriptor, or null if not in the shared catalog (builtin / imported)
   installedRecord,   // local topic record, or null if not installed
   isActive,
@@ -99,7 +103,6 @@ export default function TopicTile({
     handleAction();
   }
 
-  const style = CATEGORY_STYLE[category] ?? CATEGORY_STYLE[OTHER_CATEGORY];
   const statusBadge = entry?.status ? STATUS_BADGES[entry.status] : null;
   const topicId = installedRecord?.meta.id ?? entry?.id;
   const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
@@ -125,12 +128,11 @@ export default function TopicTile({
   return (
     <>
     <article
-      className={`topic-tile-row ${style.cls}${canOpen ? " topic-tile-row--open" : ""}`}
+      className={`topic-tile-row${canOpen ? " topic-tile-row--open" : ""}`}
       onClick={handleTileClick}
     >
-      <div className="topic-tile-row__fill" aria-hidden />
       <div className="topic-tile-row__icon">
-        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="fill" />
+        <TopicCover topicId={topicId} avatarPath={avatarPath} title={title} size="small" />
       </div>
       <div className="topic-tile-row__text">
         <div className="topic-tile-row__title">{title}</div>
@@ -163,7 +165,7 @@ export default function TopicTile({
       )}
       <button
         type="button"
-        className={`topic-tile-row__badge topic-tile-row__badge--${isDone ? "done" : "get"}`}
+        className={`topic-tile-row__badge topic-tile-row__badge--${isDone ? "done" : "get"} topic-tile-row__badge--${status}`}
         disabled={disabled || loading || status === "pending"}
         onClick={handleBadgeClick}
         aria-label={badgeLabel}
