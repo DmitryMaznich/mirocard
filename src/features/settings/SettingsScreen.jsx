@@ -1,19 +1,14 @@
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
-import { getDb } from "@/core/db";
+import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
-import { clearUserIdbData } from "@/core/bootstrap";
 import PinGateModal from "@/shared/components/PinGateModal";
-import AccountCard from "./AccountCard";
-import ChangePasswordModal from "./ChangePasswordModal";
-import DangerZone from "./DangerZone";
 import ZoneSettingsSection from "./ZoneSettingsSection";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function SettingsScreen() {
   const setScreen        = useAppStore((s) => s.setScreen);
   const buildInfo        = useAppStore((s) => s.buildInfo);
-  const logout           = useAppStore((s) => s.logout);
   const settings         = useAppStore((s) => s.settings);
   const patchSettings    = useAppStore((s) => s.patchSettings);
 
@@ -25,7 +20,6 @@ export default function SettingsScreen() {
   const tapToAdvance     = settings.tapToAdvance ?? true;
   const requiresTapToAdvance = adultConfirmAdvance || tapToAdvance;
   const autoAdvanceDelay = settings.autoAdvanceDelay ?? 3;
-
 
   async function handlePatchSettings(patch) {
     patchSettings(patch);
@@ -50,17 +44,6 @@ export default function SettingsScreen() {
     setPinResetMode(null);
   }
 
-  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-
-  async function handleLogout() {
-    try { await api.post("/auth/logout"); } catch {
-      // Local logout should still proceed when the network request fails.
-    }
-    const db = await getDb();
-    await clearUserIdbData(db);
-    logout();
-  }
-
   return (
     <div className="screen">
       <div className="screen-header">
@@ -69,18 +52,6 @@ export default function SettingsScreen() {
       </div>
 
       <div className="settings-body">
-        <AccountCard onLogout={handleLogout} />
-
-        <div className="settings-section">
-          <div className="settings-section-title">Безопасность</div>
-          <div className="settings-row">
-            <span className="settings-row__label">Пароль</span>
-            <button className="link-btn" onClick={() => setChangePasswordOpen(true)}>
-              Сменить пароль
-            </button>
-          </div>
-        </div>
-
         <div className="settings-section">
           <div className="settings-section-title">Темп продолжения</div>
           <div
@@ -160,8 +131,6 @@ export default function SettingsScreen() {
 
       </div>
 
-      <DangerZone />
-
       <div className="settings-build-info">
         v{buildInfo.version} · {buildInfo.gitSha}
       </div>
@@ -181,9 +150,6 @@ export default function SettingsScreen() {
           onSetPin={handleSetNewPin}
           onCancel={() => setPinResetMode(null)}
         />
-      )}
-      {changePasswordOpen && (
-        <ChangePasswordModal onClose={() => setChangePasswordOpen(false)} />
       )}
     </div>
   );
