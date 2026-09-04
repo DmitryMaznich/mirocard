@@ -21010,6 +21010,13 @@ body { background: #eef0ef; }
   color: #8a9e9b;
   font-weight: 600;
 }
+/* Second title row in a sectioned sheet (e.g. HomeMenuSheet's "Приложение"
+   group) -- same look as .action-sheet__title, plus a divider so the two
+   groups don't visually run together. */
+.action-sheet__title--divided {
+  border-top: 1px solid #f0f5f4;
+  margin-top: 4px;
+}
 .action-sheet__item {
   display: block;
   width: 100%;
