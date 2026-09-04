@@ -294,10 +294,10 @@
   position: relative; width: 100%; aspect-ratio: 1.5;
   display: flex; align-items: center; justify-content: center;
   border: none; border-radius: 20px; background: #fff;
-  /* Capped noticeably below .apply-ineq-value's 52px ceiling — the tiles are
-     candidates to try, not the given fact, and reading close to the same
-     size as the reference number left no visual cue for which was which. */
-  font-size: clamp(18px, 12cqi, 26px); font-weight: 900; color: #1e293b; cursor: pointer;
+  /* Below .apply-ineq-value's 52px ceiling so the reference number still
+     reads as the dominant element, but not shrunk further than that —
+     going lower made the tiles themselves hard to read comfortably. */
+  font-size: clamp(24px, 18cqi, 40px); font-weight: 900; color: #1e293b; cursor: pointer;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
   transition: transform 0.12s, box-shadow 0.12s;
 }
