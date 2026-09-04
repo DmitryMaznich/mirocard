@@ -31,6 +31,7 @@ import ChatSessionScreen from "@/features/chat/ChatSessionScreen";
 import ChatParamsScreen from "@/features/chat/ChatParamsScreen";
 import StudentHistoryScreen from "@/features/history/StudentHistoryScreen";
 import SettingsScreen from "@/features/settings/SettingsScreen";
+import AccountScreen from "@/features/settings/AccountScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
 import InstallBanner from "@/shared/components/InstallBanner";
@@ -83,6 +84,7 @@ const SCREENS = {
   chat_session: ChatSessionScreen,
   history: StudentHistoryScreen,
   settings: SettingsScreen,
+  account: AccountScreen,
   planner_menu: PlannerMenuScreen,
   planner_shopping: PlannerShoppingScreen,
   planner_putaway: PlannerPutawayScreen,
