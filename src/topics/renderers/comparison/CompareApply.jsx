@@ -9,38 +9,34 @@ const SIGN_OPTIONS = [
   { value: "more",  label: "Больше", sign: ">" },
 ];
 
-// Earlier versions of this stage asked the child to find a number
-// satisfying an open condition ("? > 36") in one shot — a jump straight to
-// searching for an unknown, several rungs harder than anything earlier in
-// the ladder. Live feedback: a child who reliably signs two GIVEN numbers
-// (~90% of the time) still went blank facing that abstraction. This
-// decomposes the search into the skill he already has — judge ONE
-// candidate against the task's reference number at a time, using the exact
-// same sign-picking mechanic as CompareFirstNumber's own MultiMode — and
-// only reveals which candidate satisfies the original question as a
-// summary once every pair is judged, tying the drilled skill back to it
-// instead of asking for a fresh guess.
-function GenerateStage({ task, onCorrect, onMistake, onAdvance, playFeedback }) {
+// On-demand hint (tapped, never automatic): a child who reliably signs two
+// GIVEN numbers can still go blank facing "? > 36" in one shot — searching
+// for an unknown is a much bigger leap than judging a known pair. This
+// breaks the search into that already-solid skill — judge ONE candidate
+// against the task's reference number at a time, the exact mechanic
+// CompareFirstNumber's own MultiMode uses — then hands the child back to
+// the real task (GenerateStage below) to tap the answer themselves. It
+// never calls onCorrect/onMistake itself: it's scratch space, not a second
+// way to submit an answer.
+function GenerateHint({ task, onClose, playFeedback }) {
   const items = task.options.map((n) => ({
     left: n,
     question: n === task.value ? "equal" : n < task.value ? "less" : "more",
   }));
   // engine.js guarantees exactly one option satisfies task.op (see
-  // generateApplyGenerateTask) — this is that one, revealed in the summary.
+  // generateApplyGenerateTask) — this is that one, revealed at the end.
   const matchIdx = items.findIndex((it) => it.question === task.op);
 
   const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
   const [focusIndex, setFocusIndex] = useState(0);
   const [wrongFlash, setWrongFlash] = useState(-1);
   const allDone = focusIndex >= items.length;
-  const doneRef = useRef(false);
 
   function handleSign(value) {
-    if (doneRef.current) return;
+    if (allDone) return;
     const item = items[focusIndex];
     if (value !== item.question) {
       setWrongFlash(focusIndex);
-      onMistake?.(task.conceptId, null);
       window.setTimeout(() => setWrongFlash(-1), 420);
       return;
     }
@@ -48,12 +44,7 @@ function GenerateStage({ task, onCorrect, onMistake, onAdvance, playFeedback }) 
     const next = [...answers];
     next[focusIndex] = value;
     setAnswers(next);
-    const nextFocus = focusIndex + 1;
-    setFocusIndex(nextFocus);
-    if (nextFocus >= items.length) {
-      doneRef.current = true;
-      onCorrect(task.conceptId, null);
-    }
+    setFocusIndex(focusIndex + 1);
   }
 
   function signClass(i) {
@@ -78,8 +69,8 @@ function GenerateStage({ task, onCorrect, onMistake, onAdvance, playFeedback }) 
         ))}
       </div>
       {allDone ? (
-        <button type="button" className="apply-multi-summary" onClick={(e) => { e.stopPropagation(); onAdvance(); }}>
-          Значит, <strong>{task.op === "more" ? "больше" : "меньше"} {task.value}</strong> — это число {items[matchIdx].left}!
+        <button type="button" className="apply-multi-summary" onClick={onClose}>
+          Значит, <strong>{task.op === "more" ? "больше" : "меньше"} {task.value}</strong> — это число {items[matchIdx].left}! Нажми на него.
         </button>
       ) : (
         <>
@@ -92,6 +83,80 @@ function GenerateStage({ task, onCorrect, onMistake, onAdvance, playFeedback }) 
               </button>
             ))}
           </div>
+          <button type="button" className="apply-hint-close" onClick={onClose}>Назад к заданию</button>
+        </>
+      )}
+    </>
+  );
+}
+
+// Tap one of a few concrete number tiles that fits the spoken constraint —
+// a closed choice, not free number entry. See engine.js's
+// generateApplyGenerateTask for why. The task is framed as an inequality
+// with a blank ("? > 36") rather than a bare icon+number card: it's the
+// same sign-between-numbers metaphor the earlier ladder steps (CompareSign,
+// CompareEvaluate) already taught, so the child reads this as "finish the
+// comparison" instead of decoding a new layout. GenerateHint above is an
+// optional, button-triggered aid for this same task — it never replaces
+// this screen, only sits in front of it while requested.
+function GenerateStage({ task, answered, onAnswer, playFeedback }) {
+  const [pickedIdx, setPickedIdx] = useState(-1);
+  const [wrongIdx, setWrongIdx] = useState(-1);
+  const [isCorrectPick, setIsCorrectPick] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+
+  function tapOption(n, idx) {
+    if (answered) return;
+    setPickedIdx(idx);
+    const isCorrect = task.op === "more" ? n > task.value : n < task.value;
+    setIsCorrectPick(isCorrect);
+    if (!isCorrect) {
+      setWrongIdx(idx);
+      window.setTimeout(() => setWrongIdx(-1), 350);
+    }
+    onAnswer(isCorrect);
+  }
+
+  return (
+    <>
+      <div className="apply-ineq" aria-label={task.promptText}>
+        <div className={`apply-ineq-blank${isCorrectPick ? " apply-ineq-blank--correct" : ""}`} aria-hidden="true">
+          {isCorrectPick ? task.options[pickedIdx] : "?"}
+        </div>
+        <div className="apply-ineq-sign" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
+        <div className="apply-ineq-value" aria-hidden="true">{task.value}</div>
+      </div>
+      {showHint && !answered ? (
+        <GenerateHint task={task} onClose={() => setShowHint(false)} playFeedback={playFeedback} />
+      ) : (
+        <>
+          <div className="apply-choice-grid">
+            {task.options.map((n, i) => (
+              <div key={i} className="apply-choice-cell">
+                <button
+                  type="button"
+                  className={[
+                    "apply-choice-btn",
+                    pickedIdx === i && isCorrectPick && "apply-choice-btn--placed",
+                    wrongIdx === i && "apply-choice-btn--wrong",
+                  ].filter(Boolean).join(" ")}
+                  disabled={answered}
+                  onClick={() => tapOption(n, i)}
+                >
+                  {n}
+                </button>
+              </div>
+            ))}
+          </div>
+          {/* Spells out the connection between the blank above and the tiles
+              below in words, not just proximity — mirrors OrderStage's own
+              "перетащи число в нужное место" caption for the same reason: two
+              separate white cards with a gap between them didn't read as
+              "pick one of these to complete that" on their own. */}
+          <div className="apply-choice-caption">выбери число вместо «?»</div>
+          {!answered && (
+            <button type="button" className="apply-hint-btn" onClick={() => setShowHint(true)}>Нужна подсказка?</button>
+          )}
         </>
       )}
     </>
@@ -274,7 +339,7 @@ function OrderStage({ task, answered, onAnswer }) {
   );
 }
 
-export default function CompareApply({ task, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
+export default function CompareApply({ task, onCorrect, onIncorrect, playFeedback }) {
   const [answered, setAnswered] = useState(false);
 
   function handleAnswer(isCorrect) {
@@ -290,7 +355,7 @@ export default function CompareApply({ task, onCorrect, onIncorrect, onMistake, 
       {task.taskType === "order" ? (
         <OrderStage task={task} answered={answered} onAnswer={handleAnswer} />
       ) : (
-        <GenerateStage task={task} onCorrect={onCorrect} onMistake={onMistake} onAdvance={onAdvance} playFeedback={playFeedback} />
+        <GenerateStage task={task} answered={answered} onAnswer={handleAnswer} playFeedback={playFeedback} />
       )}
     </div>
   );
