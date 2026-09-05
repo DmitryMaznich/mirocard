@@ -1,23 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import DrawingSignPad from "./DrawingSignPad";
 
-const SIGN_CHAR    = { less: "<", equal: "=", more: ">" };
-const SIGN_OPTIONS = [
-  { value: "less",  label: "Меньше", sign: "<" },
-  { value: "equal", label: "Равно",  sign: "=" },
-  { value: "more",  label: "Больше", sign: ">" },
-];
+const QUESTION_SIGN = { less: "<", equal: "=", more: ">" };
 
 // On-demand hint (tapped, never automatic): a child who reliably signs two
 // GIVEN numbers can still go blank facing "? > 36" in one shot — searching
 // for an unknown is a much bigger leap than judging a known pair. This
 // breaks the search into that already-solid skill — judge ONE candidate
-// against the task's reference number at a time, the exact mechanic
-// CompareFirstNumber's own MultiMode uses — then hands the child back to
-// the real task (GenerateStage below) to tap the answer themselves. It
-// never calls onCorrect/onMistake itself: it's scratch space, not a second
-// way to submit an answer.
+// against the task's reference number at a time, drawing the sign with a
+// finger exactly like CompareDrawSign's own "Нарисуй знак" mode (reuses
+// its DrawingSignPad/recognizeSign as-is) rather than tapping a button —
+// then hands the child back to the real task (GenerateStage below) to tap
+// the answer themselves. It never calls onCorrect/onMistake itself: it's
+// scratch space, not a second way to submit an answer.
 function GenerateHint({ task, onClose, playFeedback }) {
   const items = task.options.map((n) => ({
     left: n,
@@ -29,27 +26,27 @@ function GenerateHint({ task, onClose, playFeedback }) {
 
   const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
   const [focusIndex, setFocusIndex] = useState(0);
-  const [wrongFlash, setWrongFlash] = useState(-1);
+  const [shakeCanvas, setShakeCanvas] = useState(false);
   const allDone = focusIndex >= items.length;
 
-  function handleSign(value) {
+  function handleSignRecognized(sign, clearCanvas) {
     if (allDone) return;
     const item = items[focusIndex];
-    if (value !== item.question) {
-      setWrongFlash(focusIndex);
-      window.setTimeout(() => setWrongFlash(-1), 420);
+    if (sign !== QUESTION_SIGN[item.question]) {
+      setShakeCanvas(true);
+      window.setTimeout(() => setShakeCanvas(false), 400);
+      window.setTimeout(() => clearCanvas(), 800);
       return;
     }
     playFeedback?.("correct");
     const next = [...answers];
-    next[focusIndex] = value;
+    next[focusIndex] = item.question;
     setAnswers(next);
     setFocusIndex(focusIndex + 1);
   }
 
   function signClass(i) {
     const b = "cfn-multi-sign";
-    if (wrongFlash === i)   return `${b} ${b}--wrong`;
     if (answers[i] != null) return `${b} ${b}--done`;
     if (focusIndex === i)   return `${b} ${b}--active`;
     return b;
@@ -69,7 +66,7 @@ function GenerateHint({ task, onClose, playFeedback }) {
           <div key={i} className={`cfn-multi-row${focusIndex === i ? " cfn-multi-row--active" : ""}`}>
             <div className="cfn-multi-num">{item.left}</div>
             <div className={signClass(i)}>
-              {answers[i] != null ? SIGN_CHAR[answers[i]] : focusIndex === i ? "?" : ""}
+              {answers[i] != null ? QUESTION_SIGN[answers[i]] : focusIndex === i ? "?" : ""}
             </div>
             <div className="cfn-multi-num">{task.value}</div>
           </div>
@@ -82,13 +79,15 @@ function GenerateHint({ task, onClose, playFeedback }) {
       ) : (
         <>
           <div className="cfn-multi-divider" />
-          <div className="cfn-options">
-            {SIGN_OPTIONS.map((opt) => (
-              <button key={opt.value} type="button" className="cfn-btn" onClick={() => handleSign(opt.value)}>
-                <span className="cfn-btn-sign">{opt.sign}</span>
-                <span className="cfn-btn-label">{opt.label}</span>
-              </button>
-            ))}
+          <div className="apply-hint-draw-row">
+            <div className="apply-hint-draw-num">{items[focusIndex].left}</div>
+            <DrawingSignPad
+              taskKey={`${task.conceptId}-hint-${focusIndex}`}
+              onSignRecognized={handleSignRecognized}
+              disabled={false}
+              shake={shakeCanvas}
+            />
+            <div className="apply-hint-draw-num">{task.value}</div>
           </div>
           <button type="button" className="apply-hint-close" onClick={onClose}>Назад к заданию</button>
         </>
