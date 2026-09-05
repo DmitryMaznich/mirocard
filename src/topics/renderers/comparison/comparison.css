@@ -320,14 +320,6 @@
   background: #fef2f2; color: #991b1b;
   box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
 }
-/* Mirrors .apply-order-tray-caption below — same role, spelling out in
-   words what the tiles are for instead of relying on layout alone. */
-.apply-choice-caption {
-  position: relative; z-index: 1;
-  width: 100%; text-align: center;
-  font-size: clamp(14px, 2.2vw, 18px); font-weight: 600; color: #93a5c4;
-}
-
 /* On-demand hint: "Нужна подсказка?" doesn't open a separate screen — it
    turns each answer tile in place into its own tiny worked example (see
    .apply-hint-tile below), the actual task above stays visible and

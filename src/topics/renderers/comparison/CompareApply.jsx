@@ -106,15 +106,6 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
           </div>
         ))}
       </div>
-      {/* Spells out the connection between the blank above and the tiles
-          below in words, not just proximity — mirrors OrderStage's own
-          "перетащи число в нужное место" caption for the same reason: two
-          separate white cards with a gap between them didn't read as
-          "pick one of these to complete that" on their own. Always
-          rendered (not just outside the hint) — .compare-body centers its
-          content vertically, so showing/hiding this line used to shift
-          the whole card + grid up and down every time the hint toggled. */}
-      <div className="apply-choice-caption">{hintActive ? "нарисуй знак на каждой плитке" : "выбери число вместо «?»"}</div>
       {!answered && (
         <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
           {showHint ? "Скрыть" : "Подсказка"}
