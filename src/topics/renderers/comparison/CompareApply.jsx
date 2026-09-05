@@ -57,6 +57,13 @@ function GenerateHint({ task, onClose, playFeedback }) {
 
   return (
     <>
+      {/* The big "? > 46" card stays hidden while this is open (see
+          GenerateStage) — on a real phone there isn't vertical room for
+          both it and four comparison rows within the session stage's fixed,
+          non-scrolling height, and the rows would rather silently compress
+          than the page scroll. This compact line keeps the reference
+          number in view without that footprint. */}
+      <div className="apply-hint-label">Сравниваем с {task.value}</div>
       <div className="cfn-multi" style={{ "--multi-count": items.length }}>
         {items.map((item, i) => (
           <div key={i} className={`cfn-multi-row${focusIndex === i ? " cfn-multi-row--active" : ""}`}>
@@ -119,17 +126,17 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
 
   return (
     <>
-      <div className="apply-ineq" aria-label={task.promptText}>
-        <div className={`apply-ineq-blank${isCorrectPick ? " apply-ineq-blank--correct" : ""}`} aria-hidden="true">
-          {isCorrectPick ? task.options[pickedIdx] : "?"}
-        </div>
-        <div className="apply-ineq-sign" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
-        <div className="apply-ineq-value" aria-hidden="true">{task.value}</div>
-      </div>
       {showHint && !answered ? (
         <GenerateHint task={task} onClose={() => setShowHint(false)} playFeedback={playFeedback} />
       ) : (
         <>
+          <div className="apply-ineq" aria-label={task.promptText}>
+            <div className={`apply-ineq-blank${isCorrectPick ? " apply-ineq-blank--correct" : ""}`} aria-hidden="true">
+              {isCorrectPick ? task.options[pickedIdx] : "?"}
+            </div>
+            <div className="apply-ineq-sign" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
+            <div className="apply-ineq-value" aria-hidden="true">{task.value}</div>
+          </div>
           <div className="apply-choice-grid">
             {task.options.map((n, i) => (
               <div key={i} className="apply-choice-cell">

@@ -206,8 +206,14 @@
   overflow: hidden;
 }
 .cfn-multi-row {
-  flex: 0 1 56px;
-  min-height: 0;
+  /* flex-shrink: 0 — a row must never compress below its own content size.
+     It used to be shrinkable (flex: 0 1 56px), and on a real, height-
+     constrained phone viewport (no scroll — .session-stage is
+     overflow:hidden) that let rows collapse toward zero height while their
+     text stayed full size, visually overlapping neighboring rows instead
+     of the intended clip. Fixed size, and if space is ever still short,
+     .cfn-multi's own overflow:hidden clips the whole block cleanly instead. */
+  flex: 0 0 56px;
   display: flex; flex-direction: row; align-items: center; justify-content: center;
   gap: clamp(6px, 3vw, 14px);
   border-radius: 14px;
@@ -332,6 +338,13 @@
   background: none; border: none; padding: 4px 8px; font-family: inherit;
   font-size: clamp(13px, 3vw, 15px); font-weight: 700; color: #2563eb;
   text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+/* Compact stand-in for the big .apply-ineq card while the hint is open —
+   see the comment on GenerateHint in CompareApply.jsx for why the card
+   itself is hidden during the hint. */
+.apply-hint-label {
+  position: relative; z-index: 1; flex-shrink: 0;
+  font-size: clamp(14px, 3.2vw, 17px); font-weight: 700; color: #64748b;
 }
 .apply-hint-close {
   position: relative; z-index: 1;
