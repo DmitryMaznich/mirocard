@@ -9,8 +9,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="proposal-v3.css">
+<style>
+/* Temporary "site in progress" notice — remove this block once the page is finished. */
+.wip-banner{position:relative;z-index:20;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 44px;background:var(--sun,#f3c969);color:var(--ink,#1c3634);font:700 14px/1.4 Nunito,Arial,sans-serif;text-align:center}
+.wip-banner button{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:50%;background:rgba(28,54,52,.12);color:inherit;font-size:16px;line-height:1;cursor:pointer}
+.wip-banner button:hover{background:rgba(28,54,52,.2)}
+.wip-banner.is-hidden{display:none}
+</style>
 </head>
 <body class="v3">
+<div class="wip-banner" id="wip-banner">
+  <span>🚧 Сайт ещё в разработке — некоторые разделы могут дорабатываться</span>
+  <button type="button" aria-label="Скрыть уведомление" onclick="document.getElementById('wip-banner').classList.add('is-hidden')">×</button>
+</div>
 <header class="wrap site-header">
   <a class="brand" href="#top" aria-label="Mironium — на главную"><img src="mironium-logo.svg" alt="Mironium"></a>
   <nav id="site-navigation">
