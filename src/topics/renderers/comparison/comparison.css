@@ -245,82 +245,22 @@
   color: #1e293b; text-align: center; max-width: min(90vw, 640px);
 }
 
-/* "Generate" task ("Выбери число"): the prompt reads as an inequality with
-   a blank — "? > 36" — reusing the sign-between-numbers metaphor the
-   ladder already taught in CompareSign/CompareEvaluate instead of a new
-   icon+number card. The blank stays "?" until a CORRECT tap fills it with
-   the chosen number; a wrong tap never fills it (that would show a false
-   inequality like "18 > 36" as if valid) — only the tapped tile itself
-   flashes wrong, via .apply-choice-btn--wrong below. */
-.apply-ineq {
+/* "Generate" task ("Выбери число"): reuses CompareFirstNumber's own
+   .cfn-multi row list (see comparison.css above) instead of a bespoke
+   layout — the child judges each candidate against the task's reference
+   number one at a time with the sign buttons, the exact skill he already
+   has, rather than searching for an unknown in one shot. Only the summary
+   reveal below is specific to this task. */
+.apply-multi-summary {
   position: relative; z-index: 1;
-  display: flex; align-items: center; gap: clamp(12px, 3vw, 24px);
-  background: #fff; border-radius: 28px; padding: 22px 36px;
-  box-shadow: 0 14px 34px rgba(37,99,235,0.12), 0 2px 6px rgba(15,23,42,0.04);
-  animation: apply-ineq-in 0.25s ease-out;
+  width: 100%; max-width: 360px;
+  background: #fff; border: none; border-radius: 18px; padding: 14px 18px;
+  font-family: inherit; text-align: center; cursor: pointer;
+  font-size: clamp(14px, 3.5vw, 17px); font-weight: 700; color: #475569;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  animation: fadeIn 0.3s ease;
 }
-.apply-ineq-blank {
-  /* Sized (and the sign/value below font-sized) well above
-     .apply-choice-btn's ceiling — this card is the given fact the tiles
-     complete, not just another number on screen, and needs to read as the
-     obvious main event at a glance, not something the eye has to compare
-     sizes to figure out. */
-  width: clamp(72px, 16vw, 104px); height: clamp(72px, 16vw, 104px);
-  border-radius: 20px; border: 3px dashed #94a3b8; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: clamp(32px, 8vw, 48px); font-weight: 900; color: #94a3b8; line-height: 1;
-  transition: border-color 0.2s, background 0.2s, color 0.2s;
-}
-.apply-ineq-blank--correct {
-  border-style: solid; border-color: #16a34a; background: #f0fdf4; color: #166534;
-}
-.apply-ineq-sign  { font-size: clamp(36px, 9vw, 52px); font-weight: 900; color: #2563eb; line-height: 1; }
-.apply-ineq-value { font-size: clamp(36px, 9vw, 52px); font-weight: 900; color: #1e293b; line-height: 1; }
-
-/* Options render as a 2×2 grid, not a 1×4 row: there's no left-right order
-   to preserve here (unlike the Order task's staircase below), so trading
-   the cramped single row for a roomier grid costs nothing and roughly
-   doubles each tile's linear size. Dedicated .apply-choice-* classes (not
-   the shared .apply-order-btn) so retouching this tile's look can never
-   also affect the Order task's tray tiles. */
-.apply-choice-grid {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: clamp(10px, 2.5vw, 18px);
-  width: 100%; max-width: 320px;
-}
-.apply-choice-cell { container-type: inline-size; }
-.apply-choice-btn {
-  position: relative; width: 100%; aspect-ratio: 1.5;
-  display: flex; align-items: center; justify-content: center;
-  border: none; border-radius: 20px; background: #fff;
-  /* Below .apply-ineq-value's 52px ceiling so the reference number still
-     reads as the dominant element, but not shrunk further than that —
-     going lower made the tiles themselves hard to read comfortably. */
-  font-size: clamp(24px, 18cqi, 40px); font-weight: 900; color: #1e293b; cursor: pointer;
-  box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
-  transition: transform 0.12s, box-shadow 0.12s;
-}
-.apply-choice-btn:hover:not(:disabled) { transform: translateY(-2px); }
-.apply-choice-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #dbe6f7; }
-.apply-choice-btn:disabled { cursor: default; }
-.apply-choice-btn--placed {
-  background: #f0fdf4; color: #166534;
-  box-shadow: 0 4px 0 #16a34a, 0 8px 18px rgba(34,197,94,0.18);
-  animation: apply-choice-pop 0.3s ease-out;
-}
-.apply-choice-btn--wrong {
-  animation: shake 0.35s;
-  background: #fef2f2; color: #991b1b;
-  box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
-}
-/* Mirrors .apply-order-tray-caption below — same role, spelling out in
-   words what the tiles are for instead of relying on layout alone. */
-.apply-choice-caption {
-  position: relative; z-index: 1;
-  width: 100%; text-align: center;
-  font-size: clamp(14px, 2.2vw, 18px); font-weight: 600; color: #93a5c4;
-}
+.apply-multi-summary strong { color: #16a34a; font-size: 1.2em; }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
    one of the slots above — a physical sort, not a tap sequence. The slots
@@ -467,15 +407,6 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes apply-ineq-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes apply-choice-pop {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.12); }
-  100% { transform: scale(1); }
 }
 @keyframes apply-slot-pop {
   0%   { transform: scale(0.75); }
