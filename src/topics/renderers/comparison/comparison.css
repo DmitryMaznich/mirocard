@@ -367,8 +367,15 @@
   font-size: clamp(14px, 16cqi, 20px); font-weight: 900; color: #1e293b;
   min-width: 0; flex-shrink: 0; text-align: center; line-height: 1;
 }
+/* As big as the tile's own height allows (its limiting dimension, since
+   the tile itself is wider than tall) while staying square — a canvas
+   stretched to the tile's own 1.5:1 shape would distort stroke geometry
+   in ways recognizeSign wasn't tuned for (it compares width/height
+   ratios assuming a roughly square drawing surface). 100cqi/1.5 ≈ 66cqi
+   is the tile's own height in cqi units; a bit under that leaves the two
+   numbers their own room on either side. */
 .apply-hint-tile .draw-sign-canvas {
-  width: clamp(34px, 28cqi, 50px); height: clamp(34px, 28cqi, 50px);
+  width: clamp(56px, 62cqi, 100px); height: clamp(56px, 62cqi, 100px);
 }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
