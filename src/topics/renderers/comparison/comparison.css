@@ -348,7 +348,12 @@
    the recognizer only cares about stroke geometry ratios, not absolute
    pixel size, so shrinking it doesn't hurt recognition. */
 .apply-hint-tile {
-  position: relative; width: 100%; aspect-ratio: 1.6;
+  /* Matches .apply-choice-btn's own aspect-ratio exactly (not just
+     "similar") — the grid's total height must stay identical between the
+     plain-tile and hint views, or toggling the hint reflows .compare-body
+     (it centers its content vertically) and the whole card + grid jump up
+     or down every time "Нужна подсказка?" is tapped. */
+  position: relative; width: 100%; aspect-ratio: 1.5;
   display: flex; align-items: center; justify-content: center;
   gap: clamp(4px, 1.5vw, 8px); padding: 4px 6px;
   border-radius: 18px; background: #fff;
