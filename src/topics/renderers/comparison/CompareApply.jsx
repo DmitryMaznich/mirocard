@@ -117,7 +117,7 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
       <div className="apply-choice-caption">{hintActive ? "нарисуй знак на каждой плитке" : "выбери число вместо «?»"}</div>
       {!answered && (
         <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
-          {showHint ? "Скрыть подсказку" : "Нужна подсказка?"}
+          {showHint ? "Скрыть" : "Подсказка"}
         </button>
       )}
     </>

@@ -334,9 +334,9 @@
    untouched throughout. */
 .apply-hint-btn {
   position: relative; z-index: 1;
-  background: none; border: none; padding: 4px 8px; font-family: inherit;
-  font-size: clamp(13px, 3vw, 15px); font-weight: 700; color: #2563eb;
-  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+  background: none; border: none; padding: 6px 10px; font-family: "Nunito", sans-serif;
+  font-size: clamp(18px, 4.5vw, 22px); font-weight: 800; color: #2563eb;
+  cursor: pointer;
 }
 /* One answer tile, turned into "N [draw a sign] 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
