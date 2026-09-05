@@ -3,113 +3,32 @@ import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSens
 import { CSS } from "@dnd-kit/utilities";
 import DrawingSignPad from "./DrawingSignPad";
 
-const QUESTION_SIGN = { less: "<", equal: "=", more: ">" };
-
-// On-demand hint (tapped, never automatic): a child who reliably signs two
-// GIVEN numbers can still go blank facing "? > 36" in one shot — searching
-// for an unknown is a much bigger leap than judging a known pair. This
-// breaks the search into that already-solid skill — judge ONE candidate
-// against the task's reference number at a time, drawing the sign with a
-// finger exactly like CompareDrawSign's own "Нарисуй знак" mode (reuses
-// its DrawingSignPad/recognizeSign as-is) rather than tapping a button —
-// then hands the child back to the real task (GenerateStage below) to tap
-// the answer themselves. It never calls onCorrect/onMistake itself: it's
-// scratch space, not a second way to submit an answer.
-function GenerateHint({ task, onClose, playFeedback }) {
-  const items = task.options.map((n) => ({
-    left: n,
-    question: n === task.value ? "equal" : n < task.value ? "less" : "more",
-  }));
-  // engine.js guarantees exactly one option satisfies task.op (see
-  // generateApplyGenerateTask) — this is that one, revealed at the end.
-  const matchIdx = items.findIndex((it) => it.question === task.op);
-
-  const [answers,    setAnswers]    = useState(() => Array(items.length).fill(null));
-  const [focusIndex, setFocusIndex] = useState(0);
-  const [shakeCanvas, setShakeCanvas] = useState(false);
-  const allDone = focusIndex >= items.length;
-
-  function handleSignRecognized(sign, clearCanvas) {
-    if (allDone) return;
-    const item = items[focusIndex];
-    if (sign !== QUESTION_SIGN[item.question]) {
-      setShakeCanvas(true);
-      window.setTimeout(() => setShakeCanvas(false), 400);
-      window.setTimeout(() => clearCanvas(), 800);
-      return;
-    }
-    playFeedback?.("correct");
-    const next = [...answers];
-    next[focusIndex] = item.question;
-    setAnswers(next);
-    setFocusIndex(focusIndex + 1);
-  }
-
-  function signClass(i) {
-    const b = "cfn-multi-sign";
-    if (answers[i] != null) return `${b} ${b}--done`;
-    if (focusIndex === i)   return `${b} ${b}--active`;
-    return b;
-  }
-
-  return (
-    <>
-      {/* The big "? > 46" card stays hidden while this is open (see
-          GenerateStage) — on a real phone there isn't vertical room for
-          both it and four comparison rows within the session stage's fixed,
-          non-scrolling height, and the rows would rather silently compress
-          than the page scroll. This compact line keeps the reference
-          number in view without that footprint. */}
-      <div className="apply-hint-label">Сравниваем с {task.value}</div>
-      <div className="cfn-multi" style={{ "--multi-count": items.length }}>
-        {items.map((item, i) => (
-          <div key={i} className={`cfn-multi-row${focusIndex === i ? " cfn-multi-row--active" : ""}`}>
-            <div className="cfn-multi-num">{item.left}</div>
-            <div className={signClass(i)}>
-              {answers[i] != null ? QUESTION_SIGN[answers[i]] : focusIndex === i ? "?" : ""}
-            </div>
-            <div className="cfn-multi-num">{task.value}</div>
-          </div>
-        ))}
-      </div>
-      {allDone ? (
-        <button type="button" className="apply-multi-summary" onClick={onClose}>
-          Значит, <strong>{task.op === "more" ? "больше" : "меньше"} {task.value}</strong> — это число {items[matchIdx].left}! Нажми на него.
-        </button>
-      ) : (
-        <>
-          <div className="cfn-multi-divider" />
-          <div className="apply-hint-draw-row">
-            <div className="apply-hint-draw-num">{items[focusIndex].left}</div>
-            <DrawingSignPad
-              taskKey={`${task.conceptId}-hint-${focusIndex}`}
-              onSignRecognized={handleSignRecognized}
-              disabled={false}
-              shake={shakeCanvas}
-            />
-            <div className="apply-hint-draw-num">{task.value}</div>
-          </div>
-          <button type="button" className="apply-hint-close" onClick={onClose}>Назад к заданию</button>
-        </>
-      )}
-    </>
-  );
-}
-
 // Tap one of a few concrete number tiles that fits the spoken constraint —
 // a closed choice, not free number entry. See engine.js's
 // generateApplyGenerateTask for why. The task is framed as an inequality
 // with a blank ("? > 36") rather than a bare icon+number card: it's the
 // same sign-between-numbers metaphor the earlier ladder steps (CompareSign,
 // CompareEvaluate) already taught, so the child reads this as "finish the
-// comparison" instead of decoding a new layout. GenerateHint above is an
-// optional, button-triggered aid for this same task — it never replaces
-// this screen, only sits in front of it while requested.
+// comparison" instead of decoding a new layout.
+//
+// "Нужна подсказка?" doesn't open a separate screen — it turns each tile
+// in place into its own tiny "N [draw a sign] 46" example, using
+// CompareDrawSign's own DrawingSignPad/recognizeSign (the child's own
+// real-world technique: write both numbers, draw the sign between them,
+// the skill he already has, rather than searching for an unknown). Every
+// tile is independently checked against its own true relationship to
+// task.value; getting a non-answer tile right just marks it done — only
+// drawing the correct sign on the tile that actually satisfies task.op
+// submits the task's answer, exactly as if it had been tapped.
 function GenerateStage({ task, answered, onAnswer, playFeedback }) {
   const [pickedIdx, setPickedIdx] = useState(-1);
   const [wrongIdx, setWrongIdx] = useState(-1);
   const [isCorrectPick, setIsCorrectPick] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [hintDone, setHintDone] = useState(() => Array(task.options.length).fill(false));
+  const [hintShakeIdx, setHintShakeIdx] = useState(-1);
+
+  const matchIdx = task.options.findIndex((n) => (task.op === "more" ? n > task.value : n < task.value));
 
   function tapOption(n, idx) {
     if (answered) return;
@@ -123,47 +42,82 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
     onAnswer(isCorrect);
   }
 
+  function handleHintSign(idx, n, sign, clearCanvas) {
+    if (answered) return;
+    const correctSign = n === task.value ? "=" : n < task.value ? "<" : ">";
+    if (sign !== correctSign) {
+      setHintShakeIdx(idx);
+      window.setTimeout(() => setHintShakeIdx(-1), 400);
+      window.setTimeout(() => clearCanvas(), 800);
+      return;
+    }
+    playFeedback?.("correct");
+    if (idx === matchIdx) {
+      // This tile's sign doesn't just match its own pair — it satisfies
+      // the task's actual condition, so drawing it here IS the answer,
+      // same as tapping the tile would have been.
+      setPickedIdx(idx);
+      setIsCorrectPick(true);
+      onAnswer(true);
+      return;
+    }
+    setHintDone((prev) => prev.map((v, i) => (i === idx ? true : v)));
+  }
+
+  const hintActive = showHint && !answered;
+
   return (
     <>
-      {showHint && !answered ? (
-        <GenerateHint task={task} onClose={() => setShowHint(false)} playFeedback={playFeedback} />
-      ) : (
-        <>
-          <div className="apply-ineq" aria-label={task.promptText}>
-            <div className={`apply-ineq-blank${isCorrectPick ? " apply-ineq-blank--correct" : ""}`} aria-hidden="true">
-              {isCorrectPick ? task.options[pickedIdx] : "?"}
-            </div>
-            <div className="apply-ineq-sign" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
-            <div className="apply-ineq-value" aria-hidden="true">{task.value}</div>
-          </div>
-          <div className="apply-choice-grid">
-            {task.options.map((n, i) => (
-              <div key={i} className="apply-choice-cell">
-                <button
-                  type="button"
-                  className={[
-                    "apply-choice-btn",
-                    pickedIdx === i && isCorrectPick && "apply-choice-btn--placed",
-                    wrongIdx === i && "apply-choice-btn--wrong",
-                  ].filter(Boolean).join(" ")}
-                  disabled={answered}
-                  onClick={() => tapOption(n, i)}
-                >
-                  {n}
-                </button>
+      <div className="apply-ineq" aria-label={task.promptText}>
+        <div className={`apply-ineq-blank${isCorrectPick ? " apply-ineq-blank--correct" : ""}`} aria-hidden="true">
+          {isCorrectPick ? task.options[pickedIdx] : "?"}
+        </div>
+        <div className="apply-ineq-sign" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
+        <div className="apply-ineq-value" aria-hidden="true">{task.value}</div>
+      </div>
+      <div className="apply-choice-grid">
+        {task.options.map((n, i) => (
+          <div key={i} className="apply-choice-cell">
+            {hintActive ? (
+              <div className={`apply-hint-tile${hintDone[i] ? " apply-hint-tile--done" : ""}`}>
+                <div className="apply-hint-tile-num">{n}</div>
+                <DrawingSignPad
+                  taskKey={`${task.conceptId}-hinttile-${i}`}
+                  onSignRecognized={(sign, clearCanvas) => handleHintSign(i, n, sign, clearCanvas)}
+                  disabled={hintDone[i]}
+                  shake={hintShakeIdx === i}
+                />
+                <div className="apply-hint-tile-num">{task.value}</div>
               </div>
-            ))}
+            ) : (
+              <button
+                type="button"
+                className={[
+                  "apply-choice-btn",
+                  pickedIdx === i && isCorrectPick && "apply-choice-btn--placed",
+                  wrongIdx === i && "apply-choice-btn--wrong",
+                ].filter(Boolean).join(" ")}
+                disabled={answered}
+                onClick={() => tapOption(n, i)}
+              >
+                {n}
+              </button>
+            )}
           </div>
-          {/* Spells out the connection between the blank above and the tiles
-              below in words, not just proximity — mirrors OrderStage's own
-              "перетащи число в нужное место" caption for the same reason: two
-              separate white cards with a gap between them didn't read as
-              "pick one of these to complete that" on their own. */}
-          <div className="apply-choice-caption">выбери число вместо «?»</div>
-          {!answered && (
-            <button type="button" className="apply-hint-btn" onClick={() => setShowHint(true)}>Нужна подсказка?</button>
-          )}
-        </>
+        ))}
+      </div>
+      {!hintActive && (
+        // Spells out the connection between the blank above and the tiles
+        // below in words, not just proximity — mirrors OrderStage's own
+        // "перетащи число в нужное место" caption for the same reason: two
+        // separate white cards with a gap between them didn't read as
+        // "pick one of these to complete that" on their own.
+        <div className="apply-choice-caption">выбери число вместо «?»</div>
+      )}
+      {!answered && (
+        <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
+          {showHint ? "Скрыть подсказку" : "Нужна подсказка?"}
+        </button>
       )}
     </>
   );

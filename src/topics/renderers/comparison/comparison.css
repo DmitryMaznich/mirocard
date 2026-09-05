@@ -328,59 +328,43 @@
   font-size: clamp(14px, 2.2vw, 18px); font-weight: 600; color: #93a5c4;
 }
 
-/* On-demand hint: reveals CompareFirstNumber's own .cfn-multi row-judgment
-   mechanic (see comparison.css above) as a SEPARATE, optional aid — the
-   main task above stays the tap-a-tile inequality; this only helps a child
-   who's stuck reason through it, one already-familiar sign-pick at a time,
-   without that reasoning being the graded answer itself. */
+/* On-demand hint: "Нужна подсказка?" doesn't open a separate screen — it
+   turns each answer tile in place into its own tiny worked example (see
+   .apply-hint-tile below), the actual task above stays visible and
+   untouched throughout. */
 .apply-hint-btn {
   position: relative; z-index: 1;
   background: none; border: none; padding: 4px 8px; font-family: inherit;
   font-size: clamp(13px, 3vw, 15px); font-weight: 700; color: #2563eb;
   text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
 }
-/* Compact stand-in for the big .apply-ineq card while the hint is open —
-   see the comment on GenerateHint in CompareApply.jsx for why the card
-   itself is hidden during the hint. */
-.apply-hint-label {
-  position: relative; z-index: 1; flex-shrink: 0;
-  font-size: clamp(14px, 3.2vw, 17px); font-weight: 700; color: #64748b;
-}
-.apply-hint-close {
-  position: relative; z-index: 1;
-  background: none; border: none; padding: 4px 8px; font-family: inherit;
-  font-size: clamp(13px, 3vw, 15px); font-weight: 700; color: #93a5c4; cursor: pointer;
-}
-/* The active pair, drawn instead of tapped — see GenerateHint. Reuses
+/* One answer tile, turned into "N [draw a sign] 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
-   CompareDrawSign as-is (same recognizer, same visual language), only
-   the numbers either side and the canvas's own size are scoped down here:
-   .draw-sign-canvas's default (clamp(100px, 30vw, 220px)) is sized for a
-   full-screen single-pair mode and was too tall stacked under four rows —
+   CompareDrawSign as-is (same recognizer, same visual language). Laid out
+   horizontally, not stacked, to read as one short equation; the canvas is
+   scoped much smaller than CompareDrawSign's own default
+   (clamp(100px, 30vw, 220px), sized for a single full-screen pair) since
+   four of these have to fit in the same 2×2 grid the plain tiles used —
    the recognizer only cares about stroke geometry ratios, not absolute
    pixel size, so shrinking it doesn't hurt recognition. */
-.apply-hint-draw-row {
-  position: relative; z-index: 1;
+.apply-hint-tile {
+  position: relative; width: 100%; aspect-ratio: 1.6;
   display: flex; align-items: center; justify-content: center;
-  gap: clamp(10px, 3vw, 20px); width: 100%; flex-shrink: 0;
+  gap: clamp(4px, 1.5vw, 8px); padding: 4px 6px;
+  border-radius: 18px; background: #fff;
+  box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
 }
-.apply-hint-draw-num {
-  font-size: clamp(24px, 7vw, 34px); font-weight: 900; color: #1e293b;
-  min-width: 0; text-align: center; line-height: 1;
+.apply-hint-tile--done {
+  background: #f0fdf4;
+  box-shadow: 0 4px 0 #16a34a, 0 8px 18px rgba(34,197,94,0.18);
 }
-.apply-hint-draw-row .draw-sign-canvas {
-  width: clamp(64px, 16vw, 96px); height: clamp(64px, 16vw, 96px);
+.apply-hint-tile-num {
+  font-size: clamp(14px, 16cqi, 20px); font-weight: 900; color: #1e293b;
+  min-width: 0; flex-shrink: 0; text-align: center; line-height: 1;
 }
-.apply-multi-summary {
-  position: relative; z-index: 1;
-  width: 100%; max-width: 360px;
-  background: #fff; border: none; border-radius: 18px; padding: 14px 18px;
-  font-family: inherit; text-align: center; cursor: pointer;
-  font-size: clamp(14px, 3.5vw, 17px); font-weight: 700; color: #475569;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  animation: fadeIn 0.3s ease;
+.apply-hint-tile .draw-sign-canvas {
+  width: clamp(34px, 28cqi, 50px); height: clamp(34px, 28cqi, 50px);
 }
-.apply-multi-summary strong { color: #16a34a; font-size: 1.2em; }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
    one of the slots above — a physical sort, not a tap sequence. The slots
