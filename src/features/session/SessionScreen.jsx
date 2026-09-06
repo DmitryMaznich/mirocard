@@ -437,7 +437,7 @@ export default function SessionScreen() {
         />
       )}
 
-      {deckExhausted && !topicRecord?.meta?.loopModes && (
+      {deckExhausted && (!topicRecord?.meta?.loopModes || mode?.excludeFromLoop) && (
         <div className="deck-exhausted-overlay">
           <div className="deck-exhausted-dialog">
             <div className="deck-exhausted-dialog__icon">🎉</div>

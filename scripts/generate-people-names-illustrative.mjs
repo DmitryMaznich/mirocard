@@ -37,6 +37,15 @@ const STYLE =
   "cropping, no missing limbs, square 1:1 composition, easily recognizable " +
   "at small size";
 
+// v1 dressed girl/woman in a skirt and boy/man in trousers (the common
+// cartoon convention) — but none of people_names' 8 real photos put anyone
+// in a dress; every one of them (boy_peter, girl_olga, man_igor, woman_anna,
+// etc.) wears trousers, and hair length is the one feature that's actually
+// consistent across every real photo (short for boy/man, longer for
+// girl/woman). A probe meant to test whether the word transfers to a new
+// representation must use the visual cue the child actually learned, not a
+// new one (a dress) the training photos never showed. Fixed: everyone wears
+// trousers + a top; only hair length differs by gender, matching the photos.
 const TARGETS = [
   {
     id: "illustrative_boy",
@@ -48,8 +57,8 @@ const TARGETS = [
     id: "illustrative_girl",
     label: "девочка",
     prompt: `${STYLE}. A young child girl: hair in two short pigtails, a ` +
-      `plain colorful dress reaching the knees, both legs and both shoes ` +
-      `clearly visible below the dress hem.`,
+      `plain colorful t-shirt and trousers (same silhouette as the boy ` +
+      `icon, not a dress or skirt), sneakers.`,
   },
   {
     id: "illustrative_man",
@@ -62,9 +71,9 @@ const TARGETS = [
     id: "illustrative_woman",
     label: "женщина",
     prompt: `${STYLE}. A grown adult woman, clearly taller and more ` +
-      `elongated than a child: shoulder-length hair, a plain colorful ` +
-      `dress reaching the knees, both legs and both shoes clearly visible ` +
-      `below the dress hem.`,
+      `elongated than a child: shoulder-length hair, a plain colorful top ` +
+      `and trousers (same silhouette as the man icon, not a dress or ` +
+      `skirt), shoes.`,
   },
 ];
 

@@ -2,7 +2,7 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "language": "ru",
     "customModesOnly": true,
     "loopModes": true,
@@ -212,6 +212,7 @@
       "id": "people_question_answer",
       "type": "question_answer",
       "evaluation": "none",
+      "excludeFromLoop": true,
       "answerPrefix": "Это",
       "ui": {
         "title": "8. Кто это?",
@@ -261,6 +262,7 @@
       "id": "people_generalisation_probe",
       "type": "generalisation_probe",
       "evaluation": "auto",
+      "excludeFromLoop": true,
       "ui": {
         "title": "10. Проверка переноса",
         "instruction": "Послушай и нажми на картинку",
@@ -288,6 +290,7 @@
       "id": "people_pictogram_find_n",
       "type": "pictogram_find_n",
       "evaluation": "auto",
+      "excludeFromLoop": true,
       "ui": {
         "title": "11. Пиктограммы",
         "instruction": "Послушай и нажми на картинку",
@@ -315,6 +318,7 @@
       "id": "people_illustration_find_n",
       "type": "illustration_find_n",
       "evaluation": "auto",
+      "excludeFromLoop": true,
       "ui": {
         "title": "12. Картинки-иллюстрации",
         "instruction": "Послушай и нажми на картинку",

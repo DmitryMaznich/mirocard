@@ -20,20 +20,30 @@ const MODEL   = "gemini-3.1-flash-image";
 
 // Exactly the restroom-door-sign convention (ISO 7001-style public
 // information symbol), not an illustrated/cartoon character: one smooth
-// solid-color silhouette shape, no face, no hair, no clothing texture, no
-// shading. The only differentiators are the geometric silhouette (separate
-// leg shapes = trousers vs. a single triangular skirt shape = dress) and
-// overall proportions (short/large-head-ratio = child vs. tall/elongated =
-// adult) — the same two visual variables real restroom and pedestrian-
-// crossing signs use.
+// solid-color silhouette shape, no face, no clothing texture, no shading.
+//
+// v1 of this script differentiated boy/man vs girl/woman with a skirt-shaped
+// lower body (the common restroom-sign convention) — but none of
+// people_names' 8 real photos ever put a concept's cards in a dress; every
+// photo (boy_peter, girl_olga, man_igor, woman_anna, etc.) wears trousers,
+// and the one visual feature that's actually consistent across every real
+// photo is hair length (short for boy/man, shoulder-length+ for girl/woman;
+// man_igor also has visible stubble, girl/woman don't since children/women
+// are clean-faced in every photo). A generalization-probe pictogram that
+// used a cue (a skirt) absent from every training photo wasn't testing
+// transfer of the word the child actually learned — it was teaching a new,
+// unrelated rule ("skirt = female"). Fixed: both genders get the identical
+// trouser-leg silhouette; the only gender differentiator is a hair-silhouette
+// bump on the head, matching what the photos actually show.
 const STYLE =
   "minimalist pictogram symbol in the exact style of a public restroom door " +
   "sign (ISO 7001 style): one smooth solid single-color silhouette shape on " +
   "a plain white background, flat solid fill with a clean simple outline, " +
-  "absolutely no face, no eyes, no mouth, no hair strands, no clothing " +
-  "texture or folds, no shading, no gradient, no photographic or painterly " +
-  "detail of any kind — just a simple geometric human silhouette icon like " +
-  "a traffic or signage symbol. The full figure (head to feet) must be " +
+  "absolutely no face, no eyes, no mouth, no clothing texture or folds, no " +
+  "shading, no gradient, no photographic or painterly detail of any kind — " +
+  "just a simple geometric human silhouette icon like a traffic or signage " +
+  "symbol. Both legs are always two separate straight leg shapes (trousers) " +
+  "— never a skirt or dress shape. The full figure (head to feet) must be " +
   "entirely visible within the frame, centered, with generous white margin " +
   "around it, symmetric, no cropping, no missing limbs. No text or letters " +
   "anywhere. No border, no rounded rectangle frame, no drop shadow. Square " +
@@ -45,33 +55,34 @@ const TARGETS = [
     id: "pictogram_boy",
     label: "мальчик",
     prompt: `${STYLE} A child-sized figure (short, large head-to-body ` +
-      `ratio, like a pedestrian-crossing sign child) with two separate ` +
-      `straight leg shapes, exactly like the male restroom sign silhouette ` +
-      `but proportioned as a child.`,
+      `ratio, like a pedestrian-crossing sign child): a plain round head ` +
+      `silhouette with no hair bump (short hair), two separate straight ` +
+      `leg shapes.`,
   },
   {
     id: "pictogram_girl",
     label: "девочка",
     prompt: `${STYLE} A child-sized figure (short, large head-to-body ` +
-      `ratio, like a pedestrian-crossing sign child) whose lower body is a ` +
-      `single solid triangular skirt/dress shape covering both legs, ` +
-      `exactly like the female restroom sign silhouette but proportioned ` +
-      `as a child.`,
+      `ratio, like a pedestrian-crossing sign child): the head silhouette ` +
+      `flares out into a smooth rounded hair shape reaching past both ` +
+      `shoulders (longer hair), same two separate straight leg shapes as ` +
+      `the boy icon — not a skirt.`,
   },
   {
     id: "pictogram_man",
     label: "мужчина",
-    prompt: `${STYLE} A tall adult-proportioned figure with two separate ` +
-      `straight leg shapes — the standard male restroom-door-sign ` +
-      `silhouette, clearly taller and more elongated than a child figure.`,
+    prompt: `${STYLE} A tall adult-proportioned figure: a plain round head ` +
+      `silhouette with no hair bump (short hair), two separate straight ` +
+      `leg shapes, clearly taller and more elongated than a child figure.`,
   },
   {
     id: "pictogram_woman",
     label: "женщина",
-    prompt: `${STYLE} A tall adult-proportioned figure whose lower body is ` +
-      `a single solid triangular skirt/dress shape covering both legs — ` +
-      `the standard female restroom-door-sign silhouette, clearly taller ` +
-      `and more elongated than a child figure.`,
+    prompt: `${STYLE} A tall adult-proportioned figure: the head silhouette ` +
+      `flares out into a smooth rounded hair shape reaching past both ` +
+      `shoulders (longer hair), same two separate straight leg shapes as ` +
+      `the man icon — not a skirt, clearly taller and more elongated than ` +
+      `a child figure.`,
   },
 ];
 

@@ -285,13 +285,24 @@ export function useSessionEngine() {
   const lastRewardEarnedCountRef = useRef(sessionState?.rewardEarnedCount ?? 0);
 
   // meta.loopModes topics (currently just people_names) never show the
-  // "Начать снова / Завершить" deck-exhausted dialog: the deck's own end is
-  // treated as a cue to move straight into the next mode in topicRecord.modes
-  // (wrapping past the last one), so a single continuous session cycles
-  // through every mode. The adult is the only one who ends the session, via
-  // the existing header close button — see SessionHeader/openSessionExitPrompt.
+  // "Начать снова / Завершить" deck-exhausted dialog while inside the loop:
+  // the deck's own end is treated as a cue to move straight into the next
+  // mode in topicRecord.modes (wrapping past the last one), so a single
+  // continuous session cycles through the core teaching modes. The adult is
+  // the only one who ends the session, via the existing header close button
+  // — see SessionHeader/openSessionExitPrompt.
+  //
+  // A mode flagged mode.excludeFromLoop (people_names: question_answer,
+  // generalisation_probe, pictogram_find_n, illustration_find_n) is a
+  // diagnostic/probe step whose own methodology text says "only after
+  // confident mastery elsewhere" — the opposite of something that should
+  // fire unconditionally on a timer-free autoplay loop. It is reachable only
+  // by an adult deliberately picking it from the mode picker; once its deck
+  // is exhausted, this effect leaves deckExhausted alone so the normal
+  // restart/finish dialog shows instead of silently continuing the loop.
   useEffect(() => {
     if (!deckExhausted || !topicRecord?.meta?.loopModes) return;
+    if (mode?.excludeFromLoop) return;
     const modes = topicRecord.modes ?? [];
     if (!modes.length) return;
     const startIndex = modes.findIndex((m) => m.id === activeModeId);
@@ -300,11 +311,12 @@ export function useSessionEngine() {
     // photos). A 0-task mode never reaches "deck_exhausted" on its own, so
     // landing on one here would otherwise strand the loop on the "нет
     // подходящих предложений" fallback screen. Try each mode in turn and
-    // settle on the first one that actually has cards.
+    // settle on the first one that actually has cards and isn't itself
+    // excluded from the loop.
     for (let step = 1; step <= modes.length; step++) {
       const candidateId = modes[(startIndex + step) % modes.length]?.id;
       const candidateMode = resolveMode(topicRecord, candidateId);
-      if (!candidateMode) continue;
+      if (!candidateMode || candidateMode.excludeFromLoop) continue;
       const { sessionParams: candidateParams, selectedConceptIds: candidateSelected } =
         resolveModeSelection(topicRecord, candidateMode, link, isReading, activeTextId);
       const newState = buildGeneratedSessionState({
@@ -318,7 +330,7 @@ export function useSessionEngine() {
       setSessionState(newState);
       return;
     }
-  }, [deckExhausted, topicRecord, activeModeId, link, isReading, activeTextId, activeStudentId, activeTopicId, activeText, activeStudent, setActiveModeId]);
+  }, [deckExhausted, topicRecord, activeModeId, mode?.excludeFromLoop, link, isReading, activeTextId, activeStudentId, activeTopicId, activeText, activeStudent, setActiveModeId]);
 
   async function finishSession(state) {
     const cardEvents = cardLogger.getCardEvents();
