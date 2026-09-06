@@ -1080,9 +1080,11 @@ function ComparisonParams({ params, onChange }) {
   const isTestMode       = activeModeId === "compare_test";
   const isFirstNumberMode = activeModeId === "compare_first_number";
   const isApplyMode      = activeModeId === "compare_apply";
-  // Same as compare_evaluate/compare_apply above — the child names the real
-  // relationship between two named characters, so a forced "Что учим"
-  // direction would rig the answer or contradict the character it points to.
+  // Unlike compare_evaluate/compare_apply above, "Что учим" (more/less/mix)
+  // does apply here — engine.js's realLifeTaskFromScene takes the asked
+  // direction as its own input and derives both the instruction wording and
+  // which side actually answers it, rather than always hard-coding
+  // "больше" the way this mode used to.
   const isRealLifeMode   = activeModeId === "compare_real_life";
   const isEvaluateFamily  = isEvaluateMode || isTestMode;
 
@@ -1153,7 +1155,7 @@ function ComparisonParams({ params, onChange }) {
         </div>
       )}
 
-      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && !isRealLifeMode && (
+      {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && (
         <div className="param-row param-row--block">
           <div className="param-label">Что учим</div>
           <div className="param-enum-section">

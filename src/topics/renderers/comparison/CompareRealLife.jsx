@@ -3,8 +3,12 @@ import { useState } from "react";
 // Which of the three answers ("a" | "equal" | "b") is actually correct for
 // this task — the same three values the answer buttons use, so a button's
 // or a scene half's state is a single equality check against this.
+// engine.js's realLifeTaskFromScene already resolves this (it knows both
+// which side objectively has more AND which direction was actually asked —
+// "У кого больше?" or "У кого меньше?" — so it's the only place that can
+// combine the two correctly).
 function correctAnswerFor(task) {
-  return task.question === "more" ? "a" : task.question === "less" ? "b" : "equal";
+  return task.correctAnswer;
 }
 
 function Scene({ task, answered, correctAnswer, wrongPick }) {

@@ -442,12 +442,12 @@ describe("generateTasks", () => {
     // generating arbitrary numbers — level and showEqual no longer apply
     // (ParamsScreen hides both controls for this mode; see isRealLifeMode).
 
-    it("question always reflects the real left/right relation, and the verdict names the actual bigger character", () => {
+    it("with the default 'more' question, correctAnswer always names the actual bigger character", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60);
       expect(tasks).toHaveLength(60);
       tasks.forEach((t) => {
-        const real = t.left === t.right ? "equal" : t.left > t.right ? "more" : "less";
-        expect(t.question).toBe(real);
+        const real = t.left === t.right ? "equal" : t.left > t.right ? "a" : "b";
+        expect(t.correctAnswer).toBe(real);
         // A few scenes compare a continuous amount inside a container (water
         // in a glass, porridge in a bowl) instead of counting discrete
         // objects — those carry containerPhrase and thread it into both
@@ -455,10 +455,39 @@ describe("generateTasks", () => {
         // the plain "У кого больше X?" object-counting phrasing.
         const where = t.containerPhrase ? `${t.containerPhrase} ` : "";
         expect(t.instruction).toBe(`У кого ${where}больше ${t.item}?`);
-        if (t.question === "more") expect(t.verdictText).toBe(`У ${t.nameA} ${where}больше ${t.item}, чем у ${t.nameB}.`);
-        if (t.question === "less") expect(t.verdictText).toBe(`У ${t.nameB} ${where}больше ${t.item}, чем у ${t.nameA}.`);
-        if (t.question === "equal") expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${where}${t.item} поровну.`);
+        if (t.correctAnswer === "a") expect(t.verdictText).toBe(`У ${t.nameA} ${where}больше ${t.item}, чем у ${t.nameB}.`);
+        if (t.correctAnswer === "b") expect(t.verdictText).toBe(`У ${t.nameB} ${where}больше ${t.item}, чем у ${t.nameA}.`);
+        if (t.correctAnswer === "equal") expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${where}${t.item} поровну.`);
       });
+    });
+
+    it("with question: 'less', asks the opposite direction and flips correctAnswer accordingly", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60, { question: "less" });
+      expect(tasks).toHaveLength(60);
+      tasks.forEach((t) => {
+        const where = t.containerPhrase ? `${t.containerPhrase} ` : "";
+        expect(t.instruction).toBe(`У кого ${where}меньше ${t.item}?`);
+        if (t.left === t.right) {
+          expect(t.correctAnswer).toBe("equal");
+        } else {
+          // correctAnswer must be the side with the SMALLER count now.
+          const smaller = t.left < t.right ? "a" : "b";
+          expect(t.correctAnswer).toBe(smaller);
+          expect(t.verdictText).toBe(
+            t.correctAnswer === "a"
+              ? `У ${t.nameA} ${where}меньше ${t.item}, чем у ${t.nameB}.`
+              : `У ${t.nameB} ${where}меньше ${t.item}, чем у ${t.nameA}.`
+          );
+        }
+      });
+    });
+
+    it("with question: 'mix', asks both directions across a session", () => {
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60, { question: "mix" });
+      const askedMore = tasks.some((t) => t.instruction.includes("больше"));
+      const askedLess = tasks.some((t) => t.instruction.includes("меньше"));
+      expect(askedMore).toBe(true);
+      expect(askedLess).toBe(true);
     });
 
     it("every task carries the scene's image", () => {
@@ -475,7 +504,7 @@ describe("generateTasks", () => {
       const tied = tasks.filter((t) => t.left === t.right);
       expect(tied.length).toBeGreaterThan(0);
       tied.forEach((t) => {
-        expect(t.question).toBe("equal");
+        expect(t.correctAnswer).toBe("equal");
         expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${t.containerPhrase ? t.containerPhrase + " " : ""}${t.item} поровну.`);
       });
     });
@@ -485,11 +514,13 @@ describe("generateTasks", () => {
       tasks.forEach((t) => expect(t.allowEqual).toBe(true));
     });
 
-    it("carries a gender per name so the UI can illustrate the character, not just print the name", () => {
+    it("carries a gender/kind tag per name (unused by the UI today, but always present)", () => {
+      // Round 4 introduced non-child comparisons (animals, objects — "У кого
+      // больше ног?"), so this is no longer always "boy"/"girl".
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 40);
       tasks.forEach((t) => {
-        expect(["boy", "girl"]).toContain(t.genderA);
-        expect(["boy", "girl"]).toContain(t.genderB);
+        expect(["boy", "girl", "animal", "object"]).toContain(t.genderA);
+        expect(["boy", "girl", "animal", "object"]).toContain(t.genderB);
       });
     });
 

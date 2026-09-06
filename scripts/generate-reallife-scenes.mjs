@@ -622,6 +622,274 @@ bowl with its own spoon. The two bowls must be the exact same shape and size,
 filled to the exact same level — the two fill levels must visibly line up and
 match at a glance, neither one fuller than the other.`,
   },
+
+  // ── Round 4: structural/inherent-part comparisons — count a part that's
+  // built into the thing itself (legs, wheels, windows...), not an item
+  // someone was handed. A deliberately different comparison axis from
+  // rounds 1-3 (all "how many X is a child holding/served") — requested
+  // live after "У кого больше ног — человек и собака" as the seed example.
+  {
+    id: "legs_boy_dog", item: "ног", left: 2, right: 4,
+    nameA: "мальчика", nameANom: "Мальчик", genderA: "boy",
+    nameB: "собаки", nameBNom: "Собака", genderB: "animal",
+    prompt: `${STYLE}
+
+Scene: a sunny park path with short green grass and a few small bushes in the
+background, warm daytime light. A boy stands on the left side of the frame and
+a friendly dog stands on the right side of the frame, both fully visible from
+head to feet/paws, both standing on the same ground line.
+
+Left third of the frame: a boy, about 6 years old, brown hair, wearing a blue
+t-shirt and shorts, standing upright, both legs clearly visible and separated
+(not overlapping), exactly 2 legs.
+
+Right third of the frame: a friendly medium-sized dog with a spotted coat,
+standing on all four legs, all 4 legs clearly visible and separated (not
+overlapping, not hidden behind each other), exactly 4 legs.
+
+Both the boy and the dog must be clearly visible in one single frame, each
+placed so every one of their legs can be individually counted. Leg count must
+be exact: 2 legs on the boy, 4 legs on the dog.`,
+  },
+  {
+    id: "wheels_bike_car", item: "колёс", left: 2, right: 4,
+    nameA: "велосипеда", nameANom: "Велосипед", genderA: "object",
+    nameB: "машины", nameBNom: "Машина", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a bright residential street with a light blue sky, a simple sidewalk
+and a few small trees in the background, warm daytime light. A bicycle stands
+on the left side of the frame and a car stands on the right side of the frame,
+shown from the side so every wheel is clearly visible, both resting on the
+same ground line.
+
+Left third of the frame: a red children's bicycle shown from the side, exactly
+2 wheels clearly visible, both round and fully visible, not overlapping.
+
+Right third of the frame: a cheerful yellow car shown from the side, exactly 4
+wheels clearly visible along the bottom of the car body, evenly spaced, not
+overlapping or hidden behind each other.
+
+Both the bicycle and the car must be clearly visible in one single frame, each
+placed so every one of their wheels can be individually counted. Wheel count
+must be exact: 2 wheels on the bicycle, 4 wheels on the car.`,
+  },
+  {
+    id: "windows_house_building", item: "окон", left: 2, right: 6,
+    nameA: "домика", nameANom: "Домик", genderA: "object",
+    nameB: "дома", nameBNom: "Дом", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a cheerful street with a light blue sky and a few fluffy clouds, a
+strip of green grass along the bottom, warm daytime light. A small cottage
+stands on the left side of the frame and a taller multi-story building stands
+on the right side of the frame, both viewed straight-on from the front, both
+resting on the same ground line.
+
+Left third of the frame: a small one-story cottage with a triangular roof and
+a front door, exactly 2 square windows on its front wall, clearly separated
+and individually countable, not overlapping.
+
+Right third of the frame: a taller building with a flat roof, three floors,
+exactly 6 square windows arranged in a clear grid on its front wall (two
+windows per floor across three floors), each window clearly separated and
+individually countable, not overlapping.
+
+Both buildings must be clearly visible in one single frame, each placed so
+every one of their windows can be individually counted. Window count must be
+exact: 2 windows on the cottage, 6 windows on the taller building.`,
+  },
+  {
+    id: "petals_tulip_daisy", item: "лепестков", left: 4, right: 8,
+    nameA: "тюльпана", nameANom: "Тюльпан", genderA: "object",
+    nameB: "ромашки", nameBNom: "Ромашка", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a simple sunny garden bed with soft green grass and a light blue sky in
+the background, warm daytime light. A tulip flower grows on the left side of
+the frame and a daisy flower grows on the right side of the frame, both shown
+as a clear frontal view of the flower head atop a green stem with a leaf or
+two, both rooted in the same strip of ground.
+
+Left third of the frame: a single tulip flower viewed from the front, its
+flower head made of exactly 4 large rounded petals, each petal clearly
+separated and individually countable, not overlapping into a solid blob.
+
+Right third of the frame: a single daisy flower viewed from the front, its
+flower head made of exactly 8 long thin white petals around a round yellow
+center, each petal clearly separated and individually countable, evenly
+spaced like a simple sun shape, not overlapping.
+
+Both flowers must be clearly visible in one single frame, each placed so every
+one of their petals can be individually counted. Petal count must be exact: 4
+petals on the tulip, 8 petals on the daisy.`,
+  },
+  {
+    id: "train_cars_equal", item: "вагонов", left: 3, right: 3,
+    nameA: "жёлтого поезда", nameANom: "Жёлтый поезд", genderA: "object",
+    nameB: "синего поезда", nameBNom: "Синий поезд", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a cheerful countryside scene with a light blue sky, soft green hills,
+and simple train tracks running horizontally across the lower half of the
+frame, warm daytime light. A yellow toy train sits on the tracks on the left
+side of the frame and a blue toy train sits on the tracks on the right side of
+the frame, both shown from the side so every car can be clearly counted, both
+resting on the same track line.
+
+Left third of the frame: a cheerful yellow toy train made of exactly 3
+rectangular cars coupled one after another (including the front engine car),
+each car clearly separated by a small visible gap, not overlapping.
+
+Right third of the frame: a cheerful blue toy train made of exactly 3
+rectangular cars coupled one after another (including the front engine car),
+matching the yellow train in size and style, each car clearly separated by a
+small visible gap, not overlapping.
+
+Both trains must be clearly visible in one single frame, each placed so every
+one of their cars can be individually counted. Car count must be exact and
+equal: 3 cars on the yellow train, 3 cars on the blue train, so the two trains
+visibly look the same length at a glance.`,
+  },
+  {
+    id: "floors_cottage_skyscraper", item: "этажей", left: 1, right: 5,
+    nameA: "коттеджа", nameANom: "Коттедж", genderA: "object",
+    nameB: "небоскрёба", nameBNom: "Небоскрёб", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a bright city-meets-countryside skyline with a light blue sky and a few
+soft clouds, a strip of green ground along the bottom, warm daytime light. A
+small one-story cottage stands on the left side of the frame and a tall
+skyscraper stands on the right side of the frame, both viewed straight-on from
+the front, both resting on the same ground line.
+
+Left third of the frame: a small cottage with a triangular roof and one row of
+windows, exactly 1 floor, clearly a single-story building with only one level
+of windows above the ground.
+
+Right third of the frame: a tall, narrow skyscraper with a flat roof, exactly
+5 floors clearly stacked one on top of another, each floor marked by its own
+horizontal row of windows separated by a visible ledge or line, so all 5
+floors are individually countable from bottom to top.
+
+Both buildings must be clearly visible in one single frame, each placed so
+every one of their floors can be individually counted. Floor count must be
+exact: 1 floor on the cottage, 5 floors on the skyscraper.`,
+  },
+  {
+    id: "stairs_small_tall", item: "ступенек", left: 3, right: 7,
+    nameA: "маленькой лестницы", nameANom: "Маленькая лестница", genderA: "object",
+    nameB: "большой лестницы", nameBNom: "Большая лестница", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a bright simple outdoor scene with a light blue sky and soft green
+ground, warm daytime light. A short staircase stands on the left side of the
+frame and a tall staircase stands on the right side of the frame, both shown
+from the side in profile so every step is clearly visible, both resting on the
+same ground line.
+
+Left third of the frame: a short wooden staircase with exactly 3 steps rising
+from left to right, each step clearly separated and individually countable,
+not overlapping.
+
+Right third of the frame: a tall wooden staircase with exactly 7 steps rising
+from left to right, each step clearly separated and individually countable,
+not overlapping, matching the short staircase in style and color.
+
+Both staircases must be clearly visible in one single frame, each placed so
+every one of their steps can be individually counted. Step count must be
+exact: 3 steps on the short staircase, 7 steps on the tall staircase.`,
+  },
+  {
+    id: "sails_boat_ship", item: "парусов", left: 1, right: 2,
+    nameA: "лодки", nameANom: "Лодка", genderA: "object",
+    nameB: "яхты", nameBNom: "Яхта", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a cheerful sea scene with a light blue sky, a few soft clouds, and calm
+blue water filling the lower half of the frame, warm daytime light. A small
+sailing dinghy floats on the water on the left side of the frame and a
+two-masted sailing yacht floats on the water on the right side of the frame,
+both shown from the side so every sail is clearly visible, both resting on
+the same waterline. Neither boat is a tall ship or galleon — both are small,
+modern-looking recreational sailboats, low to the water, with thin wooden
+masts, not a big multi-deck wooden hull.
+
+Left third of the frame: a small white sailing dinghy with exactly ONE mast
+and exactly ONE triangular sail — nothing else attached to the mast, no
+second sail of any size, no flag shape that could be mistaken for a sail.
+
+Right third of the frame: a slightly bigger white sailing yacht with exactly
+TWO masts standing side by side (a shorter one and a taller one), each mast
+carrying exactly one triangular sail, so exactly two sails total. The two
+sails must be clearly separate shapes with a visible gap between them, not
+overlapping, not touching.
+
+Both boats must be clearly visible in one single frame, each placed so every
+one of their sails can be individually counted. Sail count must be exact: 1
+sail on the small dinghy, 2 sails on the yacht — count the masts to check:
+1 mast on the left boat, 2 masts on the right boat.`,
+  },
+  {
+    id: "buttons_shirt_coat", item: "пуговиц", left: 3, right: 6,
+    nameA: "рубашки", nameANom: "Рубашка", genderA: "object",
+    nameB: "пальто", nameBNom: "Пальто", genderB: "object",
+    prompt: `${STYLE}
+
+Scene: a simple cozy indoor scene with a soft pastel wall and a wooden floor,
+warm daytime light, like a tidy bedroom corner. A shirt hangs on a wooden
+hanger on the left side of the frame and a coat hangs on a wooden hanger on
+the right side of the frame, both shown from the front so every button down
+the front is clearly visible, both hangers at the same height.
+
+Left third of the frame: a light blue button-up shirt hanging straight, with
+exactly 3 round buttons evenly spaced down the front, each clearly separated
+and individually countable.
+
+Right third of the frame: a warm brown coat, extra long (reaching almost to
+the floor, longer than a normal coat, to leave room for many buttons),
+hanging straight, with exactly SIX round buttons in a single vertical column
+down the front, evenly spaced from just below the collar all the way down to
+near the hem. Count them out loud while drawing: button 1, button 2, button
+3, button 4, button 5, button 6 — there must be six separate round button
+shapes, not four, not five, each clearly separated from its neighbors with
+visible fabric between them, not overlapping.
+
+Both garments must be clearly visible in one single frame, each placed so
+every one of their buttons can be individually counted. Button count must be
+exact: 3 buttons on the shirt, 6 buttons on the coat.`,
+  },
+  {
+    id: "wings_bird_butterfly", item: "крыльев", left: 2, right: 4,
+    nameA: "птицы", nameANom: "Птица", genderA: "animal",
+    nameB: "бабочки", nameBNom: "Бабочка", genderB: "animal",
+    prompt: `${STYLE}
+
+Scene: a bright garden scene with a light blue sky, soft green bushes, and a
+few flowers in the background, warm daytime light. A small bird sits on a
+branch on the left side of the frame and a butterfly rests on a flower on the
+right side of the frame, both shown with their wings spread open and clearly
+visible, not folded or hidden.
+
+Left third of the frame: a small cheerful bird with its wings spread open,
+exactly 2 wings clearly visible, one on each side of its body, not
+overlapping.
+
+Right third of the frame: a colorful butterfly drawn from directly above/behind
+(a top-down view of the open wings, not a side view), with its wings spread
+fully open flat like an X shape. It must have exactly FOUR separate wing
+lobes, each its own clearly outlined rounded shape with a visible gap or
+outline between neighbors — not two large wings that merely have a color
+pattern painted on them. Count them out loud while drawing: wing 1 (upper
+left), wing 2 (upper right), wing 3 (lower left), wing 4 (lower right) — four
+separate lobes total, not two, with the thin body/thorax visible as a dividing
+line down the middle separating left from right, and a clear notch or seam
+between each upper lobe and the lower lobe right below it.
+
+Both the bird and the butterfly must be clearly visible in one single frame,
+each placed so every one of their wings can be individually counted. Wing
+count must be exact: 2 wings on the bird, 4 wings on the butterfly.`,
+  },
 ];
 
 const targets = ONLY_ID ? SCENES.filter((s) => s.id === ONLY_ID) : SCENES;
