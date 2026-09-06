@@ -35,16 +35,53 @@ let audioCount = 0;
 const cardsWithAudio = topic.cards.map((card) => {
   const speechAudioPath = `${AUDIO_SRC_DIR}/${card.id}.mp3`;
   const personAudioPath = `${AUDIO_SRC_DIR}/${card.id}_person.mp3`;
+  // promptAudio is shared per concept (every photo/pictogram/illustration/
+  // probe card of e.g. "boy" all say the same "Покажи мальчика.") - keyed by
+  // conceptId, not card id, so one recording covers every card of that concept.
+  const promptAudioPath = `${AUDIO_SRC_DIR}/prompt_${card.conceptId}.mp3`;
+  // personPromptAudio ("Где Петя?") only applies to cards with a named person.
+  const personPromptAudioPath = card.person
+    ? `${AUDIO_SRC_DIR}/where_${card.person.id}.mp3`
+    : null;
   const withAudio = {
     ...card,
     ...(existsSync(speechAudioPath) && { audio: { ru: `audio/${card.id}.mp3` } }),
     ...(existsSync(personAudioPath) && { personAudio: { ru: `audio/${card.id}_person.mp3` } }),
+    ...(existsSync(promptAudioPath) && { promptAudio: { ru: `audio/prompt_${card.conceptId}.mp3` } }),
+    ...(personPromptAudioPath && existsSync(personPromptAudioPath) && {
+      personPromptAudio: { ru: `audio/where_${card.person.id}.mp3` },
+    }),
   };
   if (withAudio.audio) audioCount += 1;
   if (withAudio.personAudio) audioCount += 1;
+  if (withAudio.promptAudio) audioCount += 1;
+  if (withAudio.personPromptAudio) audioCount += 1;
   return withAudio;
 });
 topic.cards = cardsWithAudio;
+
+// Fixed-phrase audio not tied to any single card: choose_name's single
+// "Как зовут?" prompt (mode-level) and sort_by_attribute's two instructions
+// (one per sortBy value) - attached to the mode objects in-memory, same
+// audio-free-source convention as the card fields above.
+const choosNameAudioPath = `${AUDIO_SRC_DIR}/choose_name_prompt.mp3`;
+const sortCategoryAudioPath = `${AUDIO_SRC_DIR}/sort_category.mp3`;
+const sortAgeAudioPath = `${AUDIO_SRC_DIR}/sort_age.mp3`;
+topic.modes = topic.modes.map((mode) => {
+  if (mode.type === "choose_name" && existsSync(choosNameAudioPath)) {
+    audioCount += 1;
+    return { ...mode, promptAudio: { ru: "audio/choose_name_prompt.mp3" } };
+  }
+  if (mode.type === "sort_by_attribute") {
+    const instructionAudio = {};
+    if (existsSync(sortCategoryAudioPath)) { instructionAudio.category = { ru: "audio/sort_category.mp3" }; audioCount += 1; }
+    if (existsSync(sortAgeAudioPath))      { instructionAudio.age      = { ru: "audio/sort_age.mp3" };      audioCount += 1; }
+    if (Object.keys(instructionAudio).length) {
+      return { ...mode, ui: { ...mode.ui, instructionAudio } };
+    }
+  }
+  return mode;
+});
 
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(topic, null, 2));
@@ -59,7 +96,15 @@ for (const card of topic.cards) {
     .toBuffer();
   zip.file(card.image, webp);
 
-  for (const audioField of [card.audio, card.personAudio]) {
+  for (const audioField of [card.audio, card.personAudio, card.promptAudio, card.personPromptAudio]) {
+    if (!audioField?.ru) continue;
+    const fileName = audioField.ru.split("/").at(-1);
+    zip.file(audioField.ru, readFileSync(`${AUDIO_SRC_DIR}/${fileName}`));
+  }
+}
+
+for (const mode of topic.modes) {
+  for (const audioField of [mode.promptAudio, mode.ui?.instructionAudio?.category, mode.ui?.instructionAudio?.age]) {
     if (!audioField?.ru) continue;
     const fileName = audioField.ru.split("/").at(-1);
     zip.file(audioField.ru, readFileSync(`${AUDIO_SRC_DIR}/${fileName}`));

@@ -313,6 +313,7 @@ function generateFindNTasks(concepts, params) {
           targetConceptId: concept.conceptId,
           targetLabel: concept.primary?.label ?? concept.conceptId,
           promptSpeech: targetCard.promptSpeech ?? null,
+          promptAudio: targetCard.promptAudio ?? null,
           options: shuffle([targetOption, ...distractorOptions]),
         });
       }
@@ -469,6 +470,7 @@ function generateFindPersonByNameTasks(concepts, params = {}) {
       targetConceptId: targetCard.conceptId,
       targetLabel: `Где ${targetPerson.name}?`,
       promptSpeech: `Где ${targetPerson.name}?`,
+      promptAudio: targetCard.personPromptAudio ?? null,
       targetPersonId: targetPerson.id,
       options,
     };

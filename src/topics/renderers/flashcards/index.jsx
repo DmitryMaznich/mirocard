@@ -337,16 +337,19 @@ function FindNOption({ option, topicId, onClick }) {
   );
 }
 
-function FindNTask({ task, mode, topicId, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
+function FindNTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onCardShown, onTap }) {
   const { speak } = useSpeech();
+  const audioPath = task.promptAudio?.ru ?? null;
 
   useEffect(() => {
     onCardShown?.(null, task.targetConceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
-  }, [task, soundEnabled, speak]);
+    if (!soundEnabled) return;
+    if (audioPath) playTopicFile(topicId, audioPath);
+    else if (task.promptSpeech) speak(task.promptSpeech);
+  }, [task, soundEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleOption(option) {
     onTap?.(option.card.id, option.isTarget);
@@ -378,7 +381,9 @@ function FindNTask({ task, mode, topicId, soundEnabled, onCorrect, onIncorrect, 
           </div>
         </div>
       </div>
-      <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />
+      {audioPath
+        ? <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
+        : <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />}
     </div>
   );
 }
@@ -471,14 +476,17 @@ function ChooseWordTask({ task, topicId, onCorrect, onIncorrect, onCardShown, on
   );
 }
 
-function ChooseNameTask({ task, topicId, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
+function ChooseNameTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onCardShown, onTap }) {
   const { speak } = useSpeech();
   const [result, setResult] = useState(null);
+  const audioPath = mode?.promptAudio?.ru ?? null;
 
   useEffect(() => {
     setResult(null);
     onCardShown?.(task.card?.id, task.conceptId);
-    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
+    if (!soundEnabled) return;
+    if (audioPath) playTopicFile(topicId, audioPath);
+    else if (task.promptSpeech) speak(task.promptSpeech);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleOption(option) {
@@ -513,20 +521,25 @@ function ChooseNameTask({ task, topicId, soundEnabled, onCorrect, onIncorrect, o
           );
         })}
       </div>
-      <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />
+      {audioPath
+        ? <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
+        : <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />}
     </div>
   );
 }
 
-function SortByAttributeTask({ task, topicId, soundEnabled, onCorrect, onIncorrect, onCardShown, onTap }) {
+function SortByAttributeTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onCardShown, onTap }) {
   const { speak } = useSpeech();
   const [result, setResult] = useState(null);
   const instruction = task.sortBy === "category" ? "Кто это?" : "Ребёнок или взрослый?";
+  const audioPath = mode?.ui?.instructionAudio?.[task.sortBy]?.ru ?? null;
 
   useEffect(() => {
     setResult(null);
     onCardShown?.(task.card?.id, task.conceptId);
-    if (soundEnabled) speak(instruction);
+    if (!soundEnabled) return;
+    if (audioPath) playTopicFile(topicId, audioPath);
+    else speak(instruction);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleGroup(group) {
@@ -560,7 +573,9 @@ function SortByAttributeTask({ task, topicId, soundEnabled, onCorrect, onIncorre
           );
         })}
       </div>
-      <SpeechButton text={instruction} soundEnabled={soundEnabled} />
+      {audioPath
+        ? <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
+        : <SpeechButton text={instruction} soundEnabled={soundEnabled} />}
     </div>
   );
 }

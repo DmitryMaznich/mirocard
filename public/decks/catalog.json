@@ -62,9 +62,9 @@
     },
     {
       "id": "people_names",
-      "version": "1.9.0",
-      "url": "./decks/people_names_v1.9.0.zip",
-      "zipUrl": "people_names_v1.9.0.zip",
+      "version": "1.10.0",
+      "url": "./decks/people_names_v1.10.0.zip",
+      "zipUrl": "people_names_v1.10.0.zip",
       "title": {
         "ru": "Кто это? Люди и имена"
       },
