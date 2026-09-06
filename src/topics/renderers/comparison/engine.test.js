@@ -366,6 +366,20 @@ describe("generateTasks", () => {
       expect(correctValues.some((n) => n !== 10)).toBe(true);
     });
 
+    // Regression: op/value used to be drawn independently at random per
+    // task, with no protection against repeats. At level 2 (min 1, max 10)
+    // there are only 8 possible values (2..9) x 2 ops = 16 distinct
+    // comparisons, so plain independent randomness produced frequent runs
+    // of the same one ("< 5" several cards in a row, just with different
+    // tiles) — reported live. Cycling through a shuffled pass of every
+    // combo before repeating means one full cycle (16 tasks here) can't
+    // repeat any comparison.
+    it("'generate' tasks don't repeat the same (op, value) comparison within one shuffle cycle", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 16, { level: 2, taskType: "generate" });
+      const seen = new Set(tasks.map((t) => `${t.op}:${t.value}`));
+      expect(seen.size).toBe(16);
+    });
+
     it("'order' tasks give 3 distinct numbers by default whose sorted order matches ascending value", () => {
       const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 30, { level: 3, taskType: "order" });
       expect(tasks).toHaveLength(30);

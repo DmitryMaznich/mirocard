@@ -138,15 +138,30 @@ export function getVerdict(task) {
 // leaves room on the correct side within [min, max] so a valid tile exists.
 // The boundary value itself is always one of the wrong tiles, since it's the
 // most instructive near-miss for a strict "больше/меньше".
-function generateApplyGenerateTask(min, max) {
-  const op = Math.random() < 0.5 ? "more" : "less";
-  // value must sit strictly inside (min, max), for both ops: a value equal
-  // to the range's own boundary (e.g. "more than 1" when min is 1) leaves
-  // literally every other number fitting the constraint, so there'd be no
-  // real non-fitting distractor left to offer once value itself is dropped
-  // from the tile pool below (see the `wrong` comment).
-  const value = Math.floor(Math.random() * (max - min - 1)) + min + 1;
+// Every distinct (op, value) comparison possible for this level's range,
+// cycled in a fresh shuffled order before repeating — otherwise op/value
+// were drawn independently at random per task, and with as few as 16
+// combos at the lower levels, runs of the same comparison ("< 5" several
+// cards in a row, just with different distractor tiles) were common by
+// plain chance. Mirrors shuffledSceneCycle()'s same fix for
+// REAL_LIFE_SCENES below. value sits strictly inside (min, max) for both
+// ops — a value equal to the range's own boundary (e.g. "more than 1"
+// when min is 1) would leave every other number fitting the constraint,
+// so there'd be no real non-fitting distractor left to offer once value
+// itself is dropped from the tile pool (see generateApplyGenerateTask's
+// `wrong` comment).
+function* shuffledApplyComboCycle(min, max) {
+  const combos = [];
+  for (let value = min + 1; value <= max - 1; value++) {
+    combos.push({ op: "more", value });
+    combos.push({ op: "less", value });
+  }
+  for (;;) {
+    for (const combo of shuffle(combos)) yield combo;
+  }
+}
 
+function generateApplyGenerateTask(min, max, op, value) {
   const fits = (n) => (op === "more" ? n > value : n < value);
   const rest = [];
   for (let n = min; n <= max; n++) if (n !== value) rest.push(n);
@@ -271,12 +286,17 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       ? "Расставь числа по порядку"
       : "Выбери число";
     const orderDirection = sessionParams.orderDirection === "desc" ? "desc" : "asc";
+    const comboCycle = applyTaskType === "order" ? null : shuffledApplyComboCycle(min, max);
 
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      const base = applyTaskType === "order"
-        ? generateApplyOrderTask(min, max, numbersCount, orderDirection)
-        : generateApplyGenerateTask(min, max);
+      let base;
+      if (applyTaskType === "order") {
+        base = generateApplyOrderTask(min, max, numbersCount, orderDirection);
+      } else {
+        const { op, value } = comboCycle.next().value;
+        base = generateApplyGenerateTask(min, max, op, value);
+      }
       tasks.push({ type: mode.type, conceptId: card.conceptId, instruction, ...base });
     }
     return tasks;
