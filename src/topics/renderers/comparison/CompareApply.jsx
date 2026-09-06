@@ -17,9 +17,13 @@ import DrawingSignPad from "./DrawingSignPad";
 // real-world technique: write both numbers, draw the sign between them,
 // the skill he already has, rather than searching for an unknown). Every
 // tile is independently checked against its own true relationship to
-// task.value; getting a non-answer tile right just marks it done — only
-// drawing the correct sign on the tile that actually satisfies task.op
-// submits the task's answer, exactly as if it had been tapped.
+// task.value; a correct draw just marks that tile done (the one that
+// actually satisfies task.op gets a distinct highlight, so the hint can
+// point at the answer) — it never calls onAnswer itself. Stars only come
+// from tapping the plain tile for real (see tapOption): opening, using,
+// and closing the hint has no effect on scoring either way, so a child
+// who just peeks and doesn't answer through it loses nothing, and one who
+// solves it via the hint still has to tap the real tile to get credit.
 function GenerateStage({ task, answered, onAnswer, playFeedback }) {
   const [pickedIdx, setPickedIdx] = useState(-1);
   const [wrongIdx, setWrongIdx] = useState(-1);
@@ -52,15 +56,9 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
       return;
     }
     playFeedback?.("correct");
-    if (idx === matchIdx) {
-      // This tile's sign doesn't just match its own pair — it satisfies
-      // the task's actual condition, so drawing it here IS the answer,
-      // same as tapping the tile would have been.
-      setPickedIdx(idx);
-      setIsCorrectPick(true);
-      onAnswer(true);
-      return;
-    }
+    // Marks the tile done regardless of whether it's the actual answer —
+    // drawing here is scratch work, never a submission. See the comment
+    // above GenerateStage: onAnswer only ever comes from tapOption.
     setHintDone((prev) => prev.map((v, i) => (i === idx ? true : v)));
   }
 
@@ -79,7 +77,10 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
         {task.options.map((n, i) => (
           <div key={i} className="apply-choice-cell">
             {hintActive ? (
-              <div className={`apply-hint-tile${hintDone[i] ? " apply-hint-tile--done" : ""}`}>
+              <div className={[
+                "apply-hint-tile",
+                hintDone[i] && (i === matchIdx ? "apply-hint-tile--match" : "apply-hint-tile--done"),
+              ].filter(Boolean).join(" ")}>
                 <div className="apply-hint-tile-num">{n}</div>
                 <DrawingSignPad
                   taskKey={`${task.conceptId}-hinttile-${i}`}
