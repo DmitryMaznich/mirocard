@@ -531,8 +531,11 @@ function ChooseNameTask({ task, mode, topicId, soundEnabled, playTopicFile, onCo
 function SortByAttributeTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onCardShown, onTap }) {
   const { speak } = useSpeech();
   const [result, setResult] = useState(null);
-  const instruction = task.sortBy === "category" ? "Кто это?" : "Ребёнок или взрослый?";
-  const audioPath = mode?.ui?.instructionAudio?.[task.sortBy]?.ru ?? null;
+  // people_names is this mode's only user, and only ever sorts by age now
+  // (see engine.js's generateSortByAttributeTasks) - the "category" grouping
+  // was cut as redundant with find_n, which already tests that discrimination.
+  const instruction = "Ребёнок или взрослый?";
+  const audioPath = mode?.ui?.instructionAudio?.age?.ru ?? null;
 
   useEffect(() => {
     setResult(null);
@@ -667,8 +670,7 @@ const TASK_RENDERERS = {
   choose_all:             ChooseAllTask,
   find_person_by_name:    FindNTask,
   generalisation_probe:   FindNTask,
-  pictogram_find_n:       FindNTask,
-  illustration_find_n:    FindNTask,
+  offphoto_find_n:        FindNTask,
   choose_name:            ChooseNameTask,
   sort_by_attribute:      SortByAttributeTask,
 };

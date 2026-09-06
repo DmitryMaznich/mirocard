@@ -335,16 +335,19 @@ function generateProbeTasks(concepts, params) {
   return generateFindNTasks(probeConcepts, params);
 }
 
-// Tests transfer to a different representation of the same category word
-// (a restroom-sign-style pictogram, or a drawn illustration) rather than to
-// a new photo of a new person - same generateFindNTasks task shape, pool
-// restricted to cards tagged with the given cardType. Every concept's
-// distractor options are drawn from the same cardType pool too (via
-// generateFindNTasks -> sameAgePool), so a pictogram target is never mixed
-// with a photo or illustration distractor in the same task.
-function generateCardTypeFindNTasks(concepts, params, cardType) {
+// Tests transfer to a representation of the same category word other than a
+// photo (a restroom-sign-style pictogram, or a drawn illustration) rather
+// than to a new photo of a new person - same generateFindNTasks task shape,
+// pool restricted to cards whose cardType is one of cardTypes. Pictogram and
+// illustration cards are deliberately pooled together (not two separate
+// modes): a target and its distractors can land in either style within the
+// same task, which tests that the word applies to the category regardless
+// of how it's drawn - a stronger check than two style-pure modes, and one
+// mode instead of two on the mode list.
+function generateCardTypeFindNTasks(concepts, params, cardTypes) {
+  const types = new Set(cardTypes);
   const typedConcepts = concepts
-    .map((c) => ({ ...c, cards: c.cards.filter((card) => card.cardType === cardType) }))
+    .map((c) => ({ ...c, cards: c.cards.filter((card) => types.has(card.cardType)) }))
     .filter((c) => c.cards.length > 0);
   return generateFindNTasks(typedConcepts, params);
 }
@@ -506,16 +509,14 @@ const SORT_GROUPS = {
     { value: "child", label: "Ребёнок" },
     { value: "adult", label: "Взрослый" },
   ],
-  category: [
-    { value: "boy", label: "Мальчик" },
-    { value: "girl", label: "Девочка" },
-    { value: "man", label: "Мужчина" },
-    { value: "woman", label: "Женщина" },
-  ],
 };
 
-function generateSortByAttributeTasks(concepts, params = {}) {
-  const sortBy = params.sortBy === "category" ? "category" : "age";
+// people_names is the only user of this mode type; it used to also offer
+// sortBy:"category" (мальчик/девочка/мужчина/женщина), cut as redundant with
+// find_n, which already drills that exact discrimination - age is the one
+// grouping this mode actually adds that nothing else tests.
+function generateSortByAttributeTasks(concepts) {
+  const sortBy = "age";
   const groups = SORT_GROUPS[sortBy];
   const cards = concepts.flatMap((concept) => concept.cards)
     .filter((card) => groups.some((group) => group.value === card?.semantic?.[sortBy]));
@@ -556,13 +557,12 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
     case "find_n":                 return generateFindNTasks(displayConcepts, params);
     case "generalisation_probe":   return generateProbeTasks(concepts, params);
-    case "pictogram_find_n":       return generateCardTypeFindNTasks(concepts, params, "pictogram");
-    case "illustration_find_n":    return generateCardTypeFindNTasks(concepts, params, "illustration");
+    case "offphoto_find_n":        return generateCardTypeFindNTasks(concepts, params, ["pictogram", "illustration"]);
     case "choose_word_by_picture": return generateChooseWordTasks(displayConcepts, params);
     case "choose_all":             return generateChooseAllTasks(displayConcepts, params);
     case "find_person_by_name":    return generateFindPersonByNameTasks(displayConcepts, params);
     case "choose_name":            return generateChooseNameTasks(displayConcepts, params);
-    case "sort_by_attribute":      return generateSortByAttributeTasks(displayConcepts, params);
+    case "sort_by_attribute":      return generateSortByAttributeTasks(displayConcepts);
     default:                       return [];
   }
 }

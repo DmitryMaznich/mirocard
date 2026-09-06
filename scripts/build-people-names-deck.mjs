@@ -62,23 +62,19 @@ topic.cards = cardsWithAudio;
 
 // Fixed-phrase audio not tied to any single card: choose_name's single
 // "Как зовут?" prompt (mode-level) and sort_by_attribute's two instructions
-// (one per sortBy value) - attached to the mode objects in-memory, same
-// audio-free-source convention as the card fields above.
+// (sort_by_attribute only has one instruction left since the "category"
+// grouping was cut as redundant with find_n) - attached to the mode objects
+// in-memory, same audio-free-source convention as the card fields above.
 const choosNameAudioPath = `${AUDIO_SRC_DIR}/choose_name_prompt.mp3`;
-const sortCategoryAudioPath = `${AUDIO_SRC_DIR}/sort_category.mp3`;
 const sortAgeAudioPath = `${AUDIO_SRC_DIR}/sort_age.mp3`;
 topic.modes = topic.modes.map((mode) => {
   if (mode.type === "choose_name" && existsSync(choosNameAudioPath)) {
     audioCount += 1;
     return { ...mode, promptAudio: { ru: "audio/choose_name_prompt.mp3" } };
   }
-  if (mode.type === "sort_by_attribute") {
-    const instructionAudio = {};
-    if (existsSync(sortCategoryAudioPath)) { instructionAudio.category = { ru: "audio/sort_category.mp3" }; audioCount += 1; }
-    if (existsSync(sortAgeAudioPath))      { instructionAudio.age      = { ru: "audio/sort_age.mp3" };      audioCount += 1; }
-    if (Object.keys(instructionAudio).length) {
-      return { ...mode, ui: { ...mode.ui, instructionAudio } };
-    }
+  if (mode.type === "sort_by_attribute" && existsSync(sortAgeAudioPath)) {
+    audioCount += 1;
+    return { ...mode, ui: { ...mode.ui, instructionAudio: { age: { ru: "audio/sort_age.mp3" } } } };
   }
   return mode;
 });
@@ -104,7 +100,7 @@ for (const card of topic.cards) {
 }
 
 for (const mode of topic.modes) {
-  for (const audioField of [mode.promptAudio, mode.ui?.instructionAudio?.category, mode.ui?.instructionAudio?.age]) {
+  for (const audioField of [mode.promptAudio, mode.ui?.instructionAudio?.age]) {
     if (!audioField?.ru) continue;
     const fileName = audioField.ru.split("/").at(-1);
     zip.file(audioField.ru, readFileSync(`${AUDIO_SRC_DIR}/${fileName}`));

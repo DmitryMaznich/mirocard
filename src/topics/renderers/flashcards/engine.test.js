@@ -106,7 +106,7 @@ describe("generateTasks — probeOnly cards", () => {
   });
 });
 
-describe("generateTasks — pictogram_find_n / illustration_find_n (cardType-scoped find_n)", () => {
+describe("generateTasks — offphoto_find_n (pictogram + illustration pooled together)", () => {
   const CARDS = [
     { id: "boy_1",         conceptId: "boy",  primary: true, label: "мальчик", image: "media/boy_1.webp" },
     { id: "boy_pictogram", conceptId: "boy",  image: "media/boy_pictogram.webp", cardType: "pictogram" },
@@ -117,22 +117,21 @@ describe("generateTasks — pictogram_find_n / illustration_find_n (cardType-sco
   ];
   const CONCEPTS = deriveConcepts(CARDS);
 
-  it("pictogram_find_n only ever targets pictogram cards", () => {
-    const tasks = generateTasks("pictogram_find_n", CONCEPTS, CARDS, { optionCount: 2 });
-    expect(tasks.length).toBeGreaterThan(0);
-    for (const task of tasks) {
-      const target = task.options.find((o) => o.isTarget);
-      expect(target.card.cardType).toBe("pictogram");
+  it("offphoto_find_n only ever targets pictogram or illustration cards, drawing on both", () => {
+    const targetTypes = new Set();
+    for (let i = 0; i < 20; i++) {
+      const tasks = generateTasks("offphoto_find_n", CONCEPTS, CARDS, { optionCount: 2 });
+      expect(tasks.length).toBeGreaterThan(0);
+      for (const task of tasks) {
+        const target = task.options.find((o) => o.isTarget);
+        expect(["pictogram", "illustration"]).toContain(target.card.cardType);
+        targetTypes.add(target.card.cardType);
+      }
     }
-  });
-
-  it("illustration_find_n only ever targets illustration cards", () => {
-    const tasks = generateTasks("illustration_find_n", CONCEPTS, CARDS, { optionCount: 2 });
-    expect(tasks.length).toBeGreaterThan(0);
-    for (const task of tasks) {
-      const target = task.options.find((o) => o.isTarget);
-      expect(target.card.cardType).toBe("illustration");
-    }
+    // Over enough runs both cardTypes must actually show up as targets -
+    // pooling them is the whole point, not just falling back to one.
+    expect(targetTypes.has("pictogram")).toBe(true);
+    expect(targetTypes.has("illustration")).toBe(true);
   });
 
   it("pictogram and illustration cards never appear in intro or plain find_n", () => {
@@ -144,13 +143,12 @@ describe("generateTasks — pictogram_find_n / illustration_find_n (cardType-sco
     }
   });
 
-  it("a topic with no pictogram/illustration cards produces no tasks for either mode (regression guard)", () => {
+  it("a topic with no pictogram/illustration cards produces no tasks (regression guard)", () => {
     const PLAIN_CARDS = [
       { id: "t1", conceptId: "tshirt", primary: true, label: "футболка", image: "media/t1.webp" },
     ];
     const plainConcepts = deriveConcepts(PLAIN_CARDS);
-    expect(generateTasks("pictogram_find_n", plainConcepts, PLAIN_CARDS, {})).toHaveLength(0);
-    expect(generateTasks("illustration_find_n", plainConcepts, PLAIN_CARDS, {})).toHaveLength(0);
+    expect(generateTasks("offphoto_find_n", plainConcepts, PLAIN_CARDS, {})).toHaveLength(0);
   });
 });
 
@@ -617,19 +615,13 @@ describe("generateTasks — people, names, and attributes", () => {
     }
   });
 
-  it("sorts the same people by age with exactly two groups", () => {
-    const tasks = generateTasks("sort_by_attribute", PEOPLE_CONCEPTS, PEOPLE_CARDS, { sortBy: "age" });
+  it("sorts the same people by age with exactly two groups (the only grouping this mode offers)", () => {
+    const tasks = generateTasks("sort_by_attribute", PEOPLE_CONCEPTS, PEOPLE_CARDS);
     expect(tasks).toHaveLength(PEOPLE_CARDS.length);
     expect(tasks[0].groups).toEqual([
       { value: "child", label: "Ребёнок" },
       { value: "adult", label: "Взрослый" },
     ]);
     expect(tasks.map((task) => task.targetValue).sort()).toEqual(["adult", "adult", "child", "child"]);
-  });
-
-  it("sorts the same people by the four learned category words", () => {
-    const tasks = generateTasks("sort_by_attribute", PEOPLE_CONCEPTS, PEOPLE_CARDS, { sortBy: "category" });
-    expect(tasks[0].groups.map((group) => group.value)).toEqual(["boy", "girl", "man", "woman"]);
-    expect(tasks.map((task) => task.targetValue).sort()).toEqual(["boy", "girl", "man", "woman"]);
   });
 });
