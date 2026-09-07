@@ -31,13 +31,12 @@ export const DEPLOY_FRONTEND_DIR =
 // Only Railway (no Caddy in front) needs the backend to serve the built SPA itself.
 export const SERVE_STATIC = readEnv("SERVE_STATIC") === "1";
 
-// Email (password reset)
-export const SMTP_HOST    = readEnv("SMTP_HOST");
-export const SMTP_PORT    = Number(readEnv("SMTP_PORT") || 587);
-export const SMTP_USER    = readEnv("SMTP_USER");
-export const SMTP_PASS    = readEnv("SMTP_PASS");
-export const SMTP_FROM    = readEnv("SMTP_FROM") || "Mirocard <noreply@mirocard.app>";
-export const APP_BASE_URL = readEnv("APP_BASE_URL") || "http://localhost:5174";
+// Email (password reset, verification) — sent via Resend's HTTPS API, not SMTP:
+// Railway blocks outbound SMTP on the Hobby plan, so a raw SMTP client can
+// never connect regardless of which mail server it targets.
+export const RESEND_API_KEY = readEnv("RESEND_API_KEY");
+export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mirocard <noreply@mirocard.app>";
+export const APP_BASE_URL   = readEnv("APP_BASE_URL") || "http://localhost:5174";
 
 // Admin
 export const ADMIN_TOKEN = readEnv("MIROCARD_ADMIN_TOKEN") || "dev-admin-token-change-me";
