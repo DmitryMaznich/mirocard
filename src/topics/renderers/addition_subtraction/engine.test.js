@@ -316,3 +316,39 @@ describe("operation_missing_term", () => {
     expect(tasks).toHaveLength(8);
   });
 });
+
+describe("operation_audio", () => {
+  it("generates tasks with operation_audio type", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 12, { maxNumber: 20 });
+    expect(tasks.every((t) => t.type === "operation_audio")).toBe(true);
+  });
+
+  it("keeps arithmetic valid for both operations", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 30, { maxNumber: 20 });
+    tasks.forEach((t) => {
+      if (t.operation === "add") expect(t.start + t.delta).toBe(t.result);
+      else expect(t.start - t.delta).toBe(t.result);
+      expect(t.result).toBeGreaterThanOrEqual(1);
+      expect(t.result).toBeLessThanOrEqual(20);
+    });
+  });
+
+  it("allows numbers up to 100, unlike the visual-rail modes capped at 20", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 30, { maxNumber: 100, changeMax: 40 });
+    expect(tasks.some((t) => t.start > 20 || t.result > 20)).toBe(true);
+    tasks.forEach((t) => {
+      expect(t.start).toBeLessThanOrEqual(100);
+      expect(t.result).toBeLessThanOrEqual(100);
+    });
+  });
+
+  it("can include zero when requested", () => {
+    const tasks = generateTasks("operation_audio", [CARDS[1]], 20, { maxNumber: 3, changeMax: 3, includeZero: true });
+    expect(tasks.every((t) => t.result >= 0)).toBe(true);
+  });
+
+  it("generates requested count", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 9, { maxNumber: 20 });
+    expect(tasks).toHaveLength(9);
+  });
+});

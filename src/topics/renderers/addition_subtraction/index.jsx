@@ -9,6 +9,8 @@ import {
   getStickSideCount,
   isStickComplete,
 } from "./stickModel";
+import { taskAudioKeys, audioKeyUrl } from "./audioNumbers";
+import { useAudioSequence } from "./useAudioSequence";
 
 
 const ACTION_OPTIONS_PAST = [
@@ -988,6 +990,129 @@ function MissingTermTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
+const AUDIO_MAX_DIGITS = 3;
+
+function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck }) {
+  return (
+    <div className="operation-audio-keypad">
+      <div className="operation-audio-keypad__grid">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
+          <button
+            key={d}
+            type="button"
+            className="operation-audio-key"
+            disabled={disabled || digits.length >= AUDIO_MAX_DIGITS}
+            onClick={() => onDigit(d)}
+          >
+            {d}
+          </button>
+        ))}
+      </div>
+      <div className="operation-audio-keypad__controls">
+        <button
+          type="button"
+          className="operation-audio-key operation-audio-key--action"
+          disabled={disabled || digits.length === 0}
+          onClick={onBackspace}
+          aria-label="Стереть"
+        >
+          ⌫
+        </button>
+        <button
+          type="button"
+          className="operation-audio-key operation-audio-key--check"
+          disabled={disabled || digits.length === 0}
+          onClick={onCheck}
+          aria-label="Проверить"
+        >
+          ✓
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AudioOperationTask({ task, onCorrect, onIncorrect }) {
+  const [digits, setDigits] = useState([]);
+  const [wrong, setWrong] = useState(false);
+  const [answered, setAnswered] = useState(false);
+  const { isPlaying, play } = useAudioSequence();
+  const wrongTimerRef = useRef(null);
+
+  const playPrompt = useCallback(() => {
+    play(taskAudioKeys(task).map(audioKeyUrl));
+  }, [play, task]);
+
+  useEffect(() => {
+    playPrompt();
+    return () => clearTimeout(wrongTimerRef.current);
+  }, [playPrompt]);
+
+  function addDigit(d) {
+    if (answered || digits.length >= AUDIO_MAX_DIGITS) return;
+    setDigits((prev) => [...prev, d]);
+  }
+
+  function removeDigit() {
+    if (answered) return;
+    setDigits((prev) => prev.slice(0, -1));
+  }
+
+  function checkAnswer() {
+    if (answered || digits.length === 0) return;
+    const value = Number(digits.join(""));
+    if (value === task.result) {
+      setAnswered(true);
+      onCorrect(task.conceptId, task.cardId);
+    } else {
+      setWrong(true);
+      onIncorrect(task.conceptId, task.cardId);
+      wrongTimerRef.current = setTimeout(() => { setWrong(false); setDigits([]); }, 550);
+    }
+  }
+
+  const displayValue = answered ? String(task.result) : digits.join("");
+
+  return (
+    <div className="operation-stage operation-stage--audio">
+      <div className="operation-audio">
+        <div className={`operation-audio-diktor${isPlaying ? " operation-audio-diktor--playing" : ""}`}>
+          <span className="operation-audio-bar" />
+          <span className="operation-audio-bar" />
+          <span className="operation-audio-bar" />
+          <span className="operation-audio-bar" />
+        </div>
+        <button
+          type="button"
+          className="operation-audio-replay"
+          onClick={playPrompt}
+          aria-label="Повторить пример"
+        >
+          ↻ Ещё раз
+        </button>
+        <div
+          className={[
+            "operation-audio-answer",
+            wrong ? "operation-audio-answer--wrong" : "",
+            answered ? "operation-audio-answer--correct" : "",
+          ].filter(Boolean).join(" ")}
+        >
+          {displayValue || "?"}
+        </div>
+        {!answered && (
+          <AudioAnswerPad
+            digits={digits}
+            disabled={wrong}
+            onDigit={addDigit}
+            onBackspace={removeDigit}
+            onCheck={checkAnswer}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled }) {
   const type = task.type;
 
@@ -1016,6 +1141,9 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
   }
   if (type === "operation_result") {
     return <ResultTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
+  }
+  if (type === "operation_audio") {
+    return <AudioOperationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;
   }
   if (type === "operation_chain") {
     return <ChainTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} />;

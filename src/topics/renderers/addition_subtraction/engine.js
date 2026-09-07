@@ -146,6 +146,43 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
   };
 }
 
+const AUDIO_DEFAULT_MAX_NUMBER = 20;
+const AUDIO_HARD_CAP = 100;
+
+// Spoken-example task: no visual rail, so unlike buildOperationTask this
+// isn't clamped to DEFAULT_RAIL_SIZE (20) — a diktor can say "сорок пять"
+// as easily as "пять", so maxNumber can go up to AUDIO_HARD_CAP.
+function buildAudioTask(card, params = {}) {
+  const operation = normalizeOperation(card.params?.operation);
+  const maxNumber = Math.max(3, Math.min(AUDIO_HARD_CAP, toNumber(params.maxNumber, AUDIO_DEFAULT_MAX_NUMBER)));
+  const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, maxNumber)));
+  const includeZero = Boolean(params.includeZero);
+  const minVal = includeZero ? 0 : 1;
+
+  const delta = randomInt(1, changeMax);
+  let start, result;
+
+  if (operation === "add") {
+    start = randomInt(minVal, Math.max(minVal, maxNumber - delta));
+    result = start + delta;
+  } else {
+    start = randomInt(Math.max(minVal, delta + minVal), maxNumber);
+    result = start - delta;
+  }
+
+  return {
+    type: "operation_audio",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    operation,
+    sign: operation === "add" ? "+" : "-",
+    start,
+    delta,
+    result,
+    maxNumber,
+  };
+}
+
 function buildChainTask(card, params = {}) {
   const railSize = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.railSize ?? params.maxNumber, DEFAULT_RAIL_SIZE)));
   const maxNumber = railSize;
@@ -293,6 +330,12 @@ export function generateTasks(mode, cards, arg3, arg4) {
     return Array.from({ length: count }, (_, index) =>
       buildObserveTask(operationCards[index % operationCards.length], params, resolveObserveShape(index, params))
     );
+  }
+
+  if (modeType === "operation_audio") {
+    return shuffle(Array.from({ length: count }, (_, index) =>
+      buildAudioTask(operationCards[index % operationCards.length], params)
+    ));
   }
 
   if (modeType === "operation_worksheet") {
