@@ -183,7 +183,8 @@
   justify-content: flex-start;
 }
 .compare-body--multi > .compare-instruction,
-.compare-body--multi > .cfn-multi-divider {
+.compare-body--multi > .cfn-multi-divider,
+.compare-body--multi > .cfn-multi-buttons-wrap {
   flex-shrink: 0;
 }
 /* The answer buttons default to a vertical stack of three 88px buttons
@@ -202,18 +203,55 @@
   width: 100%; max-width: 400px;
   display: flex; flex-direction: column; gap: 4px;
   flex: 0 1 auto;
-  min-height: 0;
+  /* --multi-list-h (set by CompareEvaluate.jsx's MultiMode via
+     useLayoutEffect) is the real, measured leftover height — body's
+     clientHeight minus the actual rendered height of the instruction,
+     divider and button row. A pure-CSS "shrink to fit" was tried first
+     (this list sized off its own auto flex-basis, rows sized off
+     min/max-height), but that auto flex-basis is a *hypothetical* size
+     the browser estimates before layout is final, and with per-row
+     container-query font sizing that estimate didn't match the size this
+     element actually ends up with — the mismatch showed up two different
+     ways (10 rows on a small phone silently losing the bottom ones to
+     overflow:hidden below; the button row sliding off screen in
+     landscape, where this list is a 2-column grid instead). Reading the
+     real, already-laid-out sibling heights in JS sidesteps the estimate
+     entirely — nothing left to disagree with. min-height below is only a
+     floor for the brief instant before that first measurement lands. */
+  height: var(--multi-list-h, auto);
+  min-height: calc(var(--multi-count, 3) * 32px - 4px);
   overflow: hidden;
 }
+/* Rows shrink together with the list (flex-shrink), so up to 10 rows
+   genuinely fit whatever vertical room .compare-body--multi has left above
+   the button row instead of relying on .cfn-multi's overflow:hidden to
+   silently clip whatever doesn't fit. A row used to be a fixed 56px
+   (flex: 0 0 56px) specifically to stop its digits from overlapping the
+   row above/below when the row got squeezed — text sized for 56px doesn't
+   shrink just because the box around it did. container-type: size + cqh
+   below fixes that at the root instead of avoiding it: font-size is a
+   fraction of the row's OWN resolved height, so it shrinks in lockstep
+   with the row and can never overflow it, whatever height the row ends up
+   at — 10 items on a short phone or 2 on a tall tablet both size
+   correctly with the same rule. min-height is only a last-resort floor for
+   a pathological viewport; overflow:hidden above is the final safety net,
+   not the normal path. */
 .cfn-multi-row {
-  /* flex-shrink: 0 — a row must never compress below its own content size.
-     It used to be shrinkable (flex: 0 1 56px), and on a real, height-
-     constrained phone viewport (no scroll — .session-stage is
-     overflow:hidden) that let rows collapse toward zero height while their
-     text stayed full size, visually overlapping neighboring rows instead
-     of the intended clip. Fixed size, and if space is ever still short,
-     .cfn-multi's own overflow:hidden clips the whole block cleanly instead. */
-  flex: 0 0 56px;
+  container-type: size;
+  /* flex-basis: 56px, not 0 — .cfn-multi's own height is itself resolved by
+     shrinking from ITS "auto" flex-basis, which the browser derives from
+     summing its children's hypothetical (flex-basis) sizes. flex-basis:0
+     made that sum ~0 regardless of item count, so .cfn-multi's own
+     computed height came out far too small for its content, and rows hit
+     their min-height floor and got clipped by .cfn-multi's overflow:hidden
+     even though the actual leftover screen space was plenty (10 rows would
+     silently render as only ~8). A real basis (the old fixed row height)
+     makes that sum reflect what the rows actually need, so shrinking
+     happens at the right level: .cfn-multi shrinks correctly against real
+     available space, then these rows shrink together within it. */
+  flex: 1 1 56px;
+  min-height: 28px;
+  max-height: 68px;
   display: flex; flex-direction: row; align-items: center; justify-content: center;
   gap: clamp(6px, 3vw, 14px);
   border-radius: 14px;
@@ -221,8 +259,8 @@
   transition: background 0.15s;
 }
 .cfn-multi-row--active { background: #f8fafc; }
-.cfn-multi-num  { min-width: 0; flex-shrink: 1; font-size: clamp(14px, calc(36px - var(--multi-count, 4) * 1.8px), 34px); font-weight: 900; color: #1e293b; text-align: center; }
-.cfn-multi-sign { align-self: stretch; aspect-ratio: 1; flex-shrink: 0; border-radius: 12px; border: 2.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: clamp(12px, calc(28px - var(--multi-count, 4) * 1.4px), 24px); font-weight: 900; color: #94a3b8; background: #fff; transition: background 0.2s, border-color 0.2s, color 0.2s; }
+.cfn-multi-num  { min-width: 0; flex-shrink: 1; font-size: clamp(13px, 56cqh, 34px); font-weight: 900; color: #1e293b; text-align: center; }
+.cfn-multi-sign { align-self: stretch; aspect-ratio: 1; flex-shrink: 0; border-radius: 12px; border: 2.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: clamp(11px, 42cqh, 24px); font-weight: 900; color: #94a3b8; background: #fff; transition: background 0.2s, border-color 0.2s, color 0.2s; }
 .cfn-multi-sign--active { border-style: solid; border-color: #f59e0b; background: #fef9c3; color: #d97706; }
 .cfn-multi-sign--done   { border-style: solid; border-color: #86efac; color: #16a34a; background: #f0fdf4; }
 .cfn-multi-sign--wrong  { border-style: solid; border-color: #fca5a5; background: #fef2f2; color: #dc2626; animation: cfn-shake 0.3s ease; }
@@ -580,4 +618,34 @@
   .croc-put-sign-btn  { width: 72px; height: 72px; font-size: 34px; }
   .cfn-options        { flex-direction: row; max-width: none; justify-content: center; }
   .cfn-btn            { min-height: 52px; min-width: 90px; flex: 1; max-width: 150px; padding: 0 8px; }
+
+  /* "Контрольная работа" (MultiMode) in landscape: a phone/tablet turned
+     sideways has width to spare and height to lose, so one long column of
+     up to 10 rows is the wrong shape twice over — flow the same rows into
+     two columns instead (grid-auto-flow:column + an explicit row count
+     from CompareEvaluate.jsx's --multi-rows, so column 2 only appears once
+     there are more than 5 items — see the JSX comment). Each column then
+     only ever needs to fit ≤5 rows, so rows can run taller/more readable
+     even on a short landscape viewport, and the extra width actually gets
+     used instead of sitting empty around a narrow centered list. */
+  .cfn-multi {
+    max-width: min(720px, 94vw);
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(var(--multi-rows, 5), minmax(0, 1fr));
+    grid-auto-columns: minmax(0, 1fr);
+    column-gap: clamp(16px, 4vw, 32px);
+    row-gap: 4px;
+    /* Each column holds --multi-rows rows now, not --multi-count — the
+       portrait floor above (sized for one long column) would force this
+       grid way taller than it needs once items are split two-wide. */
+    min-height: calc(var(--multi-rows, 5) * 28px - 4px);
+  }
+  /* A landscape phone (short height, e.g. ~390px) is the tightest real
+     case: even in the 2-column grid, 5 stacked rows can still be the
+     limiting factor. A slightly lower floor than portrait's 28px buys
+     back just enough room to fit legibly rather than overflowing the
+     button row off the bottom of the screen. */
+  .cfn-multi-row     { min-height: 24px; max-height: 100px; }
+  .cfn-multi-divider { max-width: min(720px, 94vw); }
 }

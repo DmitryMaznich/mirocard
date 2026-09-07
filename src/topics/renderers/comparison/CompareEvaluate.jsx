@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { getVerdict } from "./engine";
 
 const SIGN_CHAR = { less: "<", equal: "=", more: ">" };
@@ -183,9 +183,63 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
     return b;
   }
 
+  // In landscape (see comparison.css), the row list flows into two columns
+  // instead of one long one — grid-auto-flow:column needs an explicit row
+  // count to know when to wrap into the second column. 5 or fewer items
+  // stay a single column (rows === items.length, nothing left to wrap);
+  // more than that splits as evenly as possible across two.
+  const multiRows = items.length <= 5 ? items.length : Math.ceil(items.length / 2);
+
+  // How tall the row list (.cfn-multi) is allowed to be: exactly whatever's
+  // left in the body after its fixed-size siblings (instruction, divider,
+  // buttons) — measured directly with getBoundingClientRect rather than
+  // guessed with CSS. A pure-CSS "shrink to fit" was tried first (rows as
+  // flex/grid children sized off .cfn-multi's own auto flex-basis) but that
+  // basis is itself a *hypothetical* size the browser estimates before the
+  // real layout pass — with container-query font sizing on each row, that
+  // estimate doesn't match the size .cfn-multi actually gets, and the gap
+  // showed up two different ways (10 rows on a small phone silently losing
+  // the bottom ones to .cfn-multi's own overflow:hidden; the button row
+  // sliding off the bottom in landscape). Measuring the real, already-laid-
+  // out siblings sidesteps the estimate entirely — nothing left to
+  // disagree with. Runs in useLayoutEffect so the corrected height is
+  // already in place before the browser paints (no visible jump), and a
+  // ResizeObserver keeps it correct across rotation/resize.
+  const bodyRef     = useRef(null);
+  const instrRef    = useRef(null);
+  const dividerRef  = useRef(null);
+  const buttonsRef  = useRef(null);
+  const [listHeight, setListHeight] = useState(null);
+
+  useLayoutEffect(() => {
+    const body = bodyRef.current;
+    if (!body || !instrRef.current || !dividerRef.current || !buttonsRef.current) return;
+
+    function recalc() {
+      const gap = parseFloat(getComputedStyle(body).rowGap) || 0;
+      const used = instrRef.current.offsetHeight + dividerRef.current.offsetHeight + buttonsRef.current.offsetHeight + gap * 3;
+      setListHeight(Math.max(0, body.clientHeight - used));
+    }
+
+    recalc();
+    // Also watch the siblings themselves, not just body — a web-font swap
+    // (Nunito loading in after first paint) reflows the instruction/button
+    // text without necessarily resizing body itself, which would otherwise
+    // leave listHeight stale from the pre-font-load measurement.
+    const ro = new ResizeObserver(recalc);
+    ro.observe(body);
+    ro.observe(instrRef.current);
+    ro.observe(buttonsRef.current);
+    return () => ro.disconnect();
+  }, [items.length]);
+
   return (
-    <div className="compare-body compare-body--multi" style={{ "--multi-count": items.length }}>
-      <div className="compare-instruction">{task.instruction ?? "Поставь правильный знак между числами"}</div>
+    <div
+      ref={bodyRef}
+      className="compare-body compare-body--multi"
+      style={{ "--multi-count": items.length, "--multi-rows": multiRows, "--multi-list-h": listHeight != null ? `${listHeight}px` : undefined }}
+    >
+      <div ref={instrRef} className="compare-instruction">{task.instruction ?? "Поставь правильный знак между числами"}</div>
       <div className="cfn-multi">
         {items.map((item, i) => (
           <div key={i} className={`cfn-multi-row${focusIndex === i ? " cfn-multi-row--active" : ""}`}>
@@ -197,8 +251,10 @@ function MultiMode({ task, onCorrect, onMistake, playFeedback }) {
           </div>
         ))}
       </div>
-      <div className="cfn-multi-divider" />
-      <MultiButtons style={style} disabled={focusIndex >= items.length} onAnswer={handleAnswer} />
+      <div ref={dividerRef} className="cfn-multi-divider" />
+      <div ref={buttonsRef} className="cfn-multi-buttons-wrap">
+        <MultiButtons style={style} disabled={focusIndex >= items.length} onAnswer={handleAnswer} />
+      </div>
     </div>
   );
 }
