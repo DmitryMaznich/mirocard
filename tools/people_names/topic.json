@@ -2,11 +2,11 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.13.0",
+    "version": "1.14.0",
     "language": "ru",
     "customModesOnly": true,
     "loopModes": true,
-    "title": { "ru": "Кто это? Люди и имена" },
+    "title": { "ru": "Пол, возраст, имена" },
     "avatar": "media/avatar.svg",
     "about": {
       "description": {
