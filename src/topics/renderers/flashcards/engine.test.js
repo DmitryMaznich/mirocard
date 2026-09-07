@@ -525,6 +525,20 @@ describe("generateTasks — find_n respects semantic.age when present", () => {
     expect(tasks.length).toBeGreaterThan(0);
     expect(tasks.every((t) => t.options.length === 2)).toBe(true);
   });
+
+  // Regression: with only two concepts per age tier (child: boy/girl, adult:
+  // man/woman), the same-age narrowing used to apply unconditionally once it
+  // had 2+ members, so a 4-option request silently got only 2 real options
+  // (the requested optionCount was never consulted). Fixed by only narrowing
+  // when the same-age pool can actually fill the request.
+  it("4-option find_n pulls in the other age tier so all 4 options are real, not silently 2", () => {
+    for (let i = 0; i < 20; i++) {
+      const tasks = generateTasks("find_n", CONCEPTS, CARDS, { optionCount: 4 });
+      const boyTask = tasks.find((t) => t.targetConceptId === "boy");
+      expect(boyTask.options).toHaveLength(4);
+      expect(boyTask.options.map((o) => o.conceptId).sort()).toEqual(["boy", "girl", "man", "woman"]);
+    }
+  });
 });
 
 describe("generateTasks — choose_word_by_picture", () => {

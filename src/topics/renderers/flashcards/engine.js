@@ -270,16 +270,25 @@ function generateYesNoTasks(concepts, params) {
 // Some topics (e.g. people_names) document that one comparison axis (gender:
 // boy/girl, man/woman) must not be confounded with another one already encoded
 // by the same cards (age: child/adult). When the target has semantic.age,
-// narrow its distractor pool to concepts of the same age. This is a no-op for
-// ordinary flashcard topics and falls back to the full pool for small selections
-// where there is no same-age alternative.
-function sameAgePool(concept, concepts) {
+// narrow its distractor pool to concepts of the same age - but only when that
+// narrowed pool can actually fill the number of options the caller asked for
+// (minSize). people_names has exactly two concepts per age tier (child:
+// boy/girl, adult: man/woman), so a 2-option task always gets a same-age
+// pair; a 4-option task can never be filled from one age tier alone and must
+// fall back to the full 4-concept pool instead of silently shrinking to 2 -
+// pinning distractorCount to whatever the narrowed pool happens to have was
+// the bug (topics/renderers/flashcards/engine.js was ignoring optionCount
+// entirely once narrowed.length > 1, so "4 options" only ever showed 2).
+// This is a no-op for ordinary flashcard topics (no semantic.age at all) and
+// still falls back to the full pool for small selections with no same-age
+// alternative.
+function sameAgePool(concept, concepts, minSize = 2) {
   const age = concept.primary?.semantic?.age;
   if (!age) return concepts;
   const narrowed = concepts.filter(
     (candidate) => candidate.conceptId === concept.conceptId || candidate.primary?.semantic?.age === age
   );
-  return narrowed.length > 1 ? narrowed : concepts;
+  return narrowed.length >= minSize ? narrowed : concepts;
 }
 
 function generateFindNTasks(concepts, params) {
@@ -294,7 +303,7 @@ function generateFindNTasks(concepts, params) {
       // with 3 images must produce 3 find_n tasks (x reps), otherwise most of
       // its variations never appear in a session at all.
       for (const targetCard of concept.cards) {
-        const pool = sameAgePool(concept, concepts);
+        const pool = sameAgePool(concept, concepts, optionCount);
         const distractorCount = Math.min(optionCount - 1, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
           concept.conceptId, pool, distractorCount, difficulty
@@ -361,7 +370,7 @@ function generateChooseWordTasks(concepts, params) {
       // One task per photo variation, not one random pick per rep - see
       // generateFindNTasks for why.
       for (const targetCard of concept.cards) {
-        const pool = sameAgePool(concept, concepts);
+        const pool = sameAgePool(concept, concepts, 4);
         const distractorCount = Math.min(3, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
           concept.conceptId, pool, distractorCount, "medium"
