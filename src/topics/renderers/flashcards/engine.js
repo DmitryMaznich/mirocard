@@ -345,14 +345,14 @@ function generateProbeTasks(concepts, params) {
 }
 
 // Tests transfer to a representation of the same category word other than a
-// photo (a restroom-sign-style pictogram, or a drawn illustration) rather
-// than to a new photo of a new person - same generateFindNTasks task shape,
-// pool restricted to cards whose cardType is one of cardTypes. Pictogram and
-// illustration cards are deliberately pooled together (not two separate
-// modes): a target and its distractors can land in either style within the
-// same task, which tests that the word applies to the category regardless
-// of how it's drawn - a stronger check than two style-pure modes, and one
-// mode instead of two on the mode list.
+// photo (a restroom-sign-style pictogram, a drawn illustration, or a
+// classical statue) rather than to a new photo of a new person - same
+// generateFindNTasks task shape, pool restricted to cards whose cardType is
+// one of cardTypes. All non-photo styles are deliberately pooled together
+// (not separate modes per style): a target and its distractors can land in
+// any style within the same task, which tests that the word applies to the
+// category regardless of how it's drawn - a stronger check than style-pure
+// modes, and one mode instead of several on the mode list.
 function generateCardTypeFindNTasks(concepts, params, cardTypes) {
   const types = new Set(cardTypes);
   const typedConcepts = concepts
@@ -515,7 +515,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "yes_no":                 return generateYesNoTasks(displayConcepts, params);
     case "find_n":                 return generateFindNTasks(displayConcepts, params);
     case "generalisation_probe":   return generateProbeTasks(concepts, params);
-    case "offphoto_find_n":        return generateCardTypeFindNTasks(concepts, params, ["pictogram", "illustration"]);
+    case "offphoto_find_n":        return generateCardTypeFindNTasks(concepts, params, ["pictogram", "illustration", "sculpture"]);
     case "choose_word_by_picture": return generateChooseWordTasks(displayConcepts, params);
     case "choose_all":             return generateChooseAllTasks(displayConcepts, params);
     case "name_gender":            return generateNameGenderTasks(displayConcepts, allCards);

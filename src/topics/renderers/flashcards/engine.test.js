@@ -99,35 +99,38 @@ describe("generateTasks — probeOnly cards", () => {
   });
 });
 
-describe("generateTasks — offphoto_find_n (pictogram + illustration pooled together)", () => {
+describe("generateTasks — offphoto_find_n (pictogram + illustration + sculpture pooled together)", () => {
   const CARDS = [
     { id: "boy_1",         conceptId: "boy",  primary: true, label: "мальчик", image: "media/boy_1.webp" },
     { id: "boy_pictogram", conceptId: "boy",  image: "media/boy_pictogram.webp", cardType: "pictogram" },
     { id: "boy_illustration", conceptId: "boy", image: "media/boy_illustration.webp", cardType: "illustration" },
+    { id: "boy_sculpture", conceptId: "boy", image: "media/boy_sculpture.webp", cardType: "sculpture" },
     { id: "girl_1",         conceptId: "girl", primary: true, label: "девочка", image: "media/girl_1.webp" },
     { id: "girl_pictogram", conceptId: "girl", image: "media/girl_pictogram.webp", cardType: "pictogram" },
     { id: "girl_illustration", conceptId: "girl", image: "media/girl_illustration.webp", cardType: "illustration" },
+    { id: "girl_sculpture", conceptId: "girl", image: "media/girl_sculpture.webp", cardType: "sculpture" },
   ];
   const CONCEPTS = deriveConcepts(CARDS);
 
-  it("offphoto_find_n only ever targets pictogram or illustration cards, drawing on both", () => {
+  it("offphoto_find_n only ever targets pictogram, illustration, or sculpture cards, drawing on all three", () => {
     const targetTypes = new Set();
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
       const tasks = generateTasks("offphoto_find_n", CONCEPTS, CARDS, { optionCount: 2 });
       expect(tasks.length).toBeGreaterThan(0);
       for (const task of tasks) {
         const target = task.options.find((o) => o.isTarget);
-        expect(["pictogram", "illustration"]).toContain(target.card.cardType);
+        expect(["pictogram", "illustration", "sculpture"]).toContain(target.card.cardType);
         targetTypes.add(target.card.cardType);
       }
     }
-    // Over enough runs both cardTypes must actually show up as targets -
-    // pooling them is the whole point, not just falling back to one.
+    // Over enough runs all three cardTypes must actually show up as targets -
+    // pooling them is the whole point, not just falling back to one or two.
     expect(targetTypes.has("pictogram")).toBe(true);
     expect(targetTypes.has("illustration")).toBe(true);
+    expect(targetTypes.has("sculpture")).toBe(true);
   });
 
-  it("pictogram and illustration cards never appear in intro or plain find_n", () => {
+  it("pictogram, illustration, and sculpture cards never appear in intro or plain find_n", () => {
     const introTasks = generateTasks("intro", CONCEPTS, CARDS, {});
     expect(introTasks).toHaveLength(2); // boy_1, girl_1 only
     const findNTasks = generateTasks("find_n", CONCEPTS, CARDS, { optionCount: 2 });
@@ -136,7 +139,7 @@ describe("generateTasks — offphoto_find_n (pictogram + illustration pooled tog
     }
   });
 
-  it("a topic with no pictogram/illustration cards produces no tasks (regression guard)", () => {
+  it("a topic with no pictogram/illustration/sculpture cards produces no tasks (regression guard)", () => {
     const PLAIN_CARDS = [
       { id: "t1", conceptId: "tshirt", primary: true, label: "футболка", image: "media/t1.webp" },
     ];

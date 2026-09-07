@@ -2,7 +2,7 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.14.0",
+    "version": "1.15.0",
     "language": "ru",
     "customModesOnly": true,
     "loopModes": true,
@@ -231,7 +231,7 @@
         "icon": "media/icons/flashcards_pictogram.svg"
       },
       "methodology": {
-        "text": "Проверка переноса на изображения, непохожие на фотографию: условный знак (как на двери туалета) и нарисованный персонаж — вперемешку в одних и тех же заданиях. Слово должно применяться к категории независимо от того, как именно она нарисована, а не к одной картинке или стилю.",
+        "text": "Проверка переноса на изображения, непохожие на фотографию: условный знак (как на двери туалета), нарисованный персонаж и классическая скульптура — вперемешку в одних и тех же заданиях. Слово должно применяться к категории независимо от того, как именно она изображена, а не к одной картинке или стилю.",
         "tips": [
           "Проводите после уверенной работы с фотографиями (режимы 2 и 3).",
           "Если ребёнок не узнаёт эти картинки — это не ошибка понимания слова, а отдельный навык (символическое/схематичное изображение); вернитесь к этому режиму позже.",
@@ -437,6 +437,114 @@
       "promptSpeech": "Покажи женщину.",
       "semantic": { "age": "adult", "category": "woman" },
       "tags": ["adults", "people", "probe"]
+    },
+    {
+      "id": "boy_sport",
+      "conceptId": "boy",
+      "image": "media/people/boy_sport.webp",
+      "speech": "Это мальчик.",
+      "promptSpeech": "Покажи мальчика.",
+      "semantic": { "age": "child", "category": "boy" },
+      "tags": ["children", "people", "generalisation"]
+    },
+    {
+      "id": "girl_dress",
+      "conceptId": "girl",
+      "image": "media/people/girl_dress.webp",
+      "speech": "Это девочка.",
+      "promptSpeech": "Покажи девочку.",
+      "semantic": { "age": "child", "category": "girl" },
+      "tags": ["children", "people", "generalisation"]
+    },
+    {
+      "id": "man_beard",
+      "conceptId": "man",
+      "image": "media/people/man_beard.webp",
+      "speech": "Это мужчина.",
+      "promptSpeech": "Покажи мужчину.",
+      "semantic": { "age": "adult", "category": "man" },
+      "tags": ["adults", "people", "generalisation"]
+    },
+    {
+      "id": "woman_dress",
+      "conceptId": "woman",
+      "image": "media/people/woman_dress.webp",
+      "speech": "Это женщина.",
+      "promptSpeech": "Покажи женщину.",
+      "semantic": { "age": "adult", "category": "woman" },
+      "tags": ["adults", "people", "generalisation"]
+    },
+    {
+      "id": "boy_illustration_cap",
+      "conceptId": "boy",
+      "cardType": "illustration",
+      "image": "media/people/boy_illustration_cap.webp",
+      "promptSpeech": "Покажи мальчика.",
+      "semantic": { "age": "child", "category": "boy" },
+      "tags": ["children", "people", "illustration"]
+    },
+    {
+      "id": "girl_illustration_bow",
+      "conceptId": "girl",
+      "cardType": "illustration",
+      "image": "media/people/girl_illustration_bow.webp",
+      "promptSpeech": "Покажи девочку.",
+      "semantic": { "age": "child", "category": "girl" },
+      "tags": ["children", "people", "illustration"]
+    },
+    {
+      "id": "man_illustration_mustache",
+      "conceptId": "man",
+      "cardType": "illustration",
+      "image": "media/people/man_illustration_mustache.webp",
+      "promptSpeech": "Покажи мужчину.",
+      "semantic": { "age": "adult", "category": "man" },
+      "tags": ["adults", "people", "illustration"]
+    },
+    {
+      "id": "woman_illustration_heels",
+      "conceptId": "woman",
+      "cardType": "illustration",
+      "image": "media/people/woman_illustration_heels.webp",
+      "promptSpeech": "Покажи женщину.",
+      "semantic": { "age": "adult", "category": "woman" },
+      "tags": ["adults", "people", "illustration"]
+    },
+    {
+      "id": "boy_sculpture",
+      "conceptId": "boy",
+      "cardType": "sculpture",
+      "image": "media/people/boy_sculpture.webp",
+      "promptSpeech": "Покажи мальчика.",
+      "semantic": { "age": "child", "category": "boy" },
+      "tags": ["children", "people", "sculpture"]
+    },
+    {
+      "id": "girl_sculpture",
+      "conceptId": "girl",
+      "cardType": "sculpture",
+      "image": "media/people/girl_sculpture.webp",
+      "promptSpeech": "Покажи девочку.",
+      "semantic": { "age": "child", "category": "girl" },
+      "tags": ["children", "people", "sculpture"]
+    },
+    {
+      "id": "man_sculpture",
+      "conceptId": "man",
+      "cardType": "sculpture",
+      "image": "media/people/man_sculpture.webp",
+      "promptSpeech": "Покажи мужчину.",
+      "semantic": { "age": "adult", "category": "man" },
+      "tags": ["adults", "people", "sculpture"]
+    },
+    {
+      "id": "woman_sculpture",
+      "conceptId": "woman",
+      "cardType": "sculpture",
+      "image": "media/people/woman_sculpture.webp",
+      "promptSpeech": "Покажи женщину.",
+      "semantic": { "age": "adult", "category": "woman" },
+      "tags": ["adults", "people", "sculpture"]
     },
     {
       "id": "name_petya",
