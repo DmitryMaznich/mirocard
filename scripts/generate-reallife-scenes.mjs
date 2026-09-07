@@ -655,6 +655,7 @@ be exact: 2 legs on the boy, 4 legs on the dog.`,
     id: "wheels_bike_car", item: "колёс", left: 2, right: 4,
     nameA: "велосипеда", nameANom: "Велосипед", genderA: "object",
     nameB: "машины", nameBNom: "Машина", genderB: "object",
+    askKind: "what", // inanimate: "у чего", not "у кого"
     prompt: `${STYLE}
 
 Scene: a bright residential street with a light blue sky, a simple sidewalk
@@ -678,6 +679,7 @@ must be exact: 2 wheels on the bicycle, 4 wheels on the car.`,
     id: "windows_house_building", item: "окон", left: 2, right: 6,
     nameA: "домика", nameANom: "Домик", genderA: "object",
     nameB: "дома", nameBNom: "Дом", genderB: "object",
+    askKind: "what", // inanimate: "у чего", not "у кого"
     prompt: `${STYLE}
 
 Scene: a cheerful street with a light blue sky and a few fluffy clouds, a
@@ -703,6 +705,7 @@ exact: 2 windows on the cottage, 6 windows on the taller building.`,
     id: "petals_tulip_daisy", item: "лепестков", left: 4, right: 8,
     nameA: "тюльпана", nameANom: "Тюльпан", genderA: "object",
     nameB: "ромашки", nameBNom: "Ромашка", genderB: "object",
+    askKind: "what", // inanimate: "у чего", not "у кого"
     prompt: `${STYLE}
 
 Scene: a simple sunny garden bed with soft green grass and a light blue sky in
@@ -728,6 +731,12 @@ petals on the tulip, 8 petals on the daisy.`,
     id: "train_cars_equal", item: "вагонов", left: 3, right: 3,
     nameA: "жёлтого поезда", nameANom: "Жёлтый поезд", genderA: "object",
     nameB: "синего поезда", nameBNom: "Синий поезд", genderB: "object",
+    // вагоны — составные части одного целого (как страницы книги), а не
+    // прикреплённый снаружи придаток (как колёса/крылья): естественный
+    // русский вопрос — "где", не "у кого/чего" ("в поезде десять вагонов",
+    // не "у поезда десять вагонов").
+    askKind: "where", prep: "в",
+    nameALoc: "жёлтом поезде", nameBLoc: "синем поезде",
     prompt: `${STYLE}
 
 Scene: a cheerful countryside scene with a light blue sky, soft green hills,
@@ -755,6 +764,10 @@ visibly look the same length at a glance.`,
     id: "floors_cottage_skyscraper", item: "этажей", left: 1, right: 5,
     nameA: "коттеджа", nameANom: "Коттедж", genderA: "object",
     nameB: "небоскрёба", nameBNom: "Небоскрёб", genderB: "object",
+    // этажи — внутренняя составляющая здания: "в доме пять этажей", а не
+    // "у дома пять этажей" — see train_cars_equal's comment above.
+    askKind: "where", prep: "в",
+    nameALoc: "коттедже", nameBLoc: "небоскрёбе",
     prompt: `${STYLE}
 
 Scene: a bright city-meets-countryside skyline with a light blue sky and a few
@@ -780,6 +793,10 @@ exact: 1 floor on the cottage, 5 floors on the skyscraper.`,
     id: "stairs_small_tall", item: "ступенек", left: 3, right: 7,
     nameA: "маленькой лестницы", nameANom: "Маленькая лестница", genderA: "object",
     nameB: "большой лестницы", nameBNom: "Большая лестница", genderB: "object",
+    // ступеньки — часть лестницы, на которой стоят: "на лестнице десять
+    // ступенек", а не "у лестницы десять ступенек".
+    askKind: "where", prep: "на",
+    nameALoc: "маленькой лестнице", nameBLoc: "большой лестнице",
     prompt: `${STYLE}
 
 Scene: a bright simple outdoor scene with a light blue sky and soft green
@@ -804,6 +821,7 @@ exact: 3 steps on the short staircase, 7 steps on the tall staircase.`,
     id: "sails_boat_ship", item: "парусов", left: 1, right: 2,
     nameA: "лодки", nameANom: "Лодка", genderA: "object",
     nameB: "яхты", nameBNom: "Яхта", genderB: "object",
+    askKind: "what", // inanimate: "у чего", not "у кого"
     prompt: `${STYLE}
 
 Scene: a cheerful sea scene with a light blue sky, a few soft clouds, and calm
@@ -834,6 +852,7 @@ sail on the small dinghy, 2 sails on the yacht — count the masts to check:
     id: "buttons_shirt_coat", item: "пуговиц", left: 3, right: 6,
     nameA: "рубашки", nameANom: "Рубашка", genderA: "object",
     nameB: "пальто", nameBNom: "Пальто", genderB: "object",
+    askKind: "what", // inanimate: "у чего", not "у кого"
     prompt: `${STYLE}
 
 Scene: a simple cozy indoor scene with a soft pastel wall and a wooden floor,
@@ -936,6 +955,13 @@ for (const scene of SCENES) {
     nameA: scene.nameA, nameANom: scene.nameANom, genderA: scene.genderA,
     nameB: scene.nameB, nameBNom: scene.nameBNom, genderB: scene.genderB,
     ...(scene.containerPhrase ? { containerPhrase: scene.containerPhrase } : {}),
+    // askKind: "who" (default, animate — "У кого больше ног?") | "what"
+    // (inanimate appendage — "У чего больше колёс?") | "where" (inanimate,
+    // internal/sequential part — "Где больше вагонов?", answered "в/на X").
+    ...(scene.askKind ? { askKind: scene.askKind } : {}),
+    ...(scene.prep ? { prep: scene.prep } : {}),
+    ...(scene.nameALoc ? { nameALoc: scene.nameALoc } : {}),
+    ...(scene.nameBLoc ? { nameBLoc: scene.nameBLoc } : {}),
     image: `data:image/jpeg;base64,${jpeg.toString("base64")}`,
   });
 }

@@ -86,10 +86,13 @@ export default function CompareRealLife({ task, onCorrect, onIncorrect, onAdvanc
             кого больше?"), and a bare initial letter risks reading as a
             literacy-task cue (this app also teaches the alphabet
             elsewhere) rather than a name marker. Tried a badge here once;
-            reverted after review — see git history. */}
-        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "a" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("a")}>У {task.nameA}</button>
+            reverted after review — see git history. labelA/labelB come
+            pre-built from engine.js ("У велосипеда" vs "В коттедже") since
+            which case/preposition applies depends on askKind, which this
+            component doesn't need to know about. */}
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "a" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("a")}>{task.labelA}</button>
         <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "equal" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("equal")}>Поровну</button>
-        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "b" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("b")}>У {task.nameB}</button>
+        <button type="button" disabled={locked} className={`cfn-btn${wrongPick === "b" ? " cfn-btn--wrong" : ""}`} onClick={() => handleAnswer("b")}>{task.labelB}</button>
       </div>
     </div>
   );

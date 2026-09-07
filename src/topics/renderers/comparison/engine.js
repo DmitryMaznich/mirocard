@@ -232,29 +232,65 @@ function realLifeTaskFromScene(scene, askDirection) {
   // воды?" reads as if the child should count something.
   const where = scene.containerPhrase ? `${scene.containerPhrase} ` : "";
   const askWord = askDirection === "less" ? "меньше" : "больше";
-  const instruction = `У кого ${where}${askWord} ${scene.item}?`;
 
   let correctAnswer;
   if (dataFact === "equal") correctAnswer = "equal";
   else if (askDirection === "less") correctAnswer = dataFact === "more" ? "b" : "a";
   else correctAnswer = dataFact === "more" ? "a" : "b";
 
-  const verdictText = dataFact === "equal"
-    ? `У ${scene.nameA} и ${scene.nameB} ${where}${scene.item} поровну.`
-    : correctAnswer === "a"
-      ? `У ${scene.nameA} ${where}${askWord} ${scene.item}, чем у ${scene.nameB}.`
-      : `У ${scene.nameB} ${where}${askWord} ${scene.item}, чем у ${scene.nameA}.`;
+  // Russian grammar forces a 3-way split here, not just "who vs. what":
+  // - "who" (default): both sides are animate (a child, an animal) — "У
+  //   кого больше ног?" / "У мальчика".
+  // - "what": inanimate but an externally attached/appended part (wheels,
+  //   windows, petals, sails, buttons) — "у кого" would be wrong (that's
+  //   the animate genitive interrogative), Russian wants "у чего".
+  // - "where": inanimate AND an internal/sequential part of a composite
+  //   whole (floors of a building, cars of a train, steps of a staircase)
+  //   — even "у чего" reads as a translation-ese calque here; a native
+  //   speaker asks "где" and answers "в доме"/"на лестнице" (locative,
+  //   not possessive) — see feedback thread on the leg/wheel/floor scene
+  //   batch, 2026-09-07: "не говорят у чего меньше ступенек — говорят,
+  //   где меньше, и отвечают в большой лестнице/в маленькой лестнице."
+  const askKind = scene.askKind ?? "who";
+
+  let instruction, labelA, labelB, verdictText;
+  if (askKind === "where") {
+    const prep = scene.prep;
+    instruction = `Где ${where}${askWord} ${scene.item}?`;
+    labelA = `${cap(prep)} ${scene.nameALoc}`;
+    labelB = `${cap(prep)} ${scene.nameBLoc}`;
+    verdictText = dataFact === "equal"
+      ? `${cap(prep)} ${scene.nameALoc} и ${prep} ${scene.nameBLoc} ${where}${scene.item} поровну.`
+      : correctAnswer === "a"
+        ? `${cap(prep)} ${scene.nameALoc} ${where}${askWord} ${scene.item}, чем ${prep} ${scene.nameBLoc}.`
+        : `${cap(prep)} ${scene.nameBLoc} ${where}${askWord} ${scene.item}, чем ${prep} ${scene.nameALoc}.`;
+  } else {
+    const interrogative = askKind === "what" ? "чего" : "кого";
+    instruction = `У ${interrogative} ${where}${askWord} ${scene.item}?`;
+    labelA = `У ${scene.nameA}`;
+    labelB = `У ${scene.nameB}`;
+    verdictText = dataFact === "equal"
+      ? `У ${scene.nameA} и ${scene.nameB} ${where}${scene.item} поровну.`
+      : correctAnswer === "a"
+        ? `У ${scene.nameA} ${where}${askWord} ${scene.item}, чем у ${scene.nameB}.`
+        : `У ${scene.nameB} ${where}${askWord} ${scene.item}, чем у ${scene.nameA}.`;
+  }
 
   return {
     left: scene.left, right: scene.right,
-    // nameA/nameB stay genitive (for "У ..." sentences above); nameANom/
-    // nameBNom are the plain nominative form ("Петя", not "Пети") for
-    // labeling the character directly on the scene image.
+    // nameA/nameB stay genitive ("мальчика", not the ready-made "У
+    // мальчика" — kept for tests/debugging even though the UI now reads
+    // labelA/labelB instead); nameANom/nameBNom are the plain nominative
+    // form ("Петя", not "Пети") for labeling the character directly on the
+    // scene image. labelA/labelB are the ready-to-render answer-button text
+    // (genitive "У X" or locative "В/На X" depending on askKind —
+    // CompareRealLife.jsx doesn't need to know which).
     nameA: scene.nameA, nameB: scene.nameB,
     nameANom: scene.nameANom, nameBNom: scene.nameBNom,
     genderA: scene.genderA, genderB: scene.genderB,
-    item: scene.item, containerPhrase: scene.containerPhrase,
-    correctAnswer, instruction, verdictText, image: scene.image,
+    item: scene.item, containerPhrase: scene.containerPhrase, askKind,
+    prep: scene.prep, nameALoc: scene.nameALoc, nameBLoc: scene.nameBLoc,
+    correctAnswer, instruction, verdictText, labelA, labelB, image: scene.image,
   };
 }
 

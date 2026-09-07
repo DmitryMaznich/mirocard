@@ -442,22 +442,42 @@ describe("generateTasks", () => {
     // generating arbitrary numbers — level and showEqual no longer apply
     // (ParamsScreen hides both controls for this mode; see isRealLifeMode).
 
+    // Russian grammar splits real-life scenes into three question shapes,
+    // not just "more vs. less" — see engine.js's realLifeTaskFromScene
+    // comment. Reconstructs the expected instruction/verdictText for
+    // whichever askKind a given scene carries, instead of assuming every
+    // scene phrases it "У кого ... больше ...?" the way the old bank
+    // (all animate children) always did.
+    function expectedInstruction(t, askWord) {
+      const where = t.containerPhrase ? `${t.containerPhrase} ` : "";
+      if (t.askKind === "where") return `Где ${where}${askWord} ${t.item}?`;
+      const interrogative = t.askKind === "what" ? "чего" : "кого";
+      return `У ${interrogative} ${where}${askWord} ${t.item}?`;
+    }
+    function expectedVerdict(t, askWord) {
+      const where = t.containerPhrase ? `${t.containerPhrase} ` : "";
+      const cap = (s) => s[0].toUpperCase() + s.slice(1);
+      if (t.askKind === "where") {
+        const { prep, nameALoc, nameBLoc } = t;
+        if (t.correctAnswer === "equal") return `${cap(prep)} ${nameALoc} и ${prep} ${nameBLoc} ${where}${t.item} поровну.`;
+        return t.correctAnswer === "a"
+          ? `${cap(prep)} ${nameALoc} ${where}${askWord} ${t.item}, чем ${prep} ${nameBLoc}.`
+          : `${cap(prep)} ${nameBLoc} ${where}${askWord} ${t.item}, чем ${prep} ${nameALoc}.`;
+      }
+      if (t.correctAnswer === "equal") return `У ${t.nameA} и ${t.nameB} ${where}${t.item} поровну.`;
+      return t.correctAnswer === "a"
+        ? `У ${t.nameA} ${where}${askWord} ${t.item}, чем у ${t.nameB}.`
+        : `У ${t.nameB} ${where}${askWord} ${t.item}, чем у ${t.nameA}.`;
+    }
+
     it("with the default 'more' question, correctAnswer always names the actual bigger character", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60);
       expect(tasks).toHaveLength(60);
       tasks.forEach((t) => {
         const real = t.left === t.right ? "equal" : t.left > t.right ? "a" : "b";
         expect(t.correctAnswer).toBe(real);
-        // A few scenes compare a continuous amount inside a container (water
-        // in a glass, porridge in a bowl) instead of counting discrete
-        // objects — those carry containerPhrase and thread it into both
-        // strings ("У кого в стакане больше воды?"), everything else uses
-        // the plain "У кого больше X?" object-counting phrasing.
-        const where = t.containerPhrase ? `${t.containerPhrase} ` : "";
-        expect(t.instruction).toBe(`У кого ${where}больше ${t.item}?`);
-        if (t.correctAnswer === "a") expect(t.verdictText).toBe(`У ${t.nameA} ${where}больше ${t.item}, чем у ${t.nameB}.`);
-        if (t.correctAnswer === "b") expect(t.verdictText).toBe(`У ${t.nameB} ${where}больше ${t.item}, чем у ${t.nameA}.`);
-        if (t.correctAnswer === "equal") expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${where}${t.item} поровну.`);
+        expect(t.instruction).toBe(expectedInstruction(t, "больше"));
+        expect(t.verdictText).toBe(expectedVerdict(t, "больше"));
       });
     });
 
@@ -465,20 +485,35 @@ describe("generateTasks", () => {
       const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, 60, { question: "less" });
       expect(tasks).toHaveLength(60);
       tasks.forEach((t) => {
-        const where = t.containerPhrase ? `${t.containerPhrase} ` : "";
-        expect(t.instruction).toBe(`У кого ${where}меньше ${t.item}?`);
+        expect(t.instruction).toBe(expectedInstruction(t, "меньше"));
         if (t.left === t.right) {
           expect(t.correctAnswer).toBe("equal");
         } else {
           // correctAnswer must be the side with the SMALLER count now.
           const smaller = t.left < t.right ? "a" : "b";
           expect(t.correctAnswer).toBe(smaller);
-          expect(t.verdictText).toBe(
-            t.correctAnswer === "a"
-              ? `У ${t.nameA} ${where}меньше ${t.item}, чем у ${t.nameB}.`
-              : `У ${t.nameB} ${where}меньше ${t.item}, чем у ${t.nameA}.`
-          );
+          expect(t.verdictText).toBe(expectedVerdict(t, "меньше"));
         }
+      });
+    });
+
+    it("uses 'у чего'/'где' instead of 'у кого' for inanimate scenes, matching the scene's askKind", () => {
+      // Regression guard for a shipped grammar bug: "У кого" is only valid
+      // Russian for animate referents. wheels/windows/petals/sails/buttons
+      // (external attached parts) need "у чего"; floors/train-cars/stairs
+      // (internal/sequential parts of one whole) need "где" + "в/на X", not
+      // any form of "у X" at all — see feedback thread 2026-09-07.
+      const tasks = generateTasks(MODE_REAL_LIFE, ALL_CARDS, REAL_LIFE_SCENES.length);
+      const byKind = { who: [], what: [], where: [] };
+      tasks.forEach((t) => byKind[t.askKind ?? "who"].push(t));
+      expect(byKind.what.length).toBeGreaterThan(0);
+      expect(byKind.where.length).toBeGreaterThan(0);
+      byKind.who.forEach((t) => expect(t.instruction).toMatch(/^У кого /));
+      byKind.what.forEach((t) => expect(t.instruction).toMatch(/^У чего /));
+      byKind.where.forEach((t) => {
+        expect(t.instruction).toMatch(/^Где /);
+        expect(t.labelA).toMatch(/^(В|На) /);
+        expect(t.labelB).toMatch(/^(В|На) /);
       });
     });
 
@@ -505,7 +540,7 @@ describe("generateTasks", () => {
       expect(tied.length).toBeGreaterThan(0);
       tied.forEach((t) => {
         expect(t.correctAnswer).toBe("equal");
-        expect(t.verdictText).toBe(`У ${t.nameA} и ${t.nameB} ${t.containerPhrase ? t.containerPhrase + " " : ""}${t.item} поровну.`);
+        expect(t.verdictText).toBe(expectedVerdict(t, "больше"));
       });
     });
 
