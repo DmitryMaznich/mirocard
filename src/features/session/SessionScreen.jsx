@@ -434,6 +434,7 @@ export default function SessionScreen() {
           rewardVideos={activeStudent.rewardVideos ?? []}
           studentId={activeStudent.id}
           onDismiss={clearRewardPending}
+          title={`Молодец! ${5 * answersPerStar} правильных подряд!`}
         />
       )}
 

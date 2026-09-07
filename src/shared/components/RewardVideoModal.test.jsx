@@ -89,4 +89,36 @@ describe("RewardVideoModal", () => {
 
     expect(calls).toEqual([0]); // fired exactly once, with the (only) live generation
   });
+
+  it("uses a threshold-neutral default title and a generic watch-video button label", async () => {
+    // Regression: the old hardcoded default ("Молодец! Пять правильных
+    // подряд!") lied whenever a student's streak threshold wasn't 5
+    // (answersPerStar 2 or 3 -> 10 or 15), and callers unrelated to the
+    // streak mechanism (column_addition's Контрольная работа, chat's
+    // reward button) never had a "five in a row" to report at all.
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} studentId="s1" onDismiss={() => {}} />
+      );
+    });
+    expect(container.querySelector(".reward-modal__title").textContent).toBe("Молодец! 🎉");
+    expect(container.querySelector(".reward-modal__btn--watch").textContent).toContain("Смотреть видео");
+    expect(container.querySelector(".reward-modal__btn--watch").textContent).not.toContain("мультик");
+  });
+
+  it("still supports a caller-supplied title (e.g. SessionScreen's real streak count)", async () => {
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <RewardVideoModal
+          rewardVideos={["https://youtu.be/aaaaaaaaaaa"]}
+          studentId="s1"
+          onDismiss={() => {}}
+          title="Молодец! 10 правильных подряд!"
+        />
+      );
+    });
+    expect(container.querySelector(".reward-modal__title").textContent).toBe("Молодец! 10 правильных подряд!");
+  });
 });

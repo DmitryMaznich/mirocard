@@ -14,7 +14,7 @@ export default function RewardVideoModal({
   rewardVideos = [],
   studentId,
   onDismiss,
-  title = "Молодец! Пять правильных подряд!",
+  title = "Молодец! 🎉",
 }) {
   const [videoUrl, setVideoUrl] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -92,7 +92,7 @@ export default function RewardVideoModal({
         <div className="reward-modal__title">{title}</div>
         <div className="reward-modal__actions">
           <button className="reward-modal__btn reward-modal__btn--watch" onClick={handleWatch}>
-            🎬 Смотреть мультик
+            🎬 Смотреть видео
           </button>
           <button className="reward-modal__btn reward-modal__btn--continue" onClick={onDismiss}>
             Продолжать занятие
