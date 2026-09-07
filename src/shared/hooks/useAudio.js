@@ -3,7 +3,7 @@ import { getDb, topics } from "@/core/db";
 
 const FEEDBACK_SOURCES = {
   correct: "/sounds/correct.wav",
-  incorrect: "/sounds/incorrect.mp3",
+  incorrect: "/sounds/incorrect.wav",
 };
 
 function createAudio(src) {
