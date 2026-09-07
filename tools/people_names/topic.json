@@ -2,7 +2,7 @@
   "meta": {
     "id": "people_names",
     "renderer": "flashcards",
-    "version": "1.11.0",
+    "version": "1.12.0",
     "language": "ru",
     "customModesOnly": true,
     "loopModes": true,
@@ -10,15 +10,14 @@
     "avatar": "media/avatar.svg",
     "about": {
       "description": {
-        "ru": "Учимся понимать и называть слова «мальчик», «девочка», «мужчина», «женщина», различать ребёнка и взрослого, а затем узнавать людей по имени."
+        "ru": "Учимся понимать и называть слова «мальчик», «девочка», «мужчина», «женщина», различать ребёнка и взрослого, а затем различать мужские и женские имена на слух."
       },
       "tips": [
         "Начните с двух слов: «мальчик» и «девочка». Выбирайте в настройках только эти карточки.",
-        "Режимы 1–6 закрепляют слова-категории со всех сторон (узнавание, обобщение, самостоятельный ответ, проверка) — только когда это устойчиво, переходите к именам (7–9). Возраст «ребёнок/взрослый» (режим 6) — отдельный навык, вводите его последним в этой группе, не раньше.",
-        "Имена здесь — названия конкретных людей. Не объясняйте их как правило, по которому всегда можно определить человека.",
-        "Восемь имён на карточках — не самоцель, а материал для навыка «имя ≠ категориальное слово». Как только ребёнок уверенно различает имя и категорию здесь, повторите тот же принцип на настоящих фото близких ребёнку людей (семья, воспитатели, друзья) — это и даст реальный перенос в повседневную жизнь.",
+        "Режимы 1–6 закрепляют слова-категории со всех сторон (узнавание, обобщение, самостоятельный ответ, проверка) — только когда это устойчиво, переходите к именам (режим 7). Возраст «ребёнок/взрослый» (режим 6) — отдельный навык, вводите его последним в этой группе, не раньше.",
+        "Режим «Мужское или женское имя?» учит другому навыку, чем может показаться: не запоминанию, как зовут конкретного человека на фото, а общей закономерности — по звучанию имени можно определить пол. Картинки мальчика/девочки на экране каждый раз новые и не привязаны к конкретному имени.",
         "Засчитывайте самостоятельный устный ответ, ответ на AAC или указание на картинку.",
-        "Считайте тему освоенной, когда режимы 2, 3, 5 и 8 несколько занятий подряд проходят без подсказок — тогда переходите к персонализации (фото близких) или к следующей теме. Режимы 10–11 — не тренировка, а диагностика: заходите туда, только когда основные режимы уже освоены."
+        "Считайте тему освоенной, когда режимы 2, 3, 5 и 7 несколько занятий подряд проходят без подсказок — тогда переходите к следующей теме. Режимы 8–9 — не тренировка, а диагностика: заходите туда, только когда основные режимы уже освоены."
       ]
     }
   },
@@ -174,77 +173,22 @@
       }
     },
     {
-      "id": "people_person_intro",
-      "type": "person_intro",
-      "evaluation": "none",
-      "ui": {
-        "title": "7. Это имя",
-        "instruction": "Посмотри и послушай",
-        "icon": "media/icons/flashcards_intro.svg"
-      },
-      "methodology": {
-        "text": "Тот же человек, но теперь звучит только имя, без слова-категории: «Это Петя». Имя не выводится из слова «мальчик» — оно вводится отдельно, как собственное название конкретного человека.",
-        "tips": [
-          "Проводите после уверенного различения слов «мальчик/девочка/мужчина/женщина» из режимов 2–3.",
-          "Не просите ребёнка повторить имя сразу — дайте время рассмотреть фотографию.",
-          "Если ребёнок сам называет имя — это хороший знак, но не требование этого режима.",
-          "Эти восемь имён — тренировочный материал, а не финальная цель: как только принцип усвоен, повторите его на фото реальных близких ребёнка."
-        ],
-        "duration": "2–3 минуты"
-      }
-    },
-    {
-      "id": "people_find_person_by_name",
-      "type": "find_person_by_name",
+      "id": "people_name_gender",
+      "type": "name_gender",
       "evaluation": "auto",
       "ui": {
-        "title": "8. Где это имя?",
-        "instruction": "Послушай имя и найди человека",
+        "title": "7. Мужское или женское имя?",
+        "instruction": "Послушай имя и нажми на картинку",
         "icon": "media/icons/flashcards_find_person_by_name.svg"
       },
       "methodology": {
-        "text": "Ребёнок слышит имя, например «Где Петя?», и ищет человека среди фотографий. Имя связано с конкретным персонажем, а не с правилом о людях вообще.",
+        "text": "Звучит имя (например, «Игорь»), на экране — фото мальчика и фото девочки. Ребёнок определяет, кому подходит имя. Это не тест на память о конкретном человеке (фото каждый раз разные и случайные) — это общая языковая закономерность: русские мужские и женские имена звучат по-разному, и это можно услышать без запоминания.",
         "tips": [
-          "Начните с двух имён, которые заметно различаются на слух: «Петя» и «Оля».",
-          "Сначала используйте два варианта; четыре добавляйте после уверенного успеха.",
-          "Отложите похожие или двусмысленные имена до следующего этапа."
+          "Пул из 24 имён специально широкий — цель обобщённое правило, а не заучивание конкретных пар «фото—имя».",
+          "Незнакомое ребёнку имя — это нормально: задача узнать пол по звучанию, а не вспомнить, кого так зовут.",
+          "Пара фотографий на экране не связана с прозвучавшим именем — это просто любой мальчик и любая девочка из уже знакомых карточек."
         ],
         "duration": "3–5 минут"
-      },
-      "params": {
-        "optionCount": {
-          "type": "enum",
-          "label": { "ru": "Вариантов" },
-          "values": [2, 4],
-          "default": 2
-        }
-      }
-    },
-    {
-      "id": "people_choose_name",
-      "type": "choose_name",
-      "evaluation": "auto",
-      "ui": {
-        "title": "9. Как зовут?",
-        "instruction": "Посмотри и выбери имя",
-        "icon": "media/icons/flashcards_choose_word.svg"
-      },
-      "methodology": {
-        "text": "Обратное направление к режиму 8: ребёнок видит человека и выбирает его имя. Направления не заменяют друг друга — умение узнать человека по имени не гарантирует умения назвать/выбрать имя по фото, и наоборот. Режим одновременно готовит к чтению коротких имён.",
-        "tips": [
-          "Перед выбором дайте ребёнку самому назвать имя — голосом, на AAC или жестом.",
-          "Для нечитающего ребёнка взрослый может прочитать варианты вслух.",
-          "Засчитывайте понимание и коммуникацию, а не только произношение."
-        ],
-        "duration": "3–5 минут"
-      },
-      "params": {
-        "optionCount": {
-          "type": "enum",
-          "label": { "ru": "Вариантов" },
-          "values": [2, 4],
-          "default": 2
-        }
       }
     },
     {
@@ -253,7 +197,7 @@
       "evaluation": "auto",
       "excludeFromLoop": true,
       "ui": {
-        "title": "10. Проверка переноса",
+        "title": "8. Проверка переноса",
         "instruction": "Послушай и нажми на картинку",
         "icon": "media/icons/flashcards_probe.svg"
       },
@@ -281,7 +225,7 @@
       "evaluation": "auto",
       "excludeFromLoop": true,
       "ui": {
-        "title": "11. Другое изображение",
+        "title": "9. Другое изображение",
         "instruction": "Послушай и нажми на картинку",
         "icon": "media/icons/flashcards_pictogram.svg"
       },
@@ -312,9 +256,7 @@
       "label": "мальчик",
       "image": "media/people/boy_peter.webp",
       "speech": "Это мальчик.",
-      "personSpeech": "Это Петя.",
       "promptSpeech": "Покажи мальчика.",
-      "person": { "id": "peter", "name": "Петя" },
       "semantic": { "age": "child", "category": "boy" },
       "tags": ["children", "people", "primary"]
     },
@@ -323,9 +265,7 @@
       "conceptId": "boy",
       "image": "media/people/boy_ilya.webp",
       "speech": "Это мальчик.",
-      "personSpeech": "Это Илья.",
       "promptSpeech": "Покажи мальчика.",
-      "person": { "id": "ilya", "name": "Илья" },
       "semantic": { "age": "child", "category": "boy" },
       "tags": ["children", "people", "generalisation"]
     },
@@ -336,9 +276,7 @@
       "label": "девочка",
       "image": "media/people/girl_olga.webp",
       "speech": "Это девочка.",
-      "personSpeech": "Это Оля.",
       "promptSpeech": "Покажи девочку.",
-      "person": { "id": "olga", "name": "Оля" },
       "semantic": { "age": "child", "category": "girl" },
       "tags": ["children", "people", "primary"]
     },
@@ -347,9 +285,7 @@
       "conceptId": "girl",
       "image": "media/people/girl_lena.webp",
       "speech": "Это девочка.",
-      "personSpeech": "Это Лена.",
       "promptSpeech": "Покажи девочку.",
-      "person": { "id": "lena", "name": "Лена" },
       "semantic": { "age": "child", "category": "girl" },
       "tags": ["children", "people", "generalisation"]
     },
@@ -360,9 +296,7 @@
       "label": "мужчина",
       "image": "media/people/man_igor.webp",
       "speech": "Это мужчина.",
-      "personSpeech": "Это Игорь.",
       "promptSpeech": "Покажи мужчину.",
-      "person": { "id": "igor", "name": "Игорь" },
       "semantic": { "age": "adult", "category": "man" },
       "tags": ["adults", "people", "primary"]
     },
@@ -371,9 +305,7 @@
       "conceptId": "man",
       "image": "media/people/man_sergey.webp",
       "speech": "Это мужчина.",
-      "personSpeech": "Это Сергей.",
       "promptSpeech": "Покажи мужчину.",
-      "person": { "id": "sergey", "name": "Сергей" },
       "semantic": { "age": "adult", "category": "man" },
       "tags": ["adults", "people", "generalisation"]
     },
@@ -384,9 +316,7 @@
       "label": "женщина",
       "image": "media/people/woman_anna.webp",
       "speech": "Это женщина.",
-      "personSpeech": "Это Анна.",
       "promptSpeech": "Покажи женщину.",
-      "person": { "id": "anna", "name": "Анна" },
       "semantic": { "age": "adult", "category": "woman" },
       "tags": ["adults", "people", "primary"]
     },
@@ -395,9 +325,7 @@
       "conceptId": "woman",
       "image": "media/people/woman_marina.webp",
       "speech": "Это женщина.",
-      "personSpeech": "Это Марина.",
       "promptSpeech": "Покажи женщину.",
-      "person": { "id": "marina", "name": "Марина" },
       "semantic": { "age": "adult", "category": "woman" },
       "tags": ["adults", "people", "generalisation"]
     },
@@ -508,6 +436,198 @@
       "promptSpeech": "Покажи женщину.",
       "semantic": { "age": "adult", "category": "woman" },
       "tags": ["adults", "people", "probe"]
+    },
+    {
+      "id": "name_petya",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Петя",
+      "promptSpeech": "Петя.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_ilya",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Илья",
+      "promptSpeech": "Илья.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_igor",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Игорь",
+      "promptSpeech": "Игорь.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_sergey",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Сергей",
+      "promptSpeech": "Сергей.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_dima",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Дима",
+      "promptSpeech": "Дима.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_maksim",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Максим",
+      "promptSpeech": "Максим.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_vanya",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Ваня",
+      "promptSpeech": "Ваня.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_kostya",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Костя",
+      "promptSpeech": "Костя.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_misha",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Миша",
+      "promptSpeech": "Миша.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_artem",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Артём",
+      "promptSpeech": "Артём.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_denis",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Денис",
+      "promptSpeech": "Денис.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_grisha",
+      "conceptId": "boy",
+      "cardType": "name_word",
+      "label": "Гриша",
+      "promptSpeech": "Гриша.",
+      "tags": ["names", "boy"]
+    },
+    {
+      "id": "name_olya",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Оля",
+      "promptSpeech": "Оля.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_lena",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Лена",
+      "promptSpeech": "Лена.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_anna",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Анна",
+      "promptSpeech": "Анна.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_marina",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Марина",
+      "promptSpeech": "Марина.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_katya",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Катя",
+      "promptSpeech": "Катя.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_masha",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Маша",
+      "promptSpeech": "Маша.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_nastya",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Настя",
+      "promptSpeech": "Настя.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_dasha",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Даша",
+      "promptSpeech": "Даша.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_yulya",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Юля",
+      "promptSpeech": "Юля.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_tanya",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Таня",
+      "promptSpeech": "Таня.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_vera",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Вера",
+      "promptSpeech": "Вера.",
+      "tags": ["names", "girl"]
+    },
+    {
+      "id": "name_sonya",
+      "conceptId": "girl",
+      "cardType": "name_word",
+      "label": "Соня",
+      "promptSpeech": "Соня.",
+      "tags": ["names", "girl"]
     }
   ]
 }

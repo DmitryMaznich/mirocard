@@ -5,10 +5,11 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 const TOPIC_PATH = "tools/people_names/topic.json";
 const ASSET_DIR = "public/decks/_assets/people_names";
 const CATALOG_PATH = "public/decks/catalog.json";
-// Where generate-people-names-audio.mjs (Gemini TTS) writes synthesized
-// .mp3 files. A card gets its `audio`/`personAudio` field only if the file
-// actually exists here - until then IntroTask/person_intro fall back to
-// browser TTS of speech/personSpeech (see flashcards/index.jsx).
+// Where generate-people-names-audio.mjs / generate-people-names-prompt-audio.mjs /
+// generate-people-names-name-audio.mjs (Gemini TTS) write synthesized .mp3
+// files. A card gets its `audio`/`promptAudio` field only if the file
+// actually exists here - until then IntroTask/FindNTask fall back to
+// browser TTS of speech/promptSpeech (see flashcards/index.jsx).
 const AUDIO_SRC_DIR = "public/decks/_audio_src/people_names";
 
 const AVATAR_PATH = "media/avatar.svg";
@@ -33,45 +34,37 @@ if (existsSync(zipPath)) {
 // the audio-free content source, same convention as build-word-agreement-deck.mjs.
 let audioCount = 0;
 const cardsWithAudio = topic.cards.map((card) => {
+  const isNameWord = card.cardType === "name_word";
+  // name_word cards have no card.speech (never rendered via IntroTask) - the
+  // file at {id}.mp3 for them is the name_gender prompt, not a "speech"
+  // line, so this must not double-attach it as card.audio too.
   const speechAudioPath = `${AUDIO_SRC_DIR}/${card.id}.mp3`;
-  const personAudioPath = `${AUDIO_SRC_DIR}/${card.id}_person.mp3`;
-  // promptAudio is shared per concept (every photo/pictogram/illustration/
-  // probe card of e.g. "boy" all say the same "Покажи мальчика.") - keyed by
-  // conceptId, not card id, so one recording covers every card of that concept.
-  const promptAudioPath = `${AUDIO_SRC_DIR}/prompt_${card.conceptId}.mp3`;
-  // personPromptAudio ("Где Петя?") only applies to cards with a named person.
-  const personPromptAudioPath = card.person
-    ? `${AUDIO_SRC_DIR}/where_${card.person.id}.mp3`
-    : null;
+  // name_word cards (the "Мужское или женское имя?" mode) each have their
+  // own distinct recording keyed by card id (name_petya.mp3, name_olya.mp3,
+  // ...) - every other card's promptAudio is shared per concept (every
+  // photo/pictogram/illustration/probe card of e.g. "boy" all say the same
+  // "Покажи мальчика."), keyed by conceptId so one recording covers all of
+  // them.
+  const promptAudioPath = isNameWord
+    ? `${AUDIO_SRC_DIR}/${card.id}.mp3`
+    : `${AUDIO_SRC_DIR}/prompt_${card.conceptId}.mp3`;
   const withAudio = {
     ...card,
-    ...(existsSync(speechAudioPath) && { audio: { ru: `audio/${card.id}.mp3` } }),
-    ...(existsSync(personAudioPath) && { personAudio: { ru: `audio/${card.id}_person.mp3` } }),
-    ...(existsSync(promptAudioPath) && { promptAudio: { ru: `audio/prompt_${card.conceptId}.mp3` } }),
-    ...(personPromptAudioPath && existsSync(personPromptAudioPath) && {
-      personPromptAudio: { ru: `audio/where_${card.person.id}.mp3` },
-    }),
+    ...(!isNameWord && existsSync(speechAudioPath) && { audio: { ru: `audio/${card.id}.mp3` } }),
+    ...(existsSync(promptAudioPath) && { promptAudio: { ru: `audio/${promptAudioPath.split("/").at(-1)}` } }),
   };
   if (withAudio.audio) audioCount += 1;
-  if (withAudio.personAudio) audioCount += 1;
   if (withAudio.promptAudio) audioCount += 1;
-  if (withAudio.personPromptAudio) audioCount += 1;
   return withAudio;
 });
 topic.cards = cardsWithAudio;
 
-// Fixed-phrase audio not tied to any single card: choose_name's single
-// "Как зовут?" prompt (mode-level) and sort_by_attribute's two instructions
-// (sort_by_attribute only has one instruction left since the "category"
-// grouping was cut as redundant with find_n) - attached to the mode objects
-// in-memory, same audio-free-source convention as the card fields above.
-const choosNameAudioPath = `${AUDIO_SRC_DIR}/choose_name_prompt.mp3`;
+// Fixed-phrase audio not tied to any single card: sort_by_attribute's one
+// remaining instruction (the "category" grouping was cut as redundant with
+// find_n) - attached to the mode object in-memory, same audio-free-source
+// convention as the card fields above.
 const sortAgeAudioPath = `${AUDIO_SRC_DIR}/sort_age.mp3`;
 topic.modes = topic.modes.map((mode) => {
-  if (mode.type === "choose_name" && existsSync(choosNameAudioPath)) {
-    audioCount += 1;
-    return { ...mode, promptAudio: { ru: "audio/choose_name_prompt.mp3" } };
-  }
   if (mode.type === "sort_by_attribute" && existsSync(sortAgeAudioPath)) {
     audioCount += 1;
     return { ...mode, ui: { ...mode.ui, instructionAudio: { age: { ru: "audio/sort_age.mp3" } } } };
@@ -84,15 +77,19 @@ zip.file("topic.json", JSON.stringify(topic, null, 2));
 zip.file(AVATAR_PATH, AVATAR_SVG);
 
 for (const card of topic.cards) {
-  const sourcePath = `${ASSET_DIR}/${card.id}.png`;
-  if (!existsSync(sourcePath)) throw new Error(`Missing people-names image: ${sourcePath}`);
-  const webp = await sharp(sourcePath)
-    .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
-    .webp({ quality: 88, smartSubsample: true })
-    .toBuffer();
-  zip.file(card.image, webp);
+  // name_word cards are text-only (a name spoken as a prompt) - they have
+  // no picture and no card.image to bundle.
+  if (card.cardType !== "name_word") {
+    const sourcePath = `${ASSET_DIR}/${card.id}.png`;
+    if (!existsSync(sourcePath)) throw new Error(`Missing people-names image: ${sourcePath}`);
+    const webp = await sharp(sourcePath)
+      .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 88, smartSubsample: true })
+      .toBuffer();
+    zip.file(card.image, webp);
+  }
 
-  for (const audioField of [card.audio, card.personAudio, card.promptAudio, card.personPromptAudio]) {
+  for (const audioField of [card.audio, card.promptAudio]) {
     if (!audioField?.ru) continue;
     const fileName = audioField.ru.split("/").at(-1);
     zip.file(audioField.ru, readFileSync(`${AUDIO_SRC_DIR}/${fileName}`));
@@ -122,7 +119,7 @@ const entry = {
   zipUrl: `${topicId}_v${version}.zip`,
   title: topic.meta.title,
   description: {
-    ru: "Мальчик, девочка, мужчина и женщина: узнавание людей, ребёнок / взрослый и первые русскоязычные имена на современных фотореалистичных карточках.",
+    ru: "Мальчик, девочка, мужчина и женщина: узнавание людей, ребёнок / взрослый и различение мужских и женских имён на слух.",
   },
   renderer: "flashcards",
   status: "beta",

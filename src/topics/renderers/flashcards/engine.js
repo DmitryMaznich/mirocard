@@ -418,88 +418,38 @@ function generateChooseAllTasks(concepts, params) {
   return shuffle(tasks);
 }
 
-// A person's name is an independent label for this particular photo, not a
-// property inferred from the category word. Keep the ordinary category intro
-// and this name-only exposure separate so the two verbal models are never
-// introduced as one rule. Also swaps card.audio for card.personAudio: once
-// pre-recorded audio exists, getTaskAudioPath (index.jsx) plays whatever is
-// in card.audio.ru unconditionally, so leaving the category line's
-// recording in place here would play "Это мальчик." on a screen captioned
-// "Петя" - a personAudio clip (or none, falling back to browser TTS of
-// personSpeech) must replace it, not stack with it.
-function generatePersonIntroTasks(concepts) {
-  return generateIntroTasks(concepts).map((task) => {
-    const person = task.card?.person;
-    return {
-      ...task,
-      type: "person_intro",
-      label: person?.name ?? task.label,
-      card: person?.name
-        ? { ...task.card, speech: task.card.personSpeech ?? task.card.speech, audio: task.card.personAudio }
-        : task.card,
-    };
-  });
-}
-
-function getPerson(card) {
-  if (!card?.person?.name) return null;
-  return {
-    id: card.person.id ?? card.id,
-    name: card.person.name,
-  };
-}
-
-function namedCards(concepts) {
-  return concepts.flatMap((concept) => concept.cards)
-    .filter((card) => Boolean(getPerson(card)));
-}
-
-// These two directions deliberately keep an individual person as the unit of
-// learning. A name is first an arbitrary, socially useful label for a person —
-// not a rule for inferring a person's category from spelling or sound.
-function generateFindPersonByNameTasks(concepts, params = {}) {
-  const cards = namedCards(concepts);
-  const optionCount = Math.max(2, Math.min(params.optionCount ?? 2, cards.length));
-  return shuffle(cards.map((targetCard) => {
-    const targetPerson = getPerson(targetCard);
-    const alternatives = shuffle(cards.filter((card) => getPerson(card)?.id !== targetPerson.id))
-      .slice(0, optionCount - 1);
+// Tests whether the child classifies a NAME as male or female by its own
+// sound/spelling - a generalizable linguistic pattern in Russian names -
+// rather than memorizing a specific photo-to-name binding. Replaces the
+// former person_intro/find_person_by_name/choose_name modes, which bound one
+// of 8 invented photos to one of 8 invented names: even repeated real-world
+// contact with an actual person can take a long time to fix their name for
+// this population, so expecting a brief flashcard drill to bind a
+// never-met photo to a name was unrealistic. Reuses find_n's task shape and
+// FindNTask's rendering unchanged - the only two options are a boy photo and
+// a girl photo (freshly picked each task via pickVariation, for variety),
+// and the "prompt" is a name instead of a category word. allCards (not
+// displayConcepts) is used to reach the name_word cards directly, since
+// those have no image and would otherwise need concept/card plumbing they
+// don't need for anything else.
+function generateNameGenderTasks(displayConcepts, allCards) {
+  const nameCards = allCards.filter((card) => card.cardType === "name_word");
+  const boyConcept = displayConcepts.find((c) => c.conceptId === "boy");
+  const girlConcept = displayConcepts.find((c) => c.conceptId === "girl");
+  if (!boyConcept || !girlConcept || !nameCards.length) return [];
+  return shuffle(nameCards.map((nameCard) => {
+    const isBoyName = nameCard.conceptId === "boy";
     const options = shuffle([
-      { card: targetCard, conceptId: targetCard.conceptId, isTarget: true },
-      ...alternatives.map((card) => ({ card, conceptId: card.conceptId, isTarget: false })),
+      { conceptId: "boy", card: pickVariation(boyConcept), isTarget: isBoyName },
+      { conceptId: "girl", card: pickVariation(girlConcept), isTarget: !isBoyName },
     ]);
     return {
-      type: "find_person_by_name",
-      targetConceptId: targetCard.conceptId,
-      targetLabel: `Где ${targetPerson.name}?`,
-      promptSpeech: `Где ${targetPerson.name}?`,
-      promptAudio: targetCard.personPromptAudio ?? null,
-      targetPersonId: targetPerson.id,
+      type: "find_n",
+      targetConceptId: nameCard.conceptId,
+      targetLabel: nameCard.label,
+      promptSpeech: nameCard.promptSpeech ?? `${nameCard.label}.`,
+      promptAudio: nameCard.promptAudio ?? null,
       options,
-    };
-  }));
-}
-
-function generateChooseNameTasks(concepts, params = {}) {
-  const cards = namedCards(concepts);
-  const optionCount = Math.max(2, Math.min(params.optionCount ?? 2, cards.length));
-  return shuffle(cards.map((targetCard) => {
-    const targetPerson = getPerson(targetCard);
-    const alternatives = shuffle(cards.filter((card) => getPerson(card)?.id !== targetPerson.id))
-      .slice(0, optionCount - 1);
-    return {
-      type: "choose_name",
-      conceptId: targetCard.conceptId,
-      card: targetCard,
-      targetPersonId: targetPerson.id,
-      promptSpeech: "Как зовут?",
-      options: shuffle([
-        { id: targetPerson.id, label: targetPerson.name, isTarget: true },
-        ...alternatives.map((card) => {
-          const person = getPerson(card);
-          return { id: person.id, label: person.name, isTarget: false };
-        }),
-      ]),
     };
   }));
 }
@@ -543,7 +493,6 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
   });
   switch (modeType) {
     case "intro":                  return generateIntroTasks(displayConcepts);
-    case "person_intro":           return generatePersonIntroTasks(displayConcepts);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts, params);
@@ -560,8 +509,7 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     case "offphoto_find_n":        return generateCardTypeFindNTasks(concepts, params, ["pictogram", "illustration"]);
     case "choose_word_by_picture": return generateChooseWordTasks(displayConcepts, params);
     case "choose_all":             return generateChooseAllTasks(displayConcepts, params);
-    case "find_person_by_name":    return generateFindPersonByNameTasks(displayConcepts, params);
-    case "choose_name":            return generateChooseNameTasks(displayConcepts, params);
+    case "name_gender":            return generateNameGenderTasks(displayConcepts, allCards);
     case "sort_by_attribute":      return generateSortByAttributeTasks(displayConcepts);
     default:                       return [];
   }

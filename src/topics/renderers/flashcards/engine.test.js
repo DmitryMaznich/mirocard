@@ -24,46 +24,39 @@ describe("generateTasks — intro", () => {
   });
 });
 
-describe("generateTasks — person_intro", () => {
+describe("generateTasks — name_gender", () => {
   const CARDS = [
-    { id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "media/boy_peter.webp", speech: "Это мальчик.", personSpeech: "Это Петя.", person: { id: "peter", name: "Петя" } },
-    { id: "boy_ilya", conceptId: "boy", image: "media/boy_ilya.webp", speech: "Это мальчик.", personSpeech: "Это Илья.", person: { id: "ilya", name: "Илья" } },
+    { id: "boy_1",  conceptId: "boy",  primary: true, label: "мальчик", image: "media/boy_1.webp" },
+    { id: "boy_2",  conceptId: "boy",  image: "media/boy_2.webp" },
+    { id: "girl_1", conceptId: "girl", primary: true, label: "девочка", image: "media/girl_1.webp" },
+    { id: "girl_2", conceptId: "girl", image: "media/girl_2.webp" },
+    { id: "name_igor", conceptId: "boy",  cardType: "name_word", label: "Игорь", promptSpeech: "Игорь." },
+    { id: "name_olya", conceptId: "girl", cardType: "name_word", label: "Оля",   promptSpeech: "Оля." },
   ];
   const CONCEPTS = deriveConcepts(CARDS);
 
-  it("uses personSpeech as the card speech and the person's name as the label", () => {
-    const tasks = generateTasks("person_intro", CONCEPTS, CARDS, {});
+  it("produces one find_n-shaped task per name, with exactly a boy photo and a girl photo as options", () => {
+    const tasks = generateTasks("name_gender", CONCEPTS, CARDS, {});
     expect(tasks).toHaveLength(2);
-    const peterTask = tasks.find((task) => task.card.id === "boy_peter");
-    expect(peterTask).toMatchObject({ type: "person_intro", conceptId: "boy", label: "Петя" });
-    expect(peterTask.card.speech).toBe("Это Петя.");
+    for (const task of tasks) {
+      expect(task.type).toBe("find_n");
+      expect(task.options).toHaveLength(2);
+      expect(task.options.map((o) => o.conceptId).sort()).toEqual(["boy", "girl"]);
+      expect(task.options.every((o) => !o.card.cardType)).toBe(true); // never a name_word card itself
+    }
   });
 
-  it("falls back to the card speech when a card has no person", () => {
-    const noPerson = [{ id: "x1", conceptId: "x", primary: true, label: "x", image: "media/x1.webp", speech: "Это x." }];
-    const tasks = generateTasks("person_intro", deriveConcepts(noPerson), noPerson, {});
-    expect(tasks[0].card.speech).toBe("Это x.");
-    expect(tasks[0].label).toBe("x");
+  it("marks the option matching the name's own conceptId as the target", () => {
+    const tasks = generateTasks("name_gender", CONCEPTS, CARDS, {});
+    const igorTask = tasks.find((t) => t.targetLabel === "Игорь");
+    expect(igorTask.options.find((o) => o.isTarget).conceptId).toBe("boy");
+    const olyaTask = tasks.find((t) => t.targetLabel === "Оля");
+    expect(olyaTask.options.find((o) => o.isTarget).conceptId).toBe("girl");
   });
 
-  it("swaps card.audio for card.personAudio, never plays the category recording under a name label", () => {
-    const withAudio = [{
-      id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "media/boy_peter.webp",
-      speech: "Это мальчик.", personSpeech: "Это Петя.", person: { id: "peter", name: "Петя" },
-      audio: { ru: "audio/boy_peter.mp3" }, personAudio: { ru: "audio/boy_peter_person.mp3" },
-    }];
-    const tasks = generateTasks("person_intro", deriveConcepts(withAudio), withAudio, {});
-    expect(tasks[0].card.audio).toEqual({ ru: "audio/boy_peter_person.mp3" });
-  });
-
-  it("clears card.audio when no personAudio recording exists yet (falls back to browser TTS of personSpeech)", () => {
-    const noPersonAudio = [{
-      id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "media/boy_peter.webp",
-      speech: "Это мальчик.", personSpeech: "Это Петя.", person: { id: "peter", name: "Петя" },
-      audio: { ru: "audio/boy_peter.mp3" },
-    }];
-    const tasks = generateTasks("person_intro", deriveConcepts(noPersonAudio), noPersonAudio, {});
-    expect(tasks[0].card.audio).toBeUndefined();
+  it("returns no tasks when there are no name_word cards (regression guard)", () => {
+    const noNames = CARDS.filter((c) => c.cardType !== "name_word");
+    expect(generateTasks("name_gender", deriveConcepts(noNames), noNames, {})).toHaveLength(0);
   });
 });
 
@@ -582,38 +575,14 @@ describe("generateTasks — choose_all", () => {
   });
 });
 
-describe("generateTasks — people, names, and attributes", () => {
+describe("generateTasks — people and attributes", () => {
   const PEOPLE_CARDS = [
-    { id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "boy_peter.webp", person: { id: "peter", name: "Петя" }, semantic: { age: "child", category: "boy" } },
-    { id: "girl_olga", conceptId: "girl", primary: true, label: "девочка", image: "girl_olga.webp", person: { id: "olga", name: "Оля" }, semantic: { age: "child", category: "girl" } },
-    { id: "man_igor", conceptId: "man", primary: true, label: "мужчина", image: "man_igor.webp", person: { id: "igor", name: "Игорь" }, semantic: { age: "adult", category: "man" } },
-    { id: "woman_anna", conceptId: "woman", primary: true, label: "женщина", image: "woman_anna.webp", person: { id: "anna", name: "Анна" }, semantic: { age: "adult", category: "woman" } },
+    { id: "boy_peter", conceptId: "boy", primary: true, label: "мальчик", image: "boy_peter.webp", semantic: { age: "child", category: "boy" } },
+    { id: "girl_olga", conceptId: "girl", primary: true, label: "девочка", image: "girl_olga.webp", semantic: { age: "child", category: "girl" } },
+    { id: "man_igor", conceptId: "man", primary: true, label: "мужчина", image: "man_igor.webp", semantic: { age: "adult", category: "man" } },
+    { id: "woman_anna", conceptId: "woman", primary: true, label: "женщина", image: "woman_anna.webp", semantic: { age: "adult", category: "woman" } },
   ];
   const PEOPLE_CONCEPTS = deriveConcepts(PEOPLE_CARDS);
-
-  it("asks for every named person and keeps one photo target", () => {
-    const tasks = generateTasks("find_person_by_name", PEOPLE_CONCEPTS, PEOPLE_CARDS, { optionCount: 4 });
-    expect(tasks).toHaveLength(PEOPLE_CARDS.length);
-    expect(tasks.every((task) => task.type === "find_person_by_name")).toBe(true);
-
-    for (const task of tasks) {
-      const target = task.options.find((option) => option.isTarget);
-      expect(task.options).toHaveLength(4);
-      expect(task.targetLabel).toBe(`Где ${target.card.person.name}?`);
-      expect(task.promptSpeech).toBe(task.targetLabel);
-    }
-  });
-
-  it("offers names for the shown person", () => {
-    const tasks = generateTasks("choose_name", PEOPLE_CONCEPTS, PEOPLE_CARDS, { optionCount: 4 });
-    expect(tasks).toHaveLength(PEOPLE_CARDS.length);
-
-    for (const task of tasks) {
-      const target = task.options.find((option) => option.isTarget);
-      expect(target.label).toBe(task.card.person.name);
-      expect(task.options).toHaveLength(4);
-    }
-  });
 
   it("sorts the same people by age with exactly two groups (the only grouping this mode offers)", () => {
     const tasks = generateTasks("sort_by_attribute", PEOPLE_CONCEPTS, PEOPLE_CARDS);

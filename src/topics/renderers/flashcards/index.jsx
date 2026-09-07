@@ -476,58 +476,6 @@ function ChooseWordTask({ task, topicId, onCorrect, onIncorrect, onCardShown, on
   );
 }
 
-function ChooseNameTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onCardShown, onTap }) {
-  const { speak } = useSpeech();
-  const [result, setResult] = useState(null);
-  const audioPath = mode?.promptAudio?.ru ?? null;
-
-  useEffect(() => {
-    setResult(null);
-    onCardShown?.(task.card?.id, task.conceptId);
-    if (!soundEnabled) return;
-    if (audioPath) playTopicFile(topicId, audioPath);
-    else if (task.promptSpeech) speak(task.promptSpeech);
-  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function handleOption(option) {
-    if (result) return;
-    onTap?.(option.id, option.isTarget);
-    const outcome = option.isTarget ? "correct" : "incorrect";
-    setResult({ id: option.id, outcome });
-    setTimeout(() => {
-      if (option.isTarget) onCorrect(task.conceptId, task.card.id);
-      else                 onIncorrect(task.conceptId, task.card.id);
-    }, 1500);
-  }
-
-  return (
-    <div className="session-body session-body--choose-word session-body--choose-name">
-      <div className="session-instruction">Как зовут?</div>
-      <CardArea topicId={topicId} card={task.card} />
-      <div className="choose-word-options">
-        {task.options.map((option) => {
-          const isTappedWrong = result?.id === option.id && result.outcome === "incorrect";
-          const revealCorrect = Boolean(result) && option.isTarget;
-          const stateClass = revealCorrect ? " choose-word-btn--correct" : isTappedWrong ? " choose-word-btn--wrong" : "";
-          return (
-            <button
-              key={option.id}
-              className={`choose-word-btn${stateClass}`}
-              disabled={Boolean(result)}
-              onClick={() => handleOption(option)}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
-      {audioPath
-        ? <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
-        : <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />}
-    </div>
-  );
-}
-
 function SortByAttributeTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onCardShown, onTap }) {
   const { speak } = useSpeech();
   const [result, setResult] = useState(null);
@@ -658,7 +606,6 @@ function ChooseAllTask({ task, topicId, onCorrect, onIncorrect, imageFit }) {
 
 const TASK_RENDERERS = {
   intro:                  IntroTask,
-  person_intro:           IntroTask,
   question_answer:        QuestionAnswerTask,
   yes_no:                 YesNoTask,
   find_n:                 FindNTask,
@@ -668,10 +615,8 @@ const TASK_RENDERERS = {
   emotion_control:        EmotionControlTask,
   choose_word_by_picture: ChooseWordTask,
   choose_all:             ChooseAllTask,
-  find_person_by_name:    FindNTask,
   generalisation_probe:   FindNTask,
   offphoto_find_n:        FindNTask,
-  choose_name:            ChooseNameTask,
   sort_by_attribute:      SortByAttributeTask,
 };
 
