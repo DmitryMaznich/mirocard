@@ -63,7 +63,12 @@ function normalisePeople(people) {
   })) : [];
 }
 
-async function resizeToDataUrl(file, maxSize = 400) {
+// A person can fill an entire task card. Keep a retina-quality source rather
+// than the tiny thumbnail-sized copy used in early prototypes.
+const PERSON_PHOTO_MAX_SIZE = 1600;
+const PERSON_PHOTO_JPEG_QUALITY = 0.92;
+
+async function resizeToDataUrl(file, maxSize = PERSON_PHOTO_MAX_SIZE) {
   return new Promise((resolve) => {
     const image = new Image();
     const source = URL.createObjectURL(file);
@@ -85,7 +90,7 @@ async function resizeToDataUrl(file, maxSize = 400) {
         target,
       );
       URL.revokeObjectURL(source);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
+      resolve(canvas.toDataURL("image/jpeg", PERSON_PHOTO_JPEG_QUALITY));
     };
     image.src = source;
   });
