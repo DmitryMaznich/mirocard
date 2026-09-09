@@ -1102,6 +1102,9 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
         >
           {displayValue || "?"}
         </div>
+        {answered && (
+          <div className="operation-audio-continue-hint">Нажми, чтобы продолжить</div>
+        )}
         {!answered && (
           <AudioAnswerPad
             digits={digits}

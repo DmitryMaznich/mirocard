@@ -16416,6 +16416,25 @@ button.operation-dot {
   transition: border-color 0.15s, background 0.15s;
 }
 
+.operation-audio-continue-hint {
+  color: #1f5f57;
+  font-weight: 700;
+  font-size: clamp(0.95rem, 3vw, 1.1rem);
+  opacity: 0;
+  animation: operation-audio-continue-hint-in 0.3s ease 0.5s forwards,
+             operation-audio-continue-hint-pulse 1600ms ease-in-out 900ms infinite;
+}
+
+@keyframes operation-audio-continue-hint-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 0.85; transform: translateY(0); }
+}
+
+@keyframes operation-audio-continue-hint-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
 .operation-audio-answer--wrong {
   border-color: #ef6f5e;
   background: #fff4ee;
