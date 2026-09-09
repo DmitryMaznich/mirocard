@@ -35,7 +35,7 @@ export const SERVE_STATIC = readEnv("SERVE_STATIC") === "1";
 // Railway blocks outbound SMTP on the Hobby plan, so a raw SMTP client can
 // never connect regardless of which mail server it targets.
 export const RESEND_API_KEY = readEnv("RESEND_API_KEY");
-export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mirocard <noreply@mirocard.app>";
+export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mironium <noreply@mironium.com>";
 export const APP_BASE_URL   = readEnv("APP_BASE_URL") || "http://localhost:5174";
 
 // Admin

@@ -813,7 +813,7 @@ async function handleNotifyAppUpdate(req, res) {
   for (const sub of subs) {
     try {
       await sendPushNotification(sub, {
-        title: `Mirocard обновился до ${version}`,
+        title: `Mironium обновился до ${version}`,
         body: changelog.ru || changelog.en || "Новая версия доступна",
         data: { type: "app_update", version },
       });
