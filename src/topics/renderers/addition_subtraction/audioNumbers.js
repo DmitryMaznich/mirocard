@@ -62,6 +62,21 @@ export function taskAudioKeys(task) {
   ];
 }
 
+// Same order as taskAudioKeys, but each entry also says whether it should be
+// glued tightly to the previous word (the "ones" half of a tens+ones number,
+// e.g. "двадцать"|"четыре" for 24) so playback can trim the gap there — a
+// full pause reads as two separate numbers instead of one.
+export function taskAudioItems(task) {
+  const items = [];
+  const pushNumber = (n) => {
+    numberToAudioKeys(n).forEach((key, i) => items.push({ key, tight: i > 0 }));
+  };
+  pushNumber(task.start);
+  items.push({ key: task.operation === "subtract" ? "minus" : "plus", tight: false });
+  pushNumber(task.delta);
+  return items;
+}
+
 export function audioKeyUrl(key) {
   return `/audio/addition-subtraction/${key}.mp3`;
 }

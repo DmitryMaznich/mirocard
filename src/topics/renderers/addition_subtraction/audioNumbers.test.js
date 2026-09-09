@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { numberToAudioKeys, numberToWords, taskAudioKeys } from "./audioNumbers";
+import { numberToAudioKeys, numberToWords, taskAudioItems, taskAudioKeys } from "./audioNumbers";
 
 describe("numberToAudioKeys", () => {
   it("says 0-20 as a single recorded word", () => {
@@ -36,5 +36,26 @@ describe("taskAudioKeys", () => {
   it("uses the minus word for subtraction", () => {
     const keys = taskAudioKeys({ start: 45, operation: "subtract", delta: 20 });
     expect(keys).toEqual(["n40", "n5", "minus", "n20"]);
+  });
+});
+
+describe("taskAudioItems", () => {
+  it("marks only the ones-word of a composed number as tight", () => {
+    const items = taskAudioItems({ start: 45, operation: "subtract", delta: 20 });
+    expect(items).toEqual([
+      { key: "n40", tight: false },
+      { key: "n5", tight: true },
+      { key: "minus", tight: false },
+      { key: "n20", tight: false },
+    ]);
+  });
+
+  it("has no tight words when every number is a single recorded word", () => {
+    const items = taskAudioItems({ start: 2, operation: "add", delta: 11 });
+    expect(items).toEqual([
+      { key: "n2", tight: false },
+      { key: "plus", tight: false },
+      { key: "n11", tight: false },
+    ]);
   });
 });

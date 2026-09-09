@@ -9,7 +9,7 @@ import {
   getStickSideCount,
   isStickComplete,
 } from "./stickModel";
-import { taskAudioKeys, audioKeyUrl } from "./audioNumbers";
+import { taskAudioItems, audioKeyUrl } from "./audioNumbers";
 import { useAudioSequence } from "./useAudioSequence";
 
 
@@ -1040,7 +1040,7 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   const wrongTimerRef = useRef(null);
 
   const playPrompt = useCallback(() => {
-    play(taskAudioKeys(task).map(audioKeyUrl));
+    play(taskAudioItems(task).map(({ key, tight }) => ({ url: audioKeyUrl(key), tight })));
   }, [play, task]);
 
   useEffect(() => {
@@ -1076,18 +1076,23 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   return (
     <div className="operation-stage operation-stage--audio">
       <div className="operation-audio">
-        <button
-          type="button"
-          className={`operation-audio-diktor${isPlaying ? " operation-audio-diktor--playing" : ""}`}
-          onClick={playPrompt}
-          disabled={isPlaying}
-          aria-label="Повторить пример"
-        >
-          <span className="operation-audio-bar" />
-          <span className="operation-audio-bar" />
-          <span className="operation-audio-bar" />
-          <span className="operation-audio-bar" />
-        </button>
+        <div className={`operation-audio-diktor-wrap${isPlaying ? " operation-audio-diktor-wrap--playing" : ""}`}>
+          <span className="operation-audio-ripple" />
+          <span className="operation-audio-ripple" />
+          <span className="operation-audio-ripple" />
+          <button
+            type="button"
+            className={`operation-audio-diktor${isPlaying ? " operation-audio-diktor--playing" : ""}`}
+            onClick={playPrompt}
+            disabled={isPlaying}
+            aria-label="Повторить пример"
+          >
+            <span className="operation-audio-bar" />
+            <span className="operation-audio-bar" />
+            <span className="operation-audio-bar" />
+            <span className="operation-audio-bar" />
+          </button>
+        </div>
         <div
           className={[
             "operation-audio-answer",

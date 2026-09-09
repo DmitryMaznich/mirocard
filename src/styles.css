@@ -16319,9 +16319,41 @@ button.operation-dot {
   gap: clamp(16px, 3dvh, 28px);
 }
 
-.operation-audio-diktor {
+.operation-audio-diktor-wrap {
+  position: relative;
   width: clamp(115px, 31vw, 158px);
   height: clamp(115px, 31vw, 158px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.operation-audio-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #2f6f65;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.operation-audio-diktor-wrap--playing .operation-audio-ripple {
+  animation: operation-audio-ripple 1600ms ease-out infinite;
+}
+
+.operation-audio-diktor-wrap--playing .operation-audio-ripple:nth-child(1) { animation-delay: 0ms; }
+.operation-audio-diktor-wrap--playing .operation-audio-ripple:nth-child(2) { animation-delay: 400ms; }
+.operation-audio-diktor-wrap--playing .operation-audio-ripple:nth-child(3) { animation-delay: 800ms; }
+
+@keyframes operation-audio-ripple {
+  0%   { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(1.85); opacity: 0; }
+}
+
+.operation-audio-diktor {
+  position: relative;
+  width: 100%;
+  height: 100%;
   border: none;
   border-radius: 50%;
   background: linear-gradient(160deg, #4a9b8f, #2f6f65);
@@ -16369,18 +16401,18 @@ button.operation-dot {
 }
 
 .operation-audio-answer {
-  min-width: clamp(84px, 22vw, 128px);
-  min-height: clamp(64px, 16vw, 88px);
-  padding: 0 16px;
+  min-width: clamp(168px, 44vw, 256px);
+  min-height: clamp(128px, 32vw, 176px);
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid #c8d4d2;
-  border-radius: 20px;
+  border: 4px solid #c8d4d2;
+  border-radius: 28px;
   background: #ffffff;
   color: #263131;
   font-weight: 900;
-  font-size: clamp(1.8rem, 8vw, 2.6rem);
+  font-size: clamp(3.6rem, 16vw, 5.2rem);
   transition: border-color 0.15s, background 0.15s;
 }
 
