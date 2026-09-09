@@ -153,6 +153,9 @@ function buildGeneratedSessionState({
   } else if (renderer === "print_materials") {
     const generateTasks = ENGINE_REGISTRY.print_materials;
     tasks = generateTasks ? generateTasks(mode, topicRecord) : [];
+  } else if (renderer === "my_people") {
+    const generateTasks = ENGINE_REGISTRY.my_people;
+    tasks = generateTasks ? generateTasks(mode, activeStudent, sessionParams) : [];
   } else {
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
@@ -170,13 +173,17 @@ function buildGeneratedSessionState({
     }
   }
 
+  const sessionConceptIds = renderer === "my_people"
+    ? [...new Set(tasks.map((task) => task.targetConceptId ?? task.conceptId).filter(Boolean))]
+    : selectedConceptIds;
+
   const baseState = createSessionState(
     tasks,
     mode,
     activeStudentId,
     activeTopicId,
     topicRecord.meta.version,
-    selectedConceptIds,
+    sessionConceptIds,
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,

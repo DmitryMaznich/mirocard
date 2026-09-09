@@ -1,4 +1,14 @@
 const BUILTIN_ASSETS = {
+  "media/avatar_my_people.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#e4f1ed"/>
+  <circle cx="45" cy="47" r="16" fill="#f3d9b5"/>
+  <path d="M23 102c2-23 12-37 22-37s20 14 22 37" fill="#4a9b8f"/>
+  <circle cx="83" cy="51" r="14" fill="#f3d9b5"/>
+  <path d="M64 104c2-21 10-34 19-34s18 13 20 34" fill="#ef9a73"/>
+  <circle cx="97" cy="29" r="15" fill="#fffdf8" stroke="#4a9b8f" stroke-width="4"/>
+  <path d="M91 29h12M97 23v12" stroke="#4a9b8f" stroke-width="3.5" stroke-linecap="round"/>
+</svg>`,
   "media/avatar_streak_tracker.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#fffbeb"/>
@@ -837,6 +847,7 @@ export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId?.startsWith("reading_")) return "media/avatar_reading.svg";
   if (topicId === "sentence_puzzle") return "media/avatar_sentence_puzzle.svg";
   if (topicId === "streak_tracker") return "media/avatar_streak_tracker.svg";
+  if (topicId === "my_people") return "media/avatar_my_people.svg";
   return "media/avatar_flashcards.svg";
 }
 

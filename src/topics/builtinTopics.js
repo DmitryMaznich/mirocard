@@ -1,4 +1,5 @@
 import { buildRecipesTopicRecord } from "./builtinRecipesTopic.js";
+import { buildMyPeopleTopicRecord } from "./builtinMyPeopleTopic.js";
 
 export const BUILTIN_TOPICS = [
   {
@@ -37,6 +38,7 @@ export const BUILTIN_TOPICS = [
     cards: [{ id: "streak_task", conceptId: "streak_task", primary: true }],
     installedAt: "builtin",
   },
+  buildMyPeopleTopicRecord(),
   buildRecipesTopicRecord(),
 ];
 

@@ -31,7 +31,8 @@ function dedupUpsert(db, type, entityId) {
     req.onsuccess = (e) => {
       const c = e.target.result;
       if (!c) { res(); return; }
-      if (c.value.type === type && c.value.data?.id === entityId) c.delete();
+      const queuedEntityId = c.value.data?.id ?? c.value.data?.studentId ?? c.value.data?.key;
+      if (c.value.type === type && queuedEntityId === entityId) c.delete();
       c.continue();
     };
     req.onerror = res;
@@ -40,8 +41,11 @@ function dedupUpsert(db, type, entityId) {
 
 async function enqueue(type, data) {
   const db = await getDb();
-  if (data?.id && type.endsWith(".upsert")) {
-    await dedupUpsert(db, type, data.id).catch(() => {});
+  // Some child resources are keyed by studentId (photo, rewards, personal
+  // profile) rather than an entity `id`.  Keep only their newest queued write.
+  const entityId = data?.id ?? data?.studentId ?? data?.key;
+  if (entityId && type.endsWith(".upsert")) {
+    await dedupUpsert(db, type, entityId).catch(() => {});
   }
   await req2p(db.transaction(SQ, "readwrite").objectStore(SQ).add({ type, data })).catch(() => {});
 }

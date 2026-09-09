@@ -19,6 +19,7 @@ import { generateTasks as phoneticAnalysisEngine }     from "./phonetic_analysis
 import { generateTasks as wordAgreementEngine }        from "./word_agreement/engine.js";
 import { generateTasks as spatialPrepositionsEngine }  from "./spatial_prepositions/engine.js";
 import { generateTasks as propisEngine }               from "./propis/engine.js";
+import { generateTasks as myPeopleEngine }             from "./my_people/engine.js";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -42,4 +43,5 @@ export const ENGINE_REGISTRY = {
   word_agreement:        wordAgreementEngine,
   spatial_prepositions:  spatialPrepositionsEngine,
   propis:                propisEngine,
+  my_people:             myPeopleEngine,
 };

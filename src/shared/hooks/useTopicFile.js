@@ -16,6 +16,14 @@ export function useTopicFile(topicId, filePath) {
       return;
     }
 
+    // Individualised topics can point directly at a photo stored in the
+    // account photo store.  These are already safe browser URLs (or a local
+    // data URL before their first sync) rather than files inside a deck ZIP.
+    if (/^(?:data:|blob:|https?:\/\/|\/api\/)/.test(filePath)) {
+      setUrl(filePath);
+      return;
+    }
+
     let objectUrl = null;
     getDb()
       .then((db) => topics.getFile(db, topicId, filePath))

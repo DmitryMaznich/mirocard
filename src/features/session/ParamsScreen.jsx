@@ -1486,6 +1486,24 @@ export default function ParamsScreen() {
   const allConcepts        = deriveConcepts(getConceptCards(topicRecord, mode, params));
   const modeSelectedConceptIds = readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, params);
   const selectedConceptIds = modeSelectedConceptIds ?? allConcepts.map((c) => c.conceptId);
+  const isMyPeople = topicRecord?.meta?.renderer === "my_people";
+  const myPeople = (student?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.[0]);
+  const myPeopleProfile = student?.myPeopleProfile ?? {};
+  const hasPersonalPhoto = Boolean(student?.photo || myPeople.length);
+  const myPeopleContext = ["family", "home", "school"].find((context) => mode.id.startsWith(`${context}_`));
+  const myPeopleTargets = (myPeopleContext
+    ? myPeople.filter((person) => person.contexts?.includes(myPeopleContext))
+    : myPeople
+  ).filter((person) => !mode.id.includes("relations") || person.relation?.trim());
+  const myPeopleReady = !isMyPeople || (
+    mode.id === "self_name" ? Boolean(myPeopleProfile.includeSelfName !== false && student?.name?.trim() && student?.photo)
+      : mode.id === "family_name" ? Boolean(myPeopleProfile.includeFamilyName && myPeopleProfile.familyName?.trim() && hasPersonalPhoto)
+        : mode.id === "family_label" ? Boolean(myPeopleProfile.includeFamilyLabel && myPeopleProfile.familyLabel?.trim() && hasPersonalPhoto)
+          : mode.id === "city" ? Boolean(myPeopleProfile.includeCity && myPeopleProfile.city?.trim() && hasPersonalPhoto)
+            : mode.id === "address" ? Boolean(myPeopleProfile.includeAddress && myPeopleProfile.address?.trim() && hasPersonalPhoto)
+              : mode.type === "find_n" ? myPeopleTargets.length >= 2
+                : myPeopleTargets.length >= 1
+  );
 
   // Concept range filter — only in "Считаем на пальцах" mode
   const fcountCards    = activeModeId === "fingers_count"
@@ -1869,7 +1887,7 @@ export default function ParamsScreen() {
   const hasTextListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "text_list");
   const textListEmpty = hasTextListParam && (params.texts ?? []).length === 0;
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
-  const isStartDisabled = sentenceListEmpty || textListEmpty || poolEmpty;
+  const isStartDisabled = sentenceListEmpty || textListEmpty || poolEmpty || !myPeopleReady;
 
   return (
     <div className="screen">
@@ -1918,6 +1936,12 @@ export default function ParamsScreen() {
         <div className="params-settings-col">
           <div className="params-body">
             {paramsContent}
+            {isMyPeople && !myPeopleReady && (
+              <div className="param-section">
+                <div className="param-section__header">Нужно заполнить данные ученика</div>
+                <div className="param-hint">Вернитесь в «Мои люди» в профиле ученика и добавьте нужную фотографию или личный ответ.</div>
+              </div>
+            )}
           </div>
 
           {hasVideos && isNavigatorFlashCards && (

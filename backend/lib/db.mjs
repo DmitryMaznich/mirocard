@@ -59,6 +59,8 @@ export function initDb(dbPath = DB_PATH) {
       comment          TEXT DEFAULT '',
       primary_language TEXT,
       reward_videos    TEXT DEFAULT '[]',
+      my_people_profile TEXT DEFAULT '{}',
+      my_people         TEXT DEFAULT '[]',
       created_at       TEXT NOT NULL,
       updated_at       TEXT NOT NULL,
       deleted_at       TEXT
@@ -210,6 +212,18 @@ export function initDb(dbPath = DB_PATH) {
     db.exec("ALTER TABLE students ADD COLUMN close_adults_updated_at TEXT");
     db.exec("UPDATE students SET close_adults_updated_at = updated_at WHERE close_adults IS NOT NULL AND close_adults != '[]'");
   }
+  if (!studentColumns.some((column) => column.name === "my_people_profile")) {
+    db.exec("ALTER TABLE students ADD COLUMN my_people_profile TEXT DEFAULT '{}'");
+  }
+  if (!studentColumns.some((column) => column.name === "my_people_profile_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN my_people_profile_updated_at TEXT");
+  }
+  if (!studentColumns.some((column) => column.name === "my_people")) {
+    db.exec("ALTER TABLE students ADD COLUMN my_people TEXT DEFAULT '[]'");
+  }
+  if (!studentColumns.some((column) => column.name === "my_people_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN my_people_updated_at TEXT");
+  }
 
   const linkColumns = db.prepare("PRAGMA table_info(student_topic_links)").all();
   if (!linkColumns.some((c) => c.name === "params")) {
@@ -296,6 +310,18 @@ export function initDb(dbPath = DB_PATH) {
       result_json     TEXT NOT NULL,
       UNIQUE(student_id, topic_id)
     )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS materials_leads (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      email         TEXT NOT NULL,
+      material_id   TEXT NOT NULL,
+      token_hash    TEXT UNIQUE NOT NULL,
+      created_at    TEXT NOT NULL,
+      expires_at    TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_materials_leads_token ON materials_leads(token_hash);
   `);
 
   return db;

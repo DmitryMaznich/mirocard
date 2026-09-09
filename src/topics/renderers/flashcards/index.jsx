@@ -77,6 +77,33 @@ function SpeechButton({ text, soundEnabled }) {
   );
 }
 
+function InlineSpeechButton({ text, soundEnabled }) {
+  const { speak } = useSpeech();
+  if (!text || !soundEnabled) return null;
+  return (
+    <button
+      className="session-audio-icon-button session-audio-icon-button--active qa-inline-speech"
+      onClick={(event) => { event.stopPropagation(); speak(text); }}
+      aria-label="Повторить вопрос"
+    >
+      🔊
+    </button>
+  );
+}
+
+function InlineAudioButton({ topicId, audioPath, playTopicFile, soundEnabled }) {
+  if (!audioPath || !soundEnabled) return null;
+  return (
+    <button
+      className="session-audio-icon-button session-audio-icon-button--active qa-inline-speech"
+      onClick={(event) => { event.stopPropagation(); playTopicFile(topicId, audioPath); }}
+      aria-label="Повторить вопрос"
+    >
+      🔊
+    </button>
+  );
+}
+
 function IntroTask({ task, mode, topicId, soundEnabled, playTopicFile, onAdvance }) {
   const audioPath = getTaskAudioPath(task);
   const { speak } = useSpeech();
@@ -163,12 +190,22 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   const audioPath       = getTaskAudioPath(task);
   const prefixAudioPath = mode?.answerPrefixAudio ?? null;
   const useKeyboard     = useAppStore((s) => s.settings.physicalKeyboard ?? false);
+  const { speak }       = useSpeech();
   const [revealed,      setRevealed] = useState(false);
+  const question = task.question ?? getTopicTitle(mode.ui.instruction);
 
   useEffect(() => {
     setRevealed(false);
     onCardShown?.(task.card?.id, task.conceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (task.promptSpeech && soundEnabled) {
+      // Individual personal questions have no deck audio.  The replay control
+      // sits directly after the question, matching receptive "Где ...?" tasks.
+      speak(task.promptSpeech);
+    }
+  }, [task, soundEnabled, speak]);
 
   function handleQuality(value) {
     if (revealed) return;
@@ -206,7 +243,10 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
     <div className="session-body qa-body">
       <CardArea topicId={topicId} card={task.card} />
       <div className="qa-right-panel">
-        <div className="session-instruction">{getTopicTitle(mode.ui.instruction)}</div>
+        <div className="qa-question-area">
+          <div className="session-instruction">{question}</div>
+          <InlineSpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />
+        </div>
         <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
           {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
         </div>
@@ -359,6 +399,10 @@ function FindNTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect
 
   const cols = 2;
   const rows = Math.ceil(task.options.length / cols);
+  const inlinePrompt = task.inlinePromptAudio && !task.sceneImage;
+  const promptControl = audioPath
+    ? <InlineAudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
+    : <InlineSpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />;
 
   return (
     <div className={`session-body session-body--find-n${task.sceneImage ? " session-body--situation" : ""}`} style={{ "--rows": rows }}>
@@ -371,7 +415,12 @@ function FindNTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect
           )}
         </div>
       )}
-      {!task.sceneImage && <div className="session-instruction">{task.targetLabel}</div>}
+      {!task.sceneImage && (
+        <div className={`session-instruction${inlinePrompt ? " find-n-question" : ""}`}>
+          <span>{task.targetLabel}</span>
+          {inlinePrompt && promptControl}
+        </div>
+      )}
       <div className={task.sceneImage ? "situation-emotion__choices" : undefined}>
         <div className="find-n-grid" style={{ "--cols": cols }}>
           <div className="find-n-inner">
@@ -381,9 +430,9 @@ function FindNTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect
           </div>
         </div>
       </div>
-      {audioPath
+      {!inlinePrompt && (audioPath
         ? <AudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
-        : <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />}
+        : <SpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />)}
     </div>
   );
 }

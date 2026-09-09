@@ -61,6 +61,8 @@ export default function ModePickerScreen() {
   const activeTextId    = useAppStore((s) => s.activeTextId);
   const activeTextStored = useAppStore((s) => s.activeText);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const students        = useAppStore((s) => s.students);
+  const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
   const topicRecords    = useAppStore((s) => s.topicRecords);
   const sessions        = useAppStore((s) => s.sessions);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
@@ -72,9 +74,47 @@ export default function ModePickerScreen() {
   const activeText = isReading
     ? (topicRecord?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
-  const modes = isReading
+  const rawModes = isReading
     ? filterReadingModes(topicRecord?.modes, activeText)
     : topicRecord?.modes ?? [];
+  const activeStudent = students.find((student) => student.id === activeStudentId) ?? null;
+  const isMyPeople = topicRecord?.meta.renderer === "my_people";
+  const people = (activeStudent?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.[0]);
+  const profile = activeStudent?.myPeopleProfile ?? {};
+  const hasPersonalPhoto = Boolean(activeStudent?.photo || people.length);
+
+  function myPeopleModeAvailable(mode) {
+    if (!isMyPeople) return true;
+    if (mode.id === "self_name") return profile.includeSelfName !== false && Boolean(activeStudent?.name?.trim() && activeStudent?.photo);
+    if (mode.id === "family_name") return Boolean(profile.includeFamilyName && profile.familyName?.trim() && hasPersonalPhoto);
+    if (mode.id === "family_label") return Boolean(profile.includeFamilyLabel && profile.familyLabel?.trim() && hasPersonalPhoto);
+    if (mode.id === "city") return Boolean(profile.includeCity && profile.city?.trim() && hasPersonalPhoto);
+    if (mode.id === "address") return Boolean(profile.includeAddress && profile.address?.trim() && hasPersonalPhoto);
+    const context = mode.id.split("_")[0];
+    const group = ["family", "home", "school"].includes(context) ? context : null;
+    const groupPeople = group ? people.filter((person) => person.contexts?.includes(group) && (!mode.id.includes("relations") || person.relation?.trim())) : people.filter((person) => person.relation?.trim());
+    if (group && profile.enabledBlocks?.[group] === false) return false;
+    if (mode.id === "mix" && profile.enabledBlocks?.mix === false) return false;
+    return mode.type === "find_n" ? groupPeople.length >= 2 : groupPeople.length >= 1;
+  }
+
+  const modes = isMyPeople
+    ? rawModes.filter((mode) => {
+      const block = mode.id.split("_")[0];
+      return !["family", "home", "school", "mix"].includes(block) || profile.enabledBlocks?.[block] !== false;
+    }).sort((left, right) => {
+      const order = profile.blockOrder ?? ["family", "home", "school", "mix"];
+      const leftBlock = left.id.split("_")[0];
+      const rightBlock = right.id.split("_")[0];
+      const leftIndex = order.indexOf(leftBlock);
+      const rightIndex = order.indexOf(rightBlock);
+      // Personal answers remain a small independent block above the staged
+      // people groups; Mix is always pinned by the profile editor as last.
+      const normalisedLeft = leftIndex < 0 ? -1 : leftIndex;
+      const normalisedRight = rightIndex < 0 ? -1 : rightIndex;
+      return normalisedLeft - normalisedRight;
+    })
+    : rawModes;
 
   if (!topicRecord) {
     return (
@@ -124,6 +164,11 @@ export default function ModePickerScreen() {
     navigateToMode(mode);
   }
 
+  function openMyPeopleSetup() {
+    if (activeStudentId) setEditingStudentId(activeStudentId);
+    setScreen("my_people_settings");
+  }
+
   if (hasSingleMode) return null;
 
   return (
@@ -144,13 +189,13 @@ export default function ModePickerScreen() {
         {modes.map((mode) => {
           const lastSession = getLastModeSession(sessions, activeStudentId, activeTopicId, mode.id, isReading ? activeTextId : null);
           return (
-            <li key={mode.id} className="mode-item-row">
+            <li key={mode.id} className={`mode-item-row${isMyPeople && !myPeopleModeAvailable(mode) ? " mode-item-row--disabled" : ""}`}>
               <div
                 className="mode-item mode-item--flex"
                 role="button"
-                tabIndex={0}
-                onClick={() => pickMode(mode)}
-                onKeyDown={(e) => e.key === "Enter" && pickMode(mode)}
+                tabIndex={myPeopleModeAvailable(mode) ? 0 : -1}
+                onClick={() => myPeopleModeAvailable(mode) && pickMode(mode)}
+                onKeyDown={(e) => e.key === "Enter" && myPeopleModeAvailable(mode) && pickMode(mode)}
               >
                 {mode.ui?.icon && (
                   <ModeIcon topicId={activeTopicId} iconPath={mode.ui.icon} size="medium" />
@@ -161,7 +206,10 @@ export default function ModePickerScreen() {
                   {getModeGoal(mode) && (
                     <div className="mode-item__goal">Цель: {getModeGoal(mode)}</div>
                   )}
-                  <LastResultBadge session={lastSession} />
+                  {isMyPeople && !myPeopleModeAvailable(mode)
+                    ? <button type="button" className="link-btn" onClick={(event) => { event.stopPropagation(); openMyPeopleSetup(); }}>Настроить раздел</button>
+                    : <LastResultBadge session={lastSession} />
+                  }
                 </div>
                 <button
                   className="mode-info-btn"

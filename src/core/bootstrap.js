@@ -12,6 +12,38 @@ export function activeStudents(students) {
   return (students ?? []).filter((student) => !isDeletedStudent(student));
 }
 
+function myPersonChangeTime(person) {
+  return person?.deletedAt ?? person?.updatedAt ?? person?.createdAt ?? "";
+}
+
+function hasResolvedMyPeoplePhoto(person) {
+  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("/api/photos/"));
+}
+
+function hasLocalMyPeoplePhoto(person) {
+  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("data:"));
+}
+
+// A personal network is edited as individual cards.  Merge its item records
+// rather than treating the whole array as one last-write-wins field, so a
+// stale device cannot make another device's newly added person disappear.
+export function mergeMyPeople(local, server) {
+  const byId = new Map();
+  for (const person of [...(local ?? []), ...(server ?? [])]) {
+    if (!person?.id) continue;
+    const current = byId.get(person.id);
+    const sameEdit = current && myPersonChangeTime(person) === myPersonChangeTime(current);
+    // A server snapshot resolves locally-uploaded data URLs to /api/photos
+    // while intentionally retaining the item's edit timestamp.  Keep that
+    // canonical reference when a stale local copy ties on time.
+    if (current && sameEdit && hasResolvedMyPeoplePhoto(current) && hasLocalMyPeoplePhoto(person)) continue;
+    if (!current || myPersonChangeTime(person) >= myPersonChangeTime(current)) {
+      byId.set(person.id, person);
+    }
+  }
+  return [...byId.values()];
+}
+
 function studentChangeTime(student) {
   return student?.deletedAt ?? student?.updatedAt ?? student?.createdAt ?? "";
 }
@@ -94,6 +126,16 @@ export function mergeStudentRecords(local, server) {
           return resolvedAdultPhoto === adult.photo ? adult : { ...adult, photo: resolvedAdultPhoto };
         });
 
+    const profileWinner = pickByFieldTimestamp("myPeopleProfileUpdatedAt");
+    const myPeopleProfile = profileWinner.myPeopleProfile ?? {};
+    const myPeopleProfileUpdatedAt = profileWinner.myPeopleProfileUpdatedAt ?? null;
+
+    const myPeople = mergeMyPeople(current.myPeople, student.myPeople);
+    const myPeopleUpdatedAt = [current.myPeopleUpdatedAt, student.myPeopleUpdatedAt]
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? null;
+
     byId.set(student.id, {
       ...winner,
       photo:          resolvedPhoto,
@@ -103,6 +145,10 @@ export function mergeStudentRecords(local, server) {
       rewardVideosUpdatedAt: resolvedVideosTs,
       closeAdults:           closeAdults,
       closeAdultsUpdatedAt:  adultsWinner.closeAdultsUpdatedAt ?? null,
+      myPeopleProfile,
+      myPeopleProfileUpdatedAt,
+      myPeople,
+      myPeopleUpdatedAt,
     });
   }
 

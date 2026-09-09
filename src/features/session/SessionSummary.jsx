@@ -36,6 +36,7 @@ export default function SessionSummary() {
   const setScreen         = useAppStore((s) => s.setScreen);
   const sessions          = useAppStore((s) => s.sessions);
   const topicRecords      = useAppStore((s) => s.topicRecords);
+  const students          = useAppStore((s) => s.students);
   const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
   const setActiveTextId   = useAppStore((s) => s.setActiveTextId);
   const setActiveModeId   = useAppStore((s) => s.setActiveModeId);
@@ -47,6 +48,7 @@ export default function SessionSummary() {
   const sessionText = topicRecord?.texts?.find((text) => text.id === session?.textId);
   const sessionMode = topicRecord?.modes?.find((mode) => mode.id === session?.modeId);
   const isReading   = topicRecord?.meta.renderer === "reading";
+  const isMyPeople  = topicRecord?.meta.renderer === "my_people";
   const isEvaluated = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
   const praiseText  = getPraiseText(isReading);
 
@@ -70,6 +72,22 @@ export default function SessionSummary() {
   }
 
   const progressAfter = computeProgressAfterSession(sessions, session);
+  const sessionStudent = students.find((student) => student.id === session.studentId) ?? null;
+
+  function myPeopleLabel(conceptId) {
+    const personal = {
+      family_name: "Моя фамилия",
+      family_label: "Наша семья",
+      city: "Где я живу",
+      address: "Мой адрес",
+    };
+    if (personal[conceptId]) return personal[conceptId];
+    if (conceptId === "self:name") return sessionStudent?.name ?? "Моё имя";
+    const [personId, axis] = String(conceptId).split(":");
+    const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === personId);
+    if (!person) return "Карточка человека";
+    return axis === "relation" ? person.relation || person.name : person.name;
+  }
 
   function handleRepeat() {
     setActiveTopicId(session.topicId);
@@ -140,7 +158,7 @@ export default function SessionSummary() {
                     return (
                       <li key={i} className="summary-mistake-item">
                         <ConceptDot level={progressAfter[m.conceptId] ?? 0} />
-                        {card?.label ?? m.conceptId}
+                        {isMyPeople ? myPeopleLabel(m.conceptId) : (card?.label ?? m.conceptId)}
                       </li>
                     );
                   })}
@@ -171,7 +189,7 @@ export default function SessionSummary() {
                     return (
                       <li key={cid} className="summary-progress-item">
                         <ConceptDot level={progressAfter[cid] ?? 0} />
-                        {card?.label ?? cid}
+                        {isMyPeople ? myPeopleLabel(cid) : (card?.label ?? cid)}
                       </li>
                     );
                   })}

@@ -31,6 +31,52 @@ function processCloseAdultPhotos(db, adults) {
   }));
 }
 
+// "Мои люди" is a separate domain from closeAdults (which belongs to the
+// sentence-puzzle topic).  A person may have several photo variations; store
+// data URLs through the shared photo store before the record is synced back to
+// other devices.
+function processMyPeoplePhotos(db, people) {
+  if (!Array.isArray(people)) return [];
+  return people.map((person) => ({
+    ...person,
+    photos: (Array.isArray(person.photos) ? person.photos : [])
+      .filter(Boolean)
+      .map((photo) => extractAndStorePhoto(db, photo)),
+  }));
+}
+
+function personChangeTime(person) {
+  return person?.deletedAt ?? person?.updatedAt ?? person?.createdAt ?? "";
+}
+
+function isResolvedPhotoList(person) {
+  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("/api/photos/"));
+}
+
+function isLocalPhotoList(person) {
+  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("data:"));
+}
+
+// Merge by person id instead of last-writing the complete list.  This lets two
+// devices add or edit different people without erasing each other's work;
+// deleted records remain as tombstones until every replica has received them.
+function mergeMyPeople(existing, incoming) {
+  const byId = new Map();
+  for (const person of [...(existing ?? []), ...(incoming ?? [])]) {
+    if (!person?.id) continue;
+    const current = byId.get(person.id);
+    const sameEdit = current && personChangeTime(person) === personChangeTime(current);
+    // The server turns data URLs into durable photo URLs without changing the
+    // child's edit timestamp.  On that exact tie, retain the resolved URL so
+    // an older local data URL cannot keep overwriting the canonical reference.
+    if (current && sameEdit && isResolvedPhotoList(current) && isLocalPhotoList(person)) continue;
+    if (!current || personChangeTime(person) >= personChangeTime(current)) {
+      byId.set(person.id, person);
+    }
+  }
+  return [...byId.values()];
+}
+
 export function getPhoto(db, hash) {
   return db.prepare("SELECT content_type, data FROM photos WHERE hash = ?").get(hash) ?? null;
 }
@@ -300,6 +346,27 @@ export function deleteEmailVerificationTokensForAccount(db, accountId) {
   db.prepare("DELETE FROM email_verification_tokens WHERE account_id = ?").run(accountId);
 }
 
+// Materials leads — free PDF library on the landing page. Unlike password
+// reset / email verification, the link is meant to keep working if someone
+// re-opens the email later, so lookup does not consume/delete the token —
+// it just checks the token hasn't expired.
+const MATERIALS_LINK_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+export function createMaterialsLead(db, { email, materialId, tokenHash }) {
+  const expiresAt = new Date(Date.now() + MATERIALS_LINK_TTL_MS).toISOString();
+  db.prepare(`
+    INSERT INTO materials_leads (email, material_id, token_hash, created_at, expires_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(email, materialId, tokenHash, now(), expiresAt);
+}
+
+export function findMaterialsLeadByToken(db, tokenHash) {
+  return db.prepare(`
+    SELECT email, material_id FROM materials_leads
+    WHERE token_hash = ? AND expires_at > ?
+  `).get(tokenHash, now()) ?? null;
+}
+
 // ─── Account KV ───────────────────────────────────────────────────────────────
 
 export function upsertAccountKv(db, accountId, key, value) {
@@ -430,6 +497,30 @@ export function upsertStudentAdults(db, accountId, { studentId, closeAdults, upd
   db.prepare(
     "UPDATE students SET close_adults = ?, close_adults_updated_at = ? WHERE id = ?"
   ).run(JSON.stringify(processedAdults), updatedAt, studentId);
+}
+
+export function upsertStudentMyPeopleProfile(db, accountId, { studentId, profile, updatedAt }) {
+  const existing = db.prepare(
+    "SELECT my_people_profile_updated_at FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+  ).get(studentId, accountId);
+  if (!existing) return;
+  if (existing.my_people_profile_updated_at && updatedAt < existing.my_people_profile_updated_at) return;
+  db.prepare(
+    "UPDATE students SET my_people_profile = ?, my_people_profile_updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(profile && typeof profile === "object" ? profile : {}), updatedAt, studentId);
+}
+
+export function upsertStudentMyPeople(db, accountId, { studentId, people, updatedAt }) {
+  const existing = db.prepare(
+    "SELECT my_people, my_people_updated_at FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+  ).get(studentId, accountId);
+  if (!existing) return;
+  const currentPeople = safeJson(existing.my_people, []);
+  const merged = mergeMyPeople(currentPeople, processMyPeoplePhotos(db, people));
+  const newest = [existing.my_people_updated_at, updatedAt].filter(Boolean).sort().at(-1) ?? updatedAt;
+  db.prepare(
+    "UPDATE students SET my_people = ?, my_people_updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(merged), newest, studentId);
 }
 
 export function getStudents(db, accountId) {

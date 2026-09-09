@@ -19,6 +19,7 @@ import VerifyEmailScreen from "@/features/account/VerifyEmailScreen";
 import HomeScreen from "@/features/home/HomeScreen";
 import StudentsScreen from "@/features/students/StudentsScreen";
 import StudentEditScreen from "@/features/students/StudentEditScreen";
+import MyPeopleSettingsScreen from "@/features/myPeople/MyPeopleSettingsScreen";
 import TopicLibraryScreen from "@/features/topics/TopicLibraryScreen";
 import TextPickerScreen from "@/features/reading/TextPickerScreen";
 import AllTextsScreen from "@/features/reading/AllTextsScreen";
@@ -72,6 +73,7 @@ const SCREENS = {
   home: HomeScreen,
   students: StudentsScreen,
   student_edit: StudentEditScreen,
+  my_people_settings: MyPeopleSettingsScreen,
   topics: TopicLibraryScreen,
   texts: TextPickerScreen,
   all_texts: AllTextsScreen,
