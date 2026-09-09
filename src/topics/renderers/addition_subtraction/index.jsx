@@ -1076,19 +1076,17 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   return (
     <div className="operation-stage operation-stage--audio">
       <div className="operation-audio">
-        <div className={`operation-audio-diktor${isPlaying ? " operation-audio-diktor--playing" : ""}`}>
-          <span className="operation-audio-bar" />
-          <span className="operation-audio-bar" />
-          <span className="operation-audio-bar" />
-          <span className="operation-audio-bar" />
-        </div>
         <button
           type="button"
-          className="operation-audio-replay"
+          className={`operation-audio-diktor${isPlaying ? " operation-audio-diktor--playing" : ""}`}
           onClick={playPrompt}
+          disabled={isPlaying}
           aria-label="Повторить пример"
         >
-          ↻ Ещё раз
+          <span className="operation-audio-bar" />
+          <span className="operation-audio-bar" />
+          <span className="operation-audio-bar" />
+          <span className="operation-audio-bar" />
         </button>
         <div
           className={[
