@@ -90,14 +90,19 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
                 "apply-hint-tile",
                 hintDone[i] && (i === matchIdx ? "apply-hint-tile--match" : "apply-hint-tile--done"),
               ].filter(Boolean).join(" ")}>
-                <div className="apply-hint-tile-num">{n}</div>
-                <DrawingSignPad
-                  taskKey={`${task.conceptId}-hinttile-${i}`}
-                  onSignRecognized={(sign, clearCanvas) => handleHintSign(i, n, sign, clearCanvas)}
-                  disabled={hintDone[i]}
-                  shake={hintShakeIdx === i}
-                />
-                <div className="apply-hint-tile-num">{task.value}</div>
+                <div className="apply-hint-tile-label">
+                  <span className="apply-hint-tile-n">{n}</span>
+                  <span className="apply-hint-tile-sep" aria-hidden="true">?</span>
+                  <span className="apply-hint-tile-target">{task.value}</span>
+                </div>
+                <div className="apply-hint-tile-pad">
+                  <DrawingSignPad
+                    taskKey={`${task.conceptId}-hinttile-${i}`}
+                    onSignRecognized={(sign, clearCanvas) => handleHintSign(i, n, sign, clearCanvas)}
+                    disabled={hintDone[i]}
+                    shake={hintShakeIdx === i}
+                  />
+                </div>
               </div>
             ) : (
               <button

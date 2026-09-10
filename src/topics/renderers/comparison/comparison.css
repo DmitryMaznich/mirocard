@@ -368,15 +368,17 @@
   font-size: clamp(18px, 4.5vw, 22px); font-weight: 800; color: #2563eb;
   cursor: pointer;
 }
-/* One answer tile, turned into "N [draw a sign] 46" — reuses
+/* One answer tile, turned into a tiny worked example "N ? 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
-   CompareDrawSign as-is (same recognizer, same visual language). Laid out
-   horizontally, not stacked, to read as one short equation; the canvas is
-   scoped much smaller than CompareDrawSign's own default
-   (clamp(100px, 30vw, 220px), sized for a single full-screen pair) since
-   four of these have to fit in the same 2×2 grid the plain tiles used —
-   the recognizer only cares about stroke geometry ratios, not absolute
-   pixel size, so shrinking it doesn't hurt recognition. */
+   CompareDrawSign as-is (same recognizer, same visual language). Stacked
+   vertically (label row, then the drawing surface), not the three-across
+   row this replaced: "N [canvas] 46" side by side left the canvas and
+   both numbers fighting over the same ~150px of width, so nothing had
+   enough room and the numbers shrank to near-unreadable to make space for
+   the canvas — the exact "looks like a bug" the redesign (2026-09-10)
+   fixed. Stacking gives the canvas the tile's full width for its own row
+   while the label row only has to fit text, at a size actually worth
+   reading. */
 .apply-hint-tile {
   /* Matches .apply-choice-btn's own aspect-ratio exactly (not just
      "similar") — the grid's total height must stay identical between the
@@ -384,9 +386,8 @@
      (it centers its content vertically) and the whole card + grid jump up
      or down every time "Нужна подсказка?" is tapped. */
   position: relative; width: 100%; aspect-ratio: 1.5;
-  display: flex; align-items: center; justify-content: center;
-  gap: clamp(4px, 1.5vw, 8px); padding: 4px 6px;
-  border-radius: 18px; background: #fff;
+  display: flex; flex-direction: column;
+  border-radius: 18px; background: #fff; overflow: hidden;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
 }
 .apply-hint-tile--done {
@@ -402,20 +403,41 @@
   background: #eaf1ff;
   box-shadow: 0 4px 0 #93c5fd, 0 8px 18px rgba(59,130,246,0.18);
 }
-.apply-hint-tile-num {
-  font-size: clamp(14px, 16cqi, 20px); font-weight: 900; color: #1e293b;
-  min-width: 0; flex-shrink: 0; text-align: center; line-height: 1;
+.apply-hint-tile-label {
+  display: flex; align-items: baseline; justify-content: center;
+  gap: clamp(3px, 1.5cqi, 6px); flex-shrink: 0;
+  padding-top: clamp(3px, 2cqi, 7px);
+  line-height: 1;
 }
-/* As big as the tile's own height allows (its limiting dimension, since
-   the tile itself is wider than tall) while staying square — a canvas
-   stretched to the tile's own 1.5:1 shape would distort stroke geometry
-   in ways recognizeSign wasn't tuned for (it compares width/height
-   ratios assuming a roughly square drawing surface). 100cqi/1.5 ≈ 66cqi
-   is the tile's own height in cqi units; a bit under that leaves the two
-   numbers their own room on either side. */
-.apply-hint-tile .draw-sign-canvas {
-  width: clamp(56px, 62cqi, 100px); height: clamp(56px, 62cqi, 100px);
+.apply-hint-tile-n {
+  font-size: clamp(18px, 22cqi, 28px); font-weight: 900; color: #1e293b;
 }
+/* Echoes .apply-ineq-blank's own "?" — the same placeholder the child
+   already read in the reference card above, not a new symbol to learn —
+   quiet here since its job is just to separate the two numbers, not
+   compete with either. */
+.apply-hint-tile-sep {
+  font-size: clamp(11px, 9cqi, 13px); font-weight: 800; color: #94a3b8;
+}
+.apply-hint-tile-target {
+  font-size: clamp(14px, 13cqi, 18px); font-weight: 800; color: #64748b;
+}
+/* Fills whatever height the label row left — full tile width, capped
+   square (via .draw-sign-canvas below) so recognizeSign's stroke-ratio
+   assumptions still hold. */
+.apply-hint-tile-pad {
+  flex: 1; min-height: 0; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 2px clamp(8px, 4cqi, 14px) clamp(5px, 3cqi, 10px);
+}
+/* Square, not stretched to the pad's own (wider-than-tall) box — a
+   distorted canvas would skew recognizeSign's stroke-ratio assumptions.
+   height:100% + aspect-ratio:1 sizes it off whichever dimension is
+   actually tighter, capped so it never outgrows the pad. */
+.apply-hint-tile .draw-sign-pad-wrapper {
+  height: 100%; aspect-ratio: 1; max-width: 100%;
+}
+.apply-hint-tile .draw-sign-canvas { width: 100%; height: 100%; }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
    one of the slots above — a physical sort, not a tap sequence. The slots
