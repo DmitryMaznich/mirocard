@@ -62,23 +62,23 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
   };
 }
 
-export function handleAnswer(state, isCorrect, conceptId, cardId) {
+export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) {
   if (state.mode.evaluation === "none") {
     return handleAdvance(state);
   }
   if (isCorrect) {
+    const scoreCount = Math.max(1, Math.round(Number(options.scoreCount) || 1));
     const streakTarget = 5 * (state.answersPerStar ?? 1);
-    const streakCount = (state.streakCount ?? 0) + 1;
-    const rewardEarnedCount = streakCount >= streakTarget
-      ? (state.rewardEarnedCount ?? 0) + 1
-      : (state.rewardEarnedCount ?? 0);
-    const finalStreak = streakCount >= streakTarget ? 0 : streakCount;
+    const streakCount = (state.streakCount ?? 0) + scoreCount;
+    const earnedNow = Math.floor(streakCount / streakTarget);
+    const rewardEarnedCount = (state.rewardEarnedCount ?? 0) + earnedNow;
+    const finalStreak = streakCount % streakTarget;
     return {
       ...state,
       status: "answer_correct",
-      correctCount: state.correctCount + 1,
+      correctCount: state.correctCount + scoreCount,
       streakCount: finalStreak,
-      bestStreak: Math.max(state.bestStreak ?? 0, streakCount),
+      bestStreak: Math.max(state.bestStreak ?? 0, Math.min(streakCount, streakTarget)),
       rewardEarnedCount,
     };
   }

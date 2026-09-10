@@ -75,6 +75,9 @@ export default function SessionSummary() {
   const sessionStudent = students.find((student) => student.id === session.studentId) ?? null;
 
   function myPeopleLabel(conceptId) {
+    if (String(conceptId).startsWith("album:")) {
+      return String(conceptId).includes(":relation:") ? "Кто эти люди для меня" : "Имена знакомых людей";
+    }
     const personal = {
       family_name: "Моя фамилия",
       family_label: "Наша семья",

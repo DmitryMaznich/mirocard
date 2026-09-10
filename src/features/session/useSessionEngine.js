@@ -174,7 +174,7 @@ function buildGeneratedSessionState({
   }
 
   const sessionConceptIds = renderer === "my_people"
-    ? [...new Set(tasks.map((task) => task.targetConceptId ?? task.conceptId).filter(Boolean))]
+    ? [...new Set(tasks.flatMap((task) => task.progressConceptIds ?? [task.targetConceptId ?? task.conceptId]).filter(Boolean))]
     : selectedConceptIds;
 
   const baseState = createSessionState(
@@ -434,6 +434,32 @@ export function useSessionEngine() {
 
   const clearRewardPending = useCallback(() => setRewardPending(false), []);
 
+  const advanceTask = useCallback((state) => {
+    const isMyPeopleRoundEnd = state.mode?.regenerateOnLoop
+      && state.taskIndex + 1 >= state.tasks.length;
+    const next = handleAdvance(state);
+    if (!isMyPeopleRoundEnd) return next;
+
+    // A new round must be generated, not merely reordered: this refreshes
+    // answer placement and gives people with several photos another image.
+    const generateTasks = ENGINE_REGISTRY.my_people;
+    const previousImages = new Map(
+      state.tasks.flatMap((task) => (task.entries ?? []).map((entry) => [
+        `${entry.personId}:${task.axis}`,
+        entry.image,
+      ])),
+    );
+    const tasks = generateTasks ? generateTasks(state.mode, activeStudent, sessionParams, previousImages) : [];
+    if (!tasks.length) return next;
+    const roundConceptIds = tasks.flatMap((task) => task.progressConceptIds ?? [task.targetConceptId ?? task.conceptId]);
+    return {
+      ...next,
+      tasks,
+      taskIndex: 0,
+      conceptIds: [...new Set([...(state.conceptIds ?? []), ...roundConceptIds])],
+    };
+  }, [activeStudent, sessionParams]);
+
   const onPrevious = useCallback(() => {
     setSessionState(s => {
       if (s.taskIndex <= 0) return s;
@@ -444,7 +470,7 @@ export function useSessionEngine() {
   const onCorrect = useCallback((conceptId, cardId, options = {}) => {
     if (options.assisted) {
       setSessionState((s) => {
-        const next = handleAdvance(s);
+        const next = advanceTask(s);
         if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
         if (next.status === "completed") finishSession(next);
         return next;
@@ -455,7 +481,7 @@ export function useSessionEngine() {
       if (s.mode?.evaluation === "instant") {
         return handleInstantCorrect(s, conceptId, cardId);
       }
-      const next = handleAnswer(s, true, conceptId, cardId);
+      const next = handleAnswer(s, true, conceptId, cardId, options);
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;
@@ -468,14 +494,14 @@ export function useSessionEngine() {
           if (s.mode.type === "compare_first_number") return s;
           if (s.mode.type === "sort_letters") return s;
           if (s.mode.type === "story_sequence") return s;
-          const advanced = handleAdvance(s);
+          const advanced = advanceTask(s);
           if (advanced.status === "deck_exhausted") { setDeckExhausted(true); return advanced; }
           if (advanced.status === "completed") finishSession(advanced);
           return advanced;
         });
       }, autoAdvanceDelay * 1000);
     }
-  }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay]);
+  }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay, advanceTask]);
 
   const onIncorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => {
@@ -509,12 +535,12 @@ export function useSessionEngine() {
 
   const onAdvance = useCallback(() => {
     setSessionState((s) => {
-      const next = handleAdvance(s);
+      const next = advanceTask(s);
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;
     });
-  }, []);
+  }, [advanceTask]);
 
   const onQualityAnswer = useCallback((quality, conceptId, cardId) => {
     setSessionState((s) => {

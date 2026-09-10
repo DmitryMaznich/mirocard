@@ -79,23 +79,19 @@ export default function ModePickerScreen() {
     : topicRecord?.modes ?? [];
   const activeStudent = students.find((student) => student.id === activeStudentId) ?? null;
   const isMyPeople = topicRecord?.meta.renderer === "my_people";
-  const people = (activeStudent?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.[0]);
+  const people = (activeStudent?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.some(Boolean));
   const profile = activeStudent?.myPeopleProfile ?? {};
-  const hasPersonalPhoto = Boolean(activeStudent?.photo || people.length);
 
   function myPeopleModeAvailable(mode) {
     if (!isMyPeople) return true;
-    if (mode.id === "self_name") return profile.includeSelfName !== false && Boolean(activeStudent?.name?.trim() && activeStudent?.photo);
-    if (mode.id === "family_name") return Boolean(profile.includeFamilyName && profile.familyName?.trim() && hasPersonalPhoto);
-    if (mode.id === "family_label") return Boolean(profile.includeFamilyLabel && profile.familyLabel?.trim() && hasPersonalPhoto);
-    if (mode.id === "city") return Boolean(profile.includeCity && profile.city?.trim() && hasPersonalPhoto);
-    if (mode.id === "address") return Boolean(profile.includeAddress && profile.address?.trim() && hasPersonalPhoto);
     const context = mode.id.split("_")[0];
     const group = ["family", "home", "school"].includes(context) ? context : null;
-    const groupPeople = group ? people.filter((person) => person.contexts?.includes(group) && (!mode.id.includes("relations") || person.relation?.trim())) : people.filter((person) => person.relation?.trim());
+    const needsRelation = mode.id.endsWith("_relations");
+    const groupPeople = (group ? people.filter((person) => person.contexts?.includes(group)) : people)
+      .filter((person) => !needsRelation || person.relation?.trim());
     if (group && profile.enabledBlocks?.[group] === false) return false;
     if (mode.id === "mix" && profile.enabledBlocks?.mix === false) return false;
-    return mode.type === "find_n" ? groupPeople.length >= 2 : groupPeople.length >= 1;
+    return groupPeople.length >= 2;
   }
 
   const modes = isMyPeople

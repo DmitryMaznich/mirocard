@@ -1,118 +1,124 @@
 import { shuffle } from "@/shared/utils/shuffle";
 
 const CONTEXT_BY_PREFIX = { family: "family", home: "home", school: "school" };
+const MIN_ALBUM_SIZE = 2;
+const MAX_ALBUM_SIZE = 8;
+const ALBUM_SIZES = [4, 6, 8];
 
 function isActive(person) {
-  return !person?.deletedAt && person?.enabled !== false && person?.name?.trim() && person?.photos?.[0];
-}
-
-function cardFor(person, axis) {
-  const label = axis === "relation" ? person.relation?.trim() : person.name.trim();
-  return {
-    id: `${person.id}:${axis}`,
-    conceptId: `${person.id}:${axis}`,
-    image: person.photos[0],
-    speech: label,
-    label,
-  };
+  return !person?.deletedAt && person?.enabled !== false && person?.name?.trim() && person?.photos?.some(Boolean);
 }
 
 function peopleForMode(mode, student) {
   const people = (student?.myPeople ?? []).filter(isActive);
-  if (mode.id === "mix") return people.filter((person) => person.relation?.trim());
-  const prefix = mode.id.split("_")[0];
-  const context = CONTEXT_BY_PREFIX[prefix];
+  if (mode.id === "mix") return people;
+  const context = CONTEXT_BY_PREFIX[mode.id.split("_")[0]];
   return context ? people.filter((person) => person.contexts?.includes(context)) : people;
 }
 
-function optionsFor(target, people, axis, count) {
-  const targetCard = cardFor(target, axis);
-  const candidates = shuffle(people.filter((person) => person.id !== target.id))
-    .slice(0, Math.max(0, count - 1))
-    .map((person) => ({ conceptId: `${person.id}:${axis}`, card: cardFor(person, axis), isTarget: false }));
-  return shuffle([{ conceptId: targetCard.conceptId, card: targetCard, isTarget: true }, ...candidates]);
+function axisForMode(mode) {
+  return mode.id.endsWith("_relations") ? "relation" : "name";
 }
 
-function generateRecognition(mode, people, axis, params) {
-  if (people.length < 2) return [];
-  const optionCount = Math.min(Math.max(2, Number(params?.optionCount) || 2), people.length);
-  return shuffle(people).map((person) => {
-    const label = axis === "relation" ? person.relation.trim() : person.name.trim();
-    return {
-      type: "find_n",
-      targetConceptId: `${person.id}:${axis}`,
-      targetLabel: `Где ${label}?`,
-      promptSpeech: `Где ${label}?`,
-      inlinePromptAudio: true,
-      options: optionsFor(person, people, axis, optionCount),
-    };
-  });
+function albumSize(params, available) {
+  const requested = Number(params?.peopleCount);
+  const selectedSize = ALBUM_SIZES.includes(requested) ? requested : 4;
+  return Math.min(Math.max(MIN_ALBUM_SIZE, selectedSize), MAX_ALBUM_SIZE, available);
 }
 
-function generateMix(people, params) {
-  if (people.length < 2) return [];
-  const optionCount = Math.min(Math.max(2, Number(params?.optionCount) || 4), people.length);
-  return shuffle(people.flatMap((person, index) => {
-    const axis = index % 2 === 0 ? "name" : "relation";
-    const label = axis === "relation" ? person.relation.trim() : person.name.trim();
-    return [{
-      type: "find_n",
-      targetConceptId: `${person.id}:${axis}`,
-      targetLabel: `Где ${label}?`,
-      promptSpeech: `Где ${label}?`,
-      inlinePromptAudio: true,
-      options: optionsFor(person, people, axis, optionCount),
-    }];
+function toGroups(people, size) {
+  const groups = [];
+  for (let index = 0; index < people.length; index += size) {
+    groups.push(people.slice(index, index + size));
+  }
+  // A one-person final page cannot be an association task. Rebalance the last
+  // two pages rather than exceeding the size selected by the adult.
+  if (groups.length > 1 && groups.at(-1).length === 1) {
+    const lastFullGroup = groups.at(-2);
+    const combined = [...lastFullGroup, groups.at(-1)[0]];
+    const firstSize = Math.floor(combined.length / 2);
+    groups.splice(-2, 2, combined.slice(0, firstSize), combined.slice(firstSize));
+  }
+  return groups;
+}
+
+function createPhotoPlanner(previousImages) {
+  const lastPhotoIndexes = new Map();
+  return {
+    imageFor(person, axis, preferDifferent) {
+      const photos = person.photos.filter(Boolean);
+      const blockedIndexes = new Set();
+      const previousImage = previousImages?.get(`${person.id}:${axis}`);
+      const previousIndex = lastPhotoIndexes.get(person.id);
+      if (previousImage) blockedIndexes.add(photos.indexOf(previousImage));
+      if (preferDifferent && previousIndex != null) blockedIndexes.add(previousIndex);
+      const eligibleIndexes = photos
+        .map((_, index) => index)
+        .filter((index) => !blockedIndexes.has(index));
+      const choices = eligibleIndexes.length ? eligibleIndexes : photos.map((_, index) => index);
+      const index = choices[Math.floor(Math.random() * choices.length)];
+      if (previousImage && photos.length > 1 && photos[index] === previousImage) {
+        // The fallback only happens when several constraints conflict. Prefer a
+        // different previous-round photo whenever the person's gallery allows it.
+        const differentIndex = photos.findIndex((photo) => photo !== previousImage);
+        if (differentIndex >= 0) {
+          lastPhotoIndexes.set(person.id, differentIndex);
+          return photos[differentIndex];
+        }
+      }
+      lastPhotoIndexes.set(person.id, index);
+      return photos[index];
+    },
+  };
+}
+
+function taskForGroup(group, axis, modeId, photoPlanner, preferDifferentPhoto) {
+  const entries = shuffle(group).map((person) => ({
+    personId: person.id,
+    conceptId: `${person.id}:${axis}`,
+    image: photoPlanner.imageFor(person, axis, preferDifferentPhoto),
+    label: axis === "relation" ? person.relation.trim() : person.name.trim(),
   }));
-}
-
-function selfCard(student) {
-  return student?.photo ? {
-    id: "self:name", conceptId: "self:name", image: student.photo,
-    speech: student.name ?? "", label: student.name ?? "",
-  } : null;
-}
-
-function personalAnswer(mode, student) {
-  const profile = student?.myPeopleProfile ?? {};
-  const answers = {
-    family_name: profile.familyName?.trim(),
-    family_label: profile.familyLabel?.trim(),
-    city: profile.city?.trim(),
-    address: profile.address?.trim(),
+  const axisText = axis === "name" ? "имена" : "кто это для меня";
+  const ids = entries.map((entry) => entry.personId).sort().join("_");
+  return {
+    type: "people_album",
+    conceptId: `album:${modeId}:${axis}:${ids}`,
+    targetConceptId: `album:${modeId}:${axis}:${ids}`,
+    progressConceptIds: entries.map((entry) => entry.conceptId),
+    axis,
+    prompt: axis === "name" ? "Подбери имена" : "Кто это для меня?",
+    promptSpeech: axis === "name"
+      ? "Подбери имена. Выбери имя, затем фотографию."
+      : "Кто эти люди для тебя? Выбери слово, затем фотографию.",
+    answerTitle: axisText[0].toUpperCase() + axisText.slice(1),
+    entries,
+    answers: shuffle(entries.map((entry) => ({ id: `answer:${entry.personId}`, personId: entry.personId, label: entry.label }))),
   };
-  const value = answers[mode.id];
-  const questions = {
-    family_name: "Какая у тебя фамилия?",
-    family_label: "Как называется ваша семья?",
-    city: "В каком городе ты живёшь?",
-    address: "По какому адресу ты живёшь?",
-  };
-  if (!value) return [];
-  const photoPerson = (student?.myPeople ?? []).find(isActive);
-  const card = selfCard(student) ?? (photoPerson ? cardFor(photoPerson, "name") : null);
-  if (!card) return [];
-  return [{ type: "question_answer", conceptId: mode.id, card, label: value, question: questions[mode.id], promptSpeech: questions[mode.id] }];
 }
 
-export function generateTasks(mode, student, params = {}) {
+function albumTasks(people, axis, mode, params, photoPlanner, preferDifferentPhoto = false) {
+  const suitablePeople = axis === "relation" ? people.filter((person) => person.relation?.trim()) : people;
+  if (suitablePeople.length < MIN_ALBUM_SIZE) return [];
+  const groups = toGroups(shuffle(suitablePeople), albumSize(params, suitablePeople.length));
+  return groups.map((group) => taskForGroup(group, axis, mode.id, photoPlanner, preferDifferentPhoto));
+}
+
+export function generateTasks(mode, student, params = {}, previousImages = new Map()) {
   if (!mode || !student) return [];
-  if (mode.id === "self_name") {
-    const card = selfCard(student);
-    return card ? [{ type: "intro", conceptId: card.conceptId, card, label: card.label }] : [];
-  }
-  if (["family_name", "family_label", "city", "address"].includes(mode.id)) return personalAnswer(mode, student);
-
   const people = peopleForMode(mode, student);
-  const isRelation = mode.id.includes("relations");
-  if (mode.type === "intro") {
-    const axis = isRelation ? "relation" : "name";
-    return shuffle(people.filter((person) => axis === "name" || person.relation?.trim()))
-      .map((person) => {
-        const card = cardFor(person, axis);
-        return { type: "intro", conceptId: card.conceptId, card, label: card.label };
-      });
+  if (people.length < MIN_ALBUM_SIZE) return [];
+  const photoPlanner = createPhotoPlanner(previousImages);
+
+  if (mode.id === "mix") {
+    // The mixed block keeps the concepts separate inside one lesson: names
+    // first, then relationships on a reshuffled album and, when available,
+    // another photo of each person.
+    return [
+      ...albumTasks(people, "name", mode, params, photoPlanner),
+      ...albumTasks(people, "relation", mode, params, photoPlanner, true),
+    ];
   }
-  if (mode.id === "mix") return generateMix(people, params);
-  return generateRecognition(mode, people.filter((person) => !isRelation || person.relation?.trim()), isRelation ? "relation" : "name", params);
+
+  return albumTasks(people, axisForMode(mode), mode, params, photoPlanner);
 }

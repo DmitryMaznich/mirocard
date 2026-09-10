@@ -248,6 +248,17 @@ describe("handleInstantCorrect — streak without session completion", () => {
   });
 });
 
+describe("handleAnswer — batched correct results", () => {
+  it("counts every correct association while advancing only once", () => {
+    const state = createSessionState([TASKS[0]], MODE, "s1", "t1", "1.0.0", ["a", "b", "c", "d"]);
+    const next = handleAnswer(state, true, "album", "people_album", { scoreCount: 4 });
+
+    expect(next.correctCount).toBe(4);
+    expect(next.status).toBe("answer_correct");
+    expect(next.streakCount).toBe(4);
+  });
+});
+
 describe("handleStreakReset — costs the streak without ending the task", () => {
   const MODE = { id: "operation_observe", type: "operation_observe", evaluation: "instant" };
   const TASKS = Array.from({ length: 10 }, (_, i) => ({

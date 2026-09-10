@@ -1487,23 +1487,13 @@ export default function ParamsScreen() {
   const modeSelectedConceptIds = readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, params);
   const selectedConceptIds = modeSelectedConceptIds ?? allConcepts.map((c) => c.conceptId);
   const isMyPeople = topicRecord?.meta?.renderer === "my_people";
-  const myPeople = (student?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.[0]);
-  const myPeopleProfile = student?.myPeopleProfile ?? {};
-  const hasPersonalPhoto = Boolean(student?.photo || myPeople.length);
+  const myPeople = (student?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.some(Boolean));
   const myPeopleContext = ["family", "home", "school"].find((context) => mode.id.startsWith(`${context}_`));
   const myPeopleTargets = (myPeopleContext
     ? myPeople.filter((person) => person.contexts?.includes(myPeopleContext))
     : myPeople
-  ).filter((person) => !mode.id.includes("relations") || person.relation?.trim());
-  const myPeopleReady = !isMyPeople || (
-    mode.id === "self_name" ? Boolean(myPeopleProfile.includeSelfName !== false && student?.name?.trim() && student?.photo)
-      : mode.id === "family_name" ? Boolean(myPeopleProfile.includeFamilyName && myPeopleProfile.familyName?.trim() && hasPersonalPhoto)
-        : mode.id === "family_label" ? Boolean(myPeopleProfile.includeFamilyLabel && myPeopleProfile.familyLabel?.trim() && hasPersonalPhoto)
-          : mode.id === "city" ? Boolean(myPeopleProfile.includeCity && myPeopleProfile.city?.trim() && hasPersonalPhoto)
-            : mode.id === "address" ? Boolean(myPeopleProfile.includeAddress && myPeopleProfile.address?.trim() && hasPersonalPhoto)
-              : mode.type === "find_n" ? myPeopleTargets.length >= 2
-                : myPeopleTargets.length >= 1
-  );
+  ).filter((person) => !mode.id.endsWith("_relations") || person.relation?.trim());
+  const myPeopleReady = !isMyPeople || myPeopleTargets.length >= 2;
 
   // Concept range filter — only in "Считаем на пальцах" mode
   const fcountCards    = activeModeId === "fingers_count"
