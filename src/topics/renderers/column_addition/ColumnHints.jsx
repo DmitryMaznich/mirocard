@@ -24,6 +24,12 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
   if (activeStep.cellType === "borrow") return showingCompare ? ["Шаг 2", "Проверяем: хватает ли?", `Сравни ${col.compareTopDigit} и ${col.bottomDigit}. ${col.compareTopDigit} меньше ${col.bottomDigit}.`] : ["Шаг 2", "Занимаем десяток", `В ${label} не хватает единиц. Поставь маленькую 1.`];
   if (activeStep.cellType === "crossout") return ["Шаг 2", "Отдаём один десяток", `Проведи пальцем по цифре в разряде «${label}».`];
   if (activeStep.cellType === "adjust") return ["Шаг 2", "Уменьшаем цифру", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в маленький уголок.`];
+  // A shorter bottom number (e.g. "2-зн. + 1-зн.") has no digit at this
+  // position — nothing to add or subtract, the top digit just comes down.
+  if (col.hasBottomDigit === false) {
+    const carryNote = task.operation === "add" && col.carryIn ? ` (с переносом ${col.carryIn})` : "";
+    return ["Шаг 2", `Считаем ${label}`, `У нижнего числа тут нет цифры — просто сноси ${activeStep.digit}${carryNote}.`];
+  }
   if (task.operation === "add") { const sum = col.topDigit + col.bottomDigit + (col.carryIn ?? 0); return ["Шаг 2", `Считаем ${label}`, `${col.topDigit} + ${col.bottomDigit}${col.carryIn ? ` + ${col.carryIn}` : ""} = ${sum}. Впиши ${activeStep.digit}.`]; }
   return ["Шаг 2", `Считаем ${label}`, `${col.effectiveTopDigit} − ${col.bottomDigit} = ${activeStep.digit}. Впиши ${activeStep.digit}.`];
 }

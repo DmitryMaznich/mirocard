@@ -373,6 +373,10 @@ function ColumnGrid({ task, phase, topFilled, bottomFilled, signFilled, lineFill
     const pos = POSITIONS[i];
     const gridCol = digits + 2 - i;
     const col = task.columns[i];
+    // A shorter bottom number has no digit here at all — leave the grid
+    // cell empty (no box), same as it would look on paper, rather than
+    // drawing a "0" that was never written.
+    if (col.hasBottomDigit === false) continue;
 
     if (phase === "form") {
       const key = `bottom:${pos}`;
@@ -534,7 +538,12 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     }
     steps.push({ cellKey: "sign", value: task.operation === "add" ? "+" : "−" });
     for (const pos of positions) {
-      steps.push({ cellKey: `bottom:${pos}`, value: task.columns[POS_INDEX[pos]].bottomDigit });
+      const col = task.columns[POS_INDEX[pos]];
+      // A shorter bottom number (e.g. "2-зн. + 1-зн.") has no digit to place
+      // at this position at all — skip it rather than asking the child to
+      // drag in a "0" that was never written on paper.
+      if (col.hasBottomDigit === false) continue;
+      steps.push({ cellKey: `bottom:${pos}`, value: col.bottomDigit });
     }
     steps.push({ cellKey: "line", value: null });
     return steps;
@@ -610,19 +619,27 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     setCrossoutPaths({});
   }, [task.cardId, task.top, task.bottom, task.operation]);
 
+  // Real count of bottom-row positions — a shorter bottom operand (e.g.
+  // "2-зн. + 1-зн.") has fewer than task.digits, since its missing high
+  // position is never filled in (see formSteps above).
+  const bottomDigitsCount = useMemo(
+    () => task.columns.filter((c) => c.hasBottomDigit !== false).length,
+    [task]
+  );
+
   // Advance to phase 2 when column fully built.
   useEffect(() => {
     if (
       phase === "form" &&
       Object.keys(topFilled).length === task.digits &&
-      Object.keys(bottomFilled).length === task.digits &&
+      Object.keys(bottomFilled).length === bottomDigitsCount &&
       signFilled !== null &&
       lineFilled
     ) {
       const t = setTimeout(() => setPhase("solve"), 500);
       return () => clearTimeout(t);
     }
-  }, [phase, topFilled, bottomFilled, signFilled, lineFilled, task.digits]);
+  }, [phase, topFilled, bottomFilled, signFilled, lineFilled, task.digits, bottomDigitsCount]);
 
   const triggerShake = useCallback((key) => {
     setShakeCell(key);
@@ -706,6 +723,9 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     compareMode === "always" &&
     task.operation === "subtract" &&
     activeStep?.cellType === "result" &&
+    // A column with no real bottom digit (shorter bottom number) has
+    // nothing to compare against — there's no borrow decision to make.
+    task.columns[POS_INDEX[activeStep.position]]?.hasBottomDigit !== false &&
     !resolvedCompares.has(activeStep.position);
 
   const showingCompare = showingCompareOnBorrow || showingCompareAlways;
@@ -835,7 +855,13 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
   const count     = Number(sessionParams?.count     ?? 6);
   const operation = sessionParams?.operation ?? "mixed";
   const carryMode = sessionParams?.carryMode ?? "none";
-  const digits    = Number(sessionParams?.digits    ?? 2);
+  // Not Number()-converted here — "2+1" (2-зн. + 1-зн.) is a valid non-numeric
+  // value that generateExamples' own resolveDigitsParam knows how to read;
+  // forcing it to a number here would turn it into NaN before that.
+  const digits    = sessionParams?.digits ?? 2;
+  // Layout sizing only needs a column-width estimate, not the category
+  // itself — "2+1" is as wide as a 2-digit top number.
+  const layoutDigits = digits === "2+1" ? 2 : Number(digits);
 
   const screenRef = useRef(null);
   const listRef   = useRef(null);
@@ -856,7 +882,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
       const w = screenRef.current.clientWidth;
       const h = screenRef.current.clientHeight;
       // Expression: top_digits + sign + bottom_digits + eq + (digits+1 result digits)
-      const exprCols = 3 * digits + 3;
+      const exprCols = 3 * layoutDigits + 3;
       const cs_w = Math.min(52, Math.max(20, Math.floor((w - 32) / exprCols)));
       // Height: count rows + (count-1) gap rows (each = cs) + keyboard 3 rows + overhead ~80px
       // Total cs rows = count + (count-1) + 3 = 2*count + 2
@@ -866,7 +892,7 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
-  }, [digits, count]);
+  }, [layoutDigits, count]);
 
   // Background grid alignment
   useLayoutEffect(() => {

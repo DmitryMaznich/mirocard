@@ -10,7 +10,13 @@ function getDigits(n, count) {
   return Array.from({ length: count }, (_, i) => Math.floor(n / 10 ** i) % 10);
 }
 
-function buildAddColumns(top, bottom, digits) {
+// bottomDigits < digits marks a shorter bottom operand (currently only the
+// "2-зн. + 1-зн." category: digits=2, bottomDigits=1) — its missing high
+// position still math-zero-pads via getDigits (bd[i]=0), but hasBottomDigit
+// tells the renderer that position has no real digit to show/fill for the
+// bottom number, so it can leave that cell blank instead of drawing a "0"
+// that was never written on paper.
+function buildAddColumns(top, bottom, digits, bottomDigits = digits) {
   const td = getDigits(top, digits);
   const bd = getDigits(bottom, digits);
   const cols = [];
@@ -19,13 +25,13 @@ function buildAddColumns(top, bottom, digits) {
     const sum = td[i] + bd[i] + carry;
     const writeDigit = sum % 10;
     const carryOut = Math.floor(sum / 10);
-    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], carryIn: carry, carryOut, writeDigit });
+    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, carryIn: carry, carryOut, writeDigit });
     carry = carryOut;
   }
   return cols;
 }
 
-export function buildSubColumns(top, bottom, digits) {
+export function buildSubColumns(top, bottom, digits, bottomDigits = digits) {
   const td = getDigits(top, digits);
   const bd = getDigits(bottom, digits);
   const cols = [];
@@ -36,7 +42,7 @@ export function buildSubColumns(top, bottom, digits) {
     const borrowOut = needsBorrow ? 1 : 0;
     const effectiveTopDigit = effective + (needsBorrow ? 10 : 0);
     const writeDigit = effectiveTopDigit - bd[i];
-    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], borrowIn: borrow, borrowOut, effectiveTopDigit, compareTopDigit: effective, writeDigit });
+    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, borrowIn: borrow, borrowOut, effectiveTopDigit, compareTopDigit: effective, writeDigit });
     borrow = borrowOut;
   }
   return cols;
@@ -84,10 +90,16 @@ function buildSubSteps(columns) {
   return steps;
 }
 
-function generateAddTask(carryMode, digits, card, usedPairs) {
+function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digits) {
   for (let attempt = 0; attempt < 100; attempt++) {
     let top, bottom;
-    if (digits === 2) {
+    if (bottomDigits < digits) {
+      // Mixed width ("2-зн. + 1-зн."): the search space is small (≤90×9), so
+      // plain random + retry-on-mismatch below is simpler than hand-tuning
+      // ranges the way the uniform-width branches do.
+      top = randomInt(10 ** (digits - 1), 10 ** digits - 1);
+      bottom = randomInt(1, 10 ** bottomDigits - 1);
+    } else if (digits === 2) {
       if (carryMode === "none") {
         const tU = randomInt(1, 8), tT = randomInt(1, 8);
         const bU = randomInt(1, 9 - tU), bT = randomInt(1, 9 - tT);
@@ -107,7 +119,7 @@ function generateAddTask(carryMode, digits, card, usedPairs) {
       // dip below the 101 floor and leave no valid 3-digit bottom.
       top = randomInt(101, 898); bottom = randomInt(101, 999 - top);
     }
-    const columns = buildAddColumns(top, bottom, digits);
+    const columns = buildAddColumns(top, bottom, digits, bottomDigits);
     const hasCarry = columns.some(c => c.carryOut > 0);
     if (carryMode === "none" && hasCarry) continue;
     if (carryMode === "carry" && !hasCarry) continue;
@@ -133,10 +145,16 @@ function generateAddTask(carryMode, digits, card, usedPairs) {
   return null;
 }
 
-function generateSubTask(carryMode, digits, card, usedPairs) {
+function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digits) {
   for (let attempt = 0; attempt < 100; attempt++) {
     let top, bottom;
-    if (digits === 2) {
+    if (bottomDigits < digits) {
+      // top (2-зн.) is always ≥ 10 > 9 ≥ bottom (1-зн.), so top > bottom is
+      // guaranteed without extra range-juggling — same retry-on-mismatch
+      // reasoning as the addition branch above.
+      top = randomInt(10 ** (digits - 1), 10 ** digits - 1);
+      bottom = randomInt(1, 10 ** bottomDigits - 1);
+    } else if (digits === 2) {
       if (carryMode === "none") {
         const bU = randomInt(1, 8), tU = randomInt(bU, 9);
         const bT = randomInt(1, 8), tT = randomInt(bT + 1, 9);
@@ -151,7 +169,7 @@ function generateSubTask(carryMode, digits, card, usedPairs) {
     } else {
       top = randomInt(201, 999); bottom = randomInt(101, top - 100);
     }
-    const columns = buildSubColumns(top, bottom, digits);
+    const columns = buildSubColumns(top, bottom, digits, bottomDigits);
     const hasBorrow = columns.some(c => c.borrowOut > 0);
     if (carryMode === "none" && hasBorrow) continue;
     if (carryMode === "carry" && !hasBorrow) continue;
@@ -266,10 +284,21 @@ export function generateRegroupTask(card, maxOnes) {
   };
 }
 
+// "2+1" is the one non-numeric `digits` value — a shorthand for "top is
+// 2-значное, bottom is 1-значное" rather than a uniform digit count. Both
+// generateTasks and generateExamples resolve it the same way: grid width
+// (digits) stays 2, and bottomDigits narrows to 1 for that operand alone.
+function resolveDigitsParam(digitsParam) {
+  const mixedWidth = digitsParam === "2+1";
+  const digits = mixedWidth ? 2 : Number(digitsParam ?? 2);
+  const bottomDigits = mixedWidth ? 1 : digits;
+  return { digits, bottomDigits };
+}
+
 export function generateExamples(count, params) {
   const operation = params?.operation ?? "add";
   const carryMode = params?.carryMode ?? "none";
-  const digits = Number(params?.digits ?? 2);
+  const { digits, bottomDigits } = resolveDigitsParam(params?.digits);
   const fakeCard = { id: "copy", conceptId: "copy" };
   const results = [];
   const usedPairs = new Set();
@@ -278,8 +307,8 @@ export function generateExamples(count, params) {
     attempts++;
     const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
     const t = op === "add"
-      ? generateAddTask(carryMode, digits, fakeCard, usedPairs)
-      : generateSubTask(carryMode, digits, fakeCard, usedPairs);
+      ? generateAddTask(carryMode, digits, fakeCard, usedPairs, bottomDigits)
+      : generateSubTask(carryMode, digits, fakeCard, usedPairs, bottomDigits);
     if (t) results.push({ operation: t.operation, top: t.top, bottom: t.bottom });
   }
   return results;
@@ -380,7 +409,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
 
   const operation = params.operation ?? "add";
   const carryMode = params.carryMode ?? "none";
-  const digits    = Number(params.digits ?? 2);
+  const { digits, bottomDigits } = resolveDigitsParam(params.digits);
 
   const filtered   = operation === "mixed" ? arithmeticCards
     : arithmeticCards.filter(c => (c.params?.operation ?? "add") === operation);
@@ -395,8 +424,8 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const card = activePool[idx % activePool.length];
     const op   = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
     const task = op === "add"
-      ? generateAddTask(carryMode, digits, card, usedPairs)
-      : generateSubTask(carryMode, digits, card, usedPairs);
+      ? generateAddTask(carryMode, digits, card, usedPairs, bottomDigits)
+      : generateSubTask(carryMode, digits, card, usedPairs, bottomDigits);
     if (task) { tasks.push(task); idx++; }
   }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateExamples } from "./engine.js";
 import { FINGER_MAP, getFingerConfig, getRemoveMode } from "./FingerSystem.js";
 
 const CARDS = [
@@ -87,6 +87,88 @@ describe("generateTasks – column_arithmetic", () => {
   it("sub: top > bottom always", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "mixed", digits: 2 });
     for (const t of tasks) expect(t.top).toBeGreaterThan(t.bottom);
+  });
+});
+
+describe("generateTasks – column_arithmetic, digits: \"2+1\" (2-зн. + 1-зн.)", () => {
+  it("top is always 2-digit, bottom is always 1-digit", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "mixed", carryMode: "mixed", digits: "2+1" });
+    for (const t of tasks) {
+      expect(t.top).toBeGreaterThanOrEqual(10);
+      expect(t.top).toBeLessThanOrEqual(99);
+      expect(t.bottom).toBeGreaterThanOrEqual(1);
+      expect(t.bottom).toBeLessThanOrEqual(9);
+    }
+  });
+
+  it("grid stays 2 columns wide (tens + units)", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 10, { operation: "add", carryMode: "none", digits: "2+1" });
+    for (const t of tasks) expect(t.columns).toHaveLength(2);
+  });
+
+  it("units column has a real bottom digit, tens column does not", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "mixed", carryMode: "mixed", digits: "2+1" });
+    for (const t of tasks) {
+      const units = t.columns.find((c) => c.position === "units");
+      const tens = t.columns.find((c) => c.position === "tens");
+      expect(units.hasBottomDigit).toBe(true);
+      expect(tens.hasBottomDigit).toBe(false);
+      expect(tens.bottomDigit).toBe(0);
+    }
+  });
+
+  it("add/none: no carry", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode: "none", digits: "2+1" });
+    for (const t of tasks) expect(t.columns.every((c) => c.carryOut === 0)).toBe(true);
+  });
+
+  it("add/carry: units column carries into tens", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode: "carry", digits: "2+1" });
+    for (const t of tasks) expect(t.columns.some((c) => c.carryOut > 0)).toBe(true);
+  });
+
+  it("subtract/none: no borrow", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "none", digits: "2+1" });
+    for (const t of tasks) expect(t.columns.every((c) => c.borrowOut === 0)).toBe(true);
+  });
+
+  it("subtract/carry: units column borrows from tens", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "carry", digits: "2+1" });
+    for (const t of tasks) expect(t.columns.some((c) => c.borrowOut > 0)).toBe(true);
+  });
+
+  it("result = top ± bottom", () => {
+    const addTasks = generateTasks("column_arithmetic", CARDS, 15, { operation: "add", carryMode: "mixed", digits: "2+1" });
+    for (const t of addTasks) expect(t.result).toBe(t.top + t.bottom);
+    const subTasks = generateTasks("column_arithmetic", CARDS, 15, { operation: "subtract", carryMode: "mixed", digits: "2+1" });
+    for (const t of subTasks) expect(t.result).toBe(t.top - t.bottom);
+  });
+
+  it("no form/solve step ever targets the phantom tens position on the bottom row", () => {
+    // Steps only carry a cellType + position, never row — but "result" at
+    // tens always belongs to the top number's own digit (see writeDigit),
+    // which is exactly what the renderer needs; this just confirms every
+    // step still resolves to a defined digit (no undefined from a missing
+    // bottom digit leaking through).
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "mixed", carryMode: "mixed", digits: "2+1" });
+    for (const t of tasks) {
+      for (const step of t.steps) {
+        expect(step.cellType === "crossout" || typeof step.digit === "number").toBe(true);
+      }
+    }
+  });
+});
+
+describe("generateExamples – digits: \"2+1\" (column_copy print mode)", () => {
+  it("top is always 2-digit, bottom is always 1-digit", () => {
+    const examples = generateExamples(20, { operation: "mixed", carryMode: "mixed", digits: "2+1" });
+    expect(examples).toHaveLength(20);
+    for (const ex of examples) {
+      expect(ex.top).toBeGreaterThanOrEqual(10);
+      expect(ex.top).toBeLessThanOrEqual(99);
+      expect(ex.bottom).toBeGreaterThanOrEqual(1);
+      expect(ex.bottom).toBeLessThanOrEqual(9);
+    }
   });
 });
 
