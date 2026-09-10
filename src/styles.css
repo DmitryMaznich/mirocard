@@ -21965,6 +21965,12 @@ body { background: #eef0ef; }
 
 .people-album-photo--matched { border-color: #4a9b8f; }
 
+.people-album-photo--drop-target {
+  border-color: #4a9b8f;
+  box-shadow: 0 0 0 5px rgba(74, 155, 143, 0.17), 0 7px 18px rgba(40, 84, 76, 0.16);
+  transform: translateY(-2px);
+}
+
 .people-album-photo--wrong {
   border-color: #dc6b66;
   box-shadow: 0 0 0 3px rgba(220, 107, 102, 0.14), 0 5px 15px rgba(40, 84, 76, 0.12);
@@ -22041,6 +22047,7 @@ body { background: #eef0ef; }
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
+  touch-action: none;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
@@ -22053,6 +22060,11 @@ body { background: #eef0ef; }
   box-shadow: 0 5px 12px rgba(74, 155, 143, 0.24);
 }
 
+.people-album-answer--dragging {
+  border-style: dashed;
+  opacity: 0.38;
+}
+
 .people-album-answer--used,
 .people-album-answer:disabled {
   border-color: #e5efec;
@@ -22060,6 +22072,29 @@ body { background: #eef0ef; }
   background: #f4f8f7;
   box-shadow: none;
   cursor: default;
+}
+
+.people-album-drag-ghost {
+  position: fixed;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 47px;
+  max-width: min(82vw, 330px);
+  padding: 9px 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  color: #fff;
+  background: #4a9b8f;
+  box-shadow: 0 8px 20px rgba(40, 84, 76, 0.28);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  transform: translate(-50%, -50%) scale(1.04);
+  white-space: nowrap;
 }
 
 @media (max-width: 560px) {
