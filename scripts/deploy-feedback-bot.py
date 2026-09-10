@@ -20,7 +20,7 @@ DEPLOYED_FILES = [
     "formatting.py",
     "env_helpers.py",
     "google_photos.py",
-    "video_ingest.py",
+    "media_ingest.py",
     "authorize_google_photos.py",
     "requirements.txt",
 ]

@@ -46,12 +46,16 @@ def main() -> None:
 
     title = get_env('GOOGLE_PHOTOS_ALBUM_TITLE', default='Video Archive')
     client = GooglePhotosClient(client_secret_path, token_path)
-    album = client.create_shared_album(title)
-    share_url = (album.get('shareInfo') or {}).get('shareableUrl')
+    album = client.create_album(title)
 
-    print('\nCreated shared album:')
+    print('\nCreated album (not shared — Google retired programmatic album')
+    print('sharing on 2025-03-31, see google_photos.py):')
     print(f'  id: {album["id"]}')
-    print(f'  shareable link (send this to your team): {share_url}')
+    print(f'  title: {title}')
+    print('\nShare it with your team yourself, once, from the Google Photos')
+    print('app/site: open the album -> Share -> get link -> send it. New')
+    print('videos the bot uploads afterwards will show up for everyone who')
+    print('joined, same as before.')
     print('\nAdd this line to feedback-bot/.env, then restart the bot:')
     print(f'  GOOGLE_PHOTOS_ALBUM_ID={album["id"]}')
 
