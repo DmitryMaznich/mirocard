@@ -4,7 +4,7 @@ import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
-import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
@@ -503,6 +503,10 @@ export function useSessionEngine() {
     setSessionState((s) => handleInPlaceIncorrect(s, conceptId, cardId));
   }, []);
 
+  const onStreakReset = useCallback((conceptId, cardId) => {
+    setSessionState((s) => handleStreakReset(s, conceptId, cardId));
+  }, []);
+
   const onAdvance = useCallback(() => {
     setSessionState((s) => {
       const next = handleAdvance(s);
@@ -573,6 +577,7 @@ export function useSessionEngine() {
     onPrevious,
     onIncorrect,
     onMistake,
+    onStreakReset,
     onAdvance,
     onQualityAnswer,
     onCardShown: cardLogger.onCardShown,

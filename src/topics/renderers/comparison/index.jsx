@@ -22,8 +22,8 @@ const TYPE_MAP = {
   compare_real_life:    CompareRealLife,
 };
 
-export default function ComparisonRenderer({ task, mode, sessionStatus, onCorrect, onIncorrect, onMistake, onAdvance, playFeedback }) {
+export default function ComparisonRenderer({ task, mode, sessionStatus, onCorrect, onIncorrect, onMistake, onStreakReset, onAdvance, playFeedback }) {
   const Component = TYPE_MAP[task?.type];
   if (!Component) return null;
-  return <Component task={task} mode={mode} sessionStatus={sessionStatus} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} onAdvance={onAdvance} playFeedback={playFeedback} />;
+  return <Component task={task} mode={mode} sessionStatus={sessionStatus} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} onStreakReset={onStreakReset} onAdvance={onAdvance} playFeedback={playFeedback} />;
 }

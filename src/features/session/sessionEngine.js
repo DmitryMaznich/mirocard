@@ -138,6 +138,26 @@ export function handleInPlaceIncorrect(state, conceptId, cardId) {
   };
 }
 
+// A narrower sibling of handleInPlaceIncorrect: records the mistake and
+// resets the star streak the same way, but does NOT bump taskRetry — that
+// counter drives SessionScreen.jsx's remount key, and some in-task mistakes
+// (e.g. compare_apply's "Выбери число" hint: a wrong sign drawn inside it)
+// must cost the streak without remounting the renderer, since the renderer's
+// own local UI state (which hint tiles are already solved, whether the hint
+// is even open) needs to survive the reset — the child keeps working right
+// where they were, just without the streak.
+export function handleStreakReset(state, conceptId, cardId) {
+  if (!state || state.mode?.evaluation === "none") return state;
+  const incorrectCount = state.incorrectCount + 1;
+  const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
+  return {
+    ...state,
+    incorrectCount,
+    streakCount: state.strictStars ? 0 : (state.streakCount ?? 0),
+    mistakes,
+  };
+}
+
 export function handleQualityAnswer(state, quality, conceptId, cardId) {
   const assessment = { quality, conceptId, cardId, taskIndex: state.taskIndex };
   return handleAdvance({

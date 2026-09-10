@@ -20,11 +20,19 @@ import DrawingSignPad from "./DrawingSignPad";
 // task.value; a correct draw just marks that tile done (the one that
 // actually satisfies task.op gets a distinct highlight, so the hint can
 // point at the answer) — it never calls onAnswer itself. Stars only come
-// from tapping the plain tile for real (see tapOption): opening, using,
-// and closing the hint has no effect on scoring either way, so a child
-// who just peeks and doesn't answer through it loses nothing, and one who
-// solves it via the hint still has to tap the real tile to get credit.
-function GenerateStage({ task, answered, onAnswer, playFeedback }) {
+// from tapping the plain tile for real (see tapOption): opening and
+// closing the hint, and drawing a correct sign inside it, have no effect
+// on scoring, so a child who just peeks loses nothing, and one who solves
+// it via the hint still has to tap the real tile to get credit. A WRONG
+// sign inside the hint is different on purpose: the hint exists so a
+// child struggling with the real tiles has somewhere to go, so it costs
+// the star streak the same way a wrong tap would — via onStreakReset, a
+// narrower sibling of onMistake/onIncorrect (see sessionEngine.js's
+// handleStreakReset) that resets the streak without bumping taskRetry, so
+// it doesn't end the task, lock the tiles, or remount this component —
+// the child keeps working the hint right where they were, just without
+// the streak. onAnswer (real credit) still only ever comes from tapOption.
+function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }) {
   const [pickedIdx, setPickedIdx] = useState(-1);
   const [wrongIdx, setWrongIdx] = useState(-1);
   const [isCorrectPick, setIsCorrectPick] = useState(false);
@@ -53,6 +61,7 @@ function GenerateStage({ task, answered, onAnswer, playFeedback }) {
       setHintShakeIdx(idx);
       window.setTimeout(() => setHintShakeIdx(-1), 400);
       window.setTimeout(() => clearCanvas(), 800);
+      onStreakReset?.(task.conceptId, null);
       return;
     }
     playFeedback?.("correct");
@@ -292,7 +301,7 @@ function OrderStage({ task, answered, onAnswer }) {
   );
 }
 
-export default function CompareApply({ task, onCorrect, onIncorrect, playFeedback }) {
+export default function CompareApply({ task, onCorrect, onIncorrect, onStreakReset, playFeedback }) {
   const [answered, setAnswered] = useState(false);
 
   function handleAnswer(isCorrect) {
@@ -308,7 +317,7 @@ export default function CompareApply({ task, onCorrect, onIncorrect, playFeedbac
       {task.taskType === "order" ? (
         <OrderStage task={task} answered={answered} onAnswer={handleAnswer} />
       ) : (
-        <GenerateStage task={task} answered={answered} onAnswer={handleAnswer} playFeedback={playFeedback} />
+        <GenerateStage task={task} answered={answered} onAnswer={handleAnswer} onStreakReset={onStreakReset} playFeedback={playFeedback} />
       )}
     </div>
   );

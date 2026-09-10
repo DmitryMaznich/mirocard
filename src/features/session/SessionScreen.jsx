@@ -101,7 +101,7 @@ export default function SessionScreen() {
     completedRecord, rewardProgress, streakCount, bestStreak, answersPerStar,
     rewardPending, clearRewardPending,
     deckExhausted, handleRestartDeck, handleFinishDeck,
-    onCorrect, onPrevious, onIncorrect, onMistake, onAdvance, onQualityAnswer,
+    onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
@@ -179,6 +179,11 @@ export default function SessionScreen() {
     if (!ownsFeedback) playFeedback("incorrect");
     onMistake(conceptId, cardId);
   }, [ownsFeedback, playFeedback, onMistake]);
+
+  const handleStreakReset = useCallback((conceptId, cardId) => {
+    if (!ownsFeedback) playFeedback("incorrect");
+    onStreakReset(conceptId, cardId);
+  }, [ownsFeedback, playFeedback, onStreakReset]);
 
   const handleFlashIncorrect = useCallback(() => {
     setPillFlash("incorrect");
@@ -388,6 +393,7 @@ export default function SessionScreen() {
             onPrevious={onPrevious}
             onIncorrect={isAdvanceGateActive ? noop : handleIncorrect}
             onMistake={isAdvanceGateActive ? noop : handleMistake}
+            onStreakReset={isAdvanceGateActive ? noop : handleStreakReset}
             onFlashIncorrect={isAdvanceGateActive ? noop : handleFlashIncorrect}
             onAdvance={requestAdvance}
             onQualityAnswer={isAdvanceGateActive ? noop : handleQualityAnswer}

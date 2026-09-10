@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 
 const TASKS = [
   { type: "yes_no", conceptId: "tshirt", card: { id: "t1" }, displayLabel: "футболка", isLabelCorrect: true },
@@ -244,6 +244,33 @@ describe("handleInstantCorrect — streak without session completion", () => {
     let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", [], null, false, 1, false);
     state = handleInstantCorrect(state);
     const next = handleInPlaceIncorrect(state);
+    expect(next.streakCount).toBe(1);
+  });
+});
+
+describe("handleStreakReset — costs the streak without ending the task", () => {
+  const MODE = { id: "operation_observe", type: "operation_observe", evaluation: "instant" };
+  const TASKS = Array.from({ length: 10 }, (_, i) => ({
+    type: "operation_observe", conceptId: `c${i}`, card: { id: `c${i}` },
+  }));
+
+  it("resets the streak and records the mistake, unlike handleInPlaceIncorrect, without bumping taskRetry or touching status/taskIndex", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", []);
+    state = handleInstantCorrect(state);
+    state = handleInstantCorrect(state);
+    const next = handleStreakReset(state, "c2", "c2");
+    expect(next.streakCount).toBe(0);
+    expect(next.mistakes).toEqual([{ conceptId: "c2", cardId: "c2" }]);
+    expect(next.incorrectCount).toBe(state.incorrectCount + 1);
+    expect(next.taskRetry).toBe(state.taskRetry);
+    expect(next.status).toBe(state.status);
+    expect(next.taskIndex).toBe(state.taskIndex);
+  });
+
+  it("keeps the reward series when strict stars are disabled", () => {
+    let state = createSessionState(TASKS, MODE, "s1", "t1", "1.0.0", [], null, false, 1, false);
+    state = handleInstantCorrect(state);
+    const next = handleStreakReset(state);
     expect(next.streakCount).toBe(1);
   });
 });
