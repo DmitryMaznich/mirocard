@@ -332,6 +332,20 @@
   display: grid; grid-template-columns: repeat(2, 1fr);
   gap: clamp(10px, 2.5vw, 18px);
   width: 100%; max-width: 320px;
+  transition: max-width 0.2s ease, gap 0.2s ease;
+}
+/* Hint mode needs more room per tile than the plain 2×2 grid budgets —
+   each tile goes from "one number" to "number, canvas, number", and
+   squeezing that into the same ~150px column is what made the numbers
+   unreadably small in the first version of this hint (2026-09-10). Grow
+   the grid itself into the width the card already has available (phones
+   run out around ~340-380px here) rather than shrinking the tile's
+   content to fit — same 2×2 shape the child already knows, just properly
+   sized. Still capped, not full-bleed: unlimited width would stretch the
+   canvas past a comfortable drawing size on a tablet. */
+.apply-choice-grid--hint {
+  max-width: min(94vw, 460px);
+  gap: clamp(14px, 3.5vw, 22px);
 }
 .apply-choice-cell { container-type: inline-size; }
 .apply-choice-btn {
@@ -368,26 +382,22 @@
   font-size: clamp(18px, 4.5vw, 22px); font-weight: 800; color: #2563eb;
   cursor: pointer;
 }
-/* One answer tile, turned into a tiny worked example "N ? 46" — reuses
+/* One answer tile, turned into "N [draw a sign] 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
-   CompareDrawSign as-is (same recognizer, same visual language). Stacked
-   vertically (label row, then the drawing surface), not the three-across
-   row this replaced: "N [canvas] 46" side by side left the canvas and
-   both numbers fighting over the same ~150px of width, so nothing had
-   enough room and the numbers shrank to near-unreadable to make space for
-   the canvas — the exact "looks like a bug" the redesign (2026-09-10)
-   fixed. Stacking gives the canvas the tile's full width for its own row
-   while the label row only has to fit text, at a size actually worth
-   reading. */
+   CompareDrawSign as-is (same recognizer, same visual language). Same
+   horizontal "N ... 46" shape as the plain tile always had — the first
+   version of this hint (2026-09-10) tried a vertical stack instead, on
+   the theory that a fixed tile footprint had to be preserved; it read as
+   overcomplicated for what was really just a sizing problem. Fix that
+   directly instead: .apply-choice-grid--hint (above) grows the whole
+   grid when the hint is open, so this tile gets real width to work with
+   and the numbers can stay their normal, comfortable size — nothing here
+   needs to shrink or rearrange to make room for the canvas. */
 .apply-hint-tile {
-  /* Matches .apply-choice-btn's own aspect-ratio exactly (not just
-     "similar") — the grid's total height must stay identical between the
-     plain-tile and hint views, or toggling the hint reflows .compare-body
-     (it centers its content vertically) and the whole card + grid jump up
-     or down every time "Нужна подсказка?" is tapped. */
   position: relative; width: 100%; aspect-ratio: 1.5;
-  display: flex; flex-direction: column;
-  border-radius: 18px; background: #fff; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(8px, 3cqi, 16px); padding: 0 clamp(10px, 4cqi, 18px);
+  border-radius: 18px; background: #fff;
   box-shadow: 0 4px 0 #dbe6f7, 0 8px 18px rgba(15,23,42,0.06);
 }
 .apply-hint-tile--done {
@@ -403,41 +413,22 @@
   background: #eaf1ff;
   box-shadow: 0 4px 0 #93c5fd, 0 8px 18px rgba(59,130,246,0.18);
 }
-.apply-hint-tile-label {
-  display: flex; align-items: baseline; justify-content: center;
-  gap: clamp(3px, 1.5cqi, 6px); flex-shrink: 0;
-  padding-top: clamp(3px, 2cqi, 7px);
-  line-height: 1;
+/* Same size both sides (unlike the number being tested, this repeats the
+   fixed target — no reason to weight one over the other), scaled against
+   the WIDER hint-grid cell (see .apply-choice-grid--hint), which is what
+   actually fixes the "too small to read" complaint — the ceiling still
+   stays under .apply-ineq-value's 52px so the reference card above reads
+   as the bigger, primary number. */
+.apply-hint-tile-num {
+  font-size: clamp(20px, 20cqi, 36px); font-weight: 900; color: #1e293b;
+  min-width: 0; flex-shrink: 0; text-align: center; line-height: 1;
 }
-.apply-hint-tile-n {
-  font-size: clamp(18px, 22cqi, 28px); font-weight: 900; color: #1e293b;
+/* As big as the tile's own height allows while staying square — a canvas
+   stretched to the tile's 1.5:1 shape would distort stroke geometry in
+   ways recognizeSign wasn't tuned for. */
+.apply-hint-tile .draw-sign-canvas {
+  width: clamp(60px, 50cqi, 104px); height: clamp(60px, 50cqi, 104px);
 }
-/* Echoes .apply-ineq-blank's own "?" — the same placeholder the child
-   already read in the reference card above, not a new symbol to learn —
-   quiet here since its job is just to separate the two numbers, not
-   compete with either. */
-.apply-hint-tile-sep {
-  font-size: clamp(11px, 9cqi, 13px); font-weight: 800; color: #94a3b8;
-}
-.apply-hint-tile-target {
-  font-size: clamp(14px, 13cqi, 18px); font-weight: 800; color: #64748b;
-}
-/* Fills whatever height the label row left — full tile width, capped
-   square (via .draw-sign-canvas below) so recognizeSign's stroke-ratio
-   assumptions still hold. */
-.apply-hint-tile-pad {
-  flex: 1; min-height: 0; width: 100%;
-  display: flex; align-items: center; justify-content: center;
-  padding: 2px clamp(8px, 4cqi, 14px) clamp(5px, 3cqi, 10px);
-}
-/* Square, not stretched to the pad's own (wider-than-tall) box — a
-   distorted canvas would skew recognizeSign's stroke-ratio assumptions.
-   height:100% + aspect-ratio:1 sizes it off whichever dimension is
-   actually tighter, capped so it never outgrows the pad. */
-.apply-hint-tile .draw-sign-pad-wrapper {
-  height: 100%; aspect-ratio: 1; max-width: 100%;
-}
-.apply-hint-tile .draw-sign-canvas { width: 100%; height: 100%; }
 
 /* Order task ("Расставь по порядку"): drag a tile from the tray below into
    one of the slots above — a physical sort, not a tap sequence. The slots

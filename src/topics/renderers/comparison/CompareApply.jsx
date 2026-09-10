@@ -82,7 +82,7 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
         <div className="apply-ineq-sign" aria-hidden="true">{task.op === "more" ? ">" : "<"}</div>
         <div className="apply-ineq-value" aria-hidden="true">{task.value}</div>
       </div>
-      <div className="apply-choice-grid">
+      <div className={`apply-choice-grid${hintActive ? " apply-choice-grid--hint" : ""}`}>
         {task.options.map((n, i) => (
           <div key={i} className="apply-choice-cell">
             {hintActive ? (
@@ -90,11 +90,7 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
                 "apply-hint-tile",
                 hintDone[i] && (i === matchIdx ? "apply-hint-tile--match" : "apply-hint-tile--done"),
               ].filter(Boolean).join(" ")}>
-                <div className="apply-hint-tile-label">
-                  <span className="apply-hint-tile-n">{n}</span>
-                  <span className="apply-hint-tile-sep" aria-hidden="true">?</span>
-                  <span className="apply-hint-tile-target">{task.value}</span>
-                </div>
+                <span className="apply-hint-tile-num">{n}</span>
                 <div className="apply-hint-tile-pad">
                   <DrawingSignPad
                     taskKey={`${task.conceptId}-hinttile-${i}`}
@@ -103,6 +99,7 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
                     shake={hintShakeIdx === i}
                   />
                 </div>
+                <span className="apply-hint-tile-num">{task.value}</span>
               </div>
             ) : (
               <button
