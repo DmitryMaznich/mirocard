@@ -21883,6 +21883,18 @@ body { background: #eef0ef; }
   gap: 14px;
 }
 
+.people-album-fit {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.people-album-fit > .people-album {
+  transform-origin: center top;
+  will-change: transform;
+}
+
 .people-album__prompt {
   display: flex;
   align-items: center;

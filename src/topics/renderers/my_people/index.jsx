@@ -1,7 +1,46 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { isCorrectAssociation } from "./matching";
+
+function usePeopleAlbumScale(task) {
+  const viewportRef = useRef(null);
+  const contentRef = useRef(null);
+  const [fit, setFit] = useState({ scale: 1, topOffset: 0 });
+
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    const content = contentRef.current;
+    if (!viewport || !content) return undefined;
+
+    function updateFit() {
+      const availableWidth = viewport.clientWidth;
+      const availableHeight = viewport.clientHeight;
+      const contentWidth = content.scrollWidth;
+      const contentHeight = content.scrollHeight;
+      if (!availableWidth || !availableHeight || !contentWidth || !contentHeight) return;
+
+      const scale = Math.min(1, availableWidth / contentWidth, availableHeight / contentHeight);
+      const topOffset = Math.max(0, (availableHeight - contentHeight * scale) / 2);
+      setFit((previous) => (
+        Math.abs(previous.scale - scale) < 0.002 && Math.abs(previous.topOffset - topOffset) < 1
+          ? previous
+          : { scale, topOffset }
+      ));
+    }
+
+    const animationFrame = window.requestAnimationFrame(updateFit);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateFit);
+    observer?.observe(viewport);
+    observer?.observe(content);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      observer?.disconnect();
+    };
+  }, [task]);
+
+  return { viewportRef, contentRef, fit };
+}
 
 function AlbumPhoto({ entry, topicId, match, wrong, onChoose }) {
   const url = useTopicFile(topicId, entry.image);
@@ -31,6 +70,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   const [matches, setMatches] = useState({});
   const [wrongPersonId, setWrongPersonId] = useState(null);
   const wrongTimer = useRef(null);
+  const { viewportRef, contentRef, fit } = usePeopleAlbumScale(task);
 
   const answersById = useMemo(
     () => Object.fromEntries((task.answers ?? []).map((answer) => [answer.id, answer])),
@@ -83,7 +123,13 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   const columnClass = task.entries.length >= 5 ? " people-album-photos--three-columns" : "";
 
   return (
-    <div className="session-body people-album" aria-label="Задание на сопоставление людей">
+    <div className="people-album-fit" ref={viewportRef}>
+      <div
+        ref={contentRef}
+        className="session-body people-album"
+        aria-label="Задание на сопоставление людей"
+        style={{ transform: `translateY(${fit.topOffset}px) scale(${fit.scale})` }}
+      >
       <div className="people-album__prompt">
         <div className="people-album__question">{task.prompt}</div>
         <button type="button" className="people-album__repeat" onClick={repeatPrompt} aria-label="Повторить задание">🔊</button>
@@ -124,6 +170,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
             </button>
           );
         })}
+      </div>
       </div>
     </div>
   );
