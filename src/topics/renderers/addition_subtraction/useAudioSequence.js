@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // rather than two words with a seam.
 const TIGHT_TRAIL_TRIM_SECONDS = 0.17;
 const TIGHT_LEAD_SKIP_SECONDS = 0.065;
-const TIGHT_OVERLAP_SECONDS = 0.03;
+const TIGHT_OVERLAP_SECONDS = 0.05;
 
 // Plays a list of short word recordings back to back, like a diktor reading
 // a sentence built from separate takes. Chains plain <audio> elements via
