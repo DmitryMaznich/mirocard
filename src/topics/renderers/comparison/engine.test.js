@@ -341,13 +341,26 @@ describe("generateTasks", () => {
         const fits = (n) => (t.op === "more" ? n > t.value : n < t.value);
         expect(t.options.some(fits)).toBe(true);
         expect(t.options.some((n) => !fits(n))).toBe(true);
-        // The reference value itself must NOT be offered as a tile — it used
-        // to be a guaranteed distractor, but showing the same digits both as
-        // the task's given number and as a selectable option read as a
-        // confusing on-screen duplicate rather than a meaningful wrong
-        // answer (reported live: children couldn't tell which "36" was which).
-        expect(t.options).not.toContain(t.value);
+        // The reference value itself, when offered, is always a wrong
+        // tile — it's neither больше nor меньше than itself, so it can
+        // never be the one satisfying fits().
+        if (t.options.includes(t.value)) expect(fits(t.value)).toBe(false);
       });
+    });
+
+    // The user explicitly asked (2026-09) for "У кого меньше/больше" boundary
+    // practice: a tile equal to the spoken reference number, so a child who
+    // thinks "больше" includes "equal to" taps it and finds out it doesn't
+    // count. shuffledApplyComboCycle plants this deliberately on half of
+    // every (op, value) pair rather than leaving it to chance, so a normal
+    // session is guaranteed to include it, not just occasionally stumble on
+    // it.
+    it("'generate' tasks are guaranteed to sometimes offer the reference value itself as a (wrong) tile", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 60, { level: 2, taskType: "generate" });
+      const withEqualTile = tasks.filter((t) => t.options.includes(t.value));
+      const withoutEqualTile = tasks.filter((t) => !t.options.includes(t.value));
+      expect(withEqualTile.length).toBeGreaterThan(0);
+      expect(withoutEqualTile.length).toBeGreaterThan(0);
     });
 
     // Regression: the correct tile used to be picked via an ascending,
@@ -368,16 +381,16 @@ describe("generateTasks", () => {
 
     // Regression: op/value used to be drawn independently at random per
     // task, with no protection against repeats. At level 2 (min 1, max 10)
-    // there are only 8 possible values (2..9) x 2 ops = 16 distinct
-    // comparisons, so plain independent randomness produced frequent runs
-    // of the same one ("< 5" several cards in a row, just with different
-    // tiles) — reported live. Cycling through a shuffled pass of every
-    // combo before repeating means one full cycle (16 tasks here) can't
-    // repeat any comparison.
-    it("'generate' tasks don't repeat the same (op, value) comparison within one shuffle cycle", () => {
-      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 16, { level: 2, taskType: "generate" });
-      const seen = new Set(tasks.map((t) => `${t.op}:${t.value}`));
-      expect(seen.size).toBe(16);
+    // there are 8 possible values (2..9) x 2 ops x 2 includeEqual = 32
+    // distinct (op, value, includeEqual) combos, so plain independent
+    // randomness produced frequent runs of the same one ("< 5" several
+    // cards in a row, just with different tiles) — reported live. Cycling
+    // through a shuffled pass of every combo before repeating means one
+    // full cycle (32 tasks here) can't repeat any combo.
+    it("'generate' tasks don't repeat the same (op, value, includeEqual) combo within one shuffle cycle", () => {
+      const tasks = generateTasks(MODE_APPLY, ALL_CARDS, 32, { level: 2, taskType: "generate" });
+      const seen = new Set(tasks.map((t) => `${t.op}:${t.value}:${t.options.includes(t.value)}`));
+      expect(seen.size).toBe(32);
     });
 
     it("'order' tasks give 3 distinct numbers by default whose sorted order matches ascending value", () => {

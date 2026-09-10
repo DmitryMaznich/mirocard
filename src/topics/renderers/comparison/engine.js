@@ -136,32 +136,37 @@ export function getVerdict(task) {
 // recognize a satisfying number among a small closed set of choices, so this
 // is a discrimination task, not free number generation. `value` always
 // leaves room on the correct side within [min, max] so a valid tile exists.
-// The boundary value itself is always one of the wrong tiles, since it's the
-// most instructive near-miss for a strict "больше/меньше".
-// Every distinct (op, value) comparison possible for this level's range,
-// cycled in a fresh shuffled order before repeating — otherwise op/value
-// were drawn independently at random per task, and with as few as 16
-// combos at the lower levels, runs of the same comparison ("< 5" several
-// cards in a row, just with different distractor tiles) were common by
-// plain chance. Mirrors shuffledSceneCycle()'s same fix for
+// Every distinct (op, value, includeEqual) comparison possible for this
+// level's range, cycled in a fresh shuffled order before repeating —
+// otherwise op/value were drawn independently at random per task, and with
+// as few as 16 combos at the lower levels, runs of the same comparison
+// ("< 5" several cards in a row, just with different distractor tiles)
+// were common by plain chance. Mirrors shuffledSceneCycle()'s same fix for
 // REAL_LIFE_SCENES below. value sits strictly inside (min, max) for both
 // ops — a value equal to the range's own boundary (e.g. "more than 1"
 // when min is 1) would leave every other number fitting the constraint,
-// so there'd be no real non-fitting distractor left to offer once value
-// itself is dropped from the tile pool (see generateApplyGenerateTask's
-// `wrong` comment).
+// so there'd be no real non-fitting distractor left to offer.
+//
+// includeEqual doubles the cycle: every (op, value) pair appears once with
+// value itself planted among the wrong tiles and once without, so a
+// session is guaranteed real practice with "у кого больше" boundary
+// mistake — tapping the number that's neither больше nor меньше, just
+// equal — not left to chance the way a per-task coin flip would be.
 function* shuffledApplyComboCycle(min, max) {
   const combos = [];
   for (let value = min + 1; value <= max - 1; value++) {
-    combos.push({ op: "more", value });
-    combos.push({ op: "less", value });
+    for (const op of ["more", "less"]) {
+      for (const includeEqual of [true, false]) {
+        combos.push({ op, value, includeEqual });
+      }
+    }
   }
   for (;;) {
     for (const combo of shuffle(combos)) yield combo;
   }
 }
 
-function generateApplyGenerateTask(min, max, op, value) {
+function generateApplyGenerateTask(min, max, op, value, includeEqual) {
   const fits = (n) => (op === "more" ? n > value : n < value);
   const rest = [];
   for (let n = min; n <= max; n++) if (n !== value) rest.push(n);
@@ -175,14 +180,14 @@ function generateApplyGenerateTask(min, max, op, value) {
   const shuffledRest = shuffle(rest);
 
   const correct = shuffledRest.find(fits);
-  // Drawn only from numbers that genuinely don't fit — value itself used to
-  // be forced in here as a guaranteed distractor ("you can't just repeat the
-  // number"), but that put the same digits on screen twice (once as the
-  // task's reference value, once as a tile) and was read as confusing
-  // duplication rather than a meaningful wrong answer. Plenty of non-fitting
-  // candidates exist at every level (see COMPARISON_LEVELS), so dropping it
-  // doesn't reopen elimination-guessing.
-  const wrong = shuffledRest.filter((n) => !fits(n)).slice(0, 3);
+  const nonFitting = shuffledRest.filter((n) => !fits(n));
+  // value itself is never in `rest`, so it's never drawn by chance — plant
+  // it deliberately on an includeEqual task. It's neither больше nor
+  // меньше than itself, so it's always a genuinely wrong tile; being the
+  // exact number just spoken back at the child (not just "some other
+  // number") is what makes it worth testing on purpose rather than only
+  // when it happens to come up.
+  const wrong = includeEqual ? [value, ...nonFitting.slice(0, 2)] : nonFitting.slice(0, 3);
   const options = shuffle([correct, ...wrong]);
 
   return {
@@ -346,8 +351,8 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       if (applyTaskType === "order") {
         base = generateApplyOrderTask(min, max, numbersCount, orderDirection);
       } else {
-        const { op, value } = comboCycle.next().value;
-        base = generateApplyGenerateTask(min, max, op, value);
+        const { op, value, includeEqual } = comboCycle.next().value;
+        base = generateApplyGenerateTask(min, max, op, value, includeEqual);
       }
       tasks.push({ type: mode.type, conceptId: card.conceptId, instruction, ...base });
     }
