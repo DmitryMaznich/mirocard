@@ -7,13 +7,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // floors — leaving only a small safety margin, never clipping a word's own
 // sound — and then nudge the next word's start earlier still, so its quiet
 // lead-in overlaps the previous word's fading tail instead of just abutting
-// it. At this overlap size that reaches slightly past the pure-silence
-// margin into the last, already-quiet moment of some words' tails (not
-// their core sound) — tuned up from 30ms by ear across two rounds of
-// feedback; push further only after listening again.
+// it. At 170ms this reaches well past the silence margin into each tens
+// word's actual audible tail (e.g. ~155ms into "n90"'s spoken sound, per
+// the same decode analysis) — the two words genuinely overlap now, not
+// just their quiet edges. Pushed here per explicit request after 30/50/70ms
+// read as no different; if 170ms still sounds unchanged, the audio isn't
+// the problem — something (PWA service-worker caching, most likely: the
+// app defers applying an update while mid-session) is serving stale code.
 const TIGHT_TRAIL_TRIM_SECONDS = 0.17;
 const TIGHT_LEAD_SKIP_SECONDS = 0.065;
-const TIGHT_OVERLAP_SECONDS = 0.07;
+const TIGHT_OVERLAP_SECONDS = 0.17;
 
 // Plays a list of short word recordings back to back, like a diktor reading
 // a sentence built from separate takes. Chains plain <audio> elements via
