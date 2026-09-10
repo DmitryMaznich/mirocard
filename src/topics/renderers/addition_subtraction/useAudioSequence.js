@@ -5,14 +5,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // silence, ones words (n1..n9) carry 79-128ms of leading silence. For a
 // "tight" transition (see `items[].tight`) we trim both close to those
 // floors — leaving only a small safety margin, never clipping a word's own
-// sound — and then nudge the next word's start a little earlier still, so
-// its quiet lead-in briefly overlaps the previous word's quiet fade-out
-// instead of just abutting it. That's inaudible as "two sounds at once"
-// (both sides are near-silent there) but reads as one continuous number
-// rather than two words with a seam.
+// sound — and then nudge the next word's start earlier still, so its quiet
+// lead-in overlaps the previous word's fading tail instead of just abutting
+// it. At this overlap size that reaches slightly past the pure-silence
+// margin into the last, already-quiet moment of some words' tails (not
+// their core sound) — tuned up from 30ms by ear across two rounds of
+// feedback; push further only after listening again.
 const TIGHT_TRAIL_TRIM_SECONDS = 0.17;
 const TIGHT_LEAD_SKIP_SECONDS = 0.065;
-const TIGHT_OVERLAP_SECONDS = 0.05;
+const TIGHT_OVERLAP_SECONDS = 0.07;
 
 // Plays a list of short word recordings back to back, like a diktor reading
 // a sentence built from separate takes. Chains plain <audio> elements via
