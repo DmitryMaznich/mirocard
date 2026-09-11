@@ -418,17 +418,16 @@ function PersonNamingTask(props) {
       {({ repeatPrompt }) => (
         <>
           <span className="about-me-task__eyebrow">Кто это?</span>
-          <div className="person-intro__photo-wrap">
+          <div className="person-naming__photo-wrap">
             {imageUrl
-              ? <img className="person-intro__photo" src={imageUrl} alt="" />
-              : <span className="person-intro__photo person-intro__photo--loading" aria-hidden="true" />
+              ? <img className="person-naming__photo" src={imageUrl} alt="" />
+              : <span className="person-naming__photo person-naming__photo--loading" aria-hidden="true" />
             }
           </div>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt">{props.task.prompt}</div>
             <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить вопрос">🔊</button>
           </div>
-          <p className="about-me-task__hint">Можно ответить голосом, жестом или с помощью AAC.</p>
         </>
       )}
     </QualityAnswerTask>
