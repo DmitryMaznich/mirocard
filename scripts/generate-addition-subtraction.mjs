@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 const manifest = {
   meta: {
     id: "addition_subtraction",
-    version: "1.4.0",
+    version: "1.6.0",
     minAppVersion: "1.0.2",
     language: "ru",
     cardType: "procedural",
@@ -228,7 +228,7 @@ const manifest = {
       type: "operation_audio",
       evaluation: "auto",
       defaultCardId: "operation_plus",
-      ui: { title: "9. Слушай и посчитай", instruction: "Слушай пример и вводи ответ" },
+      ui: { title: "9. Слушай и посчитай", instruction: "Слушай пример и вводи ответ", icon: "media/icons/operations_audio.svg" },
       params: {
         maxNumber: {
           type: "enum",
@@ -239,13 +239,20 @@ const manifest = {
         },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 99, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
+        mixedMagnitude: {
+          type: "boolean",
+          default: true,
+          label: { ru: "Разноразрядные числа" },
+          hint: { ru: "Например, «5 + 23» — однозначное и двузначное число вместе. Выключите, чтобы оба числа были одного разряда." },
+        },
       },
       methodology: {
         text: "Аудио-режим: пример звучит голосом диктора, без текста на экране — ребёнок слушает и вводит только ответ на цифровой клавиатуре. Тренирует счёт на слух, без опоры на зрительный образ примера.",
         tips: [
           "Начинайте с maxNumber=20 — это привычный ребёнку диапазон.",
           "До 50/100 вводите только когда ребёнок уверенно считает круглыми десятками.",
-          "Кнопка «Ещё раз» — ребёнок сам решает, когда переслушать пример.",
+          "Тап по кругляшку-диктору — ребёнок сам решает, когда переслушать пример.",
+          "Выключите «Разноразрядные числа», если ребёнок путает 5+23 с 5+2 — так оба числа в примере будут одного разряда (оба однозначные или оба двузначные).",
         ],
         duration: "4–6 мин",
       },
@@ -274,5 +281,6 @@ const manifest = {
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/addition_subtraction_v1.4.0.zip", buffer);
-console.log("generated addition_subtraction_v1.4.0.zip");
+const outFile = `public/decks/addition_subtraction_v${manifest.meta.version}.zip`;
+writeFileSync(outFile, buffer);
+console.log("generated", outFile);

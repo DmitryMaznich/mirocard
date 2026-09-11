@@ -530,6 +530,20 @@ const BUILTIN_ASSETS = {
   <path d="M39 96h18m-9-9v18" stroke="#1f7a6f" stroke-width="7" stroke-linecap="round"/>
   <path d="M74 96h22" stroke="#c04040" stroke-width="7" stroke-linecap="round"/>
 </svg>`,
+  "media/icons/operations_audio.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eefaf5"/>
+  <path d="M84 28
+           C62 26 42 42 42 66
+           C42 84 53 97 67 100
+           C74 101 78 95 74 89
+           C70 84 61 83 59 73
+           C57 63 64 54 76 53
+           C85 52 90 44 87 35"
+        fill="none" stroke="#2f6f65" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M26 56 C13 65 13 81 26 90" fill="none" stroke="#9fd4c8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M15 47 C-4 60 -4 86 15 99" fill="none" stroke="#cceae2" stroke-width="8" stroke-linecap="round"/>
+</svg>`,
   "media/icons/operations_mode.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#eefaf5"/>

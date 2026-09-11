@@ -1020,7 +1020,7 @@ const DEFAULT_MODES = {
       id: "operation_missing_term",
       type: "operation_missing_term",
       evaluation: "auto",
-      ui: { title: "9. Найди неизвестное", instruction: "Какое число спрятано под ❓", icon: "media/icons/operations_missing_sign.svg" },
+      ui: { title: "10. Найди неизвестное", instruction: "Какое число спрятано под ❓", icon: "media/icons/operations_missing_sign.svg" },
       params: {
         operation: {
           type: "enum",

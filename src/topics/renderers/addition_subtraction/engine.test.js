@@ -351,4 +351,26 @@ describe("operation_audio", () => {
     const tasks = generateTasks("operation_audio", CARDS, 9, { maxNumber: 20 });
     expect(tasks).toHaveLength(9);
   });
+
+  it("allows mixed-magnitude pairs (single-digit with two-digit) by default", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 60, { maxNumber: 100, changeMax: 99 });
+    expect(tasks.some((t) => (t.start <= 9) !== (t.delta <= 9))).toBe(true);
+  });
+
+  it("forces same-magnitude pairs when mixedMagnitude is false", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 60, { maxNumber: 100, changeMax: 99, mixedMagnitude: false });
+    tasks.forEach((t) => {
+      expect(t.start <= 9).toBe(t.delta <= 9);
+      if (t.operation === "add") expect(t.start + t.delta).toBe(t.result);
+      else expect(t.start - t.delta).toBe(t.result);
+    });
+  });
+
+  it("still produces valid same-magnitude pairs when changeMax only allows single digits", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 30, { maxNumber: 100, changeMax: 5, mixedMagnitude: false });
+    tasks.forEach((t) => {
+      expect(t.start <= 9).toBe(t.delta <= 9);
+      expect(t.result).toBeGreaterThanOrEqual(1);
+    });
+  });
 });

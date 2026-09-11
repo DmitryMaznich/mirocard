@@ -192,7 +192,7 @@ describe("importTopic — valid cases", () => {
       "6. Сколько стало?",
       "7. Цепочка",
       "8. Листок",
-      "9. Найди неизвестное",
+      "10. Найди неизвестное",
     ]);
     const observeMode = record.modes.find((mode) => mode.id === "operation_observe");
     expect(observeMode.params.maxNumber.default).toBe(3);

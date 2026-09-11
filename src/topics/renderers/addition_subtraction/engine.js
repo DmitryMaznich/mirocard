@@ -148,6 +148,12 @@ function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
 
 const AUDIO_DEFAULT_MAX_NUMBER = 20;
 const AUDIO_HARD_CAP = 100;
+const AUDIO_SAME_MAGNITUDE_ATTEMPTS = 40;
+
+// Same digit-count bucket: both single-digit (0-9) or both two-plus-digit.
+function sameMagnitude(a, b) {
+  return (a <= 9) === (b <= 9);
+}
 
 // Spoken-example task: no visual rail, so unlike buildOperationTask this
 // isn't clamped to DEFAULT_RAIL_SIZE (20) — a diktor can say "сорок пять"
@@ -158,17 +164,40 @@ function buildAudioTask(card, params = {}) {
   const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, maxNumber)));
   const includeZero = Boolean(params.includeZero);
   const minVal = includeZero ? 0 : 1;
+  const mixedMagnitude = params.mixedMagnitude !== false;
 
-  const delta = randomInt(1, changeMax);
-  let start, result;
-
-  if (operation === "add") {
-    start = randomInt(minVal, Math.max(minVal, maxNumber - delta));
-    result = start + delta;
-  } else {
-    start = randomInt(Math.max(minVal, delta + minVal), maxNumber);
-    result = start - delta;
+  function pickPair() {
+    const pairDelta = randomInt(1, changeMax);
+    const pairStart = operation === "add"
+      ? randomInt(minVal, Math.max(minVal, maxNumber - pairDelta))
+      : randomInt(Math.max(minVal, pairDelta + minVal), maxNumber);
+    return { start: pairStart, delta: pairDelta };
   }
+
+  let { start, delta } = pickPair();
+
+  if (!mixedMagnitude && !sameMagnitude(start, delta)) {
+    for (let attempt = 0; attempt < AUDIO_SAME_MAGNITUDE_ATTEMPTS; attempt++) {
+      const candidate = pickPair();
+      if (sameMagnitude(candidate.start, candidate.delta)) {
+        ({ start, delta } = candidate);
+        break;
+      }
+    }
+    // maxNumber/changeMax can make a same-magnitude pair rare or (with a
+    // small changeMax) impossible above single digits — fall back to
+    // forcing both into 0-9, always representable since delta only needs
+    // room for one more single-digit number on the other side of the sign.
+    if (!sameMagnitude(start, delta)) {
+      const onesDelta = Math.max(1, Math.min(9 - minVal, changeMax));
+      delta = randomInt(1, onesDelta);
+      start = operation === "add"
+        ? randomInt(minVal, Math.max(minVal, 9 - delta))
+        : randomInt(Math.max(minVal, delta + minVal), 9);
+    }
+  }
+
+  const result = operation === "add" ? start + delta : start - delta;
 
   return {
     type: "operation_audio",
