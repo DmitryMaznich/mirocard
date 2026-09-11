@@ -108,6 +108,17 @@
   margin-top: 1em; /* shifted down one line from the screen edge */
 }
 
+/* On phone this 1em top margin (plus the fixed-height checklist below it)
+   starves .fng-add-hands-zone (flex:1) of height, so the hands render
+   noticeably smaller than in "Покажи" (.fng-show-hands, which only shares
+   space with the number and has no checklist/keypad competing for room).
+   Trim the margin here so the freed height goes straight to the hands. */
+@media (max-width: 560px) {
+  .fng-count-expr {
+    margin-top: 4px;
+  }
+}
+
 /* Sits between the expression and the hands zone (i.e. roughly level with
  * where raised fingertips are) rather than crammed under the expression.
  * Fixed (viewport-relative, not content-driven) height — useRowsHeightCap
@@ -125,6 +136,19 @@
   gap: 8px;
   padding: 8px 14px;
   overflow: hidden;
+}
+
+/* Same reason as .fng-count-expr's phone margin above: this budget (sized
+   for 3 stacked rows, even though only 1-2 ever show at once) is the
+   biggest fixed consumer ahead of .fng-add-hands-zone. useRowsHeightCap
+   reads this box's own height and adapts its font cap automatically, so
+   shrinking it here doesn't break the text-fit logic — rows just get a
+   smaller (still readable, floor 14px) cap instead of the unused 32px
+   ceiling this height was already exceeding. */
+@media (max-width: 560px) {
+  .fng-checklist {
+    height: clamp(100px, 16vh, 150px);
+  }
 }
 
 /* One row — the whole thing is the tap target while active; doubles as the

@@ -602,6 +602,16 @@ function ColumnArithmeticTask({ task, onCorrect, onMistake, sessionParams }) {
     const offX = ((nr.left - sr.left) % cs + cs) % cs;
     const offY = ((nr.top - sr.top) % cs + cs) % cs;
     screen.style.backgroundPosition = `${offX}px ${offY}px`;
+    // Keep the .session-renderer-wrap background (fills the reserved header
+    // gap above this screen, see column_addition.css) in the same phase/size.
+    const wrap = screen.parentElement;
+    if (wrap) {
+      wrap.style.backgroundSize = `${cs}px ${cs}px`;
+      const wr = wrap.getBoundingClientRect();
+      const wOffX = ((nr.left - wr.left) % cs + cs) % cs;
+      const wOffY = ((nr.top - wr.top) % cs + cs) % cs;
+      wrap.style.backgroundPosition = `${wOffX}px ${wOffY}px`;
+    }
   }, [gridCellSize, phase, solved]);
 
   useEffect(() => {
@@ -906,6 +916,16 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
     const offX = ((lr.left - sr.left) % cs + cs) % cs;
     const offY = ((lr.top  - sr.top)  % cs + cs) % cs;
     screen.style.backgroundPosition = `${offX}px ${offY}px`;
+    // Keep the .session-renderer-wrap background (fills the reserved header
+    // gap above this screen, see column_addition.css) in the same phase/size.
+    const wrap = screen.parentElement;
+    if (wrap) {
+      wrap.style.backgroundSize = `${cs}px ${cs}px`;
+      const wr = wrap.getBoundingClientRect();
+      const wOffX = ((lr.left - wr.left) % cs + cs) % cs;
+      const wOffY = ((lr.top  - wr.top)  % cs + cs) % cs;
+      wrap.style.backgroundPosition = `${wOffX}px ${wOffY}px`;
+    }
   }, [cellSize, examples]);
 
   useEffect(() => {

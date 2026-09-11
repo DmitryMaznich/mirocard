@@ -28,6 +28,56 @@
   overflow: hidden;
 }
 
+/* .session-renderer-wrap's parent (.session-header-wrap, see styles.css)
+   reserves a margin-bottom of 58px (86px ≤560px) below the app header for
+   the feedback-badge overhang. That gap sits above .col-screen and is
+   otherwise painted white by .session-screen, showing as empty space above
+   the task on phones. Stretch the wrap itself upward into that gap and
+   paint the same grid there (kept in sync with .col-screen's dynamic cell
+   size/offset by the JS in index.jsx) so the checkered background reaches
+   the top of the screen — this only resizes the wrap, not .col-screen, so
+   .col-screen's own coordinate system (its absolutely-positioned children
+   like .col-hint-toggle) is unaffected. */
+.session-renderer-wrap:has(> .col-screen) {
+  position: relative;
+  margin-top: -58px;
+  padding-top: 58px;
+  background-color: #f0f6ff;
+  background-image:
+    linear-gradient(rgba(140, 190, 255, 0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 190, 255, 0.55) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+@media (max-width: 560px) {
+  .session-renderer-wrap:has(> .col-screen) {
+    /* Matches .session-header-wrap's 86px margin-bottom at this breakpoint. */
+    margin-top: -86px;
+    padding-top: 86px;
+  }
+}
+
+/* Same reserved-gap fix as above, for this topic's other modes: fingers
+   show/count (fingers.css) and the place-value screens — build number,
+   identify number, regroup ten (place_value.css). Those screens fill with
+   a plain color (no grid), so the wrap only needs to repeat that color. */
+.session-renderer-wrap:has(> .fng-show-screen),
+.session-renderer-wrap:has(> .fng-add-screen),
+.session-renderer-wrap:has(> .pv-screen) {
+  margin-top: -58px;
+  padding-top: 58px;
+  background-color: #f0f6ff;
+}
+
+@media (max-width: 560px) {
+  .session-renderer-wrap:has(> .fng-show-screen),
+  .session-renderer-wrap:has(> .fng-add-screen),
+  .session-renderer-wrap:has(> .pv-screen) {
+    margin-top: -86px;
+    padding-top: 86px;
+  }
+}
+
 .col-notebook {
   display: inline-flex;
   flex-direction: column;
