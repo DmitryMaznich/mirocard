@@ -56,6 +56,7 @@ function normalisePeople(people) {
     relation: person.relation ?? "",
     contexts: Array.isArray(person.contexts) ? person.contexts : [],
     photos: Array.isArray(person.photos) ? person.photos.filter(Boolean) : [],
+    introducedAxes: Array.isArray(person.introducedAxes) ? [...new Set(person.introducedAxes.filter(Boolean))] : [],
     enabled: person.enabled !== false,
     createdAt: person.createdAt ?? null,
     updatedAt: person.updatedAt ?? null,
@@ -244,6 +245,17 @@ export default function MyPeopleSettingsScreen() {
   const peopleByContext = useMemo(() => Object.fromEntries(
     Object.keys(CONTEXT_LABELS).map((context) => [context, people.filter((person) => !person.deletedAt && person.contexts.includes(context)).length]),
   ), [people]);
+  const introductionsByContext = useMemo(() => Object.fromEntries(
+    Object.keys(CONTEXT_LABELS).map((context) => {
+      const activePeople = people.filter((person) => (
+        !person.deletedAt && person.enabled !== false && person.contexts.includes(context)
+      ));
+      return [context, {
+        introduced: activePeople.filter((person) => person.introducedAxes.includes("name")).length,
+        total: activePeople.length,
+      }];
+    }),
+  ), [people]);
 
   function goBack() { setScreen("student_edit"); }
   function updateProfile(patch) { setProfile((current) => ({ ...current, ...patch })); }
@@ -255,7 +267,7 @@ export default function MyPeopleSettingsScreen() {
   function addPerson() {
     const person = {
       id: makeId(), type: "person", name: "", relation: "", contexts: tab in CONTEXT_LABELS ? [tab] : ["family"],
-      photos: [], enabled: true, createdAt: null, updatedAt: null, deletedAt: null, isDraft: true,
+      photos: [], introducedAxes: [], enabled: true, createdAt: null, updatedAt: null, deletedAt: null, isDraft: true,
     };
     setPeople((current) => [...current, person]);
     setEditingId(person.id);
@@ -294,7 +306,11 @@ export default function MyPeopleSettingsScreen() {
     const nextProfile = { ...profile, updatedAt };
     const nextPeople = people
       .filter((person) => !person.isDraft || person.name.trim() || person.photos.length)
-      .map(({ isDraft, ...person }) => ({ ...person, updatedAt: person.updatedAt ?? updatedAt }));
+      .map((person) => {
+        const savedPerson = { ...person };
+        delete savedPerson.isDraft;
+        return { ...savedPerson, updatedAt: savedPerson.updatedAt ?? updatedAt };
+      });
     const updated = {
       ...student,
       myPeopleProfile: nextProfile,
@@ -335,8 +351,10 @@ export default function MyPeopleSettingsScreen() {
       </section>
       <nav className="mp-tabs" aria-label="Разделы темы">
         {TABS.map(([id, label], index) => {
+          const cardCount = peopleByContext[id] || 0;
+          const introduction = introductionsByContext[id];
           const hint = id in CONTEXT_LABELS
-            ? `${peopleByContext[id] || 0} ${peopleByContext[id] === 1 ? "карточка" : "карточек"}`
+            ? `${cardCount} ${cardCount === 1 ? "карточка" : "карточек"}${cardCount && introduction.total ? ` · Знакомство: ${introduction.introduced} из ${introduction.total}` : ""}`
             : id === "personal" ? "Фамилия и адрес" : "Режимы занятия";
           return (
             <button key={id} type="button" className={tab === id ? "mp-tab mp-tab--active" : "mp-tab"} onClick={() => { setTab(id); setEditingId(null); }}>

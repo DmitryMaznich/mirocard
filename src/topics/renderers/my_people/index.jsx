@@ -2,7 +2,16 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import { markPersonAxisIntroduced } from "@/features/myPeople/myPeoplePersistence";
 import { isCorrectAssociation } from "./matching";
+import "./my_people.css";
+
+const QUALITY_BUTTONS = [
+  { value: "fail", label: "Не ответил", mod: "fail" },
+  { value: "prompted", label: "С подсказкой", mod: "prompted" },
+  { value: "correct", label: "Правильно", mod: "correct" },
+  { value: "easy", label: "Легко!", mod: "easy" },
+];
 
 function usePeopleAlbumScale(task) {
   const viewportRef = useRef(null);
@@ -230,7 +239,17 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
       </div>
       <div className="people-album__answers-heading">
         <span>{task.answerTitle}</span>
-        <span>{completedCount} из {task.entries.length}</span>
+        <div className="people-album__answers-progress">
+          <span>{completedCount} из {task.entries.length}</span>
+          <span className="people-album__progress-dots" aria-hidden="true">
+            {task.entries.map((entry) => (
+              <span
+                key={entry.personId}
+                className={`people-album__progress-dot${matches[entry.personId] ? " people-album__progress-dot--done" : ""}`}
+              />
+            ))}
+          </span>
+        </div>
       </div>
       <div className="people-album-answers">
         {task.answers.map((answer) => {
@@ -267,9 +286,166 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   );
 }
 
-export default function MyPeopleRenderer(props) {
-  if (props.task?.type !== "people_album") {
-    return <div className="session-body">Этому занятию нужен обновлённый режим «Мои люди».</div>;
+function PersonIntroTask({ task, topicId, student, soundEnabled, onAdvance, onCardShown }) {
+  const { speak } = useSpeech();
+  const imageUrl = useTopicFile(topicId, task.image);
+  const [confirmed, setConfirmed] = useState(false);
+
+  useEffect(() => {
+    onCardShown?.(null, task.conceptId);
+    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
+  }, [task, soundEnabled, speak, onCardShown]);
+
+  function repeatPrompt() {
+    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
   }
-  return <PeopleAlbumTask {...props} />;
+
+  function confirmIntroduction() {
+    if (confirmed) return;
+    setConfirmed(true);
+    markPersonAxisIntroduced(student?.id, task.personId, task.axis).catch(() => {});
+    onAdvance?.();
+  }
+
+  return (
+    <div className="session-body person-intro" aria-label="Знакомство с человеком">
+      <span className="person-intro__eyebrow">Познакомимся</span>
+      <div className="person-intro__photo-wrap">
+        {imageUrl
+          ? <img className="person-intro__photo" src={imageUrl} alt="" />
+          : <span className="person-intro__photo person-intro__photo--loading" aria-hidden="true" />
+        }
+      </div>
+      <div className="person-intro__label-row">
+        <div className="person-intro__label">{task.label}</div>
+        <button type="button" className="person-intro__repeat" onClick={repeatPrompt} aria-label="Повторить">🔊</button>
+      </div>
+      <p className="person-intro__hint">Посмотри на фотографию и послушай.</p>
+      <button type="button" className="person-intro__next" onClick={confirmIntroduction} disabled={confirmed}>
+        Дальше
+      </button>
+    </div>
+  );
+}
+
+function QualityAnswerTask({
+  task,
+  soundEnabled,
+  onQualityAnswer,
+  onCardShown,
+  onQuality,
+  className,
+  ariaLabel,
+  children,
+}) {
+  const { speak } = useSpeech();
+  const [answeredTaskId, setAnsweredTaskId] = useState(null);
+  const advanceTimer = useRef(null);
+  const answered = answeredTaskId === task.conceptId;
+
+  useEffect(() => {
+    onCardShown?.(null, task.conceptId);
+    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
+    return () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
+  }, [task, soundEnabled, speak, onCardShown]);
+
+  function repeatPrompt() {
+    if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
+  }
+
+  function markAnswer(quality) {
+    if (answered) return;
+    setAnsweredTaskId(task.conceptId);
+    onQuality?.(quality, null, task.conceptId);
+    // Match the established open-answer cards: briefly show the adult's
+    // response model before the shared quality handler advances the session.
+    advanceTimer.current = setTimeout(() => {
+      onQualityAnswer?.(quality, task.conceptId, null);
+    }, 700);
+  }
+
+  return (
+    <div className={`session-body ${className}`} aria-label={ariaLabel}>
+      {children({ repeatPrompt })}
+      <div className={`about-me-task__answer${answered ? " about-me-task__answer--shown" : ""}`} aria-live="polite">
+        {task.answer}
+      </div>
+      <div className="qa-row">
+        {QUALITY_BUTTONS.map((button, index) => (
+          <button
+            key={button.value}
+            type="button"
+            className={`qa-btn qa-btn--${button.mod}`}
+            disabled={answered}
+            onClick={() => markAnswer(button.value)}
+          >
+            {index + 1}
+          </button>
+        ))}
+      </div>
+      <p className="qa-legend">
+        {QUALITY_BUTTONS.map((button, index) => `${index + 1} — ${button.label}`).join("   ")}
+      </p>
+    </div>
+  );
+}
+
+function AboutMeSituationTask(props) {
+  return (
+    <QualityAnswerTask {...props} className="about-me-task" ariaLabel="Ситуативное задание обо мне">
+      {({ repeatPrompt }) => (
+        <>
+          <span className="about-me-task__eyebrow">Ситуация</span>
+          <div className="about-me-task__situation">{props.task.situation}</div>
+          <div className="about-me-task__prompt-row">
+            <div className="about-me-task__prompt">{props.task.prompt}</div>
+            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить ситуацию">🔊</button>
+          </div>
+          <p className="about-me-task__hint">Можно ответить голосом, жестом или с помощью AAC.</p>
+        </>
+      )}
+    </QualityAnswerTask>
+  );
+}
+
+function PersonNamingTask(props) {
+  const imageUrl = useTopicFile(props.topicId, props.task.image);
+
+  return (
+    <QualityAnswerTask {...props} className="about-me-task person-naming" ariaLabel="Задание назвать человека">
+      {({ repeatPrompt }) => (
+        <>
+          <span className="about-me-task__eyebrow">Кто это?</span>
+          <div className="person-intro__photo-wrap">
+            {imageUrl
+              ? <img className="person-intro__photo" src={imageUrl} alt="" />
+              : <span className="person-intro__photo person-intro__photo--loading" aria-hidden="true" />
+            }
+          </div>
+          <div className="about-me-task__prompt-row">
+            <div className="about-me-task__prompt">{props.task.prompt}</div>
+            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить вопрос">🔊</button>
+          </div>
+          <p className="about-me-task__hint">Можно ответить голосом, жестом или с помощью AAC.</p>
+        </>
+      )}
+    </QualityAnswerTask>
+  );
+}
+
+export default function MyPeopleRenderer(props) {
+  switch (props.task?.type) {
+    case "people_album":
+      return <PeopleAlbumTask {...props} />;
+    case "person_intro":
+      return <PersonIntroTask {...props} />;
+    case "about_me_situation":
+      return <AboutMeSituationTask {...props} />;
+    case "person_naming":
+      return <PersonNamingTask {...props} />;
+    default:
+      return <div className="session-body">Этому занятию нужен обновлённый режим «Мои люди».</div>;
+  }
 }

@@ -8,6 +8,7 @@ import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
+import { hasEnoughAboutMeFacts } from "@/topics/renderers/my_people/engine";
 
 function LastResultBadge({ session }) {
   if (!session) return <span className="mode-badge mode-badge--none">Не проходили</span>;
@@ -84,6 +85,7 @@ export default function ModePickerScreen() {
 
   function myPeopleModeAvailable(mode) {
     if (!isMyPeople) return true;
+    if (mode.id === "about_me") return hasEnoughAboutMeFacts(activeStudent);
     const context = mode.id.split("_")[0];
     const group = ["family", "home", "school"].includes(context) ? context : null;
     const needsRelation = mode.id.endsWith("_relations");
@@ -111,6 +113,15 @@ export default function ModePickerScreen() {
       return normalisedLeft - normalisedRight;
     })
     : rawModes;
+
+  const hasSingleMode = !!topicRecord && modes.length === 1;
+
+  useEffect(() => {
+    if (hasSingleMode) {
+      setActiveModeId(modes[0].id);
+      setScreen("params");
+    }
+  }, [hasSingleMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!topicRecord) {
     return (
@@ -141,15 +152,6 @@ export default function ModePickerScreen() {
       </div>
     );
   }
-
-  const hasSingleMode = !!topicRecord && modes.length === 1;
-
-  useEffect(() => {
-    if (hasSingleMode) {
-      setActiveModeId(modes[0].id);
-      setScreen("params");
-    }
-  }, [hasSingleMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function navigateToMode(mode) {
     setActiveModeId(mode.id);

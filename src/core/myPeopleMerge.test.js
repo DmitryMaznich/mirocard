@@ -18,4 +18,12 @@ describe("mergeMyPeople", () => {
     );
     expect(merged.photos).toEqual(["/api/photos/resolved"]);
   });
+
+  it("keeps a newly introduced axis from the fresher person record", () => {
+    const [merged] = mergeMyPeople(
+      [{ id: "anna", introducedAxes: ["name"], updatedAt: "2026-09-09T10:00:00.000Z" }],
+      [{ id: "anna", introducedAxes: ["name", "relation"], updatedAt: "2026-09-09T10:01:00.000Z" }],
+    );
+    expect(merged.introducedAxes).toEqual(["name", "relation"]);
+  });
 });

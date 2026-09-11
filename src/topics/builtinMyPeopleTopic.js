@@ -21,6 +21,36 @@ const mode = (id, title, instruction) => ({
   ui: { title: { ru: title }, instruction: { ru: instruction } },
 });
 
+const aboutMeMode = {
+  id: "about_me",
+  type: "about_me",
+  // The child answers out loud, with a gesture, or through AAC; the adult
+  // records the response quality using the session's standard controls.
+  evaluation: "adult",
+  loop: true,
+  regenerateOnLoop: true,
+  hideConceptPicker: true,
+  ui: {
+    title: { ru: "Обо мне" },
+    instruction: { ru: "Ответьте в жизненной ситуации, взрослый отметит качество" },
+  },
+};
+
+const whoIsThisMode = {
+  id: "who_is_this",
+  type: "person_naming",
+  // The child names the person or their relationship out loud; the adult
+  // records the response quality using the session's standard controls.
+  evaluation: "adult",
+  loop: true,
+  regenerateOnLoop: true,
+  hideConceptPicker: true,
+  ui: {
+    title: { ru: "Кто это?" },
+    instruction: { ru: "Назовите человека на фотографии или его связь с вами" },
+  },
+};
+
 export function buildMyPeopleTopicRecord() {
   return {
     meta: {
@@ -47,6 +77,7 @@ export function buildMyPeopleTopicRecord() {
       },
     },
     modes: [
+      aboutMeMode,
       mode("family_names", "Семья и питомцы: имена", "Подберите имена к фотографиям"),
       mode("family_relations", "Семья и питомцы: кто это", "Подберите связь с ребёнком"),
       mode("home_names", "Люди дома: имена", "Подберите имена к фотографиям"),
@@ -54,6 +85,7 @@ export function buildMyPeopleTopicRecord() {
       mode("school_names", "Школа: имена", "Подберите имена к фотографиям"),
       mode("school_relations", "Школа: кто это", "Подберите связь с ребёнком"),
       mode("mix", "Все люди", "Сначала имена, затем кто эти люди"),
+      whoIsThisMode,
     ],
     // A metadata card makes generic navigation and legacy selection links safe;
     // the engine deliberately ignores it and uses the pupil's own records.
