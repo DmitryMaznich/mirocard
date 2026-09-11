@@ -57,6 +57,27 @@
   }
 }
 
+/* Same reserved-gap fix as above, for this topic's other modes: fingers
+   show/count (fingers.css) and the place-value screens — build number,
+   identify number, regroup ten (place_value.css). Those screens fill with
+   a plain color (no grid), so the wrap only needs to repeat that color. */
+.session-renderer-wrap:has(> .fng-show-screen),
+.session-renderer-wrap:has(> .fng-add-screen),
+.session-renderer-wrap:has(> .pv-screen) {
+  margin-top: -58px;
+  padding-top: 58px;
+  background-color: #f0f6ff;
+}
+
+@media (max-width: 560px) {
+  .session-renderer-wrap:has(> .fng-show-screen),
+  .session-renderer-wrap:has(> .fng-add-screen),
+  .session-renderer-wrap:has(> .pv-screen) {
+    margin-top: -86px;
+    padding-top: 86px;
+  }
+}
+
 .col-notebook {
   display: inline-flex;
   flex-direction: column;
