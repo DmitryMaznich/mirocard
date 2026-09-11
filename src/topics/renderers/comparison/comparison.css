@@ -378,10 +378,20 @@
    untouched throughout. */
 .apply-hint-btn {
   position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px;
   background: none; border: none; padding: 6px 10px; font-family: "Nunito", sans-serif;
   font-size: clamp(18px, 4.5vw, 22px); font-weight: 800; color: #2563eb;
   cursor: pointer;
 }
+/* The 💡 hint glyph standardized in column_addition's .col-hint-toggle
+   (plain emoji, no SVG — see designing-mirocard-screens skill) — this is
+   an inline label icon rather than that pattern's floating corner FAB
+   (this hint is a toggle next to task text, not a "next step" coach-mark
+   popping up over the task), so only the glyph itself is reused, not the
+   circular blue-button chrome around it. Stays present in both the
+   "Подсказка"/"Скрыть" states so the button doesn't jump width when
+   toggled. */
+.apply-hint-btn-icon { font-size: 0.9em; line-height: 1; }
 /* One answer tile, turned into "N [draw a sign] 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
    CompareDrawSign as-is (same recognizer, same visual language). Same

@@ -120,6 +120,7 @@ function GenerateStage({ task, answered, onAnswer, onStreakReset, playFeedback }
       </div>
       {!answered && (
         <button type="button" className="apply-hint-btn" onClick={() => setShowHint((v) => !v)}>
+          <span className="apply-hint-btn-icon" aria-hidden="true">💡</span>
           {showHint ? "Скрыть" : "Подсказка"}
         </button>
       )}
