@@ -108,6 +108,17 @@
   margin-top: 1em; /* shifted down one line from the screen edge */
 }
 
+/* On phone this 1em top margin (plus the fixed-height checklist below it)
+   starves .fng-add-hands-zone (flex:1) of height, so the hands render
+   noticeably smaller than in "Покажи" (.fng-show-hands, which only shares
+   space with the number and has no checklist/keypad competing for room).
+   Trim the margin here so the freed height goes straight to the hands. */
+@media (max-width: 560px) {
+  .fng-count-expr {
+    margin-top: 4px;
+  }
+}
+
 /* Sits between the expression and the hands zone (i.e. roughly level with
  * where raised fingertips are) rather than crammed under the expression.
  * Fixed (viewport-relative, not content-driven) height — useRowsHeightCap
