@@ -157,11 +157,17 @@ function sameMagnitude(a, b) {
 
 // Spoken-example task: no visual rail, so unlike buildOperationTask this
 // isn't clamped to DEFAULT_RAIL_SIZE (20) — a diktor can say "сорок пять"
-// as easily as "пять", so maxNumber can go up to AUDIO_HARD_CAP.
+// as easily as "пять", so maxNumber can go up to AUDIO_HARD_CAP. "100" is
+// still a single recorded word ("сто"), but it's the one number in this
+// whole task that doesn't compose from a tens+ones pair like every other
+// two-digit number — landing on it as a start/delta/result breaks the
+// tens+ones pattern the "до 100" range is meant to drill. So generation
+// itself is capped at 99, one below the enum's own 100 ceiling.
 function buildAudioTask(card, params = {}) {
   const operation = normalizeOperation(card.params?.operation);
   const maxNumber = Math.max(3, Math.min(AUDIO_HARD_CAP, toNumber(params.maxNumber, AUDIO_DEFAULT_MAX_NUMBER)));
-  const changeMax = Math.max(1, Math.min(maxNumber - 1, toNumber(params.changeMax, maxNumber)));
+  const genCap = Math.min(maxNumber, 99);
+  const changeMax = Math.max(1, Math.min(genCap - 1, toNumber(params.changeMax, genCap)));
   const includeZero = Boolean(params.includeZero);
   const minVal = includeZero ? 0 : 1;
   const mixedMagnitude = params.mixedMagnitude !== false;
@@ -169,8 +175,8 @@ function buildAudioTask(card, params = {}) {
   function pickPair() {
     const pairDelta = randomInt(1, changeMax);
     const pairStart = operation === "add"
-      ? randomInt(minVal, Math.max(minVal, maxNumber - pairDelta))
-      : randomInt(Math.max(minVal, pairDelta + minVal), maxNumber);
+      ? randomInt(minVal, Math.max(minVal, genCap - pairDelta))
+      : randomInt(Math.max(minVal, pairDelta + minVal), genCap);
     return { start: pairStart, delta: pairDelta };
   }
 

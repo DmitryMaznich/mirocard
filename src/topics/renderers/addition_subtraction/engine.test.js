@@ -342,6 +342,15 @@ describe("operation_audio", () => {
     });
   });
 
+  it("never lands on 100 itself in the 'до 100' range — it's the one number that doesn't compose as tens+ones", () => {
+    const tasks = generateTasks("operation_audio", CARDS, 200, { maxNumber: 100, changeMax: 99 });
+    tasks.forEach((t) => {
+      expect(t.start).toBeLessThan(100);
+      expect(t.delta).toBeLessThan(100);
+      expect(t.result).toBeLessThan(100);
+    });
+  });
+
   it("can include zero when requested", () => {
     const tasks = generateTasks("operation_audio", [CARDS[1]], 20, { maxNumber: 3, changeMax: 3, includeZero: true });
     expect(tasks.every((t) => t.result >= 0)).toBe(true);
