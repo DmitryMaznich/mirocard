@@ -517,6 +517,21 @@ As of v1.23.4:
   currently falls back to the plain "ю" card. Same variant system already
   supports it the moment cards are captured (`DUAL_NATURE_LETTERS` already
   includes it) — no code changes needed, only capturing + ingesting.
+- **"о"→"з" hand-off fixed, 2026-09-12 (deck v1.23.13).** "з" was listed in
+  `о_middle_uu`'s `nextLetters` (the generic any-entryType fallback) instead
+  of alongside its real methodology siblings г/ж/е/ё/х/ч in
+  `о_middle_um`/`о_middle_lm`. `о_middle_uu`'s own captured exit lands near
+  y≈63 (line 3, tuned for straight-continuation letters like т/к/н/р), while
+  "з"'s own raw entry starts at y=75.00 (line 4, same height as
+  г/ж/е/ё/х/ч) — the ~12-unit mismatch forced "з" to shift up on every
+  hand-off, visually merging its own entry loop into о's body (confirmed by
+  rendering "воз"/"мороз"/"розан"/"заноза" to SVG: о rendered as a
+  barely-visible arc with "з"'s loop overlapping it, not a full circle).
+  Fix: removed "з" from `о_middle_uu.nextLetters`, added it to both
+  `о_middle_um.nextLetters` and `о_middle_lm.nextLetters` (matching
+  г/ж/е/ё/х/ч exactly). Re-rendered the same words after the change — clean
+  connections, "о" now reads as a proper closed loop. No code change, data
+  (`tools/propis/topic.json`) only.
 - **4 connectors**: `conn_5_4` (universal exit, line5→line4, no
   `forLetters`), `conn_4_3` (looping entry for о/а/б/ф family, line4→line3,
   no `forLetters`), `conn_4_3_straight` (straight-diagonal entry, line4→line3,
