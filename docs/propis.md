@@ -64,11 +64,15 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   (`type/label/viewBox/strokes`, or `type/label/fromLine/toLine/strokes` for a
   connector) that gets merged into `topic.json`'s `cards` by hand (no UI for
   merging — always a one-off ingestion script, see write_words section).
-  Permanently hosted at `https://mirocard.kaplieva.help/letter_capture.html`
+  Permanently hosted at `https://app.mironium.com/letter_capture.html`
   (synced from this source file on every build via
   `scripts/sync-capture-tool.mjs`, wired as `package.json`'s `prebuild` — edit
   the source here, never the `public/` copy, which is gitignored). Has its own
-  fullscreen forced-landscape drawing mode.
+  fullscreen forced-landscape drawing mode. Was reachable at
+  `https://mirocard.kaplieva.help/letter_capture.html` before that host was
+  retired (2026-08-23, see `CLAUDE.md`); no code change was needed for the
+  move, since `public/` was already served the same way from the new Railway
+  host — only this doc's URL was stale.
 - Current letter/connector/variant inventory: see "Data state as of the last
   session" in the write_words section below — it goes stale fast, don't trust
   a remembered count, regenerate it (one-liner given there).
