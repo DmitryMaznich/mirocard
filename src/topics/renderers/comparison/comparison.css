@@ -389,8 +389,8 @@
    (this hint is a toggle next to task text, not a "next step" coach-mark
    popping up over the task), so only the glyph itself is reused, not the
    circular blue-button chrome around it. Stays present in both the
-   "Подсказка"/"Скрыть" states so the button doesn't jump width when
-   toggled. */
+   "Подсказка"/"Убрать подсказку" states, even though the label itself
+   still changes width when toggled either way. */
 .apply-hint-btn-icon { font-size: 0.9em; line-height: 1; }
 /* One answer tile, turned into "N [draw a sign] 46" — reuses
    .draw-sign-canvas/.draw-sign-pad-wrapper/.draw-sign-overlay from
