@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { shuffle } from "@/shared/utils/shuffle";
 
 const MAX_ATTEMPTS = 3;
-const MARKER_ATTEMPT_THRESHOLD = 2;
+const ENDING_LENGTH = 2;
 
 // JS's \b word boundary only recognizes [A-Za-z0-9_], not Cyrillic, so a
 // plain indexOf/regex search for a short marker like "о" or "с" would also
@@ -39,7 +39,34 @@ function withMarker(text, marker, active) {
   );
 }
 
-function BlankSentence({ card, filledWord, showMarker }) {
+// Highlights the last couple of letters of a word — the part that actually
+// carries the grammatical ending a child needs to notice (какАЯ / малень-
+// каЯ). Words shorter than ENDING_LENGTH just highlight in full.
+function withEnding(word, length = ENDING_LENGTH) {
+  if (!word) return word;
+  const splitAt = Math.max(word.length - length, 0);
+  return (
+    <>
+      {word.slice(0, splitAt)}
+      <mark className="wa-ending">{word.slice(splitAt)}</mark>
+    </>
+  );
+}
+
+// card.question is a word plus its trailing "?" ("какая?") — only the word
+// part should get the ending highlight, not the punctuation.
+function withQuestionEnding(question) {
+  const wordPart = question.replace(/\?+$/, "");
+  const punctuation = question.slice(wordPart.length);
+  return (
+    <>
+      {withEnding(wordPart)}
+      {punctuation}
+    </>
+  );
+}
+
+function BlankSentence({ card, filledWord, showHint }) {
   const [before, after] = card.sentence.split("{blank}");
   // Reserve the blank's final width up front from the answer's own length
   // (never the letters themselves — just the count) so filling it in
@@ -50,19 +77,21 @@ function BlankSentence({ card, filledWord, showMarker }) {
     <div className="wa-task__text">
       {card.context && (
         <div className="wa-task__context">
-          {withMarker(card.context, card.marker, showMarker)}
+          {withMarker(card.context, card.marker, showHint)}
         </div>
       )}
       <div className="wa-task__sentence">
-        {withMarker(before, card.marker, showMarker)}
-        {showMarker && card.question && <em className="wa-question">({card.question})</em>}
+        {withMarker(before, card.marker, showHint)}
+        {showHint && card.question && (
+          <em className="wa-question">({withQuestionEnding(card.question)})</em>
+        )}
         <span
           className={`wa-blank${filledWord ? " wa-blank--filled" : ""}`}
           style={{ minWidth: blankWidth }}
         >
           {filledWord ?? "···"}
         </span>
-        {withMarker(after, card.marker, showMarker)}
+        {withMarker(after, card.marker, showHint)}
       </div>
     </div>
   );
@@ -85,10 +114,12 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
   const [wrongCount, setWrongCount] = useState(0);
   const [wrongIdx, setWrongIdx] = useState(null);
   const [status, setStatus] = useState("active");
+  const [hintUsed, setHintUsed] = useState(false);
   const wrongTimerRef = useRef(null);
 
   useEffect(() => {
     onCardShown?.(card.id, card.id);
+    setHintUsed(false);
     return () => clearTimeout(wrongTimerRef.current);
   }, [card.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -123,11 +154,26 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
   }
 
   const filledWord = status === "active" ? null : card.answer;
-  const showMarker = status === "active" && wrongCount >= MARKER_ATTEMPT_THRESHOLD;
+  const showHint = status === "active" && hintUsed;
+  // The ending-comparison only makes sense when there's a question to
+  // compare against — most case_agreement/verb cards have no `question`
+  // field, so they fall back to just the marker highlight (same as before).
+  const showOptionEndings = showHint && !!card.question;
 
   return (
     <div className="wa-task">
-      <BlankSentence card={card} filledWord={filledWord} showMarker={showMarker} />
+      {status === "active" && !hintUsed && (
+        <button
+          className="wa-hint-button"
+          type="button"
+          onClick={() => setHintUsed(true)}
+          aria-label="Подсказка"
+        >
+          💡
+        </button>
+      )}
+
+      <BlankSentence card={card} filledWord={filledWord} showHint={showHint} />
 
       <div className={`wa-options wa-options--${shownOptions.length}`}>
         {shownOptions.map((word, i) => {
@@ -148,7 +194,7 @@ export default function FillBlankTask({ task, topicId, playTopicFile, onCorrect,
                   the glyph carries the same meaning independently of hue. */}
               {isCorrectAnswer && <span className="wa-option__icon" aria-hidden="true">✓</span>}
               {isWrongPick && <span className="wa-option__icon" aria-hidden="true">✗</span>}
-              {word}
+              {showOptionEndings ? withEnding(word) : word}
             </button>
           );
         })}
