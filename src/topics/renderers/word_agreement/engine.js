@@ -192,7 +192,7 @@ function buildVerbGenderTasks(cards, params) {
 // grammatical, plausible-sounding sentence with a different adjective —
 // letting a child pick the wrong word and still land on something that
 // sounds right, same failure mode as the verb_gender fix above.
-const ADJECTIVE_FORMS = {
+export const ADJECTIVE_FORMS = {
   malenkiy: { masc: "маленький", fem: "маленькая", neut: "маленькое", plural: "маленькие" },
   novy:     { masc: "новый",     fem: "новая",     neut: "новое",     plural: "новые" },
   bolshoy:  { masc: "большой",   fem: "большая",   neut: "большое",   plural: "большие" },
@@ -225,7 +225,7 @@ function buildAdjectiveAgreementTasks(cards, params) {
 // neut/plural are spelled the same as nominative for inanimate nouns, only
 // fem differs (своя -> свою). мой/твой/наш are tested as a predicate
 // ("Это мой мяч") so those stay nominative.
-const POSSESSIVE_FORMS = {
+export const POSSESSIVE_FORMS = {
   svoy: { masc: "свой", fem: "свою", neut: "своё", plural: "свои" },
   moy:  { masc: "мой",  fem: "моя",  neut: "моё",  plural: "мои" },
   tvoy: { masc: "твой", fem: "твоя", neut: "твоё", plural: "твои" },
