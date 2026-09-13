@@ -675,11 +675,27 @@ actual ruling PDF) and `page.py` (the letter-worksheets content overlay) —
 not independently chosen, and not just "similar-looking": one physical A4
 sheet (297×210mm) split into two A5-proportioned slots (148.5×210mm), a red
 margin line 15mm from each slot's own OUTER edge, a 12mm baseline-to-baseline
-cycle starting 6mm from the physical top → **exactly 17 rows per page**
-(`floor((210-6)/12)+1`, matching `page.py`'s own derivation verbatim). All
-exported as `PRINT_*` constants in `propisRuling.js` (`PRINT_PAGE_W_MM`,
-`PRINT_ROWS_PER_PAGE`, etc.) plus `mmToNativeUnits()` for the mm→native-unit
-conversion every other constant in that file already uses.
+cycle → **exactly 17 rows per page** (`floor((210-12)/12)+1`, matching
+`page.py`'s `row_baselines()` count verbatim). All exported as `PRINT_*`
+constants in `propisRuling.js` (`PRINT_PAGE_W_MM`, `PRINT_ROWS_PER_PAGE`,
+etc.) plus `mmToNativeUnits()` for the mm→native-unit conversion every other
+constant in that file already uses.
+
+**Bug found and fixed the same day it shipped (row 0 was 6mm from the top,
+not 12mm):** `propis_ruling.py` draws in reportlab's bottom-up frame (y=0 at
+the page's BOTTOM edge) and its own `SHIFT_MM=-6` is a phase shift in THAT
+frame — it does not mean "6mm from the top" the way the first cut of
+`PRINT_FIRST_BASELINE_MM` assumed. `page.py`'s `row_baselines()` (the real
+ground truth for where print content lands) reverses its own bottom-up
+`_thick_line_ys()` list; converting that to a from-top distance gives
+baselines at 12, 24, ..., 204mm — row 0 sits 12mm from the top, not 6mm. The
+bug swapped the two margins: 6mm top / 12mm bottom on screen instead of the
+real 12mm top / 6mm bottom — reported by the user as visible excess empty
+space, especially at the bottom, not matching the real printed page. Fixed
+by correcting `PRINT_FIRST_BASELINE_MM` to 12 (`propisRuling.js`); re-derive
+with `page.py`'s own `_thick_line_ys()` logic before touching this constant
+again, not by hand-converting `propis_ruling.py`'s bottom-up `SHIFT_MM` a
+second time.
 
 **Left/right slot mirroring** (`PrintPageView.jsx`'s `slotGeometry`,
 `pageIndex % 2`): a left-slot page (even index) has its margin line near its

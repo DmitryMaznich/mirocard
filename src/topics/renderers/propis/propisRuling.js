@@ -126,12 +126,21 @@ export const PRINT_MARGIN_MM = 15; // red margin line, from the page's own OUTER
 export const PRINT_LEFT_INSET_MM = PRINT_MARGIN_MM + 2;
 export const PRINT_CENTER_INSET_MM = 4;
 export const PRINT_CONTENT_W_MM = PRINT_PAGE_W_MM - 2 * PRINT_MARGIN_MM; // 118.5mm
-// First baseline's distance from the page top + the baseline-to-baseline cycle -- exactly
-// propis_ruling.py's SHIFT_MM(-6)/ROW_CYCLE_MM(12) (see that file's own docstring for the
-// -6mm phase's derivation); TEXT_ROW_PITCH above is this same 12mm cycle already, in units.
-export const PRINT_FIRST_BASELINE_MM = 6;
-// floor((210 - 6) / 12) + 1 = 17 -- matches propis_worksheets/page.py's own derivation
-// exactly ("page.py can fit 17 practice rows per page"); not re-derived independently.
+// First baseline's distance from the page TOP, and the baseline-to-baseline cycle.
+// **NOT the same number as propis_ruling.py's own SHIFT_MM(-6)** — that script draws in
+// reportlab's bottom-up frame (y=0 at the page's BOTTOM edge), so its -6mm phase shift does
+// not translate directly to "6mm from the top". page.py's row_baselines() (bottom-up
+// _thick_line_ys(), reversed) is the real ground truth for where content actually lands;
+// converting its own output to a from-top distance gives baselines at 12, 24, ..., 204mm —
+// i.e. row 0 sits 12mm from the top, not 6mm (bug found and fixed 2026-09-13: the on-screen
+// page had this backwards — 6mm top / 12mm bottom gap instead of the real 12mm top / 6mm
+// bottom — read as "too much empty space, especially at the bottom" against a real printed
+// page). Re-derive with `scripts/propis_worksheets/page.py`'s own `_thick_line_ys()` logic
+// (SHIFT_MM/NARROW_MM/WIDE_MM/PAGE_H_MM) before touching this number again — don't
+// hand-convert propis_ruling.py's bottom-up SHIFT_MM a second time.
+export const PRINT_FIRST_BASELINE_MM = 12;
+// floor((210 - 12) / 12) + 1 = 17 -- matches propis_worksheets/page.py's own row_baselines()
+// count exactly (still 17 with the corrected first-baseline offset above).
 export const PRINT_ROWS_PER_PAGE = 17;
 
 export const INK_COLOR = "#1d4ed8";

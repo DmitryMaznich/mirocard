@@ -16,7 +16,8 @@ const CONTENT_W_UNITS = mmToNativeUnits(PRINT_CONTENT_W_MM);
 // Shifts row 0's baseline from wherever buildWordTrajectory's own native coordinate system
 // bakes it (NATIVE_L3=88 — a property of the captured letter PATHS themselves, not of this
 // page) down to the real print page's own first-baseline position (PRINT_FIRST_BASELINE_MM,
-// 6mm from the physical top, propis_ruling.py's own SHIFT_MM). Constant across every row —
+// 12mm from the physical top — see that constant's own comment for the reportlab bottom-up
+// axis gotcha). Constant across every row —
 // only the whole grid's vertical anchor moves, row-to-row spacing (TEXT_ROW_PITCH) doesn't.
 const ROW_Y_SHIFT = NATIVE_L3 - mmToNativeUnits(PRINT_FIRST_BASELINE_MM);
 const rowOriginY = (row) => row * TEXT_ROW_PITCH - ROW_Y_SHIFT;
