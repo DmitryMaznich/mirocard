@@ -787,6 +787,29 @@ stacking context, regardless of what the rest of the screen's layout does.
   `body *` except `.propis-print-all`'s own subtree (`visibility`, not
   `display`, so hiding the rest doesn't collapse layout ancestors).
 
+### Tap-to-animate pen tip: a real-scale ~2cm pen tip, not the default speck
+
+`AnimatedStrokes.jsx`'s default tap-to-animate pen tip (`TIP_PATHS.normal`,
+~24 native units = 4mm) was tuned against the OTHER text views' own
+on-screen scale, which isn't physical (their row width just fits whatever
+container they're given). `PrintPageView.jsx` renders at true physical mm
+scale, though (real print-page geometry), so that same tip read as an
+unrecognizable speck next to a real-size page on a tablet (reported
+2026-09-13). Added a `tipSize="large"` variant (`TIP_PATHS.large`) instead
+of resizing the shared default: 120 native units = 20mm = the front ~2cm of
+an actual ballpoint pen (dark metal ball housing → brass/gold cone,
+`NIB_COLOR` → a sliver of the plastic barrel it plugs into, `INK_COLOR`),
+cut off at the 20mm mark rather than drawing a whole pen — confirmed with
+the user this should be "just the tip," not the full length. Only
+`PrintPageView.jsx` passes `tipSize="large"`; every other `AnimatedStrokes`
+caller (`ReadTextView.jsx`, `WriteTextView.jsx`, `WordAnimatedCard.jsx`)
+keeps the untouched default on purpose, since that size was already
+confirmed against their own scale (2026-08-13, see `TIP_PATHS.normal`'s own
+comment) — resizing it there would undo that. `LoopingLetterCell.jsx` has
+its own independent copy of the same small nib (practice mode's single-
+letter card) — not touched, out of scope, and not the same real-mm-scale
+situation this fix addresses.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
