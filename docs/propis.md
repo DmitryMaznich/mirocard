@@ -6,14 +6,22 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
 
 ## Status
 
-- **Mode 1 "Учим буквы" (practice) — shipped, live on `main`.** Portrait-locked,
-  fullscreen: custom on-screen keyboard (not the system keyboard) at the bottom,
-  a large looping handwriting-animation card in the middle.
-- **Mode "Написание слов" (write_words) — shipped, live on `main` (deck v1.23.0,
-  app v1.0.1841 as of 2026-08-13).** Auto-assembles and animates a full cursive
-  *word* from individually hand-captured letters + hand-drawn connector strokes
-  between them. See the dedicated section below — this is the actively evolving
-  part of the topic; read it before touching anything letter/connector-related.
+- **Mode "Учим буквы" (practice) and "Написание слов" (write_words) — removed
+  from the mode picker 2026-09-13 (`tools/propis/topic.json` deck v1.25.0),
+  soft removal only.** User request: only `write_text`/`read_text`/`read_lines`
+  (the modes where content ends up on a real or on-screen tetrad page — direct
+  typing-practice with no page context wasn't wanted anymore) stay selectable.
+  Their mode objects were dropped from `topic.json`'s `modes` array; nothing
+  else touched — `PropisPracticeView.jsx`, `WriteWordsView.jsx`,
+  `LoopingLetterCell.jsx`, `WordAnimatedCard.jsx`, and the `engine.js`/
+  `index.jsx` branches for `"practice"`/`"write_words"` are all still in the
+  codebase, just unreachable (dormant), mirroring the existing
+  `PropisShowView.jsx` precedent below. `wordEngine.js`'s letter/connector/
+  dual-nature-variant resolution logic (`buildWordTrajectory` etc.) is
+  untouched and still load-bearing — `write_text`/`read_text`/`read_lines`
+  all depend on it for rendering handwriting, this only removed
+  `write_words`' own UI from the picker. Re-adding either mode later is a
+  one-line `topic.json` edit, no code to restore.
 - **Mode "Пишем текст" (write_text) — shipped, live on `main` (deck v1.23.0, app
   v1.0.1841 as of 2026-08-13).** Free-text multi-line copybook: colored keyboard
   (magnetic_alphabet style) + a wrapping notebook grid that lays words out
