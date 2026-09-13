@@ -25,17 +25,19 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   the params screen from a preset list (`topic.json`'s `texts[]`) or typed/
   uploaded as a custom multi-line text. Tap a word to toggle its handwriting
   animation on/off. See its own section below.
-- **Mode "Тетрадный лист" (read_lines) — shipped 2026-09-13.** Same view/
-  interaction as `read_text` (100% code reuse — no new renderer), but content
-  is authored via a structured line-by-line constructor in the params screen
-  (`LineListParam` in `ParamsScreen.jsx`) instead of picking a whole text: one
-  input per notebook row, each row can be a single letter, a syllable, a word,
-  or several words — whatever's typed. `engine.js` joins the non-empty lines
-  with `"\n"` and hands that single string to the read_text task as its one
-  text (`layoutTextIntoRows` already treats `"\n"` as a hard row break, so no
-  layout code changed). See its own section below.
-- **Mode 2 (in-app PDF export) — not started.** `PropisShowView.jsx` (see below)
-  is a dormant starting point for it, not wired to any active mode.
+- **Mode "Тетрадный лист" (read_lines/print_page) — shipped 2026-09-13,
+  rewritten same day.** Content is authored via a structured line-by-line
+  constructor in the params screen (`LineListParam`) instead of picking a
+  whole text — one input per notebook row, each row can be a single letter,
+  a syllable, a word, or several words. Own view (`PrintPageView.jsx`), not
+  a `read_text` reuse: real print-page geometry (17 rows/page, red margin
+  line, A5-proportioned page, mirrored left/right slots) and a working "🖨
+  Печать" → `window.print()` PDF export, real print-to-PDF verified
+  end-to-end. See its own section below.
+- **In-app PDF export — done, for `read_lines` only** (`window.print()`, see
+  above). `PropisShowView.jsx` (see below) is a separate, still-dormant
+  starting point for a hypothetical print mode of the OTHER text-flow modes
+  (`write_text`/`read_text`); not wired to any active mode.
 - **Printed letter worksheets (Phase 1) — shipped, live on `main`
   (`print_materials` deck v1.0.12 as of 2026-08-15).** A completely separate
   system from the in-app modes above: standalone Python
@@ -645,43 +647,120 @@ the on-screen model into their own paper notebook.
   treats every `"\n"` in the text as a hard row break (not just an
   auto-wrap-on-width fallback) — typing/pasting text with real line breaks
   (or a custom text with several lines) lays out exactly as typed, one
-  configured line per row. This is the mechanism `read_lines` (below)
-  reuses wholesale.
+  configured line per row. `read_lines`'s `PrintPageView.jsx` (below) reuses
+  `layoutTextIntoRows` itself the same way, though as its own view rather
+  than through this one.
 - Undocumented here until 2026-09-13 despite being shipped — code comments
   are dated 2026-08-19 (word tap-to-animate + hit-rect Y fix, see
   `WORD_HIT_Y`'s own comment for the "tap area higher than the word" bug),
   2026-08-20 (tablet 2x text scale), 2026-08-21 (`ReadTextView` itself).
 
-## Mode: Тетрадный лист (read_lines)
+## Mode: Тетрадный лист (read_lines / print_page)
 
-Same view and interaction as `read_text` — **zero new rendering/layout
-code** — but content is authored via a structured line-by-line constructor
-in the params screen instead of picking a whole pre-written text. Added
-2026-09-13 after confirming with the user that a plain textarea (typing
-lines separated by Enter into `read_text`'s existing custom-text field)
-already produced the right *rendering*, but a dedicated per-line input UI
-was wanted for authoring short, unrelated rows (a letter, a syllable, a
-word) rather than a flowing text.
+Content is authored via a structured line-by-line constructor in the params
+screen instead of picking a whole pre-written text (same as before,
+unchanged). **Rewritten 2026-09-13**, same day it shipped: the first cut
+reused `read_text`'s task/view as-is (scrolling container, arbitrary row
+count). The user's actual goal turned out to be a real print/PDF export
+("мы должны получать ровно такой же PDF, только с набранными пользователем
+строками") — a scrolling on-screen approximation can't produce that, so this
+mode now has its own view (`PrintPageView.jsx`) built on real print-page
+geometry, not `read_text`'s flowing layout. `task.type` is `"print_page"`,
+routed in `index.jsx` — no longer indistinguishable from a `read_text` task.
 
-- **`params.lines`** (type `line_list`, new `LineListParam` component in
-  `ParamsScreen.jsx`): one text input per notebook row, with "+ Добавить
-  строку"/remove-row controls. Starts with one empty row
-  (`getInitialParams`'s `line_list` default is `[""]`, not `[]`) so the
-  constructor isn't an empty list on first open.
-- **`engine.js`'s `read_lines` branch** trims and drops empty lines, joins
-  the rest with `"\n"`, and hands that single string to a `read_text` task
-  as its one-and-only entry in `texts` — reusing `read_text`'s existing
-  hard-line-break handling (see above) instead of writing a new layout path.
-  A `read_lines` task is indistinguishable from a `read_text` task by the
-  time it reaches `ReadTextView` (`task.type` is `"read_text"` either way).
-- **Blank/whitespace-only constructor rows never reach the screen** — a
-  parent can leave half-filled draft rows in the constructor; only
-  non-empty, trimmed lines are joined into the shown text.
-- No new icon-less mode: `media/icons/propis_read_lines.svg`
-  (`builtinAssets.js`) reuses the same ruled-notebook-card visual language
-  as the other 3 propis mode icons, but with 3 *different-length* rows
-  (hinting mixed content — a letter/syllable/word, not uniform prose) and a
-  small "+" badge instead of `read_text`'s screen-to-paper arrow.
+### Real print geometry, not an on-screen approximation
+
+Every dimension comes from `scripts/propis_worksheets/propis_ruling.py` (the
+actual ruling PDF) and `page.py` (the letter-worksheets content overlay) —
+not independently chosen, and not just "similar-looking": one physical A4
+sheet (297×210mm) split into two A5-proportioned slots (148.5×210mm), a red
+margin line 15mm from each slot's own OUTER edge, a 12mm baseline-to-baseline
+cycle starting 6mm from the physical top → **exactly 17 rows per page**
+(`floor((210-6)/12)+1`, matching `page.py`'s own derivation verbatim). All
+exported as `PRINT_*` constants in `propisRuling.js` (`PRINT_PAGE_W_MM`,
+`PRINT_ROWS_PER_PAGE`, etc.) plus `mmToNativeUnits()` for the mm→native-unit
+conversion every other constant in that file already uses.
+
+**Left/right slot mirroring** (`PrintPageView.jsx`'s `slotGeometry`,
+`pageIndex % 2`): a left-slot page (even index) has its margin line near its
+own left edge and its content hugs that same side; a right-slot page (odd
+index) has its margin line near its own RIGHT edge instead, and its content
+hugs the opposite (center-divider) side — this is `page.py`'s own
+`LEFT_INSET_MM`/`CENTER_INSET_MM` split, reused unchanged (see that file's
+own comment for why: it's booklet-imposition mechanics, not a stylistic
+choice). Confirmed visually 2026-09-13 (dev-preview + headless-Chrome
+screenshots): page 1 shows the margin on the left with content flush against
+it; page 2 shows the margin on the right with content flush against the
+*left* edge instead.
+
+**`buildDiagonalLines`'s own phase is NOT re-synced across the slot
+boundary** — a deliberate simplification, not an oversight: the real
+`propis_ruling.py` draws diagonals continuously across the full 297mm sheet,
+so the right slot's diagonal pattern is phase-shifted relative to the left
+slot's in the real print (148.5mm isn't a multiple of the 20mm spacing).
+Both slots use the same phase here instead. Purely cosmetic (a generic slant
+guide, not content-bearing) — revisit only if a real print/PDF comparison
+ever flags it as visibly wrong.
+
+### Pagination (`paginateRows`, `wordEngine.js`)
+
+Groups a `layoutTextIntoRows()` result into fixed `PRINT_ROWS_PER_PAGE`-row
+pages. **Always an even page count, minimum 2** — confirmed with the user:
+pages come from real physical sheets, each printing 2 (a left slot + a right
+slot), so a "sheet" is the real unit. Content that doesn't fill even the
+first page still gets a second, blank one; content needing a 3rd page always
+gets a 4th too, rather than leaving an odd sheet half-used. The constructor
+itself has **no line-count cap** — "конструкция должен давать добавлять
+больше строк, чем у нас есть на PDF-выводе" (2026-09-13) — as many pages as
+needed are generated, always in pairs.
+
+- **`params.lines`** (type `line_list`, `LineListParam` in
+  `ParamsScreen.jsx`, unchanged from the first cut): one text input per
+  notebook row, "+ Добавить строку"/remove-row controls, starts with one
+  empty row.
+- **`engine.js`'s `read_lines` branch** trims and drops empty/whitespace-only
+  lines, passes the rest through **raw** (`task.lines`, an array — not
+  pre-joined into one string the way the first cut did) so
+  `PrintPageView.jsx` can paginate them itself.
+
+### PDF export: real, via the browser's own print pipeline
+
+`PrintPageView.jsx`'s "🖨 Печать" button calls `window.print()` — no PDF
+library, no server-side rendering. `propis.css`'s `@media print` block sizes
+each page to the exact physical `148.5mm × 210mm` via `@page` and forces a
+page break between them. "Save as PDF" in the browser's print dialog is what
+turns this into a real file; verified end-to-end with headless Chrome's own
+`--print-to-pdf` (`pdf-lib` confirmed page count and exact page size in mm
+for both a 3-line and a 40-line test case).
+
+**`position: fixed` breaks multi-page printing — worked around with a
+portal, not a CSS override.** `PrintPageView`'s root
+(`.propis-practice-stage`, shared by every propis mode) is `position:
+fixed`, and Chrome's print engine only ever paints ONE page for content
+nested inside a fixed-positioned ancestor — confirmed by testing: the exact
+same print-only markup, moved outside that ancestor, printed all pages
+correctly. Rather than overriding `position`/`overflow` on every ancestor in
+the chain (fragile — anything upstream changing later could silently break
+printing again), the print-only "every page stacked" block
+(`.propis-print-all`) is rendered via `createPortal(..., document.body)` —
+a direct child of `<body>` in the real DOM, completely outside the fixed
+stacking context, regardless of what the rest of the screen's layout does.
+- **Interactive view vs. print view are two separate renders of the same
+  `PrintPage` function** (not one hidden/shown via CSS alone): the on-screen
+  view renders only the current page with tap-to-animate
+  (`activeIndex`/`onToggleActive`); the portaled print block renders every
+  page with static ink only (`onToggleActive` omitted — nothing is tappable
+  on paper). `propis.css`'s `@media print` rule hides everything in
+  `body *` except `.propis-print-all`'s own subtree (`visibility`, not
+  `display`, so hiding the rest doesn't collapse layout ancestors).
+
+### Icon
+
+`media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
+ruled-notebook-card visual language as the other 3 propis mode icons, but
+with 3 *different-length* rows (hinting mixed content — a letter/syllable/
+word, not uniform prose) and a small "+" badge instead of `read_text`'s
+screen-to-paper arrow.
 
 ## Printed letter worksheets (Phase 1)
 
