@@ -218,11 +218,26 @@
 
 /* Real A5 proportions (148.5x210mm, one A4-landscape half) — a fixed aspect ratio, not a
    stretched-to-container rectangle, so the on-screen page already reads as "one physical
-   sheet" before printing, not just a differently-shaped scroll area. */
+   sheet" before printing, not just a differently-shaped scroll area.
+   width/height must BOTH stay auto here: `height:100%; width:auto; max-width:100%` (the
+   first cut) only guards the wide/short container case (tablet landscape) — there height
+   binds first and the auto width always comes out under max-width, so it never clips. On a
+   narrow/tall container (phone portrait) height:100% instead pins the box to the full
+   available height regardless of width, so the aspect-ratio-computed width overflows and
+   gets clamped by max-width while height stays put — the box ends up taller than its own
+   correct proportions, and since the SVG content still preserves its real aspect ratio
+   internally (viewBox + default preserveAspectRatio), it letterboxes inside that oversized
+   box, in the SAME cream color as the paper background — reading as unexplained blank space
+   above/below the ruled lines rather than a visible seam (reported 2026-09-13, phone only —
+   tablet was fine by the accident above). Leaving both axes auto with max-width AND
+   max-height set lets the browser pick whichever axis actually binds for the container's own
+   shape, so the box's real edges (and its border-radius/shadow) always match the ruled
+   content exactly, on both a wide tablet and a narrow phone. */
 .propis-print-page-svg {
-  height: 100%;
   width: auto;
+  height: auto;
   max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 148.5 / 210;
   display: block;
   background: #fffdf8;

@@ -42,6 +42,27 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   line, A5-proportioned page, mirrored left/right slots) and a working "🖨
   Печать" → `window.print()` PDF export, real print-to-PDF verified
   end-to-end. See its own section below.
+  **Fixed 2026-09-13: blank space above/below the page on a narrow (phone
+  portrait) screen.** `.propis-print-page-svg`'s CSS was `height:100%;
+  width:auto; max-width:100%; aspect-ratio:148.5/210` — correct only when
+  the container's height binds first (a wide/short tablet-landscape screen:
+  auto width always lands under max-width there, so it never clips). On a
+  narrow/tall phone screen `height:100%` instead pins the box to the full
+  available height regardless of width, so the aspect-ratio-computed width
+  overflows and gets clamped by `max-width` while height stays put — the box
+  ends up taller than its correct proportions, and since the SVG's own
+  content still preserves the real aspect ratio internally (viewBox +
+  default `preserveAspectRatio`), it letterboxes inside that oversized box —
+  in the same cream color as the paper background, so it read as unexplained
+  blank canvas above/below the ruled lines rather than a visible seam.
+  Verified via `getBoundingClientRect()` in headless Chrome: 390×844 phone
+  viewport measured the box at 358×735 (ratio 0.49) against a target of
+  0.7071. Fix: `width: auto; height: auto; max-width: 100%; max-height:
+  100%;` — both axes left auto with both max constraints lets the browser
+  pick whichever axis actually binds for the container's own shape, so the
+  box (and its border-radius/shadow) always matches the ruled content
+  exactly. Re-measured after the fix: 358×506.25 (ratio 0.7072) on phone,
+  unchanged 0.7071 on tablet.
 - **In-app PDF export — done, for `read_lines` only** (`window.print()`, see
   above). `PropisShowView.jsx` (see below) is a separate, still-dormant
   starting point for a hypothetical print mode of the OTHER text-flow modes
