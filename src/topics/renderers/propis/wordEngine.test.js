@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { transformPathD, getPathEndpoints } from "./pathGeometry.js";
-import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows } from "./wordEngine.js";
+import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, paginateRows } from "./wordEngine.js";
 import { GUIDE_LINES } from "./propisRuling.js";
 
 const LETTER_A = {
@@ -332,6 +332,49 @@ describe("layoutTextIntoRows", () => {
       const result = layoutTextIntoRows("а.", letters, new Map(), 500);
       expect(result.placed[0].segments[1]).toEqual({ type: "fallback", xOffset: 22, text: ".", width: 24 });
     });
+  });
+});
+
+describe("paginateRows", () => {
+  const letters = new Map([["а", LETTER_A]]);
+
+  it("pads a single row of content up to 2 pages", () => {
+    const layout = layoutTextIntoRows("а", letters, new Map(), 500);
+    const pages = paginateRows(layout, 17);
+    expect(pages).toHaveLength(2);
+    expect(pages[0]).toHaveLength(1);
+    expect(pages[1]).toHaveLength(0);
+  });
+
+  it("empty text still produces 2 pages, both blank", () => {
+    const layout = layoutTextIntoRows("", letters, new Map(), 500);
+    const pages = paginateRows(layout, 17);
+    expect(pages).toHaveLength(2);
+    expect(pages[0]).toHaveLength(0);
+    expect(pages[1]).toHaveLength(0);
+  });
+
+  it("content overflowing page 1 continues on page 2 with a local (0-based) rowIndex", () => {
+    const text = Array.from({ length: 20 }, () => "а").join("\n"); // 20 forced rows
+    const layout = layoutTextIntoRows(text, letters, new Map(), 500);
+    expect(layout.rowCount).toBe(20);
+    const pages = paginateRows(layout, 17);
+    expect(pages).toHaveLength(2);
+    expect(pages[0]).toHaveLength(17);
+    expect(pages[1]).toHaveLength(3);
+    expect(pages[0][0].rowIndex).toBe(0);
+    expect(pages[0][16].rowIndex).toBe(16);
+    expect(pages[1][0].rowIndex).toBe(0); // row 17 globally -> row 0 of page 2
+    expect(pages[1][2].rowIndex).toBe(2);
+  });
+
+  it("content needing a 3rd page always gets a 4th too (pages come in sheet pairs)", () => {
+    const text = Array.from({ length: 40 }, () => "а").join("\n"); // needs ceil(40/17)=3 pages
+    const layout = layoutTextIntoRows(text, letters, new Map(), 500);
+    const pages = paginateRows(layout, 17);
+    expect(pages).toHaveLength(4);
+    expect(pages[2]).toHaveLength(6); // 40 - 17 - 17 = 6
+    expect(pages[3]).toHaveLength(0);
   });
 });
 

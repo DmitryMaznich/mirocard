@@ -195,6 +195,48 @@
   color: #3f3a33;
 }
 
+/* ─── Прописи · «Тетрадный лист» (read_lines / print_page) ───────────── */
+
+.propis-print-frame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fffdf8;
+}
+
+.propis-print-page-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(16px + var(--app-safe-top, 0px)) calc(16px + var(--app-safe-right, 0px)) 16px calc(16px + var(--app-safe-left, 0px));
+  overflow: hidden;
+  background: #cabfa9;
+  min-height: 0;
+}
+
+/* Real A5 proportions (148.5x210mm, one A4-landscape half) — a fixed aspect ratio, not a
+   stretched-to-container rectangle, so the on-screen page already reads as "one physical
+   sheet" before printing, not just a differently-shaped scroll area. */
+.propis-print-page-svg {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 148.5 / 210;
+  display: block;
+  background: #fffdf8;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.propis-print-btn { background: #4a9b8f; }
+
+/* Rendered off-screen at all times (every page, unlike the single interactive page above) —
+   only shown, with the interactive Prev/Next view hidden instead, while actually printing.
+   See the @media print block at the end of this file for the page-per-sheet sizing. */
+.propis-print-all { display: none; }
+
 .propis-practice-keyboard {
   flex: 0 0 auto;
   display: flex;
@@ -303,3 +345,41 @@
 }
 
 .propis-word-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ─── Прописи · «Тетрадный лист» print output ─────────────────────────── */
+
+/* "Print only this element" — the classic visibility trick (not display:none) so hiding
+   the rest of the document doesn't collapse layout ancestors: everything stays in flow but
+   invisible except .propis-print-all's own subtree, which is then pulled to the physical
+   page's own top-left regardless of where it actually sits in the DOM. One .propis-print-
+   all__page per PRINT_ROWS_PER_PAGE-sized page (propisRuling.js), each its own A5-portrait
+   PDF page (@page below) — matching PrintPageView.jsx's on-screen page geometry mm-for-mm,
+   confirmed with the user 2026-09-13 as the actual goal of this mode, not a side effect.
+   window.print()'s browser dialog ("Save as PDF") is what turns this into a real file. */
+@media print {
+  body * { visibility: hidden; }
+  .propis-print-all, .propis-print-all * { visibility: visible; }
+  .propis-print-all {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .propis-print-all__page {
+    width: 148.5mm;
+    height: 210mm;
+    page-break-after: always;
+  }
+  .propis-print-all__page:last-child { page-break-after: auto; }
+  .propis-print-page-svg {
+    width: 148.5mm;
+    height: 210mm;
+    aspect-ratio: auto;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  @page {
+    size: 148.5mm 210mm;
+    margin: 0;
+  }
+}

@@ -101,6 +101,39 @@ export const TEXT_ROW_THIN_OFFSET = 24;
 // coordinate space as everything else in their SVG (20mm * 150/25 = 120).
 export const TEXT_ROW_DIAGONAL_SPACING = (DIAGONAL_MM * UNIT_H) / LINE_MM;
 
+// mm -> this file's native units, same scale every other constant above uses
+// (150 units per 25mm). Exported so callers building print-page geometry (only
+// PrintPageView.jsx today) don't hand-roll the conversion.
+export const mmToNativeUnits = (mm) => (mm * UNIT_H) / LINE_MM;
+
+// Real print-page geometry for the "Тетрадный лист" (read_lines/print_page) mode --
+// one physical A4-landscape sheet (297x210mm) split into two A5-proportioned (148.5x210mm)
+// slots, EXACTLY the geometry scripts/propis_worksheets/propis_ruling.py (the actual PDF
+// ruling) and page.py (the letter-worksheets content overlay) already use -- not
+// independently chosen. Added 2026-09-13 so the on-screen "Тетрадный лист" mode's page
+// count/row count is real print geometry, not an arbitrary on-screen fit, per the user's
+// explicit goal: "мы должны получать ровно такой же PDF, только с набранными пользователем
+// строками" (the eventual PDF export this same geometry drives, see PrintPageView.jsx).
+export const PRINT_PAGE_W_MM = 148.5;
+export const PRINT_PAGE_H_MM = 210;
+export const PRINT_MARGIN_MM = 15; // red margin line, from the page's own OUTER edge
+// Content insets mirror page.py's LEFT_INSET_MM/CENTER_INSET_MM exactly: a "left slot"
+// page's content hugs its own red margin line (2mm past it); a "right slot" page's content
+// hugs the OTHER edge instead (2mm in from what would be the booklet's center divider),
+// leaving extra breathing room before ITS OWN red line -- confirmed with the user
+// 2026-08-15 for the print pipeline, reused here unchanged for the same visual (see
+// page.py's own comment for the "why", specific to booklet fold/staple assembly).
+export const PRINT_LEFT_INSET_MM = PRINT_MARGIN_MM + 2;
+export const PRINT_CENTER_INSET_MM = 4;
+export const PRINT_CONTENT_W_MM = PRINT_PAGE_W_MM - 2 * PRINT_MARGIN_MM; // 118.5mm
+// First baseline's distance from the page top + the baseline-to-baseline cycle -- exactly
+// propis_ruling.py's SHIFT_MM(-6)/ROW_CYCLE_MM(12) (see that file's own docstring for the
+// -6mm phase's derivation); TEXT_ROW_PITCH above is this same 12mm cycle already, in units.
+export const PRINT_FIRST_BASELINE_MM = 6;
+// floor((210 - 6) / 12) + 1 = 17 -- matches propis_worksheets/page.py's own derivation
+// exactly ("page.py can fit 17 practice rows per page"); not re-derived independently.
+export const PRINT_ROWS_PER_PAGE = 17;
+
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
 // Quartered (not just halved) for the same reason the ruling stroke-widths are:

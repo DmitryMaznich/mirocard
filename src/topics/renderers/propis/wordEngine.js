@@ -738,3 +738,24 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
   const rowCount = Math.max(rowIndex + 1, 1);
   return { placed, rowCount };
 }
+
+// Groups a layoutTextIntoRows() result into fixed-size print pages -- PrintPageView.jsx's
+// "Тетрадный лист" mode, where the on-screen/PDF page count and row-per-page capacity must
+// match the real print geometry (PRINT_ROWS_PER_PAGE=17, propisRuling.js) exactly, not
+// whatever happens to fit a scrollable on-screen container.
+//
+// Always returns an EVEN number of pages, minimum 2 -- confirmed with the user 2026-09-13:
+// pages come from real physical A4 sheets, each printing 2 (a left slot + a right slot), so
+// a "sheet" is the real unit, not a single page; content that doesn't fill even the first
+// page still gets a second, blank one (just the ruling + margin), and content needing a 3rd
+// page always gets a 4th too, rather than leaving an odd sheet half-used.
+export function paginateRows(layout, rowsPerPage) {
+  const neededPages = Math.max(2, Math.ceil(layout.rowCount / rowsPerPage));
+  const pageCount = neededPages % 2 === 0 ? neededPages : neededPages + 1;
+  const pages = Array.from({ length: pageCount }, () => []);
+  for (const p of layout.placed) {
+    const pageIndex = Math.floor(p.rowIndex / rowsPerPage);
+    pages[pageIndex].push({ ...p, rowIndex: p.rowIndex % rowsPerPage });
+  }
+  return pages;
+}
