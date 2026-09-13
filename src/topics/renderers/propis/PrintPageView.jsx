@@ -46,7 +46,17 @@ function slotGeometry(pageIndex) {
   };
 }
 
-const DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS, TEXT_ROW_DIAGONAL_SPACING);
+// Computed across the FULL physical sheet width (both slots together), not per slot —
+// propis_ruling.py's own real PDF draws its diagonal hatching in a single continuous pass
+// across the whole 297mm sheet, so the pattern's phase carries seamlessly across the
+// left/right slot boundary. Building it per slot independently (each its own x=-dx start)
+// was the first cut's bug: 148.5mm isn't a multiple of the 20mm diagonal spacing, so each
+// slot's own phase drifted from the other's, and the two lines met at visibly different
+// angles/offsets right at the seam (reported by the user from a printed page photo,
+// 2026-09-13). The right slot's own copy is shifted left by one page width so whatever fell
+// at sheet-x=[148.5, 297] now sits at this slot's own local x=[0, 148.5] — the svg's own
+// default overflow:hidden clips the rest, same as any other line here.
+const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_DIAGONAL_SPACING);
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 
 // One physical page's ruling + content, reused for both the interactive on-screen view (one
@@ -54,7 +64,8 @@ const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // see PrintPageView's own "propis-print-all" block). `activeIndex`/`onToggleActive` are
 // omitted (undefined) for the print render — nothing is tappable on paper.
 function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
-  const { marginXUnits, contentXUnits } = slotGeometry(pageIndex);
+  const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
+  const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   return (
     <svg
       className="propis-print-page-svg"
@@ -62,8 +73,12 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
-      {DIAGONAL_LINES.map((l, i) => (
-        <line key={`d${i}`} x1={l.x1} y1={0} x2={l.x2} y2={PAGE_H_UNITS} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />
+      {SHEET_DIAGONAL_LINES.map((l, i) => (
+        <line
+          key={`d${i}`}
+          x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS}
+          stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
+        />
       ))}
       {ROW_INDICES.map((row) => (
         <g key={`g${row}`}>

@@ -709,14 +709,23 @@ screenshots): page 1 shows the margin on the left with content flush against
 it; page 2 shows the margin on the right with content flush against the
 *left* edge instead.
 
-**`buildDiagonalLines`'s own phase is NOT re-synced across the slot
-boundary** — a deliberate simplification, not an oversight: the real
-`propis_ruling.py` draws diagonals continuously across the full 297mm sheet,
-so the right slot's diagonal pattern is phase-shifted relative to the left
-slot's in the real print (148.5mm isn't a multiple of the 20mm spacing).
-Both slots use the same phase here instead. Purely cosmetic (a generic slant
-guide, not content-bearing) — revisit only if a real print/PDF comparison
-ever flags it as visibly wrong.
+**Diagonal hatching is computed across the FULL sheet, not per slot —
+fixed 2026-09-13 after a printed-page photo showed a visible break at the
+seam.** The first cut called `buildDiagonalLines` independently per slot
+(each its own `x=-dx` start), reasoning it was a purely cosmetic
+simplification — wrong: 148.5mm isn't a multiple of the 20mm diagonal
+spacing, so each slot's own phase drifted from the other's, and the two
+patterns met at visibly different angles right at the seam once actually
+printed (the user's photo showed lines "breaking" at the middle instead of
+continuing straight through), not merely a subtle phase mismatch. Fixed by
+building `SHEET_DIAGONAL_LINES` once, across `PAGE_W_UNITS * 2` (the full
+297mm), matching `propis_ruling.py`'s own single continuous pass; the right
+slot shifts the same set left by one page width (`x - PAGE_W_UNITS`) so
+whatever fell in the right half of the full-sheet computation lands at that
+slot's own local origin — the `<svg>`'s default `overflow: hidden` clips
+the rest. Verified with a print-media-emulated screenshot cropped exactly
+on the seam (`getBoundingClientRect` of both slot `<svg>`s): every diagonal
+line now crosses the boundary as one continuous stroke.
 
 ### Pagination (`paginateRows`, `wordEngine.js`)
 
