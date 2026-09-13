@@ -18,6 +18,22 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   v1.0.1841 as of 2026-08-13).** Free-text multi-line copybook: colored keyboard
   (magnetic_alphabet style) + a wrapping notebook grid that lays words out
   row-by-row, no animation. See its own section below.
+- **Mode "Пишем текст с экрана" (read_text) — shipped, live on `main`, previously
+  undocumented here (code comments dated 2026-08-19/20/21).** Read-only sibling
+  of `write_text`: full-screen notebook grid with pre-selected text(s) already
+  written in cursive (`ReadTextView.jsx`), no keyboard — content is picked in
+  the params screen from a preset list (`topic.json`'s `texts[]`) or typed/
+  uploaded as a custom multi-line text. Tap a word to toggle its handwriting
+  animation on/off. See its own section below.
+- **Mode "Тетрадный лист" (read_lines) — shipped 2026-09-13.** Same view/
+  interaction as `read_text` (100% code reuse — no new renderer), but content
+  is authored via a structured line-by-line constructor in the params screen
+  (`LineListParam` in `ParamsScreen.jsx`) instead of picking a whole text: one
+  input per notebook row, each row can be a single letter, a syllable, a word,
+  or several words — whatever's typed. `engine.js` joins the non-empty lines
+  with `"\n"` and hands that single string to the read_text task as its one
+  text (`layoutTextIntoRows` already treats `"\n"` as a hard row break, so no
+  layout code changed). See its own section below.
 - **Mode 2 (in-app PDF export) — not started.** `PropisShowView.jsx` (see below)
   is a dormant starting point for it, not wired to any active mode.
 - **Printed letter worksheets (Phase 1) — shipped, live on `main`
@@ -605,6 +621,67 @@ gap, see "Natural next steps" above) so a single missing/uncaptured
 character degrades to one system-font glyph inline instead of dropping the
 whole word/segment, unlike `WriteWordsView.jsx`'s all-or-nothing
 `try/catch`.
+
+## Mode: Пишем текст с экрана (read_text)
+
+Read-only sibling of `write_text` (`ReadTextView.jsx`): same notebook grid,
+same `layoutTextIntoRows`-based row layout, same real-handwriting rendering —
+but no keyboard, and the child never types anything. The text comes
+pre-selected from the params screen (`task.texts`, plural — one task holds
+every text the parent picked) instead of being typed live; the child copies
+the on-screen model into their own paper notebook.
+
+- **Content picked in the params screen** (`params.texts`, type `text_list`,
+  `TextListParam` in `ParamsScreen.jsx`): either preset short texts
+  (`topic.json`'s `texts[]`, `t01`…) or a custom text typed into a textarea
+  or uploaded as `.txt`. Several can be selected at once — `ReadTextView`
+  switches between them with its own internal Prev/Next (self-contained
+  state, same pattern `PropisPracticeView` uses for letter/case switching,
+  not the session engine's own task-advance machinery).
+- **Tap a word to toggle its animation** — `activeIndex` in `ReadTextView`,
+  one word at a time; tapping again turns it off. Renders `AnimatedStrokes`
+  in place of the static path for whichever word is active.
+- **Manual line breaks**: `layoutTextIntoRows` (`wordEngine.js`) already
+  treats every `"\n"` in the text as a hard row break (not just an
+  auto-wrap-on-width fallback) — typing/pasting text with real line breaks
+  (or a custom text with several lines) lays out exactly as typed, one
+  configured line per row. This is the mechanism `read_lines` (below)
+  reuses wholesale.
+- Undocumented here until 2026-09-13 despite being shipped — code comments
+  are dated 2026-08-19 (word tap-to-animate + hit-rect Y fix, see
+  `WORD_HIT_Y`'s own comment for the "tap area higher than the word" bug),
+  2026-08-20 (tablet 2x text scale), 2026-08-21 (`ReadTextView` itself).
+
+## Mode: Тетрадный лист (read_lines)
+
+Same view and interaction as `read_text` — **zero new rendering/layout
+code** — but content is authored via a structured line-by-line constructor
+in the params screen instead of picking a whole pre-written text. Added
+2026-09-13 after confirming with the user that a plain textarea (typing
+lines separated by Enter into `read_text`'s existing custom-text field)
+already produced the right *rendering*, but a dedicated per-line input UI
+was wanted for authoring short, unrelated rows (a letter, a syllable, a
+word) rather than a flowing text.
+
+- **`params.lines`** (type `line_list`, new `LineListParam` component in
+  `ParamsScreen.jsx`): one text input per notebook row, with "+ Добавить
+  строку"/remove-row controls. Starts with one empty row
+  (`getInitialParams`'s `line_list` default is `[""]`, not `[]`) so the
+  constructor isn't an empty list on first open.
+- **`engine.js`'s `read_lines` branch** trims and drops empty lines, joins
+  the rest with `"\n"`, and hands that single string to a `read_text` task
+  as its one-and-only entry in `texts` — reusing `read_text`'s existing
+  hard-line-break handling (see above) instead of writing a new layout path.
+  A `read_lines` task is indistinguishable from a `read_text` task by the
+  time it reaches `ReadTextView` (`task.type` is `"read_text"` either way).
+- **Blank/whitespace-only constructor rows never reach the screen** — a
+  parent can leave half-filled draft rows in the constructor; only
+  non-empty, trimmed lines are joined into the shown text.
+- No new icon-less mode: `media/icons/propis_read_lines.svg`
+  (`builtinAssets.js`) reuses the same ruled-notebook-card visual language
+  as the other 3 propis mode icons, but with 3 *different-length* rows
+  (hinting mixed content — a letter/syllable/word, not uniform prose) and a
+  small "+" badge instead of `read_text`'s screen-to-paper arrow.
 
 ## Printed letter worksheets (Phase 1)
 

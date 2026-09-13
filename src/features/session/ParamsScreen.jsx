@@ -982,6 +982,74 @@ function TextUploadParam({ label, maxLength, value, onChange }) {
   );
 }
 
+// Structured line-by-line constructor for read_lines' "lines" param: one text input per
+// row instead of TextListParam's single shared textarea + Enter-to-break-line -- confirmed
+// with the user 2026-09-13 as the preferred authoring UX for mixing short, unrelated rows
+// (a letter, a syllable, a word) rather than a flowing text. Each input maps 1:1 to a
+// notebook row engine.js joins with "\n" for layoutTextIntoRows' existing hard-break
+// handling -- no new rendering/layout code needed, only this input.
+function LineListParam({ label, value, maxLength, onChange }) {
+  const lines = Array.isArray(value) && value.length > 0 ? value : [""];
+  const inputRefs = useRef([]);
+  const focusIndexRef = useRef(null);
+
+  useEffect(() => {
+    const i = focusIndexRef.current;
+    if (i == null) return;
+    focusIndexRef.current = null;
+    inputRefs.current[i]?.focus();
+  }, [lines.length]);
+
+  function updateLine(index, text) {
+    const next = [...lines];
+    next[index] = text;
+    onChange(next);
+  }
+
+  function addLine() {
+    focusIndexRef.current = lines.length;
+    onChange([...lines, ""]);
+  }
+
+  function removeLine(index) {
+    const next = lines.filter((_, i) => i !== index);
+    onChange(next.length > 0 ? next : [""]);
+  }
+
+  return (
+    <div className="param-row param-row--block param-line-list">
+      <div className="param-label">{label}</div>
+      <div className="param-line-list__rows">
+        {lines.map((line, i) => (
+          <div key={i} className="param-line-list__row">
+            <input
+              ref={(el) => { inputRefs.current[i] = el; }}
+              type="text"
+              className="param-line-list__input"
+              value={line}
+              maxLength={maxLength}
+              placeholder={`Строка ${i + 1}`}
+              onChange={(e) => updateLine(i, e.target.value)}
+            />
+            <button
+              type="button"
+              className="param-line-list__remove"
+              onClick={() => removeLine(i)}
+              disabled={lines.length === 1 && !line}
+              aria-label="Удалить строку"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+      <button type="button" className="param-text-upload__link" onClick={addLine}>
+        + Добавить строку
+      </button>
+    </div>
+  );
+}
+
 function SentencePoolSelector({ lines, value, onChange }) {
   const allSelected = value === null || value === undefined;
   const selectedSet = allSelected
@@ -1440,6 +1508,12 @@ export default function ParamsScreen() {
         out[key] = saved[key] ?? [];
         continue;
       }
+      if (def.type === "line_list") {
+        // Starts with one empty row (not []) so the constructor already shows a line to
+        // type into on first open, instead of an empty list + only an "add line" button.
+        out[key] = saved[key] ?? [""];
+        continue;
+      }
       if (def.type === "text_upload") {
         out[key] = saved[key] ?? "";
         continue;
@@ -1844,6 +1918,17 @@ export default function ParamsScreen() {
               />
             );
           }
+          if (def.type === "line_list") {
+            return (
+              <LineListParam
+                key={key}
+                label={def.label?.ru ?? key}
+                maxLength={def.maxLength}
+                value={params[key] ?? [""]}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
           return null;
         }
 
@@ -1876,8 +1961,10 @@ export default function ParamsScreen() {
   const sentenceListEmpty = hasSentenceListParam && (params.sentences ?? []).length === 0;
   const hasTextListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "text_list");
   const textListEmpty = hasTextListParam && (params.texts ?? []).length === 0;
+  const hasLineListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "line_list");
+  const lineListEmpty = hasLineListParam && !(params.lines ?? []).some((l) => l.trim());
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
-  const isStartDisabled = sentenceListEmpty || textListEmpty || poolEmpty || !myPeopleReady;
+  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady;
 
   return (
     <div className="screen">
