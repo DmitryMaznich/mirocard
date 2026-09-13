@@ -19401,6 +19401,45 @@ body { background: #eef0ef; }
   padding-right: 2px;
 }
 
+/* ── LineListParam (read_lines constructor) ── */
+.param-line-list__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.param-line-list__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.param-line-list__input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid #c8d4d2;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #263131;
+  background: #fff;
+}
+.param-line-list__input:focus { border-color: #4a9b8f; outline: none; }
+
+.param-line-list__remove {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: #9a4b4b;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.param-line-list__remove:disabled { opacity: .3; cursor: default; }
+
 /* reward modal (pre-video choice) */
 .reward-modal-overlay {
   position: fixed;

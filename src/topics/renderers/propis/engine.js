@@ -34,5 +34,17 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     return [{ type: "read_text", letters, connectors, punctuation, texts: sessionParams?.texts ?? [] }];
   }
 
+  if (mode.type === "read_lines") {
+    // Reuses the read_text task/view as-is -- layoutTextIntoRows already treats "\n" as a
+    // hard row break (see wordEngine.js), so joining the constructor's own lines with "\n"
+    // and handing that single string to ReadTextView as its one-and-only "text" produces
+    // exactly the same tetrad-page/tap-to-animate rendering, just authored line-by-line in
+    // the params screen instead of picking a whole pre-written text. Blank lines are dropped
+    // rather than kept as visible blank ruled rows -- the constructor lets a parent leave
+    // half-filled draft rows without them showing up on the child's screen.
+    const lines = (sessionParams?.lines ?? []).map((l) => l.trim()).filter(Boolean);
+    return [{ type: "read_text", letters, connectors, punctuation, texts: lines.length ? [lines.join("\n")] : [] }];
+  }
+
   return [];
 }

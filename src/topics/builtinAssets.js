@@ -756,6 +756,24 @@ const BUILTIN_ASSETS = {
   <rect x="24" y="104" width="80" height="18" rx="4" fill="#fffdf8" stroke="#bcd8ec" stroke-width="2.5"/>
   <path d="M32 113c2-4 4-4 6 0s4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0" fill="none" stroke="#1d4ed8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
+  // read_lines: same ruled-notebook-card language as the rest of the family, but the 3 rows
+  // are deliberately different lengths (short/medium/long) to hint "mixed, hand-picked
+  // content" (a letter, a syllable, a word) rather than read_text's uniform prose lines --
+  // plus a small "+" badge (constructor, built row by row) instead of read_text's
+  // screen-to-paper down arrow (its own distinct "copy this text" narrative).
+  "media/icons/propis_read_lines.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
+  <rect x="18" y="18" width="92" height="92" rx="14" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
+  <path d="M32 44h20" stroke="#dcebf6" stroke-width="2"/>
+  <path d="M32 44c2-6 5-6 7 0s5 6 7 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 64h44" stroke="#dcebf6" stroke-width="2"/>
+  <path d="M32 64c2-7 5-7 7 0s5 7 7 0 5-7 7 0 5 7 7 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 84h68" stroke="#dcebf6" stroke-width="2"/>
+  <path d="M32 84c2-8 5-8 7 0s5 8 7 0 5-8 7 0 5 8 7 0 5-8 7 0 5 8 7 0" fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="100" cy="30" r="15" fill="#ef6f5e"/>
+  <path d="M100 23v14M93 30h14" stroke="#fffdf8" stroke-width="3.2" stroke-linecap="round"/>
+</svg>`,
 };
 
 const TOPIC_AVATAR_VARIANTS = {
