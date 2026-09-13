@@ -352,10 +352,12 @@
    the rest of the document doesn't collapse layout ancestors: everything stays in flow but
    invisible except .propis-print-all's own subtree, which is then pulled to the physical
    page's own top-left regardless of where it actually sits in the DOM. One .propis-print-
-   all__page per PRINT_ROWS_PER_PAGE-sized page (propisRuling.js), each its own A5-portrait
-   PDF page (@page below) — matching PrintPageView.jsx's on-screen page geometry mm-for-mm,
-   confirmed with the user 2026-09-13 as the actual goal of this mode, not a side effect.
-   window.print()'s browser dialog ("Save as PDF") is what turns this into a real file. */
+   all__sheet per physical A4-landscape PAGE (@page below) — two PRINT_ROWS_PER_PAGE-sized
+   slots (propisRuling.js) side by side, left+right, matching the real propis_worksheets
+   PDFs (one A4-landscape sheet, not two separate A5 pages) — confirmed with the user
+   2026-09-13 after the first cut printed each slot as its own separate page. Sizing here
+   matches PrintPageView.jsx's on-screen page geometry mm-for-mm. window.print()'s browser
+   dialog ("Save as PDF") is what turns this into a real file. */
 @media print {
   body * { visibility: hidden; }
   .propis-print-all, .propis-print-all * { visibility: visible; }
@@ -365,12 +367,13 @@
     top: 0;
     left: 0;
   }
-  .propis-print-all__page {
-    width: 148.5mm;
+  .propis-print-all__sheet {
+    width: 297mm;
     height: 210mm;
+    display: flex;
     page-break-after: always;
   }
-  .propis-print-all__page:last-child { page-break-after: auto; }
+  .propis-print-all__sheet:last-child { page-break-after: auto; }
   .propis-print-page-svg {
     width: 148.5mm;
     height: 210mm;
@@ -379,7 +382,7 @@
     border-radius: 0;
   }
   @page {
-    size: 148.5mm 210mm;
+    size: 297mm 210mm;
     margin: 0;
   }
 }

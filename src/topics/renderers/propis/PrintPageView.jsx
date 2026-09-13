@@ -218,10 +218,14 @@ export default function PrintPageView({ task, onClose }) {
               </button>
             </div>
 
-            {/* Print-only: every page stacked, one per physical sheet of paper (propis.css's
-                @media print rules size each .propis-print-page-svg to the real
-                148.5x210mm and force a page break between them) — the interactive
-                Prev/Next view above is hidden while printing instead.
+            {/* Print-only: pages 0/1 share ONE physical A4-landscape sheet (left slot + right
+                slot side by side), 2/3 share the next sheet, etc. — matching the real
+                propis_worksheets PDFs (one A4-landscape page, not two separate A5 pages per
+                sheet). paginateRows already guarantees an even page count, so every sheet is
+                a full pair (never an odd one left over). propis.css's @media print rules
+                size each .propis-print-all__sheet to the real 297x210mm and force a page
+                break between sheets, not between the two slots on the same sheet — the
+                interactive Prev/Next view above is hidden while printing instead.
                 Portaled straight to <body> (2026-09-13): Chrome's print engine only ever
                 paints ONE page for content nested inside a `position: fixed` ancestor
                 (.propis-practice-stage, this view's own root) — a well-known print
@@ -231,9 +235,10 @@ export default function PrintPageView({ task, onClose }) {
                 every ancestor in the chain. */}
             {createPortal(
               <div className="propis-print-all" aria-hidden="true">
-                {pages.map((page, i) => (
-                  <div key={i} className="propis-print-all__page">
-                    <PrintPage page={page} pageIndex={i} />
+                {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
+                  <div key={sheetIndex} className="propis-print-all__sheet">
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} />
                   </div>
                 ))}
               </div>,

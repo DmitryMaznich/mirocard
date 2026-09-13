@@ -742,12 +742,20 @@ needed are generated, always in pairs.
 ### PDF export: real, via the browser's own print pipeline
 
 `PrintPageView.jsx`'s "🖨 Печать" button calls `window.print()` — no PDF
-library, no server-side rendering. `propis.css`'s `@media print` block sizes
-each page to the exact physical `148.5mm × 210mm` via `@page` and forces a
-page break between them. "Save as PDF" in the browser's print dialog is what
-turns this into a real file; verified end-to-end with headless Chrome's own
-`--print-to-pdf` (`pdf-lib` confirmed page count and exact page size in mm
-for both a 3-line and a 40-line test case).
+library, no server-side rendering. **Pages 0/1 share one physical A4-
+landscape sheet, 2/3 the next, etc.** — `propis.css`'s `@media print` block
+sizes each SHEET (`.propis-print-all__sheet`, a flex row holding both slots
+side by side) to the exact physical `297mm × 210mm` via `@page`, with each
+slot's own `<svg>` at `148.5mm × 210mm`, and forces a page break between
+sheets (never between the two slots on the same sheet). First cut (same
+day) printed each slot as its own separate A5 page — corrected after the
+user compared it against the real `propis_worksheets` PDFs, which are one
+A4-landscape page per physical sheet. `paginateRows` already guarantees an
+even page count (see above), so every sheet is a full pair — never an odd
+slot left over. "Save as PDF" in the browser's print dialog is what turns
+this into a real file; verified end-to-end with headless Chrome's own
+`--print-to-pdf` (`pdf-lib` confirmed sheet count and exact `297×210mm`
+page size for both a 3-line and a 40-line test case).
 
 **`position: fixed` breaks multi-page printing — worked around with a
 portal, not a CSS override.** `PrintPageView`'s root
