@@ -110,7 +110,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
               seg.type === "cursive" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" />
                   ) : (
                     seg.trajectory.strokes.map((s, ssi) => (
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
