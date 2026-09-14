@@ -16,6 +16,15 @@
   justify-content: center;
 }
 
+/* A single "Дальше →" below a story — .reading-line-nav is normally a
+   3-column grid (Назад / count / Дальше) built for the per-line layout. */
+.reading-line-nav.reading-line-nav--single {
+  grid-template-columns: 1fr;
+}
+.reading-line-nav--single .reading-primary-btn {
+  width: 100%;
+}
+
 /* Small accent rule under the title, evoking a book's chapter head. */
 .reading-page .reading-title::after {
   content: "";

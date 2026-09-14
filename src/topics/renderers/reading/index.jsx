@@ -285,6 +285,14 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
     );
   }
 
+  // Story texts disable the whole-screen tap-to-advance below (showCloseButton)
+  // so an idle tap while the text is being read aloud can't skip it early —
+  // but that left no way to move on at all: this mode has no scoring, so the
+  // header's own advance-gate overlay (which only ever triggers off a scored
+  // "correct answer" event) never engages either. A plain, always-visible
+  // button is the one reachable way to call onAdvance for a story.
+  const isStory = task.text?.kind === "story";
+
   return (
     <div
       className={`session-body reading-body reading-page${hasIllustration ? " reading-page--spread" : ""}`}
@@ -305,6 +313,11 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
+      {isStory && (
+        <div className="reading-line-nav reading-line-nav--single">
+          <button className="reading-primary-btn" onClick={onAdvance}>Дальше →</button>
+        </div>
+      )}
     </div>
   );
 }

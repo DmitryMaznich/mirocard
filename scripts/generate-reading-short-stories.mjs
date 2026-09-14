@@ -65,7 +65,7 @@ function makeLines(pairs) {
 const manifest = {
   meta: {
     id: "reading_short_stories",
-    version: "1.2.0",
+    version: "1.3.0",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -78,21 +78,33 @@ const manifest = {
     about: {
       ru: [
         "Тема предназначена для активной работы логопеда с ребёнком.",
-        "В режиме «Читаем текст» доступна настройка показа: обычный текст или текст с разбивкой по слогам.",
+        "Режим «Читаем рассказы» читает все двенадцать рассказов подряд одной сессией — «Готово» на одном сразу открывает следующий.",
+        "В настройках режима можно выбрать, какие именно рассказы читать (по умолчанию — все), и показ текста: обычный или по слогам.",
         "После чтения задавайте ребёнку вопросы по содержанию сами — тема не включает встроенную проверку понимания.",
       ],
       en: ["Designed for therapist-led reading sessions."],
     },
     conceptCount: 12,
     sessionConfig: { maxSize: 12 },
-    // "Читаем текст" is the only mode this deck wants. DEFAULT_MODES.reading
-    // is a big shared bag (comprehension quiz, word-scramble, instructions,
-    // safe-code, a poem book, letter sorting, math-operation narratives) —
-    // excluding everything but read_text guarantees exactly one mode, which
-    // also makes ModePickerScreen's hasSingleMode auto-skip kick in, so
-    // picking a story goes straight to read_text's params, no mode list.
-    // See normalizeReading() in topicLoader.js for what this opts out of.
+    // This deck wants exactly one custom mode, "Читаем рассказы" — not the
+    // shared DEFAULT_MODES.reading "read_text" entry (comprehension quiz,
+    // word-scramble, instructions, safe-code, a poem book, letter sorting,
+    // math-operation narratives all excluded too, same as before).
+    //
+    // read_text is excluded here specifically so our own mode below (same
+    // `type: "read_text"` for the engine, but a different `id`) doesn't get
+    // merged against — and diluted by — the DEFAULT_MODES.reading read_text
+    // entry: mergeDefaultModes() in topicLoader.js replaces a manifest
+    // mode's own `ui`/`params` with the default's whenever the mode `id`
+    // matches a DEFAULT_MODES entry, silently discarding a deck's own title
+    // and param list (confirmed via a scratch test against normalizeReading
+    // 2026-09-14 while adding the selectedStories param below — this isn't
+    // documented anywhere and is easy to trip over again). Giving this
+    // deck's mode an id ("read_stories") that matches nothing in
+    // DEFAULT_MODES.reading makes topicLoader treat it as fully custom, so
+    // its own ui/params survive untouched.
     excludeDefaultModes: [
+      "read_text",
       "understand_text", "assemble_text", "follow_instruction", "safe_code",
       "read_poem_book", "sort_letters", "operation_observe",
       "operation_name_action", "operation_do_action",
@@ -100,9 +112,35 @@ const manifest = {
   },
   modes: [
     {
-      id: "read_text",
+      id: "read_stories",
+      type: "read_text",
       requirePin: false,
+      evaluation: "none",
+      ui: {
+        title: { ru: "Читаем рассказы" },
+        instruction: { ru: "Читайте вместе с ребёнком" },
+        icon: "media/icons/reading_read.svg",
+      },
       params: {
+        selectedStories: {
+          type: "enum_multi",
+          label: { ru: "Рассказы" },
+          values: [
+            "whose_ball", "help_mommy", "whose_horse", "lost_mitten",
+            "bird_feeder", "rainy_walk", "planting_flower", "hedgehog",
+            "tidy_toys", "red_pencil", "zebra_crossing", "cookies",
+          ],
+          labels: {
+            ru: {
+              whose_ball: "Чей мяч?", help_mommy: "Помощь маме", whose_horse: "Чья лошадка?",
+              lost_mitten: "Пропала варежка", bird_feeder: "Кормушка для птиц", rainy_walk: "Дождь и зонт",
+              planting_flower: "Цветок для бабушки", hedgehog: "Ёжик в саду", tidy_toys: "Убираем игрушки",
+              red_pencil: "Красный карандаш", zebra_crossing: "У перехода", cookies: "Печенье",
+            },
+          },
+          // [] means "all" — see EnumMultiParam in ParamsScreen.jsx.
+          default: [],
+        },
         textStyle: {
           type: "enum",
           label: { ru: "Текст" },
@@ -342,5 +380,5 @@ for (const [id, image] of Object.entries(illustrations)) {
   zip.file(`media/${id}.webp`, image);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_short_stories_v1.2.0.zip", buffer);
-console.log("\nZIP written to public/decks/reading_short_stories_v1.2.0.zip");
+writeFileSync("public/decks/reading_short_stories_v1.3.0.zip", buffer);
+console.log("\nZIP written to public/decks/reading_short_stories_v1.3.0.zip");

@@ -25,15 +25,20 @@ function buildReadTextTask(text) {
   };
 }
 
-// reading_short_stories is a single "просто чтение" mode: entering it reads
-// through every story in the deck as one continuous sequence (the existing
-// task-advance machinery already walks tasks[] and ends the session after
-// the last one), rather than one session per picked story. Scoped to this
-// one deck for now, not the "reading" renderer generally.
-function buildAllStoriesTasks(topicRecord) {
-  return (topicRecord.texts ?? [])
-    .filter((t) => t.kind === "story")
-    .map((t) => buildReadTextTask(t));
+// reading_short_stories is a single "Читаем рассказы" mode: entering it
+// reads through the selected stories as one continuous sequence (the
+// existing task-advance machinery already walks tasks[] and ends the
+// session after the last one), rather than one session per picked story.
+// `selectedStories` (an enum_multi param — see EnumMultiParam in
+// ParamsScreen.jsx) empty/missing means "all", matching that component's own
+// "[] = all" convention; deck order is preserved regardless of pick order.
+// Scoped to this one deck for now, not the "reading" renderer generally.
+function buildAllStoriesTasks(topicRecord, selectedStoryIds) {
+  const stories = (topicRecord.texts ?? []).filter((t) => t.kind === "story");
+  const selected = selectedStoryIds?.length
+    ? stories.filter((t) => selectedStoryIds.includes(t.id))
+    : stories;
+  return selected.map((t) => buildReadTextTask(t));
 }
 
 function buildUnderstandTasks(text) {
@@ -134,7 +139,7 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
   switch (mode.type) {
     case "read_text":
       return topicRecord?.meta?.id === "reading_short_stories"
-        ? buildAllStoriesTasks(topicRecord)
+        ? buildAllStoriesTasks(topicRecord, sessionParams?.selectedStories)
         : [buildReadTextTask(text)];
     case "understand_text":
       return buildUnderstandTasks(text);
