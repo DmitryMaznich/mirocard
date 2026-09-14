@@ -27,40 +27,7 @@ function getLineText(line, textStyle = "normal") {
   return line?.text ?? "";
 }
 
-// Groups a flat lines[] array into paragraphs, breaking at each editorial
-// `newParagraph` mark (see scripts/generate-reading-short-stories.mjs).
-// Shared by the flow renderer below and the book-page paginator, which both
-// need the same paragraph boundaries.
-function groupIntoParagraphs(lines) {
-  const paragraphs = [];
-  (lines ?? []).forEach((line, i) => {
-    if (i === 0 || line.newParagraph) paragraphs.push([]);
-    paragraphs[paragraphs.length - 1].push(line);
-  });
-  return paragraphs;
-}
-
-// Renders one paragraph's lines as flowing prose, breaking with a hard <br />
-// around dialogue (a line starting with "—") instead of just a space, so a
-// dialogue exchange still reads as separate lines within the paragraph.
-// Shared by ReadingTextBlock's flow renderer and the book-page height
-// measurer below — they must lay out identically, or paginated pages would
-// overflow the space the measurer predicted.
-function renderFlowParagraphLines(paraLines, textStyle) {
-  return paraLines.map((line, i) => {
-    const text = getLineText(line, textStyle);
-    const isDialogue = text.trimStart().startsWith("—");
-    const prevIsDialogue = i > 0 && getLineText(paraLines[i - 1], textStyle).trimStart().startsWith("—");
-    return (
-      <Fragment key={line.id ?? i}>
-        {i > 0 && (isDialogue || prevIsDialogue ? <br /> : " ")}
-        {text}
-      </Fragment>
-    );
-  });
-}
-
-function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false, flow = false, dropCap = true }) {
+function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle = "normal", bookStyle = false, noWrap = false, flow = false }) {
   const items = lines ?? [];
 
   // Story content is authored one sentence per lines[] entry (so the
@@ -74,17 +41,29 @@ function ReadingTextBlock({ lines, large = false, activeLineId = null, textStyle
   // typeset in a book.
   if (flow) {
     // A drop cap on the first letter reads oddly when the story opens on a
-    // dialogue line (a lone "—" blown up huge) — skip it there. Also
-    // skipped outright when `dropCap` is false (book pages after the
-    // first — a giant capital mid-story reads as a typo, not a chapter start).
+    // dialogue line (a lone "—" blown up huge) — skip it there.
     const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
-    const paragraphs = groupIntoParagraphs(items);
+    const paragraphs = [];
+    items.forEach((line, i) => {
+      if (i === 0 || line.newParagraph) paragraphs.push([]);
+      paragraphs[paragraphs.length - 1].push(line);
+    });
     return (
       <div className={`reading-text${large ? " reading-text--large" : ""}${bookStyle ? " reading-text--book" : ""} reading-text--flow`}>
-        <div className={`reading-flow-text${(!dropCap || firstIsDialogue) ? " reading-flow-text--no-dropcap" : ""}`}>
+        <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
           {paragraphs.map((paraLines, pi) => (
             <p className="reading-flow-para" key={paraLines[0]?.id ?? pi}>
-              {renderFlowParagraphLines(paraLines, textStyle)}
+              {paraLines.map((line, i) => {
+                const text = getLineText(line, textStyle);
+                const isDialogue = text.trimStart().startsWith("—");
+                const prevIsDialogue = i > 0 && getLineText(paraLines[i - 1], textStyle).trimStart().startsWith("—");
+                return (
+                  <Fragment key={line.id ?? i}>
+                    {i > 0 && (isDialogue || prevIsDialogue ? <br /> : " ")}
+                    {text}
+                  </Fragment>
+                );
+              })}
             </p>
           ))}
         </div>
@@ -256,215 +235,15 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
   return { bodyRef, wrapRef, contentRef, illustrationRef };
 }
 
-// Paginates a story's paragraphs into book pages that actually fit the
-// screen at full reading size — no shrinking — so a story reads like a
-// real book: flip forward/back through a few lines of prose per page
-// instead of one long shrunk-to-fit block. Page 1 carries the title and
-// illustration (like an opening spread); later pages are text only, which
-// gives them more room and matches how a book doesn't repeat its title on
-// every page.
-//
-// Page breaks are measured, not authored: a hidden clone of the story's
-// paragraphs (same width/font, so identical wrapping) is rendered once,
-// and each paragraph's rendered height is read straight from the DOM.
-// Pages are then packed greedily against the real available height for
-// each page slot — first page (minus title/illustration chrome) vs.
-// continuation pages (full body minus padding) — so pagination adapts to
-// the actual device and orientation instead of a fixed line count.
-function useBookPages(paragraphs, textStyle, resetKey, { hasIllustration = false } = {}) {
-  const bodyRef = useRef(null);
-  const wrapRef = useRef(null);
-  const measureRef = useRef(null);
-  const navNodeRef = useRef(null);
-  const [pages, setPages] = useState(null);
-  const [pageIndex, setPageIndex] = useState(0);
-
-  // Reset pagination during render when the story (or its text style)
-  // changes, rather than in an effect — this is React's documented pattern
-  // for "adjusting state when a prop changes" and avoids an extra render
-  // pass. The actual (re)measurement still has to happen in a layout effect
-  // below, since it reads real DOM geometry.
-  const [lastResetKey, setLastResetKey] = useState(resetKey);
-  if (lastResetKey !== resetKey) {
-    setLastResetKey(resetKey);
-    setPages(null);
-    setPageIndex(0);
-  }
-
-  const paginate = useCallback(() => {
-    const body = bodyRef.current;
-    const wrap = wrapRef.current;
-    const measure = measureRef.current;
-    if (!body || !wrap || !measure || paragraphs.length === 0) return;
-
-    const paraEls = measure.querySelectorAll(".reading-flow-para");
-    if (paraEls.length !== paragraphs.length) return;
-
-    // Above the .reading-page--spread breakpoint the illustration sits beside
-    // the text (row layout) instead of above it, so it no longer eats into
-    // the text's available height — matches useFitReadingText's same check.
-    const isSpread = hasIllustration && window.matchMedia("(orientation: landscape)").matches;
-
-    const bodyStyle = getComputedStyle(body);
-    const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
-    // .session-body is a flex column with its own row-gap between every
-    // direct child (poem-wrap, illustration, the nav bar) — read the real
-    // value instead of guessing, since it also sizes the gap the nav bar
-    // itself always costs (unlike the shrink-to-fit view, StoryBookTask's
-    // body always has a nav bar as a sibling of the poem-wrap).
-    const bodyGap = parseFloat(bodyStyle.rowGap || bodyStyle.gap) || 0;
-    const bodyHeight = body.getBoundingClientRect().height;
-    // Reserved analytically (reading.css's portrait rule: flex: 0 1 42%),
-    // not measured off the live illustration node: on page 1's very first
-    // render — before pagination has trimmed the text down — the unpaginated
-    // full story is far taller than the screen, so the flex-shrink algorithm
-    // starves the illustration down toward 0px well before it touches the
-    // (much larger, auto-basis) text block. Measuring that squashed box
-    // would under-reserve space for it and overflow page 1 once pagination
-    // shortens the text and the illustration reclaims its real height.
-    const illuHeight = (!isSpread && hasIllustration) ? (bodyHeight - paddingV) * 0.42 : 0;
-    const navHeight = navNodeRef.current?.getBoundingClientRect().height ?? 0;
-    const contentEl = wrap.querySelector(".reading-content:not(.reading-page-measure)");
-    const contentTopOffset = contentEl ? contentEl.getBoundingClientRect().top - wrap.getBoundingClientRect().top : 0;
-
-    // Gaps consumed at the body level: one before the nav bar always, plus
-    // one more before the illustration when it's shown above the text
-    // (page 1, portrait only — spread mode puts it in a row instead).
-    const bodyGaps = bodyGap * (illuHeight > 0 ? 2 : 1);
-
-    const availFirst = Math.max(80, bodyHeight - paddingV - contentTopOffset - illuHeight - navHeight - bodyGaps);
-    const availRest = Math.max(80, bodyHeight - paddingV - navHeight - bodyGap);
-
-    const measureTop = measure.getBoundingClientRect().top;
-    // Cumulative height through paragraph i, from the top of the measured block.
-    const cumHeights = Array.from(paraEls).map((el) => el.getBoundingClientRect().bottom - measureTop);
-
-    const newPages = [];
-    let start = 0;
-    while (start < paragraphs.length) {
-      const avail = newPages.length === 0 ? availFirst : availRest;
-      const baseline = start === 0 ? 0 : cumHeights[start - 1];
-      let end = start + 1; // always take at least one paragraph, even if it alone overflows
-      for (let i = start + 1; i < paragraphs.length; i++) {
-        if (cumHeights[i] - baseline <= avail) end = i + 1;
-        else break;
-      }
-      newPages.push({ start, end });
-      start = end;
-    }
-    setPages(newPages);
-  }, [paragraphs, hasIllustration]);
-
-  useLayoutEffect(() => {
-    paginate();
-  }, [paginate, resetKey]);
-
-  useEffect(() => {
-    function onResize() {
-      setPages(null);
-      setPageIndex(0);
-      paginate();
-    }
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-    };
-  }, [paginate]);
-
-  const navRef = useCallback((node) => {
-    navNodeRef.current = node;
-    paginate();
-  }, [paginate]);
-
-  // Mirrors the dropcap-suppression condition in ReadingTextBlock's flow
-  // branch, so the measured height of the first paragraph matches whichever
-  // of the two class variants page 1 actually renders with.
-  const firstIsDialogue = paragraphs.length > 0 && paragraphs[0].length > 0
-    && getLineText(paragraphs[0][0], textStyle).trimStart().startsWith("—");
-
-  const measureNode = (
-    <div className="reading-content reading-page-measure" ref={measureRef} aria-hidden="true">
-      <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
-        {paragraphs.map((paraLines, pi) => (
-          <p className="reading-flow-para" key={pi}>
-            {renderFlowParagraphLines(paraLines, textStyle)}
-          </p>
-        ))}
-      </div>
-    </div>
-  );
-
-  return { bodyRef, wrapRef, navRef, pages, pageIndex, setPageIndex, measureNode };
-}
-
-function StoryBookTask({ task, topicId, textStyle, onAdvance }) {
-  const paragraphs = useMemo(() => groupIntoParagraphs(task.text?.lines ?? []), [task.text?.lines]);
-  // Corner-photo decks pin two images to the bottom corners rather than one
-  // book-style illustration — that doesn't translate to a side-by-side
-  // spread, so it's excluded here same as the legacy full-text view.
-  const hasIllustration = !!task.text?.image && !task.text?.cornerPhotos;
-  const resetKey = `${task.text?.id}_${textStyle}`;
-  const { bodyRef, wrapRef, navRef, pages, pageIndex, setPageIndex, measureNode } = useBookPages(paragraphs, textStyle, resetKey, { hasIllustration });
-
-  const isFirstPage = pageIndex === 0;
-  const currentParagraphs = pages ? paragraphs.slice(pages[pageIndex].start, pages[pageIndex].end) : paragraphs;
-  const currentLines = currentParagraphs.flat();
-  const isLastPage = !pages || pageIndex >= pages.length - 1;
-  const showIllustration = isFirstPage && hasIllustration;
-
-  return (
-    <div className={`session-body reading-body reading-page${showIllustration ? " reading-page--spread" : ""}`} ref={bodyRef}>
-      <div className="reading-poem-wrap" ref={wrapRef}>
-        {isFirstPage && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
-        {isFirstPage && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
-        <div className="reading-content">
-          <ReadingTextBlock lines={currentLines} textStyle={textStyle} bookStyle flow dropCap={isFirstPage} />
-        </div>
-        {measureNode}
-      </div>
-      {isFirstPage && <ReadingIllustration topicId={topicId} text={task.text} />}
-      <div className="reading-line-nav" ref={navRef}>
-        <button
-          className="reading-secondary-btn"
-          disabled={isFirstPage}
-          onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
-        >
-          Назад
-        </button>
-        <span className="reading-line-count">{pageIndex + 1}{pages ? ` / ${pages.length}` : ""}</span>
-        {!isLastPage ? (
-          <button className="reading-primary-btn" onClick={() => setPageIndex((i) => i + 1)}>
-            Дальше
-          </button>
-        ) : (
-          <button className="reading-primary-btn" onClick={onAdvance}>Готово</button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Stories (kind "story") always read as a paginated book — see
-// StoryBookTask — regardless of the `layout` param, which only still
-// applies to poems and sentence pools.
 function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
-  const textStyle = sessionParams?.textStyle ?? "normal";
-  if (task.text?.kind === "story") {
-    return <StoryBookTask task={task} topicId={topicId} textStyle={textStyle} onAdvance={onAdvance} />;
-  }
-  return <ReadTextTaskLegacy task={task} topicId={topicId} sessionParams={sessionParams} onAdvance={onAdvance} />;
-}
-
-function ReadTextTaskLegacy({ task, topicId, sessionParams, onAdvance }) {
   const lines = task.text?.lines ?? [];
   const layout = sessionParams?.layout ?? "full";
   const textStyle = sessionParams?.textStyle ?? "normal";
   const [lineIndex, setLineIndex] = useState(0);
   const activeLine = lines[lineIndex] ?? lines[0];
   const isPool = task.text?.kind === "sentence_pool";
-  const showCloseButton = task.text?.kind === "poem";
+  const bookStyle = task.text?.kind === "story";
+  const showCloseButton = task.text?.kind === "story" || task.text?.kind === "poem";
   // Corner-photo decks pin two images to the bottom corners rather than one
   // book-style illustration — that layout doesn't translate to a side-by-side
   // spread, so it keeps the plain vertical stack at every width.
@@ -478,7 +257,7 @@ function ReadTextTaskLegacy({ task, topicId, sessionParams, onAdvance }) {
           {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
           {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
           <div className="reading-content">
-            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} textStyle={textStyle} />
+            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} textStyle={textStyle} bookStyle={bookStyle} />
           </div>
         </div>
         <div className="reading-line-nav">
@@ -518,8 +297,11 @@ function ReadTextTaskLegacy({ task, topicId, sessionParams, onAdvance }) {
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
         <div className="reading-content" ref={fit.contentRef}>
           {/* Verse (poem) lines stay single-line and shrink to fit — a wrapped
-              line would break the poem's own line breaks, which carry meaning. */}
-          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} noWrap={task.text?.kind === "poem"} />
+              line would break the poem's own line breaks, which carry meaning.
+              Story lines are ordinary prose: wrapping them is normal and safe,
+              and forcing nowrap here was clipping longer sentences on narrow
+              screens instead of just wrapping to a second line. */}
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={task.text?.kind === "poem"} flow={bookStyle} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />

@@ -139,25 +139,12 @@ html.app-ios-standalone {
 }
 
 .reading-poem-wrap {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: calc(24px * var(--reading-fit-scale, 1));
   width: 100%;
   margin: 0;
-}
-
-/* Hidden sizer used to measure a story's paragraph heights for book-page
-   pagination (see useBookPages in index.jsx) — same width/font as the real
-   .reading-content so wrapping matches exactly, but out of the flow and
-   invisible. */
-.reading-content.reading-page-measure {
-  position: absolute;
-  top: 0;
-  left: 0;
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .reading-content {
