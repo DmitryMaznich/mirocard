@@ -16,6 +16,62 @@
   justify-content: center;
 }
 
+/* Story screen (StoryReadTask): text pinned to the top with a small margin,
+   capped at roughly half the screen's height by the --reading-fit-scale JS
+   (useStoryFit) — the illustration below is a plain flex:1 box that fills
+   whatever height is left over, so it never fights the text for space and
+   never needs its own reserved percentage. One rule set, no portrait/
+   landscape special-casing — it's already correct at any aspect ratio,
+   which a side-by-side "spread" row for landscape was not. */
+.reading-body.reading-page.story-screen {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.story-text-wrap {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(8px * var(--reading-fit-scale, 1));
+}
+
+.story-illustration {
+  flex: 1 1 auto;
+  min-height: 60px;
+  width: 100%;
+  display: flex;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 26px rgba(40, 30, 20, 0.16);
+}
+
+/* Beats the portrait-only `.reading-page .reading-illustration:not(...)`
+   rule above (and the landscape spread rules) on specificity alone, rather
+   than depending on source order — this box is meant to look and behave
+   identically in every orientation, so it must win unconditionally rather
+   than in just one @media branch. */
+.reading-body.reading-page.story-screen .story-illustration .reading-illustration {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: block;
+}
+
+.reading-body.reading-page.story-screen .story-illustration .reading-illustration img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  display: block;
+  mix-blend-mode: normal;
+}
+
 /* Small accent rule under the title, evoking a book's chapter head. */
 .reading-page .reading-title::after {
   content: "";

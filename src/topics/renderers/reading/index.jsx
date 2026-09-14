@@ -124,16 +124,18 @@ function ReadingIllustration({ topicId, text, illustrationRef }) {
   );
 }
 
-// Shrinks the poem/story text (font-size, gaps) to fit the space left over
-// after the illustration claims its reserved height, so the whole text is
-// visible on one screen without scrolling on small devices. Falls back to
-// scrolling just the line list if even the minimum readable scale overflows.
+// Shrinks the poem text (font-size, gaps) to fit the space left over after
+// the illustration claims its reserved height, so the whole text is visible
+// on one screen without scrolling on small devices. Falls back to scrolling
+// just the line list if even the minimum readable scale overflows.
+// Story texts use useStoryFit/StoryReadTask instead (see below) — a
+// deliberately separate, simpler hook so the two don't keep fighting each
+// other's requirements the way one shared hook did.
 function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
   const bodyRef = useRef(null);
   const wrapRef = useRef(null);
   const contentRef = useRef(null);
   const illustrationNodeRef = useRef(null);
-  const navNodeRef = useRef(null);
 
   const measure = useCallback(() => {
     if (!active) return;
@@ -186,53 +188,22 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
 
     const bodyStyle = getComputedStyle(body);
     const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
-    const bodyGap = parseFloat(bodyStyle.rowGap || bodyStyle.gap) || GAP;
     const bodyHeight = body.getBoundingClientRect().height;
+    const illuHeight = isSpread ? 0 : (illustrationNodeRef.current?.getBoundingClientRect().height ?? 0);
+    const available = Math.max(0, bodyHeight - paddingV - illuHeight - (isSpread ? 0 : GAP));
 
-    // Re-measured on demand rather than once: at scale 1 (before any shrink),
-    // the still-full-size text can force the flex-shrink algorithm to starve
-    // the illustration (and, with a nav bar, the nav bar too) down toward
-    // 0px — well before it touches the far larger, auto-basis text block. A
-    // one-shot read at the top would lock in that squashed height as
-    // "available" and under-reserve space for it once the loop below
-    // actually shrinks the text back down and the illustration/nav bar
-    // reclaim their real size.
-    function computeAvailable() {
-      const illuHeight = isSpread ? 0 : (illustrationNodeRef.current?.getBoundingClientRect().height ?? 0);
-      const navHeight = navNodeRef.current?.getBoundingClientRect().height ?? 0;
-      const navGap = navHeight > 0 ? bodyGap : 0;
-      return Math.max(0, bodyHeight - paddingV - illuHeight - navHeight - (isSpread ? 0 : GAP) - navGap);
-    }
-
-    function shrinkToFit(available) {
-      let current = 1;
-      wrap.style.setProperty("--reading-fit-scale", "1");
-      let required = requiredHeight();
-      let widthRatio = widestLineRatio();
-      let iterations = 0;
-      while ((required > available || widthRatio > 1) && current > MIN_SCALE && iterations < 8) {
-        const heightFactor = required > available ? (available / required) * 0.97 : 1;
-        const widthFactor = widthRatio > 1 ? (1 / widthRatio) * 0.97 : 1;
-        current = Math.max(MIN_SCALE, current * Math.min(heightFactor, widthFactor));
-        wrap.style.setProperty("--reading-fit-scale", String(current));
-        required = requiredHeight();
-        widthRatio = widestLineRatio();
-        iterations += 1;
-      }
-      return { current, required };
-    }
-
-    let available = computeAvailable();
-    let required = shrinkToFit(available).required;
-
-    // Now that the text has actually shrunk, the illustration/nav bar are no
-    // longer starved by it — re-measure and redo the fit if that changed the
-    // budget enough to matter (a few px of sub-pixel jitter isn't worth a
-    // second layout pass).
-    const settledAvailable = computeAvailable();
-    if (Math.abs(settledAvailable - available) > 4) {
-      available = settledAvailable;
-      required = shrinkToFit(available).required;
+    let current = 1;
+    let required = requiredHeight();
+    let widthRatio = widestLineRatio();
+    let iterations = 0;
+    while ((required > available || widthRatio > 1) && current > MIN_SCALE && iterations < 8) {
+      const heightFactor = required > available ? (available / required) * 0.97 : 1;
+      const widthFactor = widthRatio > 1 ? (1 / widthRatio) * 0.97 : 1;
+      current = Math.max(MIN_SCALE, current * Math.min(heightFactor, widthFactor));
+      wrap.style.setProperty("--reading-fit-scale", String(current));
+      required = requiredHeight();
+      widthRatio = widestLineRatio();
+      iterations += 1;
     }
 
     if (required > available + 1 && content) {
@@ -264,23 +235,130 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
     measure();
   }, [measure]);
 
+  return { bodyRef, wrapRef, contentRef, illustrationRef };
+}
+
+// Caps the story text block's height at a fixed share of the screen (not
+// "whatever's left after the illustration", which is what used to make
+// stories look inconsistent with each other — a long story left the
+// illustration a sliver, a short one left it oddly small too since both
+// competed for the same fixed-percentage slot). The illustration below is a
+// plain CSS flex:1 box instead (see .story-illustration in reading.css) and
+// simply fills whatever height the text doesn't use — no measuring, no
+// negotiation, so it can't be starved by anything, on any screen or
+// orientation, portrait or landscape.
+function useStoryFit(active, deps) {
+  const bodyRef = useRef(null);
+  const textWrapRef = useRef(null);
+  const navNodeRef = useRef(null);
+
+  const measure = useCallback(() => {
+    if (!active) return;
+    const body = bodyRef.current;
+    const textWrap = textWrapRef.current;
+    if (!body || !textWrap) return;
+
+    const MIN_SCALE = 0.55;
+    // The text may take up to this share of the body's own height — the
+    // rest (whatever isn't used) goes to the illustration via flex:1. A
+    // short story that doesn't need the full share simply leaves more room
+    // below, which is the point: no fixed illustration percentage to fight.
+    const MAX_SHARE = 0.52;
+
+    textWrap.style.setProperty("--reading-fit-scale", "1");
+
+    const textEl = textWrap.querySelector(".reading-text");
+    if (!textEl) return;
+
+    function requiredHeight() {
+      return textEl.getBoundingClientRect().bottom - textWrap.getBoundingClientRect().top;
+    }
+
+    const bodyStyle = getComputedStyle(body);
+    const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
+    const bodyGap = parseFloat(bodyStyle.rowGap || bodyStyle.gap) || 12;
+    const bodyHeight = body.getBoundingClientRect().height;
+    const navHeight = navNodeRef.current?.getBoundingClientRect().height ?? 0;
+    const navGap = navHeight > 0 ? bodyGap : 0;
+    const contentHeight = Math.max(0, bodyHeight - paddingV - navHeight - navGap);
+    const budget = Math.max(100, contentHeight * MAX_SHARE);
+
+    let current = 1;
+    let required = requiredHeight();
+    let iterations = 0;
+    while (required > budget && current > MIN_SCALE && iterations < 8) {
+      current = Math.max(MIN_SCALE, current * (budget / required) * 0.97);
+      textWrap.style.setProperty("--reading-fit-scale", String(current));
+      required = requiredHeight();
+      iterations += 1;
+    }
+  }, [active]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(measure, [measure, ...deps]);
+
+  useEffect(() => {
+    if (!active) return undefined;
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, [active, measure]);
+
   const navRef = useCallback((node) => {
     navNodeRef.current = node;
     measure();
   }, [measure]);
 
-  return { bodyRef, wrapRef, contentRef, illustrationRef, navRef };
+  return { bodyRef, textWrapRef, navRef };
+}
+
+function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
+  const lines = task.text?.lines ?? [];
+  const fit = useStoryFit(true, [task.text?.id, textStyle, lines.length]);
+  const hasImage = !!task.text?.image && !task.text?.cornerPhotos;
+
+  return (
+    <div className="session-body reading-body reading-page story-screen" ref={fit.bodyRef}>
+      <div className="story-text-wrap" ref={fit.textWrapRef}>
+        <div className="reading-title">{getTopicTitle(task.text.title)}</div>
+        <ReadingTextBlock lines={lines} textStyle={textStyle} bookStyle flow />
+      </div>
+      {hasImage ? (
+        <div className="story-illustration">
+          <ReadingIllustration topicId={topicId} text={task.text} />
+        </div>
+      ) : task.text?.cornerPhotos ? (
+        <ReadingIllustration topicId={topicId} text={task.text} />
+      ) : null}
+      <div className="reading-line-nav" ref={fit.navRef}>
+        <button className="reading-secondary-btn" onClick={onPrevious}>← Назад</button>
+        <span />
+        <button className="reading-primary-btn" onClick={onAdvance}>Дальше →</button>
+      </div>
+    </div>
+  );
 }
 
 function ReadTextTask({ task, topicId, sessionParams, onAdvance, onPrevious }) {
+  const textStyle = sessionParams?.textStyle ?? "normal";
+  if (task.text?.kind === "story") {
+    return <StoryReadTask task={task} topicId={topicId} textStyle={textStyle} onAdvance={onAdvance} onPrevious={onPrevious} />;
+  }
+
+  return <ReadTextTaskClassic task={task} topicId={topicId} sessionParams={sessionParams} onAdvance={onAdvance} />;
+}
+
+function ReadTextTaskClassic({ task, topicId, sessionParams, onAdvance }) {
   const lines = task.text?.lines ?? [];
   const layout = sessionParams?.layout ?? "full";
   const textStyle = sessionParams?.textStyle ?? "normal";
   const [lineIndex, setLineIndex] = useState(0);
   const activeLine = lines[lineIndex] ?? lines[0];
   const isPool = task.text?.kind === "sentence_pool";
-  const bookStyle = task.text?.kind === "story";
-  const showCloseButton = task.text?.kind === "story" || task.text?.kind === "poem";
+  const showCloseButton = task.text?.kind === "poem";
   // Corner-photo decks pin two images to the bottom corners rather than one
   // book-style illustration — that layout doesn't translate to a side-by-side
   // spread, so it keeps the plain vertical stack at every width.
@@ -294,7 +372,7 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onPrevious }) {
           {!isPool && <div className="reading-title">{getTopicTitle(task.text.title)}</div>}
           {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
           <div className="reading-content">
-            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} textStyle={textStyle} bookStyle={bookStyle} />
+            <ReadingTextBlock lines={[activeLine]} large activeLineId={activeLine?.id} textStyle={textStyle} />
           </div>
         </div>
         <div className="reading-line-nav">
@@ -322,14 +400,6 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onPrevious }) {
     );
   }
 
-  // Story texts disable the whole-screen tap-to-advance below (showCloseButton)
-  // so an idle tap while the text is being read aloud can't skip it early —
-  // but that left no way to move on at all: this mode has no scoring, so the
-  // header's own advance-gate overlay (which only ever triggers off a scored
-  // "correct answer" event) never engages either. A plain, always-visible
-  // button is the one reachable way to call onAdvance for a story.
-  const isStory = task.text?.kind === "story";
-
   return (
     <div
       className={`session-body reading-body reading-page${hasIllustration ? " reading-page--spread" : ""}`}
@@ -342,21 +412,11 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance, onPrevious }) {
         {!isPool && task.text.author && <div className="reading-author">{getTopicTitle(task.text.author)}</div>}
         <div className="reading-content" ref={fit.contentRef}>
           {/* Verse (poem) lines stay single-line and shrink to fit — a wrapped
-              line would break the poem's own line breaks, which carry meaning.
-              Story lines are ordinary prose: wrapping them is normal and safe,
-              and forcing nowrap here was clipping longer sentences on narrow
-              screens instead of just wrapping to a second line. */}
-          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} bookStyle={bookStyle} noWrap={task.text?.kind === "poem"} flow={bookStyle} />
+              line would break the poem's own line breaks, which carry meaning. */}
+          <ReadingTextBlock lines={lines} large={isPool} textStyle={textStyle} noWrap={task.text?.kind === "poem"} />
         </div>
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
-      {isStory && (
-        <div className="reading-line-nav" ref={fit.navRef}>
-          <button className="reading-secondary-btn" onClick={onPrevious}>← Назад</button>
-          <span />
-          <button className="reading-primary-btn" onClick={onAdvance}>Дальше →</button>
-        </div>
-      )}
     </div>
   );
 }
