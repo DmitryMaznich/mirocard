@@ -25,6 +25,17 @@ function buildReadTextTask(text) {
   };
 }
 
+// reading_short_stories is a single "просто чтение" mode: entering it reads
+// through every story in the deck as one continuous sequence (the existing
+// task-advance machinery already walks tasks[] and ends the session after
+// the last one), rather than one session per picked story. Scoped to this
+// one deck for now, not the "reading" renderer generally.
+function buildAllStoriesTasks(topicRecord) {
+  return (topicRecord.texts ?? [])
+    .filter((t) => t.kind === "story")
+    .map((t) => buildReadTextTask(t));
+}
+
 function buildUnderstandTasks(text) {
   return (text.questions ?? []).map((question) => ({
     type: "understand_text",
@@ -122,7 +133,9 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
 
   switch (mode.type) {
     case "read_text":
-      return [buildReadTextTask(text)];
+      return topicRecord?.meta?.id === "reading_short_stories"
+        ? buildAllStoriesTasks(topicRecord)
+        : [buildReadTextTask(text)];
     case "understand_text":
       return buildUnderstandTasks(text);
     case "assemble_text":
