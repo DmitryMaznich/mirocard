@@ -66,6 +66,18 @@ export default function TextPickerScreen() {
     if (builtIn.length === 1 && builtIn[0].kind === "sentence_pool") {
       setActiveText(builtIn[0]);
       setScreen("modes");
+      return;
+    }
+    // reading_short_stories reads as one continuous "Читаем рассказы" session
+    // covering every story (see engine.js's buildAllStoriesTasks) — picking
+    // one of the 12 rows here would be misleading (every row starts the same
+    // session, from story 1, not from the one tapped), so skip this list
+    // entirely and go straight to that mode's params (which story) screen.
+    // The picked text itself is just an anchor the store's activeText/
+    // activeTextId expect to be non-null elsewhere; which one doesn't matter.
+    if (activeTopicId === "reading_short_stories" && builtIn.length) {
+      setActiveText(builtIn[0]);
+      setScreen("modes");
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

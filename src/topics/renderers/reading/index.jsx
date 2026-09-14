@@ -133,6 +133,7 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
   const wrapRef = useRef(null);
   const contentRef = useRef(null);
   const illustrationNodeRef = useRef(null);
+  const navNodeRef = useRef(null);
 
   const measure = useCallback(() => {
     if (!active) return;
@@ -185,22 +186,53 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
 
     const bodyStyle = getComputedStyle(body);
     const paddingV = parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom);
+    const bodyGap = parseFloat(bodyStyle.rowGap || bodyStyle.gap) || GAP;
     const bodyHeight = body.getBoundingClientRect().height;
-    const illuHeight = isSpread ? 0 : (illustrationNodeRef.current?.getBoundingClientRect().height ?? 0);
-    const available = Math.max(0, bodyHeight - paddingV - illuHeight - (isSpread ? 0 : GAP));
 
-    let current = 1;
-    let required = requiredHeight();
-    let widthRatio = widestLineRatio();
-    let iterations = 0;
-    while ((required > available || widthRatio > 1) && current > MIN_SCALE && iterations < 8) {
-      const heightFactor = required > available ? (available / required) * 0.97 : 1;
-      const widthFactor = widthRatio > 1 ? (1 / widthRatio) * 0.97 : 1;
-      current = Math.max(MIN_SCALE, current * Math.min(heightFactor, widthFactor));
-      wrap.style.setProperty("--reading-fit-scale", String(current));
-      required = requiredHeight();
-      widthRatio = widestLineRatio();
-      iterations += 1;
+    // Re-measured on demand rather than once: at scale 1 (before any shrink),
+    // the still-full-size text can force the flex-shrink algorithm to starve
+    // the illustration (and, with a nav bar, the nav bar too) down toward
+    // 0px — well before it touches the far larger, auto-basis text block. A
+    // one-shot read at the top would lock in that squashed height as
+    // "available" and under-reserve space for it once the loop below
+    // actually shrinks the text back down and the illustration/nav bar
+    // reclaim their real size.
+    function computeAvailable() {
+      const illuHeight = isSpread ? 0 : (illustrationNodeRef.current?.getBoundingClientRect().height ?? 0);
+      const navHeight = navNodeRef.current?.getBoundingClientRect().height ?? 0;
+      const navGap = navHeight > 0 ? bodyGap : 0;
+      return Math.max(0, bodyHeight - paddingV - illuHeight - navHeight - (isSpread ? 0 : GAP) - navGap);
+    }
+
+    function shrinkToFit(available) {
+      let current = 1;
+      wrap.style.setProperty("--reading-fit-scale", "1");
+      let required = requiredHeight();
+      let widthRatio = widestLineRatio();
+      let iterations = 0;
+      while ((required > available || widthRatio > 1) && current > MIN_SCALE && iterations < 8) {
+        const heightFactor = required > available ? (available / required) * 0.97 : 1;
+        const widthFactor = widthRatio > 1 ? (1 / widthRatio) * 0.97 : 1;
+        current = Math.max(MIN_SCALE, current * Math.min(heightFactor, widthFactor));
+        wrap.style.setProperty("--reading-fit-scale", String(current));
+        required = requiredHeight();
+        widthRatio = widestLineRatio();
+        iterations += 1;
+      }
+      return { current, required };
+    }
+
+    let available = computeAvailable();
+    let required = shrinkToFit(available).required;
+
+    // Now that the text has actually shrunk, the illustration/nav bar are no
+    // longer starved by it — re-measure and redo the fit if that changed the
+    // budget enough to matter (a few px of sub-pixel jitter isn't worth a
+    // second layout pass).
+    const settledAvailable = computeAvailable();
+    if (Math.abs(settledAvailable - available) > 4) {
+      available = settledAvailable;
+      required = shrinkToFit(available).required;
     }
 
     if (required > available + 1 && content) {
@@ -232,10 +264,15 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
     measure();
   }, [measure]);
 
-  return { bodyRef, wrapRef, contentRef, illustrationRef };
+  const navRef = useCallback((node) => {
+    navNodeRef.current = node;
+    measure();
+  }, [measure]);
+
+  return { bodyRef, wrapRef, contentRef, illustrationRef, navRef };
 }
 
-function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
+function ReadTextTask({ task, topicId, sessionParams, onAdvance, onPrevious }) {
   const lines = task.text?.lines ?? [];
   const layout = sessionParams?.layout ?? "full";
   const textStyle = sessionParams?.textStyle ?? "normal";
@@ -314,7 +351,9 @@ function ReadTextTask({ task, topicId, sessionParams, onAdvance }) {
       </div>
       <ReadingIllustration topicId={topicId} text={task.text} illustrationRef={showCloseButton ? fit.illustrationRef : undefined} />
       {isStory && (
-        <div className="reading-line-nav reading-line-nav--single">
+        <div className="reading-line-nav" ref={fit.navRef}>
+          <button className="reading-secondary-btn" onClick={onPrevious}>← Назад</button>
+          <span />
           <button className="reading-primary-btn" onClick={onAdvance}>Дальше →</button>
         </div>
       )}
@@ -1439,7 +1478,7 @@ const TASK_RENDERERS = {
   read_poem_book:      ReadPoemBookTask,
 };
 
-export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onQualityAnswer, onClose }) {
+export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onPrevious, onQualityAnswer, onClose }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -1451,6 +1490,7 @@ export default function ReadingRenderer({ task, topicId, sessionParams, soundEna
       playFeedback={playFeedback}
       onMistake={onMistake}
       onAdvance={onAdvance}
+      onPrevious={onPrevious}
       onQualityAnswer={onQualityAnswer}
       onClose={onClose}
     />
