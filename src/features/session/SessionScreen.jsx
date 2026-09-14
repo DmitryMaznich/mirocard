@@ -334,7 +334,7 @@ export default function SessionScreen() {
 
   return (
     <div className="session-screen">
-      <div className="session-header-wrap">
+      <div className={`session-header-wrap${mode.evaluation === "none" ? " session-header-wrap--compact" : ""}`}>
         <SessionHeader
           topicTitle={topicTitle}
           modeTitle={modeTitle}

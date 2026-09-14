@@ -11789,6 +11789,16 @@ button {
     margin-bottom: 86px;
   }
 }
+/* evaluation:"none" modes (read_text and friends) never call onCorrect/
+   onIncorrect, so answerStatus can never reach "answer_correct"/
+   "answer_incorrect" and the tongue pill never grows past its resting
+   22px — the 58/86px reservation above is pure dead space for them,
+   pushing every such screen's content down for no reason. Two classes
+   beats one on specificity, so this wins over both the base rule and the
+   phone media query above regardless of viewport width. */
+.session-header-wrap.session-header-wrap--compact {
+  margin-bottom: 20px;
+}
 
 /* ── Plan/settings tongue — a small capsule "grip" poking out of the
    header's bottom edge, half-embedded so it reads as grown out of the
