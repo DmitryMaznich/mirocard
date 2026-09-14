@@ -411,7 +411,7 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
       <div className="story-swipe-nav__chevrons story-swipe-nav__chevrons--left" aria-hidden="true">
         <span>‹</span><span>‹</span><span>‹</span>
       </div>
-      <div className="story-swipe-nav__hint" aria-hidden="true">Смахните</div>
+      <div className="story-swipe-nav__hint" aria-hidden="true">Листай</div>
       <div className="story-swipe-nav__chevrons story-swipe-nav__chevrons--right" aria-hidden="true">
         <span>›</span><span>›</span><span>›</span>
       </div>
