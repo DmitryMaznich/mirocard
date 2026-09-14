@@ -67,13 +67,10 @@
   height: 100%;
   max-width: none;
   max-height: none;
-  /* fill, not cover: cover crops whatever doesn't fit the container's own
-     aspect ratio, which can lose part of the picture (and reads as an odd
-     tight crop when the source image's ratio is far from the box's) — fill
-     always shows the whole illustration edge-to-edge instead, stretching it
-     non-uniformly on an off-ratio source rather than cropping or
-     letterboxing it. */
-  object-fit: fill;
+  /* cover: scales proportionally (no distortion) to fully cover the box,
+     cropping only whatever overflows — fill was wrong here, it stretches
+     non-uniformly and visibly warps the picture on an off-ratio source. */
+  object-fit: cover;
   display: block;
   mix-blend-mode: normal;
 }
