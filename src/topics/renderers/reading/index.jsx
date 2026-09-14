@@ -315,6 +315,110 @@ function useStoryFit(active, deps) {
   return { bodyRef, textWrapRef, navRef };
 }
 
+// How far (px) a drag has to travel before release commits to next/previous
+// instead of springing back.
+const STORY_SWIPE_THRESHOLD = 64;
+// Caps how far the strip visually follows the finger past the threshold —
+// rubber-band feel instead of tracking 1:1 forever.
+const STORY_SWIPE_MAX_DRAG = 110;
+
+// Replaces the old Назад/Дальше buttons: one strip you swipe — right-to-left
+// for the next story, left-to-right for the previous one. Manipulates the
+// strip's transform/custom-properties directly via refs during the drag
+// (same reasoning as AssembleLineTask's pointer handling above: a React
+// state update per pointermove would be needless re-render churn for
+// something purely visual until the gesture actually commits).
+function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
+  const stripRef = useRef(null);
+  const dragRef = useRef(null);
+
+  const setStripRef = useCallback((node) => {
+    stripRef.current = node;
+    navRef(node);
+  }, [navRef]);
+
+  function applyDragVisual(dx) {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const clamped = Math.max(-STORY_SWIPE_MAX_DRAG, Math.min(STORY_SWIPE_MAX_DRAG, dx));
+    const progress = Math.min(1, Math.abs(dx) / STORY_SWIPE_THRESHOLD);
+    strip.style.setProperty("--story-swipe-dx", `${clamped}px`);
+    strip.style.setProperty("--story-swipe-progress", String(progress));
+  }
+
+  function resetDragVisual(animate) {
+    const strip = stripRef.current;
+    if (!strip) return;
+    if (animate) strip.classList.add("story-swipe-nav--snap");
+    strip.style.setProperty("--story-swipe-dx", "0px");
+    strip.style.setProperty("--story-swipe-progress", "0");
+    if (animate) {
+      setTimeout(() => strip.classList.remove("story-swipe-nav--snap"), 180);
+    }
+  }
+
+  function handlePointerDown(event) {
+    if (dragRef.current) return;
+    stripRef.current?.setPointerCapture(event.pointerId);
+    dragRef.current = { pointerId: event.pointerId, startX: event.clientX };
+  }
+
+  function handlePointerMove(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    applyDragVisual(event.clientX - drag.startX);
+  }
+
+  function handlePointerUp(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    dragRef.current = null;
+    if (dx <= -STORY_SWIPE_THRESHOLD) {
+      resetDragVisual(false);
+      onAdvance();
+    } else if (dx >= STORY_SWIPE_THRESHOLD) {
+      resetDragVisual(false);
+      onPrevious();
+    } else {
+      resetDragVisual(true);
+    }
+  }
+
+  function handlePointerCancel(event) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    resetDragVisual(true);
+  }
+
+  return (
+    <div
+      className="story-swipe-nav"
+      ref={setStripRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      role="slider"
+      aria-label="Смахните вправо — предыдущий рассказ, влево — следующий"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowLeft") onPrevious();
+        if (e.key === "ArrowRight") onAdvance();
+      }}
+    >
+      <div className="story-swipe-nav__chevrons story-swipe-nav__chevrons--left" aria-hidden="true">
+        <span>‹</span><span>‹</span><span>‹</span>
+      </div>
+      <div className="story-swipe-nav__hint" aria-hidden="true">Смахните</div>
+      <div className="story-swipe-nav__chevrons story-swipe-nav__chevrons--right" aria-hidden="true">
+        <span>›</span><span>›</span><span>›</span>
+      </div>
+    </div>
+  );
+}
+
 function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   const lines = task.text?.lines ?? [];
   const fit = useStoryFit(true, [task.text?.id, textStyle, lines.length]);
@@ -333,11 +437,7 @@ function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
       ) : task.text?.cornerPhotos ? (
         <ReadingIllustration topicId={topicId} text={task.text} />
       ) : null}
-      <div className="reading-line-nav" ref={fit.navRef}>
-        <button className="reading-secondary-btn" onClick={onPrevious}>← Назад</button>
-        <span />
-        <button className="reading-primary-btn" onClick={onAdvance}>Дальше →</button>
-      </div>
+      <StorySwipeNav onAdvance={onAdvance} onPrevious={onPrevious} navRef={fit.navRef} />
     </div>
   );
 }

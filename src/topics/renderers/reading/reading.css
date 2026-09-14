@@ -75,6 +75,107 @@
   mix-blend-mode: normal;
 }
 
+/* Swipe strip (StorySwipeNav) — replaces a Назад/Дальше button pair.
+   Chevrons fan outward from a center label with increasing gaps and
+   decreasing opacity the further out they sit, reading as "drag along this
+   axis" rather than "tap this". --story-swipe-dx/--story-swipe-progress are
+   written straight to the element's inline style from JS during the drag
+   (see StorySwipeNav in index.jsx) — plain custom properties, not React
+   state, so a pointermove doesn't cost a re-render. */
+.story-swipe-nav {
+  --story-swipe-dx: 0px;
+  --story-swipe-progress: 0;
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  height: 60px;
+  margin: 0 auto;
+  border-radius: 30px;
+  background: #eef6f4;
+  border: 1px solid rgba(74, 155, 143, 0.22);
+  box-shadow: 0 3px 0 rgba(74, 155, 143, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-shrink: 0;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  cursor: grab;
+  overflow: hidden;
+  transform: translateX(calc(var(--story-swipe-dx) * 0.4));
+}
+
+.story-swipe-nav:active {
+  cursor: grabbing;
+}
+
+/* Eases the strip back to rest after a release that didn't clear the
+   threshold — added only for that snap-back, then removed, so it never
+   fights the 1:1 tracking while a drag is actually in progress. */
+.story-swipe-nav--snap {
+  transition: transform 0.18s ease;
+}
+
+/* A soft directional wash that grows with drag progress — reinforces which
+   way the swipe is about to commit without needing separate left/right
+   color states. */
+.story-swipe-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #4a9b8f;
+  opacity: calc(var(--story-swipe-progress) * 0.16);
+  pointer-events: none;
+}
+
+.story-swipe-nav__chevrons {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-weight: 900;
+  color: #4a9b8f;
+  animation-duration: 2.6s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.story-swipe-nav__chevrons span {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.story-swipe-nav__chevrons--left span:nth-child(1) { opacity: 0.3;  margin-right: 6px; }
+.story-swipe-nav__chevrons--left span:nth-child(2) { opacity: 0.6;  margin-right: 2px; }
+.story-swipe-nav__chevrons--left span:nth-child(3) { opacity: 0.95; }
+
+.story-swipe-nav__chevrons--right span:nth-child(1) { opacity: 0.95; }
+.story-swipe-nav__chevrons--right span:nth-child(2) { opacity: 0.6;  margin-left: 2px; }
+.story-swipe-nav__chevrons--right span:nth-child(3) { opacity: 0.3;  margin-left: 6px; }
+
+/* Left/right hint groups breathe apart from the center, opposite phase —
+   reads as "there's motion available on this axis" without implying only
+   one direction works. */
+.story-swipe-nav__chevrons--left  { animation-name: story-swipe-hint-left; }
+.story-swipe-nav__chevrons--right { animation-name: story-swipe-hint-right; }
+@keyframes story-swipe-hint-left {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(-4px); }
+}
+@keyframes story-swipe-hint-right {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(4px); }
+}
+
+.story-swipe-nav__hint {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #5d7d78;
+  white-space: nowrap;
+}
+
 /* Small accent rule under the title, evoking a book's chapter head. */
 .reading-page .reading-title::after {
   content: "";
