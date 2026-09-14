@@ -7,6 +7,13 @@ function isIosDevice() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
 }
 
+// Add-to-Home-Screen only produces a real installable PWA in actual Safari.
+// Other iOS browsers (Chrome/Firefox/Edge/Yandex...) are WebKit under the hood
+// but their own "Add to Home Screen" menu item just makes a plain bookmark.
+function isIosNonSafariBrowser() {
+  return /CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser|DuckDuckGo|Mercury/i.test(navigator.userAgent);
+}
+
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches ||
     Boolean(navigator.standalone);
@@ -26,6 +33,7 @@ export function useInstallPrompt() {
   const [dismissed, setDismissed] = useState(wasDismissedRecently);
   const [installed, setInstalled] = useState(isStandalone);
   const isIos = isIosDevice();
+  const isIosNonSafari = isIos && isIosNonSafariBrowser();
 
   useEffect(() => {
     if (installed || dismissed) return;
@@ -64,5 +72,5 @@ export function useInstallPrompt() {
 
   const visible = !installed && !dismissed && (deferredPrompt != null || isIos);
 
-  return { visible, install, dismiss, isIos, hasNativePrompt: deferredPrompt != null };
+  return { visible, install, dismiss, isIos, isIosNonSafari, hasNativePrompt: deferredPrompt != null };
 }

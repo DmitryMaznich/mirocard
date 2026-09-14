@@ -16518,6 +16518,15 @@ button.operation-dot {
   .operation-audio-key { min-height: 48px; font-size: 1.2rem; }
 }
 
+/* "Найди неизвестное" pad mode reuses the audio mode's digit field + keypad. */
+.operation-missing-term-pad {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
 .operation-manual__stars-rows--compact {
   gap: 10px;
 }
@@ -18808,7 +18817,7 @@ body { background: #eef0ef; }
 /* ── Install banner ───────────────────────────────────────────────── */
 .install-banner {
   position: fixed;
-  bottom: env(safe-area-inset-bottom, 0);
+  bottom: var(--app-safe-bottom, 0px);
   left: 0;
   right: 0;
   z-index: 1200;
@@ -18843,17 +18852,6 @@ body { background: #eef0ef; }
   font-size: 12px;
   color: rgba(26, 46, 43, 0.6);
   margin-top: 2px;
-}
-
-.install-banner__ios-share {
-  display: inline-block;
-  font-style: normal;
-  font-size: 13px;
-  background: rgba(74, 155, 143, 0.12);
-  border: 1px solid rgba(74, 155, 143, 0.25);
-  border-radius: 4px;
-  padding: 0 4px;
-  vertical-align: middle;
 }
 
 .install-banner__actions {
@@ -18893,6 +18891,70 @@ body { background: #eef0ef; }
 
 @media (max-width: 380px) {
   .install-banner__hint { display: none; }
+}
+
+/* ── iOS install guide (inside shared Modal) ─────────────────────────── */
+.ios-install-guide__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ios-install-guide__step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ios-install-guide__step-num {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #4a9b8f;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ios-install-guide__step-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(74, 155, 143, 0.12);
+  border: 1px solid rgba(74, 155, 143, 0.25);
+  font-size: 16px;
+  font-style: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ios-install-guide__step-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #1a2e2b;
+}
+
+.ios-install-guide__safari-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1a2e2b;
+}
+
+.ios-install-guide__safari-note-icon {
+  flex-shrink: 0;
+  font-size: 26px;
 }
 
 /* ── Session lock button ──────────────────────────────────────────── */
