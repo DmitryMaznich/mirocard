@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.25.0",
+    "version": "1.25.1",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar_propis.svg",
@@ -56,7 +56,7 @@
       "evaluation": "none",
       "hideConceptPicker": true,
       "ui": {
-        "title": "Пишем текст с экрана",
+        "title": "Переписываем текст в тетрадь",
         "instruction": "Перепиши текст с экрана в свою тетрадь",
         "icon": "media/icons/propis_read_text.svg"
       },
