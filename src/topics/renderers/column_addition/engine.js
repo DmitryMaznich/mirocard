@@ -90,10 +90,17 @@ function buildSubSteps(columns) {
   return steps;
 }
 
-function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digits) {
+function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digits, roundTens = false) {
   for (let attempt = 0; attempt < 100; attempt++) {
     let top, bottom;
-    if (bottomDigits < digits) {
+    if (roundTens) {
+      // "Круглые дес.": both operands are plain multiples of 10 (units digit
+      // genuinely 0 for both, not a phantom column) — carryMode still means
+      // something here (e.g. 60+70=130 carries into hundreds), so it's left
+      // to the generic hasCarry retry-check below, same as every other branch.
+      top = randomInt(1, 9) * 10;
+      bottom = randomInt(1, 9) * 10;
+    } else if (bottomDigits < digits) {
       // Mixed width ("2-зн. + 1-зн."): the search space is small (≤90×9), so
       // plain random + retry-on-mismatch below is simpler than hand-tuning
       // ranges the way the uniform-width branches do.
@@ -145,10 +152,19 @@ function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digi
   return null;
 }
 
-function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digits) {
+function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digits, roundTens = false) {
   for (let attempt = 0; attempt < 100; attempt++) {
     let top, bottom;
-    if (bottomDigits < digits) {
+    if (roundTens) {
+      // Round-tens subtraction never borrows: units are 0−0 for both, and
+      // top's tens digit is constructed to always be ≥ bottom's (strictly
+      // greater — same "never a 0 result" convention as the other branches).
+      // carryMode is therefore meaningless here; see the skip below.
+      const topTens = randomInt(2, 9);
+      const bottomTens = randomInt(1, topTens - 1);
+      top = topTens * 10;
+      bottom = bottomTens * 10;
+    } else if (bottomDigits < digits) {
       // top (2-зн.) is always ≥ 10 > 9 ≥ bottom (1-зн.), so top > bottom is
       // guaranteed without extra range-juggling — same retry-on-mismatch
       // reasoning as the addition branch above.
@@ -171,8 +187,13 @@ function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digi
     }
     const columns = buildSubColumns(top, bottom, digits, bottomDigits);
     const hasBorrow = columns.some(c => c.borrowOut > 0);
-    if (carryMode === "none" && hasBorrow) continue;
-    if (carryMode === "carry" && !hasBorrow) continue;
+    // A round-tens borrow is structurally impossible — filtering on carryMode
+    // here would make carryMode:"carry" retry all 100 attempts and always
+    // fail, starving the session of tasks. carryMode simply doesn't apply.
+    if (!roundTens) {
+      if (carryMode === "none" && hasBorrow) continue;
+      if (carryMode === "carry" && !hasBorrow) continue;
+    }
     const pairKey = `sub:${top},${bottom}`;
     if (usedPairs?.has(pairKey)) continue;
     usedPairs?.add(pairKey);
@@ -284,21 +305,23 @@ export function generateRegroupTask(card, maxOnes) {
   };
 }
 
-// "2+1" is the one non-numeric `digits` value — a shorthand for "top is
-// 2-значное, bottom is 1-значное" rather than a uniform digit count. Both
-// generateTasks and generateExamples resolve it the same way: grid width
-// (digits) stays 2, and bottomDigits narrows to 1 for that operand alone.
+// "2+1" and "round10" are the two non-numeric `digits` values. "2+1" is a
+// shorthand for "top is 2-значное, bottom is 1-значное" (uneven width);
+// "round10" means both operands are plain multiples of 10 (even width, both
+// digits real — no bottomDigits narrowing needed). Both generateTasks and
+// generateExamples resolve either the same way: grid width (digits) stays 2.
 function resolveDigitsParam(digitsParam) {
   const mixedWidth = digitsParam === "2+1";
-  const digits = mixedWidth ? 2 : Number(digitsParam ?? 2);
+  const roundTens = digitsParam === "round10";
+  const digits = mixedWidth || roundTens ? 2 : Number(digitsParam ?? 2);
   const bottomDigits = mixedWidth ? 1 : digits;
-  return { digits, bottomDigits };
+  return { digits, bottomDigits, roundTens };
 }
 
 export function generateExamples(count, params) {
   const operation = params?.operation ?? "add";
   const carryMode = params?.carryMode ?? "none";
-  const { digits, bottomDigits } = resolveDigitsParam(params?.digits);
+  const { digits, bottomDigits, roundTens } = resolveDigitsParam(params?.digits);
   const fakeCard = { id: "copy", conceptId: "copy" };
   const results = [];
   const usedPairs = new Set();
@@ -307,8 +330,8 @@ export function generateExamples(count, params) {
     attempts++;
     const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
     const t = op === "add"
-      ? generateAddTask(carryMode, digits, fakeCard, usedPairs, bottomDigits)
-      : generateSubTask(carryMode, digits, fakeCard, usedPairs, bottomDigits);
+      ? generateAddTask(carryMode, digits, fakeCard, usedPairs, bottomDigits, roundTens)
+      : generateSubTask(carryMode, digits, fakeCard, usedPairs, bottomDigits, roundTens);
     if (t) results.push({ operation: t.operation, top: t.top, bottom: t.bottom });
   }
   return results;
@@ -409,7 +432,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
 
   const operation = params.operation ?? "add";
   const carryMode = params.carryMode ?? "none";
-  const { digits, bottomDigits } = resolveDigitsParam(params.digits);
+  const { digits, bottomDigits, roundTens } = resolveDigitsParam(params.digits);
 
   const filtered   = operation === "mixed" ? arithmeticCards
     : arithmeticCards.filter(c => (c.params?.operation ?? "add") === operation);
@@ -424,8 +447,8 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const card = activePool[idx % activePool.length];
     const op   = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
     const task = op === "add"
-      ? generateAddTask(carryMode, digits, card, usedPairs, bottomDigits)
-      : generateSubTask(carryMode, digits, card, usedPairs, bottomDigits);
+      ? generateAddTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens)
+      : generateSubTask(carryMode, digits, card, usedPairs, bottomDigits, roundTens);
     if (task) { tasks.push(task); idx++; }
   }
 
