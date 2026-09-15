@@ -51,6 +51,7 @@ import {
 import {
   createPendingSubscription, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
+  createPromoCode, listPromoCodes,
 } from "./lib/billing-repository.mjs";
 import { PLAN_CATALOG, applyDiscount } from "./lib/billing-plans.mjs";
 import {
@@ -778,6 +779,30 @@ async function handleAdminRevoke(req, res) {
   writeJson(res, 200, { ok: true });
 }
 
+async function handleAdminListPromoCodes(req, res) {
+  requireAdmin(req);
+  writeJson(res, 200, listPromoCodes(db));
+}
+
+async function handleAdminCreatePromoCode(req, res) {
+  requireAdmin(req);
+  const body = await readJsonBody(req);
+  if (!body?.code || !body?.kind) return writeJson(res, 400, { error: "code and kind required" });
+  createPromoCode(db, {
+    code: body.code,
+    kind: body.kind,
+    value: body.value ?? null,
+    currency: body.currency ?? null,
+    appliesToPlan: body.appliesToPlan ?? null,
+    grantDurationDays: body.grantDurationDays ?? null,
+    maxRedemptions: body.maxRedemptions ?? null,
+    expiresAt: body.expiresAt ?? null,
+    note: body.note ?? null,
+    createdBy: body.createdBy ?? "admin",
+  });
+  writeJson(res, 200, { ok: true });
+}
+
 // ─── Billing ────────────────────────────────────────────────────────────────
 
 const CHECKOUT_METHODS = { card: "stripe", mir_sbp: "lava_top" };
@@ -1310,6 +1335,8 @@ async function router(req, res) {
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
     if (method === "POST"   && p === "/admin/grant")                               return await handleAdminGrant(req, res);
     if (method === "POST"   && p === "/admin/revoke")                              return await handleAdminRevoke(req, res);
+    if (method === "GET"  && p === "/admin/promo-codes") return await handleAdminListPromoCodes(req, res);
+    if (method === "POST" && p === "/admin/promo-codes") return await handleAdminCreatePromoCode(req, res);
 
     // Student topic links + concept progress
     if (method === "GET"    && p === "/student-topic-links")      return await handleGetStudentTopicLinks(req, res);
