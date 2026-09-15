@@ -43,6 +43,9 @@ import InstructionRunnerScreen from "@/features/instructions/InstructionRunnerSc
 import InstructionConstructorScreen from "@/features/instructions/InstructionConstructorScreen";
 import PeriodPlanScreen from "@/features/lessonPlan/PeriodPlanScreen";
 import LessonPlanHistoryScreen from "@/features/lessonPlan/LessonPlanHistoryScreen";
+import SubscriptionScreen from "@/features/billing/SubscriptionScreen";
+import CheckoutRedirectScreen from "@/features/billing/CheckoutRedirectScreen";
+import CheckoutReturnScreen from "@/features/billing/CheckoutReturnScreen";
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
@@ -94,6 +97,9 @@ const SCREENS = {
   instruction_constructor: InstructionConstructorScreen,
   lesson_plan_period: PeriodPlanScreen,
   lesson_plan_history: LessonPlanHistoryScreen,
+  subscription: SubscriptionScreen,
+  checkout_redirect: CheckoutRedirectScreen,
+  checkout_return: CheckoutReturnScreen,
 };
 
 function OrientationGuard({ orientationLock }) {
