@@ -96,6 +96,47 @@
   font-size: 40px;
   opacity: 0.4;
 }
+.pm-card__thumb--zoomable {
+  cursor: zoom-in;
+}
+
+/* ── Lightbox ─────────────────────────────────────────────────────────── */
+.pm-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 12, 20, 0.92);
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: calc(56px + var(--app-safe-top, 0px)) calc(12px + var(--app-safe-right, 0px)) calc(12px + var(--app-safe-bottom, 0px)) calc(12px + var(--app-safe-left, 0px));
+}
+.pm-lightbox img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.pm-lightbox__close {
+  position: fixed;
+  top: calc(12px + var(--app-safe-top, 0px));
+  right: calc(12px + var(--app-safe-right, 0px));
+  z-index: 1001;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 0;
+  background: #fff;
+  color: #1a1d2e;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
 
 .pm-card__body {
   padding: 14px;

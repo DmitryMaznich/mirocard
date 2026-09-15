@@ -14,6 +14,7 @@ export default function PrintMaterialsView({ topicRecord }) {
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? null);
   const [thumbUrls, setThumbUrls] = useState({});
   const [busy, setBusy] = useState({});
+  const [zoomedItem, setZoomedItem] = useState(null);
 
   // Load thumbnails from IndexedDB on mount
   useEffect(() => {
@@ -96,7 +97,10 @@ export default function PrintMaterialsView({ topicRecord }) {
       <div className="pm-grid">
         {visible.map(item => (
           <div key={item.id} className="pm-card">
-            <div className="pm-card__thumb">
+            <div
+              className={`pm-card__thumb${thumbUrls[item.id] ? " pm-card__thumb--zoomable" : ""}`}
+              onClick={thumbUrls[item.id] ? () => setZoomedItem(item) : undefined}
+            >
               {thumbUrls[item.id]
                 ? <img src={thumbUrls[item.id]} alt={item.title} />
                 : <div className="pm-card__thumb-placeholder">📄</div>
@@ -133,6 +137,19 @@ export default function PrintMaterialsView({ topicRecord }) {
           </div>
         ))}
       </div>
+
+      {zoomedItem && (
+        <div className="pm-lightbox" onClick={() => setZoomedItem(null)}>
+          <button
+            className="pm-lightbox__close"
+            onClick={() => setZoomedItem(null)}
+            aria-label="Закрыть"
+          >
+            ✕
+          </button>
+          <img src={thumbUrls[zoomedItem.id]} alt={zoomedItem.title} />
+        </div>
+      )}
     </div>
   );
 }
