@@ -151,6 +151,47 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   propis-only file: `src/features/session/ParamsScreen.jsx` is shared app
   code, not part of propis's own deck zip, so no `topic.json` version bump
   or zip rebuild was needed for this half of the change.
+- **The bundled PDFs were ~65% heavier than they needed to be — fixed
+  2026-09-15 (propis deck v1.26.2, print_materials deck v1.0.33), reported
+  as "тема не скачивается".** Investigated after a download-failure report;
+  couldn't reproduce the failure directly from this session (no network
+  access to production), but found and fixed a real, verified inefficiency
+  along the way that's the likely cause. The 17 worksheet/notebook PDFs (see
+  the migration entry above) all carry `/Producer (pypdf)` and use **zero**
+  stream compression anywhere in the file (`grep -c "/Filter"` → 0) — every
+  captured pen-stroke bezier curve is written as literal ASCII floating-point
+  text straight in the content stream (e.g. `67.49153 130.155 m`), not
+  FlateDecode-compressed the way PDF (and every normal PDF writer, reportlab
+  included) supports natively. Likely from `scripts/propis_worksheets/`'s
+  `booklet.py` merging step, which uses pypdf and doesn't opt back into
+  compression when it recombines already-generated pages. Recompressing with
+  `pikepdf` (`compress_streams=True, object_stream_mode=generate`) shrinks
+  the 17 files from 16.74 MB to 5.81 MB raw (35% of original) — verified
+  **pixel-identical** on every page of every file (`pymupdf` render +
+  `Pixmap.samples` byte comparison, not just a visual spot-check), since
+  FlateDecode is lossless; only `tools/propis/print/*.pdf`'s bytes changed,
+  page count/MediaBox/visible content did not.
+  Two caveats worth knowing before assuming this alone "fixes the download":
+  - This mainly shrinks what ends up sitting in IndexedDB after import (the
+    app stores each zip entry as its own blob via `topics.saveFile`, not the
+    zip itself) — i.e. on-device storage footprint, which is exactly where a
+    quota error would come from failing mid-import on a phone.
+  - It does comparatively little for the **download** size: the deck zip
+    itself was already DEFLATE-compressing these same uncompressed streams
+    (JSZip, `compression: "DEFLATE"` in `build-propis-deck.mjs`), so most of
+    the "fat" was already invisible at the zip level — 6.77 MB → 6.36 MB
+    zipped, vs. 16.74 MB → 5.81 MB raw. Compressing already-compressed data
+    has little left to gain. So if the topic still won't download after this
+    ships, the root cause is something else (worth getting the actual error
+    text `getImportErrorMessage` surfaces, or the device/connection) — this
+    fix was applied because it's a real, verified, zero-risk improvement
+    either way, not because it's confirmed to be the whole story.
+  - `tools/propis/print/*.pdf` (the local, gitignored build-input copies) were
+    overwritten in place with the compressed versions — same filenames, same
+    `topic.json` paths, nothing else to update. `print_materials`'s own zip
+    (still hidden, not deleted, see below) got the same treatment for
+    consistency, rebuilt by splicing the compressed PDFs into its existing
+    zip (its own raw source files were never separately committed either).
 - **Standalone `print_materials` topic — hidden 2026-09-15 (deck v1.0.32),
   not deleted.** Now that its content lives inside `propis` too, keeping it
   as its own separately-installable topic was redundant (same ~8.5 MB of
