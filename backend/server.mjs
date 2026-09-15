@@ -47,6 +47,19 @@ import {
   updatePortalLastUsed,
   setPortalActiveTask,
 } from "./lib/student-portal.mjs";
+import {
+  createPendingSubscription, getActiveSubscriptionForAccount,
+  hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
+} from "./lib/billing-repository.mjs";
+import { PLAN_CATALOG, applyDiscount } from "./lib/billing-plans.mjs";
+import {
+  createCheckoutSession as createStripeCheckoutSession,
+  verifyStripeWebhookSignature, parseStripeWebhookEvent,
+} from "./lib/billing-providers/stripe.mjs";
+import {
+  createInvoice as createLavaTopInvoice,
+  verifyLavaTopWebhookAuth, parseLavaTopWebhookEvent,
+} from "./lib/billing-providers/lava-top.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
@@ -755,6 +768,54 @@ async function handleAdminRevoke(req, res) {
   writeJson(res, 200, { ok: true });
 }
 
+// ─── Billing ────────────────────────────────────────────────────────────────
+
+const CHECKOUT_METHODS = { card: "stripe", mir_sbp: "lava_top" };
+
+async function handleBillingCheckout(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  const { plan, method, code } = body ?? {};
+
+  const planDef = PLAN_CATALOG[plan];
+  if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
+  const provider = CHECKOUT_METHODS[method];
+  if (!provider) return writeJson(res, 400, { error: "Unknown payment method" });
+
+  let amountMinor = planDef.amountMinor;
+  let appliedCode = null;
+  if (code) {
+    const validation = validatePromoCode(db, code, { accountId: account.id, plan });
+    if (validation.ok && validation.kind !== "free_grant") {
+      amountMinor = applyDiscount(amountMinor, validation);
+      appliedCode = validation.code;
+    }
+  }
+
+  const orderId = randomUUID();
+  createPendingSubscription(db, account.id, {
+    provider, plan, orderId, currency: planDef.currency, amountMinor,
+    periodDays: planDef.periodDays, appliedCode,
+  });
+
+  try {
+    let checkoutUrl;
+    if (provider === "stripe") {
+      ({ checkoutUrl } = await createStripeCheckoutSession({
+        orderId, planLabel: planDef.label, amountMinor, currency: planDef.currency,
+        accountEmail: account.email, accountId: account.id,
+      }));
+    } else {
+      ({ checkoutUrl } = await createLavaTopInvoice({
+        orderId, amountMinor, currency: planDef.currency, accountEmail: account.email,
+      }));
+    }
+    writeJson(res, 200, { checkoutUrl, orderId, appliedCode });
+  } catch (err) {
+    writeJson(res, 502, { error: "Payment provider error", detail: err.message });
+  }
+}
+
 // ─── Student topic links + concept progress ────────────────────────────────────
 
 async function handleGetStudentTopicLinks(req, res) {
@@ -1195,6 +1256,9 @@ async function router(req, res) {
     if (method === "GET"    && p === "/student-topic-links")      return await handleGetStudentTopicLinks(req, res);
     if (method === "POST"   && p === "/student-topic-links")      return await handleUpsertStudentTopicLink(req, res);
     if (method === "POST"   && p === "/concept-progress")         return await handleUpsertConceptProgress(req, res);
+
+    // Billing
+    if (method === "POST" && p === "/billing/checkout") return await handleBillingCheckout(req, res);
 
     // Sync
     if (method === "POST"   && p === "/sync")                     return await handleSync(req, res);
