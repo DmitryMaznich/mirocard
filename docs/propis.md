@@ -186,6 +186,20 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     just the raw PNGs): imported the real rebuilt zip through
     `topicLoader.importTopic` into IndexedDB and screenshotted
     `PrintMaterialsView.jsx` itself rendering both tabs.
+  - **"Со стихотворением" cover variant removed entirely 2026-09-15 (propis
+    deck v1.27.2, print_materials deck v1.0.36), user request.** Each of
+    `cover_standard`/`cover_плотная`/`cover_точки` had two file options
+    ("Со стихотворением" / "С алфавитом" — see the reshuffle entry above);
+    now just the one remaining file ("С алфавитом"), and the "Два варианта
+    оборота — выбирайте один" line dropped from each item's `description`
+    since there's no longer a choice to make. `cover_тексты` already only
+    ever had the one variant, unaffected. The three now-unreferenced PDFs
+    (`cover_стандарт.pdf`/`cover_плотная.pdf`/`cover_точки.pdf`, ~130KB
+    each) were deleted outright from `tools/propis/print/` rather than left
+    orphaned — `build-propis-deck.mjs` bundles every file it finds in that
+    directory regardless of whether `topic.json` references it, so leaving
+    them would have kept shipping ~390KB of dead weight in every future
+    rebuild. Bundled-asset count: 26 → 23.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
