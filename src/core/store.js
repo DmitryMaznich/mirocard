@@ -20,6 +20,15 @@ export const useAppStore = create((set) => ({
   // Bypasses the persisted settings round-trip (IndexedDB + server pull),
   // which can race and clobber a value just saved via saveRecipeSettings.
   // The reading renderer reads it once on mount, then it's cleared.
+  // Plan chosen on the marketing landing page before the user was logged
+  // in — read once by the Subscription screen after the normal boot/login
+  // flow lands on "home", then cleared. See App.jsx's ?plan= handling.
+  pendingCheckoutPlan: null,
+  setPendingCheckoutPlan: (pendingCheckoutPlan) => set({ pendingCheckoutPlan }),
+
+  subscription: null,
+  setSubscription: (subscription) => set({ subscription }),
+
   sessionPortionsOverride: null,
   setSessionPortionsOverride: (sessionPortionsOverride) => set({ sessionPortionsOverride }),
   // Same idea as sessionPortionsOverride, for a recipe's option-group

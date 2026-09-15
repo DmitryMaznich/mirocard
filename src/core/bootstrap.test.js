@@ -342,6 +342,15 @@ describe("bootstrap helpers", () => {
     expect(useAppStore.getState().ownedTopics).toEqual([{ topicId: "t1", source: "free" }]);
   });
 
+  it("applyBootstrapToStore only overwrites subscription when present in the payload", () => {
+    useAppStore.setState({ subscription: { plan: "annual", status: "active" } });
+    applyBootstrapToStore({ token: "t", account: { id: "a" } }); // no "subscription" key at all
+    expect(useAppStore.getState().subscription).toEqual({ plan: "annual", status: "active" });
+
+    applyBootstrapToStore({ token: "t", account: { id: "a" }, subscription: null });
+    expect(useAppStore.getState().subscription).toEqual(null);
+  });
+
   it("persistBootstrap merges ownedTopics instead of replacing, keeping a local free grant", async () => {
     const db = await freshDb();
     await kv.set(db, "ownedTopics", [{ topicId: "spatial_prepositions_ru", source: "free" }]);
