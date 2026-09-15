@@ -47,5 +47,13 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     return [{ type: "print_page", letters, connectors, punctuation, lines }];
   }
 
+  if (mode.type === "browse") {
+    // Ready-made print PDFs (notebooks + worksheets), migrated in from the standalone
+    // print_materials topic (2026-09-15) -- categories/items live on topic.json itself,
+    // not built from cards, so PrintMaterialsView reads topicRecord directly rather than
+    // this task.
+    return [{ type: "browse", id: "print_browse" }];
+  }
+
   return [];
 }

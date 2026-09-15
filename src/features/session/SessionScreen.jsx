@@ -330,6 +330,11 @@ export default function SessionScreen() {
     (topicRecord.meta.renderer === "reading" && (currentTask?.text?.kind === "story" || currentTask?.text?.kind === "poem"))
     || topicRecord.meta.renderer === "print_materials"
     || topicRecord.meta.renderer === "spatial_prepositions"
+    // Same "single browse task, no real progress to count" shape as the standalone
+    // print_materials topic above -- keyed on mode.type rather than topicRecord.meta.renderer
+    // so it also covers propis's own "print_materials" mode (2026-09-15), which reuses the
+    // "browse" task type but runs under the "propis" renderer, not "print_materials".
+    || mode?.type === "browse"
   );
 
   return (
