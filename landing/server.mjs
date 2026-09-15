@@ -18,6 +18,7 @@ const TYPES = {
   '.ico': 'image/x-icon',
   '.webp': 'image/webp',
   '.txt': 'text/plain; charset=utf-8',
+  '.pdf': 'application/pdf',
 };
 
 createServer(async (req, res) => {

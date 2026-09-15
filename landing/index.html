@@ -7,19 +7,19 @@
 <title>Mironium — регулярные занятия дома без подготовки</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="proposal-v3.css">
 <style>
-/* Temporary "site in progress" notice — remove this block once the page is finished. */
-.wip-banner{position:relative;z-index:20;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 44px;background:var(--sun,#f3c969);color:var(--ink,#1c3634);font:700 14px/1.4 Nunito,Arial,sans-serif;text-align:center}
-.wip-banner button{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:50%;background:rgba(28,54,52,.12);color:inherit;font-size:16px;line-height:1;cursor:pointer}
-.wip-banner button:hover{background:rgba(28,54,52,.2)}
+/* Temporary "test version" notice — remove this block once the page is finished. */
+.wip-banner{position:relative;z-index:20;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 44px;background:#dc2626;color:#fff;font:700 14px/1.4 Nunito,Arial,sans-serif;text-align:center}
+.wip-banner button{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:50%;background:rgba(255,255,255,.2);color:inherit;font-size:16px;line-height:1;cursor:pointer}
+.wip-banner button:hover{background:rgba(255,255,255,.32)}
 .wip-banner.is-hidden{display:none}
 </style>
 </head>
 <body class="v3">
 <div class="wip-banner" id="wip-banner">
-  <span>🚧 Сайт ещё в разработке — некоторые разделы могут дорабатываться</span>
+  <span>⚠️ Тестовая версия сайта — контент и функциональность ещё дорабатываются</span>
   <button type="button" aria-label="Скрыть уведомление" onclick="document.getElementById('wip-banner').classList.add('is-hidden')">×</button>
 </div>
 <header class="wrap site-header">
@@ -27,10 +27,10 @@
   <nav id="site-navigation">
     <a href="#how">Как это работает</a>
     <a href="#topics">Темы</a>
-    <a href="#practice">Как мы занимаемся</a>
+    <a href="#materials">Материалы</a>
+    <a href="#specialists">Специалистам</a>
     <a href="#pricing">Цены</a>
-    <a href="#about">О Mironium</a>
-    <a href="#specialists">Для специалистов</a>
+    <a href="#about">О нас</a>
   </nav>
   <button class="menu-toggle" type="button" aria-controls="site-navigation" aria-expanded="false"><span class="sr-only">Открыть меню</span><span aria-hidden="true"></span><span aria-hidden="true"></span></button>
 </header>
@@ -38,45 +38,62 @@
 <section class="hero" id="top">
   <div class="wrap hero__inner">
     <div class="hero__copy">
-      <p class="eyebrow">Готовые занятия на русском для детей 5–9 лет</p>
+      <p class="eyebrow">Готовые занятия для детей с особыми потребностями<sup>*</sup></p>
       <h1>Регулярные занятия с ребёнком — без поиска материалов и долгой подготовки.</h1>
-      <p class="lead">Откройте готовую тему, позанимайтесь вместе 10–15 минут и помогите ребёнку закреплять речь, мышление и навыки самостоятельности.</p>
+      <p class="lead">Откройте готовую тему и позанимайтесь вместе 10–15 минут.</p>
       <div class="hero__actions">
         <a class="button button--coral" href="#topics">Посмотреть готовые темы</a>
         <a class="quiet-link" href="#how">Как это работает</a>
       </div>
-      <div class="hero__evidence" aria-label="Что нужно для занятия">
-        <span>10–15 минут</span>
-        <span>планшет, тетрадь, ручка</span>
-        <span>вместе с взрослым</span>
+      <p class="hero__footnote">* Подходит для детей с задержкой речи, РАС и другими особенностями развития — а также для обычных регулярных занятий дома.</p>
+    </div>
+    <div class="hero__visual">
+      <div class="tablet-wrap hero__tablet">
+        <div class="tablet" id="hero-tablet-frame" aria-label="Пример темы — нажмите, чтобы посмотреть другую">
+          <span class="tablet-cam" aria-hidden="true"></span>
+          <div class="tablet-screen" id="hero-tablet-screen"></div>
+        </div>
+        <p class="tablet-caption" id="hero-tablet-caption" aria-live="polite"></p>
+        <span class="tap-hint" id="hero-tap-hint"><span class="tap-hint__dot" aria-hidden="true"></span>Нажмите на планшет — другие темы</span>
       </div>
-      <p class="hero__note">Создано из ежедневных занятий дома — для реальной жизни, а не идеальной картинки.</p>
     </div>
   </div>
-  <div class="hero__visual">
-    <div class="hero__photo">
-      <img src="mironium-hero-v3.webp" alt="Родитель и ребёнок вместе занимаются за столом: на планшете видно задание «5 + 5 = ?» с иллюстрациями рук">
+</section>
+
+<section class="about" id="about">
+  <div class="wrap about__grid reveal">
+    <div class="about__intro">
+      <p class="eyebrow">Кто мы</p>
+      <h2>Привет, я Дмитрий — <em>папа Мирона</em>.</h2>
+      <p class="about__lead">У Мирона РАС. За годы занятий с сыном я не нашёл готового набора, который работал бы для нас. Поэтому собрал Mironium сам. Я не профессиональный логопед и не обещаю идеальную методику. Но каждое задание сначала проходит проверку Мироном — не заходит ему, его нет в приложении. О наших ежедневных занятиях я пишу в <a href="https://www.instagram.com/mironium_com/" target="_blank" rel="noopener noreferrer">блоге в Instagram</a>. Я уверен, что наши занятия будут полезны не только нам.</p>
+    </div>
+    <div class="about__photo-wrap">
+      <div class="about__polaroid">
+        <div class="about__tape"></div>
+        <div class="about__polaroid-photo">
+          <img src="about-dmitry-miron-v1.webp" alt="Дмитрий с сыном Мироном" width="960" height="1220" loading="lazy">
+        </div>
+        <p class="about__polaroid-caption">Димон и Мирон</p>
+      </div>
     </div>
   </div>
 </section>
 
   <div class="quote-band">
-  <svg class="quote-band__wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0,55 C240,10 480,65 720,35 C960,5 1200,60 1440,30 L1440,70 L0,70 Z" fill="#2f5b57"></path></svg>
+  <svg class="quote-band__wave quote-band__wave--desktop" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0,55 C240,10 480,65 720,35 C960,5 1200,60 1440,30 L1440,70 L0,70 Z" fill="#2f5b57"></path></svg>
+  <svg class="quote-band__wave quote-band__wave--mobile" viewBox="0 0 400 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0,50 Q200,4 400,40 L400,70 L0,70 Z" fill="#2f5b57"></path></svg>
   <div class="wrap quote-band__grid reveal">
-    <div>
-      <p class="quote-band__eyebrow">Как мы используем экран</p>
-      <p class="quote-band__quote">Планшет — помощник, а не замена реального опыта.</p>
-    </div>
-    <div class="quote-band__support"><p>Mironium помогает быстро организовать занятие и возвращаться к нужному навыку регулярно. Планшет даёт понятную структуру, а взрослый переводит её в разговор, игру и действие. Так ребёнку не приходится каждый раз заново разбираться, что делать.</p><a class="quote-band__link" href="#practice">Посмотреть, как это выглядит в жизни</a></div>
+    <p class="quote-band__eyebrow">Как мы используем экран</p>
+    <p class="quote-band__quote">Планшет — помощник, а не замена реального опыта.</p>
   </div>
-  <svg class="quote-band__wave quote-band__wave--bottom" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0,18 C240,58 480,7 720,38 C960,67 1200,12 1440,42 L1440,70 L0,70 Z" fill="#f7f1e7"></path></svg>
+  <svg class="quote-band__wave quote-band__wave--bottom quote-band__wave--desktop" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0,18 C240,58 480,7 720,38 C960,67 1200,12 1440,42 L1440,70 L0,70 Z" fill="#f7f1e7"></path></svg>
+  <svg class="quote-band__wave quote-band__wave--bottom quote-band__wave--mobile" viewBox="0 0 400 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0,20 Q200,58 400,16 L400,70 L0,70 Z" fill="#f7f1e7"></path></svg>
   </div>
 
 <section class="ready">
   <div class="wrap ready__intro reveal">
     <p class="eyebrow">Минимум подготовки</p>
     <h2>Достаточно быть рядом — где бы вы ни были.</h2>
-    <p class="ready__lead">Планшет, тетрадка и ручка — это всё, что нужно для полноценного занятия. Никакой печати, вырезания и заготовок заранее.</p>
   </div>
   <div class="wrap ready__pass reveal">
     <div class="ready__pass-card">
@@ -134,9 +151,9 @@
         <svg class="step__illustration" viewBox="0 0 96 96" fill="none" aria-hidden="true"><circle cx="27" cy="31" r="10" fill="#A8CDEC"/><path d="M13 65c2-15 8-23 15-23s13 8 15 23" fill="#7FAED1"/><circle cx="69" cy="38" r="8" fill="#F3C969"/><path d="M57 66c2-12 7-19 13-19 7 0 12 7 13 19" fill="#E0B155"/><rect x="27" y="47" width="43" height="29" rx="6" fill="#FFF9EE" stroke="#1C3634" stroke-width="2"/><rect x="32" y="52" width="33" height="17" rx="3" fill="#DDEEE8"/><circle cx="42" cy="60.5" r="4" fill="#4A9B8F"/><path d="m51 57 8 3.5-8 3.5Z" fill="#EF6F5E"/><path d="M48 24c2.5-5 9-5 11.5 0 2.5-5 9-5 11.5 0-1 8-8 12-11.5 14-3.5-2-10.5-6-11.5-14Z" fill="#EF6F5E"/></svg>
       </div>
     <svg class="step__connector step__connector--3" viewBox="1363 93 185 83" fill="currentColor" aria-hidden="true"><path d="M0 0 C6.2259608773890704 0.2929863942300699 12.061555200661132 1.3909523085534374 18.0625 3 C18.39608520507818 3.0891064453124955 18.39608520507818 3.0891064453124955 20.084228515625 3.5400390625 C24.861832551385078 4.861832551385163 24.861832551385078 4.861832551385163 26 6 C26.335724204512644 8.990997458385152 26.27659407486817 10.55155753542067 24.6796875 13.140625 C24.084140624999918 13.836718750000003 23.488593750000064 14.532812500000006 22.875 15.25 C19.674016769563423 19.089889157479476 17.053931537786866 23.022041569215062 14.5546875 27.34765625 C13 29 13 29 10.3203125 29.24609375 C9.554609374999927 29.164882812499997 8.788906250000082 29.083671874999993 8 29 C7.5598242961646065 24.47597193280194 8.738190538926347 22.319839563723804 11.375 18.6875 C12.001484375000018 17.804492187500003 12.627968750000036 16.921484375000006 13.2734375 16.01171875 C13.843203124999945 15.347851562499997 14.41296874999989 14.683984374999994 15 14 C15.660000000000082 14 16.319999999999936 14 17 14 C16.670000000000073 12.680000000000007 16.339999999999918 11.36 16 10 C14.940390624999964 9.757656249999997 13.880781249999927 9.515312499999993 12.7890625 9.265625 C11.400831268574393 8.927947132896492 10.012821518146438 8.58935781648104 8.625 8.25 C8.275664062500027 8.171367187499996 8.275664062500027 8.171367187499996 6.5078125 7.7734375 C1.3741672904191091 6.4900261976047915 1.3741672904191091 6.4900261976047915 -0.5390625 3.984375 C-1 2 -1 2 0 0 Z " transform="translate(1519,97)"/><path d="M0 0 C-0.2578125 1.85546875 -0.2578125 1.85546875 -1 4 C-2.7421875 5.30078125 -2.7421875 5.30078125 -4.875 6.3125 C-5.224335937499973 6.485878906250008 -5.224335937499973 6.485878906250008 -6.9921875 7.36328125 C-9 8 -9 8 -12 7 C-11.7421875 5.14453125 -11.7421875 5.14453125 -11 3 C-9.2578125 1.69921875 -9.2578125 1.69921875 -7.125 0.6875 C-6.426328125000055 0.3407421874999983 -5.727656250000109 -0.006015625000003411 -5.0078125 -0.36328125 C-3 -1 -3 -1 0 0 Z " transform="translate(1472,124)"/><path d="M0 0 C0.32999999999992724 0.6599999999999966 0.6600000000000819 1.3199999999999932 1 2 C-1.1569780553286364 5.235467082992784 -2.513653986479767 6.378443714641747 -6 8 C-8.8125 7.6875 -8.8125 7.6875 -11 7 C-10.8125 5.1875 -10.8125 5.1875 -10 3 C-6.627122639896015 0.37665094214142414 -4.243481272790632 -0.36372696623919865 0 0 Z " transform="translate(1427,150)"/><path d="M0 0 C-1.0409773762853547 2.744394901115811 -1.972841872394838 3.978713899985138 -4.3125 5.8125 C-7.423872196887032 7.187292366066373 -8.808766789860783 7.002959008900859 -12 6 C-11.7421875 4.11328125 -11.7421875 4.11328125 -11 2 C-9.2578125 0.91796875 -9.2578125 0.91796875 -7.125 0.1875 C-6.426328125000055 -0.06644531249999375 -5.727656250000109 -0.3203906250000017 -5.0078125 -0.58203125 C-3 -1 -3 -1 0 0 Z " transform="translate(1488,117)"/><path d="M0 0 C-0.32999999999992724 1.6500000000000057 -0.6600000000000819 3.3000000000000114 -1 5 C-2.2892699153221656 5.362794557567412 -3.5815327205004905 5.7149669765045985 -4.875 6.0625 C-5.234648437500027 6.16111328125001 -5.234648437500027 6.16111328125001 -7.0546875 6.66015625 C-9 7 -9 7 -11 6 C-11 4.680000000000007 -11 3.3600000000000136 -11 2 C-7.176794426318338 0.5774118795603158 -4.08718694905383 -0.24042276170905552 0 0 Z " transform="translate(1396,164)"/><path d="M0 0 C0.2861718750000364 0.1843359375000091 0.2861718750000364 0.1843359375000091 1.734375 1.1171875 C-1.149040339226076 5.3314099188689 -3.3086591942596897 6.877946048564922 -8.265625 8.1171875 C-8.925625000000082 7.457187500000003 -9.585624999999936 6.797187500000007 -10.265625 6.1171875 C-10.265625 5.127187499999991 -10.265625 4.13718750000001 -10.265625 3.1171875 C-9.02678181285546 2.389517472599607 -7.773941593454765 1.6856393452981138 -6.515625 0.9921875 C-5.8195312499999545 0.5977343749999875 -5.123437499999909 0.2032812500000034 -4.40625 -0.203125 C-2.265625 -0.8828125 -2.265625 -0.8828125 0 0 Z " transform="translate(1411.265625,157.8828125)"/><path d="M0 0 C0.5826562499999 0.21527343750000227 1.1653125000000273 0.43054687500000455 1.765625 0.65234375 C1.265625 2.96484375 1.265625 2.96484375 -0.234375 5.65234375 C-2.8034162027945513 6.994536704929459 -5.452509388737781 7.856600796080841 -8.234375 8.65234375 C-8.564374999999927 7.332343750000007 -8.894375000000082 6.012343750000014 -9.234375 4.65234375 C-8.163303834620592 3.782850584846557 -7.076915562787008 2.9322017049219937 -5.984375 2.08984375 C-5.381093749999991 1.6141796875000125 -4.777812499999982 1.1385156249999966 -4.15625 0.6484375 C-2.234375 -0.34765625 -2.234375 -0.34765625 0 0 Z " transform="translate(1440.234375,141.34765625)"/><path d="M0 0 C0.40412109375006366 0.013535156249986358 0.40412109375006366 0.013535156249986358 2.44921875 0.08203125 C3.0641015624999 0.11683593750001364 3.6789843750000273 0.15164062499999886 4.3125 0.1875 C3.9825000000000728 1.8375000000000057 3.652499999999918 3.4875000000000114 3.3125 5.1875 C0.012500000000045475 5.1875 -3.287499999999909 5.1875 -6.6875 5.1875 C-7.017499999999927 4.527500000000003 -7.347500000000082 3.867500000000007 -7.6875 3.1875 C-5.268492678701477 0.20484048733095506 -3.7894480007134916 -0.1647586087266859 0 0 Z " transform="translate(1374.6875,167.8125)"/><path d="M0 0 C-0.32999999999992724 1.3199999999999932 -0.6600000000000819 2.6399999999999864 -1 4 C-2.3199999999999363 4.3300000000000125 -3.6400000000001 4.659999999999997 -5 5 C-5 5.659999999999997 -5 6.319999999999993 -5 7 C-6.319999999999936 7.3300000000000125 -7.6400000000001 7.659999999999997 -9 8 C-9.660000000000082 7.009999999999991 -10.319999999999936 6.02000000000001 -11 5 C-4.830508474576163 -1.6101694915254257 -4.830508474576163 -1.6101694915254257 0 0 Z " transform="translate(1456,133)"/><path d="M0 0 C0 1.3199999999999932 0 2.6400000000000006 0 4 C-1.4550535829832825 4.529926922197603 -2.914181273506756 5.048678902195604 -4.375 5.5625 C-4.7810546875000455 5.70751953125 -4.7810546875000455 5.70751953125 -6.8359375 6.44140625 C-9 7 -9 7 -11 6 C-11 4.680000000000007 -11 3.3599999999999994 -11 2 C-7.170108939788179 0.19769832460620762 -4.2187819198895795 -0.1962224148785907 0 0 Z " transform="translate(1504,111)"/><path d="M0 0 C0.32999999999992724 0.6599999999999966 0.6600000000000819 1.3199999999999932 1 2 C0 3.5 0 3.5 -2 5 C-4.718462348412004 5.273454792443815 -7.256771987154707 5.1349128530907535 -10 5 C-10 3.680000000000007 -10 2.3599999999999994 -10 1 C-6.785487308314259 -0.6072563458428561 -3.5638746442173215 -0.05748184910028442 0 0 Z " transform="translate(1520,108)"/></svg>
-    <div class="step__label step__label--1"><h3>Выберите тему</h3><p>Выберите навык, который сейчас важен ребёнку. Темы выросли из нескольких лет ежедневных занятий дома.</p></div>
-    <div class="step__label step__label--2"><h3>Проведите занятие с ребёнком</h3><p>Покажите ребёнку всё физически — в игре, разговоре и действии. Планшет используйте как помощника.</p></div>
-    <div class="step__label step__label--3"><h3>Выберите режим тренажёра</h3><p>Ребёнок сможет самостоятельно закреплять навык: каждая тема включает режимы для самостоятельной работы.</p></div>
+    <div class="step__label step__label--1"><h3>Выберите тему</h3><p>Навык, который сейчас важен ребёнку.</p></div>
+    <div class="step__label step__label--2"><h3>Проведите занятие</h3><p>Покажите ребёнку всё в игре и разговоре.</p></div>
+    <div class="step__label step__label--3"><h3>Закрепите тренажёром</h3><p>Ребёнок повторяет навык самостоятельно.</p></div>
   </div>
   </div>
 </section>
@@ -150,14 +167,14 @@
     <article class="custom-topics__card">
       <span class="custom-topics__badge">Персонализация</span>
       <h3>Тема, в которой ребёнок узнаёт себя</h3>
-      <p>Наполним готовую тему вашей жизнью: фото семьи, знакомые имена и привычные места. Ребёнку легче включаться в задания, которые связаны с тем, что он видит каждый день.</p>
+      <p>Фото семьи, знакомые имена и места — вместо абстрактных примеров.</p>
       <p class="custom-topics__price">Стоимость — индивидуально</p>
       <a class="button" href="mailto:hello@mironium.com?subject=Индивидуальная%20тема">Обсудить свою тему</a>
     </article>
     <article class="custom-topics__card custom-topics__card--pro" id="specialists">
       <span class="custom-topics__badge">Для логопедов и педагогов</span>
       <h3>Превратим вашу методику в интерактивную тему</h3>
-      <p>Разработаем упражнения, карточки и тренажёры под вашу практику: с нужной логикой, визуальной системой и сценариями занятий.</p>
+      <p>Упражнения и тренажёры под вашу практику — с нужной логикой и сценариями.</p>
       <p class="custom-topics__price">Стоимость — индивидуально</p>
       <a class="button button--coral" href="mailto:hello@mironium.com?subject=Тема%20для%20практики">Обсудить проект для практики</a>
     </article>
@@ -169,90 +186,114 @@
     <p class="eyebrow">Темы</p>
     <h2>Темы, которые пригодятся каждый день.</h2>
   </div>
-  <div class="wrap topics-carousel reveal" data-topics-carousel tabindex="0" role="region" aria-roledescription="карусель" aria-label="Темы">
-    <div class="topics-carousel__stage" data-stage>
-      <div class="topics-carousel__slide is-active" data-slide data-index="0">
-        <img src="gallery-crocodile-v1.webp" alt="Планшет на столе с заданием сравнения чисел: «Нажми на большее число», 15 и 13">
+  <div class="wrap">
+    <div class="topics-tabs" id="topics-tabs"></div>
+    <div class="screens-stage">
+      <div class="screens-sticky">
+        <div class="tablet-wrap">
+          <div class="tablet" id="topics-tablet-frame" aria-label="Экран темы — нажмите, чтобы посмотреть следующую">
+            <span class="tablet-cam" aria-hidden="true"></span>
+            <div class="tablet-screen" id="topics-tablet-screen"></div>
+          </div>
+        </div>
       </div>
-      <div class="topics-carousel__slide" data-slide data-index="1">
-        <img src="gallery-stone-house-v1.webp" alt="Планшет на столе с заданием словообразования: «Дом из камня — каменный»">
+      <div class="screen-steps" id="screen-steps">
+        <div class="screen-step is-active" data-step="0" data-img="screen-comparison-v1.webp" data-alt="Экран приложения: «Какое число больше?», 10 и 3" data-caption="⚖️ Сравнение чисел">
+          <div class="step-num">01 — Сравнение чисел</div>
+          <h3>Сравнение чисел</h3>
+          <ul class="bullets">
+            <li>Одно касание — и число выбрано</li>
+            <li>От простых примеров к крупным числам</li>
+          </ul>
+        </div>
+        <div class="screen-step" data-step="1" data-img="screen-word-formation-v1.webp" data-alt="Экран приложения: тема «Время года — осень», словообразование" data-caption="📖 Словообразование">
+          <div class="step-num">02 — Словообразование</div>
+          <h3>Словообразование</h3>
+          <ul class="bullets">
+            <li>«Дом из камня» → «каменный»</li>
+            <li>Ребёнок сам подбирает окончание</li>
+          </ul>
+        </div>
+        <div class="screen-step" data-step="2" data-img="screen-column-addition-v1.webp" data-alt="Экран приложения: сложение в столбик, пример 75 + 21" data-caption="🔢 Сложение в столбик">
+          <div class="step-num">03 — Сложение в столбик</div>
+          <h3>Сложение в столбик</h3>
+          <ul class="bullets">
+            <li>Разряды разложены по клеточкам</li>
+            <li>Перенос через десяток — наглядно</li>
+          </ul>
+        </div>
+        <div class="screen-step" data-step="3" data-img="screen-emotions-v1.webp" data-alt="Экран приложения: карточка эмоции «Чувствует усталость»" data-caption="🎭 Эмоции">
+          <div class="step-num">04 — Эмоции</div>
+          <h3>Эмоции</h3>
+          <ul class="bullets">
+            <li>Карточка эмоции — повод для разговора</li>
+            <li>Стыд, обида, радость — по одной за раз</li>
+          </ul>
+        </div>
+        <div class="screen-step" data-step="4" data-img="screen-poem-v1.webp" data-alt="Экран приложения: стихотворение «Непослушный Ваня»" data-caption="📚 Чтение — стихи">
+          <div class="step-num">05 — Чтение — стихи</div>
+          <h3>Чтение — стихи</h3>
+          <ul class="bullets">
+            <li>Подсказки для трудных слов</li>
+            <li>Читаем вместе, по строчке за раз</li>
+          </ul>
+        </div>
+        <div class="screen-step" data-step="5" data-img="screen-plus-minus-v1.webp" data-alt="Экран приложения: «4 − 1 = ?», счёт на числовой палочке" data-caption="🧮 Плюс и минус">
+          <div class="step-num">06 — Плюс и минус</div>
+          <h3>Плюс и минус</h3>
+          <ul class="bullets">
+            <li>Счёт на числовой палочке</li>
+            <li>14 + 1 — считаем и проверяем сами</li>
+          </ul>
+        </div>
       </div>
-      <div class="topics-carousel__slide" data-slide data-index="2">
-        <img src="gallery-column-addition-v1.webp" alt="Планшет на столе с заданием сложения в столбик: 48 + 21">
-      </div>
-      <div class="topics-carousel__slide" data-slide data-index="3">
-        <img src="gallery-emotion-shame-v1.webp" alt="Планшет на столе с карточкой эмоции «Стыд»">
-      </div>
-      <div class="topics-carousel__slide" data-slide data-index="4">
-        <img src="gallery-poem-v1.webp" alt="Планшет на столе со стихотворением «Непослушный Ваня»">
-      </div>
-      <div class="topics-carousel__slide" data-slide data-index="5">
-        <img src="gallery-abacus-v1.webp" alt="Планшет на столе с заданием на счёт: «14 + 1», счёт на числовой палочке">
-      </div>
-    </div>
-    <p class="topics-carousel__caption" data-caption aria-live="polite">⚖️ Сравнение чисел</p>
-    <div class="topics-carousel__thumbs" data-thumbs>
-      <button type="button" class="topics-carousel__thumb is-active" data-thumb data-index="0" data-caption-text="⚖️ Сравнение чисел" aria-label="⚖️ Сравнение чисел" aria-current="true">
-        <img src="gallery-crocodile-v1.webp" alt="" aria-hidden="true">
-        <span class="topics-carousel__thumb-progress" data-progress></span>
-      </button>
-      <button type="button" class="topics-carousel__thumb" data-thumb data-index="1" data-caption-text="📖 Словообразование" aria-label="📖 Словообразование">
-        <img src="gallery-stone-house-v1.webp" alt="" aria-hidden="true">
-        <span class="topics-carousel__thumb-progress" data-progress></span>
-      </button>
-      <button type="button" class="topics-carousel__thumb" data-thumb data-index="2" data-caption-text="🔢 Сложение в столбик" aria-label="🔢 Сложение в столбик">
-        <img src="gallery-column-addition-v1.webp" alt="" aria-hidden="true">
-        <span class="topics-carousel__thumb-progress" data-progress></span>
-      </button>
-      <button type="button" class="topics-carousel__thumb" data-thumb data-index="3" data-caption-text="🎭 Эмоции" aria-label="🎭 Эмоции">
-        <img src="gallery-emotion-shame-v1.webp" alt="" aria-hidden="true">
-        <span class="topics-carousel__thumb-progress" data-progress></span>
-      </button>
-      <button type="button" class="topics-carousel__thumb" data-thumb data-index="4" data-caption-text="📚 Чтение — стихи" aria-label="📚 Чтение — стихи">
-        <img src="gallery-poem-v1.webp" alt="" aria-hidden="true">
-        <span class="topics-carousel__thumb-progress" data-progress></span>
-      </button>
-      <button type="button" class="topics-carousel__thumb" data-thumb data-index="5" data-caption-text="🧮 Плюс и минус" aria-label="🧮 Плюс и минус">
-        <img src="gallery-abacus-v1.webp" alt="" aria-hidden="true">
-        <span class="topics-carousel__thumb-progress" data-progress></span>
-      </button>
     </div>
   </div>
   <div class="wrap topics__more reveal">
     <div class="topics__video" id="videos">
       <p class="eyebrow">Обзоры тем</p>
       <h3>Посмотрите тему целиком, прежде чем начинать.</h3>
-      <p>В подробных видео я показываю задания, режимы тренажёра и настройки — чтобы было понятно, как тема выглядит в реальном занятии.</p>
       <a class="button topics__video-link" href="#socials" data-social-target="youtube">Смотреть обзоры на YouTube</a>
     </div>
     <a class="quiet-link" href="https://app.mironium.com">Все готовые темы в приложении</a>
   </div>
 </section>
 
-<section class="life-skills">
-  <div class="wrap life-skills__grid reveal">
-    <div class="life-skills__copy">
-      <p class="eyebrow">Навыки для самостоятельной жизни</p>
-      <h2>От списка покупок — к своему первому ужину.</h2>
-      <p class="life-skills__lead">Не отдельные задания, а понятный жизненный маршрут. Ребёнок выбирает блюдо, готовится к походу в магазин, раскладывает продукты по местам и постепенно учится готовить сам.</p>
-      <p class="life-skills__note">Каждый рецепт разбит на простые шаги и ясные формулировки — так самостоятельности становится больше с каждым занятием.</p>
-      <a class="quiet-link" href="https://app.mironium.com">Посмотреть навыки в приложении</a>
-    </div>
-    <div class="life-skills__route" aria-label="Путь самостоятельного приготовления блюда">
-      <svg class="life-skills__line" viewBox="0 0 620 250" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M45 145C105 55 151 55 204 143s101 87 150-2 101-87 150 2 75 84 115 21" stroke="#B7A277" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 10"/></svg>
-      <article class="life-skills__step life-skills__step--1"><span class="life-skills__icon life-skills__icon--coral" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M8 6h16v20H8z" fill="#FFF9EE" stroke="currentColor" stroke-width="1.8"/><path d="M12 12h8M12 17h8M12 22h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="12" r="1" fill="currentColor"/></svg></span><h3>Выбираем блюдо</h3><p>Составляем меню</p></article>
-      <article class="life-skills__step life-skills__step--2"><span class="life-skills__icon life-skills__icon--mint" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><rect x="8" y="5" width="16" height="22" rx="3" fill="#FFF9EE" stroke="currentColor" stroke-width="1.8"/><path d="M12 11h8M12 16h8M12 21h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m10.5 11 1 1 1.6-2M10.5 16l1 1 1.6-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Собираем список</h3><p>Что купить в магазине</p></article>
-      <article class="life-skills__step life-skills__step--3"><span class="life-skills__icon life-skills__icon--sun" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M8 12h16l-2 13H10L8 12Z" fill="#FFF9EE" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12a4 4 0 0 1 8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 17h.1M20 17h.1" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span><h3>Идём в магазин</h3><p>Сверяемся с чек-листом</p></article>
-      <article class="life-skills__step life-skills__step--4"><span class="life-skills__icon life-skills__icon--sky" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><rect x="7" y="5" width="18" height="22" rx="3" fill="#EAF5FA" stroke="currentColor" stroke-width="1.8"/><path d="M7 13h18M16 13v14" stroke="currentColor" stroke-width="1.8"/><path d="M11 9h2M19 9h2M11 18h2M19 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><h3>Разбираем покупки</h3><p>Полки, холодильник, морозилка</p></article>
-      <article class="life-skills__step life-skills__step--5"><span class="life-skills__icon life-skills__icon--deep" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M8 18h16l-2 7H10l-2-7Z" fill="#FFF9EE" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 18c0-5 2-8 4-8s4 3 4 8M16 7v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M11 22h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><h3>Готовим сами</h3><p>Рецепт шаг за шагом</p></article>
-    </div>
+<section class="materials" id="materials">
+  <div class="wrap materials__intro reveal">
+    <p class="eyebrow">Бесплатные материалы</p>
+    <h2>Скачайте и попробуйте прямо сегодня.</h2>
+  </div>
+  <div class="wrap materials__grid reveal" id="materials-teaser-grid" aria-live="polite"></div>
+  <div class="wrap materials__cta reveal">
+    <button type="button" class="button" id="materials-open-catalog">Все материалы</button>
   </div>
 </section>
+
+<div class="materials-overlay" id="materials-overlay" role="dialog" aria-modal="true" aria-labelledby="materials-overlay-title" hidden>
+  <div class="materials-overlay__scrim" id="materials-overlay-scrim"></div>
+  <div class="materials-overlay__panel">
+    <button type="button" class="materials-overlay__close" id="materials-overlay-close" aria-label="Закрыть">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h3 id="materials-overlay-title">Все материалы</h3>
+    <div class="materials-overlay__email">
+      <label for="materials-email">Email — чтобы получать файлы</label>
+      <div class="materials-overlay__email-row">
+        <input type="email" id="materials-email" placeholder="your@email.com" autocomplete="email">
+        <button type="button" class="button materials-overlay__email-confirm" id="materials-email-confirm">Подтвердить</button>
+      </div>
+      <p class="materials-overlay__email-msg" id="materials-email-msg" aria-live="polite"></p>
+    </div>
+    <div class="materials-overlay__tabs topics-tabs" id="materials-cat-tabs"></div>
+    <div class="materials-overlay__grid materials__grid" id="materials-catalog-grid"></div>
+  </div>
+</div>
+
 <section class="pricing" id="pricing">
   <div class="wrap pricing__intro reveal">
     <p class="eyebrow">Подписка Mironium</p>
     <h2>Все занятия — в одной подписке.</h2>
-    <p>Все темы, тренажёры и настройки ученика доступны сразу. Выберите срок, который подходит вашей семье.</p>
   </div>
   <div class="wrap pricing__grid reveal">
     <article class="pricing-card">
@@ -336,51 +377,23 @@
     <p class="eyebrow">Вопросы</p>
     <h2>Первое, что обычно спрашивают.</h2>
   </div>
-  <div class="wrap faq__list reveal" data-faq>
-    <div class="faq__item">
-      <button class="faq__question" type="button" aria-expanded="false">
-        <span>Как установить приложение?</span>
-        <span class="faq__icon" aria-hidden="true"></span>
-      </button>
-      <div class="faq__answer">
-        <div>
-          <p>Ничего скачивать из магазина приложений не нужно: откройте app.mironium.com в браузере на телефоне, планшете или компьютере — и можно заниматься. По желанию добавьте ярлык на домашний экран, как обычное приложение.</p>
-        </div>
-      </div>
-    </div>
-    <div class="faq__item">
-      <button class="faq__question" type="button" aria-expanded="false">
-        <span>На каких устройствах работает?</span>
-        <span class="faq__icon" aria-hidden="true"></span>
-      </button>
-      <div class="faq__answer">
-        <div>
-          <p>На любом планшете, телефоне или компьютере с современным браузером — iOS, Android, Windows, macOS.</p>
-        </div>
-      </div>
-    </div>
-    <div class="faq__item">
-      <button class="faq__question" type="button" aria-expanded="false">
-        <span>Работает ли на компьютере?</span>
-        <span class="faq__icon" aria-hidden="true"></span>
-      </button>
-      <div class="faq__answer">
-        <div>
-          <p>Да, полностью — хотя для занятий с ребёнком удобнее планшет.</p>
-        </div>
-      </div>
-    </div>
-    <div class="faq__item">
-      <button class="faq__question" type="button" aria-expanded="false">
-        <span>Нужно ли отдельно скачивать темы?</span>
-        <span class="faq__icon" aria-hidden="true"></span>
-      </button>
-      <div class="faq__answer">
-        <div>
-          <p>Нет, тема загружается автоматически, когда вы её открываете.</p>
-        </div>
-      </div>
-    </div>
+  <div class="wrap faq__list reveal">
+    <details class="faq__item">
+      <summary class="faq__question"><span>Как установить приложение?</span><span class="faq__icon" aria-hidden="true"></span></summary>
+      <p>Откройте app.mironium.com в браузере — ничего скачивать из магазина приложений не нужно.</p>
+    </details>
+    <details class="faq__item">
+      <summary class="faq__question"><span>На каких устройствах работает?</span><span class="faq__icon" aria-hidden="true"></span></summary>
+      <p>На любом планшете, телефоне или компьютере с современным браузером — iOS, Android, Windows, macOS.</p>
+    </details>
+    <details class="faq__item">
+      <summary class="faq__question"><span>Работает ли на компьютере?</span><span class="faq__icon" aria-hidden="true"></span></summary>
+      <p>Да, полностью — хотя для занятий с ребёнком удобнее планшет.</p>
+    </details>
+    <details class="faq__item">
+      <summary class="faq__question"><span>Нужно ли отдельно скачивать темы?</span><span class="faq__icon" aria-hidden="true"></span></summary>
+      <p>Нет, тема загружается автоматически, когда вы её открываете.</p>
+    </details>
   </div>
 </section>
 
@@ -389,23 +402,8 @@
   <a class="button button--coral" href="https://app.mironium.com">Открыть приложение</a>
 </section>
 </main>
-<div class="site-footer-wrap">
-<div class="footer-contacts">
-  <div class="footer-contacts__item"><span class="footer-contacts__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V7l8-4 8 4v13"/><path d="M8 20v-5h8v5M8 10h1M15 10h1" stroke-linecap="round"/></svg></span><span><b>Smart Office DOO</b><small>Контакты Mironium</small></span></div>
-  <a class="footer-contacts__item" href="mailto:hello@mironium.com"><span class="footer-contacts__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4.5 7 7.5 6 7.5-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>hello@mironium.com</b><small>Написать нам</small></span></a>
-  <span class="footer-contacts__item footer-contacts__item--whatsapp"><span class="footer-contacts__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19.3 4.7A10 10 0 0 0 3.7 16.6L3 21l4.5-1.2a10 10 0 1 0 11.8-15.1Z"/><path d="M8.5 8.1c.3-.7.5-.7.8-.7h.6c.2 0 .4.1.5.4l.8 1.9c.1.3.1.5-.1.7l-.6.7c-.1.2-.1.3 0 .5.6 1.1 1.4 2 2.5 2.5.2.1.4.1.5 0l.7-.8c.2-.2.4-.2.7-.1l1.8.8c.3.1.4.3.4.5v.6c0 .3-.2.6-.7.8-.5.2-1.5.4-3.4-.5-1.1-.5-2.4-1.5-3.5-2.9-1-1.2-1.7-2.7-1.8-3.7-.1-1 .1-1.8.3-2.1Z" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>WhatsApp</b><small>Быстрая связь</small></span></span>
-</div>
-  <p class="site-footer__tagline">Вам не нужно успевать всё.<br>Нужно просто быть рядом — с остальным поможем мы.</p>
-<div class="social-links" id="socials" aria-label="Mironium в соцсетях">
-  <span class="social-links__title">Mironium в соцсетях</span>
-  <div class="social-links__list">
-    <a class="social-link" href="https://www.instagram.com/mironium_com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram Mironium"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a>
-    <span class="social-link" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.2 3h3.1c.2 2.3 1.4 3.9 3.7 4.2v3.1a8.4 8.4 0 0 1-3.7-1.3v6.3a5.7 5.7 0 1 1-5.7-5.7c.4 0 .8 0 1.2.1v3.1a2.7 2.7 0 1 0 1.4 2.5V3Z"/></svg><span>TikTok</span></span>
-    <span class="social-link" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="4"/><path d="m10 9.5 5 2.5-5 2.5Z" fill="currentColor" stroke="none"/></svg><span>YouTube</span></span>
-    <span class="social-link" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.8 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5H17V4a21 21 0 0 0-2.3-.1c-2.3 0-3.9 1.4-3.9 4V10H8v3h2.8v8h3Z"/></svg><span>Facebook</span></span>
-  </div>
-</div>
-  <footer class="wrap site-footer">
+<footer class="site-footer-wrap">
+  <div class="wrap site-footer">
     <a class="brand" href="#top"><img src="mironium-logo.svg" alt="Mironium"></a>
     <span>Занятия со смыслом, дома.</span>
     <a class="site-footer__link" href="https://app.mironium.com">Открыть приложение</a>
