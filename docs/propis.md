@@ -160,6 +160,32 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     thumbnail-less cover items happen to sort last in the array; changed to
     `if (!live) break;` / `if (!item.thumbnail) continue;` so it no longer
     depends on item order.
+  - **Content-card thumbnails swapped to a real page-1 render 2026-09-15
+    (propis deck v1.27.1, print_materials deck v1.0.35), user request.** All
+    9 `content`-category thumbnails used to be the notebook's *cover*
+    (title/name-line spread) — including on the worksheet cards, which don't
+    even have their own cover, so those showed a generic-looking title page
+    with no hint of the actual letters/words/text inside. Regenerated all 9
+    from page 1 of that item's own content PDF instead
+    (`tools/propis/thumbnails/<name>.png`, same filenames/paths — no
+    `topic.json` change needed), via `pymupdf`
+    (`page.get_pixmap(matrix=Matrix(1.5,1.5))`, chosen so 841.89pt-wide A4-
+    landscape page 1 renders at the existing 1263px thumbnail width exactly).
+    For the three plain notebooks (`стандарт_pages.pdf`/`плотная_pages.pdf`/
+    `точки_pages.pdf`) this shows blank ruled paper — expected, since their
+    own content genuinely is blank pages, and it's still informative: the
+    three notebooks' ruling patterns differ (20mm косая / 3mm plotnaya /
+    dots), so the thumbnail now visually distinguishes them, which the
+    identical-looking old cover thumbnails did not. For every worksheet
+    (`propis_worksheets_*`) it now shows real captured letters/syllables/
+    words/text on ruled paper — informative in a way the old cover thumbnail
+    (workaround-reused from `notebook_standard`'s own cover, unrelated to
+    that worksheet's content) never was. `cover/*` category items are
+    unaffected (still no `thumbnail`, still fall back to the 📄 placeholder
+    — this request was about `content` cards only). Verified end-to-end (not
+    just the raw PNGs): imported the real rebuilt zip through
+    `topicLoader.importTopic` into IndexedDB and screenshotted
+    `PrintMaterialsView.jsx` itself rendering both tabs.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
