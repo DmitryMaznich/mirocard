@@ -260,7 +260,7 @@
     },
     {
       "id": "propis",
-      "version": "1.26.0",
+      "version": "1.27.0",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -269,7 +269,7 @@
         "ru": "Тренажёр рукописного письма: клавиатура алфавита внизу, крупный зацикленный образец написания выбранной буквы сверху.",
         "en": "Handwriting practice: an alphabet keyboard at the bottom, a large looping handwriting animation for the selected letter above."
       },
-      "url": "./decks/propis_v1.26.0.zip",
+      "url": "./decks/propis_v1.27.0.zip",
       "status": "beta",
       "access": "free"
     },
@@ -388,14 +388,14 @@
     },
     {
       "id": "print_materials",
-      "version": "1.0.32",
+      "version": "1.0.34",
       "title": {
         "ru": "Печатные материалы"
       },
       "description": {
         "ru": "Тетради и рабочие листы для печати"
       },
-      "url": "./decks/print_materials_v1.0.32.zip",
+      "url": "./decks/print_materials_v1.0.34.zip",
       "hidden": true
     }
   ]

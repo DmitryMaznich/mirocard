@@ -120,6 +120,108 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `|| mode?.type === "browse"` clause — needed because this mode's own
     renderer is `"propis"`, not `"print_materials"`, so the old string check
     alone wouldn't have caught it and a meaningless "1 из 1" would have shown.
+  - **Icon added 2026-09-15 (deck v1.26.1).** `media/icons/propis_print_materials.svg`,
+    a builtin asset (`src/topics/builtinAssets.js`, resolved by `ModeIcon.jsx`
+    when the topic's own deck zip doesn't ship the file — same fallback path
+    every other propis mode icon already uses; none of them are bundled in
+    the zip). Breaks from the rest of the family's "ruled card + cursive ink
+    squiggle" language on purpose — this mode isn't handwriting, it's a
+    library of ready PDFs — so the main image is a stack of two offset blank
+    ruled cards (no ink stroke) and the corner badge swaps `read_lines`' "+"
+    for a small printer glyph. Same palette (`#eaf2fb`/`#bcd8ec`/`#ef6f5e`) as
+    its siblings to still read as "part of this topic" at a glance.
+  - **Categories reshuffled 2026-09-15 (propis deck v1.27.0, print_materials
+    deck v1.0.34) — two lists instead of three, user request.** The original
+    3-category split (`notebooks`/`worksheets`/`ready`, the last one always
+    empty) bundled each notebook's cover PDFs *inside* its own item's
+    `files[]`, alongside its actual ruled pages — so "Обложка (стих)" and
+    "Обложка (алфавит)" sat as two of four download buttons on the same card
+    as "Страницы". Now `categories` is just `content` ("Рабочие листы и
+    тетради") and `covers` ("Обложки"), and every item that used to carry a
+    cover file had it split out into its own standalone item under `covers`
+    — `cover_standard`/`cover_плотная`/`cover_точки` each bundle their own
+    two cover variants ("Со стихотворением"/"С алфавитом") as two files on
+    one card (same pattern the punctuation-marks insert already used for
+    `notebook_standard`), `cover_тексты` has just the one variant that
+    exists. 13 items total now (9 content + 4 covers), same 17 PDFs, nothing
+    added or removed — `notebook_standard`/`_плотная`/`_точки` and
+    `propis_worksheets_texts` kept their existing ids and thumbnails for
+    their now-covers-free content card; the insert stayed with
+    `notebook_standard`'s content (it's meant to be printed *into* the
+    notebook, not a cover). Cover items have no `thumbnail` field — they
+    fall back to `PrintMaterialsView.jsx`'s existing 📄 placeholder rather
+    than a new asset being drawn for them.
+    En route, found and fixed a real (if dormant) bug in the thumbnail-
+    loading `useEffect` in both `PrintMaterialsView.jsx` and the original
+    `print_materials/index.jsx`: `if (!item.thumbnail || !live) break;`
+    aborted the *entire* loop — skipping every later item's thumbnail too —
+    the moment it hit one item without a `thumbnail`, instead of just
+    skipping that one item. Harmless today only because the four new
+    thumbnail-less cover items happen to sort last in the array; changed to
+    `if (!live) break;` / `if (!item.thumbnail) continue;` so it no longer
+    depends on item order.
+- **Video-reward toggle — removed from every propis mode 2026-09-15, not just
+  hidden.** User request. It was already fully inert here before this
+  change: `buildRewardProgress` (`rewardProgress.js`) requires
+  `mode.evaluation !== "none"` to ever make a reward video available, and
+  every propis mode (`write_text`/`read_text`/`read_lines`/`print_materials`)
+  is `evaluation: "none"` — so the "Видео-награда" toggle that
+  `ParamsScreen.jsx` shows before every session start was doing nothing for
+  this topic, just adding a confusing control with no effect. Fixed at the
+  UI-exclusion layer (`ParamsScreen.jsx`), the same place `isAlphabetPairs`/
+  `isNavigatorFlashCards` already exclude their own topics/modes from this
+  same toggle: a new `isPropis` (`topicRecord?.meta.renderer === "propis"`,
+  topic-wide — unlike those two, which are mode-scoped, since the ask was
+  "every mode") added to (1) the toggle section's own render condition, and
+  (2) `bypassPin`, so a configured admin PIN no longer gates starting a
+  propis session either (`shouldRequestSessionStartPin` gates purely on the
+  raw `videoRewardEnabled` flag, not on whether a reward could ever actually
+  fire — so without this second change the already-inert toggle's default-on
+  state would still have prompted for a PIN before every session). Not a
+  propis-only file: `src/features/session/ParamsScreen.jsx` is shared app
+  code, not part of propis's own deck zip, so no `topic.json` version bump
+  or zip rebuild was needed for this half of the change.
+- **The bundled PDFs were ~65% heavier than they needed to be — fixed
+  2026-09-15 (propis deck v1.26.2, print_materials deck v1.0.33), reported
+  as "тема не скачивается".** Investigated after a download-failure report;
+  couldn't reproduce the failure directly from this session (no network
+  access to production), but found and fixed a real, verified inefficiency
+  along the way that's the likely cause. The 17 worksheet/notebook PDFs (see
+  the migration entry above) all carry `/Producer (pypdf)` and use **zero**
+  stream compression anywhere in the file (`grep -c "/Filter"` → 0) — every
+  captured pen-stroke bezier curve is written as literal ASCII floating-point
+  text straight in the content stream (e.g. `67.49153 130.155 m`), not
+  FlateDecode-compressed the way PDF (and every normal PDF writer, reportlab
+  included) supports natively. Likely from `scripts/propis_worksheets/`'s
+  `booklet.py` merging step, which uses pypdf and doesn't opt back into
+  compression when it recombines already-generated pages. Recompressing with
+  `pikepdf` (`compress_streams=True, object_stream_mode=generate`) shrinks
+  the 17 files from 16.74 MB to 5.81 MB raw (35% of original) — verified
+  **pixel-identical** on every page of every file (`pymupdf` render +
+  `Pixmap.samples` byte comparison, not just a visual spot-check), since
+  FlateDecode is lossless; only `tools/propis/print/*.pdf`'s bytes changed,
+  page count/MediaBox/visible content did not.
+  Two caveats worth knowing before assuming this alone "fixes the download":
+  - This mainly shrinks what ends up sitting in IndexedDB after import (the
+    app stores each zip entry as its own blob via `topics.saveFile`, not the
+    zip itself) — i.e. on-device storage footprint, which is exactly where a
+    quota error would come from failing mid-import on a phone.
+  - It does comparatively little for the **download** size: the deck zip
+    itself was already DEFLATE-compressing these same uncompressed streams
+    (JSZip, `compression: "DEFLATE"` in `build-propis-deck.mjs`), so most of
+    the "fat" was already invisible at the zip level — 6.77 MB → 6.36 MB
+    zipped, vs. 16.74 MB → 5.81 MB raw. Compressing already-compressed data
+    has little left to gain. So if the topic still won't download after this
+    ships, the root cause is something else (worth getting the actual error
+    text `getImportErrorMessage` surfaces, or the device/connection) — this
+    fix was applied because it's a real, verified, zero-risk improvement
+    either way, not because it's confirmed to be the whole story.
+  - `tools/propis/print/*.pdf` (the local, gitignored build-input copies) were
+    overwritten in place with the compressed versions — same filenames, same
+    `topic.json` paths, nothing else to update. `print_materials`'s own zip
+    (still hidden, not deleted, see below) got the same treatment for
+    consistency, rebuilt by splicing the compressed PDFs into its existing
+    zip (its own raw source files were never separately committed either).
 - **Standalone `print_materials` topic — hidden 2026-09-15 (deck v1.0.32),
   not deleted.** Now that its content lives inside `propis` too, keeping it
   as its own separately-installable topic was redundant (same ~8.5 MB of
