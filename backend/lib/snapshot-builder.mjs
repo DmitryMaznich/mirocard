@@ -4,6 +4,7 @@ import {
   getStudentTopicLinks, getAllConceptProgress,
   getAllAccountKv, serializeAccount,
 } from "./account-repository.mjs";
+import { getActiveSubscriptionForAccount } from "./billing-repository.mjs";
 
 function safeJson(value, fallback) {
   try { return JSON.parse(value ?? "null") ?? fallback; }
@@ -20,9 +21,11 @@ export function buildBootstrap(db, accountId, sinceRevision = 0) {
   const studentTopicLinks = getStudentTopicLinks(db, accountId);
   const conceptProgress   = getAllConceptProgress(db, accountId);
   const kvStore           = getAllAccountKv(db, accountId);
+  const subscription      = getActiveSubscriptionForAccount(db, accountId);
 
   return {
     account: serializeAccount(account),
+    subscription,
     settings: {
       uiLanguage:       settings?.ui_language ?? "ru",
       cardLanguage:     settings?.card_language ?? "ru",

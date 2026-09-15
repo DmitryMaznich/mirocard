@@ -835,6 +835,11 @@ async function handleLavaTopWebhook(req, res) {
   writeJson(res, 200, { received: true });
 }
 
+async function handleGetSubscription(req, res) {
+  const account = requireAuth(req);
+  writeJson(res, 200, getActiveSubscriptionForAccount(db, account.id));
+}
+
 // ─── Student topic links + concept progress ────────────────────────────────────
 
 async function handleGetStudentTopicLinks(req, res) {
@@ -1280,6 +1285,7 @@ async function router(req, res) {
     if (method === "POST" && p === "/billing/checkout") return await handleBillingCheckout(req, res);
     if (method === "POST" && p === "/billing/webhook/stripe")    return await handleStripeWebhook(req, res);
     if (method === "POST" && p === "/billing/webhook/lava-top")  return await handleLavaTopWebhook(req, res);
+    if (method === "GET"  && p === "/billing/subscription")      return await handleGetSubscription(req, res);
 
     // Sync
     if (method === "POST"   && p === "/sync")                     return await handleSync(req, res);
