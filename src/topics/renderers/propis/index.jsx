@@ -5,8 +5,9 @@ import WriteWordsView from "./WriteWordsView";
 import WriteTextView from "./WriteTextView";
 import ReadTextView from "./ReadTextView";
 import PrintPageView from "./PrintPageView";
+import PrintMaterialsView from "./PrintMaterialsView";
 
-export default function PropisRenderer({ task, onAdvance, onClose }) {
+export default function PropisRenderer({ task, topicRecord, onAdvance, onClose }) {
   if (!task) return null;
 
   switch (task.type) {
@@ -22,6 +23,8 @@ export default function PropisRenderer({ task, onAdvance, onClose }) {
       return <ReadTextView task={task} onClose={onClose} />;
     case "print_page":
       return <PrintPageView task={task} onClose={onClose} />;
+    case "browse":
+      return <PrintMaterialsView topicRecord={topicRecord} />;
     default:
       return <PropisPracticeView task={task} onAdvance={onAdvance} onClose={onClose} />;
   }

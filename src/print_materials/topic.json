@@ -1,14 +1,15 @@
 {
   "meta": {
     "id": "print_materials",
-    "version": "1.0.31",
+    "version": "1.0.32",
     "renderer": "print_materials",
     "title": {
       "ru": "Печатные материалы"
     },
     "description": {
       "ru": "Тетради и рабочие листы для печати"
-    }
+    },
+    "hidden": true
   },
   "modes": [
     {

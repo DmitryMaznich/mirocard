@@ -26,7 +26,8 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   v1.0.1841 as of 2026-08-13).** Free-text multi-line copybook: colored keyboard
   (magnetic_alphabet style) + a wrapping notebook grid that lays words out
   row-by-row, no animation. See its own section below.
-- **Mode "Пишем текст с экрана" (read_text) — shipped, live on `main`, previously
+- **Mode "Переписываем текст в тетрадь" (read_text, renamed 2026-09-14 from "Пишем
+  текст с экрана" — deck v1.25.1) — shipped, live on `main`, previously
   undocumented here (code comments dated 2026-08-19/20/21).** Read-only sibling
   of `write_text`: full-screen notebook grid with pre-selected text(s) already
   written in cursive (`ReadTextView.jsx`), no keyboard — content is picked in
@@ -67,14 +68,90 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   above). `PropisShowView.jsx` (see below) is a separate, still-dormant
   starting point for a hypothetical print mode of the OTHER text-flow modes
   (`write_text`/`read_text`); not wired to any active mode.
+- **Mode "Печатные материалы" (`print_materials`/`browse`) — added 2026-09-15
+  (deck v1.26.0), migrated in from the standalone `print_materials` topic.**
+  Same ready-made-PDF browse UI (categories/cards/download buttons), now
+  reachable from inside this topic instead of as its own separate top-level
+  topic — user request, since a separate topic for it "не вижу смысла" once
+  it lives here too. Concretely:
+  - `topic.json` gained two new top-level keys, `categories` (3 entries) and
+    `items` (9 entries: 3 printable notebooks + 6 propis worksheet PDFs) —
+    copied verbatim from `src/print_materials/topic.json`'s own content (its
+    `items[].files[].path`/`.thumbnail` fields, e.g. `print/прописи_часть1.pdf`,
+    are unchanged, since this topic's own deck zip now ships the same files
+    under the same relative paths).
+  - The 26 binary files those paths point at (17 PDFs + 9 thumbnail PNGs —
+    only the ones actually referenced by `items`, not every leftover file
+    that happened to still be sitting in `print_materials`'s own zip from an
+    earlier content iteration) were extracted from that zip into
+    `tools/propis/print/` and `tools/propis/thumbnails/` as the new build
+    input, mirroring the *shape* of `tools/comparison/media/` — but unlike
+    that folder, **these are NOT tracked in git**: `.gitignore` blanket-
+    ignores `*.pdf`/`*.png` repo-wide ("Binary / document assets (not tracked
+    in git)"), with no exception carved out for this path (the few existing
+    `!tools/<id>/media/*.webp`-style negations only cover `.webp`, not
+    `.pdf`/`.png`). This matches how `print_materials`'s own zip already got
+    built — its source PDFs never lived in this repo either, only the
+    resulting zip did. `scripts/build-propis-deck.mjs` now zips whatever it
+    finds under `tools/propis/print/`/`thumbnails/` alongside `topic.json`
+    (`ASSET_DIRS`, no-ops if a dir is absent), so a rebuild works whenever
+    those local files are present — same one-off, non-fresh-clone-
+    reproducible situation as before, not a regression. Deck size: 131 KB →
+    6.77 MB (committed as `public/decks/propis_v1.26.0.zip`, a `.zip`, so
+    unaffected by the pdf/png ignore rule).
+  - New mode `print_materials`/type `browse` in `topic.json`'s `modes` array
+    (`hideConceptPicker: true`, no `duration` — it isn't a timed session).
+    `engine.js` gets a matching `mode.type === "browse"` branch returning a
+    static `{ type: "browse", id: "print_browse" }` task (content comes from
+    `topicRecord.categories`/`.items`, not cards, so the task itself carries
+    nothing).
+  - `PrintMaterialsView.jsx` (+ its `print_materials.css`) is a **copy**, not
+    a cross-topic import, of `src/topics/renderers/print_materials/index.jsx`
+    — deliberately duplicated so this topic's own deck zip stays
+    self-contained and keeps working even if the standalone `print_materials`
+    renderer folder is later deleted outright (it's already dormant, see
+    below). `index.jsx` routes `task.type === "browse"` to it, passing
+    `topicRecord` straight through (added to `PropisRenderer`'s own prop
+    list — it already arrives from `SessionScreen` like every renderer gets
+    it, just wasn't destructured here before).
+  - `SessionScreen.jsx`'s `showProgress` toggle, which already hid the "N of
+    total" progress readout for the standalone `print_materials` topic
+    (keyed on `topicRecord.meta.renderer === "print_materials"`), gained an
+    `|| mode?.type === "browse"` clause — needed because this mode's own
+    renderer is `"propis"`, not `"print_materials"`, so the old string check
+    alone wouldn't have caught it and a meaningless "1 из 1" would have shown.
+- **Standalone `print_materials` topic — hidden 2026-09-15 (deck v1.0.32),
+  not deleted.** Now that its content lives inside `propis` too, keeping it
+  as its own separately-installable topic was redundant (same ~8.5 MB of
+  PDFs shipped twice). Soft-hide, same reversible pattern as the mode
+  removals above:
+  - `src/print_materials/topic.json` gained `meta.hidden: true` (+ version
+    bump) — hides it from a device that already has it installed, via
+    `HomeScreen`'s and `TopicLibraryScreen`'s existing `!r.meta.hidden`
+    filters on `topicRecords`, once the normal silent-update fetches the new
+    version.
+  - That alone does NOT stop a device that never installed it from seeing it
+    in the topic library's "browse to install" list, though — that list
+    (`TopicLibraryScreen.jsx`'s `visibleDecks`) is built straight from
+    `catalog.json`'s own entries, which aren't fetched/parsed for
+    `meta.hidden` until *after* install. So `catalog.json`'s own
+    `print_materials` entry also got a `"hidden": true` field (a new
+    convention — first catalog entry to ever need this), and
+    `visibleDecks`'s filter now excludes `e.hidden` too. Both flags needed;
+    either alone leaves a gap for one of the two user states (already
+    installed vs. never installed).
+  - No code deleted: `src/topics/renderers/print_materials/`,
+    `src/print_materials/topic.json`, and its `engine.js`/registry entries
+    are all still there, dormant, same as `PropisPracticeView.jsx` etc.
+    above. Re-showing it later is reverting two `hidden` flags, not
+    restoring code.
 - **Printed letter worksheets (Phase 1) — shipped, live on `main`
-  (`print_materials` deck v1.0.12 as of 2026-08-15).** A completely separate
-  system from the in-app modes above: standalone Python
-  (`scripts/propis_worksheets/`), reusing propis's own captured strokes and
-  ruling geometry but generating real print-ready PDFs (not an in-app view),
-  registered as new items in the *other* `print_materials` topic
-  (`src/print_materials/topic.json`), not this topic's own `topic.json`. See
-  its own section below.
+  (`print_materials` deck v1.0.12 as of 2026-08-15; superseded content-wise by
+  the `propis` migration above, though the standalone topic/scripts are
+  untouched).** A completely separate system from the in-app modes above:
+  standalone Python (`scripts/propis_worksheets/`), reusing propis's own
+  captured strokes and ruling geometry but generating real print-ready PDFs
+  (not an in-app view). See its own section below.
 
 ## File map
 

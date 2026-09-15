@@ -125,7 +125,7 @@ export default function TopicLibraryScreen() {
   ).filter((r) => !r.meta.hidden);
 
   const visibleDecks = catalog
-    ? catalog.decks.filter((e) => !hasAdminGrants || ownedNonPendingIds.has(e.id))
+    ? catalog.decks.filter((e) => !e.hidden && (!hasAdminGrants || ownedNonPendingIds.has(e.id)))
     : [];
 
   const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
