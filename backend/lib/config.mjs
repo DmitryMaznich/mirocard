@@ -48,3 +48,11 @@ export const ANTHROPIC_API_KEY = readEnv("ANTHROPIC_API_KEY");
 export const VAPID_PUBLIC_KEY  = readEnv("VAPID_PUBLIC_KEY");
 export const VAPID_PRIVATE_KEY = readEnv("VAPID_PRIVATE_KEY");
 export const PUSH_SUBJECT      = readEnv("PUSH_SUBJECT") || "mailto:hello@mirocard.app";
+
+// Billing — Stripe (card rail)
+export const STRIPE_SECRET_KEY     = readEnv("STRIPE_SECRET_KEY");
+export const STRIPE_WEBHOOK_SECRET = readEnv("STRIPE_WEBHOOK_SECRET");
+
+// Billing — Lava Top (Mir/SBP rail)
+export const LAVA_TOP_API_KEY         = readEnv("LAVA_TOP_API_KEY");
+export const LAVA_TOP_WEBHOOK_SECRET  = readEnv("LAVA_TOP_WEBHOOK_SECRET");

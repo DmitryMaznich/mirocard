@@ -30,6 +30,7 @@ import {
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
   getPhoto, migratePhotoData, extractAndStorePhoto,
   getAccountKvByPrefixes,
+  incrementRevision,
 } from "./lib/account-repository.mjs";
 import {
   createPasswordHash, verifyPasswordHash,
@@ -47,6 +48,21 @@ import {
   updatePortalLastUsed,
   setPortalActiveTask,
 } from "./lib/student-portal.mjs";
+import {
+  createPendingSubscription, getActiveSubscriptionForAccount,
+  hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
+  createPromoCode, listPromoCodes,
+} from "./lib/billing-repository.mjs";
+import { PLAN_CATALOG, applyDiscount } from "./lib/billing-plans.mjs";
+import {
+  createCheckoutSession as createStripeCheckoutSession,
+  verifyStripeWebhookSignature, parseStripeWebhookEvent,
+} from "./lib/billing-providers/stripe.mjs";
+import {
+  createInvoice as createLavaTopInvoice,
+  verifyLavaTopWebhookAuth, parseLavaTopWebhookEvent,
+} from "./lib/billing-providers/lava-top.mjs";
+import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
@@ -599,11 +615,19 @@ async function handleGetTopics(req, res) {
   writeJson(res, 200, getAccountTopics(db, account.id));
 }
 
+// Topics anyone can download without an active subscription — the
+// marketing "free core" hook from the landing page. Empty until product
+// decides which specific topics stay free; add topic ids here later.
+export const FREE_TOPIC_IDS = [];
+
 async function handleAcquireTopic(req, res) {
   const account = requireAuth(req);
   const body = await readJsonBody(req);
   if (!body?.topicId || !body?.topicVersion) {
     return writeJson(res, 400, { error: "topicId, topicVersion required" });
+  }
+  if (!FREE_TOPIC_IDS.includes(body.topicId) && !hasActiveEntitlement(db, account.id)) {
+    return writeJson(res, 402, { error: "Subscription required" });
   }
   upsertAccountTopic(db, account.id, {
     id: randomUUID(),
@@ -753,6 +777,127 @@ async function handleAdminRevoke(req, res) {
   if (!account) return writeJson(res, 404, { error: "Account not found" });
   revokeAccountTopic(db, account.id, body.topicId);
   writeJson(res, 200, { ok: true });
+}
+
+async function handleAdminListPromoCodes(req, res) {
+  requireAdmin(req);
+  writeJson(res, 200, listPromoCodes(db));
+}
+
+async function handleAdminCreatePromoCode(req, res) {
+  requireAdmin(req);
+  const body = await readJsonBody(req);
+  if (!body?.code || !body?.kind) return writeJson(res, 400, { error: "code and kind required" });
+  createPromoCode(db, {
+    code: body.code,
+    kind: body.kind,
+    value: body.value ?? null,
+    currency: body.currency ?? null,
+    appliesToPlan: body.appliesToPlan ?? null,
+    grantDurationDays: body.grantDurationDays ?? null,
+    maxRedemptions: body.maxRedemptions ?? null,
+    expiresAt: body.expiresAt ?? null,
+    note: body.note ?? null,
+    createdBy: body.createdBy ?? "admin",
+  });
+  writeJson(res, 200, { ok: true });
+}
+
+// ─── Billing ────────────────────────────────────────────────────────────────
+
+const CHECKOUT_METHODS = { card: "stripe", mir_sbp: "lava_top" };
+
+async function handleBillingCheckout(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  const { plan, method, code } = body ?? {};
+
+  const planDef = PLAN_CATALOG[plan];
+  if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
+  const provider = CHECKOUT_METHODS[method];
+  if (!provider) return writeJson(res, 400, { error: "Unknown payment method" });
+
+  let amountMinor = planDef.amountMinor;
+  let appliedCode = null;
+  if (code) {
+    const validation = validatePromoCode(db, code, { accountId: account.id, plan });
+    if (validation.ok && validation.kind !== "free_grant") {
+      amountMinor = applyDiscount(amountMinor, validation);
+      appliedCode = validation.code;
+    }
+  }
+
+  const orderId = randomUUID();
+  createPendingSubscription(db, account.id, {
+    provider, plan, orderId, currency: planDef.currency, amountMinor,
+    periodDays: planDef.periodDays, appliedCode,
+  });
+
+  try {
+    let checkoutUrl;
+    if (provider === "stripe") {
+      ({ checkoutUrl } = await createStripeCheckoutSession({
+        orderId, planLabel: planDef.label, amountMinor, currency: planDef.currency,
+        accountEmail: account.email, accountId: account.id,
+      }));
+    } else {
+      ({ checkoutUrl } = await createLavaTopInvoice({
+        orderId, amountMinor, currency: planDef.currency, accountEmail: account.email,
+      }));
+    }
+    writeJson(res, 200, { checkoutUrl, orderId, appliedCode });
+  } catch (err) {
+    writeJson(res, 502, { error: "Payment provider error", detail: err.message });
+  }
+}
+
+async function handleStripeWebhook(req, res) {
+  const rawBody = (await readRawBody(req)).toString("utf8");
+  if (!verifyStripeWebhookSignature(rawBody, req.headers["stripe-signature"])) {
+    return writeJson(res, 401, { error: "Invalid signature" });
+  }
+  processBillingEvent(db, { provider: "stripe", event: parseStripeWebhookEvent(rawBody), rawBody });
+  writeJson(res, 200, { received: true });
+}
+
+async function handleLavaTopWebhook(req, res) {
+  const rawBody = (await readRawBody(req)).toString("utf8");
+  if (!verifyLavaTopWebhookAuth(req.headers["x-api-key"])) {
+    return writeJson(res, 401, { error: "Invalid auth" });
+  }
+  processBillingEvent(db, { provider: "lava_top", event: parseLavaTopWebhookEvent(rawBody), rawBody });
+  writeJson(res, 200, { received: true });
+}
+
+async function handleGetSubscription(req, res) {
+  const account = requireAuth(req);
+  writeJson(res, 200, getActiveSubscriptionForAccount(db, account.id));
+}
+
+async function handleValidateCode(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  if (!body?.code || !PLAN_CATALOG[body.plan]) {
+    return writeJson(res, 400, { error: "code and a known plan are required" });
+  }
+  const result = validatePromoCode(db, body.code, { accountId: account.id, plan: body.plan });
+  if (!result.ok) return writeJson(res, 200, result);
+
+  if (result.kind === "free_grant") return writeJson(res, 200, result);
+
+  const original = PLAN_CATALOG[body.plan].amountMinor;
+  const discounted = applyDiscount(original, result);
+  writeJson(res, 200, { ...result, originalAmountMinor: original, discountedAmountMinor: discounted });
+}
+
+async function handleRedeemCode(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  if (!body?.code) return writeJson(res, 400, { error: "code is required" });
+
+  const result = redeemFreeGrantCode(db, body.code, account.id);
+  if (result.ok) incrementRevision(db, account.id);
+  writeJson(res, result.ok ? 200 : 400, result);
 }
 
 // ─── Student topic links + concept progress ────────────────────────────────────
@@ -1190,11 +1335,21 @@ async function router(req, res) {
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
     if (method === "POST"   && p === "/admin/grant")                               return await handleAdminGrant(req, res);
     if (method === "POST"   && p === "/admin/revoke")                              return await handleAdminRevoke(req, res);
+    if (method === "GET"  && p === "/admin/promo-codes") return await handleAdminListPromoCodes(req, res);
+    if (method === "POST" && p === "/admin/promo-codes") return await handleAdminCreatePromoCode(req, res);
 
     // Student topic links + concept progress
     if (method === "GET"    && p === "/student-topic-links")      return await handleGetStudentTopicLinks(req, res);
     if (method === "POST"   && p === "/student-topic-links")      return await handleUpsertStudentTopicLink(req, res);
     if (method === "POST"   && p === "/concept-progress")         return await handleUpsertConceptProgress(req, res);
+
+    // Billing
+    if (method === "POST" && p === "/billing/checkout") return await handleBillingCheckout(req, res);
+    if (method === "POST" && p === "/billing/webhook/stripe")    return await handleStripeWebhook(req, res);
+    if (method === "POST" && p === "/billing/webhook/lava-top")  return await handleLavaTopWebhook(req, res);
+    if (method === "GET"  && p === "/billing/subscription")      return await handleGetSubscription(req, res);
+    if (method === "POST" && p === "/billing/validate-code") return await handleValidateCode(req, res);
+    if (method === "POST" && p === "/billing/redeem-code")   return await handleRedeemCode(req, res);
 
     // Sync
     if (method === "POST"   && p === "/sync")                     return await handleSync(req, res);

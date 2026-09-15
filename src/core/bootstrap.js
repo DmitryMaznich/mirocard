@@ -281,6 +281,7 @@ export function normalizeBootstrap(raw = {}) {
   return {
     token: raw.token ?? null,
     account: raw.account ?? null,
+    subscription: raw.subscription ?? null,
     settings: raw.settings ?? null,
     students: Array.isArray(raw.students) ? raw.students : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
@@ -316,6 +317,7 @@ export function applyBootstrapToStore(raw) {
     students: mergeStudents(state.students, bootstrap.students),
     ownedTopics: "ownedTopics" in raw ? mergeOwnedTopics(state.ownedTopics, bootstrap.ownedTopics) : state.ownedTopics,
     topicRecords: "topicRecords" in raw ? bootstrap.topicRecords : state.topicRecords,
+    subscription: "subscription" in raw ? bootstrap.subscription : state.subscription,
     studentTopicLinks: bootstrap.studentTopicLinks,
     conceptProgress: bootstrap.conceptProgress,
     sessions: bootstrap.sessions,

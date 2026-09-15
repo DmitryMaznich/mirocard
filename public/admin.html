@@ -316,6 +316,22 @@
     <div id="error-banner" class="error-msg" style="display:none"></div>
     <div id="online-container"></div>
     <div id="accounts-container"><div class="state-msg"><div class="spinner"></div></div></div>
+
+    <h2 style="margin:28px 0 12px;font-size:15px;font-weight:700">Промокоды</h2>
+    <form id="promo-form" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px" onsubmit="createPromoCode(event)">
+      <input id="promo-code" placeholder="КОД" required style="padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;text-transform:uppercase">
+      <select id="promo-kind" style="padding:7px 10px;border:1.5px solid #ddd;border-radius:8px">
+        <option value="percent_off">Скидка %</option>
+        <option value="fixed_off">Скидка, фикс. сумма (центы)</option>
+        <option value="free_grant">Бесплатный грант</option>
+      </select>
+      <input id="promo-value" type="number" placeholder="Значение" style="width:110px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px">
+      <input id="promo-plan" placeholder="План (пусто = любой)" style="width:160px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px">
+      <input id="promo-max" type="number" placeholder="Лимит использований" style="width:150px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px">
+      <input id="promo-note" placeholder="Заметка" style="flex:1;min-width:160px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px">
+      <button class="btn btn--primary" type="submit">Создать</button>
+    </form>
+    <div id="promo-container"><div class="state-msg"><div class="spinner"></div></div></div>
   </div>
 </div>
 
@@ -392,7 +408,46 @@
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('panel').style.display = 'block';
     loadData();
+    loadPromoCodes();
     startAutoRefresh();
+  }
+
+  async function loadPromoCodes() {
+    const res = await apiFetch('/api/admin/promo-codes');
+    if (!res.ok) return showError('Не удалось загрузить промокоды');
+    const codes = await res.json();
+    document.getElementById('promo-container').innerHTML = codes.length
+      ? `<div class="user-list">${codes.map(renderPromoCode).join('')}</div>`
+      : '<div class="state-msg">Промокодов пока нет</div>';
+  }
+
+  function renderPromoCode(c) {
+    const valueLabel = c.kind === 'percent_off' ? `${c.value}%`
+      : c.kind === 'fixed_off' ? `${(c.value / 100).toFixed(2)} ${c.currency ?? ''}`
+      : 'бесплатно';
+    const usage = c.maxRedemptions != null ? `${c.redeemedCount} / ${c.maxRedemptions}` : `${c.redeemedCount} / ∞`;
+    return `<div class="user-card"><div class="user-card__head">
+      <strong>${esc(c.code)}</strong> — ${esc(valueLabel)}
+      ${c.appliesToPlan ? `· план: ${esc(c.appliesToPlan)}` : ''}
+      · использован: ${usage}
+      ${c.note ? `· ${esc(c.note)}` : ''}
+    </div></div>`;
+  }
+
+  async function createPromoCode(evt) {
+    evt.preventDefault();
+    const body = {
+      code: document.getElementById('promo-code').value,
+      kind: document.getElementById('promo-kind').value,
+      value: document.getElementById('promo-value').value ? Number(document.getElementById('promo-value').value) : null,
+      appliesToPlan: document.getElementById('promo-plan').value || null,
+      maxRedemptions: document.getElementById('promo-max').value ? Number(document.getElementById('promo-max').value) : null,
+      note: document.getElementById('promo-note').value || null,
+    };
+    const res = await apiFetch('/api/admin/promo-codes', { method: 'POST', body: JSON.stringify(body) });
+    if (!res.ok) return showError('Не удалось создать промокод');
+    document.getElementById('promo-form').reset();
+    loadPromoCodes();
   }
 
   // ── Data ──────────────────────────────────────────────────────────────────────

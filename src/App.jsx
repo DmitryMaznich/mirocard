@@ -43,6 +43,9 @@ import InstructionRunnerScreen from "@/features/instructions/InstructionRunnerSc
 import InstructionConstructorScreen from "@/features/instructions/InstructionConstructorScreen";
 import PeriodPlanScreen from "@/features/lessonPlan/PeriodPlanScreen";
 import LessonPlanHistoryScreen from "@/features/lessonPlan/LessonPlanHistoryScreen";
+import SubscriptionScreen from "@/features/billing/SubscriptionScreen";
+import CheckoutRedirectScreen from "@/features/billing/CheckoutRedirectScreen";
+import CheckoutReturnScreen from "@/features/billing/CheckoutReturnScreen";
 
 function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
 function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
@@ -94,6 +97,9 @@ const SCREENS = {
   instruction_constructor: InstructionConstructorScreen,
   lesson_plan_period: PeriodPlanScreen,
   lesson_plan_history: LessonPlanHistoryScreen,
+  subscription: SubscriptionScreen,
+  checkout_redirect: CheckoutRedirectScreen,
+  checkout_return: CheckoutReturnScreen,
 };
 
 function OrientationGuard({ orientationLock }) {
@@ -131,6 +137,7 @@ export default function App() {
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
   const setVerifyEmailToken = useAppStore((s) => s.setVerifyEmailToken);
+  const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   useEffect(() => {
@@ -176,6 +183,15 @@ export default function App() {
       return;
     }
 
+    // Handle ?plan= from the marketing landing page's pricing CTAs — captured
+    // regardless of login state, consumed once the boot/login flow lands on
+    // "home" (see the pendingCheckoutPlan redirect effect below).
+    const planParam = urlParams.get("plan");
+    if (planParam && ["monthly", "half_year", "annual"].includes(planParam)) {
+      useAppStore.setState({ pendingCheckoutPlan: planParam });
+      window.history.replaceState({}, "", "/");
+    }
+
     (async () => {
       try {
         const _t0 = performance.now();
@@ -210,6 +226,7 @@ export default function App() {
               const payload = {
                 token: bootstrap.token,
                 account: serverBootstrap.account,
+                subscription: serverBootstrap.subscription,
                 settings: serverBootstrap.settings,
                 students: merged,
                 ownedTopics: serverBootstrap.ownedTopics,
@@ -235,6 +252,12 @@ export default function App() {
     })();
   }, [setScreen, setVerifyEmailToken]);
 
+  useEffect(() => {
+    if (screen === "home" && pendingCheckoutPlan) {
+      setScreen("subscription");
+    }
+  }, [screen, pendingCheckoutPlan, setScreen]);
+
   // Re-sync from server whenever the tab becomes visible or every 20 s while active.
   // This ensures Device B picks up changes made on Device A even if the tab never hides.
   useEffect(() => {
@@ -256,6 +279,7 @@ export default function App() {
         const merged = mergeStudents(localStudents, serverBootstrap.students);
         const payload = {
           account: serverBootstrap.account,
+          subscription: serverBootstrap.subscription,
           settings: serverBootstrap.settings,
           students: merged,
           ownedTopics: serverBootstrap.ownedTopics,
