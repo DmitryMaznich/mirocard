@@ -29,6 +29,10 @@ export const useAppStore = create((set) => ({
   subscription: null,
   setSubscription: (subscription) => set({ subscription }),
 
+  checkoutUrl: null,
+  checkoutOrderId: null,
+  setCheckout: (checkoutUrl, checkoutOrderId) => set({ checkoutUrl, checkoutOrderId }),
+
   sessionPortionsOverride: null,
   setSessionPortionsOverride: (sessionPortionsOverride) => set({ sessionPortionsOverride }),
   // Same idea as sessionPortionsOverride, for a recipe's option-group
