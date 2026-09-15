@@ -614,11 +614,19 @@ async function handleGetTopics(req, res) {
   writeJson(res, 200, getAccountTopics(db, account.id));
 }
 
+// Topics anyone can download without an active subscription — the
+// marketing "free core" hook from the landing page. Empty until product
+// decides which specific topics stay free; add topic ids here later.
+export const FREE_TOPIC_IDS = [];
+
 async function handleAcquireTopic(req, res) {
   const account = requireAuth(req);
   const body = await readJsonBody(req);
   if (!body?.topicId || !body?.topicVersion) {
     return writeJson(res, 400, { error: "topicId, topicVersion required" });
+  }
+  if (!FREE_TOPIC_IDS.includes(body.topicId) && !hasActiveEntitlement(db, account.id)) {
+    return writeJson(res, 402, { error: "Subscription required" });
   }
   upsertAccountTopic(db, account.id, {
     id: randomUUID(),
