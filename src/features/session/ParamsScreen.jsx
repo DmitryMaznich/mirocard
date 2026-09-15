@@ -1541,6 +1541,11 @@ export default function ParamsScreen() {
   const isNavigatorFlashCards = activeTopicId === "symmetry_draw"
     && activeModeId === "navigator_learning"
     && params.learningExercise === "cards";
+  // Every propis mode is evaluation:"none" already, so buildRewardProgress's own
+  // mode.evaluation !== "none" check already keeps the reward video from ever firing here --
+  // the toggle below was just dead UI for this topic (2026-09-15, user request: remove it
+  // outright, not merely disable it).
+  const isPropis = topicRecord?.meta.renderer === "propis";
 
   const allModes = topicRecord?.modes ?? [];
   const modeBackScreen = allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
@@ -1601,7 +1606,7 @@ export default function ParamsScreen() {
       setScreen("texts");
       return;
     }
-    const bypassPin = mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs;
+    const bypassPin = mode?.requirePin === false || mode?.type === "daily_sentences" || isAlphabetPairs || isPropis;
     if (!shouldRequestSessionStartPin({ videoRewardEnabled: videoReward && !isNavigatorFlashCards, bypassPin })) {
       launchSession();
       return;
@@ -2028,7 +2033,7 @@ export default function ParamsScreen() {
             </div>
           )}
 
-          {hasVideos && !isAlphabetPairs && !isNavigatorFlashCards && (
+          {hasVideos && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && (
             <div className="param-section">
               <div className="param-section__header">Награда за занятие</div>
 

@@ -120,6 +120,37 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `|| mode?.type === "browse"` clause — needed because this mode's own
     renderer is `"propis"`, not `"print_materials"`, so the old string check
     alone wouldn't have caught it and a meaningless "1 из 1" would have shown.
+  - **Icon added 2026-09-15 (deck v1.26.1).** `media/icons/propis_print_materials.svg`,
+    a builtin asset (`src/topics/builtinAssets.js`, resolved by `ModeIcon.jsx`
+    when the topic's own deck zip doesn't ship the file — same fallback path
+    every other propis mode icon already uses; none of them are bundled in
+    the zip). Breaks from the rest of the family's "ruled card + cursive ink
+    squiggle" language on purpose — this mode isn't handwriting, it's a
+    library of ready PDFs — so the main image is a stack of two offset blank
+    ruled cards (no ink stroke) and the corner badge swaps `read_lines`' "+"
+    for a small printer glyph. Same palette (`#eaf2fb`/`#bcd8ec`/`#ef6f5e`) as
+    its siblings to still read as "part of this topic" at a glance.
+- **Video-reward toggle — removed from every propis mode 2026-09-15, not just
+  hidden.** User request. It was already fully inert here before this
+  change: `buildRewardProgress` (`rewardProgress.js`) requires
+  `mode.evaluation !== "none"` to ever make a reward video available, and
+  every propis mode (`write_text`/`read_text`/`read_lines`/`print_materials`)
+  is `evaluation: "none"` — so the "Видео-награда" toggle that
+  `ParamsScreen.jsx` shows before every session start was doing nothing for
+  this topic, just adding a confusing control with no effect. Fixed at the
+  UI-exclusion layer (`ParamsScreen.jsx`), the same place `isAlphabetPairs`/
+  `isNavigatorFlashCards` already exclude their own topics/modes from this
+  same toggle: a new `isPropis` (`topicRecord?.meta.renderer === "propis"`,
+  topic-wide — unlike those two, which are mode-scoped, since the ask was
+  "every mode") added to (1) the toggle section's own render condition, and
+  (2) `bypassPin`, so a configured admin PIN no longer gates starting a
+  propis session either (`shouldRequestSessionStartPin` gates purely on the
+  raw `videoRewardEnabled` flag, not on whether a reward could ever actually
+  fire — so without this second change the already-inert toggle's default-on
+  state would still have prompted for a PIN before every session). Not a
+  propis-only file: `src/features/session/ParamsScreen.jsx` is shared app
+  code, not part of propis's own deck zip, so no `topic.json` version bump
+  or zip rebuild was needed for this half of the change.
 - **Standalone `print_materials` topic — hidden 2026-09-15 (deck v1.0.32),
   not deleted.** Now that its content lives inside `propis` too, keeping it
   as its own separately-installable topic was redundant (same ~8.5 MB of
