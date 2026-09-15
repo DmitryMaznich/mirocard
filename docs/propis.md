@@ -130,6 +130,36 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     ruled cards (no ink stroke) and the corner badge swaps `read_lines`' "+"
     for a small printer glyph. Same palette (`#eaf2fb`/`#bcd8ec`/`#ef6f5e`) as
     its siblings to still read as "part of this topic" at a glance.
+  - **Categories reshuffled 2026-09-15 (propis deck v1.27.0, print_materials
+    deck v1.0.34) — two lists instead of three, user request.** The original
+    3-category split (`notebooks`/`worksheets`/`ready`, the last one always
+    empty) bundled each notebook's cover PDFs *inside* its own item's
+    `files[]`, alongside its actual ruled pages — so "Обложка (стих)" and
+    "Обложка (алфавит)" sat as two of four download buttons on the same card
+    as "Страницы". Now `categories` is just `content` ("Рабочие листы и
+    тетради") and `covers` ("Обложки"), and every item that used to carry a
+    cover file had it split out into its own standalone item under `covers`
+    — `cover_standard`/`cover_плотная`/`cover_точки` each bundle their own
+    two cover variants ("Со стихотворением"/"С алфавитом") as two files on
+    one card (same pattern the punctuation-marks insert already used for
+    `notebook_standard`), `cover_тексты` has just the one variant that
+    exists. 13 items total now (9 content + 4 covers), same 17 PDFs, nothing
+    added or removed — `notebook_standard`/`_плотная`/`_точки` and
+    `propis_worksheets_texts` kept their existing ids and thumbnails for
+    their now-covers-free content card; the insert stayed with
+    `notebook_standard`'s content (it's meant to be printed *into* the
+    notebook, not a cover). Cover items have no `thumbnail` field — they
+    fall back to `PrintMaterialsView.jsx`'s existing 📄 placeholder rather
+    than a new asset being drawn for them.
+    En route, found and fixed a real (if dormant) bug in the thumbnail-
+    loading `useEffect` in both `PrintMaterialsView.jsx` and the original
+    `print_materials/index.jsx`: `if (!item.thumbnail || !live) break;`
+    aborted the *entire* loop — skipping every later item's thumbnail too —
+    the moment it hit one item without a `thumbnail`, instead of just
+    skipping that one item. Harmless today only because the four new
+    thumbnail-less cover items happen to sort last in the array; changed to
+    `if (!live) break;` / `if (!item.thumbnail) continue;` so it no longer
+    depends on item order.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires

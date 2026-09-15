@@ -23,7 +23,8 @@ export default function PrintMaterialsView({ topicRecord }) {
     (async () => {
       const db = await getDb();
       for (const item of items) {
-        if (!item.thumbnail || !live) break;
+        if (!live) break;
+        if (!item.thumbnail) continue;
         const blob = await topics.getFile(db, meta.id, item.thumbnail);
         if (!blob || !live) continue;
         const url = URL.createObjectURL(blob);
