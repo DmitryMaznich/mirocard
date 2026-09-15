@@ -60,6 +60,7 @@ import {
   createInvoice as createLavaTopInvoice,
   verifyLavaTopWebhookAuth, parseLavaTopWebhookEvent,
 } from "./lib/billing-providers/lava-top.mjs";
+import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
@@ -816,6 +817,24 @@ async function handleBillingCheckout(req, res) {
   }
 }
 
+async function handleStripeWebhook(req, res) {
+  const rawBody = (await readRawBody(req)).toString("utf8");
+  if (!verifyStripeWebhookSignature(rawBody, req.headers["stripe-signature"])) {
+    return writeJson(res, 401, { error: "Invalid signature" });
+  }
+  processBillingEvent(db, { provider: "stripe", event: parseStripeWebhookEvent(rawBody), rawBody });
+  writeJson(res, 200, { received: true });
+}
+
+async function handleLavaTopWebhook(req, res) {
+  const rawBody = (await readRawBody(req)).toString("utf8");
+  if (!verifyLavaTopWebhookAuth(req.headers["x-api-key"])) {
+    return writeJson(res, 401, { error: "Invalid auth" });
+  }
+  processBillingEvent(db, { provider: "lava_top", event: parseLavaTopWebhookEvent(rawBody), rawBody });
+  writeJson(res, 200, { received: true });
+}
+
 // ─── Student topic links + concept progress ────────────────────────────────────
 
 async function handleGetStudentTopicLinks(req, res) {
@@ -1259,6 +1278,8 @@ async function router(req, res) {
 
     // Billing
     if (method === "POST" && p === "/billing/checkout") return await handleBillingCheckout(req, res);
+    if (method === "POST" && p === "/billing/webhook/stripe")    return await handleStripeWebhook(req, res);
+    if (method === "POST" && p === "/billing/webhook/lava-top")  return await handleLavaTopWebhook(req, res);
 
     // Sync
     if (method === "POST"   && p === "/sync")                     return await handleSync(req, res);
