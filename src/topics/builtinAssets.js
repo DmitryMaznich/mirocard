@@ -774,6 +774,26 @@ const BUILTIN_ASSETS = {
   <circle cx="100" cy="30" r="15" fill="#ef6f5e"/>
   <path d="M100 23v14M93 30h14" stroke="#fffdf8" stroke-width="3.2" stroke-linecap="round"/>
 </svg>`,
+  // print_materials: breaks from the family's "ruled card + ink squiggle" language on purpose
+  // -- this mode isn't about handwriting on screen, it's a library of ready-made PDFs, so the
+  // main image is a stack of printed sheets (two offset cards, no ink stroke) and the badge
+  // swaps read_lines' "+" for a small printer glyph (body + a sheet mid-feed) instead of
+  // another handwriting cue -- consistent palette (#eaf2fb/#bcd8ec/#ef6f5e) ties it back to its
+  // siblings without implying it also shows an animated pen.
+  "media/icons/propis_print_materials.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
+  <rect x="26" y="22" width="72" height="90" rx="10" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
+  <rect x="16" y="14" width="72" height="90" rx="10" fill="#fffdf8" stroke="#bcd8ec" stroke-width="3"/>
+  <path d="M28 36h48" stroke="#dcebf6" stroke-width="2.4"/>
+  <path d="M28 50h48" stroke="#6fa3e0" stroke-width="2.4"/>
+  <path d="M28 64h34" stroke="#dcebf6" stroke-width="2.4"/>
+  <path d="M28 78h48" stroke="#dcebf6" stroke-width="2.4"/>
+  <path d="M28 92h30" stroke="#dcebf6" stroke-width="2.4"/>
+  <circle cx="100" cy="30" r="15" fill="#ef6f5e"/>
+  <rect x="92" y="27" width="16" height="10" rx="2" fill="#fffdf8"/>
+  <rect x="95" y="23" width="10" height="6" rx="1.5" fill="#fffdf8"/>
+</svg>`,
 };
 
 const TOPIC_AVATAR_VARIANTS = {
