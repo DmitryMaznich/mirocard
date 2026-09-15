@@ -200,6 +200,36 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     directory regardless of whether `topic.json` references it, so leaving
     them would have kept shipping ~390KB of dead weight in every future
     rebuild. Bundled-asset count: 26 → 23.
+  - **Click-to-zoom thumbnail lightbox added 2026-09-15, no version bump,
+    no deck-zip rebuild.** User request: the card thumbnail is too small to
+    make out ruling detail. `.pm-card__thumb` now gets a
+    `pm-card__thumb--zoomable` class (`cursor: zoom-in`) and an `onClick`
+    only when that item actually has a loaded thumbnail URL (covers-category
+    items still have no `thumbnail` field and stay non-interactive); clicking
+    it sets `zoomedItem` state and renders a `.pm-lightbox` overlay —
+    `position: fixed; inset: 0; z-index: 1000` (above `.session-header-wrap`'s
+    `z-index: 20`, since this view renders inside the normal `SessionScreen`
+    chrome, not its own full-screen overlay like other propis views) —
+    showing the same thumbnail blob URL at `width: 100%` so it fills the
+    current screen's width, `height: auto` with the overlay itself
+    `overflow-y: auto` (not `object-fit: contain` capped to viewport height,
+    so a tall page stays fully legible by scrolling rather than shrinking to
+    fit). Safe-area-aware per the mandatory iOS rule: the fixed `✕` close
+    button sits at `top: calc(12px + var(--app-safe-top, 0px)); right:
+    calc(12px + var(--app-safe-right, 0px))`, and the overlay's own padding
+    reserves `--app-safe-bottom`/`--app-safe-left` too (top padding is a
+    flat 56px + safe-top, to clear the close button). Clicking anywhere on
+    the overlay (including the image) closes it, same as the explicit
+    button. No `topic.json`/thumbnail changes — pure interaction added to
+    both `PrintMaterialsView.jsx` and the original `print_materials/index.jsx`
+    (kept in sync, JSX and CSS diffed identical after the change) since
+    neither reads thumbnails from anywhere new. Verified end-to-end: real
+    zip import into IndexedDB, `PrintMaterialsView.jsx` rendered standalone,
+    thumbnail clicked and closed programmatically, screenshots pixel-sampled
+    to confirm the overlay actually spans the full viewport (dims the tab
+    bar and cards underneath rather than just visually appearing to, which a
+    first glance at the screenshot can misread) and that closing restores
+    the plain grid.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
