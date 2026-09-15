@@ -19,7 +19,7 @@ import {
   shouldClaimCatalogDeck,
   isLocalModeProfile,
 } from "./catalogService";
-import { CATEGORY_ORDER, OTHER_CATEGORY, getTopicCategory } from "./topicCategories";
+import { CATEGORY_ORDER, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
@@ -153,22 +153,24 @@ export default function TopicLibraryScreen() {
   const allItems = [...itemsById.values()];
   const installedCount = allItems.filter((item) => item.installedRecord != null).length;
 
+  const byTitle = (a, b) => a.title.localeCompare(b.title, "ru");
+
   const trimmedQuery = query.trim().toLowerCase();
   const searchResults = trimmedQuery
-    ? allItems.filter((item) => item.title.toLowerCase().includes(trimmedQuery))
+    ? allItems.filter((item) => item.title.toLowerCase().includes(trimmedQuery)).sort(byTitle)
     : null;
 
   // "Мои темы" is everything already on the device (builtin, downloaded,
   // imported, granted) — the other chips filter the full catalog instead.
-  const filteredItems = filter === "mine"
+  // Category is a filter, not a grouping: the list itself stays flat and
+  // alphabetical, same as the connector picker in Claude Desktop — no
+  // per-category headers, just chips to narrow the one list down.
+  const filteredItems = (filter === "mine"
     ? allItems.filter((item) => item.installedRecord != null)
     : filter === "all"
       ? allItems
-      : allItems.filter((item) => item.category === filter);
-
-  const sectionsToShow = [...CATEGORY_ORDER, OTHER_CATEGORY]
-    .map((label) => ({ label, items: filteredItems.filter((item) => item.category === label) }))
-    .filter((group) => group.items.length > 0);
+      : allItems.filter((item) => item.category === filter)
+  ).sort(byTitle);
 
   function renderItem(item) {
     const owned = ownedById[item.id] ?? null;
@@ -254,12 +256,11 @@ export default function TopicLibraryScreen() {
           </section>
         ) : (
           <>
-            {sectionsToShow.map((group) => (
-              <section className="topics-section" key={group.label}>
-                <div className="topics-section__head"><h2>{group.label}</h2></div>
-                <div className="topics-grid">{group.items.map(renderItem)}</div>
+            {filteredItems.length > 0 && (
+              <section className="topics-section">
+                <div className="topics-grid">{filteredItems.map(renderItem)}</div>
               </section>
-            ))}
+            )}
 
             {!catalog && !catalogError && (
               <div className="empty-state"><div className="empty-state__text">Загружаем каталог…</div></div>
