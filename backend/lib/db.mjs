@@ -324,6 +324,58 @@ export function initDb(dbPath = DB_PATH) {
     CREATE INDEX IF NOT EXISTS idx_materials_leads_token ON materials_leads(token_hash);
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id                   TEXT PRIMARY KEY,
+      account_id           TEXT NOT NULL UNIQUE REFERENCES accounts(id),
+      provider             TEXT NOT NULL,          -- 'stripe' | 'lava_top' | 'promo'
+      plan                 TEXT NOT NULL,          -- 'monthly' | 'half_year' | 'annual' | 'free_grant'
+      status               TEXT NOT NULL,          -- 'pending' | 'active' | 'past_due' | 'cancelled' | 'expired' | 'refunded'
+      currency             TEXT NOT NULL,
+      amount_minor         INTEGER NOT NULL,
+      external_contract_id TEXT UNIQUE,            -- Mironium-generated orderId, the correlation key with the provider
+      applied_code         TEXT,                   -- promo code used at checkout, if any — finalized as redeemed only on webhook success
+      current_period_end   TEXT NOT NULL,
+      cancel_at_period_end INTEGER DEFAULT 0,
+      created_at           TEXT NOT NULL,
+      updated_at           TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_events (
+      id           TEXT PRIMARY KEY,
+      account_id   TEXT REFERENCES accounts(id),
+      provider     TEXT NOT NULL,
+      event_type   TEXT NOT NULL,
+      external_id  TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      processed_at TEXT NOT NULL,
+      UNIQUE(provider, event_type, external_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS promo_codes (
+      code                 TEXT PRIMARY KEY,
+      kind                 TEXT NOT NULL,          -- 'percent_off' | 'fixed_off' | 'free_grant'
+      value                INTEGER,
+      currency             TEXT,
+      applies_to_plan      TEXT,
+      grant_duration_days  INTEGER,
+      max_redemptions      INTEGER,
+      redeemed_count       INTEGER NOT NULL DEFAULT 0,
+      expires_at           TEXT,
+      note                 TEXT,
+      created_at           TEXT NOT NULL,
+      created_by           TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS promo_redemptions (
+      id          TEXT PRIMARY KEY,
+      code        TEXT NOT NULL REFERENCES promo_codes(code),
+      account_id  TEXT NOT NULL REFERENCES accounts(id),
+      redeemed_at TEXT NOT NULL,
+      UNIQUE(code, account_id)
+    );
+  `);
+
   return db;
 }
 
