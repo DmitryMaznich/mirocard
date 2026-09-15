@@ -30,6 +30,7 @@ import {
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
   getPhoto, migratePhotoData, extractAndStorePhoto,
   getAccountKvByPrefixes,
+  incrementRevision,
 } from "./lib/account-repository.mjs";
 import {
   createPasswordHash, verifyPasswordHash,
@@ -840,6 +841,32 @@ async function handleGetSubscription(req, res) {
   writeJson(res, 200, getActiveSubscriptionForAccount(db, account.id));
 }
 
+async function handleValidateCode(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  if (!body?.code || !PLAN_CATALOG[body.plan]) {
+    return writeJson(res, 400, { error: "code and a known plan are required" });
+  }
+  const result = validatePromoCode(db, body.code, { accountId: account.id, plan: body.plan });
+  if (!result.ok) return writeJson(res, 200, result);
+
+  if (result.kind === "free_grant") return writeJson(res, 200, result);
+
+  const original = PLAN_CATALOG[body.plan].amountMinor;
+  const discounted = applyDiscount(original, result);
+  writeJson(res, 200, { ...result, originalAmountMinor: original, discountedAmountMinor: discounted });
+}
+
+async function handleRedeemCode(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  if (!body?.code) return writeJson(res, 400, { error: "code is required" });
+
+  const result = redeemFreeGrantCode(db, body.code, account.id);
+  if (result.ok) incrementRevision(db, account.id);
+  writeJson(res, result.ok ? 200 : 400, result);
+}
+
 // ─── Student topic links + concept progress ────────────────────────────────────
 
 async function handleGetStudentTopicLinks(req, res) {
@@ -1286,6 +1313,8 @@ async function router(req, res) {
     if (method === "POST" && p === "/billing/webhook/stripe")    return await handleStripeWebhook(req, res);
     if (method === "POST" && p === "/billing/webhook/lava-top")  return await handleLavaTopWebhook(req, res);
     if (method === "GET"  && p === "/billing/subscription")      return await handleGetSubscription(req, res);
+    if (method === "POST" && p === "/billing/validate-code") return await handleValidateCode(req, res);
+    if (method === "POST" && p === "/billing/redeem-code")   return await handleRedeemCode(req, res);
 
     // Sync
     if (method === "POST"   && p === "/sync")                     return await handleSync(req, res);
