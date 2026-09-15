@@ -940,8 +940,10 @@ function MissingTermExpression({ task, answered }) {
 
 function MissingTermTask({ task, onCorrect, onIncorrect }) {
   const [selected, setSelected] = useState(null);
+  const [digits, setDigits] = useState([]);
   const [helperOpen, setHelperOpen] = useState(false);
   const answered = selected != null;
+  const maxDigits = Math.max(1, String(task.maxNumber).length);
 
   const handleAnswer = useCallback((value) => {
     if (answered) return;
@@ -953,16 +955,49 @@ function MissingTermTask({ task, onCorrect, onIncorrect }) {
     }
   }, [answered, task, onCorrect, onIncorrect]);
 
+  function addDigit(d) {
+    if (answered || digits.length >= maxDigits) return;
+    setDigits((prev) => [...prev, d]);
+  }
+
+  function removeDigit() {
+    if (answered) return;
+    setDigits((prev) => prev.slice(0, -1));
+  }
+
+  function checkDigits() {
+    if (answered || digits.length === 0) return;
+    handleAnswer(Number(digits.join("")));
+  }
+
+  const isWrong = answered && selected !== task.answer;
+  const isCorrect = selected === task.answer;
+  const placeholder = task.unknownSymbol === "x" ? "X" : "?";
+  const fieldValue = answered ? String(selected) : digits.join("");
+
   return (
     <div className="operation-stage operation-stage--missing-term">
-      <MissingTermExpression task={task} answered={selected === task.answer} />
+      <MissingTermExpression task={task} answered={isCorrect} />
       {task.inputMode === "pad" ? (
-        <NumberPad
-          maxNumber={task.maxNumber}
-          answer={task.answer}
-          selected={selected}
-          onAnswer={handleAnswer}
-        />
+        <div className="operation-missing-term-pad">
+          <div
+            className={[
+              "operation-audio-answer",
+              isWrong ? "operation-audio-answer--wrong" : "",
+              isCorrect ? "operation-audio-answer--correct" : "",
+            ].filter(Boolean).join(" ")}
+          >
+            {fieldValue || placeholder}
+          </div>
+          <AudioAnswerPad
+            digits={digits}
+            disabled={answered}
+            maxDigits={maxDigits}
+            onDigit={addDigit}
+            onBackspace={removeDigit}
+            onCheck={checkDigits}
+          />
+        </div>
       ) : (
         <NumberChoices
           task={{ result: task.answer, resultOptions: task.resultOptions }}
@@ -992,7 +1027,7 @@ function MissingTermTask({ task, onCorrect, onIncorrect }) {
 
 const AUDIO_MAX_DIGITS = 3;
 
-function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck }) {
+function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck, maxDigits = AUDIO_MAX_DIGITS }) {
   return (
     <div className="operation-audio-keypad">
       <div className="operation-audio-keypad__grid">
@@ -1001,7 +1036,7 @@ function AudioAnswerPad({ digits, disabled, onDigit, onBackspace, onCheck }) {
             key={d}
             type="button"
             className="operation-audio-key"
-            disabled={disabled || digits.length >= AUDIO_MAX_DIGITS}
+            disabled={disabled || digits.length >= maxDigits}
             onClick={() => onDigit(d)}
           >
             {d}
