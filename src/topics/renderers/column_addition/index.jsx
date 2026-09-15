@@ -865,13 +865,13 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
   const count     = Number(sessionParams?.count     ?? 6);
   const operation = sessionParams?.operation ?? "mixed";
   const carryMode = sessionParams?.carryMode ?? "none";
-  // Not Number()-converted here — "2+1" (2-зн. + 1-зн.) is a valid non-numeric
-  // value that generateExamples' own resolveDigitsParam knows how to read;
-  // forcing it to a number here would turn it into NaN before that.
+  // Not Number()-converted here — "2+1" and "round10" are valid non-numeric
+  // values that generateExamples' own resolveDigitsParam knows how to read;
+  // forcing them to a number here would turn them into NaN before that.
   const digits    = sessionParams?.digits ?? 2;
   // Layout sizing only needs a column-width estimate, not the category
-  // itself — "2+1" is as wide as a 2-digit top number.
-  const layoutDigits = digits === "2+1" ? 2 : Number(digits);
+  // itself — both "2+1" and "round10" are as wide as a 2-digit top number.
+  const layoutDigits = (digits === "2+1" || digits === "round10") ? 2 : Number(digits);
 
   const screenRef = useRef(null);
   const listRef   = useRef(null);

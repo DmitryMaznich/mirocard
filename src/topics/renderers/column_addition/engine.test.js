@@ -159,6 +159,81 @@ describe("generateTasks – column_arithmetic, digits: \"2+1\" (2-зн. + 1-зн
   });
 });
 
+describe("generateTasks – column_arithmetic, digits: \"round10\" (Круглые дес.)", () => {
+  it("both top and bottom are multiples of 10, in [10, 90]", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "mixed", carryMode: "mixed", digits: "round10" });
+    for (const t of tasks) {
+      expect(t.top % 10).toBe(0);
+      expect(t.bottom % 10).toBe(0);
+      expect(t.top).toBeGreaterThanOrEqual(10);
+      expect(t.top).toBeLessThanOrEqual(90);
+      expect(t.bottom).toBeGreaterThanOrEqual(10);
+      expect(t.bottom).toBeLessThanOrEqual(90);
+    }
+  });
+
+  it("grid stays 2 columns wide, both with a real (zero) bottom digit", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 10, { operation: "add", carryMode: "none", digits: "round10" });
+    for (const t of tasks) {
+      expect(t.columns).toHaveLength(2);
+      const units = t.columns.find((c) => c.position === "units");
+      expect(units.hasBottomDigit).toBe(true);
+      expect(units.topDigit).toBe(0);
+      expect(units.bottomDigit).toBe(0);
+    }
+  });
+
+  it("add/none: tens sum stays under 10 (result stays 2-digit)", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode: "none", digits: "round10" });
+    for (const t of tasks) {
+      expect(t.columns.every((c) => c.carryOut === 0)).toBe(true);
+      expect(t.result).toBeLessThanOrEqual(90);
+    }
+  });
+
+  it("add/carry: tens sum overflows into hundreds (e.g. 60+70=130)", () => {
+    const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode: "carry", digits: "round10" });
+    for (const t of tasks) {
+      expect(t.columns.some((c) => c.carryOut > 0)).toBe(true);
+      expect(t.result).toBeGreaterThan(90);
+    }
+  });
+
+  it("subtract: top > bottom always, never a borrow, regardless of carryMode", () => {
+    for (const carryMode of ["none", "carry", "mixed"]) {
+      const tasks = generateTasks("column_arithmetic", CARDS, 15, { operation: "subtract", carryMode, digits: "round10" });
+      expect(tasks.length).toBeGreaterThan(0);
+      for (const t of tasks) {
+        expect(t.top).toBeGreaterThan(t.bottom);
+        expect(t.columns.every((c) => c.borrowOut === 0)).toBe(true);
+      }
+    }
+  });
+
+  it("result = top ± bottom", () => {
+    const addTasks = generateTasks("column_arithmetic", CARDS, 15, { operation: "add", carryMode: "mixed", digits: "round10" });
+    for (const t of addTasks) expect(t.result).toBe(t.top + t.bottom);
+    const subTasks = generateTasks("column_arithmetic", CARDS, 15, { operation: "subtract", carryMode: "mixed", digits: "round10" });
+    for (const t of subTasks) expect(t.result).toBe(t.top - t.bottom);
+  });
+});
+
+describe("generateExamples – digits: \"round10\" (column_copy print mode)", () => {
+  it("both operands are multiples of 10", () => {
+    const examples = generateExamples(20, { operation: "mixed", carryMode: "mixed", digits: "round10" });
+    expect(examples).toHaveLength(20);
+    for (const ex of examples) {
+      expect(ex.top % 10).toBe(0);
+      expect(ex.bottom % 10).toBe(0);
+    }
+  });
+
+  it("subtract + carryMode:\"carry\" still produces tasks (carryMode is a no-op here, not a dead end)", () => {
+    const examples = generateExamples(10, { operation: "subtract", carryMode: "carry", digits: "round10" });
+    expect(examples).toHaveLength(10);
+  });
+});
+
 describe("generateExamples – digits: \"2+1\" (column_copy print mode)", () => {
   it("top is always 2-digit, bottom is always 1-digit", () => {
     const examples = generateExamples(20, { operation: "mixed", carryMode: "mixed", digits: "2+1" });
