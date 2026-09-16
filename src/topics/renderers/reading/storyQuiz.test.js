@@ -1,63 +1,71 @@
 import { describe, expect, it } from "vitest";
-import { parseStoryQuizText, quizGroupsByStoryId, validateStoryQuizText } from "./storyQuiz";
+import {
+  getStoryQuizTargetMatches,
+  parseStoryQuizText,
+  quizGroupsByStoryId,
+  validateStoryQuizText,
+} from "./storyQuiz";
 
-const COMPLETE_QUESTION = `? Сколько мячей было у Вани и Миши?
-+ Один мяч
-- Два мяча
-- Три мяча
-- Ни одного мяча`;
+const COMPLETE_QUESTION = `? Найди, сколько мячей было у Вани и Миши.
++ один мяч`;
 
-describe("short-story quiz text", () => {
-  it("parses four marked answer choices", () => {
+const BALL_STORY = {
+  id: "ball",
+  title: "Мяч по очереди",
+  lines: [{ id: "l1", text: "У Вани и Миши был один мяч." }],
+};
+
+describe("short-story text locator source", () => {
+  it("parses one tappable text fragment for a question", () => {
     const parsed = parseStoryQuizText(`# Мяч по очереди
 
 ${COMPLETE_QUESTION}`);
 
     expect(parsed.valid).toBe(true);
-    expect(parsed.groups[0].questions[0].prompt).toBe("Сколько мячей было у Вани и Миши?");
-    expect(parsed.groups[0].questions[0].answers.map(({ text, isCorrect }) => ({ text, isCorrect }))).toEqual([
-      { text: "Один мяч", isCorrect: true },
-      { text: "Два мяча", isCorrect: false },
-      { text: "Три мяча", isCorrect: false },
-      { text: "Ни одного мяча", isCorrect: false },
+    expect(parsed.groups[0].questions[0]).toMatchObject({
+      prompt: "Найди, сколько мячей было у Вани и Миши.",
+      target: "один мяч",
+    });
+  });
+
+  it("rejects obsolete distractors with a useful authoring error", () => {
+    const parsed = parseStoryQuizText(`# Мяч по очереди
+
+${COMPLETE_QUESTION}
+- Два мяча`);
+
+    expect(parsed.valid).toBe(false);
+    expect(parsed.errors[0].message).toContain("дистракторы не нужны");
+  });
+
+  it("matches a phrase in normal and syllable text", () => {
+    expect(getStoryQuizTargetMatches("У Вани и Миши был один мяч.", "один мяч")).toEqual([
+      { start: 18, end: 26 },
+    ]);
+    expect(getStoryQuizTargetMatches("У Ва-ни и Ми-ши был о-дин мяч.", "один мяч")).toEqual([
+      { start: 20, end: 29 },
     ]);
   });
 
-  it("reports an incomplete question without discarding it", () => {
-    const parsed = parseStoryQuizText(`# Мяч по очереди
-
-? Сколько мячей было?
-+ Один
-- Два`);
-
-    expect(parsed.valid).toBe(false);
-    expect(parsed.errors[0].message).toContain("4 ответа");
-    expect(parsed.groups[0].questions).toHaveLength(1);
-  });
-
-  it("requires five questions for every story selected in the trainer", () => {
+  it("requires five questions and verifies every target is in its story", () => {
     const source = `# Мяч по очереди
 
-${Array.from({ length: 5 }, (_, index) => `${COMPLETE_QUESTION.replace("Сколько мячей было у Вани и Миши?", `Вопрос ${index + 1}?`)}`).join("\n\n")}`;
-    const stories = [
-      { id: "ball", title: "Мяч по очереди" },
-      { id: "help", title: "Помощь маме" },
-    ];
+${Array.from({ length: 5 }, (_, index) => `${COMPLETE_QUESTION.replace("Найди, сколько мячей было у Вани и Миши.", `Вопрос ${index + 1}?`)}`).join("\n\n")}`;
 
-    const checked = validateStoryQuizText(source, stories, ["ball"]);
-    expect(checked.valid).toBe(true);
+    expect(validateStoryQuizText(source, [BALL_STORY], ["ball"]).valid).toBe(true);
 
-    const missing = validateStoryQuizText(source, stories, ["help"]);
-    expect(missing.valid).toBe(false);
-    expect(missing.errors.at(-1).message).toContain("Помощь маме");
+    const missingTarget = source.replace(/один мяч/g, "два мяча");
+    const checked = validateStoryQuizText(missingTarget, [BALL_STORY], ["ball"]);
+    expect(checked.valid).toBe(false);
+    expect(checked.errors.some((error) => error.message.includes("не найден"))).toBe(true);
   });
 
   it("resolves friendly text-file headings to stable story ids", () => {
     const parsed = parseStoryQuizText(`# Мяч по очереди
 
 ${COMPLETE_QUESTION}`);
-    expect(quizGroupsByStoryId(parsed, [{ id: "whose_ball", title: "Мяч по очереди" }])).toMatchObject({
-      whose_ball: [{ prompt: "Сколько мячей было у Вани и Миши?" }],
+    expect(quizGroupsByStoryId(parsed, [BALL_STORY])).toMatchObject({
+      ball: [{ target: "один мяч" }],
     });
   });
 });

@@ -1,17 +1,55 @@
 /**
- * Plain-text authoring format for the short-stories comprehension quiz.
+ * Plain-text authoring format for the short-stories text locator.
  *
  *   # Мяч по очереди
- *   ? Сколько мячей было у Вани и Миши?
- *   + Один мяч
- *   - Два мяча
- *   - Три мяча
- *   - Ни одного мяча
+ *   ? Найди, сколько мячей было у Вани и Миши.
+ *   + один мяч
  *
- * The format intentionally stays simple enough to edit in the parent
- * settings. `+` marks the single correct answer; the other three answers are
- * marked with `-`.
+ * `?` is the prompt. `+` is the exact word or phrase that the child needs
+ * to find and tap in the story. Keeping the source as plain text makes a
+ * per-child correction far less cumbersome than a form.
  */
+export function normalizeStoryQuizText(value) {
+  return String(value ?? "")
+    .toLocaleLowerCase("ru-RU")
+    // The syllable-reading variant inserts hyphens inside a word. They do
+    // not change what the child should be able to find.
+    .replace(/(\p{L})-(?=\p{L})/gu, "$1")
+    .match(/[\p{L}\p{N}]+/gu) ?? [];
+}
+
+/**
+ * Finds all whole-word occurrences of a target phrase in one rendered line.
+ * The returned character ranges refer to visible text, including the
+ * syllable-reading variant, so the renderer can make them accessible targets.
+ */
+export function getStoryQuizTargetMatches(lineText, target) {
+  const wanted = normalizeStoryQuizText(target);
+  if (!wanted.length) return [];
+
+  const text = String(lineText ?? "");
+  const words = [...text.matchAll(/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*/gu)]
+    .map((match) => ({
+      start: match.index,
+      end: match.index + match[0].length,
+      normalized: normalizeStoryQuizText(match[0])[0] ?? "",
+    }));
+  const matches = [];
+
+  for (let index = 0; index <= words.length - wanted.length; index += 1) {
+    const fits = wanted.every((word, offset) => words[index + offset].normalized === word);
+    if (fits) {
+      matches.push({ start: words[index].start, end: words[index + wanted.length - 1].end });
+      index += wanted.length - 1;
+    }
+  }
+  return matches;
+}
+
+export function storyQuizTargetExists(story, target) {
+  return (story?.lines ?? []).some((line) => getStoryQuizTargetMatches(line?.text ?? line, target).length > 0);
+}
+
 export function parseStoryQuizText(source) {
   const lines = String(source ?? "").replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n");
   const errors = [];
@@ -27,12 +65,8 @@ export function parseStoryQuizText(source) {
 
   function finishQuestion() {
     if (!question) return;
-    if (question.answers.length !== 4) {
-      fail(question.line, `У вопроса должно быть 4 ответа, сейчас ${question.answers.length}.`);
-    }
-    const correctCount = question.answers.filter((answer) => answer.isCorrect).length;
-    if (correctCount !== 1) {
-      fail(question.line, "У вопроса должен быть один правильный ответ, отмеченный знаком +.");
+    if (!question.target) {
+      fail(question.line, "После вопроса укажите фрагмент для поиска со знаком +.");
     }
     if (!group) {
       fail(question.line, "Вопрос нужно поместить после названия рассказа со знаком #.");
@@ -40,11 +74,8 @@ export function parseStoryQuizText(source) {
       group.questions.push({
         id: `q${group.questions.length + 1}`,
         prompt: question.prompt,
-        answers: question.answers.map((answer, index) => ({
-          id: `a${index + 1}`,
-          text: answer.text,
-          isCorrect: answer.isCorrect,
-        })),
+        target: question.target,
+        targetLine: question.targetLine,
       });
     }
     question = null;
@@ -85,25 +116,35 @@ export function parseStoryQuizText(source) {
         return;
       }
       questionNumber += 1;
-      question = { line: lineNumber, prompt, answers: [] };
+      question = { line: lineNumber, prompt, target: "", targetLine: null };
       return;
     }
 
-    if (line.startsWith("+") || line.startsWith("-")) {
+    if (line.startsWith("+")) {
       if (!question) {
-        fail(lineNumber, "Ответ должен идти после вопроса со знаком ?.");
+        fail(lineNumber, "Фрагмент для поиска должен идти после вопроса со знаком ?.");
         return;
       }
-      const text = line.slice(1).trim();
-      if (!text) {
-        fail(lineNumber, "После знака + или - напишите ответ.");
+      const target = line.slice(1).trim();
+      if (!target) {
+        fail(lineNumber, "После знака + напишите слово или фразу из рассказа.");
         return;
       }
-      question.answers.push({ text, isCorrect: line.startsWith("+") });
+      if (question.target) {
+        fail(lineNumber, "У вопроса может быть только один фрагмент для поиска.");
+        return;
+      }
+      question.target = target;
+      question.targetLine = lineNumber;
       return;
     }
 
-    fail(lineNumber, "Используйте # для рассказа, ? для вопроса, + для верного и - для неверного ответа.");
+    if (line.startsWith("-")) {
+      fail(lineNumber, "В этом режиме дистракторы не нужны: оставьте вопрос ? и фрагмент +.");
+      return;
+    }
+
+    fail(lineNumber, "Используйте # для рассказа, ? для вопроса и + для фрагмента в тексте.");
   });
 
   finishGroup();
@@ -113,9 +154,8 @@ export function parseStoryQuizText(source) {
 }
 
 /**
- * Validates that every selected story has enough questions. The editor uses
- * titles because they remain understandable in a regular .txt file; the
- * engine resolves those titles back to the story ids from the deck.
+ * Validates both the text-file structure and the fact that every marked
+ * fragment can be found in the selected story itself.
  */
 export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
   const parsed = parseStoryQuizText(source);
@@ -126,8 +166,18 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
     : (stories ?? []);
 
   for (const group of parsed.groups) {
-    if (!storyByTitle.has(group.title)) {
+    const story = storyByTitle.get(group.title);
+    if (!story) {
       errors.push({ line: null, message: `Рассказ «${group.title}» не найден в этой теме.` });
+      continue;
+    }
+    for (const question of group.questions) {
+      if (question.target && !storyQuizTargetExists(story, question.target)) {
+        errors.push({
+          line: question.targetLine,
+          message: `Фрагмент «${question.target}» не найден в рассказе «${group.title}».`,
+        });
+      }
     }
   }
 

@@ -728,8 +728,8 @@ function StoryQuizEditorParam({ value, defaultText, stories, selectedStoryIds, o
           )}
         >
           <div className="story-quiz-editor__intro">
-            <p>Один блок начинается с <code># Название рассказа</code>. Вопрос начинается с <code>?</code>, правильный ответ – с <code>+</code>, три остальных – с <code>-</code>.</p>
-            <p>Для каждого выбранного рассказа нужно не меньше пяти вопросов, по четыре ответа в каждом.</p>
+            <p>Один блок начинается с <code># Название рассказа</code>. Вопрос начинается с <code>?</code>, а слово или фраза, которую ребёнок ищет в тексте, – с <code>+</code>.</p>
+            <p>Для каждого выбранного рассказа нужно не меньше пяти вопросов. Фрагмент после <code>+</code> должен быть в самом рассказе.</p>
           </div>
           <textarea
             className="story-quiz-editor__textarea"
@@ -1510,7 +1510,7 @@ export default function ParamsScreen() {
 
   const storyQuizStories = (topicRecord?.texts ?? [])
     .filter((text) => text.kind === "story")
-    .map((text) => ({ id: text.id, title: getTopicTitle(text.title) }));
+    .map((text) => ({ id: text.id, title: getTopicTitle(text.title), lines: text.lines ?? [] }));
 
   if (isReadingInstruction) {
     return (

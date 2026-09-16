@@ -2,10 +2,7 @@ import { describe, it, expect } from "vitest";
 import { generateTasks, tokenizeReadingLine } from "./engine";
 
 const FIVE_QUESTIONS = Array.from({ length: 5 }, (_, index) => `? Вопрос ${index + 1}?
-+ Верный ответ
-- Ответ два
-- Ответ три
-- Ответ четыре`).join("\n\n");
++ Первый`).join("\n\n");
 
 const TOPIC = {
   meta: { id: "reading_test", renderer: "reading" },

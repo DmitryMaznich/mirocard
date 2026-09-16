@@ -4,6 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
+import { getStoryQuizTargetMatches } from "./storyQuiz";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
 import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping, getRecipeOptionSelections } from "@/core/groupStore";
@@ -446,19 +447,80 @@ function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   );
 }
 
+function StoryQuizTargetText({ lines, textStyle, target, answered, onTarget, onMiss }) {
+  const items = lines ?? [];
+  const firstIsDialogue = items.length > 0 && getLineText(items[0], textStyle).trimStart().startsWith("—");
+  const paragraphs = [];
+  items.forEach((line, index) => {
+    if (index === 0 || line.newParagraph) paragraphs.push([]);
+    paragraphs[paragraphs.length - 1].push(line);
+  });
+
+  function renderLine(text, key) {
+    const matches = getStoryQuizTargetMatches(text, target);
+    if (!matches.length) return text;
+    const parts = [];
+    let cursor = 0;
+    matches.forEach((match, index) => {
+      if (match.start > cursor) parts.push(text.slice(cursor, match.start));
+      const phrase = text.slice(match.start, match.end);
+      parts.push(
+        <button
+          key={`${key}_target_${index}`}
+          type="button"
+          className={`story-quiz__target${answered ? " story-quiz__target--found" : ""}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onTarget();
+          }}
+          disabled={answered}
+          aria-label={`Найденный фрагмент: ${phrase}`}
+        >
+          {phrase}
+        </button>,
+      );
+      cursor = match.end;
+    });
+    if (cursor < text.length) parts.push(text.slice(cursor));
+    return parts;
+  }
+
+  return (
+    <div className="reading-text reading-text--flow story-quiz__text" onClick={onMiss}>
+      <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
+        {paragraphs.map((paraLines, paragraphIndex) => (
+          <p className="reading-flow-para" key={paraLines[0]?.id ?? paragraphIndex}>
+            {paraLines.map((line, index) => {
+              const text = getLineText(line, textStyle);
+              const isDialogue = text.trimStart().startsWith("—");
+              const previousIsDialogue = index > 0 && getLineText(paraLines[index - 1], textStyle).trimStart().startsWith("—");
+              return (
+                <Fragment key={line.id ?? index}>
+                  {index > 0 && (isDialogue || previousIsDialogue ? <br /> : " ")}
+                  {renderLine(text, line.id ?? index)}
+                </Fragment>
+              );
+            })}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect }) {
   const textStyle = sessionParams?.textStyle ?? "normal";
-  const [chosenAnswerId, setChosenAnswerId] = useState(null);
-  const answers = useMemo(
-    () => shuffle(task.question?.answers ?? []),
-    [task.textId, task.question?.id, task.question?.answers],
-  );
+  const [answered, setAnswered] = useState(false);
 
-  function chooseAnswer(answer) {
-    if (chosenAnswerId) return;
-    setChosenAnswerId(answer.id);
-    if (answer.isCorrect) onCorrect(task.textId, task.question.id);
-    else onIncorrect(task.textId, task.question.id);
+  function chooseTarget() {
+    if (answered) return;
+    setAnswered(true);
+    onCorrect(task.textId, task.question.id);
+  }
+
+  function markMiss() {
+    if (answered) return;
+    onIncorrect(task.textId, task.question.id);
   }
 
   return (
@@ -466,40 +528,25 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect })
       <div className="story-quiz__reading">
         <div className="story-quiz__story-copy">
           <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
+          <section className="story-quiz__question" aria-labelledby="story-quiz-question" onClick={(event) => event.stopPropagation()}>
+            <div className="story-quiz__question-count">Найди в тексте · {task.questionIndex + 1} из {task.questionCount}</div>
+            <h2 id="story-quiz-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
+            <div className="story-quiz__hint">Нажми на нужное слово или фразу в рассказе.</div>
+          </section>
           <div className="reading-title story-quiz__title">{getTopicTitle(task.text?.title)}</div>
-          <ReadingTextBlock
+          <StoryQuizTargetText
             lines={task.text?.lines ?? []}
             textStyle={textStyle}
-            flow
+            target={task.question?.target ?? ""}
+            answered={answered}
+            onTarget={chooseTarget}
+            onMiss={markMiss}
           />
         </div>
         <div className="story-quiz__illustration">
           <ReadingIllustration topicId={topicId} text={task.text} />
         </div>
       </div>
-
-      <section className="story-quiz__question" aria-labelledby="story-quiz-question">
-        <div className="story-quiz__question-count">Вопрос {task.questionIndex + 1} из {task.questionCount}</div>
-        <h2 id="story-quiz-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
-        <div className="story-quiz__answers">
-          {answers.map((answer) => {
-            const state = chosenAnswerId === answer.id
-              ? (answer.isCorrect ? "correct" : "wrong")
-              : "";
-            return (
-              <button
-                key={answer.id}
-                type="button"
-                className={`story-quiz__answer${state ? ` story-quiz__answer--${state}` : ""}`}
-                onClick={() => chooseAnswer(answer)}
-                disabled={Boolean(chosenAnswerId)}
-              >
-                {answer.text}
-              </button>
-            );
-          })}
-        </div>
-      </section>
     </div>
   );
 }

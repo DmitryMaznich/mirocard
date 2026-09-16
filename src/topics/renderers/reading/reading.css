@@ -402,6 +402,136 @@
   }
 }
 
+/* Story text locator. The question belongs with the story copy, not in a
+   separate answer area: the child answers by finding evidence in the text. */
+.session-body.reading-body.story-quiz {
+  padding: clamp(12px, 2vw, 22px);
+  background: #fdfcf9;
+}
+
+.story-quiz__reading {
+  flex: 1 1 auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 30px);
+  padding: 0;
+}
+
+.story-quiz__story-copy {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 2px 4px 2px 2px;
+}
+
+.story-quiz__story-count {
+  flex: none;
+  margin: 0 0 8px;
+}
+
+.story-quiz__question {
+  flex: none;
+  min-height: 0;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: #e0f1ea;
+  box-shadow: 0 4px 0 rgba(57, 132, 111, 0.14);
+}
+
+.story-quiz__question-count {
+  margin-bottom: 3px;
+  color: #47796d;
+  font-size: 0.7rem;
+}
+
+.story-quiz__prompt {
+  margin: 0;
+  color: #1d5649;
+  font-size: clamp(0.96rem, 1.55vw, 1.2rem);
+  line-height: 1.24;
+}
+
+.story-quiz__hint {
+  margin-top: 5px;
+  color: #52786f;
+  font-size: clamp(0.73rem, 1.05vw, 0.84rem);
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.story-quiz__title {
+  flex: none;
+  margin: 0 0 8px;
+  font-size: clamp(1.12rem, 2vw, 1.58rem);
+}
+
+.story-quiz__text {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.story-quiz .story-quiz__text .reading-flow-text {
+  font-size: clamp(0.84rem, 1.5vw, 1.1rem);
+  line-height: 1.42;
+}
+
+.story-quiz .story-quiz__text .reading-flow-para {
+  margin-bottom: 0.58em;
+}
+
+.story-quiz__target {
+  display: inline;
+  margin: 0;
+  padding: 1px 2px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-quiz__target:not(:disabled):hover,
+.story-quiz__target:not(:disabled):focus-visible {
+  background: #e7f3ed;
+  outline: none;
+}
+
+.story-quiz__target--found,
+.story-quiz__target:disabled {
+  background: #bfe8d4;
+  box-shadow: inset 0 -2px 0 #4caa82;
+  color: #15573e;
+  cursor: default;
+  opacity: 1;
+}
+
+@media (orientation: portrait) {
+  .story-quiz__reading {
+    grid-template-columns: minmax(0, 1fr) minmax(112px, 0.8fr);
+    gap: 12px;
+  }
+
+  .story-quiz__question {
+    margin-bottom: 10px;
+    padding: 10px 11px;
+    border-radius: 14px;
+  }
+
+  .story-quiz__hint { display: none; }
+
+  .story-quiz .story-quiz__text .reading-flow-text {
+    font-size: clamp(0.74rem, 2.8vw, 0.98rem);
+    line-height: 1.3;
+  }
+}
+
 /* Small accent rule under the title, evoking a book's chapter head. */
 .reading-page .reading-title::after {
   content: "";
