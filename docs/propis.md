@@ -230,6 +230,50 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     bar and cards underneath rather than just visually appearing to, which a
     first glance at the screenshot can misread) and that closing restores
     the plain grid.
+- **Pre-letter элементы (докалиграфический уровень) — capture pipeline scaffolded
+  2026-09-16, no data captured yet.** User wants a beginner-level print set below
+  the existing letter worksheets, aimed at kids with РАС — isolated pre-writing
+  strokes (палочки, крючки, петли, овалы...) before real cursive letters, not
+  another calligraphy-school breakdown. Sourced a real, already-published 21-item
+  inventory from Н.С. Жукова's «Пропись 1» (стр. 5–11, part of her 3-part
+  «Прописи» set) rather than inventing a taxonomy — cropped each instructional
+  block out of the user-supplied PDF (`pdftoppm -r 300`, then per-page row-gap
+  detection in Python/PIL to find the 3 section boundaries each page reliably
+  has) into `01_pryamaya_liniya.png` … `20_kryuchok_s_petelkoy.png` (21 files,
+  `07a`/`07b` because Жукова gives "соединение крючков" as two difficulty passes
+  on the same page) plus one labeled contact sheet — sent to the user as capture
+  reference material, since (unlike letters) the capture tool has no font-backed
+  tracing guide for freeform elements.
+  - **Capture tool already supports this** — `handwriting_capture.html`'s
+    `typeSelect` has had an `"element"` option all along (`TYPE_COPY.element`,
+    same 300×150 3-slot canvas, same `{type, label, viewBox, strokes, meta}`
+    export shape as letters) — nobody had used it yet. No tool changes needed,
+    only a destination for its output.
+  - **`scripts/propis_ingest_elements.mjs`** (new) — the one-off ingestion script
+    this needed. Reads a capture-tool "Экспорт набора" JSON (the whole collection,
+    letters/elements/connectors mixed), keeps only `type==="element"`, validates
+    each `label` against a hardcoded 21-entry `REGISTRY` (id → labelRu/category/
+    sourcePage — typos get a warning + skip, not a silent bad write), and merges
+    into a new `tools/propis/elements.json` by `id` (idempotent re-run: same id
+    overwrites, doesn't duplicate). Reuses `pathGeometry.js`'s `samplePath`/
+    `transformPathD` directly (pure functions, no DOM dep, importable from a Node
+    script as-is) instead of reimplementing bbox/path math.
+  - **Normalization**: same x-origin quirk as letters (capture tool's 3-slot
+    canvas doesn't guarantee a fresh stroke starts at x=0) — script shifts every
+    stroke by `-minX + 4` (4-unit pad) and sets `viewBox` width to the element's
+    own actual bbox width + 8, height fixed at 150 (`VB_H`). Deliberately does
+    **not** force width to letters' fixed 100 units — some elements (заборчик,
+    цепочка овалов) are legitimately wider or narrower than a single letter
+    slot, and clamping would either clip or waste space.
+  - **Not yet decided**: where `elements.json` actually gets consumed (a new
+    propis mode? a standalone print set? categories are stored but no UI reads
+    them yet) — that's the next real decision once elements start landing,
+    not before.
+  - Verified the script itself end-to-end with a synthetic fake export (2 valid
+    elements + 1 deliberately-unknown label) before considering it done: correct
+    filtering, correct bbox-shift normalization (checked the numbers by hand),
+    correct idempotent re-run behavior, correct warn-and-skip on the typo case.
+    No real capture data exists yet — 0/21 captured as of this entry.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
