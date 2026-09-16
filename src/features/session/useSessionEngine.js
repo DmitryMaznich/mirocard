@@ -209,7 +209,6 @@ export function useSessionEngine() {
   const studentTopicLinks = useAppStore((s) => s.studentTopicLinks);
   const appendSession     = useAppStore((s) => s.appendSession);
   const activeSessionSnapshot = useAppStore((s) => s.activeSessionSnapshot);
-  const isStudentPortal = useAppStore((s) => s.isStudentPortal);
   const setActiveSessionSnapshot = useAppStore((s) => s.setActiveSessionSnapshot);
   const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance ?? true);
@@ -356,7 +355,7 @@ export function useSessionEngine() {
         activeDurationMs: Math.round(getActiveDurationMs()),
         elapsedDurationMs: Math.max(0, Date.now() - new Date(state.startedAt).getTime()),
         paramsSnapshot: sessionParams,
-        entryPoint: isStudentPortal ? "student_portal" : "therapist",
+        entryPoint: "therapist",
       }),
       reward: {
         videoEnabled: Boolean(rewardConfig.videoRewardEnabled),

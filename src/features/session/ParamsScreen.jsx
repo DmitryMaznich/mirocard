@@ -25,7 +25,6 @@ import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
 import { extractAdjustableTemplates, computeAdjustableDefault, formatCompact, stepPortionsMultiplier, formatPortionsPhrase } from "@/topics/renderers/reading/parseRecipeTxt.js";
 import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
 import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams";
-import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
 import { getFigureDifficultyRecommendation } from "@/features/session/figureDifficultyProgress";
@@ -1509,13 +1508,11 @@ export default function ParamsScreen() {
   const isGraphicDictation   = activeTopicId === "symmetry_draw" && mode?.type === "graphic_dictation";
   const modeHasCategoryParam  = !!mode?.params?.category;
 
-  const [showShare, setShowShare] = useState(false);
   const storyQuizStories = (topicRecord?.texts ?? [])
     .filter((text) => text.kind === "story")
     .map((text) => ({ id: text.id, title: getTopicTitle(text.title) }));
 
   if (isReadingInstruction) {
-    const earlyModeTitle = getTopicTitle(mode?.ui?.title) || mode?.id;
     return (
       <div className="screen">
         <div className="screen-header">
@@ -1527,7 +1524,6 @@ export default function ParamsScreen() {
             }}
           ><BackArrowIcon /></button>
           <h1 className="screen-title">{getTopicTitle(activeText.title)}</h1>
-          <button className="params-share-btn-header" onClick={() => setShowShare(true)}>↗ Ученику</button>
         </div>
         {activeText.kind === "instruction"
           ? <RecipeStartParams topicId={activeTopicId} activeText={activeText} student={student} />
@@ -1542,15 +1538,6 @@ export default function ParamsScreen() {
               fixedPortions={activeText.fixedPortions ?? null}
             />
         }
-        {showShare && (
-          <ShareWithStudentPanel
-            topicId={activeTopicId}
-            modeId={activeModeId}
-            textId={activeTextId}
-            modeTitle={earlyModeTitle}
-            onClose={() => setShowShare(false)}
-          />
-        )}
       </div>
     );
   }
@@ -2197,9 +2184,6 @@ export default function ParamsScreen() {
           )}
           <div className="params-info-start">
             <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>Начать занятие</Button>
-            <button className="params-share-btn" onClick={() => setShowShare(true)}>
-              ↗ Отправить ученику
-            </button>
           </div>
         </div>
 
@@ -2301,9 +2285,6 @@ export default function ParamsScreen() {
           {/* Start button — phone only, hidden on tablet via CSS */}
           <div className="params-start-phone">
             <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>Начать занятие</Button>
-            <button className="params-share-btn" onClick={() => setShowShare(true)}>
-              ↗ Отправить ученику
-            </button>
           </div>
         </div>
       </div>
@@ -2329,16 +2310,6 @@ export default function ParamsScreen() {
           onSuccess={launchSession}
           onSetPin={handleSetPin}
           onCancel={() => setShowPinGate(false)}
-        />
-      )}
-
-      {showShare && (
-        <ShareWithStudentPanel
-          topicId={activeTopicId}
-          modeId={activeModeId}
-          textId={isReading ? activeTextId : undefined}
-          modeTitle={modeTitle}
-          onClose={() => setShowShare(false)}
         />
       )}
     </div>

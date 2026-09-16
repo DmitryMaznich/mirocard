@@ -5,7 +5,6 @@ import * as ReactDOM from "react-dom";
 import * as jsxRuntime from "react/jsx-runtime";
 import "./styles.css";
 import App from "./App";
-import StudentApp from "./StudentApp";
 import { TimerProvider } from "./features/timer/TimerContext";
 import { LessonPlanProvider } from "./features/lessonPlan/LessonPlanContext";
 import {
@@ -69,59 +68,6 @@ function bootMainApp() {
 
   markIosStandalone();
 
-  // ── Student portal entry ──────────────────────────────────────────────────
-  // In standalone/PWA mode use localStorage so the token survives app restarts.
-  // In regular browser use sessionStorage so closing the tab clears it — this
-  // lets the logopedist test a link without getting locked out of their own app.
-  const _isStandalone =
-    navigator.standalone === true ||
-    window.matchMedia?.("(display-mode: standalone)")?.matches ||
-    window.matchMedia?.("(display-mode: fullscreen)")?.matches;
-  const _portalStorage = _isStandalone ? localStorage : sessionStorage;
-
-  const _urlPortalMatch = window.location.pathname.match(/^\/s\/([A-Za-z0-9_-]+)$/);
-  if (_urlPortalMatch) {
-    _portalStorage.setItem("student_portal_token", _urlPortalMatch[1]);
-    // Clean up any stale token in the other storage to avoid surprises.
-    (_isStandalone ? sessionStorage : localStorage).removeItem("student_portal_token");
-    // When the link is opened in a regular browser, save a short-lived handoff
-    // entry so an already-installed PWA can pick up the token on next launch.
-    if (!_isStandalone) {
-      try {
-        localStorage.setItem("student_portal_handoff", JSON.stringify({
-          token: _urlPortalMatch[1],
-          exp: Date.now() + 30 * 60 * 1000, // 30-minute window
-        }));
-      } catch {}
-      // Keep /s/TOKEN visible in the address bar so Chrome on Android can
-      // recognise the PWA scope and offer "Open in app". The landing page
-      // calls history.replaceState("/") once the user chooses an action.
-    } else {
-      history.replaceState(null, "", "/");
-    }
-  }
-  // Migration: tokens written by the old code always went to localStorage.
-  // In non-standalone (browser tab) mode, remove them — the user can reopen
-  // the /s/TOKEN link if needed. This immediately frees the logopedist who
-  // tested a link and got stuck in student mode.
-  if (!_isStandalone) {
-    localStorage.removeItem("student_portal_token");
-  }
-
-  // In standalone/PWA mode, consume any handoff token left by the browser.
-  if (_isStandalone && !_urlPortalMatch) {
-    try {
-      const _handoff = JSON.parse(localStorage.getItem("student_portal_handoff") || "null");
-      if (_handoff?.token && Date.now() < (_handoff.exp ?? 0)) {
-        localStorage.setItem("student_portal_token", _handoff.token);
-      }
-      localStorage.removeItem("student_portal_handoff");
-    } catch {}
-  }
-
-  const _portalToken = _portalStorage.getItem("student_portal_token");
-  // ─────────────────────────────────────────────────────────────────────────────
-
   if ("serviceWorker" in navigator) {
     let refreshing = false;
 
@@ -172,9 +118,7 @@ function bootMainApp() {
   createRoot(document.getElementById("root")).render(
     <StrictMode>
       <TimerProvider>
-        {_portalToken
-          ? <StudentApp token={_portalToken} isStandalone={_isStandalone} fromLink={Boolean(_urlPortalMatch) && !_isStandalone} />
-          : <LessonPlanProvider><App /></LessonPlanProvider>}
+        <LessonPlanProvider><App /></LessonPlanProvider>
       </TimerProvider>
     </StrictMode>
   );

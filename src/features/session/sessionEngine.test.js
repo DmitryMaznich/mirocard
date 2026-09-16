@@ -329,11 +329,11 @@ describe("computeSessionRecord", () => {
       activeDurationMs: 42_000,
       elapsedDurationMs: 57_000,
       paramsSnapshot: { level: 2, distractors: 3 },
-      entryPoint: "student_portal",
+      entryPoint: "lesson_plan",
     });
     expect(rec.activeDurationMs).toBe(42_000);
     expect(rec.elapsedDurationMs).toBe(57_000);
     expect(rec.paramsSnapshot).toEqual({ level: 2, distractors: 3 });
-    expect(rec.entryPoint).toBe("student_portal");
+    expect(rec.entryPoint).toBe("lesson_plan");
   });
 });

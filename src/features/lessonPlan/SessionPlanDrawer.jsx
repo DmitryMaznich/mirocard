@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useLessonPlan } from "./LessonPlanContext";
-import { computeDefaultParams } from "@/StudentApp";
+import { computeDefaultParams } from "@/features/session/computeDefaultParams";
 import SessionPlanBuilderSheet from "./SessionPlanBuilderSheet";
 import "./lessonPlan.css";
 
@@ -12,7 +12,6 @@ export default function SessionPlanDrawer({
   onOpenModeSettings,
   soundEnabled,
   onToggleSound,
-  isStudentPortal,
   adultConfirmAdvance,
   lockHoldProgress,
   lockFlash,
@@ -185,31 +184,29 @@ export default function SessionPlanDrawer({
                 </button>
               </div>
 
-              {!isStudentPortal && (
-                <div className="session-plan-settings-row">
-                  <span className="session-plan-settings-row__label">Переход с подтверждением</span>
-                  <button
-                    type="button"
-                    className="session-lock-btn"
-                    style={{ "--lock-p": lockHoldProgress }}
-                    onPointerDown={onLockPointerDown}
-                    onPointerUp={onLockPointerUp}
-                    onPointerLeave={onLockPointerUp}
-                    onPointerCancel={onLockPointerUp}
-                    onContextMenu={(e) => e.preventDefault()}
-                    aria-label={adultConfirmAdvance ? "Снять блокировку (удержать)" : "Включить блокировку (удержать)"}
-                  >
-                    <span className="session-lock-btn__icon">
-                      {adultConfirmAdvance ? "🔒" : "🔓"}
+              <div className="session-plan-settings-row">
+                <span className="session-plan-settings-row__label">Переход с подтверждением</span>
+                <button
+                  type="button"
+                  className="session-lock-btn"
+                  style={{ "--lock-p": lockHoldProgress }}
+                  onPointerDown={onLockPointerDown}
+                  onPointerUp={onLockPointerUp}
+                  onPointerLeave={onLockPointerUp}
+                  onPointerCancel={onLockPointerUp}
+                  onContextMenu={(e) => e.preventDefault()}
+                  aria-label={adultConfirmAdvance ? "Снять блокировку (удержать)" : "Включить блокировку (удержать)"}
+                >
+                  <span className="session-lock-btn__icon">
+                    {adultConfirmAdvance ? "🔒" : "🔓"}
+                  </span>
+                  {lockFlash && (
+                    <span className={`session-lock-flash session-lock-flash--${lockFlash}`}>
+                      {lockFlash === "locked" ? "Блок." : "Снято"}
                     </span>
-                    {lockFlash && (
-                      <span className={`session-lock-flash session-lock-flash--${lockFlash}`}>
-                        {lockFlash === "locked" ? "Блок." : "Снято"}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              )}
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>

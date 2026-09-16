@@ -40,14 +40,6 @@ import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
-  createStudentPortal,
-  findPortalByTokenHash,
-  listStudentPortals,
-  revokeStudentPortal,
-  updatePortalLastUsed,
-  setPortalActiveTask,
-} from "./lib/student-portal.mjs";
-import {
   createPendingSubscription, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
   createPromoCode, listPromoCodes,
@@ -136,16 +128,6 @@ function checkResendLimit(email) {
 function requireDeployToken(req) {
   const token = getBearerToken(req);
   if (token !== DEPLOY_TOKEN) throw { status: 403, message: "Invalid deploy token" };
-}
-
-function requireStudentPortal(req) {
-  const raw = getBearerToken(req);
-  if (!raw) throw { status: 401, message: "Missing portal token" };
-  const tokenHash = hashToken(raw);
-  const portal = findPortalByTokenHash(db, tokenHash);
-  if (!portal) throw { status: 401, message: "Invalid or revoked portal link" };
-  updatePortalLastUsed(db, tokenHash);
-  return portal;
 }
 
 function sanitizeEmail(email) {
@@ -1136,105 +1118,6 @@ async function handleDeleteAudioOverride(req, res) {
   writeJson(res, 200, { ok: true });
 }
 
-// ─── Student portal handlers ──────────────────────────────────────────────────
-
-async function handleStudentMe(req, res) {
-  const portal = requireStudentPortal(req);
-  const students = getStudents(db, portal.account_id);
-  const student = students.find((s) => s.id === portal.student_id && !s.deleted_at);
-  if (!student) throw { status: 404, message: "Student not found" };
-
-  const allLinks = getStudentTopicLinks(db, portal.account_id);
-  const studentLinks = allLinks.filter((l) => l.student_id === portal.student_id && !l.deleted_at);
-
-  const assignedTopics = studentLinks.map((l) => ({
-    topicId: l.topic_id,
-    selectionMode: l.selection_mode,
-    selectedConceptIds: safeJson(l.selected_concept_ids, []),
-    repsPerConcept: l.reps_per_concept,
-  }));
-
-  const activeTask = portal.active_topic_id
-    ? {
-        topicId:  portal.active_topic_id,
-        modeId:   portal.active_mode_id ?? null,
-        textId:   portal.active_text_id ?? null,
-        planData: portal.active_plan_data ? JSON.parse(portal.active_plan_data) : null,
-      }
-    : null;
-
-  return writeJson(res, 200, {
-    student: { id: student.id, name: student.name },
-    activeTask,
-    assignedTopics,
-  });
-}
-
-async function handleStudentSession(req, res) {
-  const portal = requireStudentPortal(req);
-  const body = await readJsonBody(req);
-  appendSession(db, portal.account_id, {
-    id: body.id,
-    studentId: portal.student_id,
-    topicId: body.topicId,
-    topicVersion: body.topicVersion ?? "unknown",
-    mode: body.mode,
-    startedAt: body.startedAt,
-    completedAt: body.completedAt,
-    correctCount: body.correctCount ?? 0,
-    incorrectCount: body.incorrectCount ?? 0,
-    percentCorrect: body.percentCorrect ?? 0,
-    mistakes: body.mistakes ?? [],
-    cardEvents: body.cardEvents ?? [],
-  });
-  return writeNoContent(res);
-}
-
-async function handleCreatePortal(req, res, studentId) {
-  const account = requireAuth(req);
-  const body = await readJsonBody(req);
-  const raw = randomUUID();
-  const tokenHash = hashToken(raw);
-  const label    = typeof body.label   === "string" ? body.label.trim()   || null : null;
-  const topicId  = typeof body.topicId === "string" ? body.topicId.trim() || null : null;
-  const modeId   = typeof body.modeId  === "string" ? body.modeId.trim()  || null : null;
-  const textId   = typeof body.textId  === "string" ? body.textId.trim()  || null : null;
-  const planData = body.planData && typeof body.planData === "object" ? JSON.stringify(body.planData) : null;
-  const portalId = createStudentPortal(db, { accountId: account.id, studentId, tokenHash, label, topicId, modeId, textId, planData });
-  const origin = req.headers.origin ?? req.headers.host ?? "";
-  const url = origin ? `${origin}/s/${raw}` : `/s/${raw}`;
-  return writeJson(res, 201, { portalId, url, token: raw });
-}
-
-async function handleListPortals(req, res, studentId) {
-  const account = requireAuth(req);
-  const portals = listStudentPortals(db, { accountId: account.id, studentId });
-  return writeJson(res, 200, { portals });
-}
-
-async function handleRevokePortal(req, res, studentId, portalId) {
-  const account = requireAuth(req);
-  revokeStudentPortal(db, { id: portalId, accountId: account.id });
-  return writeNoContent(res);
-}
-
-async function handleSetActiveTask(req, res, studentId) {
-  const account = requireAuth(req);
-  const body = await readJsonBody(req);
-  const planData = 'planData' in body
-    ? (body.planData != null ? JSON.stringify(body.planData) : null)
-    : undefined;
-  setPortalActiveTask(db, {
-    accountId: account.id,
-    studentId,
-    topicId: body.topicId ?? null,
-    modeId:  body.modeId  ?? null,
-    textId:  typeof body.textId === "string" ? body.textId || null : null,
-    planData,
-  });
-  return writeNoContent(res);
-}
-
 // ─── Static SPA (Railway only — Caddy handles this on the primary host) ───────
 
 const STATIC_CONTENT_TYPES = {
@@ -1389,25 +1272,6 @@ async function router(req, res) {
 
     // Version
     if (method === "GET"    && p === "/version")                  return await handleVersion(req, res);
-
-    // Student portal (student auth)
-    if (method === "GET"    && p === "/student/me")               return await handleStudentMe(req, res);
-    if (method === "POST"   && p === "/student/session")          return await handleStudentSession(req, res);
-
-    // Student portal management (therapist auth)
-    {
-      const m1 = p.match(/^\/students\/([^/]+)\/portal$/);
-      if (method === "POST"   && m1) return await handleCreatePortal(req, res, m1[1]);
-
-      const m2 = p.match(/^\/students\/([^/]+)\/portals$/);
-      if (method === "GET"    && m2) return await handleListPortals(req, res, m2[1]);
-
-      const m3 = p.match(/^\/students\/([^/]+)\/portal\/([^/]+)$/);
-      if (method === "DELETE" && m3) return await handleRevokePortal(req, res, m3[1], m3[2]);
-
-      const m4 = p.match(/^\/students\/([^/]+)\/active-task$/);
-      if (method === "PATCH"  && m4) return await handleSetActiveTask(req, res, m4[1]);
-    }
 
     if (!url.pathname.startsWith("/api/") && trySpaFallback(req, res, url.pathname)) return;
 

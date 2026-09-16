@@ -51,9 +51,7 @@ export default function SessionScreen() {
   const openSessionExitPrompt = useAppStore((s) => s.openSessionExitPrompt);
   const students              = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
-  const isStudentPortal          = useAppStore((s) => s.isStudentPortal);
-  const adultConfirmAdvanceSaved = useAppStore((s) => s.settings.adultConfirmAdvance) ?? true;
-  const adultConfirmAdvance      = isStudentPortal ? false : adultConfirmAdvanceSaved;
+  const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance) ?? true;
   const settings        = useAppStore((s) => s.settings);
   const patchSettings   = useAppStore((s) => s.patchSettings);
   const activeStudent   = students.find((s) => s.id === activeStudentId) ?? null;
@@ -367,7 +365,6 @@ export default function SessionScreen() {
           onOpenModeSettings={handleOpenModeSettings}
           soundEnabled={soundEnabled}
           onToggleSound={toggleSound}
-          isStudentPortal={isStudentPortal}
           adultConfirmAdvance={adultConfirmAdvance}
           lockHoldProgress={lockHoldProgress}
           lockFlash={lockFlash}

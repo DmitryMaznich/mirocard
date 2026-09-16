@@ -52,9 +52,6 @@ export const useAppStore = create((set) => ({
   setActiveSessionSnapshot: (activeSessionSnapshot) => set({ activeSessionSnapshot }),
   clearActiveSessionSnapshot: () => set({ activeSessionSnapshot: null }),
 
-  // ─── Student portal mode ───────────────────────────────────────────────────
-  isStudentPortal: false,
-
   // ─── Email verification ────────────────────────────────────────────────────
   pendingVerificationEmail: null,
   setPendingVerificationEmail: (email) => set({ pendingVerificationEmail: email }),

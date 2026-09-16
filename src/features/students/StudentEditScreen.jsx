@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
-import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -113,7 +112,6 @@ export default function StudentEditScreen() {
   const setStudents         = useAppStore((s) => s.setStudents);
   const editingStudentId    = useAppStore((s) => s.editingStudentId);
   const studentTopicLinks   = useAppStore((s) => s.studentTopicLinks);
-  const topicRecords        = useAppStore((s) => s.topicRecords);
   const studentEditReturnScreen    = useAppStore((s) => s.studentEditReturnScreen);
   const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
 
@@ -143,75 +141,11 @@ export default function StudentEditScreen() {
   const [healthDataConsent, setHealthDataConsent] = useState(initial?.healthDataConsent ?? false);
   const [healthConsentError, setHealthConsentError] = useState("");
 
-  // Portal management
-  const [portals,         setPortals]         = useState(null);
-  const [portalsLoading,  setPortalsLoading]  = useState(false);
-  const [newPortalLabel,  setNewPortalLabel]  = useState("");
-  const [newPortalTopic,  setNewPortalTopic]  = useState("");
-  const [newPortalMode,   setNewPortalMode]   = useState("");
-  const [portalUrlMap,    setPortalUrlMap]    = useState({});   // { [portalId]: url }
-  const [confirmRevokeId, setConfirmRevokeId] = useState(null);
-  const [activeTaskLocal, setActiveTaskLocal] = useState(null);
-
   const studentPhotoRef = useRef(null);
 
   function goBack() {
     setScreen(studentEditReturnScreen ?? "students");
     setStudentEditReturnScreen(null);
-  }
-
-  async function loadPortals() {
-    if (!isEdit || portalsLoading) return;
-    setPortalsLoading(true);
-    try {
-      const data = await api.get(`/students/${initial.id}/portals`);
-      setPortals(data.portals);
-    } catch {
-      setPortals([]);
-    } finally {
-      setPortalsLoading(false);
-    }
-  }
-
-  async function handleCreatePortal() {
-    if (!newPortalTopic || !newPortalMode) return;
-    try {
-      const data = await api.post(`/students/${initial.id}/portal`, {
-        label:   newPortalLabel || null,
-        topicId: newPortalTopic,
-        modeId:  newPortalMode,
-      });
-      setPortalUrlMap((prev) => ({ ...prev, [data.portalId]: data.url }));
-      setNewPortalLabel("");
-      setNewPortalTopic("");
-      setNewPortalMode("");
-      loadPortals();
-    } catch { /* show nothing — portal section stays visible */ }
-  }
-
-  function shareOrCopy(url) {
-    if (navigator.share) {
-      navigator.share({ title: "Ссылка для ученика", url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).catch(() => {});
-    }
-  }
-
-  async function handleRevokePortal(portalId) {
-    try {
-      await api.delete(`/students/${initial.id}/portal/${portalId}`);
-    } catch { /* best effort */ }
-    setConfirmRevokeId(null);
-    loadPortals();
-  }
-
-  async function handleSetActiveTask(topicId) {
-    const isSame = activeTaskLocal?.topicId === topicId;
-    const next = isSame ? null : { topicId, modeId: null };
-    try {
-      await api.patch(`/students/${initial.id}/active-task`, next ?? { topicId: null, modeId: null });
-      setActiveTaskLocal(next);
-    } catch { /* ignore */ }
   }
 
   async function handleStudentPhoto(e) {
@@ -481,72 +415,6 @@ export default function StudentEditScreen() {
 
        </div>{/* /se-col right */}
       </div>{/* /se-body */}
-
-      {/* ── Активные ссылки ученика ── */}
-      {isEdit && (
-        <div className="settings-section" style={{ margin: "0 16px 8px" }}>
-          <div className="settings-section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            Активные ссылки
-            {portals === null && (
-              <button type="button" className="se-add-row" style={{ fontSize: 12 }} onClick={loadPortals}>
-                Показать
-              </button>
-            )}
-          </div>
-
-          {portals !== null && (
-            <>
-              {portalsLoading && (
-                <div style={{ color: "#9ca3af", fontSize: 13, padding: "6px 0" }}>Загрузка…</div>
-              )}
-
-              {portals.map((portal) => {
-                const topicRec = portal.active_topic_id
-                  ? topicRecords.find((r) => r.meta?.id === portal.active_topic_id)
-                  : null;
-                const topicTitle = topicRec
-                  ? (topicRec.meta?.title?.ru ?? topicRec.meta?.title ?? portal.active_topic_id)
-                  : portal.active_topic_id ?? "—";
-                const modeRec = topicRec && portal.active_mode_id
-                  ? topicRec.modes?.find((m) => m.id === portal.active_mode_id)
-                  : null;
-                const modeTitle = modeRec
-                  ? (modeRec.ui?.title?.ru ?? modeRec.ui?.title ?? portal.active_mode_id)
-                  : portal.active_mode_id ?? "—";
-                return (
-                  <div key={portal.id} className="se-list-row" style={{ borderBottom: "1px solid #f3f4f6", paddingBottom: 6 }}>
-                    <span className="se-list-name">
-                      <span style={{ fontWeight: 600 }}>{topicTitle}</span>
-                      {portal.active_mode_id && (
-                        <span style={{ color: "#6b7280" }}> · {modeTitle}</span>
-                      )}
-                      {portal.last_used_at && (
-                        <span style={{ marginLeft: 6, fontSize: 11, color: "#9ca3af" }}>
-                          · {new Date(portal.last_used_at).toLocaleDateString("ru")}
-                        </span>
-                      )}
-                    </span>
-                    {confirmRevokeId === portal.id ? (
-                      <>
-                        <button className="se-list-remove" style={{ color: "#dc2626" }} onClick={() => handleRevokePortal(portal.id)}>✓</button>
-                        <button className="se-list-remove" onClick={() => setConfirmRevokeId(null)}>✕</button>
-                      </>
-                    ) : (
-                      <button className="se-list-remove" onClick={() => setConfirmRevokeId(portal.id)}>Отозвать</button>
-                    )}
-                  </div>
-                );
-              })}
-
-              {portals.length === 0 && !portalsLoading && (
-                <div style={{ color: "#9ca3af", fontSize: 13, padding: "4px 0" }}>
-                  Нет активных ссылок. Создайте ссылку из режима темы (↗ Отправить ученику).
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
 
       {/* ── Удаление — мелко, внизу ── */}
       {isEdit && (
