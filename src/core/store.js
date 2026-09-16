@@ -100,6 +100,13 @@ export const useAppStore = create((set) => ({
   // ─── Students ──────────────────────────────────────────────────────────────
   editingStudentId: null,
   setEditingStudentId: (id) => set({ editingStudentId: id }),
+  // Where StudentEditScreen's "Сохранить"/back should return to, for the
+  // one call site that opens it directly instead of from the students list
+  // (Home's "add your first student" empty state). Read once, then cleared
+  // — mirrors sessionReturnScreen's pattern. Null means "use the usual
+  // students-list destination".
+  studentEditReturnScreen: null,
+  setStudentEditReturnScreen: (studentEditReturnScreen) => set({ studentEditReturnScreen }),
 
   students: [],
   setStudents: (students) => set({ students }),

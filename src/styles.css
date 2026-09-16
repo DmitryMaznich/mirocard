@@ -14209,6 +14209,30 @@ kbd {
   padding: 14px 0 24px;
 }
 
+.home-tab-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.home-tab-empty__title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #263131;
+  margin: 0;
+}
+
+.home-tab-empty__hint {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #6b7a77;
+  margin: 0 0 4px;
+  max-width: 280px;
+}
+
 /* ── Header ──────────────────────────────────────────────────────── */
 /* Reads as a page title ("Занятие · <ученик>"), not a personal greeting —
    flat teal, no blur, no gradient: cheap on old hardware, and doesn't

@@ -207,22 +207,36 @@ function JourneyStep({ state, number, label, value, onClick, avatar, spotlight }
   );
 }
 
+// ─── Add-first-student empty state ────────────────────────────────────────────
+// The only reason either tab's "no student" branch is reached at all is a
+// brand-new account (see stepState math in HomeScreen: student always falls
+// back to students[0], so this can't fire with a non-empty list). Explains
+// what a "student" is and skips straight to creating one — no dead-end
+// "Ученики" list screen with nothing in it yet.
+
+function AddFirstStudentPanel({ onAdd }) {
+  return (
+    <div className="home-tab-empty">
+      <p className="home-tab-empty__title">Добавим первого ученика</p>
+      <p className="home-tab-empty__hint">
+        Ученик — тот, с кем вы будете заниматься. Достаточно имени, чтобы начать.
+      </p>
+      <Button onClick={onAdd}>Добавить ученика</Button>
+    </div>
+  );
+}
+
 // ─── Session tab ──────────────────────────────────────────────────────────────
 
 function SessionTab({
   student, topic, activeText, mode,
   isReading, isShortStories, isChatPractice,
   s2, s3, topicLabel, readingStepValue, modeTitle,
-  canStart, startOrContinue, setScreen,
-  spotlight, onTopicStepClick, onModeStepClick,
+  canStart, startOrContinue,
+  spotlight, onTopicStepClick, onModeStepClick, onAddFirstStudent,
 }) {
   if (!student) {
-    return (
-      <div className="home-tab-empty">
-        <p>Ученик не выбран</p>
-        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
-      </div>
-    );
+    return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
   }
 
   return (
@@ -382,7 +396,7 @@ function CycleHistorySheet({ studentId, history, onClose }) {
   );
 }
 
-function PlannerTab({ student, setScreen }) {
+function PlannerTab({ student, setScreen, onAddFirstStudent }) {
   const topicRecords = useAppStore((s) => s.topicRecords);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
   const setActiveText = useAppStore((s) => s.setActiveText);
@@ -432,12 +446,7 @@ function PlannerTab({ student, setScreen }) {
   }, [student?.id]);
 
   if (!student) {
-    return (
-      <div className="home-tab-empty">
-        <p>Ученик не выбран</p>
-        <Button onClick={() => setScreen("students")}>Выбрать ученика</Button>
-      </div>
-    );
+    return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
   }
 
   if (existingPlan === undefined) {
@@ -709,6 +718,8 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
 
 export default function HomeScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
+  const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
+  const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
   const account = useAppStore((s) => s.account);
   const students = useAppStore((s) => s.students);
   const topicRecords = useAppStore((s) => s.topicRecords);
@@ -881,6 +892,15 @@ export default function HomeScreen() {
     setHomeActiveTab(tab);
   }
 
+  // Skips the (otherwise-empty) students list screen entirely for an
+  // account with zero students — goes straight to the create form and
+  // comes straight back to Home, landing on the topic/mode journey steps.
+  function handleAddFirstStudent() {
+    setEditingStudentId(null);
+    setStudentEditReturnScreen("home");
+    setScreen("student_edit");
+  }
+
   function startOrContinue() {
     if (isChatPractice) { setScreen(topic?.modes?.length > 0 ? "modes" : "chat_params"); return; }
     if (!isReading) { setScreen("params"); return; }
@@ -937,10 +957,11 @@ export default function HomeScreen() {
           ) : activeTab === 'lesson_plan' && hasLessonPlanAccess ? (
             <LessonPlanTab student={student} setScreen={setScreen} />
           ) : activeTab === 'planner' && hasPlannerAccess ? (
-            <PlannerTab student={student} setScreen={setScreen} />
+            <PlannerTab student={student} setScreen={setScreen} onAddFirstStudent={handleAddFirstStudent} />
           ) : (
             <SessionTab
               student={student}
+              onAddFirstStudent={handleAddFirstStudent}
               topic={topic}
               activeText={activeText}
               mode={mode}
@@ -954,7 +975,6 @@ export default function HomeScreen() {
               modeTitle={modeTitle}
               canStart={canStart}
               startOrContinue={startOrContinue}
-              setScreen={setScreen}
               spotlight={onboardingSpotlight}
               onTopicStepClick={handleTopicStepClick}
               onModeStepClick={handleModeStepClick}

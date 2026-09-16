@@ -114,9 +114,12 @@ export default function StudentEditScreen() {
   const editingStudentId    = useAppStore((s) => s.editingStudentId);
   const studentTopicLinks   = useAppStore((s) => s.studentTopicLinks);
   const topicRecords        = useAppStore((s) => s.topicRecords);
+  const studentEditReturnScreen    = useAppStore((s) => s.studentEditReturnScreen);
+  const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
 
   const initial = editingStudentId ? (students.find((s) => s.id === editingStudentId) ?? null) : null;
   const isEdit  = !!initial;
+  const isFirstEver = !isEdit && students.length === 0;
 
   const [name,         setName]         = useState(initial?.name ?? "");
   const [comment,      setComment]      = useState(initial?.comment ?? "");
@@ -146,7 +149,10 @@ export default function StudentEditScreen() {
 
   const studentPhotoRef = useRef(null);
 
-  function goBack() { setScreen("students"); }
+  function goBack() {
+    setScreen(studentEditReturnScreen ?? "students");
+    setStudentEditReturnScreen(null);
+  }
 
   async function loadPortals() {
     if (!isEdit || portalsLoading) return;
@@ -298,7 +304,7 @@ export default function StudentEditScreen() {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={goBack}><BackArrowIcon /></button>
-        <h1 className="screen-title">{isEdit ? initial.name : "Новый ученик"}</h1>
+        <h1 className="screen-title">{isEdit ? initial.name : isFirstEver ? "Первый ученик" : "Новый ученик"}</h1>
         <button className="se-save-btn" onClick={handleSave} disabled={saving}>
           {saving ? "…" : "Сохранить"}
         </button>
